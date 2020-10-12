@@ -18,6 +18,8 @@ import {
   COMMON_QUERIES
 } from './constants';
 
+const DEFAULT_PAGE_SIZE = 100;
+
 export var dataInterface;
 (function(){
   var $ajax = (o)=> {
@@ -103,7 +105,7 @@ export var dataInterface;
         dataType: 'json',
         data: {
           q: q,
-          limit: params.pageSize || 100,
+          limit: params.pageSize || DEFAULT_PAGE_SIZE,
           page: params.page || 0
         },
         method: 'GET'
@@ -311,7 +313,8 @@ export var dataInterface;
       if (params.url) {
         return $.getJSON(params.url);
       } else {
-        return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/`);
+        // limit is for collections children
+        return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/?limit=${DEFAULT_PAGE_SIZE}`);
       }
     },
     /**
@@ -364,7 +367,7 @@ export var dataInterface;
     _searchAssetsWithPredefinedQuery(params, predefinedQuery) {
       const searchData = {
         q: predefinedQuery,
-        limit: params.pageSize || 100,
+        limit: params.pageSize || DEFAULT_PAGE_SIZE,
         offset: params.page * params.pageSize || 0
       };
 
@@ -398,7 +401,7 @@ export var dataInterface;
     _searchMetadataWithPredefinedQuery(params, predefinedQuery) {
       const searchData = {
         q: predefinedQuery,
-        limit: params.pageSize || 100,
+        limit: params.pageSize || DEFAULT_PAGE_SIZE,
         offset: params.page * params.pageSize || 0
       };
 
@@ -530,7 +533,7 @@ export var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${ROOT_URL}/${assetType}/${id}/`);
     },
-    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='') {
+    getSubmissions(uid, pageSize=DEFAULT_PAGE_SIZE, page=0, sort=[], fields=[], filter='') {
       const query = `limit=${pageSize}&start=${page}`;
       var s = '&sort={"_id":-1}'; // default sort
       var f = '';
