@@ -6,7 +6,7 @@ import autoBind from 'react-autobind';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
 import {t} from 'js/utils';
-import searchBoxStore from './searchBoxStore';
+import {searchBoxStore} from './searchBoxStore';
 import {KEY_CODES} from 'js/constants';
 
 /**

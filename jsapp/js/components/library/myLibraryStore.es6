@@ -1,7 +1,10 @@
 import _ from 'underscore';
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
-import searchBoxStore from '../header/searchBoxStore';
+import {
+  SEARCH_CONTEXTS,
+  searchBoxStore
+} from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {isOnLibraryRoute} from './libraryUtils';
 import {actions} from 'js/actions';
@@ -136,11 +139,13 @@ const myLibraryStore = Reflux.createStore({
   },
 
   searchBoxStoreChanged() {
-    // reset to first page when search changes
-    this.data.currentPage = 0;
-    this.data.totalPages = null;
-    this.data.totalSearchAssets = null;
-    this.fetchData(true);
+    if (searchBoxStore.getContext() === SEARCH_CONTEXTS.get('my-library')) {
+      // reset to first page when search changes
+      this.data.currentPage = 0;
+      this.data.totalPages = null;
+      this.data.totalSearchAssets = null;
+      this.fetchData(true);
+    }
   },
 
   onSearchStarted(abort) {
