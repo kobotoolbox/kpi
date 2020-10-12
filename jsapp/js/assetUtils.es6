@@ -426,31 +426,28 @@ export function getFlatQuestionsList(survey) {
 }
 
 /**
- * Validates asset data to see if ready to be made public
+ * Validates asset data to see if ready to be made public.
+ * NOTE: currently we assume the asset type is `collection`.
  *
- * @param {string} name
- * @param {string} organization
- * @param {string} sector
+ * @param {object} asset
  *
- * @returns {boolean|Object} true for valid asset and object with errors for invalid one.
+ * @returns {string[]} array of errors (empty array means no errors)
  */
-export function isAssetPublicReady(name, organization, sector) {
-  const errors = {};
-  if (!name) {
-    errors.name = t('Name is required to make asset public.');
-  }
-  if (!organization) {
-    errors.organization = t('Organization is required to make asset public.');
-  }
-  if (!sector) {
-    errors.sector = t('Sector is required to make asset public.');
+export function isAssetPublicReady(asset) {
+  const errors = [];
+
+  if (asset.asset_type === ASSET_TYPES.collection.id) {
+    if (!asset.name || !asset.settings.organization || !asset.settings.sector) {
+      errors.push(t('Name, organization and sector are required to make collection public.'));
+    }
+    if (asset.children.count === 0) {
+      errors.push(t('Empty collection is not allowed to be made public.'));
+    }
+  } else {
+    errors.push(t('Only collections are allowed to be made public!'));
   }
 
-  if (Object.keys(errors).length >= 1) {
-    return errors;
-  } else {
-    return true;
-  }
+  return errors;
 }
 
 /**
