@@ -197,7 +197,7 @@ class UtilsTestCase(TestCase):
         expected_q = (
             Q(summary__icontains='foo') | Q(name__icontains='foo') |
             Q(uid__icontains='foo') | Q(owner__username__icontains='foo') |
-            Q(tags__name__icontains='foo') | 
+            Q(tags__name__icontains='foo') |
             Q(settings__description__icontains='foo')
         )
         self.assertEqual(repr(expected_q), repr(parse(query_string)))

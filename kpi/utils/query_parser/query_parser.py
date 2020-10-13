@@ -35,9 +35,9 @@ Syntax examples:
 Special notes:
     * If no field is specified in the query,
         `SEARCH_DEFAULT_FIELD_LOOKUPS` is assumed. For example, if that
-        constant is a list containing `summary__icontains` and `name__icontains`, 
-        then the query `term` returns any object whose `summary` or `name` field 
-        contains `term` (case insensitive)
+        constant is a list containing `summary__icontains` and
+        `name__icontains`, then the query `term` returns any object
+        whose `summary` or `name` field contains `term` (case insensitive)
     * The value `null` in a query is translated to `None`, e.g. `parent:null`
         effectively becomes the ORM `filter(parent=None)`
 """
@@ -130,13 +130,16 @@ class QueryParseActions(object):
             # A search term by itself without a specified field
             value = elements[1]
             # the field value is not used in `process_value()`
-            return cls.process_value('', value)
+            return cls.process_value(field, value)
 
         if elements[0].text == '':
             value = _get_value('', elements)
-            # A list of `Q` objects where every value is the same searched value
-            q_list = [Q(**{field: value}) for field in SEARCH_DEFAULT_FIELD_LOOKUPS]
-            # combining all the `Q` objects with an `or` operator and 
+            # A list of `Q` objects where every value is the same
+            # searched value
+            q_list = [
+                Q(**{field: value}) for field in SEARCH_DEFAULT_FIELD_LOOKUPS
+            ]
+            # combining all the `Q` objects with an `or` operator and
             # returning the result
             return reduce(operator.or_, q_list)
         else:
