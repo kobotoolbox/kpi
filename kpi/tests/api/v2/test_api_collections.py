@@ -12,7 +12,7 @@ from kpi.constants import (
     PERM_DISCOVER_ASSET,
     PERM_VIEW_ASSET,
 )
-from kpi.models import Asset
+from kpi.models import Asset, UserAssetSubscription
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -269,3 +269,99 @@ class CollectionsTests(BaseTestCase):
             expected_collection = expected[collection.get('name')]
             assert expected_collection['status'] == collection['status']
             assert expected_collection['access_type'] == collection['access_type']
+
+    def test_collection_subscribe(self):
+        public_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            name='public collection',
+            owner=self.someuser,
+        )
+        public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
+
+        self.login_as_other_user(username="anotheruser", password="anotheruser")
+
+        asset_list_url = reverse(self._get_endpoint('asset-list'))
+        coll_list_url = f'{asset_list_url}?q=asset_type:collection'
+        sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))
+        pub_coll_url = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid': public_collection.uid},
+        )
+
+        # should not see any collections yet
+        response = self.client.get(coll_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 0)
+
+        # let's subscribe to the collection
+        data = {'asset': pub_coll_url}
+        response = self.client.post(sub_list_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(response.data['asset'].endswith(pub_coll_url))
+
+        # now we should see the collection in our asset list
+        response = self.client.get(coll_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertTrue(
+            response.data['results'][0]['url'].endswith(pub_coll_url)
+        )
+
+    def test_collection_unsubscribe(self):
+        public_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            name='public collection',
+            owner=self.someuser,
+        )
+        public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
+
+        # subscribe with the ORM
+        another_user = User.objects.get(username="anotheruser")
+        subscription = UserAssetSubscription.objects.create(
+            user=another_user, asset=public_collection
+        )
+
+        asset_list_url = reverse(self._get_endpoint('asset-list'))
+        coll_list_url = f'{asset_list_url}?q=asset_type:collection'
+        self.login_as_other_user(username="anotheruser", password="anotheruser")
+
+        # we should see the collection in our asset list
+        response = self.client.get(coll_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(
+            response.data['results'][0]['uid'], public_collection.uid
+        )
+
+        # delete our subscription
+        subscription_url = reverse(
+            self._get_endpoint('userassetsubscription-detail'),
+            kwargs={'uid': subscription.uid},
+        )
+        response = self.client.delete(subscription_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # make sure the collection is gone from our asset list
+        response = self.client.get(coll_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 0)
+
+    def test_collection_cannot_subscribe_if_not_public(self):
+        self.login_as_other_user(username="anotheruser", password="anotheruser")
+        asset_list_url = reverse(self._get_endpoint('asset-list'))
+        coll_list_url = f'{asset_list_url}?q=asset_type:collection'
+        sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))
+        private_coll_url = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid': self.coll.uid},
+        )
+
+        # attempt to subscribe to the collection
+        data = {'asset': private_coll_url}
+        response = self.client.post(sub_list_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # we should still see no collections in our asset list
+        response = self.client.get(coll_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 0)
