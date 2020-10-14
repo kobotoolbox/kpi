@@ -713,6 +713,7 @@ class Asset(ObjectPermissionMixin,
         return None
 
     def get_label_for_permission(self, permission_or_codename):
+
         try:
             codename = permission_or_codename.codename
             permission = permission_or_codename
@@ -724,11 +725,12 @@ class Asset(ObjectPermissionMixin,
         except KeyError:
             if not permission:
                 # Seems expensive. Cache it?
-                permission = Permission.objects.filter(
+                permission = Permission.objects.get(
                     content_type=ContentType.objects.get_for_model(self),
                     codename=codename
                 )
-            label = permission.name
+                label = permission.name
+
         label = label.replace(
             '##asset_type_label##',
             # Raises TypeError if not coerced explicitly

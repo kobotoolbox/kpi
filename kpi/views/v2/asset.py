@@ -21,6 +21,7 @@ from kpi.constants import (
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
+    PERM_FROM_KC_ONLY
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import BadAssetTypeException
@@ -492,6 +493,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             object_permissions = ObjectPermission.objects.filter(
                 asset_id__in=asset_ids,
                 deny=False,
+            ).exclude(
+                permission__codename=PERM_FROM_KC_ONLY
             ).select_related(
                 'user', 'permission'
             ).order_by(

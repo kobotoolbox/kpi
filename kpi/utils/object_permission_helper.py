@@ -48,7 +48,7 @@ class ObjectPermissionHelper:
         queryset = affected_object.permissions.filter(deny=False).select_related(
             'permission', 'user'
         ).order_by(
-                'user__username', 'permission__codename'
+            'user__username', 'permission__codename'
         ).exclude(permission__codename=PERM_FROM_KC_ONLY).all()
 
         # Filtering is done in `get_queryset` instead of FilteredBackend class
