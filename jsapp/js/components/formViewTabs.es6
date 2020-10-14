@@ -66,9 +66,6 @@ class FormViewTabs extends Reflux.Component {
           activeClassName='active'>
           {t('Form')}
         </Link>
-        <bem.FormView__tab className='is-edge' m='summary'>
-          {t('Summary')}
-        </bem.FormView__tab>
         { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
           <Link
             to={`/forms/${this.state.assetid}/data`}
@@ -100,7 +97,6 @@ class FormViewTabs extends Reflux.Component {
     if (this.state.asset && this.state.asset.has_deployment && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
       sideTabs = [
         {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report`},
-        {label: t('Reports (legacy)'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report-legacy`, className: 'is-edge'},
         {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.assetid}/data/table`},
         {label: t('Gallery'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/data/gallery`},
         {label: t('Downloads'), icon: 'k-icon-download', path: `/forms/${this.state.assetid}/data/downloads`},
@@ -113,7 +109,8 @@ class FormViewTabs extends Reflux.Component {
 
       sideTabs.push({label: t('General'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings`});
 
-      if (this.state.asset.deployment__active) {
+      //TODO:Remove owner only access to settings/media after we remove KC iframe: https://github.com/kobotoolbox/kpi/issues/2647#issuecomment-624301693
+      if (this.state.asset.deployment__active && mixins.permissions.userIsOwner(this.state.asset)) {
         sideTabs.push({label: t('Media'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/settings/media`});
       }
 
@@ -126,10 +123,6 @@ class FormViewTabs extends Reflux.Component {
       ) {
         sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
       }
-
-      if (this.state.asset.deployment__active) {
-        sideTabs.push({label: t('Kobocat (legacy)'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings/kobocat`, className: 'is-edge'});
-      }
     }
 
     if (sideTabs.length > 0) {
@@ -141,7 +134,7 @@ class FormViewTabs extends Reflux.Component {
               key={ind}
               activeClassName='active'
               onlyActiveOnIndex
-              className={`form-view__tab ${item.className}`}
+              className='form-view__tab'
               data-path={item.path}
               onClick={this.triggerRefresh}>
                 <i className={item.icon} />

@@ -13,7 +13,7 @@ $s-service-row-z-link: 10;
   position: relative;
 
   &:not(:last-of-type) {
-    border-bottom: 1px solid $divider-color;
+    border-bottom: 1px solid $kobo-lightgray;
   }
 
   &:hover .service-row__action-button {
@@ -22,8 +22,8 @@ $s-service-row-z-link: 10;
   }
 
   &:not(.service-row--header):hover {
-    background-color: $cool-whitegray;
-    color: $cool-charcoal;
+    background-color: $kobo-whitegray;
+    color: $kobo-black;
   }
 
   &.service-row--clickable {
@@ -36,11 +36,11 @@ $s-service-row-z-link: 10;
   }
 
   &.service-row--active {
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
   }
 
   &.service-row--inactive {
-    color: $cool-silver;
+    color: $kobo-midgray;
   }
 }
 
@@ -86,15 +86,15 @@ $s-service-row-z-link: 10;
   }
 
   &.service-row__column--success {
-    color: $cool-gray;
+    color: $kobo-darkgray;
   }
 
   &.service-row__column--pending {
-    color: $cool-green;
+    color: $kobo-teal;
   }
 
   &.service-row__column--failed {
-    color: $cool-red;
+    color: $kobo-red;
   }
 }
 
@@ -117,7 +117,7 @@ $s-service-row-z-link: 10;
   }
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 }
 
@@ -132,18 +132,18 @@ $s-service-row-z-link: 10;
   padding: 0;
   text-transform: uppercase;
   cursor: pointer;
-  color: $cool-charcoal;
+  color: $kobo-darkgray;
 
   &:hover {
-    color: $cool-darkgray;
+    color: $kobo-black;
   }
 
   &:active {
-    color: $cool-gray;
+    transform: translateY(1px);
   }
 
   &.service-row-button--loading {
     pointer-events: none;
-    color: $cool-silver;
+    color: $kobo-darkgray;
   }
 }

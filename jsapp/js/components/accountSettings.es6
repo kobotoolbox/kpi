@@ -14,16 +14,14 @@ import TextBox from './textBox';
 import Checkbox from './checkbox';
 import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
-import ui from '../ui';
 import {
   t,
   stringToColor,
 } from '../utils';
-import {ROOT_URL} from 'js/constants';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 
-export class AccountSettings extends React.Component {
+export default class AccountSettings extends React.Component {
   constructor(props){
     super(props);
     let state = {
@@ -227,18 +225,16 @@ export class AccountSettings extends React.Component {
       !stores.session.environment
     ) {
       return (
-        <ui.Panel>
-          <bem.AccountSettings>
-            <bem.AccountSettings__item>
-              <bem.Loading>
-                <bem.Loading__inner>
-                  <i />
-                  {t('loading...')}
-                </bem.Loading__inner>
-              </bem.Loading>
-            </bem.AccountSettings__item>
-          </bem.AccountSettings>
-        </ui.Panel>
+        <bem.AccountSettings>
+          <bem.AccountSettings__item>
+            <bem.Loading>
+              <bem.Loading__inner>
+                <i />
+                {t('loading...')}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.AccountSettings__item>
+        </bem.AccountSettings>
       );
     }
 
@@ -249,23 +245,23 @@ export class AccountSettings extends React.Component {
 
     return (
       <DocumentTitle title={`${accountName} | KoboToolbox`}>
-      <ui.Panel>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
-            <button
+            <bem.KoboButton
               onClick={this.updateProfile}
-              className='mdl-button mdl-button--raised mdl-button--colored'
+              m={['blue']}
             >
               {t('Save Changes')}
               {!this.state.isPristine && ' *'}
-            </button>
+            </bem.KoboButton>
 
-            <button
+            <bem.Button
               onClick={this.safeClose}
-              className='account-settings-close mdl-button mdl-button--icon'
+              m='icon'
+              className='account-settings-close'
             >
               <i className='k-icon k-icon-close'/>
-            </button>
+            </bem.Button>
           </bem.AccountSettings__actions>
 
           <bem.AccountSettings__item m={'column'}>
@@ -314,7 +310,7 @@ export class AccountSettings extends React.Component {
               <bem.AccountSettings__item m='password'>
                 <a
                   href='/#/change-password'
-                  className='mdl-button mdl-button--raised mdl-button--colored'
+                  className='kobo-button kobo-button--teal'
                 >
                   {t('Modify Password')}
                 </a>
@@ -339,10 +335,6 @@ export class AccountSettings extends React.Component {
                   value={this.state.organizationWebsite}
                   onChange={this.organizationWebsiteChange}
                 />
-
-                <bem.AccountSettings__desc className='is-edge'>
-                  {t('This will be used to create a hyperlink for your organization name. ')}
-                </bem.AccountSettings__desc>
               </bem.AccountSettings__item>
 
               <bem.AccountSettings__item m='primary-sector'>
@@ -433,21 +425,6 @@ export class AccountSettings extends React.Component {
                 </label>
               </bem.AccountSettings__item>
 
-              <bem.AccountSettings__item className='is-edge'>
-                <label>
-                  {t('Default Form Language')}
-
-                  <Select
-                    value={this.state.defaultLanguage}
-                    options={this.state.languageChoices}
-                    onChange={this.defaultLanguageChange}
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    menuPlacement='auto'
-                  />
-                </label>
-              </bem.AccountSettings__item>
-
               <bem.AccountSettings__item m='social'>
                 <label>{t('Social')}</label>
 
@@ -493,7 +470,6 @@ export class AccountSettings extends React.Component {
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
-      </ui.Panel>
       </DocumentTitle>
     );
   }
@@ -501,152 +477,3 @@ export class AccountSettings extends React.Component {
 
 reactMixin(AccountSettings.prototype, Reflux.connect(stores.session, 'session'));
 reactMixin(AccountSettings.prototype, Reflux.ListenerMixin);
-
-export class ChangePassword extends React.Component {
-  constructor(props) {
-    super(props);
-    this.errors = {};
-    this.state = {
-      errors: this.errors,
-      currentPassword: '',
-      newPassword: '',
-      verifyPassword: ''
-    };
-    autoBind(this);
-  }
-
-  componentDidMount() {
-    this.listenTo(actions.auth.changePassword.failed, this.changePasswordFailed);
-  }
-
-  validateRequired(what) {
-    if (!this.state[what]) {
-      this.errors[what] = t('This field is required.');
-    }
-  }
-
-  changePassword() {
-    this.errors = {};
-    this.validateRequired('currentPassword');
-    this.validateRequired('newPassword');
-    this.validateRequired('verifyPassword');
-    if (this.state.newPassword !== this.state.verifyPassword) {
-      this.errors['newPassword'] = t('This field must match the Verify Password field.');
-    }
-    if (Object.keys(this.errors).length === 0) {
-      actions.auth.changePassword(this.state.currentPassword, this.state.newPassword);
-    }
-    this.setState({errors: this.errors});
-  }
-
-  changePasswordFailed(jqXHR) {
-    if (jqXHR.responseJSON.current_password) {
-      this.errors.currentPassword = jqXHR.responseJSON.current_password;
-    }
-    if (jqXHR.responseJSON.new_password) {
-      this.errors.newPassword = jqXHR.responseJSON.new_password;
-    }
-    this.setState({errors: this.errors});
-  }
-
-  currentPasswordChange(val) {
-    this.setState({currentPassword: val});
-  }
-
-  newPasswordChange(val) {
-    this.setState({newPassword: val});
-  }
-
-  verifyPasswordChange(val) {
-    this.setState({verifyPassword: val});
-  }
-
-  render() {
-    if(!stores.session || !stores.session.currentAccount) {
-      return (
-        <ui.Panel>
-          <bem.AccountSettings>
-            <bem.AccountSettings__item>
-              <bem.Loading>
-                <bem.Loading__inner>
-                  <i />
-                  {t('loading...')}
-                </bem.Loading__inner>
-              </bem.Loading>
-            </bem.AccountSettings__item>
-          </bem.AccountSettings>
-        </ui.Panel>
-      );
-    }
-
-    var accountName = stores.session.currentAccount.username;
-    var initialsStyle = {
-      background: `#${stringToColor(accountName)}`
-    };
-
-    return (
-      <ui.Panel>
-        <bem.AccountSettings>
-          <bem.ChangePassword>
-            <bem.AccountSettings__item m='username'>
-              <bem.AccountBox__initials style={initialsStyle}>
-                {accountName.charAt(0)}
-              </bem.AccountBox__initials>
-              <h4>{accountName}</h4>
-            </bem.AccountSettings__item>
-
-            <bem.AccountSettings__item>
-              <h4>{t('Reset Password')}</h4>
-            </bem.AccountSettings__item>
-
-            <bem.ChangePassword__item>
-              <TextBox
-                label={t('Current Password')}
-                type='password'
-                errors={this.state.errors.currentPassword}
-                value={this.state.currentPassword}
-                onChange={this.currentPasswordChange}
-              />
-
-              <a href={`${ROOT_URL}/accounts/password/reset/`}>
-                {t('Forgot Password?')}
-              </a>
-            </bem.ChangePassword__item>
-
-            <bem.ChangePassword__item>
-              <TextBox
-                label={t('New Password')}
-                type='password'
-                errors={this.state.errors.newPassword}
-                value={this.state.newPassword}
-                onChange={this.newPasswordChange}
-              />
-            </bem.ChangePassword__item>
-
-            <bem.ChangePassword__item>
-              <TextBox
-                label={t('Verify Password')}
-                type='password'
-                errors={this.state.errors.verifyPassword}
-                value={this.state.verifyPassword}
-                onChange={this.verifyPasswordChange}
-              />
-            </bem.ChangePassword__item>
-
-            <bem.ChangePassword__item m='actions'>
-              <button
-                onClick={this.changePassword}
-                className='mdl-button mdl-button--raised mdl-button--colored'
-              >
-                {t('Save Changes')}
-              </button>
-            </bem.ChangePassword__item>
-          </bem.ChangePassword>
-        </bem.AccountSettings>
-      </ui.Panel>
-    );
-  }
-}
-
-reactMixin(ChangePassword.prototype, Reflux.connect(stores.session, 'session'));
-reactMixin(ChangePassword.prototype, Reflux.ListenerMixin);

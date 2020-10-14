@@ -44,24 +44,22 @@ import FormViewTabs from './components/formViewTabs';
 import IntercomHandler from './components/intercomHandler';
 import PermValidator from './components/permissions/permValidator';
 import Modal from './components/modal';
-import {ChangePassword, AccountSettings} from './components/accountSettings';
+import AccountSettings from './components/accountSettings';
+import ChangePassword from './components/changePassword';
 import {
   t,
   assign,
   currentLang
 } from './utils';
-import {keymap} from './keymap';
-import { ShortcutManager, Shortcuts } from 'react-shortcuts';
 import LibrarySearchableList from './lists/library';
 import FormsSearchableList from './lists/forms';
-
-const shortcutManager = new ShortcutManager(keymap);
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     moment.locale(currentLang());
     this.state = assign({
+      isConfigReady: false,
       pageState: stores.pageState.state
     });
   }
@@ -74,39 +72,45 @@ class App extends React.Component {
       stores.pageState.hideModal();
   }
   componentDidMount () {
+    this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
+
     actions.misc.getServerEnvironment();
+    actions.permissions.getConfig();
   }
-  _handleShortcuts(action) {
-    switch (action) {
-      case 'EDGE':
-        document.body.classList.toggle('hide-edge');
-        break;
-    }
-  }
-  getChildContext() {
-    return { shortcuts: shortcutManager };
+  onGetConfigCompleted() {
+    this.setState({isConfigReady: true});
   }
   render() {
     var assetid = this.props.params.assetid || null;
+
+    if (!this.state.isConfigReady) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
+    }
+
+    const pageWrapperModifiers = {
+      'fixed-drawer': this.state.pageState.showFixedDrawer,
+      'in-formbuilder': this.isFormBuilder(),
+      'is-modal-visible': Boolean(this.state.pageState.modal)
+    };
+
+    if (typeof this.state.pageState.modal === 'object') {
+      pageWrapperModifiers[`is-modal-${this.state.pageState.modal.type}`] = true;
+    }
+
     return (
       <DocumentTitle title='KoBoToolbox'>
-        <Shortcuts
-          name='APP_SHORTCUTS'
-          handler={this._handleShortcuts}
-          className='mdl-wrapper'
-          global
-          isolate>
-
-        <PermValidator/>
-        <IntercomHandler/>
-
-          { !this.isFormBuilder() &&
-            <div className='k-header__bar' />
-          }
-          <bem.PageWrapper m={{
-              'fixed-drawer': this.state.pageState.showFixedDrawer,
-              'in-formbuilder': this.isFormBuilder()
-                }} className='mdl-layout mdl-layout--fixed-header'>
+        <React.Fragment>
+          <PermValidator/>
+          <IntercomHandler/>
+          <div className='header-stretch-bg'/>
+          <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
               { this.state.pageState.modal &&
                 <Modal params={this.state.pageState.modal} />
               }
@@ -128,7 +132,7 @@ class App extends React.Component {
 
               </bem.PageWrapper__content>
           </bem.PageWrapper>
-        </Shortcuts>
+        </React.Fragment>
       </DocumentTitle>
     );
   }
@@ -136,10 +140,6 @@ class App extends React.Component {
 
 App.contextTypes = {
   router: PropTypes.object
-};
-
-App.childContextTypes = {
-  shortcuts: PropTypes.object.isRequired
 };
 
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));

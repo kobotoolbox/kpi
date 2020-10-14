@@ -1,12 +1,14 @@
+@import "../colors";
+
 // alertify overrides
 
 .alertify .ajs-dimmer {
-  background-color: #FFF;
+  background-color: $kobo-white;
   opacity: 0.55;
 }
 
 .alertify .ajs-dialog {
-  box-shadow: 2px 2px 15px 2px rgba(0, 0, 0, 0.15);
+  box-shadow: 2px 2px 15px 2px rgba($kobo-black, 0.15);
 }
 
 .alertify .ajs-header {
@@ -26,10 +28,10 @@
 .alertify.ajs-closable .ajs-commands button.ajs-close {
   background: transparent;
   font-size: 32px;
-  color: lighten($cool-gray, 20%);
+  color: $kobo-darkgray;
 
   &:hover {
-    color: $cool-gray;
+    color: $kobo-black;
   }
 }
 
@@ -76,22 +78,14 @@
   }
 
   button {
-    @extend .mdl-button;
-
-    text-transform: uppercase;
-    padding-left: 20px;
-    padding-right: 20px;
+    @extend .kobo-button;
 
     &.ajs-ok {
-      @extend .mdl-button--colored, .mdl-button--raised;
+      @extend .kobo-button--blue;
     }
 
     &.ajs-cancel {
-      @extend .mdl-button--colored;
-
-      &:focus, &:focus:not(:active) {
-        background: transparent;
-      }
+      @extend .kobo-button--red;
     }
   }
 }
@@ -125,8 +119,8 @@
   .ajs-message.ajs-error,
   .ajs-message.ajs-success,
   .ajs-message.ajs-warning {
-    background: #484b5a;
-    color: white;
+    background: $kobo-black;
+    color: $kobo-white;
     padding: 17px 24px;
     padding-right: 44px;
     width: auto;
@@ -135,9 +129,9 @@
     line-height: 1.3em;
   }
 
-  .ajs-message.ajs-error {box-shadow: 0 2px 0 0 $cool-red inset;}
-  .ajs-message.ajs-success {box-shadow: 0 2px 0 0 $warm-green inset;}
-  .ajs-message.ajs-warning {box-shadow: 0 2px 0 0 $cool-orange inset;}
+  .ajs-message.ajs-error {box-shadow: 0 2px 0 0 $kobo-red inset;}
+  .ajs-message.ajs-success {box-shadow: 0 2px 0 0 $kobo-green inset;}
+  .ajs-message.ajs-warning {box-shadow: 0 2px 0 0 $kobo-orange inset;}
 
   .ajs-message .ajs-close {
     background: transparent;
@@ -149,12 +143,11 @@
 
     @extend .k-icon, .k-icon-close;
 
-    color: white;
+    color: $kobo-white;
   }
 }
 
 .alertify-toggle {
-  // border:2px solid red;
   display: block;
   padding-bottom: 5px;
   padding-top: 5px;
@@ -171,7 +164,7 @@
     margin-top: 20px;
     padding-top: 20px;
     padding-bottom: 20px;
-    border-top: 1px solid #EDEDED;
+    border-top: 1px solid $kobo-lightgray;
     font-weight: bold;
   }
 }

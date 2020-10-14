@@ -70,7 +70,7 @@ module.exports = do ->
       @
     _renderRow: ->
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
-      @$label = @$('.card__header-title')
+      @$label = @$('.js-card-label')
       @$hint = @$('.card__header-hint')
       @$card = @$('.card')
       @$header = @$('.card__header')
@@ -88,7 +88,7 @@ module.exports = do ->
           questionType: questionType
         }).render().insertInDOMAfter(@$header)
 
-      if questionType is 'calculate'
+      if questionType is 'calculate' or questionType is 'hidden'
         @$hint.hide()
 
       if 'getList' of @model and (cl = @model.getList())
@@ -139,7 +139,7 @@ module.exports = do ->
 
     add_row_to_question_library: (evt) =>
       evt.stopPropagation()
-      @ngScope?.add_row_to_question_library @model
+      @ngScope?.add_row_to_question_library @model, @model.collection._parent._initialParams
 
   class GroupView extends BaseRowView
     className: "survey__row survey__row--group  xlf-row-view xlf-row-view--depr"
@@ -164,7 +164,7 @@ module.exports = do ->
     render: ->
       if !@already_rendered
         @$el.html $viewTemplates.row.groupView(@model)
-        @$label = @$('.card__header-title')
+        @$label = @$('.js-card-label')
         @$rows = @$('.group__rows').eq(0)
         @$card = @$('.card')
         @$header = @$('.card__header,.group__header').eq(0)
@@ -218,6 +218,9 @@ module.exports = do ->
           @mandatorySetting = new $viewMandatorySetting.MandatorySettingView({
             model: @model.get('required')
           }).render().insertInDOM(@)
+        else if key is '_isRepeat' and @model.getValue('type') is 'kobomatrix'
+          # don't display repeat checkbox for matrix groups
+          continue
         else
           new $viewRowDetail.DetailView(model: val, rowView: @).render().insertInDOM(@)
 
@@ -268,7 +271,7 @@ module.exports = do ->
       @$el.html $viewTemplates.row.koboMatrixView()
       @matrix = @$('.card__kobomatrix')
       renderKobomatrix(@, @matrix)
-      @$label = @$('.card__header-title')
+      @$label = @$('.js-card-label')
       @$card = @$('.card')
       @$header = @$('.card__header')
       context = {warnings: []}

@@ -5,8 +5,9 @@ from django.core import mail
 from django.template.loader import get_template
 from django.utils import translation, dateparse
 from django_celery_beat.models import PeriodicTask
+from mock import patch
 
-from .hook_test_case import HookTestCase
+from .hook_test_case import HookTestCase, MockSSRFProtect
 from ..tasks import failures_reports
 
 
@@ -19,6 +20,8 @@ class EmailTestCase(HookTestCase):
                                      task=beat_schedule.get("task"))
         periodic_task.save()
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
+           new=MockSSRFProtect._get_ip_address)
     @responses.activate
     def test_notifications(self):
         self._create_periodic_task()

@@ -1,7 +1,6 @@
 # coding: utf-8
 from itertools import chain
 
-import haystack
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
@@ -13,7 +12,6 @@ from taggit.models import Tag
 from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, \
     PERM_DELETE_COLLECTION, PERM_SHARE_COLLECTION
 from kpi.fields import KpiUidField
-from kpi.haystack_utils import update_object_in_search_index
 from .asset import (
     Asset,
     TaggableModelManager,
@@ -98,27 +96,6 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
         # Format: explicit: (implied, implied, ...)
         PERM_CHANGE_COLLECTION: (PERM_VIEW_COLLECTION,),
     }
-
-    def delete_with_deferred_indexing(self):
-        """ Defer Haystack indexing, delete all child assets, then delete
-        myself. Should be faster than `delete()` for large collections """
-        # Get the Haystack index for assets
-        asset_index = haystack.connections['default'].get_unified_index(
-            ).get_index(Asset)
-        # Defer signal processing and begin deletion
-        tag_pks = set()
-        with apps.get_app_config('haystack').signal_processor.defer():
-            for asset in self.assets.only('pk'):
-                # Keep track of the tags we will need to reindex
-                tag_pks.update(asset.tags.values_list('pk', flat=True))
-                # Remove the child asset itself
-                asset.delete()
-                asset_index.remove_object(asset)
-        # Update search index for affected tags
-        for tag in Tag.objects.filter(pk__in=tag_pks):
-            update_object_in_search_index(tag)
-        # Remove this collection; signals will be processed normally
-        self.delete()
 
     def get_ancestors_or_none(self):
         # ancestors are ordered from farthest to nearest

@@ -4,7 +4,7 @@ module.exports = do ->
 
   expandingSpacerHtml = """
       <div class="survey__row__spacer  row clearfix expanding-spacer-between-rows expanding-spacer-between-rows--depr">
-        <div class="js-expand-row-selector btn btn--addrow btn--block  btn-xs  btn-default  add-row-btn"
+        <div tabIndex="0" class="js-expand-row-selector btn btn--addrow btn--block  btn-xs  btn-default"
             ><i class="fa fa-plus"></i></div>
         <div class="line">&nbsp;</div>
       </div>
@@ -35,7 +35,6 @@ module.exports = do ->
           <li data-card-settings-tab-id="question-options" class="card__settings__tabs__tab--active">#{_t("Question Options")}</li>
           <li data-card-settings-tab-id="skip-logic" class="">#{_t("Skip Logic")}</li>
           <li data-card-settings-tab-id="validation-criteria" class="">#{_t("Validation Criteria")}</li>
-          <li data-card-settings-tab-id="response-type" class="card__settings__tab--response-type">#{_t("Response Type")}</li>
         </ul>
         <div class="card__settings__content">
           <ul class="card__settings__fields card__settings__fields--active card__settings__fields--question-options">
@@ -62,7 +61,7 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon"></i></div>
           </div>
           <div class="card__text">
-            <input type="text" placeholder="#{_t("Question label is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{_t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
             <input type="text" placeholder="#{_t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
@@ -85,7 +84,7 @@ module.exports = do ->
     <div class="survey__row__item survey__row__item--group group card js-select-row">
       <header class="group__header">
         <i class="group__caret js-toggle-group-expansion fa fa-fw fa-caret-down"></i>
-        <input type="text" placeholder="#{_t("Group title is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
+        <input type="text" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
         <div class="group__header__buttons">
           <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="fa fa-cog"></i></span>
           <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="fa fa-trash-o"></i></span>
@@ -106,7 +105,7 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon fa-table"></i></div>
           </div>
           <div class="card__text">
-            <input type="text" placeholder="#{_t("Question label is required")}" class="card__header-title js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{_t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
@@ -171,14 +170,14 @@ module.exports = do ->
       <thead>
         <th class="scorecell--empty"></th>
         #{thead_html}
-        <th class="scorecell--add"><span>+</span></th>
+        <th class="scorecell--add"><button class="kobo-button kobo-button--small">+</button></th>
       </thead>
       <tbody>
         #{tbody_html.join('')}
       </tbody>
       <tfoot>
         <tr>
-        <td class="scorerow--add"><button>+</button></td>
+        <td class="scorerow--add"><button class="kobo-button kobo-button--small kobo-button--fullwidth">+</button></td>
         </tr>
       </tfoot>
     </table>
@@ -233,11 +232,11 @@ module.exports = do ->
     <div class="rank_preview clearfix">
       <ol class="rank__rows">
         #{rank_rows_lis.join('')}
-        <li class="rank_items__add rank_items__add--item"><button>+</button></li>
+        <li class="rank_items__add rank_items__add--item"><button class="kobo-button kobo-button--small kobo-button--fullwidth">+</button></li>
       </ol>
       <ul class="rank__levels">
         #{rank_levels_lis.join('')}
-        <li class="rank_items__add rank_items__add--level"><button>+</button></li>
+        <li class="rank_items__add rank_items__add--level"><button class="kobo-button kobo-button--small kobo-button--fullwidth">+</button></li>
         #{rank_constraint_message_li}
       </ul>
     </div>

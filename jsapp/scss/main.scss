@@ -1,3 +1,5 @@
+@import "colors";
+
 @import "./libs/mdl";
 
 @import "./fonts/roboto";
@@ -12,6 +14,7 @@
 @import "./libs/react-tagsinput";
 
 @import "./components/kobo.bem.ui";
+@import "./components/kobo.button";
 @import "./components/kobo.checkbox-and-radio";
 @import "./components/kobo.modal";
 @import "./components/kobo.tooltips";
@@ -41,15 +44,12 @@
 @import "./components/kobo.map.marker-colors";
 @import "./components/kobo.templates-list";
 @import "./components/kobo.text-box";
+@import "./components/kobo.submission-data-table";
 
 @import "./formbuild/kobomatrix";
 
 .k-invisible {
   visibility: hidden;
-}
-
-body.hide-edge .is-edge {
-  display: none !important;
 }
 
 // Print stylesheet
