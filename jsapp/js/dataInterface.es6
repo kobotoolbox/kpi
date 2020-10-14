@@ -429,14 +429,14 @@ export var dataInterface;
       return this._searchAssetsWithPredefinedQuery(
         params,
         // we only want orphans (assets not inside collection)
-        `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
+        `(${COMMON_QUERIES.get('qbtc')}) AND parent:null`,
       );
     },
     searchMyLibraryMetadata(params = {}) {
       return this._searchMetadataWithPredefinedQuery(
         params,
         // we only want orphans (assets not inside collection)
-        `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
+        `(${COMMON_QUERIES.get('qbtc')}) AND parent:null`,
       );
     },
     searchPublicCollections(params = {}) {
