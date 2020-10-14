@@ -1,26 +1,26 @@
 # coding: utf-8
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError
 from django.db.models import Count, Q
 from rest_framework import filters
 
 from kpi.constants import (
-    PERM_DISCOVER_ASSET,
     ASSET_STATUS_SHARED,
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
-    ASSET_STATUS_PUBLIC
+    ASSET_STATUS_PUBLIC,
+    ASSET_TYPE_COLLECTION,
+    PERM_DISCOVER_ASSET,
+    PERM_VIEW_ASSET
 )
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
-from .models.asset import ASSET_TYPE_COLLECTION
 from .models.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
-    get_models_with_object_permissions,
+    get_perm_ids_from_code_names
 )
 
 
@@ -52,8 +52,6 @@ class AssetOrderingFilter(filters.OrderingFilter):
 
 class KpiObjectPermissionsFilter:
 
-    perm_format = '%(app_label)s.view_%(model_name)s'
-
     def filter_queryset(self, request, queryset, view):
 
         user = request.user
@@ -62,29 +60,26 @@ class KpiObjectPermissionsFilter:
             # stuff. This isn't a list, though, so return it all
             return queryset
 
-        model_cls = queryset.model
-        kwargs = {
-            'app_label': model_cls._meta.app_label,
-            'model_name': model_cls._meta.model_name,
-        }
-
-        self._permission = self.perm_format % kwargs
-
         queryset = self._get_queryset_for_collection_statuses(request, queryset)
         if self._return_queryset:
             return queryset.distinct()
 
-        owned_and_explicitly_shared = self._get_owned_and_explicitly_shared(
-            queryset, user)
+        owned_and_explicit_shared = self._get_owned_and_explicitly_shared(user)
 
         if view.action != 'list':
-            public = self._get_public(queryset)
             # Not a list, so discoverability doesn't matter
-            return (owned_and_explicitly_shared | public).distinct()
+            assets = owned_and_explicit_shared.union(self._get_publics())
+            return queryset.filter(pk__in=assets)
 
-        subscribed = self._get_subscribed(queryset, user)
+        subscribed = self._get_subscribed(user)
 
-        return (owned_and_explicitly_shared | subscribed).distinct()
+        # As other places in the code, coerce `asset_ids` as a list to force
+        # the query to be processed right now. Otherwise, because queryset is
+        # a lazy query, Django creates (left) joins on tables when queryset is
+        # interpreted and it is way slower than running this extra query.
+        asset_ids = list(owned_and_explicit_shared.union(subscribed)
+                         .values_list('id', flat=True))
+        return queryset.filter(pk__in=asset_ids)
 
     def _get_discoverable(self, queryset):
         # We were asked not to consider subscriptions; return all
@@ -131,54 +126,52 @@ class KpiObjectPermissionsFilter:
 
         elif status == ASSET_STATUS_SHARED:
             self._return_queryset = True
-            return get_objects_for_user(user, self._permission, queryset)
+            return get_objects_for_user(user, PERM_VIEW_ASSET, queryset)
 
         elif status == ASSET_STATUS_PUBLIC:
             self._return_queryset = True
-            # ToDo Review for optimization
-            public = self._get_public(queryset)
-            subscribed = self._get_subscribed(public, user)
-            return subscribed
+            return queryset.filter(pk__in=self._get_subscribed(user))
 
         elif status == ASSET_STATUS_DISCOVERABLE:
             self._return_queryset = True
-            # ToDo Review for optimization
-            discoverable = self._get_discoverable(self._get_public(queryset))
+            discoverable = self._get_discoverable(queryset)
             # We were asked not to consider subscriptions; return all
             # discoverable objects
             return discoverable
 
         return queryset
 
-    def _get_owned_and_explicitly_shared(self, queryset, user):
+    @staticmethod
+    def _get_owned_and_explicitly_shared(user):
+        view_asset_perm_id = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
         if user.is_anonymous:
             # Avoid giving anonymous users special treatment when viewing
             # public objects
-            owned_and_explicitly_shared = queryset.none()
+            perms = ObjectPermission.objects.none()
         else:
-            owned_and_explicitly_shared = get_objects_for_user(
-                user, self._permission, queryset)
+            perms = ObjectPermission.objects.filter(
+                deny=False,
+                user=user,
+                permission_id=view_asset_perm_id)
 
-        return owned_and_explicitly_shared
+        return perms.values('asset')
 
-    def _get_public(self, queryset):
-        return get_objects_for_user(get_anonymous_user(),
-                                    self._permission, queryset)
+    @staticmethod
+    def _get_publics():
+        view_asset_perm_id = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
+        return ObjectPermission.objects.filter(
+            deny=False,
+            user=get_anonymous_user(),
+            permission_id=view_asset_perm_id).values('asset')
 
-    def _get_subscribed(self, queryset, user):
+    @classmethod
+    def _get_subscribed(cls, user):
         # Of the public objects, determine to which the user has subscribed
         if user.is_anonymous:
             user = get_anonymous_user()
 
-        asset_ids = list(
-            UserAssetSubscription.objects.values_list(
-                'asset_id', flat=True
-            ).filter(user_id=user.pk)
-        )
-        subscribed = queryset.filter(
-            asset_type=ASSET_TYPE_COLLECTION, id__in=asset_ids
-        )
-        return subscribed
+        return UserAssetSubscription.objects.filter(asset__in=cls._get_publics(),
+                                                    user=user).values('asset')
 
 
 class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
@@ -243,22 +236,7 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
         she should see all permissions for that object, including those
         assigned to other users.
         """
-        possible_content_types = ContentType.objects.get_for_models(
-            *get_models_with_object_permissions()
-        ).values()
-        result = queryset.none()
-        for content_type in possible_content_types:
-            # Find all the permissions assigned to the user
-            permissions_assigned_to_user = ObjectPermission.objects.filter(
-                content_type=content_type,
-                user=user,
-            )
-            # Find all the objects associated with those permissions, and then
-            # find all the permissions applied to all of those objects
-            result |= ObjectPermission.objects.filter(
-                content_type=content_type,
-                object_id__in=permissions_assigned_to_user.values(
-                    'object_id'
-                ).distinct()
-            )
+        result = ObjectPermission.objects.filter(
+            asset__permissions__user=user
+        ).distinct()
         return result

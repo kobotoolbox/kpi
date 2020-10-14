@@ -5,8 +5,6 @@ from collections import defaultdict, OrderedDict
 from operator import itemgetter
 from hashlib import md5
 
-
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -18,12 +16,12 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPE_ARG_NAME,
-    ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
+    PERM_FROM_KC_ONLY
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import BadAssetTypeException
@@ -487,15 +485,16 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
             queryset = super().get_queryset()
-            asset_content_type = ContentType.objects.get_for_model(Asset)
 
             # 1) Retrieve all asset IDs of current list
-            asset_ids = self.filter_queryset(queryset).values_list('id', flat=True).distinct()
+            asset_ids = AssetPagination.get_all_asset_ids_from_queryset(self.filter_queryset(queryset))
+
             # 2) Get object permissions per asset
             object_permissions = ObjectPermission.objects.filter(
-                content_type_id=asset_content_type.pk,
-                object_id__in=asset_ids,
+                asset_id__in=asset_ids,
                 deny=False,
+            ).exclude(
+                permission__codename=PERM_FROM_KC_ONLY
             ).select_related(
                 'user', 'permission'
             ).order_by(
@@ -505,18 +504,18 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             object_permissions_per_asset = defaultdict(list)
 
             for op in object_permissions:
-                object_permissions_per_asset[op.object_id].append(op)
+                object_permissions_per_asset[op.asset_id].append(op)
 
             context_['object_permissions_per_asset'] = object_permissions_per_asset
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = UserAssetSubscription.objects. \
-                values('asset_id').annotate(user_subscriptions=Count('user_id'))
+                values('asset_id', 'user_id').distinct().order_by('asset_id')
 
-            user_subscriptions_per_asset = defaultdict(int)
+            user_subscriptions_per_asset = defaultdict(list)
             for record in subscriptions_queryset:
-                user_subscriptions_per_asset[record['asset_id']] = \
-                    record['user_subscriptions']
+                user_subscriptions_per_asset[record['asset_id']].append(
+                    record['user_id'])
 
             context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
 
@@ -525,7 +524,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 values('parent_id').annotate(children_count=Count('id'))
             # Ordering must be cleared otherwise group_by is wrong
             # (i.e. default ordered field `date_modified` must be removed)
-            records.query.clear_ordering(True)
+            records.order_by()
 
             children_count_per_asset = {
                 r.get('parent_id'): r.get('children_count', 0)
