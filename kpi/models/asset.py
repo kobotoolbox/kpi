@@ -10,8 +10,6 @@ from io import BytesIO
 import six
 import xlsxwriter
 from django.conf import settings
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
@@ -77,7 +75,7 @@ from kpi.utils.standardize_content import (needs_standardization,
                                            standardize_content_in_place)
 from .asset_user_partial_permission import AssetUserPartialPermission
 from .asset_version import AssetVersion
-from .object_permission import ObjectPermission, ObjectPermissionMixin
+from .object_permission import ObjectPermissionMixin, get_cached_code_names
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -724,12 +722,8 @@ class Asset(ObjectPermissionMixin,
             label = self.ASSIGNABLE_PERMISSIONS_WITH_LABELS[codename]
         except KeyError:
             if not permission:
-                # Seems expensive. Cache it?
-                permission = Permission.objects.get(
-                    content_type=ContentType.objects.get_for_model(self),
-                    codename=codename
-                )
-                label = permission.name
+                cached_code_names = get_cached_code_names()
+                label = cached_code_names[codename]['name']
 
         label = label.replace(
             '##asset_type_label##',

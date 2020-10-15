@@ -38,7 +38,7 @@ class ObjectPermissionHelper:
             affected_object (Asset)
             user (User)
         Returns:
-             QuerySet
+            QuerySet
 
         """
 
