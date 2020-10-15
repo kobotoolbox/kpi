@@ -410,7 +410,7 @@ export var dataInterface;
       }
 
       if (params.filterProperty && params.filterValue) {
-        searchData.q += ` AND ${params.filterProperty}:${params.filterValue}`;
+        searchData.q += ` AND ${params.filterProperty}:"${params.filterValue}"`;
       }
 
       if (params.ordering) {

@@ -353,6 +353,7 @@ export const NAME_MAX_LENGTH = 255;
 
 /**
  * for Backend calls, see their definitions at `kpi/filters.py`
+ * NOTE: ORs require a parenthesis to work
  */
 export const COMMON_QUERIES = new Map([
   ['b', 'asset_type:block'],
@@ -360,9 +361,9 @@ export const COMMON_QUERIES = new Map([
   ['t', 'asset_type:template'],
   ['s', 'asset_type:survey'],
   ['c', 'asset_type:collection'],
-  ['qb', 'asset_type:question OR asset_type:block'],
-  ['qbt', 'asset_type:question OR asset_type:block OR asset_type:template'],
-  ['qbtc', 'asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection']
+  ['qb', '(asset_type:question OR asset_type:block)'],
+  ['qbt', '(asset_type:question OR asset_type:block OR asset_type:template)'],
+  ['qbtc', '(asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection)']
 ]);
 
 export const ACCESS_TYPES = new Map();
