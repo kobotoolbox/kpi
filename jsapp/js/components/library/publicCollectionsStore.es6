@@ -23,6 +23,7 @@ const publicCollectionsStore = Reflux.createStore({
    */
   abortFetchData: undefined,
   previousPath: null,
+  previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
@@ -122,7 +123,7 @@ const publicCollectionsStore = Reflux.createStore({
 
   onRouteChange(data) {
     if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
-      this.fetchData();
+      this.fetchData(true);
     } else if (
       this.previousPath !== null &&
       this.previousPath.split('/')[1] !== 'library' &&
@@ -136,11 +137,15 @@ const publicCollectionsStore = Reflux.createStore({
   },
 
   searchBoxStoreChanged() {
-    if (searchBoxStore.getContext() === SEARCH_CONTEXTS.get('public-collections')) {
+    if (
+      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('public-collections') &&
+      searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
+    ) {
       // reset to first page when search changes
       this.data.currentPage = 0;
       this.data.totalPages = null;
       this.data.totalSearchAssets = null;
+      this.previousSearchPhrase = searchBoxStore.getSearchPhrase();
       this.fetchData(true);
     }
   },
