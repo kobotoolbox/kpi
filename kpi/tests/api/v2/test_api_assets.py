@@ -531,10 +531,6 @@ class AssetFileTest(BaseTestCase):
                         Asset.CALCULATED_PERMISSIONS))
         )
 
-    @staticmethod
-    def absolute_reverse(*args, **kwargs):
-        return 'http://testserver/' + reverse(*args, **kwargs).lstrip('/')
-
     def get_asset_file_content(self, url):
         response = self.client.get(url)
         streaming_content = [to_str(chunk) for chunk in

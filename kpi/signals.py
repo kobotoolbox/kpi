@@ -97,10 +97,6 @@ def update_kc_xform_has_kpi_hooks(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Asset)
 def post_delete_asset(sender, instance, **kwargs):
-    # Remove all permissions associated with this object
-    ObjectPermission.objects.filter_for_object(instance).delete()
-    # No recalculation is necessary since children will also be deleted
-
     # Update parent's languages if this object is a child of another asset.
     try:
         parent = instance.parent

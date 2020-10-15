@@ -43,7 +43,6 @@ class ReportsViewSet(mixins.ListModelMixin,
                 return asset
         raise Http404
 
-
     def get_queryset(self):
         queryset = Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY)
         if self.action == 'retrieve':

@@ -94,10 +94,11 @@ def migrate_collections_to_assets(apps, schema_editor):
         collection_pks_to_asset_pks[collection.pk] = asset.pk
 
         # copy permissions
-        new_perms = []
-        for collection_perm in ObjectPermission.objects.filter(
+        old_perms = ObjectPermission.objects.filter(
             content_type=collection_ct, object_id=collection.pk
-        ):
+        )
+        new_perms = []
+        for collection_perm in old_perms:
             asset_perm = ObjectPermission()
             asset_perm.content_type = asset_ct
             asset_perm.object_id = asset.pk
@@ -123,6 +124,7 @@ def migrate_collections_to_assets(apps, schema_editor):
                 asset_perm.inherited = collection_perm.inherited
                 asset_perm.save()
         ObjectPermission.objects.bulk_create(new_perms)
+        old_perms.delete()
 
         # update all tag assignments in place
         TaggedItem.objects.filter(

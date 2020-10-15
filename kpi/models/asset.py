@@ -10,9 +10,6 @@ from io import BytesIO
 import six
 import xlsxwriter
 from django.conf import settings
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
@@ -29,6 +26,7 @@ from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.constants import (
     ASSET_TYPES,
+    ASSET_TYPES_WITH_CONTENT,
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -77,7 +75,7 @@ from kpi.utils.standardize_content import (needs_standardization,
                                            standardize_content_in_place)
 from .asset_user_partial_permission import AssetUserPartialPermission
 from .asset_version import AssetVersion
-from .object_permission import ObjectPermission, ObjectPermissionMixin
+from .object_permission import ObjectPermissionMixin, get_cached_code_names
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -490,8 +488,6 @@ class Asset(ObjectPermissionMixin,
     # provided by `DeployableMixin`
     _deployment_data = JSONBField(default=dict)
 
-    permissions = GenericRelation(ObjectPermission)
-
     objects = AssetManager()
 
     @property
@@ -694,7 +690,6 @@ class Asset(ObjectPermissionMixin,
         if self.asset_type != ASSET_TYPE_COLLECTION:
             return None
 
-        # ToDo: See if using a loop can reduce the number of SQL queries.
         return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
                                        user_id=settings.ANONYMOUS_USER_ID).exists()
 
@@ -716,6 +711,7 @@ class Asset(ObjectPermissionMixin,
         return None
 
     def get_label_for_permission(self, permission_or_codename):
+
         try:
             codename = permission_or_codename.codename
             permission = permission_or_codename
@@ -726,12 +722,9 @@ class Asset(ObjectPermissionMixin,
             label = self.ASSIGNABLE_PERMISSIONS_WITH_LABELS[codename]
         except KeyError:
             if not permission:
-                # Seems expensive. Cache it?
-                permission = Permission.objects.filter(
-                    content_type=ContentType.objects.get_for_model(self),
-                    codename=codename
-                )
-            label = permission.name
+                cached_code_names = get_cached_code_names()
+                label = cached_code_names[codename]['name']
+
         label = label.replace(
             '##asset_type_label##',
             # Raises TypeError if not coerced explicitly
@@ -831,11 +824,6 @@ class Asset(ObjectPermissionMixin,
             # for nested relations."
             'owner',
         ).prefetch_related(
-            # We previously prefetched `permissions__content_object`, but that
-            # actually pulled the entirety of each permission's linked asset
-            # from the database! For now, the solution is to remove
-            # `content_object` here *and* from
-            # `ObjectPermissionNestedSerializer`.
             'permissions__permission',
             'permissions__user',
             # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
@@ -873,11 +861,17 @@ class Asset(ObjectPermissionMixin,
     def save(self, *args, **kwargs):
 
         is_new = self.pk is None
+        update_parent_languages = kwargs.pop('update_parent_languages', True)
+
+        if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
+            # so long as all of the operations in this overridden `save()`
+            # method pertain to content, bail out if it's impossible for this
+            # asset to have content in the first place
+            super().save(*args, **kwargs)
+            return
 
         if self.content is None:
             self.content = {}
-
-        update_parent_languages = kwargs.pop('update_parent_languages', True)
 
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
@@ -885,8 +879,7 @@ class Asset(ObjectPermissionMixin,
             self.adjust_content_on_save()
 
         # populate summary
-        if self.asset_type != ASSET_TYPE_COLLECTION:
-            self._populate_summary()
+        self._populate_summary()
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -905,6 +898,9 @@ class Asset(ObjectPermissionMixin,
         _create_version = kwargs.pop('create_version', True)
         super().save(*args, **kwargs)
 
+        # Update languages for parent and previous parent.
+        # e.g. if an survey has been moved from one collection to another,
+        # we want both collections to be updated.
         if self.parent is not None and update_parent_languages:
             if self.parent_id != self.__previous_parent_id and \
                self.__previous_parent_id is not None:
@@ -1022,9 +1018,7 @@ class Asset(ObjectPermissionMixin,
             return
 
         self.summary['languages'] = languages
-        self.save(update_fields=['summary'],
-                  adjust_content=False,
-                  create_version=False)
+        self.save(update_fields=['summary'])
 
     @property
     def version__content_hash(self):
