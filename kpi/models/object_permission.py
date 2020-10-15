@@ -151,34 +151,58 @@ def get_anonymous_user():
 
 
 @cache_for_request
-def get_all_perm_ids_from_code_names() -> dict:
+def get_cached_code_names(model_: models.Model = None) -> dict:
     """
     Creates a dictionary from `auth_permission` table and saves it in cache
     during the request life.
-    Avoids several access to DB to fetch permission ids - which don't often change.
+    Avoids several accesses to DB to fetch permission ids (or names)
+    which only change after migrations.
+
+    Args:
+        model_: Any model of `settings.INSTALLED_APPS`.
+                It's narrowed down to `Asset` by default
 
     Returns:
-      dict: a dictionary of code names and ids
+        dict: a dictionary of code names and ids
     """
-    records = list(Permission.objects.values('id', 'codename'))
-    return {r['codename']: r['id'] for r in records}
+    if model_ is None:
+        # referencing `Asset` this way avoids a circular import
+        model_ = apps.get_model('kpi.asset')
+
+    content_type = ContentType.objects.get_for_model(model_)
+
+    records = list(Permission.objects.values('id', 'codename', 'name').
+                   filter(content_type=content_type))
+
+    perm_ids_from_code_names = defaultdict(dict)
+    for record in records:
+        perm_ids_from_code_names[record['codename']] = {
+            'id': record['id'],
+            'name': record['name']
+        }
+
+    return perm_ids_from_code_names
 
 
 @cache_for_request
-def get_perm_ids_from_code_names(code_names: Union[str, list]) -> Union[int, list]:
+def get_perm_ids_from_code_names(code_names: Union[str, list],
+                                 model_: models.Model = None) -> Union[int, list]:
     """
+    Returns id or a list of ids corresponding to `code_names`.
+
     Args:
-      code_names (str/list): Code name or list of code names to convert to ids
+        code_names (str/list): Code name or list of code names
+        model_: Any model of `settings.INSTALLED_APPS`. It's narrowed down to
+                `Asset` by default.
 
     Returns:
-      int/list: id or list of ids
+        int/list: id or list of ids
     """
-
-    perm_ids = get_all_perm_ids_from_code_names()
+    perm_ids = get_cached_code_names(model_)
     if isinstance(code_names, list):
-        return [v for k, v in perm_ids.items() if k in code_names]
+        return [v['id'] for k, v in perm_ids.items() if k in code_names]
     else:
-        return perm_ids[code_names]
+        return perm_ids[code_names]['id']
 
 
 class ObjectPermission(models.Model):

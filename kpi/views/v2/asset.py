@@ -487,7 +487,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             queryset = super().get_queryset()
 
             # 1) Retrieve all asset IDs of current list
-            asset_ids = AssetPagination.get_all_asset_ids_from_queryset(self.filter_queryset(queryset))
+            asset_ids = AssetPagination.get_all_asset_ids_from_queryset(
+                self.filter_queryset(queryset))
 
             # 2) Get object permissions per asset
             object_permissions = ObjectPermission.objects.filter(
@@ -520,16 +521,16 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
 
             # 4) Get children count per asset
-            records = Asset.objects.filter(parent_id__in=asset_ids). \
-                values('parent_id').annotate(children_count=Count('id'))
             # Ordering must be cleared otherwise group_by is wrong
             # (i.e. default ordered field `date_modified` must be removed)
-            records.order_by()
+            records = Asset.objects.filter(parent_id__in=asset_ids). \
+                values('parent_id').annotate(children_count=Count('id')).order_by()
 
             children_count_per_asset = {
                 r.get('parent_id'): r.get('children_count', 0)
                 for r in records if r.get('parent_id') is not None
             }
+
             context_['children_count_per_asset'] = children_count_per_asset
 
         return context_
