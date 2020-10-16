@@ -77,8 +77,11 @@ class KpiObjectPermissionsFilter:
         # the query to be processed right now. Otherwise, because queryset is
         # a lazy query, Django creates (left) joins on tables when queryset is
         # interpreted and it is way slower than running this extra query.
-        asset_ids = list(owned_and_explicit_shared.union(subscribed)
-                         .values_list('id', flat=True))
+        asset_ids = list(
+            (owned_and_explicit_shared.union(subscribed).union(
+                queryset.filter(parent__in=subscribed).values('pk')
+            )).values_list('id', flat=True)
+        )
         return queryset.filter(pk__in=asset_ids)
 
     def _get_discoverable(self, queryset):
