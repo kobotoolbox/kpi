@@ -170,6 +170,9 @@ function SearchContext(opts={}) {
         params.string = this.state.searchString;
       }
       if (this.state.parentUid) {
+        // TODO: currently this parent__uid query param returns nothing. See
+        // https://github.com/kobotoolbox/kpi/issues/2832 for the in place
+        // bypass solution
         params.parentUid = `parent__uid:${this.state.parentUid}`;
       }
       if (this.state.parentName) {
