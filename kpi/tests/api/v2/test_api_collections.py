@@ -307,6 +307,48 @@ class CollectionsTests(BaseTestCase):
             response.data['results'][0]['url'].endswith(pub_coll_url)
         )
 
+    def test_get_subscribed_collection(self):
+        public_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            name='public collection',
+            owner=self.someuser,
+        )
+        public_collection_asset = Asset.objects.create(
+            asset_type=ASSET_TYPE_TEMPLATE,
+            name='public asset',
+            owner=self.someuser,
+            parent_id=public_collection.pk
+        )
+        public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
+
+        self.login_as_other_user(username="anotheruser", password="anotheruser")
+
+        asset_list_url = reverse(self._get_endpoint('asset-list'))
+        coll_list_url = f'{asset_list_url}?q=asset_type:collection'
+        sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))
+        sub_coll_url = f'{asset_list_url}?q=parent__uid:{public_collection.uid}'
+        pub_coll_url = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid': public_collection.uid},
+        )
+
+        # should not see any collections yet
+        response = self.client.get(coll_list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 0)
+
+        # let's subscribe to the collection
+        data = {'asset': pub_coll_url}
+        response = self.client.post(sub_list_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(response.data['asset'].endswith(pub_coll_url))
+
+        # we should be able to get its children with its uid
+        expected_child_uid = [c.uid for c in public_collection.children.all()]
+        response = self.client.get(sub_coll_url)
+        response_child_uid = [c['uid'] for c in response.data['results']]
+        assert sorted(expected_child_uid) == sorted(response_child_uid)
+
     def test_collection_unsubscribe(self):
         public_collection = Asset.objects.create(
             asset_type=ASSET_TYPE_COLLECTION,
