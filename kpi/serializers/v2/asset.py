@@ -385,11 +385,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             user = get_anonymous_user()
 
         # Validate first if user can update the current parent
-        if self.instance.parent is not None:
+        if self.instance and self.instance.parent is not None:
             if not self.instance.parent.has_perm(user, PERM_CHANGE_ASSET):
                 raise serializers.ValidationError(
                     _('User cannot update current parent collection'))
 
+        # Target collection is `None`, no need to check permissions
         if parent is None:
             return parent
 
