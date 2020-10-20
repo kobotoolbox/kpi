@@ -1,6 +1,7 @@
 # coding: utf-8
 from itertools import chain
 
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from rest_framework import viewsets
 from taggit.models import Tag
@@ -32,7 +33,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
         content_type = ContentType.objects.get_for_model(Asset)
         return Tag.objects.filter(
             taggit_taggeditem_items__content_type=content_type,
-            taggit_taggeditem_items__object_id__in=[accessible_assets_pks],
+            taggit_taggeditem_items__object_id__in=[accessible_asset_pks],
         )
 
     def get_serializer_class(self):
