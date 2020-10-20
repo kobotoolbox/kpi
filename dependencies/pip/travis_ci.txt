@@ -44,7 +44,7 @@ django-markitup==4.0.0    # via -r dependencies/pip/requirements.in
 django-mptt==0.10.0       # via -r dependencies/pip/requirements.in
 django-oauth-toolkit==1.2.0  # via -r dependencies/pip/requirements.in
 django-picklefield==2.0   # via django-constance
-django-private-storage==2.2.1  # via -r dependencies/pip/requirements.in
+django-private-storage==2.2.2  # via -r dependencies/pip/requirements.in
 django-redis-sessions==0.6.1  # via -r dependencies/pip/requirements.in
 django-registration-redux==2.6  # via -r dependencies/pip/requirements.in
 django-request-cache==1.2  # via -r dependencies/pip/requirements.in
