@@ -26,6 +26,7 @@ class EncryptForm extends React.Component {
       submissionURL: submissionURL || '',
       publicKey: publicKey || '',
       clearEncryption: false,
+      isPending: false
     };
 
     autoBind(this);
@@ -46,6 +47,7 @@ class EncryptForm extends React.Component {
   onAssetChange(asset) {
     this.setState({
       asset: asset,
+      isPending: false,
       submissionURL: asset.content.settings.submission_url,
       publicKey: asset.content.settings.public_key
     });
@@ -63,7 +65,10 @@ class EncryptForm extends React.Component {
     } else if (this.state.assetUid) {
       uid = this.state.assetUid;
     }
-    this.onAssetChange(assetsList[uid]);
+
+    if (assetsList.uid !== null) {
+      this.onAssetChange(assetsList[uid]);
+    }
   }
 
   updateAsset(content) {
@@ -75,6 +80,7 @@ class EncryptForm extends React.Component {
   onSubmit(evt) {
     evt.preventDefault();
 
+    this.setState({isPending: true})
     var content = this.state.asset.content;
     content.settings.submission_url = this.state.submissionURL;
     content.settings.public_key = this.state.publicKey;
@@ -84,6 +90,7 @@ class EncryptForm extends React.Component {
     evt.preventDefault();
     this.setState({clearEncryption: true});
 
+    this.setState({isPending: true})
     var content = this.state.asset.content
     content.settings.submission_url = '';
     content.settings.public_key = '';
@@ -132,13 +139,15 @@ class EncryptForm extends React.Component {
 
         <bem.FormView__cell m='submit-button'>
           <button
-            className='mdl-button mdl-js-button mdl-button--raised mdl-button--colored'
+            className='mdl-button mdl-button--raised mdl-button--colored'
+            disabled={this.state.isPending}
             onClick={this.onSubmit} type='submit'
           >
             {t('Set encryption')}
           </button>
           <button
-            className='remove-ecryption mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
+            className='remove-encryption mdl-button mdl-button--colored mdl-button--red mdl-button--raised'
+            disabled={this.state.isPending}
             onClick={this.onRemove} type='submit'
           >
             {t('Remove encryption')}
