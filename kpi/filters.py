@@ -1,30 +1,24 @@
 # coding: utf-8
-import re
-from distutils.util import strtobool
-
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError
 from django.db.models import Count, Q
 from rest_framework import filters
 
-
 from kpi.constants import (
-    PERM_DISCOVER_ASSET,
     ASSET_STATUS_SHARED,
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
-    ASSET_STATUS_PUBLIC
+    ASSET_STATUS_PUBLIC,
+    ASSET_TYPE_COLLECTION,
+    PERM_DISCOVER_ASSET
 )
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
-from .models.asset import ASSET_TYPE_COLLECTION
 from .models.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
-    get_models_with_object_permissions,
 )
 
 
@@ -167,7 +161,8 @@ class KpiObjectPermissionsFilter:
 
     def _get_public(self, queryset):
         return get_objects_for_user(get_anonymous_user(),
-                                    self._permission, queryset)
+                                    self._permission,
+                                    queryset)
 
     def _get_subscribed(self, queryset, user):
         # Of the public objects, determine to which the user has subscribed
@@ -179,9 +174,12 @@ class KpiObjectPermissionsFilter:
                 'asset_id', flat=True
             ).filter(user_id=user.pk)
         )
+        # Notes: `.distinct()` is mandatory to join this queryset with the result
+        # of `get_objects_for_user()`
         subscribed = queryset.filter(
             asset_type=ASSET_TYPE_COLLECTION, id__in=asset_ids
-        )
+        ).distinct()
+
         return subscribed
 
 
@@ -247,22 +245,7 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
         she should see all permissions for that object, including those
         assigned to other users.
         """
-        possible_content_types = ContentType.objects.get_for_models(
-            *get_models_with_object_permissions()
-        ).values()
-        result = queryset.none()
-        for content_type in possible_content_types:
-            # Find all the permissions assigned to the user
-            permissions_assigned_to_user = ObjectPermission.objects.filter(
-                content_type=content_type,
-                user=user,
-            )
-            # Find all the objects associated with those permissions, and then
-            # find all the permissions applied to all of those objects
-            result |= ObjectPermission.objects.filter(
-                content_type=content_type,
-                object_id__in=permissions_assigned_to_user.values(
-                    'object_id'
-                ).distinct()
-            )
+        result = ObjectPermission.objects.filter(
+            asset__permissions__user=user
+        ).distinct()
         return result
