@@ -48,7 +48,6 @@ django-private-storage==2.2.1  # via -r dependencies/pip/requirements.in (line 4
 django-redis-sessions==0.6.1  # via -r dependencies/pip/requirements.in (line 50)
 django-registration-redux==2.6  # via -r dependencies/pip/requirements.in (line 38)
 django-reversion==3.0.1   # via -r dependencies/pip/requirements.in (line 44)
-django-storages==1.7.2    # via -r dependencies/pip/requirements.in (line 46)
 django-taggit==1.1.0      # via -r dependencies/pip/requirements.in (line 45)
 django-timezone-field==3.1  # via django-celery-beat
 django-userforeignkey==0.3.0  # via django-request-cache
