@@ -30,37 +30,6 @@ cryptography==2.8         # via paramiko, pyopenssl
 cssselect==1.1.0          # via pyquery
 decorator==4.4.1          # via ipython, traitlets
 defusedxml==0.6.0         # via djangorestframework-xml
-dicttoxml==1.7.4          # via -r dependencies/pip/requirements.in (line 28)
-dj-database-url==0.5.0    # via -r dependencies/pip/requirements.in (line 30)
-dj-static==0.0.6          # via -r dependencies/pip/requirements.in (line 29)
-django-amazon-ses==2.1.1  # via -r dependencies/pip/requirements.in (line 39)
-django-braces==1.13.0     # via -r dependencies/pip/requirements.in (line 31)
-django-celery-beat==1.5.0  # via -r dependencies/pip/requirements.in (line 32)
-django-constance[database]==2.4.0  # via -r dependencies/pip/requirements.in (line 33)
-django-cors-headers==3.1.1  # via -r dependencies/pip/requirements.in (line 34)
-django-debug-toolbar==2.1  # via -r dependencies/pip/requirements.in (line 35)
-django-extensions==2.2.5  # via -r dependencies/pip/requirements.in (line 36)
-django-loginas==0.3.6     # via -r dependencies/pip/requirements.in (line 41)
-django-markdownx==2.0.28  # via -r dependencies/pip/requirements.in (line 42)
-django-oauth-toolkit==1.2.0  # via -r dependencies/pip/requirements.in (line 37)
-django-picklefield==2.0   # via django-constance
-django-private-storage==2.2.1  # via -r dependencies/pip/requirements.in (line 47)
-django-redis-sessions==0.6.1  # via -r dependencies/pip/requirements.in (line 50)
-django-registration-redux==2.6  # via -r dependencies/pip/requirements.in (line 38)
-django-reversion==3.0.1   # via -r dependencies/pip/requirements.in (line 44)
-django-taggit==1.1.0      # via -r dependencies/pip/requirements.in (line 45)
-django-timezone-field==3.1  # via django-celery-beat
-django-userforeignkey==0.3.0  # via django-request-cache
-django-webpack-loader==0.6.0  # via -r dependencies/pip/requirements.in (line 40)
-django==2.2.7             # via -r dependencies/pip/requirements.in (line 19), django-amazon-ses, django-cors-headers, django-debug-toolbar, django-markdownx, django-oauth-toolkit, django-picklefield, django-request-cache, django-reversion, django-storages, django-taggit, django-timezone-field, jsonfield
-djangorestframework-xml==1.4.0  # via -r dependencies/pip/requirements.in (line 49)
-djangorestframework==3.10.3  # via -r dependencies/pip/requirements.in (line 48), drf-extensions
-docutils==0.15.2          # via botocore, statistics
-drf-extensions==0.5.0     # via -r dependencies/pip/requirements.in (line 51)
-fabric==2.5.0             # via -r dependencies/pip/dev_requirements.in (line 3)
-formencode==1.3.1         # via pyxform
-future==0.18.2            # via -r dependencies/pip/requirements.in (line 52)
-geojson-rewind==0.2.0     # via -r dependencies/pip/requirements.in (line 53), formpack
 dicttoxml==1.7.4          # via -r dependencies/pip/requirements.in
 dj-database-url==0.5.0    # via -r dependencies/pip/requirements.in
 dj-static==0.0.6          # via -r dependencies/pip/requirements.in
@@ -103,16 +72,6 @@ ipython-genutils==0.2.0   # via traitlets
 ipython==7.9.0            # via -r dependencies/pip/dev_requirements.in
 jedi==0.15.1              # via ipython
 jmespath==0.9.4           # via boto3, botocore
-jsonfield==2.0.2          # via -r dependencies/pip/requirements.in (line 54)
-jsonschema==3.1.1         # via formpack
-kombu==4.6.6              # via -r dependencies/pip/requirements.in (line 55), celery
-linecache2==1.0.0         # via traceback2
-lxml==4.4.1               # via -r dependencies/pip/requirements.in (line 56), formpack, pyquery
-markdown==3.1.1           # via -r dependencies/pip/requirements.in (line 20), django-markdownx
-mock==3.0.5               # via -r dependencies/pip/dev_requirements.in (line 9)
-more-itertools==7.2.0     # via pytest, zipp
-ndg-httpsclient==0.5.1    # via -r dependencies/pip/requirements.in (line 77)
-oauthlib==3.1.0           # via -r dependencies/pip/requirements.in (line 57), django-oauth-toolkit
 jsonfield==2.0.2          # via -r dependencies/pip/requirements.in
 jsonschema==3.1.1         # via formpack
 kombu==4.6.6              # via -r dependencies/pip/requirements.in, celery
@@ -132,16 +91,6 @@ pickleshare==0.7.5        # via ipython
 pillow==6.2.1             # via django-markdownx
 pluggy==0.13.0            # via pytest
 prompt-toolkit==2.0.10    # via ipython
-psycopg2==2.8.4           # via -r dependencies/pip/requirements.in (line 59)
-ptyprocess==0.6.0         # via pexpect
-py==1.8.0                 # via pytest
-pyasn1==0.4.7             # via -r dependencies/pip/requirements.in (line 78), ndg-httpsclient
-pycparser==2.19           # via cffi
-pygments==2.4.2           # via -r dependencies/pip/requirements.in (line 21), ipython
-pymongo==3.9.0            # via -r dependencies/pip/requirements.in (line 60)
-pynacl==1.3.0             # via paramiko
-pyopenssl==19.0.0         # via -r dependencies/pip/requirements.in (line 76), ndg-httpsclient
-
 psycopg2==2.8.4           # via -r dependencies/pip/requirements.in
 ptyprocess==0.6.0         # via pexpect
 py==1.8.0                 # via pytest
@@ -151,7 +100,6 @@ pygments==2.4.2           # via -r dependencies/pip/requirements.in, ipython
 pymongo==3.9.0            # via -r dependencies/pip/requirements.in
 pynacl==1.3.0             # via paramiko
 pyopenssl==19.0.0         # via -r dependencies/pip/requirements.in, ndg-httpsclient
-
 pyparsing==2.4.5          # via packaging
 pyquery==1.4.1            # via formpack
 pyrsistent==0.15.5        # via jsonschema
@@ -159,33 +107,6 @@ pytest-django==3.7.0      # via -r dependencies/pip/dev_requirements.in
 pytest-env==0.6.2         # via -r dependencies/pip/dev_requirements.in
 pytest==5.2.2             # via -r dependencies/pip/dev_requirements.in, pytest-django, pytest-env
 python-crontab==2.4.0     # via django-celery-beat
-
-python-dateutil==2.8.0    # via -r dependencies/pip/requirements.in (line 61), botocore, python-crontab
-pytz==2019.3              # via -r dependencies/pip/requirements.in (line 62), celery, django, django-timezone-field
-pyxform==0.15.1           # via -r dependencies/pip/requirements.in (line 63), formpack
-redis==3.3.11             # via celery, django-redis-sessions
-requests==2.22.0          # via -r dependencies/pip/requirements.in (line 64), django-oauth-toolkit, responses
-responses==0.10.6         # via -r dependencies/pip/requirements.in (line 65)
-s3transfer==0.2.1         # via boto3
-shortuuid==0.5.0          # via -r dependencies/pip/requirements.in (line 66)
-six==1.13.0               # via bcrypt, cryptography, django-extensions, jsonschema, mock, packaging, prompt-toolkit, pynacl, pyopenssl, pyrsistent, python-dateutil, responses, traitlets, unittest2
-sqlparse==0.3.0           # via -r dependencies/pip/requirements.in (line 67), django, django-debug-toolbar
-static3==0.7.0            # via -r dependencies/pip/requirements.in (line 68), dj-static
-statistics==1.0.3.5       # via formpack
-tabulate==0.8.5           # via -r dependencies/pip/requirements.in (line 69)
-traceback2==1.4.0         # via unittest2
-traitlets==4.3.3          # via ipython
-unicodecsv==0.14.1        # via -r dependencies/pip/requirements.in (line 70), pyxform
-unittest2==1.1.0          # via pyxform
-urllib3==1.25.7           # via botocore, requests
-uwsgi==2.0.18             # via -r dependencies/pip/requirements.in (line 71)
-vine==1.3.0               # via amqp, celery
-wcwidth==0.1.7            # via prompt-toolkit, pytest
-werkzeug==0.16.0          # via -r dependencies/pip/dev_requirements.in (line 4)
-xlrd==1.2.0               # via -r dependencies/pip/requirements.in (line 72), pyxform
-xlsxwriter==1.2.5         # via formpack
-xlwt==1.3.0               # via -r dependencies/pip/requirements.in (line 73)
-
 python-dateutil==2.8.0    # via -r dependencies/pip/requirements.in, botocore, python-crontab
 pytz==2019.3              # via -r dependencies/pip/requirements.in, celery, django, django-timezone-field
 pyxform==0.15.1           # via -r dependencies/pip/requirements.in, formpack
@@ -211,7 +132,6 @@ werkzeug==0.16.0          # via -r dependencies/pip/dev_requirements.in
 xlrd==1.2.0               # via -r dependencies/pip/requirements.in, pyxform
 xlsxwriter==1.2.5         # via -r dependencies/pip/requirements.in, formpack
 xlwt==1.3.0               # via -r dependencies/pip/requirements.in
-
 zipp==0.6.0               # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
