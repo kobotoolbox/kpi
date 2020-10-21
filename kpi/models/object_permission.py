@@ -813,8 +813,10 @@ class ObjectPermissionMixin:
             user_ids = {x[0] for x in user_perm_ids}
             return User.objects.filter(pk__in=user_ids)
 
-    def has_perm(self, user_obj, perm):
-        """ Does user_obj have perm on this object? (True/False) """
+    def has_perm(self, user_obj: models.Model, perm: str) -> bool:
+        """
+        Does `user_obj` have perm on this object? (True/False)
+        """
         app_label, codename = perm_parse(perm, self)
         is_anonymous = False
         if isinstance(user_obj, AnonymousUser):
