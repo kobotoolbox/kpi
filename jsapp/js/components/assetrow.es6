@@ -352,6 +352,13 @@ class AssetRow extends React.Component {
                   {t('Manage Translations')}
                 </bem.PopoverMenu__link>
               }
+              <bem.PopoverMenu__link
+                data-action={'encryption'}
+                data-asset-uid={this.props.uid}
+              >
+                <i className='k-icon-lock'/>
+                {t('Manage Encryption')}
+              </bem.PopoverMenu__link>
               {this.props.downloads.map((dl)=>{
                 return (
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}

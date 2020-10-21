@@ -68,7 +68,8 @@ export const MODAL_TYPES = {
   TABLE_COLUMNS: 'table-columns',
   REST_SERVICES: 'rest-services',
   FORM_LANGUAGES: 'form-languages',
-  FORM_TRANSLATIONS_TABLE: 'form-translation-table'
+  FORM_TRANSLATIONS_TABLE: 'form-translation-table',
+  ENCRYPT_FORM: 'encrypt-form'
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = {
