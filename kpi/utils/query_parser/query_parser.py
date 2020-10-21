@@ -126,11 +126,11 @@ class QueryParseActions(object):
     @classmethod
     def term(cls, text, a, b, elements):
 
-        def _get_value(field, elements):
+        def _get_value(_field, _elements):
             # A search term by itself without a specified field
-            value = elements[1]
-            # the field value is not used in `process_value()`
-            return cls.process_value(field, value)
+            _value = _elements[1]
+            # the `field` value is not used in `process_value()`
+            return cls.process_value(_field, _value)
 
         if elements[0].text == '':
             value = _get_value('', elements)
