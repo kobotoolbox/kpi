@@ -20,7 +20,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = PaginatedApiField(
         serializer_class=AssetUrlListSerializer
     )
-    member_since = serializers.SerializerMethodField()
+    date_joined = serializers.SerializerMethodField()
     public_collection_subscribers_count = serializers.SerializerMethodField()
     public_collections_count = serializers.SerializerMethodField()
 
@@ -29,12 +29,12 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url',
                   'username',
                   'assets',
-                  'member_since',
+                  'date_joined',
                   'public_collection_subscribers_count',
                   'public_collections_count',
                   )
 
-    def get_member_since(self, user):
+    def get_date_joined(self, user):
         return user.date_joined
 
     def get_public_collection_subscribers_count(self, user):
