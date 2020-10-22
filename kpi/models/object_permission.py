@@ -171,8 +171,8 @@ def get_cached_code_names(model_: models.Model = None) -> dict:
 
     content_type = ContentType.objects.get_for_model(model_)
 
-    records = list(Permission.objects.values('id', 'codename', 'name').
-                   filter(content_type=content_type))
+    records = Permission.objects.values('id', 'codename', 'name').filter(
+        content_type=content_type)
 
     perm_ids_from_code_names = defaultdict(dict)
     for record in records:
@@ -198,6 +198,7 @@ def get_perm_ids_from_code_names(code_names: Union[str, list],
     Returns:
         int/list: id or list of ids
     """
+    # `get_cached_code_names` handles defaulting `model_` to `kpi.Asset`
     perm_ids = get_cached_code_names(model_)
     if isinstance(code_names, list):
         return [v['id'] for k, v in perm_ids.items() if k in code_names]
