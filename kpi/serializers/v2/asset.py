@@ -396,11 +396,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         # `user` must have write access to target parent before being able to
         # move the asset.
-        if not parent.has_perm(user, PERM_CHANGE_ASSET):
-            # We usually return a 404 if users don't have `view_asset` permission
-            # We send a generic message to avoid exposing the existence of
-            # the object.
-            raise serializers.ValidationError(_('Invalid target collection'))
+        parent_perms = parent.get_perms(user)
+        if PERM_VIEW_ASSET not in parent_perms:
+            raise serializers.ValidationError(_('Target collection not found'))
+
+        if PERM_CHANGE_ASSET not in parent_perms:
+            raise serializers.ValidationError(
+                _('User cannot update target parent collection'))
 
         return parent
 

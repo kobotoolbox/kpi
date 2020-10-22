@@ -3,6 +3,7 @@ import re
 
 from django.contrib.auth.models import User, AnonymousUser
 from django.urls import reverse
+from django.utils.translation import ugettext as _
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -371,9 +372,11 @@ class CollectionsTests(BaseTestCase):
 
     def test_move_child_from_not_writable_source_collection(self):
         anotheruser = User.objects.get(username='anotheruser')
-        response = self._move_child_to_collection(anotheruser,
-                                                  PERM_CHANGE_ASSET,
-                                                  PERM_VIEW_ASSET)
+        response = self._move_child_to_collection(
+            anotheruser,
+            perm_to_set_on_target_parent=PERM_CHANGE_ASSET,
+            perm_to_set_on_source_parent=PERM_VIEW_ASSET,
+        )
 
         # It should fail because of a lack of permissions on `self.coll`
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -381,23 +384,43 @@ class CollectionsTests(BaseTestCase):
     def test_move_child_to_not_writable_target_collection(self):
 
         anotheruser = User.objects.get(username='anotheruser')
-        response = self._move_child_to_collection(anotheruser, PERM_VIEW_ASSET)
-
+        response = self._move_child_to_collection(
+            anotheruser,
+            perm_to_set_on_target_parent=PERM_VIEW_ASSET,
+            perm_to_set_on_source_parent=PERM_CHANGE_ASSET,
+        )
         # It should fail because of a lack of permissions on `some_collection`
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert str(response.data['parent'][0]) \
+               == _('User cannot update target parent collection')
+
+        # Try with no permissions on source parent. Message should be different
+        response = self._move_child_to_collection(
+            anotheruser,
+            perm_to_set_on_target_parent=None,
+            perm_to_set_on_source_parent=PERM_CHANGE_ASSET,
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert str(response.data['parent'][0]) \
+               == _('Target collection not found')
 
     def test_move_child_to_writable_target_collection(self):
 
         anotheruser = User.objects.get(username='anotheruser')
-        response = self._move_child_to_collection(anotheruser, PERM_CHANGE_ASSET)
+        response = self._move_child_to_collection(
+            anotheruser,
+            perm_to_set_on_target_parent=PERM_CHANGE_ASSET,
+            perm_to_set_on_source_parent=PERM_CHANGE_ASSET,
+        )
 
         # It should be ok. `anotheruser` is allowed to write to target collection
         assert response.status_code == status.HTTP_200_OK
 
     def _move_child_to_collection(
-            self, user_: User,
-            target_parent_perm: str,
-            source_parent_perm: str = PERM_CHANGE_ASSET) -> Response:
+            self,
+            user_: User,
+            perm_to_set_on_target_parent: str,
+            perm_to_set_on_source_parent: str) -> Response:
 
         some_asset = Asset.objects.create(
             asset_type=ASSET_TYPE_SURVEY,
@@ -411,9 +434,15 @@ class CollectionsTests(BaseTestCase):
             owner=self.someuser,
         )
 
-        self.coll.assign_perm(user_, source_parent_perm)
+
+        self.coll.assign_perm(user_, perm_to_set_on_source_parent)
         some_asset.assign_perm(user_, PERM_CHANGE_ASSET)
-        some_collection.assign_perm(user_, target_parent_perm)
+        # `perm_to_set_on_target_parent` can be `None` to test different
+        # response messages (e.g. not exposing collection existence
+        # if user has no permissions on object)
+        if perm_to_set_on_target_parent is not None:
+            some_collection.assign_perm(user_, perm_to_set_on_target_parent)
+
         self.login_as_other_user(user_.username, user_.username)
 
         some_collection_url = self.absolute_reverse(
