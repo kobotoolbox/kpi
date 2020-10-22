@@ -2,6 +2,7 @@
 import copy
 import re
 from collections import defaultdict
+from typing import Union
 
 from django.apps import apps
 from django.conf import settings
@@ -11,6 +12,7 @@ from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
+
 from rest_framework import serializers
 
 from kpi.constants import (
@@ -114,16 +116,18 @@ def get_objects_for_user(
 
     if all_perms_required:
         for codename in codenames:
+            perm_id = get_perm_ids_from_code_names(codename)
             queryset = queryset.filter(
                 permissions__user=user,
-                permissions__permission__codename=codename,
+                permissions__permission_id=perm_id,
                 permissions__deny=False,
             )
         return queryset.distinct()
     else:
+        perm_ids = get_perm_ids_from_code_names(codenames)
         return queryset.filter(
             permissions__user=user,
-            permissions__permission__codename__in=codenames,
+            permissions__permission_id__in=perm_ids,
             permissions__deny=False,
         ).distinct()
 
@@ -144,6 +148,62 @@ def get_anonymous_user():
             username=username
         )
     return user
+
+
+@cache_for_request
+def get_cached_code_names(model_: models.Model = None) -> dict:
+    """
+    Creates a dictionary from `auth_permission` table and saves it in cache
+    during the request life.
+    Avoids several accesses to DB to fetch permission ids (or names)
+    which only change after migrations.
+
+    Args:
+        model_: Any model of `settings.INSTALLED_APPS`.
+                It's narrowed down to `Asset` by default
+
+    Returns:
+        dict: a dictionary of code names and ids
+    """
+    if model_ is None:
+        # referencing `Asset` this way avoids a circular import
+        model_ = apps.get_model('kpi.asset')
+
+    content_type = ContentType.objects.get_for_model(model_)
+
+    records = Permission.objects.values('id', 'codename', 'name').filter(
+        content_type=content_type)
+
+    perm_ids_from_code_names = defaultdict(dict)
+    for record in records:
+        perm_ids_from_code_names[record['codename']] = {
+            'id': record['id'],
+            'name': record['name']
+        }
+
+    return perm_ids_from_code_names
+
+
+@cache_for_request
+def get_perm_ids_from_code_names(code_names: Union[str, list],
+                                 model_: models.Model = None) -> Union[int, list]:
+    """
+    Returns id or a list of ids corresponding to `code_names`.
+
+    Args:
+        code_names (str/list): Code name or list of code names
+        model_: Any model of `settings.INSTALLED_APPS`. It's narrowed down to
+                `Asset` by default.
+
+    Returns:
+        int/list: id or list of ids
+    """
+    # `get_cached_code_names` handles defaulting `model_` to `kpi.Asset`
+    perm_ids = get_cached_code_names(model_)
+    if isinstance(code_names, list):
+        return [v['id'] for k, v in perm_ids.items() if k in code_names]
+    else:
+        return perm_ids[code_names]['id']
 
 
 class ObjectPermission(models.Model):
