@@ -6,13 +6,14 @@ from django.db.models import Count, Q
 from rest_framework import filters
 
 from kpi.constants import (
+    ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
     ASSET_STATUS_SHARED,
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
     ASSET_TYPE_COLLECTION,
     PERM_DISCOVER_ASSET,
-    PERM_VIEW_ASSET
+    PERM_VIEW_ASSET,
 )
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
@@ -202,7 +203,9 @@ class SearchFilter(filters.BaseFilterBackend):
             return queryset
 
         try:
-            q_obj = parse(q)
+            q_obj = parse(
+                q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
+            )
         except ParseError:
             return queryset.model.objects.none()
 

@@ -4,6 +4,7 @@ from copy import deepcopy
 from django.db.models import Q
 from django.test import TestCase
 
+from kpi.constants import ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
 from kpi.utils.query_parser import parse, ParseError
@@ -173,31 +174,39 @@ class UtilsTestCase(TestCase):
             (Q(a='a') | Q(b='b') & Q(c='c')) & Q(d='d') | (
                 Q(snakes='🐍🐍') & ~Q(alphabet='🍲soup')
             )
-            & ~((
-                Q(summary__icontains='in a house') | 
+            & ~(
                 Q(name__icontains='in a house') |
-                Q(uid__icontains='in a house') | 
                 Q(owner__username__icontains='in a house') |
-                Q(tags__name__icontains='in a house') | 
-                Q(settings__description__icontains='in a house')
-            ))
-            & ~((
-                Q(summary__icontains='with a mouse') | 
+                Q(settings__description__icontains='in a house') |
+                Q(summary__icontains='in a house') |
+                Q(tags__name__icontains='in a house') |
+                Q(uid__icontains='in a house')
+            )
+            & ~(
                 Q(name__icontains='with a mouse') |
-                Q(uid__icontains='with a mouse') | 
                 Q(owner__username__icontains='with a mouse') |
-                Q(tags__name__icontains='with a mouse') | 
-                Q(settings__description__icontains='with a mouse')
-            ))
+                Q(settings__description__icontains='with a mouse') |
+                Q(summary__icontains='with a mouse') |
+                Q(tags__name__icontains='with a mouse') |
+                Q(uid__icontains='with a mouse')
+            )
         )
-        self.assertEqual(repr(expected_q), repr(parse(query_string)))
+        assert (
+            expected_q
+            == parse(query_string, ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)
+        )
 
     def test_query_parser_no_specified_field(self):
         query_string = 'foo'
         expected_q = (
-            Q(summary__icontains='foo') | Q(name__icontains='foo') |
-            Q(uid__icontains='foo') | Q(owner__username__icontains='foo') |
+            Q(name__icontains='foo') |
+            Q(owner__username__icontains='foo') |
+            Q(settings__description__icontains='foo') |
+            Q(summary__icontains='foo') |
             Q(tags__name__icontains='foo') |
-            Q(settings__description__icontains='foo')
+            Q(uid__icontains='foo')
         )
-        self.assertEqual(repr(expected_q), repr(parse(query_string)))
+        self.assertEqual(
+            repr(expected_q),
+            repr(parse(query_string, ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)),
+        )

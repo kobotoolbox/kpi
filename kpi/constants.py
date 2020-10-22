@@ -92,9 +92,11 @@ ASSET_STATUS_SHARED = 'shared'
 
 # Terms that can be used to search and filter return values
 # from a query `q`
-SEARCH_SUMMARY_ICONTAINS = 'summary__icontains'
-SEARCH_NAME_ICONTAINS = 'name__icontains'
-SEARCH_UID_ICONTAINS = 'uid__icontains'
-SEARCH_OWNNER_ICONTAINS = 'owner__username__icontains'
-SEARCH_TAGS_ICONTAINS = 'tags__name__icontains'
-SEARCH_DESCRIPTION_ICONTAINS = 'settings__description__icontains'
+ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS = [
+    'name__icontains',
+    'owner__username__icontains',
+    'settings__description__icontains',
+    'summary__icontains',
+    'tags__name__icontains',
+    'uid__icontains',
+]
