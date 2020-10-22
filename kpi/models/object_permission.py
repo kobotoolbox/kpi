@@ -770,8 +770,10 @@ class ObjectPermissionMixin:
         return new_permission
 
     def get_perms(self, user_obj):
-        """ Return a list of codenames of all effective grant permissions that
-        user_obj has on this object. """
+        """
+        Return a list of codenames of all effective grant permissions that
+        user_obj has on this object.
+        """
         user_perm_ids = self._get_effective_perms(user=user_obj)
         perm_ids = [x[1] for x in user_perm_ids]
         return Permission.objects.filter(pk__in=perm_ids).values_list(
@@ -814,8 +816,10 @@ class ObjectPermissionMixin:
             user_ids = {x[0] for x in user_perm_ids}
             return User.objects.filter(pk__in=user_ids)
 
-    def has_perm(self, user_obj, perm):
-        """ Does user_obj have perm on this object? (True/False) """
+    def has_perm(self, user_obj: models.Model, perm: str) -> bool:
+        """
+        Does `user_obj` have perm on this object? (True/False)
+        """
         app_label, codename = perm_parse(perm, self)
         is_anonymous = False
         if isinstance(user_obj, AnonymousUser):
