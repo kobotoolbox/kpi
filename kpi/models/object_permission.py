@@ -770,8 +770,10 @@ class ObjectPermissionMixin:
         return new_permission
 
     def get_perms(self, user_obj):
-        """ Return a list of codenames of all effective grant permissions that
-        user_obj has on this object. """
+        """
+        Return a list of codenames of all effective grant permissions that
+        user_obj has on this object.
+        """
         user_perm_ids = self._get_effective_perms(user=user_obj)
         perm_ids = [x[1] for x in user_perm_ids]
         return Permission.objects.filter(pk__in=perm_ids).values_list(
