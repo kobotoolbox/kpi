@@ -116,7 +116,7 @@ class CollectionsTests(BaseTestCase):
             asset_type=ASSET_TYPE_TEMPLATE,
             name='public asset',
             owner=self.someuser,
-            parent_id=public_collection.pk
+            parent=public_collection
         )
 
         public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
@@ -321,7 +321,7 @@ class CollectionsTests(BaseTestCase):
             asset_type=ASSET_TYPE_TEMPLATE,
             name='public asset',
             owner=self.someuser,
-            parent_id=public_collection.pk
+            parent=public_collection
         )
         public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
 
@@ -330,8 +330,9 @@ class CollectionsTests(BaseTestCase):
         asset_list_url = reverse(self._get_endpoint('asset-list'))
         coll_list_url = f'{asset_list_url}?q=asset_type:collection'
         sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))
-        sub_coll_url = f'{asset_list_url}?q=parent__uid:{public_collection.uid}'
-        pub_coll_url = reverse(
+        subscrbd_coll_url = \
+            f"{asset_list_url}?q=parent__uid:{public_collection.uid}"
+        pub_coll_url = BaseTestCase.absolute_reverse(
             self._get_endpoint('asset-detail'),
             kwargs={'uid': public_collection.uid},
         )
@@ -345,11 +346,13 @@ class CollectionsTests(BaseTestCase):
         data = {'asset': pub_coll_url}
         response = self.client.post(sub_list_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(response.data['asset'].endswith(pub_coll_url))
+        assert response.data["asset"] == pub_coll_url
 
         # we should be able to get its children with its uid
-        expected_child_uid = [c.uid for c in public_collection.children.all()]
-        response = self.client.get(sub_coll_url)
+        expected_child_uid = [
+            c for c in public_collection.children.values_list("uid", flat=True)
+        ]
+        response = self.client.get(subscrbd_coll_url)
         response_child_uid = [c['uid'] for c in response.data['results']]
         assert sorted(expected_child_uid) == sorted(response_child_uid)
 
