@@ -26,6 +26,12 @@ class KobocatProfileException(Exception):
     pass
 
 
+class BadDefaultSearchException(exceptions.APIException):
+    status_code = 400
+    default_detail = 'The search term must be 3 or more characters'
+    default_code = 'bad_default_search'
+
+
 class KobocatDeploymentException(exceptions.APIException):
     def __init__(self, *args, **kwargs):
         if 'response' in kwargs:

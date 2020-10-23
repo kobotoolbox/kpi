@@ -17,6 +17,7 @@ from kpi.constants import (
 )
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
+from kpi.exceptions import BadDefaultSearchException
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
     get_objects_for_user,
@@ -206,7 +207,7 @@ class SearchFilter(filters.BaseFilterBackend):
             q_obj = parse(
                 q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
             )
-        except ParseError:
+        except (ParseError, BadDefaultSearchException):
             return queryset.model.objects.none()
 
         try:
