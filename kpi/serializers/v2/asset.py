@@ -2,6 +2,7 @@
 import json
 
 from django.conf import settings
+from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
@@ -14,12 +15,16 @@ from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPE_COLLECTION,
     PERM_DISCOVER_ASSET,
+    PERM_CHANGE_ASSET,
     PERM_VIEW_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField, \
-    PaginatedApiField
+from kpi.fields import (
+    PaginatedApiField,
+    RelativePrefixHyperlinkedRelatedField,
+    WritableJSONField,
+)
 from kpi.models import Asset, AssetVersion
 from kpi.models.asset import UserAssetSubscription
 from kpi.models.object_permission import get_anonymous_user
@@ -164,16 +169,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
-        user = self.context['request'].user
-        # Check if the user is anonymous. The
-        # django.contrib.auth.models.AnonymousUser object doesn't work for
-        # queries.
-        if user.is_anonymous:
-            user = get_anonymous_user()
-        if 'parent' in fields:
-            # TODO: remove this restriction?
-            fields['parent'].queryset = fields['parent'].queryset.filter(
-                owner=user)
         # Honor requests to exclude fields
         # TODO: Actually exclude fields from tha database query! DRF grabs
         # all columns, even ones that are never named in `fields`
@@ -207,8 +202,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         def _reverse_lookup_format(fmt):
             url = reverse('asset-%s' % fmt,
-                                    args=(obj.uid,),
-                                    request=request)
+                          args=(obj.uid,),
+                          request=request)
             return {'format': fmt,
                     'url': url, }
 
@@ -382,6 +377,34 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return 'superuser'
         raise Exception(
             f'{request.user.username} has unexpected access to {obj.uid}')
+
+    def validate_parent(self, parent: Asset) -> Asset:
+        request = self.context['request']
+        user = request.user
+        if user.is_anonymous:
+            user = get_anonymous_user()
+
+        # Validate first if user can update the current parent
+        if self.instance and self.instance.parent is not None:
+            if not self.instance.parent.has_perm(user, PERM_CHANGE_ASSET):
+                raise serializers.ValidationError(
+                    _('User cannot update current parent collection'))
+
+        # Target collection is `None`, no need to check permissions
+        if parent is None:
+            return parent
+
+        # `user` must have write access to target parent before being able to
+        # move the asset.
+        parent_perms = parent.get_perms(user)
+        if PERM_VIEW_ASSET not in parent_perms:
+            raise serializers.ValidationError(_('Target collection not found'))
+
+        if PERM_CHANGE_ASSET not in parent_perms:
+            raise serializers.ValidationError(
+                _('User cannot update target parent collection'))
+
+        return parent
 
     def _content(self, obj):
         return json.dumps(obj.content)

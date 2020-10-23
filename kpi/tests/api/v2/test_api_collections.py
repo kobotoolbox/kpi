@@ -3,12 +3,16 @@ import re
 
 from django.contrib.auth.models import User, AnonymousUser
 from django.urls import reverse
+from django.utils.translation import ugettext as _
 from rest_framework import status
+from rest_framework.response import Response
 
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
+    ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
+    PERM_CHANGE_ASSET,
     PERM_DISCOVER_ASSET,
     PERM_VIEW_ASSET,
 )
@@ -365,3 +369,92 @@ class CollectionsTests(BaseTestCase):
         response = self.client.get(coll_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], 0)
+
+    def test_move_child_from_not_writable_source_collection(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        response = self._move_child_to_collection(
+            anotheruser,
+            perm_to_set_on_target_parent=PERM_CHANGE_ASSET,
+            perm_to_set_on_source_parent=PERM_VIEW_ASSET,
+        )
+
+        # It should fail because of a lack of permissions on `self.coll`
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_move_child_to_not_writable_target_collection(self):
+
+        anotheruser = User.objects.get(username='anotheruser')
+        response = self._move_child_to_collection(
+            anotheruser,
+            perm_to_set_on_target_parent=PERM_VIEW_ASSET,
+            perm_to_set_on_source_parent=PERM_CHANGE_ASSET,
+        )
+        # It should fail because of a lack of permissions on `some_collection`
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert str(response.data['parent'][0]) \
+               == _('User cannot update target parent collection')
+
+        # Try with no permissions on source parent. Message should be different
+        response = self._move_child_to_collection(
+            anotheruser,
+            perm_to_set_on_target_parent=None,
+            perm_to_set_on_source_parent=PERM_CHANGE_ASSET,
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert str(response.data['parent'][0]) \
+               == _('Target collection not found')
+
+    def test_move_child_to_writable_target_collection(self):
+
+        anotheruser = User.objects.get(username='anotheruser')
+        response = self._move_child_to_collection(
+            anotheruser,
+            perm_to_set_on_target_parent=PERM_CHANGE_ASSET,
+            perm_to_set_on_source_parent=PERM_CHANGE_ASSET,
+        )
+
+        # It should be ok. `anotheruser` is allowed to write to target collection
+        assert response.status_code == status.HTTP_200_OK
+
+    def _move_child_to_collection(
+            self,
+            user_: User,
+            perm_to_set_on_target_parent: str,
+            perm_to_set_on_source_parent: str) -> Response:
+
+        some_asset = Asset.objects.create(
+            asset_type=ASSET_TYPE_SURVEY,
+            name='some asset',
+            owner=self.someuser,
+            parent_id=self.coll.pk
+        )
+        some_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            name='some collection',
+            owner=self.someuser,
+        )
+
+
+        self.coll.assign_perm(user_, perm_to_set_on_source_parent)
+        some_asset.assign_perm(user_, PERM_CHANGE_ASSET)
+        # `perm_to_set_on_target_parent` can be `None` to test different
+        # response messages (e.g. not exposing collection existence
+        # if user has no permissions on object)
+        if perm_to_set_on_target_parent is not None:
+            some_collection.assign_perm(user_, perm_to_set_on_target_parent)
+
+        self.login_as_other_user(user_.username, user_.username)
+
+        some_collection_url = self.absolute_reverse(
+            self._get_endpoint('asset-detail'),
+            args=[some_collection.uid]
+        )
+
+        some_asset_url = reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid': some_asset.uid, 'format': 'json'},
+        )
+
+        data = {'parent': some_collection_url}
+        # Try to move `some_asset` from `self.coll` to `some_collection`.
+        return self.client.patch(some_asset_url, data)
