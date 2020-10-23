@@ -77,14 +77,17 @@ class KpiObjectPermissionsFilter:
         # the query to be processed right now. Otherwise, because queryset is
         # a lazy query, Django creates (left) joins on tables when queryset is
         # interpreted and it is way slower than running this extra query.
-
-        # TODO: Figure out a better way to get subscribed collection's children
-        # As a temporary fix we union a separate query for id's of subscribed
-        # collection parents, bypassing the broken `?q=parent__uid` query
         asset_ids = list(
-            (owned_and_explicit_shared.union(subscribed).union(
-                queryset.filter(parent__in=subscribed).values('pk')
-            )).values_list('id', flat=True)
+            (
+                owned_and_explicit_shared
+                    .union(subscribed)
+                    # Since user would be subscribed to a collcetion and not
+                    # the assets themselves, we append children of subscribed
+                    # collections to the queryset in order for `?q=parent__uid`
+                    # queries to return the collection's children
+                    .union(queryset.filter(parent__in=subscribed).values("pk")
+                )
+            ).values_list("id", flat=True)
         )
         return queryset.filter(pk__in=asset_ids)
 
