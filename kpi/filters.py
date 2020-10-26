@@ -81,7 +81,7 @@ class KpiObjectPermissionsFilter:
             (
                 owned_and_explicit_shared
                     .union(subscribed)
-                    # Since user would be subscribed to a collcetion and not
+                    # Since user would be subscribed to a collection and not
                     # the assets themselves, we append children of subscribed
                     # collections to the queryset in order for `?q=parent__uid`
                     # queries to return the collection's children
