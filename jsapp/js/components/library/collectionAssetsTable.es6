@@ -32,6 +32,7 @@ class CollectionAssetsTable extends React.Component {
       prevPageUrl: null,
       collectionChildren: this.props.asset.children,
       currentPageNumber: DEFAULT_PAGE_NUMBER,
+      isLoading: false
     };
     autoBind(this);
   }
@@ -53,6 +54,7 @@ class CollectionAssetsTable extends React.Component {
    */
   pageSwitch(newPageNumber) {
     let urlToLoad = null;
+    this.setState({isLoading: true});
     // Set url to next page
     if (newPageNumber > this.state.currentPageNumber) {
       if (this.state.nextPageUrl) {
@@ -77,7 +79,8 @@ class CollectionAssetsTable extends React.Component {
           nextPageUrl: data.children.next,
           prevPageUrl: data.children.previous,
           collectionChildren: data.children,
-          currentPageNumber: newPageNumber
+          currentPageNumber: newPageNumber,
+          isLoading: false
         });
       });
     }
@@ -205,6 +208,7 @@ class CollectionAssetsTable extends React.Component {
         currentPage={this.state.currentPageNumber}
         totalPages={totalPages}
         onSwitchPage={this.pageSwitch.bind(this)}
+        isLoading={this.state.isLoading}
       />
     );
   }
