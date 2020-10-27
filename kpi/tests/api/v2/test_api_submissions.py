@@ -328,6 +328,15 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+        # `another_user` should not be able to delete with 'change_submissions'
+        # permission.
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+        response = self.client.delete(url,
+                                      content_type="application/json",
+                                      HTTP_ACCEPT="application/json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Let's assign them 'delete_submissions'. Everything should be ok then!
         self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
         response = self.client.delete(url,
                                       content_type="application/json",

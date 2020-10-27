@@ -6,7 +6,7 @@ import django.utils.timezone
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('kpi', '0023_partial_permissions'),
+        ('kpi', '0024_alter_jsonfield_to_jsonbfield'),
     ]
 
     operations = [
