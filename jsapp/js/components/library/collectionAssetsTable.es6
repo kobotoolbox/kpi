@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import React from 'react';
 import autoBind from 'react-autobind';
-import { dataInterface } from '../../dataInterface';
 import orderBy from 'lodash.orderby';
+import {dataInterface} from '../../dataInterface';
 import {getAssetDisplayName} from 'js/assetUtils';
 import {
   AssetsTable,
@@ -11,12 +11,12 @@ import {
   ORDER_DIRECTIONS
 } from './assetsTable';
 
+const ASSETS_PER_PAGE = 100;
 const DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS.get('date-modified');
+const DEFAULT_PAGE_NUMBER = 0;
 
 /**
  * A wrapper component over AssetsTable for usage on collection landing page.
- * It doesn't have much setup, as we use non-paginated results here and order
- * rows on Frontend to avoid unnecessary calls.
  *
  * @prop {object} asset
  */
@@ -30,16 +30,13 @@ class CollectionAssetsTable extends React.Component {
       filterValue: null,
       nextPageUrl: null,
       prevPageUrl: null,
-      assets: this.props.asset,
-      nextAssets: [],
-      prevAssets: [],
-      currentPageNumber: 0,
+      collectionChildren: this.props.asset.children,
+      currentPageNumber: DEFAULT_PAGE_NUMBER,
     };
     autoBind(this);
   }
 
   onAssetsTableOrderChange(orderColumnId, orderValue) {
-    debugger
     this.setState({orderColumnId, orderValue});
   }
 
@@ -47,54 +44,42 @@ class CollectionAssetsTable extends React.Component {
     this.setState({filterColumnId, filterValue});
   }
 
+  /**
+   * Page switcher pagination logic that is passed to `AssetsTable`.
+   * Currently operates by replacing current list of assets with the next or
+   * previous `ASSETS_PER_PAGE` numer of assets (i.e., the user must cycle
+   * through, does not currently append to bottom of list).
+   * @param {number} newPageNumber
+   */
   pageSwitch(newPageNumber) {
     let urlToLoad = null;
-    // Go to next page
+    // Set url to next page
     if (newPageNumber > this.state.currentPageNumber) {
       if (this.state.nextPageUrl) {
         urlToLoad = this.state.nextPageUrl;
-      } else if (this.state.assets.children.next) {
-        urlToLoad = this.state.assets.children.next;
-      }
-      if (urlToLoad !== null) {
-        dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
-          this.setState({
-            nextPageUrl: data.children.next,
-            prevPageUrl: data.children.previous
-          });
-          const newAssets = this.state.nextAssets;
-          Object.values(data.children.results).forEach((item) => {
-            newAssets.push(item);
-          });
-          this.setState({
-            nextAssets: newAssets,
-            currentPageNumber: newPageNumber
-          });
-        });
+      } else if (this.state.collectionChildren.next) {
+        urlToLoad = this.state.collectionChildren.next;
       }
     }
-    debugger
-    // Go to previous page
+    // Set url to previous page
     if (newPageNumber < this.state.currentPageNumber) {
       if (this.state.prevPageUrl) {
         urlToLoad = this.state.prevPageUrl;
-      } else if (this.state.assets.children.previous) {
-        urlToLoad = this.state.assets.children.previous;
+      } else if (this.state.collectionChildren.previous) {
+        urlToLoad = this.state.collectionChildren.previous;
       }
-      if (urlToLoad !== null) {
-        dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
-          debugger
-          this.setState({
-            prevPageUrl: data.children.previous,
-            prevAssets: data.children.results
-          });
-          const newAssets = this.state.prevAssets;
-          this.setState({
-            nextAssets: newAssets,
-            currentPageNumber: newPageNumber
-          });
+    }
+    // Load next/prev page of assets and replace current list of assets
+    // and update current page number
+    if (urlToLoad !== null) {
+      dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
+        this.setState({
+          nextPageUrl: data.children.next,
+          prevPageUrl: data.children.previous,
+          collectionChildren: data.children,
+          currentPageNumber: newPageNumber
         });
-      }
+      });
     }
   }
 
@@ -118,8 +103,9 @@ class CollectionAssetsTable extends React.Component {
    * @return {Array}
    */
   getFilteredOrderedChildren() {
-    let filteredChildren = this.state.assets.children.results;
-    filteredChildren = filteredChildren.concat(this.state.nextAssets);
+    // If we want to change pagination to a "load more" style, concat assets
+    // instead of replacing `filteredChildren`. See `formLoading.es6`.
+    let filteredChildren = this.state.collectionChildren.results;
     if (this.state.filterColumnId) {
       filteredChildren = filteredChildren.filter((child) => {
         if (this.state.filterColumnId === ASSETS_TABLE_COLUMNS.get('languages').id) {
@@ -202,7 +188,7 @@ class CollectionAssetsTable extends React.Component {
   render() {
     const assets = this.getFilteredOrderedChildren();
     const metadata = this.getMetadataFromAssets(this.props.asset.children.results);
-    const totalPages = Math.ceil(this.state.assets.children.count/100);
+    const totalPages = Math.ceil(this.state.collectionChildren.count/ASSETS_PER_PAGE);
 
     return (
       <AssetsTable
