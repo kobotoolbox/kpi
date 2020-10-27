@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import autoBind from 'react-autobind';
+import { dataInterface } from '../../dataInterface';
 import orderBy from 'lodash.orderby';
 import {getAssetDisplayName} from 'js/assetUtils';
 import {
@@ -26,17 +27,75 @@ class CollectionAssetsTable extends React.Component {
       orderColumnId: DEFAULT_ORDER_COLUMN.id,
       orderValue: DEFAULT_ORDER_COLUMN.defaultValue,
       filterColumnId: null,
-      filterValue: null
+      filterValue: null,
+      nextPageUrl: null,
+      prevPageUrl: null,
+      assets: this.props.asset,
+      nextAssets: [],
+      prevAssets: [],
+      currentPageNumber: 0,
     };
     autoBind(this);
   }
 
   onAssetsTableOrderChange(orderColumnId, orderValue) {
+    debugger
     this.setState({orderColumnId, orderValue});
   }
 
   onAssetsTableFilterChange(filterColumnId, filterValue) {
     this.setState({filterColumnId, filterValue});
+  }
+
+  pageSwitch(newPageNumber) {
+    let urlToLoad = null;
+    // Go to next page
+    if (newPageNumber > this.state.currentPageNumber) {
+      if (this.state.nextPageUrl) {
+        urlToLoad = this.state.nextPageUrl;
+      } else if (this.state.assets.children.next) {
+        urlToLoad = this.state.assets.children.next;
+      }
+      if (urlToLoad !== null) {
+        dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
+          this.setState({
+            nextPageUrl: data.children.next,
+            prevPageUrl: data.children.previous
+          });
+          const newAssets = this.state.nextAssets;
+          Object.values(data.children.results).forEach((item) => {
+            newAssets.push(item);
+          });
+          this.setState({
+            nextAssets: newAssets,
+            currentPageNumber: newPageNumber
+          });
+        });
+      }
+    }
+    debugger
+    // Go to previous page
+    if (newPageNumber < this.state.currentPageNumber) {
+      if (this.state.prevPageUrl) {
+        urlToLoad = this.state.prevPageUrl;
+      } else if (this.state.assets.children.previous) {
+        urlToLoad = this.state.assets.children.previous;
+      }
+      if (urlToLoad !== null) {
+        dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
+          debugger
+          this.setState({
+            prevPageUrl: data.children.previous,
+            prevAssets: data.children.results
+          });
+          const newAssets = this.state.prevAssets;
+          this.setState({
+            nextAssets: newAssets,
+            currentPageNumber: newPageNumber
+          });
+        });
+      }
+    }
   }
 
   nameOrderFunction(asset) {
@@ -59,7 +118,8 @@ class CollectionAssetsTable extends React.Component {
    * @return {Array}
    */
   getFilteredOrderedChildren() {
-    let filteredChildren = this.props.asset.children.results;
+    let filteredChildren = this.state.assets.children.results;
+    filteredChildren = filteredChildren.concat(this.state.nextAssets);
     if (this.state.filterColumnId) {
       filteredChildren = filteredChildren.filter((child) => {
         if (this.state.filterColumnId === ASSETS_TABLE_COLUMNS.get('languages').id) {
@@ -142,6 +202,7 @@ class CollectionAssetsTable extends React.Component {
   render() {
     const assets = this.getFilteredOrderedChildren();
     const metadata = this.getMetadataFromAssets(this.props.asset.children.results);
+    const totalPages = Math.ceil(this.state.assets.children.count/100);
 
     return (
       <AssetsTable
@@ -155,6 +216,9 @@ class CollectionAssetsTable extends React.Component {
         filterColumnId={this.state.filterColumnId}
         filterValue={this.state.filterValue}
         onFilterChange={this.onAssetsTableFilterChange.bind(this)}
+        currentPage={this.state.currentPageNumber}
+        totalPages={totalPages}
+        onSwitchPage={this.pageSwitch.bind(this)}
       />
     );
   }
