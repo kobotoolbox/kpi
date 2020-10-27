@@ -13,7 +13,7 @@ $z-modal-x: 10;
   z-index: $z-modal-backdrop;
   top: 0px;
   left: 0px;
-  background-color: rgba(0, 0, 0, 0.4) !important;
+  background-color: rgba($kobo-black, 0.4) !important;
 }
 
 .modal {
@@ -81,19 +81,19 @@ $z-modal-x: 10;
 
 .modal__content {
   overflow: auto;
-  background-color: #FFF;
+  background-color: $kobo-white;
   width: 100%;
 }
 
 .modal__tabs {
-  background: $cool-blue;
-  color: #FFF;
+  background: $kobo-blue;
+  color: $kobo-white;
 }
 
 .modal__header {
   min-height: 70px;
-  background: $cool-blue;
-  color: #FFF;
+  background: $kobo-blue;
+  color: $kobo-white;
 }
 
 .modal__title {
@@ -125,10 +125,10 @@ $z-modal-x: 10;
 }
 
 .modal__subheader {
-  background: #f8f8f8;
+  background: $kobo-whitegray;
   padding: 20px 30px;
   margin: -30px -30px 20px;
-  color: $cool-silver;
+  color: $kobo-darkgray;
 
   i {
     margin: 2px 10px 10px 0;
@@ -154,47 +154,15 @@ $z-modal-x: 10;
     margin-bottom: 20px;
   }
 
-  .modal__footer-button {
-    @extend .mdl-button;
-    text-transform: uppercase;
-
-    &:not(:first-of-type) {
-      margin-left: 10px;
-    }
-
-    &.modal__footer-button--primary {
-      @extend .mdl-button--colored, .mdl-button--raised;
-      padding-left: 40px;
-      padding-right: 40px;
-    }
-
-    &.modal__footer-button--secondary {
-      @extend .mdl-button--colored;
-    }
-
-    &.modal__footer-button--danger {
-      @extend .mdl-button--colored, .mdl-button--danger;
-    }
-
-    &.modal__footer-button--back {
-      border-radius: 2px;
-      color: $cool-blue;
-      border: 1px solid currentColor;
-      opacity: 1;
-      float: left;
-
-      &:hover {
-        opacity: 0.8;
-        color: $cool-blue;
-      }
-    }
+  button:not(:first-of-type) {
+    margin-left: 10px;
   }
 }
 
 .modal__hr {
   margin: 20px -30px;
   border: 0;
-  background-color: $divider-color;
+  background-color: $kobo-lightgray;
   height: 1px;
 }
 
@@ -204,7 +172,7 @@ $z-modal-x: 10;
 
 .modal.modal-submission {
   .modal__header {
-    background-color: #F8F8F8;
+    background-color: $kobo-whitegray;
     color: $layout-text-color;
   }
 
@@ -250,7 +218,7 @@ $z-modal-x: 10;
       width: 50%;
     }
 
-    input {
+    .kobo-select input {
       min-width: 100px;
     }
 
@@ -265,94 +233,37 @@ $z-modal-x: 10;
       cursor: pointer;
 
       &:first-child {
-        padding-left: 0px;
+        padding-left: 0;
+      }
+
+      .k-icon {
+        display: inline-block;
+        vertical-align: middle;
       }
     }
   }
 
-  table {
-    border: 1px solid #F6F6F6;
-    border-collapse: collapse;
-    width: 100%;
-    margin: 20px 0px;
-    text-align: left;
-
-    thead tr {
-      border-bottom: 1px solid $divider-color;
+  .submission-actions {
+    .checkbox {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 40px;
     }
 
-    thead th {
-      font-weight: 600;
-      padding: 8px 12px;
-      background-color: #F6F6F6;
-      text-align: left;
-    }
-
-    tbody {
-      tr {
-        border-bottom: 1px solid $divider-color;
-      }
-
-      td {
-        padding: 12px;
-
-        ul {
-          list-style: disc;
-          margin-left: 30px;
-        }
-      }
-    }
-
-    .submission--question-type {
-      width: 5%;
-    }
-
-    .submission--question {
-      width: 45%;
-    }
-
-    .submission--response {
-      width: 50%;
-
-      img {
-        max-width: 100%;
-        image-orientation: from-image;
-      }
-    }
-
-    .submission--repeat-group {
-      background: #F8F8F8;
-      padding: 0px 30px;
-
-      table {
-        background: #FFF;
-      }
-    }
-
-    .submission--group {
-      background: #F8F8F8;
-
-      h4 {
-        margin: 0px;
-      }
-    }
-
-    .submission--end-group {
-      background: $divider-color;
-      padding-top: 1px;
-      padding-bottom: 0px;
+    .checkbox__label {
+      white-space: nowrap;
     }
   }
 
   .submission--warning {
     margin-bottom: 30px;
     padding: 10px;
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
     text-align: center;
     line-height: 1em;
 
     i {
-      color: #FFB775;
+      color: $kobo-orange;
       font-size: 40px;
       margin-right: 10px;
       vertical-align: middle;
@@ -368,7 +279,7 @@ $z-modal-x: 10;
 
     + .submission--warning {
       margin-top: -30px;
-      border-top: 1px solid $divider-color;
+      border-top: 1px solid $kobo-lightgray;
     }
   }
 }
@@ -384,7 +295,7 @@ $z-modal-x: 10;
     }
 
     i:before {
-      color: #3FA2EE;
+      color: $kobo-blue-light;
       font-size: 20px;
     }
   }
@@ -399,9 +310,9 @@ $z-modal-x: 10;
 }
 
 .enketo-iframe-icon {
-  color: #fff;
+  color: $kobo-white;
   background-image: url("~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png");
-  background-color: #C6CBD0;
+  background-color: $kobo-midgray;
   background-position: -81px -129px;
   position: absolute;
   right: 6px;
@@ -421,6 +332,10 @@ $z-modal-x: 10;
     @media screen and (min-width: 768px) {
       min-width: 600px;
     }
+  }
+
+  .form-view & {
+    margin-bottom: 30px;
   }
 
   .intro {
@@ -450,15 +365,16 @@ $z-modal-x: 10;
     button {
       display: inline-block;
       vertical-align: top;
-      border: 1px solid $divider-color;
-      background: #F8F8F8;
-      border-radius: 4px;
-      color: $cool-gray;
+      border: none;
+      background: $kobo-whitegray;
+      border-radius: 6px;
+      color: $kobo-darkgray;
       cursor: pointer;
       margin: 0.5*$buttons-spacing;
       padding: $buttons-spacing;
       width: calc(50% - #{$buttons-spacing});
       min-height: 120px;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
 
       @media screen and (min-width: 768px) {
         margin: $buttons-spacing;
@@ -470,20 +386,27 @@ $z-modal-x: 10;
         display: block;
         margin: 0 auto;
         font-size: 48px;
+        color: currentColor;
       }
 
       &:hover {
-        color: $cool-blue;
-        border-color: $cool-blue;
-        i {color: $cool-blue;}
+        color: $kobo-black;
+        background-color: $kobo-lightgray;
+      }
+
+      &:active {
+        // makes the shadow smaller and moves button down by small bit
+        // to make it look pressed-in
+        transform: translateY(1px);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
       }
     }
   }
 
   .dropzone {
-    background: $cool-whitegray;
+    background: $kobo-whitegray;
     padding: 30px;
-    border: 2px dashed $divider-color;
+    border: 2px dashed $kobo-lightgray;
     cursor: pointer;
     border-radius: 6px;
     text-align: center;
@@ -505,9 +428,9 @@ $z-modal-x: 10;
       margin-bottom: 16px;
     }
 
-    &:hover {border-color: $cool-blue;}
-    &.dropzone-active {border-color: $cool-blue;}
-    &.dropzone-reject {border-color: $cool-red;}
+    &:hover {border-color: $kobo-blue;}
+    &.dropzone-active {border-color: $kobo-blue;}
+    &.dropzone-reject {border-color: $kobo-red;}
   }
 }
 
@@ -527,7 +450,7 @@ $z-modal-x: 10;
 
     input {
       width: calc(50% - 20px);
-      background-color: rgba($black, 0.05);
+      background-color: rgba($kobo-black, 0.05);
       padding-left: 5px;
       padding-right: 5px;
 
@@ -537,33 +460,19 @@ $z-modal-x: 10;
     }
   }
 
-  .http-header-add,
   .http-header-row-remove {
     height: 30px;
     min-height: 30px;
     line-height: 30px;
+    width: 30px;
+    vertical-align: top;
+    padding: 0;
+    &:hover {color: $kobo-red;}
 
     .k-icon {
       font-size: 1.5em;
       vertical-align: middle;
     }
-  }
-
-  .http-header-add {
-    @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
-    background: $cool-gray;
-    vertical-align: middle;
-    padding: 0 12px 0 6px;
-
-    &:hover {background: darken($cool-gray, 10%);}
-  }
-
-  .http-header-row-remove {
-    @extend .mdl-button, .mdl-button--icon;
-    width: 30px;
-    vertical-align: top;
-    padding: 0;
-    &:hover {color: $cool-red;}
   }
 }
 
@@ -583,7 +492,7 @@ $z-modal-x: 10;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $kobo-lightgray;
     padding: 6px 0px;
 
     .form-view__cell--translation-name .form-view__icon-button {
@@ -611,12 +520,12 @@ $z-modal-x: 10;
   .form-view__cell--add-language {
     padding-top: 20px;
     text-align: right;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $kobo-lightgray;
   }
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: #F8F8F8;
+    background: $kobo-whitegray;
     padding: 15px;
     position: relative;
 
@@ -660,12 +569,12 @@ $z-modal-x: 10;
   .translation-table-container {
     flex: 1;
     overflow-y: auto;
-    border: 1px solid $divider-color;
+    border: 1px solid $kobo-lightgray;
   }
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: #F8F8F8;
+    background: $kobo-whitegray;
     padding: 15px;
     position: relative;
 
@@ -702,7 +611,7 @@ $z-modal-x: 10;
 
     .rt-thead.-header {
       box-shadow: none;
-      border-bottom: 2px solid $divider-color;
+      border-bottom: 2px solid $kobo-lightgray;
     }
 
     .rt-thead > .rt-tr,
@@ -713,7 +622,7 @@ $z-modal-x: 10;
       > .rt-th:first-child,
       > .rt-td:first-child {
         min-width: 30%;
-        color: lighten($cool-gray, 10%);
+        color: $kobo-darkgray;
       }
 
       > .rt-th:last-child,
@@ -721,21 +630,40 @@ $z-modal-x: 10;
         min-width: 70%;
       }
       .translation {
-        background: lighten($cool-green, 41%);
-        color: lighten($black, 15%);
-        padding: 0px;
+        background: $kobo-green-light;
+        color: $kobo-darkgray;
+        padding: 2px;
         textarea {
+          display: block;
           padding: 8px;
           border: none;
           background: transparent;
           width: 100%;
+          color: $kobo-black;
           &:focus {
-            background: lighten($cool-green, 35%);
+            background: $kobo-white;
           }
         }
       }
     }
   }
+}
+
+.form-view__cell--encrypt-key {
+  padding-bottom: 12px;
+}
+
+.encrypt-help {
+  color: $kobo-darkgray;
+  background: transparent;
+  border: 0;
+  font-size: 32px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.remove-encryption {
+  float: right;
 }
 
 @media screen and (max-width: 767px) {

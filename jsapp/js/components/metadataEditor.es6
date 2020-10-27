@@ -10,8 +10,9 @@ import {
   META_QUESTION_TYPES,
 } from 'js/constants';
 import {bem} from 'js/bem';
+import {stores} from 'js/stores';
 
-const AUDIT_HELP_URL = 'http://support.kobotoolbox.org/en/articles/2648050-audit-logging-meta-question-type';
+const AUDIT_SUPPORT_URL = 'audit_logging.html';
 
 /**
  * @prop {object} survey
@@ -85,12 +86,16 @@ export default class MetadataEditor extends React.Component {
     return (
       <React.Fragment>
         {t('Audit settings')}
-        <bem.TextBox__labelLink
-          href={AUDIT_HELP_URL}
-          target='_blank'
-        >
-          <i className='k-icon k-icon-help'/>
-        </bem.TextBox__labelLink>
+
+        { stores.serverEnvironment &&
+          stores.serverEnvironment.state.support_url &&
+          <bem.TextBox__labelLink
+            href={stores.serverEnvironment.state.support_url + AUDIT_SUPPORT_URL}
+            target='_blank'
+          >
+            <i className='k-icon k-icon-help'/>
+          </bem.TextBox__labelLink>
+        }
       </React.Fragment>
     );
   }

@@ -11,7 +11,6 @@ $mult: 0.5;
 }
 
 .list-view__headerbutton {
-  // @extend .btn, .btn-primary;
   @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
 }
 
