@@ -169,7 +169,7 @@ class AssetsListApiTests(BaseAssetTestCase):
         )
         self.assertListEqual(results, [template.uid, question.uid])
 
-        results = uids_from_search_results('🧀')
+        results = uids_from_search_results('zeppelin')
         self.assertListEqual(results, [template.uid])
 
         results = uids_from_search_results('pk:alrighty')
