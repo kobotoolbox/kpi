@@ -1,5 +1,6 @@
 # coding: utf-8
 from rest_framework import exceptions
+from django.utils.translation import ugettext as _
 
 
 class BadPermissionsException(Exception):
@@ -28,7 +29,7 @@ class KobocatProfileException(Exception):
 
 class BadDefaultSearchException(exceptions.APIException):
     status_code = 400
-    default_detail = 'The search term must be 3 or more characters'
+    default_detail = _('Your query is too short')
     default_code = 'bad_default_search'
 
 
@@ -52,5 +53,5 @@ class KobocatDeploymentException(exceptions.APIException):
 
 class ObjectDeploymentDoesNotExist(exceptions.APIException):
     status_code = 400
-    default_detail = 'The specified object has not been deployed'
+    default_detail = _('The specified object has not been deployed')
     default_code = 'deployment_does_not_exist'
