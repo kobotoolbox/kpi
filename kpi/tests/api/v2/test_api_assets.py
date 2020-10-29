@@ -119,7 +119,7 @@ class AssetsListApiTests(BaseAssetTestCase):
                     {
                         'name': 'zeppelin',
                         'type': 'select_one',
-                        'label': 'put on some zeppelin 🧀',
+                        'label': 'put on some zeppelin 🧀🧀🧀',
                         'select_from_list_name': 'choicelist',
                     }
                 ],
@@ -159,6 +159,8 @@ class AssetsListApiTests(BaseAssetTestCase):
                     'results'
                 ]
             ]
+        def uids_from_search_results2(query):
+            return [r for r in self.client.get(self.list_url, data={'q': query})]
 
         results = uids_from_search_results('eggs OR zeppelin')
         # default sort is newest first
@@ -169,7 +171,7 @@ class AssetsListApiTests(BaseAssetTestCase):
         )
         self.assertListEqual(results, [template.uid, question.uid])
 
-        results = uids_from_search_results('zeppelin')
+        results = uids_from_search_results('🧀🧀🧀')
         self.assertListEqual(results, [template.uid])
 
         results = uids_from_search_results('pk:alrighty')

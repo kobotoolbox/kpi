@@ -15,6 +15,7 @@ from kpi.constants import (
     PERM_DISCOVER_ASSET,
     PERM_VIEW_ASSET,
 )
+from kpi.exceptions import SearchQueryTooShortException
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
@@ -208,6 +209,11 @@ class SearchFilter(filters.BaseFilterBackend):
             )
         except ParseError:
             return queryset.model.objects.none()
+        except SearchQueryTooShortException as e:
+            # raising an exception if the default search query without a
+            # specified field is less than a set length of characters -
+            # currently 3
+            raise e
 
         try:
             # If no search field is specified, the search term is compared

@@ -4,6 +4,7 @@ from copy import deepcopy
 from django.db.models import Q
 from django.test import TestCase
 
+from kpi.exceptions import SearchQueryTooShortException
 from kpi.constants import ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
@@ -210,3 +211,12 @@ class UtilsTestCase(TestCase):
             repr(expected_q),
             repr(parse(query_string, ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)),
         )
+
+    def test_query_parser_default_search_too_short(self):
+        # if the search query without a field is less than a specified
+        # length of characters (currently 3), then it should
+        # throw `SearchQueryTooShortException()` from `query_parser.py`
+        query_string = 'fo'
+        with self.assertRaises(SearchQueryTooShortException) as e:
+            parse(query_string, ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)
+        self.assertTrue('Your query is too short' in str(e.exception))

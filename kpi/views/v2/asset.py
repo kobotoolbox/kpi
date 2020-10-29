@@ -23,7 +23,7 @@ from kpi.constants import (
     CLONE_FROM_VERSION_ID_ARG_NAME,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
-from kpi.exceptions import BadAssetTypeException, BadDefaultSearchException
+from kpi.exceptions import BadAssetTypeException
 from kpi.filters import (
     AssetOrderingFilter,
     KpiObjectPermissionsFilter,
@@ -537,12 +537,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response({'asset': asset, }, template_name='koboform.html')
 
     def list(self, request, *args, **kwargs):
-        # raising an exception if the default search query without a 
-        # specified field is less than a set length of characters - currently 3
-        try:
-            queryset = self.filter_queryset(self.get_queryset())
-        except BadDefaultSearchException as e:
-            raise exceptions.ValidationError(e)
+        queryset = self.filter_queryset(self.get_queryset())
 
         page = self.paginate_queryset(queryset)
         if page is not None:
