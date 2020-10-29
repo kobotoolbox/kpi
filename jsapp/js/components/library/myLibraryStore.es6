@@ -129,7 +129,13 @@ const myLibraryStore = Reflux.createStore({
       this.fetchData(true);
     } else if (
       this.previousPath !== null &&
-      this.previousPath.split('/')[1] !== 'library' &&
+      (
+        // coming from outside of library
+        this.previousPath.split('/')[1] !== 'library' ||
+        // public-collections is a special case that is kinda in library, but
+        // actually outside of it
+        this.previousPath.startsWith('/library/public-collections')
+      ) &&
       isOnLibraryRoute()
     ) {
       // refresh data when navigating into library from other place
