@@ -6,7 +6,7 @@
 
 // /api/v2/permissions/
 const permissions = {
-  'count': 9,
+  'count': 10,
   'next': null,
   'previous': null,
   'results': [
