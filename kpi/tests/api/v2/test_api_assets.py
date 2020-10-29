@@ -159,8 +159,6 @@ class AssetsListApiTests(BaseAssetTestCase):
                     'results'
                 ]
             ]
-        def uids_from_search_results2(query):
-            return [r for r in self.client.get(self.list_url, data={'q': query})]
 
         results = uids_from_search_results('eggs OR zeppelin')
         # default sort is newest first
