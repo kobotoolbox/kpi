@@ -3,12 +3,12 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import orderBy from 'lodash.orderby';
 import {getAssetDisplayName} from 'js/assetUtils';
+import AssetsTable from './assetsTable';
 import {
-  AssetsTable,
   ASSETS_TABLE_CONTEXTS,
-  ASSETS_TABLE_COLUMNS,
-  ORDER_DIRECTIONS
-} from './assetsTable';
+  ORDER_DIRECTIONS,
+  ASSETS_TABLE_COLUMNS
+} from './libraryConstants';
 
 const DEFAULT_ORDER_COLUMN = ASSETS_TABLE_COLUMNS.get('date-modified');
 

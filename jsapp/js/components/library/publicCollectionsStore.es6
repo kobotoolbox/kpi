@@ -10,7 +10,7 @@ import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
-} from './assetsTable';
+} from './libraryConstants';
 import {
   ASSET_TYPES,
   ACCESS_TYPES

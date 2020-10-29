@@ -9,7 +9,8 @@ import {
   ACCESS_TYPES
 } from 'js/constants';
 import assetUtils from 'js/assetUtils';
-import {ASSETS_TABLE_CONTEXTS} from './assetsTable';
+import {ASSETS_TABLE_CONTEXTS} from 'js/components/library/libraryConstants';
+
 
 class AssetsTableRow extends React.Component {
   constructor(props){
