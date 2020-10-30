@@ -1,4 +1,6 @@
 # coding: utf-8
+import pytz
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -34,8 +36,9 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
                   'public_collections_count',
                   )
 
-    def get_date_joined(self, user):
-        return user.date_joined
+    def get_date_joined(self, obj):
+        return obj.date_joined.astimezone(pytz.UTC).strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
 
     def get_public_collection_subscribers_count(self, user):
         public_collection_ids = self.__get_public_collection_ids(user.pk)
