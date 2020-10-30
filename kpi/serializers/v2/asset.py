@@ -383,7 +383,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             if request.user != obj.owner and not permission.deny \
                     and permission.user == request.user:
                 # Do not go further, we assume `settings.ANONYMOUS_USER_ID`
-                # equals -1. Thus, `public` access_type should be discovered at
+                # equals -1. Thus, `public` access type should be discovered at
                 # first
                 access_types.append('shared')
                 break
@@ -550,7 +550,7 @@ class AssetListSerializer(AssetSerializer):
                     and obj_permission.user == request.user):
                 access_types.append('shared')
                 # Do not go further, we assume `settings.ANONYMOUS_USER_ID`
-                # equals -1. Thus, `public` access_type should be discovered at
+                # equals -1. Thus, `public` access type should be discovered at
                 # first
                 break
 

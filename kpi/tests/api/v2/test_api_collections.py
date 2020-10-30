@@ -227,19 +227,36 @@ class CollectionsTests(BaseTestCase):
             owner=another_user
         )
 
+        shared_subscribed_collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION,
+            name='shared & subscribed collection',
+            owner=another_user
+        )
+
         # Make `public_collection` and `subscribed_collection` public-discoverable
         public_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
         subscribed_collection.assign_perm(AnonymousUser(), PERM_DISCOVER_ASSET)
+        shared_subscribed_collection.assign_perm(AnonymousUser(),
+                                                 PERM_DISCOVER_ASSET)
 
-        # Make `shared_collection` shared
+        # Make `shared_collection` and `shared_subscribed_collection` shared
         shared_collection.assign_perm(self.someuser, PERM_VIEW_ASSET)
+        shared_subscribed_collection.assign_perm(self.someuser, PERM_VIEW_ASSET)
 
-        # Subscribe `someuser` to  `subscribed_collection`.
+        # Subscribe `someuser` to `subscribed_collection`.
         subscription_url = reverse(
             self._get_endpoint('userassetsubscription-list'))
         asset_detail_url = self.absolute_reverse(
             self._get_endpoint('asset-detail'),
             kwargs={'uid': subscribed_collection.uid})
+        response = self.client.post(subscription_url, data={
+            'asset': asset_detail_url})
+        assert response.status_code == status.HTTP_201_CREATED
+
+        # Subscribe `someuser` to `shared_subscribed_collection`.
+        asset_detail_url = self.absolute_reverse(
+            self._get_endpoint('asset-detail'),
+            kwargs={'uid': shared_subscribed_collection.uid})
         response = self.client.post(subscription_url, data={
             'asset': asset_detail_url})
         assert response.status_code == status.HTTP_201_CREATED
@@ -253,26 +270,31 @@ class CollectionsTests(BaseTestCase):
         expected = {
             'public collection': {
                 'status': 'public-discoverable',
-                'access_type': 'public'
+                'access_types': ['public']
             },
             'shared collection': {
                 'status': 'shared',
-                'access_type': 'shared'
+                'access_types': ['shared']
             },
             'subscribed collection': {
                 'status': 'public-discoverable',
-                'access_type': 'subscribed'
+                'access_types': ['public', 'subscribed']
             },
             'test collection': {
                 'status': 'private',
-                'access_type': 'owned'
+                'access_types': ['owned']
+            },
+            'shared & subscribed collection': {
+                'status': 'public-discoverable',
+                'access_types': ['public', 'shared', 'subscribed']
             }
         }
 
         for collection in response.data['results']:
             expected_collection = expected[collection.get('name')]
             assert expected_collection['status'] == collection['status']
-            assert expected_collection['access_type'] == collection['access_type']
+            assert expected_collection['access_types'] \
+                   == collection['access_types']
 
     def test_collection_subscribe(self):
         public_collection = Asset.objects.create(
