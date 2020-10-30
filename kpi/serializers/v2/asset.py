@@ -375,9 +375,14 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     permission.user_id == settings.ANONYMOUS_USER_ID and
                     permission.permission.codename == PERM_DISCOVER_ASSET):
                 access_types.append('public')
+                if request.user == obj.owner:
+                    # Do not go further, `access_type` cannot be `shared`
+                    # and `owned`
+                    break
 
-            if not permission.deny and permission.user == request.user:
-                # No need to go further, we assume `settings.ANONYMOUS_USER_ID`
+            if request.user != obj.owner and not permission.deny \
+                    and permission.user == request.user:
+                # Do not go further, we assume `settings.ANONYMOUS_USER_ID`
                 # equals -1. Thus, `public` access_type should be discovered at
                 # first
                 access_types.append('shared')
@@ -536,9 +541,15 @@ class AssetListSerializer(AssetSerializer):
                     obj_permission.permission.codename == PERM_DISCOVER_ASSET):
                 access_types.append('public')
 
-            if not obj_permission.deny and obj_permission.user == request.user:
+                if request.user == obj.owner:
+                    # Do not go further, `access_type` cannot be `shared`
+                    # and `owned`
+                    break
+
+            if (request.user != obj.owner and not obj_permission.deny
+                    and obj_permission.user == request.user):
                 access_types.append('shared')
-                # No need to go further, we assume `settings.ANONYMOUS_USER_ID`
+                # Do not go further, we assume `settings.ANONYMOUS_USER_ID`
                 # equals -1. Thus, `public` access_type should be discovered at
                 # first
                 break
