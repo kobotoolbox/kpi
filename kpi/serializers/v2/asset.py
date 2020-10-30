@@ -93,7 +93,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    access_type = serializers.SerializerMethodField()
+    access_types = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -140,7 +140,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'children',
                   'subscribers_count',
                   'status',
-                  'access_type',
+                  'access_types',
                   )
         extra_kwargs = {
             'parent': {
@@ -353,7 +353,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                    many=True, read_only=True,
                                                    context=context).data
 
-    def get_access_type(self, obj):
+    def get_access_types(self, obj):
         # Avoid extra queries if obj is not a collection
         if obj.asset_type != ASSET_TYPE_COLLECTION:
             return None
@@ -496,11 +496,11 @@ class AssetListSerializer(AssetSerializer):
                   'data',
                   'subscribers_count',
                   'status',
-                  'access_type',
+                  'access_types',
                   'children'
                   )
 
-    def get_access_type(self, obj):
+    def get_access_types(self, obj):
         """
         Overrides parent's method to benefit of
         `AssetViewSet.get_serializer_context()` "cache" for the list endpoint.
@@ -524,7 +524,7 @@ class AssetListSerializer(AssetSerializer):
             asset_permission_assignments = self.context[
                 'object_permissions_per_asset'].get(obj.pk)
         except KeyError:
-            return super().get_access_type(obj)
+            return super().get_access_types(obj)
 
         # We test at the same time whether the collection is public or not
         for obj_permission in asset_permission_assignments:
