@@ -184,21 +184,28 @@ const publicCollectionsStore = Reflux.createStore({
   // methods for handling actions that update assets
 
   onSubscribeCompleted(subscriptionData) {
-    this.onAssetAccessTypeChanged(subscriptionData.asset, ACCESS_TYPES.get('subscribed'));
+    this.onAssetAccessTypeChanged(subscriptionData.asset, true);
   },
 
   onUnsubscribeCompleted(assetUid) {
-    this.onAssetAccessTypeChanged(assetUid, ACCESS_TYPES.get('public'));
+    this.onAssetAccessTypeChanged(assetUid, false);
   },
 
-  onAssetAccessTypeChanged(assetUidOrUrl, accessType) {
+  onAssetAccessTypeChanged(assetUidOrUrl, setSubscribed) {
     let wasUpdated = false;
     for (let i = 0; i < this.data.assets.length; i++) {
       if (
         this.data.assets[i].uid === assetUidOrUrl ||
         this.data.assets[i].url === assetUidOrUrl
       ) {
-        this.data.assets[i].access_type = accessType;
+        if (setSubscribed) {
+          this.data.assets[i].access_types.push(ACCESS_TYPES.get('subscribed'));
+        } else {
+          this.data.assets[i].access_types.splice(
+            this.data.assets[i].access_types.indexOf(ACCESS_TYPES.get('subscribed')),
+            1
+          );
+        }
         wasUpdated = true;
         break;
       }
