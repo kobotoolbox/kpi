@@ -388,8 +388,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         if request.user.is_superuser:
             access_types.append('superuser')
-        raise Exception(
-            f'{request.user.username} has unexpected access to {obj.uid}')
+
+        if not access_types:
+            raise Exception(
+                f'{request.user.username} has unexpected access to {obj.uid}')
 
         return access_types
 
@@ -554,8 +556,10 @@ class AssetListSerializer(AssetSerializer):
         # User is big brother.
         if request.user.is_superuser:
             access_types.append('superuser')
-        raise Exception(
-            f'{request.user.username} has unexpected access to {obj.uid}')
+
+        if not access_types:
+            raise Exception(
+                f'{request.user.username} has unexpected access to {obj.uid}')
 
         return access_types
 
