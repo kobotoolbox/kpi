@@ -592,6 +592,11 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         metadata = self.get_metadata(queryset)
         return Response(metadata)
 
+    def perform_destroy(self, instance):
+        if hasattr(instance, 'has_deployment') and instance.has_deployment:
+            instance.deployment.delete()
+        return super().perform_destroy(instance)
+
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
 

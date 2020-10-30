@@ -146,6 +146,13 @@ export class FormLanding extends React.Component {
       asset: this.state
     });
   }
+  showEncryptionModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: MODAL_TYPES.ENCRYPT_FORM,
+      asset: this.state
+    });
+  }
   loadMoreVersions() {
     if (this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM <= this.state.deployed_versions.count + DVCOUNT_LIMIT_MINIMUM) {
       this.setState({ DVCOUNT_LIMIT: this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM });
@@ -463,6 +470,10 @@ export class FormLanding extends React.Component {
               {t('Manage Translations')}
             </bem.PopoverMenu__link>
           }
+          <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
+            <i className='k-icon-lock'/>
+            {t('Manage Encryption')}
+          </bem.PopoverMenu__link>
         </ui.PopoverMenu>
       </React.Fragment>
     );

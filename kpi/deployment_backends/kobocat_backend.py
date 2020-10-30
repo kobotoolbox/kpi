@@ -674,10 +674,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # Force `sort` by `_id` for Mongo
             # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
             params['sort'] = {self.INSTANCE_ID_FIELDNAME: 1}
-            instances, _ = MongoHelper.get_instances(self.mongo_userform_id,
-                                                     **params)
+            instances, count = MongoHelper.get_instances(self.mongo_userform_id,
+                                                         **params)
             instance_ids = [instance.get(self.INSTANCE_ID_FIELDNAME) for instance in
                             instances]
+            self.current_submissions_count = count
 
         queryset = ReadOnlyKobocatInstance.objects.filter(
             xform_id=self.xform_id,
@@ -688,7 +689,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             queryset = queryset.filter(id__in=instance_ids)
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
-        self.current_submissions_count = queryset.count()
+        if not use_mongo:
+            self.current_submissions_count = queryset.count()
 
         # Force Sort by id
         # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
