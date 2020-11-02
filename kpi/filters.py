@@ -1,5 +1,4 @@
 # coding: utf-8
-import re
 from distutils.util import strtobool
 
 from django.conf import settings
@@ -8,6 +7,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError
 from rest_framework import filters
 
+from kpi.constants import (
+    ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
+)
+from kpi.exceptions import SearchQueryTooShortException
 from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
@@ -148,12 +151,22 @@ class SearchFilter(filters.BaseFilterBackend):
             return queryset
 
         try:
-            q_obj = parse(q)
+            q_obj = parse(
+                q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
+            )
         except ParseError:
             return queryset.model.objects.none()
+        except SearchQueryTooShortException as e:
+            # raising an exception if the default search query without a
+            # specified field is less than a set length of characters -
+            # currently 3
+            raise e
 
         try:
-            return queryset.filter(q_obj)
+            # If no search field is specified, the search term is compared
+            # to several default fields and therefore may return a copies
+            # of the same match, therefore the `distinct()` method is required
+            return queryset.filter(q_obj).distinct()
         except (FieldError, ValueError):
             return queryset.model.objects.none()
 

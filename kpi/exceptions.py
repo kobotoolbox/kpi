@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions
 
 
@@ -20,6 +21,17 @@ class ImportAssetException(Exception):
 
 class KobocatProfileException(Exception):
     pass
+
+
+class InvalidSearchException(exceptions.APIException):
+    status_code = 400
+    default_detail = _('Invalid search. Please try again')
+    default_code = 'invalid_search'
+
+
+class SearchQueryTooShortException(InvalidSearchException):
+    default_detail = _('Your query is too short')
+    default_code = 'query_too_short'
 
 
 class KobocatDeploymentException(exceptions.APIException):

@@ -70,3 +70,14 @@ PERM_DELETE_COLLECTION = 'delete_collection'
 
 # KC INTERNAL
 PERM_FROM_KC_ONLY = 'from_kc_only'
+
+# Terms that can be used to search and filter return values
+# from a query `q`
+ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS = [
+    'name__icontains',
+    'owner__username__icontains',
+    'settings__description__icontains',
+    'summary__icontains',
+    'tags__name__icontains',
+    'uid__icontains',
+]
