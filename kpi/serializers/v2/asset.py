@@ -86,11 +86,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
 
-    # Only relevant for collections
-    children = PaginatedApiField(
-        serializer_class="kpi.serializers.v2.asset.AssetListSerializer"
-    )
 
+    children = serializers.SerializerMethodField()
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     access_type = serializers.SerializerMethodField()
@@ -318,6 +315,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 'label': asset.get_label_for_permission(codename),
             }
             for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
+
+    def get_children(self, asset):
+        children_count = asset.children.count()
+
+        return {'count': children_count}
 
     def get_subscribers_count(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
