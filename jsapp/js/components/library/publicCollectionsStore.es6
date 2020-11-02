@@ -5,7 +5,7 @@ import {
   searchBoxStore
 } from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
-import {isOnLibraryRoute} from './libraryUtils';
+import {isOnPublicCollectionsRoute} from './libraryUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
@@ -65,7 +65,7 @@ const publicCollectionsStore = Reflux.createStore({
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+    if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
   },
@@ -122,14 +122,14 @@ const publicCollectionsStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+    if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
       this.previousPath !== null &&
-      this.previousPath.split('/')[1] !== 'library' &&
-      isOnLibraryRoute()
+      this.previousPath.startsWith('/library/public-collections') === false &&
+      isOnPublicCollectionsRoute()
     ) {
-      // refresh data when navigating into library from other place
+      // refresh data when navigating into public-collections from other place
       this.setDefaultColumns();
       this.fetchData(true);
     }
@@ -184,21 +184,28 @@ const publicCollectionsStore = Reflux.createStore({
   // methods for handling actions that update assets
 
   onSubscribeCompleted(subscriptionData) {
-    this.onAssetAccessTypeChanged(subscriptionData.asset, ACCESS_TYPES.get('subscribed'));
+    this.onAssetAccessTypeChanged(subscriptionData.asset, true);
   },
 
   onUnsubscribeCompleted(assetUid) {
-    this.onAssetAccessTypeChanged(assetUid, ACCESS_TYPES.get('public'));
+    this.onAssetAccessTypeChanged(assetUid, false);
   },
 
-  onAssetAccessTypeChanged(assetUidOrUrl, accessType) {
+  onAssetAccessTypeChanged(assetUidOrUrl, setSubscribed) {
     let wasUpdated = false;
     for (let i = 0; i < this.data.assets.length; i++) {
       if (
         this.data.assets[i].uid === assetUidOrUrl ||
         this.data.assets[i].url === assetUidOrUrl
       ) {
-        this.data.assets[i].access_type = accessType;
+        if (setSubscribed) {
+          this.data.assets[i].access_types.push(ACCESS_TYPES.get('subscribed'));
+        } else {
+          this.data.assets[i].access_types.splice(
+            this.data.assets[i].access_types.indexOf(ACCESS_TYPES.get('subscribed')),
+            1
+          );
+        }
         wasUpdated = true;
         break;
       }

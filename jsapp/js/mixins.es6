@@ -673,6 +673,12 @@ mixins.clickAssets = {
           type: MODAL_TYPES.FORM_LANGUAGES,
           assetUid: uid
         });
+      },
+      encryption: function(uid) {
+        stores.pageState.showModal({
+          type: MODAL_TYPES.ENCRYPT_FORM,
+          assetUid: uid
+        });
       }
 
     }

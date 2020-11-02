@@ -6,14 +6,16 @@ from django.db.models import Count, Q
 from rest_framework import filters
 
 from kpi.constants import (
+    ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
     ASSET_STATUS_SHARED,
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
     ASSET_TYPE_COLLECTION,
     PERM_DISCOVER_ASSET,
-    PERM_VIEW_ASSET
+    PERM_VIEW_ASSET,
 )
+from kpi.exceptions import SearchQueryTooShortException
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
@@ -77,8 +79,18 @@ class KpiObjectPermissionsFilter:
         # the query to be processed right now. Otherwise, because queryset is
         # a lazy query, Django creates (left) joins on tables when queryset is
         # interpreted and it is way slower than running this extra query.
-        asset_ids = list(owned_and_explicit_shared.union(subscribed)
-                         .values_list('id', flat=True))
+        asset_ids = list(
+            (
+                owned_and_explicit_shared
+                    .union(subscribed)
+                    # Since user would be subscribed to a collection and not
+                    # the assets themselves, we append children of subscribed
+                    # collections to the queryset in order for `?q=parent__uid`
+                    # queries to return the collection's children
+                    .union(queryset.filter(parent__in=subscribed).values("pk")
+                )
+            ).values_list("id", flat=True)
+        )
         return queryset.filter(pk__in=asset_ids)
 
     def _get_discoverable(self, queryset):
@@ -208,12 +220,22 @@ class SearchFilter(filters.BaseFilterBackend):
             return queryset
 
         try:
-            q_obj = parse(q)
+            q_obj = parse(
+                q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
+            )
         except ParseError:
             return queryset.model.objects.none()
+        except SearchQueryTooShortException as e:
+            # raising an exception if the default search query without a
+            # specified field is less than a set length of characters -
+            # currently 3
+            raise e
 
         try:
-            return queryset.filter(q_obj)
+            # If no search field is specified, the search term is compared
+            # to several default fields and therefore may return a copies
+            # of the same match, therefore the `distinct()` method is required
+            return queryset.filter(q_obj).distinct()
         except (FieldError, ValueError):
             return queryset.model.objects.none()
 
