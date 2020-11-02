@@ -81,3 +81,8 @@ ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS = [
     'tags__name__icontains',
     'uid__icontains',
 ]
+
+EXPORT_TASK_SEARCH_DEFAULT_FIELD_LOOKUPS = [
+    'data__source__icontains',
+    'uid__icontains',
+]

@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
+    ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
     ASSET_TYPES,
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -189,15 +190,17 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Asset.objects.all()
 
     lookup_field = 'uid'
-    permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (KpiObjectPermissionsFilter, SearchFilter)
+    permission_classes = [IsOwnerOrReadOnly]
+    filter_backends = [KpiObjectPermissionsFilter, SearchFilter]
 
-    renderer_classes = (renderers.BrowsableAPIRenderer,
-                        AssetJsonRenderer,
-                        SSJsonRenderer,
-                        XFormRenderer,
-                        XlsRenderer,
-                        )
+    renderer_classes = [
+        renderers.BrowsableAPIRenderer,
+        AssetJsonRenderer,
+        SSJsonRenderer,
+        XFormRenderer,
+        XlsRenderer,
+    ]
+    search_default_field_lookups = ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
 
     def get_serializer_class(self):
         if self.action == 'list':

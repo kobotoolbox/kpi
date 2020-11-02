@@ -3,45 +3,94 @@ from rest_framework import status, exceptions
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from kpi.constants import EXPORT_TASK_SEARCH_DEFAULT_FIELD_LOOKUPS
+from kpi.filters import SearchFilter
 from kpi.models import ExportTask
 from kpi.models.import_export_task import _resolve_url_to_asset_or_collection
-from kpi.model_utils import remove_string_prefix
 from kpi.serializers import ExportTaskSerializer
 from kpi.tasks import export_in_background
 from kpi.views.no_update_model import NoUpdateModelViewSet
 
 
 class ExportTaskViewSet(NoUpdateModelViewSet):
+    """
+    <span class='label label-danger'>TODO</span> Complete documentation
+
+    ## List of export tasks endpoints
+
+    Lists the export tasks accessible to requesting user, for anonymous access
+    nothing is returned.
+
+    <pre class="prettyprint">
+    <b>GET</b> /exports/
+    </pre>
+
+    > Examples
+    >
+    >       curl -X GET https://[kpi]/exports/
+
+    List can be filtered with the [query parser](https://github.com/kobotoolbox/kpi#searching)
+    Query searches within `data.source` and `uid` by default if no field is provided in `q`.
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/exports/?q=zVEkrWg5Gd
+
+    Otherwise, the search can be more specific:
+
+    - Exports from a source
+    - Exports matching `uid`s
+
+    > Example:
+    >
+    > **Exports from source asset uid is `aSAvYreNzVEkrWg5Gdcvg`**
+    >
+    >      curl -X GET https://[kpi]/exports/?q=data__source:https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg
+    >
+    > **Exports from source asset uid which contains `aSAvYreNzVEkrWg5Gdcvg`**
+    >
+    >      curl -X GET https://[kpi]/exports/?q=data__source__icontains:aSAvYreNzVEkrWg5Gdcvg
+    >
+    > **Exports matching `uid`s**
+    >
+    >      curl -X GET https://[kpi]/exports/?q=uid__in:ehZUwRctkhp9QfJgvEWGg OR uid__in:ehZUwRctkhp9QfJgvDnjud
+
+    ## CRUD
+
+    * `uid` - is the unique identifier of a specific export task
+
+    Retrieves current export task
+    <pre class="prettyprint">
+    <b>GET</b> /exports/<code>{uid}</code>/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/exports/ehZUwRctkop9QfJgvDmkdh/
+
+    Create an export task <span class='label label-danger'>Uncomplete</span>
+    <pre class="prettyprint">
+    <b>POST</b> /exports/
+    </pre>
+
+    ### CURRENT ENDPOINT
+    """
+
     queryset = ExportTask.objects.all()
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
+
+    filter_backends = [
+        SearchFilter,
+    ]
+    search_default_field_lookups = EXPORT_TASK_SEARCH_DEFAULT_FIELD_LOOKUPS
 
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_anonymous:
             return ExportTask.objects.none()
 
-        queryset = ExportTask.objects.filter(
-            user=self.request.user).order_by('date_created')
-
-        # Ultra-basic filtering by:
-        # * source URL or UID if `q=source:[URL|UID]` was provided;
-        # * comma-separated list of `ExportTask` UIDs if
-        #   `q=uid__in:[UID],[UID],...` was provided
-        q = self.request.query_params.get('q', False)
-        if not q:
-            # No filter requested
-            return queryset
-        if q.startswith('source:'):
-            q = remove_string_prefix(q, 'source:')
-            queryset = queryset.filter(data__source=q)
-        elif q.startswith('uid__in:'):
-            q = remove_string_prefix(q, 'uid__in:')
-            uids = [uid.strip() for uid in q.split(',')]
-            queryset = queryset.filter(uid__in=uids)
-        else:
-            # Filter requested that we don't understand; make it obvious by
-            # returning nothing
-            return ExportTask.objects.none()
+        return ExportTask.objects.filter(user=self.request.user). \
+            order_by('date_created')
         return queryset
 
     def create(self, request, *args, **kwargs):

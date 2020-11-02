@@ -7,9 +7,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError
 from rest_framework import filters
 
-from kpi.constants import (
-    ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
-)
 from kpi.exceptions import SearchQueryTooShortException
 from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
@@ -152,7 +149,7 @@ class SearchFilter(filters.BaseFilterBackend):
 
         try:
             q_obj = parse(
-                q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
+                q, default_field_lookups=view.search_default_field_lookups
             )
         except ParseError:
             return queryset.model.objects.none()
