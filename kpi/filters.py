@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from django.db.models import Count, Q
+from django.db.models import Case, Count, IntegerField, Value, When
 from rest_framework import filters
 
 from kpi.constants import (
@@ -11,7 +11,6 @@ from kpi.constants import (
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
-    ASSET_TYPE_COLLECTION,
     PERM_DISCOVER_ASSET,
     PERM_VIEW_ASSET,
 )
@@ -40,7 +39,29 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
 class AssetOrderingFilter(filters.OrderingFilter):
 
     def filter_queryset(self, request, queryset, view):
+        query_params = request.query_params
+        collections_first = query_params.get('collections_first',
+                                             'false').lower() == 'true'
         ordering = self.get_ordering(request, queryset, view)
+
+        if collections_first:
+            # if `collections_first` is `True`, we want the collections to be
+            # displayed at first. We add a temporary field to set a priority
+            # to `1` and all other asset types to 0.
+            # Then the results are sorted by this priority first, then by
+            # what comes next, either:
+            # - `ordering` from querystring
+            # - model default option
+            queryset = queryset.annotate(
+                ordering_priority=Case(
+                    When(asset_type='collection', then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                ),
+            )
+            if ordering is None:
+                ordering = Asset._meta.ordering
+            ordering.insert(0, '-ordering_priority')
 
         if ordering:
             if 'subscribers_count' in ordering or \
