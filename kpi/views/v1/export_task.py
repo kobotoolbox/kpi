@@ -3,7 +3,6 @@ from rest_framework import status, exceptions
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from kpi.constants import EXPORT_TASK_SEARCH_DEFAULT_FIELD_LOOKUPS
 from kpi.filters import SearchFilter
 from kpi.models import ExportTask
 from kpi.models.import_export_task import _resolve_url_to_asset_or_collection
@@ -83,7 +82,12 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
     filter_backends = [
         SearchFilter,
     ]
-    search_default_field_lookups = EXPORT_TASK_SEARCH_DEFAULT_FIELD_LOOKUPS
+    # Terms that can be used to search and filter return values
+    # from a query `q`
+    search_default_field_lookups = [
+        'data__source__icontains',
+        'uid__icontains',
+    ]
 
     def get_queryset(self, *args, **kwargs):
         if self.request.user.is_anonymous:

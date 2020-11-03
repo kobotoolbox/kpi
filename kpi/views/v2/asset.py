@@ -14,7 +14,6 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
-    ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
     ASSET_TYPES,
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -200,7 +199,16 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         XFormRenderer,
         XlsRenderer,
     ]
-    search_default_field_lookups = ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
+    # Terms that can be used to search and filter return values
+    # from a query `q`
+    search_default_field_lookups = [
+        'name__icontains',
+        'owner__username__icontains',
+        'settings__description__icontains',
+        'summary__icontains',
+        'tags__name__icontains',
+        'uid__icontains',
+    ]
 
     def get_serializer_class(self):
         if self.action == 'list':
