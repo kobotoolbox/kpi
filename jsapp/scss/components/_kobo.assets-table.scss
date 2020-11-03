@@ -29,7 +29,7 @@
 
 .assets-table__scrollbar-padding {
   // for taking the same space as scrollbar, width is being set in JS code
-  border-bottom: 2px solid $kobo-lightgray;
+  background-color: $kobo-whitegray;
   align-self: stretch;
 }
 
@@ -39,7 +39,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  border-top: 2px solid $kobo-lightgray;
+  border-top: 1px solid $kobo-lightgray;
   color: $kobo-darkgray;
   height: 40px;
 
@@ -61,7 +61,8 @@
 
 .assets-table--my-library,
 .assets-table--public-collections {
-  height: 100%;
+  // 80px is for breadcrumbs
+  height: calc(100% - 80px);
   display: flex;
   flex-direction: column;
 
@@ -141,7 +142,7 @@ $c-assets-table-row-hover: $kobo-whitegray;
     }
 
     .assets-table-row__column--icon-status {
-      padding: 3px 0 0 0;
+      padding: 8px 0 0 0;
 
       .k-icon {
         font-size: 32px;
@@ -149,18 +150,24 @@ $c-assets-table-row-hover: $kobo-whitegray;
     }
   }
 
+  &.assets-table-row--type-collection {
+    .assets-table-row__column--name .asset-name {
+      font-weight: 700;
+    }
+  }
+
   &.assets-table-row--is-subscribed {
     .assets-table-row__column--icon-status {
       color: $kobo-blue;
     }
-
-    .assets-table-row__column--name .asset-name {
-      font-weight: bold;
-    }
   }
 
   &:first-of-type .assets-table-row__column {
-    border-top: 0;
+    border-top-color: transparent;
+  }
+
+  &:first-of-type:hover .assets-table-row__column {
+    border-top-color: $kobo-lightgray;
   }
 
   // columns get very narrow
@@ -171,19 +178,16 @@ $c-assets-table-row-hover: $kobo-whitegray;
 
   &.assets-table-row--header .assets-table-row__column {
     border-top: 0;
-    border-bottom: 2px solid $kobo-lightgray;
     cursor: pointer;
     font-weight: 700;
     white-space: nowrap;
     height: 40px;
     line-height: 20px;
+    background-color: $kobo-whitegray;
+    padding: 10px;
 
     &:hover {
-      background-color: $kobo-whitegray;
-    }
-
-    &:active {
-      border-bottom-color: transparent;
+      background-color: $kobo-lightgray;
     }
 
     .k-icon {
@@ -213,6 +217,7 @@ $c-assets-table-row-hover: $kobo-whitegray;
       .popover-menu__content {
         top: 30px - 2px;
         z-index: $z-assets-table-row-header;
+        padding: 10px;
 
         .k-icon {
           margin: -2px;
@@ -245,7 +250,7 @@ $c-assets-table-row-hover: $kobo-whitegray;
 
   .assets-table-row__column {
     border-top: 1px solid $kobo-lightgray;
-    padding: 10px;
+    padding: 15px 10px;
 
     &[disabled] {
       pointer-events: none;
@@ -335,7 +340,7 @@ $c-assets-table-row-hover: $kobo-whitegray;
   opacity: 0;
   visibility: hidden;
   background-color: $c-assets-table-row-hover;
-  padding: 3px 10px 0 0;
+  padding: 8px 10px 0 0;
 
   // for nicer blending in with the possible text underneath
   &::before {
