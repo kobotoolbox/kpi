@@ -236,7 +236,7 @@ class MainHeader extends Reflux.Component {
                 <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
-            { this.isLibraryList() &&
+            { this.isLibrary() &&
               <div className='mdl-layout__header-searchers'>
                 <SearchBox
                   placeholder={t('Search Library')}
@@ -244,7 +244,7 @@ class MainHeader extends Reflux.Component {
                 />
               </div>
             }
-            { this.state.asset && (this.isFormSingle() || this.isLibrarySingle()) &&
+            { !this.isLibrary() && this.state.asset && this.isFormSingle() &&
               <React.Fragment>
                 <bem.MainHeader__icon className={iconClassName} />
 
