@@ -300,6 +300,10 @@ bem.PasswordStrength__indicator = bem.PasswordStrength.__('indicator');
 bem.PasswordStrength__messages = bem.PasswordStrength.__('messages', '<ul>');
 bem.PasswordStrength__message = bem.PasswordStrength.__('message', '<li>');
 
+bem.Breadcrumbs = BEM('breadcrumbs');
+bem.Breadcrumbs__crumb = bem.Breadcrumbs.__('crumb', '<a>');
+bem.Breadcrumbs__divider = bem.Breadcrumbs.__('divider', '<i>');
+
 bem.PrintOnly = BEM('print-only');
 
 bem.GitRev = BEM('git-rev');
