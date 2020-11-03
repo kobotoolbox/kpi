@@ -236,7 +236,7 @@ class AssetsListApiTests(BaseAssetTestCase):
         assert expected_order_by_name == uids
 
         # Sorted by name asc but collections first
-        expected_order_by_name = [
+        expected_order_by_name_collections_first = [
             another_collection.uid,
             collection.uid,
             question.uid,
@@ -247,7 +247,7 @@ class AssetsListApiTests(BaseAssetTestCase):
             'collections_first': 'true',
             'ordering': 'name',
         })
-        assert expected_order_by_name == uids
+        assert expected_order_by_name_collections_first == uids
 
 
 class AssetVersionApiTests(BaseTestCase):
