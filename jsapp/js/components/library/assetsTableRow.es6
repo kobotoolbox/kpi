@@ -18,7 +18,7 @@ class AssetsTableRow extends React.Component {
   }
 
   render() {
-    let assetModifiers = ['asset'];
+    let assetModifiers = ['asset', `type-${this.props.asset.asset_type}`];
 
     let iconClassName = '';
     if (this.props.asset) {

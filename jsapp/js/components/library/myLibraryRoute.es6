@@ -6,12 +6,14 @@ import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
 import mixins from 'js/mixins';
+import {bem} from 'js/bem';
 import {t, validFileTypes} from 'js/utils';
 import myLibraryStore from './myLibraryStore';
 import {
   AssetsTable,
   ASSETS_TABLE_CONTEXTS
 } from './assetsTable';
+import {ROOT_BREADCRUMBS} from './libraryConstants';
 
 class MyLibraryRoute extends React.Component {
   constructor(props) {
@@ -86,6 +88,10 @@ class MyLibraryRoute extends React.Component {
           activeClassName='dropzone--active'
           accept={validFileTypes()}
         >
+          <bem.Breadcrumbs m='gray-wrapper'>
+            <bem.Breadcrumbs__crumb>{ROOT_BREADCRUMBS.get('my-library').label}</bem.Breadcrumbs__crumb>
+          </bem.Breadcrumbs>
+
           <AssetsTable
             context={ASSETS_TABLE_CONTEXTS.get('my-library')}
             isLoading={this.state.isLoading}
