@@ -60,7 +60,8 @@ class AssetOrderingFilter(filters.OrderingFilter):
                 ),
             )
             if ordering is None:
-                ordering = Asset._meta.ordering
+                # Make a copy, we don't want to alter Asset._meta.ordering
+                ordering = Asset._meta.ordering.copy()
             ordering.insert(0, '-ordering_priority')
 
         if ordering:
