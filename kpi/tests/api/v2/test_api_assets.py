@@ -175,6 +175,80 @@ class AssetsListApiTests(BaseAssetTestCase):
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
 
+    def test_assets_ordering(self):
+
+        someuser = User.objects.get(username='someuser')
+        question = Asset.objects.create(
+            owner=someuser,
+            name='A question',
+            asset_type='question',
+        )
+        collection = Asset.objects.create(
+            owner=someuser,
+            name='Ze French collection',
+            asset_type='collection',
+        )
+        template = Asset.objects.create(
+            owner=someuser,
+            name='My template',
+            asset_type='template',
+            content={},
+        )
+        survey = Asset.objects.create(
+            owner=someuser,
+            name='survey',
+            asset_type='survey',
+        )
+        another_collection = Asset.objects.create(
+            owner=someuser,
+            name='Someuser’s collection',
+            asset_type='collection',
+        )
+
+        def uids_from_results(params: dict = None):
+            return [
+                r['uid']
+                for r in self.client.get(self.list_url, data=params).data[
+                    'results'
+                ]
+            ]
+
+        # Default is by date_modified desc
+        expected_default_order = [
+            another_collection.uid,
+            survey.uid,
+            template.uid,
+            collection.uid,
+            question.uid,
+        ]
+        uids = uids_from_results()
+        assert expected_default_order == uids
+
+        # Sorted by name asc
+        expected_order_by_name = [
+            question.uid,
+            template.uid,
+            another_collection.uid,
+            survey.uid,
+            collection.uid,
+        ]
+        uids = uids_from_results({'ordering': 'name'})
+        assert expected_order_by_name == uids
+
+        # Sorted by name asc but collections first
+        expected_order_by_name = [
+            another_collection.uid,
+            collection.uid,
+            question.uid,
+            template.uid,
+            survey.uid,
+        ]
+        uids = uids_from_results({
+            'collections_first': 'true',
+            'ordering': 'name',
+        })
+        assert expected_order_by_name == uids
+
 
 class AssetVersionApiTests(BaseTestCase):
     fixtures = ['test_data']
