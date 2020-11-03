@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import clonedeep from 'lodash.clonedeep';
 import React from 'react';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
@@ -11,9 +10,11 @@ import {bem} from 'js/bem';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import {t} from 'js/utils';
+import {getAssetDisplayName} from 'js/assetUtils';
 import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
 import AssetActionButtons from './assetActionButtons';
 import AssetInfoBox from './assetInfoBox';
+import AssetBreadcrumbs from './assetBreadcrumbs';
 import AssetContentSummary from './assetContentSummary';
 import CollectionAssetsTable from './collectionAssetsTable';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
@@ -144,10 +145,10 @@ class AssetRoute extends React.Component {
       return renderLoading();
     }
 
-    const docTitle = this.state.asset.name || t('Untitled');
+    const assetName = getAssetDisplayName(this.state.asset);
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${assetName.final} | KoboToolbox`}>
         <bem.FormView m='form'>
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'first']}>
@@ -160,12 +161,16 @@ class AssetRoute extends React.Component {
 
               {this.state.isUserSubscribed &&
                 <bem.FormView__cell m='subscribed-badge'>
-                  <i className='k-icon k-icon-check-circle' />
+                  <i className='k-icon k-icon-folder-subscribed' />
                   {t('Subscribed')}
                 </bem.FormView__cell>
               }
 
               <AssetActionButtons asset={this.state.asset}/>
+            </bem.FormView__cell>
+
+            <bem.FormView__cell m='first'>
+              <AssetBreadcrumbs asset={this.state.asset}/>
             </bem.FormView__cell>
 
             <bem.FormView__cell m={['columns', 'first']}>
