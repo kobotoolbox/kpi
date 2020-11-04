@@ -86,6 +86,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
 
+    # children = PaginatedApiField(
+    #     serializer_class="kpi.serializers.v2.asset.AssetListSerializer"
+    # )
 
     children = serializers.SerializerMethodField()
     subscribers_count = serializers.SerializerMethodField()

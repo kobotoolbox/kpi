@@ -116,15 +116,9 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         child_data = child_detail_response.data
         self.assertIn(parent_url, child_data['parent'])
 
-        child_field = 'children'
-        child_found = False
-        # TODO: Request next page of children if child was not found on first
-        # page
-        for child in parent_data[child_field]['results']:
-            if child['url'].endswith(child_url):
-                child_found = True
-                break
-        self.assertTrue(child_found)
+        assert parent_collection.children.count() ==\
+            parent_data['children']['count']
+
 
     def add_to_collection(self, child, parent_collection,
                           owner=None, owner_password=None):
