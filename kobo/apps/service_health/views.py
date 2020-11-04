@@ -15,7 +15,7 @@ def get_response(url_):
     content = None
 
     try:
-        response_ = requests.get(url_, timeout=45)
+        response_ = requests.get(url_, timeout=10)
         response_.raise_for_status()
         content = response_.text
     except Exception as e:
