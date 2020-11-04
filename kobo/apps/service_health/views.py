@@ -15,6 +15,8 @@ def get_response(url_):
     content = None
 
     try:
+        # reponse timeout changed to 10 seconds from 45 as requested in 
+        # issue linked here https://github.com/kobotoolbox/kpi/issues/2642
         response_ = requests.get(url_, timeout=10)
         response_.raise_for_status()
         content = response_.text
