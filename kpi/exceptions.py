@@ -1,5 +1,6 @@
 # coding: utf-8
 from rest_framework import exceptions
+from django.utils.translation import ugettext_lazy as _
 
 
 class BadPermissionsException(Exception):
@@ -26,6 +27,17 @@ class KobocatProfileException(Exception):
     pass
 
 
+class InvalidSearchException(exceptions.APIException):
+    status_code = 400
+    default_detail = _('Invalid search. Please try again')
+    default_code = 'invalid_search'
+
+
+class SearchQueryTooShortException(InvalidSearchException):
+    default_detail = _('Your query is too short')
+    default_code = 'query_too_short'
+
+
 class KobocatDeploymentException(exceptions.APIException):
     def __init__(self, *args, **kwargs):
         if 'response' in kwargs:
@@ -46,5 +58,5 @@ class KobocatDeploymentException(exceptions.APIException):
 
 class ObjectDeploymentDoesNotExist(exceptions.APIException):
     status_code = 400
-    default_detail = 'The specified object has not been deployed'
+    default_detail = _('The specified object has not been deployed')
     default_code = 'deployment_does_not_exist'

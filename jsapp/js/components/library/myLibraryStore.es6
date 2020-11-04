@@ -129,7 +129,13 @@ const myLibraryStore = Reflux.createStore({
       this.fetchData(true);
     } else if (
       this.previousPath !== null &&
-      this.previousPath.split('/')[1] !== 'library' &&
+      (
+        // coming from outside of library
+        this.previousPath.split('/')[1] !== 'library' ||
+        // public-collections is a special case that is kinda in library, but
+        // actually outside of it
+        this.previousPath.startsWith('/library/public-collections')
+      ) &&
       isOnLibraryRoute()
     ) {
       // refresh data when navigating into library from other place
@@ -209,7 +215,16 @@ const myLibraryStore = Reflux.createStore({
     ) {
       let wasUpdated = false;
       for (let i = 0; i < this.data.assets.length; i++) {
-        if (this.data.assets[i].uid === asset.uid) {
+        const loopAsset = this.data.assets[i];
+        if (
+          loopAsset.uid === asset.uid &&
+          (
+            // if the changed asset didn't change (e.g. was just loaded)
+            // let's not cause it to fetchMetadata
+            loopAsset.date_modified !== asset.date_modified ||
+            loopAsset.version_id !== asset.version_id
+          )
+        ) {
           this.data.assets[i] = asset;
           wasUpdated = true;
           break;
