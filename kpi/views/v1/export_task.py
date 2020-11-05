@@ -1,4 +1,6 @@
 # coding: utf-8
+import os
+
 from rest_framework import status, serializers
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -33,7 +35,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             return queryset
         if q.startswith('source:'):
             q = remove_string_prefix(q, 'source:')
-            queryset = queryset.filter(data__source=q)
+            queryset = queryset.filter(data__source__icontains=q)
         elif q.startswith('uid__in:'):
             q = remove_string_prefix(q, 'uid__in:')
             uids = [uid.strip() for uid in q.split(',')]
@@ -86,3 +88,14 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
                 request=request),
             'status': ExportTask.PROCESSING
         }, status.HTTP_201_CREATED)
+
+    def perform_destroy(self, instance):
+        if 'KPI_DEFAULT_FILE_STORAGE' not in os.environ:
+            print('do something here to delete in S3')
+        else:
+            ROOT = os.environ.get('KPI_SRC_DIR')
+            MEDIA = 'media'
+            file_to_delete = instance.result
+            os.remove(f'{ROOT}/{MEDIA}/{file_to_delete}')
+
+        return super().perform_destroy(instance)
