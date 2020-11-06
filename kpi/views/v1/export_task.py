@@ -90,12 +90,18 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
         }, status.HTTP_201_CREATED)
 
     def perform_destroy(self, instance):
-        if 'KPI_DEFAULT_FILE_STORAGE' not in os.environ:
-            print('do something here to delete in S3')
+        if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
+            try:
+                ExportTask.result.field.storage.delete(
+                    name=str(instance.result)
+                )
+            except:
+                pass
         else:
             ROOT = os.environ.get('KPI_SRC_DIR')
             MEDIA = 'media'
-            file_to_delete = instance.result
-            os.remove(f'{ROOT}/{MEDIA}/{file_to_delete}')
+            full_file_path = f'{ROOT}/{MEDIA}/{instance.result}'
+            if os.path.isfile(full_file_path):
+                os.remove(full_file_path)
 
         return super().perform_destroy(instance)
