@@ -8,7 +8,7 @@ class UserSerializer(UserSerializerV2):
     assets = PaginatedApiField(
         serializer_class=AssetUrlListSerializer
     )
-    member_since = None
+    date_joined = None
     public_collection_subscribers_count = None
     public_collections_count = None
 
