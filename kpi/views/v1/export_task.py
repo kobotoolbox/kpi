@@ -1,6 +1,4 @@
 # coding: utf-8
-import os
-
 from rest_framework import status, serializers
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -35,7 +33,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             return queryset
         if q.startswith('source:'):
             q = remove_string_prefix(q, 'source:')
-            queryset = queryset.filter(data__source__icontains=q)
+            queryset = queryset.filter(data__source=q)
         elif q.startswith('uid__in:'):
             q = remove_string_prefix(q, 'uid__in:')
             uids = [uid.strip() for uid in q.split(',')]
