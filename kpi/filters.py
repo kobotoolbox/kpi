@@ -45,11 +45,11 @@ class AssetOrderingFilter(filters.OrderingFilter):
         ordering = self.get_ordering(request, queryset, view)
 
         if collections_first:
-            # if `collections_first` is `True`, we want the collections to be
-            # displayed at first. We add a temporary field to set a priority
-            # to `1` and all other asset types to 0.
-            # Then the results are sorted by this priority first, then by
-            # what comes next, either:
+            # If `collections_first` is `True`, we want the collections to be
+            # displayed at the beginning. We add a temporary field to set a
+            # priority to 1 for collections and all other asset types to 0.
+            # The results are sorted by this priority first and then by what
+            # comes next, either:
             # - `ordering` from querystring
             # - model default option
             queryset = queryset.annotate(
