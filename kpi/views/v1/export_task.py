@@ -1,4 +1,6 @@
 # coding: utf-8
+from django.db.models import TextField
+from django.db.models.functions import Cast
 from rest_framework import status, exceptions
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -33,7 +35,13 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             return queryset
         if q.startswith('source:'):
             q = remove_string_prefix(q, 'source:')
-            queryset = queryset.filter(data__source=q)
+            # Crude, but `data__source` is a URL. Cast `data__source` to a
+            # `TextField` to avoid the special behavior of `__contains` for
+            # `JSONField`s. See
+            # https://docs.djangoproject.com/en/2.2/ref/contrib/postgres/fields/#std:fieldlookup-hstorefield.contains
+            queryset = queryset.annotate(
+                source_str=Cast('data__source', output_field=TextField())
+            ).filter(source_str__contains=q)
         elif q.startswith('uid__in:'):
             q = remove_string_prefix(q, 'uid__in:')
             uids = [uid.strip() for uid in q.split(',')]
