@@ -255,7 +255,6 @@ class AssetExportTaskTest(BaseTestCase):
             'q1': '¿Qué tal?'
         }
         self.asset.deployment.mock_submissions([submission])
-        settings.CELERY_TASK_ALWAYS_EAGER = True
 
     def test_owner_can_create_export(self):
         post_url = reverse('exporttask-list')

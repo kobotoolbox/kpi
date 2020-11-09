@@ -21,7 +21,6 @@ class AssetImportTaskTest(BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.first()
-        settings.CELERY_TASK_ALWAYS_EAGER = True
 
     def _assert_assets_contents_equal(self, a1, a2):
         def _prep_row_for_comparison(row):
