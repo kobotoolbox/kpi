@@ -354,10 +354,16 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                    context=context).data
 
     def get_access_types(self, obj):
+        """
+        Handles the detail endpoint but also takes advantage of the
+        `AssetViewSet.get_serializer_context()` "cache" for the list endpoint,
+        if it is present
+        """
         # Avoid extra queries if obj is not a collection
         if obj.asset_type != ASSET_TYPE_COLLECTION:
             return None
 
+        # User is the owner
         try:
             request = self.context['request']
         except KeyError:
@@ -367,36 +373,63 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if request.user == obj.owner:
             access_types.append('owned')
 
-        # `obj.permissions.filter(...).exists()` would be cleaner, but it'd
-        # cost a query. This ugly loop takes advantage of having already called
-        # `prefetch_related()`
-        for permission in obj.permissions.all():
-            if (not permission.deny and
-                    permission.user_id == settings.ANONYMOUS_USER_ID and
-                    permission.permission.codename == PERM_DISCOVER_ASSET):
+        # User can view the collection.
+        try:
+            # The list view should provide a cache
+            asset_permission_assignments = self.context[
+                'object_permissions_per_asset'
+            ].get(obj.pk)
+        except KeyError:
+            asset_permission_assignments = obj.permissions.all()
+
+        # We test at the same time whether the collection is public or not
+        for obj_permission in asset_permission_assignments:
+
+            if (
+                not obj_permission.deny
+                and obj_permission.user_id == settings.ANONYMOUS_USER_ID
+                and obj_permission.permission.codename == PERM_DISCOVER_ASSET
+            ):
                 access_types.append('public')
+
                 if request.user == obj.owner:
                     # Do not go further, `access_type` cannot be `shared`
                     # and `owned`
                     break
 
-            if request.user != obj.owner and not permission.deny \
-                    and permission.user == request.user:
+            if (
+                request.user != obj.owner
+                and not obj_permission.deny
+                and obj_permission.user == request.user
+            ):
+                access_types.append('shared')
                 # Do not go further, we assume `settings.ANONYMOUS_USER_ID`
                 # equals -1. Thus, `public` access type should be discovered at
                 # first
-                access_types.append('shared')
                 break
 
-        if obj.has_subscribed_user(request.user.pk):
+        # User has subscribed to this collection
+        subscribed = False
+        try:
+            # The list view should provide a cache
+            subscriptions = self.context['user_subscriptions_per_asset'].get(
+                obj.pk, []
+            )
+        except KeyError:
+            subscribed = obj.has_subscribed_user(request.user.pk)
+        else:
+            subscribed = request.user.pk in subscriptions
+        if subscribed:
             access_types.append('subscribed')
 
+        # User is big brother.
         if request.user.is_superuser:
             access_types.append('superuser')
 
         if not access_types:
             raise Exception(
-                f'{request.user.username} has unexpected access to {obj.uid}')
+                f'{request.user.username} has unexpected access to {obj.uid}'
+            )
 
         return access_types
 
@@ -506,73 +539,6 @@ class AssetListSerializer(AssetSerializer):
                   'access_types',
                   'children'
                   )
-
-    def get_access_types(self, obj):
-        """
-        Overrides parent's method to benefit of
-        `AssetViewSet.get_serializer_context()` "cache" for the list endpoint.
-        """
-        # Avoid extra queries if obj is not a collection
-        if obj.asset_type != ASSET_TYPE_COLLECTION:
-            return None
-
-        # User is the owner
-        try:
-            request = self.context['request']
-        except KeyError:
-            return None
-
-        access_types = []
-        if request.user == obj.owner:
-            access_types.append('owned')
-
-        # User can view the collection.
-        try:
-            asset_permission_assignments = self.context[
-                'object_permissions_per_asset'].get(obj.pk)
-        except KeyError:
-            return super().get_access_types(obj)
-
-        # We test at the same time whether the collection is public or not
-        for obj_permission in asset_permission_assignments:
-
-            if (not obj_permission.deny and
-                    obj_permission.user_id == settings.ANONYMOUS_USER_ID and
-                    obj_permission.permission.codename == PERM_DISCOVER_ASSET):
-                access_types.append('public')
-
-                if request.user == obj.owner:
-                    # Do not go further, `access_type` cannot be `shared`
-                    # and `owned`
-                    break
-
-            if (request.user != obj.owner and not obj_permission.deny
-                    and obj_permission.user == request.user):
-                access_types.append('shared')
-                # Do not go further, we assume `settings.ANONYMOUS_USER_ID`
-                # equals -1. Thus, `public` access type should be discovered at
-                # first
-                break
-
-        # User has subscribed to this collection
-        try:
-            subscriptions = self.context[
-                'user_subscriptions_per_asset'].get(obj.pk, [])
-        except KeyError:
-            pass
-        else:
-            if request.user.pk in subscriptions:
-                access_types.append('subscribed')
-
-        # User is big brother.
-        if request.user.is_superuser:
-            access_types.append('superuser')
-
-        if not access_types:
-            raise Exception(
-                f'{request.user.username} has unexpected access to {obj.uid}')
-
-        return access_types
 
     def get_children(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
