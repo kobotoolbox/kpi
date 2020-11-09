@@ -89,6 +89,25 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     Look at [README](https://github.com/kobotoolbox/kpi#searching-assets)
     for more details.
 
+    Results can be sorted with `ordering` parameter.
+    Allowed fields are:
+
+    - `asset_type`
+    - `date_modified`
+    - `name`
+    - `owner__username`
+    - `subscribers_count`
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/?ordering=-name
+
+    _Note: Collections can be displayed first with parameter `collections_first`_
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/?collections_first=true&ordering=-name
+
     <hr>
 
     Get a hash of all `version_id`s of assets.
