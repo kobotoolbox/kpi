@@ -218,6 +218,10 @@
     justify-content: space-between;
     align-items: center;
 
+    &.form-view__cell--columns-right {
+      justify-content: flex-end;
+    }
+
     .form-view__cell--stretch {
       flex: 1;
     }

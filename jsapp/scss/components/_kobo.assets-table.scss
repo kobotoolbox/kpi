@@ -123,7 +123,6 @@
 $z-assets-table-row-link: 10;
 $z-assets-table-row-buttons: 20;
 $z-assets-table-row-header: 30;
-$c-assets-table-row-hover: $kobo-whitegray;
 
 .assets-table-row {
   display: flex;
@@ -142,7 +141,7 @@ $c-assets-table-row-hover: $kobo-whitegray;
     }
 
     .assets-table-row__column--icon-status {
-      padding: 8px 0 0 0;
+      padding: 13px 0 0 0;
 
       .k-icon {
         font-size: 32px;
@@ -154,11 +153,27 @@ $c-assets-table-row-hover: $kobo-whitegray;
     .assets-table-row__column--name .asset-name {
       font-weight: 700;
     }
-  }
 
-  &.assets-table-row--is-subscribed {
-    .assets-table-row__column--icon-status {
-      color: $kobo-blue;
+    .assets-table-row__column--icon-status .k-icon {
+      position: relative;
+
+      &::before {
+        position: relative;
+        z-index: 1;
+        color: $kobo-white;
+      }
+
+      &::after {
+        content: "";
+        background-color: $kobo-teal;
+        position: absolute;
+        z-index: 0;
+        top: 0;
+        left: -5px;
+        right: -5px;
+        height: 100%;
+        border-radius: 6px;
+      }
     }
   }
 
@@ -250,7 +265,7 @@ $c-assets-table-row-hover: $kobo-whitegray;
 
   .assets-table-row__column {
     border-top: 1px solid $kobo-lightgray;
-    padding: 15px 10px;
+    padding: 20px 10px;
 
     &[disabled] {
       pointer-events: none;
@@ -339,8 +354,8 @@ $c-assets-table-row-hover: $kobo-whitegray;
   bottom: 0; // stretch for whole row
   opacity: 0;
   visibility: hidden;
-  background-color: $c-assets-table-row-hover;
-  padding: 8px 10px 0 0;
+  background-color: $kobo-whitegray;
+  padding: 13px 10px 0 0;
 
   // for nicer blending in with the possible text underneath
   &::before {
@@ -350,6 +365,6 @@ $c-assets-table-row-hover: $kobo-whitegray;
     top: 0;
     height: 100%;
     width: 15px;
-    background: linear-gradient(90deg, transparent, $c-assets-table-row-hover);
+    background: linear-gradient(90deg, transparent, $kobo-whitegray);
   }
 }

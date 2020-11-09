@@ -136,10 +136,6 @@ class AssetRoute extends React.Component {
     }
   }
 
-  goBack() {
-    hashHistory.goBack();
-  }
-
   render() {
     if (this.state.asset === false) {
       return renderLoading();
@@ -151,14 +147,7 @@ class AssetRoute extends React.Component {
       <DocumentTitle title={`${assetName.final} | KoboToolbox`}>
         <bem.FormView m='form'>
           <bem.FormView__row>
-            <bem.FormView__cell m={['columns', 'first']}>
-              <bem.FormView__cell m={['stretch', 'back-button']}>
-                <bem.FormView__iconButton onClick={this.goBack}>
-                  <i className='k-icon k-icon-prev' />
-                  {t('Back')}
-                </bem.FormView__iconButton>
-              </bem.FormView__cell>
-
+            <bem.FormView__cell m={['columns', 'columns-right', 'first']}>
               {this.state.isUserSubscribed &&
                 <bem.FormView__cell m='subscribed-badge'>
                   <i className='k-icon k-icon-folder-subscribed' />

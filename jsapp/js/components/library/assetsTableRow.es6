@@ -18,8 +18,6 @@ class AssetsTableRow extends React.Component {
   }
 
   render() {
-    let assetModifiers = ['asset', `type-${this.props.asset.asset_type}`];
-
     let iconClassName = '';
     if (this.props.asset) {
       iconClassName = assetUtils.getAssetIcon(this.props.asset);
@@ -40,16 +38,8 @@ class AssetsTableRow extends React.Component {
       rowCount = this.props.asset.children.count;
     }
 
-    const isUserSubscribed = (
-      this.props.asset.access_types &&
-      this.props.asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
-    );
-    if (isUserSubscribed) {
-      assetModifiers.push('is-subscribed');
-    }
-
     return (
-      <bem.AssetsTableRow m={assetModifiers}>
+      <bem.AssetsTableRow m={['asset', `type-${this.props.asset.asset_type}`]}>
         <bem.AssetsTableRow__link href={`#/library/asset/${this.props.asset.uid}`}/>
 
         <bem.AssetsTableRow__buttons>
