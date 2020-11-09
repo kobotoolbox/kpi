@@ -90,18 +90,5 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
         }, status.HTTP_201_CREATED)
 
     def perform_destroy(self, instance):
-        if 'KPI_DEFAULT_FILE_STORAGE' in os.environ:
-            try:
-                ExportTask.result.field.storage.delete(
-                    name=str(instance.result)
-                )
-            except:
-                pass
-        else:
-            ROOT = os.environ.get('KPI_SRC_DIR')
-            MEDIA = 'media'
-            full_file_path = f'{ROOT}/{MEDIA}/{instance.result}'
-            if os.path.isfile(full_file_path):
-                os.remove(full_file_path)
-
+        ExportTask.result.field.storage.delete(name=str(instance.result))
         return super().perform_destroy(instance)
