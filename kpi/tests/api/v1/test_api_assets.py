@@ -335,8 +335,8 @@ class AssetExportTaskTest(BaseTestCase):
         result_response = self.client.get(detail_response.data['result'])
         file_name = str(result_response._closable_objects[0].name)
 
-        detail_url = reverse("exporttask-detail", kwargs={
-            "uid": detail_response.data['uid']
+        detail_url = reverse('exporttask-detail', kwargs={
+            'uid': detail_response.data['uid']
             })
 
         # checking if file exists before attempting to delete
