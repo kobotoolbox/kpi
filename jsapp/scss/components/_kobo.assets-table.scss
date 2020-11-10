@@ -272,7 +272,7 @@ $z-assets-table-row-header: 30;
     }
 
     &.assets-table-row__column--icon-status {
-      width: 50px;
+      width: 70px;
       text-align: center;
     }
 
@@ -321,14 +321,14 @@ $z-assets-table-row-header: 30;
 
 .assets-table-row__tags {
   display: block;
-  margin-top: 0.5em;
+  margin-top: 5px;
 }
 
 .assets-table-row__tag {
   display: inline-block;
   vertical-align: middle;
   padding: 2px 4px;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1;
   color: currentColor;
   background: transparent;

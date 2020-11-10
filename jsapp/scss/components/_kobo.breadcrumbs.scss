@@ -4,6 +4,7 @@
   line-height: 40px;
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
 
   &.breadcrumbs--gray-wrapper {

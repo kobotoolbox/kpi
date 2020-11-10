@@ -324,7 +324,7 @@
     .k-icon {
       font-size: 32px;
       vertical-align: top;
-      color: inherit;
+      color: $kobo-teal;
     }
   }
 
@@ -381,33 +381,6 @@
     color: $kobo-white;
     background-color: $kobo-green;
     border-radius: 2px;
-  }
-
-  &.form-view__cell--toggle-details {
-    button {
-      cursor: pointer;
-      color: $kobo-blue;
-      background: transparent;
-      text-transform: uppercase;
-      border: 0;
-      width: 100%;
-      text-align: center;
-      font-size: 12px;
-      padding: 8px 0 0;
-
-      &:hover {
-        color: $kobo-blue-dark;
-      }
-
-      &:active {
-        transform: translateY(1px);
-      }
-
-      .k-icon {
-        font-size: 24px;
-        vertical-align: -8px;
-      }
-    }
   }
 
   &.form-view__cell--warning {

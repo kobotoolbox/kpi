@@ -10,10 +10,11 @@ import {bem} from 'js/bem';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import {t} from 'js/utils';
-import {getAssetDisplayName} from 'js/assetUtils';
+import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
 import AssetActionButtons from './assetActionButtons';
 import AssetInfoBox from './assetInfoBox';
+import AssetPublicButton from './assetPublicButton';
 import AssetBreadcrumbs from './assetBreadcrumbs';
 import AssetContentSummary from './assetContentSummary';
 import CollectionAssetsTable from './collectionAssetsTable';
@@ -141,7 +142,7 @@ class AssetRoute extends React.Component {
       return renderLoading();
     }
 
-    const assetName = getAssetDisplayName(this.state.asset);
+    const assetName = assetUtils.getAssetDisplayName(this.state.asset);
 
     return (
       <DocumentTitle title={`${assetName.final} | KoboToolbox`}>
@@ -155,17 +156,13 @@ class AssetRoute extends React.Component {
                 </bem.FormView__cell>
               }
 
+              <AssetPublicButton asset={this.state.asset}/>
+
               <AssetActionButtons asset={this.state.asset}/>
             </bem.FormView__cell>
 
             <bem.FormView__cell m='first'>
               <AssetBreadcrumbs asset={this.state.asset}/>
-            </bem.FormView__cell>
-
-            <bem.FormView__cell m={['columns', 'first']}>
-              <bem.FormView__cell m='label'>
-                {t('Details')}
-              </bem.FormView__cell>
             </bem.FormView__cell>
 
             <AssetInfoBox asset={this.state.asset}/>
@@ -185,13 +182,7 @@ class AssetRoute extends React.Component {
 
           {this.state.asset.asset_type === ASSET_TYPES.collection.id &&
             <bem.FormView__row>
-              <bem.FormView__cell m={['columns', 'first']}>
-                <bem.FormView__cell m='label'>
-                  {t('Collection Content')}
-                </bem.FormView__cell>
-              </bem.FormView__cell>
-
-              <bem.FormView__cell m='box'>
+              <bem.FormView__cell m={['box', 'first']}>
                 <CollectionAssetsTable asset={this.state.asset}/>
               </bem.FormView__cell>
             </bem.FormView__row>

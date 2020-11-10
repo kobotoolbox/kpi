@@ -349,7 +349,7 @@ class AssetActionButtons extends React.Component {
       isPublic &&
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     ) {
-      const modifiers = isUserSubscribed ? ['unsubscribe'] : ['subscribe'];
+      const modifiers = isUserSubscribed ? ['off'] : ['on'];
       const fn = isUserSubscribed ? this.unsubscribeFromCollection.bind(this) : this.subscribeToCollection.bind(this);
       if (this.state.isSubscribePending) {
         modifiers.push('pending');
@@ -358,7 +358,7 @@ class AssetActionButtons extends React.Component {
       let title = t('Pending…');
       if (!this.state.isSubscribePending) {
         if (isUserSubscribed) {
-          icon = (<i className='k-icon k-icon-unsubscribe'/>);
+          icon = (<i className='k-icon k-icon-close'/>);
           title = t('Unsubscribe');
         } else {
           icon = (<i className='k-icon k-icon-subscribe'/>);
