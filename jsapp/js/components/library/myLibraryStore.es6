@@ -114,13 +114,9 @@ const myLibraryStore = Reflux.createStore({
     }
 
     const params = this.getSearchParams();
-    // Declared languages in forms should contain their codes i.e., English (en)
-    // if this query is not surrounded by double quotes, it would split the
-    // query at the space and break the filter
-    if (
-      params.filterProperty !== undefined &&
-      params.filterProperty.includes('languages')
-    ) {
+    // Surrounds `filterValue` with double quotes to avoid filters that have
+    // spaces which would split the query in two, thus breaking the filter
+    if (params.filterProperty !== undefined) {
       params.filterValue = JSON.stringify(params.filterValue); // Adds quotes
     }
 
