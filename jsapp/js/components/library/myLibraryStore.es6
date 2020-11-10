@@ -89,7 +89,8 @@ const myLibraryStore = Reflux.createStore({
     const params = {
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage
+      page: this.data.currentPage,
+      collectionsFirst: true
     };
 
     if (this.data.filterColumnId !== null) {

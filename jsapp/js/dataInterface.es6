@@ -387,6 +387,10 @@ export var dataInterface;
         searchData.metadata = 'on';
       }
 
+      if (params.collectionsFirst === true) {
+        searchData.collections_first = 'true';
+      }
+
       if (params.status) {
         searchData.status = params.status;
       }
