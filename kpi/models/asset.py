@@ -495,7 +495,17 @@ class Asset(ObjectPermissionMixin,
         return 'asset'
 
     class Meta:
-        ordering = ('-date_modified',)
+
+        # Example in Django documentation  represents `ordering` as a list
+        # (even if it can be a list or a tuple). We enforce the type to `list`
+        # because `rest_framework.filters.OrderingFilter` work with lists.
+        # `AssetOrderingFilter` inherits from this class and it is used `
+        # in `AssetViewSet to sort the result.
+        # It avoids back and forth between types and/or coercing where
+        # ordering is needed
+        ordering = [
+            '-date_modified',
+        ]
 
         permissions = (
             # change_, add_, and delete_asset are provided automatically
