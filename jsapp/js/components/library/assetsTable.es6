@@ -127,9 +127,14 @@ export class AssetsTable extends React.Component {
   renderHeader(columnDef, option) {
     if (columnDef.orderBy) {
       return this.renderOrderableHeader(columnDef, option);
-    }
-    if (columnDef.filterBy) {
+    } else if (columnDef.filterBy) {
       return this.renderFilterableHeader(columnDef, option);
+    } else {
+      return (
+        <bem.AssetsTableRow__column m={columnDef.id} disabled>
+          {columnDef.label}
+        </bem.AssetsTableRow__column>
+      );
     }
   }
 
@@ -160,7 +165,7 @@ export class AssetsTable extends React.Component {
     }
 
     // empty icon to take up space in column
-    let icon = (<i className='k-icon'/>);
+    let icon = (<i className='k-icon k-icon-filter-arrows'/>);
     if (this.props.filterColumnId === columnDef.id) {
       icon = (<i className='k-icon k-icon-check'/>);
     }
@@ -318,14 +323,15 @@ export class AssetsTable extends React.Component {
           <bem.AssetsTableRow m='header'>
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('icon-status'), 'first')}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('name'))}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('items-count'))}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('owner'))}
             {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
               this.renderHeader(ASSETS_TABLE_COLUMNS.get('subscribers-count'))
             }
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('organization'))}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('languages'))}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('primary-sector'))}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('country'))}
+            {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
+              this.renderHeader(ASSETS_TABLE_COLUMNS.get('primary-sector'))
+            }
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('date-modified'), 'last')}
 
             {this.state.scrollbarWidth !== 0 && this.state.scrollbarWidth !== null &&
@@ -414,6 +420,14 @@ export const ASSETS_TABLE_COLUMNS = new Map([
     }
   ],
   [
+    'items-count', {
+      label: t('Items'),
+      id: 'items-count',
+      orderBy: null,
+      defaultValue: null
+    }
+  ],
+  [
     'owner', {
       label: t('Owner'),
       id: 'owner',
@@ -439,30 +453,12 @@ export const ASSETS_TABLE_COLUMNS = new Map([
     }
   ],
   [
-    'organization', {
-      label: t('Organization'),
-      id: 'organization',
-      filterBy: 'settings__organization',
-      filterByPath: ['settings', 'organization'],
-      filterByMetadataName: 'organizations'
-    }
-  ],
-  [
     'primary-sector', {
       label: t('Primary Sector'),
       id: 'primary-sector',
       filterBy: 'settings__sector__value',
       filterByPath: ['settings', 'sector'],
       filterByMetadataName: 'sectors'
-    }
-  ],
-  [
-    'country', {
-      label: t('Country'),
-      id: 'country',
-      filterBy: 'settings__country__value',
-      filterByPath: ['settings', 'country'],
-      filterByMetadataName: 'countries'
     }
   ],
 ]);

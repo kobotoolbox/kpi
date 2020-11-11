@@ -45,6 +45,10 @@
     color: darken($kobo-darkgray, 5%);
   }
 
+  &:active {
+    transform: translateY(1px);
+  }
+
   &[disabled] {
     pointer-events: none;
 

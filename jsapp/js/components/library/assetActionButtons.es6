@@ -340,9 +340,13 @@ class AssetActionButtons extends React.Component {
     );
   }
 
-  renderSubButton(isUserSubscribed) {
+  renderSubButton() {
     const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
     const isPublic = assetUtils.isAssetPublic(this.props.asset.permissions);
+    const isUserSubscribed = (
+      this.props.asset.access_types &&
+      this.props.asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
+    );
 
     if (
       !isSelfOwned &&
@@ -392,17 +396,13 @@ class AssetActionButtons extends React.Component {
       assetType === ASSET_TYPES.template.id ||
       assetType === ASSET_TYPES.collection.id
     );
-    const isUserSubscribed = (
-      this.props.asset.access_types &&
-      this.props.asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
-    );
 
     return (
       <bem.AssetActionButtons
         onMouseLeave={this.onMouseLeave}
         onMouseEnter={this.onMouseEnter}
       >
-        {this.renderSubButton(isUserSubscribed)}
+        {this.renderSubButton()}
 
         {userCanEdit && assetType !== ASSET_TYPES.collection.id &&
           <bem.AssetActionButtons__iconButton

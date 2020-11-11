@@ -22,10 +22,7 @@ import {renderLoading} from 'js/components/modalForms/modalHelpers';
 class AssetRoute extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      asset: false,
-      isUserSubscribed: false
-    };
+    this.state = {asset: false};
     this.unlisteners = [];
     autoBind(this);
   }
@@ -64,11 +61,24 @@ class AssetRoute extends React.Component {
   }
 
   onSubscribeToCollectionCompleted() {
-    this.setState({isUserSubscribed: true});
+    this.onAssetAccessTypeChanged(true);
   }
 
   onUnsubscribeFromCollectionCompleted() {
-    this.setState({isUserSubscribed: false});
+    this.onAssetAccessTypeChanged(false);
+  }
+
+  onAssetAccessTypeChanged(setSubscribed) {
+    let newAsset = this.state.asset;
+    if (setSubscribed) {
+      newAsset.access_types.push(ACCESS_TYPES.get('subscribed'));
+    } else {
+      newAsset.access_types.splice(
+        newAsset.access_types.indexOf(ACCESS_TYPES.get('subscribed')),
+        1
+      );
+    }
+    this.setState({asset: newAsset});
   }
 
   onMoveToCollectionCompleted(asset) {
@@ -107,10 +117,7 @@ class AssetRoute extends React.Component {
 
   onAssetChanged(asset) {
     if (asset.uid === this.currentAssetID()) {
-      this.setState({
-        asset: asset,
-        isUserSubscribed: asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
-      });
+      this.setState({asset: asset});
     } else if (
       this.state.asset &&
       this.state.asset.asset_type === ASSET_TYPES.collection.id &&
@@ -142,13 +149,14 @@ class AssetRoute extends React.Component {
     }
 
     const assetName = assetUtils.getAssetDisplayName(this.state.asset);
+    const isUserSubscribed = this.state.asset.access_types && this.state.asset.access_types.includes(ACCESS_TYPES.get('subscribed'));
 
     return (
       <DocumentTitle title={`${assetName.final} | KoboToolbox`}>
         <bem.FormView m='form'>
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'columns-right', 'first']}>
-              {this.state.isUserSubscribed &&
+              {isUserSubscribed &&
                 <bem.FormView__cell m='subscribed-badge'>
                   <i className='k-icon k-icon-folder-subscribed' />
                   {t('Subscribed')}
@@ -181,7 +189,7 @@ class AssetRoute extends React.Component {
 
           {this.state.asset.asset_type === ASSET_TYPES.collection.id &&
             <bem.FormView__row>
-              <bem.FormView__cell m={['box', 'first']}>
+              <bem.FormView__cell m={['box']}>
                 <CollectionAssetsTable asset={this.state.asset}/>
               </bem.FormView__cell>
             </bem.FormView__row>
