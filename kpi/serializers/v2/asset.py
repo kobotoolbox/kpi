@@ -316,7 +316,20 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
 
     def get_children(self, asset):
-        children_count = asset.children.count()
+        """
+        Handles the detail endpoint but also takes advantage of the
+        `AssetViewSet.get_serializer_context()` "cache" for the list endpoint,
+        if it is present
+        """
+        if asset.asset_type != ASSET_TYPE_COLLECTION:
+            return {'count': 0}
+
+        try:
+            children_count_per_asset = self.context['children_count_per_asset']
+        except KeyError:
+            children_count = asset.children.count()
+        else:
+            children_count = children_count_per_asset.get(asset.pk, 0)
 
         return {'count': children_count}
 
@@ -329,7 +342,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     def get_status(self, asset):
 
         # `order_by` lets us check `AnonymousUser`'s permissions first.
-        # No need to read all permissions if `AnonymousUser`'s permissions are found.
+        # No need to read all permissions if `AnonymousUser`'s permissions
+        # are found.
         # We assume that `settings.ANONYMOUS_USER_ID` equals -1.
         perm_assignments = asset.permissions. \
             values('user_id', 'permission__codename'). \
@@ -345,8 +359,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         queryset = ObjectPermissionHelper. \
             get_user_permission_assignments_queryset(obj, request.user)
         # Need to pass `asset` and `asset_uid` to context of
-        # AssetPermissionAssignmentSerializer serializer to avoid extra queries to DB
-        # within the serializer to retrieve the asset object.
+        # AssetPermissionAssignmentSerializer serializer to avoid extra queries
+        # to DB within the serializer to retrieve the asset object.
         context['asset'] = obj
         context['asset_uid'] = obj.uid
 
@@ -507,8 +521,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 class AssetListSerializer(AssetSerializer):
 
-    children = serializers.SerializerMethodField()
-
     class Meta(AssetSerializer.Meta):
         # WARNING! If you're changing something here, please update
         # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
@@ -541,36 +553,22 @@ class AssetListSerializer(AssetSerializer):
                   'children'
                   )
 
-    def get_children(self, asset):
-        if asset.asset_type != ASSET_TYPE_COLLECTION:
-            return {'count': 0}
-
-        try:
-            children_count = self.context['children_count_per_asset'].get(asset.pk, 0)
-        except KeyError:
-            # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `children_count_per_asset` should be always
-            # a property of `self.context`
-            children_count = asset.children.count()
-
-        return {'count': children_count}
-
     def get_permissions(self, asset):
         try:
             asset_permission_assignments = self.context[
                 'object_permissions_per_asset'].get(asset.pk)
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `object_permissions_per_asset` should be always
-            # a property of `self.context`
+            # in the list context, `object_permissions_per_asset` should
+            # be always a property of `self.context`
             return super().get_permissions(asset)
 
         context = self.context
         request = self.context.get('request')
 
         # Need to pass `asset` and `asset_uid` to context of
-        # AssetPermissionAssignmentSerializer serializer to avoid extra queries to DB
-        # within the serializer to retrieve the asset object.
+        # AssetPermissionAssignmentSerializer serializer to avoid extra queries
+        # to DB within the serializer to retrieve the asset object.
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
@@ -591,8 +589,8 @@ class AssetListSerializer(AssetSerializer):
             return len(subscriptions_per_asset.get(asset.pk, []))
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `user_subscriptions_per_asset` should be always
-            # a property of `self.context`
+            # in the list context, `user_subscriptions_per_asset` should be
+            # always a property of `self.context`
             return super().get_subscribers_count(asset)
 
     def get_status(self, asset):
@@ -602,8 +600,8 @@ class AssetListSerializer(AssetSerializer):
                 'object_permissions_per_asset'].get(asset.pk)
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `object_permissions_per_asset` should be always
-            # a property of `self.context`
+            # in the list context, `object_permissions_per_asset` should be
+            # always a property of `self.context`
             return super().get_status(asset)
 
         perm_assignments = []
