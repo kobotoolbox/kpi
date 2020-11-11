@@ -650,6 +650,11 @@ class ExportTask(ImportExportTask):
             export.result.delete()
             export.delete()
 
+    def delete(self, *args, **kwargs):
+        # removing exported file from storage
+        self.result.delete(save=False)
+        super().delete(*args, **kwargs)
+
 
 def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)

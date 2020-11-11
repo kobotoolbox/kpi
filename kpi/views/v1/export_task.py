@@ -86,7 +86,3 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
                 request=request),
             'status': ExportTask.PROCESSING
         }, status.HTTP_201_CREATED)
-
-    def perform_destroy(self, instance):
-        ExportTask.result.field.storage.delete(name=str(instance.result))
-        return super().perform_destroy(instance)
