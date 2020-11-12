@@ -73,6 +73,7 @@ unicodecsv
 uWSGI
 xlrd
 xlwt
+xlutils
 XlsxWriter
 
 # These packages allow `requests` to support SNI
