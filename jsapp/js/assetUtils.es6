@@ -166,7 +166,7 @@ export function isLibraryAsset(assetType) {
  */
 export function getAssetIcon(asset) {
   if (asset.asset_type === ASSET_TYPES.template.id) {
-    return 'k-icon-template';
+    return 'k-icon-template-new';
   } else if (asset.asset_type === ASSET_TYPES.question.id) {
     return 'k-icon-question-new';
   } else if (asset.asset_type === ASSET_TYPES.block.id) {
