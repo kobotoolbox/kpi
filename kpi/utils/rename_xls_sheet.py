@@ -5,8 +5,11 @@ to get around restrictions on sheet names in pyxform
 inputs
 '''
 
+from io import BytesIO
+
 from xlutils.copy import copy
 from xlrd import open_workbook
+
 
 
 class NoFromSheetError(Exception):
