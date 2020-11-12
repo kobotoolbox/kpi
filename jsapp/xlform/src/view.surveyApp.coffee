@@ -116,19 +116,15 @@ module.exports = do ->
       [prev, parent]
 
     initialize: (options)->
-      @reset = (newlyAddedRow = false) =>
-        if @_timedReset
-          clearTimeout(@_timedReset)
+      @reset = ()=>
+        clearTimeout(@_timedReset)  if @_timedReset
         promise = $.Deferred();
-        @_timedReset = setTimeout(
-          () =>
-            @_reset.call(@, newlyAddedRow)
-            promise.resolve()
-            return
-          , 0
-        )
+        @_timedReset = setTimeout =>
+          @_reset.call(@)
+          promise.resolve()
+        , 0
 
-        return promise
+        promise
 
       if options.survey and (options.survey instanceof $survey.Survey)
         @survey = options.survey
@@ -144,8 +140,8 @@ module.exports = do ->
 
       @survey.settings.on 'change:form_id', (model, value) =>
         $('.form-id').text(value)
-      @survey.on('rows-add', @reset, @)
-      @survey.on('rows-remove', @reset, @)
+      @survey.on 'rows-add', @reset, @
+      @survey.on 'rows-remove', @reset, @
       @survey.on "row-detail-change", (row, key, val, ctxt)=>
         if key.match(/^\$/)
           return
@@ -603,51 +599,29 @@ module.exports = do ->
         xlfrv = @__rowViews.get(row.cid)
       xlfrv
 
-    _reset: (newlyAddedRow = false) ->
+    _reset: ->
       _notifyIfRowsOutOfOrder(@)
 
       isEmpty = true
-
-      @survey.forEachRow((
-        (row) =>
+      lastType = ''
+      @survey.forEachRow(((row)=>
           if !@features.skipLogic
             row.unset 'relevant'
           isEmpty = false
           @ensureElInView(row, @, @formEditorEl).render()
-        ), {
-          includeErrors: true,
-          includeGroups: true,
-          flat: true
-        })
+          lastType = row.getValue('type')
+        ), includeErrors: true, includeGroups: true, flat: true)
+      # If newest question has choices then hightlight the first choice
+      if lastType.includes('select_one') or lastType.includes('select_multiple')
+        newestRowIndex = @$el.children().eq(0).children().eq(0).children().length - 1
+        @$el.children().eq(0).children().eq(0).children().eq(newestRowIndex).find('input.option-view-input').eq(0).select()
+      else
+        $('.btn--addrow').eq($('.btn--addrow').length - 1).focus()
 
-      newlyAddedEl = null
-      newlyAddedType = null
-      if newlyAddedRow
-        newlyAddedEl = $("*[data-row-id=\"#{newlyAddedRow.cid}\"]")
-        newlyAddedType = newlyAddedRow.getValue('type')
-
-      if (
-        newlyAddedEl and
-        newlyAddedType and
-        (
-          newlyAddedType.includes('select_one') or
-          newlyAddedType.includes('select_multiple')
-        )
-      )
-        # If newest question has choices then hightlight the first choice
-        newlyAddedEl.find('input.option-view-input').eq(0).select()
-      else if newlyAddedEl
-        # focus on the next add row button
-        closestAddrow = newlyAddedEl.find('.btn--addrow').eq(0)
-        closestAddrow.addClass('btn--addrow-force-show')
-        closestAddrow.focus()
-        $(document).one('keydown click', (evt) =>
-          closestAddrow.removeClass('btn--addrow-force-show')
-          closestAddrow.blur()
-        )
 
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")
       null_top_row.toggleClass("survey-editor__null-top-row--hidden", !isEmpty)
+
 
       if @features.multipleQuestions
         @activateSortable()
