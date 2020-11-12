@@ -28,6 +28,10 @@ from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 from kpi.utils.log import logging
 from kpi.utils.strings import to_str
+from kpi.utils.rename_xls_sheet import (
+    rename_xls_sheet, NoFromSheetError, ConflictSheetError,
+)
+
 from ..fields import KpiUidField
 from ..model_utils import create_assets, _load_library_content, \
     remove_string_prefix
@@ -280,9 +284,6 @@ class ImportTask(ImportExportTask):
             if not library:
                 raise ValueError('a library cannot be imported into the'
                                  ' form list')
-            if 'survey' in survey_dict_keys:
-                raise ValueError('An import cannot have both "survey" and'
-                                 ' "library" sheets.')
             if destination:
                 raise SyntaxError('libraries cannot be imported into assets')
             collection = _load_library_content({
@@ -657,7 +658,18 @@ class ExportTask(ImportExportTask):
 
 def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)
-    survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
+    try:
+        renamed_sheet = rename_xls_sheet(BytesIO(decoded_str),
+                                         from_sheet='library',
+                                         to_sheet='survey')
+        survey_dict = xls2json_backends.xls_to_dict(renamed_sheet)
+        survey_dict['library'] = survey_dict.pop('survey')
+    except ConflictSheetError:
+        raise ValueError('An import cannot have both "survey" and'
+                         ' "library" sheets.')
+    except NoFromSheetError:
+        # library did not exist in the xls file
+        survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
     return _strip_header_keys(survey_dict)
 
 
