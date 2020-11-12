@@ -423,6 +423,8 @@ export const ASSETS_TABLE_COLUMNS = new Map([
     'items-count', {
       label: t('Items'),
       id: 'items-count',
+      // TODO: currently it is not possible to order by summary.row_count and children.count at the same time
+      // so we disable this column
       orderBy: null,
       defaultValue: null
     }
