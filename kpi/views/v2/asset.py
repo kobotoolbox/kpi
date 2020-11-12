@@ -89,6 +89,25 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     Look at [README](https://github.com/kobotoolbox/kpi#searching-assets)
     for more details.
 
+    Results can be sorted with `ordering` parameter.
+    Allowed fields are:
+
+    - `asset_type`
+    - `date_modified`
+    - `name`
+    - `owner__username`
+    - `subscribers_count`
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/?ordering=-name
+
+    _Note: Collections can be displayed first with parameter `collections_first`_
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/?collections_first=true&ordering=-name
+
     <hr>
 
     Get a hash of all `version_id`s of assets.
@@ -484,11 +503,16 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             # for each asset in the list.
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
-            queryset = super().get_queryset()
+
+            # self.__filtered_queryset is set in the `list()` method that
+            # DRF automatically calls and is overridden below. This is
+            # to prevent double calls to `filter_queryset()` as described in
+            # the issue here: https://github.com/kobotoolbox/kpi/issues/2576
+            queryset = self.__filtered_queryset
 
             # 1) Retrieve all asset IDs of current list
-            asset_ids = AssetPagination.get_all_asset_ids_from_queryset(
-                self.filter_queryset(queryset))
+            asset_ids = AssetPagination.\
+                get_all_asset_ids_from_queryset(queryset)
 
             # 2) Get object permissions per asset
             object_permissions = ObjectPermission.objects.filter(
@@ -541,17 +565,19 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response({'asset': asset, }, template_name='koboform.html')
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        # assigning global filtered query set to prevent additional,
+        # unnecessary calls to `filter_queryset`
+        self.__filtered_queryset = self.filter_queryset(self.get_queryset())
 
-        page = self.paginate_queryset(queryset)
+        page = self.paginate_queryset(self.__filtered_queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             metadata = None
             if request.GET.get('metadata') == 'on':
-                metadata = self.get_metadata(queryset)
+                metadata = self.get_metadata(self.__filtered_queryset)
             return self.get_paginated_response(serializer.data, metadata)
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(self.__filtered_queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'],
@@ -591,6 +617,11 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         metadata = self.get_metadata(queryset)
         return Response(metadata)
+
+    def perform_destroy(self, instance):
+        if hasattr(instance, 'has_deployment') and instance.has_deployment:
+            instance.deployment.delete()
+        return super().perform_destroy(instance)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()

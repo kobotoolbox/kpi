@@ -68,7 +68,7 @@ export const ASSETS_TABLE_COLUMNS = new Map([
     'languages', {
       label: t('Languages'),
       id: 'languages',
-      filterBy: 'summary__languages',
+      filterBy: 'summary__languages__icontains',
       filterByPath: ['summary', 'languages'],
       filterByMetadataName: 'languages'
     }

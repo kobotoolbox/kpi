@@ -28,6 +28,11 @@
       display: block;
     }
   }
+
+  // for displaying after row was added
+  .btn--addrow-force-show {
+    display: block !important;
+  }
 }
 
 // duplicated inside .btn--addrow, where

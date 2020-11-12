@@ -179,11 +179,11 @@ export function getAssetIcon(asset) {
       return 'k-icon-drafts';
     }
   } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    if (asset.access_type === ACCESS_TYPES.get('subscribed')) {
+    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('subscribed'))) {
       return 'k-icon-folder-subscribed';
     } else if (isAssetPublic(asset.permissions)) {
       return 'k-icon-folder-public';
-    } else if (asset.access_type === ACCESS_TYPES.get('shared')) {
+    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('shared'))) {
       return 'k-icon-folder-shared';
     } else {
       return 'k-icon-folder';
