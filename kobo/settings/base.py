@@ -659,9 +659,6 @@ KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     # Each tuple must be (app_label, model_name)
     ('main', 'userprofile'),
     ('logger', 'xform'),
-    ('api', 'project'),
-    ('api', 'team'),
-    ('api', 'organizationprofile'),
     ('logger', 'note'),
 ]
 

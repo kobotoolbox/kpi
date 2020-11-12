@@ -270,7 +270,6 @@ class AssetExportTaskTest(BaseTestCase):
             'q1': '¿Qué tal?'
         }
         self.asset.deployment.mock_submissions([submission])
-        settings.CELERY_TASK_ALWAYS_EAGER = True
 
     def test_owner_can_create_export(self):
         post_url = reverse('exporttask-list')
@@ -329,6 +328,31 @@ class AssetExportTaskTest(BaseTestCase):
         # Get the result file
         result_response = self.client.get(detail_response.data['result'])
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
+
+    def test_owner_can_create_and_delete_export(self):
+        detail_response = self.test_owner_can_create_export()
+        result_response = self.client.get(detail_response.data['result'])
+        file_name = str(result_response._closable_objects[0].name)
+
+        detail_url = reverse('exporttask-detail', kwargs={
+            'uid': detail_response.data['uid']
+            })
+
+        # checking if file exists before attempting to delete
+        file_exists_before_delete = ExportTask.result.field.storage.exists(
+            name=file_name
+        )
+        assert file_exists_before_delete
+
+        # deleting the export
+        delete_response = self.client.delete(detail_url)
+        assert delete_response.status_code == status.HTTP_204_NO_CONTENT
+
+        # checking if file still exists after attempting to delete it
+        file_exists_after_delete = ExportTask.result.field.storage.exists(
+            name=file_name
+        )
+        assert not file_exists_after_delete
 
 
 class AssetFileTest(test_api_assets.AssetFileTest):
