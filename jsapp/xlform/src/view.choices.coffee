@@ -5,7 +5,6 @@ $modelUtils = require './model.utils'
 $baseView = require './view.pluggedIn.backboneView'
 $viewTemplates = require './view.templates'
 $viewUtils = require './view.utils'
-_t = require('utils').t
 
 module.exports = do ->
   class ListView extends $baseView
@@ -88,8 +87,8 @@ module.exports = do ->
     render: ->
       @t = $("<i class=\"fa fa-trash-o js-remove-option\">")
       @pw = $("<div class=\"editable-wrapper js-cancel-select-row\">")
-      @p = $("<input placeholder=\"#{_t("This option has no name")}\" class=\"js-cancel-select-row option-view-input\">")
-      @c = $("<code><label>#{_t("XML value:")}</label> <input type=\"text\" class=\"js-cancel-select-row\"></input></code>")
+      @p = $("<input placeholder=\"#{t("This option has no name")}\" class=\"js-cancel-select-row option-view-input\">")
+      @c = $("<code><label>#{t("XML value:")}</label> <input type=\"text\" class=\"js-cancel-select-row\"></input></code>")
       @d = $('<div>')
       if @model
         @p.val @model.get("label") || 'Empty'

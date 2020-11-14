@@ -3,8 +3,7 @@ import autoBind from 'react-autobind';
 import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
 import {
-  assign,
-  t
+  assign
 } from 'js/utils';
 import {
   META_QUESTION_TYPES,

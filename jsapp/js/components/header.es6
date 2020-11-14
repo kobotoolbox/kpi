@@ -13,7 +13,6 @@ import {removeInvalidChars} from '../assetUtils';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   assign,
   currentLang,
   stringToColor,

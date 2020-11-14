@@ -27,7 +27,6 @@ module.exports = WebpackCommon({
     filename: '[name]-[hash].js'
   },
   plugins: [
-    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
     new webpack.SourceMapDevToolPlugin({
       filename: '[file].map',
       exclude: /vendors.*.*/

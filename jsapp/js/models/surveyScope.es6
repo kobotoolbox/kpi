@@ -1,7 +1,6 @@
 import {actions} from '../actions';
 import {
   notify,
-  t,
   unnullifyTranslations,
 } from '../utils';
 

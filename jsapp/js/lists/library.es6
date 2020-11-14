@@ -15,7 +15,6 @@ import SearchCollectionList from '../components/searchcollectionlist';
 import {
   ListSearchSummary,
 } from '../components/list';
-import {t} from '../utils';
 
 class LibrarySearchableList extends React.Component {
   constructor(props) {

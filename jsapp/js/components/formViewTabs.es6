@@ -10,7 +10,6 @@ import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {
-  t,
   assign,
 } from '../utils';
 

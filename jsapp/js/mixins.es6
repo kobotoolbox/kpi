@@ -29,7 +29,6 @@ import $ from 'jquery';
 import permConfig from 'js/components/permissions/permConfig';
 import {
   log,
-  t,
   assign,
   notify,
   escapeHtml,

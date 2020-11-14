@@ -9,11 +9,8 @@ import {bem} from '../bem';
 import {searches} from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
-
 import { ASSET_TYPES } from '../constants';
-
 import { t } from '../utils';
-
 import {
   ListSearch,
   ListTagFilter,

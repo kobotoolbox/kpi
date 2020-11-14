@@ -15,7 +15,6 @@ import Checkbox from './checkbox';
 import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
 import {
-  t,
   stringToColor,
 } from '../utils';
 

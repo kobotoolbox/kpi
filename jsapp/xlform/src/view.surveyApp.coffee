@@ -10,7 +10,6 @@ $viewRowSelector = require './view.rowSelector'
 $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
-_t = require('utils').t
 alertify = require 'alertifyjs'
 
 module.exports = do ->
@@ -665,8 +664,8 @@ module.exports = do ->
 
     clickRemoveRow: (evt)->
       evt.preventDefault()
-      if confirm(_t("Are you sure you want to delete this question?") + " " +
-          _t("This action cannot be undone."))
+      if confirm(t("Are you sure you want to delete this question?") + " " +
+          t("This action cannot be undone."))
         @survey.trigger('change')
 
         $et = $(evt.target)
@@ -781,13 +780,13 @@ module.exports = do ->
       $header = $et.closest('.card__header')
       card_hover_text = do ->
         if buttonName is 'settings'
-          _t("[button triggers] Settings")
+          t("[button triggers] Settings")
         else if buttonName is 'delete'
-          _t("[button triggers] Delete Question")
+          t("[button triggers] Delete Question")
         else if buttonName is 'duplicate'
-          _t("[button triggers] Duplicate Question")
+          t("[button triggers] Duplicate Question")
         else if buttonName is 'add-to-library'
-          _t("[button triggers] Add Question to Library")
+          t("[button triggers] Add Question to Library")
 
       $header.find('.card__header--shade').eq(0).children('span').eq(0)
         .attr('data-card-hover-text', card_hover_text)
