@@ -1,18 +1,5 @@
 module.exports = do ->
 
-  surveyTemplateApp = () ->
-      """
-          <button class="btn js-start-survey">#{t("Start from Scratch")}</button>
-          <span class="or">#{t("or")}</span>
-          <hr>
-          <form action="/import_survey_draft" class="btn btn--fileupload js-import-fileupload">
-            <span class="fileinput-button">
-              <span>#{t("Import XLS")}</span>
-              <input type="file" name="files">
-            </span>
-          </form>
-      """
-
   surveyApp = (surveyApp) ->
       survey = surveyApp.survey
 
@@ -33,7 +20,7 @@ module.exports = do ->
                 #{t("You can add questions, notes, prompts, or other fields by clicking on the '+' sign below.")}
               </p>
               <div class="survey__row__spacer  expanding-spacer-between-rows expanding-spacer-between-rows--depr">
-                <div tabIndex="0" class="btn btn--block btn--addrow js-expand-row-selector   add-row-btn add-row-btn--depr">
+                <div tabIndex="0" class="btn btn--block btn--addrow js-expand-row-selector">
                   <i class="fa fa-plus"></i>
                 </div>
                 <div class="line">&nbsp;</div>
@@ -43,5 +30,4 @@ module.exports = do ->
         </div>
       """
 
-  surveyTemplateApp: surveyTemplateApp
   surveyApp: surveyApp

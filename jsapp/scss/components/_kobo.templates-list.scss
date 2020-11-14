@@ -13,7 +13,7 @@
 
   .templates-list__row {
     display: flex;
-    box-shadow: 0 0 0 1px $divider-color;
+    box-shadow: 0 0 0 1px $kobo-lightgray;
     padding: 10px;
     align-items: center;
 
@@ -46,16 +46,16 @@
   .templates-list__template {
     font-size: inherit;
     position: relative;
-    color: $cool-darkgray;
+    color: $kobo-darkgray;
     border: 1px solid transparent;
 
     &:hover, &.selected {
-      background: rgba($divider-color, 0.3);
-      color: $cool-blue;
+      background: rgba($kobo-lightgray, 0.3);
+      color: $kobo-blue;
     }
 
     &.selected {
-      border: 1px solid $cool-blue;
+      border: 1px solid $kobo-blue;
     }
   }
 

@@ -5,6 +5,7 @@
 #    make pip_compile
 #
 -e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest  # via -r dependencies/pip/requirements.in
+-e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages  # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/formpack.git@d8d7a64acd69f6c6fa56638588dbe38c7a97a1e0#egg=formpack  # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest  # via -r dependencies/pip/requirements.in
 -e git+https://github.com/kobotoolbox/ssrf-protect@9eec6c4aa37700c6e7ca90540a9407bd20acddb0#egg=ssrf_protect  # via -r dependencies/pip/requirements.in
@@ -41,12 +42,11 @@ django-markitup==4.0.0    # via -r dependencies/pip/requirements.in
 django-mptt==0.10.0       # via -r dependencies/pip/requirements.in
 django-oauth-toolkit==1.2.0  # via -r dependencies/pip/requirements.in
 django-picklefield==2.0   # via django-constance
-django-private-storage==2.2.1  # via -r dependencies/pip/requirements.in
+django-private-storage==2.2.2  # via -r dependencies/pip/requirements.in
 django-redis-sessions==0.6.1  # via -r dependencies/pip/requirements.in
 django-registration-redux==2.6  # via -r dependencies/pip/requirements.in
 django-request-cache==1.2  # via -r dependencies/pip/requirements.in
 django-reversion==3.0.1   # via -r dependencies/pip/requirements.in
-django-storages==1.7.2    # via -r dependencies/pip/requirements.in
 django-taggit==1.1.0      # via -r dependencies/pip/requirements.in
 django-timezone-field==3.1  # via django-celery-beat
 django-userforeignkey==0.3.0  # via django-request-cache
@@ -60,7 +60,7 @@ formencode==1.3.1         # via pyxform
 future==0.18.2            # via -r dependencies/pip/requirements.in
 geojson-rewind==0.2.0     # via -r dependencies/pip/requirements.in, formpack
 idna==2.8                 # via requests
-importlib-metadata==0.23  # via jsonschema, kombu, path.py
+importlib-metadata==1.7.0  # via jsonschema, kombu, path.py
 jmespath==0.9.4           # via boto3, botocore
 jsonfield==2.0.2          # via -r dependencies/pip/requirements.in
 jsonschema==3.1.1         # via formpack

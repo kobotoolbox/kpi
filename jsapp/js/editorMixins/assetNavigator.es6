@@ -9,7 +9,8 @@ import {bem} from '../bem';
 import {searches} from '../searches';
 import ui from '../ui';
 import mixins from '../mixins';
-
+import { ASSET_TYPES } from '../constants';
+import { t } from '../utils';
 import {
   ListSearch,
   ListTagFilter,
@@ -93,13 +94,16 @@ class AssetNavigatorListView extends React.Component {
       window.setTimeout(()=>{
         this.activateSortable();
       }, 1);
-
       return (
         <bem.LibList m={['done', isSearch ? 'search' : 'default']} ref='liblist'>
           {list.map((item)=> {
             var modifiers = [item.asset_type];
             var summ = item.summary;
-            if (summ.row_count == undefined) {
+            // HACK FIX: (ideally `survey`s would not be searched)
+            // Library questions can only be of `question` or `block` types
+            // Reject `survey` types to not include current survey on save
+            if (summ.row_count == undefined
+              || item.asset_type === ASSET_TYPES.survey.id) {
               return false;
             }
             return (

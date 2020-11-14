@@ -13,6 +13,7 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
+import {removeInvalidChars} from 'js/assetUtils';
 import {
   surveyToValidJson,
   unnullifyTranslations,
@@ -46,8 +47,6 @@ const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 export default assign({
   componentDidMount() {
     this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
-
-    document.body.classList.add('hide-edge');
 
     this.loadAsideSettings();
 
@@ -154,7 +153,7 @@ export default assign({
 
   nameChange(evt) {
     this.setState({
-      name: evt.target.value,
+      name: removeInvalidChars(evt.target.value),
     });
     this.onSurveyChange();
   },
@@ -559,14 +558,9 @@ export default assign({
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'buttonsTopRight'} >
-            <bem.FormBuilderHeader__button m={['share']} className='is-edge'>
-              {t('share')}
-            </bem.FormBuilderHeader__button>
-
             <bem.FormBuilderHeader__button
               m={['save', {
                 savepending: this.state.asset_updated === update_states.PENDING_UPDATE,
-                savecomplete: this.state.asset_updated === update_states.UP_TO_DATE,
                 savefailed: this.state.asset_updated === update_states.SAVE_FAILED,
                 saveneeded: this.needsSave(),
               }]}
@@ -614,22 +608,6 @@ export default assign({
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
               <i className='k-icon-group' />
-            </bem.FormBuilderHeader__button>
-
-            <bem.FormBuilderHeader__button
-              m={['download']}
-              data-tip={t('Download form')}
-              className='is-edge'
-            >
-              <i className='k-icon-download' />
-            </bem.FormBuilderHeader__button>
-
-            <bem.FormBuilderHeader__button
-              m={['attach']}
-              data-tip={t('Attach media files')}
-              className='is-edge'
-            >
-              <i className='k-icon-attach' />
             </bem.FormBuilderHeader__button>
 
             { this.toggleCascade !== undefined &&

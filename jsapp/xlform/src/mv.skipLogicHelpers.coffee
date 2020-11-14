@@ -414,8 +414,8 @@ module.exports = do ->
     serialize: () ->
       return ''
     constructor: (view_factory, @context) ->
-      @criterion_builder_button = view_factory.create_button '<i class="fa fa-plus"></i> ' + t("Add a condition"), 'skiplogic__button skiplogic__select-builder'
-      @handcode_button = view_factory.create_button '<i>${}</i> ' + t("Manually enter your skip logic in XLSForm code"), 'skiplogic__button skiplogic__select-handcode'
+      @criterion_builder_button = view_factory.create_button '<i class="fa fa-plus"></i> ' + t("Add a condition"), 'kobo-button kobo-button--green'
+      @handcode_button = view_factory.create_button '<i>${}</i> ' + t("Manually enter your skip logic in XLSForm code"), 'kobo-button kobo-button--blue'
       ###@view = @view_factory.create_skip_logic_picker_view(context)###
     switch_editing_mode: () -> return
 

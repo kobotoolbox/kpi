@@ -256,20 +256,20 @@ export class TranslationTable extends React.Component {
         </div>
 
         <bem.Modal__footer>
-          <bem.Modal__footerButton
-            m='back'
+          <bem.KoboButton
+            m='whitegray'
             onClick={this.onBack.bind(this)}
           >
             {t('Back')}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
 
-          <bem.Modal__footerButton
-            m='primary'
+          <bem.KoboButton
+            m='blue'
             onClick={this.saveChanges.bind(this)}
             disabled={this.state.isSaveChangesButtonPending}
           >
             {this.state.saveChangesButtonText}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
         </bem.Modal__footer>
       </bem.FormModal>
     );

@@ -232,14 +232,14 @@ export class TableColumnFilter extends React.Component {
         }
         <bem.Modal__footer>
           {this.userCan('change_asset', this.props.asset) &&
-            <bem.Modal__footerButton m='secondary' onClick={this.resetTableSettings}>
+            <bem.KoboButton m='whitegray' onClick={this.resetTableSettings}>
               {t('Reset')}
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           }
 
-          <bem.Modal__footerButton m='primary' onClick={this.saveTableColumns}>
+          <bem.KoboButton m='blue' onClick={this.saveTableColumns}>
             {t('Save')}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
         </bem.Modal__footer>
 
       </div>

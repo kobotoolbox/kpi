@@ -28,6 +28,11 @@
       display: block;
     }
   }
+
+  // for displaying after row was added
+  .btn--addrow-force-show {
+    display: block !important;
+  }
 }
 
 // duplicated inside .btn--addrow, where
@@ -44,7 +49,7 @@
 }
 
 .score_preview, .rank_preview {
-  background-color: #fff;
+  background-color: $kobo-white;
   margin-left: -16px;
 }
 
@@ -58,15 +63,16 @@
   border: 0 none;
   background-color: transparent;
   float: right;
-  color: rgba(181, 15, 15, 0.33);
+  color: $kobo-red;
+  cursor: pointer;
 
   &:hover {
-    color: rgba(181, 15, 15, 1);
+    color: $kobo-red-dark;
   }
 }
 
 .scorecell__col {
-  border: 1px solid #ccc;
+  border: 1px solid $kobo-midgray;
   border-width: 1px 0 0.5px 1px;
   text-align: center;
   padding: 0;
@@ -81,43 +87,7 @@
   }
 }
 
-.scorerow--add {
-  button {
-    &:hover {
-      background-color: #d3d3d3;
-    }
-
-    cursor: pointer;
-    background-color: #f3f3f3;
-    font-weight: bold;
-    display: block;
-    width: 100%;
-    padding: 2px 6px;
-    border: 1px solid $cool-lightgray;
-  }
-}
-
-.scorecell--add {
-  vertical-align: bottom;
-
-  span {
-    &:hover {
-      background-color: #d3d3d3;
-    }
-
-    cursor: pointer;
-    background-color: #f3f3f3;
-    font-weight: bold;
-    display: inline-block;
-    padding: 2px 6px;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border: 1px solid $cool-lightgray;
-    border-width: 1px 1px 1px 0;
-  }
-}
-
-$scorebordercolor: #ccc;
+$scorebordercolor: $kobo-midgray;
 
 tr:first-child .scorelabel {
   border-top-width: 1px;
@@ -131,11 +101,11 @@ tr:first-child .scorelabel {
   border-left-color: $scorebordercolor;
   border-right-width: 1px;
   border-right-style: solid;
-  border-right-color: $cool-lightgray;
+  border-right-color: $kobo-lightgray;
 }
 
 .scorelabel, .scorecell__radio {
-  border-bottom: 1px dotted $cool-lightgray;
+  border-bottom: 1px dotted $kobo-lightgray;
   padding: 4px 6px;
 }
 
@@ -154,7 +124,7 @@ tr:last-child {
 }
 
 .score__options {
-  background-color: #fff;
+  background-color: $kobo-white;
   padding: 12px 0;
 }
 
@@ -171,11 +141,11 @@ tr:last-child {
 }
 
 tr:hover .scorecell__radio {
-  background-color: #fafafa;
+  background-color: $kobo-whitegray;
 }
 
 tr .scorecell__radio:hover {
-  background-color: #f8f8f8;
+  background-color: $kobo-whitegray;
 }
 
 .rank__rows {
@@ -188,7 +158,7 @@ tr .scorecell__radio:hover {
 
 .rank__levels, .rank__rows {
   float: left;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba($kobo-white, 0.5);
   padding: 4px 20px 18px 2px;
   margin: 0;
 }
@@ -205,7 +175,7 @@ tr .scorecell__radio:hover {
 
 .rank_items__constraint_explanation {
   font-size: 10px;
-  color: #888;
+  color: $kobo-darkgray;
   text-decoration: underline;
 }
 
@@ -221,13 +191,13 @@ tr .scorecell__radio:hover {
 
 .rank_items__item, .rank_items__level {
   border: 1px solid;
-  border-color: rgb(194, 176, 176) rgb(194, 176, 176) rgb(194, 176, 176) rgb(194, 176, 176);
+  border-color: $kobo-midgray;
   border-radius: 4px;
 }
 
 .rank_items__constraint_message {
   font-size: 92%;
-  color: #444;
+  color: $kobo-black;
   font-style: italic;
 
   &:before {
@@ -239,7 +209,7 @@ tr .scorecell__radio:hover {
       content: '';
     }
 
-    color: #777;
+    color: $kobo-darkgray;
   }
 
   div {
@@ -254,24 +224,24 @@ tr .scorecell__radio:hover {
 .rank_items__add {
   list-style-type: none;
 
-  button {
+  .btn {
     display: block;
-    width: 35%;
+    width: 100%;
     line-height: 10px;
   }
 }
 
 .scorecell__name {
   margin: 0 0 -1px 0;
-  background-color: #f1f1f1;
-  color: #868686;
-  line-height: 13px;
+  background-color: $kobo-whitegray;
+  color: $kobo-darkgray;
+  line-height: 15px;
   font-size: 9px;
 }
 
 .scorecell__name, .scorelabel__name {
   display: block;
-  border-bottom: 1px dotted $cool-lightgray;
+  border-bottom: 1px dotted $kobo-lightgray;
 
   br {
     display: none;
@@ -279,8 +249,6 @@ tr .scorecell__radio:hover {
 }
 
 .scorelabel__name, .rank__rows .rank_items__name {
-  opacity: 0.8;
-
   &:before, &:after {
     line-height: 20px;
     margin: 0 3px;
@@ -319,7 +287,7 @@ tr .scorecell__radio:hover {
 }
 
 .kobomatrix-warning {
-  color: rgb(193, 128, 128);
+  color: $kobo-orange-dark;
   position: absolute;
   top: 0;
   right: 30px;
@@ -331,11 +299,11 @@ tr .scorecell__radio:hover {
 
 .scorecell__name, .scorelabel__name, .rank_items__name {
   font-size: 90%;
-  color: #bbb;
+  color: $kobo-darkgray;
 
   &.prelim {
     font-style: italic;
-    color: $cool-lightgray;
+    color: $kobo-lightgray;
   }
 }
 
@@ -391,8 +359,6 @@ $nested-btn--addrow-height: 24px;
 
 .no-touch .btn--addrow {
   padding: $click-area-btn--addrow-padding-tb 0 0 11px;
-
-  // z-index: 1;
 }
 
 .touch .btn--addrow {

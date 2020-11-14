@@ -308,7 +308,7 @@ export class ProjectDownloads extends React.Component {
                     <bem.FormModal__item key={'s'} m='export-submit'>
                       <input type='submit'
                         value={t('Export')}
-                        className='mdl-button mdl-button--raised mdl-button--colored'
+                        className='kobo-button kobo-button--blue'
                         disabled={this.state.formSubmitDisabled}/>
                     </bem.FormModal__item>
                   ]}

@@ -440,9 +440,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(response_data, template_name='highlighted_xform.html')
 
     @action(detail=True, 
-        methods=['get', 'post', 'patch'],
-        permission_classes=[PostMappedToChangePermission]
-    )
+            methods=['get', 'post', 'patch'],
+            permission_classes=[PostMappedToChangePermission])
     def deployment(self, request, uid):
         """
         A GET request retrieves the existing deployment, if any.

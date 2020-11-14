@@ -115,15 +115,19 @@ module.exports = do ->
       [prev, parent]
 
     initialize: (options)->
-      @reset = ()=>
-        clearTimeout(@_timedReset)  if @_timedReset
+      @reset = (newlyAddedRow = false) =>
+        if @_timedReset
+          clearTimeout(@_timedReset)
         promise = $.Deferred();
-        @_timedReset = setTimeout =>
-          @_reset.call(@)
-          promise.resolve()
-        , 0
+        @_timedReset = setTimeout(
+          () =>
+            @_reset.call(@, newlyAddedRow)
+            promise.resolve()
+            return
+          , 0
+        )
 
-        promise
+        return promise
 
       if options.survey and (options.survey instanceof $survey.Survey)
         @survey = options.survey
@@ -139,8 +143,8 @@ module.exports = do ->
 
       @survey.settings.on 'change:form_id', (model, value) =>
         $('.form-id').text(value)
-      @survey.on 'rows-add', @reset, @
-      @survey.on 'rows-remove', @reset, @
+      @survey.on('rows-add', @reset, @)
+      @survey.on('rows-remove', @reset, @)
       @survey.on "row-detail-change", (row, key, val, ctxt)=>
         if key.match(/^\$/)
           return
@@ -598,29 +602,51 @@ module.exports = do ->
         xlfrv = @__rowViews.get(row.cid)
       xlfrv
 
-    _reset: ->
+    _reset: (newlyAddedRow = false) ->
       _notifyIfRowsOutOfOrder(@)
 
       isEmpty = true
-      lastType = ''
-      @survey.forEachRow(((row)=>
+
+      @survey.forEachRow((
+        (row) =>
           if !@features.skipLogic
             row.unset 'relevant'
           isEmpty = false
           @ensureElInView(row, @, @formEditorEl).render()
-          lastType = row.getValue('type')
-        ), includeErrors: true, includeGroups: true, flat: true)
-      # If newest question has choices then hightlight the first choice
-      if lastType.includes('select_one') or lastType.includes('select_multiple')
-        newestRowIndex = @$el.children().eq(0).children().eq(0).children().length - 1
-        @$el.children().eq(0).children().eq(0).children().eq(newestRowIndex).find('input.option-view-input').eq(0).select()
-      else
-        $('.btn--addrow').eq($('.btn--addrow').length - 1).focus()
+        ), {
+          includeErrors: true,
+          includeGroups: true,
+          flat: true
+        })
 
+      newlyAddedEl = null
+      newlyAddedType = null
+      if newlyAddedRow
+        newlyAddedEl = $("*[data-row-id=\"#{newlyAddedRow.cid}\"]")
+        newlyAddedType = newlyAddedRow.getValue('type')
+
+      if (
+        newlyAddedEl and
+        newlyAddedType and
+        (
+          newlyAddedType.includes('select_one') or
+          newlyAddedType.includes('select_multiple')
+        )
+      )
+        # If newest question has choices then hightlight the first choice
+        newlyAddedEl.find('input.option-view-input').eq(0).select()
+      else if newlyAddedEl
+        # focus on the next add row button
+        closestAddrow = newlyAddedEl.find('.btn--addrow').eq(0)
+        closestAddrow.addClass('btn--addrow-force-show')
+        closestAddrow.focus()
+        $(document).one('keydown click', (evt) =>
+          closestAddrow.removeClass('btn--addrow-force-show')
+          closestAddrow.blur()
+        )
 
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")
       null_top_row.toggleClass("survey-editor__null-top-row--hidden", !isEmpty)
-
 
       if @features.multipleQuestions
         @activateSortable()
@@ -779,25 +805,5 @@ module.exports = do ->
       multipleQuestions: true
       skipLogic: true
       copyToLibrary: true
-
-  class surveyApp.QuestionApp extends SurveyFragmentApp
-    features:
-      multipleQuestions: false
-      skipLogic: false
-      copyToLibrary: false
-    render: () ->
-      super
-      @$('.survey-editor.form-editor-wrap.container').append $('.question__tags')
-
-  class surveyApp.SurveyTemplateApp extends $baseView
-    events:
-      "click .js-start-survey": "startSurvey"
-    initialize: (@options)->
-    render: ()->
-      @$el.addClass("content--centered").addClass("content")
-      @$el.html $viewTemplates.$$render('surveyTemplateApp')
-      @
-    startSurvey: ->
-      new surveyApp.SurveyApp(@options).render()
 
   surveyApp

@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import re
 
 from dicttoxml import dicttoxml
 from rest_framework import renderers
@@ -96,6 +97,17 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
 
+        custom_root = 'root'
+
+        def node_generator(name, closing=False):
+            if closing:
+                return f'</{name}>'
+
+            return f'<{name}>'
+
+        def cleanup_submission(submission):
+            return re.sub(r'^<\?xml[^>]*>', '', submission)
+
         # data should be str, but in case it's a dict, return as XML.
         # e.g. It happens with 404
         if isinstance(data, dict):
@@ -105,12 +117,34 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
                 if isinstance(v, ErrorDetail):
                     data[k] = str(v)
 
-            # FIXME new `v2` list endpoint enters this block
             # Submissions are wrapped in `<item>` nodes.
-            return dicttoxml(data, attr_type=False)
+            # kludgy fix to render list of submissions in XML
+            results = data.pop('results')
+            submissions_parent_node = 'results'
 
-        if renderer_context.get("view").action == "list":
-            return "<root>{}</root>".format("".join(data))
+            xml_ = dicttoxml(data, attr_type=False, custom_root=custom_root)
+            # Retrieve the beginning of the XML (without closing tag) in order
+            # to concatenate `results` as XML nodes too.
+            xml_2_str = xml_.decode().replace(f'</{custom_root}>', '')
+
+            opening_results_node = node_generator(submissions_parent_node)
+            closing_results_node = node_generator(submissions_parent_node,
+                                                  closing=True)
+            results_data_str = ''.join(map(cleanup_submission, results))
+            closing_root_node = node_generator(custom_root, closing=True)
+
+            xml_2_str += f'{opening_results_node}' \
+                f'{results_data_str}' \
+                f'{closing_results_node}' \
+                f'{closing_root_node}'
+
+            return xml_2_str.encode()  # Should return bytes
+
+        if renderer_context.get('view').action == 'list':
+            opening_node = node_generator(custom_root)
+            closing_node = node_generator(custom_root, closing=True)
+            data_str = ''.join(data)
+            return f'{opening_node}{data_str}{closing_node}'
         else:
             return data
 

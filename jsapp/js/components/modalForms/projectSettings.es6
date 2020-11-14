@@ -16,6 +16,7 @@ import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
+import {removeInvalidChars} from 'js/assetUtils';
 import {
   validFileTypes,
   isAValidUrl,
@@ -166,13 +167,13 @@ class ProjectSettings extends React.Component {
   }
 
   onNameChange(evt) {
-    this.setState({name: evt.target.value});
-    this.onAnyDataChange('name', evt.target.value);
+    this.setState({name: removeInvalidChars(evt.target.value)});
+    this.onAnyDataChange('name', removeInvalidChars(evt.target.value));
   }
 
   onDescriptionChange(evt) {
-    this.setState({description: evt.target.value});
-    this.onAnyDataChange('description', evt.target.value);
+    this.setState({description: removeInvalidChars(evt.target.value)});
+    this.onAnyDataChange('description', removeInvalidChars(evt.target.value));
   }
 
   onCountryChange(val) {
@@ -696,14 +697,14 @@ class ProjectSettings extends React.Component {
         <bem.Modal__footer>
           {this.renderBackButton()}
 
-          <bem.Modal__footerButton
-            m='primary'
+          <bem.KoboButton
+            m='blue'
             type='submit'
             onClick={this.applyTemplate}
             disabled={!this.state.chosenTemplateUid || this.state.isApplyTemplatePending}
           >
             {this.state.applyTemplateButton}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
         </bem.Modal__footer>
       </bem.FormModal__form>
     );
@@ -769,14 +770,14 @@ class ProjectSettings extends React.Component {
         <bem.Modal__footer>
           {this.renderBackButton()}
 
-          <bem.Modal__footerButton
-            m='primary'
+          <bem.KoboButton
+            m='blue'
             type='submit'
             onClick={this.importFromURL}
             disabled={!this.state.importUrlButtonEnabled}
           >
             {this.state.importUrlButton}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
         </bem.Modal__footer>
       </bem.FormModal__form>
     );
@@ -799,13 +800,13 @@ class ProjectSettings extends React.Component {
       >
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
           <bem.Modal__footer>
-            <bem.Modal__footerButton
+            <bem.KoboButton
               type='submit'
-              m='primary'
+              m='blue'
               onClick={this.handleSubmit}
             >
               {t('Save Changes')}
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           </bem.Modal__footer>
         }
 
@@ -892,8 +893,8 @@ class ProjectSettings extends React.Component {
                 this.renderBackButton()
               }
 
-              <bem.Modal__footerButton
-                m='primary'
+              <bem.KoboButton
+                m='blue'
                 type='submit'
                 onClick={this.handleSubmit}
                 disabled={this.state.isSubmitPending}
@@ -901,7 +902,7 @@ class ProjectSettings extends React.Component {
                 {this.state.isSubmitPending && t('Please wait…')}
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW && t('Create project')}
                 {!this.state.isSubmitPending && this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE && t('Save')}
-              </bem.Modal__footerButton>
+              </bem.KoboButton>
             </bem.Modal__footer>
           }
 
@@ -909,23 +910,21 @@ class ProjectSettings extends React.Component {
             <bem.FormModal__item>
               <bem.FormModal__item m='inline'>
                 {this.isArchived() &&
-                  <button
-                    type='button'
-                    className='mdl-button mdl-button--colored mdl-button--blue mdl-button--raised'
+                  <bem.KoboButton
+                    m='blue'
                     onClick={this.unarchiveProject}
                   >
                     {t('Unarchive Project')}
-                  </button>
+                  </bem.KoboButton>
                 }
 
                 {!this.isArchived() &&
-                  <button
-                    type='button'
-                    className='mdl-button mdl-button--colored mdl-button--warning mdl-button--raised'
+                  <bem.KoboButton
+                    m='orange'
                     onClick={this.archiveProject}
                   >
                     {t('Archive Project')}
-                  </button>
+                  </bem.KoboButton>
                 }
               </bem.FormModal__item>
 
@@ -937,13 +936,9 @@ class ProjectSettings extends React.Component {
 
           {isSelfOwned && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
-              <button
-                type='button'
-                className='mdl-button mdl-button--colored mdl-button--danger mdl-button--raised'
-                onClick={this.deleteProject}
-              >
+              <bem.KoboButton m='red' onClick={this.deleteProject}>
                 {t('Delete Project and Data')}
-              </button>
+              </bem.KoboButton>
             </bem.FormModal__item>
           }
         </bem.FormModal__item>
@@ -960,14 +955,14 @@ class ProjectSettings extends React.Component {
         this.state.isUploadFilePending
       );
       return (
-        <bem.Modal__footerButton
-          m='back'
+        <bem.KoboButton
+          m='whitegray'
           type='button'
           onClick={this.displayPreviousStep}
           disabled={isBackButtonDisabled}
         >
           {t('Back')}
-        </bem.Modal__footerButton>
+        </bem.KoboButton>
       );
     } else {
       return false;

@@ -9,6 +9,8 @@ export const bem = BEM.init();
 
 bem.Button = BEM('mdl-button', '<button>');
 
+bem.KoboButton = BEM('kobo-button', '<button>');
+
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
@@ -60,10 +62,6 @@ bem.FormBuilderHeader__item = bem.FormBuilderHeader.__('item', '<span>');
 bem.FormBuilderHeader__button = bem.FormBuilderHeader.__('button', '<button>');
 bem.FormBuilderHeader__close = bem.FormBuilderHeader.__('close', '<button>');
 
-bem.FormMeta = bem('form-meta');
-bem.FormMeta__content = bem.FormMeta.__('content');
-bem.FormMeta__button = bem.FormMeta.__('button');
-
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
 bem.Search__cancel = bem.Search.__('cancel', '<i>');
@@ -91,6 +89,12 @@ bem.LibList__tag = bem.LibList.__('tag', '<span>');
 bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
 bem.LibList__qtype = bem.LibList.__('qtype');
+
+bem.SubmissionDataTable = bem('submission-data-table');
+bem.SubmissionDataTable__row = bem.SubmissionDataTable.__('row');
+bem.SubmissionDataTable__column = bem.SubmissionDataTable.__('column');
+bem.SubmissionDataTable__XMLName = bem.SubmissionDataTable.__('xml-name');
+bem.SubmissionDataTable__value = bem.SubmissionDataTable.__('value');
 
 bem.CollectionsWrapper = bem('collections-wrapper');
 
@@ -176,7 +180,6 @@ bem.FormTitle__submissions = bem.FormTitle.__('submissions');
 
 bem.ReportView = BEM('report-view');
 bem.ReportView__wrap = bem.ReportView.__('wrap');
-bem.ReportView__warning = bem.ReportView.__('warning');
 bem.ReportView__item = bem.ReportView.__('item');
 bem.ReportView__itemHeading = bem.ReportView.__('itemHeading');
 bem.ReportView__headingMeta = bem.ReportView.__('headingMeta');
@@ -203,7 +206,6 @@ bem.Modal__header = bem.Modal.__('header', '<header>');
 bem.Modal__title = bem.Modal.__('title', '<h4>');
 bem.Modal__subheader = bem.Modal.__('subheader', '<header>');
 bem.Modal__footer = bem.Modal.__('footer', '<footer>');
-bem.Modal__footerButton = bem.Modal.__('footer-button', '<button>');
 bem.Modal__tabs = bem.Modal.__('tabs');
 bem.Modal__hr = bem.Modal.__('hr', '<hr>');
 
@@ -219,8 +221,6 @@ bem.Header = BEM('header');
 bem.Header__logo = bem.Header.__('logo', '<span>');
 
 bem.AccountBox = BEM('account-box');
-bem.AccountBox__notifications = bem.AccountBox.__('notifications');
-bem.AccountBox__notifications__count = bem.AccountBox.__('notifications__count', '<span>');
 bem.AccountBox__name = bem.AccountBox.__('name', '<div>');
 bem.AccountBox__initials = bem.AccountBox.__('initials', '<span>');
 bem.AccountBox__menu = bem.AccountBox.__('menu', '<ul>');
@@ -257,7 +257,6 @@ bem.HelpBubble__close = bem.HelpBubble.__('close', 'button');
 bem.HelpBubble__back = bem.HelpBubble.__('back', 'button');
 bem.HelpBubble__trigger = bem.HelpBubble.__('trigger', 'button');
 bem.HelpBubble__triggerCounter = bem.HelpBubble.__('trigger-counter', 'span');
-bem.HelpBubble__triggerBadge = bem.HelpBubble.__('trigger-badge', 'span');
 bem.HelpBubble__popup = bem.HelpBubble.__('popup');
 bem.HelpBubble__popupContent = bem.HelpBubble.__('popup-content');
 bem.HelpBubble__row = bem.HelpBubble.__('row');

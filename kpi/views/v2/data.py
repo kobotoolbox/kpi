@@ -233,8 +233,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         json_response = deployment.delete_submission(pk, user=request.user)
         return Response(**json_response)
 
-    @action(detail=True, methods=['GET'], renderer_classes=[renderers.JSONRenderer],
-                  permission_classes=[EditSubmissionPermission])
+    @action(detail=True, methods=['GET'],
+            renderer_classes=[renderers.JSONRenderer],
+            permission_classes=[EditSubmissionPermission])
     def edit(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         json_response = deployment.get_submission_edit_url(pk,

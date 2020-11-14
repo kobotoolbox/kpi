@@ -1,4 +1,4 @@
-.form-view__group--description-cols {
+.form-view__group.form-view__group--description-cols {
   padding: 20px;
   display: flex;
 
@@ -12,12 +12,12 @@
   }
 }
 
-.form-view__cell--description {
-  border-top: 1px solid $divider-color;
+.form-view__cell.form-view__cell--description {
+  border-top: 1px solid $kobo-lightgray;
   padding: 20px;
 }
 
-.form-view__group--summary-details-cols {
+.form-view__group.form-view__group--summary-details-cols {
   display: flex;
   align-items: flex-start;
 
@@ -36,7 +36,7 @@
   }
 }
 
-.form-view__cell--subs-graph {
+.form-view__cell.form-view__cell--subs-graph {
   padding: 30px;
   padding-bottom: 0px;
 
@@ -50,22 +50,22 @@
     a {
       display: inline-block;
       padding: 8px;
-      color: $cool-blue;
+      color: $kobo-teal;
       cursor: pointer;
       font-size: 16px;
       background: transparent;
 
       &.active {
-        color: $cool-gray;
-        background: #F8F8F8;
+        color: $kobo-white;
+        background: $kobo-teal;
         position: relative;
 
-        &:after {
+        &::after {
           width: 0;
           height: 0;
           border-left: 10px solid transparent;
           border-right: 10px solid transparent;
-          border-top: 10px solid #F8F8F8;
+          border-top: 10px solid $kobo-teal;
           content: '';
           position: absolute;
           bottom: -9px;
@@ -77,12 +77,12 @@
   }
 }
 
-.form-view__group--submission-stats {
+.form-view__group.form-view__group--submission-stats {
   padding: 30px;
   display: flex;
 
   .form-view__cell {
-    background: #F8F8FA;
+    background: $kobo-whitegray;
     padding: 20px;
     flex: 2;
     margin-right: 10px;
@@ -96,16 +96,16 @@
   .subs-graph-number {
     font-size: 32px;
     font-weight: 600;
-    color: $cool-green;
+    color: $kobo-teal;
   }
 }
 
-.form-view__cell--data-tabs {
+.form-view__cell.form-view__cell--data-tabs {
   a {
     display: block;
     padding: 6px 10px;
-    color: $cool-gray;
-    border-bottom: 1px solid $divider-color;
+    color: $kobo-darkgray;
+    border-bottom: 1px solid $kobo-lightgray;
     position: relative;
 
     &:last-child {
@@ -113,7 +113,8 @@
     }
 
     &:hover {
-      background: #F8F8FA;
+      color: $kobo-black;
+      background: $kobo-whitegray;
     }
 
     i {
@@ -133,7 +134,7 @@
   }
 }
 
-.form-view__row--team {
+.form-view__row.form-view__row--team {
   position: relative;
 
   .form-view__cell--box {
@@ -150,7 +151,7 @@
 
   a.team-sharing-button {
     cursor: pointer;
-    color: $cool-gray;
+    color: $kobo-darkgray;
     position: absolute;
     right: 0px;
     top: -6px;
@@ -160,12 +161,12 @@
     }
 
     &:hover {
-      color: $cool-blue;
+      color: $kobo-blue;
     }
   }
 }
 
-.form-view__cell--summary-chart {
+.form-view__cell.form-view__cell--summary-chart {
   position: relative;
   height: 0px;
   overflow: hidden;
@@ -175,11 +176,10 @@
     justify-content: center;
     align-items: center;
     display: flex;
-    background: #F8F8FA;
+    background: $kobo-whitegray;
 
     span {
       font-size: 16px;
-      color: $cool-gray;
       margin: 10px;
     }
   }

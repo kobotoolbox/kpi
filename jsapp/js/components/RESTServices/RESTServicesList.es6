@@ -99,14 +99,14 @@ export default class RESTServicesList extends React.Component {
     }
   }
 
-  renderModalButton(additionalClassNames) {
+  renderModalButton() {
     return (
-      <button
-        className={`mdl-button mdl-button--raised mdl-button--colored ${additionalClassNames}`}
+      <bem.KoboButton
+        m='blue'
         onClick={this.openNewRESTServiceModal}
       >
         {t('Register a New Service')}
-      </button>
+      </bem.KoboButton>
     );
   }
 
@@ -126,7 +126,7 @@ export default class RESTServicesList extends React.Component {
             <a href={this.getSupportUrl()} target='_blank'>{t('Learn more')}</a>
           </bem.EmptyContent__message>
 
-          {this.renderModalButton('empty-content__button')}
+          {this.renderModalButton()}
         </bem.EmptyContent>
       </bem.FormView>
     );
