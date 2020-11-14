@@ -28,3 +28,16 @@ export function isOnPublicCollectionsRoute() {
     path.split('/')[2] === 'public-collections'
   );
 }
+
+/**
+ * Returns current collection uid
+ */
+export function getCurrentCollectionUID() {
+  const path = hashHistory.getCurrentLocation().pathname;
+  if (
+    path.split('/')[1] === 'library' &&
+    path.split('/')[2] === 'asset'
+  ) {
+    return (path.split('/')[3]);
+  }
+}

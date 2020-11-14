@@ -10,6 +10,13 @@ import {
 } from 'js/utils';
 
 const libraryActions = Reflux.createActions({
+  searchMyCollectionAssets: {
+    children: [
+      'started',
+      'completed',
+      'failed'
+    ]
+  },
   searchMyLibraryAssets: {
     children: [
       'started',
@@ -67,6 +74,18 @@ const libraryActions = Reflux.createActions({
       'failed'
     ]
   },
+});
+
+/**
+ * Gets single collection's assets
+ *
+ * @param {object} params
+ */
+libraryActions.searchMyCollectionAssets.listen((params) => {
+  const xhr = dataInterface.searchMyCollectionAssets(params)
+    .done(libraryActions.searchMyLibraryAssets.completed)
+    .fail(libraryActions.searchMyLibraryAssets.failed);
+  libraryActions.searchMyCollectionAssets.started(xhr.abort);
 });
 
 /**

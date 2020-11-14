@@ -428,6 +428,12 @@ export var dataInterface;
         method: 'GET'
       });
     },
+    searchMyCollectionAssets(params = {}) {
+      return this._searchAssetsWithPredefinedQuery(
+        params,
+        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:${params.uid}`,
+      );
+    },
     searchMyLibraryAssets(params = {}) {
       return this._searchAssetsWithPredefinedQuery(
         params,
