@@ -83,8 +83,8 @@ const libraryActions = Reflux.createActions({
  */
 libraryActions.searchMyCollectionAssets.listen((params) => {
   const xhr = dataInterface.searchMyCollectionAssets(params)
-    .done(libraryActions.searchMyLibraryAssets.completed)
-    .fail(libraryActions.searchMyLibraryAssets.failed);
+    .done(libraryActions.searchMyCollectionAssets.completed)
+    .fail(libraryActions.searchMyCollectionAssets.failed);
   libraryActions.searchMyCollectionAssets.started(xhr.abort);
 });
 
