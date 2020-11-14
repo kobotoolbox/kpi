@@ -9,6 +9,7 @@ import {bem} from '../bem';
 import ui from '../ui';
 import {searches} from '../searches';
 import {stores} from '../stores';
+import {CATEGORY_LABELS} from 'js/constants';
 
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
@@ -104,11 +105,6 @@ class SidebarFormsList extends Reflux.Component {
                 </bem.Loading>
               );
             } else if (s.defaultQueryState === 'done') {
-              const categoryLabels = {
-                'Deployed': t('Deployed'),
-                'Draft': t('Draft'),
-                'Archived': t('Archived')
-              };
               return ['Deployed', 'Draft', 'Archived' /*, 'Deleted'*/].map(
                 (category) => {
                   var categoryVisible = this.state.selectedCategories[category];
@@ -120,7 +116,7 @@ class SidebarFormsList extends Reflux.Component {
                                             onClick={this.toggleCategory(category)}
                                             key={`${category}-label`}>
                       <i />
-                      {categoryLabels[category]}
+                      {CATEGORY_LABELS[category]}
                       <bem.FormSidebar__labelCount>
                         {s[activeItems][category].length}
                       </bem.FormSidebar__labelCount>

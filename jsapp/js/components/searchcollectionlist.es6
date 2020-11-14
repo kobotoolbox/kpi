@@ -13,7 +13,10 @@ import DocumentTitle from 'react-document-title';
 import $ from 'jquery';
 import Dropzone from 'react-dropzone';
 import {validFileTypes} from '../utils';
-import {ASSET_TYPES} from '../constants';
+import {
+  ASSET_TYPES,
+  CATEGORY_LABELS
+} from '../constants';
 
 class SearchCollectionList extends Reflux.Component {
   constructor(props) {
@@ -162,11 +165,6 @@ class SearchCollectionList extends Reflux.Component {
     if (this.state.searchResultsDisplayed)
       searchResultsBucket = 'searchResultsCategorizedResultsLists';
 
-    const categoryLabels = {
-      'Deployed': t('Deployed'),
-      'Draft': t('Draft'),
-      'Archived': t('Archived')
-    };
     var results = ['Deployed', 'Draft', 'Archived'].map(
       (category, i) => {
         if (this.state[searchResultsBucket][category].length < 1) {
@@ -174,7 +172,7 @@ class SearchCollectionList extends Reflux.Component {
         }
         return [
           <bem.List__subheading key={i}>
-            {categoryLabels[category]}
+            {CATEGORY_LABELS[category]}
           </bem.List__subheading>,
           <bem.AssetItems m={i+1} key={i+2}>
             {this.renderGroupedHeadings()}
