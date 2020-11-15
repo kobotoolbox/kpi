@@ -18,8 +18,8 @@ def delete_related_objects(modeladmin, request, queryset):
     """
     Action that deletes related objects for the selected items.
 
-    This action first displays a confirmation page whichs shows all the
-    deleteable objects, or, if the user has no permission one of the related
+    This action first displays a confirmation page which shows all the
+    deletable objects, or, if the user has no permission one of the related
     childs (foreignkeys), a "permission denied" message.
 
     Next, it deletes all related objects and redirects back to the change list.
@@ -54,8 +54,7 @@ def delete_related_objects(modeladmin, request, queryset):
     # Populate deletable_objects, a data structure of (string representations
     # of) all related objects that will also be deleted.
     deletable_objects, model_count, perms_needed, protected = get_deleted_objects(
-        first_level_related_objects, opts, request.user,
-        modeladmin.admin_site, using
+        first_level_related_objects, request, modeladmin.admin_site
     )
 
     # The user has already confirmed the deletion.
@@ -107,7 +106,7 @@ def delete_related_objects(modeladmin, request, queryset):
     # Display the confirmation page
     return TemplateResponse(
         request, "delete_related_for_selected_confirmation.html",
-        context, current_app=modeladmin.admin_site.name)
+        context)
 
 
 delete_related_objects.short_description = ugettext_lazy(
