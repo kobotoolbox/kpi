@@ -5,10 +5,6 @@
     "node": true,
     "es6": true
   },
-  "globals": {
-    "t": "readonly",
-    "$": "readonly"
-  },
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module",
@@ -92,7 +88,9 @@
     "window": false,
     "document": false,
     "Parse": false,
-    "chai": true
+    "chai": true,
+    "t": "readonly",
+    "$": "readonly"
   },
   "plugins": [
     "react"
