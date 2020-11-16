@@ -10,9 +10,8 @@ import {dataInterface} from '../dataInterface';
 import {bem} from '../bem';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
-import $ from 'jquery';
 import Dropzone from 'react-dropzone';
-import {validFileTypes} from '../utils';
+import {validFileTypes} from 'utils';
 import {
   ASSET_TYPES,
   CATEGORY_LABELS

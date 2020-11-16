@@ -25,7 +25,6 @@ import {
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
 import {actions} from './actions';
-import $ from 'jquery';
 import permConfig from 'js/components/permissions/permConfig';
 import {
   log,
@@ -34,7 +33,7 @@ import {
   escapeHtml,
   buildUserUrl,
   renderCheckbox
-} from './utils';
+} from 'utils';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 

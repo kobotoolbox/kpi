@@ -16,7 +16,7 @@ import {MODAL_TYPES} from '../constants';
 import {
   formatTime,
   notify
-} from '../utils';
+} from 'utils';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 

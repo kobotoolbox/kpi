@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import $ from 'jquery';
 import { Link } from 'react-router';
 import {bem} from '../bem';
 import ui from '../ui';
@@ -13,9 +12,7 @@ import {
   ASSET_TYPES
 } from 'js/constants';
 import TagInput from '../components/tagInput';
-import {
-  formatTime
-} from '../utils';
+import {formatTime} from 'utils';
 import assetUtils from 'js/assetUtils';
 
 class AssetRow extends React.Component {

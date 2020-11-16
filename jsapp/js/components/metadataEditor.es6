@@ -2,9 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
-import {
-  assign
-} from 'js/utils';
+import {assign} from 'utils';
 import {
   META_QUESTION_TYPES,
 } from 'js/constants';

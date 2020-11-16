@@ -13,7 +13,7 @@ import permConfig from './permConfig';
 import {
   notify,
   buildUserUrl
-} from 'js/utils';
+} from 'utils';
 import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,

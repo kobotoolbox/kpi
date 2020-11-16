@@ -14,7 +14,7 @@ import {
   assign,
   notify,
   buildUserUrl
-} from 'js/utils';
+} from 'utils';
 import {
   ANON_USERNAME,
   KEY_CODES,

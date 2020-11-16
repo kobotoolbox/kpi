@@ -6,9 +6,6 @@ import Reflux from 'reflux';
 import RefluxPromise from 'js/libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 import {dataInterface} from 'js/dataInterface';
-import {
-  notify
-} from 'js/utils';
 
 export const permissionsActions = Reflux.createActions({
   getConfig: {children: ['completed', 'failed']},
