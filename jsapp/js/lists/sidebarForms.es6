@@ -8,7 +8,6 @@ import {bem} from '../bem';
 import ui from '../ui';
 import {searches} from '../searches';
 import {stores} from '../stores';
-import {t} from '../utils';
 import {
   COMMON_QUERIES,
   CATEGORY_LABELS

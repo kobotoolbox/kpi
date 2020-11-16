@@ -3,7 +3,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
-import $ from 'jquery';
 import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from '../dataInterface';
 import Checkbox from './checkbox';
@@ -25,7 +24,6 @@ import {
   GROUP_TYPES_END
 } from '../constants';
 import {
-  t,
   formatTimeDate,
   renderCheckbox
 } from '../utils';

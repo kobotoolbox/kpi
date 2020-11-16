@@ -10,8 +10,6 @@ $surveyDetail = require './model.surveyDetail'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
 
 module.exports = do ->
-  _t = require("utils").t
-
   surveyFragment = {}
 
   class KobomatrixRow extends Backbone.Model

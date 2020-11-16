@@ -4,8 +4,7 @@
 
 import RunRoutes, {routes} from './app';
 import RegistrationPasswordApp from './registrationPasswordApp';
-import {AppContainer} from 'react-hot-loader'
-import $ from 'jquery';
+import {AppContainer} from 'react-hot-loader';
 import '@babel/polyfill'; // required to support Array.prototypes.includes in IE11
 import React from 'react';
 import {Cookies} from 'react-cookie';

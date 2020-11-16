@@ -5,7 +5,6 @@
 import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
 import {
-  t,
   notify
 } from 'js/utils';
 

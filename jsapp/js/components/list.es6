@@ -11,7 +11,6 @@ import {actions} from '../actions';
 import {dataInterface} from '../dataInterface';
 import {searches} from '../searches';
 import {stores} from '../stores';
-import {t} from '../utils';
 import {ACCESS_TYPES} from 'js/constants';
 
 export class ListSearch extends React.Component {

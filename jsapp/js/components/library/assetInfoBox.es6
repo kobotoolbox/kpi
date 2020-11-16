@@ -8,7 +8,6 @@ import {stores} from 'js/stores';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {
-  t,
   notify,
   formatTime,
   formatDate

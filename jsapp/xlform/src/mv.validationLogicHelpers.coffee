@@ -1,4 +1,3 @@
-$ = require 'jquery'
 $validationLogicParser = require './model.validationLogicParser'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
 
