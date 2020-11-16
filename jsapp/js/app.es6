@@ -48,7 +48,6 @@ import Modal from './components/modal';
 import AccountSettings from './components/accountSettings';
 import ChangePassword from './components/changePassword';
 import {
-  t,
   assign,
   notify,
   currentLang

@@ -22,7 +22,6 @@ import {parsed, parseTags} from './assetParserUtils';
 import {actions} from './actions';
 import {
   log,
-  t,
   notify,
   assign,
 } from './utils';

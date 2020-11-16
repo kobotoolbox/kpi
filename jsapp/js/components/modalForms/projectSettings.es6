@@ -19,7 +19,6 @@ import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {removeInvalidChars} from 'js/assetUtils';
 import {
-  t,
   validFileTypes,
   isAValidUrl,
   escapeHtml

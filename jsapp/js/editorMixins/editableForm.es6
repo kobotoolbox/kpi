@@ -18,7 +18,6 @@ import {
   surveyToValidJson,
   unnullifyTranslations,
   assign,
-  t,
   koboMatrixParser,
   syncCascadeChoiceNames
 } from '../utils';

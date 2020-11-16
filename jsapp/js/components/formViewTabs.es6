@@ -11,7 +11,6 @@ import mixins from '../mixins';
 import assetUtils from 'js/assetUtils';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {
-  t,
   assign,
 } from '../utils';
 

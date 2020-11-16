@@ -26,7 +26,6 @@ import {actions} from '../actions';
 import {bem} from '../bem';
 import ui from '../ui';
 import {stores} from '../stores';
-import {t} from '../utils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,

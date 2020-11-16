@@ -1,8 +1,8 @@
+import {t} from 'js/utils';
+
 /**
  * A list of all shareable constants for the application.
  */
-
-import {t} from './utils';
 
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
@@ -406,6 +406,12 @@ export const MATRIX_PAIR_PROPS = {
   inChoices: 'list_name'
 };
 
+export const CATEGORY_LABELS = {
+  Deployed: t('Deployed'),
+  Draft: t('Draft'),
+  Archived: t('Archived')
+};
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -428,7 +434,8 @@ const constants = {
   GROUP_TYPES_END,
   FORM_VERSION_NAME,
   SCORE_ROW_TYPE,
-  RANK_LEVEL_TYPE
+  RANK_LEVEL_TYPE,
+  CATEGORY_LABELS,
 };
 
 export default constants;

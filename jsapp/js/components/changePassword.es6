@@ -10,7 +10,6 @@ import TextBox from './textBox';
 import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
 import {
-  t,
   stringToColor,
 } from '../utils';
 import {ROOT_URL} from 'js/constants';

@@ -7,10 +7,11 @@ import {stores} from '../stores';
 import {bem} from '../bem';
 import {searches} from '../searches';
 import ui from '../ui';
-import {COMMON_QUERIES} from '../constants';
-import {ASSET_TYPES} from '../constants';
+import {
+  COMMON_QUERIES,
+  ASSET_TYPES
+} from '../constants';
 import { t } from '../utils';
-
 import {
   ListSearch,
   ListTagFilter,

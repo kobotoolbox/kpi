@@ -18,7 +18,6 @@ import {
   MODAL_TYPES
 } from '../constants';
 import {
-  t,
   assign
 } from '../utils';
 import SidebarFormsList from '../lists/sidebarForms';

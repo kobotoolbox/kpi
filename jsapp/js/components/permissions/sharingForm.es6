@@ -8,7 +8,6 @@ import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {
-  t,
   buildUserUrl
 } from 'js/utils';
 import {

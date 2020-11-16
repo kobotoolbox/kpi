@@ -12,7 +12,6 @@ import {bem} from '../bem';
 import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   formatTime,
 } from '../utils';
 import {getAssetOwnerDisplayName} from 'js/assetUtils';

@@ -12,8 +12,6 @@ var CascadePopup = bem.create('cascade-popup'),
 
 const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html';
 
-import {t} from '../utils';
-
 export const cascadeMixin = {
   toggleCascade () {
     var lastSelectedRow = _.last(this.app.selectedRows()),

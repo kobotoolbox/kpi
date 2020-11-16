@@ -15,8 +15,7 @@ import {
 } from 'js/constants';
 import TagInput from '../components/tagInput';
 import {
-  formatTime,
-  t
+  formatTime
 } from '../utils';
 
 class AssetRow extends React.Component {

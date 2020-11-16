@@ -21,7 +21,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import {MODAL_TYPES, QUESTION_TYPES} from '../constants';
 
 import {
-  t,
   notify,
   checkLatLng
 } from '../utils';

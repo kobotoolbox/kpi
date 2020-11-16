@@ -73,6 +73,7 @@
     "webpack-bundle-tracker": "0.4.3",
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.11.0",
+    "webpack-extract-translation-keys-plugin": "^5.0.2",
     "zxcvbn": "^4.4.2"
   },
   "scripts": {

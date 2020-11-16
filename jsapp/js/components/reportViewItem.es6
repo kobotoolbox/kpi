@@ -6,7 +6,7 @@ import Chart from 'chart.js';
 import {bem} from '../bem';
 import $ from 'jquery';
 
-import {t, assign} from '../utils';
+import {assign} from '../utils';
 
 class ReportTable extends React.Component {
   constructor(props) {

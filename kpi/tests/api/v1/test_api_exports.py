@@ -6,10 +6,10 @@ from rest_framework.reverse import reverse
 
 from kpi.models import Asset, ExportTask
 from kpi.tests.base_test_case import BaseTestCase
-from kpi.tests.test_mock_data_exports import MockDataExports
+from kpi.tests.test_mock_data_exports import MockDataExportsBase
 
 
-class AssetExportTaskTest(MockDataExports, BaseTestCase):
+class AssetExportTaskTest(MockDataExportsBase, BaseTestCase):
     def test_export_uid_filter(self):
         assert self.user.username == 'someuser'
 

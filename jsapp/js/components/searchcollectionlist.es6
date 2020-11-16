@@ -16,7 +16,8 @@ import {t, validFileTypes} from '../utils';
 import {
   ASSET_TYPES,
   COMMON_QUERIES,
-  ACCESS_TYPES
+  ACCESS_TYPES,
+  CATEGORY_LABELS
 } from '../constants';
 
 class SearchCollectionList extends Reflux.Component {
@@ -168,7 +169,7 @@ class SearchCollectionList extends Reflux.Component {
         }
         return [
           <bem.List__subheading key={i}>
-            {t(category)}
+            {CATEGORY_LABELS[category]}
           </bem.List__subheading>,
 
           <bem.AssetItems m={i + 1} key={i + 2}>

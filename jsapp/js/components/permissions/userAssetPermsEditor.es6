@@ -12,7 +12,6 @@ import {permParser} from './permParser';
 import permConfig from './permConfig';
 import {
   assign,
-  t,
   notify,
   buildUserUrl
 } from 'js/utils';

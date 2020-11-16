@@ -6,7 +6,6 @@ import permConfig from './permConfig';
 import {actions} from '../../actions';
 import _ from 'underscore';
 import {
-  t,
   notify,
   replaceSupportEmail
 } from 'js/utils';
