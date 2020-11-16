@@ -4,10 +4,9 @@ import autoBind from 'react-autobind';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
 import {
-  t,
   hasVerticalScrollbar,
   getScrollbarWidth
-} from 'js/utils';
+} from 'utils';
 import AssetsTableRow from './assetsTableRow';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
 

@@ -8,11 +8,10 @@ import {bem} from '../bem';
 import DocumentTitle from 'react-document-title';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   log,
   redirectTo,
   formatTime,
-} from '../utils';
+} from 'utils';
 
 export default class ProjectDownloads extends React.Component {
   constructor(props){

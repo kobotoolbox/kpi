@@ -16,7 +16,6 @@ import ProjectDownloads from './projectDownloads';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
-import {t} from '../utils';
 import ui from '../ui';
 
 export class FormSubScreens extends React.Component {
