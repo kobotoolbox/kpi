@@ -20,7 +20,7 @@ import ReportViewItem from './reportViewItem';
 import {
   assign,
   launchPrinting
-} from '../utils';
+} from 'utils';
 
 function labelVal(label, value) {
   return {label: label, value: (value || label.toLowerCase().replace(/\W+/g, '_'))};

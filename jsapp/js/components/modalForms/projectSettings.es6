@@ -21,7 +21,7 @@ import {
   validFileTypes,
   isAValidUrl,
   escapeHtml
-} from 'js/utils';
+} from 'utils';
 import {
   NAME_MAX_LENGTH,
   PROJECT_SETTINGS_CONTEXTS

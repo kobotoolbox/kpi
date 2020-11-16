@@ -3,7 +3,7 @@ import {actions} from 'js/actions';
 import {
   notify,
   assign
-} from 'js/utils';
+} from 'utils';
 
 // TODO instead of this use `stateChanges` function from '/js/utils'
 // after https://github.com/kobotoolbox/kpi/pull/1959 is merged

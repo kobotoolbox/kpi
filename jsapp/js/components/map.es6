@@ -23,7 +23,7 @@ import {MODAL_TYPES, QUESTION_TYPES} from '../constants';
 import {
   notify,
   checkLatLng
-} from '../utils';
+} from 'utils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 
 import MapSettings from './mapSettings';

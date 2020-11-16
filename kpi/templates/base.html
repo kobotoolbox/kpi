@@ -6,6 +6,7 @@
 <head>
     {% load static %}
     {% load render_bundle from webpack_loader %}
+    {% include "global_t.html" %}
     {% render_bundle 'app' 'css' %}
     {% render_bundle 'app' 'js' %}
     {% render_bundle 'vendors' 'js' %}

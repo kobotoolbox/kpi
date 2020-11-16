@@ -19,7 +19,7 @@ import {
   log,
   notify,
   replaceSupportEmail,
-} from './utils';
+} from 'utils';
 
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));

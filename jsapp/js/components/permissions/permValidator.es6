@@ -8,7 +8,7 @@ import _ from 'underscore';
 import {
   notify,
   replaceSupportEmail
-} from 'js/utils';
+} from 'utils';
 
 const INVALID_PERMS_ERROR = t('The stored permissions are invalid. Please assign them again. If this problem persists, contact help@kobotoolbox.org');
 

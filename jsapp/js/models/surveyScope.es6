@@ -2,7 +2,7 @@ import {actions} from '../actions';
 import {
   notify,
   unnullifyTranslations,
-} from '../utils';
+} from 'utils';
 
 class SurveyScope {
   constructor ({survey}) {

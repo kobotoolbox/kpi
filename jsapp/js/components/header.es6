@@ -16,7 +16,7 @@ import {
   assign,
   currentLang,
   stringToColor,
-} from '../utils';
+} from 'utils';
 import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import {NAME_MAX_LENGTH} from 'js/constants';

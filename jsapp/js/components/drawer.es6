@@ -22,9 +22,7 @@ import {
 
 import {MODAL_TYPES} from '../constants';
 
-import {
-  assign
-} from '../utils';
+import {assign} from 'utils';
 
 import SidebarFormsList from '../lists/sidebarForms';
 
