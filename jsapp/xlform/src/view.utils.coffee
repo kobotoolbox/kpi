@@ -1,4 +1,5 @@
 _ = require 'underscore'
+jQuery = require 'jquery'
 Validator = require './view.utils.validator'
 
 module.exports = do ->

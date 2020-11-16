@@ -1,6 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {
+  t,
   formatTimeDate,
   formatDate
 } from 'js/utils';

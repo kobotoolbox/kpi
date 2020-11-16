@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
 import mixins from 'js/mixins';
-import {validFileTypes} from 'js/utils';
+import {t, validFileTypes} from 'js/utils';
 import myLibraryStore from './myLibraryStore';
 import {
   AssetsTable,

@@ -6,7 +6,9 @@ import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import permConfig from 'js/components/permissions/permConfig';
-import {buildUserUrl} from 'js/utils';
+import {
+  buildUserUrl
+} from 'js/utils';
 import {
   ROOT_URL,
   ANON_USERNAME,

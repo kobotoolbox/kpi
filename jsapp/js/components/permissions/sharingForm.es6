@@ -7,7 +7,9 @@ import mixins from 'js/mixins';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import {buildUserUrl} from 'js/utils';
+import {
+  buildUserUrl
+} from 'js/utils';
 import {
   ASSET_TYPES,
   ANON_USERNAME

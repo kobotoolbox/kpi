@@ -2,6 +2,7 @@ import React from 'react';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import {
+  t,
   buildUserUrl
 } from 'js/utils';
 import {

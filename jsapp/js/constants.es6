@@ -1,3 +1,5 @@
+import {t} from 'js/utils';
+
 /**
  * A list of all shareable constants for the application.
  */

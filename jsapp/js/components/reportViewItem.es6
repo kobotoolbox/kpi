@@ -4,6 +4,9 @@ import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
 import {bem} from '../bem';
+import $ from 'jquery';
+
+import {assign} from '../utils';
 
 class ReportTable extends React.Component {
   constructor(props) {

@@ -4,6 +4,9 @@
  * TODO: move routes configuration to separate file for clarity.
  */
 
+import $ from 'jquery';
+window.jQuery = $;
+window.$ = $;
 require('jquery-ui/ui/widgets/sortable');
 import React from 'react';
 import PropTypes from 'prop-types';

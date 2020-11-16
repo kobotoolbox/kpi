@@ -3,6 +3,8 @@ Backbone = require 'backbone'
 constants = require '../../js/constants'
 
 module.exports = do ->
+  _t = require("utils").t
+
   addIconToRow = (typeDef, group) =>
     iconDetails.push({
       label: typeDef.label,

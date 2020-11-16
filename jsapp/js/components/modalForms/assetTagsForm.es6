@@ -6,7 +6,10 @@ import TagsInput from 'react-tagsinput';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
-import {notify} from 'js/utils';
+import {
+  t,
+  notify
+} from 'js/utils';
 import {cleanupTags} from 'js/assetUtils';
 import {renderLoading} from './modalHelpers';
 

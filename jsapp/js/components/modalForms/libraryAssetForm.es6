@@ -11,7 +11,10 @@ import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {hashHistory} from 'react-router';
-import {notify} from 'js/utils';
+import {
+  t,
+  notify
+} from 'js/utils';
 import assetUtils from 'js/assetUtils';
 import {
   renderLoading,

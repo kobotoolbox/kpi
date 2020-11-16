@@ -1,5 +1,6 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
+$ = require 'jquery'
 $configs = require './model.configs'
 $rowSelector = require './view.rowSelector'
 $row = require './model.row'

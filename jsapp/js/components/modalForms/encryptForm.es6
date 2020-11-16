@@ -8,6 +8,7 @@ import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
 import {stores} from 'js/stores';
+import {t} from 'utils';
 
 class EncryptForm extends React.Component {
   constructor(props) {

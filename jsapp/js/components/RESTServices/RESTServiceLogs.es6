@@ -1,19 +1,22 @@
+import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import {stores} from 'js/stores';
-import {bem} from 'js/bem';
-import {actions} from 'js/actions';
-import mixins from 'js/mixins';
-import {dataInterface} from 'js/dataInterface';
-import {formatTime} from 'js/utils';
+import {stores} from '../../stores';
+import {bem} from '../../bem';
+import {actions} from '../../actions';
+import mixins from '../../mixins';
+import {dataInterface} from '../../dataInterface';
+import {
+  formatTime
+} from '../../utils';
 import {
   HOOK_LOG_STATUSES,
   MODAL_TYPES
-} from 'js/constants';
+} from '../../constants';
 
 export default class RESTServiceLogs extends React.Component {
   constructor(props){

@@ -7,8 +7,13 @@ import mixins from 'js/mixins';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import {stringToColor} from 'js/utils';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {
+  stringToColor,
+} from 'js/utils';
+import {
+  ASSET_TYPES,
+  PERMISSIONS_CODENAMES
+} from 'js/constants';
 import UserAssetPermsEditor from './userAssetPermsEditor';
 import permConfig from './permConfig';
 

@@ -1,4 +1,5 @@
 import Reflux from 'reflux';
+import {t} from 'js/utils';
 
 /**
  * @typedef {Object} PermDefinition - A permission object from backend.

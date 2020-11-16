@@ -389,7 +389,7 @@ module.exports = do ->
   viewRowDetail.DetailViewMixins._isRepeat =
     html: ->
       @$el.addClass("card__settings__fields--active")
-      viewRowDetail.Templates.checkbox @cid, @model.key, t("Repeat"), t("Repeat this group if necessary")
+      viewRowDetail.Templates.checkbox @cid, @model.key, t("Repeat"), _t("Repeat this group if necessary")
     afterRender: ->
       @listenForCheckboxChange()
 
@@ -413,7 +413,7 @@ module.exports = do ->
 
       @$el.addClass("card__settings__fields--active")
       if @model_is_group(@model)
-        return viewRowDetail.Templates.checkbox @cid, @model.key, t("Appearance (advanced)"), t("Show all questions in this group on the same screen")
+        return viewRowDetail.Templates.checkbox @cid, @model.key, t("Appearance (advanced)"), _t("Show all questions in this group on the same screen")
       else
         appearances = @getTypes()
         if appearances?

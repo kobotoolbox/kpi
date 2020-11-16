@@ -7,8 +7,11 @@
  * And make actions for calls that doesn't have them.
  */
 
+import $ from 'jquery';
 import alertify from 'alertifyjs';
-import {assign} from './utils';
+import {
+  assign
+} from './utils';
 import {
   ROOT_URL,
   COMMON_QUERIES
