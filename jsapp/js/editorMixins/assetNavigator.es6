@@ -11,7 +11,6 @@ import {
   COMMON_QUERIES,
   ASSET_TYPES
 } from '../constants';
-import { t } from '../utils';
 import {
   ListSearch,
   ListTagFilter,

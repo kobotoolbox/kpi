@@ -15,7 +15,7 @@ import {
   assign,
   currentLang,
   stringToColor,
-} from 'js/utils';
+} from 'utils';
 import {getAssetIcon} from 'js/assetUtils';
 import {COMMON_QUERIES} from 'js/constants';
 import {searches} from '../searches';

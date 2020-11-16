@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
@@ -14,9 +13,7 @@ import TextBox from './textBox';
 import Checkbox from './checkbox';
 import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
-import {
-  stringToColor,
-} from '../utils';
+import {stringToColor} from 'utils';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 

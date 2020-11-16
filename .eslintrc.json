@@ -5,6 +5,10 @@
     "node": true,
     "es6": true
   },
+  "globals": {
+    "t": "readonly",
+    "$": "readonly"
+  },
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module",

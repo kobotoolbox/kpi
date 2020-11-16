@@ -11,9 +11,7 @@ import autoBind from 'react-autobind';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
-import {
-  formatTime,
-} from '../utils';
+import {formatTime} from 'utils';
 import {getAssetOwnerDisplayName} from 'js/assetUtils';
 
 class TemplatesList extends React.Component {

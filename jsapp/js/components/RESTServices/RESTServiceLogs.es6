@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
@@ -10,9 +9,7 @@ import {bem} from '../../bem';
 import {actions} from '../../actions';
 import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
-import {
-  formatTime
-} from '../../utils';
+import {formatTime} from 'utils';
 import {
   HOOK_LOG_STATUSES,
   MODAL_TYPES

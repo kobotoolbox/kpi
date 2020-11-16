@@ -2,7 +2,7 @@ _ = require 'underscore'
 cloneDeep = require('lodash.clonedeep')
 $aliases = require './model.aliases'
 $configs = require './model.configs'
-utils = require '../../js/utils'
+utils = require 'utils'
 
 module.exports = do ->
   inputParser = {}

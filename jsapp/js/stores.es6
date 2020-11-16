@@ -24,7 +24,7 @@ import {
   log,
   notify,
   assign,
-} from './utils';
+} from 'utils';
 
 const cookies = new Cookies();
 

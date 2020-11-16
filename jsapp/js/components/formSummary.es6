@@ -17,7 +17,7 @@ import {
   formatTime,
   formatDate,
   stringToColor
-} from '../utils';
+} from 'utils';
 
 import {MODAL_TYPES} from '../constants';
 
