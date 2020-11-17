@@ -38,8 +38,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def set_active(self, active):
         self.store_data({
-                'active': bool(active),
-            })
+            'active': bool(active),
+        })
 
     def set_namespace(self, namespace):
         self.store_data({
