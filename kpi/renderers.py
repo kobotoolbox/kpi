@@ -32,38 +32,6 @@ class SSJsonRenderer(renderers.JSONRenderer):
         )
 
 
-class XMLRenderer(DRFXMLRenderer):
-
-    def render(
-        self,
-        data,
-        accepted_media_type=None,
-        renderer_context=None,
-        relationship=None,
-    ):
-        if hasattr(renderer_context.get("view"), "get_object"):
-            obj = renderer_context.get("view").get_object()
-            # If `relationship` is passed among arguments, retrieve `xml`
-            # from this relationship.
-            # e.g. obj is `Asset`, relationship can be `snapshot`
-            if relationship is not None and hasattr(obj, relationship):
-                return getattr(obj, relationship).xml
-            return obj.xml
-        else:
-            return super().render(data=data,
-                                  accepted_media_type=accepted_media_type,
-                                  renderer_context=renderer_context)
-
-
-class XFormRenderer(XMLRenderer):
-
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        return super().render(data=data,
-                              accepted_media_type=accepted_media_type,
-                              renderer_context=renderer_context,
-                              relationship="snapshot")
-
-
 class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
     media_type = 'application/json'
     format = 'geojson'
@@ -105,18 +73,9 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
 
 class RawXMLRenderer(DRFXMLRenderer):
 
+    CUSTOM_ROOT = 'root'
+
     def render(self, data, accepted_media_type=None, renderer_context=None):
-
-        custom_root = 'root'
-
-        def node_generator(name, closing=False):
-            if closing:
-                return f'</{name}>'
-
-            return f'<{name}>'
-
-        def cleanup_submission(submission):
-            return re.sub(r'^<\?xml[^>]*>', '', submission)
 
         # data should be str, but in case it's a dict, return as XML.
         # e.g. It happens with 404
@@ -127,36 +86,93 @@ class RawXMLRenderer(DRFXMLRenderer):
                 if isinstance(v, ErrorDetail):
                     data[k] = str(v)
 
-            # Submissions are wrapped in `<item>` nodes.
-            # kludgy fix to render list of submissions in XML
-            results = data.pop('results')
-            submissions_parent_node = 'results'
-
-            xml_ = dicttoxml(data, attr_type=False, custom_root=custom_root)
-            # Retrieve the beginning of the XML (without closing tag) in order
-            # to concatenate `results` as XML nodes too.
-            xml_2_str = xml_.decode().replace(f'</{custom_root}>', '')
-
-            opening_results_node = node_generator(submissions_parent_node)
-            closing_results_node = node_generator(submissions_parent_node,
-                                                  closing=True)
-            results_data_str = ''.join(map(cleanup_submission, results))
-            closing_root_node = node_generator(custom_root, closing=True)
-
-            xml_2_str += f'{opening_results_node}' \
-                f'{results_data_str}' \
-                f'{closing_results_node}' \
-                f'{closing_root_node}'
-
-            return xml_2_str.encode()  # Should return bytes
+            return self._get_xml(data)
 
         if renderer_context.get('view').action == 'list':
-            opening_node = node_generator(custom_root)
-            closing_node = node_generator(custom_root, closing=True)
+            opening_node = self._node_generator(self.CUSTOM_ROOT)
+            closing_node = self._node_generator(self.CUSTOM_ROOT, closing=True)
             data_str = ''.join(data)
             return f'{opening_node}{data_str}{closing_node}'
         else:
             return data
+
+    @classmethod
+    def _get_xml(cls, data: dict):
+        return dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
+
+    @staticmethod
+    def _node_generator(name, closing=False):
+        if closing:
+            return f'</{name}>'
+
+        return f'<{name}>'
+
+
+class SubmissionXMLRenderer(RawXMLRenderer):
+
+    @classmethod
+    def _get_xml(cls, data):
+
+        # Submissions are wrapped in `<item>` nodes.
+        results = data.pop('results', False)
+        if not results:
+            return super()._get_xml(data)
+
+        submissions_parent_node = 'results'
+
+        xml_ = dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
+        # Retrieve the beginning of the XML (without closing tag) in order
+        # to concatenate `results` as XML nodes too.
+        xml_2_str = xml_.decode().replace(f'</{cls.CUSTOM_ROOT}>', '')
+
+        opening_results_node = cls._node_generator(submissions_parent_node)
+        closing_results_node = cls._node_generator(submissions_parent_node,
+                                                   closing=True)
+        results_data_str = ''.join(map(cls.__cleanup_submission, results))
+        closing_root_node = cls._node_generator(cls.CUSTOM_ROOT, closing=True)
+
+        xml_2_str += f'{opening_results_node}' \
+                     f'{results_data_str}' \
+                     f'{closing_results_node}' \
+                     f'{closing_root_node}'
+
+        return xml_2_str.encode()  # Should return bytes
+
+    @staticmethod
+    def __cleanup_submission(submission):
+        return re.sub(r'^<\?xml[^>]*>', '', submission)
+
+
+class XMLRenderer(DRFXMLRenderer):
+
+    def render(
+        self,
+        data,
+        accepted_media_type=None,
+        renderer_context=None,
+        relationship=None,
+    ):
+        if hasattr(renderer_context.get("view"), "get_object"):
+            obj = renderer_context.get("view").get_object()
+            # If `relationship` is passed among arguments, retrieve `xml`
+            # from this relationship.
+            # e.g. obj is `Asset`, relationship can be `snapshot`
+            if relationship is not None and hasattr(obj, relationship):
+                return getattr(obj, relationship).xml
+            return obj.xml
+        else:
+            return super().render(data=data,
+                                  accepted_media_type=accepted_media_type,
+                                  renderer_context=renderer_context)
+
+
+class XFormRenderer(XMLRenderer):
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return super().render(data=data,
+                              accepted_media_type=accepted_media_type,
+                              renderer_context=renderer_context,
+                              relationship="snapshot")
 
 
 class XlsRenderer(renderers.BaseRenderer):
