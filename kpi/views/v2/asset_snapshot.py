@@ -130,7 +130,8 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
                 # Use Enketo API to create preview instead of `preview?form=`
                 # because this way does not load external resources.
                 response = requests.post(
-                    f'{settings.ENKETO_SERVER}/{settings.ENKETO_PREVIEW_ENDPOINT}',
+                    f'{settings.ENKETO_SERVER}/'
+                    f'{settings.ENKETO_PREVIEW_ENDPOINT}',
                     # bare tuple implies basic auth
                     auth=(settings.ENKETO_API_TOKEN, ''),
                     data=data
@@ -139,7 +140,9 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             except requests.exceptions.RequestException as e:
                 # Don't 500 the entire asset view if Enketo is unreachable
                 logging.error(
-                    'Failed to retrieve preview link from Enketo', exc_info=True)
+                    'Failed to retrieve preview link from Enketo',
+                    exc_info=True
+                )
                 return {}
 
             try:
