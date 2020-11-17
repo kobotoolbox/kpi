@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0026_delete_collections_fix_asset_parent_foreign_key'),
+        ('kpi', '0027_remove_objectpermission_generic_relation'),
     ]
 
     operations = [
