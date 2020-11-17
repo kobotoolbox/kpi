@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
+from kpi.utils.jsonbfield_helper import ReplaceValue
 
 
 class BaseDeploymentBackend:
@@ -75,16 +76,18 @@ class BaseDeploymentBackend:
         return None
 
     def set_status(self, status):
-        # ToDo Find a better way to update status.
-        # Race condition may occur when using Celery because `set_status()` is
-        # mostly called within another DB transaction which modifies asset too.
-        # see `DeploymentSerializer.update()`
-        self.asset.refresh_from_db(fields=['_deployment_data'])
+        # Avoid circular imports
+        # use `self.asset.__class__` instead of `from kpi.models import Asset`
+        self.asset.__class__.objects.filter(id=self.asset.pk).update(
+            _deployment_data=ReplaceValue(
+                '_deployment_data',
+                key_name='status',
+                new_value=status,
+            )
+        )
         self.store_data({
             'status': status,
         })
-        self.asset.save(create_version=False, adjust_content=False,
-                        update_fields=['_deployment_data'])
 
     @property
     def status(self):

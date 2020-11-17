@@ -37,8 +37,12 @@ class DeploymentSerializer(serializers.Serializer):
         # 'deployed' boolean value
         asset.deploy(backend=backend_id,
                      active=validated_data.get('active', False))
+        # `asset` must be flagged as deployed in DB first to make
+        # synchronization happens...
         asset.save(create_version=False,
                    adjust_content=False)
+        # ...then its media files can be synchronized
+        sync_media_files.delay(asset.uid)
         return asset.deployment
 
     def update(self, instance, validated_data):
@@ -65,16 +69,13 @@ class DeploymentSerializer(serializers.Serializer):
                 backend=deployment.backend,
                 active=validated_data.get('active', deployment.active)
             )
+            sync_media_files.delay(asset.uid)
         elif 'active' in validated_data:
             # Set the `active` flag without touching the rest of the deployment
             deployment.set_active(validated_data['active'])
             sync_media_files.delay(asset.uid)
 
-        # ToDo Find a better way to update status. `_deployment_data['status']`
-        # Race condition may occur when using Celery because `sync_media_files()`
-        # is calling `asset.deployment.set_status()` internally which modifies
-        # asset too. See `BaseDeploymentBackend.set_status()`
-        asset.refresh_from_db(fields=['_deployment_data'])
-
-        asset.save(create_version=False, adjust_content=False)
+        asset.save(create_version=False,
+                   adjust_content=False,
+                   refresh_status=True)
         return deployment
