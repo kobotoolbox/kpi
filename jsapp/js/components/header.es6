@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -12,11 +11,10 @@ import {actions} from '../actions';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   assign,
   currentLang,
   stringToColor,
-} from 'js/utils';
+} from 'utils';
 import {getAssetIcon} from 'js/assetUtils';
 import {COMMON_QUERIES} from 'js/constants';
 import {searches} from '../searches';
@@ -24,7 +22,6 @@ import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
-import publicCollectionsStore from 'js/components/library/publicCollectionsStore';
 
 class MainHeader extends Reflux.Component {
   constructor(props){
@@ -48,10 +45,8 @@ class MainHeader extends Reflux.Component {
     autoBind(this);
   }
   componentDidMount() {
-    document.body.classList.add('hide-edge');
     this.unlisteners.push(
       stores.asset.listen(this.onAssetLoad),
-      publicCollectionsStore.listen(this.forceRender),
       myLibraryStore.listen(this.forceRender)
     );
   }
@@ -70,8 +65,8 @@ class MainHeader extends Reflux.Component {
   }
   isSearchBoxDisabled() {
     if (this.isMyLibrary()) {
-      // disable search for when user has zero assets
-      return myLibraryStore.data.totalUserAssets === null;
+      // disable search when user has zero assets
+      return myLibraryStore.getCurrentUserTotalAssets() === null;
     } else {
       return false;
     }
@@ -142,16 +137,16 @@ class MainHeader extends Reflux.Component {
                     <span className='account-email'>{accountEmail}</span>
                   </bem.AccountBox__menuItem>
                   <bem.AccountBox__menuItem m={'settings'}>
-                    <button onClick={this.accountSettings} className='mdl-button mdl-button--raised mdl-button--colored'>
+                    <bem.KoboButton onClick={this.accountSettings} m={['blue', 'fullwidth']}>
                       {t('Account Settings')}
-                    </button>
+                    </bem.KoboButton>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
                 {
                   stores.session &&
                   stores.session.environment &&
-                  stores.session.environment.terms_of_service_url ||
-                  stores.session.environment.privacy_policy_url &&
+                  stores.session.environment.terms_of_service_url !== '' ||
+                  stores.session.environment.privacy_policy_url !== '' &&
                   <bem.AccountBox__menuLI key='2' className='environment-links'>
                     {stores.session.environment.terms_of_service_url &&
                       <a href={stores.session.environment.terms_of_service_url} target='_blank'>
@@ -226,9 +221,9 @@ class MainHeader extends Reflux.Component {
     return (
         <bem.MainHeader className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
-            <button className='mdl-button mdl-button--icon' onClick={this.toggleFixedDrawer}>
+            <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
               <i className='fa fa-bars' />
-            </button>
+            </bem.Button>
             <span className='mdl-layout-title'>
               <a href='/'>
                 <bem.Header__logo />
@@ -245,23 +240,6 @@ class MainHeader extends Reflux.Component {
                   placeholder={t('Search Library')}
                   disabled={this.isSearchBoxDisabled()}
                 />
-
-                {this.isMyLibrary() && !myLibraryStore.hasAllDefaultValues() &&
-                  <a
-                    className='header__link'
-                    onClick={myLibraryStore.resetOrderAndFilter}
-                  >
-                    {t('Reset filters')}
-                  </a>
-                }
-                {this.isPublicCollections() && !publicCollectionsStore.hasAllDefaultValues() &&
-                  <a
-                    className='header__link'
-                    onClick={publicCollectionsStore.resetOrderAndFilter}
-                  >
-                    {t('Reset filters')}
-                  </a>
-                }
               </div>
             }
             { this.state.asset && (this.isFormSingle() || this.isLibrarySingle()) &&

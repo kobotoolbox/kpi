@@ -1,10 +1,7 @@
 .account-settings {
-  @include box-shadow;
-
-  padding-top: 30px;
   width: 100%;
   height: 100%;
-  background: $white;
+  background: $kobo-white;
   overflow-y: auto;
   position: relative;
 
@@ -13,12 +10,13 @@
   }
 
   .form-modal__item--column {
-    width: 90%;
+    width: 100%;
     height: 100%;
     margin: 0 auto;
+    padding: 30px 20px;
 
     .form-modal__item--fields {
-      height: calc(100% - 90px);
+      height: calc(100% - 20px);
       padding-right: 40px;
       overflow: auto;
     }
@@ -64,11 +62,11 @@
   h4 {
     margin: 0;
     font-weight: 400;
-    color: #454e54;
+    color: $kobo-black;
   }
 
   .account-settings__desc {
-    color: $cool-gray;
+    color: $kobo-darkgray;
   }
 
   .form-modal__item--primary-sector {

@@ -6,7 +6,6 @@ import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {actions} from '../../actions';
 import {bem} from '../../bem';
-import {t} from '../../utils';
 import {MODAL_TYPES} from '../../constants';
 
 const REST_SERVICES_SUPPORT_URL = 'rest_services.html';
@@ -67,10 +66,12 @@ export default class RESTServicesList extends React.Component {
     const hookUid = evt.currentTarget.dataset.hookUid;
     if (this.state.assetUid) {
       const dialog = alertify.dialog('confirm');
+      const title = t('Are you sure you want to delete ##target?')
+        .replace('##target', hookName);
       const message = t('You are about to delete ##target. This action cannot be undone.')
         .replace('##target', `<strong>${hookName}</strong>`);
       let dialogOptions = {
-        title: t(`Are you sure you want to delete ${hookName}?`),
+        title: title,
         message: message,
         labels: { ok: t('Confirm'), cancel: t('Cancel') },
         onok: () => {
@@ -98,14 +99,14 @@ export default class RESTServicesList extends React.Component {
     }
   }
 
-  renderModalButton(additionalClassNames) {
+  renderModalButton() {
     return (
-      <button
-        className={`mdl-button mdl-button--raised mdl-button--colored ${additionalClassNames}`}
+      <bem.KoboButton
+        m='blue'
         onClick={this.openNewRESTServiceModal}
       >
         {t('Register a New Service')}
-      </button>
+      </bem.KoboButton>
     );
   }
 
@@ -125,7 +126,7 @@ export default class RESTServicesList extends React.Component {
             <a href={this.getSupportUrl()} target='_blank'>{t('Learn more')}</a>
           </bem.EmptyContent__message>
 
-          {this.renderModalButton('empty-content__button')}
+          {this.renderModalButton()}
         </bem.EmptyContent>
       </bem.FormView>
     );

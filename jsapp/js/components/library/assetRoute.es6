@@ -10,7 +10,6 @@ import DocumentTitle from 'react-document-title';
 import {bem} from 'js/bem';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
-import {t} from 'js/utils';
 import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
 import AssetActionButtons from './assetActionButtons';
 import AssetInfoBox from './assetInfoBox';
@@ -108,7 +107,7 @@ class AssetRoute extends React.Component {
     if (asset.uid === this.currentAssetID()) {
       this.setState({
         asset: asset,
-        isUserSubscribed: asset.access_type === ACCESS_TYPES.get('subscribed')
+        isUserSubscribed: asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
       });
     } else if (
       this.state.asset &&

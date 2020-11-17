@@ -365,8 +365,8 @@ module.exports = do ->
   class Rows extends $base.BaseCollection
     constructor: (args...)->
       super(args...)
-      @on 'add', (a,b,c)=> @_parent.getSurvey().trigger('rows-add', a,b,c)
-      @on 'remove', (a,b,c)=> @_parent.getSurvey().trigger('rows-remove', a,b,c)
+      @on('add', (a,b,c) => @_parent.getSurvey().trigger('rows-add', a,b,c))
+      @on('remove', (a,b,c) => @_parent.getSurvey().trigger('rows-remove', a,b,c))
     model: (obj, ctxt)->
       RowConstructor = _determineConstructorByParams(obj)
       try

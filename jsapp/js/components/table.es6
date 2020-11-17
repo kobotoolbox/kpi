@@ -3,7 +3,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
-import $ from 'jquery';
 import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from '../dataInterface';
 import Checkbox from './checkbox';
@@ -25,10 +24,9 @@ import {
   GROUP_TYPES_END
 } from '../constants';
 import {
-  t,
   formatTimeDate,
   renderCheckbox
-} from '../utils';
+} from 'utils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 import {getRepeatGroupAnswers} from 'js/submissionUtils';
 
@@ -73,7 +71,6 @@ export class DataTable extends React.Component {
       selectedRows: {},
       selectAll: false,
       fetchState: false,
-      promptRefresh: false,
       submissionPager: false,
       overrideLabelsAndGroups: null
     };
@@ -712,9 +709,6 @@ export class DataTable extends React.Component {
     stores.pageState.hideModal();
     this._prepColumns(this.state.tableData);
   }
-  launchPrinting () {
-    window.print();
-  }
   fetchData(state, instance) {
     this.setState({
       loading: true,
@@ -785,14 +779,6 @@ export class DataTable extends React.Component {
       });
     }
 
-  }
-  refreshTable() {
-    this.fetchData(this.state.fetchState, this.state.fetchInstance);
-    this.setState({ promptRefresh: false });
-  }
-
-  clearPromptRefresh() {
-    this.setState({ promptRefresh: false });
   }
   bulkUpdateChange(sid, isChecked) {
     let selectedRows = this.state.selectedRows;
@@ -1061,41 +1047,24 @@ export class DataTable extends React.Component {
     }
     return (
       <bem.FormView m={formViewModifiers}>
-        {this.state.promptRefresh &&
-          <bem.FormView__cell m='table-warning'>
-            <i className='k-icon-alert' />
-            {t('The data below may be out of date. ')}
-            <a className='select-all' onClick={this.refreshTable}>
-              {t('Refresh')}
-            </a>
-
-            <i className='k-icon-close' onClick={this.clearPromptRefresh} />
-          </bem.FormView__cell>
-        }
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           {this.bulkSelectUI()}
           <bem.FormView__item m='table-buttons'>
-            <button className='mdl-button mdl-button--icon report-button__print is-edge'
-                    onClick={this.launchPrinting}
-                    data-tip={t('Print')}>
-              <i className='k-icon-print' />
-            </button>
-
-            <button
-              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+            <bem.Button
+              m='icon' className='report-button__expand right-tooltip'
               onClick={this.toggleFullscreen}
               data-tip={t('Toggle fullscreen')}
             >
               <i className='k-icon-expand' />
-            </button>
+            </bem.Button>
 
-            <button
-              className='mdl-button mdl-button--icon report-button__expand right-tooltip'
+            <bem.Button
+              m='icon' className='report-button__expand right-tooltip'
               onClick={this.showTableColumsOptionsModal}
               data-tip={t('Display options')}
             >
               <i className='k-icon-settings' />
-            </button>
+            </bem.Button>
           </bem.FormView__item>
         </bem.FormView__group>
 

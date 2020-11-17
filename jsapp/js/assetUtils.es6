@@ -1,10 +1,7 @@
 import React from 'react';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
-import {
-  t,
-  buildUserUrl
-} from 'js/utils';
+import {buildUserUrl} from 'utils';
 import {
   ASSET_TYPES,
   MODAL_TYPES,
@@ -179,11 +176,11 @@ export function getAssetIcon(asset) {
       return 'k-icon-drafts';
     }
   } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    if (asset.access_type === ACCESS_TYPES.get('subscribed')) {
+    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('subscribed'))) {
       return 'k-icon-folder-subscribed';
     } else if (isAssetPublic(asset.permissions)) {
       return 'k-icon-folder-public';
-    } else if (asset.access_type === ACCESS_TYPES.get('shared')) {
+    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('shared'))) {
       return 'k-icon-folder-shared';
     } else {
       return 'k-icon-folder';
@@ -426,31 +423,28 @@ export function getFlatQuestionsList(survey) {
 }
 
 /**
- * Validates asset data to see if ready to be made public
+ * Validates asset data to see if ready to be made public.
+ * NOTE: currently we assume the asset type is `collection`.
  *
- * @param {string} name
- * @param {string} organization
- * @param {string} sector
+ * @param {object} asset
  *
- * @returns {boolean|Object} true for valid asset and object with errors for invalid one.
+ * @returns {string[]} array of errors (empty array means no errors)
  */
-export function isAssetPublicReady(name, organization, sector) {
-  const errors = {};
-  if (!name) {
-    errors.name = t('Name is required to make asset public.');
-  }
-  if (!organization) {
-    errors.organization = t('Organization is required to make asset public.');
-  }
-  if (!sector) {
-    errors.sector = t('Sector is required to make asset public.');
+export function isAssetPublicReady(asset) {
+  const errors = [];
+
+  if (asset.asset_type === ASSET_TYPES.collection.id) {
+    if (!asset.name || !asset.settings.organization || !asset.settings.sector) {
+      errors.push(t('Name, organization and sector are required to make collection public.'));
+    }
+    if (asset.children.count === 0) {
+      errors.push(t('Empty collection is not allowed to be made public.'));
+    }
+  } else {
+    errors.push(t('Only collections are allowed to be made public!'));
   }
 
-  if (Object.keys(errors).length >= 1) {
-    return errors;
-  } else {
-    return true;
-  }
+  return errors;
 }
 
 /**
@@ -494,6 +488,16 @@ export function buildAssetUrl(assetUid) {
   return `${ROOT_URL}/api/v2/assets/${assetUid}/`;
 }
 
+/*
+* Inspired by https://gist.github.com/john-doherty/b9195065884cdbfd2017a4756e6409cc
+* Remove everything forbidden by XML 1.0 specifications, plus the unicode replacement character U+FFFD
+* @param {string} str
+*/
+export function removeInvalidChars(str) {
+  var regex = /((?:[\0-\x08\x0B\f\x0E-\x1F\uFFFD\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/g;
+  return str = String(str || '').replace(regex, '');
+}
+
 export default {
   buildAssetUrl,
   cleanupTags,
@@ -520,4 +524,5 @@ export default {
   renderTypeIcon,
   replaceForm,
   share,
+  removeInvalidChars
 };

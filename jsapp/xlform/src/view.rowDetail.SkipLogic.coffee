@@ -3,7 +3,6 @@ Backbone = require 'backbone'
 $modelRowDetailsSkipLogic = require './model.rowDetails.skipLogic'
 $viewWidgets = require './view.widgets'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
-_t = require('utils').t
 
 PLACEHOLDER_VALUE = 'placeholderVal'
 
@@ -23,15 +22,15 @@ module.exports = do ->
       tempId = _.uniqueId("skiplogic_expr")
       @$el.html("""
         <p>
-          #{_t("This question will only be displayed if the following conditions apply")}
+          #{t("This question will only be displayed if the following conditions apply")}
         </p>
         <div class="skiplogic__criterialist"></div>
         <p class="skiplogic__addnew">
-          <button class="skiplogic__addcriterion">+ #{_t("Add another condition")}</button>
+          <button class="skiplogic__addcriterion kobo-button kobo-button--green">+ #{t("Add another condition")}</button>
         </p>
         <select class="skiplogic__delimselect">
-          <option value="and">#{_t("Question should match all of these criteria")}</option>
-          <option value="or">#{_t("Question should match any of these criteria")}</option>
+          <option value="and">#{t("Question should match all of these criteria")}</option>
+          <option value="or">#{t("Question should match any of these criteria")}</option>
         </select>
       """)
 
@@ -259,7 +258,7 @@ module.exports = do ->
       @$el.on 'blur', handler
 
     constructor: (text) ->
-      super(text, "skiplogic__responseval", _t("response value"))
+      super(text, "skiplogic__responseval", t("response value"))
 
   class viewRowDetailSkipLogic.SkipLogicValidatingTextResponseView extends viewRowDetailSkipLogic.SkipLogicTextResponse
     render: () ->
@@ -335,7 +334,7 @@ module.exports = do ->
         # add placeholder message/option
         options.unshift({
           value: PLACEHOLDER_VALUE
-          text: _t("Select question from list")
+          text: t("Select question from list")
         })
 
         model.set('options', options)

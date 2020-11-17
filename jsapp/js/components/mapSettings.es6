@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
@@ -10,7 +9,6 @@ import mixins from '../mixins';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
 import { QUERY_LIMIT_DEFAULT } from './map';
-import { t } from '../utils';
 import { dataInterface } from '../dataInterface';
 
 // see kobo.map.marker-colors.scss for styling details of each set
@@ -356,9 +354,9 @@ class MapSettings extends React.Component {
                     className='dropzone'
                     accept={'.csv,.kml,.geojson,.wkt,.json,.kmz'}
                   >
-                    <button className='mdl-button mdl-button--raised mdl-button--colored'>
+                    <bem.KoboButton m='blue'>
                       {t('Upload')}
-                    </button>
+                    </bem.KoboButton>
                   </Dropzone>
                 </bem.FormModal__item>
               </div>
@@ -402,13 +400,13 @@ class MapSettings extends React.Component {
         {[TABS.get('geoquestion').id, TABS.get('colors').id, TABS.get('querylimit').id].includes(activeTab) &&
           <bem.Modal__footer>
             {this.userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
-              <bem.Modal__footerButton onClick={this.resetMapSettings}>
+              <bem.KoboButton m='whitegray' onClick={this.resetMapSettings}>
                 {t('Reset')}
-              </bem.Modal__footerButton>
+              </bem.KoboButton>
             }
-            <bem.Modal__footerButton m='primary' onClick={this.onSave}>
+            <bem.KoboButton m='blue' onClick={this.onSave}>
               {t('Save')}
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           </bem.Modal__footer>
         }
       </bem.GraphSettings>

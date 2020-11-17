@@ -11,7 +11,6 @@ import {actions} from '../actions';
 import {dataInterface} from '../dataInterface';
 import {searches} from '../searches';
 import {stores} from '../stores';
-import {t} from '../utils';
 import {ACCESS_TYPES} from 'js/constants';
 
 export class ListSearch extends React.Component {
@@ -36,7 +35,7 @@ export class ListSearch extends React.Component {
     return (
       <bem.Search m={[this.state.searchState]} >
         <bem.Search__icon />
-        <ui.SearchBox ref='formlist-search' placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
+        <ui.SearchBox ref='formlist-search' placeholder={this.props.placeholderText} onChange={this.searchChangeEvent} />
         <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
       </bem.Search>
     );
@@ -143,7 +142,10 @@ export class ListCollectionFilter extends React.Component {
   queryCollections () {
     dataInterface.getCollections().then((collections)=>{
       var availableCollections = collections.results.filter((value) => {
-        return value.access_type !== ACCESS_TYPES.get('public');
+        return (
+          value.access_types &&
+          !value.access_types.includes(ACCESS_TYPES.get('public'))
+        );
       });
 
       this.setState({

@@ -1,7 +1,5 @@
-$ = require 'jquery'
 $validationLogicParser = require './model.validationLogicParser'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
-_t = require('utils').t
 
 module.exports = do ->
   validationLogicHelpers = {}
@@ -72,7 +70,7 @@ module.exports = do ->
   class validationLogicHelpers.ValidationLogicModeSelectorHelper extends $skipLogicHelpers.SkipLogicModeSelectorHelper
     constructor: (view_factory, @context) ->
       super
-      @handcode_button = view_factory.create_button '<i>${}</i> ' + _t("Manually enter your validation logic in XLSForm code"), 'skiplogic__button skiplogic__select-handcode'
+      @handcode_button = view_factory.create_button '<i>${}</i> ' + t("Manually enter your validation logic in XLSForm code"), 'kobo-button kobo-button--blue'
 
   class validationLogicHelpers.ValidationLogicHandCodeHelper extends $skipLogicHelpers.SkipLogicHandCodeHelper
     render: ($destination) ->
@@ -90,7 +88,7 @@ module.exports = do ->
       super
       @$handCode = $("""
         <div class="card__settings__fields__field">
-          <label for="#{@context.helper_factory.current_question.cid}-handcode">#{_t("Validation Code:")}</label>
+          <label for="#{@context.helper_factory.current_question.cid}-handcode">#{t("Validation Code:")}</label>
           <span class="settings__input">
             <input type="text" name="constraint" id="#{@context.helper_factory.current_question.cid}-handcode" class="text" value="#{@criteria}">
           </span>

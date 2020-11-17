@@ -1,5 +1,6 @@
 # coding: utf-8
 import base64
+import json
 
 import responses
 import unittest
@@ -21,7 +22,6 @@ class AssetImportTaskTest(BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         self.user = User.objects.get(username='someuser')
         self.asset = Asset.objects.first()
-        settings.CELERY_TASK_ALWAYS_EAGER = True
 
     def _assert_assets_contents_equal(self, a1, a2):
         def _prep_row_for_comparison(row):
@@ -82,7 +82,6 @@ class AssetImportTaskTest(BaseTestCase):
         }
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
-
     def test_import_non_xls_url(self):
         """
         Make sure the import fails with a meaningful error

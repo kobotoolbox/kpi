@@ -1,17 +1,22 @@
 import _ from 'underscore';
 import Reflux from 'reflux';
+import {hashHistory} from 'react-router';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
+import {isOnLibraryRoute} from './libraryUtils';
 import {ASSET_TYPES} from 'js/constants';
 
 const ownedCollectionsStore = Reflux.createStore({
-  init() {
-    this.data = {
-      isFetchingData: true,
-      collections: []
-    };
+  isVirgin: true,
 
-    stores.session.listen(this.onSessionChanged);
+  data: {
+    isFetchingData: false,
+    collections: []
+  },
+
+  init() {
+    hashHistory.listen(this.startupStore);
+    stores.session.listen(this.startupStore);
     actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted);
     actions.library.getCollections.failed.listen(this.onGetCollectionsFailed);
     // NOTE: this could update the list of collections, but currently nothing is using
@@ -23,22 +28,26 @@ const ownedCollectionsStore = Reflux.createStore({
     actions.resources.createResource.completed.listen(this.onAssetChangedOrCreated);
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
 
-    if (stores.session.currentAccount) {
+    this.startupStore();
+  },
+
+  startupStore() {
+    if (
+      this.isVirgin &&
+      isOnLibraryRoute() &&
+      stores.session.currentAccount !== undefined &&
+      !this.data.isFetchingData
+    ) {
       this.fetchData();
     }
   },
 
   // methods for handling actions
 
-  onSessionChanged(storeData) {
-    if (storeData.currentAccount) {
-      this.fetchData();
-    }
-  },
-
   onGetCollectionsCompleted(response) {
     this.data.collections = response.results;
     this.data.isFetchingData = false;
+    this.isVirgin = false;
     this.trigger(this.data);
   },
 

@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import re
 
 from dicttoxml import dicttoxml
 from rest_framework import renderers
@@ -23,34 +24,12 @@ class SSJsonRenderer(renderers.JSONRenderer):
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
-        # this accessing of the model might be frowned upon, but I'd prefer to avoid
-        # re-building the SS structure outside of the model for now.
-        return json.dumps(renderer_context['view'].get_object().to_ss_structure())
-
-
-class XMLRenderer(DRFXMLRenderer):
-
-    def render(self, data, accepted_media_type=None, renderer_context=None, relationship=None):
-        if hasattr(renderer_context.get("view"), "get_object"):
-            obj = renderer_context.get("view").get_object()
-            # If `relationship` is passed among arguments, retrieve `xml` from this relationship.
-            # e.g. obj is `Asset`, relationship can be `snapshot`
-            if relationship is not None and hasattr(obj, relationship):
-                return getattr(obj, relationship).xml
-            return obj.xml
-        else:
-            return super().render(data=data,
-                                  accepted_media_type=accepted_media_type,
-                                  renderer_context=renderer_context)
-
-
-class XFormRenderer(XMLRenderer):
-
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        return super().render(data=data,
-                              accepted_media_type=accepted_media_type,
-                              renderer_context=renderer_context,
-                              relationship="snapshot")
+        # this accessing of the model might be frowned upon, but
+        # I'd prefer to avoid re-building the SS structure outside of the
+        # model for now.
+        return json.dumps(
+            renderer_context['view'].get_object().to_ss_structure()
+        )
 
 
 class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
@@ -94,6 +73,8 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
 
 class RawXMLRenderer(DRFXMLRenderer):
 
+    CUSTOM_ROOT = 'root'
+
     def render(self, data, accepted_media_type=None, renderer_context=None):
 
         # data should be str, but in case it's a dict, return as XML.
@@ -105,15 +86,93 @@ class RawXMLRenderer(DRFXMLRenderer):
                 if isinstance(v, ErrorDetail):
                     data[k] = str(v)
 
-            # FIXME new `v2` list endpoint enters this block
-            # Submissions are wrapped in `<item>` nodes.
-            return dicttoxml(data, attr_type=False)
+            return self._get_xml(data)
 
         if renderer_context.get('view').action == 'list':
-            data_to_str = ''.join(data)
-            return f'<root>{data_to_str}</root>'
+            opening_node = self._node_generator(self.CUSTOM_ROOT)
+            closing_node = self._node_generator(self.CUSTOM_ROOT, closing=True)
+            data_str = ''.join(data)
+            return f'{opening_node}{data_str}{closing_node}'
         else:
             return data
+
+    @classmethod
+    def _get_xml(cls, data: dict):
+        return dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
+
+    @staticmethod
+    def _node_generator(name, closing=False):
+        if closing:
+            return f'</{name}>'
+
+        return f'<{name}>'
+
+
+class SubmissionXMLRenderer(RawXMLRenderer):
+
+    @classmethod
+    def _get_xml(cls, data):
+
+        # Submissions are wrapped in `<item>` nodes.
+        results = data.pop('results', False)
+        if not results:
+            return super()._get_xml(data)
+
+        submissions_parent_node = 'results'
+
+        xml_ = dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
+        # Retrieve the beginning of the XML (without closing tag) in order
+        # to concatenate `results` as XML nodes too.
+        xml_2_str = xml_.decode().replace(f'</{cls.CUSTOM_ROOT}>', '')
+
+        opening_results_node = cls._node_generator(submissions_parent_node)
+        closing_results_node = cls._node_generator(submissions_parent_node,
+                                                   closing=True)
+        results_data_str = ''.join(map(cls.__cleanup_submission, results))
+        closing_root_node = cls._node_generator(cls.CUSTOM_ROOT, closing=True)
+
+        xml_2_str += f'{opening_results_node}' \
+                     f'{results_data_str}' \
+                     f'{closing_results_node}' \
+                     f'{closing_root_node}'
+
+        return xml_2_str.encode()  # Should return bytes
+
+    @staticmethod
+    def __cleanup_submission(submission):
+        return re.sub(r'^<\?xml[^>]*>', '', submission)
+
+
+class XMLRenderer(DRFXMLRenderer):
+
+    def render(
+        self,
+        data,
+        accepted_media_type=None,
+        renderer_context=None,
+        relationship=None,
+    ):
+        if hasattr(renderer_context.get("view"), "get_object"):
+            obj = renderer_context.get("view").get_object()
+            # If `relationship` is passed among arguments, retrieve `xml`
+            # from this relationship.
+            # e.g. obj is `Asset`, relationship can be `snapshot`
+            if relationship is not None and hasattr(obj, relationship):
+                return getattr(obj, relationship).xml
+            return obj.xml
+        else:
+            return super().render(data=data,
+                                  accepted_media_type=accepted_media_type,
+                                  renderer_context=renderer_context)
+
+
+class XFormRenderer(XMLRenderer):
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return super().render(data=data,
+                              accepted_media_type=accepted_media_type,
+                              renderer_context=renderer_context,
+                              relationship="snapshot")
 
 
 class XlsRenderer(renderers.BaseRenderer):

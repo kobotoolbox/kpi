@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -10,10 +9,7 @@ import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
 import assetUtils from 'js/assetUtils';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
-import {
-  t,
-  assign,
-} from '../utils';
+import {assign} from 'utils';
 
 class FormViewTabs extends Reflux.Component {
   constructor(props){
@@ -67,9 +63,6 @@ class FormViewTabs extends Reflux.Component {
           activeClassName='active'>
           {t('Form')}
         </Link>
-        <bem.FormView__tab className='is-edge' m='summary'>
-          {t('Summary')}
-        </bem.FormView__tab>
         { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
           <Link
             to={`/forms/${this.state.assetid}/data`}
@@ -101,7 +94,6 @@ class FormViewTabs extends Reflux.Component {
     if (this.state.asset && this.state.asset.has_deployment && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
       sideTabs = [
         {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report`},
-        {label: t('Reports (legacy)'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report-legacy`, className: 'is-edge'},
         {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.assetid}/data/table`},
         {label: t('Gallery'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/data/gallery`},
         {label: t('Downloads'), icon: 'k-icon-download', path: `/forms/${this.state.assetid}/data/downloads`},
@@ -128,10 +120,6 @@ class FormViewTabs extends Reflux.Component {
       ) {
         sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
       }
-
-      if (this.state.asset.deployment__active) {
-        sideTabs.push({label: t('Kobocat (legacy)'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings/kobocat`, className: 'is-edge'});
-      }
     }
 
     if (sideTabs.length > 0) {
@@ -143,7 +131,7 @@ class FormViewTabs extends Reflux.Component {
               key={ind}
               activeClassName='active'
               onlyActiveOnIndex
-              className={`form-view__tab ${item.className}`}
+              className='form-view__tab'
               data-path={item.path}
               onClick={this.triggerRefresh}>
                 <i className={item.icon} />

@@ -1,23 +1,20 @@
 # coding: utf-8
 # 😬
 import copy
-import json
 import sys
 from collections import OrderedDict
+from functools import reduce
+from operator import add
 from io import BytesIO
 
 import six
 import xlsxwriter
 from django.conf import settings
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.utils.translation import ugettext_lazy as _
-from jsonfield import JSONField
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
@@ -29,6 +26,7 @@ from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.constants import (
     ASSET_TYPES,
+    ASSET_TYPES_WITH_CONTENT,
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -77,15 +75,17 @@ from kpi.utils.standardize_content import (needs_standardization,
                                            standardize_content_in_place)
 from .asset_user_partial_permission import AssetUserPartialPermission
 from .asset_version import AssetVersion
-from .object_permission import ObjectPermission, ObjectPermissionMixin
+from .object_permission import ObjectPermissionMixin, get_cached_code_names
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
 class AssetManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
-        # created = super().create(*args, **kwargs)
         update_parent_languages = kwargs.pop('update_parent_languages', True)
 
+        # 3 lines below are copied from django.db.models.query.QuerySet.create()
+        # because we need to pass an argument to save()
+        # (and the default Django create() does not allow that)
         created = self.model(**kwargs)
         self._for_write = True
         created.save(force_insert=True, using=self.db,
@@ -99,8 +99,6 @@ class AssetManager(models.Manager):
                 asset['parent'] = created
                 new_assets.append(Asset.objects.create(
                     update_parent_languages=False, **asset))
-            # bulk_create comes with a number of caveats
-            # Asset.objects.bulk_create(new_assets)
             created.update_languages(new_assets)
         return created
 
@@ -469,8 +467,8 @@ class Asset(ObjectPermissionMixin,
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    content = JSONField(default=dict)
-    summary = JSONField(default=dict)
+    content = JSONBField(default=dict)
+    summary = JSONBField(default=dict)
     report_styles = JSONBField(default=dict)
     report_custom = JSONBField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
@@ -488,9 +486,7 @@ class Asset(ObjectPermissionMixin,
 
     # _deployment_data should be accessed through the `deployment` property
     # provided by `DeployableMixin`
-    _deployment_data = JSONField(default=dict)
-
-    permissions = GenericRelation(ObjectPermission)
+    _deployment_data = JSONBField(default=dict)
 
     objects = AssetManager()
 
@@ -499,7 +495,17 @@ class Asset(ObjectPermissionMixin,
         return 'asset'
 
     class Meta:
-        ordering = ('-date_modified',)
+
+        # Example in Django documentation  represents `ordering` as a list
+        # (even if it can be a list or a tuple). We enforce the type to `list`
+        # because `rest_framework.filters.OrderingFilter` work with lists.
+        # `AssetOrderingFilter` inherits from this class and it is used `
+        # in `AssetViewSet to sort the result.
+        # It avoids back and forth between types and/or coercing where
+        # ordering is needed
+        ordering = [
+            '-date_modified',
+        ]
 
         permissions = (
             # change_, add_, and delete_asset are provided automatically
@@ -698,7 +704,6 @@ class Asset(ObjectPermissionMixin,
         if self.asset_type != ASSET_TYPE_COLLECTION:
             return None
 
-        # ToDo: See if using a loop can reduce the number of SQL queries.
         return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
                                        user_id=settings.ANONYMOUS_USER_ID).exists()
 
@@ -720,6 +725,7 @@ class Asset(ObjectPermissionMixin,
         return None
 
     def get_label_for_permission(self, permission_or_codename):
+
         try:
             codename = permission_or_codename.codename
             permission = permission_or_codename
@@ -730,12 +736,9 @@ class Asset(ObjectPermissionMixin,
             label = self.ASSIGNABLE_PERMISSIONS_WITH_LABELS[codename]
         except KeyError:
             if not permission:
-                # Seems expensive. Cache it?
-                permission = Permission.objects.filter(
-                    content_type=ContentType.objects.get_for_model(self),
-                    codename=codename
-                )
-            label = permission.name
+                cached_code_names = get_cached_code_names()
+                label = cached_code_names[codename]['name']
+
         label = label.replace(
             '##asset_type_label##',
             # Raises TypeError if not coerced explicitly
@@ -825,11 +828,8 @@ class Asset(ObjectPermissionMixin,
     def optimize_queryset_for_list(queryset):
         """ Used by serializers to improve performance when listing assets """
         queryset = queryset.defer(
-            # Avoid pulling these `JSONField`s from the database because:
-            #   * they are stored as plain text, and just deserializing them
-            #     to Python objects is CPU-intensive;
-            #   * they are often huge;
-            #   * we don't need them for list views.
+            # Avoid pulling these from the database because they are often huge
+            # and we don't need them for list views.
             'content', 'report_styles'
         ).select_related(
             # We only need `username`, but `select_related('owner__username')`
@@ -838,11 +838,6 @@ class Asset(ObjectPermissionMixin,
             # for nested relations."
             'owner',
         ).prefetch_related(
-            # We previously prefetched `permissions__content_object`, but that
-            # actually pulled the entirety of each permission's linked asset
-            # from the database! For now, the solution is to remove
-            # `content_object` here *and* from
-            # `ObjectPermissionNestedSerializer`.
             'permissions__permission',
             'permissions__user',
             # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
@@ -880,11 +875,17 @@ class Asset(ObjectPermissionMixin,
     def save(self, *args, **kwargs):
 
         is_new = self.pk is None
+        update_parent_languages = kwargs.pop('update_parent_languages', True)
+
+        if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
+            # so long as all of the operations in this overridden `save()`
+            # method pertain to content, bail out if it's impossible for this
+            # asset to have content in the first place
+            super().save(*args, **kwargs)
+            return
 
         if self.content is None:
             self.content = {}
-
-        update_parent_languages = kwargs.pop('update_parent_languages', True)
 
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
@@ -892,8 +893,7 @@ class Asset(ObjectPermissionMixin,
             self.adjust_content_on_save()
 
         # populate summary
-        if self.asset_type != ASSET_TYPE_COLLECTION:
-            self._populate_summary()
+        self._populate_summary()
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
@@ -912,6 +912,9 @@ class Asset(ObjectPermissionMixin,
         _create_version = kwargs.pop('create_version', True)
         super().save(*args, **kwargs)
 
+        # Update languages for parent and previous parent.
+        # e.g. if an survey has been moved from one collection to another,
+        # we want both collections to be updated.
         if self.parent is not None and update_parent_languages:
             if self.parent_id != self.__previous_parent_id and \
                self.__previous_parent_id is not None:
@@ -1004,35 +1007,32 @@ class Asset(ObjectPermissionMixin,
         languages = set()
 
         if children:
-            summaries = [child.summary for child in children]
             languages = set(obj_languages)
+            children_languages = [child.summary.get('languages')
+                                  for child in children
+                                  if child.summary.get('languages')]
         else:
-            # ToDo validate whether all children should be included
-            # (e.g. archives?)
-            summaries = self.children.values_list('summary', flat=True)
+            children_languages = list(self.children
+                                      .values_list('summary__languages',
+                                                   flat=True)
+                                      .exclude(Q(summary__languages=[]) |
+                                               Q(summary__languages=[None]))
+                                      .order_by())
 
-        for summary in summaries:
-            if isinstance(summary, str):
-                try:
-                    summary = json.loads(summary)
-                except ValueError:
-                    continue
-            child_languages = [language
-                               for language in summary.get('languages', [])
-                               if language is not None]
+        if children_languages:
+            # Flatten `children_languages` to 1-dimension list.
+            languages.update(reduce(add, children_languages))
 
-            if child_languages:
-                languages = set(list(languages) + child_languages)
+        languages.discard(None)
+        # Object of type set is not JSON serializable
+        languages = list(languages)
 
-        languages = AssetContentAnalyzer.format_translations(list(languages))
         # If languages are still the same, no needs to update the object
-        if obj_languages == languages:
+        if sorted(obj_languages) == sorted(languages):
             return
 
         self.summary['languages'] = languages
-        self.save(update_fields=['summary'],
-                  adjust_content=False,
-                  create_version=False)
+        self.save(update_fields=['summary'])
 
     @property
     def version__content_hash(self):
@@ -1218,8 +1218,8 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONField(default=dict)
-    details = JSONField(default=dict)
+    source = JSONBField(default=dict)
+    details = JSONBField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
     asset = models.ForeignKey(Asset, null=True, on_delete=models.CASCADE)

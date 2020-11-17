@@ -11,16 +11,16 @@
 }
 
 .row__questiontypes {
-  border: $cardInSortBorderStyle;
+  border: 1px solid $kobo-blue;
   padding: 0px;
   padding-top: 20px;
-  background: white;
+  background: $kobo-white;
   margin: 4px 0px;
 }
 
 .row__questiontypes__list {
   margin-top: 20px;
-  border-top: $cardInSortBorderStyle;
+  border-top: 1px solid $kobo-blue;
   padding: 3px;
   position: relative;
   &:after, &:before {
@@ -34,14 +34,14 @@
     pointer-events: none;
   }
   &:after {
-    border-color: rgba(255, 255, 255, 0);
-    border-bottom-color: #FFF;
+    border-color: rgba($kobo-white, 0);
+    border-bottom-color: $kobo-white;
     border-width: 8px;
     margin-left: -8px;
   }
   &:before {
     border-color: rgba(217, 221, 225, 0);
-    border-bottom-color: #3fa2ee;
+    border-bottom-color: $kobo-blue-light;
     border-width: 11px;
     margin-left: -11px;
   }
@@ -49,19 +49,20 @@
 
 .row__questiontypes__close {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  color: #555;
+  top: -3px;
+  right: 1px;
+  color: $kobo-darkgray;
   background: transparent;
   border: 0 none;
   font-family: $font;
   font-weight: 600;
   padding: 4px;
   line-height: 1em;
-  font-size: 16px;
+  font-size: 24px;
   cursor: pointer;
+
   &:hover {
-    color: darken(#999, 30%);
+    color: $kobo-black;
   }
 }
 
@@ -84,23 +85,13 @@ input.row__questiontypes__new-question-name {
   form {
     input {
       width: 72%;
-      padding: 6px;
-      border: 1px solid #78C4FD;
+      padding: 9px;
+      border: 1px solid $kobo-blue;
       font-size: 15px;
     }
     button {
-      padding: 8px;
-      text-align: center;
-      color: white;
-      font-weight: 600;
-      margin-bottom: 15px;
-      background: #39BF6E;
-      border: none;
-      border-bottom: 2px solid darken(#39bf6e, 10%);
-      font-size: 14px;
       width: 25%;
       margin-left: 2%;
-      cursor: pointer;
     }
     input, button {
       float: left;
@@ -127,13 +118,13 @@ input.row__questiontypes__new-question-name {
   font-family: $font;
   font-weight: 600;
   cursor: pointer;
-  color: #35495D;
+  color: $kobo-black;
   i {
     margin-right: 10px;
     font-size: 16px;
     &.fa.invert {
-      background-color: #35495D;
-      color: white;
+      background-color: $kobo-black;
+      color: $kobo-white;
       border-radius: 4px;
       padding: 3px;
       font-size: 1em;

@@ -1,10 +1,9 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {
-  t,
   formatTimeDate,
   formatDate
-} from 'js/utils';
+} from 'utils';
 import {bem} from 'js/bem';
 import {renderTypeIcon} from 'js/assetUtils';
 import {

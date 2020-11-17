@@ -1,5 +1,4 @@
 # coding: utf-8
-from .generic_hyperlinked_related import GenericHyperlinkedRelatedField
 from .kpi_uid import KpiUidField
 from .lazy_default_jsonb import LazyDefaultJSONBField
 from .paginated_api import PaginatedApiField

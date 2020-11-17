@@ -6,7 +6,6 @@ import autoBind from 'react-autobind';
 import {stores} from 'js/stores';
 import {bem} from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
-import {t} from 'js/utils';
 import myLibraryStore from './myLibraryStore';
 
 class LibrarySidebar extends Reflux.Component {
@@ -23,14 +22,14 @@ class LibrarySidebar extends Reflux.Component {
     this.listenTo(myLibraryStore, this.myLibraryStoreChanged);
     this.setState({
       isLoading: false,
-      myLibraryCount: myLibraryStore.data.totalUserAssets
+      myLibraryCount: myLibraryStore.getCurrentUserTotalAssets()
     });
   }
 
   myLibraryStoreChanged() {
     this.setState({
       isLoading: false,
-      myLibraryCount: myLibraryStore.data.totalUserAssets
+      myLibraryCount: myLibraryStore.getCurrentUserTotalAssets()
     });
   }
 
@@ -57,12 +56,12 @@ class LibrarySidebar extends Reflux.Component {
 
     return (
       <React.Fragment>
-        <button
+        <bem.KoboButton
+          m={['blue', 'fullwidth']}
           onClick={this.showLibraryNewModal}
-          className='mdl-button mdl-button--raised mdl-button--colored'
         >
           {t('new')}
-        </button>
+        </bem.KoboButton>
 
         <bem.FormSidebar m={sidebarModifier}>
           <bem.FormSidebar__label

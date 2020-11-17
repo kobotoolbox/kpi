@@ -1,3 +1,5 @@
+@import "colors";
+
 @import "./libs/mdl";
 
 @import "./fonts/roboto";
@@ -12,6 +14,7 @@
 @import "./libs/react-tagsinput";
 
 @import "./components/kobo.bem.ui";
+@import "./components/kobo.button";
 @import "./components/kobo.checkbox-and-radio";
 @import "./components/kobo.modal";
 @import "./components/kobo.tooltips";
@@ -22,7 +25,6 @@
 @import "./kobo";
 @import "./components/kobo.form-builder";
 @import "./components/kobo.collection-asset-list";
-@import "./components/kobo.list-view";
 @import "./components/kobo.asset-name";
 @import "./components/kobo.asset-row";
 @import "./components/kobo.assets-table";
@@ -49,10 +51,6 @@
 
 .k-invisible {
   visibility: hidden;
-}
-
-body.hide-edge .is-edge {
-  display: none !important;
 }
 
 // Print stylesheet

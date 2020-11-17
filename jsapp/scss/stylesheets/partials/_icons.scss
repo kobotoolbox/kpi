@@ -15,7 +15,7 @@
 
 .header-bar__top-level-menu-button:hover > .fa,
 .header-bar__top-level-menu-button:focus > .fa {
-  color: #1daee3;
+  color: $kobo-blue;
 }
 
 // ==========================================================================
@@ -23,12 +23,12 @@
 // ==========================================================================
 
 .fa.green {
-  color: $warm-green;
+  color: $kobo-green;
 }
 
 .fa.invert {
-  background-color: $black;
-  color: white;
+  background-color: $kobo-black;
+  color: $kobo-white;
   border-radius: 4px;
 }
 
@@ -75,8 +75,8 @@
   position: absolute;
   margin-left: -1.25em;
   margin-top: -0.375em;
-  background-color: white;
-  border-radius: 8px;
+  background-color: $kobo-white;
+  border-radius: 6px;
 }
 
 .fa.clock-over::before {
@@ -84,7 +84,7 @@
 }
 
 .fa-folder-o .fa-plus {
-  color: $warm-green;
+  color: $kobo-green;
   position: absolute;
   left: 10px;
   top: 7px;

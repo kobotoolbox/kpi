@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import AssetActionButtons from './assetActionButtons';
 import ui from 'js/ui';
-import {formatTime} from 'js/utils';
+import {formatTime} from 'utils';
 import {
   ASSET_TYPES,
   ACCESS_TYPES
@@ -40,7 +40,10 @@ class AssetsTableRow extends React.Component {
       rowCount = this.props.asset.children.count;
     }
 
-    const isUserSubscribed = this.props.asset.access_type === ACCESS_TYPES.get('subscribed');
+    const isUserSubscribed = (
+      this.props.asset.access_types &&
+      this.props.asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
+    );
     if (isUserSubscribed) {
       assetModifiers.push('is-subscribed');
     }

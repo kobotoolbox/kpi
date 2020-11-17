@@ -1,14 +1,16 @@
+@import "../colors";
+
 .kobo-select__wrapper {
   &.kobo-select__wrapper--error {
     > label,
     .kobo-select-label,
     .kobo-select-error,
     .kobo-select .kobo-select__placeholder {
-      color: $cool-red;
+      color: $kobo-red;
     }
 
     .kobo-select .kobo-select__control {
-      border-bottom-color: $cool-red;
+      border-bottom-color: $kobo-red;
     }
   }
 }
@@ -34,17 +36,17 @@
   .kobo-select__control {
     box-shadow: none;
     border: none;
-    border-bottom: 1px solid $cool-lightgray;
+    border-bottom: 1px solid $kobo-lightgray;
     border-radius: 0;
-    background-color: white;
+    background-color: $kobo-white;
     transition: border-bottom-color 250ms;
 
     &:hover {
-      border-bottom-color: $cool-lightgray;
+      border-bottom-color: $kobo-lightgray;
     }
 
     &.kobo-select__control--is-focused {
-      border-bottom-color: $cool-blue;
+      border-bottom-color: $kobo-blue;
     }
   }
 
@@ -56,7 +58,7 @@
   }
 
   .kobo-select__placeholder {
-    color: $cool-gray;
+    color: $kobo-darkgray;
   }
 
   .kobo-select__indicator-separator {
@@ -75,11 +77,11 @@
 
   .kobo-select__option {
     &.kobo-select__option--is-focused {
-      background-color: lighten($cool-blue, 40%);
+      background-color: $kobo-whitegray;
     }
 
     &.kobo-select__option--is-selected {
-      background-color: $cool-blue;
+      background-color: $kobo-blue;
     }
   }
 }
