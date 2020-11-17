@@ -17,8 +17,9 @@ class DeployableMixin:
             raise KeyError('connect_deployment requires an argument: backend')
 
     def deploy(self, backend=False, active=True):
-        """this method could be called "deploy_latest_version()"."""
-        from kpi.tasks import sync_media_files  # Because of circular imports
+        """
+        This method could be called `deploy_latest_version()`.
+        """
 
         if self.can_be_deployed:
             if not self.has_deployment:
@@ -28,12 +29,13 @@ class DeployableMixin:
             else:
                 self.deployment.redeploy(active=active)
 
-            sync_media_files.delay(self.uid)
             self._mark_latest_version_as_deployed()
 
         else:
-            raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                self.asset_type))
+            raise BadAssetTypeException(
+                'Only surveys may be deployed, but this asset is a '
+                f'{self.asset_type}'
+            )
 
     def _mark_latest_version_as_deployed(self):
         """ `sync_kobocat_xforms` calls this, since it manipulates

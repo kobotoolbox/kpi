@@ -259,9 +259,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Payload contains `kpi_asset_uid` and `has_kpi_hook` for two reasons:
         # - KC `XForm`'s `id_string` can be different than `Asset`'s `uid`, then
         #   we can't rely on it to find its related `Asset`.
-        # - Removing, renaming `has_kpi_hook` will force PostgreSQL to rewrite every
-        #   records of `logger_xform`. It can be also used to filter queries as it's faster
-        #   to query a boolean than string.
+        # - Removing, renaming `has_kpi_hook` will force PostgreSQL to rewrite
+        #   every records of `logger_xform`. It can be also used to filter
+        #   queries as it's faster to query a boolean than string.
         # Don't forget to run Management Command `populate_kc_xform_kpi_asset_uid`
         payload = {
             'downloadable': active,
