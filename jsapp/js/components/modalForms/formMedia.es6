@@ -4,9 +4,6 @@ import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import {bem} from 'js/bem';
 import {dataInterface} from 'js/dataInterface';
-import {
-  t,
-} from 'js/utils';
 
 /*
 Modal for uploading form media, part of #2487.

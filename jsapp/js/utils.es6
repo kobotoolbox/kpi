@@ -12,7 +12,7 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
-// imporitng whole constants, as we override ROOT_URL in tests
+// importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
