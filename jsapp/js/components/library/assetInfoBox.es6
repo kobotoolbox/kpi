@@ -8,11 +8,10 @@ import {stores} from 'js/stores';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {
-  t,
   notify,
   formatTime,
   formatDate
-} from 'js/utils';
+} from 'utils';
 
 /**
  * @prop asset
@@ -75,17 +74,13 @@ class AssetInfoBox extends React.Component {
   }
 
   makePublic() {
-    const requiredPropsReady = assetUtils.isAssetPublicReady(
-      this.props.asset.name,
-      this.props.asset.settings.organization,
-      this.props.asset.settings.sector
-    );
+    const publicReadyErrors = assetUtils.isAssetPublicReady(this.props.asset);
 
-    if (requiredPropsReady === true) {
+    if (publicReadyErrors.length === 0) {
       this.setState({isPublicPending: true});
       actions.permissions.setAssetPublic(this.props.asset, true);
     } else {
-      notify(Object.values(requiredPropsReady).join(' '), 'error');
+      publicReadyErrors.forEach((err) => {notify(err, 'error');});
     }
   }
 
@@ -108,6 +103,7 @@ class AssetInfoBox extends React.Component {
     const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
 
     return (
+      <React.Fragment>
       <bem.FormView__cell m='box'>
         <bem.FormView__cell m={['columns', 'padding']}>
           <bem.FormView__cell m={['date', 'column-1']}>
@@ -139,23 +135,25 @@ class AssetInfoBox extends React.Component {
 
           {isPublicable && isSelfOwned &&
             <bem.FormView__cell m={['buttons', 'column-1']}>
+              {/* NOTE: this button is purposely available for not ready
+              collections as a means to teach users (via error notifications). */}
               {!isPublic &&
-                <button
-                  className='mdl-button mdl-button--raised mdl-button--colored'
+                <bem.KoboButton
+                  m='blue'
                   onClick={this.makePublic}
                   disabled={this.isSetPublicButtonDisabled()}
                 >
                   {t('Make public')}
-                </button>
+                </bem.KoboButton>
               }
               {isPublic &&
-                <button
-                  className='mdl-button mdl-button--raised mdl-button--colored'
+                <bem.KoboButton
+                  m='blue'
                   onClick={this.makePrivate}
                   disabled={this.isSetPublicButtonDisabled()}
                 >
                   {t('Make private')}
-                </button>
+                </bem.KoboButton>
               }
             </bem.FormView__cell>
           }
@@ -234,14 +232,15 @@ class AssetInfoBox extends React.Component {
             </bem.FormView__cell>
           </React.Fragment>
         }
-
-        <bem.FormView__cell m={['bordertop', 'toggle-details']}>
-          <button onClick={this.toggleDetails}>
-            {this.state.areDetailsVisible ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}
-            {this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
-          </button>
-        </bem.FormView__cell>
       </bem.FormView__cell>
+
+      <bem.FormView__cell m='toggle-details'>
+        <button onClick={this.toggleDetails}>
+          {this.state.areDetailsVisible ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}
+          {this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
+        </button>
+      </bem.FormView__cell>
+      </React.Fragment>
     );
   }
 }

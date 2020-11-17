@@ -14,9 +14,9 @@ import autoBind from 'react-autobind';
 import {hashHistory} from 'react-router';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
+import _ from 'lodash';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
-import {t} from 'js/utils';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {
@@ -37,13 +37,32 @@ class AssetActionButtons extends React.Component {
     this.state = {
       ownedCollections: ownedCollectionsStore.data.collections,
       shouldHidePopover: false,
-      isPopoverVisible: false
+      isPopoverVisible: false,
+      isSubscribePending: false
     };
+    this.unlisteners = [];
+    this.hidePopoverDebounced = _.debounce(() => {
+      if (this.state.isPopoverVisible) {
+        this.setState({shouldHidePopover: true});
+      }
+    }, 500);
     autoBind(this);
   }
 
   componentDidMount() {
     this.listenTo(ownedCollectionsStore, this.onOwnedCollectionsStoreChanged);
+    this.unlisteners.push(
+      actions.library.subscribeToCollection.completed.listen(this.onSubscribingCompleted),
+      actions.library.unsubscribeFromCollection.completed.listen(this.onSubscribingCompleted),
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  onSubscribingCompleted() {
+    this.setState({ isSubscribePending: false });
   }
 
   onOwnedCollectionsStoreChanged(storeData) {
@@ -54,12 +73,17 @@ class AssetActionButtons extends React.Component {
 
   // methods for inner workings of component
 
+  /**
+   * Allow for some time for user to go back to the popover menu.
+   * Then force hide popover in next render cycle (ui.PopoverMenu interface
+   * handles it this way)
+   */
   onMouseLeave() {
-    // force hide popover in next render cycle
-    // (ui.PopoverMenu interface handles it this way)
-    if (this.state.isPopoverVisible) {
-      this.setState({shouldHidePopover: true});
-    }
+    this.hidePopoverDebounced();
+  }
+
+  onMouseEnter() {
+    this.hidePopoverDebounced.cancel();
   }
 
   onPopoverSetVisible() {
@@ -143,10 +167,12 @@ class AssetActionButtons extends React.Component {
   }
 
   subscribeToCollection() {
+    this.setState({ isSubscribePending: true });
     actions.library.subscribeToCollection(this.props.asset.url);
   }
 
   unsubscribeFromCollection() {
+    this.setState({ isSubscribePending: true });
     actions.library.unsubscribeFromCollection(this.props.asset.uid);
   }
 
@@ -270,7 +296,12 @@ class AssetActionButtons extends React.Component {
                   title={displayName}
                   m={modifiers}
                 >
-                  <i className='k-icon k-icon-folder-in'/>
+                  {isAssetParent &&
+                    <i className='k-icon k-icon-check'/>
+                  }
+                  {!isAssetParent &&
+                    <i className='k-icon k-icon-folder-in'/>
+                  }
                   {displayName}
                 </bem.PopoverMenu__item>
               );
@@ -308,6 +339,47 @@ class AssetActionButtons extends React.Component {
     );
   }
 
+  renderSubButton(isUserSubscribed) {
+    const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
+    const isPublic = assetUtils.isAssetPublic(this.props.asset.permissions);
+
+    if (
+      !isSelfOwned &&
+      isPublic &&
+      this.props.asset.asset_type === ASSET_TYPES.collection.id
+    ) {
+      const modifiers = isUserSubscribed ? ['unsubscribe'] : ['subscribe'];
+      const fn = isUserSubscribed ? this.unsubscribeFromCollection.bind(this) : this.subscribeToCollection.bind(this);
+      if (this.state.isSubscribePending) {
+        modifiers.push('pending');
+      }
+      let icon = null;
+      let title = t('Pending…');
+      if (!this.state.isSubscribePending) {
+        if (isUserSubscribed) {
+          icon = (<i className='k-icon k-icon-unsubscribe'/>);
+          title = t('Unsubscribe');
+        } else {
+          icon = (<i className='k-icon k-icon-subscribe'/>);
+          title = t('Subscribe');
+        }
+      }
+
+      return (
+        <bem.AssetActionButtons__button
+          m={modifiers}
+          onClick={fn}
+          disabled={this.state.isSubscribePending}
+        >
+          {icon}
+          {title}
+        </bem.AssetActionButtons__button>
+      );
+    }
+
+    return null;
+  }
+
   render() {
     if (!this.props.asset) {
       return null;
@@ -319,31 +391,17 @@ class AssetActionButtons extends React.Component {
       assetType === ASSET_TYPES.template.id ||
       assetType === ASSET_TYPES.collection.id
     );
-    const isUserSubscribed = this.props.asset.access_type === ACCESS_TYPES.get('subscribed');
-    const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
-    const isPublic = assetUtils.isAssetPublic(this.props.asset.permissions);
+    const isUserSubscribed = (
+      this.props.asset.access_types &&
+      this.props.asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
+    );
 
     return (
-      <bem.AssetActionButtons onMouseLeave={this.onMouseLeave}>
-        {!isUserSubscribed &&
-          !isSelfOwned &&
-          isPublic &&
-          assetType === ASSET_TYPES.collection.id &&
-          <bem.AssetActionButtons__button onClick={this.subscribeToCollection}>
-            <i className='k-icon k-icon-subscribe'/>
-            {t('Subscribe')}
-          </bem.AssetActionButtons__button>
-        }
-
-        {isUserSubscribed &&
-          !isSelfOwned &&
-          isPublic &&
-          assetType === ASSET_TYPES.collection.id &&
-          <bem.AssetActionButtons__button onClick={this.unsubscribeFromCollection}>
-            <i className='k-icon k-icon-unsubscribe'/>
-            {t('Unsubscribe')}
-          </bem.AssetActionButtons__button>
-        }
+      <bem.AssetActionButtons
+        onMouseLeave={this.onMouseLeave}
+        onMouseEnter={this.onMouseEnter}
+      >
+        {this.renderSubButton(isUserSubscribed)}
 
         {userCanEdit && assetType !== ASSET_TYPES.collection.id &&
           <bem.AssetActionButtons__iconButton

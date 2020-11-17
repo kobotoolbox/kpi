@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import re
 
 from dicttoxml import dicttoxml
 from rest_framework import renderers
@@ -23,17 +24,27 @@ class SSJsonRenderer(renderers.JSONRenderer):
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
-        # this accessing of the model might be frowned upon, but I'd prefer to avoid
-        # re-building the SS structure outside of the model for now.
-        return json.dumps(renderer_context['view'].get_object().to_ss_structure())
+        # this accessing of the model might be frowned upon, but
+        # I'd prefer to avoid re-building the SS structure outside of the
+        # model for now.
+        return json.dumps(
+            renderer_context['view'].get_object().to_ss_structure()
+        )
 
 
 class XMLRenderer(DRFXMLRenderer):
 
-    def render(self, data, accepted_media_type=None, renderer_context=None, relationship=None):
+    def render(
+        self,
+        data,
+        accepted_media_type=None,
+        renderer_context=None,
+        relationship=None,
+    ):
         if hasattr(renderer_context.get("view"), "get_object"):
             obj = renderer_context.get("view").get_object()
-            # If `relationship` is passed among arguments, retrieve `xml` from this relationship.
+            # If `relationship` is passed among arguments, retrieve `xml`
+            # from this relationship.
             # e.g. obj is `Asset`, relationship can be `snapshot`
             if relationship is not None and hasattr(obj, relationship):
                 return getattr(obj, relationship).xml
@@ -96,6 +107,17 @@ class RawXMLRenderer(DRFXMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
 
+        custom_root = 'root'
+
+        def node_generator(name, closing=False):
+            if closing:
+                return f'</{name}>'
+
+            return f'<{name}>'
+
+        def cleanup_submission(submission):
+            return re.sub(r'^<\?xml[^>]*>', '', submission)
+
         # data should be str, but in case it's a dict, return as XML.
         # e.g. It happens with 404
         if isinstance(data, dict):
@@ -105,13 +127,34 @@ class RawXMLRenderer(DRFXMLRenderer):
                 if isinstance(v, ErrorDetail):
                     data[k] = str(v)
 
-            # FIXME new `v2` list endpoint enters this block
             # Submissions are wrapped in `<item>` nodes.
-            return dicttoxml(data, attr_type=False)
+            # kludgy fix to render list of submissions in XML
+            results = data.pop('results')
+            submissions_parent_node = 'results'
+
+            xml_ = dicttoxml(data, attr_type=False, custom_root=custom_root)
+            # Retrieve the beginning of the XML (without closing tag) in order
+            # to concatenate `results` as XML nodes too.
+            xml_2_str = xml_.decode().replace(f'</{custom_root}>', '')
+
+            opening_results_node = node_generator(submissions_parent_node)
+            closing_results_node = node_generator(submissions_parent_node,
+                                                  closing=True)
+            results_data_str = ''.join(map(cleanup_submission, results))
+            closing_root_node = node_generator(custom_root, closing=True)
+
+            xml_2_str += f'{opening_results_node}' \
+                f'{results_data_str}' \
+                f'{closing_results_node}' \
+                f'{closing_root_node}'
+
+            return xml_2_str.encode()  # Should return bytes
 
         if renderer_context.get('view').action == 'list':
-            data_to_str = ''.join(data)
-            return f'<root>{data_to_str}</root>'
+            opening_node = node_generator(custom_root)
+            closing_node = node_generator(custom_root, closing=True)
+            data_str = ''.join(data)
+            return f'{opening_node}{data_str}{closing_node}'
         else:
             return data
 

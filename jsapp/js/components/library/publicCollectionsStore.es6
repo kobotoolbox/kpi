@@ -1,7 +1,11 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
-import searchBoxStore from '../header/searchBoxStore';
+import {
+  SEARCH_CONTEXTS,
+  searchBoxStore
+} from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
+import {isOnPublicCollectionsRoute} from './libraryUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
@@ -19,18 +23,22 @@ const publicCollectionsStore = Reflux.createStore({
    */
   abortFetchData: undefined,
   previousPath: null,
+  previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
+  isVirgin: true,
+
+  data: {
+    isFetchingData: false,
+    currentPage: 0,
+    totalPages: null,
+    totalSearchAssets: null,
+    assets: [],
+    metadata: {}
+  },
+
   init() {
-    this.data = {
-      isFetchingData: false,
-      currentPage: 0,
-      totalPages: null,
-      totalSearchAssets: null,
-      assets: [],
-      metadata: {}
-    };
     this.setDefaultColumns();
 
     hashHistory.listen(this.onRouteChange.bind(this));
@@ -49,11 +57,17 @@ const publicCollectionsStore = Reflux.createStore({
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
 
     // startup store after config is ready
-    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
+    actions.permissions.getConfig.completed.listen(this.startupStore);
   },
 
-  onGetConfigCompleted() {
-    this.fetchData(true);
+  /**
+   * Only makes a call to BE when loaded app on a library route
+   * otherwise wait until route changes to a library (see `onRouteChange`)
+   */
+  startupStore() {
+    if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
+      this.fetchData(true);
+    }
   },
 
   setDefaultColumns() {
@@ -108,12 +122,14 @@ const publicCollectionsStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    // refresh data when navigating into library from other place
-    if (
+    if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
+      this.fetchData(true);
+    } else if (
       this.previousPath !== null &&
-      this.previousPath.split('/')[1] !== 'library' &&
-      data.pathname.split('/')[1] === 'library'
+      this.previousPath.startsWith('/library/public-collections') === false &&
+      isOnPublicCollectionsRoute()
     ) {
+      // refresh data when navigating into public-collections from other place
       this.setDefaultColumns();
       this.fetchData(true);
     }
@@ -121,11 +137,17 @@ const publicCollectionsStore = Reflux.createStore({
   },
 
   searchBoxStoreChanged() {
-    // reset to first page when search changes
-    this.data.currentPage = 0;
-    this.data.totalPages = null;
-    this.data.totalSearchAssets = null;
-    this.fetchData(true);
+    if (
+      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('public-collections') &&
+      searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
+    ) {
+      // reset to first page when search changes
+      this.data.currentPage = 0;
+      this.data.totalPages = null;
+      this.data.totalSearchAssets = null;
+      this.previousSearchPhrase = searchBoxStore.getSearchPhrase();
+      this.fetchData(true);
+    }
   },
 
   onSearchStarted(abort) {
@@ -144,6 +166,7 @@ const publicCollectionsStore = Reflux.createStore({
     }
     this.data.totalSearchAssets = response.count;
     this.data.isFetchingData = false;
+    this.isVirgin = false;
     this.trigger(this.data);
   },
 
@@ -161,21 +184,28 @@ const publicCollectionsStore = Reflux.createStore({
   // methods for handling actions that update assets
 
   onSubscribeCompleted(subscriptionData) {
-    this.onAssetAccessTypeChanged(subscriptionData.asset, ACCESS_TYPES.get('subscribed'));
+    this.onAssetAccessTypeChanged(subscriptionData.asset, true);
   },
 
   onUnsubscribeCompleted(assetUid) {
-    this.onAssetAccessTypeChanged(assetUid, ACCESS_TYPES.get('public'));
+    this.onAssetAccessTypeChanged(assetUid, false);
   },
 
-  onAssetAccessTypeChanged(assetUidOrUrl, accessType) {
+  onAssetAccessTypeChanged(assetUidOrUrl, setSubscribed) {
     let wasUpdated = false;
     for (let i = 0; i < this.data.assets.length; i++) {
       if (
         this.data.assets[i].uid === assetUidOrUrl ||
         this.data.assets[i].url === assetUidOrUrl
       ) {
-        this.data.assets[i].access_type = accessType;
+        if (setSubscribed) {
+          this.data.assets[i].access_types.push(ACCESS_TYPES.get('subscribed'));
+        } else {
+          this.data.assets[i].access_types.splice(
+            this.data.assets[i].access_types.indexOf(ACCESS_TYPES.get('subscribed')),
+            1
+          );
+        }
         wasUpdated = true;
         break;
       }

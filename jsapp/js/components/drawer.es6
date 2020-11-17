@@ -17,10 +17,7 @@ import {
   COMMON_QUERIES,
   MODAL_TYPES
 } from '../constants';
-import {
-  t,
-  assign
-} from '../utils';
+import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 
 class FormSidebar extends Reflux.Component {
@@ -59,9 +56,9 @@ class FormSidebar extends Reflux.Component {
   render () {
     return (
       <React.Fragment>
-        <button onClick={this.newFormModal} className='mdl-button mdl-button--raised mdl-button--colored'>
+        <bem.KoboButton onClick={this.newFormModal} m={['blue', 'fullwidth']}>
           {t('new')}
-        </button>
+        </bem.KoboButton>
         <SidebarFormsList/>
       </React.Fragment>
     );

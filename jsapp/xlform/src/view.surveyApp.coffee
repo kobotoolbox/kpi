@@ -1,7 +1,5 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
-jQuery = require 'jquery'
-$ = jQuery
 $survey = require './model.survey'
 $modelUtils = require './model.utils'
 $viewTemplates = require './view.templates'
@@ -10,7 +8,6 @@ $viewRowSelector = require './view.rowSelector'
 $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
-_t = require('utils').t
 alertify = require 'alertifyjs'
 
 module.exports = do ->
@@ -19,6 +16,9 @@ module.exports = do ->
   _notifyIfRowsOutOfOrder = do ->
     # a temporary function to notify devs if rows are mysteriously falling out of order
     fn = (surveyApp)->
+      if surveyApp.orderfail
+        # it's already been reported so no need to report it again
+        return
       survey = surveyApp.survey
       elIds = []
       surveyApp.$('.survey__row').each -> elIds.push $(@).data('rowId')
@@ -30,9 +30,13 @@ module.exports = do ->
 
       _s = (i)-> JSON.stringify(i)
       if _s(rIds) isnt _s(elIds)
-        Raven?.captureException new Error('Row model does not match view'), extra:
-          rIds: _s(rIds)
-          elIds: _s(elIds)
+        pathname = window.location.pathname
+        surveyApp.orderfail = true
+        err_message = """
+          Row model does not match view: #{_s(rIds)} #{_s(elIds)} #{pathname}
+        """.trim()
+        console?.error(err_message)
+        Raven?.captureException new Error(err_message)
 
         false
       else
@@ -109,15 +113,19 @@ module.exports = do ->
       [prev, parent]
 
     initialize: (options)->
-      @reset = ()=>
-        clearTimeout(@_timedReset)  if @_timedReset
+      @reset = (newlyAddedRow = false) =>
+        if @_timedReset
+          clearTimeout(@_timedReset)
         promise = $.Deferred();
-        @_timedReset = setTimeout =>
-          @_reset.call(@)
-          promise.resolve()
-        , 0
+        @_timedReset = setTimeout(
+          () =>
+            @_reset.call(@, newlyAddedRow)
+            promise.resolve()
+            return
+          , 0
+        )
 
-        promise
+        return promise
 
       if options.survey and (options.survey instanceof $survey.Survey)
         @survey = options.survey
@@ -133,8 +141,8 @@ module.exports = do ->
 
       @survey.settings.on 'change:form_id', (model, value) =>
         $('.form-id').text(value)
-      @survey.on 'rows-add', @reset, @
-      @survey.on 'rows-remove', @reset, @
+      @survey.on('rows-add', @reset, @)
+      @survey.on('rows-remove', @reset, @)
       @survey.on "row-detail-change", (row, key, val, ctxt)=>
         if key.match(/^\$/)
           return
@@ -152,7 +160,28 @@ module.exports = do ->
 
       @expand_all_multioptions = () -> @$('.survey__row:not(.survey__row--deleted) .card--expandedchoices:visible').length > 0
 
+      # Keyboard Navigation
+      currentLabelIndex = 0
+      hoverOver = false
       $(window).on "keydown", (evt)=>
+        focusedElement = $(':focus')
+        if evt.keyCode == 13
+          evt.preventDefault()
+          # preventDefault stops ENTER from pressing twice, need to trigger click when adding question label
+          $('div.row__questiontypes').find('button').eq(1).trigger('click')
+          focusedElement = $(':focus')
+          # ENTER should highlight add choice button first
+          if focusedElement.hasClass('editable-wrapper')
+            if hoverOver
+              focusedElement.trigger('click')
+              hoverOver = false
+            else
+              hoverOver = true
+          else if focusedElement.css('display') == 'none'
+            focusedElement.css('display', 'block')
+          else
+            focusedElement.trigger('click')
+
         @onEscapeKeydown(evt)  if evt.keyCode is 27
 
     getView: (cid)->
@@ -377,13 +406,28 @@ module.exports = do ->
       @$el.removeClass("survey-editor--loading")
       @
 
+    shrinkAllGroups: ->
+      @$('.survey__row--group:not(.group--shrunk)').each (i, el) ->
+        if !$(el).hasClass('group--shrunk')
+          $(el).find('.group__caret').click()
+
+    expandAllGroups: ->
+      depth = 0
+      while @$('.survey__row--group.group--shrunk').length > 0
+        @$('.survey__row--group.group--shrunk').each (i, el) ->
+          $(el).find('.group__caret').click()
+        if depth++ > 10
+          break
+
     expandMultioptions: ->
       if @expand_all_multioptions()
+        @shrinkAllGroups()
         @$(".card--expandedchoices").each (i, el)=>
           @_getViewForTarget(currentTarget: el).hideMultioptions()
           ``
         _expanded = false
       else
+        @expandAllGroups()
         @$(".card--selectquestion").each (i, el)=>
           @_getViewForTarget(currentTarget: el).showMultioptions()
           ``
@@ -556,20 +600,51 @@ module.exports = do ->
         xlfrv = @__rowViews.get(row.cid)
       xlfrv
 
-    _reset: ->
+    _reset: (newlyAddedRow = false) ->
       _notifyIfRowsOutOfOrder(@)
 
       isEmpty = true
-      @survey.forEachRow(((row)=>
+
+      @survey.forEachRow((
+        (row) =>
           if !@features.skipLogic
             row.unset 'relevant'
           isEmpty = false
           @ensureElInView(row, @, @formEditorEl).render()
-        ), includeErrors: true, includeGroups: true, flat: true)
+        ), {
+          includeErrors: true,
+          includeGroups: true,
+          flat: true
+        })
+
+      newlyAddedEl = null
+      newlyAddedType = null
+      if newlyAddedRow
+        newlyAddedEl = $("*[data-row-id=\"#{newlyAddedRow.cid}\"]")
+        newlyAddedType = newlyAddedRow.getValue('type')
+
+      if (
+        newlyAddedEl and
+        newlyAddedType and
+        (
+          newlyAddedType.includes('select_one') or
+          newlyAddedType.includes('select_multiple')
+        )
+      )
+        # If newest question has choices then hightlight the first choice
+        newlyAddedEl.find('input.option-view-input').eq(0).select()
+      else if newlyAddedEl
+        # focus on the next add row button
+        closestAddrow = newlyAddedEl.find('.btn--addrow').eq(0)
+        closestAddrow.addClass('btn--addrow-force-show')
+        closestAddrow.focus()
+        $(document).one('keydown click', (evt) =>
+          closestAddrow.removeClass('btn--addrow-force-show')
+          closestAddrow.blur()
+        )
 
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")
       null_top_row.toggleClass("survey-editor__null-top-row--hidden", !isEmpty)
-
 
       if @features.multipleQuestions
         @activateSortable()
@@ -587,8 +662,8 @@ module.exports = do ->
 
     clickRemoveRow: (evt)->
       evt.preventDefault()
-      if confirm(_t("Are you sure you want to delete this question?") + " " +
-          _t("This action cannot be undone."))
+      if confirm(t("Are you sure you want to delete this question?") + " " +
+          t("This action cannot be undone."))
         @survey.trigger('change')
 
         $et = $(evt.target)
@@ -703,13 +778,13 @@ module.exports = do ->
       $header = $et.closest('.card__header')
       card_hover_text = do ->
         if buttonName is 'settings'
-          _t("[button triggers] Settings")
+          t("[button triggers] Settings")
         else if buttonName is 'delete'
-          _t("[button triggers] Delete Question")
+          t("[button triggers] Delete Question")
         else if buttonName is 'duplicate'
-          _t("[button triggers] Duplicate Question")
+          t("[button triggers] Duplicate Question")
         else if buttonName is 'add-to-library'
-          _t("[button triggers] Add Question to Library")
+          t("[button triggers] Add Question to Library")
 
       $header.find('.card__header--shade').eq(0).children('span').eq(0)
         .attr('data-card-hover-text', card_hover_text)
@@ -728,25 +803,5 @@ module.exports = do ->
       multipleQuestions: true
       skipLogic: true
       copyToLibrary: true
-
-  class surveyApp.QuestionApp extends SurveyFragmentApp
-    features:
-      multipleQuestions: false
-      skipLogic: false
-      copyToLibrary: false
-    render: () ->
-      super
-      @$('.survey-editor.form-editor-wrap.container').append $('.question__tags')
-
-  class surveyApp.SurveyTemplateApp extends $baseView
-    events:
-      "click .js-start-survey": "startSurvey"
-    initialize: (@options)->
-    render: ()->
-      @$el.addClass("content--centered").addClass("content")
-      @$el.html $viewTemplates.$$render('surveyTemplateApp')
-      @
-    startSurvey: ->
-      new surveyApp.SurveyApp(@options).render()
 
   surveyApp

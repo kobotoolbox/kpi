@@ -21,10 +21,9 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import {MODAL_TYPES, QUESTION_TYPES} from '../constants';
 
 import {
-  t,
   notify,
   checkLatLng
-} from '../utils';
+} from 'utils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 
 import MapSettings from './mapSettings';
@@ -245,6 +244,17 @@ export class FormMap extends React.Component {
   requestData(map, nextViewBy = '') {
     // TODO: support area / line geodata questions
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null;
+
+    this.props.asset.content.survey.forEach(function(row) {
+      if (
+        typeof row.label !== 'undefined' &&
+        row.label !== null &&
+        selectedQuestion === row.label[0] &&
+        row.type !== QUESTION_TYPES.get('geopoint').id
+      ) {
+        selectedQuestion = null; //Ignore if not a geopoint question type
+      }
+    });
 
     let queryLimit = QUERY_LIMIT_DEFAULT;
     if (this.state.overridenStyles && this.state.overridenStyles.querylimit) {

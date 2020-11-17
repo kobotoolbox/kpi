@@ -17,10 +17,9 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import {
-  t,
   notify,
   replaceSupportEmail,
-} from './utils';
+} from 'utils';
 
 // Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
@@ -371,6 +370,10 @@ actions.resources.createResource.listen(function(details){
     });
 });
 
+/**
+ * @param {object} params
+ * @param {string} params.uid
+ */
 actions.resources.deleteAsset.listen(function(details, params={}){
   dataInterface.deleteAsset(details)
     .done(() => {
@@ -650,7 +653,7 @@ actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
     });
 });
 actions.hooks.retryLogs.completed.listen((response) => {
-  notify(t(response.detail), 'warning');
+  notify(response.detail, 'warning');
 });
 actions.hooks.retryLogs.failed.listen((response) => {
   notify(t('Retrying all submissions failed'), 'error');

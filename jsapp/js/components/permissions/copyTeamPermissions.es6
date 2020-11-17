@@ -8,7 +8,7 @@ import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {actions} from '../../actions';
-import { t, notify } from '../../utils';
+import {notify} from 'utils';
 
 class CopyTeamPermissions extends React.Component {
   constructor(props) {
@@ -95,12 +95,6 @@ class CopyTeamPermissions extends React.Component {
     let isImportButtonEnabled =
       this.state.sourceUid !== null && !this.state.isAwaitingAssetChange;
 
-    const importButtonClasses = classNames(
-      'mdl-button',
-      'mdl-button--raised',
-      isImportButtonEnabled ? 'mdl-button--colored' : 'mdl-button--disabled'
-    );
-
     const availableOptions = [];
     for (const assetUid in stores.allAssets.byUid) {
       if (stores.allAssets.byUid.hasOwnProperty(assetUid)) {
@@ -149,14 +143,14 @@ class CopyTeamPermissions extends React.Component {
                 classNamePrefix='kobo-select'
                 menuPlacement='auto'
               />
-              <button
+              <bem.KoboButton
                 id='copyTeamPermissionsImportButton'
-                className={importButtonClasses}
+                m='blue'
                 disabled={!isImportButtonEnabled}
                 onClick={this.safeCopyPermissionsFrom}
               >
                 {t('copy')}
-              </button>
+              </bem.KoboButton>
             </bem.FormModal__item>
           </bem.FormView__cell>
         )}

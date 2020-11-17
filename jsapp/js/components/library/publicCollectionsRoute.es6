@@ -4,7 +4,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
-import {t} from 'js/utils';
 import publicCollectionsStore from './publicCollectionsStore';
 import {
   AssetsTable,

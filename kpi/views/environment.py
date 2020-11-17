@@ -17,8 +17,9 @@ class EnvironmentView(APIView):
         'TERMS_OF_SERVICE_URL',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
-        'SUPPORT_URL',
         'SUPPORT_EMAIL',
+        'SUPPORT_URL',
+        'COMMUNITY_URL',
     ]
 
     def get(self, request, *args, **kwargs):

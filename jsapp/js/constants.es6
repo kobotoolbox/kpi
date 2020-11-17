@@ -2,8 +2,6 @@
  * A list of all shareable constants for the application.
  */
 
-import {t} from './utils';
-
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs
@@ -66,7 +64,8 @@ export const MODAL_TYPES = {
   REST_SERVICES: 'rest-services',
   FORM_LANGUAGES: 'form-languages',
   FORM_TRANSLATIONS_TABLE: 'form-translation-table',
-  ASSET_TAGS: 'asset-tags'
+  ASSET_TAGS: 'asset-tags',
+  ENCRYPT_FORM: 'encrypt-form'
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = {
@@ -311,6 +310,14 @@ export const QUESTION_TYPES = new Map([
     }
   ],
   [
+    'hidden',
+    {
+      label: t('Hidden'),
+      faIcon: 'fa-eye-slash',
+      id: 'hidden'
+    }
+  ],
+  [
     'file',
     {
       label: t('File'),
@@ -345,6 +352,7 @@ export const NAME_MAX_LENGTH = 255;
 
 /**
  * for Backend calls, see their definitions at `kpi/filters.py`
+ * NOTE: ORs require a parenthesis to work
  */
 export const COMMON_QUERIES = new Map([
   ['b', 'asset_type:block'],
@@ -352,9 +360,9 @@ export const COMMON_QUERIES = new Map([
   ['t', 'asset_type:template'],
   ['s', 'asset_type:survey'],
   ['c', 'asset_type:collection'],
-  ['qb', 'asset_type:question OR asset_type:block'],
-  ['qbt', 'asset_type:question OR asset_type:block OR asset_type:template'],
-  ['qbtc', 'asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection']
+  ['qb', '(asset_type:question OR asset_type:block)'],
+  ['qbt', '(asset_type:question OR asset_type:block OR asset_type:template)'],
+  ['qbtc', '(asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection)']
 ]);
 
 export const ACCESS_TYPES = new Map();
@@ -364,6 +372,43 @@ new Set([
   'public',
   'subscribed'
 ]).forEach((codename) => {ACCESS_TYPES.set(codename, codename);});
+
+export const GROUP_TYPES_BEGIN = new Map();
+new Set([
+  'begin_group',
+  'begin_score',
+  'begin_rank',
+  'begin_kobomatrix',
+  'begin_repeat',
+]).forEach((kind) => {GROUP_TYPES_BEGIN.set(kind, kind);});
+
+export const GROUP_TYPES_END = new Map();
+new Set([
+  'end_group',
+  'end_score',
+  'end_rank',
+  'end_kobomatrix',
+  'end_repeat',
+]).forEach((kind) => {GROUP_TYPES_END.set(kind, kind);});
+
+export const FORM_VERSION_NAME = '__version__';
+
+// a custom question type for score
+export const SCORE_ROW_TYPE = 'score__row';
+
+// a custom question type for rank
+export const RANK_LEVEL_TYPE = 'rank__level';
+
+export const MATRIX_PAIR_PROPS = {
+  inSurvey: 'kobo--matrix_list',
+  inChoices: 'list_name'
+};
+
+export const CATEGORY_LABELS = {
+  Deployed: t('Deployed'),
+  Draft: t('Draft'),
+  Archived: t('Archived')
+};
 
 const constants = {
   ROOT_URL,
@@ -382,7 +427,13 @@ const constants = {
   META_QUESTION_TYPES,
   NAME_MAX_LENGTH,
   COMMON_QUERIES,
-  ACCESS_TYPES
+  ACCESS_TYPES,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END,
+  FORM_VERSION_NAME,
+  SCORE_ROW_TYPE,
+  RANK_LEVEL_TYPE,
+  CATEGORY_LABELS,
 };
 
 export default constants;

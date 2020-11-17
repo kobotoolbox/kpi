@@ -10,20 +10,20 @@ from os.path import splitext
 from urllib.parse import urlparse
 
 import dateutil.parser
+import formpack.constants
 import pytz
 import requests
+from formpack.schema.fields import ValidationStatusCopyField
+from formpack.utils.string import ellipsize
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
 from django.urls import Resolver404, resolve
 from django.db import models, transaction
-from jsonfield import JSONField
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
 from rest_framework import exceptions
 
-import formpack.constants
-from formpack.schema.fields import ValidationStatusCopyField
-from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
@@ -32,6 +32,7 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
 )
 from kpi.utils.log import logging
+from kpi.utils.sheet_converter import convert_xls_to_dict
 from kpi.utils.strings import to_str
 from ..fields import KpiUidField
 from ..model_utils import create_assets, _load_library_content, \
@@ -85,8 +86,8 @@ class ImportExportTask(models.Model):
     )
 
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    data = JSONField()
-    messages = JSONField(default=dict)
+    data = JSONBField()
+    messages = JSONBField(default=dict)
     status = models.CharField(choices=STATUS_CHOICES, max_length=32,
                               default=CREATED)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -219,6 +220,9 @@ class ImportTask(ImportExportTask):
             }
 
             if item.get_type() == 'collection':
+                # FIXME: seems to allow importing nested collections, even
+                # though uploading from a file does not (`_parse_b64_upload()`
+                # raises `NotImplementedError`)
                 item._orm = create_assets(item.get_type(), extra_args)
             elif item.get_type() == 'asset':
                 kontent = xls2json_backends.xls_to_dict(item.readable)
@@ -589,14 +593,6 @@ class ExportTask(ImportExportTask):
         # exports in excess of the per-user, per-form limit
         self.remove_excess(self.user, source_url)
 
-    @staticmethod
-    def _filter_by_source_kludge(queryset, source):
-        """
-        A disposable way to filter a queryset by source URL.
-        TODO: make `data` a `JSONBField` and use proper filtering
-        """
-        return queryset.filter(data__contains=source)
-
     @classmethod
     @transaction.atomic
     def log_and_mark_stuck_as_errored(cls, user, source):
@@ -617,9 +613,9 @@ class ExportTask(ImportExportTask):
         oldest_allowed_timestamp = this_moment - max_allowed_export_age
         stuck_exports = cls.objects.filter(
             user=user,
-            date_created__lt=oldest_allowed_timestamp
+            date_created__lt=oldest_allowed_timestamp,
+            data__source=source,
         ).exclude(status__in=(cls.COMPLETE, cls.ERROR))
-        stuck_exports = cls._filter_by_source_kludge(stuck_exports, source)
         for stuck_export in stuck_exports:
             logging.warning(
                 'Stuck export {}: type {}, username {}, source {}, '
@@ -644,21 +640,24 @@ class ExportTask(ImportExportTask):
 
         `source` is the source URL as included in the `data` attribute.
         """
-        user_source_exports = cls._filter_by_source_kludge(
-            cls.objects.filter(user=user), source
+        user_source_exports = cls.objects.filter(
+            user=user, data__source=source
         ).order_by('-date_created')
         excess_exports = user_source_exports[
             settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
         ]
         for export in excess_exports:
-            # The `result` file must be deleted manually
-            export.result.delete()
             export.delete()
+
+    def delete(self, *args, **kwargs):
+        # removing exported file from storage
+        self.result.delete(save=False)
+        super().delete(*args, **kwargs)
 
 
 def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)
-    survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
+    survey_dict = convert_xls_to_dict(BytesIO(decoded_str))
     return _strip_header_keys(survey_dict)
 
 

@@ -10,9 +10,7 @@ var CascadePopup = bem.create('cascade-popup'),
     CascadePopup__buttonWrapper = bem.create('cascade-popup__buttonWrapper'),
     CascadePopup__button = bem.create('cascade-popup__button', '<button>');
 
-var choiceListHelpUrl = 'http://support.kobotoolbox.org/creating-forms/general/adding-cascading-select-questions';
-
-import {t} from '../utils';
+const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html';
 
 export const cascadeMixin = {
   toggleCascade () {
@@ -99,15 +97,16 @@ export const cascadeMixin = {
             <textarea ref='cascade' onChange={this.cascadePopopChange}
               value={this.state.cascadeTextareaValue} />
 
-            {choiceListHelpUrl ?
+            { stores.serverEnvironment &&
+              stores.serverEnvironment.state.support_url &&
               <div className='cascade-help right-tooltip'>
-                <a href={choiceListHelpUrl}
+                <a href={stores.serverEnvironment.state.support_url + CHOICE_LIST_SUPPORT_URL}
                   target='_blank'
                   data-tip={t('Learn more about importing cascading lists from Excel')}>
                     <i className='k-icon-help' />
                 </a>
               </div>
-            : null}
+            }
 
             <CascadePopup__buttonWrapper>
               <CascadePopup__button disabled={!this.state.cascadeReady}

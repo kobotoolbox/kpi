@@ -6,7 +6,6 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
-import {t} from 'js/utils';
 
 class ApiTokenDisplay extends React.Component {
   constructor(props) {
@@ -63,15 +62,15 @@ class ApiTokenDisplay extends React.Component {
           readOnly
         />
 
-        <button
+        <bem.Button
           onClick={this.toggleApiTokenVisibility}
           disabled={this.state.isLoadingToken}
-          className='mdl-button mdl-button--icon'
+          m='icon'
         >
           <i className={this.state.isTokenVisible ? 'k-icon k-icon-view-no'
                                                   : 'k-icon k-icon-view'}
           />
-        </button>
+        </bem.Button>
       </bem.FormModal__item>
     );
   }

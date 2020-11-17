@@ -6,15 +6,13 @@ from collections import defaultdict, OrderedDict
 from operator import itemgetter
 from hashlib import md5
 
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from rest_framework_xml.renderers import XMLRenderer
 
 from kpi.constants import (
     ASSET_TYPES,
@@ -24,6 +22,7 @@ from kpi.constants import (
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
+    PERM_FROM_KC_ONLY,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import BadAssetTypeException
@@ -44,7 +43,7 @@ from kpi.paginators import AssetPagination
 from kpi.permissions import IsOwnerOrReadOnly, PostMappedToChangePermission, \
     get_perm_name
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
-    XlsRenderer, RawXMLRenderer
+    XlsRenderer
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
 from kpi.utils.hash import get_hash
@@ -90,6 +89,25 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     Look at [README](https://github.com/kobotoolbox/kpi#searching-assets)
     for more details.
+
+    Results can be sorted with `ordering` parameter.
+    Allowed fields are:
+
+    - `asset_type`
+    - `date_modified`
+    - `name`
+    - `owner__username`
+    - `subscribers_count`
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/?ordering=-name
+
+    _Note: Collections can be displayed first with parameter `collections_first`_
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/?collections_first=true&ordering=-name
 
     <hr>
 
@@ -303,8 +321,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 return Response(dict(serializer.data))
         elif request.method == 'POST':
             if not asset.can_be_deployed:
-                raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                    asset.asset_type))
+                raise BadAssetTypeException(
+                    'Only surveys may be deployed, but this asset is a '
+                    f'{asset.asset_type}'
+                )
             else:
                 if asset.has_deployment:
                     raise exceptions.MethodNotAllowed(
@@ -323,8 +343,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         elif request.method == 'PATCH':
             if not asset.can_be_deployed:
-                raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                    asset.asset_type))
+                raise BadAssetTypeException(
+                    'Only surveys may be deployed, '
+                    f'but this asset is a {asset.asset_type}'
+                )
             else:
                 if not asset.has_deployment:
                     raise exceptions.MethodNotAllowed(
@@ -385,7 +407,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         Prepare metadata to inject in list endpoint.
         Useful to retrieve values needed for search
 
-        ToDo optimize queries. See https://github.com/kobotoolbox/kpi/issues/2690
         :return: dict
         """
         metadata = {
@@ -395,57 +416,60 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'organizations': set(),
         }
 
+        records = queryset.values('summary', 'settings').\
+            exclude(
+                Q(
+                    Q(summary__languages=[]) | Q(summary__languages=[None])
+                ),
+                Q(
+                    Q(settings__country=None) | Q(settings__country__exact=''),
+                    Q(settings__sector=None) | Q(settings__sector__exact=''),
+                    Q(settings__organization=None) | Q(settings__organization='')
+                )
+            )
+
         # Languages
-        # Refactor this query when
-        # https://github.com/kobotoolbox/kpi/issues/2635 is merged.
-        summaries = queryset.values_list('summary', flat=True). \
-            filter(summary__contains='languages')
-        summaries.query.clear_ordering(True)
+        records = records.order_by()
 
-        for summary in summaries.all():
+        for record in records.all():
             try:
-                # Remove this condition when
-                # https://github.com/kobotoolbox/kpi/issues/2635 is merged
-                if not isinstance(summary, dict):
-                    summary = json.loads(summary)
-
-                for language in summary['languages']:
-                    if language:
-                        metadata['languages'].add(language)
+                languages = record['summary']['languages']
             except (ValueError, KeyError):
                 pass
+            else:
+                for language in languages:
+                    if language:
+                        metadata['languages'].add(language)
 
-        metadata['languages'] = sorted(list(metadata['languages']))
-
-        # Other properties.
-        # ToDo, find a way to merge both querysets without using objects.
-        others = queryset.values_list('settings', flat=True). \
-            exclude(settings__country=None,
-                    settings__sector=None,
-                    settings__organization=None)
-        others.query.clear_ordering(True)
-        for other in others.all():
             try:
-                value = other['country']['value']
+                country = record['settings']['country']
+                value = country['value']
+                label = country['label']
+            except (KeyError, TypeError):
+                pass
+            else:
                 if value and value not in metadata['countries']:
-                    metadata['countries'][other['country']['value']] = \
-                        other['country']['label']
-            except (KeyError, TypeError):
-                pass
+                    metadata['countries'][value] = label
 
             try:
-                value = other['sector']['value']
+                sector = record['settings']['sector']
+                value = sector['value']
+                label = sector['label']
+            except (KeyError, TypeError):
+                pass
+            else:
                 if value and value not in metadata['sectors']:
-                    metadata['sectors'][other['sector']['value']] = \
-                        other['sector']['label']
-            except (KeyError, TypeError):
-                pass
+                    metadata['sectors'][value] = label
 
             try:
-                if other['organization']:
-                    metadata['organizations'].add(other['organization'])
+                organization = record['settings']['organization']
             except KeyError:
                 pass
+            else:
+                if organization:
+                    metadata['organizations'].add(organization)
+
+        metadata['languages'] = sorted(list(metadata['languages']))
 
         metadata['countries'] = sorted(metadata['countries'].items(),
                                        key=itemgetter(1))
@@ -484,17 +508,23 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             # for each asset in the list.
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
-            queryset = super().get_queryset()
-            asset_content_type = ContentType.objects.get_for_model(Asset)
+
+            # self.__filtered_queryset is set in the `list()` method that
+            # DRF automatically calls and is overridden below. This is
+            # to prevent double calls to `filter_queryset()` as described in
+            # the issue here: https://github.com/kobotoolbox/kpi/issues/2576
+            queryset = self.__filtered_queryset
 
             # 1) Retrieve all asset IDs of current list
-            asset_ids = self.filter_queryset(queryset).values_list('id').distinct()
+            asset_ids = AssetPagination.\
+                get_all_asset_ids_from_queryset(queryset)
 
             # 2) Get object permissions per asset
             object_permissions = ObjectPermission.objects.filter(
-                content_type_id=asset_content_type.pk,
-                object_id__in=asset_ids,
+                asset_id__in=asset_ids,
                 deny=False,
+            ).exclude(
+                permission__codename=PERM_FROM_KC_ONLY
             ).select_related(
                 'user', 'permission'
             ).order_by(
@@ -504,33 +534,32 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             object_permissions_per_asset = defaultdict(list)
 
             for op in object_permissions:
-                object_permissions_per_asset[op.object_id].append(op)
+                object_permissions_per_asset[op.asset_id].append(op)
 
             context_['object_permissions_per_asset'] = object_permissions_per_asset
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = UserAssetSubscription.objects. \
-                values('asset_id').annotate(user_subscriptions=Count('user_id'))
+                values('asset_id', 'user_id').distinct().order_by('asset_id')
 
-            user_subscriptions_per_asset = defaultdict(int)
+            user_subscriptions_per_asset = defaultdict(list)
             for record in subscriptions_queryset:
-                user_subscriptions_per_asset[record['asset_id']] = \
-                    record['user_subscriptions']
+                user_subscriptions_per_asset[record['asset_id']].append(
+                    record['user_id'])
 
             context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
 
             # 4) Get children count per asset
-            # ToDo Verify if all children must be included in count (e.g. Archives)
-            records = Asset.objects.filter(parent_id__in=asset_ids). \
-                values('parent_id').annotate(children_count=Count('id'))
             # Ordering must be cleared otherwise group_by is wrong
             # (i.e. default ordered field `date_modified` must be removed)
-            records.query.clear_ordering(True)
+            records = Asset.objects.filter(parent_id__in=asset_ids). \
+                values('parent_id').annotate(children_count=Count('id')).order_by()
 
             children_count_per_asset = {
                 r.get('parent_id'): r.get('children_count', 0)
                 for r in records if r.get('parent_id') is not None
             }
+
             context_['children_count_per_asset'] = children_count_per_asset
 
         return context_
@@ -541,17 +570,19 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response({'asset': asset, }, template_name='koboform.html')
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        # assigning global filtered query set to prevent additional,
+        # unnecessary calls to `filter_queryset`
+        self.__filtered_queryset = self.filter_queryset(self.get_queryset())
 
-        page = self.paginate_queryset(queryset)
+        page = self.paginate_queryset(self.__filtered_queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             metadata = None
             if request.GET.get('metadata') == 'on':
-                metadata = self.get_metadata(queryset)
+                metadata = self.get_metadata(self.__filtered_queryset)
             return self.get_paginated_response(serializer.data, metadata)
 
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(self.__filtered_queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'],
@@ -591,6 +622,11 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         metadata = self.get_metadata(queryset)
         return Response(metadata)
+
+    def perform_destroy(self, instance):
+        if hasattr(instance, 'has_deployment') and instance.has_deployment:
+            instance.deployment.delete()
+        return super().perform_destroy(instance)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()

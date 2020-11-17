@@ -26,7 +26,6 @@ import {actions} from '../actions';
 import {bem} from '../bem';
 import ui from '../ui';
 import {stores} from '../stores';
-import {t} from '../utils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
@@ -36,6 +35,7 @@ import {AssetTagsForm} from './modalForms/assetTagsForm';
 import {LibraryAssetForm} from './modalForms/libraryAssetForm';
 import LibraryNewItemForm from './modalForms/libraryNewItemForm';
 import LibraryUploadForm from './modalForms/libraryUploadForm';
+import EncryptForm from './modalForms/encryptForm.es6';
 import ProjectSettings from './modalForms/projectSettings';
 import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
@@ -143,6 +143,10 @@ class Modal extends React.Component {
         });
         break;
 
+      case MODAL_TYPES.ENCRYPT_FORM:
+        this.setModalTitle(t('Manage Form Encryption'));
+        break;
+
       default:
         console.error(`Unknown modal type: "${type}"!`);
     }
@@ -191,7 +195,11 @@ class Modal extends React.Component {
       title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
     } else {
       let index = p.ids.indexOf(sid);
-      title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+      if (p.ids.length === 1) {
+          title = `${t('Submission Record')}`;
+      } else {
+          title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+      }
     }
 
     return title;
@@ -342,6 +350,12 @@ class Modal extends React.Component {
                 asset={this.props.params.asset}
                 langString={this.props.params.langString}
                 langIndex={this.props.params.langIndex}
+              />
+            }
+            { this.props.params.type == MODAL_TYPES.ENCRYPT_FORM &&
+              <EncryptForm
+                asset={this.props.params.asset}
+                assetUid={this.props.params.assetUid}
               />
             }
         </ui.Modal.Body>

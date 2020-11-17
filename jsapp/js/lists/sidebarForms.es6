@@ -8,8 +8,10 @@ import {bem} from '../bem';
 import ui from '../ui';
 import {searches} from '../searches';
 import {stores} from '../stores';
-import {t} from '../utils';
-import {COMMON_QUERIES} from 'js/constants';
+import {
+  COMMON_QUERIES,
+  CATEGORY_LABELS
+} from 'js/constants';
 
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
@@ -98,13 +100,6 @@ class SidebarFormsList extends Reflux.Component {
     return (
       <bem.FormSidebar>
         {
-          s.defaultQueryState === 'done' &&
-          <bem.FormSidebar__label m={'active-projects'} className='is-edge'>
-            <i className='k-icon-projects' />
-            <bem.FormSidebar__labelText>{t('Active Projects')}</bem.FormSidebar__labelText>
-          </bem.FormSidebar__label>
-        }
-        {
           (() => {
             if (s.defaultQueryState === 'loading') {
               return (
@@ -116,7 +111,7 @@ class SidebarFormsList extends Reflux.Component {
                 </bem.Loading>
               );
             } else if (s.defaultQueryState === 'done') {
-              return ['Deployed', 'Draft', 'Archived' /*, 'Deleted'*/].map(
+              return [CATEGORY_LABELS.Deployed, CATEGORY_LABELS.Draft, CATEGORY_LABELS.Archived].map(
                 (category) => {
                   var categoryVisible = this.state.selectedCategories[category];
                   if (s[activeItems][category].length < 1) {
@@ -124,13 +119,13 @@ class SidebarFormsList extends Reflux.Component {
                   }
 
                   const icon = ['k-icon'];
-                  if (category === 'Deployed') {
+                  if (category === CATEGORY_LABELS.Deployed) {
                     icon.push('k-icon-deploy');
                   }
-                  if (category === 'Draft') {
+                  if (category === CATEGORY_LABELS.Draft) {
                     icon.push('k-icon-drafts');
                   }
-                  if (category === 'Archived') {
+                  if (category === CATEGORY_LABELS.Archived) {
                     icon.push('k-icon-archived');
                   }
 
@@ -141,7 +136,7 @@ class SidebarFormsList extends Reflux.Component {
                       key={`${category}-label`}
                     >
                       <i className={icon.join(' ')}/>
-                      <bem.FormSidebar__labelText>{t(category)}</bem.FormSidebar__labelText>
+                      <bem.FormSidebar__labelText>{category}</bem.FormSidebar__labelText>
                       <bem.FormSidebar__labelCount>{s[activeItems][category].length}</bem.FormSidebar__labelCount>
                     </bem.FormSidebar__label>,
 
@@ -157,10 +152,6 @@ class SidebarFormsList extends Reflux.Component {
             }
           })()
         }
-        <bem.FormSidebar__label className='is-edge'>
-          <i className='k-icon-trash' />
-          {t('Deleted')} (#)
-        </bem.FormSidebar__label>
       </bem.FormSidebar>
     );
   }

@@ -7,16 +7,14 @@
  * And make actions for calls that doesn't have them.
  */
 
-import $ from 'jquery';
 import alertify from 'alertifyjs';
-import {
-  t,
-  assign
-} from './utils';
+import {assign} from 'utils';
 import {
   ROOT_URL,
   COMMON_QUERIES
 } from './constants';
+
+const DEFAULT_PAGE_SIZE = 100;
 
 export var dataInterface;
 (function(){
@@ -103,7 +101,7 @@ export var dataInterface;
         dataType: 'json',
         data: {
           q: q,
-          limit: params.pageSize || 100,
+          limit: params.pageSize || DEFAULT_PAGE_SIZE,
           page: params.page || 0
         },
         method: 'GET'
@@ -311,7 +309,8 @@ export var dataInterface;
       if (params.url) {
         return $.getJSON(params.url);
       } else {
-        return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/`);
+        // limit is for collections children
+        return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/?limit=${DEFAULT_PAGE_SIZE}`);
       }
     },
     /**
@@ -364,12 +363,12 @@ export var dataInterface;
     _searchAssetsWithPredefinedQuery(params, predefinedQuery) {
       const searchData = {
         q: predefinedQuery,
-        limit: params.pageSize || 100,
+        limit: params.pageSize || DEFAULT_PAGE_SIZE,
         offset: params.page * params.pageSize || 0
       };
 
       if (params.searchPhrase) {
-        searchData.q += ` AND ${params.searchPhrase}`;
+        searchData.q += ` AND "${params.searchPhrase}"`;
       }
 
       if (params.filterProperty && params.filterValue) {
@@ -384,6 +383,10 @@ export var dataInterface;
         searchData.metadata = 'on';
       }
 
+      if (params.status) {
+        searchData.status = params.status;
+      }
+
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/`,
         dataType: 'json',
@@ -394,20 +397,24 @@ export var dataInterface;
     _searchMetadataWithPredefinedQuery(params, predefinedQuery) {
       const searchData = {
         q: predefinedQuery,
-        limit: params.pageSize || 100,
+        limit: params.pageSize || DEFAULT_PAGE_SIZE,
         offset: params.page * params.pageSize || 0
       };
 
       if (params.searchPhrase) {
-        searchData.q += ` AND ${params.searchPhrase}`;
+        searchData.q += ` AND "${params.searchPhrase}"`;
       }
 
       if (params.filterProperty && params.filterValue) {
-        searchData.q += ` AND ${params.filterProperty}:${params.filterValue}`;
+        searchData.q += ` AND ${params.filterProperty}:"${params.filterValue}"`;
       }
 
       if (params.ordering) {
         searchData.ordering = params.ordering;
+      }
+
+      if (params.status) {
+        searchData.status = params.status;
       }
 
       return $ajax({
@@ -421,26 +428,28 @@ export var dataInterface;
       return this._searchAssetsWithPredefinedQuery(
         params,
         // we only want orphans (assets not inside collection)
-        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
+        `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
       );
     },
     searchMyLibraryMetadata(params = {}) {
       return this._searchMetadataWithPredefinedQuery(
         params,
         // we only want orphans (assets not inside collection)
-        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:null`,
+        `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
       );
     },
     searchPublicCollections(params = {}) {
+      params.status = 'public-discoverable';
       return this._searchAssetsWithPredefinedQuery(
         params,
-        `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
+        COMMON_QUERIES.get('c'),
       );
     },
     searchPublicCollectionsMetadata(params = {}) {
+      params.status = 'public-discoverable';
       return this._searchMetadataWithPredefinedQuery(
         params,
-        `${COMMON_QUERIES.get('c')} AND status:public-discoverable`,
+        COMMON_QUERIES.get('c'),
       );
     },
     assetsHash () {
@@ -520,7 +529,7 @@ export var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${ROOT_URL}/${assetType}/${id}/`);
     },
-    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='') {
+    getSubmissions(uid, pageSize=DEFAULT_PAGE_SIZE, page=0, sort=[], fields=[], filter='') {
       const query = `limit=${pageSize}&start=${page}`;
       var s = '&sort={"_id":-1}'; // default sort
       var f = '';

@@ -1,8 +1,12 @@
 import _ from 'underscore';
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
-import searchBoxStore from '../header/searchBoxStore';
+import {
+  SEARCH_CONTEXTS,
+  searchBoxStore
+} from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
+import {isOnLibraryRoute} from './libraryUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
@@ -16,20 +20,25 @@ const myLibraryStore = Reflux.createStore({
    */
   abortFetchData: undefined,
   previousPath: null,
+  previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
+  isVirgin: true,
+
+  data: {
+    isFetchingData: false,
+    currentPage: 0,
+    totalPages: null,
+    totalUserAssets: null,
+    totalSearchAssets: null,
+    assets: [],
+    metadata: {}
+  },
+
   init() {
     this.fetchDataDebounced = _.debounce(this.fetchData.bind(true), 2500);
-    this.data = {
-      isFetchingData: false,
-      currentPage: 0,
-      totalPages: null,
-      totalUserAssets: null,
-      totalSearchAssets: null,
-      assets: [],
-      metadata: {}
-    };
+
     this.setDefaultColumns();
 
     hashHistory.listen(this.onRouteChange.bind(this));
@@ -51,11 +60,17 @@ const myLibraryStore = Reflux.createStore({
     actions.resources.createImport.completed.listen(this.fetchDataDebounced);
 
     // startup store after config is ready
-    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
+    actions.permissions.getConfig.completed.listen(this.startupStore);
   },
 
-  onGetConfigCompleted() {
-    this.fetchData(true);
+  /**
+   * Only makes a call to BE when loaded app on a library route
+   * otherwise wait until route changes to a library (see `onRouteChange`)
+   */
+  startupStore() {
+    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+      this.fetchData(true);
+    }
   },
 
   setDefaultColumns() {
@@ -99,6 +114,11 @@ const myLibraryStore = Reflux.createStore({
     }
 
     const params = this.getSearchParams();
+    // Surrounds `filterValue` with double quotes to avoid filters that have
+    // spaces which would split the query in two, thus breaking the filter
+    if (params.filterProperty !== undefined) {
+      params.filterValue = JSON.stringify(params.filterValue); // Adds quotes
+    }
 
     params.metadata = needsMetadata;
 
@@ -110,12 +130,20 @@ const myLibraryStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    // refresh data when navigating into library from other place
-    if (
+    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+      this.fetchData(true);
+    } else if (
       this.previousPath !== null &&
-      this.previousPath.split('/')[1] !== 'library' &&
-      data.pathname.split('/')[1] === 'library'
+      (
+        // coming from outside of library
+        this.previousPath.split('/')[1] !== 'library' ||
+        // public-collections is a special case that is kinda in library, but
+        // actually outside of it
+        this.previousPath.startsWith('/library/public-collections')
+      ) &&
+      isOnLibraryRoute()
     ) {
+      // refresh data when navigating into library from other place
       this.setDefaultColumns();
       this.fetchData(true);
     }
@@ -123,11 +151,17 @@ const myLibraryStore = Reflux.createStore({
   },
 
   searchBoxStoreChanged() {
-    // reset to first page when search changes
-    this.data.currentPage = 0;
-    this.data.totalPages = null;
-    this.data.totalSearchAssets = null;
-    this.fetchData(true);
+    if (
+      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('my-library') &&
+      searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
+    ) {
+      // reset to first page when search changes
+      this.data.currentPage = 0;
+      this.data.totalPages = null;
+      this.data.totalSearchAssets = null;
+      this.previousSearchPhrase = searchBoxStore.getSearchPhrase();
+      this.fetchData(true);
+    }
   },
 
   onSearchStarted(abort) {
@@ -150,6 +184,7 @@ const myLibraryStore = Reflux.createStore({
       this.data.totalUserAssets = this.data.totalSearchAssets;
     }
     this.data.isFetchingData = false;
+    this.isVirgin = false;
     this.trigger(this.data);
   },
 
@@ -185,7 +220,16 @@ const myLibraryStore = Reflux.createStore({
     ) {
       let wasUpdated = false;
       for (let i = 0; i < this.data.assets.length; i++) {
-        if (this.data.assets[i].uid === asset.uid) {
+        const loopAsset = this.data.assets[i];
+        if (
+          loopAsset.uid === asset.uid &&
+          (
+            // if the changed asset didn't change (e.g. was just loaded)
+            // let's not cause it to fetchMetadata
+            loopAsset.date_modified !== asset.date_modified ||
+            loopAsset.version_id !== asset.version_id
+          )
+        ) {
           this.data.assets[i] = asset;
           wasUpdated = true;
           break;
@@ -210,7 +254,7 @@ const myLibraryStore = Reflux.createStore({
 
   onDeleteAssetCompleted({uid, assetType}) {
     if (assetUtils.isLibraryAsset(assetType)) {
-      const found = this.data.assets.find((asset) => {return asset.uid === uid;});
+      const found = this.findAsset(uid);
       if (found) {
         this.data.totalUserAssets--;
         this.fetchData(true);
@@ -269,6 +313,14 @@ const myLibraryStore = Reflux.createStore({
       this.data.filterColumnId === null &&
       this.data.filterValue === null
     );
+  },
+
+  getCurrentUserTotalAssets() {
+    return this.data.totalUserAssets;
+  },
+
+  findAsset(uid) {
+    return this.data.assets.find((asset) => {return asset.uid === uid;});
   }
 });
 

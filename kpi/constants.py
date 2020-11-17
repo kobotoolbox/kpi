@@ -23,6 +23,20 @@ ASSET_TYPES = [
     (ASSET_TYPE_COLLECTION, ASSET_TYPE_COLLECTION),   # an organizational container for other assets
 ]
 
+ASSET_TYPES_WITH_CHILDREN = [
+    ASSET_TYPE_COLLECTION,
+]
+
+# if an asset cannot have content, it should not be versioned
+ASSET_TYPES_WITH_CONTENT = [
+    ASSET_TYPE_TEXT,
+    ASSET_TYPE_EMPTY,
+    ASSET_TYPE_QUESTION,
+    ASSET_TYPE_BLOCK,
+    ASSET_TYPE_SURVEY,
+    ASSET_TYPE_TEMPLATE,
+    # notably not ASSET_TYPE_COLLECTION
+]
 
 CLONE_ARG_NAME = "clone_from"
 CLONE_FROM_VERSION_ID_ARG_NAME = "clone_from_version_id"
@@ -75,3 +89,14 @@ ASSET_STATUS_DISCOVERABLE = 'public-discoverable'
 ASSET_STATUS_PRIVATE = 'private'
 ASSET_STATUS_PUBLIC = 'public'
 ASSET_STATUS_SHARED = 'shared'
+
+# Terms that can be used to search and filter return values
+# from a query `q`
+ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS = [
+    'name__icontains',
+    'owner__username__icontains',
+    'settings__description__icontains',
+    'summary__icontains',
+    'tags__name__icontains',
+    'uid__icontains',
+]

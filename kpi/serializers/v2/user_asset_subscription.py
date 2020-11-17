@@ -41,7 +41,7 @@ class UserAssetSubscriptionSerializer(serializers.ModelSerializer):
     def validate_asset(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
             raise serializers.ValidationError(
-                _('Invalid asset type. Only `{asset_type}`').format(
+                _('Invalid asset type. Only `{asset_type}` is allowed').format(
                     asset_type=ASSET_TYPE_COLLECTION
                 )
             )

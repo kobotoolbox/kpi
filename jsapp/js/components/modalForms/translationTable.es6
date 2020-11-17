@@ -7,7 +7,7 @@ import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import {MODAL_TYPES} from 'js/constants';
-import {t, getLangString} from 'utils';
+import {getLangString} from 'utils';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
@@ -82,7 +82,7 @@ export class TranslationTable extends React.Component {
                     <i className='k-icon-edit' />
                   }
               </bem.FormView__iconButton>
-              {t('##lang## ' + editableColTitle).replace('##lang##', translations[langIndex])}
+              {`${translations[langIndex]} ${editableColTitle}`}
             </React.Fragment>
           )
         },
@@ -256,20 +256,20 @@ export class TranslationTable extends React.Component {
         </div>
 
         <bem.Modal__footer>
-          <bem.Modal__footerButton
-            m='back'
+          <bem.KoboButton
+            m='whitegray'
             onClick={this.onBack.bind(this)}
           >
             {t('Back')}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
 
-          <bem.Modal__footerButton
-            m='primary'
+          <bem.KoboButton
+            m='blue'
             onClick={this.saveChanges.bind(this)}
             disabled={this.state.isSaveChangesButtonPending}
           >
             {this.state.saveChangesButtonText}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
         </bem.Modal__footer>
       </bem.FormModal>
     );

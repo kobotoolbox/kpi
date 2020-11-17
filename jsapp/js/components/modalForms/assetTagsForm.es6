@@ -6,10 +6,7 @@ import TagsInput from 'react-tagsinput';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
-import {
-  t,
-  notify
-} from 'js/utils';
+import {notify} from 'utils';
 import {cleanupTags} from 'js/assetUtils';
 import {renderLoading} from './modalHelpers';
 
@@ -99,15 +96,15 @@ export class AssetTagsForm extends React.Component {
         </bem.FormModal__item>
 
         <bem.Modal__footer>
-          <bem.Modal__footerButton
-            m='primary'
+          <bem.KoboButton
+            m='blue'
             type='submit'
             onClick={this.onSubmit}
             disabled={this.state.isPending}
             className='mdl-js-button'
           >
             {this.getSubmitButtonLabel()}
-          </bem.Modal__footerButton>
+          </bem.KoboButton>
         </bem.Modal__footer>
       </bem.FormModal__form>
     );

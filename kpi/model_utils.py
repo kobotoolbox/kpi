@@ -113,6 +113,9 @@ def _load_library_content(structure):
                     content_object=sa
                 )
 
+    # To improve performance, we deferred this until the end using
+    # `update_parent_languages=False`
+    collection.update_languages()
     return collection
 
 

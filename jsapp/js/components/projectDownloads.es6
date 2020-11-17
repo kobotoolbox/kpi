@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
@@ -8,11 +7,10 @@ import {bem} from '../bem';
 import DocumentTitle from 'react-document-title';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   log,
   redirectTo,
   formatTime,
-} from '../utils';
+} from 'utils';
 
 export default class ProjectDownloads extends React.Component {
   constructor(props){
@@ -295,7 +293,7 @@ export default class ProjectDownloads extends React.Component {
                     <bem.FormModal__item key={'s'} m='export-submit'>
                       <input type='submit'
                         value={t('Export')}
-                        className='mdl-button mdl-button--raised mdl-button--colored'
+                        className='kobo-button kobo-button--blue'
                         disabled={this.state.formSubmitDisabled}/>
                     </bem.FormModal__item>
                   ]}

@@ -7,10 +7,7 @@ import mixins from 'js/mixins';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import {
-  t,
-  buildUserUrl
-} from 'js/utils';
+import {buildUserUrl} from 'utils';
 import {
   ASSET_TYPES,
   ANON_USERNAME
@@ -147,12 +144,12 @@ class SharingForm extends React.Component {
           })}
 
           {!this.state.isAddUserEditorVisible &&
-            <bem.Button
-              m={['raised', 'colored']}
+            <bem.KoboButton
+              m='blue'
               onClick={this.toggleAddUserEditor}
             >
               {t('Add user')}
-            </bem.Button>
+            </bem.KoboButton>
           }
 
           {this.state.isAddUserEditorVisible &&

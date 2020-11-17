@@ -31,6 +31,8 @@ class Command(BaseCommand):
         stop = False
         cpt = 0
 
+        # TODO Since Django 2.x support server-side cursors by default,
+        # update the code to use django native `.iterator(chunk_size)`
         while not stop:
             query = query.filter(pk__gt=max_pk).order_by('pk')
             if query.count() == 0:

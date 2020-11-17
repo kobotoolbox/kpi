@@ -5,25 +5,42 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link } from 'react-router';
 import {bem} from '../bem';
+import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import ui from '../ui';
 import mixins from '../mixins';
+import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
 import {MODAL_TYPES} from '../constants';
 import {
   formatTime,
-  t,
   notify
-} from '../utils';
+} from 'utils';
+
+const DVCOUNT_LIMIT_MINIMUM = 20;
 
 export class FormLanding extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      selectedCollectMethod: 'offline_url'
+      selectedCollectMethod: 'offline_url',
+      DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
+      nextPageUrl: null,
+      nextPagesVersions: []
     };
     autoBind(this);
+  }
+  componentDidMount () {
+    // reset loaded versions when new one is deployed
+    this.listenTo(actions.resources.deployAsset.completed, this.resetLoadedVersions);
+  }
+  resetLoadedVersions() {
+    this.setState({
+      DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
+      nextPageUrl: null,
+      nextPagesVersions: []
+    });
   }
   enketoPreviewModal (evt) {
     evt.preventDefault();
@@ -38,7 +55,6 @@ export class FormLanding extends React.Component {
   renderFormInfo (userCanEdit) {
     var dvcount = this.state.deployed_versions.count;
     var undeployedVersion;
-
     if (!this.isCurrentVersionDeployed()) {
       undeployedVersion = `(${t('undeployed')})`;
       dvcount = dvcount + 1;
@@ -66,21 +82,21 @@ export class FormLanding extends React.Component {
           <bem.FormView__cell m='buttons'>
             {userCanEdit && this.state.has_deployment && this.state.deployment__active &&
               <a
-                className='mdl-button mdl-button--raised mdl-button--colored'
+                className='kobo-button kobo-button--blue'
                 onClick={this.deployAsset}>
                   {t('redeploy')}
               </a>
             }
             {userCanEdit && !this.state.has_deployment && !this.state.deployment__active &&
               <a
-                className='mdl-button mdl-button--raised mdl-button--colored'
+                className='kobo-button kobo-button--blue'
                 onClick={this.deployAsset}>
                   {t('deploy')}
               </a>
             }
             {userCanEdit && this.state.has_deployment && !this.state.deployment__active &&
               <a
-                className='mdl-button mdl-button--raised mdl-button--colored'
+                className='kobo-button kobo-button--blue'
                 onClick={this.callUnarchiveAsset}>
                   {t('unarchive')}
               </a>
@@ -129,28 +145,58 @@ export class FormLanding extends React.Component {
       asset: this.state
     });
   }
-  renderHistory() {
-    var dvcount = this.state.deployed_versions.count;
-    if (dvcount <= 1) {
-      return null;
+  showEncryptionModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: MODAL_TYPES.ENCRYPT_FORM,
+      asset: this.state
+    });
+  }
+  loadMoreVersions() {
+    if (this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM <= this.state.deployed_versions.count + DVCOUNT_LIMIT_MINIMUM) {
+      this.setState({ DVCOUNT_LIMIT: this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM });
     }
+    let urlToLoad = null;
+    if(this.state.nextPageUrl) {
+      urlToLoad = this.state.nextPageUrl;
+    } else if (this.state.deployed_versions.next) {
+      urlToLoad = this.state.deployed_versions.next;
+    }
+    if (urlToLoad !== null) {
+      dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
+        this.setState({nextPageUrl: data.deployed_versions.next});
+        const newNextPagesVersions = this.state.nextPagesVersions;
+        Object.values(data.deployed_versions.results).forEach((item) => {
+          newNextPagesVersions.push(item);
+        });
+        this.setState({nextPagesVersions: newNextPagesVersions});
+      });
+    }
+  }
+  renderHistory () {
+    var dvcount = this.state.deployed_versions.count;
+    const versionsToDisplay = this.state.deployed_versions.results.concat(
+      this.state.nextPagesVersions
+    );
     return (
-      <bem.FormView__row m='history'>
-        {this.state.historyExpanded && [
-          <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
+      <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
+        <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
+          <bem.FormView__cell m='label'>
             {t('Form history')}
           </bem.FormView__cell>
-          ,
-          <bem.FormView__cell m={['box', 'history-table']}>
-            <bem.FormView__group m='deployments'>
-              <bem.FormView__group m={['items', 'headings']}>
-                <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
-                <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
-                <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
-              </bem.FormView__group>
-              {this.state.deployed_versions.results.map((item, n) => {
+        </bem.FormView__cell>
+
+        <bem.FormView__cell m={['box', 'history-table']}>
+          <bem.FormView__group m='deployments'>
+            <bem.FormView__group m={['items', 'headings']}>
+              <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
+              <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
+              <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
+            </bem.FormView__group>
+            {versionsToDisplay.map((item, n) => {
+              if (dvcount - n > 0) {
                 return (
-                  <bem.FormView__group m='items' key={n} >
+                  <bem.FormView__group m='items' key={n} className={n >= this.state.DVCOUNT_LIMIT ? 'hidden' : ''} >
                     <bem.FormView__label m='version'>
                       {`v${dvcount - n}`}
                       {item.uid === this.state.deployed_version_id && this.state.deployment__active &&
@@ -172,18 +218,24 @@ export class FormLanding extends React.Component {
                     </bem.FormView__label>
                   </bem.FormView__group>
                 );
-              })}
-            </bem.FormView__group>
-          </bem.FormView__cell>
-        ]}
-
-        <bem.FormView__cell m={['centered']}>
-          <button className='mdl-button mdl-button--colored' onClick={this.toggleDeploymentHistory}>
-            {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
-          </button>
+              }
+            })}
+          </bem.FormView__group>
         </bem.FormView__cell>
+        {this.state.deployed_versions.count > 1 &&
+          <bem.FormView__cell m={['centered']}>
+            <bem.Button m='colored' onClick={this.toggleDeploymentHistory}>
+              {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
+            </bem.Button>
+            {(this.state.historyExpanded && this.state.DVCOUNT_LIMIT < dvcount) &&
+              <bem.Button m='colored' onClick={this.loadMoreVersions}>
+                {t('Load more')}
+              </bem.Button>
+            }
+          </bem.FormView__cell>
+        }
       </bem.FormView__row>
-      );
+    );
   }
   renderCollectData () {
     var available_links = new Map([
@@ -390,11 +442,6 @@ export class FormLanding extends React.Component {
               );
           })}
 
-          <bem.PopoverMenu__link href='#pdf' className='is-edge'>
-            <i className='k-icon-pdf'/>
-            {t('Download PDF')}
-          </bem.PopoverMenu__link>
-
           {userCanEdit &&
             <bem.PopoverMenu__link onClick={this.showSharingModal}>
               <i className='k-icon-user-share'/>
@@ -422,6 +469,10 @@ export class FormLanding extends React.Component {
               {t('Manage Translations')}
             </bem.PopoverMenu__link>
           }
+          <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
+            <i className='k-icon-lock'/>
+            {t('Manage Encryption')}
+          </bem.PopoverMenu__link>
         </ui.PopoverMenu>
       </React.Fragment>
     );
@@ -468,14 +519,12 @@ export class FormLanding extends React.Component {
 
     if (this.state.uid === undefined) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              <i />
-              {t('loading...')}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i />
+            {t('loading...')}
+          </bem.Loading__inner>
+        </bem.Loading>
       );
     }
 
@@ -497,7 +546,7 @@ export class FormLanding extends React.Component {
               {this.isFormRedeploymentNeeded() &&
                 <bem.FormView__cell m='warning'>
                   <i className='k-icon-alert' />
-                  {t('If you want to make these changes public, you must deploy this form.')}
+                  <p>{t('If you want to make these changes public, you must deploy this form.')}</p>
                 </bem.FormView__cell>
               }
               {this.renderFormInfo(userCanEdit)}

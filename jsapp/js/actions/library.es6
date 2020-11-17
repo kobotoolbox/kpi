@@ -4,10 +4,7 @@
 
 import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
-import {
-  t,
-  notify
-} from 'js/utils';
+import {notify} from 'utils';
 
 const libraryActions = Reflux.createActions({
   searchMyLibraryAssets: {
@@ -170,7 +167,7 @@ libraryActions.moveToCollection.failed.listen(() => {
 
 const onAnySearchFailed = (response) => {
   if (response.statusText !== 'abort') {
-    notify(t('Failed to get the results'), 'error');
+    notify((response.responseJSON.detail) || (t('Failed to get the results'), 'error'));
   }
 };
 
