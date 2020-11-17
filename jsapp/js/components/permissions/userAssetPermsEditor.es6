@@ -12,10 +12,9 @@ import {permParser} from './permParser';
 import permConfig from './permConfig';
 import {
   assign,
-  t,
   notify,
   buildUserUrl
-} from 'js/utils';
+} from 'utils';
 import {
   ANON_USERNAME,
   KEY_CODES,

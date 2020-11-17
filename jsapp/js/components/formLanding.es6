@@ -15,9 +15,8 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import {MODAL_TYPES} from '../constants';
 import {
   formatTime,
-  t,
   notify
-} from '../utils';
+} from 'utils';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 

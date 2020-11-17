@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -9,10 +8,7 @@ import {stores} from '../stores';
 import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
-import {
-  t,
-  assign,
-} from '../utils';
+import {assign} from 'utils';
 
 class FormViewTabs extends Reflux.Component {
   constructor(props){

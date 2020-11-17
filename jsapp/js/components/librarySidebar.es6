@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -20,13 +19,11 @@ import mixins from '../mixins';
 import {MODAL_TYPES, ANON_USERNAME, PERMISSIONS_CODENAMES} from '../constants';
 
 import {
-  t,
   assign,
   validFileTypes,
   getAnonymousUserPermission,
   buildUserUrl
-} from '../utils';
-
+} from 'utils';
 
 class LibrarySidebar extends Reflux.Component {
   constructor(props){
