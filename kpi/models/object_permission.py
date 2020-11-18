@@ -1049,12 +1049,12 @@ class ObjectPermissionMixin:
             )
             perms = build_dict(user_id, all_object_permissions.get(self.pk))
 
-            if not perms:
-                # Try AnonymousUser's permissions in case user does not have any.
-                all_object_permissions = self.__get_all_user_permissions(
-                    user_id=settings.ANONYMOUS_USER_ID
-                )
-                perms = build_dict(user_id, all_object_permissions.get(self.pk))
+            # appending anonymous permissions to the user if they have been
+            # granted to the object
+            all_object_permissions = self.__get_all_user_permissions(
+                user_id=settings.ANONYMOUS_USER_ID
+            )
+            perms += build_dict(user_id, all_object_permissions.get(self.pk))
         else:
             all_object_permissions = self.__get_all_object_permissions(
                 object_id=self.pk
