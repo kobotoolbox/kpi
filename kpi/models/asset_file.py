@@ -33,7 +33,7 @@ class AssetFile(models.Model):
         (FORM_MEDIA, FORM_MEDIA),
     )
 
-    ALLOWED_CONTENT_TYPES = {
+    ALLOWED_MIME_TYPES = {
         FORM_MEDIA: ('image', 'video', 'text/csv', 'application/xml'),
     }
 
@@ -51,7 +51,7 @@ class AssetFile(models.Model):
     file_type = models.CharField(choices=TYPE_CHOICES, max_length=32)
     description = models.CharField(max_length=255)
     date_created = models.DateTimeField(default=timezone.now)
-    content = PrivateFileField(upload_to=upload_to, max_length=380)
+    content = PrivateFileField(upload_to=upload_to, max_length=380, null=True)
     metadata = JSONBField(default=dict)
 
     @staticmethod
@@ -60,7 +60,8 @@ class AssetFile(models.Model):
             asset.owner.username,
             'asset_files',
             asset.uid,
-            file_type, filename
+            file_type,
+            filename
         )
 
     def save(self, force_insert=False, force_update=False, using=None,
@@ -75,7 +76,11 @@ class AssetFile(models.Model):
             self.metadata['filename'] = self.content.name
 
     def set_hash(self):
-        md5_hash = get_hash(self.content.file.read())
+        if self.content and hasattr(self.content, 'file'):
+            md5_hash = get_hash(self.content.file.read())
+        else:
+            md5_hash = get_hash(self.metadata['redirect_url'])
+
         self.metadata['hash'] = f'md5:{md5_hash}'
 
     def set_mimetype(self):

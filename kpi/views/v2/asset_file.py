@@ -1,10 +1,9 @@
 # coding: utf-8
 from private_storage.views import PrivateStorageDetailView
-from rest_framework import exceptions
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
+from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.models import AssetFile
 from kpi.serializers.v2.asset_file import AssetFileSerializer
