@@ -137,7 +137,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
             user = get_anonymous_user()
 
         user_permissions = self._get_user_permissions(parent_object, user)
-        view_permissions = self.get_required_permissions("GET")
+        view_permissions = self.get_required_permissions('GET')
         can_view = set(view_permissions).issubset(user_permissions)
 
         try:

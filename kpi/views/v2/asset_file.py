@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.http import HttpResponseRedirect
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -143,20 +144,28 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         model = AssetFile
         model_file_field = 'content'
 
+        # ToDo Evaluate this check, may be redundant.
+        # `AssetNestedObjectPermission` is already in charge to check
+        # permissions
         def can_access_file(self, private_file):
             return private_file.request.user.has_perm(
                 PERM_VIEW_ASSET, private_file.parent_object.asset)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['GET'])
     def content(self, *args, **kwargs):
+
+        asset_file = self.get_object()
+        if asset_file.metadata.get('redirect_url'):
+            return HttpResponseRedirect(asset_file.metadata.get('redirect_url'))
+
         view = self.PrivateContentView.as_view(
             model=AssetFile,
             slug_url_kwarg='uid',
             slug_field='uid',
             model_file_field='content'
         )
-        af = self.get_object()
+
         # TODO: simply redirect if external storage with expiring tokens (e.g.
         # Amazon S3) is used?
-        #   return HttpResponseRedirect(af.content.url)
-        return view(self.request, uid=af.uid)
+        #   return HttpResponseRedirect(asset_file.content.url)
+        return view(self.request, uid=asset_file.uid)
