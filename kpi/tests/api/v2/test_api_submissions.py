@@ -6,8 +6,13 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
-from kpi.constants import PERM_VIEW_SUBMISSIONS, \
-    PERM_PARTIAL_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.models import Asset
 from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.base_test_case import BaseTestCase
@@ -232,6 +237,40 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+
+    def test_list_submissions_asset_publicly_shared_and_shared_with_user(self):
+
+        self._log_in_as_another_user()
+        anonymous_user = get_anonymous_user()
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == False
+        assert PERM_VIEW_ASSET not in self.asset.get_perms(self.anotheruser)
+
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_ASSET)
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
+
+        assert (
+            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+            == False
+        )
+        assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(
+            self.anotheruser
+        )
+
+        self.asset.assign_perm(anonymous_user, PERM_VIEW_ASSET)
+        self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
+
+        assert (
+            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
+        )
+        assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
+
 
     def test_retrieve_submission_owner(self):
         submission = self.submissions[0]
