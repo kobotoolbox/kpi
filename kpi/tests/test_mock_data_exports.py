@@ -706,7 +706,7 @@ class MockDataExports(MockDataExportsBase):
         # testing anotheruser can export data
         self.run_csv_export_test(user=self.anotheruser)
 
-        # resetting permssions of asset
+        # resetting permissions of asset
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [
                 {'_submitted_by': self.anotheruser.username}
