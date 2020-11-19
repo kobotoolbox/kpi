@@ -130,16 +130,6 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             user=self.request.user
         )
 
-    def perform_destroy(self, *args, **kwargs):
-        # Delete file
-        try:
-            private_file = self.get_object()
-            private_file.content.delete(save=False)
-        except OSError:
-            pass
-
-        return super().perform_destroy(*args, **kwargs)
-
     class PrivateContentView(PrivateStorageDetailView):
         model = AssetFile
         model_file_field = 'content'

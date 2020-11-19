@@ -64,6 +64,16 @@ class AssetFile(models.Model):
             filename
         )
 
+    def delete(self, using=None, keep_parents=False):
+
+        # if content is not `null`, delete attached file
+        if self.content and hasattr(self.content, 'file'):
+            try:
+                self.content.file.delete(save=False)
+            except OSError:
+                pass
+        return super().delete(using=using, keep_parents=keep_parents)
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         self.set_filename()
