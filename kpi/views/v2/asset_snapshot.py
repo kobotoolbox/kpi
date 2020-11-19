@@ -93,7 +93,8 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
         """
         snapshot = self.get_object()
         asset = snapshot.asset
-        files = asset.asset_files.filter(file_type=AssetFile.FORM_MEDIA)
+        files = asset.asset_files.filter(file_type=AssetFile.FORM_MEDIA,
+                                         deleted_at__isnull=True)
 
         xml_files = []
         for file in files:

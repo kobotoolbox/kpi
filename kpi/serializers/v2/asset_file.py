@@ -4,6 +4,7 @@ import json
 import os
 from mimetypes import guess_type
 from typing import Union
+from urllib.parse import urlparse
 
 from django.core.files.base import ContentFile
 from django.core.validators import (
@@ -11,7 +12,6 @@ from django.core.validators import (
     ValidationError as DjangoValidationError,
 )
 from django.utils.translation import ugettext as _
-from django.utils.translation import ugettext_lazy as _lazy
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -81,10 +81,19 @@ class AssetFileSerializer(serializers.ModelSerializer):
         self.__file_type = attr['file_type']
 
         metadata = self._get_metadata(attr.get('metadata'))
-        method = self._validate_media_content_method(attr, metadata)
-        media_content_validator = getattr(self, f'_validate_{method}')
-        media_content_validator(attr, metadata)
-        self._validate_duplicate(attr, metadata)
+        validated_field = self._validate_media_content_method(attr, metadata)
+        # Call the validator related to `validated_field`, either:
+        # - `self._validate_content()`
+        # - `self._validate_base64_encoded()`
+        # - `self._validate_redirect_url()`
+        validator = getattr(self, f'_validate_{validated_field}')
+        validator(attr, metadata)
+
+        # Common validators
+        filename = metadata['filename']
+        self.__validate_mime_type(filename, validated_field)
+        self.__validate_extension(filename, validated_field)
+        self._validate_duplicate(filename, validated_field)
 
         # Remove `'base64_encoded'` from attributes passed to the model
         attr.pop('base64_encoded', None)
@@ -105,35 +114,9 @@ class AssetFileSerializer(serializers.ModelSerializer):
 
         return metadata
 
-    def _validate_duplicate(self, attr: dict, metadata: dict):
-
-        if self.__file_type == AssetFile.FORM_MEDIA:
-            view = self.context.get('view')
-            asset = getattr(view, 'asset', self.context.get('asset'))
-            try:
-                content = attr['content']
-            except KeyError:
-                # No content present, it is a remote URL
-                redirect_url = metadata['redirect_url']
-                if AssetFile.objects.filter(
-                    asset=asset, metadata__redirect_url=redirect_url
-                ).exists():
-                    raise serializers.ValidationError({
-                        'content': _('`{}` already exists').format(redirect_url)
-                    })
-            else:
-                path = AssetFile.get_path(asset, self.__file_type, content.name)
-                if AssetFile.objects.filter(asset=asset, content=path).exists():
-                    raise serializers.ValidationError({
-                        'content': _('`{}` already exists').format(content.name)
-                    })
-
     def _validate_base64_encoded(self, attr: dict, metadata: dict):
         base64_encoded = attr['base64_encoded']
         metadata = self._validate_metadata(metadata)
-
-        self.__validate_mime_type(base64_encoded, 'base64Encoded')
-        self.__validate_extension(metadata['filename'], 'base64Encoded')
 
         try:
             media_content = base64_encoded[base64_encoded.index('base64') + 7:]
@@ -155,9 +138,20 @@ class AssetFileSerializer(serializers.ModelSerializer):
                 'content': _('No files have been submitted')
             })
 
-        filename = attr['content'].name
-        self.__validate_mime_type(filename, 'content')
-        self.__validate_extension(filename, 'content')
+        metadata['filename'] = attr['content'].name
+
+    def _validate_duplicate(self, filename: str, field_name: str):
+
+        if self.__file_type == AssetFile.FORM_MEDIA:
+            view = self.context.get('view')
+            asset = getattr(view, 'asset', self.context.get('asset'))
+            # File name must be unique
+            if AssetFile.objects.filter(asset=asset,
+                                        deleted_at__isnull=True,
+                                        metadata__filename=filename).exists():
+                error = self.__format_error(field_name,
+                                            _('File already exists'))
+                raise serializers.ValidationError(error)
 
     def _validate_media_content_method(self,
                                        attr: dict,
@@ -221,21 +215,22 @@ class AssetFileSerializer(serializers.ModelSerializer):
                 'metadata': _('This field is required')
             })
 
+        if validate_redirect_url:
+            try:
+                metadata['redirect_url']
+            except KeyError:
+                raise serializers.ValidationError({
+                    'metadata': _('`redirect_url` is required')
+                })
+            else:
+                parsed_url = urlparse(metadata['redirect_url'])
+                metadata['filename'] = os.path.basename(parsed_url.path)
+
         try:
             metadata['filename']
         except KeyError:
             raise serializers.ValidationError({
                 'metadata': _('`filename` is required')
-            })
-
-        if not validate_redirect_url:
-            return metadata
-
-        try:
-            metadata['redirect_url']
-        except KeyError:
-            raise serializers.ValidationError({
-                'metadata': _('`redirect_url` is required')
             })
 
         return metadata
@@ -252,14 +247,25 @@ class AssetFileSerializer(serializers.ModelSerializer):
                 'metadata': _('`redirect_url` is invalid')
             })
 
-        self.__validate_mime_type(redirect_url, 'redirect_url')
-        self.__validate_extension(metadata['filename'], 'redirect_url')
+    # PRIVATE METHODS
+    # These methods could protected too but IMO, they should not be
+    # overridden if a class inherits from `AssetFileSerializer`
+    def __format_error(self, field_name: str, message: str):
+        """
+        Formats validation error to return explicit field name.
+        For example, if `redirect_url` is being validated, we
+
+        """
+        if field_name == 'redirect_url':
+            field_name = 'metadata'
+            message = f'`redirect_url`: {message}'
+
+        return {field_name: message}
 
     def __validate_extension(self, filename: str, field_name: str):
         """
-        Validates extension of the file depending on the type
-
-        Private method
+        Validates extension of the file depending on its type
+        (`form_media` or `media_layer`)
         """
         try:
             allowed_extensions = AssetFile.ALLOWED_EXTENSIONS[self.__file_type]
@@ -268,28 +274,34 @@ class AssetFileSerializer(serializers.ModelSerializer):
         else:
             basename, file_extension = os.path.splitext(filename)
             if file_extension not in allowed_extensions:
-                allowed_extensions_csv = '`, `'.join(allowed_extensions)
-                message = (
-                    f'Only `{allowed_extensions_csv}` extensions are allowed'
+                extensions_csv = '`, `'.join(allowed_extensions)
+                error = self.__format_error(
+                    field_name,
+                    _('Only `{}` extensions are allowed').format(extensions_csv)
                 )
-                raise serializers.ValidationError({
-                    field_name: _lazy(message)
-                })
+                raise serializers.ValidationError(error)
 
-    def __validate_mime_type(self, media_content: str, field_name: str):
+    def __validate_mime_type(self, source: str, field_name: str):
+        """
+        Validates MIME type of the file depending on its type
+        (`form_media` or `media_layer`)
+        Args:
+            source (str): Can be the base64 encoded string, the name of the
+                          file or the URL
+            field_name (str): name of field to return in case of validation
+                              error
+        """
         # Check if content type is allowed
         try:
             allowed_mime_types = AssetFile.ALLOWED_MIME_TYPES[self.__file_type]
         except KeyError:
             pass
         else:
-            mime_type, _ = guess_type(media_content)
+            mime_type, _ = guess_type(source)
             if not mime_type or not mime_type.startswith(allowed_mime_types):
-                allowed_mime_types_csv = '`, `'.join(allowed_mime_types)
-                message = (
-                    f'Only `{allowed_mime_types_csv}` mimetypes are allowed'
+                mime_types_csv = '`, `'.join(allowed_mime_types)
+                error = self.__format_error(
+                    field_name,
+                    _('Only `{}` extensions are allowed').format(mime_types_csv)
                 )
-                raise serializers.ValidationError({
-                    field_name: _lazy(message)
-                })
-
+                raise serializers.ValidationError(error)
