@@ -1,15 +1,7 @@
-'''
-Opens a stream (BytesIO) with XLS contents and renames
-a sheet (e.g. "library") to a new name (e.g. "survey")
-to get around restrictions on sheet names in pyxform
-inputs
-'''
-
 from io import BytesIO
 
 from xlutils.copy import copy
 from xlrd import open_workbook
-
 
 
 class NoFromSheetError(Exception):
@@ -19,7 +11,15 @@ class ConflictSheetError(ValueError):
     pass
 
 
-def rename_xls_sheet(xls_stream, from_sheet, to_sheet):
+def rename_xls_sheet(
+    xls_stream: BytesIO, from_sheet: str, to_sheet: str
+) -> BytesIO:
+    """
+    Opens a stream (BytesIO) with XLS contents and renames a sheet (e.g.
+    "library") to a new name (e.g. "survey") to get around restrictions on
+    sheet names in pyxform inputs;
+    see https://github.com/XLSForm/pyxform/issues/229.
+    """
     readable = open_workbook(file_contents=xls_stream.read())
     writable = copy(readable)
     sheet_names = readable.sheet_names()
