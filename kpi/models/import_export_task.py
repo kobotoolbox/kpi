@@ -662,14 +662,15 @@ def _b64_xls_to_dict(base64_encoded_upload):
         renamed_sheet = rename_xls_sheet(BytesIO(decoded_str),
                                          from_sheet='library',
                                          to_sheet='survey')
-        survey_dict = xls2json_backends.xls_to_dict(renamed_sheet)
-        survey_dict['library'] = survey_dict.pop('survey')
     except ConflictSheetError:
         raise ValueError('An import cannot have both "survey" and'
                          ' "library" sheets.')
     except NoFromSheetError:
         # library did not exist in the xls file
         survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
+    else:
+        survey_dict = xls2json_backends.xls_to_dict(renamed_sheet)
+        survey_dict['library'] = survey_dict.pop('survey')
     return _strip_header_keys(survey_dict)
 
 
