@@ -99,7 +99,7 @@ class AssetImportTaskTest(BaseTestCase):
         self.assertEqual(detail_response.data['status'], 'error')
         self.assertTrue(
             detail_response.data['messages']['error'].startswith(
-                'Error reading .xls file: Unsupported format'
+                'Unsupported format, or corrupt file'
             )
         )
 
