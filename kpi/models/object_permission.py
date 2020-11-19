@@ -1051,10 +1051,10 @@ class ObjectPermissionMixin:
 
             # appending anonymous permissions to the user if they have been
             # granted to the object
-            all_object_permissions = self.__get_all_user_permissions(
+            all_anon_object_permissions = self.__get_all_user_permissions(
                 user_id=settings.ANONYMOUS_USER_ID
             )
-            perms += build_dict(user_id, all_object_permissions.get(self.pk))
+            perms += build_dict(user_id, all_anon_object_permissions.get(self.pk))
         else:
             all_object_permissions = self.__get_all_object_permissions(
                 object_id=self.pk
