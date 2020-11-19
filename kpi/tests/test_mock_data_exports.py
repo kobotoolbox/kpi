@@ -665,10 +665,18 @@ class MockDataExports(MockDataExportsBase):
         # fails with `KeyError` prior to fix for kobotoolbox/formpack#219
         self.run_csv_export_test(expected_lines, asset=asset)
 
-    def test_another_user_can_export_when_publicly_shared(self):
+    def test_anotheruser_can_export_when_submissions_publicly_shared(self):
+        """
+        Running through behaviour described in issue kpi/#2870 where an asset
+        that has been publicly shared and then explicity shared with a user, the
+        user has lower permissions than an anonymous user and is therefore
+        unable to export submission data.
+        """
         # resetting permissions of `anotheruser` to have no permissions
-        self.asset.remove_perm(self.anotheruser, 'partial_submissions')
+        self.asset.remove_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS)
         self.asset.remove_perm(self.anotheruser, PERM_VIEW_ASSET)
+
+        anonymous_user = get_anonymous_user()
 
         assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == False
         assert PERM_VIEW_ASSET not in self.asset.get_perms(self.anotheruser)
@@ -679,13 +687,36 @@ class MockDataExports(MockDataExportsBase):
         assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
         assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == False
-        assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(self.anotheruser)
+        assert (
+            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+            == False
+        )
+        assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(
+            self.anotheruser
+        )
 
         self.asset.assign_perm(anonymous_user, PERM_VIEW_ASSET)
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
-        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
+        assert (
+            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
+        )
+        assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
 
+        # testing anotheruser can export data
         self.run_csv_export_test(user=self.anotheruser)
+
+        # resetting permssions of asset
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [
+                {'_submitted_by': self.anotheruser.username}
+            ]
+        }
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+        self.asset.remove_perm(self.anotheruser, PERM_CHANGE_ASSET)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)

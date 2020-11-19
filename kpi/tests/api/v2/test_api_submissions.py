@@ -239,6 +239,12 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
     def test_list_submissions_asset_publicly_shared_and_shared_with_user(self):
+        """
+        Running through behaviour described in issue kpi/#2870 where an asset
+        that has been publicly shared and then explicity shared with a user, the
+        user has lower permissions than an anonymous user and is therefore
+        unable to view submission data.
+        """
 
         self._log_in_as_another_user()
         anonymous_user = get_anonymous_user()
@@ -271,6 +277,11 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         )
         assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
 
+        # resetting permssions of asset
+        self.asset.remove_perm(self.anotheruser, PERM_VIEW_ASSET)
+        self.asset.remove_perm(self.anotheruser, PERM_CHANGE_ASSET)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
     def test_retrieve_submission_owner(self):
         submission = self.submissions[0]
