@@ -53,6 +53,7 @@ class AssetFile(models.Model):
     date_created = models.DateTimeField(default=timezone.now)
     content = PrivateFileField(upload_to=upload_to, max_length=380, null=True)
     metadata = JSONBField(default=dict)
+    deleted_at = models.DateTimeField(null=True, default=None)
 
     @staticmethod
     def get_path(asset, file_type, filename):
@@ -64,21 +65,34 @@ class AssetFile(models.Model):
             filename
         )
 
-    def delete(self, using=None, keep_parents=False):
+    def delete(self, using=None, keep_parents=False, force=False):
 
-        # if content is not `null`, delete attached file
-        if self.content and hasattr(self.content, 'file'):
-            try:
-                self.content.file.delete(save=False)
-            except OSError:
-                pass
-        return super().delete(using=using, keep_parents=keep_parents)
+        # Delete object and files on storage if `force` is True or file type
+        # is anything else than 'form_media'
+        if force or self.file_type != self.FORM_MEDIA:
+            if not self.is_remote_url:
+                self.content.delete(save=False)
+            return super().delete(using=using, keep_parents=keep_parents)
+
+        # Otherwise, just flag the file as deleted.
+        self.deleted_at = timezone.now()
+        self.save(update_fields=['deleted_at'])
+
+    @property
+    def is_remote_url(self):
+        try:
+            self.metadata['redirect_url']
+        except KeyError:
+            return False
+
+        return True
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        self.set_filename()
-        self.set_hash()
-        self.set_mimetype()
+        if self.pk is None:
+            self.set_filename()
+            self.set_hash()
+            self.set_mimetype()
         return super().save(force_insert, force_update, using, update_fields)
 
     def set_filename(self):
@@ -86,10 +100,10 @@ class AssetFile(models.Model):
             self.metadata['filename'] = self.content.name
 
     def set_hash(self):
-        if self.content and hasattr(self.content, 'file'):
-            md5_hash = get_hash(self.content.file.read())
-        else:
+        if self.is_remote_url:
             md5_hash = get_hash(self.metadata['redirect_url'])
+        else:
+            md5_hash = get_hash(self.content.file.read())
 
         self.metadata['hash'] = f'md5:{md5_hash}'
 
