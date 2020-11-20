@@ -30,6 +30,17 @@ export function isOnPublicCollectionsRoute() {
 }
 
 /**
+ * Checks if on `/library/asset/…`
+ */
+export function isOnSingleCollectionRoute() {
+  const path = hashHistory.getCurrentLocation().pathname;
+  return (
+    path.split('/')[1] === 'library' &&
+    path.split('/')[2] === 'asset'
+  );
+}
+
+/**
  * Returns current collection uid
  */
 export function getCurrentCollectionUID() {

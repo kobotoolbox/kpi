@@ -7,7 +7,7 @@ import {
 } from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
-  isOnLibraryRoute,
+  isOnSingleCollectionRoute,
   getCurrentCollectionUID
 } from './libraryUtils';
 import {actions} from 'js/actions';
@@ -75,7 +75,7 @@ const singleCollectionStore = Reflux.createStore({
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+    if (this.isVirgin && isOnSingleCollectionRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
   },
@@ -140,7 +140,7 @@ const singleCollectionStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+    if (this.isVirgin && isOnSingleCollectionRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
       this.previousPath !== null &&
@@ -151,7 +151,7 @@ const singleCollectionStore = Reflux.createStore({
         // actually outside of it
         this.previousPath.startsWith('/library/public-collections')
       ) &&
-      isOnLibraryRoute()
+      isOnSingleCollectionRoute()
     ) {
       // refresh data when navigating into library from other place
       this.setDefaultColumns();
