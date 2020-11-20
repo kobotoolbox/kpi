@@ -21,7 +21,7 @@ const myLibraryStore = Reflux.createStore({
   abortFetchData: undefined,
   previousPath: null,
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
-  PAGE_SIZE: 2,
+  PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
   isVirgin: true,
