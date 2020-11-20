@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -12,11 +11,10 @@ import {actions} from '../actions';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   assign,
   currentLang,
   stringToColor,
-} from 'js/utils';
+} from 'utils';
 import {getAssetIcon} from 'js/assetUtils';
 import {COMMON_QUERIES} from 'js/constants';
 import {searches} from '../searches';

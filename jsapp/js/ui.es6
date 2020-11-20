@@ -12,7 +12,7 @@ import _ from 'underscore';
 import {getAssetDisplayName} from 'js/assetUtils';
 import {KEY_CODES} from 'js/constants';
 import {bem} from './bem';
-import {t, hasLongWords} from './utils';
+import {hasLongWords} from 'utils';
 import classNames from 'classnames';
 
 class SearchBox extends React.Component {

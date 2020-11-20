@@ -9,7 +9,7 @@ import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {bem} from 'js/bem';
-import {t, notify, launchPrinting} from 'js/utils';
+import {notify, launchPrinting} from 'utils';
 import {stores} from 'js/stores';
 import {
   VALIDATION_STATUSES_LIST,

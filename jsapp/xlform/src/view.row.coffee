@@ -1,6 +1,5 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
-$ = require 'jquery'
 $configs = require './model.configs'
 $rowSelector = require './view.rowSelector'
 $row = require './model.row'
@@ -13,7 +12,6 @@ $viewMandatorySetting = require './view.mandatorySetting'
 $acceptedFilesView = require './view.acceptedFiles'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
-_t = require('utils').t
 alertify = require 'alertifyjs'
 
 module.exports = do ->
@@ -151,7 +149,7 @@ module.exports = do ->
 
     deleteGroup: (evt)=>
       skipConfirm = $(evt.currentTarget).hasClass('js-force-delete-group')
-      if skipConfirm or confirm(_t("Are you sure you want to split apart this group?"))
+      if skipConfirm or confirm(t("Are you sure you want to split apart this group?"))
         @_deleteGroup()
       evt.preventDefault()
 
@@ -197,7 +195,7 @@ module.exports = do ->
           $appearanceField.find('input:checkbox').prop('checked', false)
           appearanceModel = @model.get('appearance')
           if appearanceModel.getValue()
-            alertify.warning(_t("You can't display nested groups on the same screen - the setting has been removed from the parent group"))
+            alertify.warning(t("You can't display nested groups on the same screen - the setting has been removed from the parent group"))
           appearanceModel.set('value', '')
 
       @model.on 'remove', (row) =>
@@ -309,7 +307,7 @@ module.exports = do ->
 
       if @model._scoreRows.length < 1
         @model._scoreRows.add
-          label: _t("Enter your question")
+          label: t("Enter your question")
           name: ''
 
       score_rows = for sr in @model._scoreRows.models

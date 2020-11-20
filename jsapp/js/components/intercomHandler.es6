@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
