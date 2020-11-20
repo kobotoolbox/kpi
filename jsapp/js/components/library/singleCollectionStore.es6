@@ -307,6 +307,10 @@ const singleCollectionStore = Reflux.createStore({
     ) {
       this.data.filterColumnId = filterColumnId;
       this.data.filterValue = filterValue;
+      // When a filter is selected, the pages reflects the total number of
+      // filtered assets, so we have to reset page number to display them
+      // properly, otherwise we can be out of bounds.
+      this.data.currentPage = 0;
       this.fetchData(true);
     }
   },

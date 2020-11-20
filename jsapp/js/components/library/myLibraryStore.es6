@@ -21,7 +21,7 @@ const myLibraryStore = Reflux.createStore({
   abortFetchData: undefined,
   previousPath: null,
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
-  PAGE_SIZE: 100,
+  PAGE_SIZE: 2,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
 
   isVirgin: true,
@@ -297,6 +297,10 @@ const myLibraryStore = Reflux.createStore({
     ) {
       this.data.filterColumnId = filterColumnId;
       this.data.filterValue = filterValue;
+      // When a filter is selected, the pages reflects the total number of
+      // filtered assets, so we have to reset page number to display them
+      // properly, otherwise we can be out of bounds.
+      this.data.currentPage = 0;
       this.fetchData(true);
     }
   },
