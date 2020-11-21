@@ -8,7 +8,7 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
@@ -295,6 +295,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             if not submission:
                 raise Http404
         return Response(submission)
+
+    @action(detail=True, methods=['GET'],
+            renderer_classes=[renderers.JSONRenderer])
+    def duplicate(self, request, pk, *args, **kwargs):
+        """
+        Duplicate subission
+        """
+        deployment = self._get_deployment()
+        duplicate_response = deployment.duplicate_submission(
+            requesting_user_id=request.user.id, instance_id=positive_int(pk)
+        )
+        return Response(duplicate_response)
 
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer],
