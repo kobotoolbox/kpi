@@ -6,7 +6,6 @@ import re
 import requests
 import uuid
 from datetime import datetime
-from kpi.utils.lazy_file import LazyFile
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
@@ -609,9 +608,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         format_type = INSTANCE_FORMAT_TYPE_XML
 
         kwargs['instance_ids'] = [instance_id]
-        params = self.validate_submission_list_params(requesting_user_id,
-                                                      format_type=format_type,
-                                                      **kwargs)
+        params = self.validate_submission_list_params(
+            requesting_user_id, format_type=format_type, **kwargs
+        )
         submissions = self.__get_submissions_in_xml(**params)
 
         # casting generator object to string and parsing with ET
