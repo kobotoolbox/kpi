@@ -121,7 +121,7 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         file_type = self.request.GET.get('file_type')
         if file_type is not None:
             _queryset = _queryset.filter(file_type=file_type)
-
+        _queryset = _queryset.filter(deleted_at__isnull=True)
         return _queryset
 
     def perform_create(self, serializer):
@@ -129,16 +129,6 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             asset=self.asset,
             user=self.request.user
         )
-
-    def perform_destroy(self, *args, **kwargs):
-        # Delete file
-        try:
-            private_file = self.get_object()
-            private_file.content.delete(save=False)
-        except OSError:
-            pass
-
-        return super().perform_destroy(*args, **kwargs)
 
     class PrivateContentView(PrivateStorageDetailView):
         model = AssetFile

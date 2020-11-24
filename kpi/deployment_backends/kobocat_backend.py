@@ -542,35 +542,71 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def sync_media_files(self):
 
         identifier = self.identifier
-        server, parsed_identifier = self.__get_server_from_identifier(identifier)
-        metadata_url = self.external_to_internal_url('{}/api/v1/metadata'.format(server))
+        server, parsed_identifier = self.__get_server_from_identifier(
+            identifier
+        )
+        metadata_url = self.external_to_internal_url(
+            '{}/api/v1/metadata'.format(server)
+        )
 
-        def upload_to_kc(file_):
-            files = {
-                'data_file': (
-                    file_.metadata['filename'],
-                    file_.content.file.read(),
-                    file_.metadata['mimetype'],
-                )
+        def _delete_kc_file(kc_file_: dict, file_: AssetFile = None):
+            """
+            A simple utility to delete file in KC through proxy.
+            If related KPI file is provided (i.e. `file_`), it is deleted too.
+            """
+            # Delete file in KC
+            self._kobocat_request('DELETE',
+                                  url=kc_file_['url'],
+                                  sync_media_files=True)
+
+            if file_ is None:
+                return
+
+            # Delete file in KPI if requested
+            file_.delete(force=True)
+
+        def _upload_to_kc(file_):
+            """
+            Prepares request and data corresponding to the kind of media file
+            (i.e. FileStorage or remote URL) to `POST` to KC through proxy.
+            """
+            kwargs = {
+                "data": {
+                    'data_value': file_.metadata['filename'],
+                    'xform': self.xform_id,
+                    'data_type': 'media',
+                    'from_kpi': True,
+                }
             }
-            data = {
-                'data_value': file_.metadata['filename'],
-                'xform': self.xform_id,
-                'data_type': 'media',
-            }
+
+            if file_.is_remote_url:
+                # KC stores url in `data_value`
+                data = {
+                    'data_value': file_.metadata['redirect_url'],
+                    'data_file_type': file_.metadata['mimetype'],
+                    'file_hash': file_.metadata['hash']
+                }
+                kwargs['data'].update(data)
+            else:
+                kwargs['files'] = {
+                    'data_file': (
+                        file_.metadata['filename'],
+                        file_.content.file.read(),
+                        file_.metadata['mimetype'],
+                    )
+                }
 
             self._kobocat_request('POST',
                                   url=metadata_url,
-                                  files=files,
-                                  data=data,
-                                  sync_media_files=True)
+                                  sync_media_files=True,
+                                  **kwargs)
 
-        def delete_kc_file(dict_):
-            self._kobocat_request('DELETE',
-                                  url=dict_['url'],
-                                  sync_media_files=True)
+        # Process deleted files in case two entries contain the same file but
+        # one is flagged as deleted
+        asset_files = self.asset.asset_files.filter(
+            file_type=AssetFile.FORM_MEDIA
+        ).order_by('deleted_at')
 
-        asset_files = self.asset.asset_files.filter(file_type=AssetFile.FORM_MEDIA)
         url = self.external_to_internal_url(self.backend_response['url'])
         response = self._kobocat_request('GET', url)
         kc_files = defaultdict(dict)
@@ -579,34 +615,65 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
                 kc_files[metadata['data_value']] = {
                     'url': metadata['url'],
-                    'md5': metadata['file_hash']
+                    'md5': metadata['file_hash'],
+                    'from_kpi': metadata['from_kpi'],
                 }
 
         kc_filenames = kc_files.keys()
-
         for file in asset_files:
-            filename = file.metadata.get('filename')
-            # New file
-            if filename not in kc_filenames:
-                upload_to_kc(file)
+            uniq = (
+                file.metadata['filename']
+                if not file.is_remote_url
+                else file.metadata['redirect_url']
+            )
+
+            # File does not exist in KC
+            if uniq not in kc_filenames:
+                if file.deleted_at is None:
+                    # New file
+                    _upload_to_kc(file)
+                else:
+                    # Orphan, delete it
+                    file.delete(force=True)
                 continue
 
             # Existing file
-            if filename in kc_filenames:
-                kc_file = kc_files[filename]
-                # If md5 differs, we need to re-upload it.
-                if file.metadata.get('hash') != kc_file['md5']:
-                    delete_kc_file(kc_file)
-                    upload_to_kc(file)
+            if uniq in kc_filenames:
+                kc_file = kc_files[uniq]
+                if file.deleted_at is None:
+                    # If md5 differs, we need to re-upload it.
+                    if file.metadata.get('hash') != kc_file['md5']:
+                        _delete_kc_file(kc_file)
+                        _upload_to_kc(file)
+                elif kc_file['from_kpi']:
+                    _delete_kc_file(kc_file, file)
+                else:
+                    # Remote file has been uploaded directly to KC. We
+                    # cannot delete it, but we need to vacuum KPI.
+                    file.delete(force=True)
+                    # Skip deletion of key corresponding to `uniq` in `kc_files`
+                    # to avoid unique constraint failure in case user deleted
+                    # and re-uploaded the same file in a row between
+                    # two deployments
+                    # Example:
+                    # - User uploads file1.jpg (pk == 1)
+                    # - User deletes file1.jpg (pk == 1)
+                    # - User re-uploads file1.jpg (pk == 2)
+                    # Next time, 'file1.jpg' is encountered in this loop,
+                    # it would try to re-upload to KC if its hash differs
+                    # from KC version and would fail because 'file1.jpg'
+                    # already exists in KC db.
+                    continue
 
                 # Remove current filename from `kc_files`.
                 # All files which will remain in this dict (after this loop)
                 # will be considered obsolete and will be deleted
-                del kc_files[filename]
+                del kc_files[uniq]
 
-        # Remove files present in KoBoCat, but not in KPI
+        # Remove KC orphan files previously uploaded through KPI
         for kc_file in kc_files.values():
-            delete_kc_file(kc_file)
+            if kc_file['from_kpi']:
+                _delete_kc_file(kc_file)
 
     @property
     def timestamp(self):
