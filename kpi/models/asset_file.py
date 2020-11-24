@@ -6,8 +6,10 @@ from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.utils import timezone
 from private_storage.fields import PrivateFileField
+from rest_framework.reverse import reverse
 
 from kpi.fields import KpiUidField
+from kpi.models.open_rosa import AbstractOpenRosaManifestModel
 from kpi.utils.hash import get_hash
 
 
@@ -22,7 +24,7 @@ def upload_to(self, filename):
     return AssetFile.get_path(self.asset, self.file_type, filename)
 
 
-class AssetFile(models.Model):
+class AssetFile(AbstractOpenRosaManifestModel, models.Model):
 
     # More to come!
     MAP_LAYER = 'map_layer'
@@ -55,16 +57,6 @@ class AssetFile(models.Model):
     metadata = JSONBField(default=dict)
     deleted_at = models.DateTimeField(null=True, default=None)
 
-    @staticmethod
-    def get_path(asset, file_type, filename):
-        return posixpath.join(
-            asset.owner.username,
-            'asset_files',
-            asset.uid,
-            file_type,
-            filename
-        )
-
     def delete(self, using=None, keep_parents=False, force=False):
 
         # Delete object and files on storage if `force` is True or file type
@@ -77,6 +69,48 @@ class AssetFile(models.Model):
         # Otherwise, just flag the file as deleted.
         self.deleted_at = timezone.now()
         self.save(update_fields=['deleted_at'])
+
+    @property
+    def filename(self):
+        """
+        Implements `AbstractOpenRosaManifestModel.filename()`
+        """
+        if hasattr(self, '__filename'):
+            return self.__filename
+
+        self.set_filename()
+        self.__filename = self.metadata['filename']
+        return self.__filename
+
+    def get_download_url(self, request):
+        """
+        Implements `AbstractOpenRosaManifestModel.get_download_url()`
+        """
+        return reverse('asset-file-content',
+                       args=(self.asset.uid, self.uid),
+                       request=request)
+
+    @staticmethod
+    def get_path(asset, file_type, filename):
+        return posixpath.join(
+            asset.owner.username,
+            'asset_files',
+            asset.uid,
+            file_type,
+            filename
+        )
+
+    @property
+    def hash(self):
+        """
+        Implements `AbstractOpenRosaManifestModel.hash()`
+        """
+        if hasattr(self, '__hash'):
+            return self.__hash
+
+        self.set_hash()
+        self.__hash = self.metadata['hash']
+        return self.__hash
 
     @property
     def is_remote_url(self):
@@ -100,12 +134,13 @@ class AssetFile(models.Model):
             self.metadata['filename'] = self.content.name
 
     def set_hash(self):
-        if self.is_remote_url:
-            md5_hash = get_hash(self.metadata['redirect_url'])
-        else:
-            md5_hash = get_hash(self.content.file.read())
+        if not self.metadata.get('hash'):
+            if self.is_remote_url:
+                md5_hash = get_hash(self.metadata['redirect_url'])
+            else:
+                md5_hash = get_hash(self.content.file.read())
 
-        self.metadata['hash'] = f'md5:{md5_hash}'
+            self.metadata['hash'] = f'md5:{md5_hash}'
 
     def set_mimetype(self):
         mimetype, _ = guess_type(self.metadata['filename'])

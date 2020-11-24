@@ -17,6 +17,7 @@ from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.reverse import reverse
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
@@ -57,6 +58,7 @@ from kpi.constants import (
 from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import BadPermissionsException
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
+from kpi.models.open_rosa import AbstractOpenRosaFormListModel
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.asset_translation_utils import (
     compare_translations,
@@ -70,6 +72,7 @@ from kpi.utils.asset_translation_utils import (
 )
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
+from kpi.utils.hash import get_hash
 from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
                                        replace_with_autofields,
                                        remove_empty_expressions_in_place)
@@ -1296,7 +1299,10 @@ class Asset(ObjectPermissionMixin,
             clean_up_table()
 
 
-class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
+class AssetSnapshot(AbstractOpenRosaFormListModel,
+                    models.Model,
+                    XlsExportable,
+                    FormpackXLSFormUtils):
     """
     This model serves as a cache of the XML that was exported by the installed
     version of pyxform.
@@ -1323,6 +1329,56 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     @property
     def content(self):
         return self.source
+
+    @property
+    def description(self):
+        """
+        Implements `AbstractOpenRosaFormListModel.description`
+        """
+        return self.asset.settings.get('description', '')
+
+    @property
+    def form_id(self):
+        """
+        Implements `AbstractOpenRosaFormListModel.form_id()`
+        """
+        return self.uid
+
+    def get_download_url(self, request):
+        """
+        Implements `AbstractOpenRosaFormListModel.get_download_url()`
+        """
+        return reverse(
+            viewname='assetsnapshot-detail',
+            format='xml',
+            kwargs={'uid': self.uid},
+            request=request
+        )
+
+    def get_manifest_url(self, request):
+        """
+        Implements `AbstractOpenRosaFormListModel.get_manifest_url()`
+        """
+        return reverse(
+            viewname='assetsnapshot-manifest',
+            format='xml',
+            kwargs={'uid': self.uid},
+            request=request
+        )
+
+    @property
+    def hash(self):
+        """
+        Implements `AbstractOpenRosaFormListModel.hash()`
+        """
+        return f'md5:{get_hash(self.xml)}'
+
+    @property
+    def name(self):
+        """
+        Implements `AbstractOpenRosaFormListModel.name()`
+        """
+        return self.asset.name
 
     def save(self, *args, **kwargs):
         if self.asset is not None:

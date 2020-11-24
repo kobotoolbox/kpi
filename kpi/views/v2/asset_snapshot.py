@@ -12,14 +12,19 @@ from rest_framework.reverse import reverse
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
 from kpi.models import AssetSnapshot, AssetFile
-from kpi.renderers import XMLRenderer, RawXMLRenderer
+from kpi.renderers import (
+    OpenRosaFormListRenderer,
+    OpenRosaManifestRenderer,
+    XMLRenderer,
+)
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
-from kpi.utils.hash import get_hash
+from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
 from kpi.utils.log import logging
 from kpi.views.no_update_model import NoUpdateModelViewSet
+from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
-class AssetSnapshotViewSet(NoUpdateModelViewSet):
+class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
     """
     <span class='label label-danger'>TODO Documentation for this endpoint</span>
@@ -51,40 +56,21 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             return owned_snapshots | RelatedAssetPermissionsFilter(
                 ).filter_queryset(self.request, queryset, view=self)
 
-    @action(detail=True, renderer_classes=[RawXMLRenderer], url_path='formList')
+    @action(detail=True,
+            renderer_classes=[OpenRosaFormListRenderer],
+            url_path='formList')
     def form_list(self, request, *args, **kwargs):
         """
         This route is used by enketo when it fetches external resources.
         It let us specify manifests for preview
         """
         snapshot = self.get_object()
-        md5_hash = get_hash(snapshot.xml)
-        download_url = reverse(viewname='assetsnapshot-detail',
-                               format='xml',
-                               kwargs={'uid': snapshot.uid},
-                               request=request
-                               )
-        manifest_url = reverse(viewname='assetsnapshot-manifest',
-                               format='xml',
-                               kwargs={'uid': snapshot.uid},
-                               request=request
-                               )
-        return Response(
-            '<?xml version="1.0" encoding="UTF-8" ?>'
-            '<xforms xmlns="http://openrosa.org/xforms/xformsList">'
-            '   <xform>'
-            f'      <formID>{snapshot.uid}</formID>'
-            f'      <name>{snapshot.asset.name}</name>'
-            '       <majorMinorVersion/>'
-            '       <version/>'
-            f'       <hash>md5:{md5_hash}</hash>'
-            f'       <descriptionText>{snapshot.asset.name}</descriptionText>'
-            f'       <downloadUrl>{download_url}</downloadUrl>'
-            f'       <manifestUrl>{manifest_url}</manifestUrl>'
-            '   </xform>'
-            '</xforms>')
+        context = {'request': request}
+        serializer = FormListSerializer([snapshot], many=True, context=context)
 
-    @action(detail=True, renderer_classes=[RawXMLRenderer])
+        return Response(serializer.data, headers=self.get_headers())
+
+    @action(detail=True, renderer_classes=[OpenRosaManifestRenderer])
     def manifest(self, request, *args, **kwargs):
         """
         This route is used by enketo when it fetches external resources.
@@ -95,26 +81,10 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
         asset = snapshot.asset
         files = asset.asset_files.filter(file_type=AssetFile.FORM_MEDIA,
                                          deleted_at__isnull=True)
+        context = {'request': request}
+        serializer = ManifestSerializer(files, many=True, context=context)
 
-        xml_files = []
-        for file in files:
-            hash_ = file.metadata.get('hash')
-            filename = file.metadata.get('filename')
-            download_url = reverse('asset-file-content',
-                                   args=(asset.uid, file.uid),
-                                   request=request)
-            xml_files.append(
-                '<mediaFile>'
-                f'   <filename>{filename}</filename>'
-                f'   <hash>{hash_}</hash>'
-                f'   <downloadUrl>{download_url}</downloadUrl>'
-                '</mediaFile>'
-            )
-        return Response(
-            '<?xml version="1.0" encoding="UTF-8" ?>'
-            '<manifest xmlns="http://openrosa.org/xforms/xformsManifest">'
-            f'{"".join(xml_files)}'
-            '</manifest>')
+        return Response(serializer.data, headers=self.get_headers())
 
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def preview(self, request, *args, **kwargs):
