@@ -273,7 +273,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
             pass
         else:
             basename, file_extension = os.path.splitext(filename)
-            if file_extension not in allowed_extensions:
+            if file_extension[1:] not in allowed_extensions:
                 extensions_csv = '`, `'.join(allowed_extensions)
                 error = self.__format_error(
                     field_name,

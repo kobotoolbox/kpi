@@ -694,22 +694,23 @@ class AssetFileTest(BaseTestCase):
 
     @property
     def asset_file_payload(self):
+        geojson_ = StringIO(json.dumps(
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [125.6, 10.1]
+                },
+                "properties": {
+                    "name": "Dinagat Islands"
+                }
+            }
+        ))
+        geojson_.name = 'dingagat_island.geojson'
         return {
             'file_type': 'map_layer',
             'description': 'Dinagat Islands',
-            'content':
-                StringIO(json.dumps(
-                    {
-                        "type": "Feature",
-                        "geometry": {
-                            "type": "Point",
-                            "coordinates": [125.6, 10.1]
-                        },
-                        "properties": {
-                            "name": "Dinagat Islands"
-                        }
-                    }
-                )),
+            'content': geojson_,
             'metadata': json.dumps({'source': 'http://geojson.org/'}),
         }
 
