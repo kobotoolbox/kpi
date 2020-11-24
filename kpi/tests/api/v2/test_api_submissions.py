@@ -239,14 +239,11 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
     def test_retrieve_submission_owner(self):
         submission = self.submissions[0]
-        print('**** submission', str(submission), flush=True)
         url = self.asset.deployment.get_submission_detail_url(submission.get(
             self.asset.deployment.INSTANCE_ID_FIELDNAME))
-        print('**** url', str(url), flush=True)
 
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        print('**** response.data', str(response.data), flush=True)
         self.assertEqual(response.data, submission)
 
     def test_retrieve_submission_not_shared_other(self):
