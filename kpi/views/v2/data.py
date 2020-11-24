@@ -13,6 +13,7 @@ from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
+    DuplicateSubmissionPermission,
     EditSubmissionPermission,
     SubmissionPermission,
     SubmissionValidationStatusPermission,
@@ -148,6 +149,19 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/edit/?return_url=false
+
+
+    Duplicate current submission
+
+    _It is not possible to duplicate a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/duplicate/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/duplicate/
 
 
     ### Validation statuses
@@ -297,10 +311,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         return Response(submission)
 
     @action(detail=True, methods=['GET'],
-            renderer_classes=[renderers.JSONRenderer])
+            renderer_classes=[renderers.JSONRenderer],
+            permission_classes=[DuplicateSubmissionPermission])
     def duplicate(self, request, pk, *args, **kwargs):
         """
-        Duplicate subission
+        Creates a duplicate of the submission with a given `pk`
         """
         deployment = self._get_deployment()
         duplicate_response = deployment.duplicate_submission(
