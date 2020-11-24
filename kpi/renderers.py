@@ -1,8 +1,10 @@
 # coding: utf-8
 import json
 import re
+from io import StringIO
 
 from dicttoxml import dicttoxml
+from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -16,6 +18,51 @@ from kpi.constants import GEO_QUESTION_TYPES
 class AssetJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
     format = 'json'
+
+
+class OpenRosaRenderer(DRFXMLRenderer):
+
+    media_type = 'text/xml'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        """
+        Duplicate `rest_framework_xml.renderers.XMLRenderer.render()` to add
+        the `xmlns` attribute to the root node
+        """
+        if not hasattr(self, 'xmlns'):
+            raise NotImplemented('`xmlns` must be implemented!')
+
+        if data is None:
+            return ''
+
+        stream = StringIO()
+
+        xml = SimplerXMLGenerator(stream, self.charset)
+        xml.startDocument()
+        xml.startElement(
+            self.root_tag_name,
+            {'xmlns': f'http://openrosa.org/xforms/{self.xmlns}'},
+        )
+
+        self._to_xml(xml, data)
+
+        xml.endElement(self.root_tag_name)
+        xml.endDocument()
+        return stream.getvalue()
+
+
+class OpenRosaFormListRenderer(OpenRosaRenderer):
+
+    xmlns = 'xformsList'
+    item_tag_name = 'xform'
+    root_tag_name = 'xforms'
+
+
+class OpenRosaManifestRenderer(OpenRosaRenderer):
+
+    xmlns = 'xformsManifest'
+    item_tag_name = 'mediaFile'
+    root_tag_name = 'manifest'
 
 
 class SSJsonRenderer(renderers.JSONRenderer):
@@ -71,7 +118,7 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         )
 
 
-class RawXMLRenderer(DRFXMLRenderer):
+class SubmissionXMLRenderer(DRFXMLRenderer):
 
     CUSTOM_ROOT = 'root'
 
@@ -97,26 +144,12 @@ class RawXMLRenderer(DRFXMLRenderer):
             return data
 
     @classmethod
-    def _get_xml(cls, data: dict):
-        return dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
-
-    @staticmethod
-    def _node_generator(name, closing=False):
-        if closing:
-            return f'</{name}>'
-
-        return f'<{name}>'
-
-
-class SubmissionXMLRenderer(RawXMLRenderer):
-
-    @classmethod
     def _get_xml(cls, data):
 
         # Submissions are wrapped in `<item>` nodes.
         results = data.pop('results', False)
         if not results:
-            return super()._get_xml(data)
+            return dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
 
         submissions_parent_node = 'results'
 
@@ -137,6 +170,13 @@ class SubmissionXMLRenderer(RawXMLRenderer):
                      f'{closing_root_node}'
 
         return xml_2_str.encode()  # Should return bytes
+
+    @staticmethod
+    def _node_generator(name, closing=False):
+        if closing:
+            return f'</{name}>'
+
+        return f'<{name}>'
 
     @staticmethod
     def __cleanup_submission(submission):
