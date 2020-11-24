@@ -1,6 +1,5 @@
 # coding: utf-8
 import json
-import os
 import posixpath
 import re
 import requests
@@ -650,22 +649,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             kc_request = requests.Request(
                 method='POST', url=self.duplicate_submission_url, files=files
             )
-            response = self.__kobocat_proxy_request(
+            kc_response = self.__kobocat_proxy_request(
                 kc_request, user=self.asset.owner
             )
 
-        # parsing xml response from OpenRosa to get response message
-        parsed_response = ET.fromstring(response._content)
-        detail_obj = parsed_response.find(
-            '{http://openrosa.org/http/response}message'
+        kwargs = {'uuid': uuid_}
+        return self.__prepare_as_drf_response_signature(
+            kc_response, rosa=True, **kwargs
         )
-        detail = _(detail_obj.text) if hasattr(detail_obj, 'text') else \
-                _('Something went wrong with duplicating the submission.')
-
-        if response.status_code == status.HTTP_201_CREATED:
-            return {'detail': detail, 'uuid': uuid_}
-
-        return {'detail': detail}
 
     def get_validation_status(self, submission_pk, params, user):
         url = self.get_submission_validation_status_url(submission_pk)
@@ -812,7 +803,30 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return session.send(kc_request.prepare())
 
     @staticmethod
-    def __prepare_as_drf_response_signature(requests_response):
+    def __prepare_duplication_response(kc_response, uuid_):
+        """
+        Prepares response from OpenRosa to be fed to
+        `__prepare_as_drf_response_signature` for correct signature formatting
+        for drf.
+        """
+
+        # parsing xml response from OpenRosa to get response message
+        parsed_response = ET.fromstring(kc_response._content)
+        detail_obj = parsed_response.find(
+            '{http://openrosa.org/http/response}message'
+        )
+        detail_ = _(detail_obj.text) if hasattr(detail_obj, 'text') else \
+                _('Something went wrong with duplicating the submission.')
+
+        if kc_response.status_code == status.HTTP_201_CREATED:
+            return {'detail': detail_, 'uuid': uuid_}
+
+        return {'detail': detail_}
+
+    @classmethod
+    def __prepare_as_drf_response_signature(
+        cls, requests_response, rosa=False, **kwargs
+    ):
         """
         Prepares a dict from `Requests` response.
         Useful to get response from `kc` and use it as a dict or pass it to
@@ -834,11 +848,20 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         prepared_drf_response['status'] = requests_response.status_code
 
         try:
-            prepared_drf_response['data'] = json.loads(requests_response.content)
+            data_ = (
+                cls.__prepare_duplication_response(
+                    kc_response=requests_response, uuid_=kwargs['uuid']
+                )
+                if rosa
+                else json.loads(requests_response.content)
+            )
+            prepared_drf_response['data'] = data_
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
                 prepared_drf_response['data'] = {
-                    'detail': _('KoBoCAT returned an unexpected response: {}'.format(str(e)))
+                    'detail': _(
+                        f'KoBoCAT returned an unexpected response: {str(e)}'
+                    )
                 }
 
         return prepared_drf_response
