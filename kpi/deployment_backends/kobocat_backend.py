@@ -656,14 +656,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # parsing xml response from OpenRosa to get response message
         parsed_response = ET.fromstring(response._content)
-        message = parsed_response.find(
+        detail_obj = parsed_response.find(
             '{http://openrosa.org/http/response}message'
-        ).text
+        )
+        detail = _(detail_obj.text) if hasattr(detail_obj, 'text') else \
+                _('Something went wrong with duplicating the submission.')
 
         if response.status_code == status.HTTP_201_CREATED:
-            return {'message': message, 'uuid': uuid_}
+            return {'detail': detail, 'uuid': uuid_}
 
-        return {'message': message}
+        return {'detail': detail}
 
     def get_validation_status(self, submission_pk, params, user):
         url = self.get_submission_validation_status_url(submission_pk)
