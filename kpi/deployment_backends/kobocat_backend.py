@@ -4,10 +4,13 @@ import os
 import posixpath
 import re
 import requests
+import tempfile
 import uuid
 from datetime import datetime
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+
+import pytz
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -591,53 +594,65 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @staticmethod
     def _get_updated_instance_id():
-        return f'uuid:{str(uuid.uuid4())}'
+        uuid_ = str(uuid.uuid4())
+        return uuid_, f'uuid:{uuid_}'
 
     @staticmethod
     def _get_updated_datetime():
-        date, sec = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%s').split('.')
-        # truncating miliseconds to match OpenRosa formatting
-        sec = sec[:3]
-        # appending suffix to match OpenRosa formatting
-        suffix = '08:00'
-        return f'{date}.{sec}-{suffix}'
+        """
+        Matching the OpenRosa datetime formatting
+        """
+        return datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
 
     def duplicate_submission(
         self, requesting_user_id, instance_id, **kwargs
     ):
-        format_type = INSTANCE_FORMAT_TYPE_XML
+        """
+        Dupicates a single submission through `kpi`, proxied through `kc`. The
+        submission with the given `pk` is duplicated and the `start`, `end` and
+        `instanceID` parameters of the submission are reset before being posted
+        to `kc`.
 
+        Args:
+            requesting_user_id (int)
+            instance_id (int)
+            kwargs (dict): passed to validation
+
+        Returns:
+            dict: message response from `kc` and uuid of created submission if
+            successful
+        """
+        # Must be a list of ids for validation
         kwargs['instance_ids'] = [instance_id]
         params = self.validate_submission_list_params(
-            requesting_user_id, format_type=format_type, **kwargs
+            requesting_user_id, format_type=INSTANCE_FORMAT_TYPE_XML, **kwargs
         )
         submissions = self.__get_submissions_in_xml(**params)
 
         # casting generator object to string and parsing with ET
         xml_parsed = ET.fromstring(list(submissions)[0])
 
-        updated_uuid = self._get_updated_instance_id()
-        updated_date = self._get_updated_datetime()
+        uuid_, uuid_formatted = self._get_updated_instance_id()
+        date_formatted = self._get_updated_datetime()
 
         # updating xml fields for duplicate submission
-        xml_parsed.find('start').text = updated_date
-        xml_parsed.find('end').text = updated_date
-        xml_parsed.find('./meta/instanceID').text = updated_uuid
+        xml_parsed.find('start').text = date_formatted
+        xml_parsed.find('end').text = date_formatted
+        xml_parsed.find('./meta/instanceID').text = uuid_formatted
 
         # creating temporary file for xml uploading to kobocat
-        filename = f'/tmp/{updated_uuid}.xml'
-        with open(filename, 'wb') as f:
-            f.write(b'<?xml version="1.0"?>\n')
-            f.write(ET.tostring(xml_parsed))
+        with tempfile.NamedTemporaryFile(suffix='.xml', mode='wb') as tf:
+            tf.write(ET.tostring(xml_parsed))
+            tf.flush()
 
-        file_tuple = (filename, LazyFile(filename, 'rb'))
-        files = {'xml_submission_file': file_tuple}
-
-        url = self.duplicate_submission_url
-        kc_request = requests.Request(method='POST', url=url, files=files)
-        response = self.__kobocat_proxy_request(
-            kc_request, user=self.asset.owner
-        )
+            file_tuple = (tf.name, LazyFile(tf.name, 'rb'))
+            files = {'xml_submission_file': file_tuple}
+            kc_request = requests.Request(
+                method='POST', url=self.duplicate_submission_url, files=files
+            )
+            response = self.__kobocat_proxy_request(
+                kc_request, user=self.asset.owner
+            )
 
         # parsing xml response from OpenRosa to get response message
         parsed_response = ET.fromstring(response._content)
@@ -645,10 +660,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             '{http://openrosa.org/http/response}message'
         ).text
 
-        # cleaning up
-        os.remove(filename)
+        if response.status_code == status.HTTP_201_CREATED:
+            return {'message': message, 'uuid': uuid_}
 
-        return {'message': message, 'uuid': updated_uuid.split(':')[1]}
+        return {'message': message}
 
     def get_validation_status(self, submission_pk, params, user):
         url = self.get_submission_validation_status_url(submission_pk)
