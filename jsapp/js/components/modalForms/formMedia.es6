@@ -5,6 +5,11 @@ import Dropzone from 'react-dropzone';
 import {bem} from 'js/bem';
 import {dataInterface} from 'js/dataInterface';
 
+const BAD_URL_ERROR = '`redirect_url` is invalid';
+const FILE_ALREADY_EXISTS_URL_ERROR = '`redirect_url`: File already exists';
+const FILE_ALREADY_EXISTS_UPLOAD_ERROR = 'File already exists';
+const INTERNAL_SERVER_ERROR = 'INTERNAL SERVER ERROR';
+
 /*
 Modal for uploading form media, part of #2487.
 */
@@ -58,7 +63,12 @@ class FormMedia extends React.Component {
 	    dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done((res) => {
           this.refreshFormMedia();
 	    }).fail((err) => {
-	      alertify.error(err.responseText);
+          var backendErrorText = (err.responseJSON != undefined) ? err.responseJSON.base64_encoded[0] : err.statusText;
+          if (backendErrorText === FILE_ALREADY_EXISTS_UPLOAD_ERROR) {
+            alertify.error(t('File already exists!'));
+          } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
+            alertify.error(t('That media type is not supported!'));
+          }
 	    });
       });
     }
@@ -66,25 +76,36 @@ class FormMedia extends React.Component {
 
   onSubmitURL() {
     var url = $(document).find('input.form-media__url-input').eq(0).val();
-    var formMediaJSON = {
-      description: 'default',
-      file_type: 'form_media',
-      metadata: JSON.stringify({redirect_url: url}),
-    };
-    dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
-      dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
-        this.setState({uploadedAssets: uploadedAssets.results});
+    if (url === '') {
+      alertify.warning(t('URL is empty!'));
+    } else {
+      var formMediaJSON = {
+        description: 'default',
+        file_type: 'form_media',
+        metadata: JSON.stringify({redirect_url: url}),
+      };
+      dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
+        dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
+          this.setState({uploadedAssets: uploadedAssets.results});
+        });
+      }).fail((err) => {
+        var backendErrorText = (err.responseJSON != undefined) ? err.responseJSON.metadata[0] : err.statusText;
+        if (backendErrorText === BAD_URL_ERROR) {
+          alertify.warning(t('The URL you entered is not valid'));
+        } else if (backendErrorText === FILE_ALREADY_EXISTS_URL_ERROR ) {
+          alertify.error(t('File already exists!'));
+        } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
+          alertify.error(t('The URL you entered does not have media!'));
+        }
       });
-    }).fail((err) => {
-      alertify.error(err.responseText);
-    });
+    }
   }
 
   removeMedia(url) {
       dataInterface.deleteFormMedia(url).done((res) => {
         this.refreshFormMedia();
-      }).fail((err) => {
-        alertify.error(err.responseText);
+      }).fail(() => {
+        alertify.error(t('Failed to delete media!'));
       });
   }
 
