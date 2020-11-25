@@ -64,24 +64,21 @@ class FormMedia extends React.Component {
     }
   }
 
-//TODO: Figure out a way to import from URL
-/* async onSubmitURL() {
- *   var url = $(document).find('input.form-media__url-input').eq(0).val();
- *   var formMediaJSON = {
- *     description: 'default',
- *     file_type: 'form_media',
- *     metadata: JSON.stringify({filename: 'default'}),
- *     content: url
- *   };
- *   dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
- *     dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
- *       this.setState({uploadedAssets: uploadedAssets.results});
- *     });
- *   }).fail((err) => {
- *     alertify.error(err.responseText);
- *   });
- * }
- */
+  onSubmitURL() {
+    var url = $(document).find('input.form-media__url-input').eq(0).val();
+    var formMediaJSON = {
+      description: 'default',
+      file_type: 'form_media',
+      metadata: JSON.stringify({redirect_url: url}),
+    };
+    dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
+      dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
+        this.setState({uploadedAssets: uploadedAssets.results});
+      });
+    }).fail((err) => {
+      alertify.error(err.responseText);
+    });
+  }
 
   removeMedia(url) {
       dataInterface.deleteFormMedia(url).done((res) => {
