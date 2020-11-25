@@ -680,12 +680,16 @@ class MockDataExports(MockDataExportsBase):
 
         assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == False
         assert PERM_VIEW_ASSET not in self.asset.get_perms(self.anotheruser)
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == False
+        assert PERM_CHANGE_ASSET not in self.asset.get_perms(self.anotheruser)
 
-        self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
+        # required to export
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_ASSET)
 
         assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
         assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == True
+        assert PERM_CHANGE_ASSET in self.asset.get_perms(self.anotheruser)
 
         assert (
             self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
@@ -695,7 +699,6 @@ class MockDataExports(MockDataExportsBase):
             self.anotheruser
         )
 
-        self.asset.assign_perm(anonymous_user, PERM_VIEW_ASSET)
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
         assert (
