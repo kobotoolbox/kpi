@@ -152,7 +152,7 @@ class FormMedia extends React.Component {
               {this.state.uploadedAssets !== null && this.state.uploadedAssets.map((item, n) => {
                 return (
                   <li key={n} className='form-media__list-item'>
-                    <i className='form-media__file-type fa fa-file'/>
+                    <i className={item.metadata.redirect_url ? 'form-media__file-type fa fa-link' : 'form-media__file-type fa fa-file'}/>
                     <a href={item.content}>{item.metadata.filename}</a>
                     <i className='k-icon-trash' onClick={() => this.removeMedia(item.url)}/>
                   </li>
