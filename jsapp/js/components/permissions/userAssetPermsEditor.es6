@@ -328,8 +328,6 @@ class UserAssetPermsEditor extends React.Component {
       username: this.state.username,
     };
 
-    // use CHECKBOX_PERM_PAIRS on a loop for this
-
     if (this.isAssignable('view_asset')) {output.formView = this.state.formView;}
     if (this.isAssignable('change_asset')) {output.formEdit = this.state.formEdit;}
     if (this.isAssignable('add_submissions')) {output.submissionsAdd = this.state.submissionsAdd;}
@@ -351,8 +349,6 @@ class UserAssetPermsEditor extends React.Component {
     }
 
     const formData = this.getFormData();
-
-    // update perm parser
 
     const parsedUser = permParser.parseFormData(formData);
 
