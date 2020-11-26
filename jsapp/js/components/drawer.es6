@@ -17,10 +17,7 @@ import {
   COMMON_QUERIES,
   MODAL_TYPES
 } from '../constants';
-import {
-  t,
-  assign
-} from '../utils';
+import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 
 class FormSidebar extends Reflux.Component {

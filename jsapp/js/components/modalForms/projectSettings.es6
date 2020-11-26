@@ -17,12 +17,12 @@ import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
+import {removeInvalidChars} from 'js/assetUtils';
 import {
-  t,
   validFileTypes,
   isAValidUrl,
   escapeHtml
-} from 'js/utils';
+} from 'utils';
 import {
   NAME_MAX_LENGTH,
   PROJECT_SETTINGS_CONTEXTS
@@ -168,13 +168,13 @@ class ProjectSettings extends React.Component {
   }
 
   onNameChange(evt) {
-    this.setState({name: evt.target.value});
-    this.onAnyDataChange('name', evt.target.value);
+    this.setState({name: removeInvalidChars(evt.target.value)});
+    this.onAnyDataChange('name', removeInvalidChars(evt.target.value));
   }
 
   onDescriptionChange(evt) {
-    this.setState({description: evt.target.value});
-    this.onAnyDataChange('description', evt.target.value);
+    this.setState({description: removeInvalidChars(evt.target.value)});
+    this.onAnyDataChange('description', removeInvalidChars(evt.target.value));
   }
 
   onCountryChange(val) {

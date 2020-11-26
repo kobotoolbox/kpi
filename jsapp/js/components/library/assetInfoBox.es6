@@ -8,11 +8,10 @@ import {stores} from 'js/stores';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {
-  t,
   notify,
   formatTime,
   formatDate
-} from 'js/utils';
+} from 'utils';
 
 /**
  * @prop asset
@@ -75,17 +74,13 @@ class AssetInfoBox extends React.Component {
   }
 
   makePublic() {
-    const requiredPropsReady = assetUtils.isAssetPublicReady(
-      this.props.asset.name,
-      this.props.asset.settings.organization,
-      this.props.asset.settings.sector
-    );
+    const publicReadyErrors = assetUtils.isAssetPublicReady(this.props.asset);
 
-    if (requiredPropsReady === true) {
+    if (publicReadyErrors.length === 0) {
       this.setState({isPublicPending: true});
       actions.permissions.setAssetPublic(this.props.asset, true);
     } else {
-      notify(Object.values(requiredPropsReady).join(' '), 'error');
+      publicReadyErrors.forEach((err) => {notify(err, 'error');});
     }
   }
 
@@ -140,6 +135,8 @@ class AssetInfoBox extends React.Component {
 
           {isPublicable && isSelfOwned &&
             <bem.FormView__cell m={['buttons', 'column-1']}>
+              {/* NOTE: this button is purposely available for not ready
+              collections as a means to teach users (via error notifications). */}
               {!isPublic &&
                 <bem.KoboButton
                   m='blue'

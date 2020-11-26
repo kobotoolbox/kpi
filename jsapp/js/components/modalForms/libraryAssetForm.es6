@@ -11,10 +11,7 @@ import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {hashHistory} from 'react-router';
-import {
-  t,
-  notify
-} from 'js/utils';
+import {notify} from 'utils';
 import assetUtils from 'js/assetUtils';
 import {
   renderLoading,
@@ -166,12 +163,12 @@ export class LibraryAssetForm extends React.Component {
     this.setState({data: data});
   }
 
-  onNameChange(newValue) {this.onPropertyChange('name', newValue);}
+  onNameChange(newValue) {this.onPropertyChange('name', assetUtils.removeInvalidChars(newValue));}
   onOrganizationChange(newValue) {this.onPropertyChange('organization', newValue);}
   onCountryChange(newValue) {this.onPropertyChange('country', newValue);}
   onSectorChange(newValue) {this.onPropertyChange('sector', newValue);}
   onTagsChange(newValue) {this.onPropertyChange('tags', assetUtils.cleanupTags(newValue));}
-  onDescriptionChange(evt) {this.onPropertyChange('description', evt.target.value);}
+  onDescriptionChange(evt) {this.onPropertyChange('description', assetUtils.removeInvalidChars(evt.target.value));}
 
   /**
    * @returns existing asset type or desired asset type

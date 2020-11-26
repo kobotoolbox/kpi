@@ -26,17 +26,15 @@ import {dataInterface} from './dataInterface';
 import {stores} from './stores';
 import {searches} from './searches';
 import {actions} from './actions';
-import $ from 'jquery';
 import permConfig from 'js/components/permissions/permConfig';
 import {
   log,
-  t,
   assign,
   notify,
   escapeHtml,
   buildUserUrl,
   renderCheckbox
-} from './utils';
+} from 'utils';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -671,6 +669,12 @@ mixins.clickAssets = {
       translations: function(uid) {
         stores.pageState.showModal({
           type: MODAL_TYPES.FORM_LANGUAGES,
+          assetUid: uid
+        });
+      },
+      encryption: function(uid) {
+        stores.pageState.showModal({
+          type: MODAL_TYPES.ENCRYPT_FORM,
           assetUid: uid
         });
       }

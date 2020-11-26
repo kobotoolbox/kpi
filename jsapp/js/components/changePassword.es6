@@ -9,10 +9,7 @@ import {stores} from '../stores';
 import TextBox from './textBox';
 import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
-import {
-  t,
-  stringToColor,
-} from '../utils';
+import {stringToColor} from 'utils';
 import {ROOT_URL} from 'js/constants';
 
 export default class ChangePassword extends React.Component {

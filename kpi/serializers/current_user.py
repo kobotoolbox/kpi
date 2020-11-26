@@ -4,7 +4,6 @@ import pytz
 
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
-from django.db import transaction
 from django.conf import settings
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
@@ -125,9 +124,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
         new_password = validated_data.get('new_password', False)
         if new_password:
-            with transaction.atomic():
-                instance.set_password(new_password)
-                instance.save()
+            instance.set_password(new_password)
+            instance.save()
+            request = self.context.get('request', False)
+            if request:
+                update_session_auth_hash(request, instance)
 
         return super().update(
             instance, validated_data)

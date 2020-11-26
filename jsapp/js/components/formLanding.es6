@@ -15,9 +15,8 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import {MODAL_TYPES} from '../constants';
 import {
   formatTime,
-  t,
   notify
-} from '../utils';
+} from 'utils';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
@@ -143,6 +142,13 @@ export class FormLanding extends React.Component {
     evt.preventDefault();
     stores.pageState.showModal({
       type: MODAL_TYPES.FORM_LANGUAGES,
+      asset: this.state
+    });
+  }
+  showEncryptionModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: MODAL_TYPES.ENCRYPT_FORM,
       asset: this.state
     });
   }
@@ -463,6 +469,10 @@ export class FormLanding extends React.Component {
               {t('Manage Translations')}
             </bem.PopoverMenu__link>
           }
+          <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
+            <i className='k-icon-lock'/>
+            {t('Manage Encryption')}
+          </bem.PopoverMenu__link>
         </ui.PopoverMenu>
       </React.Fragment>
     );

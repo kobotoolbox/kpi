@@ -4,10 +4,9 @@ import autoBind from 'react-autobind';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
 import {
-  t,
   hasVerticalScrollbar,
   getScrollbarWidth
-} from 'js/utils';
+} from 'utils';
 import AssetsTableRow from './assetsTableRow';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
@@ -328,7 +327,7 @@ export class AssetsTable extends React.Component {
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('country'))}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.get('date-modified'), 'last')}
 
-            {this.state.scrollbarWidth &&
+            {this.state.scrollbarWidth !== 0 && this.state.scrollbarWidth !== null &&
               <div
                 className='assets-table__scrollbar-padding'
                 style={{width: `${this.state.scrollbarWidth}px`}}
@@ -433,7 +432,7 @@ export const ASSETS_TABLE_COLUMNS = new Map([
     'languages', {
       label: t('Languages'),
       id: 'languages',
-      filterBy: 'summary__languages',
+      filterBy: 'summary__languages__icontains',
       filterByPath: ['summary', 'languages'],
       filterByMetadataName: 'languages'
     }

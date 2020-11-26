@@ -4,6 +4,7 @@ from hashlib import md5
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import (
     ProgrammingError,
     connections,
@@ -13,7 +14,6 @@ from django.db import (
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_digest.models import PartialDigest
-from jsonfield import JSONField
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
@@ -333,7 +333,7 @@ class KobocatUserProfile(ShadowModel):
     created_by = models.ForeignKey(User, null=True, blank=True,
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
-    metadata = JSONField(default=dict, blank=True)
+    metadata = JSONBField(default=dict, blank=True)
 
 
 class KobocatToken(ShadowModel):

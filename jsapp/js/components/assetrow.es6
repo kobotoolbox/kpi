@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import $ from 'jquery';
 import { Link } from 'react-router';
 import {bem} from '../bem';
 import assetUtils from 'js/assetUtils';
@@ -14,10 +13,7 @@ import {
   ASSET_TYPES
 } from 'js/constants';
 import TagInput from '../components/tagInput';
-import {
-  formatTime,
-  t
-} from '../utils';
+import {formatTime} from 'utils';
 
 class AssetRow extends React.Component {
   constructor(props){
@@ -352,6 +348,13 @@ class AssetRow extends React.Component {
                   {t('Manage Translations')}
                 </bem.PopoverMenu__link>
               }
+              <bem.PopoverMenu__link
+                data-action={'encryption'}
+                data-asset-uid={this.props.uid}
+              >
+                <i className='k-icon-lock'/>
+                {t('Manage Encryption')}
+              </bem.PopoverMenu__link>
               {this.props.downloads.map((dl)=>{
                 return (
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}

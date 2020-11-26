@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {hashHistory} from 'react-router';
-import {t} from 'js/utils';
 import {
   MODAL_TYPES,
   ASSET_TYPES

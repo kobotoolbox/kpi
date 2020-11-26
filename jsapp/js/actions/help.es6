@@ -4,10 +4,7 @@
 
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
-import {
-  t,
-  notify
-} from '../utils';
+import {notify} from 'utils';
 
 export const helpActions = Reflux.createActions({
   getInAppMessages: {

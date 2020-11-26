@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
-import $ from 'jquery';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
@@ -13,14 +12,14 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
+import {removeInvalidChars} from 'js/assetUtils';
 import {
   surveyToValidJson,
   unnullifyTranslations,
   assign,
-  t,
   koboMatrixParser,
   syncCascadeChoiceNames
-} from '../utils';
+} from 'utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
@@ -154,7 +153,7 @@ export default assign({
 
   nameChange(evt) {
     this.setState({
-      name: evt.target.value,
+      name: removeInvalidChars(evt.target.value),
     });
     this.onSurveyChange();
   },

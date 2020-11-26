@@ -5,38 +5,6 @@
  * NOTE: It is not loaded or invoked by the app.
  */
 
-import {t} from './utils';
-
-// strings for zxcvbn 4.4.2 package
-// copied from https://github.com/dropbox/zxcvbn/blob/master/src/feedback.coffee
-test = t('Use a few words, avoid common phrases');
-test = t('No need for symbols, digits, or uppercase letters');
-test = t('Add another word or two. Uncommon words are better.');
-test = t('Straight rows of keys are easy to guess');
-test = t('Short keyboard patterns are easy to guess');
-test = t('Use a longer keyboard pattern with more turns');
-test = t('Repeats like "aaa" are easy to guess');
-test = t('Repeats like "abcabcabc" are only slightly harder to guess than "abc"');
-test = t('Avoid repeated words and characters');
-test = t('Sequences like abc or 6543 are easy to guess');
-test = t('Avoid sequences');
-test = t('Recent years are easy to guess');
-test = t('Avoid recent years');
-test = t('Avoid years that are associated with you');
-test = t('Dates are often easy to guess');
-test = t('Avoid dates and years that are associated with you');
-test = t('This is a top-10 common password');
-test = t('This is a top-100 common password');
-test = t('This is a very common password');
-test = t('This is similar to a commonly used password');
-test = t('A word by itself is easy to guess');
-test = t('Names and surnames by themselves are easy to guess');
-test = t('Common names and surnames are easy to guess');
-test = t("Capitalization doesn't help very much");
-test = t('All-uppercase is almost as easy to guess as all-lowercase');
-test = t("Reversed words aren't much harder to guess");
-test = t("Predictable substitutions like '@' instead of 'a' don't help very much");
-
 // misc strings
 test = t('Add another condition');
 

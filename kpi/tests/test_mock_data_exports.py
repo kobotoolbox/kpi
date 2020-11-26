@@ -16,7 +16,12 @@ from kpi.constants import PERM_PARTIAL_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
 from kpi.models import Asset, ExportTask
 
 
-class MockDataExports(TestCase):
+class MockDataExportsBase(TestCase):
+    """
+    Creates self.asset, deploys it using the mock backend, and makes some
+    submissions to it
+    """
+
     fixtures = ['test_data']
 
     form_content = {
@@ -178,7 +183,6 @@ class MockDataExports(TestCase):
 
     def setUp(self):
         self.user = User.objects.get(username='someuser')
-        self.anotheruser = User.objects.get(username='anotheruser')
         self.asset = Asset.objects.create(
             name='Identificación de animales',
             content=self.form_content,
@@ -186,11 +190,6 @@ class MockDataExports(TestCase):
         )
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
-        partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [{'_submitted_by': self.anotheruser.username}]
-        }
-        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
-                               partial_perms=partial_perms)
 
         v_uid = self.asset.latest_deployed_version.uid
         for submission in self.submissions:
@@ -198,10 +197,29 @@ class MockDataExports(TestCase):
                 '__version__': v_uid
             })
         self.asset.deployment.mock_submissions(self.submissions)
+
+
+class MockDataExports(MockDataExportsBase):
+    def setUp(self):
+        super().setUp()
+
+        self.anotheruser = User.objects.get(username='anotheruser')
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [
+                {'_submitted_by': self.anotheruser.username}
+            ]
+        }
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,
             submission_stream=self.asset.deployment.get_submissions(
-                self.asset.owner.id)
+                self.asset.owner.id
+            ),
         )
 
     def run_csv_export_test(
@@ -477,9 +495,8 @@ class MockDataExports(TestCase):
             export_task.user = self.user
             export_task.data = task_data
             export_task.save()
-        created_export_tasks = ExportTask._filter_by_source_kludge(
-            ExportTask.objects.filter(user=self.user),
-            task_data['source']
+        created_export_tasks = ExportTask.objects.filter(
+            user=self.user, data__source=task_data['source']
         )
         self.assertEqual(excess_count + 1, created_export_tasks.count())
         # Identify which exports should be kept
@@ -490,13 +507,13 @@ class MockDataExports(TestCase):
         self.assertEqual(export_task.status, ExportTask.COMPLETE)
         # Verify the cleanup
         self.assertFalse(result.storage.exists(result.name))
-        self.assertListEqual( # assertSequenceEqual isn't working...
+        self.assertListEqual(  # assertSequenceEqual isn't working...
             list(export_tasks_to_keep.values_list('pk', flat=True)),
-            list(ExportTask._filter_by_source_kludge(
+            list(
                 ExportTask.objects.filter(
-                    user=self.user),
-                task_data['source']
-            ).order_by('-date_created').values_list('pk', flat=True))
+                    user=self.user, data__source=task_data['source']
+                ).order_by('-date_created').values_list('pk', flat=True)
+            ),
         )
 
     def test_log_and_mark_stuck_exports_as_errored(self):
@@ -506,11 +523,9 @@ class MockDataExports(TestCase):
         }
         self.assertEqual(
             0,
-            ExportTask._filter_by_source_kludge(
-                ExportTask.objects.filter(
-                    user=self.user),
-                task_data['source']
-            ).count()
+            ExportTask.objects.filter(
+                user=self.user, data__source=task_data['source']
+            ).count(),
         )
         # Simulate a few stuck exports
         for status in (ExportTask.CREATED, ExportTask.PROCESSING):
@@ -523,11 +538,9 @@ class MockDataExports(TestCase):
             export_task.save()
         self.assertSequenceEqual(
             [ExportTask.CREATED, ExportTask.PROCESSING],
-            ExportTask._filter_by_source_kludge(
-                ExportTask.objects.filter(
-                    user=self.user),
-                task_data['source']
-            ).order_by('pk').values_list('status', flat=True)
+            ExportTask.objects.filter(
+                user=self.user, data__source=task_data['source']
+            ).order_by('pk').values_list('status', flat=True),
         )
         # Run another export, which invokes the cleanup logic
         export_task = ExportTask()
@@ -538,11 +551,9 @@ class MockDataExports(TestCase):
         # Verify that the stuck exports have been marked
         self.assertSequenceEqual(
             [ExportTask.ERROR, ExportTask.ERROR, ExportTask.COMPLETE],
-            ExportTask._filter_by_source_kludge(
-                ExportTask.objects.filter(
-                    user=self.user),
-                task_data['source']
-            ).order_by('pk').values_list('status', flat=True)
+            ExportTask.objects.filter(
+                user=self.user, data__source=task_data['source']
+            ).order_by('pk').values_list('status', flat=True),
         )
 
     def test_export_long_form_title(self):

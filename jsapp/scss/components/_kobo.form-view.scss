@@ -183,6 +183,7 @@
     max-height: 0;
     overflow: hidden;
     transition: 0.2s max-height;
+    padding-bottom: 0;
   }
 
   &.historyExpanded .form-view__cell--history-label,
@@ -430,6 +431,10 @@
       margin: 0;
     }
   }
+
+  &.form-view__cell--translation-modal-warning {
+    margin-bottom: 20px;
+  }
 }
 
 .form-view__icon-button {
@@ -442,7 +447,7 @@
   min-height: 32px;
 
   > i {
-    vertical-align: top;
+    vertical-align: -0.34375em;
   }
 }
 

@@ -2,6 +2,7 @@
 import json
 
 from django.conf import settings
+from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
@@ -14,12 +15,16 @@ from kpi.constants import (
     ASSET_TYPES,
     ASSET_TYPE_COLLECTION,
     PERM_DISCOVER_ASSET,
+    PERM_CHANGE_ASSET,
     PERM_VIEW_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.fields import RelativePrefixHyperlinkedRelatedField, WritableJSONField, \
-    PaginatedApiField
+from kpi.fields import (
+    PaginatedApiField,
+    RelativePrefixHyperlinkedRelatedField,
+    WritableJSONField,
+)
 from kpi.models import Asset, AssetVersion
 from kpi.models.asset import UserAssetSubscription
 from kpi.models.object_permission import get_anonymous_user
@@ -81,14 +86,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     # Only add link instead of hooks list to avoid multiple access to DB.
     hooks_link = serializers.SerializerMethodField()
 
-    # Only relevant for collections
-    children = PaginatedApiField(
-        serializer_class="kpi.serializers.v2.asset.AssetListSerializer"
-    )
-
+    children = serializers.SerializerMethodField()
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    access_type = serializers.SerializerMethodField()
+    access_types = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -135,7 +136,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'children',
                   'subscribers_count',
                   'status',
-                  'access_type',
+                  'access_types',
                   )
         extra_kwargs = {
             'parent': {
@@ -164,16 +165,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
-        user = self.context['request'].user
-        # Check if the user is anonymous. The
-        # django.contrib.auth.models.AnonymousUser object doesn't work for
-        # queries.
-        if user.is_anonymous:
-            user = get_anonymous_user()
-        if 'parent' in fields:
-            # TODO: remove this restriction?
-            fields['parent'].queryset = fields['parent'].queryset.filter(
-                owner=user)
         # Honor requests to exclude fields
         # TODO: Actually exclude fields from tha database query! DRF grabs
         # all columns, even ones that are never named in `fields`
@@ -207,8 +198,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         def _reverse_lookup_format(fmt):
             url = reverse('asset-%s' % fmt,
-                                    args=(obj.uid,),
-                                    request=request)
+                          args=(obj.uid,),
+                          request=request)
             return {'format': fmt,
                     'url': url, }
 
@@ -324,16 +315,36 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             }
             for codename in asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[asset.asset_type]]
 
+    def get_children(self, asset):
+        """
+        Handles the detail endpoint but also takes advantage of the
+        `AssetViewSet.get_serializer_context()` "cache" for the list endpoint,
+        if it is present
+        """
+        if asset.asset_type != ASSET_TYPE_COLLECTION:
+            return {'count': 0}
+
+        try:
+            children_count_per_asset = self.context['children_count_per_asset']
+        except KeyError:
+            children_count = asset.children.count()
+        else:
+            children_count = children_count_per_asset.get(asset.pk, 0)
+
+        return {'count': children_count}
+
     def get_subscribers_count(self, asset):
         if asset.asset_type != ASSET_TYPE_COLLECTION:
             return 0
-
+        # ToDo Optimize this. What about caching it inside `summary`
         return UserAssetSubscription.objects.filter(asset_id=asset.pk).count()
 
     def get_status(self, asset):
 
         # `order_by` lets us check `AnonymousUser`'s permissions first.
-        # No need to read all permissions if `AnonymousUser`'s permissions are found.
+        # No need to read all permissions if `AnonymousUser`'s permissions
+        # are found.
+        # We assume that `settings.ANONYMOUS_USER_ID` equals -1.
         perm_assignments = asset.permissions. \
             values('user_id', 'permission__codename'). \
             exclude(user_id=asset.owner_id). \
@@ -348,8 +359,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         queryset = ObjectPermissionHelper. \
             get_user_permission_assignments_queryset(obj, request.user)
         # Need to pass `asset` and `asset_uid` to context of
-        # AssetPermissionAssignmentSerializer serializer to avoid extra queries to DB
-        # within the serializer to retrieve the asset object.
+        # AssetPermissionAssignmentSerializer serializer to avoid extra queries
+        # to DB within the serializer to retrieve the asset object.
         context['asset'] = obj
         context['asset_uid'] = obj.uid
 
@@ -357,31 +368,113 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                    many=True, read_only=True,
                                                    context=context).data
 
-    def get_access_type(self, obj):
+    def get_access_types(self, obj):
+        """
+        Handles the detail endpoint but also takes advantage of the
+        `AssetViewSet.get_serializer_context()` "cache" for the list endpoint,
+        if it is present
+        """
         # Avoid extra queries if obj is not a collection
         if obj.asset_type != ASSET_TYPE_COLLECTION:
             return None
 
+        # User is the owner
         try:
             request = self.context['request']
         except KeyError:
             return None
+
+        access_types = []
         if request.user == obj.owner:
-            return 'owned'
-        # `obj.permissions.filter(...).exists()` would be cleaner, but it'd
-        # cost a query. This ugly loop takes advantage of having already called
-        # `prefetch_related()`
-        for permission in obj.permissions.all():
-            if not permission.deny and permission.user == request.user:
-                return 'shared'
-        if obj.has_subscribed_user(request.user.pk):
-            return 'subscribed'
-        if obj.discoverable_when_public:
-            return 'public'
+            access_types.append('owned')
+
+        # User can view the collection.
+        try:
+            # The list view should provide a cache
+            asset_permission_assignments = self.context[
+                'object_permissions_per_asset'
+            ].get(obj.pk)
+        except KeyError:
+            asset_permission_assignments = obj.permissions.all()
+
+        # We test at the same time whether the collection is public or not
+        for obj_permission in asset_permission_assignments:
+
+            if (
+                not obj_permission.deny
+                and obj_permission.user_id == settings.ANONYMOUS_USER_ID
+                and obj_permission.permission.codename == PERM_DISCOVER_ASSET
+            ):
+                access_types.append('public')
+
+                if request.user == obj.owner:
+                    # Do not go further, `access_type` cannot be `shared`
+                    # and `owned`
+                    break
+
+            if (
+                request.user != obj.owner
+                and not obj_permission.deny
+                and obj_permission.user == request.user
+            ):
+                access_types.append('shared')
+                # Do not go further, we assume `settings.ANONYMOUS_USER_ID`
+                # equals -1. Thus, `public` access type should be discovered at
+                # first
+                break
+
+        # User has subscribed to this collection
+        subscribed = False
+        try:
+            # The list view should provide a cache
+            subscriptions = self.context['user_subscriptions_per_asset'].get(
+                obj.pk, []
+            )
+        except KeyError:
+            subscribed = obj.has_subscribed_user(request.user.pk)
+        else:
+            subscribed = request.user.pk in subscriptions
+        if subscribed:
+            access_types.append('subscribed')
+
+        # User is big brother.
         if request.user.is_superuser:
-            return 'superuser'
-        raise Exception(
-            f'{request.user.username} has unexpected access to {obj.uid}')
+            access_types.append('superuser')
+
+        if not access_types:
+            raise Exception(
+                f'{request.user.username} has unexpected access to {obj.uid}'
+            )
+
+        return access_types
+
+    def validate_parent(self, parent: Asset) -> Asset:
+        request = self.context['request']
+        user = request.user
+        if user.is_anonymous:
+            user = get_anonymous_user()
+
+        # Validate first if user can update the current parent
+        if self.instance and self.instance.parent is not None:
+            if not self.instance.parent.has_perm(user, PERM_CHANGE_ASSET):
+                raise serializers.ValidationError(
+                    _('User cannot update current parent collection'))
+
+        # Target collection is `None`, no need to check permissions
+        if parent is None:
+            return parent
+
+        # `user` must have write access to target parent before being able to
+        # move the asset.
+        parent_perms = parent.get_perms(user)
+        if PERM_VIEW_ASSET not in parent_perms:
+            raise serializers.ValidationError(_('Target collection not found'))
+
+        if PERM_CHANGE_ASSET not in parent_perms:
+            raise serializers.ValidationError(
+                _('User cannot update target parent collection'))
+
+        return parent
 
     def _content(self, obj):
         return json.dumps(obj.content)
@@ -428,8 +521,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
 class AssetListSerializer(AssetSerializer):
 
-    children = serializers.SerializerMethodField()
-
     class Meta(AssetSerializer.Meta):
         # WARNING! If you're changing something here, please update
         # `Asset.optimize_queryset_for_list()`; otherwise, you'll cause an
@@ -458,23 +549,9 @@ class AssetListSerializer(AssetSerializer):
                   'data',
                   'subscribers_count',
                   'status',
-                  'access_type',
+                  'access_types',
                   'children'
                   )
-
-    def get_children(self, asset):
-        if asset.asset_type != ASSET_TYPE_COLLECTION:
-            return {'count': 0}
-
-        try:
-            children_count = self.context['children_count_per_asset'].get(asset.pk, 0)
-        except KeyError:
-            # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `children_count` should be always
-            # a property of `self.context`
-            children_count = asset.children.count()
-
-        return {'count': children_count}
 
     def get_permissions(self, asset):
         try:
@@ -482,16 +559,16 @@ class AssetListSerializer(AssetSerializer):
                 'object_permissions_per_asset'].get(asset.pk)
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `object_permissions_per_asset` should be always
-            # a property of `self.context`
+            # in the list context, `object_permissions_per_asset` should
+            # be always a property of `self.context`
             return super().get_permissions(asset)
 
         context = self.context
         request = self.context.get('request')
 
         # Need to pass `asset` and `asset_uid` to context of
-        # AssetPermissionAssignmentSerializer serializer to avoid extra queries to DB
-        # within the serializer to retrieve the asset object.
+        # AssetPermissionAssignmentSerializer serializer to avoid extra queries
+        # to DB within the serializer to retrieve the asset object.
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
@@ -499,7 +576,6 @@ class AssetListSerializer(AssetSerializer):
             get_user_permission_assignments(asset,
                                             request.user,
                                             asset_permission_assignments)
-
         return AssetPermissionAssignmentSerializer(user_assignments,
                                                    many=True, read_only=True,
                                                    context=context).data
@@ -509,11 +585,12 @@ class AssetListSerializer(AssetSerializer):
             return 0
 
         try:
-            return self.context['user_subscriptions_per_asset'].get(asset.pk, 0)
+            subscriptions_per_asset = self.context['user_subscriptions_per_asset']
+            return len(subscriptions_per_asset.get(asset.pk, []))
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `user_subscriptions_per_asset` should be always
-            # a property of `self.context`
+            # in the list context, `user_subscriptions_per_asset` should be
+            # always a property of `self.context`
             return super().get_subscribers_count(asset)
 
     def get_status(self, asset):
@@ -523,8 +600,8 @@ class AssetListSerializer(AssetSerializer):
                 'object_permissions_per_asset'].get(asset.pk)
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
-            # in the list context, `object_permissions_per_asset` should be always
-            # a property of `self.context`
+            # in the list context, `object_permissions_per_asset` should be
+            # always a property of `self.context`
             return super().get_status(asset)
 
         perm_assignments = []

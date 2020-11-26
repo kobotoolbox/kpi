@@ -1,4 +1,6 @@
 # coding: utf-8
+import pytz
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -20,7 +22,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     assets = PaginatedApiField(
         serializer_class=AssetUrlListSerializer
     )
-    member_since = serializers.SerializerMethodField()
+    date_joined = serializers.SerializerMethodField()
     public_collection_subscribers_count = serializers.SerializerMethodField()
     public_collections_count = serializers.SerializerMethodField()
 
@@ -29,13 +31,14 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url',
                   'username',
                   'assets',
-                  'member_since',
+                  'date_joined',
                   'public_collection_subscribers_count',
                   'public_collections_count',
                   )
 
-    def get_member_since(self, user):
-        return user.date_joined
+    def get_date_joined(self, obj):
+        return obj.date_joined.astimezone(pytz.UTC).strftime(
+            '%Y-%m-%dT%H:%M:%SZ')
 
     def get_public_collection_subscribers_count(self, user):
         public_collection_ids = self.__get_public_collection_ids(user.pk)
@@ -56,8 +59,7 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         # A collection is considered as public when it's shared
         # with `AnonymousUser`.
         return ObjectPermission.objects.filter(
-            content_type=ContentType.objects.get_for_model(Asset),
-            object_id__in=collection_ids,
+            asset_id__in=collection_ids,
             user_id=settings.ANONYMOUS_USER_ID,
-            permission__codename=PERM_DISCOVER_ASSET).values_list('object_id',
+            permission__codename=PERM_DISCOVER_ASSET).values_list('asset_id',
                                                                   flat=True)

@@ -14,8 +14,10 @@ import moment from 'moment';
 import Chart from 'chart.js';
 
 import {
-  t, formatTime, formatDate, stringToColor
-} from '../utils';
+  formatTime,
+  formatDate,
+  stringToColor
+} from 'utils';
 
 import {MODAL_TYPES} from '../constants';
 

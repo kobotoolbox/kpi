@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -12,11 +11,10 @@ import {actions} from '../actions';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   assign,
   currentLang,
   stringToColor,
-} from 'js/utils';
+} from 'utils';
 import {getAssetIcon} from 'js/assetUtils';
 import {COMMON_QUERIES} from 'js/constants';
 import {searches} from '../searches';
@@ -24,7 +22,6 @@ import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
-import publicCollectionsStore from 'js/components/library/publicCollectionsStore';
 
 class MainHeader extends Reflux.Component {
   constructor(props){
@@ -50,7 +47,6 @@ class MainHeader extends Reflux.Component {
   componentDidMount() {
     this.unlisteners.push(
       stores.asset.listen(this.onAssetLoad),
-      publicCollectionsStore.listen(this.forceRender),
       myLibraryStore.listen(this.forceRender)
     );
   }
@@ -69,8 +65,8 @@ class MainHeader extends Reflux.Component {
   }
   isSearchBoxDisabled() {
     if (this.isMyLibrary()) {
-      // disable search for when user has zero assets
-      return myLibraryStore.data.totalUserAssets === null;
+      // disable search when user has zero assets
+      return myLibraryStore.getCurrentUserTotalAssets() === null;
     } else {
       return false;
     }
@@ -244,23 +240,6 @@ class MainHeader extends Reflux.Component {
                   placeholder={t('Search Library')}
                   disabled={this.isSearchBoxDisabled()}
                 />
-
-                {this.isMyLibrary() && !myLibraryStore.hasAllDefaultValues() &&
-                  <a
-                    className='header__link'
-                    onClick={myLibraryStore.resetOrderAndFilter}
-                  >
-                    {t('Reset filters')}
-                  </a>
-                }
-                {this.isPublicCollections() && !publicCollectionsStore.hasAllDefaultValues() &&
-                  <a
-                    className='header__link'
-                    onClick={publicCollectionsStore.resetOrderAndFilter}
-                  >
-                    {t('Reset filters')}
-                  </a>
-                }
               </div>
             }
             { this.state.asset && (this.isFormSingle() || this.isLibrarySingle()) &&

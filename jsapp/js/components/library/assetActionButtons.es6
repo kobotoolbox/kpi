@@ -17,7 +17,6 @@ import reactMixin from 'react-mixin';
 import _ from 'lodash';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
-import {t} from 'js/utils';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {
@@ -392,7 +391,10 @@ class AssetActionButtons extends React.Component {
       assetType === ASSET_TYPES.template.id ||
       assetType === ASSET_TYPES.collection.id
     );
-    const isUserSubscribed = this.props.asset.access_type === ACCESS_TYPES.get('subscribed');
+    const isUserSubscribed = (
+      this.props.asset.access_types &&
+      this.props.asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
+    );
 
     return (
       <bem.AssetActionButtons
