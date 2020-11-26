@@ -214,10 +214,10 @@ class UserAssetPermsEditor extends React.Component {
   }
 
   /**
-   * Enables Enter key on username input.
+   * Enables Enter key on input.
    */
-  onUsernameKeyPress(key, evt) {
-    if (key === 'Enter') {
+  onInputKeyPress(key, evt) {
+    if (key === KEY_CODES.get('ENTER')) {
       evt.currentTarget.blur();
       evt.preventDefault(); // prevent submitting form
     }
@@ -427,7 +427,7 @@ class UserAssetPermsEditor extends React.Component {
               value={this.state.username}
               onChange={this.onUsernameChange}
               onBlur={this.onUsernameChangeEnd}
-              onKeyPress={this.onUsernameKeyPress}
+              onKeyPress={this.onInputKeyPress}
               errors={this.state.username.length === 0}
             />
           </div>
