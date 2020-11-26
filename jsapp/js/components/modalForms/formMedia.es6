@@ -6,13 +6,16 @@ import {bem} from 'js/bem';
 import {dataInterface} from 'js/dataInterface';
 
 const BAD_URL_ERROR = '`redirect_url` is invalid';
+const BAD_URL_MEDIA_TYPE_ERROR = '`redirect_url`: Only `image`, `video`, `text/csv`, `application/xml` MIME types are allowed';
+const BAD_UPLOAD_MEDIA_TYPE_ERROR = 'Invalid content';
+const GENERIC_BAD_UPLOAD_MEDIA_TYPE_ERROR = 'Bad Request';
 const FILE_ALREADY_EXISTS_URL_ERROR = '`redirect_url`: File already exists';
 const FILE_ALREADY_EXISTS_UPLOAD_ERROR = 'File already exists';
 const INTERNAL_SERVER_ERROR = 'INTERNAL SERVER ERROR';
 
 /*
-Modal for uploading form media, part of #2487.
-*/
+ * Modal for uploading form media
+ */
 class FormMedia extends React.Component {
   constructor(props) {
     super(props);
@@ -60,14 +63,21 @@ class FormMedia extends React.Component {
           metadata: JSON.stringify({filename: file.name}),
 	      base64Encoded: base64File
 	    };
-	    dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done((res) => {
+	    dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
           this.refreshFormMedia();
 	    }).fail((err) => {
-          var backendErrorText = (err.responseJSON != undefined) ? err.responseJSON.base64_encoded[0] : err.statusText;
+          var backendErrorText = (err.responseJSON.base64Encoded != undefined) ? err.responseJSON.base64Encoded[0] : err.statusText;
           if (backendErrorText === FILE_ALREADY_EXISTS_UPLOAD_ERROR) {
             alertify.error(t('File already exists!'));
+          // Sometimes backend returns a slightly different `base64_encoded`
+          // which breaks the setup above, if that is the case we check `statusText`.
+          } else if (
+              backendErrorText === BAD_UPLOAD_MEDIA_TYPE_ERROR ||
+              backendErrorText === GENERIC_BAD_UPLOAD_MEDIA_TYPE_ERROR
+            ) {
+              alertify.error(t('Your uploaded media does not contain one of our supported MIME filetypes: `image`, `video`, `text/csv`, `application/xml`'));
           } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
-            alertify.error(t('That media type is not supported!'));
+            alertify.error(t('File could not be uploaded!'));
           }
 	    });
       });
@@ -94,19 +104,21 @@ class FormMedia extends React.Component {
           alertify.warning(t('The URL you entered is not valid'));
         } else if (backendErrorText === FILE_ALREADY_EXISTS_URL_ERROR ) {
           alertify.error(t('File already exists!'));
+        } else if (backendErrorText === BAD_URL_MEDIA_TYPE_ERROR) {
+          alertify.error(t('Your URL media does not contain one of our supported MIME filetypes: `image`, `video`, `text/csv`, `application/xml`'));
         } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
-          alertify.error(t('The URL you entered does not have media!'));
+          alertify.error(t('Your URL media failed to upload!'));
         }
       });
     }
   }
 
   removeMedia(url) {
-      dataInterface.deleteFormMedia(url).done((res) => {
-        this.refreshFormMedia();
-      }).fail(() => {
-        alertify.error(t('Failed to delete media!'));
-      });
+    dataInterface.deleteFormMedia(url).done(() => {
+      this.refreshFormMedia();
+    }).fail(() => {
+      alertify.error(t('Failed to delete media!'));
+    });
   }
 
   /*
