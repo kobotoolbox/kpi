@@ -21,6 +21,7 @@ import {
   PERMISSIONS_CODENAMES
 } from 'js/constants';
 
+const PARTIAL_PLACEHOLDER = t('Enter usernames separated by spaces');
 /**
  * Form for adding/changing user permissions for surveys.
  *
@@ -357,6 +358,9 @@ class UserAssetPermsEditor extends React.Component {
     const output = {
       username: this.state.username,
     };
+
+    // use CHECKBOX_PERM_PAIRS on a loop for this
+
     if (this.isAssignable('view_asset')) {output.formView = this.state.formView;}
     if (this.isAssignable('change_asset')) {output.formEdit = this.state.formEdit;}
     if (this.isAssignable('add_submissions')) {output.submissionsAdd = this.state.submissionsAdd;}
@@ -378,6 +382,9 @@ class UserAssetPermsEditor extends React.Component {
     }
 
     const formData = this.getFormData();
+
+    // update perm parser
+
     const parsedUser = permParser.parseFormData(formData);
 
     if (parsedUser.length > 0) {
@@ -400,21 +407,6 @@ class UserAssetPermsEditor extends React.Component {
 
   render() {
     const isNew = typeof this.props.username === 'undefined';
-
-    const submissionsViewPartialUsersInputProps = {
-      placeholder: t('Enter usernames separated by spaces'),
-      onFocus: this.onSubmissionsViewPartialUsersInputFocus,
-      onBlur: this.onSubmissionsViewPartialUsersInputBlur
-    };
-
-    let submissionsViewPartialUsersClassName = 'react-tagsinput';
-    if (
-      this.state.submissionsViewPartial &&
-      this.state.submissionsViewPartialUsers.length === 0 &&
-      !this.state.isAddingPartialUsernames
-    ) {
-      submissionsViewPartialUsersClassName += ' react-tagsinput-invalid';
-    }
 
     const formModifiers = [];
     if (this.state.isSubmitPending) {
@@ -478,14 +470,12 @@ class UserAssetPermsEditor extends React.Component {
               />
 
               {this.state.submissionsViewPartial === true &&
-                <TagsInput
-                  className={submissionsViewPartialUsersClassName}
-                  value={this.state.submissionsViewPartialUsers}
-                  onChange={this.onSubmissionsViewPartialUsersChange}
-                  addOnBlur
-                  addKeys={[KEY_CODES.get('ENTER'), KEY_CODES.get('SPACE'), KEY_CODES.get('TAB')]}
-                  inputProps={submissionsViewPartialUsersInputProps}
-                  onlyUnique
+                <TextBox
+                  placeholder={PARTIAL_PLACEHOLDER}
+                  value={this.state.submissionsViewPartialUsers.join(' ')}
+                  onChange={this.onPartialUsersChange.bind(this, 'submissionsViewPartialUsers')}
+                  errors={this.state.submissionsViewPartial && this.state.submissionsViewPartialUsers.length === 0}
+                  onKeyPress={this.onInputKeyPress}
                 />
               }
             </div>
