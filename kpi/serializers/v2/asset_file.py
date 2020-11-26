@@ -281,15 +281,10 @@ class AssetFileSerializer(serializers.ModelSerializer):
                 )
                 raise serializers.ValidationError(error)
 
-    def __validate_mime_type(self, source: str, field_name: str):
+    def __validate_mime_type(self, filename: str, field_name: str):
         """
         Validates MIME type of the file depending on its type
         (`form_media` or `media_layer`)
-        Args:
-            source (str): Can be the base64 encoded string, the name of the
-                          file or the URL
-            field_name (str): name of field to return in case of validation
-                              error
         """
         # Check if content type is allowed
         try:
@@ -297,11 +292,11 @@ class AssetFileSerializer(serializers.ModelSerializer):
         except KeyError:
             pass
         else:
-            mime_type, _ = guess_type(source)
+            mime_type, encoding_ = guess_type(filename)
             if not mime_type or not mime_type.startswith(allowed_mime_types):
                 mime_types_csv = '`, `'.join(allowed_mime_types)
                 error = self.__format_error(
                     field_name,
-                    _('Only `{}` extensions are allowed').format(mime_types_csv)
+                    _('Only `{}` MIME types are allowed').format(mime_types_csv)
                 )
                 raise serializers.ValidationError(error)
