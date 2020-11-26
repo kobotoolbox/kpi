@@ -42,7 +42,6 @@ class UserAssetPermsEditor extends React.Component {
       usernamesBeingChecked: new Set(),
       isSubmitPending: false,
       isEditingUsername: false,
-      isAddingPartialUsernames: false,
       // form user inputs
       username: '',
       formView: false,
@@ -223,37 +222,8 @@ class UserAssetPermsEditor extends React.Component {
     }
   }
 
-  /**
-   * Handles TagsInput change event and blocks adding nonexistent usernames.
-   * Also unblocks the submit button.
-   */
-  onSubmissionsViewPartialUsersChange(allUsers) {
-    this.setState({isAddingPartialUsernames: false});
-    const submissionsViewPartialUsers = [];
-
-    allUsers.forEach((username) => {
-      const userCheck = this.checkUsernameSync(username);
-      if (userCheck === true) {
-        submissionsViewPartialUsers.push(username);
-      } else if (userCheck === undefined) {
-        // we add unknown usernames for now and will check and possibly remove
-        // with checkUsernameAsync
-        submissionsViewPartialUsers.push(username);
-        this.checkUsernameAsync(username);
-      } else {
-        this.notifyUnknownUser(username);
-      }
-    });
-
-    this.setState({submissionsViewPartialUsers: submissionsViewPartialUsers});
-  }
-
-  onSubmissionsViewPartialUsersInputFocus() {
-    this.setState({isAddingPartialUsernames: true});
-  }
-
-  onSubmissionsViewPartialUsersInputBlur() {
-    this.setState({isAddingPartialUsernames: false});
+  onSubmissionsViewPartialUsersChange(users) {
+    this.setState({submissionsViewPartialUsers: users.split(' ')});
   }
 
   /**
@@ -343,7 +313,6 @@ class UserAssetPermsEditor extends React.Component {
       isPartialValid &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
-      !this.state.isAddingPartialUsernames &&
       this.state.username.length > 0 &&
       this.state.usernamesBeingChecked.size === 0 &&
       // we don't allow manual setting anonymous user permissions through UI
@@ -473,7 +442,7 @@ class UserAssetPermsEditor extends React.Component {
                 <TextBox
                   placeholder={PARTIAL_PLACEHOLDER}
                   value={this.state.submissionsViewPartialUsers.join(' ')}
-                  onChange={this.onPartialUsersChange.bind(this, 'submissionsViewPartialUsers')}
+                  onChange={this.onSubmissionsViewPartialUsersChange}
                   errors={this.state.submissionsViewPartial && this.state.submissionsViewPartialUsers.length === 0}
                   onKeyPress={this.onInputKeyPress}
                 />
