@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import {
@@ -16,8 +15,10 @@ import {
   ASSETS_TABLE_COLUMNS
 } from './assetsTable';
 
-// Mostly copied from `myLibraryStore`, so far only small changes made to get
-// collection assets to display in table
+// A store that listens for actions on assets from a single collection
+// Extends most functionality from myLibraryStore but overwrites some actions:
+// - searchMyLibraryAssets.* -> searchMyCollectionAssets.*
+// - searchMyCollectionMetadata.completed -> searchMyCollectionMetadata.completed
 const singleCollectionStore = Reflux.createStore({
   /**
    * A method for aborting current XHR fetch request.
@@ -42,8 +43,6 @@ const singleCollectionStore = Reflux.createStore({
   },
 
   init() {
-    this.fetchDataDebounced = _.debounce(this.fetchData.bind(true), 2500);
-
     this.setDefaultColumns();
 
     hashHistory.listen(this.onRouteChange.bind(this));
@@ -51,20 +50,16 @@ const singleCollectionStore = Reflux.createStore({
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
     actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this, true));
-    actions.library.searchMyLibraryMetadata.completed.listen(this.onSearchMetadataCmpleted);
     actions.resources.loadAsset.completed.listen(this.onAssetChanged);
     actions.resources.updateAsset.completed.listen(this.onAssetChanged);
     actions.resources.cloneAsset.completed.listen(this.onAssetCreated);
     actions.resources.createResource.completed.listen(this.onAssetCreated);
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
-    // These are the changed requests, not all have been updated yet. Trying to
-    // just get assets to show up first
+    // Actions unique to a single collection store (overwriting myLibraryStore)
     actions.library.searchMyCollectionAssets.started.listen(this.onSearchStarted);
     actions.library.searchMyCollectionAssets.completed.listen(this.onSearchCompleted);
     actions.library.searchMyCollectionAssets.failed.listen(this.onSearchFailed);
-    // TODO Improve reaction to uploads being finished after task is done:
-    // https://github.com/kobotoolbox/kpi/issues/476
-    actions.resources.createImport.completed.listen(this.fetchDataDebounced);
+    actions.library.searchMyCollectionMetadata.completed.listen(this.onSearchMetadataCompleted);
 
     // startup store after config is ready
     actions.permissions.getConfig.completed.listen(this.startupStore);
@@ -97,7 +92,7 @@ const singleCollectionStore = Reflux.createStore({
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
-      uid: getCurrentCollectionUID() // TODO a better way to get UID through listeners?
+      uid: getCurrentCollectionUID()
     };
 
     if (this.data.filterColumnId !== null) {
@@ -109,16 +104,15 @@ const singleCollectionStore = Reflux.createStore({
     return params;
   },
 
-  /**** Same code as `myLibraryStore` after this point ****/
-
   fetchMetadata() {
-    actions.library.searchMyLibraryMetadata(this.getSearchParams());
+    actions.library.searchMyCollectionMetadata(this.getSearchParams());
   },
 
   /**
    * @param {boolean} needsMetadata
    */
   fetchData(needsMetadata = false) {
+    actions.library.searchMyCollectionMetadata(this.getSearchParams());
     if (this.abortFetchData) {
       this.abortFetchData();
     }
@@ -145,8 +139,8 @@ const singleCollectionStore = Reflux.createStore({
     } else if (
       this.previousPath !== null &&
       (
-        // coming from outside of library
-        this.previousPath.split('/')[1] !== 'library' ||
+        // coming from the library
+        this.previousPath.split('/')[1] === 'library' ||
         // public-collections is a special case that is kinda in library, but
         // actually outside of it
         this.previousPath.startsWith('/library/public-collections')

@@ -427,6 +427,7 @@ export var dataInterface;
     searchMyCollectionAssets(params = {}) {
       return this._searchAssetsWithPredefinedQuery(
         params,
+        // we only want the currently viewed collection's assets
         `${COMMON_QUERIES.get('qbtc')} AND parent__uid:${params.uid}`,
       );
     },
@@ -435,6 +436,13 @@ export var dataInterface;
         params,
         // we only want orphans (assets not inside collection)
         `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
+      );
+    },
+    searchMyCollectionMetadata(params = {}) {
+      return this._searchMetadataWithPredefinedQuery(
+        params,
+        // we only want the currently viewed collection's assets
+        `${COMMON_QUERIES.get('qbtc')} AND parent:${params.uid}`,
       );
     },
     searchMyLibraryMetadata(params = {}) {

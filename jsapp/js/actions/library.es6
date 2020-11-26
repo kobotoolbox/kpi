@@ -22,6 +22,13 @@ const libraryActions = Reflux.createActions({
     ]
   },
 
+  searchMyCollectionMetadata: {
+    children: [
+      'completed',
+      'failed'
+    ]
+  },
+
   searchMyLibraryMetadata: {
     children: [
       'completed',
@@ -95,6 +102,17 @@ libraryActions.searchMyLibraryAssets.listen((params) => {
     .done(libraryActions.searchMyLibraryAssets.completed)
     .fail(libraryActions.searchMyLibraryAssets.failed);
   libraryActions.searchMyLibraryAssets.started(xhr.abort);
+});
+
+
+/**
+ * Gets metadata for a single collection's assets
+ * @param {object} params
+ */
+libraryActions.searchMyCollectionMetadata.listen((params) => {
+  dataInterface.searchMyCollectionMetadata(params)
+    .done(libraryActions.searchMyCollectionMetadata.completed)
+    .fail(libraryActions.searchMyCollectionMetadata.failed);
 });
 
 /**
