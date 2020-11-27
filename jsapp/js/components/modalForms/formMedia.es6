@@ -7,11 +7,12 @@ import {dataInterface} from 'js/dataInterface';
 
 const BAD_URL_ERROR = '`redirect_url` is invalid';
 const BAD_URL_MEDIA_TYPE_ERROR = '`redirect_url`: Only `image`, `video`, `text/csv`, `application/xml` MIME types are allowed';
-const BAD_UPLOAD_MEDIA_TYPE_ERROR = 'Invalid content';
-const GENERIC_BAD_UPLOAD_MEDIA_TYPE_ERROR = 'Bad Request';
+const BAD_UPLOAD_MEDIA_ENCODING_ERROR = 'Invalid content'; // `base64Encoded` for invalid base64 encoded string
+const BAD_UPLOAD_MEDIA_TYPE_ERROR = 'Only `image`, `video`, `text/csv`, `application/xml` MIME types are allowed'
+const GENERIC_BAD_UPLOAD_MEDIA_ENCODING_ERROR = 'Bad Request'; // `statusText` for 400 response
 const FILE_ALREADY_EXISTS_URL_ERROR = '`redirect_url`: File already exists';
 const FILE_ALREADY_EXISTS_UPLOAD_ERROR = 'File already exists';
-const INTERNAL_SERVER_ERROR = 'INTERNAL SERVER ERROR';
+const INTERNAL_SERVER_ERROR = 'INTERNAL SERVER ERROR'; // `statusText` for a 500 response
 
 /*
  * Modal for uploading form media
@@ -70,10 +71,11 @@ class FormMedia extends React.Component {
           if (backendErrorText === FILE_ALREADY_EXISTS_UPLOAD_ERROR) {
             alertify.error(t('File already exists!'));
           // Sometimes backend returns a slightly different `base64_encoded`
-          // which breaks the setup above, if that is the case we check `statusText`.
+          // response instead of `base64Encoded` which breaks the setup above.
+          // If that is the case we check `statusText` instead
           } else if (
-              backendErrorText === BAD_UPLOAD_MEDIA_TYPE_ERROR ||
-              backendErrorText === GENERIC_BAD_UPLOAD_MEDIA_TYPE_ERROR
+              backendErrorText === BAD_UPLOAD_MEDIA_ENCODING_ERROR ||
+              backendErrorText === GENERIC_BAD_UPLOAD_MEDIA_ENCODING_ERROR
             ) {
               alertify.error(t('Your uploaded media does not contain one of our supported MIME filetypes: `image`, `video`, `text/csv`, `application/xml`'));
           } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
@@ -136,6 +138,36 @@ class FormMedia extends React.Component {
     );
   }
 
+  renderIcon(item) {
+    const iconClassNames = ['form-media__file-type', 'fa'];
+    // Check if current item is uploaded vis URL. `redirect_url` is the indicator
+    if (item.metadata.redirect_url) {
+      iconClassNames.push('fa-link');
+    } else {
+      iconClassNames.push('fa-file');
+    }
+
+    return (
+      <i className={iconClassNames.join(' ')}/>
+    );
+  }
+
+  renderFileName(item){
+    // Check if current item is uploaded vis URL. `redirect_url` is the indicator
+    var fileName = item.metadata.filename;
+    if (item.metadata.redirect_url) {
+      // Shorten URL to exactly 50 chars
+      var url = item.metadata.redirect_url;
+      var urlBack = url.slice(url.length - 22);
+      var urlFront = url.replace('https://', '').replace('http://', '').substr(0, 25);
+      fileName = urlFront + '...' + urlBack;
+    }
+
+    return (
+      <a href={item.content}>{fileName}</a>
+    );
+  }
+
   render() {
     return (
       <bem.FormModal__form className='project-settings project-settings--upload-file media-settings--upload-file' onSubmit={this.onSubmitURL}>
@@ -164,8 +196,8 @@ class FormMedia extends React.Component {
               {this.state.uploadedAssets !== null && this.state.uploadedAssets.map((item, n) => {
                 return (
                   <li key={n} className='form-media__list-item'>
-                    <i className={item.metadata.redirect_url ? 'form-media__file-type fa fa-link' : 'form-media__file-type fa fa-file'}/>
-                    <a href={item.content}>{item.metadata.filename}</a>
+                    {this.renderIcon(item)}
+                    {this.renderFileName(item)}
                     <i className='k-icon-trash' onClick={() => this.removeMedia(item.url)}/>
                   </li>
                 );
