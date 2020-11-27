@@ -164,7 +164,7 @@ class FormMedia extends React.Component {
     }
 
     return (
-      <a href={item.content}>{fileName}</a>
+      <a href={item.content} target='_blank'>{fileName}</a>
     );
   }
 
