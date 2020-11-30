@@ -425,18 +425,24 @@ export var dataInterface;
       });
     },
     searchMyLibraryAssets(params = {}) {
-      return this._searchAssetsWithPredefinedQuery(
-        params,
-        // we only want orphans (assets not inside collection)
-        `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
-      );
+      // we only want orphans (assets not inside collection)
+      // unless it's a search
+      let query = COMMON_QUERIES.get('qbtc');
+      if (!params.searchPhrase) {
+        query += ' AND parent:null';
+      }
+
+      return this._searchAssetsWithPredefinedQuery(params, query);
     },
     searchMyLibraryMetadata(params = {}) {
-      return this._searchMetadataWithPredefinedQuery(
-        params,
-        // we only want orphans (assets not inside collection)
-        `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
-      );
+      // we only want orphans (assets not inside collection)
+      // unless it's a search
+      let query = COMMON_QUERIES.get('qbtc');
+      if (!params.searchPhrase) {
+        query += ' AND parent:null';
+      }
+
+      return this._searchMetadataWithPredefinedQuery(params, query);
     },
     searchPublicCollections(params = {}) {
       params.status = 'public-discoverable';
