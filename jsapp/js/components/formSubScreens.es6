@@ -81,8 +81,6 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/settings`:
           return this.renderSettingsEditor();
         case `/forms/${this.state.uid}/settings/media`:
-          //iframeUrl = deployment__identifier+'/form_settings';
-          //break;
           return this.renderUpload();
         case `/forms/${this.state.uid}/settings/sharing`:
           return this.renderSharing();
