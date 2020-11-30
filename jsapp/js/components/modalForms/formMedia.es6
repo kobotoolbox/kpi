@@ -8,7 +8,7 @@ import {dataInterface} from 'js/dataInterface';
 const BAD_URL_ERROR = '`redirect_url` is invalid';
 const BAD_URL_MEDIA_TYPE_ERROR = '`redirect_url`: Only `image`, `video`, `text/csv`, `application/xml` MIME types are allowed';
 const BAD_UPLOAD_MEDIA_ENCODING_ERROR = 'Invalid content'; // `base64Encoded` for invalid base64 encoded string
-const BAD_UPLOAD_MEDIA_TYPE_ERROR = 'Only `image`, `video`, `text/csv`, `application/xml` MIME types are allowed'
+const BAD_UPLOAD_MEDIA_TYPE_ERROR = 'Only `image`, `audio`, `video`, `text/csv`, `application/xml` MIME types are allowed'
 const GENERIC_BAD_UPLOAD_MEDIA_ENCODING_ERROR = 'Bad Request'; // `statusText` for 400 response
 const FILE_ALREADY_EXISTS_URL_ERROR = '`redirect_url`: File already exists';
 const FILE_ALREADY_EXISTS_UPLOAD_ERROR = 'File already exists';
@@ -70,14 +70,14 @@ class FormMedia extends React.Component {
           var backendErrorText = (err.responseJSON.base64Encoded != undefined) ? err.responseJSON.base64Encoded[0] : err.statusText;
           if (backendErrorText === FILE_ALREADY_EXISTS_UPLOAD_ERROR) {
             alertify.error(t('File already exists!'));
-          // Sometimes backend returns a slightly different `base64_encoded`
-          // response instead of `base64Encoded` which breaks the setup above.
-          // If that is the case we check `statusText` instead
+          // back end checks for valid base64 encoded string first
+          } else if (backendErrorText === BAD_UPLOAD_MEDIA_ENCODING_ERROR) {
+            alertify.error(t('Your uploaded media does not contain base64 valid content. Please check your media content.'));
           } else if (
-              backendErrorText === BAD_UPLOAD_MEDIA_ENCODING_ERROR ||
+              backendErrorText === BAD_UPLOAD_MEDIA_TYPE_ERROR ||
               backendErrorText === GENERIC_BAD_UPLOAD_MEDIA_ENCODING_ERROR
             ) {
-              alertify.error(t('Your uploaded media does not contain one of our supported MIME filetypes: `image`, `video`, `text/csv`, `application/xml`'));
+              alertify.error(t('Your uploaded media does not contain one of our supported MIME filetypes: `image`, `audio`, `video`, `text/csv`, `application/xml`'));
           } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
             alertify.error(t('File could not be uploaded!'));
           }
