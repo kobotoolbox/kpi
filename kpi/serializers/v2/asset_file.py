@@ -72,19 +72,19 @@ class AssetFileSerializer(serializers.ModelSerializer):
         # validation process. We add it here to be able to access it in
         # `.validate()` and use our custom validation.
         try:
-            ret['base64_encoded'] = data['base64Encoded']
+            ret['base64Encoded'] = data['base64Encoded']
         except KeyError:
             pass
         return ret
 
     def validate(self, attr):
-        self.__file_type = attr['file_type']
+        self.__file_type = attr['file_type']  # noqa
 
         metadata = self._get_metadata(attr.get('metadata'))
         validated_field = self._validate_media_content_method(attr, metadata)
         # Call the validator related to `validated_field`, either:
         # - `self._validate_content()`
-        # - `self._validate_base64_encoded()`
+        # - `self._validate_base64Encoded()`
         # - `self._validate_redirect_url()`
         validator = getattr(self, f'_validate_{validated_field}')
         validator(attr, metadata)
@@ -95,8 +95,8 @@ class AssetFileSerializer(serializers.ModelSerializer):
         self.__validate_extension(filename, validated_field)
         self._validate_duplicate(filename, validated_field)
 
-        # Remove `'base64_encoded'` from attributes passed to the model
-        attr.pop('base64_encoded', None)
+        # Remove `'base64Encoded'` from attributes passed to the model
+        attr.pop('base64Encoded', None)
 
         return attr
 
@@ -107,6 +107,10 @@ class AssetFileSerializer(serializers.ModelSerializer):
         if not isinstance(metadata, dict):
             try:
                 metadata = json.loads(metadata)
+            except TypeError:
+                # Let the validator returns an explicit message to user that
+                # `metadata` is required
+                pass
             except ValueError:
                 raise serializers.ValidationError({
                     'metadata': _('JSON is invalid')
@@ -114,8 +118,8 @@ class AssetFileSerializer(serializers.ModelSerializer):
 
         return metadata
 
-    def _validate_base64_encoded(self, attr: dict, metadata: dict):
-        base64_encoded = attr['base64_encoded']
+    def _validate_base64Encoded(self, attr: dict, metadata: dict):  # noqa
+        base64_encoded = attr['base64Encoded']
         metadata = self._validate_metadata(metadata)
 
         try:
@@ -166,22 +170,22 @@ class AssetFileSerializer(serializers.ModelSerializer):
         Raises an `ValidationError` otherwise
 
         Returns:
-            str: 'content', 'base64_encoded', 'redirect_url'
+            str: 'content', 'base64Encoded', 'redirect_url'
         """
         methods = []
         try:
             metadata['redirect_url']
-        except KeyError:
+        except (TypeError, KeyError):
             pass
         else:
             methods.append('redirect_url')
 
         try:
-            attr['base64_encoded']
+            attr['base64Encoded']
         except KeyError:
             pass
         else:
-            methods.append('base64_encoded')
+            methods.append('base64Encoded')
 
         try:
             attr['content']
@@ -200,9 +204,9 @@ class AssetFileSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError(
             {
                 'detail': _(
-                    'You can upload media file with two '
-                    'different ways at the same time. Please choose '
-                    'between binary upload, base64 or remote URL.'
+                    'You cannot upload media file with two different ways at '
+                    'the same time. Please choose between binary upload, base64'
+                    ' or remote URL.'
                 )
             }
         )
@@ -210,7 +214,8 @@ class AssetFileSerializer(serializers.ModelSerializer):
     def _validate_metadata(self,
                            metadata: dict,
                            validate_redirect_url: bool = False) -> dict:
-        if not metadata:
+
+        if metadata is None:
             raise serializers.ValidationError({
                 'metadata': _('This field is required')
             })
