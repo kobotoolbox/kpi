@@ -1,34 +1,13 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
-import _ from 'underscore';
-import enketoHandler from 'js/enketoHandler';
-import {dataInterface} from '../dataInterface';
-import Checkbox from './checkbox';
-import {actions} from '../actions';
-import {bem} from '../bem';
-import ui from '../ui';
-import {stores} from '../stores';
-import mixins from '../mixins';
+import {actions} from 'js/actions';
+import {bem} from 'js/bem';
+import ui from 'js/ui';
+import mixins from 'js/mixins';
 import alertify from 'alertifyjs';
-import ReactTable from 'react-table';
-import Select from 'react-select';
-import {DebounceInput} from 'react-debounce-input';
-import {
-  VALIDATION_STATUSES,
-  VALIDATION_STATUSES_LIST,
-  MODAL_TYPES,
-  QUESTION_TYPES,
-  GROUP_TYPES_BEGIN,
-  GROUP_TYPES_END
-} from '../constants';
-import {
-  formatTimeDate,
-  renderCheckbox
-} from 'utils';
-import {getSurveyFlatPaths} from 'js/assetUtils';
-import {getRepeatGroupAnswers} from 'js/submissionUtils';
+import {VALIDATION_STATUSES_LIST} from 'js/constants';
+import {renderCheckbox} from 'utils';
 
 /**
  * @prop asset
@@ -37,17 +16,33 @@ import {getRepeatGroupAnswers} from 'js/submissionUtils';
  * @prop totalRowsCount
  * @prop selectedRows
  * @prop selectedAllPages
+ * @prop fetchState
  * @prop onClearSelection
  * @prop onSelectAll
- * @prop onUpdateStatus
- * @prop onDelete
  */
 class TableBulkOptions extends React.Component {
   constructor(props){
     super(props);
-    this.state = {
-    };
+
+    this.currentDialog = null;
+
     autoBind(this);
+  }
+
+  componentDidMount() {
+    actions.submissions.bulkDeleteStatus.completed.listen(this.closeCurrentDialog);
+    actions.submissions.bulkDeleteStatus.failed.listen(this.closeCurrentDialog);
+    actions.submissions.bulkPatch.completed.listen(this.closeCurrentDialog);
+    actions.submissions.bulkPatch.failed.listen(this.closeCurrentDialog);
+    actions.submissions.bulkDelete.completed.listen(this.closeCurrentDialog);
+    actions.submissions.bulkDelete.failed.listen(this.closeCurrentDialog);
+  }
+
+  closeCurrentDialog() {
+    if (this.currentDialog !== null) {
+      this.currentDialog.destroy();
+      this.currentDialog = null;
+    }
   }
 
   onClearSelection() {
@@ -65,70 +60,66 @@ class TableBulkOptions extends React.Component {
     const apiFn = newStatus === null ? actions.submissions.bulkDeleteStatus : actions.submissions.bulkPatch;
 
     if (this.props.selectedAllPages) {
-      if (this.state.fetchState.filtered.length) {
+      if (this.props.fetchState.filtered.length) {
         data.query = {};
         data['validation_status.uid'] = newStatus;
-        this.state.fetchState.filtered.map((filteredItem) => {
+        this.props.fetchState.filtered.map((filteredItem) => {
           data.query[filteredItem.id] = filteredItem.value;
         });
       } else {
         data.confirm = true;
         data['validation_status.uid'] = newStatus;
       }
-      selectedCount = this.state.resultsTotal;
+      selectedCount = this.props.totalRowsCount;
     } else {
-      data.submission_ids = Object.keys(this.state.selectedRows);
+      data.submission_ids = Object.keys(this.props.selectedRows);
       data['validation_status.uid'] = newStatus;
       selectedCount = data.submission_ids.length;
     }
 
-    const dialog = alertify.dialog('confirm');
+    this.closeCurrentDialog(); // just for safety sake
+    this.currentDialog = alertify.dialog('confirm');
     const opts = {
       title: t('Update status of selected submissions'),
       message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', selectedCount),
       labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
       onok: () => {
-        apiFn(this.props.asset.uid, data)
-          .done(() => {dialog.destroy();})
-          .fail((jqxhr) => {
-            console.error(jqxhr);
-            alertify.error(t('Failed to update status.'));
-            dialog.destroy();
-          });
+        apiFn(this.props.asset.uid, data);
         // keep the dialog open
         return false;
       },
-      oncancel: dialog.destroy
+      oncancel: this.closeCurrentDialog
     };
-    dialog.set(opts).show();
+    this.currentDialog.set(opts).show();
   }
 
   onDelete() {
-    const apiFn = actions.submissions.bulkDelete;
     const data = {};
     let selectedCount;
 
-    if (this.state.selectAll) {
-      if (this.state.fetchState.filtered.length) {
+    if (this.props.selectedAllPages) {
+      if (this.props.fetchState.filtered.length) {
         data.query = {};
-        this.state.fetchState.filtered.map((filteredItem) => {
+        this.props.fetchState.filtered.map((filteredItem) => {
           data.query[filteredItem.id] = filteredItem.value;
         });
       } else {
         data.confirm = true;
       }
-      selectedCount = this.state.resultsTotal;
+      selectedCount = this.props.totalRowsCount;
     } else {
-      data.submission_ids = Object.keys(this.state.selectedRows);
+      data.submission_ids = Object.keys(this.props.selectedRows);
       selectedCount = data.submission_ids.length;
     }
     let msg, onshow;
     msg = t('You are about to permanently delete ##count## data entries.').replace('##count##', selectedCount);
     msg += `${renderCheckbox('dt1', t('All selected data associated with this form will be deleted.'))}`;
     msg += `${renderCheckbox('dt2', t('I understand that if I delete the selected entries I will not be able to recover them.'))}`;
-    const dialog = alertify.dialog('confirm');
+
+    this.closeCurrentDialog(); // just for safety sake
+    this.currentDialog = alertify.dialog('confirm');
     onshow = (evt) => {
-      let ok_button = dialog.elements.buttons.primary.firstChild;
+      let ok_button = this.currentDialog.elements.buttons.primary.firstChild;
       let $els = $('.alertify-toggle input');
 
       ok_button.disabled = true;
@@ -150,21 +141,13 @@ class TableBulkOptions extends React.Component {
       labels: {ok: t('Delete selected'), cancel: t('Cancel')},
       onshow: onshow,
       onok: () => {
-        apiFn(this.props.asset.uid, data)
-          .done(() => {dialog.destroy();})
-          .fail((jqxhr) => {
-            console.error(jqxhr);
-            alertify.error(t('Failed to delete submissions.'));
-            dialog.destroy();
-          });
+        actions.submissions.bulkDelete(this.props.asset.uid, data);
         // keep the dialog open
         return false;
       },
-      oncancel: () => {
-        dialog.destroy();
-      }
+      oncancel: this.closeCurrentDialog
     };
-    dialog.set(opts).show();
+    this.currentDialog.set(opts).show();
   }
 
   render() {

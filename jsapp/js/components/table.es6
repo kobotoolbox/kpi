@@ -859,10 +859,9 @@ export class DataTable extends React.Component {
           totalRowsCount={this.state.resultsTotal}
           selectedRows={this.state.selectedRows}
           selectedAllPages={this.state.selectAll}
+          fetchState={this.state.fetchState}
           onClearSelection={this.bulkClearSelection.bind(this)}
           onSelectAll={this.bulkSelectAll.bind(this)}
-          onUpdateStatus={this.bulkUpdateStatus.bind(this)}
-          onDelete={this.bulkDelete.bind(this)}
         />
       </bem.FormView__item>
     );
