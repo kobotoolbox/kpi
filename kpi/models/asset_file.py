@@ -36,7 +36,7 @@ class AssetFile(AbstractOpenRosaManifestModel, models.Model):
     )
 
     ALLOWED_MIME_TYPES = {
-        FORM_MEDIA: ('image', 'video', 'text/csv', 'application/xml'),
+        FORM_MEDIA: ('image', 'audio', 'video', 'text/csv', 'application/xml'),
     }
 
     ALLOWED_EXTENSIONS = {
