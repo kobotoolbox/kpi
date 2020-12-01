@@ -6,7 +6,7 @@ import {bem} from 'js/bem';
 import {dataInterface} from 'js/dataInterface';
 
 const BAD_URL_ERROR = '`redirect_url` is invalid';
-const BAD_URL_MEDIA_TYPE_ERROR = '`redirect_url`: Only `image`, `video`, `text/csv`, `application/xml` MIME types are allowed';
+const BAD_URL_MEDIA_TYPE_ERROR = '`redirect_url`: Only `image`, `audio`, `video`, `text/csv`, `application/xml` MIME types are allowed';
 const BAD_UPLOAD_MEDIA_ENCODING_ERROR = 'Invalid content'; // `base64Encoded` for invalid base64 encoded string
 const BAD_UPLOAD_MEDIA_TYPE_ERROR = 'Only `image`, `audio`, `video`, `text/csv`, `application/xml` MIME types are allowed'
 const GENERIC_BAD_UPLOAD_MEDIA_ENCODING_ERROR = 'Bad Request'; // `statusText` for 400 response
@@ -87,7 +87,12 @@ class FormMedia extends React.Component {
   }
 
   onSubmitURL() {
-    var url = $(document).find('input.form-media__url-input').eq(0).val();
+    var urlInputField = $(document).find('input.form-media__url-input').eq(0);
+    var url = urlInputField.val();
+
+    // Clear the url field
+    urlInputField.val('');
+
     if (url === '') {
       alertify.warning(t('URL is empty!'));
     } else {
@@ -107,7 +112,7 @@ class FormMedia extends React.Component {
         } else if (backendErrorText === FILE_ALREADY_EXISTS_URL_ERROR ) {
           alertify.error(t('File already exists!'));
         } else if (backendErrorText === BAD_URL_MEDIA_TYPE_ERROR) {
-          alertify.error(t('Your URL media does not contain one of our supported MIME filetypes: `image`, `video`, `text/csv`, `application/xml`'));
+          alertify.error(t('Your URL media does not contain one of our supported MIME filetypes: `image`, `audio`, `video`, `text/csv`, `application/xml`'));
         } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
           alertify.error(t('Your URL media failed to upload!'));
         }
