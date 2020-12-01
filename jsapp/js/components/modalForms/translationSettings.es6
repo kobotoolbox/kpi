@@ -323,7 +323,7 @@ export class TranslationSettings extends React.Component {
                       </bem.FormView__label>
                     }
 
-                    {i !== 0 && !haveUnnamedTranslation &&
+                    {i !== 0 &&
                       <bem.FormView__iconButton
                         data-index={i}
                         onClick={this.changeDefaultLanguage}
@@ -364,7 +364,7 @@ export class TranslationSettings extends React.Component {
                       </bem.FormView__iconButton>
                     }
 
-                    {i !== 0 && !haveUnnamedTranslation &&
+                    {i !== 0 &&
                       <bem.FormView__iconButton
                         data-index={i}
                         onClick={this.deleteLanguage}
