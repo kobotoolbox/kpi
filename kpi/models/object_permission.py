@@ -1124,6 +1124,7 @@ class ObjectPermissionMixin:
             # Ensuring that the user has at least anonymous permissions if they
             # have been assigned to the asset
             all_anon_object_permissions = self.__get_all_user_permissions(
+                content_type_id=object_content_type_id,
                 user_id=settings.ANONYMOUS_USER_ID
             )
             perms = build_dict(
@@ -1132,6 +1133,7 @@ class ObjectPermissionMixin:
             )
             if not user.is_anonymous:
                 all_object_permissions = self.__get_all_user_permissions(
+                    content_type_id=object_content_type_id,
                     user_id=user.pk
                 )
                 perms += build_dict(
