@@ -55,7 +55,7 @@ def service_health(request):
 
     t0 = time.time()
     try:
-        Asset.objects.first()
+        Asset.objects.order_by().first()
     except Exception as e:
         postgres_message = repr(e)
         any_failure = True
