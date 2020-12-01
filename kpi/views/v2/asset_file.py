@@ -62,20 +62,24 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     - `asset` (required)
     - `user` (required)
     - `description` (required)
-    - `file_type`<sup>1</sup> (required)
-    - `content` (as binary) <sup>2</sup> (required)
-    - `metadata` JSON <sup>2</sup>
+    - `file_type` (required)
+    - `content` (as binary) (optional)
+    - `metadata` JSON (optional)
 
-    <sup>1</sup> Files can have different types:
+    _Notes:_
 
-    - `map_layer`
-    - `form_media`
+    1. Files can have different types:
+        - `map_layer`
+        - `form_media`
+    2. Files can be created with three different ways
+        - `POST` a file with `content` parameter
+        - `POST` a base64 encoded string with `base64Encoded` parameter<sup>1</sup>
+        - `POST` an URL with `metadata` parameter<sup>2</sup>
 
-    **Files with `form_media` type must have unique name per asset**
+    <sup>1) `metadata` becomes mandatory and must contain `filename` property</sup><br>
+    <sup>2) `metadata` becomes mandatory and must contain `redirect_url` property</sup>
 
-    <sup>2</sup> `content` can be sent as a base64 encoded string with `base64Encoded` parameter.
-    `metadata` becomes mandatory and must contain `filename` property.
-
+    **Files with `form_media` type must have unique `filename` per asset**
 
     > _Payload to create a file with binary content_
     >
@@ -94,6 +98,15 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >           "description": "Description of the file",
     >           "base64Encoded": "<base64-encoded-string>"
     >           "metadata": {"filename": "filename.ext"}
+    >        }
+
+    > _Payload to create a file with a remote URL_
+    >
+    >        {
+    >           "user": "https://[kpi]/api/v2/users/{username}/",
+    >           "asset": "https://[kpi]/api/v2/asset/{asset_uid}/",
+    >           "description": "Description of the file",
+    >           "metadata": {"redirect_url": "https://domain.tld/image.jpg"}
     >        }
 
 
