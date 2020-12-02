@@ -20,7 +20,9 @@ import {
   PERMISSIONS_CODENAMES
 } from 'js/constants';
 
-const PARTIAL_PLACEHOLDER = t('Enter usernames separated by spaces');
+const PARTIAL_PLACEHOLDER = t('Enter usernames separated by commas');
+const USERNAMES_SEPARATOR = ',';
+
 /**
  * Form for adding/changing user permissions for surveys.
  *
@@ -222,7 +224,7 @@ class UserAssetPermsEditor extends React.Component {
   }
 
   onSubmissionsViewPartialUsersChange(users) {
-    this.setState({submissionsViewPartialUsers: users.split(' ')});
+    this.setState({submissionsViewPartialUsers: users.trim().split(USERNAMES_SEPARATOR)});
   }
 
   /**
@@ -436,7 +438,7 @@ class UserAssetPermsEditor extends React.Component {
               {this.state.submissionsViewPartial === true &&
                 <TextBox
                   placeholder={PARTIAL_PLACEHOLDER}
-                  value={this.state.submissionsViewPartialUsers.join(' ')}
+                  value={this.state.submissionsViewPartialUsers.join(USERNAMES_SEPARATOR)}
                   onChange={this.onSubmissionsViewPartialUsersChange}
                   errors={this.state.submissionsViewPartial && this.state.submissionsViewPartialUsers.length === 0}
                   onKeyPress={this.onInputKeyPress}
