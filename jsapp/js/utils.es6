@@ -116,7 +116,7 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
                 && typeof surveyData.settings[0].style === 'string'
                 && surveyData.settings[0].style.includes('theme-grid')
                 && surveyRow.type === 'begin_group'
-                && surveyRow[translatedProp] === null || surveyRow[translatedProp] === '') {
+                && (surveyRow[translatedProp] === null || surveyRow[translatedProp] === '')) {
               delete surveyRow[translatedProp];
             }
             surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp];
