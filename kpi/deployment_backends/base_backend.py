@@ -26,8 +26,9 @@ class BaseDeploymentBackend:
     def delete(self):
         self.asset._deployment_data.clear()
 
-    def remove_from_backend_flag(self, user_id):
-        pass
+    def remove_from_flag(self, user_id: int = None):
+        raise NotImplementedError('This method should be implemented '
+                                  'in subclasses')
 
     def validate_submission_list_params(self,
                                         requesting_user_id,

@@ -264,7 +264,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def remove_from_flag(self, user_id: int = None):
         """
         Removes `from_kc_only` flag for specific user if any.
-        :param user_id: User's pk
+        Args:
+            user_id (int): User's pk
         """
         # This flag lets us know that user's permissions have been sync'ed
         # with management command `sync_from_kobocat` or not.

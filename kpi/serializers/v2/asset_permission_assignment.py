@@ -54,6 +54,10 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         partial_permissions = validated_data.get('partial_permissions', None)
 
         bulk = self.context.get('bulk', False)
+        # When bulk is `True`, `asset.deployment.remove_from_flag()` is called
+        # without any `user_id` provided prior the creation of this assignment.
+        # to perform bulk deleting and avoid multiple call in here.
+        # See `AssetPermissionAssignmentViewSet.bulk_assignments()`
         if bulk is False and asset.has_deployment:
             asset.deployment.remove_from_flag(user_id=user.pk)
 

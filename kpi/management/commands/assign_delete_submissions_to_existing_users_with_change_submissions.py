@@ -19,7 +19,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         verbosity = options['verbosity']
-        self.stdout.write(str(verbosity))
 
         migration_name = '0024_add_date_created_to_object_permission'
         try:
@@ -43,7 +42,7 @@ class Command(BaseCommand):
         if verbosity >= 1:
             self.stdout.write(f'Found {records_count} permission assignments')
 
-        for record in query.all():
+        for record in query.iterator():
             try:
                 asset = Asset.objects.get(pk=record.object_id)
             except Asset.DoesNotExist:
