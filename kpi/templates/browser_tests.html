@@ -9,9 +9,14 @@
   <script src="{% static 'mocha/mocha.js' %}"></script>
 </head>
 <body>
+    <script>
+      // need "t" defined for tests to pass
+      function t (str) { return str; }
+    </script>
     <script>mocha.setup('bdd')</script>
     <div id="mocha"></div>
-    {% render_bundle 'tests' 'js' %}
+    {% render_bundle 'browsertests' 'js' %}
+    {% render_bundle 'vendors' 'js' %}
     <script>mocha.run();</script>
 </body>
 </html>
