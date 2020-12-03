@@ -2,6 +2,7 @@
 import json
 import posixpath
 import re
+from typing import Union
 from urllib.parse import urlparse
 
 import requests
@@ -261,25 +262,34 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'version': self.asset.version_id,
         })
 
-    def remove_from_flag(self, user_id: int = None):
+    def remove_from_kc_only_flag(self, specific_user: Union[int, 'User'] = None):
         """
-        Removes `from_kc_only` flag for specific user if any.
+        Removes `from_kc_only` flag for ALL USERS unless `specific_user` is
+        provided
+
         Args:
-            user_id (int): User's pk
+            specific_user (int, User): User object or pk
         """
-        # This flag lets us know that user's permissions have been sync'ed
-        # with management command `sync_from_kobocat` or not.
+        # This flag lets us know that permission assignments in KPI exist
+        # only because they were copied from KoBoCAT (by `sync_from_kobocat`).
         # As soon as permissions are assigned through KPI, this flag must be
         # removed
         #
         # This method is here instead of `ObjectPermissionMixin` because
         # it's specific to KoBoCat as backend.
+
+        # TODO: Remove this method after kobotoolbox/kobocat#642
+
         filters = {
             'permission__codename': PERM_FROM_KC_ONLY,
             'object_id': self.asset.id,
             'content_type': ContentType.objects.get_for_model(self.asset)
         }
-        if user_id is not None:
+        if specific_user is not None:
+            try:
+                user_id = user.pk
+            except AttributeError:
+                user_id = specific_user
             filters['user_id'] = user_id
 
         ObjectPermission.objects.filter(**filters).delete()

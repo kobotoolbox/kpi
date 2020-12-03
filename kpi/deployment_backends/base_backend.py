@@ -26,9 +26,14 @@ class BaseDeploymentBackend:
     def delete(self):
         self.asset._deployment_data.clear()
 
-    def remove_from_flag(self, user_id: int = None):
-        raise NotImplementedError('This method should be implemented '
-                                  'in subclasses')
+    def remove_from_kc_only_flag(self, *args, **kwargs):
+        # TODO: This exists only to support KoBoCAT (see #1161) and should be
+        # removed, along with all places where it is called, once we remove
+        # KoBoCAT's ability to assign permissions (kobotoolbox/kobocat#642)
+
+        # Do nothing, without complaint, so that callers don't have to worry
+        # about whether the back end is KoBoCAT or something else
+        pass
 
     def validate_submission_list_params(self,
                                         requesting_user_id,

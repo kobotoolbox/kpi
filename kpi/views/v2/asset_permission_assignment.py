@@ -178,9 +178,10 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         # one assignment fails.
         with transaction.atomic():
 
-            # First, delete deployment backend flags if any
+            # First, delete *all* `from_kc_only` flags
+            # TODO: Remove after kobotoolbox/kobocat#642
             if self.asset.has_deployment:
-                self.asset.deployment.remove_from_flag()
+                self.asset.deployment.remove_from_kc_only_flag()
 
             # Then delete all assignments before assigning new ones.
             # If something fails later, this query should rollback
