@@ -11,7 +11,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError, ImproperlyConfigured
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
-from django.utils import timezone
 from django_request_cache import cache_for_request
 
 from kpi.constants import PREFIX_PARTIAL_PERMS
@@ -246,7 +245,6 @@ class ObjectPermission(models.Model):
     content_object = GenericForeignKey('content_type', 'object_id')
     uid = KpiUidField(uid_prefix='p')
     objects = ObjectPermissionManager()
-    date_created = models.DateTimeField(default=timezone.now)
 
     @property
     def kind(self):
