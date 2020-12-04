@@ -1,7 +1,8 @@
+const BundleTracker = require('webpack-bundle-tracker');
+const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin');
+const lodash = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
-const BundleTracker = require('webpack-bundle-tracker');
-var merge = require('lodash.merge');
 
 // HACK: we needed to define this postcss-loader because of a problem with
 // including CSS files from node_modules directory, i.e. this build error:
@@ -19,7 +20,7 @@ const postCssLoader = {
   }
 };
 
-var defaultOptions = {
+var commonOptions = {
   module: {
     rules: [
       {
@@ -77,11 +78,24 @@ var defaultOptions = {
     }
   },
   plugins: [
-    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'})
+    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
+    new ExtractTranslationKeysPlugin({
+      functionName: 't',
+      output: path.join(__dirname, '../jsapp/compiled/extracted-strings.json'),
+    }),
+    new webpack.ProvidePlugin({
+      '$': 'jquery'
+    })
   ]
 };
 
 module.exports = function (options) {
-  options = merge(defaultOptions, options || {});
+  options = lodash.mergeWith(
+    commonOptions, options || {},
+    (objValue, srcValue) => {
+      if (lodash.isArray(objValue)) {
+        return objValue.concat(srcValue);
+    }
+  });
   return options;
 };

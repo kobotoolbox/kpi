@@ -6,7 +6,7 @@ import {
 import {
   buildUserUrl,
   getUsernameFromUrl
-} from 'js/utils';
+} from 'utils';
 
 /**
  * @typedef {Object} BackendPerm

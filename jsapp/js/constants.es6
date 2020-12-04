@@ -2,8 +2,6 @@
  * A list of all shareable constants for the application.
  */
 
-import {t} from './utils';
-
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs
@@ -388,6 +386,12 @@ export const MATRIX_PAIR_PROPS = {
 
 export const NAME_MAX_LENGTH = 255;
 
+export const CATEGORY_LABELS = {
+  Deployed: t('Deployed'),
+  Draft: t('Draft'),
+  Archived: t('Archived')
+};
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -410,7 +414,8 @@ const constants = {
   FORM_VERSION_NAME,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  NAME_MAX_LENGTH
+  NAME_MAX_LENGTH,
+  CATEGORY_LABELS,
 };
 
 export default constants;

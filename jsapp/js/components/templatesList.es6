@@ -11,10 +11,7 @@ import autoBind from 'react-autobind';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
-import {
-  t,
-  formatTime,
-} from '../utils';
+import {formatTime} from 'utils';
 
 class TemplatesList extends React.Component {
   constructor(props) {

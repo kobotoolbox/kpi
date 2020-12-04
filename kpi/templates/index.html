@@ -66,6 +66,8 @@
       <!-- Make Django's internationalization functionality available in client code. -->
       <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
 
+      {% include "global_t.html" %}
+
       {% render_bundle 'app' 'js' %}
       {% render_bundle 'vendors' 'js' %}
 

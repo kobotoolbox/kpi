@@ -289,17 +289,6 @@ window.log = log;
 
 var __strings = [];
 
-
-/*a global gettext function*/
-export function t(str) {
-  if (window.gettext) {
-    return window.gettext(str);
-  } else {
-    return str;
-  }
-}
-
-
 const originalSupportEmail = 'help@kobotoolbox.org';
 
 // use this utility function to replace hardcoded email in transifex translations

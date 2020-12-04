@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
@@ -11,7 +10,6 @@ import Select from 'react-select';
 import Checkbox from '../checkbox';
 import Radio from '../radio';
 import TextBox from '../textBox';
-import {t} from '../../utils';
 
 const EXPORT_TYPES = {
   json: {

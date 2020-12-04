@@ -11,7 +11,6 @@ import {actions} from '../actions';
 import {dataInterface} from '../dataInterface';
 import {searches} from '../searches';
 import {stores} from '../stores';
-import {t} from '../utils';
 
 export class ListSearch extends React.Component {
   constructor(props) {
@@ -35,7 +34,7 @@ export class ListSearch extends React.Component {
     return (
       <bem.Search m={[this.state.searchState]} >
         <bem.Search__icon />
-        <ui.SearchBox ref='formlist-search' placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
+        <ui.SearchBox ref='formlist-search' placeholder={this.props.placeholderText} onChange={this.searchChangeEvent} />
         <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
       </bem.Search>
     );

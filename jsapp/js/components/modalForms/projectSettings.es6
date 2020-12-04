@@ -18,11 +18,10 @@ import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
 import {removeInvalidChars} from 'js/assetUtils';
 import {
-  t,
   validFileTypes,
   isAValidUrl,
   escapeHtml
-} from 'js/utils';
+} from 'utils';
 import {
   NAME_MAX_LENGTH,
   PROJECT_SETTINGS_CONTEXTS

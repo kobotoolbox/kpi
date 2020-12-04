@@ -1,7 +1,6 @@
 Backbone = require 'backbone'
 $baseView = require './view.pluggedIn.backboneView'
 $viewTemplates = require './view.templates'
-_t = require('utils').t
 
 module.exports = do ->
   class AcceptedFilesView extends $baseView
@@ -9,7 +8,7 @@ module.exports = do ->
     events: {
       'input input': 'onChange'
     }
-    placeholder: _t("e.g. \".pdf,.doc,.odt\"")
+    placeholder: t("e.g. \".pdf,.doc,.odt\"")
 
     initialize: ({@rowView, @acceptedFiles=''}) -> return
 
