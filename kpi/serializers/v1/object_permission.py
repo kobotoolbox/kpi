@@ -54,16 +54,13 @@ class ObjectPermissionSerializer(serializers.ModelSerializer):
         content_object = validated_data['content_object']
         user = validated_data['user']
         perm = validated_data['permission'].codename
-        with transaction.atomic():
-            # TEMPORARY Issue #1161: something other than KC is setting a
-            # permission; clear the `from_kc_only` flag
-            ObjectPermission.objects.filter(
-                user=user,
-                permission__codename=PERM_FROM_KC_ONLY,
-                object_id=content_object.id,
-                content_type=ContentType.objects.get_for_model(content_object)
-            ).delete()
-            return content_object.assign_perm(user, perm)
+        # TODO: Remove after kobotoolbox/kobocat#642
+        # I'm looking forward to the merge conflict this creates, aren't you?
+        if getattr(content_object, 'has_deployment', False):
+            content_object.deployment.remove_from_kc_only_flag(
+                specific_user=user
+            )
+        return content_object.assign_perm(user, perm)
 
 
 class ObjectPermissionNestedSerializer(ObjectPermissionSerializer):

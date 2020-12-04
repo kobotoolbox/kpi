@@ -416,10 +416,12 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         expected_response = [
             {'label': 'Add submissions',
              'url': 'http://testserver/api/v2/permissions/add_submissions/'},
-            {'label': 'Edit and delete submissions',
-             'url': 'http://testserver/api/v2/permissions/change_submissions/'},
+            {'label': 'Delete submissions',
+             'url': 'http://testserver/api/v2/permissions/delete_submissions/'},
             {'label': 'Edit form',
              'url': 'http://testserver/api/v2/permissions/change_asset/'},
+            {'label': 'Edit submissions',
+             'url': 'http://testserver/api/v2/permissions/change_submissions/'},
             {'label': 'Validate submissions',
              'url': 'http://testserver/api/v2/permissions/validate_submissions/'},
             {'label': 'View form',
@@ -434,6 +436,7 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             response.data['assignable_permissions'],
             key=lambda assignable_perm_: assignable_perm_['label']
         )
+
         for index, assignable_perm in enumerate(assignable_permissions):
             self.assertEqual(assignable_perm['url'],
                              expected_response[index]['url'])

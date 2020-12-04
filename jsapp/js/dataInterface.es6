@@ -533,7 +533,7 @@ export var dataInterface;
     },
     deleteSubmission(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
         method: 'DELETE'
       });
     },

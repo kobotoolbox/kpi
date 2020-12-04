@@ -356,7 +356,7 @@ class Submission extends React.Component {
               <i className='k-icon-print' />
             </bem.Button>
 
-            {this.userCan('change_submissions', this.props.asset) &&
+            {this.userCan('delete_submissions', this.props.asset) &&
               <a
                 onClick={this.deleteSubmission}
                 className='mdl-button mdl-button--icon mdl-button--colored mdl-button--red right-tooltip'
