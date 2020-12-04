@@ -849,8 +849,8 @@ export class DataTable extends React.Component {
     const showingResults = `${res1} - ${res2} ${t('of')} ${this.state.resultsTotal} ${t('results')}`;
 
     return (
-      <bem.FormView__item m='table-meta'>
-        <span>{showingResults}</span>
+      <bem.TableMeta>
+        <bem.TableMeta__counter>{showingResults}</bem.TableMeta__counter>
 
         <TableBulkOptions
           asset={this.props.asset}
@@ -863,7 +863,7 @@ export class DataTable extends React.Component {
           onClearSelection={this.bulkClearSelection.bind(this)}
           onSelectAll={this.bulkSelectAll.bind(this)}
         />
-      </bem.FormView__item>
+      </bem.TableMeta>
     );
   }
   getMediaDownloadLink(fileName) {

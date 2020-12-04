@@ -13,31 +13,6 @@
       opacity: 0.25;
     }
 
-    .form-view__item--table-meta {
-      flex-grow: 1;
-      line-height: 20px;
-      padding: 10px 0;
-
-      > *:not(:first-child)::before {
-        content: "·";
-        margin: auto 5px;
-      }
-
-      .select-all {
-        cursor: pointer;
-        color: $kobo-blue;
-
-        &:hover {
-          color: lighten($kobo-blue, 10%);
-        }
-      }
-
-      .popover-menu .popover-menu__toggle {
-        // overriding 36px from jsapp/scss/components/_kobo.form-view.scss
-        height: auto;
-      }
-    }
-
     .form-view__item--table-buttons {
       flex-grow: 1;
       text-align: right;

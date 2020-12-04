@@ -118,7 +118,7 @@ class TableBulkOptions extends React.Component {
 
     this.closeCurrentDialog(); // just for safety sake
     this.currentDialog = alertify.dialog('confirm');
-    onshow = (evt) => {
+    onshow = () => {
       let ok_button = this.currentDialog.elements.buttons.primary.firstChild;
       let $els = $('.alertify-toggle input');
 
@@ -127,7 +127,7 @@ class TableBulkOptions extends React.Component {
       $els.each(function() {$(this).prop('checked', false);});
       $els.change(function() {
         ok_button.disabled = false;
-        $els.each(function () {
+        $els.each(function() {
           if (!$(this).prop('checked')) {
             ok_button.disabled = true;
           }
@@ -150,6 +150,10 @@ class TableBulkOptions extends React.Component {
     this.currentDialog.set(opts).show();
   }
 
+  onEdit() {
+
+  }
+
   render() {
     let selectedCount = Object.keys(this.props.selectedRows).length;
     if (this.props.selectedAllPages) {
@@ -164,7 +168,7 @@ class TableBulkOptions extends React.Component {
     );
 
     return (
-      <div>
+      <bem.TableMeta__bulkOptions>
         {selectedCount > 1 &&
           <span>
             <a className='select-all' onClick={this.onClearSelection}>
@@ -199,12 +203,24 @@ class TableBulkOptions extends React.Component {
         }
 
         {Object.keys(this.props.selectedRows).length > 0 && this.userCan('change_submissions', this.props.asset) &&
-          <bem.KoboButton m={['small', 'red']}
-            onClick={this.onDelete}>
-            {t('Delete selected')}
+          <bem.KoboButton
+            m={['small', 'red']}
+            onClick={this.onDelete}
+          >
+            {t('Delete')}
           </bem.KoboButton>
         }
-      </div>
+
+        {Object.keys(this.props.selectedRows).length > 0 && this.userCan('change_submissions', this.props.asset) &&
+          <bem.KoboButton
+            m={['small']}
+            onClick={this.onEdit}
+            disabled={this.props.selectedAllPages}
+          >
+            {t('Edit')}
+          </bem.KoboButton>
+        }
+      </bem.TableMeta__bulkOptions>
     );
   }
 }

@@ -96,6 +96,10 @@ bem.SubmissionDataTable__column = bem.SubmissionDataTable.__('column');
 bem.SubmissionDataTable__XMLName = bem.SubmissionDataTable.__('xml-name');
 bem.SubmissionDataTable__value = bem.SubmissionDataTable.__('value');
 
+bem.TableMeta = bem('table-meta');
+bem.TableMeta__counter = bem.TableMeta.__('counter');
+bem.TableMeta__bulkOptions = bem.TableMeta.__('bulk-options');
+
 bem.CollectionsWrapper = bem('collections-wrapper');
 
 bem.CollectionNav = bem('collection-nav');
