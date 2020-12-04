@@ -287,7 +287,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         if specific_user is not None:
             try:
-                user_id = user.pk
+                user_id = specific_user.pk
             except AttributeError:
                 user_id = specific_user
             filters['user_id'] = user_id
