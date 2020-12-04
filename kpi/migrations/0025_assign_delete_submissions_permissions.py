@@ -2,7 +2,7 @@ import sys
 
 from django.contrib.auth.management import create_permissions
 from django.contrib.auth.models import AnonymousUser
-from django.db import migrations, models
+from django.db import migrations
 
 
 def create_new_perms(apps):
@@ -84,6 +84,7 @@ def grant_object_level_perms(apps):
         permission=old_perm
     ).iterator():
         old_assign.pk = None
+        old_assign.uid = None
         old_assign.permission = new_perm
         new_perm_objects.append(old_assign)
     sys.stderr.write(
