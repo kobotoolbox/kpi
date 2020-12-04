@@ -20,16 +20,14 @@ export class TranslationSettings extends React.Component {
     if (props.asset) {
       translations = props.asset.content.translations;
     }
-    translations = translations || [];
 
     this.state = {
       assetUid: props.assetUid,
       asset: props.asset,
-      translations: translations,
+      translations: translations || [],
       showAddLanguageForm: false,
       isUpdatingDefaultLanguage: false,
-      // If there's an unnamed translation, show the update language form for it automatically
-      renameLanguageIndex: translations.indexOf(null)
+      renameLanguageIndex: -1
     };
     autoBind(this);
   }
@@ -45,14 +43,12 @@ export class TranslationSettings extends React.Component {
     }
   }
   onAssetChange(asset) {
-    let translations = asset.content.translations || [];
     this.setState({
       asset: asset,
-      translations: translations,
+      translations: asset.content.translations || [],
       showAddLanguageForm: false,
       isUpdatingDefaultLanguage: false,
-      // If there's an unnamed translation, show the update language form for it automatically
-      renameLanguageIndex: translations.indexOf(null)
+      renameLanguageIndex: -1
     });
 
     stores.pageState.showModal({
@@ -294,18 +290,16 @@ export class TranslationSettings extends React.Component {
     );
   }
   renderTranslationsSettings(translations) {
-    // Disable most actions and display a warning when an unnamed translation exists
-    let haveUnnamedTranslation = translations.indexOf(null) !== -1;
     return (
       <bem.FormModal m='translation-settings'>
         <bem.FormModal__item>
           <bem.FormView__cell m='label'>
             {t('Current languages')}
           </bem.FormView__cell>
-          {haveUnnamedTranslation &&
+          {translations[0] == null &&
             <bem.FormView__cell m={['warning', 'translation-modal-warning']}>
               <i className='k-icon-alert' />
-              <p>{t('You have an unnamed translation in your form. Please name this translation before proceeding.')}</p>
+              <p>{t('You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.')}</p>
             </bem.FormView__cell>
           }
           {translations.map((l, i) => {
@@ -313,9 +307,7 @@ export class TranslationSettings extends React.Component {
               <React.Fragment key={`lang-${i}`}>
                 <bem.FormView__cell m='translation'>
                   <bem.FormView__cell m='translation-name'>
-                    {l ||
-                      <em>{t('Unnamed language')}</em>
-                    }
+                    {l}
 
                     {i === 0 &&
                       <bem.FormView__label m='default-language'>
@@ -343,26 +335,24 @@ export class TranslationSettings extends React.Component {
                       data-tip={t('Edit language')}
                       className='right-tooltip'
                     >
-                      {this.state.renameLanguageIndex === i && !haveUnnamedTranslation &&
+                      {this.state.renameLanguageIndex === i &&
                         <i className='k-icon-close' />
                       }
-                      {this.state.renameLanguageIndex !== i && !haveUnnamedTranslation &&
+                      {this.state.renameLanguageIndex !== i &&
                         <i className='k-icon-edit' />
                       }
                     </bem.FormView__iconButton>
 
-                    {!haveUnnamedTranslation &&
-                      <bem.FormView__iconButton
-                        data-index={i}
-                        data-string={this.state.translations[i]}
-                        onClick={this.launchTranslationTableModal}
-                        disabled={this.state.isUpdatingDefaultLanguage}
-                        data-tip={t('Update translations')}
-                        className='right-tooltip'
-                      >
-                        <i className='k-icon-globe-alt' />
-                      </bem.FormView__iconButton>
-                    }
+                    <bem.FormView__iconButton
+                      data-index={i}
+                      data-string={this.state.translations[i]}
+                      onClick={this.launchTranslationTableModal}
+                      disabled={this.state.isUpdatingDefaultLanguage}
+                      data-tip={t('Update translations')}
+                      className='right-tooltip'
+                    >
+                      <i className='k-icon-globe-alt' />
+                    </bem.FormView__iconButton>
 
                     {i !== 0 &&
                       <bem.FormView__iconButton
@@ -391,7 +381,7 @@ export class TranslationSettings extends React.Component {
               </React.Fragment>
             );
           })}
-          {!this.state.showAddLanguageForm && !haveUnnamedTranslation &&
+          {!this.state.showAddLanguageForm &&
             <bem.FormView__cell m='add-language'>
               <bem.KoboButton
                 m='blue'
@@ -402,7 +392,7 @@ export class TranslationSettings extends React.Component {
               </bem.KoboButton>
             </bem.FormView__cell>
           }
-          {this.state.showAddLanguageForm && !haveUnnamedTranslation &&
+          {this.state.showAddLanguageForm &&
             <bem.FormView__cell m='add-language-form'>
               <bem.FormView__link m='close' onClick={this.hideAddLanguageForm}>
                 <i className='k-icon-close' />
@@ -428,8 +418,8 @@ export class TranslationSettings extends React.Component {
     let translations = this.state.translations;
     if (translations.length === 0) {
       return this.renderEmptyMessage();
-    } else if (translations.length === 1 && translations[0] === null) {
-      // use this friendly and simple modal for the most common case
+    } else if (translations.length == 1 && translations[0] === null) {
+      // use this modal if there are only unnamed translations
       return this.renderUndefinedDefaultSettings();
     } else {
       return this.renderTranslationsSettings(translations);
