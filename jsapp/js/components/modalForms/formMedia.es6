@@ -21,7 +21,12 @@ class FormMedia extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      uploadedAssets: null
+      uploadedAssets: null,
+      // to show loading icon instead of nothing on first load
+      isVirgin: true,
+      // to show loading icon while uploading any file
+      isUploadFilePending: false,
+      isUploadURLPending: false
     };
 
     autoBind(this);
@@ -33,11 +38,16 @@ class FormMedia extends React.Component {
 
   componentDidMount() {
     this.refreshFormMedia();
+    this.setState({isVirgin: false});
   }
 
   refreshFormMedia() {
     dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
-      this.setState({uploadedAssets: uploadedAssets.results});
+      this.setState({
+        uploadedAssets: uploadedAssets.results,
+        isUploadFilePending: false,
+        isUploadURLPending: false
+      });
     });
   }
 
@@ -56,6 +66,8 @@ class FormMedia extends React.Component {
 
   onFileDrop(files) {
     if (files.length >= 1) {
+      this.setState({isUploadFilePending: true});
+
       files.forEach(async (file) => {
         var base64File = await this.toBase64(file);
 	    var formMediaJSON = {
@@ -67,6 +79,8 @@ class FormMedia extends React.Component {
 	    dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
           this.refreshFormMedia();
 	    }).fail((err) => {
+          this.setState({isUploadFilePending: false});
+
           var backendErrorText = (err.responseJSON.base64Encoded != undefined) ? err.responseJSON.base64Encoded[0] : err.statusText;
           if (backendErrorText === FILE_ALREADY_EXISTS_UPLOAD_ERROR) {
             alertify.error(t('File already exists!'));
@@ -96,16 +110,18 @@ class FormMedia extends React.Component {
     if (url === '') {
       alertify.warning(t('URL is empty!'));
     } else {
+      this.setState({isUploadURLPending: true})
+
       var formMediaJSON = {
         description: 'default',
         file_type: 'form_media',
         metadata: JSON.stringify({redirect_url: url}),
       };
       dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
-        dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
-          this.setState({uploadedAssets: uploadedAssets.results});
-        });
+        this.refreshFormMedia();
       }).fail((err) => {
+        this.setState({isUploadURLPending: false});
+
         var backendErrorText = (err.responseJSON != undefined) ? err.responseJSON.metadata[0] : err.statusText;
         if (backendErrorText === BAD_URL_ERROR) {
           alertify.warning(t('The URL you entered is not valid'));
@@ -132,28 +148,16 @@ class FormMedia extends React.Component {
    * rendering
    */
 
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
-  renderIcon(item) {
-    const iconClassNames = ['form-media__file-type', 'fa'];
-    // Check if current item is uploaded vis URL. `redirect_url` is the indicator
-    if (item.metadata.redirect_url) {
-      iconClassNames.push('fa-link');
-    } else {
-      iconClassNames.push('fa-file');
+  renderButton() {
+    const buttonClassNames = ['formBuilder-header__button', 'formBuilder-header__button--save'];
+    if (this.state.isUploadURLPending) {
+      buttonClassNames.push('formBuilder-header__button--savepending');
     }
-
     return (
-      <i className={iconClassNames.join(' ')}/>
+      <button className={buttonClassNames.join(' ')}>
+        <i />
+        {t('ADD')}
+      </button>
     );
   }
 
@@ -173,6 +177,31 @@ class FormMedia extends React.Component {
     );
   }
 
+  renderIcon(item) {
+    const iconClassNames = ['form-media__file-type', 'fa'];
+    // Check if current item is uploaded vis URL. `redirect_url` is the indicator
+    if (item.metadata.redirect_url) {
+      iconClassNames.push('fa-link');
+    } else {
+      iconClassNames.push('fa-file');
+    }
+
+    return (
+      <i className={iconClassNames.join(' ')}/>
+    );
+  }
+
+  renderLoading(message = t('loading…')) {
+    return (
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i />
+          {message}
+        </bem.Loading__inner>
+      </bem.Loading>
+    );
+  }
+
   render() {
     return (
       <bem.FormModal__form className='project-settings project-settings--upload-file media-settings--upload-file' onSubmit={this.onSubmitURL}>
@@ -189,15 +218,26 @@ class FormMedia extends React.Component {
               </div>
             </Dropzone>
           }
+          {this.state.isUploadFilePending &&
+            <div className='dropzone'>
+              {this.renderLoading(t('Uploading file…'))}
+            </div>
+          }
           <div className='form-media__upload-url'>
             <label className='form-media__label'>{t('You can also add files using a URL')}</label>
-            <input className='form-media__url-input' placeholder={t('Paste URL here')}/><button className='mdl-button mdl-button--raised mdl-button--colored form-media__url-button'>{t('ADD')}</button>
+            <input className='form-media__url-input' placeholder={t('Paste URL here')}/>
+            {this.renderButton()}
           </div>
         </div>
 
         <div className='form-media__file-list'>
           <label className='form-media__list-label'>{t('File(s) uploaded to this project')}</label>
             <ul>
+              {(this.state.isVirgin || this.state.isUploadFilePending || this.state.isUploadURLPending) &&
+                <li className='form-media__default-item form-media__list-item'>
+                  {this.renderLoading(t('loading media'))}
+                </li>
+              }
               {this.state.uploadedAssets !== null && this.state.uploadedAssets.map((item, n) => {
                 return (
                   <li key={n} className='form-media__list-item'>
@@ -207,7 +247,7 @@ class FormMedia extends React.Component {
                   </li>
                 );
               })}
-              {(this.state.uploadedAssets === null || this.state.uploadedAssets.length == 0) &&
+              {!this.state.isVirgin && (this.state.uploadedAssets === null || this.state.uploadedAssets.length == 0) &&
                 <li className='form-media__default-item form-media__list-item'>
                     {t('No files uploaded yet')}
                 </li>
