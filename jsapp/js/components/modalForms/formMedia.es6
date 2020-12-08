@@ -38,19 +38,45 @@ class FormMedia extends React.Component {
    */
 
   componentDidMount() {
-    this.refreshFormMedia();
+    const callbacks = {
+      onComplete: this.onGetMediaCompleted.bind(this),
+      onFail: this.onGetMediaFailed.bind(this)
+    };
+    actions.media.loadMedia(this.props.asset.uid, callbacks);
     this.setState({isVirgin: false});
   }
 
-  refreshFormMedia() {
-    dataInterface.getFormMedia(this.props.asset.uid).done((uploadedAssets) => {
-      this.setState({
-        uploadedAssets: uploadedAssets.results,
-        isUploadFilePending: false,
-        isUploadURLPending: false
-      });
+  /*
+   * action listeners
+   */
+
+  onGetMediaCompleted(uploadedAssets) {
+    this.setState({
+      uploadedAssets: uploadedAssets.results,
+      isUploadFilePending: false,
+      isUploadURLPending: false
     });
   }
+
+  onGetMediaFailed(response) {
+    // TODO do we need to do more than say 'something went wrong'?
+  }
+
+  onUploadFailed(response) {
+    // TODO handle the bad uploads here. Do something about all those constants
+    this.setState({
+      isUploadFilePending: false,
+      isUploadURLPending: false
+    });
+  }
+
+  onDeleteMediaFailed(response) {
+    // TODO do we need to do more than say 'something went wrong'?
+  }
+
+  /*
+   * Utilities
+   */
 
   toBase64(file) {
     return new Promise(function(resolve, reject) {
@@ -65,13 +91,21 @@ class FormMedia extends React.Component {
     });
   }
 
+  uploadMedia(formMediaJSON) {
+    const callbacks = {
+      onComplete: this.onGetMediaCompleted.bind(this),
+      onFail: this.onUploadFailed.bind(this)
+    }
+    actions.media.uploadMedia(this.props.asset.uid, formMediaJSON, callbacks);
+  }
+
+  /*
+   * DOM listeners
+   */
+
   onFileDrop(files) {
     if (files.length >= 1) {
       this.setState({isUploadFilePending: true});
-      const callbacks = {
-        onComplete: this.onUploadComplete.bind(this),
-        onFail: this.onUploadFailed.bind(this)
-      };
 
       files.forEach(async (file) => {
         var base64File = await this.toBase64(file);
@@ -81,29 +115,7 @@ class FormMedia extends React.Component {
           metadata: JSON.stringify({filename: file.name}),
 	      base64Encoded: base64File
 	    };
-
-        actions.media.uploadMedia(this.props.asset.uid, formMediaJSON, callbacks);
-
-	    //dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
-        //  this.refreshFormMedia();
-	    //}).fail((err) => {
-        //  this.setState({isUploadFilePending: false});
-
-        //  var backendErrorText = (err.responseJSON.base64Encoded != undefined) ? err.responseJSON.base64Encoded[0] : err.statusText;
-        //  if (backendErrorText === FILE_ALREADY_EXISTS_UPLOAD_ERROR) {
-        //    alertify.error(t('File already exists!'));
-        //  // back end checks for valid base64 encoded string first
-        //  } else if (backendErrorText === BAD_UPLOAD_MEDIA_ENCODING_ERROR) {
-        //    alertify.error(t('Your uploaded media does not contain base64 valid content. Please check your media content.'));
-        //  } else if (
-        //      backendErrorText === BAD_UPLOAD_MEDIA_TYPE_ERROR ||
-        //      backendErrorText === GENERIC_BAD_UPLOAD_MEDIA_ENCODING_ERROR
-        //    ) {
-        //      alertify.error(t('Your uploaded media does not contain one of our supported MIME filetypes: `image`, `audio`, `video`, `text/csv`, `application/xml`'));
-        //  } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
-        //    alertify.error(t('File could not be uploaded!'));
-        //  }
-	    //});
+        this.uploadMedia(formMediaJSON);
       });
     }
   }
@@ -112,12 +124,11 @@ class FormMedia extends React.Component {
     var urlInputField = $(document).find('input.form-media__url-input').eq(0);
     var url = urlInputField.val();
 
-    // Clear the url field
-    urlInputField.val('');
-
     if (url === '') {
       alertify.warning(t('URL is empty!'));
     } else {
+      // Clear the url field after submitting
+      urlInputField.val('');
       this.setState({isUploadURLPending: true})
 
       var formMediaJSON = {
@@ -125,31 +136,16 @@ class FormMedia extends React.Component {
         file_type: 'form_media',
         metadata: JSON.stringify({redirect_url: url}),
       };
-      dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
-        this.refreshFormMedia();
-      }).fail((err) => {
-        this.setState({isUploadURLPending: false});
-
-        var backendErrorText = (err.responseJSON != undefined) ? err.responseJSON.metadata[0] : err.statusText;
-        if (backendErrorText === BAD_URL_ERROR) {
-          alertify.warning(t('The URL you entered is not valid'));
-        } else if (backendErrorText === FILE_ALREADY_EXISTS_URL_ERROR ) {
-          alertify.error(t('File already exists!'));
-        } else if (backendErrorText === BAD_URL_MEDIA_TYPE_ERROR) {
-          alertify.error(t('Your URL media does not contain one of our supported MIME filetypes: `image`, `audio`, `video`, `text/csv`, `application/xml`'));
-        } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
-          alertify.error(t('Your URL media failed to upload!'));
-        }
-      });
+      this.uploadMedia(formMediaJSON);
     }
   }
 
-  removeMedia(url) {
-    dataInterface.deleteFormMedia(url).done(() => {
-      this.refreshFormMedia();
-    }).fail(() => {
-      alertify.error(t('Failed to delete media!'));
-    });
+  onDeleteMedia(url) {
+    const callbacks = {
+      onComplete: this.onGetMediaCompleted.bind(this),
+      onFail: this.onDeleteMediaFailed.bind(this)
+    };
+    actions.media.deleteMedia(this.props.asset.uid, url, callbacks);
   }
 
   /*
@@ -251,7 +247,7 @@ class FormMedia extends React.Component {
                   <li key={n} className='form-media__list-item'>
                     {this.renderIcon(item)}
                     {this.renderFileName(item)}
-                    <i className='k-icon-trash' onClick={() => this.removeMedia(item.url)}/>
+                    <i className='k-icon-trash' onClick={() => this.onDeleteMedia(item.url)}/>
                   </li>
                 );
               })}
