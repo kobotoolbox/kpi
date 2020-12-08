@@ -459,6 +459,17 @@
     }
   }
 
+  &.form-view__cell--error {
+    @extend .form-view__cell--warning;
+    background-color: $kobo-red-light;
+    color: $kobo-red-dark;
+    border: 1px solid $kobo-red;
+    i {
+      color: $kobo-red;
+    }
+  }
+
+
   &.form-view__cell--translation-modal-warning {
     margin-bottom: 20px;
   }

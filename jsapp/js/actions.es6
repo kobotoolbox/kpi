@@ -96,6 +96,12 @@ actions.misc = Reflux.createActions({
   getServerEnvironment: {children: ['completed', 'failed']},
 });
 
+actions.media = Reflux.createActions({
+  loadMedia: {children: ['completed', 'failed']},
+  uploadMedia: {children: ['completed', 'failed']},
+  deleteMedia: {children: ['completed', 'failed']},
+});
+
 // TODO move these callbacks to `actions/permissions.es6` after moving
 // `actions.resources` to separate file (circular dependency issue)
 permissionsActions.assignAssetPermission.failed.listen(() => {
@@ -187,6 +193,50 @@ actions.resources.createImport.listen((params, onCompleted, onFailed) => {
       if (typeof onFailed === 'function') {onFailed(response);}
     });
 });
+
+/*
+ * Form media endpoint actions
+ */
+actions.media.uploadMedia.listen((uid, formMediaJSON, callbacks = {}) => {
+  dataInterface.postFormMedia(uid, formMediaJSON)
+    .done((response) => {
+      actions.media.uploadMedia.completed(response);
+      if (callbacks.onComplete) {
+        callbacks.onComplete(response);
+      }
+    })
+    .fail((response) => {
+      actions.media.uploadMedia.failed(response);
+      if (callbacks.onFail) {
+        callbacks.onFail(response);
+      }
+    });
+});
+actions.media.uploadMedia.completed.listen((response) => {
+  notify(t('Uploaded media successfully'));
+});
+actions.media.uploadMedia.failed.listen((response) => {
+  alertify.error(t('Something went wrong with your upload'));
+});
+
+actions.media.loadMedia.listen((uid, callbacks = {}) => {
+  dataInterface.getFormMedia(uid)
+    .done((response) => {
+      if (callbacks.onComplete) {
+        callbacks.onComplete(response);
+      }
+    })
+    .fail((response) => {
+      actions.media.loadMedia.failed(response);
+      if (callbacks.onFail) {
+        callbacks.onFail(response);
+      }
+    });
+});
+actions.media.loadMedia.failed.listen((response) => {
+  alertify.error(t('Something went wrong with getting your media'));
+});
+
 
 actions.resources.createSnapshot.listen(function(details){
   dataInterface.createAssetSnapshot(details)
