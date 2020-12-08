@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
+import {actions} from '../../actions';
 import {bem} from 'js/bem';
 import {dataInterface} from 'js/dataInterface';
 
@@ -67,6 +68,10 @@ class FormMedia extends React.Component {
   onFileDrop(files) {
     if (files.length >= 1) {
       this.setState({isUploadFilePending: true});
+      const callbacks = {
+        onComplete: this.onUploadComplete.bind(this),
+        onFail: this.onUploadFailed.bind(this)
+      };
 
       files.forEach(async (file) => {
         var base64File = await this.toBase64(file);
@@ -76,26 +81,29 @@ class FormMedia extends React.Component {
           metadata: JSON.stringify({filename: file.name}),
 	      base64Encoded: base64File
 	    };
-	    dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
-          this.refreshFormMedia();
-	    }).fail((err) => {
-          this.setState({isUploadFilePending: false});
 
-          var backendErrorText = (err.responseJSON.base64Encoded != undefined) ? err.responseJSON.base64Encoded[0] : err.statusText;
-          if (backendErrorText === FILE_ALREADY_EXISTS_UPLOAD_ERROR) {
-            alertify.error(t('File already exists!'));
-          // back end checks for valid base64 encoded string first
-          } else if (backendErrorText === BAD_UPLOAD_MEDIA_ENCODING_ERROR) {
-            alertify.error(t('Your uploaded media does not contain base64 valid content. Please check your media content.'));
-          } else if (
-              backendErrorText === BAD_UPLOAD_MEDIA_TYPE_ERROR ||
-              backendErrorText === GENERIC_BAD_UPLOAD_MEDIA_ENCODING_ERROR
-            ) {
-              alertify.error(t('Your uploaded media does not contain one of our supported MIME filetypes: `image`, `audio`, `video`, `text/csv`, `application/xml`'));
-          } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
-            alertify.error(t('File could not be uploaded!'));
-          }
-	    });
+        actions.media.uploadMedia(this.props.asset.uid, formMediaJSON, callbacks);
+
+	    //dataInterface.postFormMedia(this.props.asset.uid, formMediaJSON).done(() => {
+        //  this.refreshFormMedia();
+	    //}).fail((err) => {
+        //  this.setState({isUploadFilePending: false});
+
+        //  var backendErrorText = (err.responseJSON.base64Encoded != undefined) ? err.responseJSON.base64Encoded[0] : err.statusText;
+        //  if (backendErrorText === FILE_ALREADY_EXISTS_UPLOAD_ERROR) {
+        //    alertify.error(t('File already exists!'));
+        //  // back end checks for valid base64 encoded string first
+        //  } else if (backendErrorText === BAD_UPLOAD_MEDIA_ENCODING_ERROR) {
+        //    alertify.error(t('Your uploaded media does not contain base64 valid content. Please check your media content.'));
+        //  } else if (
+        //      backendErrorText === BAD_UPLOAD_MEDIA_TYPE_ERROR ||
+        //      backendErrorText === GENERIC_BAD_UPLOAD_MEDIA_ENCODING_ERROR
+        //    ) {
+        //      alertify.error(t('Your uploaded media does not contain one of our supported MIME filetypes: `image`, `audio`, `video`, `text/csv`, `application/xml`'));
+        //  } else if (backendErrorText === INTERNAL_SERVER_ERROR) {
+        //    alertify.error(t('File could not be uploaded!'));
+        //  }
+	    //});
       });
     }
   }
