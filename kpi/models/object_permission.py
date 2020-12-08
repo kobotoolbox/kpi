@@ -1042,19 +1042,22 @@ class ObjectPermissionMixin:
         # grouped by object ids, otherwise, retrieve all permissions for this object
         # grouped by user ids.
         if user is not None:
-            user_id = user.pk if not user.is_anonymous \
-                else settings.ANONYMOUS_USER_ID
-            all_object_permissions = self.__get_all_user_permissions(
-                user_id=user_id
+            # Ensuring that the user has at least anonymous permissions if they
+            # have been assigned to the asset
+            all_anon_object_permissions = self.__get_all_user_permissions(
+                user_id=settings.ANONYMOUS_USER_ID
             )
-            perms = build_dict(user_id, all_object_permissions.get(self.pk))
-
-            if not perms:
-                # Try AnonymousUser's permissions in case user does not have any.
+            perms = build_dict(
+                settings.ANONYMOUS_USER_ID,
+                all_anon_object_permissions.get(self.pk),
+            )
+            if not user.is_anonymous:
                 all_object_permissions = self.__get_all_user_permissions(
-                    user_id=settings.ANONYMOUS_USER_ID
+                    user_id=user.pk
                 )
-                perms = build_dict(user_id, all_object_permissions.get(self.pk))
+                perms += build_dict(
+                    user.pk, all_object_permissions.get(self.pk)
+                )
         else:
             all_object_permissions = self.__get_all_object_permissions(
                 object_id=self.pk
