@@ -2,7 +2,12 @@
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import renderers, serializers, viewsets
+from rest_framework import (
+    renderers,
+    serializers,
+    status,
+    viewsets,
+)
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
@@ -151,17 +156,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/edit/?return_url=false
 
 
-    Duplicate current submission
+    ### Duplicate submission
 
-    _It is not possible to duplicate a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.
-
+    Duplicates the data of a submission
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/duplicate/
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/duplicate/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/duplicate/
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/duplicate/
 
 
     ### Validation statuses
@@ -310,7 +314,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 raise Http404
         return Response(submission)
 
-    @action(detail=True, methods=['GET'],
+    @action(detail=True, methods=['POST'],
             renderer_classes=[renderers.JSONRenderer],
             permission_classes=[DuplicateSubmissionPermission])
     def duplicate(self, request, pk, *args, **kwargs):
@@ -321,7 +325,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         duplicate_response = deployment.duplicate_submission(
             requesting_user_id=request.user.id, instance_id=positive_int(pk)
         )
-        return Response(duplicate_response)
+        return Response(duplicate_response, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer],

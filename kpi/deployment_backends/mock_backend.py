@@ -206,7 +206,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         return submissions
 
-    def duplicate_submission(self, requesting_user_id, instance_id, **kwargs):
+    def duplicate_submission(
+        self, requesting_user_id: int, instance_id: int, **kwargs: dict
+    ) -> dict:
         all_submissions = self.asset._deployment_data['submissions']
         submission = next(
             filter(lambda sub: sub['_id'] == instance_id, all_submissions)

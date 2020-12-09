@@ -1,4 +1,5 @@
 # coding: utf-8
+import io
 import json
 import posixpath
 import re
@@ -18,7 +19,6 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
-from kpi.utils.lazy_file import LazyFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
@@ -28,7 +28,11 @@ from .kc_access.utils import (
     instance_count,
     last_submission_time
 )
-from ..exceptions import BadFormatException, KobocatDeploymentException
+from ..exceptions import (
+    BadFormatException,
+    KobocatDeploymentException,
+    KobocatDuplicateSubmissionException,
+)
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -514,7 +518,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return url
 
     @property
-    def duplicate_submission_url(self):
+    def submission_url(self) -> str:
         url = '{kc_base}/submission'.format(
             kc_base=settings.KOBOCAT_URL,
         )
@@ -592,25 +596,48 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return submissions
 
     @staticmethod
-    def _get_updated_instance_id():
+    def generate_new_instance_id() -> (str, str):
+        """
+        Returns:
+            - Generated uuid
+            - Formatted uuid for OpenRosa xml
+        """
         uuid_ = str(uuid.uuid4())
         return uuid_, f'uuid:{uuid_}'
 
     @staticmethod
-    def _get_updated_datetime():
+    def format_openrosa_datetime(dt: datetime = None) -> str:
         """
         Matching the OpenRosa datetime formatting
         """
-        return datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        if dt is None:
+            dt = datetime.now(tz=pytz.UTC)
+
+        # Awkward check, but it's prescribed by
+        # https://docs.python.org/3/library/datetime.html#determining-if-an-object-is-aware-or-naive
+        if dt.tzinfo is None or dt.tzinfo.utcoffset(None) is None:
+            raise ValueError('An offset-aware datetime is required')
+        return dt.isoformat('T', 'milliseconds')
+
+    def _get_latest_submission(self, requesting_user_id: int) -> dict:
+        """
+        Retrieving the most recent submission for an asset
+        """
+        kwargs = {'sort': {'_id': -1}, 'limit': 1}
+        params = self.validate_submission_list_params(
+            requesting_user_id, **kwargs
+        )
+        return next(self.__get_submissions_in_json(**params))
+
 
     def duplicate_submission(
-        self, requesting_user_id, instance_id, **kwargs
-    ):
+        self, requesting_user_id: int, instance_id: int, **kwargs: dict
+    ) -> dict:
         """
-        Dupicates a single submission through `kpi`, proxied through `kc`. The
-        submission with the given `pk` is duplicated and the `start`, `end` and
+        Dupicates a single submission proxied through kobocat. The submission
+        with the given `instance_id` is duplicated and the `start`, `end` and
         `instanceID` parameters of the submission are reset before being posted
-        to `kc`.
+        to kobocat.
 
         Args:
             requesting_user_id (int)
@@ -618,8 +645,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             kwargs (dict): passed to validation
 
         Returns:
-            dict: message response from `kc` and uuid of created submission if
-            successful
+            dict: message response from kobocat and uuid of created submission
+            if successful
         """
         # Must be a list of ids for validation
         kwargs['instance_ids'] = [instance_id]
@@ -628,35 +655,30 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         submissions = self.__get_submissions_in_xml(**params)
 
-        # casting generator object to string and parsing with ET
-        xml_parsed = ET.fromstring(list(submissions)[0])
+        # parsing XML
+        xml_parsed = ET.fromstring(next(submissions))
 
-        uuid_, uuid_formatted = self._get_updated_instance_id()
-        date_formatted = self._get_updated_datetime()
+        uuid_, uuid_formatted = self.generate_new_instance_id()
+        date_formatted = self.format_openrosa_datetime()
 
         # updating xml fields for duplicate submission
         xml_parsed.find('start').text = date_formatted
         xml_parsed.find('end').text = date_formatted
         xml_parsed.find('./meta/instanceID').text = uuid_formatted
 
-        # creating temporary file for xml uploading to kobocat
-        with tempfile.NamedTemporaryFile(suffix='.xml', mode='wb') as tf:
-            tf.write(ET.tostring(xml_parsed))
-            tf.flush()
-
-            file_tuple = (tf.name, LazyFile(tf.name, 'rb'))
-            files = {'xml_submission_file': file_tuple}
-            kc_request = requests.Request(
-                method='POST', url=self.duplicate_submission_url, files=files
-            )
-            kc_response = self.__kobocat_proxy_request(
-                kc_request, user=self.asset.owner
-            )
-
-        kwargs = {'uuid': uuid_}
-        return self.__prepare_as_drf_response_signature(
-            kc_response, rosa=True, **kwargs
+        file_tuple = (uuid_, io.BytesIO(ET.tostring(xml_parsed)))
+        files = {'xml_submission_file': file_tuple}
+        kc_request = requests.Request(
+            method='POST', url=self.submission_url, files=files
         )
+        kc_response = self.__kobocat_proxy_request(
+            kc_request, user=self.asset.owner
+        )
+
+        if kc_response.status_code == status.HTTP_201_CREATED:
+            return self._get_latest_submission(requesting_user_id)
+        else:
+            raise KobocatDuplicateSubmissionException
 
     def get_validation_status(self, submission_pk, params, user):
         url = self.get_submission_validation_status_url(submission_pk)
@@ -802,31 +824,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         session = requests.Session()
         return session.send(kc_request.prepare())
 
-    @staticmethod
-    def __prepare_duplication_response(kc_response, uuid_):
-        """
-        Prepares response from OpenRosa to be fed to
-        `__prepare_as_drf_response_signature` for correct signature formatting
-        for drf.
-        """
-
-        # parsing xml response from OpenRosa to get response message
-        parsed_response = ET.fromstring(kc_response._content)
-        detail_obj = parsed_response.find(
-            '{http://openrosa.org/http/response}message'
-        )
-        detail_ = _(detail_obj.text) if hasattr(detail_obj, 'text') else \
-                _('Something went wrong with duplicating the submission.')
-
-        if kc_response.status_code == status.HTTP_201_CREATED:
-            return {'detail': detail_, 'uuid': uuid_}
-
-        return {'detail': detail_}
-
     @classmethod
-    def __prepare_as_drf_response_signature(
-        cls, requests_response, rosa=False, **kwargs
-    ):
+    def __prepare_as_drf_response_signature(cls, requests_response, **kwargs):
         """
         Prepares a dict from `Requests` response.
         Useful to get response from `kc` and use it as a dict or pass it to
@@ -848,19 +847,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         prepared_drf_response['status'] = requests_response.status_code
 
         try:
-            data_ = (
-                cls.__prepare_duplication_response(
-                    kc_response=requests_response, uuid_=kwargs['uuid']
-                )
-                if rosa
-                else json.loads(requests_response.content)
-            )
-            prepared_drf_response['data'] = data_
+            prepared_drf_response['data'] = json.loads(requests_response.content)
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
                 prepared_drf_response['data'] = {
                     'detail': _(
-                        f'KoBoCAT returned an unexpected response: {str(e)}'
+                        'KoBoCAT returned an unexpected response: {}'.format(str(e))
                     )
                 }
 

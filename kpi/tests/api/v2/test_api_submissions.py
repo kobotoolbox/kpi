@@ -440,13 +440,13 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
     def setUp(self):
         super().setUp()
         v_uid = self.asset.latest_deployed_version.uid
-        time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        current_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
         self.submissions = [
             {
                 '__version__': v_uid,
                 'instanceID': f'uuid:{uuid.uuid4()}',
-                'start': time,
-                'end': time,
+                'start': current_time,
+                'end': current_time,
                 'q1': 'a1',
                 'q2': 'a2',
                 '_id': 1,
@@ -462,8 +462,8 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
             {
                 '__version__': v_uid,
                 'instanceID': f'uuid:{uuid.uuid4()}',
-                'start': time,
-                'end': time,
+                'start': current_time,
+                'end': current_time,
                 'q1': 'a3',
                 'q2': 'a4',
                 '_id': 2,
@@ -500,31 +500,31 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         assert submission['end'] != duplicate_submission['end']
 
     def test_duplicate_submission_by_owner_allowed(self):
-        response = self.client.get(self.submission_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_200_OK
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
         self._check_duplicate(response)
 
     def test_duplicate_submission_by_anotheruser_not_allowed(self):
         self._log_in_as_another_user()
-        response = self.client.get(self.submission_url, {'format': 'json'})
+        response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_duplicate_submission_by_anonymous_not_allowed(self):
         self.client.logout()
-        response = self.client.get(self.submission_url, {'format': 'json'})
+        response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_duplicate_submission_by_anotheruser_shared_view_only_not_allowed(self):
         self._share_with_another_user()
         self._log_in_as_another_user()
-        response = self.client.get(self.submission_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_duplicate_submission_by_anotheruser_shared_allowed(self):
         self._share_with_another_user(view_only=False)
         self._log_in_as_another_user()
-        response = self.client.get(self.submission_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_200_OK
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
         self._check_duplicate(response)
 
 
