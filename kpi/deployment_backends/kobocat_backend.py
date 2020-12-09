@@ -602,13 +602,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             - Generated uuid
             - Formatted uuid for OpenRosa xml
         """
-        uuid_ = str(uuid.uuid4())
-        return uuid_, f'uuid:{uuid_}'
+        _uuid = str(uuid.uuid4())
+        return _uuid, f'uuid:{_uuid}'
 
     @staticmethod
     def format_openrosa_datetime(dt: datetime = None) -> str:
         """
-        Matching the OpenRosa datetime formatting
+        Format a given datetime object or generate a new timestamp matching the
+        OpenRosa datetime formatting
         """
         if dt is None:
             dt = datetime.now(tz=pytz.UTC)
@@ -618,17 +619,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if dt.tzinfo is None or dt.tzinfo.utcoffset(None) is None:
             raise ValueError('An offset-aware datetime is required')
         return dt.isoformat('T', 'milliseconds')
-
-    def _get_latest_submission(self, requesting_user_id: int) -> dict:
-        """
-        Retrieving the most recent submission for an asset
-        """
-        kwargs = {'sort': {'_id': -1}, 'limit': 1}
-        params = self.validate_submission_list_params(
-            requesting_user_id, **kwargs
-        )
-        return next(self.__get_submissions_in_json(**params))
-
 
     def duplicate_submission(
         self, requesting_user_id: int, instance_id: int, **kwargs: dict
@@ -658,7 +648,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # parsing XML
         xml_parsed = ET.fromstring(next(submissions))
 
-        uuid_, uuid_formatted = self.generate_new_instance_id()
+        _uuid, uuid_formatted = self.generate_new_instance_id()
         date_formatted = self.format_openrosa_datetime()
 
         # updating xml fields for duplicate submission
@@ -666,7 +656,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         xml_parsed.find('end').text = date_formatted
         xml_parsed.find('./meta/instanceID').text = uuid_formatted
 
-        file_tuple = (uuid_, io.BytesIO(ET.tostring(xml_parsed)))
+        file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
         files = {'xml_submission_file': file_tuple}
         kc_request = requests.Request(
             method='POST', url=self.submission_url, files=files
@@ -676,7 +666,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         if kc_response.status_code == status.HTTP_201_CREATED:
-            return self._get_latest_submission(requesting_user_id)
+            return self.__get_latest_duplicate_submission(
+                requesting_user_id, _uuid
+            )
         else:
             raise KobocatDuplicateSubmissionException
 
@@ -738,6 +730,20 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                                                       validate_count=True,
                                                       **kwargs)
         return MongoHelper.get_count(self.mongo_userform_id, **params)
+
+    def __get_latest_duplicate_submission(
+        self, requesting_user_id: int, _uuid: str
+    ) -> dict:
+        """
+        Retrieves the most recent duplicated submission for an asset in JSON
+        format
+        """
+        kwargs = {'query': {'_uuid': _uuid}}
+        params = self.validate_submission_list_params(
+            requesting_user_id, **kwargs
+        )
+
+        return next(self.__get_submissions_in_json(**params))
 
     def __get_submissions_in_json(self, **params):
         """
