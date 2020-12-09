@@ -830,6 +830,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         session = requests.Session()
         return session.send(kc_request.prepare())
 
+    @staticmethod
     def __prepare_as_drf_response_signature(requests_response):
         """
         Prepares a dict from `Requests` response.
