@@ -11,7 +11,6 @@ from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import pytz
-
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
