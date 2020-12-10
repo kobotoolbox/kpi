@@ -18,6 +18,7 @@ from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
+    BulkUpdateSubmissionsPermission,
     DuplicateSubmissionPermission,
     EditSubmissionPermission,
     SubmissionPermission,
@@ -352,6 +353,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                                                            request.method)
 
         return Response(**json_response)
+
+    @action(detail=False, methods=['PATCH'],
+        renderer_classes=[renderers.JSONRenderer],
+        permission_classes=[BulkUpdateSubmissionsPermission])
+    def bulk_update_submissions(self, request, *args, **kwargs):
+        deployment = self._get_deployment()
+        json_response = deployment.set_bulk_update_submissions(
+            dict(request.data), request.user.id, parent_lookup_asset
+        )
+        return Response(json_response, status=status.HTTP_201_CREATED)
 
     def _filter_mongo_query(self, request):
         """
