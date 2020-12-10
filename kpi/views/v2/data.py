@@ -218,6 +218,28 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >        }
 
 
+    ### Bulk updating of submissions
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/data/bulk_update_submissions/
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/bulk_update_submissions/
+
+    > **Payload**
+    >
+    >        {
+    >           "submission_ids": [{integer}],
+    >           <field_to_update_1>: <value_1>,
+    >           <field_to_update_2>: <value_2>,
+    >           <field_to_update_n>: <value_n>
+    >        }
+
+    where `<field_to_update_n>` is a string and should be an existing XML field value of the submissions.
+
+
     ### CURRENT ENDPOINT
     """
 
