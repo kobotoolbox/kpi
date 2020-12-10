@@ -734,10 +734,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         payload = json.loads(data['payload'][0])
 
         if not 'submission_ids' in payload:
-            raise KeyError
+            raise KeyError(_('`submission_ids` must be included in the payload'))
 
         if not isinstance(payload['submission_ids'], list):
-            raise TypeError(_('submissions_ids must be a list'))
+            raise TypeError(_('`submission_ids` must be a list'))
 
         # Ensuring submission ids are integer values
         payload['submission_ids'] = list(map(int, payload['submission_ids']))
