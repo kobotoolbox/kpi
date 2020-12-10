@@ -20,7 +20,9 @@ import {
   PERMISSIONS_CODENAMES
 } from 'js/constants';
 
-const PARTIAL_PLACEHOLDER = t('Enter usernames separated by spaces');
+const PARTIAL_PLACEHOLDER = t('Enter usernames separated by commas');
+const USERNAMES_SEPARATOR = ',';
+
 /**
  * Form for adding/changing user permissions for surveys.
  *
@@ -54,6 +56,8 @@ class UserAssetPermsEditor extends React.Component {
       submissionsAdd: false,
       submissionsEdit: false,
       submissionsEditDisabled: false,
+      submissionsDelete: false,
+      submissionsDeleteDisabled: false,
       submissionsValidate: false,
       submissionsValidateDisabled: false
     };
@@ -135,6 +139,7 @@ class UserAssetPermsEditor extends React.Component {
     stateObj.formViewDisabled = false;
     stateObj.submissionsViewDisabled = false;
     stateObj.submissionsViewPartialDisabled = false;
+    stateObj.submissionsDeleteDisabled = false;
     stateObj.submissionsEditDisabled = false;
     stateObj.submissionsValidateDisabled = false;
 
@@ -153,6 +158,7 @@ class UserAssetPermsEditor extends React.Component {
 
     // checking these options implies having `submissionsView` checked
     if (
+      stateObj.submissionsDelete ||
       stateObj.submissionsEdit ||
       stateObj.submissionsValidate
     ) {
@@ -162,6 +168,8 @@ class UserAssetPermsEditor extends React.Component {
 
     // checking `submissionsViewPartial` disallows checking two other options
     if (stateObj.submissionsViewPartial) {
+      stateObj.submissionsDelete = false;
+      stateObj.submissionsDeleteDisabled = true;
       stateObj.submissionsEdit = false;
       stateObj.submissionsEditDisabled = true;
       stateObj.submissionsValidate = false;
@@ -170,6 +178,7 @@ class UserAssetPermsEditor extends React.Component {
 
     // checking these options disallows checking `submissionsViewPartial`
     if (
+      stateObj.submissionsDelete ||
       stateObj.submissionsEdit ||
       stateObj.submissionsValidate
     ) {
@@ -222,7 +231,7 @@ class UserAssetPermsEditor extends React.Component {
   }
 
   onSubmissionsViewPartialUsersChange(users) {
-    this.setState({submissionsViewPartialUsers: users.split(' ')});
+    this.setState({submissionsViewPartialUsers: users.trim().split(USERNAMES_SEPARATOR)});
   }
 
   /**
@@ -303,6 +312,7 @@ class UserAssetPermsEditor extends React.Component {
       this.state.submissionsView ||
       this.state.submissionsViewPartial ||
       this.state.submissionsAdd ||
+      this.state.submissionsDelete ||
       this.state.submissionsEdit ||
       this.state.submissionsValidate
     );
@@ -336,6 +346,7 @@ class UserAssetPermsEditor extends React.Component {
       output.submissionsViewPartialUsers = this.state.submissionsViewPartialUsers;
     }
     if (this.isAssignable('change_submissions')) {output.submissionsEdit = this.state.submissionsEdit;}
+    if (this.isAssignable('delete_submissions')) {output.submissionsDelete = this.state.submissionsDelete;}
     if (this.isAssignable('validate_submissions')) {output.submissionsValidate = this.state.submissionsValidate;}
     return output;
   }
@@ -436,7 +447,7 @@ class UserAssetPermsEditor extends React.Component {
               {this.state.submissionsViewPartial === true &&
                 <TextBox
                   placeholder={PARTIAL_PLACEHOLDER}
-                  value={this.state.submissionsViewPartialUsers.join(' ')}
+                  value={this.state.submissionsViewPartialUsers.join(USERNAMES_SEPARATOR)}
                   onChange={this.onSubmissionsViewPartialUsersChange}
                   errors={this.state.submissionsViewPartial && this.state.submissionsViewPartialUsers.length === 0}
                   onKeyPress={this.onInputKeyPress}
@@ -459,6 +470,15 @@ class UserAssetPermsEditor extends React.Component {
               disabled={this.state.submissionsEditDisabled}
               onChange={this.onCheckboxChange.bind(this, 'submissionsEdit')}
               label={this.getLabel('change_submissions')}
+            />
+          }
+
+          {this.isAssignable('delete_submissions') &&
+            <Checkbox
+              checked={this.state.submissionsDelete}
+              disabled={this.state.submissionsDeleteDisabled}
+              onChange={this.onCheckboxChange.bind(this, 'submissionsDelete')}
+              label={this.getLabel('delete_submissions')}
             />
           }
 
