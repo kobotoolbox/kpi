@@ -412,6 +412,7 @@ export function getFlatQuestionsList(survey) {
     if (QUESTION_TYPES.has(row.type)) {
       output.push({
         type: row.type,
+        name: getRowName(row),
         isRequired: row.required,
         label: getQuestionDisplayName(row),
         parents: openedGroups.slice(0)

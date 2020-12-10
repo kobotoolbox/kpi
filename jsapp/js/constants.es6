@@ -65,7 +65,8 @@ export const MODAL_TYPES = {
   FORM_LANGUAGES: 'form-languages',
   FORM_TRANSLATIONS_TABLE: 'form-translation-table',
   ASSET_TAGS: 'asset-tags',
-  ENCRYPT_FORM: 'encrypt-form'
+  ENCRYPT_FORM: 'encrypt-form',
+  BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = {

@@ -10,6 +10,7 @@ export const bem = BEM.init();
 bem.Button = BEM('mdl-button', '<button>');
 
 bem.KoboButton = BEM('kobo-button', '<button>');
+bem.KoboLightButton = BEM('kobo-light-button', '<button>');
 
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');

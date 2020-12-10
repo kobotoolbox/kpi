@@ -3,16 +3,20 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
+import {stores} from 'js/stores';
 import ui from 'js/ui';
 import mixins from 'js/mixins';
 import alertify from 'alertifyjs';
-import {VALIDATION_STATUSES_LIST} from 'js/constants';
+import {
+  MODAL_TYPES,
+  VALIDATION_STATUSES_LIST
+} from 'js/constants';
 import {renderCheckbox} from 'utils';
 
 /**
  * @prop asset
  * @prop pageSize
- * @prop pageRowsCount
+ * @prop data
  * @prop totalRowsCount
  * @prop selectedRows
  * @prop selectedAllPages
@@ -151,7 +155,13 @@ class TableBulkOptions extends React.Component {
   }
 
   onEdit() {
-
+    stores.pageState.showModal({
+      type: MODAL_TYPES.BULK_EDIT_SUBMISSIONS,
+      asset: this.props.asset,
+      data: this.props.data,
+      totalSubmissions: this.props.totalRowsCount,
+      selectedSubmissions: Object.keys(this.props.selectedRows),
+    });
   }
 
   render() {
@@ -161,7 +171,7 @@ class TableBulkOptions extends React.Component {
     }
     const selectedLabel = t('##count## selected').replace('##count##', selectedCount);
 
-    const maxPageRes = Math.min(this.props.pageSize, this.props.pageRowsCount);
+    const maxPageRes = Math.min(this.props.pageSize, this.props.data.length);
     const isSelectAllAvailable = (
       Object.keys(this.props.selectedRows).length === maxPageRes &&
       this.props.totalRowsCount > this.props.pageSize
@@ -203,22 +213,24 @@ class TableBulkOptions extends React.Component {
         }
 
         {Object.keys(this.props.selectedRows).length > 0 && this.userCan('change_submissions', this.props.asset) &&
-          <bem.KoboButton
-            m={['small', 'red']}
-            onClick={this.onDelete}
-          >
-            {t('Delete')}
-          </bem.KoboButton>
-        }
-
-        {Object.keys(this.props.selectedRows).length > 0 && this.userCan('change_submissions', this.props.asset) &&
-          <bem.KoboButton
-            m={['small']}
+          <bem.KoboLightButton
+            m='blue'
             onClick={this.onEdit}
             disabled={this.props.selectedAllPages}
           >
+            <i className='k-icon k-icon-edit'/>
             {t('Edit')}
-          </bem.KoboButton>
+          </bem.KoboLightButton>
+        }
+
+        {Object.keys(this.props.selectedRows).length > 0 && this.userCan('change_submissions', this.props.asset) &&
+          <bem.KoboLightButton
+            m='red'
+            onClick={this.onDelete}
+          >
+            <i className='k-icon k-icon-trash'/>
+            {t('Delete')}
+          </bem.KoboLightButton>
         }
       </bem.TableMeta__bulkOptions>
     );
