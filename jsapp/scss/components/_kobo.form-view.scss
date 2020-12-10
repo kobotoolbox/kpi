@@ -464,8 +464,10 @@
     background-color: $kobo-red-light;
     color: $kobo-red-dark;
     border: 1px solid $kobo-red;
+    padding: 0px;
     i {
       color: $kobo-red;
+      margin: 0px;
     }
   }
 

@@ -200,7 +200,6 @@ actions.resources.createImport.listen((params, onCompleted, onFailed) => {
 actions.media.uploadMedia.listen((uid, formMediaJSON, callbacks = {}) => {
   dataInterface.postFormMedia(uid, formMediaJSON)
     .done(() => {
-      actions.media.uploadMedia.completed();
       if (callbacks.onComplete) {
         actions.media.loadMedia(uid, callbacks);
       }
@@ -213,7 +212,7 @@ actions.media.uploadMedia.listen((uid, formMediaJSON, callbacks = {}) => {
     });
 });
 actions.media.uploadMedia.completed.listen((response) => {
-  notify(t('Uploaded media successfully'));
+  // Not currently used, but can be useful in the future
 });
 actions.media.uploadMedia.failed.listen((response) => {
   alertify.error(t('Could not upload your media'));
@@ -233,6 +232,9 @@ actions.media.loadMedia.listen((uid, callbacks = {}) => {
       }
     });
 });
+actions.media.loadMedia.completed.listen((response) => {
+  // Not currently used, but can be useful in the future
+});
 actions.media.loadMedia.failed.listen((response) => {
   alertify.error(t('Something went wrong with getting your media'));
 });
@@ -240,17 +242,23 @@ actions.media.loadMedia.failed.listen((response) => {
 actions.media.deleteMedia.listen((uid, url, callbacks = {}) => {
   dataInterface.deleteFormMedia(url)
     .done(() => {
-      notify(t('Successfully deleted media'));
+      actions.media.deleteMedia.completed();
       if (callbacks.onComplete) {
         actions.media.loadMedia(uid, callbacks);
       }
     })
     .fail((response) => {
-      alertify.error(t('Failed to delete media!'));
+      actions.media.deleteMedia.failed(response);
       if (callbacks.onFail) {
         callbacks.onFail(response);
       }
     });
+});
+actions.media.deleteMedia.completed.listen(() => {
+  notify(t('Successfully deleted media'));
+});
+actions.media.deleteMedia.failed.listen((response) => {
+  alertify.error(t('Failed to delete media!'));
 });
 
 actions.resources.createSnapshot.listen(function(details){
