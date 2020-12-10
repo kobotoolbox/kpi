@@ -2,18 +2,9 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
+import TextBox from '../textBox';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
-import {dataInterface} from 'js/dataInterface';
-
-const BAD_URL_ERROR = '`redirect_url` is invalid';
-const BAD_URL_MEDIA_TYPE_ERROR = '`redirect_url`: Only `image`, `audio`, `video`, `text/csv`, `application/xml` MIME types are allowed';
-const BAD_UPLOAD_MEDIA_ENCODING_ERROR = 'Invalid content'; // `base64Encoded` for invalid base64 encoded string
-const BAD_UPLOAD_MEDIA_TYPE_ERROR = 'Only `image`, `audio`, `video`, `text/csv`, `application/xml` MIME types are allowed'
-const GENERIC_BAD_UPLOAD_MEDIA_ENCODING_ERROR = 'Bad Request'; // `statusText` for 400 response
-const FILE_ALREADY_EXISTS_URL_ERROR = '`redirect_url`: File already exists';
-const FILE_ALREADY_EXISTS_UPLOAD_ERROR = 'File already exists';
-const INTERNAL_SERVER_ERROR = 'INTERNAL SERVER ERROR'; // `statusText` for a 500 response
 
 /*
  * Modal for uploading form media
@@ -23,6 +14,8 @@ class FormMedia extends React.Component {
     super(props);
     this.state = {
       uploadedAssets: null,
+      fieldsErrors: {},
+      inputURL: '',
       // to show loading icon instead of nothing on first load
       isVirgin: true,
       // to show loading icon while uploading any file
@@ -59,19 +52,19 @@ class FormMedia extends React.Component {
   }
 
   onGetMediaFailed(response) {
-    // TODO do we need to do more than say 'something went wrong'?
-  }
-
-  onUploadFailed(response) {
-    // TODO handle the bad uploads here. Do something about all those constants
-    this.setState({
-      isUploadFilePending: false,
-      isUploadURLPending: false
-    });
+    // Do we need to do more than say 'something went wrong'?
   }
 
   onDeleteMediaFailed(response) {
-    // TODO do we need to do more than say 'something went wrong'?
+    // Do we need to do more than say 'something went wrong'?
+  }
+
+  onUploadFailed(response) {
+    this.setState({
+      fieldsErrors: response.responseJSON,
+      isUploadFilePending: false,
+      isUploadURLPending: false
+    });
   }
 
   /*
@@ -92,6 +85,8 @@ class FormMedia extends React.Component {
   }
 
   uploadMedia(formMediaJSON) {
+    // Reset error message before uploading again
+    this.setState({fieldsErrors: {}});
     const callbacks = {
       onComplete: this.onGetMediaCompleted.bind(this),
       onFail: this.onUploadFailed.bind(this)
@@ -120,16 +115,20 @@ class FormMedia extends React.Component {
     }
   }
 
+  onInputURLChange(inputURL) {
+    this.setState({inputURL: inputURL});
+  }
+
   onSubmitURL() {
-    var urlInputField = $(document).find('input.form-media__url-input').eq(0);
-    var url = urlInputField.val();
+    var url = this.state.inputURL;
 
     if (url === '') {
       alertify.warning(t('URL is empty!'));
     } else {
-      // Clear the url field after submitting
-      urlInputField.val('');
-      this.setState({isUploadURLPending: true})
+      this.setState({
+        isUploadURLPending: true,
+        inputURL: ''
+      });
 
       var formMediaJSON = {
         description: 'default',
@@ -215,6 +214,12 @@ class FormMedia extends React.Component {
                 onDrop={this.onFileDrop.bind(this)}
                 className='dropzone'
             >
+              {this.state.fieldsErrors.base64Encoded &&
+                <bem.FormView__cell m='error'>
+                  <i className='k-icon-alert' />
+                  <p>{this.state.fieldsErrors.base64Encoded}</p>
+                </bem.FormView__cell>
+              }
               <i className='k-icon-upload' />
               {t(' Drag and drop files here')}
               <div className='form-media__desc'>
@@ -229,7 +234,13 @@ class FormMedia extends React.Component {
           }
           <div className='form-media__upload-url'>
             <label className='form-media__label'>{t('You can also add files using a URL')}</label>
-            <input className='form-media__url-input' placeholder={t('Paste URL here')}/>
+            <TextBox
+              type={'url'}
+              placeholder={t('Paste URL here')}
+              errors={this.state.fieldsErrors.metadata}
+              value={this.state.inputURL}
+              onChange={this.onInputURLChange}
+            />
             {this.renderButton()}
           </div>
         </div>
