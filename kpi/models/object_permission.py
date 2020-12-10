@@ -918,7 +918,7 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):
-        r"""
+        """
             Revoke the given `perm` on this object from `user_obj`. By default,
             recalculate descendant objects' permissions and remove any
             applicable KC permissions.  May delete granted permissions or add
