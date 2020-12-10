@@ -9,6 +9,7 @@ from rest_framework import status
 from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
@@ -377,11 +378,16 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Give user `change_submissions` should not give permission to delete.
-        # Only owner can delete submissions on `kpi`. `delete_submissions` is
-        # a calculated permission and thus, can not be assigned.
-        # TODO Review this test when kpi#2282 is released.
+        # `another_user` should not be able to delete with 'change_submissions'
+        # permission.
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+        response = self.client.delete(url,
+                                      content_type="application/json",
+                                      HTTP_ACCEPT="application/json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Let's assign them 'delete_submissions'. Everything should be ok then!
+        self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")

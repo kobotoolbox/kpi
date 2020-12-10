@@ -3,17 +3,24 @@ import json
 import posixpath
 import re
 from collections import defaultdict
+from typing import Union
 from urllib.parse import urlparse
 
 import requests
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.constants import (
+    INSTANCE_FORMAT_TYPE_JSON,
+    INSTANCE_FORMAT_TYPE_XML,
+    PERM_FROM_KC_ONLY,
+)
 from kpi.models.asset_file import AssetFile
+from kpi.models.object_permission import ObjectPermission
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
@@ -381,6 +388,38 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         self.set_asset_uid()
 
+    def remove_from_kc_only_flag(self, specific_user: Union[int, 'User'] = None):
+        """
+        Removes `from_kc_only` flag for ALL USERS unless `specific_user` is
+        provided
+
+        Args:
+            specific_user (int, User): User object or pk
+        """
+        # This flag lets us know that permission assignments in KPI exist
+        # only because they were copied from KoBoCAT (by `sync_from_kobocat`).
+        # As soon as permissions are assigned through KPI, this flag must be
+        # removed
+        #
+        # This method is here instead of `ObjectPermissionMixin` because
+        # it's specific to KoBoCat as backend.
+
+        # TODO: Remove this method after kobotoolbox/kobocat#642
+
+        filters = {
+            'permission__codename': PERM_FROM_KC_ONLY,
+            'object_id': self.asset.id,
+            'content_type': ContentType.objects.get_for_model(self.asset)
+        }
+        if specific_user is not None:
+            try:
+                user_id = specific_user.pk
+            except AttributeError:
+                user_id = specific_user
+            filters['user_id'] = user_id
+
+        ObjectPermission.objects.filter(**filters).delete()
+
     def set_active(self, active):
         """
         PATCH active boolean of survey.
@@ -394,7 +433,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'downloadable': bool(active)
         }
         json_response = self._kobocat_request('PATCH', url, data=payload)
-        assert(json_response['downloadable'] == bool(active))
+        assert json_response['downloadable'] == bool(active)
         self.store_data({
             'active': json_response['downloadable'],
             'backend_response': json_response,
@@ -412,8 +451,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                   during this call, otherwise `False`.
         """
         is_synchronized = not (
-            force or
-            self.backend_response.get('kpi_asset_uid', None) is None
+                force or
+                self.backend_response.get('kpi_asset_uid', None) is None
         )
         if is_synchronized:
             return False
@@ -450,9 +489,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             json_response = self._kobocat_request('PATCH', url, data=payload)
         except KobocatDeploymentException as e:
             if (
-                has_active_hooks is False
-                and hasattr(e, 'response')
-                and e.response.status_code == status.HTTP_404_NOT_FOUND
+                    has_active_hooks is False
+                    and hasattr(e, 'response')
+                    and e.response.status_code == status.HTTP_404_NOT_FOUND
             ):
                 # It's okay if we're trying to unset the active hooks flag and
                 # the KoBoCAT project is already gone. See #2497
