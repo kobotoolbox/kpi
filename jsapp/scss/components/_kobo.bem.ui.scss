@@ -207,6 +207,11 @@ $mdl-layout-width: 1440px;
   top: 100%;
 }
 
+.popover-menu--right .popover-menu__content {
+  right: auto;
+  left: -10px;
+}
+
 .popover-menu--above .popover-menu__content,
 .popover-menu--viewby-menu .popover-menu__content {
   bottom: 100%;

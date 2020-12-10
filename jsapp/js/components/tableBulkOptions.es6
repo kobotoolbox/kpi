@@ -22,7 +22,6 @@ import {renderCheckbox} from 'utils';
  * @prop selectedAllPages
  * @prop fetchState
  * @prop onClearSelection
- * @prop onSelectAll
  */
 class TableBulkOptions extends React.Component {
   constructor(props){
@@ -51,10 +50,6 @@ class TableBulkOptions extends React.Component {
 
   onClearSelection() {
     this.props.onClearSelection();
-  }
-
-  onSelectAll() {
-    this.props.onSelectAll();
   }
 
   onUpdateStatus(newStatus) {
@@ -181,18 +176,9 @@ class TableBulkOptions extends React.Component {
       <bem.TableMeta__bulkOptions>
         {selectedCount > 1 &&
           <span>
-            <a className='select-all' onClick={this.onClearSelection}>
-              {t('Clear selection')}
-            </a>
-
             {selectedLabel}
+            <a className='bulk-select-link' onClick={this.onClearSelection}>&times;</a>
           </span>
-        }
-
-        { !this.props.selectedAllPages && isSelectAllAvailable &&
-          <a className='select-all' onClick={this.onSelectAll}>
-            {t('Select all ##count##').replace('##count##', this.props.totalRowsCount)}
-          </a>
         }
 
         {Object.keys(this.props.selectedRows).length > 0 &&
@@ -216,7 +202,7 @@ class TableBulkOptions extends React.Component {
           <bem.KoboLightButton
             m='blue'
             onClick={this.onEdit}
-            disabled={this.props.selectedAllPages}
+            disabled={this.props.selectedAllPages && isSelectAllAvailable}
           >
             <i className='k-icon k-icon-edit'/>
             {t('Edit')}

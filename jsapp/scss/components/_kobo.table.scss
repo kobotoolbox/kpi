@@ -36,14 +36,6 @@
 
     .rt-tbody, .rt-thead {
       overflow-x: hidden;
-
-      .table-header-checkbox {
-        min-height: 24px;
-        display: block;
-        text-align: center;
-
-        .checkbox__input {vertical-align: middle;}
-      }
     }
 
     // minimum body height so at least two rows are visible
@@ -54,6 +46,11 @@
     .rt-thead.-header {
       box-shadow: none;
       border-bottom: 2px solid $kobo-lightgray;
+      overflow-x: visible;
+
+      .table-bulk-checkbox-header {
+        overflow: visible;
+      }
     }
 
     .rt-thead {
@@ -279,6 +276,37 @@
     li {
       margin-bottom: 5px;
       max-width: 100%;
+    }
+  }
+}
+
+.table-bulk-checkbox {
+  position: relative;
+  display: block;
+  height: 100%;
+  line-height: 20px;
+
+  > .checkbox {
+    position: absolute;
+    z-index: 1;
+    top: calc(50% - 10px);
+    left: calc(50% - 15px);
+
+    .checkbox__wrapper {
+      padding: 0;
+      display: block;
+    }
+  }
+
+  > .popover-menu--table-bulk-checkbox {
+    .popover-menu__toggle::after {
+      content: "\F107";
+      font-family: "FontAwesome";
+      padding: 0 10px 0 30px;
+    }
+
+    .popover-menu__content {
+      left: 5px;
     }
   }
 }

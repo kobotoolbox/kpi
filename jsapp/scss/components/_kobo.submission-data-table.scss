@@ -131,14 +131,8 @@ $submission-data-table-space: 12px;
   .table-meta__counter {
     display: span;
   }
-}
 
-.table-meta__bulk-options {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  .select-all {
+  .bulk-select-link {
     cursor: pointer;
     color: $kobo-blue;
 
@@ -146,6 +140,12 @@ $submission-data-table-space: 12px;
       color: lighten($kobo-blue, 10%);
     }
   }
+}
+
+.table-meta__bulk-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 
   .popover-menu .popover-menu__toggle {
     // overriding 36px from jsapp/scss/components/_kobo.form-view.scss

@@ -30,6 +30,7 @@ import {
 import {getSurveyFlatPaths} from 'js/assetUtils';
 import {getRepeatGroupAnswers} from 'js/submissionUtils';
 import TableBulkOptions from './tableBulkOptions';
+import TableBulkCheckbox from './tableBulkCheckbox';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
 
@@ -265,24 +266,29 @@ export class DataTable extends React.Component {
     var columns = [];
     if (this.userCan('validate_submissions', this.props.asset) || this.userCan('change_submissions', this.props.asset)) {
       columns.push({
-        Header: row => (
-            <div className='table-header-checkbox'>
-              <Checkbox
-                checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
-                onChange={this.bulkSelectAllRows}
-              />
-            </div>
-          ),
+        Header: () => {
+          return (
+            <TableBulkCheckbox
+              visibleRowsCount={maxPageRes}
+              selectedRowsCount={Object.keys(this.state.selectedRows).length}
+              totalRowsCount={this.state.resultsTotal}
+              onSelectAllPages={this.bulkSelectAll}
+              onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
+              onClearSelection={this.bulkClearSelection}
+            />
+          );
+        },
         accessor: 'sub-checkbox',
         index: '__0',
         id: '__SubmissionCheckbox',
-        minWidth: 45,
+        minWidth: 50,
         filterable: false,
         sortable: false,
         resizable: false,
+        headerClassName: 'table-bulk-checkbox-header',
         className: 'rt-checkbox',
         Cell: row => (
-          <div className='table-header-checkbox'>
+          <div className='table-bulk-checkbox'>
             <Checkbox
               checked={this.state.selectedRows[row.original._id] ? true : false}
               onChange={this.bulkUpdateChange.bind(this, row.original._id)}
@@ -766,6 +772,10 @@ export class DataTable extends React.Component {
     if (!pageState.modal)
       return false;
 
+    if (pageState.modal.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS) {
+      return false;
+    }
+
     let params = pageState.modal,
         page = 0;
 
@@ -833,7 +843,16 @@ export class DataTable extends React.Component {
   }
 
   bulkSelectAll() {
-    this.setState({selectAll: true});
+    // make sure all rows on current page are selected
+    let s = this.state.selectedRows;
+    this.state.tableData.forEach(function(r) {
+      s[r._id] = true;
+    });
+
+    this.setState({
+      selectedRows: s,
+      selectAll: true
+    });
   }
   bulkClearSelection() {
     this.setState({selectAll: false, selectedRows: {}});
@@ -846,22 +865,24 @@ export class DataTable extends React.Component {
 
     const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
     const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
-    const showingResults = `${res1} - ${res2} ${t('of')} ${this.state.resultsTotal} ${t('results')}`;
 
     return (
       <bem.TableMeta>
-        <bem.TableMeta__counter>{showingResults}</bem.TableMeta__counter>
+        <bem.TableMeta__counter>
+          {res1} - {res2} {t('of')}
+          {' '}
+          <a className='bulk-select-link' onClick={this.bulkSelectAll}>{this.state.resultsTotal} {t('results')}</a>
+        </bem.TableMeta__counter>
 
         <TableBulkOptions
           asset={this.props.asset}
+          data={this.state.tableData}
           pageSize={this.state.pageSize}
-          pageRowsCount={this.state.tableData.length}
           totalRowsCount={this.state.resultsTotal}
           selectedRows={this.state.selectedRows}
           selectedAllPages={this.state.selectAll}
           fetchState={this.state.fetchState}
           onClearSelection={this.bulkClearSelection.bind(this)}
-          onSelectAll={this.bulkSelectAll.bind(this)}
         />
       </bem.TableMeta>
     );
