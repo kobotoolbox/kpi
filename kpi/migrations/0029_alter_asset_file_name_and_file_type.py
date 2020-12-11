@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0027_remove_objectpermission_generic_relation'),
+        ('kpi', '0028_remove_objectpermission_generic_relation'),
     ]
 
     operations = [
