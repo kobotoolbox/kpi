@@ -384,7 +384,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         json_response = deployment.set_bulk_update_submissions(
             dict(request.data), request.user.id
         )
-        return Response(json_response, status=status.HTTP_201_CREATED)
+        return Response(**json_response)
 
     def _filter_mongo_query(self, request):
         """

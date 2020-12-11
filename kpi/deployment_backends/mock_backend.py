@@ -238,20 +238,20 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         pass
 
     @staticmethod
-    def __prepare_payload(data: dict) -> dict:
-        submission_ids = data.pop('submission_ids')
+    def __prepare_payload(request_data: dict) -> dict:
+        submission_ids = request_data.pop('submission_ids')
         # for some reason DRF puts the strings into a list so this just takes
         # them back out again to more accurately reflect the behaviour of the
         # non-mocked methods
-        for k,v in data.items():
-            data[k] = v[0]
-        data['submission_ids'] = list(map(int, submission_ids))
-        return data
+        for k,v in request_data.items():
+            request_data[k] = v[0]
+        request_data['submission_ids'] = list(map(int, submission_ids))
+        return request_data
 
     def set_bulk_update_submissions(
-        self, data: dict, requesting_user_id: int
+        self, request_data: dict, requesting_user_id: int
     ) -> dict:
-        payload = self.__prepare_payload(data)
+        payload = self.__prepare_payload(request_data)
         all_submissions = copy.copy(self.asset._deployment_data['submissions'])
         instance_ids = payload.pop('submission_ids')
 
@@ -264,7 +264,12 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     submission[k] = v
                 successful_updates += 1
 
-        return {'detail': f'{successful_updates} submissions have been updated'}
+        return {
+            'status': status.HTTP_201_CREATED,
+            'data': {
+                'detail': f'{successful_updates} submissions have been updated'
+            }
+        }
 
     def set_has_kpi_hooks(self):
         """

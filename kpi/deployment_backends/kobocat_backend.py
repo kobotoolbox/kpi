@@ -725,44 +725,44 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    @staticmethod
-    def __prepare_payload(data: dict) -> dict:
-        """
-        Preparing the request payload for bulk updating of submissions
-        """
-        payload = json.loads(data['payload'][0])
-
-        if not 'submission_ids' in payload:
-            raise KeyError(_('`submission_ids` must be included in the payload'))
-
-        if not isinstance(payload['submission_ids'], list):
-            raise TypeError(_('`submission_ids` must be a list'))
-
-        # Ensuring submission ids are integer values
-        payload['submission_ids'] = list(map(int, payload['submission_ids']))
-
-        return payload
-
     def set_bulk_update_submissions(
-        self, data: dict, requesting_user_id: int
+        self, request_data: dict, requesting_user_id: int
     ) -> dict:
         """
-        Do some cool bulk editing of submission data
+        Allows for bulk updating of submissions proxied through kobocat. A
+        `deprecatedID` for each submission is given the previous value of
+        `instanceID` and `instanceID` receives an updated uuid. For each key
+        and value within `request_data`, either a new element is created on the
+        submission's XML tree, or the existing value is replaced by the updated
+        value.
+
+        Args:
+            request_data (dict): must contain a list of `submission_ids` and at
+                least one other key:value field for updating the submissions
+            requesting_user_id (int)
+
+        Returns:
+            dict: formatted dict to be passed to a Response object
         """
-        payload = self.__prepare_payload(data)
+        payload = self.__prepare_payload(request_data)
         kwargs = {'instance_ids': payload.pop('submission_ids')}
         params = self.validate_submission_list_params(
             requesting_user_id, format_type=INSTANCE_FORMAT_TYPE_XML, **kwargs
         )
-        submissions = self.__get_submissions_in_xml(**params)
+        submissions = list(self.__get_submissions_in_xml(**params))
+        validated_submissions = self.__validate_bulk_update_submissions(
+            submissions
+        )
 
-        successful_updates = 0
-        for submission in submissions:
+        response_codes = []
+        for submission in validated_submissions:
             xml_parsed = ET.fromstring(submission)
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
 
-            # updating xml fields for duplicate submission
+            # updating xml fields for submission. In order to update an existing
+            # submission, the current `instanceID` must be moved to the value
+            # for `deprecatedID`.
             instance_id = xml_parsed.find('./meta/instanceID')
             # if the submission has been edited before, it will already contain
             # a deprecatedID element - otherwise create a new element
@@ -774,12 +774,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             deprecated_id.text = instance_id.text
             instance_id.text = uuid_formatted
 
+            # if the form has been updated with new fields and earlier
+            # submissions have been selected as part of the bulk update,
+            # a new element has to be created before a value can be set.
+            # However, with this new power, arbitrary fields can be added
+            # to the XML tree through the api.
             for k, v in payload.items():
-                # if the form has been updated with new fields and earlier
-                # submissions have been selected as part of the bulk update,
-                # a new element has to be created before a value can be set.
-                # However, with this new power, arbitrary fields can be added
-                # to the XML tree through the api.
                 element_to_update_or_new = (
                     xml_parsed.find(k)
                     if xml_parsed.find(k) is not None
@@ -787,24 +787,34 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )
                 element_to_update_or_new.text = v
 
-            # TODO might be worth refactoring this as it is also used when
+            # TODO: might be worth refactoring this as it is also used when
             # duplicating a submission
             file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
+            # due to the implementation in kobocat, the `PATCH` is limited to
+            # accepting validation status updates only, so using `POST` is a bit
+            # of a work around
             kc_request = requests.Request(
                 method='POST', url=self.submission_url, files=files
             )
             kc_response = self.__kobocat_proxy_request(
                 kc_request, user=self.asset.owner
             )
+            response_codes.append(kc_response.status_code)
 
-            successful_updates += 1
+        successful_updates = response_codes.count(status.HTTP_201_CREATED)
 
-        if kc_response.status_code == status.HTTP_201_CREATED:
+        # TODO: this follows a similar reponse message that bulk updating of
+        # `validataion_statuses` will give, however there may be something more
+        # useful to send back to the client
+        if successful_updates > 0:
             return {
-                'detail': _('{} submissions have been updated').format(
-                    successful_updates
-                ),
+                'status': status.HTTP_201_CREATED,
+                'data': {
+                    'detail': _(
+                        '{} submissions of {} attempts have been updated'
+                    ).format(successful_updates, len(response_codes)),
+                },
             }
         else:
             raise KobocatBulkUpdateSubmissionsException
@@ -947,4 +957,49 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 }
 
         return prepared_drf_response
+
+    @staticmethod
+    def __validate_payload(payload: dict) -> dict:
+        """
+        Validating the request payload for bulk updating of submissions
+        """
+        if not 'submission_ids' in payload:
+            raise KobocatBulkUpdateSubmissionsException(
+                detail=_('`submission_ids` must be included in the payload')
+            )
+
+        if not isinstance(payload['submission_ids'], list):
+            raise KobocatBulkUpdateSubmissionsException(
+                detail=_('`submission_ids` must be a list')
+            )
+
+        if len(payload) < 2:
+            raise KobocatBulkUpdateSubmissionsException(
+                detail=_('Payload must contain data to update the submissions')
+            )
+
+        return payload
+
+    @classmethod
+    def __prepare_payload(cls, request_data: dict) -> dict:
+        """
+        Preparing the request payload for bulk updating of submissions
+        """
+        payload = json.loads(request_data['payload'][0])
+        validated_payload = cls.__validate_payload(payload)
+
+        # Ensuring submission ids are integer values
+        validated_payload['submission_ids'] = list(
+            map(int, validated_payload['submission_ids'])
+        )
+
+        return validated_payload
+
+    @staticmethod
+    def __validate_bulk_update_submissions(submissions: list) -> list:
+        if len(submissions) == 0:
+            raise KobocatBulkUpdateSubmissionsException(
+                detail=_('No submissions match the given `submission_ids`')
+            )
+        return submissions
 
