@@ -32,6 +32,7 @@ new Set([
   'view_submissions',
   'partial_submissions',
   'change_submissions',
+  'delete_submissions',
   'validate_submissions'
 ]).forEach((codename) => {PERMISSIONS_CODENAMES.set(codename, codename);});
 
