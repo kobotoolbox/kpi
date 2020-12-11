@@ -131,7 +131,7 @@ class ApiCollectionPermissionListTestCase(BaseApiCollectionPermissionTestCase):
 
         self.assertEqual(expected_perms, obj_perms)
 
-    def test_editors_see_all_assignments(self):
+    def test_editors_see_only_self_anon_and_owner_assignments(self):
 
         self.client.login(username='someuser', password='someuser')
         permission_list_response = self.client.get(self.collection_permissions_list_url,
@@ -142,7 +142,6 @@ class ApiCollectionPermissionListTestCase(BaseApiCollectionPermissionTestCase):
         anotheruser_perms = self.collection.get_perms(self.anotheruser)
         results = permission_list_response.data
 
-        # As an editor of the collection. `someuser` should see all.
         expected_perms = []
         for admin_perm in admin_perms:
             if admin_perm in Collection.get_assignable_permissions():
@@ -150,9 +149,7 @@ class ApiCollectionPermissionListTestCase(BaseApiCollectionPermissionTestCase):
         for someuser_perm in someuser_perms:
             if someuser_perm in Collection.get_assignable_permissions():
                 expected_perms.append((self.someuser.username, someuser_perm))
-        for anotheruser_perm in anotheruser_perms:
-            if anotheruser_perm in Collection.get_assignable_permissions():
-                expected_perms.append((self.anotheruser.username, anotheruser_perm))
+        # Permissions assigned to self.anotheruser must not appear
 
         expected_perms = sorted(expected_perms, key=lambda element: (element[0],
                                                                      element[1]))

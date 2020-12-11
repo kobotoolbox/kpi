@@ -52,7 +52,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
                             related_name='children', on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='owned_collections',
                               on_delete=models.CASCADE)
-    editors_can_change_permissions = models.BooleanField(default=True)
+    editors_can_change_permissions = models.BooleanField(default=False)
     discoverable_when_public = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='c')
     date_created = models.DateTimeField(auto_now_add=True)

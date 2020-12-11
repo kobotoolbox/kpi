@@ -250,7 +250,7 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Give "someuser" edit permissions on an asset owned by "admin"
         self.add_perm(self.admin_asset, self.someuser, 'change_')
         # Confirm that "someuser" has received the implied permissions
-        expected_perms = [PERM_CHANGE_ASSET, PERM_SHARE_ASSET, PERM_VIEW_ASSET]
+        expected_perms = [PERM_CHANGE_ASSET, PERM_VIEW_ASSET]
         self.assertListEqual(
             sorted(self.admin_asset.get_perms(self.someuser)),
             expected_perms
@@ -289,7 +289,7 @@ class ApiPermissionsTestCase(KpiTestCase):
             new_asset.get_users_with_perms(attach_perms=True)
         )
 
-    def test_copy_permissions_between_non_owned_assets(self):
+    def test_cannot_copy_permissions_between_non_owned_assets(self):
         # Give "someuser" view permissions on an asset owned by "admin"
         self.add_perm(self.admin_asset, self.someuser, 'view_')
         self.assertTrue(self.someuser.has_perm(PERM_VIEW_ASSET, self.admin_asset))
@@ -301,6 +301,9 @@ class ApiPermissionsTestCase(KpiTestCase):
         # Give "someuser" edit permissions on the new asset owned by "admin"
         self.add_perm(new_asset, self.someuser, 'change_')
         self.assertTrue(self.someuser.has_perm(PERM_CHANGE_ASSET, new_asset))
+        new_asset_perms_before_copy_attempt = new_asset.get_users_with_perms(
+            attach_perms=True
+        )
         # Perform the permissions copy via the API endpoint
         self.client.login(
             username=self.someuser.username, password=self.someuser_password
@@ -314,17 +317,15 @@ class ApiPermissionsTestCase(KpiTestCase):
                 'api_v2:asset-permission-assignment-clone',
                 kwargs={'parent_lookup_asset': new_asset.uid}
             )
-        self.client.patch(
+        response = self.client.patch(
             dest_asset_perm_url, data={'clone_from': self.admin_asset.uid}
         )
-        # Check the result; since the source and destination have the same
-        # owner, the permissions should be identical
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # Check the result; nothing should have changed
         self.assertDictEqual(
-            self.admin_asset.get_users_with_perms(attach_perms=True),
+            new_asset_perms_before_copy_attempt,
             new_asset.get_users_with_perms(attach_perms=True)
         )
-        # Fun fact: the copying user has obliterated their own privileges
-        self.assertFalse(self.someuser.has_perm(PERM_CHANGE_ASSET, new_asset))
 
     def test_user_cannot_copy_permissions_from_non_viewable_asset(self):
         # Make sure "someuser" cannot view the asset owned by "admin"

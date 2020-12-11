@@ -487,7 +487,9 @@ class Asset(ObjectPermissionMixin,
                                null=True, blank=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True,
                               on_delete=models.CASCADE)
-    editors_can_change_permissions = models.BooleanField(default=True)
+    # TODO: remove this flag; support for it has been removed from
+    # ObjectPermissionMixin
+    editors_can_change_permissions = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = JSONBField(default=dict)

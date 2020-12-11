@@ -667,18 +667,13 @@ class ShareAssetsTest(AssetsTestCase):
             self.asset_in_coll
         ))
 
-    def test_change_permission_provides_share_permission(self):
+    def test_change_permission_does_not_provide_share_permission(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.assertFalse(anotheruser.has_perm(
             PERM_CHANGE_ASSET, self.asset))
         # Grant the change permission and make sure it provides
         # share_asset
         self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
-        self.assertTrue(anotheruser.has_perm(
-            PERM_SHARE_ASSET, self.asset))
-        # Restrict share_asset to the owner and make sure anotheruser loses
-        # the permission
-        self.asset.editors_can_change_permissions = False
         self.assertFalse(anotheruser.has_perm(
             PERM_SHARE_ASSET, self.asset))
 
