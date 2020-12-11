@@ -175,10 +175,10 @@ class TableBulkOptions extends React.Component {
     return (
       <bem.TableMeta__bulkOptions>
         {selectedCount > 1 &&
-          <span>
+          <bem.KoboLightBadge>
             {selectedLabel}
-            <a className='bulk-select-link' onClick={this.onClearSelection}>&times;</a>
-          </span>
+            <a className='bulk-clear-badge-icon' onClick={this.onClearSelection}>&times;</a>
+          </bem.KoboLightBadge>
         }
 
         {Object.keys(this.props.selectedRows).length > 0 &&

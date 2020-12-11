@@ -11,6 +11,7 @@ bem.Button = BEM('mdl-button', '<button>');
 
 bem.KoboButton = BEM('kobo-button', '<button>');
 bem.KoboLightButton = BEM('kobo-light-button', '<button>');
+bem.KoboLightBadge = BEM('kobo-light-badge', '<span>');
 
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');

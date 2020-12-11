@@ -111,23 +111,46 @@
   }
 }
 
-.kobo-light-button {
+.kobo-light-button,
+.kobo-light-badge {
   display: inline-block;
   vertical-align: middle;
   position: relative; // needed for tooltips etc.
-  cursor: pointer;
   font-size: 14px;
   font-weight: 400;
   text-decoration: none;
   text-align: center;
   border-radius: 4px;
-  color: $kobo-darkgray;
-  background-color: transparent;
   height: 24px;
   line-height: 14px;
   padding: 4px 12px;
   margin: 0;
-  border: 1px solid currentColor;
+  border-width: 1px;
+  border-style: solid;
+
+  // icon inside
+  i,
+  .k-icon {
+    vertical-align: top;
+    font-size: 24px;
+    position: relative;
+    top: -5px;
+    margin-left: -6px;
+  }
+}
+
+.kobo-light-badge {
+  color: $kobo-black;
+  background-color: $kobo-lightgray;
+  border-color: $kobo-lightgray;
+  white-space: nowrap;
+}
+
+.kobo-light-button {
+  cursor: pointer;
+  color: $kobo-darkgray;
+  background-color: transparent;
+  border-color: currentColor;
 
   &[disabled] {
     pointer-events: none;
@@ -138,16 +161,6 @@
     // makes the shadow smaller and moves button down by small bit
     // to make it look pressed-in
     transform: translateY(1px);
-  }
-
-  // icon inside button
-  i,
-  .k-icon {
-    vertical-align: top;
-    font-size: 24px;
-    position: relative;
-    top: -5px;
-    margin-left: -6px;
   }
 
   &.kobo-light-button--blue {

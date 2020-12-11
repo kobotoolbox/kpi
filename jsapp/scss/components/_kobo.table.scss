@@ -280,6 +280,21 @@
   }
 }
 
+.table-meta {
+  .bulk-clear-badge-icon {
+    margin-right: -5px;
+    cursor: pointer;
+    padding: 0 5px;
+    border-radius: 50%;
+    color: $kobo-black;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-red;
+    }
+  }
+}
+
 .table-bulk-checkbox {
   position: relative;
   display: block;
