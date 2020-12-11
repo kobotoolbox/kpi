@@ -1039,8 +1039,8 @@ class ObjectPermissionMixin:
 
         perms = []
         # If User is not none, retrieve all permissions for this user
-        # grouped by object ids, otherwise, retrieve all permissions for this object
-        # grouped by user ids.
+        # grouped by object ids, otherwise, retrieve all permissions for
+        # this object grouped by user ids.
         if user is not None:
             # Ensuring that the user has at least anonymous permissions if they
             # have been assigned to the asset
