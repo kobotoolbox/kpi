@@ -5,7 +5,6 @@ import uuid
 from datetime import datetime
 
 import pytz
-
 from django.urls import reverse
 from rest_framework import status
 
