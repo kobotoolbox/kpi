@@ -73,12 +73,12 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         # let's use it!
         try:
             asset = self.context['asset']
-            return asset.get_label_for_permission(object_permission.
-                                                  permission.codename)
         except KeyError:
-            pass
-
-        return object_permission.label
+            return object_permission.label
+        else:
+            return asset.get_label_for_permission(
+                object_permission.permission.codename
+            )
 
     def get_partial_permissions(self, object_permission):
         codename = object_permission.permission.codename
