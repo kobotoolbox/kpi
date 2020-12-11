@@ -238,6 +238,35 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def set_validation_statuses(self, data, user, method):
         pass
 
+    @staticmethod
+    def __prepare_payload(data: dict) -> dict:
+        submission_ids = data.pop('submission_ids')
+        # for some reason DRF puts the strings into a list so this just takes
+        # them back out again to more accurately reflect the behaviour of the
+        # non-mocked methods
+        for k,v in data.items():
+            data[k] = v[0]
+        data['submission_ids'] = list(map(int, submission_ids))
+        return data
+
+    def set_bulk_update_submissions(
+        self, data: dict, requesting_user_id: int
+    ) -> dict:
+        payload = self.__prepare_payload(data)
+        all_submissions = copy.copy(self.asset._deployment_data['submissions'])
+        instance_ids = payload.pop('submission_ids')
+
+        successful_updates = 0
+        for submission in all_submissions:
+            if submission['_id'] in instance_ids:
+                submission['deprecatedID'] = submission['instanceID']
+                submission['instanceID'] = f'uuid: {uuid.uuid4()}'
+                for k,v in payload.items():
+                    submission[k] = v
+                successful_updates += 1
+
+        return {'detail': f'{successful_updates} submissions have been updated'}
+
     def set_has_kpi_hooks(self):
         """
         Store results in self.asset._deployment_data

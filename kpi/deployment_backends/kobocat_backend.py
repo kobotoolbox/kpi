@@ -745,7 +745,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return payload
 
     def set_bulk_update_submissions(
-        self, data: dict, requesting_user_id: int, parent_lookup_asset: str
+        self, data: dict, requesting_user_id: int
     ) -> dict:
         """
         Do some cool bulk editing of submission data

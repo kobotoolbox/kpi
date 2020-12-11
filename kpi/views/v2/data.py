@@ -382,7 +382,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def bulk_update_submissions(self, request, *args, **kwargs):
         deployment = self._get_deployment()
         json_response = deployment.set_bulk_update_submissions(
-            dict(request.data), request.user.id, parent_lookup_asset
+            dict(request.data), request.user.id
         )
         return Response(json_response, status=status.HTTP_201_CREATED)
 
