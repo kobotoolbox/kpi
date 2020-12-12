@@ -165,6 +165,23 @@ class Submission extends React.Component {
     );
   }
 
+  duplicateSubmission() {
+    dataInterface
+      .duplicateSubmission(
+        this.props.asset.uid,
+        this.state.sid)
+      .done((response) => {
+        // TODO:
+        // - Update modal to reflect mock ups
+        // - Make it more clear that duplication was successful
+        // - See if we can also refresh the table here
+
+        // Refresh current modal to reflect duplicated submission
+        this.getSubmission(this.props.asset.uid, response._id);
+        console.log(this.props.ids);
+      });
+  }
+
   triggerRefresh() {
     this.getSubmission(this.props.asset.uid, this.props.sid);
     this.setState({
@@ -324,7 +341,7 @@ class Submission extends React.Component {
             {this.state.next === -2 &&
               <a
                 onClick={this.nextTablePage}
-                className='mdl-button mdl-button--colored'
+                className='mdl-button mdl-utton--colored'
               >
                 {t('Next')}
                 <i className='k-icon-next' />
@@ -340,14 +357,23 @@ class Submission extends React.Component {
             />
 
             {this.userCan('change_submissions', this.props.asset) &&
-              <a
-                onClick={this.launchEditSubmission.bind(this)}
-                className='kobo-button kobo-button--blue'
-                disabled={!this.isSubmissionEditable()}
-              >
-                {this.state.isEditLoading && t('Loading…')}
-                {!this.state.isEditLoading && t('Edit')}
-              </a>
+              <div className='change-submissions-actions'>
+                <a
+                  onClick={this.launchEditSubmission.bind(this)}
+                  className='kobo-button kobo-button--blue'
+                  disabled={!this.isSubmissionEditable()}
+                >
+                  {this.state.isEditLoading && t('Loading…')}
+                  {!this.state.isEditLoading && t('Edit')}
+                </a>
+                <a
+                  onClick={this.duplicateSubmission.bind(this)}
+                  className='kobo-button kobo-button--blue'
+                  disabled={!this.isSubmissionEditable()}
+                >
+                  {t('Duplicate')}
+                </a>
+              </div>
             }
 
             <bem.Button m='icon' className='report-button__print'
