@@ -351,23 +351,29 @@ class Submission extends React.Component {
             />
 
             {this.userCan('change_submissions', this.props.asset) &&
-              <div className='change-submissions-actions'>
-                <a
-                  onClick={this.launchEditSubmission.bind(this)}
-                  className='kobo-button kobo-button--blue'
-                  disabled={!this.isSubmissionEditable()}
-                >
-                  {this.state.isEditLoading && t('Loading…')}
-                  {!this.state.isEditLoading && t('Edit')}
-                </a>
-                <a
-                  onClick={this.duplicateSubmission.bind(this)}
-                  className='kobo-button kobo-button--blue'
-                  disabled={!this.isSubmissionEditable()}
-                >
-                  {t('Duplicate')}
-                </a>
-              </div>
+              <a
+                onClick={this.launchEditSubmission.bind(this)}
+                className='kobo-button kobo-button--blue'
+                disabled={!this.isSubmissionEditable()}
+              >
+                {/*
+                TODO: When we finsh duplicating a submission, the modal info
+                      reflects the duplicated submission, but any actions
+                      performed on this "new" modal is directed to the "old"
+                      submission
+                */}
+                {this.state.isEditLoading && t('Loading…')}
+                {!this.state.isEditLoading && t('Edit')}
+              </a>
+            }
+            {this.userCan('change_submissions', this.props.asset) &&
+              <a
+                onClick={this.duplicateSubmission.bind(this)}
+                className='kobo-button kobo-button--blue'
+                disabled={!this.isSubmissionEditable()}
+              >
+                {t('Duplicate')}
+              </a>
             }
 
             <bem.Button m='icon' className='report-button__print'

@@ -513,8 +513,8 @@ actions.resources.removeSubmissionValidationStatus.listen((uid, sid) => {
   });
 });
 
-actions.resources.duplicateSubmission.listen((uid, pk) => {
-  dataInterface.duplicateSubmission(uid, pk)
+actions.resources.duplicateSubmission.listen((uid, sid) => {
+  dataInterface.duplicateSubmission(uid, sid)
     .done((response) => {
       notify(t('Successfully duplicated submission'));
       actions.resources.duplicateSubmission.completed(uid, response._id);

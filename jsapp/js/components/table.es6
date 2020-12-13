@@ -103,8 +103,6 @@ export class DataTable extends React.Component {
 
     dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
       let results = data.results;
-      // TODO: See if we can also refresh the table here <-- WIP
-      // - why does this request not contain the newly duplciated submission?
 
       if (results && results.length > 0) {
         if (this.state.submissionPager == 'next') {
@@ -695,7 +693,7 @@ export class DataTable extends React.Component {
     this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
     this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
     this.listenTo(stores.pageState, this.onPageStateUpdated);
-    this.listenTo(actions.resources.duplicateSubmission, this.refreshSubmissions);
+    this.listenTo(actions.resources.duplicateSubmission.completed, this.refreshSubmissions);
   }
   refreshSubmissionValidationStatus(result, sid) {
     if (sid) {
@@ -708,8 +706,7 @@ export class DataTable extends React.Component {
       }
     }
   }
-  // TODO: See if we can also refresh the table here <-- WIP
-  refreshSubmissions(uid, sid) {
+  refreshSubmissions() {
     this.requestData(this.state.fetchInstance);
   }
   onTableUpdateSettingsCompleted() {
