@@ -10,7 +10,7 @@ import private_storage.storage.s3boto3
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0029_alter_asset_file_name_and_file_type'),
+        ('kpi', '0030_alter_asset_file_name_and_file_type'),
     ]
 
     operations = [
