@@ -171,7 +171,7 @@ def migrate_collections_to_assets(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0025_assign_delete_submissions_permissions'),
+        ('kpi', '0026_disable_editors_can_change_permissions.py'),
     ]
 
     operations = [
