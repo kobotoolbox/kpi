@@ -68,6 +68,7 @@ actions.resources = Reflux.createActions({
   updateAsset: {asyncResult: true},
   updateSubmissionValidationStatus: {children: ['completed', 'failed']},
   removeSubmissionValidationStatus: {children: ['completed', 'failed']},
+  duplicateSubmission: {children: ['completed', 'failed',]},
   getAssetFiles: {children: ['completed', 'failed']},
   notFound: {}
 });
@@ -510,6 +511,18 @@ actions.resources.removeSubmissionValidationStatus.listen((uid, sid) => {
     console.error(error);
     actions.resources.removeSubmissionValidationStatus.failed(error);
   });
+});
+
+actions.resources.duplicateSubmission.listen((uid, pk) => {
+  dataInterface.duplicateSubmission(uid, pk)
+    .done((response) => {
+      notify(t('Successfully duplicated submission'));
+      actions.resources.duplicateSubmission.completed(uid, response._id);
+    })
+    .fail((response) => {
+      alertify.error(t('Failed to duplciate submisson'));
+      actions.resources.duplicateSubmission.failed((response));
+    });
 });
 
 actions.hooks.getAll.listen((assetUid, callbacks = {}) => {

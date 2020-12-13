@@ -62,6 +62,7 @@ class Submission extends React.Component {
     this.getSubmission(this.props.asset.uid, this.state.sid);
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
     this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
+    this.listenTo(actions.resources.duplicateSubmission.completed, this.getSubmission);
   }
 
   refreshSubmissionValidationStatus(result) {
@@ -166,20 +167,13 @@ class Submission extends React.Component {
   }
 
   duplicateSubmission() {
-    dataInterface
-      .duplicateSubmission(
-        this.props.asset.uid,
-        this.state.sid)
-      .done((response) => {
-        // TODO:
-        // - Update modal to reflect mock ups
-        // - Make it more clear that duplication was successful
-        // - See if we can also refresh the table here
+    // TODO:
+    // - Update modal to reflect mock ups
+    // - Make it more clear that duplication was successful <-- Added alert
+    // - See if we can also refresh the table here <-- WIP
 
-        // Refresh current modal to reflect duplicated submission
-        this.getSubmission(this.props.asset.uid, response._id);
-        console.log(this.props.ids);
-      });
+    // On complete should trigger table to refresh
+    actions.resources.duplicateSubmission(this.props.asset.uid, this.state.sid);
   }
 
   triggerRefresh() {
