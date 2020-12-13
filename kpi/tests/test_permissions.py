@@ -447,12 +447,10 @@ class PermissionsTestCase(BasePermissionsTestCase):
         collection = self.admin_collection
         asset_editor_permissions = [
             PERM_CHANGE_ASSET,
-            PERM_SHARE_ASSET,
             PERM_VIEW_ASSET
         ]
         collection_editor_permissions = [
             PERM_CHANGE_COLLECTION,
-            'share_collection',
             PERM_VIEW_COLLECTION
         ]
         asset.assign_perm(grantee, PERM_CHANGE_ASSET)
@@ -469,7 +467,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
         asset = self.admin_asset
         submission_editor_permissions = [
             PERM_CHANGE_SUBMISSIONS,
-            PERM_SHARE_SUBMISSIONS,
             PERM_VIEW_ASSET,
             PERM_VIEW_SUBMISSIONS,
         ]
@@ -501,7 +498,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
         assigned_someuser_perms = [
             PERM_CHANGE_ASSET,
-            PERM_SHARE_ASSET,
             PERM_VIEW_ASSET
         ]
 
@@ -539,7 +535,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
         assigned_someuser_perms = [
             PERM_CHANGE_ASSET,
-            PERM_SHARE_ASSET,
             PERM_VIEW_ASSET
         ]
 
@@ -563,8 +558,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
             PERM_CHANGE_ASSET,
             PERM_CHANGE_SUBMISSIONS,
             PERM_DELETE_SUBMISSIONS,
-            PERM_SHARE_ASSET,
-            PERM_SHARE_SUBMISSIONS,
             PERM_VALIDATE_SUBMISSIONS,
             PERM_VIEW_ASSET,
             PERM_VIEW_SUBMISSIONS
