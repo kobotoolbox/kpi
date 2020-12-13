@@ -420,19 +420,25 @@ class ObjectPermissionMixin:
             # A specific query for a calculated permission should not return
             # any explicitly assigned permissions, e.g. share_ should not
             # include change_
-            effective_perms_copy = effective_perms
             effective_perms = set()
-        else:
-            effective_perms_copy = copy.copy(effective_perms)
 
         # The owner has the share_ and delete_ permission
         for codename_prefix in ('share_', 'delete_'):
-            if self.owner is not None and (
-                    user is None or user.pk == self.owner.pk) and (
-                    codename is None or codename.startswith(codename_prefix)
+            if (
+                self.owner is not None
+                and (user is None or user.pk == self.owner.pk)
+                and (codename is None or codename.startswith(codename_prefix))
             ):
                 matching_permissions = self.__get_permissions_for_content_type(
                     content_type.pk, codename__startswith=codename_prefix)
+
+                # FIXME: `Asset`-specific logic does not belong in this generic
+                # mixin
+                if self.asset_type != ASSET_TYPE_SURVEY:
+                    matching_permissions = matching_permissions.exclude(
+                        codename__endswith="_submissions"
+                    )
+
                 for perm_pk, perm_codename in matching_permissions:
                     if (codename is not None and
                             perm_codename != codename
