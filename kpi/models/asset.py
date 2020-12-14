@@ -479,7 +479,9 @@ class Asset(ObjectPermissionMixin,
                                null=True, blank=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True,
                               on_delete=models.CASCADE)
-    editors_can_change_permissions = models.BooleanField(default=True)
+    # TODO: remove this flag; support for it has been removed from
+    # ObjectPermissionMixin
+    editors_can_change_permissions = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = JSONBField(default=dict)
@@ -578,6 +580,7 @@ class Asset(ObjectPermissionMixin,
             PERM_VIEW_SUBMISSIONS,
             PERM_PARTIAL_SUBMISSIONS,
             PERM_CHANGE_SUBMISSIONS,
+            PERM_DELETE_SUBMISSIONS,
             PERM_VALIDATE_SUBMISSIONS,
         ),
         ASSET_TYPE_TEMPLATE: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
@@ -622,12 +625,13 @@ class Asset(ObjectPermissionMixin,
         PERM_PARTIAL_SUBMISSIONS: (
             PERM_VIEW_SUBMISSIONS,
             PERM_CHANGE_SUBMISSIONS,
+            PERM_DELETE_SUBMISSIONS,
             PERM_VALIDATE_SUBMISSIONS,
         ),
         PERM_VIEW_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
         PERM_CHANGE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
         PERM_DELETE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
-        PERM_VALIDATE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,)
+        PERM_VALIDATE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
     }
 
     # Some permissions must be copied to KC
