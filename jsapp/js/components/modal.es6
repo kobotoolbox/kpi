@@ -186,21 +186,25 @@ class Modal extends React.Component {
     }
   }
   submissionTitle(props) {
-    let title = t('Submission Record'),
-        p = props.params,
-        sid = parseInt(p.sid);
+    let title = t('Duplicate created!'),
+      p = props.params,
+      sid = parseInt(p.sid);
 
-    if (p.tableInfo) {
-      let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
-      title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
-    } else {
-      let index = p.ids.indexOf(sid);
-      if (p.ids.length === 1) {
-          title = `${t('Submission Record')}`;
+    if (!p.isDuplicated) {
+      title = t('Submission Record');
+      if (p.tableInfo) {
+        let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
+        title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
       } else {
-          title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+        let index = p.ids.indexOf(sid);
+        if (p.ids.length === 1) {
+            title = `${t('Submission Record')}`;
+        } else {
+            title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+        }
       }
     }
+
 
     return title;
   }
@@ -316,6 +320,7 @@ class Modal extends React.Component {
               <Submission sid={this.state.sid}
                           asset={this.props.params.asset}
                           ids={this.props.params.ids}
+                          isDuplicated={this.props.params.isDuplicated}
                           tableInfo={this.props.params.tableInfo || false} />
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && !this.state.sid &&

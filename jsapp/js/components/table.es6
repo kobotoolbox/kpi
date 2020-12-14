@@ -706,8 +706,9 @@ export class DataTable extends React.Component {
       }
     }
   }
-  refreshSubmissions() {
+  refreshSubmissions(uid, sid) {
     this.requestData(this.state.fetchInstance);
+    this.submissionModalProcessing(sid, this.state.tableData, true);
   }
   onTableUpdateSettingsCompleted() {
     stores.pageState.hideModal();
@@ -729,7 +730,7 @@ export class DataTable extends React.Component {
 
     this.submissionModalProcessing(sid, this.state.tableData);
   }
-  submissionModalProcessing(sid, tableData) {
+  submissionModalProcessing(sid, tableData, isDuplicated=false) {
     let ids = [];
 
     tableData.forEach(function(r) {
@@ -741,6 +742,7 @@ export class DataTable extends React.Component {
       sid: sid,
       asset: this.props.asset,
       ids: ids,
+      isDuplicated: isDuplicated,
       tableInfo: {
         currentPage: this.state.currentPage,
         pageSize: this.state.pageSize,

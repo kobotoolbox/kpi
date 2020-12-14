@@ -49,6 +49,7 @@ class Submission extends React.Component {
       sid: props.sid,
       showBetaFieldsWarning: false,
       isEditLoading: false,
+      isDuplicated: props.isDuplicated,
       promptRefresh: false,
       translationIndex: 0,
       translationOptions: translationOptions,
@@ -62,7 +63,6 @@ class Submission extends React.Component {
     this.getSubmission(this.props.asset.uid, this.state.sid);
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
     this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
-    this.listenTo(actions.resources.duplicateSubmission.completed, this.getSubmission);
   }
 
   refreshSubmissionValidationStatus(result) {
@@ -160,19 +160,17 @@ class Submission extends React.Component {
       promptRefresh: true,
       isEditLoading: true
     });
-    enketoHandler.editSubmission(this.props.asset.uid, this.props.sid).then(
+    enketoHandler.editSubmission(this.props.asset.uid, this.state.sid).then(
       () => {this.setState({isEditLoading: false});},
       () => {this.setState({isEditLoading: false});}
     );
   }
 
   duplicateSubmission() {
-    // TODO:
-    // - Update modal to reflect mock ups
-    // - Make it more clear that duplication was successful <-- Added alert
-    // - See if we can also refresh the table here <-- WIP
-
-    // On complete should trigger table to refresh
+    // Due to how modals are created, we must close this modal and recreate
+    // an almost identical one to display the new submission with a different
+    // title bar
+    stores.pageState.hideModal();
     actions.resources.duplicateSubmission(this.props.asset.uid, this.state.sid);
   }
 
@@ -285,6 +283,11 @@ class Submission extends React.Component {
                 />
               </div>
             }
+            {this.state.isDuplicated &&
+              <p className='duplicate-submission__text'>
+                {t('A duplicate of the submission record with id = ## was successfully created. You can view the new instance below and make changes using the action buttons on the right side.').replace('##', this.state.sid)}
+              </p>
+            }
             <div className='switch--validation-status'>
               <label>{t('Validation status:')}</label>
               <Select
@@ -303,7 +306,7 @@ class Submission extends React.Component {
         <bem.FormModal__group>
           <div className='submission-pager'>
             {/* don't display previous button if `previous` is -1 */}
-            {this.state.previous > -1 &&
+            {!this.state.isDuplicated && this.state.previous > -1 &&
               <a
                 onClick={this.switchSubmission.bind(this, this.state.previous)}
                 className='mdl-button mdl-button--colored'
@@ -312,7 +315,7 @@ class Submission extends React.Component {
                 {t('Previous')}
               </a>
             }
-            {this.state.previous === -2 &&
+            {!this.state.isDuplicated && this.state.previous === -2 &&
               <a
                 onClick={this.prevTablePage}
                 className='mdl-button mdl-button--colored'
@@ -323,7 +326,7 @@ class Submission extends React.Component {
             }
 
             {/* don't display next button if `next` is -1 */}
-            {this.state.next > -1 &&
+            {!this.state.isDuplicated && this.state.next > -1 &&
               <a
                 onClick={this.switchSubmission.bind(this, this.state.next)}
                 className='mdl-button mdl-button--colored'
@@ -332,10 +335,10 @@ class Submission extends React.Component {
                 <i className='k-icon-next' />
               </a>
             }
-            {this.state.next === -2 &&
+            {!this.state.isDuplicated && this.state.next === -2 &&
               <a
                 onClick={this.nextTablePage}
-                className='mdl-button mdl-utton--colored'
+                className='mdl-button mdl-button--colored'
               >
                 {t('Next')}
                 <i className='k-icon-next' />
@@ -356,20 +359,15 @@ class Submission extends React.Component {
                 className='kobo-button kobo-button--blue'
                 disabled={!this.isSubmissionEditable()}
               >
-                {/*
-                TODO: When we finsh duplicating a submission, the modal info
-                      reflects the duplicated submission, but any actions
-                      performed on this "new" modal is directed to the "old"
-                      submission
-                */}
                 {this.state.isEditLoading && t('Loading…')}
                 {!this.state.isEditLoading && t('Edit')}
               </a>
             }
+
             {this.userCan('change_submissions', this.props.asset) &&
               <a
                 onClick={this.duplicateSubmission.bind(this)}
-                className='kobo-button kobo-button--blue'
+                className='kobo-button kobo-button--blue submission-duplication__button'
                 disabled={!this.isSubmissionEditable()}
               >
                 {t('Duplicate')}

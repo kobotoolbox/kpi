@@ -124,6 +124,15 @@ $z-modal-x: 10;
   &:hover {opacity: 0.7;}
 }
 
+.modal__done {
+  @extend .modal__x;
+  padding: 24px;
+  margin: 0px;
+  font-size: 18px;
+  font-weight: 600;
+  color: $kobo-blue;
+}
+
 .modal__subheader {
   background: $kobo-whitegray;
   padding: 20px 30px;
@@ -225,6 +234,10 @@ $z-modal-x: 10;
     .kobo-select {
       min-width: 120px;
     }
+
+    .duplicate-submission__text {
+      text-align: left;
+    }
   }
 
   .submission-pager {
@@ -253,6 +266,10 @@ $z-modal-x: 10;
     .checkbox__label {
       white-space: nowrap;
     }
+  }
+
+  .submission-duplication__button {
+    margin-left: 12px;
   }
 
   .submission--warning {
