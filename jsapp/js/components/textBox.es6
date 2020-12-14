@@ -1,15 +1,14 @@
 /**
  * A text box generic component.
  *
- * Properties:
- * - type <string>: one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
- * - value <string>: required
- * - onChange <function>: required
- * - errors <string[]> or <string> or <boolean>: for visual error indication and displaying error messages
- * - label <string>
- * - placeholder <string>
- * - description <string>
- * - readOnly <boolean>
+ * @prop type <string>: one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
+ * @prop value <string>: required
+ * @prop onChange <function>: required
+ * @prop errors <string[]> or <string> or <boolean>: for visual error indication and displaying error messages
+ * @prop label <string>
+ * @prop placeholder <string>
+ * @prop description <string>
+ * @prop readOnly <boolean>
  *
  * TODO: would be best to move it to `jsapp/js/components/generic` directory.
  */
