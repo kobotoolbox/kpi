@@ -12,6 +12,7 @@ import {bem} from 'js/bem';
 import TextBox from 'js/components/textBox'
 
 /**
+ * @prop onSetModalTitle
  * @prop asset
  * @prop data
  * @prop totalSubmissions
@@ -30,7 +31,23 @@ class BulkEditSubmissionsForm extends React.Component {
   }
 
   componentDidMount() {
-    console.log(this.props);
+    this.setModalTitleToList();
+  }
+
+  setModalTitleToList() {
+    this.props.onSetModalTitle(
+      t('Displaying multiple submissions (##count## selected of ##total##)')
+        .replace('##count##', this.props.selectedSubmissions.length)
+        .replace('##total##', this.props.totalSubmissions)
+    );
+  }
+
+  setModalTitleToQuestion(questionName) {
+    this.props.onSetModalTitle(
+      t('Editing "##question##" for ##count## submissions')
+        .replace('##question##', questionName)
+        .replace('##count##', this.props.selectedSubmissions.length)
+    );
   }
 
   onRowOverrideChange(questionName, value) {
@@ -52,6 +69,7 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestion: question,
       selectedQuestionOverride: this.state.overrides[question.name],
     });
+    this.setModalTitleToQuestion(question.label);
   }
 
   goBackToList() {
@@ -59,6 +77,7 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestion: null,
       selectedQuestionOverride: null,
     });
+    this.setModalTitleToList();
   }
 
   saveOverride() {

@@ -149,11 +149,7 @@ class Modal extends React.Component {
         break;
 
       case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
-        this.setModalTitle(
-          t('Displaying multiple submissions (##count## selected of ##total##)')
-          .replace('##count##', this.props.params.selectedSubmissions.length)
-          .replace('##total##', this.props.params.totalSubmissions)
-        );
+        // title is set by BulkEditSubmissionsForm
         break;
 
       default:
@@ -369,6 +365,7 @@ class Modal extends React.Component {
             }
             { this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS &&
               <BulkEditSubmissionsForm
+                onSetModalTitle={this.setModalTitle}
                 asset={this.props.params.asset}
                 {...this.props.params}
               />
