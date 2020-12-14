@@ -68,6 +68,11 @@ class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
     default_code = 'bulk_update_submissions_error'
 
 
+class KobocatBulkUpdateSubmissionsClientException(exceptions.APIException):
+    status_code = 400
+    default_code = 'bulk_update_submissions_client_error'
+
+
 class ObjectDeploymentDoesNotExist(exceptions.APIException):
     status_code = 400
     default_detail = _('The specified object has not been deployed')

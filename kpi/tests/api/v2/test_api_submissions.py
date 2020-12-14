@@ -556,7 +556,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.patch(
             self.submission_url, data=self.updated_submission_data
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)
 
     def test_bulk_update_submissions_by_anotheruser_not_allowed(self):
@@ -587,7 +587,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.patch(
             self.submission_url, data=self.updated_submission_data
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)
 
 

@@ -30,6 +30,7 @@ from .kc_access.utils import (
 from ..exceptions import (
     BadFormatException,
     KobocatBulkUpdateSubmissionsException,
+    KobocatBulkUpdateSubmissionsClientException,
     KobocatDeploymentException,
     KobocatDuplicateSubmissionException,
 )
@@ -809,7 +810,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # useful to send back to the client
         if successful_updates > 0:
             return {
-                'status': status.HTTP_201_CREATED,
+                'status': status.HTTP_200_OK,
                 'data': {
                     'detail': _(
                         '{} submissions of {} attempts have been updated'
@@ -964,17 +965,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Validating the request payload for bulk updating of submissions
         """
         if not 'submission_ids' in payload:
-            raise KobocatBulkUpdateSubmissionsException(
+            raise KobocatBulkUpdateSubmissionsClientException(
                 detail=_('`submission_ids` must be included in the payload')
             )
 
         if not isinstance(payload['submission_ids'], list):
-            raise KobocatBulkUpdateSubmissionsException(
-                detail=_('`submission_ids` must be a list')
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('`submission_ids` must be an array')
             )
 
         if len(payload) < 2:
-            raise KobocatBulkUpdateSubmissionsException(
+            raise KobocatBulkUpdateSubmissionsClientException(
                 detail=_('Payload must contain data to update the submissions')
             )
 
@@ -998,7 +999,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @staticmethod
     def __validate_bulk_update_submissions(submissions: list) -> list:
         if len(submissions) == 0:
-            raise KobocatBulkUpdateSubmissionsException(
+            raise KobocatBulkUpdateSubmissionsClientException(
                 detail=_('No submissions match the given `submission_ids`')
             )
         return submissions

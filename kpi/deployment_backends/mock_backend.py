@@ -9,6 +9,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.exceptions import KobocatBulkUpdateSubmissionsException
 from .base_backend import BaseDeploymentBackend
 
 
@@ -259,17 +260,20 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         for submission in all_submissions:
             if submission['_id'] in instance_ids:
                 submission['deprecatedID'] = submission['instanceID']
-                submission['instanceID'] = f'uuid: {uuid.uuid4()}'
+                submission['instanceID'] = f'uuid:{uuid.uuid4()}'
                 for k,v in payload.items():
                     submission[k] = v
                 successful_updates += 1
 
-        return {
-            'status': status.HTTP_201_CREATED,
-            'data': {
-                'detail': f'{successful_updates} submissions have been updated'
+        if successful_updates > 0:
+            return {
+                'status': status.HTTP_200_OK,
+                'data': {
+                    'detail': f'{successful_updates} submissions have been updated'
+                }
             }
-        }
+        else:
+            raise KobocatBulkUpdateSubmissionsException
 
     def set_has_kpi_hooks(self):
         """
