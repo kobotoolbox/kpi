@@ -655,7 +655,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # updating xml fields for duplicate submission
         xml_parsed.find('start').text = date_formatted
         xml_parsed.find('end').text = date_formatted
-        xml_parsed.find('./meta/instanceID').text = uuid_formatted
+        xml_parsed.find('meta/instanceID').text = uuid_formatted
 
         file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
         files = {'xml_submission_file': file_tuple}
@@ -764,12 +764,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # updating xml fields for submission. In order to update an existing
             # submission, the current `instanceID` must be moved to the value
             # for `deprecatedID`.
-            instance_id = xml_parsed.find('./meta/instanceID')
+            instance_id = xml_parsed.find('meta/instanceID')
             # if the submission has been edited before, it will already contain
             # a deprecatedID element - otherwise create a new element
             deprecated_id = (
-                xml_parsed.find('./meta/deprecatedID')
-                if xml_parsed.find('./meta/deprecatedID') is not None
+                xml_parsed.find('meta/deprecatedID')
+                if xml_parsed.find('meta/deprecatedID') is not None
                 else ET.SubElement(xml_parsed.find('meta'), 'deprecatedID')
             )
             deprecated_id.text = instance_id.text
