@@ -242,7 +242,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     structure, i.e.:
 
     If the field is within a group called `group_1`, the field name is `question_1` and the new value is `new value`,
-    the payload should contain an item with the follow structure:
+    the payload should contain an item with the following structure:
 
     <pre class="prettyprint">
     "group_1/question_1": "new value"
