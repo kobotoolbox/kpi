@@ -43,6 +43,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     **Roles' permissions:**
 
     - Owner sees all permissions
+    - Editors see all permissions
     - Viewers see owner's permissions and their permissions
     - Anonymous users see only owner's permissions
 
