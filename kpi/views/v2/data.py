@@ -221,12 +221,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     ### Bulk updating of submissions
 
     <pre class="prettyprint">
-    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/data/bulk_update_submissions/
+    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/data/bulk/
     </pre>
 
     > Example
     >
-    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/bulk_update_submissions/
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/bulk/
 
     > **Payload**
     >
@@ -262,12 +262,17 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         return self.asset.deployment
 
-    @action(detail=False, methods=['DELETE'],
+    @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-        json_response = deployment.delete_submissions(request.data,
-                                                      request.user)
+        if request.method == 'DELETE':
+            json_response = deployment.delete_submissions(request.data,
+                                                          request.user)
+        if request.method == 'PATCH':
+            json_response = deployment.bulk_update_submissions(
+                dict(request.data), request.user.id
+            )
         return Response(**json_response)
 
     def destroy(self, request, *args, **kwargs):
@@ -374,16 +379,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                                                            request.user,
                                                            request.method)
 
-        return Response(**json_response)
-
-    @action(detail=False, methods=['PATCH'],
-        renderer_classes=[renderers.JSONRenderer],
-        permission_classes=[BulkUpdateSubmissionsPermission])
-    def bulk_update_submissions(self, request, *args, **kwargs):
-        deployment = self._get_deployment()
-        json_response = deployment.set_bulk_update_submissions(
-            dict(request.data), request.user.id
-        )
         return Response(**json_response)
 
     def _filter_mongo_query(self, request):

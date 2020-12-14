@@ -535,7 +535,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
     def setUp(self):
         super().setUp()
         self.submission_url = reverse(
-            self._get_endpoint('submission-bulk-update-submissions'),
+            self._get_endpoint('submission-bulk'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
             },

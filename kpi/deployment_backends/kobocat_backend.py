@@ -726,7 +726,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_bulk_update_submissions(
+    def bulk_update_submissions(
         self, request_data: dict, requesting_user_id: int
     ) -> dict:
         """
@@ -792,9 +792,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # duplicating a submission
             file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
-            # due to the implementation in kobocat, the `PATCH` is limited to
-            # accepting validation status updates only, so using `POST` is a bit
-            # of a work around
+            # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
             kc_request = requests.Request(
                 method='POST', url=self.submission_url, files=files
             )
@@ -989,9 +987,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         payload = json.loads(request_data['payload'][0])
         validated_payload = cls.__validate_payload(payload)
 
-        # Ensuring submission ids are integer values
+        # Ensuring submission ids are integer values and unique
         validated_payload['submission_ids'] = list(
-            map(int, validated_payload['submission_ids'])
+            set(map(int, validated_payload['submission_ids']))
         )
 
         return validated_payload

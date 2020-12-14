@@ -249,7 +249,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         request_data['submission_ids'] = list(map(int, submission_ids))
         return request_data
 
-    def set_bulk_update_submissions(
+    def bulk_update_submissions(
         self, request_data: dict, requesting_user_id: int
     ) -> dict:
         payload = self.__prepare_payload(request_data)
