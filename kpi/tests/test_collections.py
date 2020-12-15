@@ -522,19 +522,16 @@ class ShareCollectionTests(TestCase):
             coll
         ))
 
-    def test_change_permission_provides_share_permission(self):
-        self.assertFalse(self.someuser.has_perm(
-            PERM_CHANGE_ASSET, self.standalone_coll))
-        # Grant the change permission and make sure it provides
-        # share_asset
+    def test_change_permission_does_not_provide_share_permission(self):
+        self.assertFalse(
+            self.someuser.has_perm(PERM_CHANGE_ASSET, self.standalone_coll)
+        )
+        # Grant the change permission and make sure it does not provide
+        # share_collection
         self.standalone_coll.assign_perm(self.someuser, PERM_CHANGE_ASSET)
-        self.assertTrue(self.someuser.has_perm(
-            PERM_SHARE_ASSET, self.standalone_coll))
-        # Restrict share_asset to the owner and make sure someuser loses
-        # share_asset
-        self.standalone_coll.editors_can_change_permissions = False
-        self.assertFalse(self.someuser.has_perm(
-            PERM_SHARE_ASSET, self.standalone_coll))
+        self.assertFalse(
+            self.someuser.has_perm(PERM_SHARE_ASSET, self.standalone_coll)
+        )
 
     def test_anonymous_view_permission_on_standalone_collection(self):
         # Grant
