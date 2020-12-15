@@ -53,6 +53,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     PROTECTED_XML_FIELDS = [
         '__version__',
         'formhub',
+        'meta',
     ]
 
     def bulk_assign_mapped_perms(self):
