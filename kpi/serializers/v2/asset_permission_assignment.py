@@ -53,6 +53,16 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
                 'user': "Owner's permissions cannot be assigned explicitly"})
         permission = validated_data['permission']
         partial_permissions = validated_data.get('partial_permissions', None)
+
+        bulk = self.context.get('bulk', False)
+        # When bulk is `True`, the `from_kc_only` flag is removed from *all*
+        # users prior to calling this method. There is no need to remove it
+        # again from each user individually. See
+        # `AssetPermissionAssignmentViewSet.bulk_assignments()`
+        # TODO: Remove after kobotoolbox/kobocat#642
+        if bulk is False and asset.has_deployment:
+            asset.deployment.remove_from_kc_only_flag(specific_user=user)
+
         return asset.assign_perm(user, permission.codename,
                                  partial_perms=partial_permissions)
 
@@ -63,12 +73,12 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         # let's use it!
         try:
             asset = self.context['asset']
-            return asset.get_label_for_permission(object_permission.
-                                                  permission.codename)
         except KeyError:
-            pass
-
-        return object_permission.label
+            return object_permission.label
+        else:
+            return asset.get_label_for_permission(
+                object_permission.permission.codename
+            )
 
     def get_partial_permissions(self, object_permission):
         codename = object_permission.permission.codename
