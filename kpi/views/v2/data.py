@@ -18,7 +18,6 @@ from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
-    BulkUpdateSubmissionsPermission,
     DuplicateSubmissionPermission,
     EditSubmissionPermission,
     SubmissionPermission,

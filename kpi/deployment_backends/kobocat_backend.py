@@ -1,4 +1,5 @@
 # coding: utf-8
+import copy
 import io
 import json
 import posixpath
@@ -41,6 +42,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     Used to deploy a project into KC. Stores the project identifiers in the
     "self.asset._deployment_data" JSONField.
     """
+
+    PROTECTED_XML_FIELDS = [
+            '__version__',
+            'end',
+            'formhub',
+            'meta',
+            'start',
+            ]
 
     def bulk_assign_mapped_perms(self):
         """
@@ -761,11 +770,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
 
-            # updating xml fields for submission. In order to update an existing
+            # Updating xml fields for submission. In order to update an existing
             # submission, the current `instanceID` must be moved to the value
             # for `deprecatedID`.
             instance_id = xml_parsed.find('meta/instanceID')
-            # if the submission has been edited before, it will already contain
+            # If the submission has been edited before, it will already contain
             # a deprecatedID element - otherwise create a new element
             deprecated_id = (
                 xml_parsed.find('meta/deprecatedID')
@@ -775,12 +784,30 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             deprecated_id.text = instance_id.text
             instance_id.text = uuid_formatted
 
-            # if the form has been updated with new fields and earlier
+            # If the form has been updated with new fields and earlier
             # submissions have been selected as part of the bulk update,
             # a new element has to be created before a value can be set.
             # However, with this new power, arbitrary fields can be added
-            # to the XML tree through the api.
+            # to the XML tree through the API.
             for k, v in payload.items():
+                # A potentially clunky way of taking groups and nested groups
+                # into account when the elements don't exist on the XML tree
+                # (which could be the case if the form has been updated). They
+                # are iteratively attached to the tree since we can only
+                # append one element deep per iteration
+                if '/' in k:
+                    accumulated_elements = []
+                    for i, element in enumerate(k.split('/')):
+                        if i == 0:
+                            ET.SubElement(xml_parsed, element)
+                            accumulated_elements.append(element)
+                        else:
+                            updated_xml_path = '/'.join(accumulated_elements)
+                            ET.SubElement(
+                                xml_parsed.find(updated_xml_path), element
+                            )
+                            accumulated_elements.append(element)
+
                 element_to_update_or_new = (
                     xml_parsed.find(k)
                     if xml_parsed.find(k) is not None
@@ -788,7 +815,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )
                 element_to_update_or_new.text = v
 
-            # TODO: might be worth refactoring this as it is also used when
+            # TODO: Might be worth refactoring this as it is also used when
             # duplicating a submission
             file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
@@ -803,7 +830,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         successful_updates = response_codes.count(status.HTTP_201_CREATED)
 
-        # TODO: this follows a similar reponse message that bulk updating of
+        # TODO: This follows a similar reponse message that bulk updating of
         # `validataion_statuses` will give, however there may be something more
         # useful to send back to the client
         if successful_updates > 0:
@@ -992,7 +1019,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             set(map(int, validated_payload['submission_ids']))
         )
 
-        return validated_payload
+        # Sanitizing the payload of potentially destructive keys
+        santized_payload = copy.copy(validated_payload)
+        for key in validated_payload:
+            if key == 'submission_ids':
+                continue
+            if key in cls.PROTECTED_XML_FIELDS or (
+                '/' in key and key.split('/')[0] in cls.PROTECTED_XML_FIELDS
+            ):
+                santized_payload.pop(key)
+
+        return santized_payload
 
     @staticmethod
     def __validate_bulk_update_submissions(submissions: list) -> list:

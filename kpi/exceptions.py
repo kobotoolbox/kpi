@@ -70,7 +70,7 @@ class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
 
 class KobocatBulkUpdateSubmissionsClientException(exceptions.APIException):
     status_code = 400
-    # this is message should be overridden with something more specific
+    # This is message should be overridden with something more specific
     default_detail = _('Invalid payload for bulk updating of submissions')
     default_code = 'bulk_update_submissions_client_error'
 

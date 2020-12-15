@@ -267,9 +267,4 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
         'DELETE': ['%(app_label)s.validate_%(model_name)s'],
     }
 
-class BulkUpdateSubmissionsPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-    }
 

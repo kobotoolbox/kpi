@@ -241,7 +241,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     @staticmethod
     def __prepare_payload(request_data: dict) -> dict:
         submission_ids = request_data.pop('submission_ids')
-        # for some reason DRF puts the strings into a list so this just takes
+        # For some reason DRF puts the strings into a list so this just takes
         # them back out again to more accurately reflect the behaviour of the
         # non-mocked methods
         for k,v in request_data.items():

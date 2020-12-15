@@ -548,7 +548,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
     def _check_bulk_update(self, response):
         updated_submission_data = copy.copy(self.updated_submission_data)
         submission_ids = updated_submission_data.pop('submission_ids')
-        # check that the number of ids given matches the number of successful
+        # Check that the number of ids given matches the number of successful
         # updates made sent in the string: '{n} submissions have been updated'
         assert str(len(submission_ids)) in response.data['detail']
 
