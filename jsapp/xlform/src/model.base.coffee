@@ -60,11 +60,75 @@ module.exports = do ->
       else
         resp = @get("value")
       resp
+
+    setValue: (what, val)->
+      # setValue is shorthand for @getValue(what).set('value', val)
+      @setDetail(what, val)
+
+    setTxValue: (col, txAnchor, value)->
+      # shorthand for
+      # @setValue('label::English', value) when txAnchor="English"
+      @setValue("#{col}#{@_getInnerTxColSuffix(txAnchor)}", value)
+
+    getTxValue: (col, txAnchor) ->
+      # shorthand for
+      # @getValue('label::English') when txAnchor="English"
+      @getValue("#{col}#{@_getInnerTxColSuffix(txAnchor)}")
+
+    _getInnerTxColSuffix: (txAnchor)->
+      @getSurvey().translations.get(txAnchor).colSuffix
+
+    getValueOrNull: (what)->
+      try
+        val = @getValue(what)
+        if val isnt ''
+          return val
+        else
+          return null
+      catch err
+        return null
+
+    appendValuesIfAny: (rowData, col, translations)->
+      values = @gatherTranslatedValues(col, translations)
+      if values
+        rowData[col] = values
+      rowData
+
+    gatherTranslatedValues: (col, translations)->
+      ###
+      returns an object with all translations of a column.
+
+      when col="label",
+      returns
+      {
+        en: 'english label'
+        fr: 'french label'
+      }
+      ###
+      vals = {}
+      for tx in translations.asArray()
+        val = @getValueOrNull("#{col}#{tx.colSuffix}")
+        if val
+          vals[tx.$anchor] = val
+      if Object.keys(vals).length is 0
+        return false
+      vals
+
+    typeRepresentation: ()->
+      @get('type').get('rowType')?.name
+
+    getAnchor: ()->
+      @getValue('$kuid')
+
+    getName: ()->
+      @getValue('name')
+
     setDetail: (what, value)->
       if value.constructor is base.RowDetail
         @set(what, value)
       else
         @set(what, new base.RowDetail({key:what, value: value}, {_parent: @}))
+
     parentRow: ->
       @_parent._parent
     precedingRow: ->

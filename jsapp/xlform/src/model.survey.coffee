@@ -8,12 +8,19 @@ $surveyDetail = require './model.surveyDetail'
 $inputDeserializer = require './model.inputDeserializer'
 $inputParser = require './model.inputParser'
 $markdownTable = require './model.utils.markdownTable'
+$translations = require './model.translations'
+
 csv = require './csv'
 
 module.exports = do ->
   class Survey extends $surveyFragment.SurveyFragment
     constructor: (options={}, addlOpts)->
       super()
+      @translations = new $translations.TranslationList()
+      if options.empty
+        @_initialParams = {}
+        @_init()
+        return
       if options.error
         throw new Error("instantiating survey with error parameter")
       @_initialParams = options
@@ -28,7 +35,7 @@ module.exports = do ->
       @newRowDetails = options.newRowDetails || $configs.newRowDetails
       @defaultsForType = options.defaultsForType || $configs.defaultsForType
 
-      @surveyDetails = new $surveyDetail.SurveyDetails([], _parent: @).loadSchema(options.surveyDetailsSchema || $configs.surveyDetailSchema)
+      @loadMetas(options.surveyDetailsSchema)
       @choices = new $choices.ChoiceLists([], _parent: @)
       $inputParser.loadChoiceLists(options.choices || [], @choices)
 
@@ -52,6 +59,23 @@ module.exports = do ->
         if typeof r.linkUp is 'function'
           r.linkUp(@context)
       @linkUpChoiceLists()
+      @extractTranslations()
+
+    _init: ()->
+      @newRowDetails = $configs.newRowDetails
+      @defaultsForType = $configs.defaultsForType
+      @surveyDetails = new $surveyDetail.SurveyDetails([], _parent: @)
+      @choices = new $choices.ChoiceLists([], _parent: @)
+      @settings = new Settings({}, _parent: @)
+      @
+
+    loadMetas: (surveyDetailsSchema)->
+      vals = surveyDetailsSchema or $configs.surveyDetailSchema
+      @surveyDetails = new $surveyDetail.SurveyDetails([], _parent: @).loadSchema(vals)
+
+    extractTranslations: ()->
+      _p = @_initialParams
+      @translations.loadColumnStrings(_p.translations_0, _p.translations)
 
     @create: (options={}, addlOpts) ->
       return new Survey(options, addlOpts)
@@ -248,6 +272,7 @@ module.exports = do ->
       for sheet, content of @toCsvJson()
         out[sheet] = content.rowObjects
       out
+
     toCsvJson: ()->
       # build an object that can be easily passed to the "csv" library
       # to generate the XL(S)Form spreadsheet
