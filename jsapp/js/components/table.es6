@@ -693,7 +693,8 @@ export class DataTable extends React.Component {
     this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
     this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
     this.listenTo(stores.pageState, this.onPageStateUpdated);
-    this.listenTo(actions.resources.duplicateSubmission.completed, this.refreshSubmissions);
+    this.listenTo(actions.resources.deleteSubmission.completed, this.refreshSubmissions);
+    this.listenTo(actions.resources.duplicateSubmission.completed, this.refreshSubmissionModal);
   }
   refreshSubmissionValidationStatus(result, sid) {
     if (sid) {
@@ -706,7 +707,10 @@ export class DataTable extends React.Component {
       }
     }
   }
-  refreshSubmissions(uid, sid) {
+  refreshSubmissions() {
+    this.requestData(this.state.fetchInstance);
+  }
+  refreshSubmissionModal(uid, sid) {
     this.requestData(this.state.fetchInstance);
     this.submissionModalProcessing(sid, this.state.tableData, true);
   }

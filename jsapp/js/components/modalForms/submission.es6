@@ -63,6 +63,7 @@ class Submission extends React.Component {
     this.getSubmission(this.props.asset.uid, this.state.sid);
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
     this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
+    this.listenTo(actions.resources.deleteSubmission.completed, this.onDeletedSubmissionCompleted);
   }
 
   refreshSubmissionValidationStatus(result) {
@@ -143,16 +144,17 @@ class Submission extends React.Component {
       message: `${t('Are you sure you want to delete this submission?')} ${t('This action cannot be undone')}.`,
       labels: {ok: t('Delete'), cancel: t('Cancel')},
       onok: () => {
-        dataInterface.deleteSubmission(this.props.asset.uid, this.props.sid).done(() => {
-          stores.pageState.hideModal();
-          notify(t('submission deleted'));
-        });
+        actions.resources.deleteSubmission(this.props.asset.uid, this.props.sid);
       },
       oncancel: () => {
         dialog.destroy();
       }
     };
     dialog.set(opts).show();
+  }
+
+  onDeletedSubmissionCompleted() {
+    stores.pageState.hideModal();
   }
 
   launchEditSubmission() {
