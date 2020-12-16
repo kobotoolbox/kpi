@@ -711,7 +711,9 @@ class Asset(ObjectPermissionMixin,
         except KeyError:
             if not permission:
                 # Seems expensive. Cache it?
-                permission = Permission.objects.filter(
+                permission = Permission.objects.get(
+                    # `content_type` and `codename` are `unique_together`
+                    # https://github.com/django/django/blob/e893c0ad8b0b5b0a1e5be3345c287044868effc4/django/contrib/auth/models.py#L69
                     content_type=ContentType.objects.get_for_model(self),
                     codename=codename
                 )
