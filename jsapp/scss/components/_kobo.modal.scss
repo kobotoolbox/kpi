@@ -234,10 +234,6 @@ $z-modal-x: 10;
     .kobo-select {
       min-width: 120px;
     }
-
-    .duplicate-submission__text {
-      text-align: left;
-    }
   }
 
   .submission-pager {
@@ -268,8 +264,29 @@ $z-modal-x: 10;
     }
   }
 
-  .submission-duplication__button {
+  .submission-duplicate__actions {
+    @extend .submission-actions;
+    margin: auto;
+    a {
+      width: 120px;
+    }
+  }
+
+  .submission-duplicate__button {
     margin-left: 12px;
+  }
+
+  .submission-duplicate__text {
+    max-width: 60%;
+    text-align: center;
+    margin: auto;
+    margin-bottom: 24px;
+  }
+
+  .submission-duplicate__header {
+    @extend .submission-duplicate__text;
+    margin-bottom: 12px;
+    color: $kobo-blue;
   }
 
   .submission--warning {

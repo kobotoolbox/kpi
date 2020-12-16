@@ -267,6 +267,39 @@ class Submission extends React.Component {
           </div>
         }
 
+        {this.state.isDuplicated &&
+          <bem.FormModal>
+            <h1 className='submission-duplicate__header'>{t('Duplicate created')}</h1>
+            <p className='submission-duplicate__text'>
+                {t('A duplicate of the submission record with id = ## was successfully created. You can view the new instance below and make changes using the action buttons below.').replace('##', this.state.sid)}
+            </p>
+            <bem.FormModal__group>
+              <div className='submission-duplicate__actions'>
+                {this.userCan('change_submissions', this.props.asset) &&
+                  <a
+                    onClick={this.launchEditSubmission.bind(this)}
+                    className='kobo-button kobo-button--blue'
+                    disabled={!this.isSubmissionEditable()}
+                  >
+                    {this.state.isEditLoading && t('Loading…')}
+                    {!this.state.isEditLoading && t('Edit')}
+                  </a>
+                }
+
+                {this.userCan('delete_submissions', this.props.asset) &&
+                  <a
+                    onClick={this.deleteSubmission}
+                    className='kobo-button kobo-button--red submission-duplicate__button'
+                    data-tip={t('Discard duplicated submission')}
+                  >
+                    {t('Discard')}
+                  </a>
+                }
+              </div>
+            </bem.FormModal__group>
+          </bem.FormModal>
+        }
+
         {this.props.asset.deployment__active &&
           <bem.FormModal__group>
             {translationOptions.length > 1 &&
@@ -283,11 +316,6 @@ class Submission extends React.Component {
                 />
               </div>
             }
-            {this.state.isDuplicated &&
-              <p className='duplicate-submission__text'>
-                {t('A duplicate of the submission record with id = ## was successfully created. You can view the new instance below and make changes using the action buttons on the right side.').replace('##', this.state.sid)}
-              </p>
-            }
             <div className='switch--validation-status'>
               <label>{t('Validation status:')}</label>
               <Select
@@ -303,94 +331,97 @@ class Submission extends React.Component {
             </div>
           </bem.FormModal__group>
         }
-        <bem.FormModal__group>
-          <div className='submission-pager'>
-            {/* don't display previous button if `previous` is -1 */}
-            {!this.state.isDuplicated && this.state.previous > -1 &&
-              <a
-                onClick={this.switchSubmission.bind(this, this.state.previous)}
-                className='mdl-button mdl-button--colored'
-              >
-                <i className='k-icon k-icon-prev' />
-                {t('Previous')}
-              </a>
-            }
-            {!this.state.isDuplicated && this.state.previous === -2 &&
-              <a
-                onClick={this.prevTablePage}
-                className='mdl-button mdl-button--colored'
-              >
-                <i className='k-icon k-icon-prev' />
-                {t('Previous')}
-              </a>
-            }
 
-            {/* don't display next button if `next` is -1 */}
-            {!this.state.isDuplicated && this.state.next > -1 &&
-              <a
-                onClick={this.switchSubmission.bind(this, this.state.next)}
-                className='mdl-button mdl-button--colored'
-              >
-                {t('Next')}
-                <i className='k-icon-next' />
-              </a>
-            }
-            {!this.state.isDuplicated && this.state.next === -2 &&
-              <a
-                onClick={this.nextTablePage}
-                className='mdl-button mdl-button--colored'
-              >
-                {t('Next')}
-                <i className='k-icon-next' />
-              </a>
-            }
-          </div>
+        {!this.state.isDuplicated &&
+          <bem.FormModal__group>
+            <div className='submission-pager'>
+              {/* don't display previous button if `previous` is -1 */}
+              {this.state.previous > -1 &&
+                <a
+                  onClick={this.switchSubmission.bind(this, this.state.previous)}
+                  className='mdl-button mdl-button--colored'
+                >
+                  <i className='k-icon k-icon-prev' />
+                  {t('Previous')}
+                </a>
+              }
+              {this.state.previous === -2 &&
+                <a
+                  onClick={this.prevTablePage}
+                  className='mdl-button mdl-button--colored'
+                >
+                  <i className='k-icon k-icon-prev' />
+                  {t('Previous')}
+                </a>
+              }
 
-          <div className='submission-actions'>
-            <Checkbox
-              checked={this.state.showXMLNames}
-              onChange={this.onShowXMLNamesChange}
-              label={t('Display XML names')}
-            />
+              {/* don't display next button if `next` is -1 */}
+              {this.state.next > -1 &&
+                <a
+                  onClick={this.switchSubmission.bind(this, this.state.next)}
+                  className='mdl-button mdl-button--colored'
+                >
+                  {t('Next')}
+                  <i className='k-icon-next' />
+                </a>
+              }
+              {this.state.next === -2 &&
+                <a
+                  onClick={this.nextTablePage}
+                  className='mdl-button mdl-button--colored'
+                >
+                  {t('Next')}
+                  <i className='k-icon-next' />
+                </a>
+              }
+            </div>
 
-            {this.userCan('change_submissions', this.props.asset) &&
-              <a
-                onClick={this.launchEditSubmission.bind(this)}
-                className='kobo-button kobo-button--blue'
-                disabled={!this.isSubmissionEditable()}
-              >
-                {this.state.isEditLoading && t('Loading…')}
-                {!this.state.isEditLoading && t('Edit')}
-              </a>
-            }
+            <div className='submission-actions'>
+              <Checkbox
+                checked={this.state.showXMLNames}
+                onChange={this.onShowXMLNamesChange}
+                label={t('Display XML names')}
+              />
 
-            {this.userCan('change_submissions', this.props.asset) &&
-              <a
-                onClick={this.duplicateSubmission.bind(this)}
-                className='kobo-button kobo-button--blue submission-duplication__button'
-                disabled={!this.isSubmissionEditable()}
-              >
-                {t('Duplicate')}
-              </a>
-            }
+              {this.userCan('change_submissions', this.props.asset) &&
+                <a
+                  onClick={this.launchEditSubmission.bind(this)}
+                  className='kobo-button kobo-button--blue submission-duplicate__button'
+                  disabled={!this.isSubmissionEditable()}
+                >
+                  {this.state.isEditLoading && t('Loading…')}
+                  {!this.state.isEditLoading && t('Edit')}
+                </a>
+              }
 
-            <bem.Button m='icon' className='report-button__print'
-                    onClick={launchPrinting}
-                    data-tip={t('Print')}>
-              <i className='k-icon-print' />
-            </bem.Button>
+              {this.userCan('change_submissions', this.props.asset) &&
+                <a
+                  onClick={this.duplicateSubmission.bind(this)}
+                  className='kobo-button kobo-button--blue submission-duplicate__button'
+                  disabled={!this.isSubmissionEditable()}
+                >
+                  {t('Duplicate')}
+                </a>
+              }
 
-            {this.userCan('delete_submissions', this.props.asset) &&
-              <a
-                onClick={this.deleteSubmission}
-                className='mdl-button mdl-button--icon mdl-button--colored mdl-button--red right-tooltip'
-                data-tip={t('Delete submission')}
-              >
-                <i className='k-icon-trash' />
-              </a>
-            }
-          </div>
-        </bem.FormModal__group>
+              <bem.Button m='icon' className='report-button__print'
+                      onClick={launchPrinting}
+                      data-tip={t('Print')}>
+                <i className='k-icon-print' />
+              </bem.Button>
+
+              {this.userCan('delete_submissions', this.props.asset) &&
+                <a
+                  onClick={this.deleteSubmission}
+                  className='mdl-button mdl-button--icon mdl-button--colored mdl-button--red right-tooltip'
+                  data-tip={t('Delete submission')}
+                >
+                  <i className='k-icon-trash' />
+                </a>
+              }
+            </div>
+          </bem.FormModal__group>
+        }
 
         <SubmissionDataTable
           asset={this.props.asset}

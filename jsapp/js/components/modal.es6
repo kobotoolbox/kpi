@@ -186,7 +186,7 @@ class Modal extends React.Component {
     }
   }
   submissionTitle(props) {
-    let title = t('Duplicate created!'),
+    let title = t('Success!'),
       p = props.params,
       sid = parseInt(p.sid);
 
