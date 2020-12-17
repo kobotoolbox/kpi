@@ -15,7 +15,9 @@ def get_response(url_):
     content = None
 
     try:
-        response_ = requests.get(url_, timeout=45)
+        # reponse timeout changed to 10 seconds from 45 as requested in 
+        # issue linked here https://github.com/kobotoolbox/kpi/issues/2642
+        response_ = requests.get(url_, timeout=10)
         response_.raise_for_status()
         content = response_.text
     except Exception as e:
@@ -55,7 +57,7 @@ def service_health(request):
 
     t0 = time.time()
     try:
-        Asset.objects.first()
+        Asset.objects.order_by().first()
     except Exception as e:
         postgres_message = repr(e)
         any_failure = True

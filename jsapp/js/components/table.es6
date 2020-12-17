@@ -3,7 +3,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
-import $ from 'jquery';
 import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from '../dataInterface';
 import Checkbox from './checkbox';
@@ -25,10 +24,9 @@ import {
   GROUP_TYPES_END
 } from '../constants';
 import {
-  t,
   formatTimeDate,
   renderCheckbox
-} from '../utils';
+} from 'utils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 import {getRepeatGroupAnswers} from 'js/submissionUtils';
 
@@ -264,7 +262,7 @@ export class DataTable extends React.Component {
     }
 
     var columns = [];
-    if (this.userCan('validate_submissions', this.props.asset) || this.userCan('change_submissions', this.props.asset)) {
+    if (this.userCan('validate_submissions', this.props.asset) || this.userCan('delete_submissions', this.props.asset)) {
       columns.push({
         Header: row => (
             <div className='table-header-checkbox'>
@@ -998,7 +996,7 @@ export class DataTable extends React.Component {
                 );
               })
             }
-            {this.userCan('change_submissions', this.props.asset) &&
+            {this.userCan('delete_submissions', this.props.asset) &&
             <bem.PopoverMenu__link
               onClick={this.onBulkDelete}>
               {t('Delete selected')}

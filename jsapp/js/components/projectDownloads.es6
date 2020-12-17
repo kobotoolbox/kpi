@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
@@ -8,11 +7,10 @@ import {bem} from '../bem';
 import DocumentTitle from 'react-document-title';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   log,
   redirectTo,
   formatTime,
-} from '../utils';
+} from 'utils';
 
 export default class ProjectDownloads extends React.Component {
   constructor(props){

@@ -6,11 +6,7 @@ import Reflux from 'reflux';
 import RefluxPromise from 'js/libs/reflux-promise';
 Reflux.use(RefluxPromise(window.Promise));
 import {dataInterface} from 'js/dataInterface';
-import {
-  t,
-  notify,
-  buildUserUrl
-} from 'js/utils';
+import {buildUserUrl} from 'utils';
 import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES
@@ -49,8 +45,8 @@ permissionsActions.getAssetPermissions.listen((assetUid) => {
  * @param {string} assetUid
  * @param {Object[]} perms - permissions to set
  */
-permissionsActions.bulkSetAssetPermissions.listen((assetUid, perm) => {
-  dataInterface.bulkSetAssetPermissions(assetUid, perm)
+permissionsActions.bulkSetAssetPermissions.listen((assetUid, perms) => {
+  dataInterface.bulkSetAssetPermissions(assetUid, perms)
     .done((permissionAssignments) => {
       permissionsActions.bulkSetAssetPermissions.completed(permissionAssignments);
     })

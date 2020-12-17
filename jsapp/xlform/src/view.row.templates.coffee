@@ -1,5 +1,4 @@
 module.exports = do ->
-  _t = require('utils').t
   replaceSupportEmail = require('utils').replaceSupportEmail
 
   expandingSpacerHtml = """
@@ -15,9 +14,9 @@ module.exports = do ->
       <section class="card__settings  row-extras row-extras--depr">
         <i class="card__settings-close fa fa-times js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
-          <li class="heading"><i class="fa fa-cog"></i> #{_t("Settings")}</li>
-          <li data-card-settings-tab-id="all" class="card__settings__tabs__tab--active">#{_t("All group settings")}</li>
-          <li data-card-settings-tab-id="skip-logic" class="">#{_t("Skip Logic")}</li>
+          <li class="heading"><i class="fa fa-cog"></i> #{t("Settings")}</li>
+          <li data-card-settings-tab-id="all" class="card__settings__tabs__tab--active">#{t("All group settings")}</li>
+          <li data-card-settings-tab-id="skip-logic" class="">#{t("Skip Logic")}</li>
         </ul>
         <div class="card__settings__content">
           <div class="card__settings__fields card__settings__fields--active card__settings__fields--all">
@@ -31,10 +30,10 @@ module.exports = do ->
       <section class="card__settings  row-extras row-extras--depr">
         <i class="card__settings-close fa fa-times js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
-          <li class="heading"><i class="fa fa-cog"></i> #{_t("Settings")}</li>
-          <li data-card-settings-tab-id="question-options" class="card__settings__tabs__tab--active">#{_t("Question Options")}</li>
-          <li data-card-settings-tab-id="skip-logic" class="">#{_t("Skip Logic")}</li>
-          <li data-card-settings-tab-id="validation-criteria" class="">#{_t("Validation Criteria")}</li>
+          <li class="heading"><i class="fa fa-cog"></i> #{t("Settings")}</li>
+          <li data-card-settings-tab-id="question-options" class="card__settings__tabs__tab--active">#{t("Question Options")}</li>
+          <li data-card-settings-tab-id="skip-logic" class="">#{t("Skip Logic")}</li>
+          <li data-card-settings-tab-id="validation-criteria" class="">#{t("Validation Criteria")}</li>
         </ul>
         <div class="card__settings__content">
           <ul class="card__settings__fields card__settings__fields--active card__settings__fields--question-options">
@@ -61,8 +60,8 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon"></i></div>
           </div>
           <div class="card__text">
-            <input type="text" placeholder="#{_t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
-            <input type="text" placeholder="#{_t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
@@ -105,14 +104,14 @@ module.exports = do ->
             <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon fa-table"></i></div>
           </div>
           <div class="card__text">
-            <input type="text" placeholder="#{_t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
             <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="fa fa-trash-o"></i></span>
           </div>
         </div>
-        <p class="kobomatrix-warning">#{_t("Note: The Matrix question type only works in Enketo web forms using the 'grid' style.")}</p>
+        <p class="kobomatrix-warning">#{t("Note: The Matrix question type only works in Enketo web forms using the 'grid' style.")}</p>
 
         <div class="card__kobomatrix">
       """
@@ -151,7 +150,7 @@ module.exports = do ->
         autoname_attr = """data-automatic-name="#{row.autoname}" """
 
       scorelabel__name = """
-        <span class="scorelabel__name #{autoname_class}" #{autoname_attr} contenteditable="true" title="#{_t("Row name")}">#{row.name or ''}</span>
+        <span class="scorelabel__name #{autoname_class}" #{autoname_attr} contenteditable="true" title="#{t("Row name")}">#{row.name or ''}</span>
       """
 
       """
@@ -217,7 +216,7 @@ module.exports = do ->
     rank_constraint_message_html = """
     <li class="rank_items__constraint_wrap">
       <p class="rank_items__constraint_explanation">
-        #{_t("A constraint message to be read in case of error:")}
+        #{t("A constraint message to be read in case of error:")}
       </p>
       <p class="rank_items__constraint_message">
         #{template_args.rank_constraint_msg}
@@ -249,7 +248,7 @@ module.exports = do ->
 
     """
     <div class="card__settings__fields__field">
-      <label>#{_t('Mandatory response')}:</label>
+      <label>#{t('Mandatory response')}:</label>
       <span class="settings__input">
         <div class="radio">
           <label class="radio__row mandatory-setting__row mandatory-setting__row--true">
@@ -259,7 +258,7 @@ module.exports = do ->
               name="#{uniqueName}"
               value="true" #{if modifier is 'true' then 'checked' else ''}
             >
-            <span class="radio__label">#{_t('Yes')}</span>
+            <span class="radio__label">#{t('Yes')}</span>
           </label>
           <label class="radio__row mandatory-setting__row mandatory-setting__row--false">
             <input
@@ -268,7 +267,7 @@ module.exports = do ->
               name="#{uniqueName}"
               value="false" #{if modifier is 'false' then 'checked' else ''}
             >
-            <span class="radio__label">#{_t('No')}</span>
+            <span class="radio__label">#{t('No')}</span>
           </label>
           <label class="radio__row mandatory-setting__row mandatory-setting__row--custom">
             <input
@@ -277,13 +276,13 @@ module.exports = do ->
               name="#{uniqueName}"
               value="custom" #{if modifier is 'custom' then 'checked' else ''}
             >
-            <span class="radio__label">#{_t('Custom logic')}</span>
+            <span class="radio__label">#{t('Custom logic')}</span>
             <label class="text-box text-box--on-white">
               <input
                 type="text"
                 class="text-box__input js-mandatory-setting-custom-text"
                 value="#{currentValue}"
-                placeholder="#{_t('Mandatory when this formula is true')}"
+                placeholder="#{t('Mandatory when this formula is true')}"
               >
             </label>
           </label>
@@ -295,7 +294,7 @@ module.exports = do ->
   paramsSettingsField = ->
     """
     <div class="card__settings__fields__field params-view__settings-wrapper">
-      <label>#{_t('Parameters')}:</label>
+      <label>#{t('Parameters')}:</label>
       <span class="settings__input">
         <div class="params-view"></div>
       </span>
@@ -326,8 +325,8 @@ module.exports = do ->
   rowErrorView = (atts)->
     """
     <div class="card card--error">
-      #{_t("Row could not be displayed:")} <pre>#{atts}</pre>
-      <em>#{replaceSupportEmail(_t("This question could not be imported. Please re-create it manually. Please contact us at help@kobotoolbox.org so we can fix this bug!"))}</em>
+      #{t("Row could not be displayed:")} <pre>#{atts}</pre>
+      <em>#{replaceSupportEmail(t("This question could not be imported. Please re-create it manually. Please contact us at help@kobotoolbox.org so we can fix this bug!"))}</em>
     </div>
     #{expandingSpacerHtml}
     """

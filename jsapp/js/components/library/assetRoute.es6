@@ -10,7 +10,6 @@ import DocumentTitle from 'react-document-title';
 import {bem} from 'js/bem';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
-import {t} from 'js/utils';
 import {ASSET_TYPES, ACCESS_TYPES} from 'js/constants';
 import AssetActionButtons from './assetActionButtons';
 import AssetInfoBox from './assetInfoBox';

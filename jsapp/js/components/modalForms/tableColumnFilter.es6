@@ -12,7 +12,7 @@ import ui from 'js/ui';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
-import {t, notify} from 'js/utils';
+import {notify} from 'utils';
 import {SUBMISSION_LINKS_ID} from 'js/components/table';
 
 export class TableColumnFilter extends React.Component {

@@ -11,10 +11,7 @@ import {
   renderLoading,
   renderBackButton
 } from './modalHelpers';
-import {
-  t,
-  validFileTypes
-} from 'js/utils';
+import {validFileTypes} from 'utils';
 
 class LibraryUploadForm extends React.Component {
   constructor(props) {

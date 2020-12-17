@@ -6,7 +6,6 @@ import alertify from 'alertifyjs';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
-import {t} from 'js/utils';
 import {removeInvalidChars, getAssetDisplayName} from 'js/assetUtils';
 import {
   KEY_CODES,

@@ -2,7 +2,6 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
 import {actions} from '../actions';
-import {t} from '../utils';
 import {cleanupTags} from 'js/assetUtils';
 
 class TagInput extends React.Component {

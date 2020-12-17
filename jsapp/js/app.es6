@@ -4,9 +4,6 @@
  * TODO: move routes configuration to separate file for clarity.
  */
 
-import $ from 'jquery';
-window.jQuery = $;
-window.$ = $;
 require('jquery-ui/ui/widgets/sortable');
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -48,11 +45,10 @@ import Modal from './components/modal';
 import AccountSettings from './components/accountSettings';
 import ChangePassword from './components/changePassword';
 import {
-  t,
   assign,
   notify,
   currentLang
-} from './utils';
+} from 'utils';
 import FormsSearchableList from './lists/forms';
 import permConfig from 'js/components/permissions/permConfig';
 
