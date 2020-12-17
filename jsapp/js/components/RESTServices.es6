@@ -7,7 +7,6 @@ import {PERMISSIONS_CODENAMES} from 'js/constants';
 import ui from 'js/ui';
 import RESTServicesList from './RESTServices/RESTServicesList';
 import RESTServiceLogs from './RESTServices/RESTServiceLogs';
-import {t} from '../utils';
 
 export default class RESTServices extends React.Component {
   constructor(props){

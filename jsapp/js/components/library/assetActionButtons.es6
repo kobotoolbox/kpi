@@ -17,7 +17,6 @@ import reactMixin from 'react-mixin';
 import _ from 'lodash';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
-import {t} from 'js/utils';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {

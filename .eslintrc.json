@@ -89,7 +89,9 @@
     "window": false,
     "document": false,
     "Parse": false,
-    "chai": true
+    "chai": true,
+    "t": "readonly",
+    "$": "readonly"
   },
   "plugins": [
     "react"

@@ -1,7 +1,6 @@
 import React from 'react';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
-import {t} from 'js/utils';
 import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES

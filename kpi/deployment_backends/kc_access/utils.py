@@ -6,7 +6,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
-from django.db import ProgrammingError, transaction
+from django.db import IntegrityError, ProgrammingError, transaction
 from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException
@@ -14,7 +14,9 @@ from kpi.utils.log import logging
 from .shadow_models import (
     safe_kc_read,
     KobocatContentType,
+    KobocatDigestPartial,
     KobocatPermission,
+    KobocatToken,
     KobocatUser,
     KobocatUserObjectPermission,
     KobocatUserPermission,
@@ -358,3 +360,38 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
         # `permission` has a FK to `ContentType`, but I'm paranoid
         **content_type_kwargs
     ).delete()
+
+
+def delete_kc_users(deleted_pks: list) -> bool:
+    """
+
+    Args:
+        deleted_pks: List of primary keys of KPI deleted objects
+
+    Returns:
+        bool: whether it has succeeded or not.
+    """
+
+    # Then, delete users in KoBoCAT database
+    # Post signal is not triggered because the
+    # deletion is made at the model level, not the object level
+    kc_models = [
+        KobocatDigestPartial,
+        KobocatUserPermission,
+        KobocatUserProfile,
+        KobocatUserObjectPermission,
+        KobocatToken,
+    ]
+    # We can delete related objects
+    for kc_model in kc_models:
+        kc_model.objects.filter(user_id__in=deleted_pks).delete()
+
+    try:
+        # If users have projects/submissions, this query should fail with
+        # an `IntegrityError`.
+        KobocatUser.objects.filter(id__in=deleted_pks).delete()
+    except IntegrityError as e:
+        logging.error(e)
+        return False
+
+    return True

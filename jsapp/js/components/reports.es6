@@ -19,21 +19,20 @@ import ReportViewItem from './reportViewItem';
 
 import {
   assign,
-  t,
   launchPrinting
-} from '../utils';
+} from 'utils';
 
 function labelVal(label, value) {
-  return {label: t(label), value: (value || label.toLowerCase().replace(/\W+/g, '_'))};
+  return {label: label, value: (value || label.toLowerCase().replace(/\W+/g, '_'))};
 }
 
 let reportStyles = [
-  labelVal('Vertical'),
-  labelVal('Donut'),
-  labelVal('Area'),
-  labelVal('Horizontal'),
-  labelVal('Pie'),
-  labelVal('Line'),
+  labelVal(t('Vertical')),
+  labelVal(t('Donut')),
+  labelVal(t('Area')),
+  labelVal(t('Horizontal')),
+  labelVal(t('Pie')),
+  labelVal(t('Line')),
 ];
 
 class ChartTypePicker extends React.Component {

@@ -154,7 +154,6 @@ module.exports = do ->
       return
 
     hide: ->
-      console.log('rowSelector hide')
       @button.removeClass('btn--hidden')
       @line.empty().removeClass("expanded").css "height": 0
       @line.parents(".survey-editor__null-top-row")
@@ -163,7 +162,6 @@ module.exports = do ->
       return
 
     onSelectNewQuestionType: (evt)->
-      console.log('onSelectNewQuestionType')
       @question_name = @line.find('input').val()
       $rowSelect = $('select.skiplogic__rowselect')
       if $rowSelect.data('select2')

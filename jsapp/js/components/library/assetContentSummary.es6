@@ -3,7 +3,6 @@ import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import {getFlatQuestionsList} from 'js/assetUtils';
 import {QUESTION_TYPES} from 'js/constants';
-import {t} from 'js/utils';
 
 const DISPLAY_LIMIT = 8;
 

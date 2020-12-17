@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import AssetActionButtons from './assetActionButtons';
 import ui from 'js/ui';
-import {formatTime} from 'js/utils';
+import {formatTime} from 'utils';
 import {ASSET_TYPES} from 'js/constants';
 import assetUtils from 'js/assetUtils';
 import {ASSETS_TABLE_CONTEXTS} from './assetsTable';

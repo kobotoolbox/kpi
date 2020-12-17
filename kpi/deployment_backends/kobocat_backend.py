@@ -2,16 +2,23 @@
 import json
 import posixpath
 import re
+from typing import Union
 from urllib.parse import urlparse
 
 import requests
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.constants import (
+    INSTANCE_FORMAT_TYPE_JSON,
+    INSTANCE_FORMAT_TYPE_XML,
+    PERM_FROM_KC_ONLY,
+)
+from kpi.models.object_permission import ObjectPermission
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
@@ -254,6 +261,38 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
             'version': self.asset.version_id,
         })
+
+    def remove_from_kc_only_flag(self, specific_user: Union[int, 'User'] = None):
+        """
+        Removes `from_kc_only` flag for ALL USERS unless `specific_user` is
+        provided
+
+        Args:
+            specific_user (int, User): User object or pk
+        """
+        # This flag lets us know that permission assignments in KPI exist
+        # only because they were copied from KoBoCAT (by `sync_from_kobocat`).
+        # As soon as permissions are assigned through KPI, this flag must be
+        # removed
+        #
+        # This method is here instead of `ObjectPermissionMixin` because
+        # it's specific to KoBoCat as backend.
+
+        # TODO: Remove this method after kobotoolbox/kobocat#642
+
+        filters = {
+            'permission__codename': PERM_FROM_KC_ONLY,
+            'object_id': self.asset.id,
+            'content_type': ContentType.objects.get_for_model(self.asset)
+        }
+        if specific_user is not None:
+            try:
+                user_id = specific_user.pk
+            except AttributeError:
+                user_id = specific_user
+            filters['user_id'] = user_id
+
+        ObjectPermission.objects.filter(**filters).delete()
 
     def redeploy(self, active=None):
         """

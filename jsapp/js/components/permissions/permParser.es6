@@ -6,7 +6,7 @@ import {
 import {
   buildUserUrl,
   getUsernameFromUrl
-} from 'js/utils';
+} from 'utils';
 
 /**
  * @typedef {Object} BackendPerm
@@ -77,6 +77,10 @@ function parseFormData(data) {
 
   if (data.submissionsEdit) {
     parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('change_submissions')));
+  }
+
+  if (data.submissionsDelete) {
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('delete_submissions')));
   }
 
   if (data.submissionsValidate) {
@@ -174,6 +178,9 @@ function buildFormData(permissions) {
     }
     if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('change_submissions')).url) {
       formData.submissionsEdit = true;
+    }
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('delete_submissions')).url) {
+      formData.submissionsDelete = true;
     }
     if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('validate_submissions')).url) {
       formData.submissionsValidate = true;
