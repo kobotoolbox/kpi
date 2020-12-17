@@ -759,12 +759,15 @@ class Asset(ObjectPermissionMixin,
         )
         return label
 
-    def get_partial_perms(self, user_id, with_filters=False):
+    def get_partial_perms(
+        self, user_id: int, with_filters: bool = False
+    ) -> Union[list, dict, None]:
         """
         Returns the list of permissions the user is restricted to,
         for this specific asset.
-        If `with_filters` is `True`, it returns a dict of permissions (as keys) and
-        the filters (as values) to apply on query to narrow down the results.
+        If `with_filters` is `True`, it returns a dict of permissions (as keys)
+        and the filters (as values) to apply on query to narrow down
+        the results.
 
         For example:
         `get_partial_perms(user1_obj.id)` would return
@@ -783,11 +786,6 @@ class Asset(ObjectPermissionMixin,
         ```
 
         If user doesn't have any partial permissions, it returns `None`.
-
-        :param user_obj: auth.User
-        :param with_filters: boolean. Optional
-
-        :return: list|dict|None
         """
 
         perms = self.asset_partial_permissions.filter(user_id=user_id)\
