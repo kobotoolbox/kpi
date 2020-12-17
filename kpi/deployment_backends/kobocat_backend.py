@@ -282,8 +282,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         filters = {
             'permission__codename': PERM_FROM_KC_ONLY,
-            'object_id': self.asset.id,
-            'content_type': ContentType.objects.get_for_model(self.asset)
+            'asset_id': self.asset.id,
         }
         if specific_user is not None:
             try:
