@@ -695,6 +695,7 @@ export class DataTable extends React.Component {
     this.listenTo(stores.pageState, this.onPageStateUpdated);
     this.listenTo(actions.resources.deleteSubmission.completed, this.refreshSubmissions);
     this.listenTo(actions.resources.duplicateSubmission.completed, this.refreshSubmissionModal);
+    this.listenTo(actions.resources.refreshTableSubmissions, this.refreshSubmissions);
   }
   refreshSubmissionValidationStatus(result, sid) {
     if (sid) {

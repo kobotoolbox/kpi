@@ -183,6 +183,8 @@ class Submission extends React.Component {
     this.setState({
       promptRefresh: false
     });
+    // Empty action listener to prompt table to refresh submission list
+    actions.resources.refreshTableSubmissions();
   }
 
   switchSubmission(sid) {

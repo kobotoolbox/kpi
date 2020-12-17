@@ -70,6 +70,7 @@ actions.resources = Reflux.createActions({
   removeSubmissionValidationStatus: {children: ['completed', 'failed']},
   deleteSubmission: {children: ['completed', 'failed']},
   duplicateSubmission: {children: ['completed', 'failed',]},
+  refreshTableSubmissions: {children: ['completed', 'failed',]},
   getAssetFiles: {children: ['completed', 'failed']},
   notFound: {}
 });
