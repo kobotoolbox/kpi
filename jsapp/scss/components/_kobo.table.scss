@@ -293,6 +293,12 @@
       background-color: $kobo-red;
     }
   }
+
+  .table-meta__bulk-options {
+    > * {
+      margin-left: 10px;
+    }
+  }
 }
 
 .table-bulk-checkbox {

@@ -181,6 +181,8 @@ class TableBulkOptions extends React.Component {
           </bem.KoboLightBadge>
         }
 
+        {selectedCount > 1 && <span>:</span>}
+
         {Object.keys(this.props.selectedRows).length > 0 &&
           <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Change status')} >
             {this.userCan('validate_submissions', this.props.asset) &&
