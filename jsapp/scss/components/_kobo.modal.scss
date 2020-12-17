@@ -94,6 +94,8 @@ $z-modal-x: 10;
   min-height: 70px;
   background: $kobo-blue;
   color: $kobo-white;
+  display: flex;
+  justify-content: space-between;
 }
 
 .modal__title {
@@ -104,10 +106,7 @@ $z-modal-x: 10;
 }
 
 .modal__x {
-  position: absolute;
   z-index: $z-modal-x;
-  top: 0;
-  right: 0;
   color: inherit;
   background-color: inherit;
   padding: 8px;
