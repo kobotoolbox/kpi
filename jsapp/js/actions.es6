@@ -522,11 +522,11 @@ actions.resources.deleteSubmission.listen((uid, sid) => {
   });
 });
 
-actions.resources.duplicateSubmission.listen((uid, sid) => {
+actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) => {
   dataInterface.duplicateSubmission(uid, sid)
     .done((response) => {
       notify(t('Successfully duplicated submission'));
-      actions.resources.duplicateSubmission.completed(uid, response._id);
+      actions.resources.duplicateSubmission.completed(uid, response._id, duplicatedSubmission);
     })
     .fail((response) => {
       alertify.error(t('Failed to duplciate submisson'));

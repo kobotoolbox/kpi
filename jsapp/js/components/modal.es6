@@ -321,6 +321,7 @@ class Modal extends React.Component {
                           asset={this.props.params.asset}
                           ids={this.props.params.ids}
                           isDuplicated={this.props.params.isDuplicated}
+                          duplicatedSubmission={this.props.params.duplicatedSubmission}
                           tableInfo={this.props.params.tableInfo || false} />
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && !this.state.sid &&

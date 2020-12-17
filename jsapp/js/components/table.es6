@@ -711,9 +711,9 @@ export class DataTable extends React.Component {
   refreshSubmissions() {
     this.requestData(this.state.fetchInstance);
   }
-  refreshSubmissionModal(uid, sid) {
+  refreshSubmissionModal(uid, sid, duplicatedSubmission) {
     this.requestData(this.state.fetchInstance);
-    this.submissionModalProcessing(sid, this.state.tableData, true);
+    this.submissionModalProcessing(sid, this.state.tableData, true, duplicatedSubmission);
   }
   onTableUpdateSettingsCompleted() {
     stores.pageState.hideModal();
@@ -735,7 +735,7 @@ export class DataTable extends React.Component {
 
     this.submissionModalProcessing(sid, this.state.tableData);
   }
-  submissionModalProcessing(sid, tableData, isDuplicated=false) {
+  submissionModalProcessing(sid, tableData, isDuplicated=false, duplicatedSubmission=null) {
     let ids = [];
 
     tableData.forEach(function(r) {
@@ -748,6 +748,7 @@ export class DataTable extends React.Component {
       asset: this.props.asset,
       ids: ids,
       isDuplicated: isDuplicated,
+      duplicatedSubmission: duplicatedSubmission,
       tableInfo: {
         currentPage: this.state.currentPage,
         pageSize: this.state.pageSize,
