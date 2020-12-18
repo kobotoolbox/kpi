@@ -496,7 +496,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         submission = self.submissions[0]
         duplicate_submission = response.data
 
-        expected_next_id = max([sub['_id'] for sub in self.submissions]) + 1
+        expected_next_id = max((sub['_id'] for sub in self.submissions)) + 1
         assert submission['_id'] != duplicate_submission['_id']
         assert duplicate_submission['_id'] == expected_next_id
 

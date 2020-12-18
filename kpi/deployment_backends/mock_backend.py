@@ -213,7 +213,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             filter(lambda sub: sub['_id'] == instance_id, all_submissions)
         )
         next_id = max((sub['_id'] for sub in all_submissions)) + 1
-        duplicate_submission = copy.copy(submission)
         updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
         updated_fields = {
                 '_id': next_id,
@@ -222,7 +221,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 'instanceID': f'uuid:{uuid.uuid4()}'
                 }
 
-        return {**duplicate_submission, **updated_fields}
+        return {**submission, **updated_fields}
 
     def get_validation_status(self, submission_pk, params, user):
         submission = self.get_submission(submission_pk, user.id,

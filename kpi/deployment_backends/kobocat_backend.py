@@ -702,8 +702,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         if kc_response.status_code == status.HTTP_201_CREATED:
-            return self.__get_latest_duplicate_submission(
-                requesting_user_id, _uuid
+            return next(
+                self.get_submissions(requesting_user_id, query={'_uuid': _uuid})
             )
         else:
             raise KobocatDuplicateSubmissionException
@@ -766,20 +766,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                                                       validate_count=True,
                                                       **kwargs)
         return MongoHelper.get_count(self.mongo_userform_id, **params)
-
-    def __get_latest_duplicate_submission(
-        self, requesting_user_id: int, _uuid: str
-    ) -> dict:
-        """
-        Retrieves the most recent duplicated submission for an asset in JSON
-        format
-        """
-        kwargs = {'query': {'_uuid': _uuid}}
-        params = self.validate_submission_list_params(
-            requesting_user_id, **kwargs
-        )
-
-        return next(self.__get_submissions_in_json(**params))
 
     def __get_submissions_in_json(self, **params):
         """
