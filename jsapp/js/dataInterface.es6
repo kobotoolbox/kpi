@@ -432,11 +432,14 @@ export var dataInterface;
       );
     },
     searchMyLibraryAssets(params = {}) {
-      return this._searchAssetsWithPredefinedQuery(
-        params,
-        // we only want orphans (assets not inside collection)
-        `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
-      );
+      // we only want orphans (assets not inside collection)
+      // unless it's a search
+      let query = COMMON_QUERIES.get('qbtc');
+      if (!params.searchPhrase) {
+        query += ' AND parent:null';
+      }
+
+      return this._searchAssetsWithPredefinedQuery(params, query);
     },
     searchMyCollectionMetadata(params = {}) {
       return this._searchMetadataWithPredefinedQuery(
@@ -446,11 +449,14 @@ export var dataInterface;
       );
     },
     searchMyLibraryMetadata(params = {}) {
-      return this._searchMetadataWithPredefinedQuery(
-        params,
-        // we only want orphans (assets not inside collection)
-        `${COMMON_QUERIES.get('qbtc')} AND parent:null`,
-      );
+      // we only want orphans (assets not inside collection)
+      // unless it's a search
+      let query = COMMON_QUERIES.get('qbtc');
+      if (!params.searchPhrase) {
+        query += ' AND parent:null';
+      }
+
+      return this._searchMetadataWithPredefinedQuery(params, query);
     },
     searchPublicCollections(params = {}) {
       params.status = 'public-discoverable';
@@ -598,7 +604,7 @@ export var dataInterface;
     },
     deleteSubmission(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
         method: 'DELETE'
       });
     },

@@ -12,8 +12,15 @@ from django.urls import reverse
 from django.test import TestCase
 
 from kobo.apps.reports import report_data
-from kpi.constants import PERM_PARTIAL_SUBMISSIONS, PERM_VIEW_SUBMISSIONS
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.models import Asset, ExportTask
+from kpi.models.object_permission import get_anonymous_user
 
 
 class MockDataExportsBase(TestCase):
@@ -223,7 +230,7 @@ class MockDataExports(MockDataExportsBase):
         )
 
     def run_csv_export_test(
-        self, expected_lines, export_options=None, asset=None, user=None
+        self, expected_lines=None, export_options=None, asset=None, user=None
     ):
         """
         Repeat yourself less while writing CSV export tests.
@@ -247,12 +254,15 @@ class MockDataExports(MockDataExportsBase):
             export_task.data.update(export_options)
         messages = defaultdict(list)
         export_task._run_task(messages)
-        expected_lines = [
-            (line + '\r\n').encode('utf-8') for line in expected_lines
-        ]
-        result_lines = list(export_task.result)
 
-        self.assertEqual(result_lines, expected_lines)
+        if expected_lines is not None:
+            expected_lines = [
+                (line + '\r\n').encode('utf-8') for line in expected_lines
+            ]
+            result_lines = list(export_task.result)
+
+            self.assertEqual(result_lines, expected_lines)
+
         self.assertFalse(messages)
 
     def run_xls_export_test(self, expected_rows, export_options=None, user=None):
@@ -655,3 +665,61 @@ class MockDataExports(MockDataExportsBase):
         # fails with `KeyError` prior to fix for kobotoolbox/formpack#219
         self.run_csv_export_test(expected_lines, asset=asset)
 
+    def test_anotheruser_can_export_when_submissions_publicly_shared(self):
+        """
+        Running through behaviour described in issue kpi/#2870 where an asset
+        that has been publicly shared and then explicity shared with a user, the
+        user has lower permissions than an anonymous user and is therefore
+        unable to export submission data.
+        """
+        # resetting permissions of `anotheruser` to have no permissions
+        self.asset.remove_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS)
+        self.asset.remove_perm(self.anotheruser, PERM_VIEW_ASSET)
+
+        anonymous_user = get_anonymous_user()
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == False
+        assert PERM_VIEW_ASSET not in self.asset.get_perms(self.anotheruser)
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == False
+        assert PERM_CHANGE_ASSET not in self.asset.get_perms(self.anotheruser)
+
+        # required to export
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_ASSET)
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == True
+        assert PERM_CHANGE_ASSET in self.asset.get_perms(self.anotheruser)
+
+        assert (
+            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+            == False
+        )
+        assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(
+            self.anotheruser
+        )
+
+        self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+
+        assert (
+            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
+        )
+        assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
+
+        # testing anotheruser can export data
+        self.run_csv_export_test(user=self.anotheruser)
+
+        # resetting permissions of asset
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [
+                {'_submitted_by': self.anotheruser.username}
+            ]
+        }
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+        self.asset.remove_perm(self.anotheruser, PERM_CHANGE_ASSET)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)

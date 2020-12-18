@@ -169,6 +169,10 @@ CONSTANCE_CONFIG = {
         '',
         'Blacklisted IP addresses to bypass SSRF protection\nOne per line',
     ),
+    'EXPOSE_GIT_REV': (
+        False,
+        'Display information about the running commit to non-superusers',
+    ),
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -642,9 +646,6 @@ for git_rev_key, git_command in (
         GIT_REV[git_rev_key] = False
 if GIT_REV['branch'] == 'HEAD':
     GIT_REV['branch'] = False
-# Only superusers will be able to see this information unless
-# EXPOSE_GIT_REV=TRUE is set in the environment
-EXPOSE_GIT_REV = os.environ.get('EXPOSE_GIT_REV', '').upper() == 'TRUE'
 
 
 '''

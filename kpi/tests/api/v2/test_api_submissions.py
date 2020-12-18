@@ -6,8 +6,14 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
-from kpi.constants import PERM_VIEW_SUBMISSIONS, \
-    PERM_PARTIAL_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.models import Asset
 from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.base_test_case import BaseTestCase
@@ -233,6 +239,53 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
+    def test_list_submissions_asset_publicly_shared_and_shared_with_user(self):
+        """
+        Running through behaviour described in issue kpi/#2870 where an asset
+        that has been publicly shared and then explicity shared with a user, the
+        user has lower permissions than an anonymous user and is therefore
+        unable to view submission data.
+        """
+
+        self._log_in_as_another_user()
+        anonymous_user = get_anonymous_user()
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == False
+        assert PERM_VIEW_ASSET not in self.asset.get_perms(self.anotheruser)
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == False
+        assert PERM_CHANGE_ASSET not in self.asset.get_perms(self.anotheruser)
+
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_ASSET)
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == True
+        assert PERM_CHANGE_ASSET in self.asset.get_perms(self.anotheruser)
+
+        assert (
+            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+            == False
+        )
+        assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(
+            self.anotheruser
+        )
+
+        self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
+
+        assert (
+            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
+        )
+        assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
+
+        # resetting permssions of asset
+        self.asset.remove_perm(self.anotheruser, PERM_VIEW_ASSET)
+        self.asset.remove_perm(self.anotheruser, PERM_CHANGE_ASSET)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+
     def test_retrieve_submission_owner(self):
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get(
@@ -325,11 +378,16 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Give user `change_submissions` should not give permission to delete.
-        # Only owner can delete submissions on `kpi`. `delete_submissions` is
-        # a calculated permission and thus, can not be assigned.
-        # TODO Review this test when kpi#2282 is released.
+        # `another_user` should not be able to delete with 'change_submissions'
+        # permission.
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+        response = self.client.delete(url,
+                                      content_type="application/json",
+                                      HTTP_ACCEPT="application/json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Let's assign them 'delete_submissions'. Everything should be ok then!
+        self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
