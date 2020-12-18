@@ -659,7 +659,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return dt.isoformat('T', 'milliseconds')
 
     def duplicate_submission(
-        self, requesting_user_id: int, instance_id: int, **kwargs: dict
+        self, requesting_user_id: int, instance_id: int
     ) -> dict:
         """
         Dupicates a single submission proxied through kobocat. The submission
@@ -670,7 +670,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Args:
             requesting_user_id (int)
             instance_id (int)
-            kwargs (dict): passed to validation
 
         Returns:
             dict: message response from kobocat and uuid of created submission

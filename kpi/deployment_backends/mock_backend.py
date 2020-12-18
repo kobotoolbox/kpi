@@ -212,7 +212,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         submission = next(
             filter(lambda sub: sub['_id'] == instance_id, all_submissions)
         )
-        next_id = max([sub['_id'] for sub in all_submissions]) + 1
+        next_id = max((sub['_id'] for sub in all_submissions)) + 1
         duplicate_submission = copy.copy(submission)
         updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
         updated_fields = {
