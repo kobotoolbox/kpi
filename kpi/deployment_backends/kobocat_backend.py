@@ -301,8 +301,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         filters = {
             'permission__codename': PERM_FROM_KC_ONLY,
-            'object_id': self.asset.id,
-            'content_type': ContentType.objects.get_for_model(self.asset)
+            'asset_id': self.asset.id,
         }
         if specific_user is not None:
             try:
@@ -668,7 +667,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return dt.isoformat('T', 'milliseconds')
 
     def duplicate_submission(
-        self, requesting_user_id: int, instance_id: int, **kwargs: dict
+        self, requesting_user_id: int, instance_id: int
     ) -> dict:
         """
         Dupicates a single submission proxied through kobocat. The submission
@@ -679,7 +678,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Args:
             requesting_user_id (int)
             instance_id (int)
-            kwargs (dict): passed to validation
 
         Returns:
             dict: message response from kobocat and uuid of created submission
@@ -713,8 +711,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         if kc_response.status_code == status.HTTP_201_CREATED:
-            return self.__get_latest_duplicate_submission(
-                requesting_user_id, _uuid
+            return next(
+                self.get_submissions(requesting_user_id, query={'_uuid': _uuid})
             )
         else:
             raise KobocatDuplicateSubmissionException
@@ -887,20 +885,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                                                       validate_count=True,
                                                       **kwargs)
         return MongoHelper.get_count(self.mongo_userform_id, **params)
-
-    def __get_latest_duplicate_submission(
-        self, requesting_user_id: int, _uuid: str
-    ) -> dict:
-        """
-        Retrieves the most recent duplicated submission for an asset in JSON
-        format
-        """
-        kwargs = {'query': {'_uuid': _uuid}}
-        params = self.validate_submission_list_params(
-            requesting_user_id, **kwargs
-        )
-
-        return next(self.__get_submissions_in_json(**params))
 
     def __get_submissions_in_json(self, **params):
         """
