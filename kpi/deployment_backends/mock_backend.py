@@ -1,10 +1,15 @@
 # coding: utf-8
+import copy
 import re
+import uuid
+from datetime import datetime
 
+import pytz
 from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.exceptions import KobocatBulkUpdateSubmissionsException
 from .base_backend import BaseDeploymentBackend
 
 
@@ -201,6 +206,24 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         return submissions
 
+    def duplicate_submission(
+        self, requesting_user_id: int, instance_id: int, **kwargs: dict
+    ) -> dict:
+        all_submissions = self.asset._deployment_data['submissions']
+        submission = next(
+            filter(lambda sub: sub['_id'] == instance_id, all_submissions)
+        )
+        next_id = max((sub['_id'] for sub in all_submissions)) + 1
+        updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        updated_fields = {
+                '_id': next_id,
+                'start': updated_time,
+                'end': updated_time,
+                'instanceID': f'uuid:{uuid.uuid4()}'
+                }
+
+        return {**submission, **updated_fields}
+
     def get_validation_status(self, submission_pk, params, user):
         submission = self.get_submission(submission_pk, user.id,
                                          INSTANCE_FORMAT_TYPE_JSON)
@@ -213,6 +236,43 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def set_validation_statuses(self, data, user, method):
         pass
+
+    @staticmethod
+    def __prepare_payload(request_data: dict) -> dict:
+        submission_ids = request_data.pop('submission_ids')
+        # For some reason DRF puts the strings into a list so this just takes
+        # them back out again to more accurately reflect the behaviour of the
+        # non-mocked methods
+        for k,v in request_data.items():
+            request_data[k] = v[0]
+        request_data['submission_ids'] = list(map(int, submission_ids))
+        return request_data
+
+    def bulk_update_submissions(
+        self, request_data: dict, requesting_user_id: int
+    ) -> dict:
+        payload = self.__prepare_payload(request_data)
+        all_submissions = copy.copy(self.asset._deployment_data['submissions'])
+        instance_ids = payload.pop('submission_ids')
+
+        successful_updates = 0
+        for submission in all_submissions:
+            if submission['_id'] in instance_ids:
+                submission['deprecatedID'] = submission['instanceID']
+                submission['instanceID'] = f'uuid:{uuid.uuid4()}'
+                for k,v in payload.items():
+                    submission[k] = v
+                successful_updates += 1
+
+        if successful_updates > 0:
+            return {
+                'status': status.HTTP_200_OK,
+                'data': {
+                    'detail': f'{successful_updates} submissions have been updated'
+                }
+            }
+        else:
+            raise KobocatBulkUpdateSubmissionsException
 
     def set_has_kpi_hooks(self):
         """
