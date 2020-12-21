@@ -1,6 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import clonedeep from 'lodash.clonedeep';
+import Fuse from 'fuse.js';
 import {
   getSurveyFlatPaths,
   getFlatQuestionsList
@@ -9,7 +10,15 @@ import {
   QUESTION_TYPES
 } from 'js/constants';
 import {bem} from 'js/bem';
-import TextBox from 'js/components/textBox'
+import TextBox from 'js/components/textBox';
+
+const FUSE_OPTIONS = {
+  includeScore: true,
+  minMatchCharLength: 1,
+  shouldSort: false,
+  ignoreFieldNorm: true,
+  threshold: 0.2,
+};
 
 /**
  * @prop onSetModalTitle
@@ -26,6 +35,8 @@ class BulkEditSubmissionsForm extends React.Component {
       overrides: {},
       selectedQuestion: null, // or object
       selectedQuestionOverride: null,
+      filterByName: '',
+      filterByValue: '',
     };
     autoBind(this);
   }
@@ -62,6 +73,14 @@ class BulkEditSubmissionsForm extends React.Component {
 
   onReset() {
     this.setState({overrides: {}});
+  }
+
+  onFilterByNameChange(newFilter) {
+    this.setState({filterByName: newFilter});
+  }
+
+  onFilterByValueChange(newFilter) {
+    this.setState({filterByValue: newFilter});
   }
 
   selectQuestion(question) {
@@ -113,7 +132,12 @@ class BulkEditSubmissionsForm extends React.Component {
     return questions;
   }
 
-  renderRow(question, itemIndex) {
+  renderRow(questionData, itemIndex) {
+    let question = questionData;
+    if (typeof questionData.refIndex !== 'undefined') {
+      question = questionData.item;
+    }
+
     const typeDef = QUESTION_TYPES.get(question.type);
     const modifiers = ['columns', 'padding-small'];
     if (itemIndex !== 0) {
@@ -166,10 +190,36 @@ class BulkEditSubmissionsForm extends React.Component {
   renderList() {
     const displayData = this.getDisplayData();
 
+    let finalData = displayData;
+    let fuse = null;
+
+    if (this.state.filterByName !== '') {
+      fuse = new Fuse(finalData, {...FUSE_OPTIONS, keys: ['label']});
+      finalData = fuse.search(this.state.filterByName);
+    }
+    if (this.state.filterByValue !== '') {
+      fuse = new Fuse(finalData, {...FUSE_OPTIONS, keys: ['selectedData.value']});
+      finalData = fuse.search(this.state.filterByValue);
+    }
+
     return (
       <React.Fragment>
         <bem.FormModal__item m='wrapper'>
-          {displayData.map(this.renderRow)}
+          <bem.FormView__cell>
+            <TextBox
+              value={this.state.filterByName}
+              onChange={this.onFilterByNameChange}
+              label={t('Filter by name')}
+            />
+
+            <TextBox
+              value={this.state.filterByValue}
+              onChange={this.onFilterByValueChange}
+              label={t('Filter by value')}
+            />
+          </bem.FormView__cell>
+
+          {finalData.map(this.renderRow)}
         </bem.FormModal__item>
 
         <bem.Modal__footer>
