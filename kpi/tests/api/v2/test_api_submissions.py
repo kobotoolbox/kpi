@@ -548,7 +548,9 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         )
         self.updated_submission_data = {
             'submission_ids': ['1', '2'],
-            'q1': '🕺',
+            'data': {
+                'q1': '🕺',
+            },
         }
 
     def _check_bulk_update(self, response):
@@ -560,7 +562,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
 
     def test_bulk_update_submissions_by_owner_allowed(self):
         response = self.client.patch(
-            self.submission_url, data=self.updated_submission_data
+            self.submission_url, data=self.updated_submission_data, format='json'
         )
         assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)
@@ -568,14 +570,14 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
     def test_bulk_update_submissions_by_anotheruser_not_allowed(self):
         self._log_in_as_another_user()
         response = self.client.patch(
-            self.submission_url, data=self.updated_submission_data
+            self.submission_url, data=self.updated_submission_data, format='json'
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_bulk_update_submissions_by_anonymous_not_allowed(self):
         self.client.logout()
         response = self.client.patch(
-            self.submission_url, data=self.updated_submission_data
+            self.submission_url, data=self.updated_submission_data, format='json'
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -583,7 +585,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self._share_with_another_user()
         self._log_in_as_another_user()
         response = self.client.patch(
-            self.submission_url, data=self.updated_submission_data
+            self.submission_url, data=self.updated_submission_data, format='json'
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -591,7 +593,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self._share_with_another_user(view_only=False)
         self._log_in_as_another_user()
         response = self.client.patch(
-            self.submission_url, data=self.updated_submission_data
+            self.submission_url, data=self.updated_submission_data, format='json'
         )
         assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)

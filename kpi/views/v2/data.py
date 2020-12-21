@@ -231,9 +231,11 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >
     >        {
     >           "submission_ids": [{integer}],
-    >           <field_to_update_1>: <value_1>,
-    >           <field_to_update_2>: <value_2>,
-    >           <field_to_update_n>: <value_n>
+    >           "data": {
+    >               <field_to_update_1>: <value_1>,
+    >               <field_to_update_2>: <value_2>,
+    >               <field_to_update_n>: <value_n>
+    >           }
     >        }
 
     where `<field_to_update_n>` is a string and should be an existing XML field value of the submissions.

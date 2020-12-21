@@ -789,7 +789,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Returns:
             dict: formatted dict to be passed to a Response object
         """
-        payload = self.__prepare_payload(request_data)
+        payload = self.__prepare_bulk_update_payload(request_data)
         kwargs = {'instance_ids': payload.pop('submission_ids')}
         params = self.validate_submission_list_params(
             requesting_user_id, format_type=INSTANCE_FORMAT_TYPE_XML, **kwargs
@@ -811,12 +811,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             instance_id = xml_parsed.find('meta/instanceID')
             # If the submission has been edited before, it will already contain
             # a deprecatedID element - otherwise create a new element
-            deprecated_id = (
-                xml_parsed.find('meta/deprecatedID')
-                if xml_parsed.find('meta/deprecatedID') is not None
+            deprecated_id = xml_parsed.find('meta/deprecatedID')
+            deprecated_id_or_new = (
+                deprecated_id
+                if deprecated_id is not None
                 else ET.SubElement(xml_parsed.find('meta'), 'deprecatedID')
             )
-            deprecated_id.text = instance_id.text
+            deprecated_id_or_new.text = instance_id.text
             instance_id.text = uuid_formatted
 
             # If the form has been updated with new fields and earlier
@@ -824,7 +825,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # a new element has to be created before a value can be set.
             # However, with this new power, arbitrary fields can be added
             # to the XML tree through the API.
-            for k, v in payload.items():
+            for k, v in payload['data'].items():
                 # A potentially clunky way of taking groups and nested groups
                 # into account when the elements don't exist on the XML tree
                 # (which could be the case if the form has been updated). They
@@ -843,9 +844,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                             )
                             accumulated_elements.append(element)
 
+                element_to_update = xml_parsed.find(k)
                 element_to_update_or_new = (
-                    xml_parsed.find(k)
-                    if xml_parsed.find(k) is not None
+                    element_to_update
+                    if element_to_update is not None
                     else ET.SubElement(xml_parsed, k)
                 )
                 element_to_update_or_new.text = v
@@ -1006,7 +1008,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return prepared_drf_response
 
     @staticmethod
-    def __validate_payload(payload: dict) -> dict:
+    def __validate_bulk_update_payload(payload: dict) -> dict:
         """
         Validating the request payload for bulk updating of submissions
         """
@@ -1020,7 +1022,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 detail=_('`submission_ids` must be an array')
             )
 
-        if len(payload) < 2:
+        if not 'data' in payload:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('`data` must be included in the payload')
+            )
+
+        if len(payload['data']) == 0:
             raise KobocatBulkUpdateSubmissionsClientException(
                 detail=_('Payload must contain data to update the submissions')
             )
@@ -1028,27 +1035,30 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return payload
 
     @classmethod
-    def __prepare_payload(cls, request_data: dict) -> dict:
+    def __prepare_bulk_update_payload(cls, request_data: dict) -> dict:
         """
         Preparing the request payload for bulk updating of submissions
         """
         payload = json.loads(request_data['payload'][0])
-        validated_payload = cls.__validate_payload(payload)
+        validated_payload = cls.__validate_bulk_update_payload(payload)
 
         # Ensuring submission ids are integer values and unique
-        validated_payload['submission_ids'] = list(
-            set(map(int, validated_payload['submission_ids']))
-        )
+        try:
+            validated_payload['submission_ids'] = list(
+                set(map(int, validated_payload['submission_ids']))
+            )
+        except ValueError as e:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('`submission_ids` must only contain integer values')
+            )
 
         # Sanitizing the payload of potentially destructive keys
-        santized_payload = copy.copy(validated_payload)
-        for key in validated_payload:
-            if key == 'submission_ids':
-                continue
+        santized_payload = copy.deepcopy(validated_payload)
+        for key in validated_payload['data']:
             if key in cls.PROTECTED_XML_FIELDS or (
                 '/' in key and key.split('/')[0] in cls.PROTECTED_XML_FIELDS
             ):
-                santized_payload.pop(key)
+                santized_payload['data'].pop(key)
 
         return santized_payload
 

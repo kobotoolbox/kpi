@@ -47,7 +47,7 @@ def _load_library_content(structure):
                 row_tags.append(tag_name)
                 tag_name_to_pk[tag_name] = None # Will be filled in later
                 del row[key]
-        block_name = row.get('block', None)
+        block_name = row.pop('block', None)
         grouped[block_name].append((row, row_tags,))
 
     # Resolve tag names to PKs
