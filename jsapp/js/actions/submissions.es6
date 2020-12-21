@@ -9,6 +9,7 @@ import {notify} from 'utils';
 const submissionsActions = Reflux.createActions({
   bulkDeleteStatus: {children: ['completed', 'failed']},
   bulkPatchStatus: {children: ['completed', 'failed']},
+  bulkPatchValues: {children: ['completed', 'failed']},
   bulkDelete: {children: ['completed', 'failed']},
 });
 
@@ -29,7 +30,19 @@ submissionsActions.bulkPatchStatus.listen((uid, data) => {
 submissionsActions.bulkPatchStatus.failed.listen(() => {
   notify(t('Failed to update submissions.'), 'error');
 });
-  notify(t('Failed to update submissions.'), 'error');
+
+/**
+ * @param {object} data
+ * @param {string[]} data.submission_ids
+ * @param {string} data.<field_name_to_update> - with a new value, repeat with different fields if necessary
+ */
+submissionsActions.bulkPatchValues.listen((uid, data) => {
+  dataInterface.bulkPatchSubmissionsValues(uid, data)
+    .done(submissionsActions.bulkPatchValues.completed)
+    .fail(submissionsActions.bulkPatchValues.failed);
+});
+submissionsActions.bulkPatchValues.failed.listen(() => {
+  notify(t('Failed to update submissions values.'), 'error');
 });
 
 submissionsActions.bulkDelete.listen((uid, data) => {

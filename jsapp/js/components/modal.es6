@@ -366,6 +366,7 @@ class Modal extends React.Component {
             { this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS &&
               <BulkEditSubmissionsForm
                 onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
                 asset={this.props.params.asset}
                 {...this.props.params}
               />

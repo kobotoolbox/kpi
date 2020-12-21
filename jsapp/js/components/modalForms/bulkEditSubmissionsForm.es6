@@ -1,6 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import clonedeep from 'lodash.clonedeep';
+import alertify from 'alertifyjs';
 import Fuse from 'fuse.js';
 import {
   getSurveyFlatPaths,
@@ -10,6 +11,7 @@ import {
   QUESTION_TYPES
 } from 'js/constants';
 import {bem} from 'js/bem';
+import {actions} from 'js/actions';
 import TextBox from 'js/components/textBox';
 
 const FUSE_OPTIONS = {
@@ -19,6 +21,9 @@ const FUSE_OPTIONS = {
   ignoreFieldNorm: true,
   threshold: 0.2,
 };
+
+const EMPTY_VALUE_LABEL = t('n/a');
+const MULTIPLE_VALUES_LABEL = t('Multiple responses');
 
 /**
  * @prop onSetModalTitle
@@ -38,11 +43,29 @@ class BulkEditSubmissionsForm extends React.Component {
       filterByName: '',
       filterByValue: '',
     };
+    this.unlisteners = [];
     autoBind(this);
   }
 
   componentDidMount() {
+    this.unlisteners.push(
+      actions.submissions.bulkPatchValues.completed.listen(this.onBulkPatchValuesCompleted),
+      actions.submissions.bulkPatchValues.failed.listen(this.onBulkPatchValuesFailed)
+    );
     this.setModalTitleToList();
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  onBulkPatchValuesCompleted() {
+    this.setState({isPending: false});
+    this.props.onModalClose();
+  }
+
+  onBulkPatchValuesFailed() {
+    this.setState({isPending: false});
   }
 
   setModalTitleToList() {
@@ -68,7 +91,10 @@ class BulkEditSubmissionsForm extends React.Component {
   }
 
   onSubmit() {
-    console.log(this.state.overrides);
+    this.setState({isPending: true});
+    const data = clonedeep(this.state.overrides);
+    data.submission_ids = this.props.selectedSubmissions;
+    actions.submissions.bulkPatchValues(this.props.asset.uid, data);
   }
 
   onReset() {
@@ -166,7 +192,7 @@ class BulkEditSubmissionsForm extends React.Component {
             this.state.overrides[question.name]
           }
           {!this.state.overrides[question.name] && question.selectedData.length > 0 &&
-            this.renderDataValues(question.selectedData)
+            this.renderDataValues(question.label, question.selectedData)
           }
         </bem.FormView__cell>
 
@@ -177,14 +203,32 @@ class BulkEditSubmissionsForm extends React.Component {
     );
   }
 
-  renderDataValues(rowData) {
+  renderDataValues(questionLabel, rowData) {
     const uniqueValues = new Set();
     rowData.forEach((item) => {
       if (item.value) {
         uniqueValues.add(item.value);
+      } else {
+        uniqueValues.add(EMPTY_VALUE_LABEL);
       }
     });
-    return Array.from(uniqueValues).join(', ');
+    const uniqueValuesArray = Array.from(uniqueValues);
+    if (uniqueValuesArray.length === 1) {
+      // if all rows have same value, we display it
+      return uniqueValuesArray[0];
+    } else {
+      return (
+        <React.Fragment>
+          {MULTIPLE_VALUES_LABEL}
+          <button
+            className='mdl-button mdl-button--icon'
+            onClick={() => {alertify.alert(questionLabel, uniqueValuesArray.join(', '));}}
+          >
+            <i className='k-icon k-icon-help'/>
+          </button>
+        </React.Fragment>
+      );
+    }
   }
 
   renderList() {
@@ -323,7 +367,7 @@ class BulkEditRowForm extends React.Component {
       this.props.originalData &&
       this.props.originalData.length >= 2
     ) {
-      placeholderValue = t('Multiple values');
+      placeholderValue = MULTIPLE_VALUES_LABEL;
     }
 
     return (
