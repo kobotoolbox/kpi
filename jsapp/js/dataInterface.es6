@@ -555,7 +555,7 @@ export var dataInterface;
         method: 'GET'
       });
     },
-    patchSubmissions(uid, data) {
+    bulkPatchSubmissionsValidationStatus(uid, data) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/validation_statuses/`,
         method: 'PATCH',

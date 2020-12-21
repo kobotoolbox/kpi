@@ -35,8 +35,8 @@ class TableBulkOptions extends React.Component {
   componentDidMount() {
     actions.submissions.bulkDeleteStatus.completed.listen(this.closeCurrentDialog);
     actions.submissions.bulkDeleteStatus.failed.listen(this.closeCurrentDialog);
-    actions.submissions.bulkPatch.completed.listen(this.closeCurrentDialog);
-    actions.submissions.bulkPatch.failed.listen(this.closeCurrentDialog);
+    actions.submissions.bulkPatchStatus.completed.listen(this.closeCurrentDialog);
+    actions.submissions.bulkPatchStatus.failed.listen(this.closeCurrentDialog);
     actions.submissions.bulkDelete.completed.listen(this.closeCurrentDialog);
     actions.submissions.bulkDelete.failed.listen(this.closeCurrentDialog);
   }
@@ -56,7 +56,7 @@ class TableBulkOptions extends React.Component {
     const data = {};
     let selectedCount;
     // setting empty value requires deleting the statuses with different API call
-    const apiFn = newStatus === null ? actions.submissions.bulkDeleteStatus : actions.submissions.bulkPatch;
+    const apiFn = newStatus === null ? actions.submissions.bulkDeleteStatus : actions.submissions.bulkPatchStatus;
 
     if (this.props.selectedAllPages) {
       if (this.props.fetchState.filtered.length) {

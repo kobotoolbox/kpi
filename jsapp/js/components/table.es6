@@ -702,7 +702,7 @@ export class DataTable extends React.Component {
     this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
     this.listenTo(stores.pageState, this.onPageStateUpdated);
     actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted);
-    actions.submissions.bulkPatch.completed.listen(this.onBulkChangeCompleted);
+    actions.submissions.bulkPatchStatus.completed.listen(this.onBulkChangeCompleted);
     actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted);
   }
 
