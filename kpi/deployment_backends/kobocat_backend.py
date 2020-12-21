@@ -1,11 +1,17 @@
 # coding: utf-8
+import io
 import json
 import posixpath
 import re
+import requests
+import tempfile
+import uuid
+from datetime import datetime
 from typing import Union
 from urllib.parse import urlparse
+from xml.etree import ElementTree as ET
 
-import requests
+import pytz
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
@@ -28,7 +34,11 @@ from .kc_access.utils import (
     instance_count,
     last_submission_time
 )
-from ..exceptions import BadFormatException, KobocatDeploymentException
+from ..exceptions import (
+    BadFormatException,
+    KobocatDeploymentException,
+    KobocatDuplicateSubmissionException,
+)
 
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
@@ -544,6 +554,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
+    @property
+    def submission_url(self) -> str:
+        url = '{kc_base}/submission'.format(
+            kc_base=settings.KOBOCAT_URL,
+        )
+        return url
+
     def get_submission_detail_url(self, submission_pk):
         url = '{list_url}/{pk}'.format(
             list_url=self.submission_list_url,
@@ -614,6 +631,82 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 "The format {} is not supported".format(format_type)
             )
         return submissions
+
+    @staticmethod
+    def generate_new_instance_id() -> (str, str):
+        """
+        Returns:
+            - Generated uuid
+            - Formatted uuid for OpenRosa xml
+        """
+        _uuid = str(uuid.uuid4())
+        return _uuid, f'uuid:{_uuid}'
+
+    @staticmethod
+    def format_openrosa_datetime(dt: datetime = None) -> str:
+        """
+        Format a given datetime object or generate a new timestamp matching the
+        OpenRosa datetime formatting
+        """
+        if dt is None:
+            dt = datetime.now(tz=pytz.UTC)
+
+        # Awkward check, but it's prescribed by
+        # https://docs.python.org/3/library/datetime.html#determining-if-an-object-is-aware-or-naive
+        if dt.tzinfo is None or dt.tzinfo.utcoffset(None) is None:
+            raise ValueError('An offset-aware datetime is required')
+        return dt.isoformat('T', 'milliseconds')
+
+    def duplicate_submission(
+        self, requesting_user_id: int, instance_id: int
+    ) -> dict:
+        """
+        Dupicates a single submission proxied through kobocat. The submission
+        with the given `instance_id` is duplicated and the `start`, `end` and
+        `instanceID` parameters of the submission are reset before being posted
+        to kobocat.
+
+        Args:
+            requesting_user_id (int)
+            instance_id (int)
+
+        Returns:
+            dict: message response from kobocat and uuid of created submission
+            if successful
+        """
+        # Must be a list of ids for validation
+        kwargs['instance_ids'] = [instance_id]
+        params = self.validate_submission_list_params(
+            requesting_user_id, format_type=INSTANCE_FORMAT_TYPE_XML, **kwargs
+        )
+        submissions = self.__get_submissions_in_xml(**params)
+
+        # parsing XML
+        xml_parsed = ET.fromstring(next(submissions))
+
+        _uuid, uuid_formatted = self.generate_new_instance_id()
+        date_formatted = self.format_openrosa_datetime()
+
+        # updating xml fields for duplicate submission
+        xml_parsed.find('start').text = date_formatted
+        xml_parsed.find('end').text = date_formatted
+        xml_parsed.find('./meta/instanceID').text = uuid_formatted
+
+        file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
+        files = {'xml_submission_file': file_tuple}
+        kc_request = requests.Request(
+            method='POST', url=self.submission_url, files=files
+        )
+        kc_response = self.__kobocat_proxy_request(
+            kc_request, user=self.asset.owner
+        )
+
+        if kc_response.status_code == status.HTTP_201_CREATED:
+            return next(
+                self.get_submissions(requesting_user_id, query={'_uuid': _uuid})
+            )
+        else:
+            raise KobocatDuplicateSubmissionException
 
     def get_validation_status(self, submission_pk, params, user):
         url = self.get_submission_validation_status_url(submission_pk)
@@ -786,7 +879,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
                 prepared_drf_response['data'] = {
-                    'detail': _('KoBoCAT returned an unexpected response: {}'.format(str(e)))
+                    'detail': _(
+                        'KoBoCAT returned an unexpected response: {}'.format(str(e))
+                    )
                 }
 
         return prepared_drf_response
