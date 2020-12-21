@@ -42,6 +42,7 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestionOverride: null,
       filterByName: '',
       filterByValue: '',
+      expandedRow: null,
     };
     this.unlisteners = [];
     autoBind(this);
@@ -92,9 +93,11 @@ class BulkEditSubmissionsForm extends React.Component {
 
   onSubmit() {
     this.setState({isPending: true});
-    const data = clonedeep(this.state.overrides);
-    data.submission_ids = this.props.selectedSubmissions;
-    actions.submissions.bulkPatchValues(this.props.asset.uid, data);
+    actions.submissions.bulkPatchValues(
+      this.props.asset.uid,
+      this.props.selectedSubmissions,
+      this.state.overrides,
+    );
   }
 
   onReset() {
@@ -123,6 +126,10 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestionOverride: null,
     });
     this.setModalTitleToList();
+  }
+
+  expandRowValues(rowName) {
+    this.setState({expandedRow: rowName});
   }
 
   saveOverride() {
@@ -192,7 +199,7 @@ class BulkEditSubmissionsForm extends React.Component {
             this.state.overrides[question.name]
           }
           {!this.state.overrides[question.name] && question.selectedData.length > 0 &&
-            this.renderDataValues(question.label, question.selectedData)
+            this.renderDataValues(question.name, question.selectedData)
           }
         </bem.FormView__cell>
 
@@ -203,7 +210,7 @@ class BulkEditSubmissionsForm extends React.Component {
     );
   }
 
-  renderDataValues(questionLabel, rowData) {
+  renderDataValues(questionName, rowData) {
     const uniqueValues = new Set();
     rowData.forEach((item) => {
       if (item.value) {
@@ -216,13 +223,15 @@ class BulkEditSubmissionsForm extends React.Component {
     if (uniqueValuesArray.length === 1) {
       // if all rows have same value, we display it
       return uniqueValuesArray[0];
+    } else if (this.state.expandedRow === questionName) {
+      return uniqueValuesArray.join(', ');
     } else {
       return (
         <React.Fragment>
           {MULTIPLE_VALUES_LABEL}
           <button
             className='mdl-button mdl-button--icon'
-            onClick={() => {alertify.alert(questionLabel, uniqueValuesArray.join(', '));}}
+            onClick={this.expandRowValues.bind(this, questionName)}
           >
             <i className='k-icon k-icon-help'/>
           </button>

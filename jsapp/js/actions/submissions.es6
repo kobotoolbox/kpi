@@ -32,11 +32,12 @@ submissionsActions.bulkPatchStatus.failed.listen(() => {
 });
 
 /**
+ * @param {string} uid - project unique id
+ * @param {string[]} submissionIds - selected submissions
  * @param {object} data
- * @param {string[]} data.submission_ids
  * @param {string} data.<field_name_to_update> - with a new value, repeat with different fields if necessary
  */
-submissionsActions.bulkPatchValues.listen((uid, data) => {
+submissionsActions.bulkPatchValues.listen((uid, submissionIds, data) => {
   dataInterface.bulkPatchSubmissionsValues(uid, data)
     .done(submissionsActions.bulkPatchValues.completed)
     .fail(submissionsActions.bulkPatchValues.failed);
