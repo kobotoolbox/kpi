@@ -825,7 +825,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # a new element has to be created before a value can be set.
             # However, with this new power, arbitrary fields can be added
             # to the XML tree through the API.
-            for k, v in payload.items():
+            for k, v in payload['data'].items():
                 # A potentially clunky way of taking groups and nested groups
                 # into account when the elements don't exist on the XML tree
                 # (which could be the case if the form has been updated). They
@@ -1022,7 +1022,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 detail=_('`submission_ids` must be an array')
             )
 
-        if len(payload) < 2:
+        if not 'data' in payload:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('`data` must be included in the payload')
+            )
+
+        if len(payload['data']) == 0:
             raise KobocatBulkUpdateSubmissionsClientException(
                 detail=_('Payload must contain data to update the submissions')
             )
@@ -1048,14 +1053,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
 
         # Sanitizing the payload of potentially destructive keys
-        santized_payload = copy.copy(validated_payload)
-        for key in validated_payload:
-            if key == 'submission_ids':
-                continue
+        santized_payload = copy.deepcopy(validated_payload)
+        for key in validated_payload['data']:
             if key in cls.PROTECTED_XML_FIELDS or (
                 '/' in key and key.split('/')[0] in cls.PROTECTED_XML_FIELDS
             ):
-                santized_payload.pop(key)
+                santized_payload['data'].pop(key)
 
         return santized_payload
 

@@ -238,20 +238,23 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         pass
 
     @staticmethod
-    def __prepare_payload(request_data: dict) -> dict:
-        submission_ids = request_data.pop('submission_ids')
+    def __prepare_bulk_update_payload(request_data: dict) -> dict:
         # For some reason DRF puts the strings into a list so this just takes
         # them back out again to more accurately reflect the behaviour of the
         # non-mocked methods
-        for k,v in request_data.items():
-            request_data[k] = v[0]
-        request_data['submission_ids'] = list(map(int, submission_ids))
+        for k,v in request_data['data'].items():
+            request_data['data'][k] = v[0]
+
+        request_data['submission_ids'] = list(
+            set(map(int, request_data['submission_ids']))
+        )
+
         return request_data
 
     def bulk_update_submissions(
         self, request_data: dict, requesting_user_id: int
     ) -> dict:
-        payload = self.__prepare_payload(request_data)
+        payload = self.__prepare_bulk_update_payload(request_data)
         all_submissions = copy.copy(self.asset._deployment_data['submissions'])
         instance_ids = payload.pop('submission_ids')
 
@@ -260,7 +263,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             if submission['_id'] in instance_ids:
                 submission['deprecatedID'] = submission['instanceID']
                 submission['instanceID'] = f'uuid:{uuid.uuid4()}'
-                for k,v in payload.items():
+                for k,v in payload['data'].items():
                     submission[k] = v
                 successful_updates += 1
 
