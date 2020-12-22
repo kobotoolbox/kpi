@@ -268,10 +268,7 @@ module.exports = do ->
         @model.set 'value', value
         @model.deduplicate @model.getSurvey()
       )
-      # Update "Data Column Name" with `name` of question first, then use label.
-      # The order was swapped to fix kpi#706 but using the current order does
-      # not break the fix and is necessary to fix kpi#2873.
-      update_view = () => @$el.find('input').eq(0).val(@model.get("value") || $modelUtils.sluggifyLabel @model._parent.getValue('label'))
+      update_view = () => @$el.find('input').eq(0).val($modelUtils.sluggifyLabel @model._parent.getValue('label') || @model.get("value"))
       update_view()
 
       @model._parent.get('label').on 'change:value', update_view
