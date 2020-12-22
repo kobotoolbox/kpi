@@ -1,7 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import clonedeep from 'lodash.clonedeep';
-import alertify from 'alertifyjs';
 import Fuse from 'fuse.js';
 import {
   getSurveyFlatPaths,
@@ -24,6 +23,7 @@ const FUSE_OPTIONS = {
 
 const EMPTY_VALUE_LABEL = t('n/a');
 const MULTIPLE_VALUES_LABEL = t('Multiple responses');
+const HELP_ARTICLE_URL = 'https://foo.bar';
 
 /**
  * @prop onSetModalTitle
@@ -42,7 +42,7 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestionOverride: null,
       filterByName: '',
       filterByValue: '',
-      expandedRow: null,
+      expandedRows: {},
     };
     this.unlisteners = [];
     autoBind(this);
@@ -128,8 +128,14 @@ class BulkEditSubmissionsForm extends React.Component {
     this.setModalTitleToList();
   }
 
-  expandRowValues(rowName) {
-    this.setState({expandedRow: rowName});
+  toggleExpandRowValues(rowName, isVisible) {
+    const newExpandedRows = this.state.expandedRows;
+    if (isVisible) {
+      newExpandedRows[rowName] = true;
+    } else {
+      delete newExpandedRows[rowName];
+    }
+    this.setState({expandedRows: newExpandedRows});
   }
 
   saveOverride() {
@@ -223,18 +229,31 @@ class BulkEditSubmissionsForm extends React.Component {
     if (uniqueValuesArray.length === 1) {
       // if all rows have same value, we display it
       return uniqueValuesArray[0];
-    } else if (this.state.expandedRow === questionName) {
-      return uniqueValuesArray.join(', ');
     } else {
       return (
         <React.Fragment>
           {MULTIPLE_VALUES_LABEL}
-          <button
-            className='mdl-button mdl-button--icon'
-            onClick={this.expandRowValues.bind(this, questionName)}
-          >
-            <i className='k-icon k-icon-help'/>
-          </button>
+
+          {!this.state.expandedRows[questionName] &&
+            <button
+              className='mdl-button mdl-button--icon'
+              onClick={this.toggleExpandRowValues.bind(this, questionName, true)}
+            >
+              <i className='k-icon k-icon-help'/>
+            </button>
+          }
+
+          {this.state.expandedRows[questionName] &&
+            <div>
+              <span>{uniqueValuesArray.join(', ')}</span>
+              <button
+                className='mdl-button mdl-button--icon'
+                onClick={this.toggleExpandRowValues.bind(this, questionName, false)}
+              >
+                <i className='k-icon k-icon-remove'/>
+              </button>
+            </div>
+          }
         </React.Fragment>
       );
     }
@@ -258,18 +277,28 @@ class BulkEditSubmissionsForm extends React.Component {
     return (
       <React.Fragment>
         <bem.FormModal__item m='wrapper'>
-          <bem.FormView__cell>
-            <TextBox
-              value={this.state.filterByName}
-              onChange={this.onFilterByNameChange}
-              label={t('Filter by name')}
-            />
+          {t('You are currently seeing multiple submissions at once. You can select specific questions to edit or remove reponses in bulk. If you want to edit only one submission, click on the desired submission on the navigation menu on the top-left corner of this table, or go back to the general table view. You can learn more about bulk actions')} <a href={HELP_ARTICLE_URL}>{t('in the help article')}</a>.
+        </bem.FormModal__item>
 
-            <TextBox
-              value={this.state.filterByValue}
-              onChange={this.onFilterByValueChange}
-              label={t('Filter by value')}
-            />
+        <bem.FormModal__item m='wrapper'>
+          <bem.FormView__cell m={['columns', 'padding-small']}>
+            <bem.FormView__cell m='column-icon'> </bem.FormView__cell>
+
+            <bem.FormView__cell m={['column-1', 'asset-content-summary-name']}>
+              <TextBox
+                value={this.state.filterByName}
+                onChange={this.onFilterByNameChange}
+                placeholder={t('Type to filter')}
+              />
+            </bem.FormView__cell>
+
+            <bem.FormView__cell m='column-1'>
+              <TextBox
+                value={this.state.filterByValue}
+                onChange={this.onFilterByValueChange}
+                placeholder={t('Type to filter')}
+              />
+            </bem.FormView__cell>
           </bem.FormView__cell>
 
           {finalData.map(this.renderRow)}
@@ -301,6 +330,9 @@ class BulkEditSubmissionsForm extends React.Component {
   renderSelectedQuestion() {
     return (
       <React.Fragment>
+        <bem.FormModal__item m='wrapper'>
+          {t('You are about to edit responses for one or multiple submissions at once. Use the XML syntax in the text box below. Learn more about how to edit specific responses for one or multiple submissions')} <a href={HELP_ARTICLE_URL} target='_blank'>{t('in the help article')}</a>.
+        </bem.FormModal__item>
         <bem.FormModal__item m='wrapper'>
           <BulkEditRowForm
             question={this.state.selectedQuestion}
