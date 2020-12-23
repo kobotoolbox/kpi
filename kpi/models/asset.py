@@ -495,6 +495,8 @@ class Asset(ObjectPermissionMixin,
     # provided by `DeployableMixin`
     _deployment_data = JSONBField(default=dict)
 
+    data_sharing = LazyDefaultJSONBField(default=dict)
+
     objects = AssetManager()
 
     @property

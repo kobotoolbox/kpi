@@ -1,10 +1,16 @@
 # coding: utf-8
+import re
+import socket
+
+from django.conf import settings
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
+from kpi.constants import PERM_PARTIAL_SUBMISSIONS
 from kpi.models.asset import Asset
 from kpi.models.object_permission import get_anonymous_user
-from kpi.constants import PERM_PARTIAL_SUBMISSIONS
+from kpi.deployment_backends.kc_access.shadow_models import ReadOnlyKobocatXForm
+from kpi.utils.network import get_client_ip
 
 
 # FIXME: Move to `object_permissions` module.
@@ -179,6 +185,71 @@ class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
         'PATCH': required_permissions,
         'DELETE': required_permissions
     }
+
+
+class EmbedXMLPermission(permissions.BasePermission):
+    """
+    EmbedXML is widely open. We cannot rely on Django permissions because
+    enketo may need to read the data even if users are not authenticated.
+    The validations are not bullet proof because requests headers are not
+    trustworthy as they can be overridden by the client.
+
+    This class only accepts requests that match these prerequisites:
+    - Asset embed data must be turned on
+    - Domain must be internal domain
+    - Referrer must be KC media file endpoint (i.e. https://kc.domain.tld/<username>/xformsMedia/<xform_id>/<metadata_id>.xml)  # noqa
+    - Request must come from Enketo Express container
+    """
+
+    def has_permission(self, request, view):
+        """
+        Return `True` if permission is granted, raise Http404 otherwise to avoid
+        revealing asset existence.
+        """
+        # First validate whether data sharing is enabled for current asset
+        if not view.asset.data_sharing.get('enabled'):
+            raise Http404
+
+        # ToDo Validate if it works with a proxy
+        # (e.g. ELB or let's encrypt kobo proxy)
+        http_host = f"http://{request.META.get('HTTP_HOST')}"
+        # We use `.startswith()` because the port is appended to `$http_host`
+        # in Nginx in dev mode. (e.g. http://kf.docker.internal:8000)
+        if settings.KOBOFORM_INTERNAL_URL.startswith(http_host):
+            raise Http404
+
+        ee_container_ip = socket.gethostbyname('enketo_express')
+        # Validate whether request comes from Enketo Express
+        # ToDo, check if `HTTP_X_FORWARDED_FOR` should be used instead
+        # when behind ELB
+        if get_client_ip(request) != ee_container_ip:
+            raise Http404
+
+        try:
+            referrer = request.META['HTTP_REFERER']
+        except KeyError:
+            raise Http404
+        else:
+            referrer_parts = referrer.split('/')
+            child_xform_id = referrer_parts[-2]
+            try:
+                xform = ReadOnlyKobocatXForm.objects.get(pk=child_xform_id)
+            except ReadOnlyKobocatXForm.DoesNotExist:
+                raise Http404
+
+            # Validate whether referrer matches media file KC endpoint.
+            # Maybe useless? The referrer can be easily guessed and faked.
+            pattern = rf'{settings.KOBOCAT_URL}/{xform.user.username}/xformsMedia/\d+/\d+\.xml'  # noqa
+            if not re.match(pattern, referrer):
+                raise Http404
+
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        """
+        Return `True` if permission is granted, `False` otherwise.
+        """
+        return False
 
 
 # FIXME: Name is no longer accurate.

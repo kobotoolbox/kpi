@@ -91,6 +91,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     access_types = serializers.SerializerMethodField()
+    data_sharing = WritableJSONField(required=False)
 
     class Meta:
         model = Asset
@@ -139,6 +140,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'subscribers_count',
                   'status',
                   'access_types',
+                  'data_sharing',
                   )
         extra_kwargs = {
             'parent': {
@@ -483,6 +485,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 _('User cannot update target parent collection'))
 
         return parent
+
+    def validate_data_sharing(self, value):
+        return value
 
     def _content(self, obj):
         return json.dumps(obj.content)
