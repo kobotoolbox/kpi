@@ -91,7 +91,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     access_types = serializers.SerializerMethodField()
-    data_sharing = WritableJSONField(required=False)
+    data_sharing = serializers.BooleanField(required=False)
+    linked_data_sharing = WritableJSONField(required=False)
 
     class Meta:
         model = Asset
@@ -141,6 +142,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'status',
                   'access_types',
                   'data_sharing',
+                  'linked_data_sharing',
                   )
         extra_kwargs = {
             'parent': {
@@ -458,6 +460,17 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return access_types
 
+    def validate_linked_data_sharing(self, linked_data_sharing: dict) -> dict:
+        if linked_data_sharing is not None:
+            if (
+                linked_data_sharing != {}
+                and 'source_uid' not in linked_data_sharing
+            ):
+                raise serializers.ValidationError(
+                    _('`source_uid` property is required')
+                )
+        return linked_data_sharing
+
     def validate_parent(self, parent: Asset) -> Asset:
         request = self.context['request']
         user = request.user
@@ -485,9 +498,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 _('User cannot update target parent collection'))
 
         return parent
-
-    def validate_data_sharing(self, value):
-        return value
 
     def _content(self, obj):
         return json.dumps(obj.content)

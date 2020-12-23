@@ -54,7 +54,11 @@ from kpi.constants import (
 )
 from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import BadPermissionsException
-from kpi.fields import KpiUidField, LazyDefaultJSONBField
+from kpi.fields import (
+    KpiUidField,
+    LazyDefaultBooleanField,
+    LazyDefaultJSONBField,
+)
 from kpi.models.open_rosa import AbstractOpenRosaFormListModel
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.asset_translation_utils import (
@@ -495,7 +499,10 @@ class Asset(ObjectPermissionMixin,
     # provided by `DeployableMixin`
     _deployment_data = JSONBField(default=dict)
 
-    data_sharing = LazyDefaultJSONBField(default=dict)
+    # Toggle whether asset is shared with other projects or not
+    data_sharing = LazyDefaultBooleanField(default=False)
+    # JSON with source asset information (e.g. source uid, subset fields)
+    linked_data_sharing = LazyDefaultJSONBField(default=dict)
 
     objects = AssetManager()
 
@@ -844,6 +851,9 @@ class Asset(ObjectPermissionMixin,
         except IndexError:
             return None
 
+    def link_data_sharing(self):
+        self.deployment
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         """ Used by serializers to improve performance when listing assets """
@@ -968,6 +978,9 @@ class Asset(ObjectPermissionMixin,
                 # this object, update will be perform with all parent's
                 # children.
                 self.parent.update_languages()
+
+        if self.has_deployment:
+            self.deployment.link_data_sharing()
 
         if _create_version:
             self.asset_versions.create(name=self.name,

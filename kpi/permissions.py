@@ -207,7 +207,7 @@ class EmbedXMLPermission(permissions.BasePermission):
         revealing asset existence.
         """
         # First validate whether data sharing is enabled for current asset
-        if not view.asset.data_sharing.get('enabled'):
+        if not view.asset.data_sharing:
             raise Http404
 
         # ToDo Validate if it works with a proxy
@@ -220,8 +220,6 @@ class EmbedXMLPermission(permissions.BasePermission):
 
         ee_container_ip = socket.gethostbyname('enketo_express')
         # Validate whether request comes from Enketo Express
-        # ToDo, check if `HTTP_X_FORWARDED_FOR` should be used instead
-        # when behind ELB
         if get_client_ip(request) != ee_container_ip:
             raise Http404
 

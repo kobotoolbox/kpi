@@ -2,6 +2,7 @@
 import json
 import posixpath
 import re
+import time
 from collections import defaultdict
 from typing import Union
 from urllib.parse import urlparse
@@ -12,6 +13,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.reverse import reverse
 
 from kpi.constants import (
     INSTANCE_FORMAT_TYPE_JSON,
@@ -20,6 +22,7 @@ from kpi.constants import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
+from kpi.utils.hash import get_hash
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
@@ -347,6 +350,80 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             string=url
         )
 
+    def link_data_sharing(self):
+        identifier = self.identifier
+        server, parsed_identifier = self.__get_server_from_identifier(
+            identifier
+        )
+        metadata_url = self.external_to_internal_url(
+            '{}/api/v1/metadata'.format(server)
+        )
+        url = self.external_to_internal_url(self.backend_response['url'])
+        response = self._kobocat_request('GET', url)
+        metadata = response.get('metadata', [])
+        external_xmls = {
+            r['id']: r['data_value']
+            for r in metadata
+            if (
+                r['data_value'].endswith('/data/embed_xml.xml')
+                and r['data_value'].startswith(settings.KOBOFORM_INTERNAL_URL)
+            )
+        }
+
+        source_uid = self.asset.linked_data_sharing.get('source_uid')
+        if source_uid:
+            embed_xml_url = reverse(
+                'api_v2:submission-embed-xml',
+                kwargs={
+                    'parent_lookup_asset': source_uid,
+                    'format': 'xml'
+                },
+            )
+            embed_xml_url = f'{settings.KOBOFORM_INTERNAL_URL}{embed_xml_url}'
+            # Only push file to KC if it does not exist
+            if embed_xml_url not in external_xmls.values():
+                hash_ = get_hash(f'{embed_xml_url}.{str(time.time())}')
+                kwargs = {
+                    'data': {
+                        'data_value': embed_xml_url,
+                        'data_file_type': 'application/xml',
+                        'file_hash': f'md5:{hash_}',
+                        'xform': self.xform_id,
+                        'data_type': 'media',
+                        'from_kpi': False,  # Keep it to `False` to avoid getting erased on media file synchronization  # noqa
+                    }
+                }
+                self._kobocat_request('POST',
+                                      url=metadata_url,
+                                      sync_media_files=True,
+                                      **kwargs)
+
+        else:
+            for kc_file_pk in external_xmls.keys():
+                # ToDo rename `sync_media_files` (e.g. `response_only`)
+                self._kobocat_request('DELETE',
+                                      url=f'{metadata_url}/{kc_file_pk}',
+                                      sync_media_files=True)
+
+    @staticmethod
+    def make_identifier(username, id_string):
+        """
+        Uses `settings.KOBOCAT_URL` to construct an identifier from a
+        username and id string, without the caller having to specify a server
+        or know the full format of KC identifiers
+        """
+        # No need to use the internal URL here; it will be substituted in when
+        # appropriate
+        return '{}/{}/forms/{}'.format(
+            settings.KOBOCAT_URL,
+            username,
+            id_string
+        )
+
+    @property
+    def mongo_userform_id(self):
+        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
+
     def redeploy(self, active=None):
         """
         Replace (overwrite) the deployment, keeping the same identifier, and
@@ -502,33 +579,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'backend_response': json_response,
             })
 
-    @staticmethod
-    def make_identifier(username, id_string):
-        """
-        Uses `settings.KOBOCAT_URL` to construct an identifier from a
-        username and id string, without the caller having to specify a server
-        or know the full format of KC identifiers
-        """
-        # No need to use the internal URL here; it will be substituted in when
-        # appropriate
-        return '{}/{}/forms/{}'.format(
-            settings.KOBOCAT_URL,
-            username,
-            id_string
-        )
-
-    @property
-    def mongo_userform_id(self):
-        return '{}_{}'.format(self.asset.owner.username, self.xform_id_string)
-
-    @property
-    def submission_list_url(self):
-        url = '{kc_base}/api/v1/data/{formid}'.format(
-            kc_base=settings.KOBOCAT_INTERNAL_URL,
-            formid=self.backend_response['formid']
-        )
-        return url
-
     def set_validation_status(self, submission_pk, data, user, method):
         """
         Updates validation status from `kc` through proxy
@@ -575,6 +625,21 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_request = requests.Request(method='PATCH', url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
+
+    @property
+    def submission_list_url(self):
+        identifier = self.identifier
+        server, parsed_identifier = self.__get_server_from_identifier(
+            identifier
+        )
+        url = self.external_to_internal_url(
+            '{kc_base}/api/v1/data/{formid}'.format(
+                kc_base=server,
+                formid=self.backend_response['formid']
+            )
+        )
+
+        return url
 
     def sync_media_files(self):
 
