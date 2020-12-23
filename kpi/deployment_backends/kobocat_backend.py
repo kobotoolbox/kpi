@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 
 import requests
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
@@ -868,8 +867,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             params['sort'] = {self.INSTANCE_ID_FIELDNAME: 1}
             instances, count = MongoHelper.get_instances(self.mongo_userform_id,
                                                          **params)
-            instance_ids = [instance.get(self.INSTANCE_ID_FIELDNAME) for instance in
-                            instances]
+            instance_ids = [
+                instance.get(self.INSTANCE_ID_FIELDNAME)
+                for instance in instances
+            ]
             self.current_submissions_count = count
 
         queryset = ReadOnlyKobocatInstance.objects.filter(
@@ -888,7 +889,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
         queryset = queryset.order_by('id')
 
-        # When using Mongo, data is already paginated, no need to do it with PostgreSQL too.
+        # When using Mongo, data is already paginated,
+        # no need to do it with PostgreSQL too.
         if not use_mongo:
             offset = params.get('start')
             limit = offset + params.get('limit')

@@ -4,7 +4,6 @@ import json
 
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
-from hashlib import md5
 
 from django.db.models import Count, Q
 from django.http import Http404
@@ -40,10 +39,17 @@ from kpi.models.object_permission import (
 )
 from kpi.models.asset import UserAssetSubscription
 from kpi.paginators import AssetPagination
-from kpi.permissions import IsOwnerOrReadOnly, PostMappedToChangePermission, \
-    get_perm_name
-from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
-    XlsRenderer
+from kpi.permissions import (
+    get_perm_name,
+    IsOwnerOrReadOnly,
+    PostMappedToChangePermission,
+)
+from kpi.renderers import (
+    AssetJsonRenderer,
+    SSJsonRenderer,
+    XFormRenderer,
+    XlsRenderer,
+)
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
 from kpi.utils.hash import get_hash
@@ -599,21 +605,27 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if user.is_anonymous:
             raise exceptions.NotAuthenticated()
         else:
-            accessible_assets = get_objects_for_user(
-                user, "view_asset", Asset).filter(asset_type=ASSET_TYPE_SURVEY) \
+            accessible_assets = (
+                get_objects_for_user(user, "view_asset", Asset)
+                .filter(asset_type=ASSET_TYPE_SURVEY)
                 .order_by("uid")
+            )
 
-            assets_version_ids = [asset.version_id for asset in accessible_assets if asset.version_id is not None]
+            assets_version_ids = [
+                asset.version_id
+                for asset in accessible_assets
+                if asset.version_id is not None
+            ]
             # Sort alphabetically
             assets_version_ids.sort()
 
             if len(assets_version_ids) > 0:
-                hash = md5(hashable_str("".join(assets_version_ids))).hexdigest()
+                hash_ = get_hash(''.join(assets_version_ids), algorithm='md5')
             else:
-                hash = ""
+                hash_ = ''
 
             return Response({
-                "hash": hash
+                'hash': hash_
             })
 
     @action(detail=False, methods=['GET'],
