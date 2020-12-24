@@ -21,7 +21,11 @@ const FUSE_OPTIONS = {
   threshold: 0.2,
 };
 
+// we need a text to display when we need to say "this question has no answer"
 const EMPTY_VALUE_LABEL = t('n/a');
+// we need an override value that would mean "no answer" and that would be
+// different than "no override answer" (de facto `undefined`)
+const EMPTY_VALUE = null;
 const MULTIPLE_VALUES_LABEL = t('Multiple responses');
 const HELP_ARTICLE_URL = 'https://foo.bar';
 
@@ -42,7 +46,6 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestionOverride: null,
       filterByName: '',
       filterByValue: '',
-      expandedRows: {},
     };
     this.unlisteners = [];
     autoBind(this);
@@ -87,7 +90,11 @@ class BulkEditSubmissionsForm extends React.Component {
 
   onRowOverrideChange(questionName, value) {
     if (questionName === this.state.selectedQuestion.name) {
-      this.setState({selectedQuestionOverride: value});
+      if (value === undefined) {
+        this.setState({selectedQuestionOverride: EMPTY_VALUE});
+      } else {
+        this.setState({selectedQuestionOverride: value});
+      }
     }
   }
 
@@ -128,21 +135,14 @@ class BulkEditSubmissionsForm extends React.Component {
     this.setModalTitleToList();
   }
 
-  toggleExpandRowValues(rowName, isVisible) {
-    const newExpandedRows = this.state.expandedRows;
-    if (isVisible) {
-      newExpandedRows[rowName] = true;
-    } else {
-      delete newExpandedRows[rowName];
-    }
-    this.setState({expandedRows: newExpandedRows});
-  }
-
   saveOverride() {
     const newOverrides = clonedeep(this.state.overrides);
     if (
-      typeof this.state.selectedQuestionOverride === 'string' &&
-      this.state.selectedQuestionOverride.length >= 1
+      this.state.selectedQuestionOverride === EMPTY_VALUE ||
+      (
+        typeof this.state.selectedQuestionOverride === 'string' &&
+        this.state.selectedQuestionOverride.length >= 1
+      )
     ) {
       newOverrides[this.state.selectedQuestion.name] = this.state.selectedQuestionOverride;
     } else {
@@ -201,12 +201,7 @@ class BulkEditSubmissionsForm extends React.Component {
         </bem.FormView__cell>
 
         <bem.FormView__cell m={['column-1']}>
-          {this.state.overrides[question.name] &&
-            this.state.overrides[question.name]
-          }
-          {!this.state.overrides[question.name] && question.selectedData.length > 0 &&
-            this.renderDataValues(question.name, question.selectedData)
-          }
+          {this.renderDataValues(question.name, question.selectedData)}
         </bem.FormView__cell>
 
         <bem.FormView__cell>
@@ -217,6 +212,15 @@ class BulkEditSubmissionsForm extends React.Component {
   }
 
   renderDataValues(questionName, rowData) {
+    const overrideValue = this.state.overrides[questionName];
+    if (typeof overrideValue !== 'undefined') {
+      if (overrideValue === null) {
+        return (<strong>{EMPTY_VALUE_LABEL}</strong>);
+      } else {
+        return (<strong>{overrideValue}</strong>);
+      }
+    }
+
     const uniqueValues = new Set();
     rowData.forEach((item) => {
       if (item.value) {
@@ -230,32 +234,7 @@ class BulkEditSubmissionsForm extends React.Component {
       // if all rows have same value, we display it
       return uniqueValuesArray[0];
     } else {
-      return (
-        <React.Fragment>
-          {MULTIPLE_VALUES_LABEL}
-
-          {!this.state.expandedRows[questionName] &&
-            <button
-              className='mdl-button mdl-button--icon'
-              onClick={this.toggleExpandRowValues.bind(this, questionName, true)}
-            >
-              <i className='k-icon k-icon-help'/>
-            </button>
-          }
-
-          {this.state.expandedRows[questionName] &&
-            <div>
-              <span>{uniqueValuesArray.join(', ')}</span>
-              <button
-                className='mdl-button mdl-button--icon'
-                onClick={this.toggleExpandRowValues.bind(this, questionName, false)}
-              >
-                <i className='k-icon k-icon-remove'/>
-              </button>
-            </div>
-          }
-        </React.Fragment>
-      );
+      return MULTIPLE_VALUES_LABEL;
     }
   }
 
@@ -387,28 +366,54 @@ class BulkEditRowForm extends React.Component {
 
   onChange(newValue) {
     this.props.onChange(this.props.question.name, newValue);
+  }
 
+  getPlaceholderValue() {
+    let placeholderValue = t('Type to override responses for selected submissions');
+    if (this.props.overrideData === EMPTY_VALUE) {
+      // user selected a "no answer" as a new override value for submissions
+      placeholderValue = EMPTY_VALUE_LABEL;
+    }
+    return placeholderValue;
+  }
+
+  getUniqueResponses() {
+    let uniqueResponses = new Map();
+    this.props.originalData.forEach((item) => {
+      if (uniqueResponses.has(item.value)) {
+        uniqueResponses.set(item.value, uniqueResponses.get(item.value) + 1);
+      } else {
+        uniqueResponses.set(item.value, 1);
+      }
+    });
+    // sort by popularity
+    uniqueResponses = new Map([...uniqueResponses.entries()].sort((a, b) => {return b[1] - a[1];}));
+    return uniqueResponses;
+  }
+
+  renderResponseRow(data) {
+    const count = data[1];
+    const response = data[0];
+
+    let responseLabel = response;
+    let responseValue = response;
+    if (response === undefined) {
+      responseLabel = EMPTY_VALUE_LABEL;
+      responseValue = EMPTY_VALUE;
+    }
+
+    return (
+      <div key={responseLabel}>
+        <a onClick={this.onChange.bind(this, responseValue)}>{responseLabel}</a>: {count}
+      </div>
+    );
   }
 
   render() {
     let inputValue = '';
-    if (this.props.overrideData) {
-      // there is already an override value
+    if (typeof this.props.overrideData === 'string') {
+      // there is already a non empty override value
       inputValue = this.props.overrideData;
-    }
-
-    let placeholderValue = '';
-    if (
-      this.props.originalData &&
-      this.props.originalData.length === 1
-    ) {
-      // only one value means that all rows have the same value
-      placeholderValue = this.props.originalData[0];
-    } else if (
-      this.props.originalData &&
-      this.props.originalData.length >= 2
-    ) {
-      placeholderValue = MULTIPLE_VALUES_LABEL;
     }
 
     return (
@@ -417,9 +422,10 @@ class BulkEditRowForm extends React.Component {
           type='text-multiline'
           value={inputValue}
           onChange={this.onChange}
-          label={this.props.question.label}
-          placeholder={placeholderValue}
+          placeholder={this.getPlaceholderValue()}
         />
+
+        {Array.from(this.getUniqueResponses()).map(this.renderResponseRow)}
       </React.Fragment>
     );
   }
