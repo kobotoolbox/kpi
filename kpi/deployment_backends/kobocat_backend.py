@@ -22,7 +22,6 @@ from kpi.constants import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
-from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.hash import get_hash
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
@@ -359,6 +358,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
     def link_data_sharing(self):
+        from kpi.urls.router_api_v2 import URL_NAMESPACE  # avoid circular imports # noqa
+
         identifier = self.identifier
         server, parsed_identifier = self.__get_server_from_identifier(
             identifier
