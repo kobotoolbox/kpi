@@ -215,7 +215,7 @@ class EmbedXMLPermission(permissions.BasePermission):
         http_host = f"http://{request.META.get('HTTP_HOST')}"
         # We use `.startswith()` because the port is appended to `$http_host`
         # in Nginx in dev mode. (e.g. http://kf.docker.internal:8000)
-        if settings.KOBOFORM_INTERNAL_URL.startswith(http_host):
+        if not settings.KOBOFORM_INTERNAL_URL.startswith(http_host):
             raise Http404
 
         ee_container_ip = socket.gethostbyname('enketo_express')
@@ -328,4 +328,3 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
         'PATCH': ['%(app_label)s.validate_%(model_name)s'],
         'DELETE': ['%(app_label)s.validate_%(model_name)s'],
     }
-
