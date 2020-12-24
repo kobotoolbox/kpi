@@ -22,6 +22,7 @@ from kpi.constants import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
+from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.hash import get_hash
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
@@ -350,6 +351,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             string=url
         )
 
+    @staticmethod
+    def is_data_sharing_embed_xml(value: str) -> bool:
+        return (
+            value.endswith('/data/embed_xml.xml')
+            and value.startswith(settings.KOBOFORM_INTERNAL_URL)
+        )
+
     def link_data_sharing(self):
         identifier = self.identifier
         server, parsed_identifier = self.__get_server_from_identifier(
@@ -364,16 +372,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         external_xmls = {
             r['id']: r['data_value']
             for r in metadata
-            if (
-                r['data_value'].endswith('/data/embed_xml.xml')
-                and r['data_value'].startswith(settings.KOBOFORM_INTERNAL_URL)
-            )
+            if self.is_data_sharing_embed_xml(r['data_value'])
         }
 
         source_uid = self.asset.linked_data_sharing.get('source_uid')
         if source_uid:
             embed_xml_url = reverse(
-                'api_v2:submission-embed-xml',
+                f'{URL_NAMESPACE}:submission-embed-xml',
                 kwargs={
                     'parent_lookup_asset': source_uid,
                     'format': 'xml'
@@ -390,7 +395,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                         'file_hash': f'md5:{hash_}',
                         'xform': self.xform_id,
                         'data_type': 'media',
-                        'from_kpi': False,  # Keep it to `False` to avoid getting erased on media file synchronization  # noqa
+                        'from_kpi': True,
                     }
                 }
                 self._kobocat_request('POST',
@@ -713,8 +718,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         response = self._kobocat_request('GET', url)
         kc_files = defaultdict(dict)
         for metadata in response.get('metadata', []):
-            if metadata['data_type'] == 'media':
-
+            if (
+                metadata['data_type'] == 'media'
+                and not self.is_data_sharing_embed_xml(metadata['data_value'])
+            ):
                 kc_files[metadata['data_value']] = {
                     'url': metadata['url'],
                     'md5': metadata['file_hash'],
