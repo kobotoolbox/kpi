@@ -221,7 +221,7 @@ class FormMedia extends React.Component {
           <div className='form-media__upload-url'>
             <label className='form-media__label'>{t('You can also add files using a URL')}</label>
             <TextBox
-              type={'url'}
+              type='url'
               placeholder={t('Paste URL here')}
               errors={this.state.fieldsErrors.metadata}
               value={this.state.inputURL}
