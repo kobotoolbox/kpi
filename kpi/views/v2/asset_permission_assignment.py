@@ -43,7 +43,6 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     **Roles' permissions:**
 
     - Owner sees all permissions
-    - Editors see all permissions
     - Viewers see owner's permissions and their permissions
     - Anonymous users see only owner's permissions
 
@@ -178,7 +177,12 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         # one assignment fails.
         with transaction.atomic():
 
-            # First delete all assignments before assigning new ones.
+            # First, delete *all* `from_kc_only` flags
+            # TODO: Remove after kobotoolbox/kobocat#642
+            if self.asset.has_deployment:
+                self.asset.deployment.remove_from_kc_only_flag()
+
+            # Then delete all assignments before assigning new ones.
             # If something fails later, this query should rollback
             perms_to_delete = self.asset.permissions.exclude(
                 user__username=self.asset.owner.username)
@@ -188,10 +192,10 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
             for assignment in assignments:
                 context_ = dict(self.get_serializer_context())
+                context_['bulk'] = True
                 if 'partial_permissions' in assignment:
-                    context_.update({
-                        'partial_permissions': assignment['partial_permissions']
-                    })
+                    context_['partial_permissions'] = assignment['partial_permissions']
+
                 serializer = AssetBulkInsertPermissionSerializer(
                     data=assignment,
                     context=context_

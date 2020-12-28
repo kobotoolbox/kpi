@@ -145,8 +145,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
 
         self.assertEqual(expected_perms, obj_perms)
 
-
-    def test_editors_see_all_assignments(self):
+    def test_editors_see_only_self_anon_and_owner_assignments(self):
 
         self.client.login(username='someuser', password='someuser')
         permission_list_response = self.client.get(
@@ -163,7 +162,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         for user in [
             self.admin,
             self.someuser,
-            self.anotheruser,
+            # Permissions assigned to self.anotheruser must not appear
             get_anonymous_user(),
         ]:
             user_perms = self.asset.get_perms(user)
