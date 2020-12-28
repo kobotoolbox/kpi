@@ -197,67 +197,49 @@ actions.resources.createImport.listen((params, onCompleted, onFailed) => {
 /*
  * Form media endpoint actions
  */
-actions.media.uploadMedia.listen((uid, formMediaJSON, callbacks = {}) => {
+actions.media.uploadMedia.listen((uid, formMediaJSON) => {
   dataInterface.postFormMedia(uid, formMediaJSON)
     .done(() => {
-      if (callbacks.onComplete) {
-        actions.media.loadMedia(uid, callbacks);
-      }
+      actions.media.uploadMedia.completed(uid);
     })
     .fail((response) => {
       actions.media.uploadMedia.failed(response);
-      if (callbacks.onFail) {
-        callbacks.onFail(response);
-      }
     });
 });
-actions.media.uploadMedia.completed.listen((response) => {
-  // Not currently used, but can be useful in the future
+actions.media.uploadMedia.completed.listen((uid) => {
+  actions.media.loadMedia(uid);
 });
-actions.media.uploadMedia.failed.listen((response) => {
+actions.media.uploadMedia.failed.listen(() => {
   alertify.error(t('Could not upload your media'));
 });
 
-actions.media.loadMedia.listen((uid, callbacks = {}) => {
+actions.media.loadMedia.listen((uid) => {
   dataInterface.getFormMedia(uid)
     .done((response) => {
-      if (callbacks.onComplete) {
-        callbacks.onComplete(response);
-      }
+      actions.media.loadMedia.completed(response);
     })
     .fail((response) => {
       actions.media.loadMedia.failed(response);
-      if (callbacks.onFail) {
-        callbacks.onFail(response);
-      }
     });
 });
-actions.media.loadMedia.completed.listen((response) => {
-  // Not currently used, but can be useful in the future
-});
-actions.media.loadMedia.failed.listen((response) => {
+actions.media.loadMedia.failed.listen(() => {
   alertify.error(t('Something went wrong with getting your media'));
 });
 
-actions.media.deleteMedia.listen((uid, url, callbacks = {}) => {
+actions.media.deleteMedia.listen((uid, url) => {
   dataInterface.deleteFormMedia(url)
     .done(() => {
-      actions.media.deleteMedia.completed();
-      if (callbacks.onComplete) {
-        actions.media.loadMedia(uid, callbacks);
-      }
+      actions.media.deleteMedia.completed(uid);
     })
     .fail((response) => {
       actions.media.deleteMedia.failed(response);
-      if (callbacks.onFail) {
-        callbacks.onFail(response);
-      }
     });
 });
-actions.media.deleteMedia.completed.listen(() => {
+actions.media.deleteMedia.completed.listen((uid) => {
   notify(t('Successfully deleted media'));
+  actions.media.loadMedia(uid);
 });
-actions.media.deleteMedia.failed.listen((response) => {
+actions.media.deleteMedia.failed.listen(() => {
   alertify.error(t('Failed to delete media!'));
 });
 
