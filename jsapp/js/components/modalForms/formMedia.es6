@@ -31,11 +31,13 @@ class FormMedia extends React.Component {
    */
 
   componentDidMount() {
-    const callbacks = {
-      onComplete: this.onGetMediaCompleted.bind(this),
-      onFail: this.onGetMediaFailed.bind(this)
-    };
-    actions.media.loadMedia(this.props.asset.uid, callbacks);
+    actions.media.loadMedia.completed.listen(this.onGetMediaCompleted);
+    actions.media.uploadMedia.completed.listen(this.onUploadCompleted);
+    actions.media.uploadMedia.failed.listen(this.onUploadFailed);
+    actions.media.deleteMedia.completed.listen(this.onGetMediaCompleted);
+    actions.media.deleteMedia.failed.listen(this.onDeleteMediaFailed);
+
+    actions.media.loadMedia(this.props.asset.uid);
     this.setState({isVirgin: false});
   }
 
@@ -49,14 +51,6 @@ class FormMedia extends React.Component {
       isUploadFilePending: false,
       isUploadURLPending: false
     });
-  }
-
-  onGetMediaFailed(response) {
-    // Do we need to do more than say 'something went wrong'?
-  }
-
-  onDeleteMediaFailed(response) {
-    // Do we need to do more than say 'something went wrong'?
   }
 
   onUploadFailed(response) {
@@ -87,11 +81,7 @@ class FormMedia extends React.Component {
   uploadMedia(formMediaJSON) {
     // Reset error message before uploading again
     this.setState({fieldsErrors: {}});
-    const callbacks = {
-      onComplete: this.onGetMediaCompleted.bind(this),
-      onFail: this.onUploadFailed.bind(this)
-    }
-    actions.media.uploadMedia(this.props.asset.uid, formMediaJSON, callbacks);
+    actions.media.uploadMedia(this.props.asset.uid, formMediaJSON);
   }
 
   /*
@@ -140,11 +130,7 @@ class FormMedia extends React.Component {
   }
 
   onDeleteMedia(url) {
-    const callbacks = {
-      onComplete: this.onGetMediaCompleted.bind(this),
-      onFail: this.onDeleteMediaFailed.bind(this)
-    };
-    actions.media.deleteMedia(this.props.asset.uid, url, callbacks);
+    actions.media.deleteMedia(this.props.asset.uid, url);
   }
 
   /*
