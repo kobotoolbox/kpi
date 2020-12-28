@@ -10,7 +10,6 @@ import {
   ACCESS_TYPES,
   ASSET_TYPES
 } from 'js/constants';
-import {t} from 'js/utils';
 
 /**
  * @prop asset

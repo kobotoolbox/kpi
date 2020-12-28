@@ -1,5 +1,3 @@
-import {t} from 'js/utils';
-
 export const ROOT_BREADCRUMBS = new Map([
   [
     'projects', {

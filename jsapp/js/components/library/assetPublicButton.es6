@@ -5,7 +5,6 @@ import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {ASSET_TYPES} from 'js/constants';
 import {
-  t,
   notify
 } from 'js/utils';
 
