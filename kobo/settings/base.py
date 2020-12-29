@@ -300,6 +300,7 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
     os.path.join(BASE_DIR, 'static'),
     ('mocha', os.path.join(BASE_DIR, 'node_modules', 'mocha'),),
+    ('chai', os.path.join(BASE_DIR, 'node_modules', 'chai'),),
 )
 
 if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
