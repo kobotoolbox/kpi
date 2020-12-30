@@ -23,8 +23,7 @@ class AssetsTableRow extends React.Component {
     let rowCount = null;
     if (
       this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
-      this.props.asset.summary &&
-      this.props.asset.summary.row_count
+      this.props.asset.summary?.row_count
     ) {
       rowCount = this.props.asset.summary.row_count;
     } else if (
