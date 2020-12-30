@@ -40,6 +40,10 @@ $z-modal-x: 10;
     width: 80%;
     max-width: 1240px;
 
+    &.modal--large-shorter {
+      max-width: 960px;
+    }
+
     .modal__content {
       height: 100%;
       width: 100%;
