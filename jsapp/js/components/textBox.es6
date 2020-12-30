@@ -9,6 +9,7 @@
  * @prop placeholder <string>
  * @prop description <string>
  * @prop readOnly <boolean>
+ * @prop customModifiers <string[]|string>
  *
  * TODO: would be best to move it to `jsapp/js/components/generic` directory.
  */
@@ -53,6 +54,14 @@ class TextBox extends React.Component {
 
   render() {
     let modifiers = [];
+    if (
+      Array.isArray(this.props.customModifiers) &&
+      typeof this.props.customModifiers[0] === 'string'
+    ) {
+      modifiers = this.props.customModifiers;
+    } else if (typeof this.props.customModifiers === 'string') {
+      modifiers.push(this.props.customModifiers);
+    }
 
     let errors = [];
     if (Array.isArray(this.props.errors)) {

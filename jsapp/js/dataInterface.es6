@@ -555,11 +555,14 @@ export var dataInterface;
         method: 'GET'
       });
     },
-    bulkPatchSubmissionsValues(uid, data) {
+    bulkPatchSubmissionsValues(uid, submissionIds, data) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/bulk/`,
         method: 'PATCH',
-        data: {'payload': JSON.stringify(data)}
+        data: {'payload': JSON.stringify({
+          submission_ids: submissionIds,
+          data: data,
+        })}
       });
     },
     bulkPatchSubmissionsValidationStatus(uid, data) {

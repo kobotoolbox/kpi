@@ -150,6 +150,9 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
         // title is set by BulkEditSubmissionsForm
+        this.setState({
+          modalClass: 'modal--large'
+        });
         break;
 
       default:

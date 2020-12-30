@@ -38,7 +38,7 @@ submissionsActions.bulkPatchStatus.failed.listen(() => {
  * @param {string} data.<field_name_to_update> - with a new value, repeat with different fields if necessary
  */
 submissionsActions.bulkPatchValues.listen((uid, submissionIds, data) => {
-  dataInterface.bulkPatchSubmissionsValues(uid, data)
+  dataInterface.bulkPatchSubmissionsValues(uid, submissionIds, data)
     .done(submissionsActions.bulkPatchValues.completed)
     .fail(submissionsActions.bulkPatchValues.failed);
 });
