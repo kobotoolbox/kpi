@@ -799,7 +799,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             submissions
         )
 
-        response_codes = []
+        kc_responses = []
         for submission in validated_submissions:
             xml_parsed = ET.fromstring(submission)
 
@@ -863,24 +863,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             kc_response = self.__kobocat_proxy_request(
                 kc_request, user=self.asset.owner
             )
-            response_codes.append(kc_response.status_code)
 
-        successful_updates = response_codes.count(status.HTTP_201_CREATED)
+            kc_responses.append(
+                {
+                    'uuid': _uuid,
+                    'response': kc_response,
+                }
+            )
 
-        # TODO: This follows a similar reponse message that bulk updating of
-        # `validataion_statuses` will give, however there may be something more
-        # useful to send back to the client
-        if successful_updates > 0:
-            return {
-                'status': status.HTTP_200_OK,
-                'data': {
-                    'detail': _(
-                        '{} submissions of {} attempts have been updated'
-                    ).format(successful_updates, len(response_codes)),
-                },
-            }
-        else:
-            raise KobocatBulkUpdateSubmissionsException
+        return self.__prepare_bulk_update_response(kc_responses)
 
     def calculated_submission_count(self, requesting_user_id, **kwargs):
         params = self.validate_submission_list_params(requesting_user_id,
@@ -1022,6 +1013,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 detail=_('`submission_ids` must be an array')
             )
 
+        if len(payload['submission_ids']) == 0:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('`submission_ids` must contain at least one value')
+            )
+
         if not 'data' in payload:
             raise KobocatBulkUpdateSubmissionsClientException(
                 detail=_('`data` must be included in the payload')
@@ -1069,4 +1065,49 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 detail=_('No submissions match the given `submission_ids`')
             )
         return submissions
+
+    @staticmethod
+    def __prepare_bulk_update_response(kc_responses: list) -> dict:
+        '''
+        Formatting the response to allow for partial successes to be seen
+        more explicitly.
+
+        Args:
+            kc_responses (list): A list containing dictionaries with keys of
+            `_uuid` from the newly generated uuid and `response`, the response
+            object received from Kobocat
+
+        Returns:
+            dict: formatted dict to be passed to a Response object and sent to
+            the client
+        '''
+
+        # Unfortunately, the response message from OpenRosa is in XML format,
+        # so it needs to be parsed before extracting the text
+        results = [
+            {
+                'uuid': res['uuid'],
+                'status_code': res['response'].status_code,
+                'message': ET.fromstring(res['response']._content)
+                .find('{http://openrosa.org/http/response}message')
+                .text,
+            }
+            for res in kc_responses
+        ]
+        total_update_attempts = len(results)
+        total_successes = [result['status_code'] for result in results].count(
+            status.HTTP_201_CREATED
+        )
+
+        return {
+            'status': status.HTTP_200_OK
+            if total_successes > 0
+            else status.HTTP_400_BAD_REQUEST,
+            'data': {
+                'count': total_update_attempts,
+                'successes': total_successes,
+                'failures': total_update_attempts - total_successes,
+                'results': results,
+            },
+        }
 
