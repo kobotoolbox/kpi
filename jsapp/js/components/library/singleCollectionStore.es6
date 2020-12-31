@@ -18,7 +18,7 @@ import {
 // A store that listens for actions on assets from a single collection
 // Extends most functionality from myLibraryStore but overwrites some actions:
 // - searchMyLibraryAssets.* -> searchMyCollectionAssets.*
-// - searchMyCollectionMetadata.completed -> searchMyCollectionMetadata.completed
+// - searchMyLibraryMetadata.completed -> searchMyCollectionMetadata.completed
 const singleCollectionStore = Reflux.createStore({
   /**
    * A method for aborting current XHR fetch request.

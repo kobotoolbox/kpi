@@ -297,6 +297,9 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.filterValue !== filterValue
     ) {
       this.data.filterColumnId = filterColumnId;
+      if (filterValue !== undefined) {
+        filterValue = JSON.stringify(filterValue); // Adds quotes
+      }
       this.data.filterValue = filterValue;
       this.fetchData(true);
     }

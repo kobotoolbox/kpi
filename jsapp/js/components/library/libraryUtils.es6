@@ -32,7 +32,7 @@ export function isOnPublicCollectionsRoute() {
 /**
  * Checks if on `/library/asset/…`
  */
-export function isOnSingleCollectionRoute() {
+export function isOnLibraryAssetRoute() {
   const path = hashHistory.getCurrentLocation().pathname;
   return (
     path.split('/')[1] === 'library' &&

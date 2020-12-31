@@ -445,7 +445,7 @@ export var dataInterface;
       return this._searchMetadataWithPredefinedQuery(
         params,
         // we only want the currently viewed collection's assets
-        `${COMMON_QUERIES.get('qbtc')} AND parent:${params.uid}`,
+        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:${params.uid}`,
       );
     },
     searchMyLibraryMetadata(params = {}) {
