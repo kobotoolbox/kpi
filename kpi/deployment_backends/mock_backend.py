@@ -251,6 +251,20 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         return request_data
 
+    @staticmethod
+    def __prepare_bulk_update_response(kc_responses: list) -> dict:
+        total_update_attempts = len(kc_responses)
+        total_successes = total_update_attempts  # all will be successful
+        return {
+            'status': status.HTTP_200_OK,
+            'data': {
+                'count': total_update_attempts,
+                'successes': total_successes,
+                'failures': total_update_attempts - total_successes,
+                'results': kc_responses,
+            },
+        }
+
     def bulk_update_submissions(
         self, request_data: dict, requesting_user_id: int
     ) -> dict:
@@ -258,24 +272,22 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         all_submissions = copy.copy(self.asset._deployment_data['submissions'])
         instance_ids = payload.pop('submission_ids')
 
-        successful_updates = 0
+        responses = []
         for submission in all_submissions:
             if submission['_id'] in instance_ids:
+                _uuid = uuid.uuid4()
                 submission['deprecatedID'] = submission['instanceID']
-                submission['instanceID'] = f'uuid:{uuid.uuid4()}'
-                for k,v in payload['data'].items():
+                submission['instanceID'] = f'uuid:{_uuid}'
+                for k, v in payload['data'].items():
                     submission[k] = v
-                successful_updates += 1
+                responses.append(
+                    {
+                        'uuid': _uuid,
+                        'response': {},
+                    }
+                )
 
-        if successful_updates > 0:
-            return {
-                'status': status.HTTP_200_OK,
-                'data': {
-                    'detail': f'{successful_updates} submissions have been updated'
-                }
-            }
-        else:
-            raise KobocatBulkUpdateSubmissionsException
+        return self.__prepare_bulk_update_response(responses)
 
     def set_has_kpi_hooks(self):
         """
