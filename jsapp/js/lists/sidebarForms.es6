@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
+import {Link} from 'react-router';
 import Reflux from 'reflux';
 import mixins from '../mixins';
 import {bem} from '../bem';
@@ -46,20 +47,27 @@ class SidebarFormsList extends Reflux.Component {
     this.setState(searchStoreState);
   }
   renderMiniAssetRow(asset) {
-    var href = `#/forms/${asset.uid}`;
+    var href = `/forms/${asset.uid}`;
 
     if (this.userCan('view_submissions', asset) && asset.has_deployment && asset.deployment__submission_count) {
       href = href + '/summary';
+    } else {
+      href = href + '/landing';
+    }
+
+    let classNames = ['form-sidebar__item'];
+    if (asset.uid === this.currentAssetID()) {
+      classNames.push('form-sidebar__item--active');
     }
 
     return (
-      <bem.FormSidebar__item
+      <Link
+        to={href}
         key={asset.uid}
-        className={asset.uid === this.currentAssetID() ? 'active' : ''}
-        href={href}
+        className={classNames.join(' ')}
       >
         <ui.SidebarAssetName {...asset} />
-      </bem.FormSidebar__item>
+      </Link>
     );
   }
   toggleCategory(c) {

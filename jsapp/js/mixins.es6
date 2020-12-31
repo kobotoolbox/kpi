@@ -213,6 +213,25 @@ mixins.dmix = {
       return this.props.uid;
     }
   },
+  // TODO
+  // Fix `componentWillUpdate` and `componentDidMount` asset loading flow.
+  // Ideally we should build a single overaching component that would
+  // handle loading of the asset in all necessary cases in a way that all
+  // interested parties could use without duplication or confusion and with
+  // indication when the loading starts and when ends.
+  componentWillUpdate(newProps) {
+    if (
+      this.props.params &&
+      this.props.params.assetid &&
+      newProps.params &&
+      newProps.params.assetid &&
+      this.props.params.assetid !== newProps.params.assetid
+    ) {
+      // This case is used by other components (header.es6 is one such component)
+      // in a not clear way to gain a data on new asset.
+      actions.resources.loadAsset({id: newProps.params.assetid});
+    }
+  },
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
