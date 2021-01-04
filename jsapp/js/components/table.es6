@@ -872,7 +872,7 @@ export class DataTable extends React.Component {
         <bem.TableMeta__counter>
           {res1} - {res2} {t('of')}
           {' '}
-          <a className='bulk-select-link' onClick={this.bulkSelectAll}>{this.state.resultsTotal} {t('results')}</a>
+          {this.state.resultsTotal} {t('results')}
         </bem.TableMeta__counter>
 
         <TableBulkOptions
