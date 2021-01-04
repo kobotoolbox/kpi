@@ -870,9 +870,8 @@ export class DataTable extends React.Component {
     return (
       <bem.TableMeta>
         <bem.TableMeta__counter>
-          {res1} - {res2} {t('of')}
-          {' '}
-          {this.state.resultsTotal} {t('results')}
+          {res1} - {res2} {t('of')} {' '} {this.state.resultsTotal}
+          <bem.TableMeta__additionalText>{' '}{t('results')}</bem.TableMeta__additionalText>
         </bem.TableMeta__counter>
 
         <TableBulkOptions

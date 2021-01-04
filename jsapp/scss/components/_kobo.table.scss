@@ -14,7 +14,6 @@
     }
 
     .form-view__item--table-buttons {
-      flex-grow: 1;
       text-align: right;
 
       button {
@@ -276,58 +275,6 @@
     li {
       margin-bottom: 5px;
       max-width: 100%;
-    }
-  }
-}
-
-.table-meta {
-  .bulk-clear-badge-icon {
-    margin-right: -5px;
-    cursor: pointer;
-    padding: 0 5px;
-    border-radius: 50%;
-    color: $kobo-black;
-
-    &:hover {
-      color: $kobo-white;
-      background-color: $kobo-red;
-    }
-  }
-
-  .table-meta__bulk-options {
-    > * {
-      margin-left: 10px;
-    }
-  }
-}
-
-.table-bulk-checkbox {
-  position: relative;
-  display: block;
-  height: 100%;
-  line-height: 20px;
-
-  > .checkbox {
-    position: absolute;
-    z-index: 1;
-    top: calc(50% - 10px);
-    left: calc(50% - 15px);
-
-    .checkbox__wrapper {
-      padding: 0;
-      display: block;
-    }
-  }
-
-  > .popover-menu--table-bulk-checkbox {
-    .popover-menu__toggle::after {
-      content: "\F107";
-      font-family: "FontAwesome";
-      padding: 0 10px 0 30px;
-    }
-
-    .popover-menu__content {
-      left: 5px;
     }
   }
 }
