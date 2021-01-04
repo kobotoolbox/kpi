@@ -259,7 +259,7 @@ class BulkEditSubmissionsForm extends React.Component {
     return (
       <React.Fragment>
         <bem.FormModal__item m='wrapper'>
-          {t('You are currently seeing multiple submissions at once. You can select specific questions to edit or remove reponses in bulk. If you want to edit only one submission, click on the desired submission on the navigation menu on the top-left corner of this table, or go back to the general table view. You can learn more about bulk actions')} <a href={HELP_ARTICLE_URL}>{t('in the help article')}</a>.
+          {t('You are currently seeing multiple submissions at once. You can select specific questions to edit or remove responses in bulk. If you want to edit only one submission, click on the desired submission on the navigation menu on the top-left corner of this table, or go back to the general table view. You can learn more about bulk actions')} <a href={HELP_ARTICLE_URL}>{t('in the help article')}</a>.
         </bem.FormModal__item>
 
         <bem.FormModal__item m='wrapper'>
