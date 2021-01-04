@@ -43,7 +43,7 @@ export function isOnLibraryAssetRoute() {
 /**
  * Returns current collection uid
  */
-export function getCurrentCollectionUID() {
+export function getCurrentLibraryAssetUID() {
   const path = hashHistory.getCurrentLocation().pathname;
   if (
     path.split('/')[1] === 'library' &&
