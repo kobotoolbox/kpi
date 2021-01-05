@@ -120,7 +120,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
     perms_map['HEAD'] = perms_map['GET']
     perms_map['PUT'] = perms_map['POST']
     perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['GET']
 
     def has_permission(self, request, view):
         if not request.user:
