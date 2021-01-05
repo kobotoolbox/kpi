@@ -263,7 +263,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
         """
         if field_name == 'redirect_url':
             field_name = 'metadata'
-            message = f'`redirect_url`: {message}'
+            message = f'{message}'
 
         return {field_name: message}
 
