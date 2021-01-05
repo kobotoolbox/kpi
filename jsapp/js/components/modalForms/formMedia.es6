@@ -38,7 +38,6 @@ class FormMedia extends React.Component {
     actions.media.deleteMedia.failed.listen(this.onDeleteMediaFailed);
 
     actions.media.loadMedia(this.props.asset.uid);
-    this.setState({isVirgin: false});
   }
 
   /*
@@ -49,7 +48,8 @@ class FormMedia extends React.Component {
     this.setState({
       uploadedAssets: uploadedAssets.results,
       isUploadFilePending: false,
-      isUploadURLPending: false
+      isUploadURLPending: false,
+      isVirgin: false,
     });
   }
 
