@@ -197,7 +197,7 @@ class BulkEditSubmissionsForm extends React.Component {
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          {this.renderDataValues(question.name, question.selectedData)}
+          {this.renderRowDataValues(question.name, question.selectedData)}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
@@ -212,7 +212,7 @@ class BulkEditSubmissionsForm extends React.Component {
     );
   }
 
-  renderDataValues(questionName, rowData) {
+  renderRowDataValues(questionName, rowData) {
     // if there is an override value, let's display it (for override "no answer"
     // we display a label)
     const overrideValue = this.state.overrides[questionName];

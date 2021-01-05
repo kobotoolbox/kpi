@@ -250,7 +250,7 @@ export function replaceForm(asset) {
 }
 
 /**
- * NOTE: this works under a true assumption that all questions have unique names
+ * NOTE: this works based on a fact that all questions have unique names
  * @param {Array<object>} survey - from asset's `content.survey`
  * @param {boolean} [includeGroups] wheter to put groups into output
  * @returns {object} a pair of quesion names and their full paths
@@ -410,12 +410,16 @@ export function getFlatQuestionsList(survey) {
     }
 
     if (QUESTION_TYPES.has(row.type)) {
+
+      // TODO check if question is inside repeat group
+
       output.push({
         type: row.type,
         name: getRowName(row),
         isRequired: row.required,
         label: getQuestionDisplayName(row),
-        parents: openedGroups.slice(0)
+        parents: openedGroups.slice(0),
+        hasRepatParent: false,
       });
     }
   });
