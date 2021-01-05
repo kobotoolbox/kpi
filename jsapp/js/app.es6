@@ -311,6 +311,7 @@ export var routes = (
           <IndexRoute component={FormSubScreens} />
           <Route path='media' component={FormSubScreens} />
           <Route path='sharing' component={FormSubScreens} />
+          <Route path='records' component={FormSubScreens} />
           <Route path='rest' component={FormSubScreens} />
           <Route path='rest/:hookUid' component={FormSubScreens} />
           <Route path='kobocat' component={FormSubScreens} />

@@ -11,6 +11,7 @@ import assetUtils from 'js/assetUtils';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
+import RecordManagement from './modalForms/RecordManagement';
 import DataTable from './table';
 import ProjectDownloads from './projectDownloads';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
@@ -89,6 +90,8 @@ export class FormSubScreens extends React.Component {
           break;
         case `/forms/${this.state.uid}/settings/sharing`:
           return this.renderSharing();
+        case `/forms/${this.state.uid}/settings/records`:
+          return this.renderRecords();
         case `/forms/${this.state.uid}/settings/rest`:
           return <RESTServices asset={this.state} />;
         case `/forms/${this.state.uid}/settings/rest/${this.props.params.hookUid}`:
@@ -140,6 +143,11 @@ export class FormSubScreens extends React.Component {
       <bem.FormView m='form-settings-sharing'>
         <SharingForm uid={uid} />
       </bem.FormView>
+    );
+  }
+  renderRecords() {
+    return (
+      <RecordManagement asset={this.state}/>
     );
   }
   renderReset() {
