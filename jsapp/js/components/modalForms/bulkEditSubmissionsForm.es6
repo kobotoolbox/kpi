@@ -331,7 +331,7 @@ class BulkEditSubmissionsForm extends React.Component {
             m='blue'
             type='submit'
             onClick={this.onSubmit}
-            disabled={this.state.isPending}
+            disabled={this.state.isPending || Object.keys(this.state.overrides).length === 0}
           >
             {t('Confirm & close')}
           </bem.KoboButton>
