@@ -232,7 +232,15 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     def destroy(self, request, *args, **kwargs):
         object_permission = self.get_object()
         user = object_permission.user
-        if user.pk == self.asset.owner_id:
+        # If the user is not the owner of the asset, but trying to delete the
+        # owner's permissions, raise permission denied error. However, if it is
+        # the owner of the asset, they should also be prevented from deleting
+        # their own permissions, but given a more appropriate response
+        if (self.request.user.pk != self.asset.owner_id) and (
+            self.request.user.pk != user.pk
+        ):
+            raise exceptions.PermissionDenied()
+        elif user.pk == self.asset.owner_id:
             return Response({
                 'detail': _("Owner's permissions cannot be deleted")
             }, status=status.HTTP_409_CONFLICT)
