@@ -3,19 +3,6 @@
   .form-view {
     height: calc(100% - 48px);
   }
-
-  .form-view__sidetabs {
-    max-height: calc(100% - 48px);
-
-    & + .form-view,
-    & + .report-view,
-    & + .loading {
-      width: calc(100% - 170px);
-      height: calc(100% - 48px);
-      overflow: auto;
-      overflow-x: hidden;
-    }
-  }
 }
 
 .form-view {
@@ -52,6 +39,7 @@
   border-right: 1px solid $kobo-lightgray;
 
   & + .form-view,
+  & + .report-view,
   & + .loading {
     width: calc(100% - 170px);
     height: calc(100% - 48px);
@@ -719,10 +707,9 @@
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
     width: 50px;
-    padding-top: 0;
 
     a.form-view__tab {
-      padding: 3px;
+      padding-right: 3px;
       padding-left: 1px;
       font-size: 10px;
       line-height: 1.5em;
@@ -741,7 +728,6 @@
 
     a.form-view__tab {
       font-size: 12px;
-      padding: 8px 14px;
     }
 
     a.form-view__link {
