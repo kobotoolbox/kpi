@@ -401,6 +401,7 @@ export function renderTypeIcon(type, additionalClassNames = []) {
 export function getFlatQuestionsList(survey) {
   const output = [];
   const openedGroups = [];
+  let openedRepeatGroupsCount = 0;
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
       openedGroups.push(getQuestionDisplayName(row));
@@ -409,17 +410,20 @@ export function getFlatQuestionsList(survey) {
       openedGroups.pop();
     }
 
+    if (row.type === 'begin_repeat') {
+      openedRepeatGroupsCount++;
+    } else if (row.type === 'end_repeat') {
+      openedRepeatGroupsCount--;
+    }
+
     if (QUESTION_TYPES.has(row.type)) {
-
-      // TODO check if question is inside repeat group
-
       output.push({
         type: row.type,
         name: getRowName(row),
         isRequired: row.required,
         label: getQuestionDisplayName(row),
         parents: openedGroups.slice(0),
-        hasRepatParent: false,
+        hasRepatParent: openedRepeatGroupsCount >= 1,
       });
     }
   });

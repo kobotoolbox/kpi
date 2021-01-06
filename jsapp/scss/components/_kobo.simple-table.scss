@@ -47,6 +47,15 @@
       left: -3px;
     }
   }
+
+  .simple-table__row--bulk-edit-row-disabled {
+    opacity: 0.5;
+
+    // hide action buttons
+    .simple-table__cell:nth-child(4) {
+      visibility: hidden;
+    }
+  }
 }
 
 .simple-table.simple-table--bulk-edit-list,

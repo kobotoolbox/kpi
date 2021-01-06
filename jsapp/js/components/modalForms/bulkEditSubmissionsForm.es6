@@ -175,9 +175,14 @@ class BulkEditSubmissionsForm extends React.Component {
       question = questionData.item;
     }
 
+    let modifiers = [];
+    if (question.hasRepatParent) {
+      modifiers.push('bulk-edit-row-disabled');
+    }
+
     const typeDef = QUESTION_TYPES.get(question.type);
     return (
-      <bem.SimpleTable__row key={itemIndex}>
+      <bem.SimpleTable__row key={itemIndex} m={modifiers}>
         <bem.SimpleTable__cell>
           {/* TODO fix icon for date time */}
           <i title={typeDef.label} className={['fa', typeDef.faIcon].join(' ')}/>
@@ -195,7 +200,12 @@ class BulkEditSubmissionsForm extends React.Component {
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          {this.renderRowDataValues(question.name, question.selectedData)}
+          {question.hasRepatParent &&
+            t('Editing responses from repeat group questions is not possible yet.')
+          }
+          {!question.hasRepatParent &&
+            this.renderRowDataValues(question.name, question.selectedData)
+          }
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>

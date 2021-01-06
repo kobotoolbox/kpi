@@ -9,7 +9,7 @@ import mixins from 'js/mixins';
 import alertify from 'alertifyjs';
 import {
   MODAL_TYPES,
-  VALIDATION_STATUSES_LIST
+  VALIDATION_STATUSES_LIST,
 } from 'js/constants';
 import {renderCheckbox} from 'utils';
 
@@ -87,7 +87,7 @@ class TableBulkOptions extends React.Component {
         // keep the dialog open
         return false;
       },
-      oncancel: this.closeCurrentDialog
+      oncancel: this.closeCurrentDialog,
     };
     this.currentDialog.set(opts).show();
   }
@@ -144,7 +144,7 @@ class TableBulkOptions extends React.Component {
         // keep the dialog open
         return false;
       },
-      oncancel: this.closeCurrentDialog
+      oncancel: this.closeCurrentDialog,
     };
     this.currentDialog.set(opts).show();
   }
