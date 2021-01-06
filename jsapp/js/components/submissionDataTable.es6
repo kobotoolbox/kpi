@@ -11,6 +11,7 @@ import {
   getSubmissionDisplayData
 } from 'js/submissionUtils';
 import {
+  META_QUESTION_TYPES,
   QUESTION_TYPES,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE
@@ -301,9 +302,17 @@ class SubmissionDataTable extends React.Component {
       <bem.SubmissionDataTable>
         {this.renderGroup(displayData)}
 
-        {this.renderMetaResponse('start', t('start'))}
-        {this.renderMetaResponse('end', t('end'))}
+        {this.renderMetaResponse(META_QUESTION_TYPES.get('start'), t('start'))}
+        {this.renderMetaResponse(META_QUESTION_TYPES.get('end'), t('end'))}
+        {this.renderMetaResponse(META_QUESTION_TYPES.get('today'), t('today'))}
+        {this.renderMetaResponse(META_QUESTION_TYPES.get('username'), t('username'))}
+        {this.renderMetaResponse(META_QUESTION_TYPES.get('simserial'), t('sim serial'))}
+        {this.renderMetaResponse(META_QUESTION_TYPES.get('subscriberid'), t('subscriber ID'))}
+        {this.renderMetaResponse(META_QUESTION_TYPES.get('deviceid'), t('device ID'))}
+        {this.renderMetaResponse(META_QUESTION_TYPES.get('phonenumber'), t('phone number'))}
+        {this.renderMetaResponse(META_QUESTION_TYPES.get('audit'), t('audit'))}
         {this.renderMetaResponse('__version__', t('__version__'))}
+        {this.renderMetaResponse('_id', t('_id'))}
         {this.renderMetaResponse('meta/instanceID', t('instanceID'))}
         {this.renderMetaResponse('_submitted_by', t('Submitted by'))}
       </bem.SubmissionDataTable>
