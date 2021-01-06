@@ -24,7 +24,7 @@ module.exports = WebpackCommon({
   },
   entry: {
     app: ['react-hot-loader/patch', './jsapp/js/main.es6'],
-    tests: path.resolve(__dirname, '../test/index.js')
+    browsertests: path.resolve(__dirname, '../test/index.js')
   },
   output: {
     library: 'KPI',

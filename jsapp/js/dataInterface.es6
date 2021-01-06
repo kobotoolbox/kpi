@@ -428,6 +428,13 @@ export var dataInterface;
         method: 'GET'
       });
     },
+    searchMyCollectionAssets(params = {}) {
+      return this._searchAssetsWithPredefinedQuery(
+        params,
+        // we only want the currently viewed collection's assets
+        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:${params.uid}`,
+      );
+    },
     searchMyLibraryAssets(params = {}) {
       // we only want orphans (assets not inside collection)
       // unless it's a search
@@ -437,6 +444,13 @@ export var dataInterface;
       }
 
       return this._searchAssetsWithPredefinedQuery(params, query);
+    },
+    searchMyCollectionMetadata(params = {}) {
+      return this._searchMetadataWithPredefinedQuery(
+        params,
+        // we only want the currently viewed collection's assets
+        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:${params.uid}`,
+      );
     },
     searchMyLibraryMetadata(params = {}) {
       // we only want orphans (assets not inside collection)
