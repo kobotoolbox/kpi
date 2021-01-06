@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import TextBox from '../textBox';
+import ToggleSwitch from '../toggleSwitch';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
 
@@ -35,6 +36,10 @@ class ConnectProjects extends React.Component {
   /*
    * Utilities
    */
+  shareData() {
+    // TODO: set up api action
+    console.log('switched!');
+  }
 
   /*
    * rendering
@@ -62,7 +67,12 @@ class ConnectProjects extends React.Component {
           <p>
             {t('You can open this project to make the data collected here available in other forms. This data will be dynamic and will update automatically in the new forms you link when anything is modified in this project. You can change this at any time and customize who has access to this data.')}
           </p>
+          <ToggleSwitch
+            onChange={this.shareData.bind(this)}
+            label='Data sharing disabled'
+          />
         </bem.FormModal__item>
+
         <bem.FormModal__item m='import-other'>
           <div className='connect-projects-header'>
             <i className="k-icon k-icon-folder-in"/>
