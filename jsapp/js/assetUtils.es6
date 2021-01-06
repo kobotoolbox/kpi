@@ -13,7 +13,7 @@ import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
-  ROOT_URL
+  ROOT_URL,
 } from 'js/constants';
 
 /**
@@ -201,7 +201,7 @@ export function modifyDetails(asset) {
   }
   stores.pageState.showModal({
     type: modalType,
-    asset: asset
+    asset: asset,
   });
 }
 
@@ -212,7 +212,7 @@ export function modifyDetails(asset) {
 export function share(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.SHARING,
-    assetid: asset.uid
+    assetid: asset.uid,
   });
 }
 
@@ -223,7 +223,7 @@ export function share(asset) {
 export function editLanguages(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.FORM_LANGUAGES,
-    asset: asset
+    asset: asset,
   });
 }
 
@@ -234,7 +234,7 @@ export function editLanguages(asset) {
 export function editTags(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.ASSET_TAGS,
-    asset: asset
+    asset: asset,
   });
 }
 
@@ -245,7 +245,7 @@ export function editTags(asset) {
 export function replaceForm(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.REPLACE_PROJECT,
-    asset: asset
+    asset: asset,
   });
 }
 
@@ -529,5 +529,5 @@ export default {
   renderTypeIcon,
   replaceForm,
   share,
-  removeInvalidChars
+  removeInvalidChars,
 };

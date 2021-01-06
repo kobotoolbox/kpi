@@ -4,11 +4,9 @@ import clonedeep from 'lodash.clonedeep';
 import Fuse from 'fuse.js';
 import {
   getSurveyFlatPaths,
-  getFlatQuestionsList
+  getFlatQuestionsList,
 } from 'js/assetUtils';
-import {
-  QUESTION_TYPES
-} from 'js/constants';
+import {QUESTION_TYPES} from 'js/constants';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/textBox';
@@ -163,7 +161,7 @@ class BulkEditSubmissionsForm extends React.Component {
         if (this.props.selectedSubmissions.includes(String(submissionData._id))) {
           question.selectedData.push({
             sid: submissionData._id,
-            value: submissionData[questionPath]
+            value: submissionData[questionPath],
           });
         }
       });
