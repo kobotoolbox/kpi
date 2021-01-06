@@ -680,3 +680,25 @@ $z-modal-x: 10;
     max-width: 90%;
   }
 }
+
+.connect-projects {
+  margin: 24px;
+
+  .form-modal__item {
+    margin-left: 10px;
+  }
+
+  .connect-projects-header {
+    display: flex;
+  }
+
+  p {
+    margin-top: 0px;
+  }
+
+  i {
+    font-size: 32px;
+    margin-top: 10px;
+    margin-right: 5px;
+  }
+}
