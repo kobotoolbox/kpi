@@ -28,20 +28,27 @@ const MULTIPLE_VALUES_LABEL = t('Multiple responses');
 const HELP_ARTICLE_URL = 'https://foo.bar';
 
 /**
- * @prop onSetModalTitle
- * @prop asset
- * @prop data
- * @prop totalSubmissions
- * @prop selectedSubmissions
+ * The content of the BULK_EDIT_SUBMISSIONS modal
+ *
+ * @prop {function} onSetModalTitle - for changing the modal title by this component
+ * @prop {function} onModalClose - causes the modal to close
+ * @prop {object} asset
+ * @prop {object[]} data - submissions data (all user responses)
+ * @prop {number} totalSubmissions - number of all submissions
+ * @prop {string|number[]} selectedSubmissions - list of ids of submissions selected for bulk editing
  */
 class BulkEditSubmissionsForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       isPending: false,
+      // overrides keys are question names and values are edited values
       overrides: {},
+      // single question selected for bulk editing
       selectedQuestion: null, // or object
+      // with a temp override value that is being used until the single question form is saved
       selectedQuestionOverride: null,
+      // values for searching the list of questions
       filterByName: '',
       filterByValue: '',
     };
@@ -78,7 +85,7 @@ class BulkEditSubmissionsForm extends React.Component {
     );
   }
 
-  setModalTitleToQuestion(questionName) {
+  setModalTitleToSingleQuestion(questionName) {
     this.props.onSetModalTitle(
       t('Editing "##question##" for ##count## submissions')
         .replace('##question##', questionName)
@@ -130,7 +137,7 @@ class BulkEditSubmissionsForm extends React.Component {
       selectedQuestion: question,
       selectedQuestionOverride: this.state.overrides[question.name],
     });
-    this.setModalTitleToQuestion(question.label);
+    this.setModalTitleToSingleQuestion(question.label);
   }
 
   goBackToList() {
@@ -158,9 +165,12 @@ class BulkEditSubmissionsForm extends React.Component {
     this.goBackToList();
   }
 
+  /**
+   * @returns {object[]} a list of question objects with all responses included
+   */
   getDisplayData() {
-    let questions = getFlatQuestionsList(this.props.asset.content.survey);
-    let flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
+    const questions = getFlatQuestionsList(this.props.asset.content.survey);
+    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
 
     questions.forEach((question) => {
       question.selectedData = [];
@@ -228,6 +238,13 @@ class BulkEditSubmissionsForm extends React.Component {
     );
   }
 
+  /**
+   * A wrapper function that handles all quirks for displaying the question data
+   * to users
+   *
+   * @param {string} questionName
+   * @param {object} rowData - all responses to given question
+   */
   renderRowDataValues(questionName, rowData) {
     // if there is an override value, let's display it (for override "no answer"
     // we display a label)
@@ -362,6 +379,7 @@ class BulkEditSubmissionsForm extends React.Component {
         <bem.FormModal__item m='wrapper'>
           {t('You are about to edit responses for one or multiple submissions at once. Use the XML syntax in the text box below. You can also select one of the existing responses from the table of responses. Learn more about how to edit specific responses for one or multiple submissions')} <a href={HELP_ARTICLE_URL} target='_blank'>{t('in the help article')}</a>.
         </bem.FormModal__item>
+
         <bem.FormModal__item m='wrapper'>
           <BulkEditRowForm
             question={this.state.selectedQuestion}
@@ -404,10 +422,14 @@ class BulkEditSubmissionsForm extends React.Component {
 }
 
 /**
- * @prop question
- * @prop overrideData
- * @prop originalData
- * @prop onChange
+ * This is a simple one input form for setting new value for multiple
+ * submissions. Below input a table of existing answers (ordered by frequency)
+ * allows for quick setting input value.
+ *
+ * @prop {object} question
+ * @prop {object} overrideData
+ * @prop {object} originalData
+ * @prop {function} onChange - callback returning the new value
  */
 class BulkEditRowForm extends React.Component {
   constructor(props) {
@@ -419,6 +441,9 @@ class BulkEditRowForm extends React.Component {
     this.props.onChange(this.props.question.name, newValue);
   }
 
+  /**
+   * Placeholder can be either a helpful instruction or an empty override value
+   */
   getPlaceholderValue() {
     let placeholderValue = t('Type new response for selected submissions');
     if (this.props.overrideData === EMPTY_VALUE) {
@@ -430,6 +455,9 @@ class BulkEditRowForm extends React.Component {
     return placeholderValue;
   }
 
+  /**
+   * @returns {object[]} an ordered list of unique responses with frequency data
+   */
   getUniqueResponses() {
     let uniqueResponses = new Map();
     this.props.originalData.forEach((item) => {
@@ -444,10 +472,10 @@ class BulkEditRowForm extends React.Component {
     return uniqueResponses;
   }
 
-  getResponsePercentage(responseCount) {
-    return (responseCount / this.props.originalData.length * 100).toFixed(2);
-  }
-
+  /**
+   * @param {string|null} data[0] - the unique response value
+   * @param {number} data[1] - the total count for this unique response
+   */
   renderResponseRow(data) {
     const count = data[1];
     const response = data[0];
@@ -459,7 +487,7 @@ class BulkEditRowForm extends React.Component {
       responseValue = EMPTY_VALUE;
     }
 
-    const percentage = this.getResponsePercentage(count);
+    const percentage = (count / this.props.originalData.length * 100).toFixed(2);
 
     return (
       <bem.SimpleTable__row key={responseLabel}>
