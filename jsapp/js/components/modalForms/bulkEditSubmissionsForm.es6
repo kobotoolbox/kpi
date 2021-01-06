@@ -97,11 +97,19 @@ class BulkEditSubmissionsForm extends React.Component {
   }
 
   onSubmit() {
+    // BE endpoint requires question names with paths
+    // and we will gladly give them what they want
+    const overridesWithPaths = {};
+    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
+    Object.keys(this.state.overrides).forEach((questionName) => {
+      overridesWithPaths[flatPaths[questionName]] = this.state.overrides[questionName];
+    });
+
     this.setState({isPending: true});
     actions.submissions.bulkPatchValues(
       this.props.asset.uid,
       this.props.selectedSubmissions,
-      this.state.overrides,
+      overridesWithPaths,
     );
   }
 
