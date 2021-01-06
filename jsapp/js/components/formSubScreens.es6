@@ -11,7 +11,7 @@ import assetUtils from 'js/assetUtils';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
-import RecordManagement from './modalForms/RecordManagement';
+import ConnectProjects from './modalForms/ConnectProjects';
 import DataTable from './table';
 import ProjectDownloads from './projectDownloads';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
@@ -147,7 +147,7 @@ export class FormSubScreens extends React.Component {
   }
   renderRecords() {
     return (
-      <RecordManagement asset={this.state}/>
+      <ConnectProjects asset={this.state}/>
     );
   }
   renderReset() {

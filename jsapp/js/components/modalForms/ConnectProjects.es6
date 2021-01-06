@@ -9,7 +9,7 @@ import {bem} from 'js/bem';
 /*
  * Modal for uploading form media
  */
-class RecordManagement extends React.Component {
+class ConnectProjects extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -62,4 +62,4 @@ class RecordManagement extends React.Component {
   }
 }
 
-export default RecordManagement;
+export default ConnectProjects;

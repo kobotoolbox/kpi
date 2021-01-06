@@ -113,7 +113,7 @@ class FormViewTabs extends Reflux.Component {
 
       sideTabs.push({label: t('Sharing'), icon: 'k-icon-user-share', path: `/forms/${this.state.assetid}/settings/sharing`});
 
-      sideTabs.push({label: t('Record mngmnt'), icon: 'k-icon-attach', path: `/forms/${this.state.assetid}/settings/records`});
+      sideTabs.push({label: t('Connect Projects'), icon: 'k-icon-attach', path: `/forms/${this.state.assetid}/settings/records`});
 
       if (
         this.state.asset.deployment__active &&
