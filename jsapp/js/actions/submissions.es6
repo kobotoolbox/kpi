@@ -42,6 +42,11 @@ submissionsActions.bulkPatchValues.listen((uid, submissionIds, data) => {
     .done(submissionsActions.bulkPatchValues.completed)
     .fail(submissionsActions.bulkPatchValues.failed);
 });
+submissionsActions.bulkPatchValues.completed.listen((response) => {
+  if (response.failures !== 0) {
+    notify(t('Failed to update some submissions values.'), 'error');
+  }
+});
 submissionsActions.bulkPatchValues.failed.listen(() => {
   notify(t('Failed to update submissions values.'), 'error');
 });

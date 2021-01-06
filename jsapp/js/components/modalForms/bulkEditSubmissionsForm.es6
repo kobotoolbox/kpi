@@ -219,7 +219,7 @@ class BulkEditSubmissionsForm extends React.Component {
 
         <bem.SimpleTable__cell>
           {question.hasRepatParent &&
-            t('Editing responses from repeat group questions is not possible yet.')
+            <em>{t('Editing responses from repeat group questions is not possible yet.')}</em>
           }
           {!question.hasRepatParent &&
             this.renderRowDataValues(question.name, question.selectedData)
@@ -270,7 +270,7 @@ class BulkEditSubmissionsForm extends React.Component {
       // if all rows have same value, we display it
       return uniqueValuesArray[0];
     } else {
-      return MULTIPLE_VALUES_LABEL;
+      return (<em>{MULTIPLE_VALUES_LABEL}</em>);
     }
   }
 
