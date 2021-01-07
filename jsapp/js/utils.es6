@@ -24,16 +24,6 @@ alertify.defaults.notifier.position = 'bottom-left';
 alertify.defaults.notifier.closeButton = true;
 
 const cookies = new Cookies();
-const modelUtils = require('../xlform/src/model.utils');
-
-const SLUGGIFY_LABEL_OPTIONS = {
-  lowerCase: false,
-  preventDuplicateUnderscores: true,
-  stripSpaces: true,
-  lrstrip: true,
-  incrementorPadding: 3,
-  validXmlTag: true
-};
 
 export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
@@ -413,47 +403,6 @@ export function validFileTypes() {
     '' // Keep this to fix issue with IE Edge sending an empty MIME type
   ];
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
-}
-
-/*
- * Syncs the `choice_filter` of each cascading question to any changes made to
- * dependent cascading question labels
- */
-export function syncCascadeChoiceNames(params) {
-  let content = {};
-  if (params.content) {
-    content = JSON.parse(params.content);
-  }
-  if (params.source) {
-    content = JSON.parse(params.source);
-  }
-
-  if (!content.survey) {
-    return params;
-  }
-
-  for(var i = 0; i < content.survey.length; i++) {
-    var sluggifiedLabel;
-    if (content.survey[i].name !== undefined && content.survey[i].label !== undefined) {
-      sluggifiedLabel = modelUtils.sluggify(content.survey[i].label, SLUGGIFY_LABEL_OPTIONS);
-      content.survey[i].name = sluggifiedLabel;
-    }
-    if (content.survey[i].choice_filter !== undefined && content.survey[i - 1].label !== undefined) {
-      var choiceQuestion = '' + content.survey[i].choice_filter.split('=')[0];
-      sluggifiedLabel = modelUtils.sluggify(content.survey[i - 1].label, SLUGGIFY_LABEL_OPTIONS);
-      var choiceLabel = '=${' + sluggifiedLabel + '}';
-      content.survey[i].choice_filter = choiceQuestion + choiceLabel;
-    }
-  }
-
-  if (params.content) {
-    params.content = JSON.stringify(content);
-  }
-  if (params.source) {
-    params.source = JSON.stringify(content);
-  }
-  return params;
-
 }
 
 export function koboMatrixParser(params) {
