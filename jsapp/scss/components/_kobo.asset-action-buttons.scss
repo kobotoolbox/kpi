@@ -31,6 +31,7 @@
 .asset-action-buttons__button {
   @include box-shadow;
 
+  border-radius: 3px;
   font-size: 0.9em;
   font-weight: 500;
   text-transform: uppercase;
