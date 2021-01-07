@@ -24,24 +24,45 @@ class ToggleSwitch extends React.Component {
 
   onChange(evt) {
     this.props.onChange(evt.currentTarget.checked);
+    /*
+      <div>
+        <label className="switch">
+          <input type="checkbox"/>
+          <span className="slider round"/>
+        </label>
+    
+        {this.props.label &&
+          <bem.Checkbox__label htmlFor={this.props.id}>
+            {this.props.label}
+          </bem.Checkbox__label>
+        }
+      </div>
+      */
   }
 
   render() {
     return (
-      <bem.Checkbox>
-        <bem.Checkbox__wrapper>
-          <label className="switch">
-            <input type="checkbox"/>
-            <span className="slider round"/>
-          </label>
-    
+      <bem.ToggleSwitch>
+        <bem.ToggleSwitch__wrapper>
+          <bem.ToggleSwitch__input
+            type='checkbox'
+            name={this.props.name}
+            id={this.props.id}
+            onChange={this.onChange}
+            checked={this.props.checked}
+            disabled={this.props.disabled}
+          />
+          <bem.ToggleSwitch__slider
+            disabled={this.props.disabled}
+          />
+
           {this.props.label &&
-            <bem.Checkbox__label htmlFor={this.props.id}>
+            <bem.ToggleSwitch__label htmlFor={this.props.id}>
               {this.props.label}
-            </bem.Checkbox__label>
+            </bem.ToggleSwitch__label>
           }
-        </bem.Checkbox__wrapper>
-      </bem.Checkbox>
+        </bem.ToggleSwitch__wrapper>
+      </bem.ToggleSwitch>
     );
   }
 }

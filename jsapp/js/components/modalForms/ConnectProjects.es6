@@ -16,6 +16,7 @@ class ConnectProjects extends React.Component {
     this.state = {
       isVirgin: true,
       isLoading: false,
+      isShared: false,
     };
 
     autoBind(this);
@@ -26,19 +27,30 @@ class ConnectProjects extends React.Component {
    */
 
   componentDidMount() {
-    // TODO actions
+    actions.dataShare.getSharedData.completed.listen(this.onGetSharedDataCompleted);
+    actions.dataShare.enableDataSharing.completed.listen(this.onEnableDataSharingCompleted);
+    actions.dataShare.disableDataSharing.completed.listen(this.onDisableDataSharingCompleted);
   }
 
   /*
    * action listeners
    */
-
+  onGetSharedDataCompleted() {
+    // TODO
+  }
+  onEnableDataSharingCompleted() {
+    // TODO
+  }
+  onDisableDataSharingCompleted() {
+    // TODO
+  }
   /*
    * Utilities
    */
-  shareData() {
-    // TODO: set up api action
+  toggleSharingData() {
+    // TODO: set up api action depending on current shared status
     console.log('switched!');
+    this.setState({isShared: !this.state.isShared});
   }
 
   /*
@@ -56,6 +68,26 @@ class ConnectProjects extends React.Component {
     );
   }
 
+  renderSwitchLabel() {
+    if (this.state.isShared) {
+      return (
+        <ToggleSwitch
+          onChange={this.toggleSharingData.bind(this)}
+          label={t('Data sharing enabled')}
+          checked={this.state.isShared}
+        />
+      );
+    } else {
+      return (
+        <ToggleSwitch
+          onChange={this.toggleSharingData.bind(this)}
+          label={t('Data sharing disabled')}
+          checked={this.state.isShared}
+        />
+      );
+    }
+  }
+
   render() {
     return (
       <bem.FormModal__form className='project-settings project-settings--upload-file connect-projects'>
@@ -67,10 +99,7 @@ class ConnectProjects extends React.Component {
           <p>
             {t('You can open this project to make the data collected here available in other forms. This data will be dynamic and will update automatically in the new forms you link when anything is modified in this project. You can change this at any time and customize who has access to this data.')}
           </p>
-          <ToggleSwitch
-            onChange={this.shareData.bind(this)}
-            label='Data sharing disabled'
-          />
+          {this.renderSwitchLabel()}
         </bem.FormModal__item>
 
         <bem.FormModal__item m='import-other'>

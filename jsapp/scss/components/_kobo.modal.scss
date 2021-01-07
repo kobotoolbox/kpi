@@ -686,6 +686,9 @@ $z-modal-x: 10;
 
   .form-modal__item {
     margin-left: 10px;
+    border-bottom: 1px solid;
+    border-color: lighten($kobo-midgray, 20%);
+    padding-bottom: 24px;
   }
 
   .connect-projects-header {
