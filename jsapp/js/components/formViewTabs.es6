@@ -137,7 +137,9 @@ class FormViewTabs extends Reflux.Component {
               data-path={item.path}
               onClick={this.triggerRefresh}>
                 <i className={item.icon} />
-                {item.label}
+                <label className='form-view__tab--label'>
+                  {item.label}
+                </label>
             </Link>
           )}
         </bem.FormView__sidetabs>
