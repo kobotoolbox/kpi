@@ -2,10 +2,17 @@
  * AssetsTable
  * ========================================================================== */
 
+$assets-table-min-width: 820px;
+
+.form-view__cell--assets-table-wrapper {
+  min-width: $assets-table-min-width + 2px;
+}
+
 .assets-table {
   width: 100%;
   background-color: $kobo-white;
-  // for small screens we want the table to still be readable and it can't get to narrow
+  // for small screens we want the table to still be readable so we enable
+  // horizontal scroll
   overflow-x: auto;
 
   &.assets-table--fullscreen {
@@ -18,6 +25,12 @@
     right: 0;
     width: 100%;
     height: 100%;
+  }
+
+  &.assets-table--collection-content {
+    // we disable horizontal scrolling to make the popover menu appear outside the table
+    overflow-x: initial;
+    min-width: $assets-table-min-width;
   }
 }
 

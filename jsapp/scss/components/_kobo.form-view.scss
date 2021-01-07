@@ -740,10 +740,11 @@
     overflow-x: hidden;
   }
 
-  .form-view {
+  .form-view__toptabs + .form-view {
     height: calc(100% - 39px);
-    overflow-x: hidden;
+  }
 
+  .form-view {
     a.form-view__link {
       font-size: 32px;
       padding: 0 3px;
