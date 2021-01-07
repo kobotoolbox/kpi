@@ -1,11 +1,11 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
-import Dropzone from 'react-dropzone';
-import TextBox from '../textBox';
+import Select from 'react-select';
 import ToggleSwitch from '../toggleSwitch';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
+import {stores} from 'js/stores';
 
 /*
  * Modal for uploading form media
@@ -89,6 +89,11 @@ class ConnectProjects extends React.Component {
   }
 
   render() {
+    const tempListForDisplay = [
+      'One of my forms',
+      'Made in 2021 or so',
+      'Happy New Year'
+    ];
     return (
       <bem.FormModal__form className='project-settings project-settings--upload-file connect-projects'>
         <bem.FormModal__item m='data-sharing'>
@@ -112,6 +117,25 @@ class ConnectProjects extends React.Component {
             <a href='#'>here</a>
             {t('.')}
           </p>
+          {/* stores env variable used as placeholder for now */}
+          <Select
+            placeholder={t('Select a different project to import data from')}
+            options={stores.session.environment.available_countries}
+            className='kobo-select'
+            classNamePrefix='kobo-select'
+          />
+          <ul>
+            <label>{t('Imported')}</label>
+            {tempListForDisplay.map((item, n) => {
+              return(
+                <li key={n} className='imported-item'>
+                  <i class="k-icon k-icon-check"/>
+                  <span>{item}</span>
+                </li>
+              );
+            })}
+          </ul>
+
         </bem.FormModal__item>
       </bem.FormModal__form>
     );
