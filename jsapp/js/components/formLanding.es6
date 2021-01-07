@@ -248,7 +248,7 @@ export class FormLanding extends React.Component {
         }],
         ['single_url', {
           label: t('Online-Only (single submission)'),
-          desc: t('This allows a single submission, and can be paired with the "returnURL" parameter to redirect the user to a URL of your choice after the form has been submitted.')
+          desc: t('This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.')
         }],
         ['single_once_url', {
           label: t('Online-only (once per respondent)'),
