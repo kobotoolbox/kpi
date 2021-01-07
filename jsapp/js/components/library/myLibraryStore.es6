@@ -19,7 +19,7 @@ const myLibraryStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-  previousPath: null,
+  previousPath: hashHistory.getCurrentLocation().pathname,
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
@@ -134,7 +134,6 @@ const myLibraryStore = Reflux.createStore({
     if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
-      this.previousPath !== null &&
       (
         // coming from outside of library
         this.previousPath.split('/')[1] !== 'library' ||

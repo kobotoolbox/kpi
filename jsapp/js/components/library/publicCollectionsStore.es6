@@ -22,7 +22,7 @@ const publicCollectionsStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-  previousPath: null,
+  previousPath: hashHistory.getCurrentLocation().pathname,
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
@@ -125,7 +125,6 @@ const publicCollectionsStore = Reflux.createStore({
     if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
-      this.previousPath !== null &&
       this.previousPath.startsWith('/library/public-collections') === false &&
       isOnPublicCollectionsRoute()
     ) {

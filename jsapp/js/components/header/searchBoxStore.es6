@@ -14,7 +14,7 @@ new Set([
 ]).forEach((codename) => {SEARCH_CONTEXTS.set(codename, codename);});
 
 export const searchBoxStore = Reflux.createStore({
-  previousPath: null,
+  previousPath: hashHistory.getCurrentLocation().pathname,
   data: {
     context: null,
     searchPhrase: DEFAULT_SEARCH_PHRASE
@@ -27,10 +27,7 @@ export const searchBoxStore = Reflux.createStore({
 
   // manages clearing search when switching main routes
   onRouteChange(data) {
-    if (
-      this.previousPath !== null &&
-      this.previousPath.split('/')[1] !== data.pathname.split('/')[1]
-    ) {
+    if (this.previousPath.split('/')[1] !== data.pathname.split('/')[1]) {
       this.clear();
     }
     this.previousPath = data.pathname;
