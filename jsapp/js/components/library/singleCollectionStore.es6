@@ -112,7 +112,6 @@ const singleCollectionStore = Reflux.createStore({
    * @param {boolean} needsMetadata
    */
   fetchData(needsMetadata = false) {
-    actions.library.searchMyCollectionMetadata(this.getSearchParams());
     if (this.abortFetchData) {
       this.abortFetchData();
     }
