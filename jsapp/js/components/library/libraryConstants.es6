@@ -1,5 +1,3 @@
-import {t} from 'js/utils';
-
 export const ASSETS_TABLE_CONTEXTS = new Map();
 new Set([
   'my-library',
