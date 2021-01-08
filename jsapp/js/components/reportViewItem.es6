@@ -185,6 +185,11 @@ class ReportViewItem extends React.Component {
     Chart.defaults.global.elements.arc.backgroundColor = baseColor;
     Chart.defaults.global.maintainAspectRatio = false;
 
+    // if report styles are invalid we default to vertical
+    if (Array.from(REPORT_STYLES.keys()).includes(chartType) !== true) {
+      chartType = REPORT_STYLES.get('vertical').value;
+    }
+
     if (chartType === REPORT_STYLES.get('donut').value) {
       chartType = 'pie';
     }
