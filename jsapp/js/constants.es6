@@ -411,6 +411,15 @@ export const DEPLOYMENT_CATEGORIES = new Map([
   ['Archived', {id: 'Archived', label: t('Archived')}],
 ]);
 
+export const REPORT_STYLES = new Map([
+  ['vertical', {value: 'vertical', label: t('Vertical')}],
+  ['donut', {value: 'donut', label: t('Donut')}],
+  ['area', {value: 'area', label: t('Area')}],
+  ['horizontal', {value: 'horizontal', label: t('Horizontal')}],
+  ['pie', {value: 'pie', label: t('Pie')}],
+  ['line', {value: 'line', label: t('Line')}],
+]);
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -435,6 +444,7 @@ const constants = {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
+  REPORT_STYLES,
 };
 
 export default constants;

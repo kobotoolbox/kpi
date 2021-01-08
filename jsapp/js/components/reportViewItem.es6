@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
 import {bem} from '../bem';
+import {REPORT_STYLES} from 'js/constants';
 
 class ReportTable extends React.Component {
   constructor(props) {
@@ -184,19 +185,19 @@ class ReportViewItem extends React.Component {
     Chart.defaults.global.elements.arc.backgroundColor = baseColor;
     Chart.defaults.global.maintainAspectRatio = false;
 
-    if (chartType === 'donut') {
+    if (chartType === REPORT_STYLES.get('donut').value) {
       chartType = 'pie';
     }
 
-    if (chartType === 'area') {
+    if (chartType === REPORT_STYLES.get('area').value) {
       chartType = 'line';
     }
 
-    if (chartType === 'horizontal') {
+    if (chartType === REPORT_STYLES.get('horizontal').value) {
       chartType = 'horizontalBar';
     }
 
-    if (chartType === 'vertical' || chartType === 'bar_chart') {
+    if (chartType === REPORT_STYLES.get('vertical').value || chartType === 'bar_chart') {
       chartType = 'bar';
     }
 
@@ -296,12 +297,12 @@ class ReportViewItem extends React.Component {
       opts.options.scales.xAxes = [];
       opts.options.scales.yAxes = [];
 
-      if (this.props.style.report_type === 'donut') {
+      if (this.props.style.report_type === REPORT_STYLES.get('donut').value) {
         opts.options.cutoutPercentage = 50;
       }
     }
 
-    if (this.props.style.report_type === 'area') {
+    if (this.props.style.report_type === REPORT_STYLES.get('area').value) {
       opts.data.datasets[0].backgroundColor = colors[0];
     }
 
