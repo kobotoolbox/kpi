@@ -92,7 +92,8 @@
     "Parse": false,
     "chai": true,
     "t": "readonly",
-    "$": "readonly"
+    "$": "readonly",
+    "ga": "readonly"
   },
   "plugins": [
     "react"

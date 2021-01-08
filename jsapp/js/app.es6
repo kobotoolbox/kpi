@@ -16,7 +16,7 @@ import {
   IndexRedirect,
   Route,
   hashHistory,
-  Router
+  Router,
 } from 'react-router';
 import moment from 'moment';
 import {actions} from './actions';
@@ -29,7 +29,7 @@ import MainHeader from './components/header';
 import Drawer from './components/drawer';
 import {
   FormPage,
-  LibraryAssetEditor
+  LibraryAssetEditor,
 } from './components/formEditors';
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
@@ -47,7 +47,7 @@ import ChangePassword from './components/changePassword';
 import {
   assign,
   notify,
-  currentLang
+  currentLang,
 } from 'utils';
 import FormsSearchableList from './lists/forms';
 import permConfig from 'js/components/permissions/permConfig';
@@ -58,7 +58,7 @@ class App extends React.Component {
     moment.locale(currentLang());
     this.state = assign({
       isConfigReady: false,
-      pageState: stores.pageState.state
+      pageState: stores.pageState.state,
     });
   }
   componentWillReceiveProps() {
@@ -71,7 +71,7 @@ class App extends React.Component {
       stores.pageState.hideModal();
     }
   }
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
     actions.misc.getServerEnvironment();
@@ -109,7 +109,7 @@ class App extends React.Component {
     const pageWrapperModifiers = {
       'fixed-drawer': this.state.pageState.showFixedDrawer,
       'in-formbuilder': this.isFormBuilder(),
-      'is-modal-visible': Boolean(this.state.pageState.modal)
+      'is-modal-visible': Boolean(this.state.pageState.modal),
     };
 
     if (typeof this.state.pageState.modal === 'object') {
@@ -150,33 +150,27 @@ class App extends React.Component {
   }
 }
 
-App.contextTypes = {
-  router: PropTypes.object
-};
+App.contextTypes = {router: PropTypes.object};
 
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
 reactMixin(App.prototype, mixins.contextRouter);
 
 class FormJson extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
-    this.state = {
-      assetcontent: false
-    };
+    this.state = {assetcontent: false};
     autoBind(this);
   }
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(stores.asset, this.assetStoreTriggered);
     const uid = this.props.params.assetid || this.props.params.uid;
     actions.resources.loadAsset({id: uid});
 
   }
-  assetStoreTriggered (data, uid) {
-    this.setState({
-      assetcontent: data[uid].content
-    });
+  assetStoreTriggered(data, uid) {
+    this.setState({assetcontent: data[uid].content});
   }
-  render () {
+  render() {
     return (
         <ui.Panel>
           <bem.FormView>
@@ -196,24 +190,20 @@ class FormJson extends React.Component {
 reactMixin(FormJson.prototype, Reflux.ListenerMixin);
 
 class FormXform extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
-    this.state = {
-      xformLoaded: false
-    };
+    this.state = {xformLoaded: false};
   }
-  componentDidMount () {
+  componentDidMount() {
     const uid = this.props.params.assetid || this.props.params.uid;
-    dataInterface.getAssetXformView(uid).done((content)=>{
+    dataInterface.getAssetXformView(uid).done((content) => {
       this.setState({
         xformLoaded: true,
-        xformHtml: {
-          __html: $('<div>').html(content).find('.pygment').html()
-        },
+        xformHtml: {__html: $('<div>').html(content).find('.pygment').html()},
       });
     });
   }
-  render () {
+  render() {
     if (!this.state.xformLoaded) {
       return (
         <ui.Panel>
@@ -238,7 +228,7 @@ class FormXform extends React.Component {
 }
 
 class FormNotFound extends React.Component {
-  render () {
+  render() {
     return (
         <ui.Panel>
           <bem.Loading>
@@ -252,7 +242,7 @@ class FormNotFound extends React.Component {
 }
 
 class SectionNotFound extends React.Component {
-  render () {
+  render() {
     return (
         <ui.Panel className='k404'>
           <i />
@@ -344,7 +334,7 @@ export default class RunRoutes extends React.Component {
 
   render() {
     return (
-      <Router history={hashHistory} ref={ref=>this.router = ref} routes={this.props.routes} />
+      <Router history={hashHistory} ref={(ref) => {return this.router = ref;}} routes={this.props.routes} />
     );
   }
 }
