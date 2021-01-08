@@ -405,11 +405,11 @@ export const MATRIX_PAIR_PROPS = {
   inChoices: 'list_name'
 };
 
-export const CATEGORY_LABELS = {
-  Deployed: t('Deployed'),
-  Draft: t('Draft'),
-  Archived: t('Archived')
-};
+export const DEPLOYMENT_CATEGORIES = new Map([
+  ['Deployed', {id: 'Deployed', label: t('Deployed')}],
+  ['Draft', {id: 'Draft', label: t('Draft')}],
+  ['Archived', {id: 'Archived', label: t('Archived')}],
+]);
 
 const constants = {
   ROOT_URL,
@@ -434,7 +434,7 @@ const constants = {
   FORM_VERSION_NAME,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  CATEGORY_LABELS,
+  DEPLOYMENT_CATEGORIES,
 };
 
 export default constants;

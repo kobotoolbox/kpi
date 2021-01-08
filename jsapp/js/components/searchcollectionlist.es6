@@ -16,7 +16,7 @@ import {
   ASSET_TYPES,
   COMMON_QUERIES,
   ACCESS_TYPES,
-  CATEGORY_LABELS
+  DEPLOYMENT_CATEGORIES
 } from '../constants';
 
 class SearchCollectionList extends Reflux.Component {
@@ -161,14 +161,14 @@ class SearchCollectionList extends Reflux.Component {
       searchResultsBucket = 'searchResultsCategorizedResultsLists';
     }
 
-    var results = ['Deployed', 'Draft', 'Archived'].map(
+    var results = Array.from(DEPLOYMENT_CATEGORIES.keys()).map(
       (category, i) => {
         if (this.state[searchResultsBucket][category].length < 1) {
           return [];
         }
         return [
           <bem.List__subheading key={i}>
-            {CATEGORY_LABELS[category]}
+            {DEPLOYMENT_CATEGORIES.get(category).label}
           </bem.List__subheading>,
 
           <bem.AssetItems m={i + 1} key={i + 2}>
