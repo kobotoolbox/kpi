@@ -20,7 +20,8 @@ import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
   ASSET_TYPES,
-  ANON_USERNAME
+  ANON_USERNAME,
+  ROUTES,
 } from './constants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
@@ -343,7 +344,7 @@ mixins.droppable = {
     let isProjectReplaceInForm = (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
       && router.isActive('forms')
-      && router.params.assetid !== undefined
+      && router.params.uid !== undefined
     );
     var isLibrary = router.isActive('library');
     var multipleFiles = params.totalFiles > 1 ? true : false;
@@ -739,25 +740,25 @@ mixins.permissions = {
 
 mixins.contextRouter = {
   isFormList() {
-    return this.context.router.isActive('forms') && this.currentAssetID() === undefined;
+    return this.context.router.isActive(ROUTES.get('FORMS')) && this.currentAssetID() === undefined;
   },
   isLibrary() {
-    return this.context.router.isActive('library');
+    return this.context.router.isActive(ROUTES.get('LIBRARY'));
   },
   isMyLibrary() {
-    return this.context.router.isActive('library/my-library');
+    return this.context.router.isActive(ROUTES.get('MY_LIBRARY'));
   },
   isPublicCollections() {
-    return this.context.router.isActive('library/public-collections');
+    return this.context.router.isActive(ROUTES.get('PUBLIC_COLLECTIONS'));
   },
   isLibraryList() {
-    return this.context.router.isActive('library') && this.currentAssetID() === undefined;
+    return this.context.router.isActive(ROUTES.get('LIBRARY')) && this.currentAssetID() === undefined;
   },
   isLibrarySingle() {
-    return this.context.router.isActive('library') && this.currentAssetID() !== undefined;
+    return this.context.router.isActive(ROUTES.get('LIBRARY')) && this.currentAssetID() !== undefined;
   },
   isFormSingle() {
-    return this.context.router.isActive('forms') && this.currentAssetID() !== undefined;
+    return this.context.router.isActive(ROUTES.get('FORMS')) && this.currentAssetID() !== undefined;
   },
   currentAssetID() {
     return this.context.router.params.assetid || this.context.router.params.uid;
@@ -769,16 +770,16 @@ mixins.contextRouter = {
     return this.context.router.isActive(path, indexOnly);
   },
   isFormBuilder() {
-    if (this.context.router.isActive('/library/asset/new')) {
+    if (this.context.router.isActive(ROUTES.get('NEW_LIBRARY_ITEM'))) {
       return true;
     }
 
     const uid = this.currentAssetID();
     return (
       uid !== undefined &&
-      this.context.router.isActive(`/library/asset/${uid}/edit`) ||
-      this.context.router.isActive(`/library/asset/${uid}/new`) ||
-      this.context.router.isActive(`/forms/${uid}/edit`)
+      this.context.router.isActive(ROUTES.get('EDIT_LIBRARY_ITEM').replace(':uid', uid)) ||
+      this.context.router.isActive(ROUTES.get('NEW_LIBRARY_ITEM').replace(':uid', uid)) ||
+      this.context.router.isActive(ROUTES.get('FORM_EDIT').replace(':uid', uid))
     );
   }
 };
@@ -810,12 +811,12 @@ mixins.cloneAssetAsNewType = {
 
             switch (asset.asset_type) {
               case ASSET_TYPES.survey.id:
-                hashHistory.push(`/forms/${asset.uid}/landing`);
+                hashHistory.push(ROUTES.get('FORM_LANDING').replace(':uid', asset.uid));
                 break;
               case ASSET_TYPES.template.id:
               case ASSET_TYPES.block.id:
               case ASSET_TYPES.question.id:
-                hashHistory.push('/library');
+                hashHistory.push(ROUTES.get('LIBRARY'));
                 break;
             }
           },

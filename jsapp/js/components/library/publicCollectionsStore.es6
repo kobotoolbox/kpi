@@ -13,7 +13,8 @@ import {
 } from './assetsTable';
 import {
   ASSET_TYPES,
-  ACCESS_TYPES
+  ACCESS_TYPES,
+  ROUTES,
 } from 'js/constants';
 
 const publicCollectionsStore = Reflux.createStore({
@@ -126,7 +127,7 @@ const publicCollectionsStore = Reflux.createStore({
       this.fetchData(true);
     } else if (
       this.previousPath !== null &&
-      this.previousPath.startsWith('/library/public-collections') === false &&
+      this.previousPath.startsWith(ROUTES.get('PUBLIC_COLLECTIONS')) === false &&
       isOnPublicCollectionsRoute()
     ) {
       // refresh data when navigating into public-collections from other place
