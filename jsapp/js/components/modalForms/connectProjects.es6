@@ -48,9 +48,25 @@ class ConnectProjects extends React.Component {
    * Utilities
    */
   toggleSharingData() {
-    // TODO: set up api action depending on current shared status
-    console.log('switched!');
-    this.setState({isShared: !this.state.isShared});
+    if (!this.state.isShared) {
+      let dialog = alertify.dialog('confirm');
+      let opts = {
+        title: `${t('Privacy Notice')}`,
+        message: t('This will attach the full dataset from \"##ASSET_NAME##\" as a background XML file to this form. While not easily visbable, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if \"##ASSET_NAME##\" includes sensative data.').replaceAll('##ASSET_NAME##', this.props.asset.name),
+        labels: {ok: t('Acknowledge and continue'), cancel: t('Cancel')},
+        onok: (evt, value) => {
+          // TODO: set up api action depending on current shared status
+          dialog.destroy();
+          this.setState({isShared: !this.state.isShared});
+        },
+        oncancel: () => {
+          dialog.destroy();
+        }
+      };
+      dialog.set(opts).show();
+    } else {
+      this.setState({isShared: !this.state.isShared});
+    }
   }
 
   /*
