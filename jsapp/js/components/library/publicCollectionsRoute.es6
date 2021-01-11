@@ -5,10 +5,8 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import publicCollectionsStore from './publicCollectionsStore';
-import {
-  AssetsTable,
-  ASSETS_TABLE_CONTEXTS
-} from './assetsTable';
+import AssetsTable from './assetsTable';
+import {ASSETS_TABLE_CONTEXTS} from 'js/components/library/libraryConstants';
 
 class PublicCollectionsRoute extends React.Component {
   constructor(props) {

@@ -13,7 +13,7 @@ import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
-} from './assetsTable';
+} from './libraryConstants';
 
 // A store that listens for actions on assets from a single collection
 // Extends most functionality from myLibraryStore but overwrites some actions:

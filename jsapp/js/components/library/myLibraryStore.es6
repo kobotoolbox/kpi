@@ -11,7 +11,7 @@ import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
-} from './assetsTable';
+} from './libraryConstants';
 
 const myLibraryStore = Reflux.createStore({
   /**
@@ -325,6 +325,10 @@ const myLibraryStore = Reflux.createStore({
 
   findAsset(uid) {
     return this.data.assets.find((asset) => {return asset.uid === uid;});
+  },
+
+  findAssetByUrl(url) {
+    return this.data.assets.find((asset) => {return asset.url === url;});
   }
 });
 
