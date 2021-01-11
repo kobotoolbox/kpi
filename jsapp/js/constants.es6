@@ -43,13 +43,13 @@ export const HOOK_LOG_STATUSES = {
   FAILED: 0,
 };
 
-export const KEY_CODES = new Map([
-  ['TAB', 9],
-  ['ENTER', 13],
-  ['ESC', 27],
-  ['SPACE', 32],
-  ['NBSP', 160], // non-breakable space
-]);
+export const KEY_CODES = Object.freeze({
+  TAB: 9,
+  ENTER: 13,
+  ESC: 27,
+  SPACE: 32,
+  NBSP: 160, // non-breakable space
+});
 
 export const MODAL_TYPES = {
   SHARING: 'sharing',
