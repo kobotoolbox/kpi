@@ -368,31 +368,34 @@ export const COMMON_QUERIES = Object.freeze({
   qbtc: '(asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection',
 });
 
-export const ACCESS_TYPES = new Map();
+export const ACCESS_TYPES = {};
 new Set([
   'owned',
   'shared',
   'public',
-  'subscribed'
-]).forEach((codename) => {ACCESS_TYPES.set(codename, codename);});
+  'subscribed',
+]).forEach((codename) => {ACCESS_TYPES[codename] = codename;});
+Object.freeze(ACCESS_TYPES);
 
-export const GROUP_TYPES_BEGIN = new Map();
+export const GROUP_TYPES_BEGIN = {};
 new Set([
   'begin_group',
   'begin_score',
   'begin_rank',
   'begin_kobomatrix',
   'begin_repeat',
-]).forEach((kind) => {GROUP_TYPES_BEGIN.set(kind, kind);});
+]).forEach((kind) => {GROUP_TYPES_BEGIN[kind] = kind;});
+Object.freeze(GROUP_TYPES_BEGIN);
 
-export const GROUP_TYPES_END = new Map();
+export const GROUP_TYPES_END = {};
 new Set([
   'end_group',
   'end_score',
   'end_rank',
   'end_kobomatrix',
   'end_repeat',
-]).forEach((kind) => {GROUP_TYPES_END.set(kind, kind);});
+]).forEach((kind) => {GROUP_TYPES_END[kind] = kind;});
+Object.freeze(GROUP_TYPES_END);
 
 export const FORM_VERSION_NAME = '__version__';
 

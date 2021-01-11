@@ -43,7 +43,7 @@ class AssetsTableRow extends React.Component {
 
     const isUserSubscribed = (
       this.props.asset.access_types &&
-      this.props.asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
+      this.props.asset.access_types.includes(ACCESS_TYPES.subscribed)
     );
     if (isUserSubscribed) {
       assetModifiers.push('is-subscribed');

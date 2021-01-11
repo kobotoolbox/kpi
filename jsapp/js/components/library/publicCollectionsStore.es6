@@ -199,10 +199,10 @@ const publicCollectionsStore = Reflux.createStore({
         this.data.assets[i].url === assetUidOrUrl
       ) {
         if (setSubscribed) {
-          this.data.assets[i].access_types.push(ACCESS_TYPES.get('subscribed'));
+          this.data.assets[i].access_types.push(ACCESS_TYPES.subscribed);
         } else {
           this.data.assets[i].access_types.splice(
-            this.data.assets[i].access_types.indexOf(ACCESS_TYPES.get('subscribed')),
+            this.data.assets[i].access_types.indexOf(ACCESS_TYPES.subscribed),
             1
           );
         }

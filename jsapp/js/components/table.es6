@@ -219,9 +219,9 @@ export class DataTable extends React.Component {
     const excludedMatrixKeys = [];
     let isInsideKoboMatrix = false;
     this.props.asset.content.survey.forEach((row) => {
-      if (row.type === GROUP_TYPES_BEGIN.get('begin_kobomatrix')) {
+      if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
         isInsideKoboMatrix = true;
-      } else if (row.type === GROUP_TYPES_END.get('end_kobomatrix')) {
+      } else if (row.type === GROUP_TYPES_END.end_kobomatrix) {
         isInsideKoboMatrix = false;
       } else if (isInsideKoboMatrix) {
         const rowPath = flatPaths[row.name] || flatPaths[row.$autoname];

@@ -176,11 +176,11 @@ export function getAssetIcon(asset) {
       return 'k-icon-drafts';
     }
   } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('subscribed'))) {
+    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
       return 'k-icon-folder-subscribed';
     } else if (isAssetPublic(asset.permissions)) {
       return 'k-icon-folder-public';
-    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('shared'))) {
+    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
       return 'k-icon-folder-shared';
     } else {
       return 'k-icon-folder';
@@ -261,12 +261,12 @@ export function getSurveyFlatPaths(survey, includeGroups = false) {
 
   survey.forEach((row) => {
     const rowName = getRowName(row);
-    if (GROUP_TYPES_BEGIN.has(row.type)) {
+    if (typeof GROUP_TYPES_BEGIN[row.type] !== 'undefined') {
       openedGroups.push(rowName);
       if (includeGroups) {
         output[rowName] = openedGroups.join('/');
       }
-    } else if (GROUP_TYPES_END.has(row.type)) {
+    } else if (typeof GROUP_TYPES_END[row.type] !== 'undefined') {
       openedGroups.pop();
     } else if (
       QUESTION_TYPES.has(row.type) ||

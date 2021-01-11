@@ -122,7 +122,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
 
       let rowData = getRowData(rowName, survey, parentData);
 
-      if (row.type === GROUP_TYPES_BEGIN.get('begin_repeat')) {
+      if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
         if (Array.isArray(rowData)) {
           rowData.forEach((item, itemIndex) => {
             let itemObj = new DisplayGroup(
@@ -139,7 +139,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
             traverseSurvey(itemObj, item, itemIndex);
           });
         }
-      } else if (row.type === GROUP_TYPES_BEGIN.get('begin_kobomatrix')) {
+      } else if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
         let matrixGroupObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.get('group_matrix'),
           rowLabel,
@@ -169,9 +169,9 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
           });
         }
       } else if (
-        row.type === GROUP_TYPES_BEGIN.get('begin_group') ||
-        row.type === GROUP_TYPES_BEGIN.get('begin_score') ||
-        row.type === GROUP_TYPES_BEGIN.get('begin_rank')
+        row.type === GROUP_TYPES_BEGIN.begin_group ||
+        row.type === GROUP_TYPES_BEGIN.begin_score ||
+        row.type === GROUP_TYPES_BEGIN.begin_rank
       ) {
         let rowObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.get('group_regular'),
