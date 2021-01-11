@@ -23,7 +23,7 @@ export const ANON_USERNAME = 'AnonymousUser';
  * All of them are really defined on backend, but we need it here to be able to
  * build UI for handling them.
  */
-export const PERMISSIONS_CODENAMES = new Map();
+export const PERMISSIONS_CODENAMES = {};
 new Set([
   'view_asset',
   'change_asset',
@@ -33,8 +33,9 @@ new Set([
   'partial_submissions',
   'change_submissions',
   'delete_submissions',
-  'validate_submissions'
-]).forEach((codename) => {PERMISSIONS_CODENAMES.set(codename, codename);});
+  'validate_submissions',
+]).forEach((codename) => {PERMISSIONS_CODENAMES[codename] = codename;});
+Object.freeze(PERMISSIONS_CODENAMES);
 
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,

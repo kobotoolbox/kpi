@@ -491,7 +491,7 @@ mixins.clickAssets = {
               const foundParentAsset = myLibraryStore.findAssetByUrl(asset.parent);
               canAddToParent = (
                 typeof foundParentAsset !== 'undefined' &&
-                mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('change_asset'), foundParentAsset)
+                mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, foundParentAsset)
               );
             }
 

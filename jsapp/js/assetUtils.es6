@@ -460,7 +460,7 @@ export function isAssetPublic(permissions) {
   permissions.forEach((perm) => {
     if (
       perm.user === buildUserUrl(ANON_USERNAME) &&
-      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('discover_asset')).url
+      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset).url
     ) {
       isDiscoverableByAnonymous = true;
     }

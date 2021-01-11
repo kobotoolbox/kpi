@@ -289,7 +289,7 @@ class UserAssetPermsEditor extends React.Component {
   getLabel(permCodename) {
     return this.props.assignablePerms.get(
       permConfig.getPermissionByCodename(
-        PERMISSIONS_CODENAMES.get(permCodename)
+        PERMISSIONS_CODENAMES[permCodename]
       ).url
     );
   }
@@ -297,7 +297,7 @@ class UserAssetPermsEditor extends React.Component {
   isAssignable(permCodename) {
     return this.props.assignablePerms.has(
       permConfig.getPermissionByCodename(
-        PERMISSIONS_CODENAMES.get(permCodename)
+        PERMISSIONS_CODENAMES[permCodename]
       ).url
     );
   }
