@@ -800,9 +800,9 @@ export default assign({
 
               <bem.FormBuilder__contents>
                 <div ref='form-wrap' className='form-wrap'>
-                {!this.state.surveyAppRendered &&
+                  {!this.state.surveyAppRendered &&
                     this.renderNotLoadedMessage()
-                }
+                  }
                 </div>
               </bem.FormBuilder__contents>
             </bem.FormBuilder>
