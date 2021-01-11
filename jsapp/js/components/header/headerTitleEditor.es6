@@ -61,7 +61,7 @@ class HeaderTitleEditor extends React.Component {
   }
 
   assetTitleKeyDown(evt) {
-    if (evt.keyCode === KEY_CODES.get('ENTER')) {
+    if (evt.keyCode === KEY_CODES.ENTER) {
       clearTimeout(this.typingTimer);
       if (this.updateAssetTitle()) {
         evt.currentTarget.blur();

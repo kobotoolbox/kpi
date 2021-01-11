@@ -40,7 +40,7 @@ Object.freeze(PERMISSIONS_CODENAMES);
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
-  FAILED: 0
+  FAILED: 0,
 };
 
 export const KEY_CODES = new Map([
@@ -67,14 +67,14 @@ export const MODAL_TYPES = {
   FORM_LANGUAGES: 'form-languages',
   FORM_TRANSLATIONS_TABLE: 'form-translation-table',
   ASSET_TAGS: 'asset-tags',
-  ENCRYPT_FORM: 'encrypt-form'
+  ENCRYPT_FORM: 'encrypt-form',
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = {
   NEW: 'newForm',
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
-  BUILDER: 'formBuilderAside'
+  BUILDER: 'formBuilderAside',
 };
 
 export const update_states = {
@@ -96,19 +96,19 @@ export const AVAILABLE_FORM_STYLES = [
 export const VALIDATION_STATUSES = {
   no_status: {
     value: null,
-    label: '—'
+    label: '—',
   },
   validation_status_not_approved: {
     value: 'validation_status_not_approved',
-    label: t('Not Approved')
+    label: t('Not Approved'),
   },
   validation_status_approved: {
     value: 'validation_status_approved',
-    label: t('Approved')
+    label: t('Approved'),
   },
   validation_status_on_hold: {
     value: 'validation_status_on_hold',
-    label: t('On Hold')
+    label: t('On Hold'),
   },
 };
 
@@ -116,30 +116,30 @@ export const VALIDATION_STATUSES_LIST = [
   VALIDATION_STATUSES.no_status,
   VALIDATION_STATUSES.validation_status_not_approved,
   VALIDATION_STATUSES.validation_status_approved,
-  VALIDATION_STATUSES.validation_status_on_hold
+  VALIDATION_STATUSES.validation_status_on_hold,
 ];
 
 export const ASSET_TYPES = {
   question: {
     id: 'question',
-    label: t('question')
+    label: t('question'),
   },
   block: {
     id: 'block',
-    label: t('block')
+    label: t('block'),
   },
   template: {
     id: 'template',
-    label: t('template')
+    label: t('template'),
   },
   survey: {
     id: 'survey',
-    label: t('project')
+    label: t('project'),
   },
   collection: {
     id: 'collection',
-    label: t('collection')
-  }
+    label: t('collection'),
+  },
 };
 
 export const QUESTION_TYPES = new Map([
@@ -148,196 +148,196 @@ export const QUESTION_TYPES = new Map([
     {
       label: t('Select One'),
       faIcon: 'fa-dot-circle-o',
-      id: 'select_one'
-    }
+      id: 'select_one',
+    },
   ],
   [
     'select_multiple',
     {
       label: t('Select Many'),
       faIcon: 'fa-list-ul',
-      id: 'select_multiple'
-    }
+      id: 'select_multiple',
+    },
   ],
   [
     'text',
     {
       label: t('Text'),
       faIcon: 'fa-lato-text',
-      id: 'text'
-    }
+      id: 'text',
+    },
   ],
   [
     'integer',
     {
       label: t('Number'),
       faIcon: 'fa-lato-integer',
-      id: 'integer'
-    }
+      id: 'integer',
+    },
   ],
   [
     'decimal',
     {
       label: t('Decimal'),
       faIcon: 'fa-lato-decimal',
-      id: 'decimal'
-    }
+      id: 'decimal',
+    },
   ],
   [
     'date',
     {
       label: t('Date'),
       faIcon: 'fa-calendar',
-      id: 'date'
-    }
+      id: 'date',
+    },
   ],
   [
     'time',
     {
       label: t('Time'),
       faIcon: 'fa-clock-o',
-      id: 'time'
-    }
+      id: 'time',
+    },
   ],
   [
     'datetime',
     {
       label: t('Date & time'),
       faIcon: 'fa-calendar clock-over',
-      id: 'datetime'
-    }
+      id: 'datetime',
+    },
   ],
   [
     'geopoint',
     {
       label: t('Point'),
       faIcon: 'fa-map-marker',
-      id: 'geopoint'
-    }
+      id: 'geopoint',
+    },
   ],
   [
     'image',
     {
       label: t('Photo'),
       faIcon: 'fa-picture-o',
-      id: 'image'
-    }
+      id: 'image',
+    },
   ],
   [
     'audio',
     {
       label: t('Audio'),
       faIcon: 'fa-volume-up',
-      id: 'audio'
-    }
+      id: 'audio',
+    },
   ],
   [
     'video',
     {
       label: t('Video'),
       faIcon: 'fa-video-camera',
-      id: 'video'
-    }
+      id: 'video',
+    },
   ],
   [
     'geotrace',
     {
       label: t('Line'),
       faIcon: 'fa-share-alt',
-      id: 'geotrace'
-    }
+      id: 'geotrace',
+    },
   ],
   [
     'note',
     {
       label: t('Note'),
       faIcon: 'fa-bars',
-      id: 'note'
-    }
+      id: 'note',
+    },
   ],
   [
     'barcode',
     {
       label: t('Barcode / QR Code'),
       faIcon: 'fa-qrcode',
-      id: 'barcode'
-    }
+      id: 'barcode',
+    },
   ],
   [
     'acknowledge',
     {
       label: t('Acknowledge'),
       faIcon: 'fa-check-square-o',
-      id: 'acknowledge'
-    }
+      id: 'acknowledge',
+    },
   ],
   [
     'geoshape',
     {
       label: t('Area'),
       faIcon: 'fa-square',
-      id: 'geoshape'
-    }
+      id: 'geoshape',
+    },
   ],
   [
     'score',
     {
       label: t('Rating'),
       faIcon: 'fa-server',
-      id: 'score'
-    }
+      id: 'score',
+    },
   ],
   [
     'kobomatrix',
     {
       label: t('Question Matrix'),
       faIcon: 'fa-table',
-      id: 'kobomatrix'
-    }
+      id: 'kobomatrix',
+    },
   ],
   [
     'rank',
     {
       label: t('Ranking'),
       faIcon: 'fa-sort-amount-desc',
-      id: 'rank'
-    }
+      id: 'rank',
+    },
   ],
   [
     'calculate',
     {
       label: t('Calculate'),
       faIcon: 'fa-lato-calculate',
-      id: 'calculate'
-    }
+      id: 'calculate',
+    },
   ],
   [
     'hidden',
     {
       label: t('Hidden'),
       faIcon: 'fa-eye-slash',
-      id: 'hidden'
-    }
+      id: 'hidden',
+    },
   ],
   [
     'file',
     {
       label: t('File'),
       faIcon: 'fa-file',
-      id: 'file'
-    }
+      id: 'file',
+    },
   ],
   [
     'range',
     {
       label: t('Range'),
       faIcon: 'fa-lato-range',
-      id: 'range'
-    }
-  ]
+      id: 'range',
+    },
+  ],
 ]);
 
-export const META_QUESTION_TYPES = new Map();
+export const META_QUESTION_TYPES = {};
 new Set([
   'start',
   'end',
@@ -347,8 +347,9 @@ new Set([
   'subscriberid',
   'deviceid',
   'phonenumber',
-  'audit'
-]).forEach((codename) => {META_QUESTION_TYPES.set(codename, codename);});
+  'audit',
+]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
+Object.freeze(META_QUESTION_TYPES);
 
 export const NAME_MAX_LENGTH = 255;
 

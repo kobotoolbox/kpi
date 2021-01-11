@@ -224,7 +224,7 @@ class UserAssetPermsEditor extends React.Component {
    * Enables Enter key on input.
    */
   onInputKeyPress(key, evt) {
-    if (key === KEY_CODES.get('ENTER')) {
+    if (key === KEY_CODES.ENTER) {
       evt.currentTarget.blur();
       evt.preventDefault(); // prevent submitting form
     }
