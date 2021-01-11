@@ -41,7 +41,7 @@ class SearchCollectionList extends Reflux.Component {
     }
   }
   queryCollections() {
-    if (this.props.searchContext.store.filterTags !== COMMON_QUERIES.get('s')) {
+    if (this.props.searchContext.store.filterTags !== COMMON_QUERIES.s) {
       dataInterface.getCollections().then((collections) => {
         this.setState({
           ownedCollections: collections.results.filter((value) => {
@@ -63,7 +63,7 @@ class SearchCollectionList extends Reflux.Component {
     }
   }
   handleScroll(event) {
-    if (this.props.searchContext.store.filterTags === COMMON_QUERIES.get('s')) {
+    if (this.props.searchContext.store.filterTags === COMMON_QUERIES.s) {
       let offset = $(event.target).children('.asset-list').offset().top;
       this.setState({
         fixedHeadings: offset < 30 ? 'fixed-headings' : '',
@@ -190,7 +190,7 @@ class SearchCollectionList extends Reflux.Component {
     var s = this.state;
     var docTitle = '';
     let display;
-    if (this.props.searchContext.store.filterTags === COMMON_QUERIES.get('s')) {
+    if (this.props.searchContext.store.filterTags === COMMON_QUERIES.s) {
       display = 'grouped';
       docTitle = t('Projects');
     } else {
@@ -255,7 +255,7 @@ class SearchCollectionList extends Reflux.Component {
                     );
                   } else if (s.defaultQueryState === 'done') {
                     if (s.defaultQueryCount < 1) {
-                      if (s.defaultQueryFor.assetType === COMMON_QUERIES.get('s')) {
+                      if (s.defaultQueryFor.assetType === COMMON_QUERIES.s) {
                         return (
                           <bem.Loading>
                             <bem.Loading__inner>

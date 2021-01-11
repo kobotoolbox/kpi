@@ -26,9 +26,9 @@ class SidebarFormsList extends Reflux.Component {
       selectedCategories: selectedCategories,
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: COMMON_QUERIES.get('s'),
+          assetType: COMMON_QUERIES.s,
         },
-        filterTags: COMMON_QUERIES.get('s'),
+        filterTags: COMMON_QUERIES.s,
       })
     };
     this.store = stores.pageState;
@@ -89,7 +89,7 @@ class SidebarFormsList extends Reflux.Component {
       s.searchState === 'done' &&
       (s.searchString === false || s.searchString === '') &&
       s.searchResultsFor &&
-      s.searchResultsFor.assetType === COMMON_QUERIES.get('s')
+      s.searchResultsFor.assetType === COMMON_QUERIES.s
     ) {
       activeItems = 'searchResultsCategorizedResultsLists';
     }
