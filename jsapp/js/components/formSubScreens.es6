@@ -41,7 +41,8 @@ export class FormSubScreens extends React.Component {
     if (!this.state.permissions)
       return false;
 
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings` &&
+    if ((this.props.location.pathname == `/forms/${this.state.uid}/settings` || this.props.location.pathname == `/forms/${this.state.uid}/settings/sharing`) &&
+        // TODO: Once "Manage Project" permission is added, remove "Edit Form" access here
         !this.userCan('change_asset', this.state)) {
       return (<ui.AccessDeniedMessage/>);
     }
