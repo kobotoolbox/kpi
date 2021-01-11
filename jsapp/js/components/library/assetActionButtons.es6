@@ -126,10 +126,10 @@ class AssetActionButtons extends React.Component {
    */
   onDeleteComplete(assetUid) {
     if (this.isLibrarySingle() && this.currentAssetID() === assetUid) {
-      hashHistory.push(ROUTES.get('LIBRARY'));
+      hashHistory.push(ROUTES.LIBRARY);
     }
     if (this.isFormSingle() && this.currentAssetID() === assetUid) {
-      hashHistory.push(ROUTES.get('FORMS'));
+      hashHistory.push(ROUTES.FORMS);
     }
   }
 
@@ -181,11 +181,11 @@ class AssetActionButtons extends React.Component {
     const parentArr = this.props.asset.parent.split('/');
     const parentAssetUid = parentArr[parentArr.length - 2];
     hashHistory.push(`/library/asset/${parentAssetUid}`);
-    hashHistory.push(ROUTES.get('LIBRARY_ITEM').replace(':uid', parentAssetUid));
+    hashHistory.push(ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid));
   }
 
   getFormBuilderLink() {
-    let link = '#' + ROUTES.get('EDIT_LIBRARY_ITEM').replace(':uid', this.props.asset.uid);
+    let link = '#' + ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', this.props.asset.uid);
 
     // when editing a child from within a collection page
     // make sure the "Return to list" button goes back to collection
@@ -195,7 +195,7 @@ class AssetActionButtons extends React.Component {
       this.props.asset.parent !== null &&
       this.props.asset.parent.includes(currentAssetUid)
     ) {
-      const backPath = ROUTES.get('LIBRARY_ITEM').replace(':uid', currentAssetUid);
+      const backPath = ROUTES.LIBRARY_ITEM.replace(':uid', currentAssetUid);
       link += `?back=${backPath}`;
     }
 

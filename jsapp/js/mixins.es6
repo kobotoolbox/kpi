@@ -740,25 +740,25 @@ mixins.permissions = {
 
 mixins.contextRouter = {
   isFormList() {
-    return this.context.router.isActive(ROUTES.get('FORMS')) && this.currentAssetID() === undefined;
+    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
   },
   isLibrary() {
-    return this.context.router.isActive(ROUTES.get('LIBRARY'));
+    return this.context.router.isActive(ROUTES.LIBRARY);
   },
   isMyLibrary() {
-    return this.context.router.isActive(ROUTES.get('MY_LIBRARY'));
+    return this.context.router.isActive(ROUTES.MY_LIBRARY);
   },
   isPublicCollections() {
-    return this.context.router.isActive(ROUTES.get('PUBLIC_COLLECTIONS'));
+    return this.context.router.isActive(ROUTES.PUBLIC_COLLECTIONS);
   },
   isLibraryList() {
-    return this.context.router.isActive(ROUTES.get('LIBRARY')) && this.currentAssetID() === undefined;
+    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() === undefined;
   },
   isLibrarySingle() {
-    return this.context.router.isActive(ROUTES.get('LIBRARY')) && this.currentAssetID() !== undefined;
+    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
   },
   isFormSingle() {
-    return this.context.router.isActive(ROUTES.get('FORMS')) && this.currentAssetID() !== undefined;
+    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() !== undefined;
   },
   currentAssetID() {
     return this.context.router.params.assetid || this.context.router.params.uid;
@@ -770,16 +770,16 @@ mixins.contextRouter = {
     return this.context.router.isActive(path, indexOnly);
   },
   isFormBuilder() {
-    if (this.context.router.isActive(ROUTES.get('NEW_LIBRARY_ITEM'))) {
+    if (this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM)) {
       return true;
     }
 
     const uid = this.currentAssetID();
     return (
       uid !== undefined &&
-      this.context.router.isActive(ROUTES.get('EDIT_LIBRARY_ITEM').replace(':uid', uid)) ||
-      this.context.router.isActive(ROUTES.get('NEW_LIBRARY_ITEM').replace(':uid', uid)) ||
-      this.context.router.isActive(ROUTES.get('FORM_EDIT').replace(':uid', uid))
+      this.context.router.isActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
+      this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
+      this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
   }
 };
@@ -811,12 +811,12 @@ mixins.cloneAssetAsNewType = {
 
             switch (asset.asset_type) {
               case ASSET_TYPES.survey.id:
-                hashHistory.push(ROUTES.get('FORM_LANDING').replace(':uid', asset.uid));
+                hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                 break;
               case ASSET_TYPES.template.id:
               case ASSET_TYPES.block.id:
               case ASSET_TYPES.question.id:
-                hashHistory.push(ROUTES.get('LIBRARY'));
+                hashHistory.push(ROUTES.LIBRARY);
                 break;
             }
           },

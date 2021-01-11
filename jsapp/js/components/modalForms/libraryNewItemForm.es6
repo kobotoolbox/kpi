@@ -33,13 +33,13 @@ class LibraryNewItemForm extends React.Component {
   goToAssetCreator() {
     stores.pageState.hideModal();
 
-    let targetPath = ROUTES.get('NEW_LIBRARY_ITEM');
+    let targetPath = ROUTES.NEW_LIBRARY_ITEM;
     if (this.isLibrarySingle()) {
       const found = ownedCollectionsStore.find(this.currentAssetID());
       if (found && found.asset_type === ASSET_TYPES.collection.id) {
         // when creating from within a collection page, make the new asset
         // a child of this collection
-        targetPath = ROUTES.get('NEW_LIBRARY_CHILD').replace(':uid', found.uid);
+        targetPath = ROUTES.NEW_LIBRARY_CHILD.replace(':uid', found.uid);
       }
     }
 

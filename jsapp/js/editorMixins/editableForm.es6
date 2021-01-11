@@ -356,7 +356,7 @@ export default assign({
         return hasSelect;
       })(); // todo: only true if survey has select questions
       ooo.name = this.state.name;
-      ooo.hasSettings = this.state.backRoute === ROUTES.get('FORMS');
+      ooo.hasSettings = this.state.backRoute === ROUTES.FORMS;
       ooo.styleValue = this.state.settings__style;
     }
     if (this.state.isNewAsset) {
@@ -476,19 +476,19 @@ export default assign({
   safeNavigateToList() {
     if (this.state.backRoute) {
       this.safeNavigateToRoute(this.state.backRoute);
-    } else if (this.props.location.pathname.startsWith(ROUTES.get('LIBRARY'))) {
-      this.safeNavigateToRoute(ROUTES.get('LIBRARY'));
+    } else if (this.props.location.pathname.startsWith(ROUTES.LIBRARY)) {
+      this.safeNavigateToRoute(ROUTES.LIBRARY);
     } else {
-      this.safeNavigateToRoute(ROUTES.get('FORMS'));
+      this.safeNavigateToRoute(ROUTES.FORMS);
     }
   },
 
   safeNavigateToAsset() {
     let targetRoute = this.state.backRoute;
-    if (this.state.backRoute === ROUTES.get('FORMS')) {
-      targetRoute = ROUTES.get('FORM').replace(':uid', this.state.asset_uid);
-    } else if (this.state.backRoute === ROUTES.get('LIBRARY')) {
-      targetRoute = ROUTES.get('LIBRARY_ITEM').replace(':uid', this.state.asset_uid);
+    if (this.state.backRoute === ROUTES.FORMS) {
+      targetRoute = ROUTES.FORM.replace(':uid', this.state.asset_uid);
+    } else if (this.state.backRoute === ROUTES.LIBRARY) {
+      targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid);
     }
     this.safeNavigateToRoute(targetRoute);
   },

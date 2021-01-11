@@ -18,7 +18,7 @@ export class FormPage extends React.Component {
       surveyAppRendered: false,
       name: '',
       isNewAsset: false,
-      backRoute: ROUTES.get('FORMS'),
+      backRoute: ROUTES.FORMS,
     };
     autoBind(this);
   }
@@ -36,22 +36,22 @@ export class LibraryAssetEditor extends React.Component {
       surveyAppRendered: false,
       name: '',
       isNewAsset: true,
-      backRoute: ROUTES.get('LIBRARY'),
+      backRoute: ROUTES.LIBRARY,
     };
     autoBind(this);
 
-    if (this.props.route.path === ROUTES.get('EDIT_LIBRARY_ITEM')) {
+    if (this.props.route.path === ROUTES.EDIT_LIBRARY_ITEM) {
       this.state.isNewAsset = false;
     }
 
-    if (this.props.route.path === ROUTES.get('NEW_LIBRARY_ITEM')) {
+    if (this.props.route.path === ROUTES.NEW_LIBRARY_ITEM) {
       this.state.asset = false;
     }
 
-    if (this.props.route.path === ROUTES.get('NEW_LIBRARY_CHILD')) {
+    if (this.props.route.path === ROUTES.NEW_LIBRARY_CHILD) {
       this.state.asset = false;
       this.state.parentAsset = this.props.params.uid;
-      this.state.backRoute = ROUTES.get('LIBRARY_ITEM').replace(':uid', this.props.params.uid);
+      this.state.backRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.props.params.uid);
     }
 
     if (this.props.location.query.back) {

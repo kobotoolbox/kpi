@@ -143,7 +143,7 @@ const singleCollectionStore = Reflux.createStore({
         this.previousPath.split('/')[1] === 'library' ||
         // public-collections is a special case that is kinda in library, but
         // actually outside of it
-        this.previousPath.startsWith(ROUTES.get('PUBLIC_COLLECTIONS'))
+        this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)
       ) &&
       isOnLibraryAssetRoute()
     ) {

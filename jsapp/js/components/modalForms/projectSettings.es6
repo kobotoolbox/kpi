@@ -306,12 +306,12 @@ class ProjectSettings extends React.Component {
       throw new Error('Unknown uid!');
     }
 
-    hashHistory.push(ROUTES.get('FORM_LANDING').replace(':uid', targetUid));
+    hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', targetUid));
   }
 
   goToProjectsList() {
     stores.pageState.hideModal();
-    hashHistory.push(ROUTES.get('FORMS'));
+    hashHistory.push(ROUTES.FORMS);
   }
 
   /*

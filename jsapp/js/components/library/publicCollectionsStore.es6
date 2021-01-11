@@ -127,7 +127,7 @@ const publicCollectionsStore = Reflux.createStore({
       this.fetchData(true);
     } else if (
       this.previousPath !== null &&
-      this.previousPath.startsWith(ROUTES.get('PUBLIC_COLLECTIONS')) === false &&
+      this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS) === false &&
       isOnPublicCollectionsRoute()
     ) {
       // refresh data when navigating into public-collections from other place

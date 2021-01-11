@@ -87,7 +87,7 @@ class MainHeader extends Reflux.Component {
   accountSettings () {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
-      hashHistory.push(ROUTES.get('ACCOUNT_SETTINGS'));
+      hashHistory.push(ROUTES.ACCOUNT_SETTINGS);
     });
   }
   languageChange (evt) {

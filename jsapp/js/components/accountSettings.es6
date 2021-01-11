@@ -306,7 +306,7 @@ export default class AccountSettings extends React.Component {
 
               <bem.AccountSettings__item m='password'>
                 <a
-                  href={`/#${ROUTES.get('CHANGE_PASSWORD')}`}
+                  href={`/#${ROUTES.CHANGE_PASSWORD}`}
                   className='kobo-button kobo-button--teal'
                 >
                   {t('Modify Password')}

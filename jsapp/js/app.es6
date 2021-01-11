@@ -255,56 +255,56 @@ class SectionNotFound extends React.Component {
 
 export var routes = (
   <Route name='home' path='/' component={App}>
-    <Route path={ROUTES.get('ACCOUNT_SETTINGS')} component={AccountSettings} />
-    <Route path={ROUTES.get('CHANGE_PASSWORD')} component={ChangePassword} />
+    <Route path={ROUTES.ACCOUNT_SETTINGS} component={AccountSettings} />
+    <Route path={ROUTES.CHANGE_PASSWORD} component={ChangePassword} />
 
-    <Route path={ROUTES.get('LIBRARY')}>
-      <Route path={ROUTES.get('MY_LIBRARY')} component={MyLibraryRoute}/>
-      <Route path={ROUTES.get('PUBLIC_COLLECTIONS')} component={PublicCollectionsRoute}/>
-      <Route path={ROUTES.get('NEW_LIBRARY_ITEM')} component={LibraryAssetEditor}/>
-      <Route path={ROUTES.get('LIBRARY_ITEM')} component={AssetRoute}/>
-      <Route path={ROUTES.get('EDIT_LIBRARY_ITEM')} component={LibraryAssetEditor}/>
-      <Route path={ROUTES.get('NEW_LIBRARY_CHILD')} component={LibraryAssetEditor}/>
-      <Route path={ROUTES.get('LIBRARY_ITEM_JSON')} component={FormJson}/>
-      <Route path={ROUTES.get('LIBRARY_ITEM_XFORM')} component={FormXform}/>
-      <IndexRedirect to={ROUTES.get('MY_LIBRARY')}/>
+    <Route path={ROUTES.LIBRARY}>
+      <Route path={ROUTES.MY_LIBRARY} component={MyLibraryRoute}/>
+      <Route path={ROUTES.PUBLIC_COLLECTIONS} component={PublicCollectionsRoute}/>
+      <Route path={ROUTES.NEW_LIBRARY_ITEM} component={LibraryAssetEditor}/>
+      <Route path={ROUTES.LIBRARY_ITEM} component={AssetRoute}/>
+      <Route path={ROUTES.EDIT_LIBRARY_ITEM} component={LibraryAssetEditor}/>
+      <Route path={ROUTES.NEW_LIBRARY_CHILD} component={LibraryAssetEditor}/>
+      <Route path={ROUTES.LIBRARY_ITEM_JSON} component={FormJson}/>
+      <Route path={ROUTES.LIBRARY_ITEM_XFORM} component={FormXform}/>
+      <IndexRedirect to={ROUTES.MY_LIBRARY}/>
     </Route>
 
-    <IndexRedirect to={ROUTES.get('FORMS')} />
-    <Route path={ROUTES.get('FORMS')} >
+    <IndexRedirect to={ROUTES.FORMS} />
+    <Route path={ROUTES.FORMS} >
       <IndexRoute component={FormsSearchableList} />
 
-      <Route path={ROUTES.get('FORM')}>
-        <Route path={ROUTES.get('FORM_JSON')} component={FormJson} />
-        <Route path={ROUTES.get('FORM_XFORM')} component={FormXform} />
-        <Route path={ROUTES.get('FORM_EDIT')} component={FormPage} />
+      <Route path={ROUTES.FORM}>
+        <Route path={ROUTES.FORM_JSON} component={FormJson} />
+        <Route path={ROUTES.FORM_XFORM} component={FormXform} />
+        <Route path={ROUTES.FORM_EDIT} component={FormPage} />
 
-        <Route path={ROUTES.get('FORM_SUMMARY')}>
+        <Route path={ROUTES.FORM_SUMMARY}>
           <IndexRoute component={FormSummary} />
         </Route>
 
-        <Route path={ROUTES.get('FORM_LANDING')}>
+        <Route path={ROUTES.FORM_LANDING}>
           <IndexRoute component={FormLanding} />
         </Route>
 
-        <Route path={ROUTES.get('FORM_DATA')}>
-          <Route path={ROUTES.get('FORM_REPORT')} component={Reports} />
-          <Route path={ROUTES.get('FORM_REPORT_OLD')} component={FormSubScreens} />
-          <Route path={ROUTES.get('FORM_TABLE')} component={FormSubScreens} />
-          <Route path={ROUTES.get('FORM_DOWNLOADS')} component={FormSubScreens} />
-          <Route path={ROUTES.get('FORM_GALLERY')} component={FormSubScreens} />
-          <Route path={ROUTES.get('FORM_MAP')} component={FormSubScreens} />
-          <Route path={ROUTES.get('FORM_MAP_BY')} component={FormSubScreens} />
-          <IndexRedirect to={ROUTES.get('FORM_REPORT')} />
+        <Route path={ROUTES.FORM_DATA}>
+          <Route path={ROUTES.FORM_REPORT} component={Reports} />
+          <Route path={ROUTES.FORM_REPORT_OLD} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_TABLE} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_DOWNLOADS} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_GALLERY} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_MAP} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_MAP_BY} component={FormSubScreens} />
+          <IndexRedirect to={ROUTES.FORM_REPORT} />
         </Route>
 
-        <Route path={ROUTES.get('FORM_SETTINGS')}>
+        <Route path={ROUTES.FORM_SETTINGS}>
           <IndexRoute component={FormSubScreens} />
-          <Route path={ROUTES.get('FORM_MEDIA')} component={FormSubScreens} />
-          <Route path={ROUTES.get('FORM_SHARING')} component={FormSubScreens} />
-          <Route path={ROUTES.get('FORM_REST')} component={FormSubScreens} />
-          <Route path={ROUTES.get('FORM_REST_HOOK')} component={FormSubScreens} />
-          <Route path={ROUTES.get('FORM_KOBOCAT')} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_MEDIA} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_SHARING} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_REST} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_REST_HOOK} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_KOBOCAT} component={FormSubScreens} />
         </Route>
 
         {/**
@@ -313,9 +313,9 @@ export var routes = (
           * Used to force refresh form sub routes. It's some kine of a weird
           * way of introducing a loading screen during sub route refresh.
           **/}
-        <Route path={ROUTES.get('FORM_RESET')} component={FormSubScreens} />
+        <Route path={ROUTES.FORM_RESET} component={FormSubScreens} />
 
-        <IndexRedirect to={ROUTES.get('FORM_LANDING')} />
+        <IndexRedirect to={ROUTES.FORM_LANDING} />
       </Route>
 
       <Route path='*' component={FormNotFound} />
