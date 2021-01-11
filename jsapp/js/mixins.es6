@@ -489,7 +489,10 @@ mixins.clickAssets = {
             let canAddToParent = false;
             if (asset.parent) {
               const foundParentAsset = myLibraryStore.findAssetByUrl(asset.parent);
-              canAddToParent = mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('change_asset'), foundParentAsset);
+              canAddToParent = (
+                typeof foundParentAsset !== 'undefined' &&
+                mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('change_asset'), foundParentAsset)
+              );
             }
 
             actions.resources.cloneAsset({
