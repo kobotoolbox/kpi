@@ -78,7 +78,7 @@ class AssetsTableRow extends React.Component {
           {assetUtils.getLanguagesDisplayString(this.props.asset)}
         </bem.AssetsTableRow__column>
 
-        {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
+        {this.props.context === ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
           <bem.AssetsTableRow__column m='primary-sector'>
             {assetUtils.getSectorDisplayString(this.props.asset)}
           </bem.AssetsTableRow__column>

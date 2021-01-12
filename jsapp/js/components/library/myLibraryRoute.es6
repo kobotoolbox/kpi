@@ -89,7 +89,7 @@ class MyLibraryRoute extends React.Component {
           accept={validFileTypes()}
         >
           <bem.Breadcrumbs m='gray-wrapper'>
-            <bem.Breadcrumbs__crumb>{ROOT_BREADCRUMBS.get('my-library').label}</bem.Breadcrumbs__crumb>
+            <bem.Breadcrumbs__crumb>{ROOT_BREADCRUMBS.MY_LIBRARY.label}</bem.Breadcrumbs__crumb>
           </bem.Breadcrumbs>
 
           <AssetsTable

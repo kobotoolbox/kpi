@@ -28,29 +28,29 @@ class AssetBreadcrumbs extends React.Component {
       this.props.asset &&
       this.props.asset.asset_type === ASSET_TYPES.collection.id &&
       this.props.asset.access_types !== null &&
-      this.props.asset.access_types.includes(ACCESS_TYPES.get('public')) &&
-      !this.props.asset.access_types.includes(ACCESS_TYPES.get('subscribed')) &&
-      !this.props.asset.access_types.includes(ACCESS_TYPES.get('shared'))
+      this.props.asset.access_types.includes(ACCESS_TYPES.public) &&
+      !this.props.asset.access_types.includes(ACCESS_TYPES.subscribed) &&
+      !this.props.asset.access_types.includes(ACCESS_TYPES.shared)
     ) {
       // case for a collection that is public
-      return ROOT_BREADCRUMBS.get('public-collections');
+      return ROOT_BREADCRUMBS.PUBLIC_COLLECTIONS;
     } else if (
       isOnLibraryRoute() &&
       this.props.asset &&
       this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
       parentAssetData &&
       parentAssetData.access_types !== null &&
-      parentAssetData.access_types.includes(ACCESS_TYPES.get('public')) &&
-      !parentAssetData.access_types.includes(ACCESS_TYPES.get('subscribed')) &&
-      !parentAssetData.access_types.includes(ACCESS_TYPES.get('shared'))
+      parentAssetData.access_types.includes(ACCESS_TYPES.public) &&
+      !parentAssetData.access_types.includes(ACCESS_TYPES.subscribed) &&
+      !parentAssetData.access_types.includes(ACCESS_TYPES.shared)
     ) {
       // case for an asset that has parent collection that is public
-      return ROOT_BREADCRUMBS.get('public-collections');
+      return ROOT_BREADCRUMBS.PUBLIC_COLLECTIONS;
     } else if (isOnLibraryRoute()) {
       // all the other library assets
-      return ROOT_BREADCRUMBS.get('my-library');
+      return ROOT_BREADCRUMBS.MY_LIBRARY;
     } else {
-      return ROOT_BREADCRUMBS.get('projects');
+      return ROOT_BREADCRUMBS.PROJECTS;
     }
   }
 

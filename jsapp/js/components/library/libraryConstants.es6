@@ -1,23 +1,17 @@
-export const ROOT_BREADCRUMBS = new Map([
-  [
-    'projects', {
-      label: t('Projects'),
-      href: '#/forms'
-    }
-  ],
-  [
-    'my-library', {
-      label: t('My Library'),
-      href: '#/library/my-library'
-    }
-  ],
-  [
-    'public-collections', {
-      label: t('Public Collections'),
-      href: '#/library/public-collections'
-    }
-  ],
-]);
+export const ROOT_BREADCRUMBS = Object.freeze({
+  PROJECTS: {
+    label: t('Projects'),
+    href: '#/forms',
+  },
+  MY_LIBRARY: {
+    label: t('My Library'),
+    href: '#/library/my-library',
+  },
+  PUBLIC_COLLECTIONS: {
+    label: t('Public Collections'),
+    href: '#/library/public-collections',
+  },
+});
 
 export const ASSETS_TABLE_CONTEXTS = {};
 new Set([
