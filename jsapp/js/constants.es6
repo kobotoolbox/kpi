@@ -142,200 +142,128 @@ export const ASSET_TYPES = {
   },
 };
 
-export const QUESTION_TYPES = new Map([
-  [
-    'select_one',
-    {
-      label: t('Select One'),
-      faIcon: 'fa-dot-circle-o',
-      id: 'select_one',
-    },
-  ],
-  [
-    'select_multiple',
-    {
-      label: t('Select Many'),
-      faIcon: 'fa-list-ul',
-      id: 'select_multiple',
-    },
-  ],
-  [
-    'text',
-    {
-      label: t('Text'),
-      faIcon: 'fa-lato-text',
-      id: 'text',
-    },
-  ],
-  [
-    'integer',
-    {
-      label: t('Number'),
-      faIcon: 'fa-lato-integer',
-      id: 'integer',
-    },
-  ],
-  [
-    'decimal',
-    {
-      label: t('Decimal'),
-      faIcon: 'fa-lato-decimal',
-      id: 'decimal',
-    },
-  ],
-  [
-    'date',
-    {
-      label: t('Date'),
-      faIcon: 'fa-calendar',
-      id: 'date',
-    },
-  ],
-  [
-    'time',
-    {
-      label: t('Time'),
-      faIcon: 'fa-clock-o',
-      id: 'time',
-    },
-  ],
-  [
-    'datetime',
-    {
-      label: t('Date & time'),
-      faIcon: 'fa-calendar clock-over',
-      id: 'datetime',
-    },
-  ],
-  [
-    'geopoint',
-    {
-      label: t('Point'),
-      faIcon: 'fa-map-marker',
-      id: 'geopoint',
-    },
-  ],
-  [
-    'image',
-    {
-      label: t('Photo'),
-      faIcon: 'fa-picture-o',
-      id: 'image',
-    },
-  ],
-  [
-    'audio',
-    {
-      label: t('Audio'),
-      faIcon: 'fa-volume-up',
-      id: 'audio',
-    },
-  ],
-  [
-    'video',
-    {
-      label: t('Video'),
-      faIcon: 'fa-video-camera',
-      id: 'video',
-    },
-  ],
-  [
-    'geotrace',
-    {
-      label: t('Line'),
-      faIcon: 'fa-share-alt',
-      id: 'geotrace',
-    },
-  ],
-  [
-    'note',
-    {
-      label: t('Note'),
-      faIcon: 'fa-bars',
-      id: 'note',
-    },
-  ],
-  [
-    'barcode',
-    {
-      label: t('Barcode / QR Code'),
-      faIcon: 'fa-qrcode',
-      id: 'barcode',
-    },
-  ],
-  [
-    'acknowledge',
-    {
-      label: t('Acknowledge'),
-      faIcon: 'fa-check-square-o',
-      id: 'acknowledge',
-    },
-  ],
-  [
-    'geoshape',
-    {
-      label: t('Area'),
-      faIcon: 'fa-square',
-      id: 'geoshape',
-    },
-  ],
-  [
-    'score',
-    {
-      label: t('Rating'),
-      faIcon: 'fa-server',
-      id: 'score',
-    },
-  ],
-  [
-    'kobomatrix',
-    {
-      label: t('Question Matrix'),
-      faIcon: 'fa-table',
-      id: 'kobomatrix',
-    },
-  ],
-  [
-    'rank',
-    {
-      label: t('Ranking'),
-      faIcon: 'fa-sort-amount-desc',
-      id: 'rank',
-    },
-  ],
-  [
-    'calculate',
-    {
-      label: t('Calculate'),
-      faIcon: 'fa-lato-calculate',
-      id: 'calculate',
-    },
-  ],
-  [
-    'hidden',
-    {
-      label: t('Hidden'),
-      faIcon: 'fa-eye-slash',
-      id: 'hidden',
-    },
-  ],
-  [
-    'file',
-    {
-      label: t('File'),
-      faIcon: 'fa-file',
-      id: 'file',
-    },
-  ],
-  [
-    'range',
-    {
-      label: t('Range'),
-      faIcon: 'fa-lato-range',
-      id: 'range',
-    },
-  ],
-]);
+export const QUESTION_TYPES = Object.freeze({
+  select_one: {
+    label: t('Select One'),
+    faIcon: 'fa-dot-circle-o',
+    id: 'select_one',
+  },
+  select_multiple: {
+    label: t('Select Many'),
+    faIcon: 'fa-list-ul',
+    id: 'select_multiple',
+  },
+  text: {
+    label: t('Text'),
+    faIcon: 'fa-lato-text',
+    id: 'text',
+  },
+  integer: {
+    label: t('Number'),
+    faIcon: 'fa-lato-integer',
+    id: 'integer',
+  },
+  decimal: {
+    label: t('Decimal'),
+    faIcon: 'fa-lato-decimal',
+    id: 'decimal',
+  },
+  date: {
+    label: t('Date'),
+    faIcon: 'fa-calendar',
+    id: 'date',
+  },
+  time: {
+    label: t('Time'),
+    faIcon: 'fa-clock-o',
+    id: 'time',
+  },
+  datetime: {
+    label: t('Date & time'),
+    faIcon: 'fa-calendar clock-over',
+    id: 'datetime',
+  },
+  geopoint: {
+    label: t('Point'),
+    faIcon: 'fa-map-marker',
+    id: 'geopoint',
+  },
+  image: {
+    label: t('Photo'),
+    faIcon: 'fa-picture-o',
+    id: 'image',
+  },
+  audio: {
+    label: t('Audio'),
+    faIcon: 'fa-volume-up',
+    id: 'audio',
+  },
+  video: {
+    label: t('Video'),
+    faIcon: 'fa-video-camera',
+    id: 'video',
+  },
+  geotrace: {
+    label: t('Line'),
+    faIcon: 'fa-share-alt',
+    id: 'geotrace',
+  },
+  note: {
+    label: t('Note'),
+    faIcon: 'fa-bars',
+    id: 'note',
+  },
+  barcode: {
+    label: t('Barcode / QR Code'),
+    faIcon: 'fa-qrcode',
+    id: 'barcode',
+  },
+  acknowledge: {
+    label: t('Acknowledge'),
+    faIcon: 'fa-check-square-o',
+    id: 'acknowledge',
+  },
+  geoshape: {
+    label: t('Area'),
+    faIcon: 'fa-square',
+    id: 'geoshape',
+  },
+  score: {
+    label: t('Rating'),
+    faIcon: 'fa-server',
+    id: 'score',
+  },
+  kobomatrix: {
+    label: t('Question Matrix'),
+    faIcon: 'fa-table',
+    id: 'kobomatrix',
+  },
+  rank: {
+    label: t('Ranking'),
+    faIcon: 'fa-sort-amount-desc',
+    id: 'rank',
+  },
+  calculate: {
+    label: t('Calculate'),
+    faIcon: 'fa-lato-calculate',
+    id: 'calculate',
+  },
+  hidden: {
+    label: t('Hidden'),
+    faIcon: 'fa-eye-slash',
+    id: 'hidden',
+  },
+  file: {
+    label: t('File'),
+    faIcon: 'fa-file',
+    id: 'file',
+  },
+  range: {
+    label: t('Range'),
+    faIcon: 'fa-lato-range',
+    id: 'range',
+  },
+});
 
 export const META_QUESTION_TYPES = {};
 new Set([
@@ -407,23 +335,23 @@ export const RANK_LEVEL_TYPE = 'rank__level';
 
 export const MATRIX_PAIR_PROPS = {
   inSurvey: 'kobo--matrix_list',
-  inChoices: 'list_name'
+  inChoices: 'list_name',
 };
 
-export const DEPLOYMENT_CATEGORIES = new Map([
-  ['Deployed', {id: 'Deployed', label: t('Deployed')}],
-  ['Draft', {id: 'Draft', label: t('Draft')}],
-  ['Archived', {id: 'Archived', label: t('Archived')}],
-]);
+export const DEPLOYMENT_CATEGORIES = Object.freeze({
+  Deployed: {id: 'Deployed', label: t('Deployed')},
+  Draft: {id: 'Draft', label: t('Draft')},
+  Archived: {id: 'Archived', label: t('Archived')},
+});
 
-export const REPORT_STYLES = new Map([
-  ['vertical', {value: 'vertical', label: t('Vertical')}],
-  ['donut', {value: 'donut', label: t('Donut')}],
-  ['area', {value: 'area', label: t('Area')}],
-  ['horizontal', {value: 'horizontal', label: t('Horizontal')}],
-  ['pie', {value: 'pie', label: t('Pie')}],
-  ['line', {value: 'line', label: t('Line')}],
-]);
+export const REPORT_STYLES = Object.freeze({
+  vertical: {value: 'vertical', label: t('Vertical')},
+  donut: {value: 'donut', label: t('Donut')},
+  area: {value: 'area', label: t('Area')},
+  horizontal: {value: 'horizontal', label: t('Horizontal')},
+  pie: {value: 'pie', label: t('Pie')},
+  line: {value: 'line', label: t('Line')},
+});
 
 export const QUERY_LIMIT_DEFAULT = 5000;
 

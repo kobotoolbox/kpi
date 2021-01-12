@@ -186,23 +186,23 @@ class ReportViewItem extends React.Component {
     Chart.defaults.global.maintainAspectRatio = false;
 
     // if report styles are invalid we default to vertical
-    if (Array.from(REPORT_STYLES.keys()).includes(chartType) !== true) {
-      chartType = REPORT_STYLES.get('vertical').value;
+    if (Object.keys(REPORT_STYLES).includes(chartType) !== true) {
+      chartType = REPORT_STYLES.vertical.value;
     }
 
-    if (chartType === REPORT_STYLES.get('donut').value) {
+    if (chartType === REPORT_STYLES.donut.value) {
       chartType = 'pie';
     }
 
-    if (chartType === REPORT_STYLES.get('area').value) {
+    if (chartType === REPORT_STYLES.area.value) {
       chartType = 'line';
     }
 
-    if (chartType === REPORT_STYLES.get('horizontal').value) {
+    if (chartType === REPORT_STYLES.horizontal.value) {
       chartType = 'horizontalBar';
     }
 
-    if (chartType === REPORT_STYLES.get('vertical').value || chartType === 'bar_chart') {
+    if (chartType === REPORT_STYLES.vertical.value || chartType === 'bar_chart') {
       chartType = 'bar';
     }
 
@@ -302,12 +302,12 @@ class ReportViewItem extends React.Component {
       opts.options.scales.xAxes = [];
       opts.options.scales.yAxes = [];
 
-      if (this.props.style.report_type === REPORT_STYLES.get('donut').value) {
+      if (this.props.style.report_type === REPORT_STYLES.donut.value) {
         opts.options.cutoutPercentage = 50;
       }
     }
 
-    if (this.props.style.report_type === REPORT_STYLES.get('area').value) {
+    if (this.props.style.report_type === REPORT_STYLES.area.value) {
       opts.data.datasets[0].backgroundColor = colors[0];
     }
 

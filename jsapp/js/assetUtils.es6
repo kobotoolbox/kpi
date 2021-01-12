@@ -269,7 +269,7 @@ export function getSurveyFlatPaths(survey, includeGroups = false) {
     } else if (typeof GROUP_TYPES_END[row.type] !== 'undefined') {
       openedGroups.pop();
     } else if (
-      QUESTION_TYPES.has(row.type) ||
+      QUESTION_TYPES[row.type] ||
       row.type === SCORE_ROW_TYPE ||
       row.type === RANK_LEVEL_TYPE
     ) {
@@ -340,17 +340,17 @@ export function isRowSpecialLabelHolder(mainRow, holderRow) {
       (
         // this handles ranking questions
         holderRowName === `${mainRowName}_label` &&
-        holderRow.type === QUESTION_TYPES.get('note').id
+        holderRow.type === QUESTION_TYPES.note.id
       ) ||
       (
         // this handles matrix questions (partially)
         holderRowName === `${mainRowName}_note` &&
-        holderRow.type === QUESTION_TYPES.get('note').id
+        holderRow.type === QUESTION_TYPES.note.id
       ) ||
       (
         // this handles rating questions
         holderRowName === `${mainRowName}_header` &&
-        holderRow.type === QUESTION_TYPES.get('select_one').id // rating
+        holderRow.type === QUESTION_TYPES.select_one.id // rating
       )
     );
   }
@@ -377,11 +377,11 @@ function getRowLabelAtIndex(row, index) {
 export function renderTypeIcon(type, additionalClassNames = []) {
   let typeDef;
   if (type === SCORE_ROW_TYPE) {
-    typeDef = QUESTION_TYPES.get('score');
+    typeDef = QUESTION_TYPES.score;
   } else if (type === RANK_LEVEL_TYPE) {
-    typeDef = QUESTION_TYPES.get('rank');
+    typeDef = QUESTION_TYPES.rank;
   } else {
-    typeDef = QUESTION_TYPES.get(type);
+    typeDef = QUESTION_TYPES[type];
   }
 
   if (typeDef) {
@@ -409,7 +409,7 @@ export function getFlatQuestionsList(survey) {
       openedGroups.pop();
     }
 
-    if (QUESTION_TYPES.has(row.type)) {
+    if (QUESTION_TYPES[row.type]) {
       output.push({
         type: row.type,
         isRequired: row.required,

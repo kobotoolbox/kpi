@@ -103,11 +103,11 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
         continue;
       }
       // we don't want to include special calculate row used to store form version
-      if (row.type === QUESTION_TYPES.get('calculate').id && rowName === FORM_VERSION_NAME) {
+      if (row.type === QUESTION_TYPES.calculate.id && rowName === FORM_VERSION_NAME) {
         continue;
       }
       // notes don't carry submission data, we ignore them
-      if (row.type === QUESTION_TYPES.get('note').id) {
+      if (row.type === QUESTION_TYPES.note.id) {
         continue;
       }
       /*
@@ -185,7 +185,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
          */
         traverseSurvey(rowObj, rowData, repeatIndex);
       } else if (
-        QUESTION_TYPES.has(row.type) ||
+        QUESTION_TYPES[row.type] ||
         row.type === SCORE_ROW_TYPE ||
         row.type === RANK_LEVEL_TYPE
       ) {

@@ -161,14 +161,14 @@ class SearchCollectionList extends Reflux.Component {
       searchResultsBucket = 'searchResultsCategorizedResultsLists';
     }
 
-    var results = Array.from(DEPLOYMENT_CATEGORIES.keys()).map(
+    var results = Object.keys(DEPLOYMENT_CATEGORIES).map(
       (category, i) => {
         if (this.state[searchResultsBucket][category].length < 1) {
           return [];
         }
         return [
           <bem.List__subheading key={i}>
-            {DEPLOYMENT_CATEGORIES.get(category).label}
+            {DEPLOYMENT_CATEGORIES[category].label}
           </bem.List__subheading>,
 
           <bem.AssetItems m={i + 1} key={i + 2}>

@@ -203,7 +203,7 @@ export class DataTable extends React.Component {
         return (
           typeof foundPathKey !== 'undefined' &&
           (foundPathKey === row.name || foundPathKey === row.$autoname) &&
-          row.type === QUESTION_TYPES.get('note').id
+          row.type === QUESTION_TYPES.note.id
         );
       });
       if (typeof foundNoteRow !== 'undefined') {
@@ -457,7 +457,11 @@ export class DataTable extends React.Component {
         filterable: false,
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
-            if (q.type === QUESTION_TYPES.get('image').id || q.type === QUESTION_TYPES.get('audio').id || q.type === QUESTION_TYPES.get('video').id) {
+            if (
+              q.type === QUESTION_TYPES.image.id ||
+              q.type === QUESTION_TYPES.audio.id ||
+              q.type === QUESTION_TYPES.video.id
+            ) {
               var mediaURL = this.getMediaDownloadLink(row.value);
               return <a href={mediaURL} target='_blank'>{row.value}</a>;
             }

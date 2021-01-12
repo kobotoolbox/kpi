@@ -121,7 +121,7 @@ class SubmissionDataTable extends React.Component {
     let choice;
 
     switch (type) {
-      case QUESTION_TYPES.get('select_one').id:
+      case QUESTION_TYPES.select_one.id:
       case SCORE_ROW_TYPE:
       case RANK_LEVEL_TYPE:
         choice = this.findChoice(data);
@@ -130,7 +130,7 @@ class SubmissionDataTable extends React.Component {
             {choice.label[this.props.translationIndex]}
           </bem.SubmissionDataTable__value>
         );
-      case QUESTION_TYPES.get('select_multiple').id:
+      case QUESTION_TYPES.select_multiple.id:
         return (
           <ul>
             {data.split(' ').map((answer, answerIndex) => {
@@ -145,28 +145,28 @@ class SubmissionDataTable extends React.Component {
             })}
           </ul>
         );
-      case QUESTION_TYPES.get('date').id:
+      case QUESTION_TYPES.date.id:
         return (
           <bem.SubmissionDataTable__value>
             {formatDate(data)}
           </bem.SubmissionDataTable__value>
         );
-      case QUESTION_TYPES.get('datetime').id:
+      case QUESTION_TYPES.datetime.id:
         return (
           <bem.SubmissionDataTable__value>
             {formatTimeDate(data)}
           </bem.SubmissionDataTable__value>
         );
-      case QUESTION_TYPES.get('geopoint').id:
+      case QUESTION_TYPES.geopoint.id:
         return this.renderPointData(data);
-      case QUESTION_TYPES.get('image').id:
-      case QUESTION_TYPES.get('audio').id:
-      case QUESTION_TYPES.get('video').id:
-      case QUESTION_TYPES.get('file').id:
+      case QUESTION_TYPES.image.id:
+      case QUESTION_TYPES.audio.id:
+      case QUESTION_TYPES.video.id:
+      case QUESTION_TYPES.file.id:
         return this.renderAttachment(type, data);
-      case QUESTION_TYPES.get('geotrace').id:
+      case QUESTION_TYPES.geotrace.id:
         return this.renderMultiplePointsData(data);
-      case QUESTION_TYPES.get('geoshape').id:
+      case QUESTION_TYPES.geoshape.id:
         return this.renderMultiplePointsData(data);
       default:
         // all types not specified above just returns raw data
@@ -252,7 +252,7 @@ class SubmissionDataTable extends React.Component {
   renderAttachment(type, filename) {
     const attachment = this.findAttachmentData(filename);
 
-    if (type === QUESTION_TYPES.get('image').id) {
+    if (type === QUESTION_TYPES.image.id) {
       return (
         <a href={attachment.download_url} target='_blank'>
           <img src={attachment.download_small_url}/>
