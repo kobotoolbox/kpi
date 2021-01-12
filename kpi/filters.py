@@ -210,16 +210,13 @@ class KpiObjectPermissionsFilter:
 
         request_query = request.query_params['q']
         parent_uid = re.search(
-            f'{PARENT_UID_PARAMETER}:([a-zA-Z0-9_.-]*)', request_query
+            f'{PARENT_UID_PARAMETER}:([a-zA-Z0-9]*)', request_query
         )
 
         if parent_uid is None:
             return queryset
 
-        try:
-            parent_obj = queryset.get(uid=parent_uid.group(1))
-        except Exception as e:
-            return queryset
+        parent_obj = queryset.get(uid=parent_uid.group(1))
 
         if not isinstance(parent_obj, Asset):
             return queryset
