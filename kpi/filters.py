@@ -3,7 +3,9 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
 from django.db.models import Case, Count, IntegerField, Value, When
+from django.db.models.query import QuerySet
 from rest_framework import filters
+from rest_framework.request import Request
 
 from kpi.constants import (
     ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
@@ -85,6 +87,13 @@ class KpiObjectPermissionsFilter:
             return queryset
 
         queryset = self._get_queryset_for_collection_statuses(request, queryset)
+        if self._return_queryset:
+            return queryset.distinct()
+
+        # Getting the children of discoverable public collections
+        queryset = self._get_queryset_for_discoverable_child_assets(
+            request, queryset
+        )
         if self._return_queryset:
             return queryset.distinct()
 
@@ -172,6 +181,51 @@ class KpiObjectPermissionsFilter:
             # We were asked not to consider subscriptions; return all
             # discoverable objects
             return discoverable
+
+        return queryset
+
+    def _get_queryset_for_discoverable_child_assets(
+        self, request: Request, queryset: QuerySet
+    ) -> QuerySet:
+        """
+        Returns a queryset containing the children of publically discoverable
+        assets based on the discoverability of the child's parent. The parent
+        uid is passed in the request query string.
+
+        args:
+            request (Request)
+            queryset (QuerySet)
+
+        returns:
+            QuerySet
+        """
+
+        PARENT_UID_PARAMETER = 'parent__uid'
+
+        if 'q' not in request.query_params:
+            return queryset
+
+        request_query = request.query_params['q']
+        parent_uid = (
+            request_query.split(PARENT_UID_PARAMETER)[1].strip(':')
+            if PARENT_UID_PARAMETER in request_query
+            else None
+        )
+
+        if parent_uid is None:
+            return queryset
+
+        try:
+            parent_obj = queryset.get(uid=parent_uid)
+        except Exception as e:
+            return queryset
+
+        if not isinstance(parent_obj, Asset):
+            return queryset
+
+        if parent_obj.has_perm(get_anonymous_user(), PERM_DISCOVER_ASSET):
+            self._return_queryset = True
+            return queryset.filter(pk__in=self._get_publics())
 
         return queryset
 
