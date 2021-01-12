@@ -200,6 +200,7 @@ class KpiObjectPermissionsFilter:
             QuerySet
         """
 
+        self._return_queryset = False
         PARENT_UID_PARAMETER = 'parent__uid'
 
         if 'q' not in request.query_params:
