@@ -62,7 +62,7 @@ class PublicCollectionsRoute extends React.Component {
       <DocumentTitle title={`${t('Public Collections')} | KoboToolbox`}>
         <div className='public-collections-wrapper'>
           <AssetsTable
-            context={ASSETS_TABLE_CONTEXTS.get('public-collections')}
+            context={ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS}
             isLoading={this.state.isLoading}
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}
