@@ -1,10 +1,21 @@
 # coding: utf-8
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from rest_framework import status
 
-from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET
-from kpi.models import Asset
+from kpi.constants import (
+    ASSET_TYPE_TEMPLATE,
+    PERM_VIEW_ASSET,
+    PERM_CHANGE_ASSET,
+    PERM_MANAGE_ASSET,
+    PERM_ADD_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
+)
+from kpi.models import Asset, ObjectPermission
 from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -24,41 +35,23 @@ class BaseApiAssetPermissionTestCase(KpiTestCase):
         self.client.login(username='admin', password='pass')
         self.asset = self.create_asset('An asset to be shared')
 
-        self.admin_detail_url = reverse(
-            self._get_endpoint('user-detail'),
-            kwargs={'username': self.admin.username})
-
-        self.someuser_detail_url = reverse(
-            self._get_endpoint('user-detail'),
-            kwargs={'username': self.someuser.username})
-
-        self.anotheruser_detail_url = reverse(
-            self._get_endpoint('user-detail'),
-            kwargs={'username': self.anotheruser.username})
-
-        self.view_asset_permission_detail_url = reverse(
-            self._get_endpoint('permission-detail'),
-            kwargs={'codename': PERM_VIEW_ASSET})
-
-        self.change_asset_permission_detail_url = reverse(
-            self._get_endpoint('permission-detail'),
-            kwargs={'codename': PERM_CHANGE_ASSET})
-
-        self.asset_permissions_list_url = reverse(
-            self._get_endpoint('asset-permission-assignment-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid}
-        )
-
-    def _logged_user_gives_permission(self, username, permission):
+    def _grant_perm_as_logged_in_user(self, username, codename):
         """
-        Uses the API to grant `permission` to `username`
+        Uses the API to grant the permission identified by `codename` on
+        `self.asset` to the user identified by `username`. Does not attempt any
+        authentication.
         """
         data = {
-            'user': getattr(self, '{}_detail_url'.format(username)),
-            'permission': getattr(self, '{}_permission_detail_url'.format(permission))
+            'user': self.obj_to_url(User.objects.get(username=username)),
+            'permission': self.obj_to_url(
+                Permission.objects.get(codename=codename)
+            ),
         }
-        response = self.client.post(self.asset_permissions_list_url,
-                                    data, format='json')
+        response = self.client.post(
+            self.get_asset_perm_assignment_list_url(self.asset),
+            data,
+            format='json',
+        )
         return response
 
 
@@ -66,27 +59,48 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
     def test_owner_can_give_permissions(self):
         # Current user is `self.admin`
-        response = self._logged_user_gives_permission('someuser', PERM_VIEW_ASSET)
+        response = self._grant_perm_as_logged_in_user('someuser', PERM_VIEW_ASSET)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_viewers_can_not_give_permissions(self):
-        self._logged_user_gives_permission('someuser', PERM_VIEW_ASSET)
+    def test_viewers_cannot_give_permissions(self):
+        self._grant_perm_as_logged_in_user('someuser', PERM_VIEW_ASSET)
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_VIEW_ASSET))
         self.client.login(username='someuser', password='someuser')
         # Current user is now: `self.someuser`
-        response = self._logged_user_gives_permission('anotheruser', PERM_VIEW_ASSET)
+        response = self._grant_perm_as_logged_in_user('anotheruser', PERM_VIEW_ASSET)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_editors_can_give_permissions(self):
-        self._logged_user_gives_permission('someuser', PERM_CHANGE_ASSET)
+    def test_editors_cannot_give_permissions(self):
+        self._grant_perm_as_logged_in_user('someuser', PERM_CHANGE_ASSET)
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
         self.client.login(username='someuser', password='someuser')
         # Current user is now: `self.someuser`
-        response = self._logged_user_gives_permission('anotheruser', PERM_VIEW_ASSET)
+        response = self._grant_perm_as_logged_in_user('anotheruser', PERM_VIEW_ASSET)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_anonymous_cannot_give_permissions(self):
+        self.client.logout()
+        response = self._grant_perm_as_logged_in_user('someuser', PERM_VIEW_ASSET)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_managers_can_give_permissions(self):
+        self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_MANAGE_ASSET))
+        self.client.login(username='someuser', password='someuser')
+        response = self._grant_perm_as_logged_in_user('anotheruser', PERM_VIEW_ASSET)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_anonymous_can_not_give_permissions(self):
-        self.client.logout()
-        response = self._logged_user_gives_permission('someuser', PERM_VIEW_ASSET)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    def test_submission_assignments_ignored_for_non_survey_assets(self):
+        self.asset.asset_type = ASSET_TYPE_TEMPLATE
+        self.asset.save()
+        # FIXME: should handle ValidationError somewhere and return HTTP 405
+        self.assertRaises(
+            ValidationError,
+            self._grant_perm_as_logged_in_user,
+            'someuser',
+            PERM_VIEW_SUBMISSIONS,
+        )
+        self.assertFalse(self.asset.has_perm(self.someuser, PERM_VIEW_SUBMISSIONS))
 
 
 class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
@@ -108,7 +122,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
 
         self.client.login(username='anotheruser', password='anotheruser')
         permission_list_response = self.client.get(
-            self.asset_permissions_list_url, format='json'
+            self.get_asset_perm_assignment_list_url(self.asset), format='json'
         )
         self.assertEqual(
             permission_list_response.status_code, status.HTTP_200_OK
@@ -145,12 +159,40 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
 
         self.assertEqual(expected_perms, obj_perms)
 
+    def test_managers_see_all_assignments(self):
+        manager = User(username='businessfish')
+        manager.set_password('manage this!')
+        manager.save()
+        self.asset.assign_perm(manager, PERM_MANAGE_ASSET)
+
+        self.client.login(username='businessfish', password='manage this!')
+        response = self.client.get(
+            self.get_asset_perm_assignment_list_url(self.asset)
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        returned_urls = [r['url'] for r in response.data]
+        all_obj_perms = ObjectPermission.objects.filter_for_object(self.asset)
+        assigned_obj_perms = all_obj_perms.filter(
+            permission__codename__in=self.asset.get_assignable_permissions(
+                with_partial=False
+            ),
+        )
+
+        self.assertListEqual(
+            sorted(returned_urls),
+            sorted(
+                self.get_urls_for_asset_perm_assignment_objs(
+                    assigned_obj_perms, asset=self.asset
+                )
+            ),
+        )
 
     def test_editors_see_only_self_anon_and_owner_assignments(self):
 
         self.client.login(username='someuser', password='someuser')
         permission_list_response = self.client.get(
-            self.asset_permissions_list_url, format='json'
+            self.get_asset_perm_assignment_list_url(self.asset), format='json'
         )
         self.assertEqual(
             permission_list_response.status_code, status.HTTP_200_OK
@@ -192,8 +234,9 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
     def test_anonymous_get_only_owner_s_assignments(self):
 
         self.client.logout()
-        permission_list_response = self.client.get(self.asset_permissions_list_url,
-                                                   format='json')
+        permission_list_response = self.client.get(
+            self.get_asset_perm_assignment_list_url(self.asset), format='json'
+        )
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
         admin_perms = self.asset.get_perms(self.admin)
         results = permission_list_response.data
@@ -219,51 +262,155 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
 
 class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
 
-    def _logged_user_gives_permissions(self, assignments):
+    def _assign_perms_as_logged_in_user(self, assignments):
         """
-        Uses the API to grant `permission` to `username`
+        Uses the bulk API to replace the permission assignments of `self.asset`
+        with `assignments`. Does not attempt any authentication.
         """
-        url = '{}bulk/'.format(self.asset_permissions_list_url)
+        url = reverse(
+            # this view name is a bit... bulky
+            self._get_endpoint('asset-permission-assignment-bulk-assignments'),
+            kwargs={'parent_lookup_asset': self.asset.uid}
+        )
 
-        def get_data_template(username_, permission_):
+        def get_data_template(username_, codename_):
             return {
-                'user': getattr(self, '{}_detail_url'.format(username_)),
-                'permission': getattr(self, '{}_permission_detail_url'.format(
-                    permission_))
+                'user': self.obj_to_url(User.objects.get(username=username)),
+                'permission': self.obj_to_url(
+                    Permission.objects.get(codename=codename_)
+                ),
             }
 
         data = []
-        for username, permission in assignments:
-            data.append(get_data_template(username, permission))
+        for username, codename in assignments:
+            data.append(get_data_template(username, codename))
         response = self.client.post(url, data, format='json')
         return response
 
     def test_cannot_assign_permissions_to_owner(self):
-        self._logged_user_gives_permission('someuser', PERM_CHANGE_ASSET)
+        self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
         self.client.login(username='someuser', password='someuser')
-        response = self._logged_user_gives_permissions([
+        response = self._assign_perms_as_logged_in_user([
             ('admin', PERM_VIEW_ASSET),
             ('admin', PERM_CHANGE_ASSET)
         ])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_bulk_assign_permissions(self):
-        # TODO Improve this test
-        permission_list_response = self.client.get(self.asset_permissions_list_url,
-                                                   format='json')
+    def test_owner_can_assign_permissions(self):
+        permission_list_response = self.client.get(
+            self.get_asset_perm_assignment_list_url(self.asset), format='json'
+        )
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
-        total = len(permission_list_response.data)
-        # Add number of permissions added with 'view_asset'
-        total += len(Asset.get_implied_perms(PERM_VIEW_ASSET)) + 1
-        # Add number of permissions added with 'change_asset'
-        total += len(Asset.get_implied_perms(PERM_CHANGE_ASSET)) + 1
 
-        response = self._logged_user_gives_permissions([
+        response = self._assign_perms_as_logged_in_user([
             ('someuser', PERM_VIEW_ASSET),
             ('someuser', PERM_VIEW_ASSET),  # Add a duplicate which should not count
             ('anotheruser', PERM_CHANGE_ASSET)
         ])
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), total)
 
+        returned_urls = [r['url'] for r in response.data]
+        all_obj_perms = ObjectPermission.objects.filter_for_object(self.asset)
+        assigned_obj_perms = all_obj_perms.filter(
+            permission__codename__in=self.asset.get_assignable_permissions(
+                with_partial=False
+            )
+        )
+        self.assertListEqual(
+            sorted(
+                assigned_obj_perms.values_list(
+                    'user__username', 'permission__codename'
+                )
+            ),
+            sorted([
+                ('admin', PERM_VIEW_ASSET),
+                ('admin', PERM_CHANGE_ASSET),
+                ('admin', PERM_MANAGE_ASSET),
+                ('admin', PERM_ADD_SUBMISSIONS),
+                ('admin', PERM_DELETE_SUBMISSIONS),
+                ('admin', PERM_VIEW_SUBMISSIONS),
+                ('admin', PERM_CHANGE_SUBMISSIONS),
+                ('admin', PERM_VALIDATE_SUBMISSIONS),
+                ('someuser', PERM_VIEW_ASSET),
+                ('anotheruser', PERM_VIEW_ASSET),
+                ('anotheruser', PERM_CHANGE_ASSET),
+            ]),
+        )
+        self.assertListEqual(
+            sorted(returned_urls),
+            sorted(
+                self.get_urls_for_asset_perm_assignment_objs(
+                    assigned_obj_perms, asset=self.asset
+                )
+            ),
+        )
+
+    def test_assignment_removes_old_permissions(self):
+        self.asset.assign_perm(self.someuser, PERM_CHANGE_ASSET)
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
+        response = self._assign_perms_as_logged_in_user([
+            ('someuser', PERM_VIEW_ASSET),
+            ('anotheruser', PERM_CHANGE_ASSET)
+        ])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
+
+    def test_viewers_cannot_give_permissions(self):
+        self.asset.assign_perm(self.someuser, PERM_VIEW_ASSET)
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_VIEW_ASSET))
+        self.client.login(username='someuser', password='someuser')
+        response = self._assign_perms_as_logged_in_user([
+            ('anotheruser', PERM_CHANGE_ASSET),
+            ('anotheruser', PERM_CHANGE_SUBMISSIONS)
+        ])
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # If they don't have `view_asset`, they don't have anything, and we're
+        # in good shape
+        self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET))
+
+    def test_editors_cannot_give_permissions(self):
+        self._grant_perm_as_logged_in_user('someuser', PERM_CHANGE_ASSET)
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_CHANGE_ASSET))
+        self.client.login(username='someuser', password='someuser')
+        response = self._assign_perms_as_logged_in_user([
+            ('anotheruser', PERM_CHANGE_ASSET),
+            ('anotheruser', PERM_CHANGE_SUBMISSIONS)
+        ])
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET))
+
+    def test_anonymous_cannot_give_permissions(self):
+        self.client.logout()
+        response = self._assign_perms_as_logged_in_user([
+            ('anotheruser', PERM_CHANGE_ASSET),
+            ('anotheruser', PERM_CHANGE_SUBMISSIONS)
+        ])
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET))
+
+    def test_managers_can_give_permissions(self):
+        self._grant_perm_as_logged_in_user('someuser', PERM_MANAGE_ASSET)
+        self.assertTrue(self.asset.has_perm(self.someuser, PERM_MANAGE_ASSET))
+        self.client.login(username='someuser', password='someuser')
+        response = self._assign_perms_as_logged_in_user([
+            ('anotheruser', PERM_CHANGE_ASSET),
+            ('anotheruser', PERM_CHANGE_SUBMISSIONS)
+        ])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET))
+        self.assertTrue(self.asset.has_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS))
+
+    def test_submission_assignments_ignored_for_non_survey_assets(self):
+        self.asset.asset_type = ASSET_TYPE_TEMPLATE
+        self.asset.save()
+        # FIXME: should handle ValidationError somewhere and return HTTP 405
+        self.assertRaises(
+            ValidationError,
+            self._assign_perms_as_logged_in_user,
+            [
+                ('someuser', PERM_VIEW_SUBMISSIONS),
+                ('anotheruser', PERM_VALIDATE_SUBMISSIONS),
+            ],
+        )
+        self.assertFalse(self.asset.has_perm(self.someuser, PERM_VIEW_SUBMISSIONS))
+        self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS))

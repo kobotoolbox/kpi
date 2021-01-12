@@ -422,6 +422,8 @@ class AssetsDetailApiTests(BaseAssetTestCase):
              'url': 'http://testserver/api/v2/permissions/change_asset/'},
             {'label': 'Edit submissions',
              'url': 'http://testserver/api/v2/permissions/change_submissions/'},
+            {'label': 'Manage project',
+             'url': 'http://testserver/api/v2/permissions/manage_asset/'},
             {'label': 'Validate submissions',
              'url': 'http://testserver/api/v2/permissions/validate_submissions/'},
             {'label': 'View form',
@@ -451,6 +453,8 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         expected_response = [
             {'label': 'Edit question',
              'url': 'http://testserver/api/v2/permissions/change_asset/'},
+            {'label': 'Manage question',
+             'url': 'http://testserver/api/v2/permissions/manage_asset/'},
             {'label': 'View question',
              'url': 'http://testserver/api/v2/permissions/view_asset/'},
         ]
@@ -526,10 +530,6 @@ class AssetFileTest(BaseTestCase):
             sorted(list(Asset.get_assignable_permissions(False) +
                         Asset.CALCULATED_PERMISSIONS))
         )
-
-    @staticmethod
-    def absolute_reverse(*args, **kwargs):
-        return 'http://testserver/' + reverse(*args, **kwargs).lstrip('/')
 
     def get_asset_file_content(self, url):
         response = self.client.get(url)

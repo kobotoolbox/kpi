@@ -255,6 +255,9 @@ permissionsActions.assignAssetPermission.failed.listen(() => {
 permissionsActions.removeAssetPermission.failed.listen(() => {
   notify(t('Failed to remove permissions'), 'error');
 });
+permissionsActions.bulkSetAssetPermissions.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
 permissionsActions.assignCollectionPermission.failed.listen(() => {
   notify(t('Failed to update permissions'), 'error');
 });

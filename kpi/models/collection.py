@@ -9,8 +9,11 @@ from mptt.models import MPTTModel, TreeForeignKey
 from taggit.managers import TaggableManager
 from taggit.models import Tag
 
-from kpi.constants import PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION, \
-    PERM_DELETE_COLLECTION, PERM_SHARE_COLLECTION
+from kpi.constants import (
+    PERM_CHANGE_COLLECTION,
+    PERM_DELETE_COLLECTION,
+    PERM_VIEW_COLLECTION,
+)
 from kpi.fields import KpiUidField
 from .asset import (
     Asset,
@@ -52,7 +55,6 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
                             related_name='children', on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='owned_collections',
                               on_delete=models.CASCADE)
-    editors_can_change_permissions = models.BooleanField(default=False)
     discoverable_when_public = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='c')
     date_created = models.DateTimeField(auto_now_add=True)
@@ -71,8 +73,6 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
             # change_, add_, and delete_collection are provided automatically
             # by Django
             (PERM_VIEW_COLLECTION, 'Can view collection'),
-            (PERM_SHARE_COLLECTION,
-             "Can change this collection's sharing settings"),
         )
 
         # Since Django 2.1, 4 permissions are added for each registered model:
@@ -90,7 +90,7 @@ class Collection(ObjectPermissionMixin, TagStringMixin, MPTTModel):
     ASSIGNABLE_PERMISSIONS = (PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION)
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
-    CALCULATED_PERMISSIONS = (PERM_SHARE_COLLECTION, PERM_DELETE_COLLECTION)
+    CALCULATED_PERMISSIONS = (PERM_DELETE_COLLECTION)
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {
         # Format: explicit: (implied, implied, ...)

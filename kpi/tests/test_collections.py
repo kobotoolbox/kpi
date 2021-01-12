@@ -408,37 +408,6 @@ class ShareCollectionTests(TestCase):
             0
         )
 
-    def test_owner_can_edit_permissions(self):
-        self.assertTrue(self.standalone_coll.owner.has_perm(
-            'share_collection',
-            self.standalone_coll
-        ))
-
-    def test_share_collection_permission_is_not_inherited(self):
-        # Make a child collection whose owner is different than its parent's
-        coll = Collection.objects.create(
-            name="anotheruser's collection",
-            owner=self.anotheruser,
-            parent=self.standalone_coll,
-            # The change permission is inherited; prevent it from allowing
-            # users to edit permissions
-            editors_can_change_permissions=False
-        )
-        # Ensure the parent's owner can't change permissions on the child
-        self.assertFalse(self.standalone_coll.owner.has_perm(
-            'share_collection',
-            coll
-        ))
-
-    def test_change_permission_does_not_provide_share_permission(self):
-        self.assertFalse(self.someuser.has_perm(
-            PERM_CHANGE_COLLECTION, self.standalone_coll))
-        # Grant the change permission and make sure it does not provide
-        # share_collection
-        self.standalone_coll.assign_perm(self.someuser, PERM_CHANGE_COLLECTION)
-        self.assertFalse(self.someuser.has_perm(
-            'share_collection', self.standalone_coll))
-
     def test_anonymous_view_permission_on_standalone_collection(self):
         # Grant
         self.assertFalse(AnonymousUser().has_perm(
