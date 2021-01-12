@@ -88,11 +88,11 @@ export var dataInterface;
     },
     listTemplates () {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.get('t')}`
+        url: `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.t}`
       });
     },
     getCollections(params = {}) {
-      let q = COMMON_QUERIES.get('c');
+      let q = COMMON_QUERIES.c;
       if (params.owner) {
         q += ` AND owner__username__exact:${params.owner}`;
       }
@@ -432,13 +432,13 @@ export var dataInterface;
       return this._searchAssetsWithPredefinedQuery(
         params,
         // we only want the currently viewed collection's assets
-        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:${params.uid}`,
+        `${COMMON_QUERIES.qbtc} AND parent__uid:${params.uid}`,
       );
     },
     searchMyLibraryAssets(params = {}) {
       // we only want orphans (assets not inside collection)
       // unless it's a search
-      let query = COMMON_QUERIES.get('qbtc');
+      let query = COMMON_QUERIES.qbtc;
       if (!params.searchPhrase) {
         query += ' AND parent:null';
       }
@@ -449,13 +449,13 @@ export var dataInterface;
       return this._searchMetadataWithPredefinedQuery(
         params,
         // we only want the currently viewed collection's assets
-        `${COMMON_QUERIES.get('qbtc')} AND parent__uid:${params.uid}`,
+        `${COMMON_QUERIES.qbtc} AND parent__uid:${params.uid}`,
       );
     },
     searchMyLibraryMetadata(params = {}) {
       // we only want orphans (assets not inside collection)
       // unless it's a search
-      let query = COMMON_QUERIES.get('qbtc');
+      let query = COMMON_QUERIES.qbtc;
       if (!params.searchPhrase) {
         query += ' AND parent:null';
       }
@@ -466,14 +466,14 @@ export var dataInterface;
       params.status = 'public-discoverable';
       return this._searchAssetsWithPredefinedQuery(
         params,
-        COMMON_QUERIES.get('c'),
+        COMMON_QUERIES.c,
       );
     },
     searchPublicCollectionsMetadata(params = {}) {
       params.status = 'public-discoverable';
       return this._searchMetadataWithPredefinedQuery(
         params,
-        COMMON_QUERIES.get('c'),
+        COMMON_QUERIES.c,
       );
     },
     assetsHash () {

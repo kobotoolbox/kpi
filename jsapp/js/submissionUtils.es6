@@ -103,11 +103,11 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
         continue;
       }
       // we don't want to include special calculate row used to store form version
-      if (row.type === QUESTION_TYPES.get('calculate').id && rowName === FORM_VERSION_NAME) {
+      if (row.type === QUESTION_TYPES.calculate.id && rowName === FORM_VERSION_NAME) {
         continue;
       }
       // notes don't carry submission data, we ignore them
-      if (row.type === QUESTION_TYPES.get('note').id) {
+      if (row.type === QUESTION_TYPES.note.id) {
         continue;
       }
       /*
@@ -122,7 +122,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
 
       let rowData = getRowData(rowName, survey, parentData);
 
-      if (row.type === GROUP_TYPES_BEGIN.get('begin_repeat')) {
+      if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
         if (Array.isArray(rowData)) {
           rowData.forEach((item, itemIndex) => {
             let itemObj = new DisplayGroup(
@@ -139,7 +139,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
             traverseSurvey(itemObj, item, itemIndex);
           });
         }
-      } else if (row.type === GROUP_TYPES_BEGIN.get('begin_kobomatrix')) {
+      } else if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
         let matrixGroupObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.get('group_matrix'),
           rowLabel,
@@ -169,9 +169,9 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
           });
         }
       } else if (
-        row.type === GROUP_TYPES_BEGIN.get('begin_group') ||
-        row.type === GROUP_TYPES_BEGIN.get('begin_score') ||
-        row.type === GROUP_TYPES_BEGIN.get('begin_rank')
+        row.type === GROUP_TYPES_BEGIN.begin_group ||
+        row.type === GROUP_TYPES_BEGIN.begin_score ||
+        row.type === GROUP_TYPES_BEGIN.begin_rank
       ) {
         let rowObj = new DisplayGroup(
           DISPLAY_GROUP_TYPES.get('group_regular'),
@@ -185,7 +185,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
          */
         traverseSurvey(rowObj, rowData, repeatIndex);
       } else if (
-        QUESTION_TYPES.has(row.type) ||
+        QUESTION_TYPES[row.type] ||
         row.type === SCORE_ROW_TYPE ||
         row.type === RANK_LEVEL_TYPE
       ) {

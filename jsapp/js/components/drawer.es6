@@ -41,9 +41,9 @@ class FormSidebar extends Reflux.Component {
       headerFilters: 'forms',
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: COMMON_QUERIES.get('s'),
+          assetType: COMMON_QUERIES.s,
         },
-        filterTags: COMMON_QUERIES.get('s'),
+        filterTags: COMMON_QUERIES.s,
       })
     });
   }

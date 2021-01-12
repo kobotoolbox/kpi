@@ -20,11 +20,11 @@ import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
   ASSET_TYPES,
-  ANON_USERNAME
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES
 } from './constants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
-import {searches} from './searches';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -35,6 +35,7 @@ import {
   buildUserUrl,
   renderCheckbox
 } from 'utils';
+import myLibraryStore from 'js/components/library/myLibraryStore';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -484,19 +485,29 @@ mixins.clickAssets = {
           onok: (evt, value) => {
             ok_button.disabled = true;
             ok_button.innerText = t('Cloning...');
+
+            let canAddToParent = false;
+            if (asset.parent) {
+              const foundParentAsset = myLibraryStore.findAssetByUrl(asset.parent);
+              canAddToParent = (
+                typeof foundParentAsset !== 'undefined' &&
+                mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, foundParentAsset)
+              );
+            }
+
             actions.resources.cloneAsset({
               uid: asset.uid,
               name: value,
-              parent: asset.parent
+              parent: canAddToParent ? asset.parent : undefined
             }, {
             onComplete: (asset) => {
               ok_button.disabled = false;
               dialog.destroy();
 
               // TODO when on collection landing page and user clones this
-              // collection's child asset, instead of navigating to clone
+              // collection's child asset, instead of navigating to cloned asset
               // landing page, it would be better to stay here and refresh data
-              // (as the clone will keep the parent asset)
+              // (if the clone will keep the parent asset)
               let goToUrl;
               if (asset.asset_type === ASSET_TYPES.survey.id) {
                 goToUrl = `/forms/${asset.uid}/landing`;

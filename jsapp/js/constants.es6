@@ -23,7 +23,7 @@ export const ANON_USERNAME = 'AnonymousUser';
  * All of them are really defined on backend, but we need it here to be able to
  * build UI for handling them.
  */
-export const PERMISSIONS_CODENAMES = new Map();
+export const PERMISSIONS_CODENAMES = {};
 new Set([
   'view_asset',
   'change_asset',
@@ -33,22 +33,23 @@ new Set([
   'partial_submissions',
   'change_submissions',
   'delete_submissions',
-  'validate_submissions'
-]).forEach((codename) => {PERMISSIONS_CODENAMES.set(codename, codename);});
+  'validate_submissions',
+]).forEach((codename) => {PERMISSIONS_CODENAMES[codename] = codename;});
+Object.freeze(PERMISSIONS_CODENAMES);
 
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
-  FAILED: 0
+  FAILED: 0,
 };
 
-export const KEY_CODES = new Map([
-  ['TAB', 9],
-  ['ENTER', 13],
-  ['ESC', 27],
-  ['SPACE', 32],
-  ['NBSP', 160], // non-breakable space
-]);
+export const KEY_CODES = Object.freeze({
+  TAB: 9,
+  ENTER: 13,
+  ESC: 27,
+  SPACE: 32,
+  NBSP: 160, // non-breakable space
+});
 
 export const MODAL_TYPES = {
   SHARING: 'sharing',
@@ -66,14 +67,14 @@ export const MODAL_TYPES = {
   FORM_LANGUAGES: 'form-languages',
   FORM_TRANSLATIONS_TABLE: 'form-translation-table',
   ASSET_TAGS: 'asset-tags',
-  ENCRYPT_FORM: 'encrypt-form'
+  ENCRYPT_FORM: 'encrypt-form',
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = {
   NEW: 'newForm',
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
-  BUILDER: 'formBuilderAside'
+  BUILDER: 'formBuilderAside',
 };
 
 export const update_states = {
@@ -95,19 +96,19 @@ export const AVAILABLE_FORM_STYLES = [
 export const VALIDATION_STATUSES = {
   no_status: {
     value: null,
-    label: '—'
+    label: '—',
   },
   validation_status_not_approved: {
     value: 'validation_status_not_approved',
-    label: t('Not Approved')
+    label: t('Not Approved'),
   },
   validation_status_approved: {
     value: 'validation_status_approved',
-    label: t('Approved')
+    label: t('Approved'),
   },
   validation_status_on_hold: {
     value: 'validation_status_on_hold',
-    label: t('On Hold')
+    label: t('On Hold'),
   },
 };
 
@@ -115,228 +116,156 @@ export const VALIDATION_STATUSES_LIST = [
   VALIDATION_STATUSES.no_status,
   VALIDATION_STATUSES.validation_status_not_approved,
   VALIDATION_STATUSES.validation_status_approved,
-  VALIDATION_STATUSES.validation_status_on_hold
+  VALIDATION_STATUSES.validation_status_on_hold,
 ];
 
 export const ASSET_TYPES = {
   question: {
     id: 'question',
-    label: t('question')
+    label: t('question'),
   },
   block: {
     id: 'block',
-    label: t('block')
+    label: t('block'),
   },
   template: {
     id: 'template',
-    label: t('template')
+    label: t('template'),
   },
   survey: {
     id: 'survey',
-    label: t('project')
+    label: t('project'),
   },
   collection: {
     id: 'collection',
-    label: t('collection')
-  }
+    label: t('collection'),
+  },
 };
 
-export const QUESTION_TYPES = new Map([
-  [
-    'select_one',
-    {
-      label: t('Select One'),
-      faIcon: 'fa-dot-circle-o',
-      id: 'select_one'
-    }
-  ],
-  [
-    'select_multiple',
-    {
-      label: t('Select Many'),
-      faIcon: 'fa-list-ul',
-      id: 'select_multiple'
-    }
-  ],
-  [
-    'text',
-    {
-      label: t('Text'),
-      faIcon: 'fa-lato-text',
-      id: 'text'
-    }
-  ],
-  [
-    'integer',
-    {
-      label: t('Number'),
-      faIcon: 'fa-lato-integer',
-      id: 'integer'
-    }
-  ],
-  [
-    'decimal',
-    {
-      label: t('Decimal'),
-      faIcon: 'fa-lato-decimal',
-      id: 'decimal'
-    }
-  ],
-  [
-    'date',
-    {
-      label: t('Date'),
-      faIcon: 'fa-calendar',
-      id: 'date'
-    }
-  ],
-  [
-    'time',
-    {
-      label: t('Time'),
-      faIcon: 'fa-clock-o',
-      id: 'time'
-    }
-  ],
-  [
-    'datetime',
-    {
-      label: t('Date & time'),
-      faIcon: 'fa-calendar clock-over',
-      id: 'datetime'
-    }
-  ],
-  [
-    'geopoint',
-    {
-      label: t('Point'),
-      faIcon: 'fa-map-marker',
-      id: 'geopoint'
-    }
-  ],
-  [
-    'image',
-    {
-      label: t('Photo'),
-      faIcon: 'fa-picture-o',
-      id: 'image'
-    }
-  ],
-  [
-    'audio',
-    {
-      label: t('Audio'),
-      faIcon: 'fa-volume-up',
-      id: 'audio'
-    }
-  ],
-  [
-    'video',
-    {
-      label: t('Video'),
-      faIcon: 'fa-video-camera',
-      id: 'video'
-    }
-  ],
-  [
-    'geotrace',
-    {
-      label: t('Line'),
-      faIcon: 'fa-share-alt',
-      id: 'geotrace'
-    }
-  ],
-  [
-    'note',
-    {
-      label: t('Note'),
-      faIcon: 'fa-bars',
-      id: 'note'
-    }
-  ],
-  [
-    'barcode',
-    {
-      label: t('Barcode / QR Code'),
-      faIcon: 'fa-qrcode',
-      id: 'barcode'
-    }
-  ],
-  [
-    'acknowledge',
-    {
-      label: t('Acknowledge'),
-      faIcon: 'fa-check-square-o',
-      id: 'acknowledge'
-    }
-  ],
-  [
-    'geoshape',
-    {
-      label: t('Area'),
-      faIcon: 'fa-square',
-      id: 'geoshape'
-    }
-  ],
-  [
-    'score',
-    {
-      label: t('Rating'),
-      faIcon: 'fa-server',
-      id: 'score'
-    }
-  ],
-  [
-    'kobomatrix',
-    {
-      label: t('Question Matrix'),
-      faIcon: 'fa-table',
-      id: 'kobomatrix'
-    }
-  ],
-  [
-    'rank',
-    {
-      label: t('Ranking'),
-      faIcon: 'fa-sort-amount-desc',
-      id: 'rank'
-    }
-  ],
-  [
-    'calculate',
-    {
-      label: t('Calculate'),
-      faIcon: 'fa-lato-calculate',
-      id: 'calculate'
-    }
-  ],
-  [
-    'hidden',
-    {
-      label: t('Hidden'),
-      faIcon: 'fa-eye-slash',
-      id: 'hidden'
-    }
-  ],
-  [
-    'file',
-    {
-      label: t('File'),
-      faIcon: 'fa-file',
-      id: 'file'
-    }
-  ],
-  [
-    'range',
-    {
-      label: t('Range'),
-      faIcon: 'fa-lato-range',
-      id: 'range'
-    }
-  ]
-]);
+export const QUESTION_TYPES = Object.freeze({
+  select_one: {
+    label: t('Select One'),
+    faIcon: 'fa-dot-circle-o',
+    id: 'select_one',
+  },
+  select_multiple: {
+    label: t('Select Many'),
+    faIcon: 'fa-list-ul',
+    id: 'select_multiple',
+  },
+  text: {
+    label: t('Text'),
+    faIcon: 'fa-lato-text',
+    id: 'text',
+  },
+  integer: {
+    label: t('Number'),
+    faIcon: 'fa-lato-integer',
+    id: 'integer',
+  },
+  decimal: {
+    label: t('Decimal'),
+    faIcon: 'fa-lato-decimal',
+    id: 'decimal',
+  },
+  date: {
+    label: t('Date'),
+    faIcon: 'fa-calendar',
+    id: 'date',
+  },
+  time: {
+    label: t('Time'),
+    faIcon: 'fa-clock-o',
+    id: 'time',
+  },
+  datetime: {
+    label: t('Date & time'),
+    faIcon: 'fa-calendar clock-over',
+    id: 'datetime',
+  },
+  geopoint: {
+    label: t('Point'),
+    faIcon: 'fa-map-marker',
+    id: 'geopoint',
+  },
+  image: {
+    label: t('Photo'),
+    faIcon: 'fa-picture-o',
+    id: 'image',
+  },
+  audio: {
+    label: t('Audio'),
+    faIcon: 'fa-volume-up',
+    id: 'audio',
+  },
+  video: {
+    label: t('Video'),
+    faIcon: 'fa-video-camera',
+    id: 'video',
+  },
+  geotrace: {
+    label: t('Line'),
+    faIcon: 'fa-share-alt',
+    id: 'geotrace',
+  },
+  note: {
+    label: t('Note'),
+    faIcon: 'fa-bars',
+    id: 'note',
+  },
+  barcode: {
+    label: t('Barcode / QR Code'),
+    faIcon: 'fa-qrcode',
+    id: 'barcode',
+  },
+  acknowledge: {
+    label: t('Acknowledge'),
+    faIcon: 'fa-check-square-o',
+    id: 'acknowledge',
+  },
+  geoshape: {
+    label: t('Area'),
+    faIcon: 'fa-square',
+    id: 'geoshape',
+  },
+  score: {
+    label: t('Rating'),
+    faIcon: 'fa-server',
+    id: 'score',
+  },
+  kobomatrix: {
+    label: t('Question Matrix'),
+    faIcon: 'fa-table',
+    id: 'kobomatrix',
+  },
+  rank: {
+    label: t('Ranking'),
+    faIcon: 'fa-sort-amount-desc',
+    id: 'rank',
+  },
+  calculate: {
+    label: t('Calculate'),
+    faIcon: 'fa-lato-calculate',
+    id: 'calculate',
+  },
+  hidden: {
+    label: t('Hidden'),
+    faIcon: 'fa-eye-slash',
+    id: 'hidden',
+  },
+  file: {
+    label: t('File'),
+    faIcon: 'fa-file',
+    id: 'file',
+  },
+  range: {
+    label: t('Range'),
+    faIcon: 'fa-lato-range',
+    id: 'range',
+  },
+});
 
-export const META_QUESTION_TYPES = new Map();
+export const META_QUESTION_TYPES = {};
 new Set([
   'start',
   'end',
@@ -346,8 +275,9 @@ new Set([
   'subscriberid',
   'deviceid',
   'phonenumber',
-  'audit'
-]).forEach((codename) => {META_QUESTION_TYPES.set(codename, codename);});
+  'audit',
+]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
+Object.freeze(META_QUESTION_TYPES);
 
 export const NAME_MAX_LENGTH = 255;
 
@@ -355,42 +285,45 @@ export const NAME_MAX_LENGTH = 255;
  * for Backend calls, see their definitions at `kpi/filters.py`
  * NOTE: ORs require a parenthesis to work
  */
-export const COMMON_QUERIES = new Map([
-  ['b', 'asset_type:block'],
-  ['q', 'asset_type:question'],
-  ['t', 'asset_type:template'],
-  ['s', 'asset_type:survey'],
-  ['c', 'asset_type:collection'],
-  ['qb', '(asset_type:question OR asset_type:block)'],
-  ['qbt', '(asset_type:question OR asset_type:block OR asset_type:template)'],
-  ['qbtc', '(asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection)']
-]);
+export const COMMON_QUERIES = Object.freeze({
+  b: 'asset_type:block',
+  q: 'asset_type:question',
+  t: 'asset_type:template',
+  s: 'asset_type:survey',
+  c: 'asset_type:collection',
+  qb: '(asset_type:question OR asset_type:block',
+  qbt: '(asset_type:question OR asset_type:block OR asset_type:template',
+  qbtc: '(asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection',
+});
 
-export const ACCESS_TYPES = new Map();
+export const ACCESS_TYPES = {};
 new Set([
   'owned',
   'shared',
   'public',
-  'subscribed'
-]).forEach((codename) => {ACCESS_TYPES.set(codename, codename);});
+  'subscribed',
+]).forEach((codename) => {ACCESS_TYPES[codename] = codename;});
+Object.freeze(ACCESS_TYPES);
 
-export const GROUP_TYPES_BEGIN = new Map();
+export const GROUP_TYPES_BEGIN = {};
 new Set([
   'begin_group',
   'begin_score',
   'begin_rank',
   'begin_kobomatrix',
   'begin_repeat',
-]).forEach((kind) => {GROUP_TYPES_BEGIN.set(kind, kind);});
+]).forEach((kind) => {GROUP_TYPES_BEGIN[kind] = kind;});
+Object.freeze(GROUP_TYPES_BEGIN);
 
-export const GROUP_TYPES_END = new Map();
+export const GROUP_TYPES_END = {};
 new Set([
   'end_group',
   'end_score',
   'end_rank',
   'end_kobomatrix',
   'end_repeat',
-]).forEach((kind) => {GROUP_TYPES_END.set(kind, kind);});
+]).forEach((kind) => {GROUP_TYPES_END[kind] = kind;});
+Object.freeze(GROUP_TYPES_END);
 
 export const FORM_VERSION_NAME = '__version__';
 
@@ -402,14 +335,25 @@ export const RANK_LEVEL_TYPE = 'rank__level';
 
 export const MATRIX_PAIR_PROPS = {
   inSurvey: 'kobo--matrix_list',
-  inChoices: 'list_name'
+  inChoices: 'list_name',
 };
 
-export const CATEGORY_LABELS = {
-  Deployed: t('Deployed'),
-  Draft: t('Draft'),
-  Archived: t('Archived')
-};
+export const DEPLOYMENT_CATEGORIES = Object.freeze({
+  Deployed: {id: 'Deployed', label: t('Deployed')},
+  Draft: {id: 'Draft', label: t('Draft')},
+  Archived: {id: 'Archived', label: t('Archived')},
+});
+
+export const REPORT_STYLES = Object.freeze({
+  vertical: {value: 'vertical', label: t('Vertical')},
+  donut: {value: 'donut', label: t('Donut')},
+  area: {value: 'area', label: t('Area')},
+  horizontal: {value: 'horizontal', label: t('Horizontal')},
+  pie: {value: 'pie', label: t('Pie')},
+  line: {value: 'line', label: t('Line')},
+});
+
+export const QUERY_LIMIT_DEFAULT = 5000;
 
 const constants = {
   ROOT_URL,
@@ -434,7 +378,9 @@ const constants = {
   FORM_VERSION_NAME,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  CATEGORY_LABELS,
+  DEPLOYMENT_CATEGORIES,
+  REPORT_STYLES,
+  QUERY_LIMIT_DEFAULT,
 };
 
 export default constants;

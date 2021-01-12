@@ -144,7 +144,7 @@ export class ListCollectionFilter extends React.Component {
       var availableCollections = collections.results.filter((value) => {
         return (
           value.access_types &&
-          !value.access_types.includes(ACCESS_TYPES.get('public'))
+          !value.access_types.includes(ACCESS_TYPES.public)
         );
       });
 

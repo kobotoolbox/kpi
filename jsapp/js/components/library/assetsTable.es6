@@ -9,6 +9,11 @@ import {
 } from 'utils';
 import AssetsTableRow from './assetsTableRow';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
+import {
+  ASSETS_TABLE_CONTEXTS,
+  ORDER_DIRECTIONS,
+  ASSETS_TABLE_COLUMNS
+} from './libraryConstants';
 
 /**
  * Displays a table of assets.
@@ -29,7 +34,7 @@ import {renderLoading} from 'js/components/modalForms/modalHelpers';
  * @prop {number} [totalPages] - For displaying pagination.
  * @prop {switchPageCallback} [onSwitchPage] - Called when user clicks page change.
  */
-export class AssetsTable extends React.Component {
+export default class AssetsTable extends React.Component {
   constructor(props){
     super(props);
     this.state = {
@@ -89,15 +94,15 @@ export class AssetsTable extends React.Component {
     if (this.props.orderColumnId === columnId) {
       // clicking already selected column results in switching the order direction
       let newVal;
-      if (this.props.orderValue === ORDER_DIRECTIONS.get('ascending')) {
-        newVal = ORDER_DIRECTIONS.get('descending');
-      } else if (this.props.orderValue === ORDER_DIRECTIONS.get('descending')) {
-        newVal = ORDER_DIRECTIONS.get('ascending');
+      if (this.props.orderValue === ORDER_DIRECTIONS.ascending) {
+        newVal = ORDER_DIRECTIONS.descending;
+      } else if (this.props.orderValue === ORDER_DIRECTIONS.descending) {
+        newVal = ORDER_DIRECTIONS.ascending;
       }
       this.props.onOrderChange(this.props.orderColumnId, newVal);
     } else {
       // change column and revert order direction to default
-      this.props.onOrderChange(columnId, ASSETS_TABLE_COLUMNS.get(columnId).defaultValue);
+      this.props.onOrderChange(columnId, ASSETS_TABLE_COLUMNS[columnId].defaultValue);
     }
   }
 
@@ -213,7 +218,7 @@ export class AssetsTable extends React.Component {
 
     // for `icon-status` we don't display empty icon, because the column is
     // too narrow to display label and icon together
-    if (columnDef.id === ASSETS_TABLE_COLUMNS.get('icon-status').id) {
+    if (columnDef.id === ASSETS_TABLE_COLUMNS['icon-status'].id) {
       hideIcon = this.props.orderColumnId !== columnDef.id;
       hideLabel = this.props.orderColumnId === columnDef.id;
     }
@@ -221,10 +226,10 @@ export class AssetsTable extends React.Component {
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
     if (this.props.orderColumnId === columnDef.id) {
-      if (this.props.orderValue === ORDER_DIRECTIONS.get('ascending')) {
+      if (this.props.orderValue === ORDER_DIRECTIONS.ascending) {
         icon = (<i className='k-icon k-icon-up'/>);
       }
-      if (this.props.orderValue === ORDER_DIRECTIONS.get('descending')) {
+      if (this.props.orderValue === ORDER_DIRECTIONS.descending) {
         icon = (<i className='k-icon k-icon-down'/>);
       }
     }
@@ -320,18 +325,18 @@ export class AssetsTable extends React.Component {
       <bem.AssetsTable m={modifiers}>
         <bem.AssetsTable__header>
           <bem.AssetsTableRow m='header'>
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('icon-status'), 'first')}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('name'))}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('items-count'))}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('owner'))}
-            {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
-              this.renderHeader(ASSETS_TABLE_COLUMNS.get('subscribers-count'))
+            {this.renderHeader(ASSETS_TABLE_COLUMNS['icon-status'], 'first')}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.name)}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS['items-count'])}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.owner)}
+            {this.props.context === ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
+              this.renderHeader(ASSETS_TABLE_COLUMNS['subscribers-count'])
             }
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('languages'))}
-            {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
-              this.renderHeader(ASSETS_TABLE_COLUMNS.get('primary-sector'))
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.languages)}
+            {this.props.context === ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
+              this.renderHeader(ASSETS_TABLE_COLUMNS['primary-sector'])
             }
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('date-modified'), 'last')}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS['date-modified'], 'last')}
 
             {this.state.scrollbarWidth !== 0 && this.state.scrollbarWidth !== null &&
               <div
@@ -369,100 +374,6 @@ export class AssetsTable extends React.Component {
     );
   }
 }
-
-export const ASSETS_TABLE_CONTEXTS = new Map();
-new Set([
-  'my-library',
-  'collection-content',
-  'public-collections'
-]).forEach((name) => {ASSETS_TABLE_CONTEXTS.set(name, name);});
-
-export const ORDER_DIRECTIONS = new Map();
-new Set([
-  'ascending',
-  'descending'
-]).forEach((name) => {ORDER_DIRECTIONS.set(name, name);});
-
-/**
- * @typedef AssetsTableColumn
- * @prop {string} label
- * @prop {string} id
- * @prop {string} [filterBy] - a backend filter property
- * @prop {string} [filterByPath] - a path to asset property that holds the data
- * @prop {string} [filterByMetadataName] - name of the metadata property that holds the values for the filter
- * @prop {string} [orderBy] - a backend order property
- * @prop {boolean} [defaultValue]
- */
-export const ASSETS_TABLE_COLUMNS = new Map([
-  [
-    'icon-status', {
-      label: t('Type'),
-      id: 'icon-status',
-      orderBy: 'asset_type',
-      defaultValue: ORDER_DIRECTIONS.get('ascending')
-    }
-  ],
-  [
-    'date-modified', {
-      label: t('Last Modified'),
-      id: 'date-modified',
-      orderBy: 'date_modified',
-      defaultValue: ORDER_DIRECTIONS.get('descending')
-    }
-  ],
-  [
-    'name', {
-      label: t('Name'),
-      id: 'name',
-      orderBy: 'name',
-      defaultValue: ORDER_DIRECTIONS.get('ascending')
-    }
-  ],
-  [
-    'items-count', {
-      label: t('Items'),
-      id: 'items-count',
-      // TODO: currently it is not possible to order by summary.row_count and children.count at the same time
-      // so we disable this column
-      orderBy: null,
-      defaultValue: null
-    }
-  ],
-  [
-    'owner', {
-      label: t('Owner'),
-      id: 'owner',
-      orderBy: 'owner__username',
-      defaultValue: ORDER_DIRECTIONS.get('ascending')
-    }
-  ],
-  [
-    'subscribers-count', {
-      label: t('Subscribers'),
-      id: 'subscribers-count',
-      orderBy: 'subscribers_count',
-      defaultValue: ORDER_DIRECTIONS.get('ascending')
-    }
-  ],
-  [
-    'languages', {
-      label: t('Languages'),
-      id: 'languages',
-      filterBy: 'summary__languages__icontains',
-      filterByPath: ['summary', 'languages'],
-      filterByMetadataName: 'languages'
-    }
-  ],
-  [
-    'primary-sector', {
-      label: t('Primary Sector'),
-      id: 'primary-sector',
-      filterBy: 'settings__sector__value',
-      filterByPath: ['settings', 'sector'],
-      filterByMetadataName: 'sectors'
-    }
-  ],
-]);
 
 /**
  * @callback columnChangeCallback

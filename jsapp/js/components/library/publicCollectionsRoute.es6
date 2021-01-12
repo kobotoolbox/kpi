@@ -6,11 +6,11 @@ import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import {bem} from 'js/bem';
 import publicCollectionsStore from './publicCollectionsStore';
+import AssetsTable from './assetsTable';
 import {
-  AssetsTable,
-  ASSETS_TABLE_CONTEXTS
-} from './assetsTable';
-import {ROOT_BREADCRUMBS} from './libraryConstants';
+  ROOT_BREADCRUMBS,
+  ASSETS_TABLE_CONTEXTS,
+} from 'js/components/library/libraryConstants';
 
 class PublicCollectionsRoute extends React.Component {
   constructor(props) {
@@ -70,7 +70,7 @@ class PublicCollectionsRoute extends React.Component {
           </bem.Breadcrumbs>
 
           <AssetsTable
-            context={ASSETS_TABLE_CONTEXTS.get('public-collections')}
+            context={ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS}
             isLoading={this.state.isLoading}
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}

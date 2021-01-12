@@ -73,7 +73,7 @@ class Modal extends React.Component {
     document.removeEventListener('keydown', this.escFunction);
   }
   escFunction (evt) {
-    if (evt.keyCode === KEY_CODES.get('ESC') || evt.key === 'Escape') {
+    if (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape') {
       this.props.onClose.call(evt);
     }
   }

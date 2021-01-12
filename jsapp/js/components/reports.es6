@@ -21,18 +21,15 @@ import {
   assign,
   launchPrinting
 } from 'utils';
-
-function labelVal(label, value) {
-  return {label: label, value: (value || label.toLowerCase().replace(/\W+/g, '_'))};
-}
+import {REPORT_STYLES} from 'js/constants';
 
 let reportStyles = [
-  labelVal(t('Vertical')),
-  labelVal(t('Donut')),
-  labelVal(t('Area')),
-  labelVal(t('Horizontal')),
-  labelVal(t('Pie')),
-  labelVal(t('Line')),
+  REPORT_STYLES.vertical,
+  REPORT_STYLES.donut,
+  REPORT_STYLES.area,
+  REPORT_STYLES.horizontal,
+  REPORT_STYLES.pie,
+  REPORT_STYLES.line,
 ];
 
 class ChartTypePicker extends React.Component {
@@ -732,7 +729,7 @@ class Reports extends React.Component {
 
       // TODO: improve the defaults below
       if (reportStyles.default.report_type === undefined) {
-        reportStyles.default.report_type = 'vertical';
+        reportStyles.default.report_type = REPORT_STYLES.vertical.value;
       }
       if (reportStyles.default.translationIndex === undefined) {
         reportStyles.default.translationIndex = 0;

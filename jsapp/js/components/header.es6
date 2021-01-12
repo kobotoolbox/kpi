@@ -32,9 +32,9 @@ class MainHeader extends Reflux.Component {
       isLanguageSelectorVisible: false,
       formFiltersContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: COMMON_QUERIES.get('s'),
+          assetType: COMMON_QUERIES.s,
         },
-        filterTags: COMMON_QUERIES.get('s'),
+        filterTags: COMMON_QUERIES.s,
       })
     }, stores.pageState.state);
     this.stores = [
