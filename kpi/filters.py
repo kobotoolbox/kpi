@@ -1,4 +1,6 @@
 # coding: utf-8
+import re
+
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
@@ -207,17 +209,15 @@ class KpiObjectPermissionsFilter:
             return queryset
 
         request_query = request.query_params['q']
-        parent_uid = (
-            request_query.split(PARENT_UID_PARAMETER)[1].strip(':')
-            if PARENT_UID_PARAMETER in request_query
-            else None
+        parent_uid = re.search(
+            f'{PARENT_UID_PARAMETER}:([a-zA-Z0-9_.-]*)', request_query
         )
 
         if parent_uid is None:
             return queryset
 
         try:
-            parent_obj = queryset.get(uid=parent_uid)
+            parent_obj = queryset.get(uid=parent_uid.group(1))
         except Exception as e:
             return queryset
 
