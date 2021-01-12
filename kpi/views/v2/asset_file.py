@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -158,6 +158,11 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def content(self, *args, **kwargs):
 
         asset_file = self.get_object()
+
+        # We do not allow paired data to be retrieve through this endpoint
+        if asset_file.file_type == AssetFile.PAIRED_DATA:
+            return Http404
+
         if asset_file.metadata.get('redirect_url'):
             return HttpResponseRedirect(asset_file.metadata.get('redirect_url'))
 

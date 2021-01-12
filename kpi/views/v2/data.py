@@ -10,14 +10,12 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
     INSTANCE_FORMAT_TYPE_JSON,
-    INSTANCE_FORMAT_TYPE_XML,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     EditSubmissionPermission,
-    EmbedXMLPermission,
     SubmissionPermission,
     SubmissionValidationStatusPermission,
 )
@@ -220,8 +218,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         Returns the deployment for the asset specified by the request
         """
         if not self.asset.has_deployment:
-            raise ObjectDeploymentDoesNotExist(_('The specified asset has not been '
-                                                 'deployed'))
+            raise ObjectDeploymentDoesNotExist(
+                _('The specified asset has not been deployed')
+            )
 
         return self.asset.deployment
 
@@ -248,23 +247,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                                                            user=request.user,
                                                            params=request.GET)
         return Response(**json_response)
-
-    @action(detail=False, methods=['GET'],
-            permission_classes=[EmbedXMLPermission],
-            renderer_classes=[SubmissionXMLRenderer])
-    def embed_xml(self, request, **kwargs):
-        deployment = self._get_deployment()
-
-        user = request.user
-        if user.is_anonymous:
-            user_id = settings.ANONYMOUS_USER_ID
-        else:
-            user_id = user.pk
-
-        return Response(deployment.get_submissions(
-            user_id,
-            format_type=INSTANCE_FORMAT_TYPE_XML
-        ))
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is

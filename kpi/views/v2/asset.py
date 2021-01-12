@@ -1,13 +1,16 @@
 # coding: utf-8
 import copy
 import json
-
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 
+from django.conf import settings
+from django.core.files.base import ContentFile
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.utils.translation import ugettext as _
 from rest_framework import exceptions, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -21,17 +24,21 @@ from kpi.constants import (
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
+    INSTANCE_FORMAT_TYPE_XML,
     PERM_FROM_KC_ONLY,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
-from kpi.exceptions import BadAssetTypeException
+from kpi.exceptions import (
+    BadAssetTypeException,
+    ObjectDeploymentDoesNotExist,
+)
 from kpi.filters import (
     AssetOrderingFilter,
     KpiObjectPermissionsFilter,
-    SearchFilter
+    SearchFilter,
 )
 from kpi.highlighters import highlight_xform
-from kpi.models import Asset
+from kpi.models import Asset, AssetFile
 from kpi.models.object_permission import (
     ObjectPermission,
     get_anonymous_user,
@@ -42,11 +49,13 @@ from kpi.paginators import AssetPagination
 from kpi.permissions import (
     get_perm_name,
     IsOwnerOrReadOnly,
+    PairedDataPermission,
     PostMappedToChangePermission,
 )
 from kpi.renderers import (
     AssetJsonRenderer,
     SSJsonRenderer,
+    SubmissionXMLRenderer,
     XFormRenderer,
     XlsRenderer,
 )
@@ -55,6 +64,7 @@ from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
 from kpi.utils.hash import get_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.utils.xml import strip_nodes
 
 
 class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -487,6 +497,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         return metadata
 
+    def get_object(self):
+        self.asset = super().get_object()
+        return self.asset
+
     def get_paginated_response(self, data, metadata):
         """
         Override parent `get_paginated_response` response to include `metadata`
@@ -508,8 +522,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         context_ = super().get_serializer_context()
         if self.action == 'list':
             # To avoid making a triple join-query for each asset in the list
-            # to retrieve related objects, we populated dicts key-ed by asset ids
-            # with the data needed by serializer.
+            # to retrieve related objects, we populated dicts key-ed by asset
+            # ids with the data needed by serializer.
             # We create one (big) query per dict instead of a separate query
             # for each asset in the list.
             # The serializer will be able to pick what it needs from that dict
@@ -635,10 +649,75 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         metadata = self.get_metadata(queryset)
         return Response(metadata)
 
-    def perform_destroy(self, instance):
-        if hasattr(instance, 'has_deployment') and instance.has_deployment:
-            instance.deployment.delete()
-        return super().perform_destroy(instance)
+    @action(detail=True, methods=['GET'],
+            permission_classes=[PairedDataPermission],
+            renderer_classes=[SubmissionXMLRenderer],
+            url_path='paired_data/(?P<paired_data_uid>[^/.]+)')
+    def paired_data(self, request, paired_data_uid, **kwargs):
+        """
+        Returns an XML which contains data submitted to paired asset
+        """
+        asset = self.get_object()
+
+        # Retrieve the parent if it exists
+        parent_asset = asset.get_paired_parent(paired_data_uid)
+        if not parent_asset:
+            # ToDo Delete any related asset files
+            raise Http404
+
+        if not asset.has_deployment:
+            raise ObjectDeploymentDoesNotExist(
+                _('The specified asset has not been deployed')
+            )
+
+        # Retrieve data from related asset file.
+        # If data has already been fetched once, an `AssetFile` should exist.
+        # Otherwise, we create one to store the generated XML.
+        try:
+            asset_file = asset.asset_files.get(uid=paired_data_uid)
+        except AssetFile.DoesNotExist:
+            asset_file = AssetFile(
+                uid=paired_data_uid,
+                asset=asset,
+                file_type=AssetFile.PAIRED_DATA,
+                user=asset.owner,
+            )
+            # When asset file is new, we consider its content as expired to
+            # force its creation below
+            has_expired = True
+        else:
+            timedelta = timezone.now() - asset_file.date_modified
+            has_expired = (
+                timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION
+            )
+
+        # If the content of `asset_file' has expired, let's regenerate the XML
+        if has_expired:
+            submissions = parent_asset.deployment.get_submissions(
+                asset.owner.pk,
+                format_type=INSTANCE_FORMAT_TYPE_XML
+            )
+            parsed_submissions = []
+
+            for submission in submissions:
+                # `strip_nodes` expects field names,
+                parsed_submissions.append(
+                    strip_nodes(submission, asset.paired_data_fields)
+                )
+            filename = asset.paired_data[parent_asset.uid]['filename']
+            xml_ = ''.join(parsed_submissions).replace(parent_asset.uid, 'data')
+
+            # We need to delete current file (if it exists) when filename has
+            # changed. Otherwise it would leave an orphan file on storage
+            if asset_file.pk and asset.content.name != filename:
+                asset_file.content.file.delete()
+
+            asset_file.content = ContentFile(xml_.encode(), name=filename)
+            asset_file.save()
+
+            # ToDo Update KoBoCAT hash
+
+        return Response(asset_file.content.file.read().decode())
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -646,7 +725,9 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if CLONE_ARG_NAME in request.data:
             serializer = self._get_clone_serializer(instance)
         else:
-            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer = self.get_serializer(instance,
+                                             data=request.data,
+                                             partial=True)
 
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)

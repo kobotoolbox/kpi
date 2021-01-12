@@ -22,11 +22,15 @@ from kpi.constants import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
+from kpi.models.paired_data import PairedData
 from kpi.utils.hash import get_hash
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
-from .kc_access.shadow_models import ReadOnlyKobocatInstance, ReadOnlyKobocatXForm
+from .kc_access.shadow_models import (
+    ReadOnlyKobocatInstance,
+    ReadOnlyKobocatXForm,
+)
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     instance_count,
@@ -152,8 +156,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
             if (
-                hasattr(e, 'response')
-                and e.response.status_code == status.HTTP_404_NOT_FOUND
+                    hasattr(e, 'response')
+                    and e.response.status_code == status.HTTP_404_NOT_FOUND
             ):
                 # The KC project is already gone!
                 pass
@@ -350,66 +354,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             string=url
         )
 
-    @staticmethod
-    def is_data_sharing_embed_xml(value: str) -> bool:
-        return (
-            value.endswith('/data/embed_xml.xml')
-            and value.startswith(settings.KOBOFORM_INTERNAL_URL)
+    def is_paired_data(self, value: str) -> bool:
+        pattern = (
+            rf'{settings.KOBOFORM_INTERNAL_URL}/api/v2/assets/'
+            rf'{self.asset.uid}/paired_data/pd[^\.]+\.xml$'
         )
-
-    def link_data_sharing(self):
-        from kpi.urls.router_api_v2 import URL_NAMESPACE  # avoid circular imports # noqa
-
-        identifier = self.identifier
-        server, parsed_identifier = self.__get_server_from_identifier(
-            identifier
-        )
-        metadata_url = self.external_to_internal_url(
-            '{}/api/v1/metadata'.format(server)
-        )
-        url = self.external_to_internal_url(self.backend_response['url'])
-        response = self._kobocat_request('GET', url)
-        metadata = response.get('metadata', [])
-        external_xmls = {
-            r['id']: r['data_value']
-            for r in metadata
-            if self.is_data_sharing_embed_xml(r['data_value'])
-        }
-
-        source_uid = self.asset.linked_data_sharing.get('source_uid')
-        if source_uid:
-            embed_xml_url = reverse(
-                f'{URL_NAMESPACE}:submission-embed-xml',
-                kwargs={
-                    'parent_lookup_asset': source_uid,
-                    'format': 'xml'
-                },
-            )
-            embed_xml_url = f'{settings.KOBOFORM_INTERNAL_URL}{embed_xml_url}'
-            # Only push file to KC if it does not exist
-            if embed_xml_url not in external_xmls.values():
-                hash_ = get_hash(f'{embed_xml_url}.{str(time.time())}')
-                kwargs = {
-                    'data': {
-                        'data_value': embed_xml_url,
-                        'data_file_type': 'application/xml',
-                        'file_hash': f'md5:{hash_}',
-                        'xform': self.xform_id,
-                        'data_type': 'media',
-                        'from_kpi': True,
-                    }
-                }
-                self._kobocat_request('POST',
-                                      url=metadata_url,
-                                      sync_media_files=True,
-                                      **kwargs)
-
-        else:
-            for kc_file_pk in external_xmls.keys():
-                # ToDo rename `sync_media_files` (e.g. `response_only`)
-                self._kobocat_request('DELETE',
-                                      url=f'{metadata_url}/{kc_file_pk}',
-                                      sync_media_files=True)
+        return re.match(pattern, value)
 
     @staticmethod
     def make_identifier(username, id_string):
@@ -647,81 +597,21 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return url
 
-    def sync_media_files(self):
-
-        identifier = self.identifier
-        server, parsed_identifier = self.__get_server_from_identifier(
-            identifier
-        )
-        metadata_url = self.external_to_internal_url(
-            '{}/api/v1/metadata'.format(server)
-        )
-
-        def _delete_kc_file(kc_file_: dict, file_: AssetFile = None):
-            """
-            A simple utility to delete file in KC through proxy.
-            If related KPI file is provided (i.e. `file_`), it is deleted too.
-            """
-            # Delete file in KC
-            self._kobocat_request('DELETE',
-                                  url=kc_file_['url'],
-                                  sync_media_files=True)
-
-            if file_ is None:
-                return
-
-            # Delete file in KPI if requested
-            file_.delete(force=True)
-
-        def _upload_to_kc(file_):
-            """
-            Prepares request and data corresponding to the kind of media file
-            (i.e. FileStorage or remote URL) to `POST` to KC through proxy.
-            """
-            kwargs = {
-                "data": {
-                    'data_value': file_.metadata['filename'],
-                    'xform': self.xform_id,
-                    'data_type': 'media',
-                    'from_kpi': True,
-                }
-            }
-
-            if file_.is_remote_url:
-                # KC stores url in `data_value`
-                data = {
-                    'data_value': file_.metadata['redirect_url'],
-                    'data_file_type': file_.metadata['mimetype'],
-                    'file_hash': file_.metadata['hash']
-                }
-                kwargs['data'].update(data)
-            else:
-                kwargs['files'] = {
-                    'data_file': (
-                        file_.metadata['filename'],
-                        file_.content.file.read(),
-                        file_.metadata['mimetype'],
-                    )
-                }
-
-            self._kobocat_request('POST',
-                                  url=metadata_url,
-                                  sync_media_files=True,
-                                  **kwargs)
-
-        # Process deleted files in case two entries contain the same file but
-        # one is flagged as deleted
-        asset_files = self.asset.asset_files.filter(
-            file_type=AssetFile.FORM_MEDIA
-        ).order_by('deleted_at')
+    def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
 
         url = self.external_to_internal_url(self.backend_response['url'])
         response = self._kobocat_request('GET', url)
         kc_files = defaultdict(dict)
+
+        # Build a list of KoBoCAT metadata to compare with KPI
         for metadata in response.get('metadata', []):
+            is_paired_data = self.is_paired_data(metadata['data_value'])
             if (
                 metadata['data_type'] == 'media'
-                and not self.is_data_sharing_embed_xml(metadata['data_value'])
+                and (
+                    file_type == AssetFile.FORM_MEDIA and not is_paired_data
+                    or file_type == AssetFile.PAIRED_DATA and is_paired_data
+                )
             ):
                 kc_files[metadata['data_value']] = {
                     'url': metadata['url'],
@@ -730,37 +620,37 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 }
 
         kc_filenames = kc_files.keys()
-        for file in asset_files:
-            uniq = (
-                file.metadata['filename']
-                if not file.is_remote_url
-                else file.metadata['redirect_url']
-            )
+
+        queryset = self.__get_metadata_queryset(file_type=file_type)
+
+        for obj in queryset:
+
+            uniq = obj.kc_metadata_uniqid
 
             # File does not exist in KC
             if uniq not in kc_filenames:
-                if file.deleted_at is None:
+                if obj.deleted_at is None:
                     # New file
-                    _upload_to_kc(file)
+                    self.__save_kc_metadata(obj)
                 else:
                     # Orphan, delete it
-                    file.delete(force=True)
+                    obj.delete(force=True)
                 continue
 
             # Existing file
             if uniq in kc_filenames:
                 kc_file = kc_files[uniq]
-                if file.deleted_at is None:
+                if obj.deleted_at is None:
                     # If md5 differs, we need to re-upload it.
-                    if file.metadata.get('hash') != kc_file['md5']:
-                        _delete_kc_file(kc_file)
-                        _upload_to_kc(file)
+                    if obj.hash != kc_file['md5']:
+                        self.__delete_kc_metadata(kc_file)
+                        self.__save_kc_metadata(obj)
                 elif kc_file['from_kpi']:
-                    _delete_kc_file(kc_file, file)
+                    self.__delete_kc_metadata(kc_file, obj)
                 else:
                     # Remote file has been uploaded directly to KC. We
                     # cannot delete it, but we need to vacuum KPI.
-                    file.delete(force=True)
+                    obj.delete(force=True)
                     # Skip deletion of key corresponding to `uniq` in `kc_files`
                     # to avoid unique constraint failure in case user deleted
                     # and re-uploaded the same file in a row between
@@ -783,7 +673,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Remove KC orphan files previously uploaded through KPI
         for kc_file in kc_files.values():
             if kc_file['from_kpi']:
-                _delete_kc_file(kc_file)
+                self.__delete_kc_metadata(kc_file)
 
     @property
     def timestamp(self):
@@ -894,6 +784,39 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                               user_id=self.asset.owner.pk,
                               )
 
+    def __delete_kc_metadata(
+        self, kc_file_: dict, file_: Union[AssetFile, PairedData] = None
+    ):
+        """
+        A simple utility to delete metadata in KoBoCAT through proxy.
+        If related KPI file is provided (i.e. `file_`), it is deleted too.
+        """
+        # Delete file in KC
+        self._kobocat_request('DELETE',
+                              url=kc_file_['url'],
+                              sync_media_files=True)
+
+        if file_ is None:
+            return
+
+        # Delete file in KPI if requested
+        file_.delete(force=True)
+
+    def __get_metadata_queryset(
+        self, file_type: str
+    ) -> Union['django.db.models.QuerySet', list]:
+        if file_type == AssetFile.FORM_MEDIA:
+            # Order by `deleted_at` to process deleted files first in case
+            # two entries contain the same file but one is flagged as deleted
+            return self.asset.asset_files.filter(
+                file_type=AssetFile.FORM_MEDIA
+            ).order_by('deleted_at')
+        else:
+            queryset = []
+            for paired_data in self.asset.paired_data.values():
+                queryset.append(PairedData(paired_data, self.asset.uid))
+            return queryset
+
     def __get_server_from_identifier(self, identifier):
         parsed_identifier = urlparse(identifier)
         server = '{}://{}'.format(
@@ -936,7 +859,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # Get only their ids and pass them to PostgreSQL.
             params['fields'] = [self.INSTANCE_ID_FIELDNAME]
             # Force `sort` by `_id` for Mongo
-            # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
+            # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`  # noqa
             params['sort'] = {self.INSTANCE_ID_FIELDNAME: 1}
             instances, count = MongoHelper.get_instances(self.mongo_userform_id,
                                                          **params)
@@ -959,7 +882,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             self.current_submissions_count = queryset.count()
 
         # Force Sort by id
-        # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
+        # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`  # noqa
         queryset = queryset.order_by('id')
 
         # When using Mongo, data is already paginated,
@@ -1020,3 +943,41 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return prepared_drf_response
 
+    def __save_kc_metadata(self, file_: Union[AssetFile, PairedData]):
+        """
+        Prepares request and data corresponding to the kind of media file
+        (i.e. FileStorage or remote URL) to `POST` to KC through proxy.
+        """
+        identifier = self.identifier
+        server, parsed_identifier = self.__get_server_from_identifier(
+            identifier
+        )
+        metadata_url = self.external_to_internal_url(
+            '{}/api/v1/metadata'.format(server)
+        )
+
+        kwargs = {
+            "data": {
+                'data_value': file_.kc_metadata_data_value,
+                'xform': self.xform_id,
+                'data_type': 'media',
+                'from_kpi': True,
+                'data_filename': file_.filename,
+                'data_file_type': file_.mimetype,
+                'file_hash': file_.hash,
+            }
+        }
+
+        if not file_.is_remote_url:
+            kwargs['files'] = {
+                'data_file': (
+                    file_.metadata['filename'],
+                    file_.content.file.read(),
+                    file_.metadata['mimetype'],
+                )
+            }
+
+        self._kobocat_request('POST',
+                              url=metadata_url,
+                              sync_media_files=True,
+                              **kwargs)

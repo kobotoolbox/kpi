@@ -23,6 +23,13 @@ class ImportAssetException(Exception):
     pass
 
 
+class PairedParentException(Exception):
+
+    def __init__(self, message='Parent is not set. Call `self.get_paired_data()` first'):
+        self.message = message
+        super().__init__(self.message)
+
+
 class KobocatProfileException(Exception):
     pass
 

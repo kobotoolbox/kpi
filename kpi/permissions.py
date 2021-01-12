@@ -6,7 +6,10 @@ from django.conf import settings
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
-from kpi.constants import PERM_PARTIAL_SUBMISSIONS
+from kpi.constants import (
+    PERM_ADD_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+)
 from kpi.models.asset import Asset
 from kpi.models.object_permission import get_anonymous_user
 from kpi.deployment_backends.kc_access.shadow_models import ReadOnlyKobocatXForm
@@ -187,10 +190,11 @@ class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
     }
 
 
-class EmbedXMLPermission(permissions.BasePermission):
+class PairedDataPermission(permissions.BasePermission):
     """
-    EmbedXML is widely open. We cannot rely on Django permissions because
-    enketo may need to read the data even if users are not authenticated.
+    `paired_data` endpoint is widely open. We cannot rely on Django permissions
+    because enketo/collect may need to read the data even if users are
+    not authenticated.
     The validations are not bullet proof because requests headers are not
     trustworthy as they can be overridden by the client.
 
@@ -206,10 +210,7 @@ class EmbedXMLPermission(permissions.BasePermission):
         Return `True` if permission is granted, raise Http404 otherwise to avoid
         revealing asset existence.
         """
-        # First validate whether data sharing is enabled for current asset
-        if not view.asset.data_sharing:
-            raise Http404
-
+        #if settings.ENV != 'dev':
         # ToDo Validate if it works with a proxy
         # (e.g. ELB or let's encrypt kobo proxy)
         http_host = f"http://{request.META.get('HTTP_HOST')}"
@@ -247,7 +248,21 @@ class EmbedXMLPermission(permissions.BasePermission):
         """
         Return `True` if permission is granted, `False` otherwise.
         """
-        return False
+        # Check whether `asset` owner's account requires authentication:
+        try:
+            require_auth = obj.owner.extra_details.data['require_auth']
+        except KeyError:
+            require_auth = False
+
+        # If authentication is required, `user` should have 'add_submission'
+        # permission on `asset`
+        if (
+            require_auth
+            and not obj.has_perm(request.user, PERM_ADD_SUBMISSIONS)
+        ):
+            raise Http404
+
+        return True
 
 
 # FIXME: Name is no longer accurate.

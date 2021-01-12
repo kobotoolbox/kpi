@@ -135,7 +135,7 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
 
             return self._get_xml(data)
 
-        if renderer_context.get('view').action in ['list', 'embed_xml']:
+        if renderer_context.get('view').action in ['list', 'paired_data']:
             opening_node = self._node_generator(self.CUSTOM_ROOT)
             closing_node = self._node_generator(self.CUSTOM_ROOT, closing=True)
             data_str = ''.join(data)

@@ -24,10 +24,16 @@ class KpiUidField(models.CharField):
         del kwargs['unique']
         return name, path, args, kwargs
 
-    def generate_uid(self):
-        return self.uid_prefix + ShortUUID().random(UUID_LENGTH)
+    def generate_uid(self) -> str:
+        return KpiUidField.generate_unique_id(self.uid_prefix)
+
+    @staticmethod
+    def generate_unique_id(prefix: str = None) -> str:
         # When UID_LENGTH is 22, that should be changed to:
         # return self.uid_prefix + shortuuid.uuid()
+        if not prefix:
+            prefix = ''
+        return f'{prefix}{ShortUUID().random(UUID_LENGTH)}'
 
     def pre_save(self, model_instance, add):
         value = getattr(model_instance, self.attname)

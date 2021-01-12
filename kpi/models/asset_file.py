@@ -29,18 +29,22 @@ class AssetFile(AbstractOpenRosaManifestModel, models.Model):
     # More to come!
     MAP_LAYER = 'map_layer'
     FORM_MEDIA = 'form_media'
+    PAIRED_DATA = 'paired_data'
 
     TYPE_CHOICES = (
         (MAP_LAYER, MAP_LAYER),
         (FORM_MEDIA, FORM_MEDIA),
+        (PAIRED_DATA, PAIRED_DATA),
     )
 
     ALLOWED_MIME_TYPES = {
         FORM_MEDIA: ('image', 'audio', 'video', 'text/csv', 'application/xml'),
+        PAIRED_DATA: ('application/xml',),
     }
 
     ALLOWED_EXTENSIONS = {
         MAP_LAYER: ('csv', 'kml', 'kmz', 'wkt', 'geojson', 'json'),
+        PAIRED_DATA: ('xml',),
     }
 
     uid = KpiUidField(uid_prefix='af')
@@ -56,6 +60,7 @@ class AssetFile(AbstractOpenRosaManifestModel, models.Model):
     content = PrivateFileField(upload_to=upload_to, max_length=380, null=True)
     metadata = JSONBField(default=dict)
     deleted_at = models.DateTimeField(null=True, default=None)
+    date_modified = models.DateTimeField(default=timezone.now)
 
     def delete(self, using=None, keep_parents=False, force=False):
 
@@ -121,12 +126,40 @@ class AssetFile(AbstractOpenRosaManifestModel, models.Model):
 
         return True
 
+    @property
+    def kc_metadata_data_value(self):
+        return (
+            self.metadata['redirect_url']
+            if self.is_remote_url
+            else self.filename
+        )
+
+    @property
+    def kc_metadata_uniqid(self):
+        return (
+            self.metadata['filename']
+            if not self.is_remote_url
+            else self.metadata['redirect_url']
+        )
+
+    @property
+    def mimetype(self):
+        if hasattr(self, '__mimetype'):
+            return self.__mimetype
+
+        self.set_mimetype()
+        self.__mimetype = self.metadata['mimetype']
+        return self.__mimetype
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         if self.pk is None:
             self.set_filename()
             self.set_hash()
             self.set_mimetype()
+        else:
+            self.date_modified = timezone.now()
+
         return super().save(force_insert, force_update, using, update_fields)
 
     def set_filename(self):
@@ -143,6 +176,6 @@ class AssetFile(AbstractOpenRosaManifestModel, models.Model):
             self.metadata['hash'] = f'md5:{md5_hash}'
 
     def set_mimetype(self):
-        mimetype, _ = guess_type(self.metadata['filename'])
+        mimetype, _ = guess_type(self.filename)
         self.metadata['mimetype'] = mimetype
 

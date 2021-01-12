@@ -18,11 +18,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='data_sharing',
-            field=kpi.fields.lazy_default_boolean.LazyDefaultBooleanField(default=False),
+            field=kpi.fields.lazy_default_jsonb.LazyDefaultJSONBField(default=dict),
         ),
         migrations.AddField(
             model_name='asset',
-            name='linked_data_sharing',
+            name='paired_data',
             field=kpi.fields.lazy_default_jsonb.LazyDefaultJSONBField(default=dict),
         ),
     ]
