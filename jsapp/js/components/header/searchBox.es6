@@ -39,7 +39,7 @@ export default class SearchBox extends React.Component {
   }
 
   onInputKeyUp(evt) {
-    if (evt.keyCode === KEY_CODES.get('ENTER')) {
+    if (evt.keyCode === KEY_CODES.ENTER) {
       this.setSearchPhrase(evt.target.value.trim());
     }
   }

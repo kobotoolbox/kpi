@@ -9,7 +9,8 @@ import {
   ACCESS_TYPES
 } from 'js/constants';
 import assetUtils from 'js/assetUtils';
-import {ASSETS_TABLE_CONTEXTS} from './assetsTable';
+import {ASSETS_TABLE_CONTEXTS} from 'js/components/library/libraryConstants';
+
 
 class AssetsTableRow extends React.Component {
   constructor(props){
@@ -42,7 +43,7 @@ class AssetsTableRow extends React.Component {
 
     const isUserSubscribed = (
       this.props.asset.access_types &&
-      this.props.asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
+      this.props.asset.access_types.includes(ACCESS_TYPES.subscribed)
     );
     if (isUserSubscribed) {
       assetModifiers.push('is-subscribed');

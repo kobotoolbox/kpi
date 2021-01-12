@@ -54,7 +54,7 @@ class UserPermissionRow extends React.Component {
   removeAllPermissions() {
     this.setState({isBeingDeleted: true});
     const userViewAssetPerm = this.props.permissions.find((perm) => {
-      return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
+      return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url;
     });
     actions.permissions.removeAssetPermission(this.props.uid, userViewAssetPerm.url);
   }

@@ -224,7 +224,7 @@ class UserAssetPermsEditor extends React.Component {
    * Enables Enter key on input.
    */
   onInputKeyPress(key, evt) {
-    if (key === KEY_CODES.get('ENTER')) {
+    if (key === KEY_CODES.ENTER) {
       evt.currentTarget.blur();
       evt.preventDefault(); // prevent submitting form
     }
@@ -289,7 +289,7 @@ class UserAssetPermsEditor extends React.Component {
   getLabel(permCodename) {
     return this.props.assignablePerms.get(
       permConfig.getPermissionByCodename(
-        PERMISSIONS_CODENAMES.get(permCodename)
+        PERMISSIONS_CODENAMES[permCodename]
       ).url
     );
   }
@@ -297,7 +297,7 @@ class UserAssetPermsEditor extends React.Component {
   isAssignable(permCodename) {
     return this.props.assignablePerms.has(
       permConfig.getPermissionByCodename(
-        PERMISSIONS_CODENAMES.get(permCodename)
+        PERMISSIONS_CODENAMES[permCodename]
       ).url
     );
   }

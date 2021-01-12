@@ -10,7 +10,7 @@ import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
-} from './assetsTable';
+} from './libraryConstants';
 import {
   ASSET_TYPES,
   ACCESS_TYPES,
@@ -200,10 +200,10 @@ const publicCollectionsStore = Reflux.createStore({
         this.data.assets[i].url === assetUidOrUrl
       ) {
         if (setSubscribed) {
-          this.data.assets[i].access_types.push(ACCESS_TYPES.get('subscribed'));
+          this.data.assets[i].access_types.push(ACCESS_TYPES.subscribed);
         } else {
           this.data.assets[i].access_types.splice(
-            this.data.assets[i].access_types.indexOf(ACCESS_TYPES.get('subscribed')),
+            this.data.assets[i].access_types.indexOf(ACCESS_TYPES.subscribed),
             1
           );
         }
