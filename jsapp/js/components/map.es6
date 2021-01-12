@@ -18,7 +18,7 @@ import 'leaflet.heat/dist/leaflet-heat';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 
-import {MODAL_TYPES, QUESTION_TYPES} from '../constants';
+import {MODAL_TYPES, QUESTION_TYPES, QUERY_LIMIT_DEFAULT} from '../constants';
 
 import {
   notify,
@@ -846,4 +846,3 @@ export class FormMap extends React.Component {
 reactMixin(FormMap.prototype, Reflux.ListenerMixin);
 
 export default FormMap;
-export const QUERY_LIMIT_DEFAULT = 5000;

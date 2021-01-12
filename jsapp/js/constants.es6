@@ -425,6 +425,8 @@ export const REPORT_STYLES = new Map([
   ['line', {value: 'line', label: t('Line')}],
 ]);
 
+export const QUERY_LIMIT_DEFAULT = 5000;
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -450,6 +452,7 @@ const constants = {
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
   REPORT_STYLES,
+  QUERY_LIMIT_DEFAULT,
 };
 
 export default constants;
