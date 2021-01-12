@@ -81,7 +81,7 @@ class AssetRoute extends React.Component {
     if (asset.uid === this.currentAssetID()) {
       this.setState({
         asset: asset,
-        isUserSubscribed: asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
+        isUserSubscribed: asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)
       });
     }
   }

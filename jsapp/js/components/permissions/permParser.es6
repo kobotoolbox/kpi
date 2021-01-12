@@ -53,38 +53,38 @@ function parseFormData(data) {
   let parsed = [];
 
   if (data.formView) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('view_asset')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.view_asset));
   }
 
   if (data.formEdit) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('change_asset')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.change_asset));
   }
 
   if (data.submissionsViewPartial) {
-    let permObj = buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('partial_submissions'));
+    let permObj = buildBackendPerm(data.username, PERMISSIONS_CODENAMES.partial_submissions);
     permObj.partial_permissions = [{
-      url: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_submissions')).url,
+      url: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_submissions).url,
       filters: [{'_submitted_by': {'$in': data.submissionsViewPartialUsers}}]
     }];
     parsed.push(permObj);
   } else if (data.submissionsView) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('view_submissions')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.view_submissions));
   }
 
   if (data.submissionsAdd) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('add_submissions')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.add_submissions));
   }
 
   if (data.submissionsEdit) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('change_submissions')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.change_submissions));
   }
 
   if (data.submissionsDelete) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('delete_submissions')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.delete_submissions));
   }
 
   if (data.submissionsValidate) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('validate_submissions')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.validate_submissions));
   }
 
   parsed = removeContradictoryPerms(parsed);
@@ -153,13 +153,13 @@ function buildFormData(permissions) {
   const formData = {};
 
   permissions.forEach((perm) => {
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url) {
       formData.formView = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('change_asset')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.change_asset).url) {
       formData.formEdit = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('partial_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.partial_submissions).url) {
       formData.submissionsView = true;
       formData.submissionsViewPartial = true;
       perm.partial_permissions.forEach((partial) => {
@@ -170,19 +170,19 @@ function buildFormData(permissions) {
         });
       });
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('add_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url) {
       formData.submissionsAdd = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_submissions).url) {
       formData.submissionsView = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('change_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.change_submissions).url) {
       formData.submissionsEdit = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('delete_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.delete_submissions).url) {
       formData.submissionsDelete = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('validate_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.validate_submissions).url) {
       formData.submissionsValidate = true;
     }
   });
