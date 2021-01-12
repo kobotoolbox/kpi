@@ -291,11 +291,11 @@ export default class RESTServicesForm extends React.Component {
    */
 
  onCustomHeaderInputKeyPress(evt) {
-   if (evt.keyCode === KEY_CODES.get('ENTER') && evt.currentTarget.name === 'headerName') {
+   if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerName') {
      evt.preventDefault();
      $(evt.currentTarget).parent().find('input[name="headerValue"]').focus();
    }
-   if (evt.keyCode === KEY_CODES.get('ENTER') && evt.currentTarget.name === 'headerValue') {
+   if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerValue') {
      evt.preventDefault();
      this.addNewCustomHeaderRow();
    }

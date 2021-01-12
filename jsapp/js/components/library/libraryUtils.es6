@@ -28,3 +28,27 @@ export function isOnPublicCollectionsRoute() {
     path.split('/')[2] === 'public-collections'
   );
 }
+
+/**
+ * Checks if on `/library/asset/…`
+ */
+export function isOnLibraryAssetRoute() {
+  const path = hashHistory.getCurrentLocation().pathname;
+  return (
+    path.split('/')[1] === 'library' &&
+    path.split('/')[2] === 'asset'
+  );
+}
+
+/**
+ * Returns current collection uid
+ */
+export function getCurrentLibraryAssetUID() {
+  const path = hashHistory.getCurrentLocation().pathname;
+  if (
+    path.split('/')[1] === 'library' &&
+    path.split('/')[2] === 'asset'
+  ) {
+    return (path.split('/')[3]);
+  }
+}

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
+import {Link} from 'react-router';
 import Reflux from 'reflux';
 import mixins from '../mixins';
 import {bem} from '../bem';
@@ -10,7 +11,7 @@ import {searches} from '../searches';
 import {stores} from '../stores';
 import {
   COMMON_QUERIES,
-  CATEGORY_LABELS
+  DEPLOYMENT_CATEGORIES
 } from 'js/constants';
 
 class SidebarFormsList extends Reflux.Component {
@@ -25,9 +26,9 @@ class SidebarFormsList extends Reflux.Component {
       selectedCategories: selectedCategories,
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: COMMON_QUERIES.get('s'),
+          assetType: COMMON_QUERIES.s,
         },
-        filterTags: COMMON_QUERIES.get('s'),
+        filterTags: COMMON_QUERIES.s,
       })
     };
     this.store = stores.pageState;
@@ -46,20 +47,27 @@ class SidebarFormsList extends Reflux.Component {
     this.setState(searchStoreState);
   }
   renderMiniAssetRow(asset) {
-    var href = `#/forms/${asset.uid}`;
+    var href = `/forms/${asset.uid}`;
 
     if (this.userCan('view_submissions', asset) && asset.has_deployment && asset.deployment__submission_count) {
       href = href + '/summary';
+    } else {
+      href = href + '/landing';
+    }
+
+    let classNames = ['form-sidebar__item'];
+    if (asset.uid === this.currentAssetID()) {
+      classNames.push('form-sidebar__item--active');
     }
 
     return (
-      <bem.FormSidebar__item
+      <Link
+        to={href}
         key={asset.uid}
-        className={asset.uid === this.currentAssetID() ? 'active' : ''}
-        href={href}
+        className={classNames.join(' ')}
       >
         <ui.SidebarAssetName {...asset} />
-      </bem.FormSidebar__item>
+      </Link>
     );
   }
   toggleCategory(c) {
@@ -81,7 +89,7 @@ class SidebarFormsList extends Reflux.Component {
       s.searchState === 'done' &&
       (s.searchString === false || s.searchString === '') &&
       s.searchResultsFor &&
-      s.searchResultsFor.assetType === COMMON_QUERIES.get('s')
+      s.searchResultsFor.assetType === COMMON_QUERIES.s
     ) {
       activeItems = 'searchResultsCategorizedResultsLists';
     }
@@ -111,40 +119,42 @@ class SidebarFormsList extends Reflux.Component {
                 </bem.Loading>
               );
             } else if (s.defaultQueryState === 'done') {
-              return [CATEGORY_LABELS.Deployed, CATEGORY_LABELS.Draft, CATEGORY_LABELS.Archived].map(
-                (category) => {
-                  var categoryVisible = this.state.selectedCategories[category];
-                  if (s[activeItems][category].length < 1) {
+              return Object.keys(DEPLOYMENT_CATEGORIES).map(
+                (categoryId) => {
+                  var categoryVisible = this.state.selectedCategories[categoryId];
+                  if (s[activeItems][categoryId].length < 1) {
                     categoryVisible = false;
                   }
 
                   const icon = ['k-icon'];
-                  if (category === CATEGORY_LABELS.Deployed) {
+                  if (categoryId === DEPLOYMENT_CATEGORIES.Deployed.id) {
                     icon.push('k-icon-deploy');
                   }
-                  if (category === CATEGORY_LABELS.Draft) {
+                  if (categoryId === DEPLOYMENT_CATEGORIES.Draft.id) {
                     icon.push('k-icon-drafts');
                   }
-                  if (category === CATEGORY_LABELS.Archived) {
+                  if (categoryId === DEPLOYMENT_CATEGORIES.Archived.id) {
                     icon.push('k-icon-archived');
                   }
 
                   return [
                     <bem.FormSidebar__label
-                      m={[category, categoryVisible ? 'visible' : 'collapsed']}
-                      onClick={this.toggleCategory(category)}
-                      key={`${category}-label`}
+                      m={[categoryId, categoryVisible ? 'visible' : 'collapsed']}
+                      onClick={this.toggleCategory(categoryId)}
+                      key={`${categoryId}-label`}
                     >
                       <i className={icon.join(' ')}/>
-                      <bem.FormSidebar__labelText>{category}</bem.FormSidebar__labelText>
-                      <bem.FormSidebar__labelCount>{s[activeItems][category].length}</bem.FormSidebar__labelCount>
+                      <bem.FormSidebar__labelText>
+                        {DEPLOYMENT_CATEGORIES[categoryId].label}
+                      </bem.FormSidebar__labelText>
+                      <bem.FormSidebar__labelCount>{s[activeItems][categoryId].length}</bem.FormSidebar__labelCount>
                     </bem.FormSidebar__label>,
 
                     <bem.FormSidebar__grouping
-                      m={[category, categoryVisible ? 'visible' : 'collapsed']}
-                      key={`${category}-group`}
+                      m={[categoryId, categoryVisible ? 'visible' : 'collapsed']}
+                      key={`${categoryId}-group`}
                     >
-                      {s[activeItems][category].map(this.renderMiniAssetRow.bind(this))}
+                      {s[activeItems][categoryId].map(this.renderMiniAssetRow.bind(this))}
                     </bem.FormSidebar__grouping>
                   ];
                 }

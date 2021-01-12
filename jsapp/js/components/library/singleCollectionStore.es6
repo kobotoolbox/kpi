@@ -5,18 +5,21 @@ import {
   searchBoxStore
 } from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
-import {isOnPublicCollectionsRoute} from './libraryUtils';
+import {
+  isOnLibraryAssetRoute,
+  getCurrentLibraryAssetUID
+} from './libraryUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
 } from './libraryConstants';
-import {
-  ASSET_TYPES,
-  ACCESS_TYPES
-} from 'js/constants';
 
-const publicCollectionsStore = Reflux.createStore({
+// A store that listens for actions on assets from a single collection
+// Extends most functionality from myLibraryStore but overwrites some actions:
+// - searchMyLibraryAssets.* -> searchMyCollectionAssets.*
+// - searchMyLibraryMetadata.completed -> searchMyCollectionMetadata.completed
+const singleCollectionStore = Reflux.createStore({
   /**
    * A method for aborting current XHR fetch request.
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
@@ -33,6 +36,7 @@ const publicCollectionsStore = Reflux.createStore({
     isFetchingData: false,
     currentPage: 0,
     totalPages: null,
+    totalUserAssets: null,
     totalSearchAssets: null,
     assets: [],
     metadata: {}
@@ -43,18 +47,19 @@ const publicCollectionsStore = Reflux.createStore({
 
     hashHistory.listen(this.onRouteChange.bind(this));
     searchBoxStore.listen(this.searchBoxStoreChanged);
-    actions.library.searchPublicCollections.started.listen(this.onSearchStarted);
-    actions.library.searchPublicCollections.completed.listen(this.onSearchCompleted);
-    actions.library.searchPublicCollections.failed.listen(this.onSearchFailed);
-    actions.library.searchPublicCollectionsMetadata.completed.listen(this.onSearchMetadataCompleted);
-    actions.library.subscribeToCollection.completed.listen(this.onSubscribeCompleted);
-    actions.library.unsubscribeFromCollection.listen(this.onUnsubscribeCompleted);
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
+    actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
+    actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this, true));
     actions.resources.loadAsset.completed.listen(this.onAssetChanged);
     actions.resources.updateAsset.completed.listen(this.onAssetChanged);
     actions.resources.cloneAsset.completed.listen(this.onAssetCreated);
     actions.resources.createResource.completed.listen(this.onAssetCreated);
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted);
+    // Actions unique to a single collection store (overwriting myLibraryStore)
+    actions.library.searchMyCollectionAssets.started.listen(this.onSearchStarted);
+    actions.library.searchMyCollectionAssets.completed.listen(this.onSearchCompleted);
+    actions.library.searchMyCollectionAssets.failed.listen(this.onSearchFailed);
+    actions.library.searchMyCollectionMetadata.completed.listen(this.onSearchMetadataCompleted);
 
     // startup store after config is ready
     actions.permissions.getConfig.completed.listen(this.startupStore);
@@ -65,7 +70,7 @@ const publicCollectionsStore = Reflux.createStore({
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
+    if (this.isVirgin && isOnLibraryAssetRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
   },
@@ -86,7 +91,8 @@ const publicCollectionsStore = Reflux.createStore({
     const params = {
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage
+      page: this.data.currentPage,
+      uid: getCurrentLibraryAssetUID()
     };
 
     if (this.data.filterColumnId !== null) {
@@ -99,7 +105,7 @@ const publicCollectionsStore = Reflux.createStore({
   },
 
   fetchMetadata() {
-    actions.library.searchPublicCollectionsMetadata(this.getSearchParams());
+    actions.library.searchMyCollectionMetadata(this.getSearchParams());
   },
 
   /**
@@ -111,6 +117,11 @@ const publicCollectionsStore = Reflux.createStore({
     }
 
     const params = this.getSearchParams();
+    // Surrounds `filterValue` with double quotes to avoid filters that have
+    // spaces which would split the query in two, thus breaking the filter
+    if (params.filterProperty !== undefined) {
+      params.filterValue = JSON.stringify(params.filterValue); // Adds quotes
+    }
 
     params.metadata = needsMetadata;
 
@@ -118,18 +129,24 @@ const publicCollectionsStore = Reflux.createStore({
     const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
     params.ordering = `${direction}${orderColumn.orderBy}`;
 
-    actions.library.searchPublicCollections(params);
+    actions.library.searchMyCollectionAssets(params);
   },
 
   onRouteChange(data) {
-    if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
+    if (this.isVirgin && isOnLibraryAssetRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
       this.previousPath !== null &&
-      this.previousPath.startsWith('/library/public-collections') === false &&
-      isOnPublicCollectionsRoute()
+      (
+        // coming from the library
+        this.previousPath.split('/')[1] === 'library' ||
+        // public-collections is a special case that is kinda in library, but
+        // actually outside of it
+        this.previousPath.startsWith('/library/public-collections')
+      ) &&
+      isOnLibraryAssetRoute()
     ) {
-      // refresh data when navigating into public-collections from other place
+      // refresh data when navigating into library from other place
       this.setDefaultColumns();
       this.fetchData(true);
     }
@@ -138,7 +155,7 @@ const publicCollectionsStore = Reflux.createStore({
 
   searchBoxStoreChanged() {
     if (
-      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('public-collections') &&
+      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('my-library') &&
       searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
     ) {
       // reset to first page when search changes
@@ -165,6 +182,10 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.metadata = response.metadata;
     }
     this.data.totalSearchAssets = response.count;
+    // update total count for the first time and the ones that will get a full count
+    if (this.data.totalUserAssets === null || searchBoxStore.getSearchPhrase() === '') {
+      this.data.totalUserAssets = this.data.totalSearchAssets;
+    }
     this.data.isFetchingData = false;
     this.isVirgin = false;
     this.trigger(this.data);
@@ -183,56 +204,35 @@ const publicCollectionsStore = Reflux.createStore({
 
   // methods for handling actions that update assets
 
-  onSubscribeCompleted(subscriptionData) {
-    this.onAssetAccessTypeChanged(subscriptionData.asset, true);
-  },
-
-  onUnsubscribeCompleted(assetUid) {
-    this.onAssetAccessTypeChanged(assetUid, false);
-  },
-
-  onAssetAccessTypeChanged(assetUidOrUrl, setSubscribed) {
-    let wasUpdated = false;
-    for (let i = 0; i < this.data.assets.length; i++) {
-      if (
-        this.data.assets[i].uid === assetUidOrUrl ||
-        this.data.assets[i].url === assetUidOrUrl
-      ) {
-        if (setSubscribed) {
-          this.data.assets[i].access_types.push(ACCESS_TYPES.subscribed);
-        } else {
-          this.data.assets[i].access_types.splice(
-            this.data.assets[i].access_types.indexOf(ACCESS_TYPES.subscribed),
-            1
-          );
-        }
-        wasUpdated = true;
-        break;
-      }
-    }
-    if (wasUpdated) {
-      this.trigger(this.data);
-    }
-  },
-
   onMoveToCollectionCompleted(asset) {
-    if (
-      asset.asset_type === ASSET_TYPES.collection.id &&
-      assetUtils.isAssetPublic(asset.permissions)
-    ) {
+    if (assetUtils.isLibraryAsset(asset.asset_type)) {
+      // update total root assets after moving asset into/out of collection
+      if (asset.parent === null) {
+        this.data.totalUserAssets++;
+      } else {
+        this.data.totalUserAssets--;
+      }
       this.fetchData(true);
     }
   },
 
   onAssetChanged(asset) {
     if (
-      asset.asset_type === ASSET_TYPES.collection.id &&
-      assetUtils.isAssetPublic(asset.permissions) &&
+      assetUtils.isLibraryAsset(asset.asset_type) &&
       this.data.assets.length !== 0
     ) {
       let wasUpdated = false;
       for (let i = 0; i < this.data.assets.length; i++) {
-        if (this.data.assets[i].uid === asset.uid) {
+        const loopAsset = this.data.assets[i];
+        if (
+          loopAsset.uid === asset.uid &&
+          (
+            // if the changed asset didn't change (e.g. was just loaded)
+            // let's not cause it to fetchMetadata
+            loopAsset.date_modified !== asset.date_modified ||
+            loopAsset.version_id !== asset.version_id
+          )
+        ) {
           this.data.assets[i] = asset;
           wasUpdated = true;
           break;
@@ -247,17 +247,19 @@ const publicCollectionsStore = Reflux.createStore({
 
   onAssetCreated(asset) {
     if (
-      asset.asset_type === ASSET_TYPES.collection.id &&
-      assetUtils.isAssetPublic(asset.permissions)
+      assetUtils.isLibraryAsset(asset.asset_type) &&
+      asset.parent === null
     ) {
+      this.data.totalUserAssets++;
       this.fetchData(true);
     }
   },
 
   onDeleteAssetCompleted({uid, assetType}) {
-    if (assetType === ASSET_TYPES.collection.id) {
-      const found = this.data.assets.find((asset) => {return asset.uid === uid;});
+    if (assetUtils.isLibraryAsset(assetType)) {
+      const found = this.findAsset(uid);
       if (found) {
+        this.data.totalUserAssets--;
         this.fetchData(true);
       }
       // if not found it is possible it is on other page of results, but it is
@@ -297,12 +299,11 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.filterValue !== filterValue
     ) {
       this.data.filterColumnId = filterColumnId;
-      // Surrounds `filterValue` with double quotes to avoid filters that have
-      // spaces which would split the query in two, thus breaking the filter
-      if (filterValue !== undefined) {
-        filterValue = JSON.stringify(filterValue); // Adds quotes
-      }
       this.data.filterValue = filterValue;
+      // When a filter is selected, the pages reflects the total number of
+      // filtered assets, so we have to reset page number to display them
+      // properly, otherwise we can be out of bounds.
+      this.data.currentPage = 0;
       this.fetchData(true);
     }
   },
@@ -319,7 +320,15 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.filterColumnId === null &&
       this.data.filterValue === null
     );
+  },
+
+  getCurrentUserTotalAssets() {
+    return this.data.totalUserAssets;
+  },
+
+  findAsset(uid) {
+    return this.data.assets.find((asset) => {return asset.uid === uid;});
   }
 });
 
-export default publicCollectionsStore;
+export default singleCollectionStore;

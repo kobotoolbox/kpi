@@ -469,10 +469,12 @@ export class FormLanding extends React.Component {
               {t('Manage Translations')}
             </bem.PopoverMenu__link>
           }
+          { /* temporarily disabled
           <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
             <i className='k-icon-lock'/>
             {t('Manage Encryption')}
           </bem.PopoverMenu__link>
+          */ }
         </ui.PopoverMenu>
       </React.Fragment>
     );

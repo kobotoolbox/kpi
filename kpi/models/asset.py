@@ -4,12 +4,14 @@ import copy
 import sys
 from collections import OrderedDict
 from functools import reduce
-from operator import add
 from io import BytesIO
+from operator import add
+from typing import Union
 
 import six
 import xlsxwriter
 from django.conf import settings
+from django.contrib.auth.models import Permission
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
@@ -479,7 +481,9 @@ class Asset(ObjectPermissionMixin,
                                null=True, blank=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True,
                               on_delete=models.CASCADE)
-    editors_can_change_permissions = models.BooleanField(default=True)
+    # TODO: remove this flag; support for it has been removed from
+    # ObjectPermissionMixin
+    editors_can_change_permissions = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = JSONBField(default=dict)
@@ -562,7 +566,8 @@ class Asset(ObjectPermissionMixin,
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
         PERM_PARTIAL_SUBMISSIONS: _('View submissions only from specific users'),
-        PERM_CHANGE_SUBMISSIONS: _('Edit and delete submissions'),
+        PERM_CHANGE_SUBMISSIONS: _('Edit submissions'),
+        PERM_DELETE_SUBMISSIONS: _('Delete submissions'),
         PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
     }
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
@@ -577,6 +582,7 @@ class Asset(ObjectPermissionMixin,
             PERM_VIEW_SUBMISSIONS,
             PERM_PARTIAL_SUBMISSIONS,
             PERM_CHANGE_SUBMISSIONS,
+            PERM_DELETE_SUBMISSIONS,
             PERM_VALIDATE_SUBMISSIONS,
         ),
         ASSET_TYPE_TEMPLATE: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
@@ -596,8 +602,7 @@ class Asset(ObjectPermissionMixin,
     CALCULATED_PERMISSIONS = (
         PERM_SHARE_ASSET,
         PERM_DELETE_ASSET,
-        PERM_SHARE_SUBMISSIONS,
-        PERM_DELETE_SUBMISSIONS
+        PERM_SHARE_SUBMISSIONS
     )
     # Only certain permissions can be inherited
     HERITABLE_PERMISSIONS = {
@@ -614,6 +619,7 @@ class Asset(ObjectPermissionMixin,
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_CHANGE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
+        PERM_DELETE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
         PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,)
     }
 
@@ -621,18 +627,21 @@ class Asset(ObjectPermissionMixin,
         PERM_PARTIAL_SUBMISSIONS: (
             PERM_VIEW_SUBMISSIONS,
             PERM_CHANGE_SUBMISSIONS,
+            PERM_DELETE_SUBMISSIONS,
             PERM_VALIDATE_SUBMISSIONS,
         ),
         PERM_VIEW_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
         PERM_CHANGE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
-        PERM_VALIDATE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,)
+        PERM_DELETE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
+        PERM_VALIDATE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
     }
 
     # Some permissions must be copied to KC
-    KC_PERMISSIONS_MAP = {  # keys are KC's codenames, values are KPI's
+    KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
         PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can Edit" in KC UI
         PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can View" in KC UI
         PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can submit to" in KC UI
+        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can Delete Data" in KC UI
         PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can Validate" in KC UI
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
@@ -720,18 +729,26 @@ class Asset(ObjectPermissionMixin,
             return perms.get(perm)
         return None
 
-    def get_label_for_permission(self, permission_or_codename):
-
+    def get_label_for_permission(
+        self, permission_or_codename: Union[Permission, str]
+    ) -> str:
+        """
+        Get the correct label for a permission (object or codename) based on
+        the type of this asset
+        """
         try:
             codename = permission_or_codename.codename
             permission = permission_or_codename
         except AttributeError:
             codename = permission_or_codename
             permission = None
+
         try:
             label = self.ASSIGNABLE_PERMISSIONS_WITH_LABELS[codename]
         except KeyError:
-            if not permission:
+            if permission:
+                label = permission.name
+            else:
                 cached_code_names = get_cached_code_names()
                 label = cached_code_names[codename]['name']
 
@@ -742,12 +759,15 @@ class Asset(ObjectPermissionMixin,
         )
         return label
 
-    def get_partial_perms(self, user_id, with_filters=False):
+    def get_partial_perms(
+        self, user_id: int, with_filters: bool = False
+    ) -> Union[list, dict, None]:
         """
         Returns the list of permissions the user is restricted to,
         for this specific asset.
-        If `with_filters` is `True`, it returns a dict of permissions (as keys) and
-        the filters (as values) to apply on query to narrow down the results.
+        If `with_filters` is `True`, it returns a dict of permissions (as keys)
+        and the filters (as values) to apply on query to narrow down
+        the results.
 
         For example:
         `get_partial_perms(user1_obj.id)` would return
@@ -766,11 +786,6 @@ class Asset(ObjectPermissionMixin,
         ```
 
         If user doesn't have any partial permissions, it returns `None`.
-
-        :param user_obj: auth.User
-        :param with_filters: boolean. Optional
-
-        :return: list|dict|None
         """
 
         perms = self.asset_partial_permissions.filter(user_id=user_id)\

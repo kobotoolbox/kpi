@@ -16,6 +16,7 @@ import AssetInfoBox from './assetInfoBox';
 import AssetContentSummary from './assetContentSummary';
 import CollectionAssetsTable from './collectionAssetsTable';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
+import { dataInterface } from '../../dataInterface.es6';
 
 class AssetRoute extends React.Component {
   constructor(props) {
@@ -37,7 +38,6 @@ class AssetRoute extends React.Component {
       actions.resources.updateAsset.completed.listen(this.onAssetChanged),
       actions.resources.cloneAsset.completed.listen(this.onAssetChanged),
       actions.resources.createResource.completed.listen(this.onAssetChanged),
-      actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted)
     );
     this.loadCurrentAsset();
   }
@@ -77,60 +77,12 @@ class AssetRoute extends React.Component {
     }
   }
 
-  onDeleteAssetCompleted({uid}) {
-    this.onAssetRemoved(uid);
-  }
-
-  onAssetRemoved(assetUid) {
-    if (
-      this.state.asset &&
-      this.state.asset.asset_type === ASSET_TYPES.collection.id &&
-      this.state.asset.children.results.length !== 0
-    ) {
-      let newChildren;
-      const index = _.findIndex(this.state.asset.children.results, {uid: assetUid});
-      if (index !== -1) {
-        newChildren = Array.from(this.state.asset.children.results);
-        newChildren.splice(index, 1);
-      }
-
-      if (newChildren) {
-        const updatedAsset = this.state.asset;
-        updatedAsset.children.results = newChildren;
-        updatedAsset.children.count = newChildren.length;
-        this.setState({asset: updatedAsset});
-      }
-    }
-  }
-
   onAssetChanged(asset) {
     if (asset.uid === this.currentAssetID()) {
       this.setState({
         asset: asset,
-        isUserSubscribed: asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('subscribed'))
+        isUserSubscribed: asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)
       });
-    } else if (
-      this.state.asset &&
-      this.state.asset.asset_type === ASSET_TYPES.collection.id &&
-      asset.parent === this.state.asset.url
-    ) {
-      const updatedAsset = this.state.asset;
-      const newChildren = Array.from(updatedAsset.children.results);
-      const index = _.findIndex(updatedAsset.children.results, {uid: asset.uid});
-      if (index === -1) {
-        newChildren.push(asset);
-      } else {
-        newChildren[index] = asset;
-      }
-      updatedAsset.children.results = newChildren;
-      updatedAsset.children.count = newChildren.length;
-      this.setState({asset: updatedAsset});
-    } else if (
-      this.state.asset &&
-      this.state.asset.asset_type === ASSET_TYPES.collection.id &&
-      asset.parent !== this.state.asset.url
-    ) {
-      this.onAssetRemoved(asset.uid);
     }
   }
 

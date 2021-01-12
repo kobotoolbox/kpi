@@ -10,11 +10,8 @@ from os.path import splitext
 from urllib.parse import urlparse
 
 import dateutil.parser
-import formpack.constants
 import pytz
 import requests
-from formpack.schema.fields import ValidationStatusCopyField
-from formpack.utils.string import ellipsize
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
@@ -24,6 +21,9 @@ from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
 from rest_framework import exceptions
 
+import formpack.constants
+from formpack.schema.fields import ValidationStatusCopyField
+from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
@@ -32,7 +32,6 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
 )
 from kpi.utils.log import logging
-from kpi.utils.sheet_converter import convert_xls_to_dict
 from kpi.utils.strings import to_str
 from ..fields import KpiUidField
 from ..model_utils import create_assets, _load_library_content, \
@@ -657,7 +656,7 @@ class ExportTask(ImportExportTask):
 
 def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)
-    survey_dict = convert_xls_to_dict(BytesIO(decoded_str))
+    survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
     return _strip_header_keys(survey_dict)
 
 

@@ -21,19 +21,20 @@ import {
 } from 'js/constants';
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by spaces');
+const USERNAMES_SEPARATOR = ',';
 
 // used for validity rules
 const CHECKBOX_PERM_PAIRS = new Map([
-  ['formView', PERMISSIONS_CODENAMES.get('view_asset')],
-  ['formEdit', PERMISSIONS_CODENAMES.get('change_asset')],
-  ['submissionsAdd', PERMISSIONS_CODENAMES.get('add_submissions')],
-  ['submissionsAddPartial', PERMISSIONS_CODENAMES.get('partial_submissions')],
-  ['submissionsView', PERMISSIONS_CODENAMES.get('view_submissions')],
-  ['submissionsViewPartial', PERMISSIONS_CODENAMES.get('partial_submissions')],
-  ['submissionsEdit', PERMISSIONS_CODENAMES.get('change_submissions')],
-  ['submissionsEditPartial', PERMISSIONS_CODENAMES.get('partial_submissions')],
-  ['submissionsValidate', PERMISSIONS_CODENAMES.get('validate_submissions')],
-  ['submissionsValidatePartial', PERMISSIONS_CODENAMES.get('partial_submissions')],
+  ['formView', PERMISSIONS_CODENAMES.view_asset],
+  ['formEdit', PERMISSIONS_CODENAMES.change_asset],
+  ['submissionsAdd', PERMISSIONS_CODENAMES.add_submissions],
+  ['submissionsAddPartial', PERMISSIONS_CODENAMES.partial_submissions],
+  ['submissionsView', PERMISSIONS_CODENAMES.view_submissions],
+  ['submissionsViewPartial', PERMISSIONS_CODENAMES.partial_submissions],
+  ['submissionsEdit', PERMISSIONS_CODENAMES.change_submissions],
+  ['submissionsEditPartial', PERMISSIONS_CODENAMES.partial_submissions],
+  ['submissionsValidate', PERMISSIONS_CODENAMES.validate_submissions],
+  ['submissionsValidatePartial', PERMISSIONS_CODENAMES.partial_submissions],
 ]);
 
 /**
@@ -87,6 +88,9 @@ class UserAssetPermsEditor extends React.Component {
       submissionsValidatePartial: false,
       submissionsValidatePartialDisabled: false,
       submissionsValidatePartialUsers: [],
+      // submissions delete
+      submissionsDelete: false,
+      submissionsDeleteDisabled: false,
     };
 
     this.applyPropsData();
@@ -361,7 +365,7 @@ class UserAssetPermsEditor extends React.Component {
 
   isAssignable(permCodename) {
     const permDef = permConfig.getPermissionByCodename(
-      PERMISSIONS_CODENAMES.get(permCodename)
+      PERMISSIONS_CODENAMES[permCodename]
     );
     if (!permDef) {
       return false;
@@ -422,6 +426,7 @@ class UserAssetPermsEditor extends React.Component {
       output.submissionsViewPartialUsers = this.state.submissionsViewPartialUsers;
     }
     if (this.isAssignable('change_submissions')) {output.submissionsEdit = this.state.submissionsEdit;}
+    if (this.isAssignable('delete_submissions')) {output.submissionsDelete = this.state.submissionsDelete;}
     if (this.isAssignable('validate_submissions')) {output.submissionsValidate = this.state.submissionsValidate;}
     return output;
   }
@@ -524,7 +529,7 @@ class UserAssetPermsEditor extends React.Component {
               {this.state.submissionsViewPartial === true &&
                 <TextBox
                   placeholder={PARTIAL_PLACEHOLDER}
-                  value={this.state.submissionsViewPartialUsers.join(' ')}
+                  value={this.state.submissionsViewPartialUsers.join(USERNAMES_SEPARATOR)}
                   onChange={this.onPartialUsersChange.bind(this, 'submissionsViewPartialUsers')}
                   errors={this.state.submissionsViewPartial && this.state.submissionsViewPartialUsers.length === 0}
                   onKeyPress={this.onInputKeyPress}
@@ -554,7 +559,7 @@ class UserAssetPermsEditor extends React.Component {
               {this.state.submissionsAddPartial === true &&
                 <TextBox
                   placeholder={PARTIAL_PLACEHOLDER}
-                  value={this.state.submissionsAddPartialUsers.join(' ')}
+                  value={this.state.submissionsAddPartialUsers.join(USERNAMES_SEPARATOR)}
                   onChange={this.onPartialUsersChange.bind(this, 'submissionsAddPartialUsers')}
                   errors={this.state.submissionsAddPartial && this.state.submissionsAddPartialUsers.length === 0}
                   onKeyPress={this.onInputKeyPress}
@@ -584,13 +589,22 @@ class UserAssetPermsEditor extends React.Component {
               {this.state.submissionsEditPartial === true &&
                 <TextBox
                   placeholder={PARTIAL_PLACEHOLDER}
-                  value={this.state.submissionsEditPartialUsers.join(' ')}
+                  value={this.state.submissionsEditPartialUsers.join(USERNAMES_SEPARATOR)}
                   onChange={this.onPartialUsersChange.bind(this, 'submissionsEditPartialUsers')}
                   errors={this.state.submissionsEditPartial && this.state.submissionsEditPartialUsers.length === 0}
                   onKeyPress={this.onInputKeyPress}
                 />
               }
             </div>
+          }
+
+          {this.isAssignable('delete_submissions') &&
+            <Checkbox
+              checked={this.state.submissionsDelete}
+              disabled={this.state.submissionsDeleteDisabled}
+              onChange={this.onCheckboxChange.bind(this, 'submissionsDelete')}
+              label={this.getLabel('delete_submissions')}
+            />
           }
 
           {this.isAssignable('validate_submissions') &&
@@ -614,7 +628,7 @@ class UserAssetPermsEditor extends React.Component {
               {this.state.submissionsValidatePartial === true &&
                 <TextBox
                   placeholder={PARTIAL_PLACEHOLDER}
-                  value={this.state.submissionsValidatePartialUsers.join(' ')}
+                  value={this.state.submissionsValidatePartialUsers.join(USERNAMES_SEPARATOR)}
                   onChange={this.onPartialUsersChange.bind(this, 'submissionsValidatePartialUsers')}
                   errors={this.state.submissionsValidatePartial && this.state.submissionsValidatePartialUsers.length === 0}
                   onKeyPress={this.onInputKeyPress}

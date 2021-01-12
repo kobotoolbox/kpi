@@ -16,6 +16,7 @@
     "backbone-validation": "^0.11.5",
     "chai": "^4.2.0",
     "chart.js": "^2.9.3",
+    "circular-dependency-plugin": "^5.2.0",
     "classnames": "^2.2.6",
     "coffee-loader": "^0.9.0",
     "coffeescript": "^1.12.0",
@@ -77,10 +78,9 @@
     "zxcvbn": "^4.4.2"
   },
   "scripts": {
-    "build": "webpack --config webpack/prod.config.js --colors",
-    "build-production": "npm run build && echo 'WARNING: npm run build-production DEPRECATED! PLEASE USE npm run build INSTEAD'",
+    "build": "webpack --config webpack/prod.config.js",
     "watch": "webpack-dev-server --config webpack/dev.server.js",
-    "test": "webpack --config webpack/test.config.js --colors && mocha-chrome test/tests.html",
+    "test": "webpack --config webpack/test.config.js && mocha-chrome test/tests.html",
     "lint": "eslint --ext .es6 \"jsapp/js/**/*\"",
     "show-icons": "opn jsapp/fonts/k-icons.html",
     "generate-icons": "node ./scripts/generate_icons.js",

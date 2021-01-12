@@ -48,7 +48,7 @@ class AssetRow extends React.Component {
   }
 
   escFunction (evt) {
-    if (evt.keyCode === KEY_CODES.get('ESC') && this.state.isTagsInputVisible) {
+    if (evt.keyCode === KEY_CODES.ESC && this.state.isTagsInputVisible) {
       this.clickTagsToggle();
     }
   }
@@ -348,6 +348,7 @@ class AssetRow extends React.Component {
                   {t('Manage Translations')}
                 </bem.PopoverMenu__link>
               }
+              { /* temporarily disabled
               <bem.PopoverMenu__link
                 data-action={'encryption'}
                 data-asset-uid={this.props.uid}
@@ -355,6 +356,7 @@ class AssetRow extends React.Component {
                 <i className='k-icon-lock'/>
                 {t('Manage Encryption')}
               </bem.PopoverMenu__link>
+              */ }
               {this.props.downloads.map((dl)=>{
                 return (
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
