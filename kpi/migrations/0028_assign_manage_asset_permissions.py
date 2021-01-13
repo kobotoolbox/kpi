@@ -5,6 +5,20 @@ from django.contrib.auth.models import AnonymousUser
 from django.db import migrations
 
 
+def create_new_perms(apps):
+    """
+    The new `delete_submissions` permission does not exist when running this
+    migration for the first time. Django runs migrations in a transaction and
+    new permissions are not created until after the transaction is completed.
+
+    See https://stackoverflow.com/a/40092780/1141214
+    """
+    for app_config in apps.get_app_configs():
+        app_config.models_module = True
+        create_permissions(app_config, apps=apps, verbosity=0)
+        app_config.models_module = None
+
+
 def grant_object_level_perms(apps):
     """
     Grant `manage_asset` to the owner of every asset
@@ -57,6 +71,7 @@ def forwards_func(apps, schema_editor):
         'minutes on large databases...\n'
     )
     sys.stderr.flush()
+    create_new_perms(apps)
     grant_object_level_perms(apps)
 
 
