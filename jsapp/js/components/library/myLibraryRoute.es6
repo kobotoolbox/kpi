@@ -8,10 +8,8 @@ import Dropzone from 'react-dropzone';
 import mixins from 'js/mixins';
 import {validFileTypes} from 'utils';
 import myLibraryStore from './myLibraryStore';
-import {
-  AssetsTable,
-  ASSETS_TABLE_CONTEXTS
-} from './assetsTable';
+import AssetsTable from './assetsTable';
+import {ASSETS_TABLE_CONTEXTS} from 'js/components/library/libraryConstants';
 
 class MyLibraryRoute extends React.Component {
   constructor(props) {
@@ -87,7 +85,7 @@ class MyLibraryRoute extends React.Component {
           accept={validFileTypes()}
         >
           <AssetsTable
-            context={ASSETS_TABLE_CONTEXTS.get('my-library')}
+            context={ASSETS_TABLE_CONTEXTS.MY_LIBRARY}
             isLoading={this.state.isLoading}
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}

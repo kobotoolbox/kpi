@@ -48,7 +48,7 @@ class AssetRow extends React.Component {
   }
 
   escFunction (evt) {
-    if (evt.keyCode === KEY_CODES.get('ESC') && this.state.isTagsInputVisible) {
+    if (evt.keyCode === KEY_CODES.ESC && this.state.isTagsInputVisible) {
       this.clickTagsToggle();
     }
   }

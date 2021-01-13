@@ -26,9 +26,9 @@ class SidebarFormsList extends Reflux.Component {
       selectedCategories: selectedCategories,
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: COMMON_QUERIES.get('s'),
+          assetType: COMMON_QUERIES.s,
         },
-        filterTags: COMMON_QUERIES.get('s'),
+        filterTags: COMMON_QUERIES.s,
       })
     };
     this.store = stores.pageState;
@@ -89,7 +89,7 @@ class SidebarFormsList extends Reflux.Component {
       s.searchState === 'done' &&
       (s.searchString === false || s.searchString === '') &&
       s.searchResultsFor &&
-      s.searchResultsFor.assetType === COMMON_QUERIES.get('s')
+      s.searchResultsFor.assetType === COMMON_QUERIES.s
     ) {
       activeItems = 'searchResultsCategorizedResultsLists';
     }
@@ -119,7 +119,7 @@ class SidebarFormsList extends Reflux.Component {
                 </bem.Loading>
               );
             } else if (s.defaultQueryState === 'done') {
-              return Array.from(DEPLOYMENT_CATEGORIES.keys()).map(
+              return Object.keys(DEPLOYMENT_CATEGORIES).map(
                 (categoryId) => {
                   var categoryVisible = this.state.selectedCategories[categoryId];
                   if (s[activeItems][categoryId].length < 1) {
@@ -127,13 +127,13 @@ class SidebarFormsList extends Reflux.Component {
                   }
 
                   const icon = ['k-icon'];
-                  if (categoryId === DEPLOYMENT_CATEGORIES.get('Deployed').id) {
+                  if (categoryId === DEPLOYMENT_CATEGORIES.Deployed.id) {
                     icon.push('k-icon-deploy');
                   }
-                  if (categoryId === DEPLOYMENT_CATEGORIES.get('Draft').id) {
+                  if (categoryId === DEPLOYMENT_CATEGORIES.Draft.id) {
                     icon.push('k-icon-drafts');
                   }
-                  if (categoryId === DEPLOYMENT_CATEGORIES.get('Archived').id) {
+                  if (categoryId === DEPLOYMENT_CATEGORIES.Archived.id) {
                     icon.push('k-icon-archived');
                   }
 
@@ -145,7 +145,7 @@ class SidebarFormsList extends Reflux.Component {
                     >
                       <i className={icon.join(' ')}/>
                       <bem.FormSidebar__labelText>
-                        {DEPLOYMENT_CATEGORIES.get(categoryId).label}
+                        {DEPLOYMENT_CATEGORIES[categoryId].label}
                       </bem.FormSidebar__labelText>
                       <bem.FormSidebar__labelCount>{s[activeItems][categoryId].length}</bem.FormSidebar__labelCount>
                     </bem.FormSidebar__label>,

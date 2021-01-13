@@ -1,10 +1,8 @@
 import _ from 'underscore';
 import React from 'react';
 import autoBind from 'react-autobind';
-import {
-  AssetsTable,
-  ASSETS_TABLE_CONTEXTS,
-} from './assetsTable';
+import AssetsTable from './assetsTable';
+import {ASSETS_TABLE_CONTEXTS} from './libraryConstants';
 import singleCollectionStore from './singleCollectionStore';
 
 /**
@@ -68,7 +66,7 @@ class CollectionAssetsTable extends React.Component {
   render() {
     return (
       <AssetsTable
-        context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
+        context={ASSETS_TABLE_CONTEXTS.COLLECTION_CONTENT}
         isLoading={this.state.isLoading}
         assets={this.state.assets}
         totalAssets={this.state.totalAssets}

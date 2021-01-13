@@ -24,12 +24,12 @@ import {
 import {REPORT_STYLES} from 'js/constants';
 
 let reportStyles = [
-  REPORT_STYLES.get('vertical'),
-  REPORT_STYLES.get('donut'),
-  REPORT_STYLES.get('area'),
-  REPORT_STYLES.get('horizontal'),
-  REPORT_STYLES.get('pie'),
-  REPORT_STYLES.get('line'),
+  REPORT_STYLES.vertical,
+  REPORT_STYLES.donut,
+  REPORT_STYLES.area,
+  REPORT_STYLES.horizontal,
+  REPORT_STYLES.pie,
+  REPORT_STYLES.line,
 ];
 
 class ChartTypePicker extends React.Component {
@@ -729,7 +729,7 @@ class Reports extends React.Component {
 
       // TODO: improve the defaults below
       if (reportStyles.default.report_type === undefined) {
-        reportStyles.default.report_type = REPORT_STYLES.get('vertical').value;
+        reportStyles.default.report_type = REPORT_STYLES.vertical.value;
       }
       if (reportStyles.default.translationIndex === undefined) {
         reportStyles.default.translationIndex = 0;

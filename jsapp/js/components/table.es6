@@ -203,7 +203,7 @@ export class DataTable extends React.Component {
         return (
           typeof foundPathKey !== 'undefined' &&
           (foundPathKey === row.name || foundPathKey === row.$autoname) &&
-          row.type === QUESTION_TYPES.get('note').id
+          row.type === QUESTION_TYPES.note.id
         );
       });
       if (typeof foundNoteRow !== 'undefined') {
@@ -219,9 +219,9 @@ export class DataTable extends React.Component {
     const excludedMatrixKeys = [];
     let isInsideKoboMatrix = false;
     this.props.asset.content.survey.forEach((row) => {
-      if (row.type === GROUP_TYPES_BEGIN.get('begin_kobomatrix')) {
+      if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
         isInsideKoboMatrix = true;
-      } else if (row.type === GROUP_TYPES_END.get('end_kobomatrix')) {
+      } else if (row.type === GROUP_TYPES_END.end_kobomatrix) {
         isInsideKoboMatrix = false;
       } else if (isInsideKoboMatrix) {
         const rowPath = flatPaths[row.name] || flatPaths[row.$autoname];
@@ -457,7 +457,11 @@ export class DataTable extends React.Component {
         filterable: false,
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
-            if (q.type === QUESTION_TYPES.get('image').id || q.type === QUESTION_TYPES.get('audio').id || q.type === QUESTION_TYPES.get('video').id) {
+            if (
+              q.type === QUESTION_TYPES.image.id ||
+              q.type === QUESTION_TYPES.audio.id ||
+              q.type === QUESTION_TYPES.video.id
+            ) {
               var mediaURL = this.getMediaDownloadLink(row.value);
               return <a href={mediaURL} target='_blank'>{row.value}</a>;
             }
