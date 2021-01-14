@@ -16,7 +16,7 @@ class AssetContentSummary extends React.Component {
   }
 
   renderQuestion(question, itemIndex) {
-    const typeDef = QUESTION_TYPES.get(question.type);
+    const typeDef = QUESTION_TYPES[question.type];
     const modifiers = ['columns', 'padding-small'];
     if (itemIndex !== 0) {
       modifiers.push('bordertop');
@@ -44,7 +44,7 @@ class AssetContentSummary extends React.Component {
 
   filterRealQuestions(questions) {
     return questions.filter((question) => {
-      return QUESTION_TYPES.has(question.type);
+      return QUESTION_TYPES[question.type];
     });
   }
 

@@ -115,8 +115,8 @@ class FormViewTabs extends Reflux.Component {
 
       if (
         this.state.asset.deployment__active &&
-        mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('view_submissions'), this.state.asset) &&
-        mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('change_asset'), this.state.asset)
+        mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.state.asset) &&
+        mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.state.asset)
       ) {
         sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
       }

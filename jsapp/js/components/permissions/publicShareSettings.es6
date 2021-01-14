@@ -17,8 +17,8 @@ class PublicShareSettings extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
-    this.anonCanViewPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
-    this.anonCanViewDataPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_submissions')).url;
+    this.anonCanViewPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url;
+    this.anonCanViewDataPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_submissions).url;
   }
   togglePerms(permCodename) {
     var permission = this.props.publicPerms.filter((perm) => {

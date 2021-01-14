@@ -4,6 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import editableFormMixin from '../editorMixins/editableForm';
+import mixins from '../mixins';
 import {update_states} from 'js/constants';
 
 export class FormPage extends React.Component {
@@ -22,6 +23,7 @@ export class FormPage extends React.Component {
 }
 reactMixin(FormPage.prototype, Reflux.ListenerMixin);
 reactMixin(FormPage.prototype, editableFormMixin);
+reactMixin(FormPage.prototype, mixins.permissions);
 FormPage.contextTypes = {router: PropTypes.object};
 
 export class LibraryAssetEditor extends React.Component {
