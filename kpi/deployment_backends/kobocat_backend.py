@@ -1082,18 +1082,29 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             the client
         '''
 
+        OPEN_ROSA_XML_MESSAGE = '{http://openrosa.org/http/response}message'
+
         # Unfortunately, the response message from OpenRosa is in XML format,
         # so it needs to be parsed before extracting the text
-        results = [
-            {
-                'uuid': res['uuid'],
-                'status_code': res['response'].status_code,
-                'message': ET.fromstring(res['response']._content)
-                .find('{http://openrosa.org/http/response}message')
-                .text,
-            }
-            for res in kc_responses
-        ]
+        results = []
+        for response in kc_responses:
+            try:
+                message = _(
+                    ET.fromstring(response['response'].content)
+                    .find(OPEN_ROSA_XML_MESSAGE)
+                    .text
+                )
+            except ET.ParseError:
+                message = _('Something went wrong')
+
+            results.append(
+                {
+                    'uuid': response['uuid'],
+                    'status_code': response['response'].status_code,
+                    'message': message,
+                }
+            )
+
         total_update_attempts = len(results)
         total_successes = [result['status_code'] for result in results].count(
             status.HTTP_201_CREATED
