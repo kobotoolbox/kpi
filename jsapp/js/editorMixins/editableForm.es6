@@ -59,6 +59,7 @@ export default assign({
           settings__style: asset.settings__style,
           asset_uid: asset.uid,
           asset_type: asset.asset_type,
+          asset: asset,
         });
       });
     } else {
@@ -788,13 +789,15 @@ export default assign({
 
   render() {
     var docTitle = this.state.name || t('Untitled');
+    var currentAsset = this.state.asset || null;
+    var isSelfOwned = currentAsset === null ? false : assetUtils.isSelfOwned(currentAsset);
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <ui.Panel m={['transparent', 'fixed']}>
           {this.renderAside()}
 
-          {this.userCan('change_asset', this.props.params.assetid) &&
+          {(currentAsset && assetUtils.isSelfOwned(currentAsset) || this.userCan('change_asset', this.props.params.assetid)) &&
             <bem.FormBuilder>
             {this.renderFormBuilderHeader()}
 
@@ -808,7 +811,7 @@ export default assign({
             </bem.FormBuilder>
           }
 
-          {!this.userCan('change_asset', this.props.params.assetid) &&
+          {(currentAsset && !assetUtils.isSelfOwned(currentAsset) && !this.userCan('change_asset', this.props.params.assetid)) &&
             <ui.AccessDeniedMessage/>
           }
 
