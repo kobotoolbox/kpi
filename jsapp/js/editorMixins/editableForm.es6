@@ -794,17 +794,23 @@ export default assign({
         <ui.Panel m={['transparent', 'fixed']}>
           {this.renderAside()}
 
-          <bem.FormBuilder>
+          {this.userCan('change_asset', this.props.params.assetid) &&
+            <bem.FormBuilder>
             {this.renderFormBuilderHeader()}
 
-            <bem.FormBuilder__contents>
-              <div ref='form-wrap' className='form-wrap'>
-                {!this.state.surveyAppRendered &&
-                  this.renderNotLoadedMessage()
-                }
-              </div>
-            </bem.FormBuilder__contents>
-          </bem.FormBuilder>
+              <bem.FormBuilder__contents>
+                <div ref='form-wrap' className='form-wrap'>
+                  {!this.state.surveyAppRendered &&
+                    this.renderNotLoadedMessage()
+                  }
+                </div>
+              </bem.FormBuilder__contents>
+            </bem.FormBuilder>
+          }
+
+          {!this.userCan('change_asset', this.props.params.assetid) &&
+            <ui.AccessDeniedMessage/>
+          }
 
           {this.state.enketopreviewOverlay &&
             <ui.Modal
