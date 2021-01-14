@@ -233,9 +233,9 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         object_permission = self.get_object()
         user = object_permission.user
         # If the user is not the owner of the asset, but trying to delete the
-        # owner's permissions, raise permission denied error. However, if it is
-        # the owner of the asset, they should also be prevented from deleting
-        # their own permissions, but given a more appropriate response
+        # owner's permissions, raise permission denied error. However, if they
+        # are the owner of the asset, they should also be prevented from
+        # deleting their own permissions, but given a more appropriate response
         if (self.request.user.pk != self.asset.owner_id) and (
             self.request.user.pk != user.pk
         ):

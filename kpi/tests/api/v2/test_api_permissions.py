@@ -251,7 +251,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         new_asset = self.create_asset(
             name='a new asset',
             owner=self.someuser,
-            owner_password=self.someuser_password,
         )
         perm = new_asset.assign_perm(self.anotheruser, 'view_asset')
         kwargs = {
@@ -286,7 +285,6 @@ class ApiPermissionsTestCase(KpiTestCase):
         new_asset = self.create_asset(
             name='a new asset',
             owner=self.someuser,
-            owner_password=self.someuser_password,
         )
         # someuser obviously has `PERM_VIEW_ASSET` set, but this seems to be
         # the only way to access the uid of that permission to pass into `kwargs`
@@ -313,13 +311,12 @@ class ApiPermissionsTestCase(KpiTestCase):
 
     def test_shared_asset_non_owner_remove_another_non_owners_permissions_not_allowed(self):
         """
-        Ensuring that a non-owner who has been shared an asset is not able to
-        remove permissions from another non-owner that has also been share the
-        asset
+        Ensuring that a non-owner who has an asset shared with them cannot
+        remove permissions from another non-owner with that same asset shared
+        with them.
         """
         yetanotheruser = User.objects.create(
             username='yetanotheruser',
-            password='yetanotheruser',
         )
         self.client.login(
             username=self.someuser.username,
