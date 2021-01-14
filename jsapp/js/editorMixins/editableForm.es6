@@ -789,15 +789,26 @@ export default assign({
 
   render() {
     var docTitle = this.state.name || t('Untitled');
-    var currentAsset = this.state.asset || null;
-    var isSelfOwned = currentAsset === null ? false : assetUtils.isSelfOwned(currentAsset);
+
+    // Only allow user to edit form if they have "Edit Form" permission
+    if (this.state.asset) {
+      var userCanEditForm = (
+        assetUtils.isSelfOwned(this.state.asset) ||
+        this.userCan('change_asset', this.state.asset)
+      );
+    }
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <ui.Panel m={['transparent', 'fixed']}>
           {this.renderAside()}
 
-          {(currentAsset && assetUtils.isSelfOwned(currentAsset) || this.userCan('change_asset', this.props.params.assetid)) &&
+          {/*
+            HACK FIX: In the first render `this.state.asset` is undefined, so
+            for this permission check to work, we have to let it through on
+            first render, otherwise the modal will be empty
+          */}
+          {(!this.state.asset || userCanEditForm) &&
             <bem.FormBuilder>
             {this.renderFormBuilderHeader()}
 
@@ -811,7 +822,7 @@ export default assign({
             </bem.FormBuilder>
           }
 
-          {(currentAsset && !assetUtils.isSelfOwned(currentAsset) && !this.userCan('change_asset', this.props.params.assetid)) &&
+          {(!userCanEditForm) &&
             <ui.AccessDeniedMessage/>
           }
 
