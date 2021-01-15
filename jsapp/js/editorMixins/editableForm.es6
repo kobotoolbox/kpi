@@ -33,6 +33,7 @@ import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 import assetUtils from 'js/assetUtils';
+import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -777,38 +778,32 @@ export default assign({
       );
     }
 
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
+    return renderLoading();
   },
 
   render() {
     var docTitle = this.state.name || t('Untitled');
 
-    // Only allow user to edit form if they have "Edit Form" permission
-    if (this.state.asset) {
-      var userCanEditForm = (
-        assetUtils.isSelfOwned(this.state.asset) ||
-        this.userCan('change_asset', this.state.asset)
+    if (!this.state.asset) {
+      return (
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+          {renderLoading()}
+        </DocumentTitle>
       );
     }
+
+    // Only allow user to edit form if they have "Edit Form" permission
+    var userCanEditForm = (
+      assetUtils.isSelfOwned(this.state.asset) ||
+      this.userCan('change_asset', this.state.asset)
+    );
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <ui.Panel m={['transparent', 'fixed']}>
           {this.renderAside()}
 
-          {/*
-            HACK FIX: In the first render `this.state.asset` is undefined, so
-            for this permission check to work, we have to let it through on
-            first render, otherwise the modal will be empty
-          */}
-          {(!this.state.asset || userCanEditForm) &&
+          {userCanEditForm &&
             <bem.FormBuilder>
             {this.renderFormBuilderHeader()}
 
