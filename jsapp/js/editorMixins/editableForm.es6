@@ -784,7 +784,7 @@ export default assign({
   render() {
     var docTitle = this.state.name || t('Untitled');
 
-    if (!this.state.asset) {
+    if (!this.state.isNewAsset && !this.state.asset) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
           {renderLoading()}
@@ -794,6 +794,7 @@ export default assign({
 
     // Only allow user to edit form if they have "Edit Form" permission
     var userCanEditForm = (
+      this.state.isNewAsset ||
       assetUtils.isSelfOwned(this.state.asset) ||
       this.userCan('change_asset', this.state.asset)
     );
