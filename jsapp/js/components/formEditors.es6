@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
@@ -12,11 +11,10 @@ import {bem} from '../bem';
 import DocumentTitle from 'react-document-title';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   log,
   redirectTo,
   formatTime,
-} from '../utils';
+} from 'utils';
 import {
   ROOT_URL,
   update_states,

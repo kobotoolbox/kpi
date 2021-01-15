@@ -10,10 +10,12 @@ import {dataInterface} from '../dataInterface';
 import {bem} from '../bem';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
-import $ from 'jquery';
 import Dropzone from 'react-dropzone';
-import {t, validFileTypes} from '../utils';
-import {ASSET_TYPES} from '../constants';
+import {validFileTypes} from 'utils';
+import {
+  ASSET_TYPES,
+  CATEGORY_LABELS
+} from '../constants';
 
 class SearchCollectionList extends Reflux.Component {
   constructor(props) {
@@ -175,7 +177,7 @@ class SearchCollectionList extends Reflux.Component {
         }
         return [
           <bem.List__subheading key={i}>
-            {t(category)}
+            {CATEGORY_LABELS[category]}
           </bem.List__subheading>,
           <bem.AssetItems m={i+1} key={i+2}>
             {this.renderGroupedHeadings()}

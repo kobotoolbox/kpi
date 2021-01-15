@@ -7,13 +7,12 @@
 
 import _ from 'underscore';
 import Reflux from 'reflux';
-import $ from 'jquery';
 import SparkMD5 from 'spark-md5';
 
 import {stores} from './stores';
 import {actions} from './actions';
 import {dataInterface} from './dataInterface';
-import {assign} from './utils';
+import {assign} from 'utils';
 import {parsed} from './assetParserUtils';
 
 const emptySearchState = {

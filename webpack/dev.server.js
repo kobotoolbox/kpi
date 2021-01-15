@@ -24,7 +24,7 @@ module.exports = WebpackCommon({
   },
   entry: {
     app: ['react-hot-loader/patch', './jsapp/js/main.es6'],
-    tests: path.resolve(__dirname, '../test/index.js')
+    browsertests: path.resolve(__dirname, '../test/index.js')
   },
   output: {
     library: 'KPI',
@@ -41,7 +41,6 @@ module.exports = WebpackCommon({
     host: '0.0.0.0'
   },
   plugins: [
-    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
     new webpack.SourceMapDevToolPlugin({
       filename: '[file].map',
       exclude: /vendors.*.*/

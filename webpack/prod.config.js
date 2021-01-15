@@ -19,7 +19,7 @@ module.exports = WebpackCommon({
   },
   entry: {
     app: './jsapp/js/main.es6',
-    tests: path.resolve(__dirname, '../test/index.js')
+    browsertests: path.resolve(__dirname, '../test/index.js')
   },
   output: {
     path: path.resolve(__dirname, '../jsapp/compiled/'),
@@ -27,7 +27,6 @@ module.exports = WebpackCommon({
     filename: '[name]-[hash].js'
   },
   plugins: [
-    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
     new webpack.SourceMapDevToolPlugin({
       filename: '[file].map',
       exclude: /vendors.*.*/

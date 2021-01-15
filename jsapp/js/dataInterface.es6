@@ -7,12 +7,8 @@
  * And make actions for calls that doesn't have them.
  */
 
-import $ from 'jquery';
 import alertify from 'alertifyjs';
-import {
-  t,
-  assign
-} from './utils';
+import {assign} from 'utils';
 import {ROOT_URL} from './constants';
 
 export var dataInterface;
@@ -537,7 +533,7 @@ export var dataInterface;
     },
     deleteSubmission(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
         method: 'DELETE'
       });
     },

@@ -2,6 +2,7 @@
 import datetime
 import pytz
 
+import constance
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -63,7 +64,9 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
     def get_git_rev(self, obj):
         request = self.context.get('request', False)
-        if settings.EXPOSE_GIT_REV or (request and request.user.is_superuser):
+        if constance.config.EXPOSE_GIT_REV or (
+            request and request.user.is_superuser
+        ):
             return settings.GIT_REV
         else:
             return False

@@ -3,7 +3,6 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
-import $ from 'jquery';
 import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from '../dataInterface';
 import Checkbox from './checkbox';
@@ -25,10 +24,9 @@ import {
   GROUP_TYPES_END
 } from '../constants';
 import {
-  t,
   formatTimeDate,
   renderCheckbox
-} from '../utils';
+} from 'utils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 import {getRepeatGroupAnswers} from 'js/submissionUtils';
 
@@ -176,11 +174,10 @@ export class DataTable extends React.Component {
   getDisplayedColumns(data) {
     const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
 
-    // start with all paths
+    // add all questions from the survey definition
     let output = Object.values(flatPaths);
 
-    // makes sure the survey columns are displayed, even if current data's
-    // submissions doesn't have them
+    // Gather unique columns from all visible submissions and add them to output
     const dataKeys = Object.keys(data.reduce(function(result, obj) {
       return Object.assign(result, obj);
     }, {}));
@@ -196,18 +193,25 @@ export class DataTable extends React.Component {
       const foundPathKey = Object.keys(flatPaths).find((pathKey) => {
         return flatPaths[pathKey] === key;
       });
-      const foundRow = this.props.asset.content.survey.find((row) => {
+
+      // no path means this definitely is not a note type
+      if (!foundPathKey) {
+        return true;
+      }
+
+      const foundNoteRow = this.props.asset.content.survey.find((row) => {
         return (
-          key === row.name ||
-          key === row.$autoname ||
-          foundPathKey === row.name ||
-          foundPathKey === row.$autoname
+          typeof foundPathKey !== 'undefined' &&
+          (foundPathKey === row.name || foundPathKey === row.$autoname) &&
+          row.type === QUESTION_TYPES.get('note').id
         );
       });
-      if (foundRow) {
-        return foundRow.type !== QUESTION_TYPES.get('note').id;
+      if (typeof foundNoteRow !== 'undefined') {
+        // filter out this row as this is a note type
+        return false;
       }
-      return false;
+
+      return true;
     });
 
     // exclude kobomatrix rows as data is not directly tied to them, but
@@ -264,7 +268,7 @@ export class DataTable extends React.Component {
     }
 
     var columns = [];
-    if (this.userCan('validate_submissions', this.props.asset) || this.userCan('change_submissions', this.props.asset)) {
+    if (this.userCan('validate_submissions', this.props.asset) || this.userCan('delete_submissions', this.props.asset)) {
       columns.push({
         Header: row => (
             <div className='table-header-checkbox'>
@@ -998,7 +1002,7 @@ export class DataTable extends React.Component {
                 );
               })
             }
-            {this.userCan('change_submissions', this.props.asset) &&
+            {this.userCan('delete_submissions', this.props.asset) &&
             <bem.PopoverMenu__link
               onClick={this.onBulkDelete}>
               {t('Delete selected')}

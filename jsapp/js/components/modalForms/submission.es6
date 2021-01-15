@@ -9,7 +9,7 @@ import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {bem} from 'js/bem';
-import {t, notify, launchPrinting} from 'js/utils';
+import {notify, launchPrinting} from 'utils';
 import {stores} from 'js/stores';
 import {
   VALIDATION_STATUSES_LIST,
@@ -41,6 +41,9 @@ class Submission extends React.Component {
       submission: {},
       loading: true,
       error: false,
+      // For previous and next:
+      // -1 means there is none,
+      // -2 means there is but on different table page.
       previous: -1,
       next: -1,
       sid: props.sid,
@@ -76,10 +79,11 @@ class Submission extends React.Component {
 
   getSubmission(assetUid, sid) {
     dataInterface.getSubmission(assetUid, sid).done((data) => {
-      var prev = -1, next = -1;
+      let prev = -1;
+      let next = -1;
 
       if (this.props.ids && sid) {
-        const c = this.props.ids.findIndex((k) => {return String(k) === sid;});
+        const c = this.props.ids.findIndex((k) => {return k === parseInt(sid);});
         let tableInfo = this.props.tableInfo || false;
         if (this.props.ids[c - 1]) {
           prev = this.props.ids[c - 1];
@@ -107,11 +111,12 @@ class Submission extends React.Component {
         next: next,
         previous: prev
       });
-    }).fail((error)=>{
+    }).fail((error) => {
       if (error.responseText) {
         let error_message = error.responseText;
-        if (error_message === DETAIL_NOT_FOUND)
+        if (error_message === DETAIL_NOT_FOUND) {
           error_message = t('The submission could not be found. It may have been deleted. Submission ID: ##id##').replace('##id##', sid);
+        }
         this.setState({error: error_message, loading: false});
       } else if (error.statusText) {
           this.setState({error: error.statusText, loading: false});
@@ -355,7 +360,7 @@ class Submission extends React.Component {
               <i className='k-icon-print' />
             </bem.Button>
 
-            {this.userCan('change_submissions', this.props.asset) &&
+            {this.userCan('delete_submissions', this.props.asset) &&
               <a
                 onClick={this.deleteSubmission}
                 className='mdl-button mdl-button--icon mdl-button--colored mdl-button--red right-tooltip'

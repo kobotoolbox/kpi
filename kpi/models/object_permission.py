@@ -443,45 +443,23 @@ class ObjectPermissionMixin:
             effective_perms = set()
         else:
             effective_perms_copy = copy.copy(effective_perms)
-        if self.editors_can_change_permissions and (
-                codename is None or codename.startswith('share_')
-        ):
-            # Everyone with change_ should also get share_
-            change_permissions = self.__get_permissions_for_content_type(
-                content_type.pk, codename__startswith='change_')
-
-            for change_perm_pk, change_perm_codename in change_permissions:
-                share_permission_codename = re.sub(
-                    '^change_', 'share_', change_perm_codename, 1)
-                if (codename is not None and
-                        share_permission_codename != codename
-                ):
-                    # If the caller specified `codename`, skip anything that
-                    # doesn't match exactly. Necessary because `Asset` has
-                    # `*_submissions` in addition to `*_asset`
-                    continue
-                share_perm_pk, _ = self.__get_permissions_for_content_type(
-                    content_type.pk,
-                    codename=share_permission_codename)[0]
-                for user_id, permission_id in effective_perms_copy:
-                    if permission_id == change_perm_pk:
-                        effective_perms.add((user_id, share_perm_pk))
-        # The owner has the delete_ permission
-        if self.owner is not None and (
-                user is None or user.pk == self.owner.pk) and (
-                codename is None or codename.startswith('delete_')
-        ):
-            delete_permissions = self.__get_permissions_for_content_type(
-                content_type.pk, codename__startswith='delete_')
-            for delete_perm_pk, delete_perm_codename in delete_permissions:
-                if (codename is not None and
-                        delete_perm_codename != codename
-                ):
-                    # If the caller specified `codename`, skip anything that
-                    # doesn't match exactly. Necessary because `Asset` has
-                    # `delete_submissions` in addition to `delete_asset`
-                    continue
-                effective_perms.add((self.owner.pk, delete_perm_pk))
+        # The owner has the share_ and delete_ permission
+        for codename_prefix in ('share_', 'delete_'):
+            if self.owner is not None and (
+                    user is None or user.pk == self.owner.pk) and (
+                    codename is None or codename.startswith(codename_prefix)
+            ):
+                matching_permissions = self.__get_permissions_for_content_type(
+                    content_type.pk, codename__startswith=codename_prefix)
+                for perm_pk, perm_codename in matching_permissions:
+                    if (codename is not None and
+                            perm_codename != codename
+                    ):
+                        # If the caller specified `codename`, skip anything that
+                        # doesn't match exactly. Necessary because `Asset` has
+                        # `delete_submissions` in addition to `delete_asset`
+                        continue
+                    effective_perms.add((self.owner.pk, perm_pk))
         # We may have calculated more permissions for anonymous users
         # than they are allowed to have. Remove them.
         if user is None or user.pk == settings.ANONYMOUS_USER_ID:
@@ -918,7 +896,7 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):
-        r"""
+        """
             Revoke the given `perm` on this object from `user_obj`. By default,
             recalculate descendant objects' permissions and remove any
             applicable KC permissions.  May delete granted permissions or add
@@ -1121,19 +1099,24 @@ class ObjectPermissionMixin:
         # grouped by object ids, otherwise, retrieve all permissions for this object
         # grouped by user ids.
         if user is not None:
-            user_id = user.pk if not user.is_anonymous \
-                else settings.ANONYMOUS_USER_ID
-            all_object_permissions = self.__get_all_user_permissions(
+            # Ensuring that the user has at least anonymous permissions if they
+            # have been assigned to the asset
+            all_anon_object_permissions = self.__get_all_user_permissions(
                 content_type_id=object_content_type_id,
-                user_id=user_id)
-            perms = build_dict(user_id, all_object_permissions.get(self.pk))
-
-            if not perms:
-                # Try AnonymousUser's permissions in case user does not have any.
+                user_id=settings.ANONYMOUS_USER_ID
+            )
+            perms = build_dict(
+                settings.ANONYMOUS_USER_ID,
+                all_anon_object_permissions.get(self.pk),
+            )
+            if not user.is_anonymous:
                 all_object_permissions = self.__get_all_user_permissions(
                     content_type_id=object_content_type_id,
-                    user_id=settings.ANONYMOUS_USER_ID)
-                perms = build_dict(user_id, all_object_permissions.get(self.pk))
+                    user_id=user.pk
+                )
+                perms += build_dict(
+                    user.pk, all_object_permissions.get(self.pk)
+                )
         else:
             all_object_permissions = self.__get_all_object_permissions(
                 content_type_id=object_content_type_id,

@@ -9,8 +9,7 @@ import {bem} from '../bem';
 import ui from '../ui';
 import {searches} from '../searches';
 import {stores} from '../stores';
-
-import {t} from '../utils';
+import {CATEGORY_LABELS} from 'js/constants';
 
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
@@ -114,7 +113,7 @@ class SidebarFormsList extends Reflux.Component {
                                             onClick={this.toggleCategory(category)}
                                             key={`${category}-label`}>
                       <i />
-                      {t(category)}
+                      {CATEGORY_LABELS[category]}
                       <bem.FormSidebar__labelCount>
                         {s[activeItems][category].length}
                       </bem.FormSidebar__labelCount>

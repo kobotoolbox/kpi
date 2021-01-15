@@ -649,6 +649,23 @@ $z-modal-x: 10;
   }
 }
 
+.form-view__cell--encrypt-key {
+  padding-bottom: 12px;
+}
+
+.encrypt-help {
+  color: $kobo-darkgray;
+  background: transparent;
+  border: 0;
+  font-size: 32px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.remove-encryption {
+  float: right;
+}
+
 @media screen and (max-width: 767px) {
   .modal.modal--open {
     min-width: 90%;

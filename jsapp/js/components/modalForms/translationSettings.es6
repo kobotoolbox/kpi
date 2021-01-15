@@ -8,7 +8,7 @@ import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
-import {t, getLangString, notify} from 'utils';
+import {getLangString, notify} from 'utils';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 
@@ -296,6 +296,12 @@ export class TranslationSettings extends React.Component {
           <bem.FormView__cell m='label'>
             {t('Current languages')}
           </bem.FormView__cell>
+          {translations[0] == null &&
+            <bem.FormView__cell m={['warning', 'translation-modal-warning']}>
+              <i className='k-icon-alert' />
+              <p>{t('You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.')}</p>
+            </bem.FormView__cell>
+          }
           {translations.map((l, i) => {
             return (
               <React.Fragment key={`lang-${i}`}>
@@ -412,7 +418,8 @@ export class TranslationSettings extends React.Component {
     let translations = this.state.translations;
     if (translations.length === 0) {
       return this.renderEmptyMessage();
-    } else if (translations && translations[0] === null) {
+    } else if (translations.length == 1 && translations[0] === null) {
+      // use this modal if there are only unnamed translations
       return this.renderUndefinedDefaultSettings();
     } else {
       return this.renderTranslationsSettings(translations);

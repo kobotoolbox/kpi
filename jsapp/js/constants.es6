@@ -2,8 +2,6 @@
  * A list of all shareable constants for the application.
  */
 
-import {t} from './utils';
-
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs
@@ -33,6 +31,7 @@ new Set([
   'view_submissions',
   'partial_submissions',
   'change_submissions',
+  'delete_submissions',
   'validate_submissions',
   'view_collection',
   'change_collection'
@@ -68,7 +67,8 @@ export const MODAL_TYPES = {
   TABLE_COLUMNS: 'table-columns',
   REST_SERVICES: 'rest-services',
   FORM_LANGUAGES: 'form-languages',
-  FORM_TRANSLATIONS_TABLE: 'form-translation-table'
+  FORM_TRANSLATIONS_TABLE: 'form-translation-table',
+  ENCRYPT_FORM: 'encrypt-form'
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = {
@@ -386,6 +386,12 @@ export const MATRIX_PAIR_PROPS = {
 
 export const NAME_MAX_LENGTH = 255;
 
+export const CATEGORY_LABELS = {
+  Deployed: t('Deployed'),
+  Draft: t('Draft'),
+  Archived: t('Archived')
+};
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -408,7 +414,8 @@ const constants = {
   FORM_VERSION_NAME,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
-  NAME_MAX_LENGTH
+  NAME_MAX_LENGTH,
+  CATEGORY_LABELS,
 };
 
 export default constants;

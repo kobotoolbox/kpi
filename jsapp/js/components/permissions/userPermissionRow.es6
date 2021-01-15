@@ -8,10 +8,7 @@ import mixins from 'js/mixins';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import {
-  t,
-  stringToColor,
-} from 'js/utils';
+import {stringToColor} from 'utils';
 import {
   KEY_CODES,
   ASSET_KINDS,

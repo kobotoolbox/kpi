@@ -15,9 +15,8 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import {MODAL_TYPES} from '../constants';
 import {
   formatTime,
-  t,
   notify
-} from '../utils';
+} from 'utils';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
@@ -146,6 +145,13 @@ export class FormLanding extends React.Component {
       asset: this.state
     });
   }
+  showEncryptionModal (evt) {
+    evt.preventDefault();
+    stores.pageState.showModal({
+      type: MODAL_TYPES.ENCRYPT_FORM,
+      asset: this.state
+    });
+  }
   loadMoreVersions() {
     if (this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM <= this.state.deployed_versions.count + DVCOUNT_LIMIT_MINIMUM) {
       this.setState({ DVCOUNT_LIMIT: this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM });
@@ -242,7 +248,7 @@ export class FormLanding extends React.Component {
         }],
         ['single_url', {
           label: t('Online-Only (single submission)'),
-          desc: t('This allows a single submission, and can be paired with the "returnURL" parameter to redirect the user to a URL of your choice after the form has been submitted.')
+          desc: t('This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.')
         }],
         ['single_once_url', {
           label: t('Online-only (once per respondent)'),
@@ -464,6 +470,12 @@ export class FormLanding extends React.Component {
               {t('Manage Translations')}
             </bem.PopoverMenu__link>
           }
+          { /* temporarily disabled
+          <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
+            <i className='k-icon-lock'/>
+            {t('Manage Encryption')}
+          </bem.PopoverMenu__link>
+          */ }
         </ui.PopoverMenu>
       </bem.FormView__group>
     );

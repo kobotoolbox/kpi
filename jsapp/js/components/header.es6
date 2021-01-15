@@ -13,11 +13,10 @@ import {removeInvalidChars} from '../assetUtils';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
-  t,
   assign,
   currentLang,
   stringToColor,
-} from '../utils';
+} from 'utils';
 import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import {NAME_MAX_LENGTH} from 'js/constants';
@@ -104,6 +103,24 @@ class MainHeader extends Reflux.Component {
     );
   }
   renderAccountNavMenu () {
+    let shouldDisplayUrls = false;
+    if (
+      stores.session &&
+      stores.session.environment &&
+      typeof stores.session.environment.terms_of_service_url === 'string' &&
+      typeof stores.session.environment.terms_of_service_url.length >= 1
+    ) {
+      shouldDisplayUrls = true;
+    }
+    if (
+      stores.session &&
+      stores.session.environment &&
+      typeof stores.session.environment.privacy_policy_url === 'string' &&
+      typeof stores.session.environment.privacy_policy_url.length >= 1
+    ) {
+      shouldDisplayUrls = true;
+    }
+
     let langs = [];
     if (stores.session.environment) {
       langs = stores.session.environment.interface_languages;
@@ -135,11 +152,7 @@ class MainHeader extends Reflux.Component {
                     </bem.KoboButton>
                   </bem.AccountBox__menuItem>
                 </bem.AccountBox__menuLI>
-                {
-                  stores.session &&
-                  stores.session.environment &&
-                  stores.session.environment.terms_of_service_url !== '' ||
-                  stores.session.environment.privacy_policy_url !== '' &&
+                {shouldDisplayUrls &&
                   <bem.AccountBox__menuLI key='2' className='environment-links'>
                     {stores.session.environment.terms_of_service_url &&
                       <a href={stores.session.environment.terms_of_service_url} target='_blank'>

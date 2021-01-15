@@ -11,10 +11,9 @@ import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import permConfig from './permConfig';
 import {
-  t,
   notify,
   buildUserUrl
-} from 'js/utils';
+} from 'utils';
 import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,

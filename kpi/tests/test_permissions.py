@@ -266,7 +266,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 asset.remove_perm(grantee, i)
 
     def test_remove_implied_asset_permissions(self):
-        r"""
+        """
             Assign `change_submissions` on an asset to a user, expecting
             `view_asset` and `view_submissions` to be automatically assigned as
             well. Then, remove `view_asset` and expect `view_submissions` and
@@ -303,7 +303,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             self.assertListEqual(list(asset.get_perms(grantee)), [])
 
     def test_implied_asset_deny_permissions(self):
-        r"""
+        """
             Grant `change_collection` to a user on a collection, expecting the
             same user to receive `view_asset` and `change_asset` on a child
             asset of that collection. Then, revoke `view_asset` on the child
@@ -340,6 +340,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
+                PERM_DELETE_SUBMISSIONS,
                 PERM_PARTIAL_SUBMISSIONS,
                 PERM_VALIDATE_SUBMISSIONS,
                 PERM_VIEW_ASSET,
@@ -348,7 +349,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         )
 
     def test_contradict_implied_asset_deny_permissions(self):
-        r"""
+        """
             When all assignable permissions are denied, verify that granting
             `change_submissions` also grants `view_submissions` and
             `view_asset`. Make sure that other deny records are left intact.
@@ -366,6 +367,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
                 PERM_ADD_SUBMISSIONS,
                 PERM_CHANGE_ASSET,
                 PERM_CHANGE_SUBMISSIONS,
+                PERM_DELETE_SUBMISSIONS,
                 PERM_PARTIAL_SUBMISSIONS,
                 PERM_VALIDATE_SUBMISSIONS,
                 PERM_VIEW_ASSET,
@@ -386,6 +388,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             (PERM_ADD_SUBMISSIONS, True),
             (PERM_CHANGE_ASSET, True),
             (PERM_CHANGE_SUBMISSIONS, False),
+            (PERM_DELETE_SUBMISSIONS, True),
             (PERM_VALIDATE_SUBMISSIONS, True),
             (PERM_VIEW_ASSET, False),
             (PERM_VIEW_SUBMISSIONS, False)
@@ -444,12 +447,10 @@ class PermissionsTestCase(BasePermissionsTestCase):
         collection = self.admin_collection
         asset_editor_permissions = [
             PERM_CHANGE_ASSET,
-            PERM_SHARE_ASSET,
             PERM_VIEW_ASSET
         ]
         collection_editor_permissions = [
             PERM_CHANGE_COLLECTION,
-            'share_collection',
             PERM_VIEW_COLLECTION
         ]
         asset.assign_perm(grantee, PERM_CHANGE_ASSET)
@@ -466,7 +467,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
         asset = self.admin_asset
         submission_editor_permissions = [
             PERM_CHANGE_SUBMISSIONS,
-            PERM_SHARE_SUBMISSIONS,
             PERM_VIEW_ASSET,
             PERM_VIEW_SUBMISSIONS,
         ]
@@ -498,7 +498,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
         assigned_someuser_perms = [
             PERM_CHANGE_ASSET,
-            PERM_SHARE_ASSET,
             PERM_VIEW_ASSET
         ]
 
@@ -536,7 +535,6 @@ class PermissionsTestCase(BasePermissionsTestCase):
 
         assigned_someuser_perms = [
             PERM_CHANGE_ASSET,
-            PERM_SHARE_ASSET,
             PERM_VIEW_ASSET
         ]
 
@@ -559,8 +557,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             PERM_ADD_SUBMISSIONS,
             PERM_CHANGE_ASSET,
             PERM_CHANGE_SUBMISSIONS,
-            PERM_SHARE_ASSET,
-            PERM_SHARE_SUBMISSIONS,
+            PERM_DELETE_SUBMISSIONS,
             PERM_VALIDATE_SUBMISSIONS,
             PERM_VIEW_ASSET,
             PERM_VIEW_SUBMISSIONS

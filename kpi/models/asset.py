@@ -487,7 +487,9 @@ class Asset(ObjectPermissionMixin,
                                null=True, blank=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True,
                               on_delete=models.CASCADE)
-    editors_can_change_permissions = models.BooleanField(default=True)
+    # TODO: remove this flag; support for it has been removed from
+    # ObjectPermissionMixin
+    editors_can_change_permissions = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = JSONBField(default=dict)
@@ -560,7 +562,8 @@ class Asset(ObjectPermissionMixin,
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
         PERM_PARTIAL_SUBMISSIONS: _('View submissions only from specific users'),
-        PERM_CHANGE_SUBMISSIONS: _('Edit and delete submissions'),
+        PERM_CHANGE_SUBMISSIONS: _('Edit submissions'),
+        PERM_DELETE_SUBMISSIONS: _('Delete submissions'),
         PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
     }
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
@@ -580,8 +583,7 @@ class Asset(ObjectPermissionMixin,
     CALCULATED_PERMISSIONS = (
         PERM_SHARE_ASSET,
         PERM_DELETE_ASSET,
-        PERM_SHARE_SUBMISSIONS,
-        PERM_DELETE_SUBMISSIONS
+        PERM_SHARE_SUBMISSIONS
     )
     # Certain Collection permissions carry over to Asset
     MAPPED_PARENT_PERMISSIONS = {
@@ -596,22 +598,29 @@ class Asset(ObjectPermissionMixin,
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_CHANGE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
+        PERM_DELETE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
         PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,)
     }
 
     CONTRADICTORY_PERMISSIONS = {
-        PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS,
-                                      PERM_VALIDATE_SUBMISSIONS),
+        PERM_PARTIAL_SUBMISSIONS: (
+            PERM_VIEW_SUBMISSIONS,
+            PERM_CHANGE_SUBMISSIONS,
+            PERM_DELETE_SUBMISSIONS,
+            PERM_VALIDATE_SUBMISSIONS,
+        ),
         PERM_VIEW_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
         PERM_CHANGE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
-        PERM_VALIDATE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,)
+        PERM_DELETE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
+        PERM_VALIDATE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
     }
 
     # Some permissions must be copied to KC
-    KC_PERMISSIONS_MAP = {  # keys are KC's codenames, values are KPI's
+    KC_PERMISSIONS_MAP = {  # keys are KPI's codenames, values are KC's
         PERM_CHANGE_SUBMISSIONS: 'change_xform',  # "Can Edit" in KC UI
         PERM_VIEW_SUBMISSIONS: 'view_xform',  # "Can View" in KC UI
         PERM_ADD_SUBMISSIONS: 'report_xform',  # "Can submit to" in KC UI
+        PERM_DELETE_SUBMISSIONS: 'delete_data_xform',  # "Can Delete Data" in KC UI
         PERM_VALIDATE_SUBMISSIONS: 'validate_xform',  # "Can Validate" in KC UI
     }
     KC_CONTENT_TYPE_KWARGS = {'app_label': 'logger', 'model': 'xform'}
@@ -702,7 +711,9 @@ class Asset(ObjectPermissionMixin,
         except KeyError:
             if not permission:
                 # Seems expensive. Cache it?
-                permission = Permission.objects.filter(
+                permission = Permission.objects.get(
+                    # `content_type` and `codename` are `unique_together`
+                    # https://github.com/django/django/blob/e893c0ad8b0b5b0a1e5be3345c287044868effc4/django/contrib/auth/models.py#L69
                     content_type=ContentType.objects.get_for_model(self),
                     codename=codename
                 )

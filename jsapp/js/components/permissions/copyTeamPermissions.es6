@@ -8,7 +8,7 @@ import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {actions} from '../../actions';
-import { t, notify } from '../../utils';
+import {notify} from 'utils';
 
 class CopyTeamPermissions extends React.Component {
   constructor(props) {
