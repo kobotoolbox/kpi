@@ -94,15 +94,15 @@ export default class AssetsTable extends React.Component {
     if (this.props.orderColumnId === columnId) {
       // clicking already selected column results in switching the order direction
       let newVal;
-      if (this.props.orderValue === ORDER_DIRECTIONS.get('ascending')) {
-        newVal = ORDER_DIRECTIONS.get('descending');
-      } else if (this.props.orderValue === ORDER_DIRECTIONS.get('descending')) {
-        newVal = ORDER_DIRECTIONS.get('ascending');
+      if (this.props.orderValue === ORDER_DIRECTIONS.ascending) {
+        newVal = ORDER_DIRECTIONS.descending;
+      } else if (this.props.orderValue === ORDER_DIRECTIONS.descending) {
+        newVal = ORDER_DIRECTIONS.ascending;
       }
       this.props.onOrderChange(this.props.orderColumnId, newVal);
     } else {
       // change column and revert order direction to default
-      this.props.onOrderChange(columnId, ASSETS_TABLE_COLUMNS.get(columnId).defaultValue);
+      this.props.onOrderChange(columnId, ASSETS_TABLE_COLUMNS[columnId].defaultValue);
     }
   }
 
@@ -213,7 +213,7 @@ export default class AssetsTable extends React.Component {
 
     // for `icon-status` we don't display empty icon, because the column is
     // too narrow to display label and icon together
-    if (columnDef.id === ASSETS_TABLE_COLUMNS.get('icon-status').id) {
+    if (columnDef.id === ASSETS_TABLE_COLUMNS['icon-status'].id) {
       hideIcon = this.props.orderColumnId !== columnDef.id;
       hideLabel = this.props.orderColumnId === columnDef.id;
     }
@@ -221,10 +221,10 @@ export default class AssetsTable extends React.Component {
     // empty icon to take up space in column
     let icon = (<i className='k-icon'/>);
     if (this.props.orderColumnId === columnDef.id) {
-      if (this.props.orderValue === ORDER_DIRECTIONS.get('ascending')) {
+      if (this.props.orderValue === ORDER_DIRECTIONS.ascending) {
         icon = (<i className='k-icon k-icon-up'/>);
       }
-      if (this.props.orderValue === ORDER_DIRECTIONS.get('descending')) {
+      if (this.props.orderValue === ORDER_DIRECTIONS.descending) {
         icon = (<i className='k-icon k-icon-down'/>);
       }
     }
@@ -320,17 +320,17 @@ export default class AssetsTable extends React.Component {
       <bem.AssetsTable m={modifiers}>
         <bem.AssetsTable__header>
           <bem.AssetsTableRow m='header'>
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('icon-status'), 'first')}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('name'))}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('owner'))}
-            {this.props.context === ASSETS_TABLE_CONTEXTS.get('public-collections') &&
-              this.renderHeader(ASSETS_TABLE_COLUMNS.get('subscribers-count'))
+            {this.renderHeader(ASSETS_TABLE_COLUMNS['icon-status'], 'first')}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.name)}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.owner)}
+            {this.props.context === ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
+              this.renderHeader(ASSETS_TABLE_COLUMNS['subscribers-count'])
             }
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('organization'))}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('languages'))}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('primary-sector'))}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('country'))}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.get('date-modified'), 'last')}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.organization)}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.languages)}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS['primary-sector'])}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS.country)}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS['date-modified'], 'last')}
 
             {this.state.scrollbarWidth !== 0 && this.state.scrollbarWidth !== null &&
               <div

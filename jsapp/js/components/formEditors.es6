@@ -8,6 +8,7 @@ import {
   update_states,
   ROUTES,
 } from 'js/constants';
+import mixins from '../mixins';
 
 export class FormPage extends React.Component {
   constructor(props) {
@@ -25,6 +26,7 @@ export class FormPage extends React.Component {
 }
 reactMixin(FormPage.prototype, Reflux.ListenerMixin);
 reactMixin(FormPage.prototype, editableFormMixin);
+reactMixin(FormPage.prototype, mixins.permissions);
 FormPage.contextTypes = {router: PropTypes.object};
 
 export class LibraryAssetEditor extends React.Component {

@@ -66,7 +66,7 @@ class CollectionAssetsTable extends React.Component {
   render() {
     return (
       <AssetsTable
-        context={ASSETS_TABLE_CONTEXTS.get('collection-content')}
+        context={ASSETS_TABLE_CONTEXTS.COLLECTION_CONTENT}
         isLoading={this.state.isLoading}
         assets={this.state.assets}
         totalAssets={this.state.totalAssets}

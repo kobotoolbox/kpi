@@ -85,7 +85,7 @@ class MyLibraryRoute extends React.Component {
           accept={validFileTypes()}
         >
           <AssetsTable
-            context={ASSETS_TABLE_CONTEXTS.get('my-library')}
+            context={ASSETS_TABLE_CONTEXTS.MY_LIBRARY}
             isLoading={this.state.isLoading}
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}
