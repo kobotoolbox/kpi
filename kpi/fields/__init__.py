@@ -1,6 +1,5 @@
 # coding: utf-8
 from .kpi_uid import KpiUidField
-from .lazy_default_boolean import LazyDefaultBooleanField
 from .lazy_default_jsonb import LazyDefaultJSONBField
 from .paginated_api import PaginatedApiField
 from .read_only import ReadOnlyJSONField
