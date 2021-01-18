@@ -99,7 +99,7 @@ class Modal extends React.Component {
     }
   }
   renderClose() {
-    if (this.props.title === 'Success!') {
+    if (this.props.isDuplicated) {
       return(
         <a className='modal__done' type='button' onClick={this.props.onClose}>
           {t('DONE')}
