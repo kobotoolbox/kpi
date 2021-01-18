@@ -519,6 +519,7 @@ actions.resources.deleteSubmission.listen((uid, sid) => {
   dataInterface.deleteSubmission(uid, sid).done(() => {
     notify(t('submission deleted'));
     actions.resources.deleteSubmission.completed();
+    actions.resources.loadAsset({id: uid});
   });
 });
 
@@ -527,6 +528,7 @@ actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) =>
     .done((response) => {
       notify(t('Successfully duplicated submission'));
       actions.resources.duplicateSubmission.completed(uid, response._id, duplicatedSubmission);
+      actions.resources.loadAsset({id: uid});
     })
     .fail((response) => {
       alertify.error(t('Failed to duplciate submisson'));

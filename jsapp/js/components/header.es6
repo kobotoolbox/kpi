@@ -49,12 +49,6 @@ class MainHeader extends Reflux.Component {
       stores.asset.listen(this.onAssetLoad),
       myLibraryStore.listen(this.forceRender)
     );
-    this.listenTo(actions.resources.deleteSubmission.completed, this.refreshSubmissions);
-    this.listenTo(actions.resources.duplicateSubmission.completed, this.refreshSubmissions);
-  }
-
-  refreshSubmissions() {
-    actions.resources.loadAsset({id: this.props.assetid});
   }
 
   componentWillUnmount() {
