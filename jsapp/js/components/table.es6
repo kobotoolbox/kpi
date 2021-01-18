@@ -827,8 +827,6 @@ export class DataTable extends React.Component {
     }
     );
 
-
-
     // If the entirety of the results has been selected, selectAll should be true
     // Useful when the # of results is smaller than the page size.
     let scount = Object.keys(s).length;

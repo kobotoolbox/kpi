@@ -51,7 +51,7 @@ class Submission extends React.Component {
       isEditLoading: false,
       isDuplicated: props.isDuplicated,
       duplicatedSubmission: props.duplicatedSubmission || null,
-      isEdittingDuplicate: false,
+      isEditingDuplicate: false,
       promptRefresh: false,
       translationIndex: 0,
       translationOptions: translationOptions,
@@ -163,7 +163,7 @@ class Submission extends React.Component {
     this.setState({
       promptRefresh: true,
       isEditLoading: true,
-      isEdittingDuplicate: true
+      isEditingDuplicate: true,
     });
     enketoHandler.editSubmission(this.props.asset.uid, this.state.sid).then(
       () => {this.setState({isEditLoading: false});},
@@ -184,7 +184,7 @@ class Submission extends React.Component {
     this.setState({
       promptRefresh: false
     });
-    // Empty action listener to prompt table to refresh submission list
+    // Prompt table to refresh submission list
     actions.resources.refreshTableSubmissions();
   }
 
@@ -264,8 +264,8 @@ class Submission extends React.Component {
     let translationOptions = this.state.translationOptions;
 
     // Use this modal if we just duplicated a submission, but not if we are
-    // editting it
-    if (this.state.isDuplicated && !this.state.isEdittingDuplicate) {
+    // editing it
+    if (this.state.isDuplicated && !this.state.isEditingDuplicate) {
       return(
         <bem.FormModal>
           <h1 className='submission-duplicate__header'>{t('Duplicate created')}</h1>
@@ -343,8 +343,8 @@ class Submission extends React.Component {
       );
     }
 
-    // Use this modal if we are not viewing a duplicate, or we are editting one
-    if (!this.state.isDuplicated || this.state.isEdittingDuplicate) {
+    // Use this modal if we are not viewing a duplicate, or we are editing one
+    if (!this.state.isDuplicated || this.state.isEditingDuplicate) {
       return (
         <bem.FormModal>
           {this.state.promptRefresh &&
@@ -390,11 +390,11 @@ class Submission extends React.Component {
 
           <bem.FormModal__group>
 
-            {this.state.isEdittingDuplicate &&
+            {this.state.isEditingDuplicate &&
               <div className='preserveFlexCSS'/>
             }
 
-            {!this.state.isEdittingDuplicate &&
+            {!this.state.isEditingDuplicate &&
               <div className='submission-pager'>
                 {/* don't display previous button if `previous` is -1 */}
                 {this.state.previous > -1 &&

@@ -563,12 +563,6 @@ export var dataInterface;
         method: 'GET'
       });
     },
-    getSubmissionsNoQuery(uid) {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/data/`,
-        method: 'GET'
-      });
-    },
     getSubmission(uid, sid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,

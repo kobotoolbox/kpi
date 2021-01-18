@@ -530,7 +530,7 @@ actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) =>
     })
     .fail((response) => {
       alertify.error(t('Failed to duplciate submisson'));
-      actions.resources.duplicateSubmission.failed((response));
+      actions.resources.duplicateSubmission.failed(response);
     });
 });
 
