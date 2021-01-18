@@ -270,7 +270,11 @@ class Submission extends React.Component {
         <bem.FormModal>
           <h1 className='submission-duplicate__header'>{t('Duplicate created')}</h1>
           <p className='submission-duplicate__text'>
-              {t('A duplicate of the submission record with uuid = ##uuid## was successfully created. You can view the new instance below and make changes using the action buttons below.').replace('##uuid##', this.state.duplicatedSubmission._uuid)}
+            {t('A duplicate of the submission record was successfully created. You can view the new instance below and make changes using the action buttons below.')}
+            <br/>
+            <br/>
+            {t('Source submission uuid: ')}
+            <code>{this.state.duplicatedSubmission._uuid}</code>
           </p>
           <bem.FormModal__group>
             <div className='submission-duplicate__actions'>
