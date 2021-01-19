@@ -1,8 +1,12 @@
 # coding: utf-8
 import base64
+import re
+import requests
+from typing import Tuple, Union
 
 from rest_framework import exceptions, status, viewsets
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.reverse import reverse
 
 from kpi.models import ImportTask
@@ -32,10 +36,11 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
     def create(self, request, *args, **kwargs):
         if self.request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
+
+        filename, default_project_name = self._get_filenames(request)
         itask_data = {
             'library': request.POST.get('library') not in ['false', False],
-            # NOTE: 'filename' here comes from 'name' (!) in the POST data
-            'filename': request.POST.get('name', None),
+            'filename': filename,
             'destination': request.POST.get('destination', None),
         }
         if 'base64Encoded' in request.POST:
@@ -45,8 +50,6 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
         elif 'file' in request.data:
             encoded_xls = to_str(base64.b64encode(request.data['file'].read()))
             itask_data['base64Encoded'] = encoded_xls
-            if 'filename' not in itask_data:
-                itask_data['filename'] = request.data['file'].name
         elif 'url' in request.POST:
             itask_data['single_xls_url'] = request.POST['url']
         import_task = ImportTask.objects.create(user=request.user,
@@ -59,6 +62,53 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
                 'importtask-detail',
                 kwargs={'uid': import_task.uid},
                 request=request),
-            'status': ImportTask.PROCESSING
+            'status': ImportTask.PROCESSING,
+            'default_project_name': default_project_name
         }, status.HTTP_201_CREATED)
+
+    @staticmethod
+    def _get_filenames(
+        request: Request,
+    ) -> Union[Tuple[str, str], Tuple[None, None]]:
+        """
+        Return a tuple of the submitted file or url-linked file's name with
+        and without its extension
+
+        Args:
+            request (Request): DRF request object
+
+        Returns:
+            Tuple[str, str] or Tuple[None, None]: A tuple containing first the
+            filename with its extension and secondly the filename without its
+            extension. If there is no filename, a tuple of None values is
+            returned
+        """
+
+        XLS_FILE_PATTERN = '((.*?)\.xlsx?)'
+        XLS_URL_PATTERN = '\w+="?((.*?)\.xlsx?)"?'
+
+        filename_or_none = request.POST.get('name', None)
+        re_pattern = XLS_FILE_PATTERN
+        if 'url' in request.POST:
+            # The filename from a url-linked submission is contained in the
+            # 'Content-Disposition' header when a `GET` request is made
+            re_pattern = XLS_URL_PATTERN
+            response = requests.get(request.POST['url'])
+            filename_from_header = response.headers.get(
+                'Content-Disposition', None
+            )
+            if filename_from_header is not None:
+                filename_or_none = filename_from_header
+        elif 'file' in request.data and filename_or_none is None:
+            filename_or_none = getattr(request.data['file'], 'name', None)
+
+        if filename_or_none is None:
+            return (None, None)
+        else:
+            filenames_re = re.search(re_pattern, filename_or_none)
+            return (
+                (filename_or_none, filename_or_none)
+                if filenames_re is None
+                else filenames_re.groups()
+            )
 
