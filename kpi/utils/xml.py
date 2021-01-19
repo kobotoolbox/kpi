@@ -3,7 +3,10 @@ from lxml import etree
 
 
 def strip_nodes(
-    source: str, nodes_to_keep: list, use_xpath: bool = False
+    source: str,
+    nodes_to_keep: list,
+    use_xpath: bool = False,
+    xml_declaration: bool = False,
 ) -> str:
     """
     Returns an stripped version of `source`. It keeps only nodes provided in
@@ -20,7 +23,12 @@ def strip_nodes(
 
     def get_xpath_matches():
         if use_xpath:
-            return [f'{xpath_}/' for xpath_ in nodes_to_keep]
+            xpaths_ = []
+            for xpath_ in nodes_to_keep:
+                leading_slash = '' if xpath_.startswith('/') else '/'
+                trailing_slash = '' if xpath_.endswith('/') else '/'
+                xpaths_.append(f'{leading_slash}{xpath_}{trailing_slash}')
+            return xpaths_
 
         xpath_matches = []
         # Retrieve XPaths of all nodes we need to keep
@@ -106,4 +114,9 @@ def strip_nodes(
     xpath_matches = get_xpath_matches()
     process_node(root_element, xpath_matches)
 
-    return etree.tostring(tree, pretty_print=True).decode()
+    return etree.tostring(
+        tree,
+        pretty_print=True,
+        encoding='utf-8',
+        xml_declaration=xml_declaration,
+    ).decode()

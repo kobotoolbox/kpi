@@ -7,7 +7,7 @@ class ServiceDefinition(ServiceDefinitionInterface):
     id = "xml"
 
     def _parse_data(self, submission, fields):
-        return strip_nodes(submission, fields)
+        return strip_nodes(submission, fields, xml_declaration=True)
 
     def _prepare_request_kwargs(self):
         return {
