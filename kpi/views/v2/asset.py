@@ -709,8 +709,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
             # We need to delete current file (if it exists) when filename has
             # changed. Otherwise it would leave an orphan file on storage
-            if asset_file.pk and asset.content.name != filename:
-                asset_file.content.file.delete()
+            if asset_file.pk and asset_file.content.name != filename:
+                asset_file.content.delete()
 
             asset_file.content = ContentFile(xml_.encode(), name=filename)
             asset_file.save()
