@@ -9,6 +9,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.exceptions import KobocatBulkUpdateSubmissionsException
 from .base_backend import BaseDeploymentBackend
 
 
@@ -235,6 +236,58 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def set_validation_statuses(self, data, user, method):
         pass
+
+    @staticmethod
+    def __prepare_bulk_update_payload(request_data: dict) -> dict:
+        # For some reason DRF puts the strings into a list so this just takes
+        # them back out again to more accurately reflect the behaviour of the
+        # non-mocked methods
+        for k,v in request_data['data'].items():
+            request_data['data'][k] = v[0]
+
+        request_data['submission_ids'] = list(
+            set(map(int, request_data['submission_ids']))
+        )
+
+        return request_data
+
+    @staticmethod
+    def __prepare_bulk_update_response(kc_responses: list) -> dict:
+        total_update_attempts = len(kc_responses)
+        total_successes = total_update_attempts  # all will be successful
+        return {
+            'status': status.HTTP_200_OK,
+            'data': {
+                'count': total_update_attempts,
+                'successes': total_successes,
+                'failures': total_update_attempts - total_successes,
+                'results': kc_responses,
+            },
+        }
+
+    def bulk_update_submissions(
+        self, request_data: dict, requesting_user_id: int
+    ) -> dict:
+        payload = self.__prepare_bulk_update_payload(request_data)
+        all_submissions = copy.copy(self.asset._deployment_data['submissions'])
+        instance_ids = payload.pop('submission_ids')
+
+        responses = []
+        for submission in all_submissions:
+            if submission['_id'] in instance_ids:
+                _uuid = uuid.uuid4()
+                submission['deprecatedID'] = submission['instanceID']
+                submission['instanceID'] = f'uuid:{_uuid}'
+                for k, v in payload['data'].items():
+                    submission[k] = v
+                responses.append(
+                    {
+                        'uuid': _uuid,
+                        'response': {},
+                    }
+                )
+
+        return self.__prepare_bulk_update_response(responses)
 
     def set_has_kpi_hooks(self):
         """
