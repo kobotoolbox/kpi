@@ -273,7 +273,7 @@ class Submission extends React.Component {
             {t('A duplicate of the submission record was successfully created. You can view the new instance below and make changes using the action buttons below.')}
             <br/>
             <br/>
-            {t('Source submission uuid: ')}
+            {t('Source submission uuid:' + ' ')}
             <code>{this.state.duplicatedSubmission._uuid}</code>
           </p>
           <bem.FormModal__group>

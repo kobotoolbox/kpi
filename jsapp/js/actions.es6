@@ -516,11 +516,16 @@ actions.resources.removeSubmissionValidationStatus.listen((uid, sid) => {
 });
 
 actions.resources.deleteSubmission.listen((uid, sid) => {
-  dataInterface.deleteSubmission(uid, sid).done(() => {
-    notify(t('submission deleted'));
-    actions.resources.deleteSubmission.completed();
-    actions.resources.loadAsset({id: uid});
-  });
+  dataInterface.deleteSubmission(uid, sid)
+    .done(() => {
+      notify(t('submission deleted'));
+      actions.resources.deleteSubmission.completed();
+      actions.resources.loadAsset({id: uid});
+    })
+    .fail(() => {
+      alertify.error(t('failed to delete submission'));
+      actions.resources.deleteSubmission.failed();
+    });
 });
 
 actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) => {
