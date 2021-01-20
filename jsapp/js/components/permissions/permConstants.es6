@@ -1,10 +1,24 @@
-// suffixes
-export const SUFFIX_USERS = 'Users';
-export const SUFFIX_PARTIAL = 'Partial';
+/**
+ * Hi! Sorry for this being so complex, but I feel it's necessary, if we want to
+ * avoid hard to debug bugs. These all are used in files connected to the
+ * sharingForm modal. I will describe each of these constants in a detail to not
+ * cause confusion by a future reader.
+ */
 
-// This list is a bit overkill, but it saves the trouble of making
-// a hard to debug typo bug while using these names
-export const PERM_CHECKBOX_NAMES = {};
+import {PERMISSIONS_CODENAMES} from 'js/constants';
+
+/**
+ * These two are the text added to a checkbox name to signify a paired property.
+ * E.g for "formView" you will get "formViewPartial" and "formViewPartialUsers"
+ */
+export const SUFFIX_PARTIAL = 'Partial';
+export const SUFFIX_USERS = 'Users'; // should be always added to a Partial one
+
+/**
+ * This list contains the names of all the checkboxes in userAssetPermsEditor.
+ * Every one of them is strictly connected to a permission.
+ */
+export const CHECKBOX_NAMES = {};
 new Set([
   'formView',
   'formEdit',
@@ -17,12 +31,59 @@ new Set([
   'submissionsValidate',
   'submissionsValidatePartial',
   'submissionsDelete',
-]).forEach((name) => {PERM_CHECKBOX_NAMES[name] = name;});
-Object.freeze(PERM_CHECKBOX_NAMES);
+  'submissionsDeletePartial',
+]).forEach((name) => {CHECKBOX_NAMES[name] = name;});
+Object.freeze(CHECKBOX_NAMES);
 
+/**
+ * This is a map of pairs that connects a general checkbox to a partial checkbox.
+ */
 export const PARTIAL_CHECKBOX_PAIRS = {};
-PARTIAL_CHECKBOX_PAIRS[PERM_CHECKBOX_NAMES.submissionsAdd] = PERM_CHECKBOX_NAMES.submissionsAddPartial;
-PARTIAL_CHECKBOX_PAIRS[PERM_CHECKBOX_NAMES.submissionsView] = PERM_CHECKBOX_NAMES.submissionsViewPartial;
-PARTIAL_CHECKBOX_PAIRS[PERM_CHECKBOX_NAMES.submissionsEdit] = PERM_CHECKBOX_NAMES.submissionsEditPartial;
-PARTIAL_CHECKBOX_PAIRS[PERM_CHECKBOX_NAMES.submissionsValidate] = PERM_CHECKBOX_NAMES.submissionsValidatePartial;
+PARTIAL_CHECKBOX_PAIRS[CHECKBOX_NAMES.submissionsAdd] = CHECKBOX_NAMES.submissionsAddPartial;
+PARTIAL_CHECKBOX_PAIRS[CHECKBOX_NAMES.submissionsView] = CHECKBOX_NAMES.submissionsViewPartial;
+PARTIAL_CHECKBOX_PAIRS[CHECKBOX_NAMES.submissionsEdit] = CHECKBOX_NAMES.submissionsEditPartial;
+PARTIAL_CHECKBOX_PAIRS[CHECKBOX_NAMES.submissionsValidate] = CHECKBOX_NAMES.submissionsValidatePartial;
+PARTIAL_CHECKBOX_PAIRS[CHECKBOX_NAMES.submissionsDelete] = CHECKBOX_NAMES.submissionsDeletePartial;
 Object.freeze(PARTIAL_CHECKBOX_PAIRS);
+
+/**
+ * This is a map of pairs that connects a partial checkbox to a permission.
+ *
+ * NOTE: a partial checkbox is using a "partial_submissions" permission, but
+ * in the array of de facto permissions it is using these ones.
+ */
+export const PARTIAL_PERM_PAIRS = {};
+PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsAddPartial] = PERMISSIONS_CODENAMES.add_submissions;
+PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsViewPartial] = PERMISSIONS_CODENAMES.view_submissions;
+PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsEditPartial] = PERMISSIONS_CODENAMES.edit_submissions;
+PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsValidatePartial] = PERMISSIONS_CODENAMES.validate_submissions;
+PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsDeletePartial] = PERMISSIONS_CODENAMES.delete_submissions;
+Object.freeze(PARTIAL_PERM_PAIRS);
+
+/**
+ * This is a map of pairs that connect a checkbox to a permission.
+ */
+export const CHECKBOX_PERM_PAIRS = {};
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.formView] = PERMISSIONS_CODENAMES.view_asset;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.formEdit] = PERMISSIONS_CODENAMES.change_asset;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsAdd] = PERMISSIONS_CODENAMES.add_submissions;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsAddPartial] = PERMISSIONS_CODENAMES.partial_submissions;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsView] = PERMISSIONS_CODENAMES.view_submissions;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsViewPartial] = PERMISSIONS_CODENAMES.partial_submissions;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsEdit] = PERMISSIONS_CODENAMES.change_submissions;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsEditPartial] = PERMISSIONS_CODENAMES.partial_submissions;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsValidate] = PERMISSIONS_CODENAMES.validate_submissions;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsValidatePartial] = PERMISSIONS_CODENAMES.partial_submissions;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsDelete] = PERMISSIONS_CODENAMES.delete_submissions;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsDeletePartial] = PERMISSIONS_CODENAMES.partial_submissions;
+Object.freeze(CHECKBOX_PERM_PAIRS);
+
+/**
+ * This is a map that mirrors the CHECKBOX_PERM_PAIRS,
+ * so it pairs a permission codename (No partial though!) to a checkbox name
+ */
+export const PERM_CHECKBOX_PAIRS = {};
+Object.keys(PARTIAL_CHECKBOX_PAIRS).forEach((checkboxName) => {
+  PERM_CHECKBOX_PAIRS[CHECKBOX_PERM_PAIRS[checkboxName]] = checkboxName;
+});
+Object.freeze(PERM_CHECKBOX_PAIRS);
