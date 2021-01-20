@@ -198,7 +198,7 @@ class BulkEditSubmissionsForm extends React.Component {
       modifiers.push('bulk-edit-row-disabled');
     }
 
-    const typeDef = QUESTION_TYPES.get(question.type);
+    const typeDef = QUESTION_TYPES[question.type];
     return (
       <bem.SimpleTable__row key={itemIndex} m={modifiers}>
         <bem.SimpleTable__cell>
@@ -513,7 +513,7 @@ class BulkEditRowForm extends React.Component {
       inputValue = this.props.overrideData;
     }
 
-    const typeDef = QUESTION_TYPES.get(this.props.question.type);
+    const typeDef = QUESTION_TYPES[this.props.question.type];
 
     return (
       <React.Fragment>
