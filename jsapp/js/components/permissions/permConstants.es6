@@ -55,7 +55,7 @@ Object.freeze(PARTIAL_CHECKBOX_PAIRS);
 export const PARTIAL_PERM_PAIRS = {};
 PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsAddPartial] = PERMISSIONS_CODENAMES.add_submissions;
 PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsViewPartial] = PERMISSIONS_CODENAMES.view_submissions;
-PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsEditPartial] = PERMISSIONS_CODENAMES.edit_submissions;
+PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsEditPartial] = PERMISSIONS_CODENAMES.change_submissions;
 PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsValidatePartial] = PERMISSIONS_CODENAMES.validate_submissions;
 PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsDeletePartial] = PERMISSIONS_CODENAMES.delete_submissions;
 Object.freeze(PARTIAL_PERM_PAIRS);

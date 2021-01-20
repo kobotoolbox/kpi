@@ -69,6 +69,9 @@ import {
  */
 function parseFormData(data) {
   let parsed = [];
+  // Gather all partial permissions first, and then build a partial_submissions
+  // grouped permission to add it to final data.
+  let partialPerms = [];
 
   [
     CHECKBOX_NAMES.formView,
@@ -82,16 +85,21 @@ function parseFormData(data) {
     const partialCheckboxName = PARTIAL_CHECKBOX_PAIRS[checkboxName];
 
     if (data[partialCheckboxName]) {
-      let permObj = buildBackendPerm(data.username, PERMISSIONS_CODENAMES.partial_submissions);
-      permObj.partial_permissions = [{
-        url: permConfig.getPermissionByCodename(PARTIAL_PERM_PAIRS[partialCheckboxName]).url,
+      const permCodename = PARTIAL_PERM_PAIRS[partialCheckboxName];
+      partialPerms.push({
+        url: permConfig.getPermissionByCodename(permCodename).url,
         filters: [{'_submitted_by': {'$in': data[partialCheckboxName + SUFFIX_USERS]}}],
-      }];
-      parsed.push(permObj);
+      });
     } else if (data[checkboxName]) {
       parsed.push(buildBackendPerm(data.username, CHECKBOX_PERM_PAIRS[checkboxName]));
     }
   });
+
+  if (partialPerms.length >= 1) {
+    const permObj = buildBackendPerm(data.username, PERMISSIONS_CODENAMES.partial_submissions);
+    permObj.partial_permissions = partialPerms;
+    parsed.push(permObj);
+  }
 
   parsed = removeContradictoryPerms(parsed);
   parsed = removeImpliedPerms(parsed);
