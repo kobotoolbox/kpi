@@ -5,7 +5,7 @@ from rest_framework import status
 
 from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, \
     PERM_SHARE_ASSET
-from kpi.models.object_permission import get_anonymous_user
+from kpi.models.object_permission import get_anonymous_user, ObjectPermission
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -286,9 +286,10 @@ class ApiPermissionsTestCase(KpiTestCase):
             name='a new asset',
             owner=self.someuser,
         )
-        # someuser obviously has `PERM_VIEW_ASSET` set, but this seems to be
-        # the only way to access the uid of that permission to pass into `kwargs`
-        perm = new_asset.assign_perm(self.someuser, PERM_VIEW_ASSET)
+        # Getting existing permission for the owner of the asset
+        perm = ObjectPermission.objects.filter(asset=new_asset).get(
+            user=self.someuser, permission__codename=PERM_VIEW_ASSET
+        )
         new_asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
         kwargs = {
             'parent_lookup_asset': new_asset.uid,
