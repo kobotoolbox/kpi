@@ -267,3 +267,4 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
         'DELETE': ['%(app_label)s.validate_%(model_name)s'],
     }
 
+
