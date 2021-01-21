@@ -243,6 +243,9 @@ const applyImport = (params) => {
               const finalData = importData.messages.updated || importData.messages.created;
               if (finalData && finalData.length > 0 && finalData[0].uid) {
                 clearInterval(doneCheckInterval);
+                // resolve can take only one argument so we put
+                // the default_project_name inside the data
+                finalData[0].default_project_name = data.default_project_name;
                 resolve(finalData[0]);
               } else {
                 clearInterval(doneCheckInterval);

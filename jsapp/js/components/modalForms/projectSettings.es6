@@ -500,7 +500,14 @@ class ProjectSettings extends React.Component {
                   // remove this bandaid fix for "Untitled" filenames
                   var assetName = finalAsset.name;
                   if (assetName === 'Untitled') {
-                    assetName = this.getFilenameFromURI(importUrl);
+                    if (data.default_project_name) {
+                      assetName = data.default_project_name;
+                    } else {
+                      // URI filename is used as the last resort, but it really
+                      // shouldn't happen as default_project_name will always
+                      // be provided by Backend
+                      assetName = this.getFilenameFromURI(importUrl);
+                    }
                   }
                   this.setState({
                     formAsset: finalAsset,
