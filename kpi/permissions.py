@@ -148,7 +148,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
 
     perms_map = {
         'GET': ['%(app_label)s.view_asset'],
-        'POST': ['%(app_label)s.change_asset'],
+        'POST': ['%(app_label)s.manage_asset'],
     }
 
     perms_map['OPTIONS'] = perms_map['GET']
@@ -182,7 +182,11 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
             else:
                 raise Http404
 
-        has_perm = set(required_permissions).issubset(user_permissions)
+        if user == parent_object.owner:
+            # The owner can always manage permission assignments
+            has_perm = True
+        else:
+            has_perm = set(required_permissions).issubset(user_permissions)
 
         if has_perm:
             # Access granted!
@@ -225,7 +229,8 @@ class CollectionNestedObjectPermission(BaseCollectionNestedObjectPermission,
 
     perms_map = {
         'GET': ['%(app_label)s.view_collection'],
-        'POST': ['%(app_label)s.change_collection'],
+        # TODO: trash this once Collection is a type of Asset
+        'POST': ['%(app_label)s.INTENTIONALLY IMPOSSIBLE TO MATCH'],
     }
 
     perms_map['OPTIONS'] = perms_map['GET']

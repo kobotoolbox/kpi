@@ -52,6 +52,7 @@ SUFFIX_SUBMISSIONS_PERMS = '_submissions'
 # ASSIGNABLE_PERMISSIONS
 PERM_VIEW_ASSET = 'view_asset'
 PERM_CHANGE_ASSET = 'change_asset'
+PERM_MANAGE_ASSET = 'manage_asset'
 PERM_ADD_SUBMISSIONS = 'add_submissions'
 PERM_DELETE_SUBMISSIONS = 'delete_submissions'
 PERM_VIEW_SUBMISSIONS = 'view_submissions'
@@ -62,11 +63,8 @@ PERM_VIEW_COLLECTION = 'view_collection'
 PERM_CHANGE_COLLECTION = 'change_collection'
 
 # CALCULATED_PERMISSIONS
-PERM_SHARE_ASSET = 'share_asset'
 PERM_DELETE_ASSET = 'delete_asset'
-PERM_SHARE_SUBMISSIONS = 'share_submissions'
 PERM_DELETE_SUBMISSIONS = 'delete_submissions'
-PERM_SHARE_COLLECTION = 'share_collection'
 PERM_DELETE_COLLECTION = 'delete_collection'
 
 # KC INTERNAL

@@ -17,6 +17,10 @@ class BaseTestCase(APITestCase):
                 if self.URL_NAMESPACE else endpoint
         return endpoint
 
+    @staticmethod
+    def absolute_reverse(*args, **kwargs):
+        return 'http://testserver/' + reverse(*args, **kwargs).lstrip('/')
+
 
 class BaseAssetTestCase(BaseTestCase):
 

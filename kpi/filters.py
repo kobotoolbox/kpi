@@ -159,6 +159,10 @@ class SearchFilter(filters.BaseFilterBackend):
 
 
 class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
+    """
+    Used by kpi.views.v1.object_permission.ObjectPermissionViewSet only
+    """
+
     def filter_queryset(self, request, queryset, view):
         # TODO: omit objects for which the user has only a deny permission
         user = request.user
@@ -171,10 +175,11 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
             # Hide permissions from anonymous users
             return queryset.none()
         """
-        A regular user sees permissions for objects to which they have access.
-        For example, if Alana has view access to an object owned by Richard,
-        she should see all permissions for that object, including those
-        assigned to other users.
+        A regular user sees their own permissions and the owner's permissions
+        for objects to which they have access. For example, if Alana and John
+        have view access to an object owned by Richard, John should see all of
+        his own permissions and Richard's permissions, but not any of Alana's
+        permissions.
         """
         possible_content_types = ContentType.objects.get_for_models(
             *get_models_with_object_permissions()
@@ -187,11 +192,22 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
                 user=user,
             )
             # Find all the objects associated with those permissions, and then
-            # find all the permissions applied to all of those objects
-            result |= ObjectPermission.objects.filter(
-                content_type=content_type,
-                object_id__in=permissions_assigned_to_user.values(
-                    'object_id'
-                ).distinct()
-            )
+            # find all the owners' permissions applied to all of those objects
+            for object_id, owner_id in (
+                content_type.model_class()
+                .objects.filter(
+                    pk__in=permissions_assigned_to_user.values_list(
+                        'object_id', flat=True
+                    ).distinct()
+                )
+                .values_list('pk', 'owner_id')
+            ):
+                criteria = dict(
+                    content_type=content_type,
+                    object_id=object_id,
+                )
+                # The owner sees all permission assignments, but others don't
+                if user.pk != owner_id:
+                    criteria['user_id__in'] = (user.pk, owner_id)
+                result |= ObjectPermission.objects.filter(**criteria)
         return result

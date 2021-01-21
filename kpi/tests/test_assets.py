@@ -9,8 +9,13 @@ from django.contrib.auth.models import User, AnonymousUser
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from kpi.constants import PERM_VIEW_ASSET, PERM_CHANGE_ASSET, PERM_SHARE_ASSET, \
-    PERM_VIEW_COLLECTION, PERM_CHANGE_COLLECTION
+from kpi.constants import (
+    PERM_CHANGE_ASSET,
+    PERM_CHANGE_COLLECTION,
+    PERM_MANAGE_ASSET,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_COLLECTION,
+)
 from kpi.models import Asset
 from kpi.models import Collection
 from kpi.models.object_permission import get_all_objects_for_user
@@ -650,32 +655,19 @@ class ShareAssetsTest(AssetsTestCase):
 
     def test_owner_can_edit_permissions(self):
         self.assertTrue(self.asset.owner.has_perm(
-            PERM_SHARE_ASSET,
+            PERM_MANAGE_ASSET,
             self.asset
         ))
 
-    def test_share_asset_permission_is_not_inherited(self):
+    def test_manage_asset_permission_is_not_inherited(self):
         # Give the child asset a different owner
         self.asset_in_coll.owner = User.objects.get(username='anotheruser')
-        # The change permission is inherited; prevent it from allowing
-        # users to edit permissions
-        self.asset_in_coll.editors_can_change_permissions = False
         self.asset_in_coll.save()
         # Ensure the parent's owner can't change permissions on the child
         self.assertFalse(self.coll.owner.has_perm(
-            PERM_SHARE_ASSET,
+            PERM_MANAGE_ASSET,
             self.asset_in_coll
         ))
-
-    def test_change_permission_does_not_provide_share_permission(self):
-        anotheruser = User.objects.get(username='anotheruser')
-        self.assertFalse(anotheruser.has_perm(
-            PERM_CHANGE_ASSET, self.asset))
-        # Grant the change permission and make sure it provides
-        # share_asset
-        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
-        self.assertFalse(anotheruser.has_perm(
-            PERM_SHARE_ASSET, self.asset))
 
     def test_anonymous_view_permission_on_standalone_asset(self):
         # Grant
