@@ -9,11 +9,11 @@ import mixins from 'js/mixins';
 import {bem} from 'js/bem';
 import {validFileTypes} from 'utils';
 import myLibraryStore from './myLibraryStore';
+import AssetsTable from './assetsTable';
 import {
-  AssetsTable,
-  ASSETS_TABLE_CONTEXTS
-} from './assetsTable';
-import {ROOT_BREADCRUMBS} from './libraryConstants';
+  ROOT_BREADCRUMBS,
+  ASSETS_TABLE_CONTEXTS,
+} from 'js/components/library/libraryConstants';
 
 class MyLibraryRoute extends React.Component {
   constructor(props) {
@@ -89,11 +89,11 @@ class MyLibraryRoute extends React.Component {
           accept={validFileTypes()}
         >
           <bem.Breadcrumbs m='gray-wrapper'>
-            <bem.Breadcrumbs__crumb>{ROOT_BREADCRUMBS.get('my-library').label}</bem.Breadcrumbs__crumb>
+            <bem.Breadcrumbs__crumb>{ROOT_BREADCRUMBS.MY_LIBRARY.label}</bem.Breadcrumbs__crumb>
           </bem.Breadcrumbs>
 
           <AssetsTable
-            context={ASSETS_TABLE_CONTEXTS.get('my-library')}
+            context={ASSETS_TABLE_CONTEXTS.MY_LIBRARY}
             isLoading={this.state.isLoading}
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}

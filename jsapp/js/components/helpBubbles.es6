@@ -80,7 +80,7 @@ class HelpBubble extends React.Component {
     };
 
     const escHandler = (evt) => {
-      if (evt.keyCode === KEY_CODES.get('ESC') || evt.key === 'Escape') {
+      if (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape') {
         this.close();
       }
     };

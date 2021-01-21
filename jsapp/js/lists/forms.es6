@@ -13,9 +13,9 @@ class FormsSearchableList extends React.Component {
     this.state = {
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: COMMON_QUERIES.get('s'),
+          assetType: COMMON_QUERIES.s,
         },
-        filterTags: COMMON_QUERIES.get('s'),
+        filterTags: COMMON_QUERIES.s,
       })
     };
   }

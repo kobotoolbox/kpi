@@ -70,10 +70,10 @@ class AssetRoute extends React.Component {
   onAssetAccessTypeChanged(setSubscribed) {
     let newAsset = this.state.asset;
     if (setSubscribed) {
-      newAsset.access_types.push(ACCESS_TYPES.get('subscribed'));
+      newAsset.access_types.push(ACCESS_TYPES.subscribed);
     } else {
       newAsset.access_types.splice(
-        newAsset.access_types.indexOf(ACCESS_TYPES.get('subscribed')),
+        newAsset.access_types.indexOf(ACCESS_TYPES.subscribed),
         1
       );
     }
@@ -100,7 +100,7 @@ class AssetRoute extends React.Component {
     }
 
     const assetName = assetUtils.getAssetDisplayName(this.state.asset);
-    const isUserSubscribed = this.state.asset.access_types && this.state.asset.access_types.includes(ACCESS_TYPES.get('subscribed'));
+    const isUserSubscribed = this.state.asset.access_types && this.state.asset.access_types.includes(ACCESS_TYPES.subscribed);
 
     return (
       <DocumentTitle title={`${assetName.final} | KoboToolbox`}>

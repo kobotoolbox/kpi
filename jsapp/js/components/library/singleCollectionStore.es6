@@ -13,7 +13,7 @@ import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
-} from './assetsTable';
+} from './libraryConstants';
 
 // A store that listens for actions on assets from a single collection
 // Extends most functionality from myLibraryStore but overwrites some actions:
@@ -28,7 +28,7 @@ const singleCollectionStore = Reflux.createStore({
   previousPath: hashHistory.getCurrentLocation().pathname,
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
-  DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
+  DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
 
   isVirgin: true,
 
@@ -96,7 +96,7 @@ const singleCollectionStore = Reflux.createStore({
     };
 
     if (this.data.filterColumnId !== null) {
-      const filterColumn = ASSETS_TABLE_COLUMNS.get(this.data.filterColumnId);
+      const filterColumn = ASSETS_TABLE_COLUMNS[this.data.filterColumnId];
       params.filterProperty = filterColumn.filterBy;
       params.filterValue = this.data.filterValue;
     }
@@ -112,7 +112,6 @@ const singleCollectionStore = Reflux.createStore({
    * @param {boolean} needsMetadata
    */
   fetchData(needsMetadata = false) {
-    actions.library.searchMyCollectionMetadata(this.getSearchParams());
     if (this.abortFetchData) {
       this.abortFetchData();
     }
@@ -126,8 +125,8 @@ const singleCollectionStore = Reflux.createStore({
 
     params.metadata = needsMetadata;
 
-    const orderColumn = ASSETS_TABLE_COLUMNS.get(this.data.orderColumnId);
-    const direction = this.data.orderValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
+    const orderColumn = ASSETS_TABLE_COLUMNS[this.data.orderColumnId];
+    const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
     params.ordering = `${direction}${orderColumn.orderBy}`;
 
     actions.library.searchMyCollectionAssets(params);

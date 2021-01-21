@@ -76,8 +76,8 @@ $assets-table-min-width: 820px;
   }
 }
 
-.assets-table--my-library,
-.assets-table--public-collections {
+.assets-table--MY_LIBRARY,
+.assets-table--PUBLIC_COLLECTIONS {
   // 80px is for breadcrumbs
   height: calc(100% - 80px);
   display: flex;

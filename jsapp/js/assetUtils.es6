@@ -175,11 +175,11 @@ export function getAssetIcon(asset) {
       return 'k-icon-drafts';
     }
   } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('subscribed'))) {
+    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
       return 'k-icon-folder-subscribed';
     } else if (isAssetPublic(asset.permissions)) {
       return 'k-icon-folder-public';
-    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('shared'))) {
+    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
       return 'k-icon-folder-shared';
     } else {
       return 'k-icon-folder';
@@ -260,15 +260,15 @@ export function getSurveyFlatPaths(survey, includeGroups = false) {
 
   survey.forEach((row) => {
     const rowName = getRowName(row);
-    if (GROUP_TYPES_BEGIN.has(row.type)) {
+    if (typeof GROUP_TYPES_BEGIN[row.type] !== 'undefined') {
       openedGroups.push(rowName);
       if (includeGroups) {
         output[rowName] = openedGroups.join('/');
       }
-    } else if (GROUP_TYPES_END.has(row.type)) {
+    } else if (typeof GROUP_TYPES_END[row.type] !== 'undefined') {
       openedGroups.pop();
     } else if (
-      QUESTION_TYPES.has(row.type) ||
+      QUESTION_TYPES[row.type] ||
       row.type === SCORE_ROW_TYPE ||
       row.type === RANK_LEVEL_TYPE
     ) {
@@ -339,17 +339,17 @@ export function isRowSpecialLabelHolder(mainRow, holderRow) {
       (
         // this handles ranking questions
         holderRowName === `${mainRowName}_label` &&
-        holderRow.type === QUESTION_TYPES.get('note').id
+        holderRow.type === QUESTION_TYPES.note.id
       ) ||
       (
         // this handles matrix questions (partially)
         holderRowName === `${mainRowName}_note` &&
-        holderRow.type === QUESTION_TYPES.get('note').id
+        holderRow.type === QUESTION_TYPES.note.id
       ) ||
       (
         // this handles rating questions
         holderRowName === `${mainRowName}_header` &&
-        holderRow.type === QUESTION_TYPES.get('select_one').id // rating
+        holderRow.type === QUESTION_TYPES.select_one.id // rating
       )
     );
   }
@@ -376,11 +376,11 @@ function getRowLabelAtIndex(row, index) {
 export function renderTypeIcon(type, additionalClassNames = []) {
   let typeDef;
   if (type === SCORE_ROW_TYPE) {
-    typeDef = QUESTION_TYPES.get('score');
+    typeDef = QUESTION_TYPES.score;
   } else if (type === RANK_LEVEL_TYPE) {
-    typeDef = QUESTION_TYPES.get('rank');
+    typeDef = QUESTION_TYPES.rank;
   } else {
-    typeDef = QUESTION_TYPES.get(type);
+    typeDef = QUESTION_TYPES[type];
   }
 
   if (typeDef) {
@@ -408,7 +408,7 @@ export function getFlatQuestionsList(survey) {
       openedGroups.pop();
     }
 
-    if (QUESTION_TYPES.has(row.type)) {
+    if (QUESTION_TYPES[row.type]) {
       output.push({
         type: row.type,
         isRequired: row.required,
@@ -459,7 +459,7 @@ export function isAssetPublic(permissions) {
   permissions.forEach((perm) => {
     if (
       perm.user === buildUserUrl(ANON_USERNAME) &&
-      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('discover_asset')).url
+      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset).url
     ) {
       isDiscoverableByAnonymous = true;
     }
