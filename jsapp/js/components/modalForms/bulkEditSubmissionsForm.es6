@@ -10,6 +10,7 @@ import {QUESTION_TYPES} from 'js/constants';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/textBox';
+import {stores} from 'js/stores';
 
 const FUSE_OPTIONS = {
   includeScore: true,
@@ -25,7 +26,7 @@ const EMPTY_VALUE_LABEL = t('n/d');
 // different than "no override answer" (de facto `undefined`)
 const EMPTY_VALUE = null;
 const MULTIPLE_VALUES_LABEL = t('Multiple responses');
-const HELP_ARTICLE_URL = 'https://foo.bar';
+const HELP_ARTICLE_URL = 'howto_edit_multiple_submissions.html';
 
 /**
  * The content of the BULK_EDIT_SUBMISSIONS modal
@@ -187,6 +188,21 @@ class BulkEditSubmissionsForm extends React.Component {
     return questions;
   }
 
+  renderSupportUrlLink() {
+    if (stores.serverEnvironment?.state?.support_url) {
+      return (
+        <a
+          href={stores.serverEnvironment.state.support_url + HELP_ARTICLE_URL}
+          target='_blank'
+        >
+          {t('in the help article')}
+        </a>
+      );
+    } else {
+      return null;
+    }
+  }
+
   renderRow(questionData, itemIndex) {
     let question = questionData;
     if (typeof questionData.refIndex !== 'undefined') {
@@ -292,7 +308,7 @@ class BulkEditSubmissionsForm extends React.Component {
     return (
       <React.Fragment>
         <bem.FormModal__item m='wrapper'>
-          {t('You are currently seeing multiple submissions at once. You can select specific questions to edit or remove responses in bulk. If you want to edit only one submission, click on the desired submission on the navigation menu on the top-left corner of this table, or go back to the general table view. You can learn more about bulk actions')} <a href={HELP_ARTICLE_URL}>{t('in the help article')}</a>.
+          {t('You are currently seeing multiple submissions at once. You can select specific questions to edit or remove responses in bulk. If you want to edit only one submission, click on the desired submission on the navigation menu on the top-left corner of this table, or go back to the general table view. You can learn more about bulk actions')} {this.renderSupportUrlLink()}.
         </bem.FormModal__item>
 
         <bem.FormModal__item m='wrapper'>
@@ -377,7 +393,7 @@ class BulkEditSubmissionsForm extends React.Component {
     return (
       <React.Fragment>
         <bem.FormModal__item m='wrapper'>
-          {t('You are about to edit responses for one or multiple submissions at once. Use the XML syntax in the text box below. You can also select one of the existing responses from the table of responses. Learn more about how to edit specific responses for one or multiple submissions')} <a href={HELP_ARTICLE_URL} target='_blank'>{t('in the help article')}</a>.
+          {t('You are about to edit responses for one or multiple submissions at once. Use the XML syntax in the text box below. You can also select one of the existing responses from the table of responses. Learn more about how to edit specific responses for one or multiple submissions')} {this.renderSupportUrlLink()}.
         </bem.FormModal__item>
 
         <bem.FormModal__item m='wrapper'>
