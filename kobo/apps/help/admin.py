@@ -20,7 +20,7 @@ class InAppMessageAdmin(MarkdownxModelAdmin):
 
     def get_form(self, *args, **kwargs):
         """
-        Allows us to add warning_messages to the top of the form without
+        Allows us to add warning messages to the top of the form without
         manually maintaining a list of model fields in this class. An
         approximation of a model-level `help_text`
         """
@@ -29,7 +29,7 @@ class InAppMessageAdmin(MarkdownxModelAdmin):
         # of fields, from the superclass
         form = super().get_form(*args, **kwargs)
 
-        # Next, build `fieldsets` using our warning_messages and that list of
+        # Next, build `fieldsets` using our warning messages and that list of
         # fields. From the Django documentation:
         #     fieldsets is a list of two-tuples…in the format (name,
         #     field_options), where name is a string representing the title of
