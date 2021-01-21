@@ -607,7 +607,7 @@ class Asset(ObjectPermissionMixin,
             (
                 p
                 for p in ASSIGNABLE_PERMISSIONS
-                if p != PERM_MANAGE_ASSET and p != PERM_PARTIAL_SUBMISSIONS
+                if p not in (PERM_MANAGE_ASSET, PERM_PARTIAL_SUBMISSIONS)
             )
         ),
         PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),

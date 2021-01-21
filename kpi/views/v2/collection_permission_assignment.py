@@ -175,20 +175,30 @@ class CollectionPermissionAssignmentViewSet(CollectionNestedObjectViewsetMixin,
             # see all permissions.
             return self.list(request, *args, **kwargs)
 
-    @action(detail=False, methods=['PATCH'],
-            renderer_classes=[renderers.JSONRenderer])
+    @action(
+        detail=False,
+        methods=['PATCH'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
     def clone(self, request, *args, **kwargs):
 
         source_collection_uid = self.request.data[CLONE_ARG_NAME]
-        source_collection = get_object_or_404(Collection, uid=source_collection_uid)
+        source_collection = get_object_or_404(
+            Collection, uid=source_collection_uid
+        )
         user = request.user
 
-        if ObjectPermissionHelper.user_can_share(self.collection, user) and \
-                user.has_perm(PERM_VIEW_COLLECTION, source_collection):
+        if ObjectPermissionHelper.user_can_share(
+            self.collection, user
+        ) and user.has_perm(PERM_VIEW_COLLECTION, source_collection):
             if not self.collection.copy_permissions_from(source_collection):
                 http_status = status.HTTP_400_BAD_REQUEST
-                response = {'detail': _("Source and destination objects don't "
-                                        "seem to have the same type")}
+                response = {
+                    'detail': _(
+                        "Source and destination objects don't "
+                        "seem to have the same type"
+                    )
+                }
                 return Response(response, status=http_status)
         else:
             raise exceptions.PermissionDenied()

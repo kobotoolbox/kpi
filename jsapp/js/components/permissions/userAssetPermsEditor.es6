@@ -191,7 +191,7 @@ class UserAssetPermsEditor extends React.Component {
       stateObj.submissionsViewPartialUsers = [];
     }
 
-    // `formManage` implies every other permission (except parial permissions)
+    // `formManage` implies every other permission (except partial permissions)
     if (stateObj.formManage) {
       stateObj.formView = true;
       stateObj.formEdit = true;

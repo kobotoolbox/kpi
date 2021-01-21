@@ -165,19 +165,28 @@ class AssetViewSet(AssetViewSetV2):
     def get_serializer_context(self):
         return super(AssetViewSetV2, self).get_serializer_context()
 
-    @action(detail=True, methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
+    @action(
+        detail=True,
+        methods=["PATCH"],
+        renderer_classes=[renderers.JSONRenderer],
+    )
     def permissions(self, request, uid):
         target_asset = self.get_object()
-        source_asset = get_object_or_404(Asset, uid=request.data.get(CLONE_ARG_NAME))
+        source_asset = get_object_or_404(
+            Asset, uid=request.data.get(CLONE_ARG_NAME)
+        )
         user = request.user
         response = {}
         http_status = status.HTTP_204_NO_CONTENT
 
-        if user.has_perm(PERM_MANAGE_ASSET, target_asset) and \
-                user.has_perm(PERM_VIEW_ASSET, source_asset):
+        if user.has_perm(PERM_MANAGE_ASSET, target_asset) and user.has_perm(
+            PERM_VIEW_ASSET, source_asset
+        ):
             if not target_asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
-                response = {"detail": "Source and destination objects don't seem to have the same type"}
+                response = {
+                    "detail": "Source and destination objects don't seem to have the same type"
+                }
         else:
             raise exceptions.PermissionDenied()
 

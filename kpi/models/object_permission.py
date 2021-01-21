@@ -441,16 +441,16 @@ class ObjectPermissionMixin:
 
         # Add the calculated `delete_` permission for the owner
         content_type = ContentType.objects.get_for_model(self)
-        if self.owner is not None and (
-                user is None or user.pk == self.owner.pk) and (
-                codename is None or codename.startswith('delete_')
+        if (
+            self.owner is not None
+            and (user is None or user.pk == self.owner.pk)
+            and (codename is None or codename.startswith('delete_'))
         ):
             matching_permissions = self.__get_permissions_for_content_type(
-                content_type.pk, codename__startswith='delete_')
+                content_type.pk, codename__startswith='delete_'
+            )
             for perm_pk, perm_codename in matching_permissions:
-                if (codename is not None and
-                        perm_codename != codename
-                ):
+                if codename is not None and perm_codename != codename:
                     # If the caller specified `codename`, skip anything that
                     # doesn't match exactly. Necessary because `Asset` has
                     # `delete_submissions` in addition to `delete_asset`

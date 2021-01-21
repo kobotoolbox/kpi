@@ -7,7 +7,7 @@ from django.db import migrations
 
 def create_new_perms(apps):
     """
-    The new `delete_submissions` permission does not exist when running this
+    The new `manage_asset` permission does not exist when running this
     migration for the first time. Django runs migrations in a transaction and
     new permissions are not created until after the transaction is completed.
 
