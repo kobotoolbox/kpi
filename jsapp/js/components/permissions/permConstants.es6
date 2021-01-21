@@ -23,7 +23,6 @@ new Set([
   'formView',
   'formEdit',
   'submissionsAdd',
-  'submissionsAddPartial',
   'submissionsView',
   'submissionsViewPartial',
   'submissionsEdit',
@@ -39,7 +38,6 @@ Object.freeze(CHECKBOX_NAMES);
  * This is a map of pairs that connects a general checkbox to a partial checkbox.
  */
 export const PARTIAL_CHECKBOX_PAIRS = {};
-PARTIAL_CHECKBOX_PAIRS[CHECKBOX_NAMES.submissionsAdd] = CHECKBOX_NAMES.submissionsAddPartial;
 PARTIAL_CHECKBOX_PAIRS[CHECKBOX_NAMES.submissionsView] = CHECKBOX_NAMES.submissionsViewPartial;
 PARTIAL_CHECKBOX_PAIRS[CHECKBOX_NAMES.submissionsEdit] = CHECKBOX_NAMES.submissionsEditPartial;
 PARTIAL_CHECKBOX_PAIRS[CHECKBOX_NAMES.submissionsValidate] = CHECKBOX_NAMES.submissionsValidatePartial;
@@ -53,7 +51,6 @@ Object.freeze(PARTIAL_CHECKBOX_PAIRS);
  * in the array of de facto permissions it is using these ones.
  */
 export const PARTIAL_PERM_PAIRS = {};
-PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsAddPartial] = PERMISSIONS_CODENAMES.add_submissions;
 PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsViewPartial] = PERMISSIONS_CODENAMES.view_submissions;
 PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsEditPartial] = PERMISSIONS_CODENAMES.change_submissions;
 PARTIAL_PERM_PAIRS[CHECKBOX_NAMES.submissionsValidatePartial] = PERMISSIONS_CODENAMES.validate_submissions;
@@ -67,7 +64,6 @@ export const CHECKBOX_PERM_PAIRS = {};
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.formView] = PERMISSIONS_CODENAMES.view_asset;
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.formEdit] = PERMISSIONS_CODENAMES.change_asset;
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsAdd] = PERMISSIONS_CODENAMES.add_submissions;
-CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsAddPartial] = PERMISSIONS_CODENAMES.partial_submissions;
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsView] = PERMISSIONS_CODENAMES.view_submissions;
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsViewPartial] = PERMISSIONS_CODENAMES.partial_submissions;
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsEdit] = PERMISSIONS_CODENAMES.change_submissions;

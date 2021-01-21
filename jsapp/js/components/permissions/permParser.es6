@@ -29,8 +29,6 @@ import {
  * @property {boolean} data.formView
  * @property {boolean} data.formEdit
  * @property {boolean} data.submissionsAdd
- * @property {boolean} data.submissionsAddPartial
- * @property {string[]} data.submissionsAddPartialUsers
  * @property {boolean} data.submissionsView
  * @property {boolean} data.submissionsViewPartial
  * @property {string[]} data.submissionsViewPartialUsers

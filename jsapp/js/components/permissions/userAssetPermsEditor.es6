@@ -361,8 +361,8 @@ class UserAssetPermsEditor extends React.Component {
     return (
       isAnyCheckboxChecked &&
       this.isPartialValid(CHECKBOX_NAMES.submissionsViewPartial) &&
-      this.isPartialValid(CHECKBOX_NAMES.submissionsAddPartial) &&
       this.isPartialValid(CHECKBOX_NAMES.submissionsEditPartial) &&
+      this.isPartialValid(CHECKBOX_NAMES.submissionsDeletePartial) &&
       this.isPartialValid(CHECKBOX_NAMES.submissionsValidatePartial) &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
@@ -410,8 +410,6 @@ class UserAssetPermsEditor extends React.Component {
     }
 
     const formData = this.getFormData();
-
-    // TODO update perm parser
 
     const parsedPerms = permParser.parseFormData(formData);
 
@@ -512,31 +510,25 @@ class UserAssetPermsEditor extends React.Component {
           {this.isAssignable(PERMISSIONS_CODENAMES.view_submissions) &&
             this.renderCheckbox(CHECKBOX_NAMES.submissionsView)
           }
-
           {this.renderPartialRow(CHECKBOX_NAMES.submissionsViewPartial)}
 
           {this.isAssignable(PERMISSIONS_CODENAMES.add_submissions) &&
             this.renderCheckbox(CHECKBOX_NAMES.submissionsAdd)
           }
 
-          {this.renderPartialRow(CHECKBOX_NAMES.submissionsAddPartial)}
-
           {this.isAssignable(PERMISSIONS_CODENAMES.change_submissions) &&
             this.renderCheckbox(CHECKBOX_NAMES.submissionsEdit)
           }
-
           {this.renderPartialRow(CHECKBOX_NAMES.submissionsEditPartial)}
 
           {this.isAssignable(PERMISSIONS_CODENAMES.delete_submissions) &&
             this.renderCheckbox(CHECKBOX_NAMES.submissionsDelete)
           }
-
           {this.renderPartialRow(CHECKBOX_NAMES.submissionsDeletePartial)}
 
           {this.isAssignable(PERMISSIONS_CODENAMES.validate_submissions) &&
             this.renderCheckbox(CHECKBOX_NAMES.submissionsValidate)
           }
-
           {this.renderPartialRow(CHECKBOX_NAMES.submissionsValidatePartial)}
         </div>
 
