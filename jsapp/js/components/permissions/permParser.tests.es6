@@ -6,7 +6,7 @@ import constants from 'js/constants';
 describe('permParser', () => {
   beforeEach(() => {
     // bootstraping
-    permConfig.onGetConfigCompleted(endpoints.permissions);
+    permConfig.setPermissions(endpoints.permissions.results);
     constants.ROOT_URL = '';
   });
 
