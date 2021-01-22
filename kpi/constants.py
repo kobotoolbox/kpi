@@ -101,3 +101,19 @@ ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS = [
     'tags__name__icontains',
     'uid__icontains',
 ]
+
+DEFAULT_JSON_FIELDS = (
+    '_attachments',
+    '_geolocation',
+    '_id',
+    '_notes',
+    '_status',
+    '_submission_time',
+    '_submitted_by',
+    '_tags',
+    '_uuid',
+    '_validation_status',
+    '_xform_id_string',
+    'end',
+    'start',
+)

@@ -1,4 +1,6 @@
 # coding: utf-8
+import json
+
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
@@ -13,7 +15,7 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, DEFAULT_JSON_FIELDS
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
@@ -317,6 +319,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
+        filt = {}
+        try:
+            filt = json.loads(dict(request.data)['payload'][0])
+            filters['fields'] = [*filt['fields'], *DEFAULT_JSON_FIELDS]
+        except:
+            print('***** no payload', flush=True)
 
         if format_type == 'geojson':
             # For GeoJSON, get the submissions as JSON and let
