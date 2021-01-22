@@ -2,7 +2,7 @@ import {
   getRowName,
   getTranslatedRowLabel,
   getSurveyFlatPaths,
-  isRowSpecialLabelHolder
+  isRowSpecialLabelHolder,
 } from 'js/assetUtils';
 import {
   FORM_VERSION_NAME,
@@ -10,7 +10,7 @@ import {
   RANK_LEVEL_TYPE,
   MATRIX_PAIR_PROPS,
   GROUP_TYPES_BEGIN,
-  QUESTION_TYPES
+  QUESTION_TYPES,
 } from 'js/constants';
 
 export const DISPLAY_GROUP_TYPES = new Map();
@@ -19,7 +19,7 @@ new Set([
   'group_repeat',
   'group_regular',
   'group_matrix',
-  'group_matrix_row'
+  'group_matrix_row',
 ]).forEach((codename) => {DISPLAY_GROUP_TYPES.set(codename, codename);});
 
 /**
@@ -50,14 +50,20 @@ class DisplayGroup {
  * @property {string} type - One of QUESTION_TYPES
  * @property {string} label - Localized display label
  * @property {string} name - Unique identifier
+ * @property {string|undefined} listName - Unique identifier of a choices list,
+ *                                         only applicable for question types
+ *                                         that uses choices lists
  * @property {string|null} data - User response, `null` for no response
  */
 class DisplayResponse {
-  constructor(type, label, name, data = null) {
+  constructor(type, label, name, listName, data = null) {
     this.type = type;
     this.label = label;
     this.name = name;
     this.data = data;
+    if (listName) {
+      this.listName = listName;
+    }
   }
 }
 
@@ -85,6 +91,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
       const row = survey[rowIndex];
 
       const rowName = getRowName(row);
+      const rowListName = getRowListName(row, choices);
       const rowLabel = getTranslatedRowLabel(rowName, survey, translationIndex);
 
       let parentGroupPath = null;
@@ -198,6 +205,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
           row.type,
           rowLabel,
           rowName,
+          rowListName,
           rowData
         );
         parentGroup.addChild(rowObj);
@@ -379,8 +387,21 @@ function getRegularGroupAnswers(data, targetKey) {
   return answers;
 }
 
+/**
+ * @param {object} row
+ * @returns {string|undefiend}
+ */
+function getRowListName(row) {
+  return (
+    row.select_from_list_name ||
+    row['kobo--matrix_list'] ||
+    row['kobo--score-choices'] ||
+    row['kobo--rank-items']
+  );
+}
+
 export default {
   DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
-  getRepeatGroupAnswers
+  getRepeatGroupAnswers,
 };
