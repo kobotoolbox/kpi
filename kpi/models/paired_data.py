@@ -37,7 +37,7 @@ class PairedData:
                 'format': 'xml'
             },
         )
-        return f'{settings.KOBOFORM_INTERNAL_URL}{paired_data_url}'
+        return f'{settings.KOBOFORM_URL}{paired_data_url}'
 
     @property
     def hash(self):

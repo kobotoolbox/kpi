@@ -356,7 +356,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def is_paired_data(self, value: str) -> bool:
         pattern = (
-            rf'{settings.KOBOFORM_INTERNAL_URL}/api/v2/assets/'
+            rf'{settings.KOBOFORM_URL}/api/v2/assets/'
             rf'{self.asset.uid}/paired_data/pd[^\.]+\.xml$'
         )
         return re.match(pattern, value)
@@ -957,7 +957,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         kwargs = {
-            "data": {
+            'data': {
                 'data_value': file_.kc_metadata_data_value,
                 'xform': self.xform_id,
                 'data_type': 'media',
