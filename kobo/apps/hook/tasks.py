@@ -137,7 +137,7 @@ def failures_reports():
             variables = {
                 'username': record.get('username'),
                 'assets': record.get('assets'),
-                'kpi_base_url': settings.KPI_URL
+                'kpi_base_url': settings.KOBOFORM_URL
             }
             # Localize templates
             translation.activate(record.get("language"))
