@@ -1,8 +1,12 @@
 # coding: utf-8
 import re
 import socket
+from datetime import timedelta
+from urllib.parse import urlparse
 
+from dateutil import parser
 from django.conf import settings
+from django.utils import timezone
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
@@ -12,7 +16,6 @@ from kpi.constants import (
 )
 from kpi.models.asset import Asset
 from kpi.models.object_permission import get_anonymous_user
-from kpi.deployment_backends.kc_access.shadow_models import ReadOnlyKobocatXForm
 from kpi.utils.network import get_client_ip
 
 
@@ -192,61 +195,76 @@ class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
 
 class PairedDataPermission(permissions.BasePermission):
     """
-    `paired_data` endpoint is widely open. We cannot rely on Django permissions
-    because enketo/collect may need to read the data even if users are
-    not authenticated.
-    The validations are not bullet proof because requests headers are not
-    trustworthy as they can be overridden by the client.
-
-    This class only accepts requests that match these prerequisites:
-    - Asset embed data must be turned on
-    - Domain must be internal domain
-    - Referrer must be KC media file endpoint (i.e. https://kc.domain.tld/<username>/xformsMedia/<xform_id>/<metadata_id>.xml)  # noqa
-    - Request must come from Enketo Express container
+    We cannot rely on Django permissions because the form clients
+    (i.e. Enketo, Collect) need to get access even if user is not authenticated
+    The validations are not bullet proof because request headers are not
+    trustworthy as they can be overridden by any curl script
     """
 
     def has_permission(self, request, view):
         """
-        Return `True` if permission is granted, raise Http404 otherwise to avoid
-        revealing asset existence.
+        To pass, the request must:
+        - be on the internal domain
+        - come from KoBoCAT container
+        - contains OpenRosa headers
+        - client must be Collect or Enketo Express
         """
-        #if settings.ENV != 'dev':
-        # ToDo Validate if it works with a proxy
-        # (e.g. ELB or let's encrypt kobo proxy)
-        http_host = f"http://{request.META.get('HTTP_HOST')}"
-        # We use `.startswith()` because the port is appended to `$http_host`
-        # in Nginx in dev mode. (e.g. http://kf.docker.internal:8000)
-        if not settings.KOBOFORM_INTERNAL_URL.startswith(http_host):
-            raise Http404
-
-        ee_container_ip = socket.gethostbyname('enketo_express')
-        # Validate whether request comes from Enketo Express
-        if get_client_ip(request) != ee_container_ip:
-            raise Http404
 
         try:
-            referrer = request.META['HTTP_REFERER']
+            http_host = f"http://{request.META['HTTP_HOST']}"
         except KeyError:
             raise Http404
         else:
-            referrer_parts = referrer.split('/')
-            child_xform_id = referrer_parts[-2]
-            try:
-                xform = ReadOnlyKobocatXForm.objects.get(pk=child_xform_id)
-            except ReadOnlyKobocatXForm.DoesNotExist:
+            # We use `.startswith()` because the port is appended to
+            # `$http_host` in Nginx in dev mode.
+            # e.g. http://kf.docker.internal:8000
+            if not http_host.startswith(settings.KOBOFORM_INTERNAL_URL):
                 raise Http404
 
-            # Validate whether referrer matches media file KC endpoint.
-            # Maybe useless? The referrer can be easily guessed and faked.
-            pattern = rf'{settings.KOBOCAT_URL}/{xform.user.username}/xformsMedia/\d+/\d+\.xml'  # noqa
-            if not re.match(pattern, referrer):
+        kc_container_ip = socket.gethostbyname('kobocat')
+        if get_client_ip(request) != kc_container_ip:
+            raise Http404
+
+        # Open Rosa headers must be present
+        try:
+            client_user_agent = request.headers['X-User-Agent']
+            user_agent = request.headers['User-Agent']
+            open_rosa_date_str = request.headers['X-Openrosa-Date']
+            open_rosa_version = request.headers['X-Openrosa-Version']
+            open_rosa_version_value = request.headers['X-Openrosa-Version-Value']
+        except KeyError:
+            raise Http404
+        else:
+            try:
+                open_rosa_date = parser.parse(open_rosa_date_str)
+            except ValueError:
                 raise Http404
+
+        now = timezone.now()
+        offset = timedelta(seconds=5)
+        ee_domain_name = urlparse(settings.ENKETO_SERVER).netloc
+        ee_domain_name = ee_domain_name.replace('.', r'\.')
+
+        pattern_collect = r'org\.[^\.]+\.collect\.android\/v[\d\w\-\.]+'
+        pattern_ee = rf's:{ee_domain_name}:[\d\w\.]{{10,}}'
+        pattern = f'({pattern_collect})|({pattern_ee})'
+        is_collector = re.search(pattern, client_user_agent)
+
+        try:
+            assert user_agent.startswith('python-requests')
+            assert open_rosa_version == open_rosa_version_value
+            assert now - offset <= open_rosa_date <= now + offset
+            assert is_collector
+        except AssertionError:
+            raise Http404
 
         return True
 
     def has_object_permission(self, request, view, obj):
         """
-        Return `True` if permission is granted, `False` otherwise.
+        The responsibility for securing data behove to the owner of the
+        asset `obj` by requiring aggregators to authenticate.
+        Otherwise, the paired parent data may be exposed to anyone
         """
         # Check whether `asset` owner's account requires authentication:
         try:
@@ -254,8 +272,8 @@ class PairedDataPermission(permissions.BasePermission):
         except KeyError:
             require_auth = False
 
-        # If authentication is required, `user` should have 'add_submission'
-        # permission on `asset`
+        # If authentication is required, `request.user` should have
+        # 'add_submission' permission on `obj`
         if (
             require_auth
             and not obj.has_perm(request.user, PERM_ADD_SUBMISSIONS)

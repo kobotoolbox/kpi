@@ -652,6 +652,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['GET'],
             permission_classes=[PairedDataPermission],
             renderer_classes=[SubmissionXMLRenderer],
+            filter_backends=[],
             url_path='paired_data/(?P<paired_data_uid>[^/.]+)')
     def paired_data(self, request, paired_data_uid, **kwargs):
         """

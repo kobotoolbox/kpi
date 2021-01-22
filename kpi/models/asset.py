@@ -816,6 +816,7 @@ class Asset(ObjectPermissionMixin,
             return None
 
         # Validate `self.owner` is still allowed to see parent data
+        # ToDo : `self.owner` should have `PERM_VIEW_ASSET` on parent too
         allowed_users = parent_data_sharing.get('users', [])
         if allowed_users and self.owner.username not in allowed_users:
             return None
