@@ -284,6 +284,7 @@ function populateMatrixData(
         questionSurveyObj.type,
         getTranslatedRowLabel(questionName, survey, translationIndex),
         questionName,
+        getRowListName(questionSurveyObj),
         questionData
       );
       matrixRowGroupObj.addChild(questionObj);
