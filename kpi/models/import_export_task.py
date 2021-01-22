@@ -516,13 +516,11 @@ class ExportTask(ImportExportTask):
         """
         source_url = self.data.get('source', False)
         fields = json.loads(self.data.get('fields', '[]'))
-        print('**** fields', str(fields), flush=True)
+        flatten = self.data.get('flatten', False)
         if not source_url:
             raise Exception('no source specified for the export')
         source = _resolve_url_to_asset(source_url)
-        print('**** source', str(source), flush=True)
         source_perms = source.get_perms(self.user)
-        print('**** source_perms', str(source_perms), flush=True)
 
         if (PERM_VIEW_SUBMISSIONS not in source_perms and
                 PERM_PARTIAL_SUBMISSIONS not in source_perms):
@@ -545,13 +543,17 @@ class ExportTask(ImportExportTask):
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
         #submission_stream = source.deployment.get_submissions(self.user.id)
-        filters = {'fields': [*DEFAULT_JSON_FIELDS, *fields]}
+        filters = {'fields': fields}
         submission_stream = source.deployment.get_submissions(
             requesting_user_id=self.user.id,
             **filters
         )
-        label_mapping = {d['$autoname']: d['label'][0] for d in source.content['survey'] if 'label' in d}
-        print('****** label_mapping', str(label_mapping), flush=True)
+        survey = source.content['survey']
+        label_mapping = {
+            d['$autoname']: d['label'][0]
+            for d in survey
+            if 'label' in d
+        }
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions)
@@ -575,7 +577,15 @@ class ExportTask(ImportExportTask):
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + "\r\n").encode('utf-8'))
             elif export_type == 'geojson':
-                output_file.write(export.to_geojson(submission_stream, label_mapping).encode('utf-8'))
+                output_file.write(
+                    export.to_geojson(
+                        submission_stream,
+                        label_mapping,
+                        export_to_file=True,
+                        flatten=flatten,
+                        fields=fields
+                    ).encode('utf-8')
+                )
             elif export_type == 'xls':
                 # XLSX export actually requires a filename (limitation of
                 # pyexcelerate?)

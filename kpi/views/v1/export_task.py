@@ -53,7 +53,6 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
-        print('**** i made it here', flush=True)
         if self.request.user.is_anonymous:
             raise exceptions.NotAuthenticated()
 
@@ -66,6 +65,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             'hierarchy_in_labels',
             'fields_from_all_versions',
             'fields',
+            'flatten',
         )
         task_data = {}
         for opt in valid_options:
