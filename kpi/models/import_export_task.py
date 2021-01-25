@@ -516,7 +516,9 @@ class ExportTask(ImportExportTask):
         """
         source_url = self.data.get('source', False)
         fields = json.loads(self.data.get('fields', '[]'))
-        flatten = self.data.get('flatten', False)
+        flatten = self.data.get('flatten', 'False').lower() == 'true'
+        include_form_data = self.data.get('include_form_data', 'True').lower() == 'true'
+        form_data_in_properties = self.data.get('form_data_in_properties', 'False').lower() == 'true'
         if not source_url:
             raise Exception('no source specified for the export')
         source = _resolve_url_to_asset(source_url)
@@ -543,7 +545,9 @@ class ExportTask(ImportExportTask):
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
         #submission_stream = source.deployment.get_submissions(self.user.id)
-        filters = {'fields': fields}
+        filters = {'fields': [*fields, *DEFAULT_JSON_FIELDS]}
+        if len(fields) == 0:
+            filters['fields'] = []
         submission_stream = source.deployment.get_submissions(
             requesting_user_id=self.user.id,
             **filters
@@ -583,7 +587,9 @@ class ExportTask(ImportExportTask):
                         label_mapping,
                         export_to_file=True,
                         flatten=flatten,
-                        fields=fields
+                        fields=fields,
+                        include_form_data=include_form_data,
+                        form_data_in_properties=form_data_in_properties,
                     ).encode('utf-8')
                 )
             elif export_type == 'xls':
