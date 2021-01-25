@@ -280,6 +280,8 @@ function populateMatrixData(
         questionData = parentData[dataProp];
       }
 
+      // TODO fix responses not getting proper list name
+
       let questionObj = new DisplayResponse(
         questionSurveyObj.type,
         getTranslatedRowLabel(questionName, survey, translationIndex),
