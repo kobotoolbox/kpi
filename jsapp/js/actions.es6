@@ -70,6 +70,9 @@ actions.resources = Reflux.createActions({
   updateAsset: {asyncResult: true},
   updateSubmissionValidationStatus: {children: ['completed', 'failed']},
   removeSubmissionValidationStatus: {children: ['completed', 'failed']},
+  deleteSubmission: {children: ['completed', 'failed']},
+  duplicateSubmission: {children: ['completed', 'failed',]},
+  refreshTableSubmissions: {children: ['completed', 'failed',]},
   getAssetFiles: {children: ['completed', 'failed']},
   notFound: {}
 });
@@ -512,6 +515,32 @@ actions.resources.removeSubmissionValidationStatus.listen((uid, sid) => {
     console.error(error);
     actions.resources.removeSubmissionValidationStatus.failed(error);
   });
+});
+
+actions.resources.deleteSubmission.listen((uid, sid) => {
+  dataInterface.deleteSubmission(uid, sid)
+    .done(() => {
+      notify(t('submission deleted'));
+      actions.resources.deleteSubmission.completed();
+      actions.resources.loadAsset({id: uid});
+    })
+    .fail(() => {
+      alertify.error(t('failed to delete submission'));
+      actions.resources.deleteSubmission.failed();
+    });
+});
+
+actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) => {
+  dataInterface.duplicateSubmission(uid, sid)
+    .done((response) => {
+      notify(t('Successfully duplicated submission'));
+      actions.resources.duplicateSubmission.completed(uid, response._id, duplicatedSubmission);
+      actions.resources.loadAsset({id: uid});
+    })
+    .fail((response) => {
+      alertify.error(t('Failed to duplciate submisson'));
+      actions.resources.duplicateSubmission.failed(response);
+    });
 });
 
 actions.hooks.getAll.listen((assetUid, callbacks = {}) => {

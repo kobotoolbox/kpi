@@ -4,11 +4,11 @@ import io
 import json
 import posixpath
 import re
+from typing import Union
 import requests
 import tempfile
 import uuid
 from datetime import datetime
-from typing import Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 

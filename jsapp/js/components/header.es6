@@ -50,6 +50,7 @@ class MainHeader extends Reflux.Component {
       myLibraryStore.listen(this.forceRender)
     );
   }
+
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
   }
