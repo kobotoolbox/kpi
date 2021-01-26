@@ -563,7 +563,6 @@ export const matrixSurveyDisplayData = [
         type: 'group_matrix_row',
         label: 'Poland',
         name: 'poland',
-        listName: 'count_ch_list',
         children: [
           {
             type: 'integer',

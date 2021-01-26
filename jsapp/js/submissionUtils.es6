@@ -91,7 +91,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
       const row = survey[rowIndex];
 
       const rowName = getRowName(row);
-      const rowListName = getRowListName(row, choices);
+      let rowListName = getRowListName(row);
       const rowLabel = getTranslatedRowLabel(rowName, survey, translationIndex);
 
       let parentGroupPath = null;
@@ -201,6 +201,15 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
           rowData = rowData[repeatIndex];
         }
 
+        // score and rank don't have list name on them and they need to use
+        // the one of their parent
+        if (row.type === SCORE_ROW_TYPE || row.type === RANK_LEVEL_TYPE) {
+          const parentGroupRow = survey.find((row) => {
+            return getRowName(row) === parentGroup.name;
+          });
+          rowListName = getRowListName(parentGroupRow);
+        }
+
         let rowObj = new DisplayResponse(
           row.type,
           rowLabel,
@@ -279,8 +288,6 @@ function populateMatrixData(
          */
         questionData = parentData[dataProp];
       }
-
-      // TODO fix responses not getting proper list name
 
       let questionObj = new DisplayResponse(
         questionSurveyObj.type,
