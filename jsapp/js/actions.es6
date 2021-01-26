@@ -100,6 +100,15 @@ permissionsActions.assignAssetPermission.failed.listen(() => {
 permissionsActions.removeAssetPermission.failed.listen(() => {
   notify(t('Failed to remove permissions'), 'error');
 });
+permissionsActions.bulkSetAssetPermissions.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.assignCollectionPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.removeCollectionPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
 permissionsActions.assignAssetPermission.completed.listen((uid) => {
   // needed to update publicShareSettings after enabling link sharing
   actions.resources.loadAsset({id: uid});
@@ -373,10 +382,6 @@ actions.resources.createResource.listen(function(details){
     });
 });
 
-/**
- * @param {object} params
- * @param {string} params.uid
- */
 actions.resources.deleteAsset.listen(function(details, params={}){
   dataInterface.deleteAsset(details)
     .done(() => {

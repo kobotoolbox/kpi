@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('auth', '0011_update_proxy_permissions'),
-        ('kpi', '0028_delete_collections_fix_asset_parent_foreign_key'),
+        ('kpi', '0030_delete_collections_fix_asset_parent_foreign_key'),
     ]
 
     operations = [

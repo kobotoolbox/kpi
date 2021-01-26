@@ -1,19 +1,19 @@
 # coding: utf-8
+import copy
 import io
 import json
 import posixpath
 import re
-from typing import Union
-import requests
-import tempfile
 import uuid
+from typing import Union
+
 from datetime import datetime
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import pytz
+import requests
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
@@ -36,6 +36,7 @@ from .kc_access.utils import (
 )
 from ..exceptions import (
     BadFormatException,
+    KobocatBulkUpdateSubmissionsClientException,
     KobocatDeploymentException,
     KobocatDuplicateSubmissionException,
 )
@@ -46,6 +47,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     Used to deploy a project into KC. Stores the project identifiers in the
     "self.asset._deployment_data" JSONField.
     """
+
+    PROTECTED_XML_FIELDS = [
+        '__version__',
+        'formhub',
+        'meta',
+    ]
 
     def bulk_assign_mapped_perms(self):
         """
@@ -658,7 +665,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return dt.isoformat('T', 'milliseconds')
 
     def duplicate_submission(
-        self, requesting_user_id: int, instance_id: int, **kwargs: dict
+        self, requesting_user_id: int, instance_id: int
     ) -> dict:
         """
         Dupicates a single submission proxied through kobocat. The submission
@@ -669,7 +676,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Args:
             requesting_user_id (int)
             instance_id (int)
-            kwargs (dict): passed to validation
 
         Returns:
             dict: message response from kobocat and uuid of created submission
@@ -691,7 +697,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # updating xml fields for duplicate submission
         xml_parsed.find('start').text = date_formatted
         xml_parsed.find('end').text = date_formatted
-        xml_parsed.find('./meta/instanceID').text = uuid_formatted
+        xml_parsed.find('meta/instanceID').text = uuid_formatted
 
         file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
         files = {'xml_submission_file': file_tuple}
@@ -703,8 +709,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         if kc_response.status_code == status.HTTP_201_CREATED:
-            return self.__get_latest_duplicate_submission(
-                requesting_user_id, _uuid
+            return next(
+                self.get_submissions(requesting_user_id, query={'_uuid': _uuid})
             )
         else:
             raise KobocatDuplicateSubmissionException
@@ -762,25 +768,114 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
+    def bulk_update_submissions(
+        self, request_data: dict, requesting_user_id: int
+    ) -> dict:
+        """
+        Allows for bulk updating of submissions proxied through kobocat. A
+        `deprecatedID` for each submission is given the previous value of
+        `instanceID` and `instanceID` receives an updated uuid. For each key
+        and value within `request_data`, either a new element is created on the
+        submission's XML tree, or the existing value is replaced by the updated
+        value.
+
+        Args:
+            request_data (dict): must contain a list of `submission_ids` and at
+                least one other key:value field for updating the submissions
+            requesting_user_id (int)
+
+        Returns:
+            dict: formatted dict to be passed to a Response object
+        """
+        payload = self.__prepare_bulk_update_payload(request_data)
+        kwargs = {'instance_ids': payload.pop('submission_ids')}
+        params = self.validate_submission_list_params(
+            requesting_user_id, format_type=INSTANCE_FORMAT_TYPE_XML, **kwargs
+        )
+        submissions = list(self.__get_submissions_in_xml(**params))
+        validated_submissions = self.__validate_bulk_update_submissions(
+            submissions
+        )
+
+        kc_responses = []
+        for submission in validated_submissions:
+            xml_parsed = ET.fromstring(submission)
+
+            _uuid, uuid_formatted = self.generate_new_instance_id()
+
+            # Updating xml fields for submission. In order to update an existing
+            # submission, the current `instanceID` must be moved to the value
+            # for `deprecatedID`.
+            instance_id = xml_parsed.find('meta/instanceID')
+            # If the submission has been edited before, it will already contain
+            # a deprecatedID element - otherwise create a new element
+            deprecated_id = xml_parsed.find('meta/deprecatedID')
+            deprecated_id_or_new = (
+                deprecated_id
+                if deprecated_id is not None
+                else ET.SubElement(xml_parsed.find('meta'), 'deprecatedID')
+            )
+            deprecated_id_or_new.text = instance_id.text
+            instance_id.text = uuid_formatted
+
+            # If the form has been updated with new fields and earlier
+            # submissions have been selected as part of the bulk update,
+            # a new element has to be created before a value can be set.
+            # However, with this new power, arbitrary fields can be added
+            # to the XML tree through the API.
+            for k, v in payload['data'].items():
+                # A potentially clunky way of taking groups and nested groups
+                # into account when the elements don't exist on the XML tree
+                # (which could be the case if the form has been updated). They
+                # are iteratively attached to the tree since we can only
+                # append one element deep per iteration
+                if '/' in k:
+                    accumulated_elements = []
+                    for i, element in enumerate(k.split('/')):
+                        if i == 0:
+                            ET.SubElement(xml_parsed, element)
+                            accumulated_elements.append(element)
+                        else:
+                            updated_xml_path = '/'.join(accumulated_elements)
+                            ET.SubElement(
+                                xml_parsed.find(updated_xml_path), element
+                            )
+                            accumulated_elements.append(element)
+
+                element_to_update = xml_parsed.find(k)
+                element_to_update_or_new = (
+                    element_to_update
+                    if element_to_update is not None
+                    else ET.SubElement(xml_parsed, k)
+                )
+                element_to_update_or_new.text = v
+
+            # TODO: Might be worth refactoring this as it is also used when
+            # duplicating a submission
+            file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
+            files = {'xml_submission_file': file_tuple}
+            # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
+            kc_request = requests.Request(
+                method='POST', url=self.submission_url, files=files
+            )
+            kc_response = self.__kobocat_proxy_request(
+                kc_request, user=self.asset.owner
+            )
+
+            kc_responses.append(
+                {
+                    'uuid': _uuid,
+                    'response': kc_response,
+                }
+            )
+
+        return self.__prepare_bulk_update_response(kc_responses)
+
     def calculated_submission_count(self, requesting_user_id, **kwargs):
         params = self.validate_submission_list_params(requesting_user_id,
                                                       validate_count=True,
                                                       **kwargs)
         return MongoHelper.get_count(self.mongo_userform_id, **params)
-
-    def __get_latest_duplicate_submission(
-        self, requesting_user_id: int, _uuid: str
-    ) -> dict:
-        """
-        Retrieves the most recent duplicated submission for an asset in JSON
-        format
-        """
-        kwargs = {'query': {'_uuid': _uuid}}
-        params = self.validate_submission_list_params(
-            requesting_user_id, **kwargs
-        )
-
-        return next(self.__get_submissions_in_json(**params))
 
     def __get_submissions_in_json(self, **params):
         """
@@ -900,4 +995,128 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 }
 
         return prepared_drf_response
+
+    @staticmethod
+    def __validate_bulk_update_payload(payload: dict) -> dict:
+        """
+        Validating the request payload for bulk updating of submissions
+        """
+        if not 'submission_ids' in payload:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('`submission_ids` must be included in the payload')
+            )
+
+        if not isinstance(payload['submission_ids'], list):
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('`submission_ids` must be an array')
+            )
+
+        if len(payload['submission_ids']) == 0:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('`submission_ids` must contain at least one value')
+            )
+
+        if not 'data' in payload:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('`data` must be included in the payload')
+            )
+
+        if len(payload['data']) == 0:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('Payload must contain data to update the submissions')
+            )
+
+        return payload
+
+    @classmethod
+    def __prepare_bulk_update_payload(cls, request_data: dict) -> dict:
+        """
+        Preparing the request payload for bulk updating of submissions
+        """
+        payload = json.loads(request_data['payload'][0])
+        validated_payload = cls.__validate_bulk_update_payload(payload)
+
+        # Ensuring submission ids are integer values and unique
+        try:
+            validated_payload['submission_ids'] = list(
+                set(map(int, validated_payload['submission_ids']))
+            )
+        except ValueError as e:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('`submission_ids` must only contain integer values')
+            )
+
+        # Sanitizing the payload of potentially destructive keys
+        santized_payload = copy.deepcopy(validated_payload)
+        for key in validated_payload['data']:
+            if key in cls.PROTECTED_XML_FIELDS or (
+                '/' in key and key.split('/')[0] in cls.PROTECTED_XML_FIELDS
+            ):
+                santized_payload['data'].pop(key)
+
+        return santized_payload
+
+    @staticmethod
+    def __validate_bulk_update_submissions(submissions: list) -> list:
+        if len(submissions) == 0:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('No submissions match the given `submission_ids`')
+            )
+        return submissions
+
+    @staticmethod
+    def __prepare_bulk_update_response(kc_responses: list) -> dict:
+        '''
+        Formatting the response to allow for partial successes to be seen
+        more explicitly.
+
+        Args:
+            kc_responses (list): A list containing dictionaries with keys of
+            `_uuid` from the newly generated uuid and `response`, the response
+            object received from Kobocat
+
+        Returns:
+            dict: formatted dict to be passed to a Response object and sent to
+            the client
+        '''
+
+        OPEN_ROSA_XML_MESSAGE = '{http://openrosa.org/http/response}message'
+
+        # Unfortunately, the response message from OpenRosa is in XML format,
+        # so it needs to be parsed before extracting the text
+        results = []
+        for response in kc_responses:
+            try:
+                message = _(
+                    ET.fromstring(response['response'].content)
+                    .find(OPEN_ROSA_XML_MESSAGE)
+                    .text
+                )
+            except ET.ParseError:
+                message = _('Something went wrong')
+
+            results.append(
+                {
+                    'uuid': response['uuid'],
+                    'status_code': response['response'].status_code,
+                    'message': message,
+                }
+            )
+
+        total_update_attempts = len(results)
+        total_successes = [result['status_code'] for result in results].count(
+            status.HTTP_201_CREATED
+        )
+
+        return {
+            'status': status.HTTP_200_OK
+            if total_successes > 0
+            else status.HTTP_400_BAD_REQUEST,
+            'data': {
+                'count': total_update_attempts,
+                'successes': total_successes,
+                'failures': total_update_attempts - total_successes,
+                'results': results,
+            },
+        }
 
