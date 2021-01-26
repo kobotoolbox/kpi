@@ -11,6 +11,7 @@ import {
   MATRIX_PAIR_PROPS,
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
+  CHOICE_LISTS,
 } from 'js/constants';
 
 export const DISPLAY_GROUP_TYPES = new Map();
@@ -403,10 +404,10 @@ function getRegularGroupAnswers(data, targetKey) {
  */
 function getRowListName(row) {
   return (
-    row.select_from_list_name ||
-    row['kobo--matrix_list'] ||
-    row['kobo--score-choices'] ||
-    row['kobo--rank-items']
+    row[CHOICE_LISTS.SELECT] ||
+    row[CHOICE_LISTS.MATRIX] ||
+    row[CHOICE_LISTS.SCORE] ||
+    row[CHOICE_LISTS.RANK]
   );
 }
 

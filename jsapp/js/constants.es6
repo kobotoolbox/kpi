@@ -334,7 +334,7 @@ export const SCORE_ROW_TYPE = 'score__row';
 export const RANK_LEVEL_TYPE = 'rank__level';
 
 export const MATRIX_PAIR_PROPS = {
-  inSurvey: 'kobo--matrix_list',
+  inSurvey: CHOICE_LISTS.MATRIX,
   inChoices: 'list_name',
 };
 
@@ -354,6 +354,13 @@ export const REPORT_STYLES = Object.freeze({
 });
 
 export const QUERY_LIMIT_DEFAULT = 5000;
+
+export const CHOICE_LISTS = Object.freeze({
+  SELECT: 'select_from_list_name',
+  MATRIX: 'kobo--matrix_list',
+  SCORE: 'kobo--score-choices',
+  RANK: 'kobo--rank-items',
+});
 
 const constants = {
   ROOT_URL,
@@ -381,6 +388,7 @@ const constants = {
   DEPLOYMENT_CATEGORIES,
   REPORT_STYLES,
   QUERY_LIMIT_DEFAULT,
+  CHOICE_LISTS,
 };
 
 export default constants;
