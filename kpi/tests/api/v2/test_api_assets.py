@@ -34,10 +34,6 @@ class AssetsListApiTests(BaseAssetTestCase):
         self.client.login(username='someuser', password='someuser')
         self.list_url = reverse(self._get_endpoint('asset-list'))
 
-    def login_as_other_user(self, username, password):
-        self.client.logout()
-        self.client.login(username=username, password=password)
-
     def test_login_as_other_users(self):
         self.login_as_other_user(username='admin', password='pass')
         self.login_as_other_user(username='anotheruser', password='anotheruser')

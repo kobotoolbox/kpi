@@ -357,7 +357,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def is_paired_data(self, value: str) -> bool:
         pattern = (
             rf'{settings.KOBOFORM_URL}/api/v2/assets/'
-            rf'{self.asset.uid}/paired_data/pd[^\.]+\.xml$'
+            rf'{self.asset.uid}/paired_data/pd[^\/]+/external\.xml$'
         )
         return re.match(pattern, value)
 
@@ -812,9 +812,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 file_type=AssetFile.FORM_MEDIA
             ).order_by('deleted_at')
         else:
-            queryset = []
-            for paired_data in self.asset.paired_data.values():
-                queryset.append(PairedData(paired_data, self.asset.uid))
+            queryset = PairedData.objects(self.asset).values()
             return queryset
 
     def __get_server_from_identifier(self, identifier):

@@ -505,19 +505,19 @@ class Asset(ObjectPermissionMixin,
     #   'fields': []  # shares all when empty
     #   'users': []  # allows all when empty
     # }
-    data_sharing = LazyDefaultJSONBField(default=False)
+    data_sharing = LazyDefaultJSONBField(default=dict)
     # JSON with parent assets information
     # {
-    #   <paired_data_uid>: {
+    #   <parent_uid>: {
     #       'fields': []  # includes all fields shared with parent when empty
-    #       'parent_uid': 'axxxxxxx'  # auto-generated read-only
-    #       'filename: 'xxxxx'
+    #       'paired_data_uid': 'pdxxxxxxx'  # auto-generated read-only
+    #       'filename: 'xxxxx.xml'
     #   },
     #   ...
-    #   <paired_data_uid>: {
+    #   <parent_uid>: {
     #       'fields': []
-    #       'parent_uid': 'axxxxxxx'
-    #       'filename: 'xxxxx'
+    #       'paired_data_uid': 'pdxxxxxxx'
+    #       'filename: 'xxxxx.xml'
     #   }
     # }
     paired_data = LazyDefaultJSONBField(default=dict)
@@ -1047,9 +1047,6 @@ class Asset(ObjectPermissionMixin,
                 # this object, update will be perform with all parent's
                 # children.
                 self.parent.update_languages()
-
-        if self.has_deployment:
-            self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
 
         if _create_version:
             self.asset_versions.create(name=self.name,

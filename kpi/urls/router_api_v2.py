@@ -10,6 +10,7 @@ from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentVi
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.data import DataViewSet
+from kpi.views.v2.paired_data import PairedDataViewset
 from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
@@ -47,6 +48,12 @@ asset_routes.register(r'data',
 asset_routes.register(r'hook-signal',
                       HookSignalViewSet,
                       basename='hook-signal',
+                      parents_query_lookups=['asset'],
+                      )
+
+asset_routes.register(r'paired-data',
+                      PairedDataViewset,
+                      basename='paired-data',
                       parents_query_lookups=['asset'],
                       )
 
