@@ -322,7 +322,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         filt = {}
         try:
             filt = json.loads(dict(request.data)['payload'][0])
-            filters['fields'] = [*filt['fields'], *DEFAULT_JSON_FIELDS]
+            filters['fields'] = filt['fields']
         except:
             print('***** no payload', flush=True)
 

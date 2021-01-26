@@ -62,7 +62,6 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         view = renderer_context['view']
         # `AssetNestedObjectViewsetMixin` provides the asset
         asset = view.asset
-        label_mapping = {d['$autoname']: d['label'][0] for d in asset.content['survey'] if 'label' in d}
         if renderer_context['response'].status_code != status.HTTP_200_OK:
             # We're ending up with stuff like `{u'detail': u'Not found.'}` in
             # `data`. Is this the best way to handle that?
@@ -74,10 +73,10 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
             versions=pack.versions.keys(),
             group_sep='/',
             lang=formpack.constants.UNSPECIFIED_TRANSLATION,
-            hierarchy_in_labels=True,
+            hierarchy_in_labels=False,
         )
         return ''.join(
-            export.to_geojson(submission_stream, label_mapping)
+            export.to_geojson(submission_stream)
         )
 
 

@@ -545,9 +545,7 @@ class ExportTask(ImportExportTask):
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
         #submission_stream = source.deployment.get_submissions(self.user.id)
-        filters = {'fields': [*fields]}
-        if len(fields) == 0:
-            filters['fields'] = []
+        filters = {'fields': fields if len(fields) != 0 else []}
         submission_stream = source.deployment.get_submissions(
             requesting_user_id=self.user.id,
             **filters
@@ -578,7 +576,6 @@ class ExportTask(ImportExportTask):
                 output_file.write(
                     export.to_geojson(
                         submission_stream,
-                        export_to_file=True,
                         flatten=flatten,
                         fields=fields,
                         include_form_data=include_form_data,
