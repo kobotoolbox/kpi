@@ -703,6 +703,9 @@ export class DataTable extends React.Component {
     this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
     this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
     this.listenTo(stores.pageState, this.onPageStateUpdated);
+    this.listenTo(actions.resources.deleteSubmission.completed, this.refreshSubmissions);
+    this.listenTo(actions.resources.duplicateSubmission.completed, this.refreshSubmissionModal);
+    this.listenTo(actions.resources.refreshTableSubmissions, this.refreshSubmissions);
   }
   refreshSubmissionValidationStatus(result, sid) {
     if (sid) {
@@ -714,6 +717,13 @@ export class DataTable extends React.Component {
         this._prepColumns(newData);
       }
     }
+  }
+  refreshSubmissions() {
+    this.requestData(this.state.fetchInstance);
+  }
+  refreshSubmissionModal(uid, sid, duplicatedSubmission) {
+    this.requestData(this.state.fetchInstance);
+    this.submissionModalProcessing(sid, this.state.tableData, true, duplicatedSubmission);
   }
   onTableUpdateSettingsCompleted() {
     stores.pageState.hideModal();
@@ -735,7 +745,7 @@ export class DataTable extends React.Component {
 
     this.submissionModalProcessing(sid, this.state.tableData);
   }
-  submissionModalProcessing(sid, tableData) {
+  submissionModalProcessing(sid, tableData, isDuplicated=false, duplicatedSubmission=null) {
     let ids = [];
 
     tableData.forEach(function(r) {
@@ -747,6 +757,8 @@ export class DataTable extends React.Component {
       sid: sid,
       asset: this.props.asset,
       ids: ids,
+      isDuplicated: isDuplicated,
+      duplicatedSubmission: duplicatedSubmission,
       tableInfo: {
         currentPage: this.state.currentPage,
         pageSize: this.state.pageSize,

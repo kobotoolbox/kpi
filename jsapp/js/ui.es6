@@ -98,6 +98,21 @@ class Modal extends React.Component {
       );
     }
   }
+  renderClose() {
+    if (this.props.isDuplicated) {
+      return(
+        <a className='modal__done' type='button' onClick={this.props.onClose}>
+          {t('DONE')}
+        </a>
+      );
+    } else {
+      return(
+        <a className='modal__x' type='button' onClick={this.props.onClose}>
+          <i className='k-icon-close'/>
+        </a>
+      );
+    }
+  }
   render() {
     return (
       <bem.Modal__backdrop onClick={this.backdropClick}>
@@ -114,9 +129,7 @@ class Modal extends React.Component {
           <bem.Modal__content>
             <bem.Modal__header>
               {this.renderTitle()}
-              <a className='modal__x' type='button' onClick={this.props.onClose}>
-                <i className='k-icon-close'/>
-              </a>
+              {this.renderClose()}
             </bem.Modal__header>
             {this.props.children}
           </bem.Modal__content>

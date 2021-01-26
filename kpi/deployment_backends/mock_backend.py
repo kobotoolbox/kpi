@@ -1,6 +1,10 @@
 # coding: utf-8
+import copy
 import re
+import uuid
+from datetime import datetime
 
+import pytz
 from django.urls import reverse
 from rest_framework import status
 
@@ -200,6 +204,25 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             submissions = submissions[:params['limit']]
 
         return submissions
+
+    def duplicate_submission(
+        self, requesting_user_id: int, instance_id: int, **kwargs: dict
+    ) -> dict:
+        all_submissions = self.asset._deployment_data['submissions']
+        submission = next(
+            filter(lambda sub: sub['_id'] == instance_id, all_submissions)
+        )
+        next_id = max([sub['_id'] for sub in all_submissions]) + 1
+        duplicate_submission = copy.copy(submission)
+        updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        updated_fields = {
+                '_id': next_id,
+                'start': updated_time,
+                'end': updated_time,
+                'instanceID': f'uuid:{uuid.uuid4()}'
+                }
+
+        return {**duplicate_submission, **updated_fields}
 
     def get_validation_status(self, submission_pk, params, user):
         submission = self.get_submission(submission_pk, user.id,
