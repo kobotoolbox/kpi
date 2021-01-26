@@ -47,6 +47,7 @@ class UserAssetPermsEditor extends React.Component {
       username: '',
       formView: false,
       formViewDisabled: false,
+      formEditDisabled: false,
       formEdit: false,
       submissionsView: false,
       submissionsViewDisabled: false,
@@ -54,6 +55,7 @@ class UserAssetPermsEditor extends React.Component {
       submissionsViewPartialDisabled: false,
       submissionsViewPartialUsers: [],
       submissionsAdd: false,
+      submissionsAddDisabled: false,
       submissionsEdit: false,
       submissionsEditDisabled: false,
       submissionsDelete: false,
@@ -137,8 +139,10 @@ class UserAssetPermsEditor extends React.Component {
   applyValidityRules(stateObj) {
     // reset disabling before checks
     stateObj.formViewDisabled = false;
+    stateObj.formEditDisabled = false;
     stateObj.submissionsViewDisabled = false;
     stateObj.submissionsViewPartialDisabled = false;
+    stateObj.submissionsAddDisabled = false;
     stateObj.submissionsDeleteDisabled = false;
     stateObj.submissionsEditDisabled = false;
     stateObj.submissionsValidateDisabled = false;
@@ -185,6 +189,26 @@ class UserAssetPermsEditor extends React.Component {
       stateObj.submissionsViewPartial = false;
       stateObj.submissionsViewPartialDisabled = true;
       stateObj.submissionsViewPartialUsers = [];
+    }
+
+    // `formManage` implies every other permission (except partial permissions)
+    if (stateObj.formManage) {
+      stateObj.formView = true;
+      stateObj.formEdit = true;
+      stateObj.submissionsAdd = true;
+      stateObj.submissionsView = true;
+      stateObj.submissionsDelete = true;
+      stateObj.submissionsEdit = true;
+      stateObj.submissionsValidate = true;
+
+      stateObj.formViewDisabled = true;
+      stateObj.formEditDisabled = true;
+      stateObj.submissionsViewDisabled = true;
+      stateObj.submissionsViewPartialDisabled = true;
+      stateObj.submissionsAddDisabled = true;
+      stateObj.submissionsDeleteDisabled = true;
+      stateObj.submissionsEditDisabled = true;
+      stateObj.submissionsValidateDisabled = true;
     }
 
     return stateObj;
@@ -339,6 +363,7 @@ class UserAssetPermsEditor extends React.Component {
 
     if (this.isAssignable('view_asset')) {output.formView = this.state.formView;}
     if (this.isAssignable('change_asset')) {output.formEdit = this.state.formEdit;}
+    if (this.isAssignable('manage_asset')) {output.formManage = this.state.formManage;}
     if (this.isAssignable('add_submissions')) {output.submissionsAdd = this.state.submissionsAdd;}
     if (this.isAssignable('view_submissions')) {output.submissionsView = this.state.submissionsView;}
     if (this.isAssignable('partial_submissions')) {
@@ -421,6 +446,7 @@ class UserAssetPermsEditor extends React.Component {
           {this.isAssignable('change_asset') &&
             <Checkbox
               checked={this.state.formEdit}
+              disabled={this.state.formEditDisabled}
               onChange={this.onCheckboxChange.bind(this, 'formEdit')}
               label={this.getLabel('change_asset')}
             />
@@ -459,6 +485,7 @@ class UserAssetPermsEditor extends React.Component {
           {this.isAssignable('add_submissions') &&
             <Checkbox
               checked={this.state.submissionsAdd}
+              disabled={this.state.submissionsAddDisabled}
               onChange={this.onCheckboxChange.bind(this, 'submissionsAdd')}
               label={this.getLabel('add_submissions')}
             />
@@ -488,6 +515,14 @@ class UserAssetPermsEditor extends React.Component {
               disabled={this.state.submissionsValidateDisabled}
               onChange={this.onCheckboxChange.bind(this, 'submissionsValidate')}
               label={this.getLabel('validate_submissions')}
+            />
+          }
+
+          {this.isAssignable('manage_asset') &&
+            <Checkbox
+              checked={this.state.formManage}
+              onChange={this.onCheckboxChange.bind(this, 'formManage')}
+              label={this.getLabel('manage_asset')}
             />
           }
         </div>

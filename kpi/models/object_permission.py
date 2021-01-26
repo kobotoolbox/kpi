@@ -278,7 +278,9 @@ class ObjectPermissionMixin:
 
     CONTRADICTORY_PERMISSIONS = {}
 
-    def get_assignable_permissions(self, with_partial=True):
+    def get_assignable_permissions(
+        self, with_partial: bool = True
+    ) -> tuple:
         """
         The "versioned app registry" used during migrations apparently does
         not store non-database attributes, so this awful workaround is needed
@@ -286,22 +288,19 @@ class ObjectPermissionMixin:
         Returns assignable permissions including permissions prefixed by
         `PREFIX_PARTIAL_PERMS` if `with_partial` is True.
 
+        Attempts to return only permissions relevant to the asset type when
+        `instance` is provided. This feels like a bit of a hack; sorry.
+
         It can be useful to remove the partial permissions when assigning
         permissions to owner of the object.
-
-        :param with_partial: bool.
-        :return: tuple
         """
-        try:
-            permissions_by_type = self.ASSIGNABLE_PERMISSIONS_BY_TYPE
-        except AttributeError:
-            permissions_by_type = apps.get_model(
-                self._meta.app_label, self._meta.model_name
-            ).ASSIGNABLE_PERMISSIONS_BY_TYPE
 
-        # FIXME: since this method is clearly `Asset`-specific, it does not
-        # belong in this generic mixin
-        assignable_permissions = permissions_by_type[self.asset_type]
+        try:
+            assignable_permissions = (
+                self.ASSIGNABLE_PERMISSIONS_BY_TYPE[self.asset_type]
+            )
+        except AttributeError:
+            assignable_permissions = self.ASSIGNABLE_PERMISSIONS
 
         if with_partial is False:
             assignable_permissions = tuple(ap for ap in assignable_permissions
@@ -391,12 +390,7 @@ class ObjectPermissionMixin:
         if user is not None:
             kwargs['user'] = user
         if codename is not None:
-            # share_ requires loading change_ from the database
-            if codename.startswith('share_'):
-                kwargs['codename'] = re.sub(
-                    '^share_', 'change_', codename, 1)
-            else:
-                kwargs['codename'] = codename
+            kwargs['codename'] = codename
 
         grant_perms = self.__get_object_permissions(deny=False, **kwargs)
         deny_perms = self.__get_object_permissions(deny=True, **kwargs)
@@ -414,40 +408,30 @@ class ObjectPermissionMixin:
                 # Anonymous users weren't considered; no filtering is necessary
                 return effective_perms
 
-        # Add on the calculated permissions
+        # Add the calculated `delete_` permission for the owner
         content_type = ContentType.objects.get_for_model(self)
-        if codename in self.CALCULATED_PERMISSIONS:
-            # A specific query for a calculated permission should not return
-            # any explicitly assigned permissions, e.g. share_ should not
-            # include change_
-            effective_perms = set()
+        if (
+            self.owner is not None
+            and (user is None or user.pk == self.owner.pk)
+            and (codename is None or codename.startswith('delete_'))
+        ):
+            matching_permissions = self.__get_permissions_for_content_type(
+                content_type.pk, codename__startswith='delete_'
+            )
+            # FIXME: `Asset`-specific logic does not belong in this generic
+            # mixin
+            if self.asset_type != ASSET_TYPE_SURVEY:
+                matching_permissions = matching_permissions.exclude(
+                    codename__endswith='_submissions'
+                )
 
-        # The owner has the share_ and delete_ permission
-        for codename_prefix in ('share_', 'delete_'):
-            if (
-                self.owner is not None
-                and (user is None or user.pk == self.owner.pk)
-                and (codename is None or codename.startswith(codename_prefix))
-            ):
-                matching_permissions = self.__get_permissions_for_content_type(
-                    content_type.pk, codename__startswith=codename_prefix)
-
-                # FIXME: `Asset`-specific logic does not belong in this generic
-                # mixin
-                if self.asset_type != ASSET_TYPE_SURVEY:
-                    matching_permissions = matching_permissions.exclude(
-                        codename__endswith="_submissions"
-                    )
-
-                for perm_pk, perm_codename in matching_permissions:
-                    if (codename is not None and
-                            perm_codename != codename
-                    ):
-                        # If the caller specified `codename`, skip anything that
-                        # doesn't match exactly. Necessary because `Asset` has
-                        # `delete_submissions` in addition to `delete_asset`
-                        continue
-                    effective_perms.add((self.owner.pk, perm_pk))
+            for perm_pk, perm_codename in matching_permissions:
+                if codename is not None and perm_codename != codename:
+                    # If the caller specified `codename`, skip anything that
+                    # doesn't match exactly. Necessary because `Asset` has
+                    # `delete_submissions` in addition to `delete_asset`
+                    continue
+                effective_perms.add((self.owner.pk, perm_pk))
 
         # We may have calculated more permissions for anonymous users
         # than they are allowed to have. Remove them.
@@ -501,7 +485,9 @@ class ObjectPermissionMixin:
         if self.owner is not None:
             for perm in Permission.objects.filter(
                 content_type=content_type,
-                codename__in=self.get_assignable_permissions(with_partial=False)
+                codename__in=self.get_assignable_permissions(
+                    with_partial=False,
+                ),
             ):
                 new_permission = ObjectPermission()
                 new_permission.asset = self
@@ -592,10 +578,7 @@ class ObjectPermissionMixin:
                 implied_perms = implied_perms_dict[this_explicit_perm]
             except KeyError:
                 continue
-            if result.intersection(implied_perms):
-                raise ImproperlyConfigured(
-                    'Loop in IMPLIED_PERMISSIONS for {}'.format(cls))
-            perms_to_process.extend(implied_perms)
+            perms_to_process.extend(set(implied_perms).difference(result))
             result.update(implied_perms)
 
         if for_instance:
@@ -660,7 +643,8 @@ class ObjectPermissionMixin:
               partial permissions
         """
         app_label, codename = perm_parse(perm, self)
-        if codename not in self.get_assignable_permissions():
+        assignable_permissions = self.get_assignable_permissions()
+        if codename not in assignable_permissions:
             # Some permissions are calculated and not stored in the database
             raise serializers.ValidationError({
                 'permission': f'{codename} cannot be assigned explicitly to {self}'
@@ -733,7 +717,7 @@ class ObjectPermissionMixin:
         # view
         implied_perms = self.get_implied_perms(
             codename, reverse=deny, for_instance=self
-        )
+        ).intersection(assignable_permissions)
         for implied_perm in implied_perms:
             self.assign_perm(
                 user_obj, implied_perm, deny=deny, defer_recalc=True)
@@ -849,6 +833,9 @@ class ObjectPermissionMixin:
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
         app_label, codename = perm_parse(perm, self)
+        # Unlike `assign_perm()`, do not pass `instance` to
+        # `get_assignable_permissions()`. That way, we can allow invalid
+        # permissions to be removed
         if codename not in self.get_assignable_permissions():
             # Some permissions are calculated and not stored in the database
             raise serializers.ValidationError({

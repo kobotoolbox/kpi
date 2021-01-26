@@ -255,6 +255,9 @@ permissionsActions.assignAssetPermission.failed.listen(() => {
 permissionsActions.removeAssetPermission.failed.listen(() => {
   notify(t('Failed to remove permissions'), 'error');
 });
+permissionsActions.bulkSetAssetPermissions.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
 permissionsActions.assignCollectionPermission.failed.listen(() => {
   notify(t('Failed to update permissions'), 'error');
 });
@@ -539,10 +542,6 @@ actions.resources.createResource.listen(function(details){
     });
 });
 
-/**
- * @param {object} params
- * @param {string} params.uid
- */
 actions.resources.deleteAsset.listen(function(details, params={}){
   dataInterface.deleteAsset(details)
     .done(() => {

@@ -17,9 +17,8 @@ import {
   surveyToValidJson,
   unnullifyTranslations,
   assign,
-  koboMatrixParser,
-  syncCascadeChoiceNames
-} from 'utils';
+  koboMatrixParser
+} from '../utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
@@ -229,11 +228,11 @@ export default assign({
     if (this.state.settings__style !== undefined) {
       this.app.survey.settings.set('style', this.state.settings__style);
     }
+
     let surveyJSON = surveyToValidJson(this.app.survey);
     if (this.state.asset) {
       let surveyJSONWithMatrix = koboMatrixParser({source: surveyJSON}).source;
-      let surveyJSONCascade = syncCascadeChoiceNames({source: surveyJSONWithMatrix}).source;
-      surveyJSON = unnullifyTranslations(surveyJSONCascade, this.state.asset.content);
+      surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, this.state.asset.content);
     }
     let params = {content: surveyJSON};
 
