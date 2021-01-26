@@ -545,19 +545,13 @@ class ExportTask(ImportExportTask):
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
         #submission_stream = source.deployment.get_submissions(self.user.id)
-        filters = {'fields': [*fields, *DEFAULT_JSON_FIELDS]}
+        filters = {'fields': [*fields]}
         if len(fields) == 0:
             filters['fields'] = []
         submission_stream = source.deployment.get_submissions(
             requesting_user_id=self.user.id,
             **filters
         )
-        survey = source.content['survey']
-        label_mapping = {
-            d['$autoname']: d['label'][0]
-            for d in survey
-            if 'label' in d
-        }
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions)
@@ -584,7 +578,6 @@ class ExportTask(ImportExportTask):
                 output_file.write(
                     export.to_geojson(
                         submission_stream,
-                        label_mapping,
                         export_to_file=True,
                         flatten=flatten,
                         fields=fields,
