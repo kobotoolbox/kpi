@@ -14,7 +14,6 @@ from xml.etree import ElementTree as ET
 
 import pytz
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
@@ -37,7 +36,6 @@ from .kc_access.utils import (
 )
 from ..exceptions import (
     BadFormatException,
-    KobocatBulkUpdateSubmissionsException,
     KobocatBulkUpdateSubmissionsClientException,
     KobocatDeploymentException,
     KobocatDuplicateSubmissionException,
@@ -683,10 +681,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             dict: message response from kobocat and uuid of created submission
             if successful
         """
-        # Must be a list of ids for validation
-        kwargs['instance_ids'] = [instance_id]
         params = self.validate_submission_list_params(
-            requesting_user_id, format_type=INSTANCE_FORMAT_TYPE_XML, **kwargs
+            requesting_user_id,
+            format_type=INSTANCE_FORMAT_TYPE_XML,
+            instance_ids=[instance_id],
         )
         submissions = self.__get_submissions_in_xml(**params)
 
@@ -1082,18 +1080,29 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             the client
         '''
 
+        OPEN_ROSA_XML_MESSAGE = '{http://openrosa.org/http/response}message'
+
         # Unfortunately, the response message from OpenRosa is in XML format,
         # so it needs to be parsed before extracting the text
-        results = [
-            {
-                'uuid': res['uuid'],
-                'status_code': res['response'].status_code,
-                'message': ET.fromstring(res['response']._content)
-                .find('{http://openrosa.org/http/response}message')
-                .text,
-            }
-            for res in kc_responses
-        ]
+        results = []
+        for response in kc_responses:
+            try:
+                message = _(
+                    ET.fromstring(response['response'].content)
+                    .find(OPEN_ROSA_XML_MESSAGE)
+                    .text
+                )
+            except ET.ParseError:
+                message = _('Something went wrong')
+
+            results.append(
+                {
+                    'uuid': response['uuid'],
+                    'status_code': response['response'].status_code,
+                    'message': message,
+                }
+            )
+
         total_update_attempts = len(results)
         total_successes = [result['status_code'] for result in results].count(
             status.HTTP_201_CREATED

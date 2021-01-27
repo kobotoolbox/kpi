@@ -5,14 +5,12 @@ from django.test import TestCase
 from rest_framework import serializers
 
 from ..models.asset import Asset
-from ..models.object_permission import ObjectPermission
 from ..models.object_permission import get_all_objects_for_user
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_QUESTION,
     PERM_CHANGE_ASSET,
     PERM_DISCOVER_ASSET,
-    PERM_SHARE_ASSET,
     PERM_VIEW_ASSET,
 )
 
@@ -498,40 +496,6 @@ class ShareCollectionTests(TestCase):
         # are gone
         self.standalone_coll.delete()
         self.assertEqual(self.standalone_coll.permissions.count(), 0)
-
-    def test_owner_can_edit_permissions(self):
-        self.assertTrue(self.standalone_coll.owner.has_perm(
-            PERM_SHARE_ASSET,
-            self.standalone_coll
-        ))
-
-    def test_share_collection_permission_is_not_inherited(self):
-        # Make a child collection whose owner is different than its parent's
-        coll = Asset.objects.create(
-            asset_type=ASSET_TYPE_COLLECTION,
-            name="anotheruser's collection",
-            owner=self.anotheruser,
-            parent=self.standalone_coll,
-            # The change permission is inherited; prevent it from allowing
-            # users to edit permissions
-            editors_can_change_permissions=False
-        )
-        # Ensure the parent's owner can't change permissions on the child
-        self.assertFalse(self.standalone_coll.owner.has_perm(
-            PERM_SHARE_ASSET,
-            coll
-        ))
-
-    def test_change_permission_does_not_provide_share_permission(self):
-        self.assertFalse(
-            self.someuser.has_perm(PERM_CHANGE_ASSET, self.standalone_coll)
-        )
-        # Grant the change permission and make sure it does not provide
-        # share_collection
-        self.standalone_coll.assign_perm(self.someuser, PERM_CHANGE_ASSET)
-        self.assertFalse(
-            self.someuser.has_perm(PERM_SHARE_ASSET, self.standalone_coll)
-        )
 
     def test_anonymous_view_permission_on_standalone_collection(self):
         # Grant

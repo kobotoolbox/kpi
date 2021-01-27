@@ -503,6 +503,8 @@ class AssetsDetailApiTests(BaseAssetTestCase):
              'url': 'http://testserver/api/v2/permissions/change_asset/'},
             {'label': 'Edit submissions',
              'url': 'http://testserver/api/v2/permissions/change_submissions/'},
+            {'label': 'Manage project',
+             'url': 'http://testserver/api/v2/permissions/manage_asset/'},
             {'label': 'Validate submissions',
              'url': 'http://testserver/api/v2/permissions/validate_submissions/'},
             {'label': 'View form',
@@ -532,6 +534,8 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         expected_response = [
             {'label': 'Edit question',
              'url': 'http://testserver/api/v2/permissions/change_asset/'},
+            {'label': 'Manage question',
+             'url': 'http://testserver/api/v2/permissions/manage_asset/'},
             {'label': 'View question',
              'url': 'http://testserver/api/v2/permissions/view_asset/'},
         ]
@@ -597,15 +601,17 @@ class AssetFileTest(BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         self.current_username = 'someuser'
         self.asset = Asset.objects.filter(owner__username='someuser').first()
-        self.list_url = reverse(self._get_endpoint('asset-file-list'), args=[self.asset.uid])
+        self.list_url = reverse(
+            self._get_endpoint('asset-file-list'), args=[self.asset.uid]
+        )
         # TODO: change the fixture so every asset's owner has all expected
         # permissions?  For now, call `save()` to recalculate permissions and
         # verify the result
         self.asset.save()
         self.assertListEqual(
             sorted(list(self.asset.get_perms(self.asset.owner))),
-            sorted(list(self.asset.get_assignable_permissions(False) +
-                        Asset.CALCULATED_PERMISSIONS))
+            sorted(list(self.asset.get_assignable_permissions(with_partial=False)
+                        + Asset.CALCULATED_PERMISSIONS))
         )
 
     def get_asset_file_content(self, url):

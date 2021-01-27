@@ -28,6 +28,7 @@ new Set([
   'view_asset',
   'change_asset',
   'discover_asset',
+  'manage_asset',
   'add_submissions',
   'view_submissions',
   'partial_submissions',
