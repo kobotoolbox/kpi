@@ -104,7 +104,8 @@ class BulkEditSubmissionsForm extends React.Component {
     }
   }
 
-  onSubmit() {
+  onSubmit(evt) {
+    evt.preventDefault();
     // BE endpoint requires question names with paths
     // and we will gladly give them what they want
     const overridesWithPaths = {};
