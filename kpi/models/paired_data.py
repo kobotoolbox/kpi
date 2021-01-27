@@ -17,6 +17,7 @@ class PairedData:
         fields: list,
         asset: 'kpi.models.Asset',
         paired_data_uid: str = None,
+        hash_: str = None,
     ):
         self.parent_uid = parent_uid
         self.asset = asset
@@ -27,7 +28,13 @@ class PairedData:
             self.paired_data_uid = KpiUidField.generate_unique_id('pd')
         else:
             self.paired_data_uid = paired_data_uid
-        self.__hash = get_hash(f'{self.kc_metadata_uniqid}.{str(time.time())}')
+
+        if not hash_:
+            self.__hash = get_hash(
+                f'{self.kc_metadata_uniqid}.{str(time.time())}'
+            )
+        else:
+            self.__hash = hash_
 
     def __str__(self):
         return f'<PairedData {self.paired_data_uid} ({self.filename})>'
@@ -88,9 +95,10 @@ class PairedData:
             'fields': self.fields,
             'filename': self.filename,
             'paired_data_uid': self.paired_data_uid,
+            'hash_': self.__hash
         }
 
-        return self.asset.save(
+        self.asset.save(
             update_fields=['paired_data'],
             adjust_content=False,
             create_version=False,
@@ -101,3 +109,7 @@ class PairedData:
             if not hasattr(self, key):
                 continue
             setattr(self, key, value)
+
+        self.__hash = get_hash(
+            f'{self.kc_metadata_uniqid}.{str(time.time())}'
+        )

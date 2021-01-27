@@ -555,7 +555,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def is_paired_data(self, value: str) -> bool:
         pattern = (
             rf'{settings.KOBOFORM_URL}/api/v2/assets/'
-            rf'{self.asset.uid}/paired_data/pd[^\/]+/external\.xml$'
+            rf'{self.asset.uid}/paired-data/pd[^\/]+/external\.xml$'
         )
         return re.match(pattern, value)
 

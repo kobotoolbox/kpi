@@ -1077,6 +1077,9 @@ class Asset(ObjectPermissionMixin,
                 # children.
                 self.parent.update_languages()
 
+        if self.has_deployment:
+            self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
+
         if _create_version:
             self.asset_versions.create(name=self.name,
                                        version_content=self.content,
