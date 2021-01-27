@@ -154,7 +154,7 @@ class AssetNavigator extends Reflux.Component {
       imports: [],
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: COMMON_QUERIES.get('qbt')
+          assetType: COMMON_QUERIES.qbt
         }
       }),
       selectedTags: []

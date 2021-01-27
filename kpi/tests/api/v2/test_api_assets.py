@@ -13,6 +13,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_MANAGE_ASSET,
 )
 from kpi.models import Asset
 from kpi.models import AssetFile
@@ -504,6 +505,8 @@ class AssetsDetailApiTests(BaseAssetTestCase):
              'url': 'http://testserver/api/v2/permissions/change_asset/'},
             {'label': 'Edit submissions',
              'url': 'http://testserver/api/v2/permissions/change_submissions/'},
+            {'label': 'Manage project',
+             'url': 'http://testserver/api/v2/permissions/manage_asset/'},
             {'label': 'Validate submissions',
              'url': 'http://testserver/api/v2/permissions/validate_submissions/'},
             {'label': 'View form',
@@ -533,6 +536,8 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         expected_response = [
             {'label': 'Edit question',
              'url': 'http://testserver/api/v2/permissions/change_asset/'},
+            {'label': 'Manage question',
+             'url': 'http://testserver/api/v2/permissions/manage_asset/'},
             {'label': 'View question',
              'url': 'http://testserver/api/v2/permissions/view_asset/'},
         ]
@@ -598,15 +603,17 @@ class AssetFileTest(BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         self.current_username = 'someuser'
         self.asset = Asset.objects.filter(owner__username='someuser').first()
-        self.list_url = reverse(self._get_endpoint('asset-file-list'), args=[self.asset.uid])
+        self.list_url = reverse(
+            self._get_endpoint('asset-file-list'), args=[self.asset.uid]
+        )
         # TODO: change the fixture so every asset's owner has all expected
         # permissions?  For now, call `save()` to recalculate permissions and
         # verify the result
         self.asset.save()
         self.assertListEqual(
             sorted(list(self.asset.get_perms(self.asset.owner))),
-            sorted(list(self.asset.get_assignable_permissions(False) +
-                        Asset.CALCULATED_PERMISSIONS))
+            sorted(list(self.asset.get_assignable_permissions(with_partial=False)
+                        + Asset.CALCULATED_PERMISSIONS))
         )
 
     def get_asset_file_content(self, url):
@@ -732,25 +739,45 @@ class AssetFileTest(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         # TODO: test that the file itself is removed
 
-    def test_editor_can_create_file(self):
+    def test_manager_can_create_file(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
-        self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
+        self.asset.assign_perm(anotheruser, PERM_MANAGE_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_MANAGE_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
         self.verify_asset_file(self.create_asset_file())
 
-    def test_editor_can_delete_file(self):
+    def test_manager_can_delete_file(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
-        self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
+        self.asset.assign_perm(anotheruser, PERM_MANAGE_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_MANAGE_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
         af_uid = self.verify_asset_file(self.create_asset_file())
         detail_url = reverse(self._get_endpoint('asset-file-detail'),
                              args=(self.asset.uid, af_uid))
         response = self.client.delete(detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_editor_cannot_create_file(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
+        self.switch_user(username='anotheruser', password='anotheruser')
+        self.create_asset_file(status_code=status.HTTP_403_FORBIDDEN)
+
+    def test_editor_cannot_delete_file(self):
+        af_uid = self.verify_asset_file(self.create_asset_file())
+        anotheruser = User.objects.get(username='anotheruser')
+        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
+        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
+        self.switch_user(username='anotheruser', password='anotheruser')
+        detail_url = reverse(self._get_endpoint('asset-file-detail'),
+                             args=(self.asset.uid, af_uid))
+        response = self.client.delete(detail_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_viewer_can_access_file(self):
         af_uid = self.verify_asset_file(self.create_asset_file())
@@ -906,8 +933,8 @@ class AssetFileTest(BaseTestCase):
         )
         json_response = response.json()
         expected_response = {
-            'metadata': ['`redirect_url`: Only `image`, `audio`, `video`, '
-                         '`text/csv`, `application/xml` MIME types are allowed']
+            'metadata': ['Only `image`, `audio`, `video`, `text/csv`, '
+                         '`application/xml` MIME types are allowed']
         }
         assert json_response == expected_response
 

@@ -7,9 +7,23 @@ import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 
 const libraryActions = Reflux.createActions({
+  searchMyCollectionAssets: {
+    children: [
+      'started',
+      'completed',
+      'failed'
+    ]
+  },
   searchMyLibraryAssets: {
     children: [
       'started',
+      'completed',
+      'failed'
+    ]
+  },
+
+  searchMyCollectionMetadata: {
+    children: [
       'completed',
       'failed'
     ]
@@ -67,6 +81,18 @@ const libraryActions = Reflux.createActions({
 });
 
 /**
+ * Gets single collection's assets
+ *
+ * @param {object} params
+ */
+libraryActions.searchMyCollectionAssets.listen((params) => {
+  const xhr = dataInterface.searchMyCollectionAssets(params)
+    .done(libraryActions.searchMyCollectionAssets.completed)
+    .fail(libraryActions.searchMyCollectionAssets.failed);
+  libraryActions.searchMyCollectionAssets.started(xhr.abort);
+});
+
+/**
  * Gets library assets and metadata (with a flag)
  * Note: `started` callback returns abort method immediately
  * @param {object} params
@@ -76,6 +102,17 @@ libraryActions.searchMyLibraryAssets.listen((params) => {
     .done(libraryActions.searchMyLibraryAssets.completed)
     .fail(libraryActions.searchMyLibraryAssets.failed);
   libraryActions.searchMyLibraryAssets.started(xhr.abort);
+});
+
+
+/**
+ * Gets metadata for a single collection's assets
+ * @param {object} params
+ */
+libraryActions.searchMyCollectionMetadata.listen((params) => {
+  dataInterface.searchMyCollectionMetadata(params)
+    .done(libraryActions.searchMyCollectionMetadata.completed)
+    .fail(libraryActions.searchMyCollectionMetadata.failed);
 });
 
 /**

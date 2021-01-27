@@ -44,9 +44,8 @@ from kpi.constants import (
     PERM_DELETE_SUBMISSIONS,
     PERM_DISCOVER_ASSET,
     PERM_FROM_KC_ONLY,
+    PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
-    PERM_SHARE_ASSET,
-    PERM_SHARE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
@@ -484,9 +483,6 @@ class Asset(ObjectPermissionMixin,
                                null=True, blank=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True,
                               on_delete=models.CASCADE)
-    # TODO: remove this flag; support for it has been removed from
-    # ObjectPermissionMixin
-    editors_can_change_permissions = models.BooleanField(default=False)
     uid = KpiUidField(uid_prefix='a')
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = JSONBField(default=dict)
@@ -518,8 +514,8 @@ class Asset(ObjectPermissionMixin,
             # change_, add_, and delete_asset are provided automatically
             # by Django
             (PERM_VIEW_ASSET, _('Can view asset')),
-            (PERM_SHARE_ASSET, _("Can change asset's sharing settings")),
             (PERM_DISCOVER_ASSET, _('Can discover asset in public lists')),
+            (PERM_MANAGE_ASSET, _('Can manage all aspects of asset')),
             # Permissions for collected data, i.e. submissions
             (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
             (PERM_VIEW_SUBMISSIONS, _('Can view submitted data for asset')),
@@ -528,8 +524,6 @@ class Asset(ObjectPermissionMixin,
                                          'for specific users')),
             (PERM_CHANGE_SUBMISSIONS, _('Can modify submitted data for asset')),
             (PERM_DELETE_SUBMISSIONS, _('Can delete submitted data for asset')),
-            (PERM_SHARE_SUBMISSIONS, _("Can change sharing settings for "
-                                       "asset's submitted data")),
             (PERM_VALIDATE_SUBMISSIONS, _("Can validate submitted data asset")),
             # TEMPORARY Issue #1161: A flag to indicate that permissions came
             # solely from `sync_kobocat_xforms` and not from any user
@@ -548,9 +542,13 @@ class Asset(ObjectPermissionMixin,
         # The simplest way to fix this is to keep old behaviour
         default_permissions = ('add', 'change', 'delete')
 
-    # Labels for each `asset_type` as they should be presented to users
-    ASSET_TYPE_LABELS = {
-        ASSET_TYPE_SURVEY: _('form'),
+    # Labels for each `asset_type` as they should be presented to users. Can be
+    # strings or callables if special logic is needed. Callables receive the
+    # codename of the permission for which a label is being created
+    ASSET_TYPE_LABELS_FOR_PERMISSIONS = {
+        ASSET_TYPE_SURVEY: (
+            lambda p: _('project') if p == PERM_MANAGE_ASSET else _('form')
+        ),
         ASSET_TYPE_TEMPLATE: _('template'),
         ASSET_TYPE_BLOCK: _('block'),
         ASSET_TYPE_QUESTION: _('question'),
@@ -566,6 +564,7 @@ class Asset(ObjectPermissionMixin,
         PERM_VIEW_ASSET: _('View ##asset_type_label##'),
         PERM_CHANGE_ASSET: _('Edit ##asset_type_label##'),
         PERM_DISCOVER_ASSET: _('Discover ##asset_type_label##'),
+        PERM_MANAGE_ASSET: _('Manage ##asset_type_label##'),
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
         PERM_PARTIAL_SUBMISSIONS: _('View submissions only from specific users'),
@@ -581,6 +580,7 @@ class Asset(ObjectPermissionMixin,
             PERM_CHANGE_ASSET,
             # Only collections may be "discoverable" at this time
             # PERM_DISCOVER_ASSET,
+            PERM_MANAGE_ASSET,
             PERM_ADD_SUBMISSIONS,
             PERM_VIEW_SUBMISSIONS,
             PERM_PARTIAL_SUBMISSIONS,
@@ -588,24 +588,35 @@ class Asset(ObjectPermissionMixin,
             PERM_DELETE_SUBMISSIONS,
             PERM_VALIDATE_SUBMISSIONS,
         ),
-        ASSET_TYPE_TEMPLATE: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
-        ASSET_TYPE_BLOCK: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
-        ASSET_TYPE_QUESTION: (PERM_VIEW_ASSET, PERM_CHANGE_ASSET),
+        ASSET_TYPE_TEMPLATE: (
+            PERM_VIEW_ASSET,
+            PERM_CHANGE_ASSET,
+            PERM_MANAGE_ASSET,
+        ),
+        ASSET_TYPE_BLOCK: (
+            PERM_VIEW_ASSET,
+            PERM_CHANGE_ASSET,
+            PERM_MANAGE_ASSET,
+        ),
+        ASSET_TYPE_QUESTION: (
+            PERM_VIEW_ASSET,
+            PERM_CHANGE_ASSET,
+            PERM_MANAGE_ASSET,
+        ),
         ASSET_TYPE_TEXT: (),  # unused?
         ASSET_TYPE_EMPTY: (),  # unused?
         ASSET_TYPE_COLLECTION: (
             PERM_VIEW_ASSET,
             PERM_CHANGE_ASSET,
             PERM_DISCOVER_ASSET,
+            PERM_MANAGE_ASSET,
         ),
     }
 
     # Calculated permissions that are neither directly assignable nor stored
     # in the database, but instead implied by assignable permissions
     CALCULATED_PERMISSIONS = (
-        PERM_SHARE_ASSET,
         PERM_DELETE_ASSET,
-        PERM_SHARE_SUBMISSIONS
     )
     # Only certain permissions can be inherited
     HERITABLE_PERMISSIONS = {
@@ -618,12 +629,19 @@ class Asset(ObjectPermissionMixin,
         # Format: explicit: (implied, implied, ...)
         PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
         PERM_DISCOVER_ASSET: (PERM_VIEW_ASSET,),
+        PERM_MANAGE_ASSET: tuple(
+            (
+                p
+                for p in ASSIGNABLE_PERMISSIONS
+                if p not in (PERM_MANAGE_ASSET, PERM_PARTIAL_SUBMISSIONS)
+            )
+        ),
         PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_PARTIAL_SUBMISSIONS: (PERM_VIEW_ASSET,),
         PERM_CHANGE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
         PERM_DELETE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
-        PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,)
+        PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_SUBMISSIONS,),
     }
 
     CONTRADICTORY_PERMISSIONS = {
@@ -632,6 +650,7 @@ class Asset(ObjectPermissionMixin,
             PERM_CHANGE_SUBMISSIONS,
             PERM_DELETE_SUBMISSIONS,
             PERM_VALIDATE_SUBMISSIONS,
+            PERM_MANAGE_ASSET,
         ),
         PERM_VIEW_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
         PERM_CHANGE_SUBMISSIONS: (PERM_PARTIAL_SUBMISSIONS,),
@@ -759,10 +778,20 @@ class Asset(ObjectPermissionMixin,
                 cached_code_names = get_cached_code_names()
                 label = cached_code_names[codename]['name']
 
+        asset_type_label = self.ASSET_TYPE_LABELS_FOR_PERMISSIONS[
+            self.asset_type
+        ]
+        try:
+            # Some labels may be callables
+            asset_type_label = asset_type_label(codename)
+        except TypeError:
+            # Others are just strings
+            pass
+
         label = label.replace(
             '##asset_type_label##',
             # Raises TypeError if not coerced explicitly
-            str(self.ASSET_TYPE_LABELS[self.asset_type])
+            str(asset_type_label)
         )
         return label
 
