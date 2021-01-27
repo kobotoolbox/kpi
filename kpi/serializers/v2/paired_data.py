@@ -24,6 +24,7 @@ class PairedDataSerializer(serializers.Serializer):
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY),
         view_name='asset-detail',
         required=True,
+        style={'base_template': 'input.html'}  # Render as a simple text box
     )
     fields = serializers.ListField(child=serializers.CharField())
     filename = serializers.CharField()
