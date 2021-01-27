@@ -559,6 +559,11 @@ class ExportTask(ImportExportTask):
         submission_stream = self._record_last_submission_time(
             submission_stream)
 
+        default_translation = source.summary['default_translation']
+        language = self.data.get('lang', default_translation)
+        if language == '_default':
+            language = default_translation
+
         options = self._build_export_options(pack)
         export = pack.export(**options)
         filename = self._build_export_filename(export, export_type)
@@ -577,9 +582,10 @@ class ExportTask(ImportExportTask):
                     export.to_geojson(
                         submission_stream,
                         flatten=flatten,
-                        fields=fields,
                         include_form_data=include_form_data,
                         form_data_in_properties=form_data_in_properties,
+                        language=language,
+                        use_osm_labels=True
                     ).encode('utf-8')
                 )
             elif export_type == 'xls':
