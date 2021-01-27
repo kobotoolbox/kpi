@@ -1,11 +1,10 @@
 # coding: utf-8
 import json
-import os
-import re
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
+from formpack import FormPack
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
@@ -23,13 +22,13 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.fields import (
-    KpiUidField,
     PaginatedApiField,
     RelativePrefixHyperlinkedRelatedField,
     WritableJSONField,
 )
-from kpi.models import Asset, AssetFile, AssetVersion
+from kpi.models import Asset, AssetVersion
 from kpi.models.asset import UserAssetSubscription
 from kpi.models.object_permission import get_anonymous_user
 
@@ -472,6 +471,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         """
         errors = []
         if data_sharing is not None:
+            if not self.instance or not self.instance.has_deployment:
+                raise ObjectDeploymentDoesNotExist(
+                    _('The specified asset has not been deployed')
+                )
+
             if data_sharing != {}:
                 if 'enabled' not in data_sharing:
                     errors.append(_('`enabled` property is required'))
@@ -481,6 +485,25 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     and not isinstance(data_sharing['fields'], list)
                 ):
                     errors.append(_('`fields` property should be a list'))
+                else:
+                    asset = self.instance
+                    fields = data_sharing['fields']
+                    schema = asset.latest_deployed_version.to_formpack_schema()
+                    form_pack = FormPack(versions=schema)
+                    valid_fields = [
+                        f.name for f in form_pack.get_fields_for_versions()
+                    ]
+                    unknown_fields = set(fields) - set(valid_fields)
+                    if unknown_fields and valid_fields:
+                        raise serializers.ValidationError(
+                            {
+                                'fields': _(
+                                    'Some fields are invalid, '
+                                    'choices are: `{valid_fields}`'
+                                ).format(
+                                    valid_fields='`,`'.join(valid_fields))
+                            }
+                        )
 
                 if (
                     'users' in data_sharing
@@ -515,8 +538,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if PERM_CHANGE_ASSET not in parent_perms:
             raise serializers.ValidationError(
                 _('User cannot update target parent collection'))
-
-
 
         return parent
 
