@@ -681,10 +681,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             dict: message response from kobocat and uuid of created submission
             if successful
         """
-        # Must be a list of ids for validation
-        kwargs['instance_ids'] = [instance_id]
         params = self.validate_submission_list_params(
-            requesting_user_id, format_type=INSTANCE_FORMAT_TYPE_XML, **kwargs
+            requesting_user_id,
+            format_type=INSTANCE_FORMAT_TYPE_XML,
+            instance_ids=[instance_id],
         )
         submissions = self.__get_submissions_in_xml(**params)
 
