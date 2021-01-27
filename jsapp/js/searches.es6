@@ -70,6 +70,7 @@ function SearchContext(opts={}) {
       this.listenTo(actions.resources.cloneAsset.completed, this.setAsset);
       this.listenTo(actions.resources.setDeploymentActive.completed, this.setAsset);
       this.listenTo(actions.resources.deleteAsset.completed, this.removeAsset);
+      this.listenTo(actions.permissions.removeAssetPermission.completed, this.removeAsset);
     },
     // add/update asset in all search store lists
     setAsset(asset) {
@@ -115,8 +116,9 @@ function SearchContext(opts={}) {
     },
     // remove asset from all search store lists
     removeAsset(asset) {
-      this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
-      this.removeAssetFromList(asset.uid, 'searchResultsList');
+      let assetUid = asset.uid || asset
+      this.removeAssetFromList(assetUid, 'defaultQueryResultsList');
+      this.removeAssetFromList(assetUid, 'searchResultsList');
       this.rebuildCategorizedList(
         this.state.defaultQueryResultsList,
         'defaultQueryCategorizedResultsLists'

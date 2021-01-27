@@ -422,6 +422,15 @@ class AssetRow extends React.Component {
                   {t('Delete')}
                 </bem.PopoverMenu__link>
               }
+              {!isSelfOwned &&
+                <bem.PopoverMenu__link
+                  m={'removeSharing'}
+                  data-action={'removeSharing'}
+                >
+                  <i className='k-icon-trash' />
+                  {t('Remove Shared Form')}
+                </bem.PopoverMenu__link>
+              }
             </ui.PopoverMenu>
           </bem.AssetRow__buttons>
         </bem.AssetRow>

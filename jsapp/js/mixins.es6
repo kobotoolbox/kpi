@@ -707,7 +707,36 @@ mixins.clickAssets = {
           type: MODAL_TYPES.ENCRYPT_FORM,
           assetUid: uid
         });
-      }
+      },
+      removeSharing: function(uid) {
+        /**
+         * Extends `removeAllPermissions` from `userPermissionRow.es6`:
+         * Checks for permissions from current user before finding correct
+         * "most basic" permission to remove.
+         */
+        const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+        const userViewAssetPerm = asset.permissions.find((perm) => {
+          // Get permissions url related to current user
+          var permUserUrl = perm.user.split('/');
+          if (permUserUrl[permUserUrl.length - 2] === stores.session.currentAccount.username) {
+            return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url;
+          }
+        });
+
+        let dialog = alertify.dialog('confirm');
+        let opts = {
+          title: t('Remove shared form'),
+          message: `${t('Are you sure you want to remove this shared form?')}`,
+          labels: {ok: t('Remove'), cancel: t('Cancel')},
+          onok: (evt, val) => {
+            actions.permissions.removeAssetPermission(uid, userViewAssetPerm.url);
+          },
+          oncancel: () => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
+      },
 
     }
   },
