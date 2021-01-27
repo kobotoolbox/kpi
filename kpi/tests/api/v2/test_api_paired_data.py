@@ -4,6 +4,10 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
+from kpi.constants import (
+    PERM_MANAGE_ASSET,
+    PERM_CHANGE_ASSET,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -62,8 +66,9 @@ class PairedListApiTests(BaseAssetTestCase):
                 ],
             },
         )
-        self.child_asset_url = reverse(self._get_endpoint('paired-data-list'),
-                                       args=[self.child_asset.uid])
+        self.child_asset_paired_data_url = reverse(
+            self._get_endpoint('paired-data-list'), args=[self.child_asset.uid]
+        )
 
     def toggle_parent_sharing(
         self, enabled, users=[], fields=[], parent_url=None
@@ -87,19 +92,26 @@ class PairedListApiTests(BaseAssetTestCase):
         return response
 
     def paired_data(
-        self, fields=[], filename='paired_data.xml', parent_url=None,
-        login_username='anotheruser', login_password='anotheruser'
+        self,
+        fields=[],
+        filename='paired_data.xml',
+        parent_url=None,
+        child_url=None,
+        login_username='anotheruser',
+        login_password='anotheruser',
     ):
         self.login_as_other_user(login_username, login_password)
         if not parent_url:
             parent_url = self.parent_asset_detail_url
+        if not child_url:
+            child_url = self.child_asset_paired_data_url
 
         payload = {
             'parent': parent_url,
             'fields': fields,
             'filename': filename
         }
-        response = self.client.post(self.child_asset_url,
+        response = self.client.post(child_url,
                                     data=payload,
                                     format='json')
         return response
@@ -145,31 +157,56 @@ class PairedListApiTests(BaseAssetTestCase):
         self.assertTrue('fields' in response.data)
         self.assertTrue(isinstance(response.data['fields'][0], ErrorDetail))
 
-    def test_create_with_not_allowed_user(self):
+    def test_create_with_users(self):
+        # `anotheruser` is the owner of `self.child_asset`, but every user who
+        # manage their form should be able to pair data with the parent
+
         # Restrict parent data sharing to user `randomuser`
         self.toggle_parent_sharing(enabled=True, users=['randomuser'])
-        # Try to pair with `anotheruser`
+        # Try to pair with `anotheruser`. They cannot pair data
         response = self.paired_data()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('parent' in response.data)
         self.assertTrue(isinstance(response.data['parent'][0], ErrorDetail))
 
-    def test_create_with_manager_user(self):
-        # `anotheruser` is the owner of `self.child_asset`, but every user who
-        # manage this form should be able to pair data with the parent
+        # Restrict parent data sharing to user `anotheruser`
         self.toggle_parent_sharing(enabled=True, users=['anotheruser'])
+        # Now, `another` should be able to pair data with parent
+        response = self.paired_data()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Reset `child_data` paired data for rest of the test.
+        self.client.delete(response.data['url'])
+
+        # Try with another user and another form
         manager = User.objects.create_user(username='manager',
                                            password='manager',
                                            email='manager@example.com')
-        # Try to pair with `manager`. `manager` does not any permission on
-        # `self.child_asset`. Thus, they should not be able to pair data with
-        # the parent
-        response = self.paired_data()
+        child_asset_clone = self.child_asset.clone()
+        child_asset_clone.owner = manager
+        child_asset_clone.save()
+        paired_data_url = reverse(
+            self._get_endpoint('paired-data-list'), args=[child_asset_clone.uid]
+        )
+        response = self.paired_data(child_url=paired_data_url,
+                                    login_username='manager', 
+                                    login_password='manager')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('parent' in response.data)
         self.assertTrue(isinstance(response.data['parent'][0], ErrorDetail))
 
-        self.child_asset.assign_perm(manager)
+        # Allow `manager` to edit `another`s form and try again.
+        # It should still fail (access should be forbidden)
+        self.child_asset.assign_perm(manager, PERM_CHANGE_ASSET)
+        response = self.paired_data(login_username='manager',
+                                    login_password='manager')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Let's give 'manage_asset' to `manager`. After all, that's what they
+        # are.
+        self.child_asset.assign_perm(manager, PERM_MANAGE_ASSET)
+        response = self.paired_data(login_username='manager',
+                                    login_password='manager')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_with_invalid_filename(self):
         self.toggle_parent_sharing(enabled=True)
@@ -205,11 +242,17 @@ class PairedListApiTests(BaseAssetTestCase):
             'filename must be unique' in str(response.data['filename'][0])
         )
 
-    def test_create_paired_data_other_user(self):
-        pass
-
     def test_create_paired_data_anonymous(self):
-        pass
+        self.toggle_parent_sharing(enabled=True)
+        payload = {
+            'parent': self.parent_asset_detail_url,
+            'fields': [],
+            'filename': 'dummy.xml'
+        }
+        response = self.client.post(self.child_asset_paired_data_url,
+                                    data=payload,
+                                    format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class PairedDetailApiTests(BaseAssetTestCase):

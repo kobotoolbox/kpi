@@ -100,7 +100,7 @@ class BaseDeploymentBackend:
     def submission_count(self):
         return self._submission_count()
 
-    def sync_media_files(self, **kwargs):
+    def sync_media_files(self, *args, **kwargs):
         pass
 
     def remove_from_kc_only_flag(self, *args, **kwargs):
@@ -123,7 +123,8 @@ class BaseDeploymentBackend:
         Args:
             requesting_user_id (int)
             format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            validate_count (bool): If `True`, ignores `start`, `limit`, `fields` & `sort`
+            validate_count (bool): If `True`, ignores `start`, `limit`, `fields`
+            & `sort`
             kwargs (dict): Can contain
                 - start
                 - limit
@@ -139,13 +140,14 @@ class BaseDeploymentBackend:
 
         if 'count' in kwargs:
             raise serializers.ValidationError({
-                'count': _('This param is not implemented. Use `count` property '
-                           'of the response instead.')
+                'count': _('This param is not implemented.'
+                           ' Use `count` property of the response instead.')
             })
 
         if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
             if 'sort' in kwargs:
-                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order.
+                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the
+                # order.
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
                     'sort': _('This param is not supported in `XML` format')
