@@ -4,15 +4,15 @@ import io
 import json
 import posixpath
 import re
-import uuid
 from typing import Union
-
+import requests
+import tempfile
+import uuid
 from datetime import datetime
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import pytz
-import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _

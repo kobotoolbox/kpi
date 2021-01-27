@@ -16,6 +16,7 @@ import {dataInterface} from './dataInterface';
 import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
+import submissionsActions from './actions/submissions';
 import {
   notify,
   replaceSupportEmail,
@@ -27,7 +28,8 @@ Reflux.use(RefluxPromise(window.Promise));
 export const actions = {
   permissions: permissionsActions,
   help: helpActions,
-  library: libraryActions
+  library: libraryActions,
+  submissions: submissionsActions,
 };
 
 actions.navigation = Reflux.createActions([
