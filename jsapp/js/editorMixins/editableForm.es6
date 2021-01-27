@@ -17,9 +17,8 @@ import {
   surveyToValidJson,
   unnullifyTranslations,
   assign,
-  koboMatrixParser,
-  syncCascadeChoiceNames
-} from 'utils';
+  koboMatrixParser
+} from '../utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
@@ -34,6 +33,7 @@ import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 import assetUtils from 'js/assetUtils';
+import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -60,6 +60,7 @@ export default assign({
           settings__style: asset.settings__style,
           asset_uid: asset.uid,
           asset_type: asset.asset_type,
+          asset: asset,
         });
       });
     } else {
@@ -230,11 +231,11 @@ export default assign({
     if (this.state.settings__style !== undefined) {
       this.app.survey.settings.set('style', this.state.settings__style);
     }
+
     let surveyJSON = surveyToValidJson(this.app.survey);
     if (this.state.asset) {
       let surveyJSONWithMatrix = koboMatrixParser({source: surveyJSON}).source;
-      let surveyJSONCascade = syncCascadeChoiceNames({source: surveyJSONWithMatrix}).source;
-      surveyJSON = unnullifyTranslations(surveyJSONCascade, this.state.asset.content);
+      surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, this.state.asset.content);
     }
     let params = {content: surveyJSON};
 
@@ -777,35 +778,49 @@ export default assign({
       );
     }
 
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
+    return renderLoading();
   },
 
   render() {
     var docTitle = this.state.name || t('Untitled');
+
+    if (!this.state.isNewAsset && !this.state.asset) {
+      return (
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+          {renderLoading()}
+        </DocumentTitle>
+      );
+    }
+
+    // Only allow user to edit form if they have "Edit Form" permission
+    var userCanEditForm = (
+      this.state.isNewAsset ||
+      assetUtils.isSelfOwned(this.state.asset) ||
+      this.userCan('change_asset', this.state.asset)
+    );
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <ui.Panel m={['transparent', 'fixed']}>
           {this.renderAside()}
 
-          <bem.FormBuilder>
+          {userCanEditForm &&
+            <bem.FormBuilder>
             {this.renderFormBuilderHeader()}
 
-            <bem.FormBuilder__contents>
-              <div ref='form-wrap' className='form-wrap'>
-                {!this.state.surveyAppRendered &&
-                  this.renderNotLoadedMessage()
-                }
-              </div>
-            </bem.FormBuilder__contents>
-          </bem.FormBuilder>
+              <bem.FormBuilder__contents>
+                <div ref='form-wrap' className='form-wrap'>
+                  {!this.state.surveyAppRendered &&
+                    this.renderNotLoadedMessage()
+                  }
+                </div>
+              </bem.FormBuilder__contents>
+            </bem.FormBuilder>
+          }
+
+          {(!userCanEditForm) &&
+            <ui.AccessDeniedMessage/>
+          }
 
           {this.state.enketopreviewOverlay &&
             <ui.Modal

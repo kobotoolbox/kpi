@@ -27,6 +27,10 @@
   min-width: 800px;
 }
 
+.assets-table__body > .loading {
+  margin: 40px auto;
+}
+
 .assets-table__scrollbar-padding {
   // for taking the same space as scrollbar, width is being set in JS code
   border-bottom: 2px solid $kobo-lightgray;
@@ -59,8 +63,8 @@
   }
 }
 
-.assets-table--my-library,
-.assets-table--public-collections {
+.assets-table--MY_LIBRARY,
+.assets-table--PUBLIC_COLLECTIONS {
   height: 100%;
   display: flex;
   flex-direction: column;

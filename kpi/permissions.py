@@ -125,7 +125,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
 
     perms_map = {
         'GET': ['%(app_label)s.view_asset'],
-        'POST': ['%(app_label)s.change_asset'],
+        'POST': ['%(app_label)s.manage_asset'],
     }
 
     perms_map['OPTIONS'] = perms_map['GET']
@@ -159,7 +159,11 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
             else:
                 raise Http404
 
-        has_perm = set(required_permissions).issubset(user_permissions)
+        if user == parent_object.owner:
+            # The owner can always manage permission assignments
+            has_perm = True
+        else:
+            has_perm = set(required_permissions).issubset(user_permissions)
 
         if has_perm:
             # Access granted!
@@ -191,6 +195,22 @@ class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
         'PATCH': required_permissions,
         'DELETE': required_permissions
     }
+
+
+# FIXME: Name is no longer accurate.
+class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
+    """
+    Custom permission to only allow owners of an object to edit it.
+    """
+
+    # Setting this to False allows real permission checking on AnonymousUser.
+    # With the default of True, anonymous requests are categorically rejected.
+    authenticated_users_only = False
+
+    perms_map = permissions.DjangoObjectPermissions.perms_map
+    perms_map['GET'] = ['%(app_label)s.view_%(model_name)s']
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
 
 
 class PairedDataPermission(permissions.BasePermission):
@@ -283,22 +303,6 @@ class PairedDataPermission(permissions.BasePermission):
         return True
 
 
-# FIXME: Name is no longer accurate.
-class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
-    """
-    Custom permission to only allow owners of an object to edit it.
-    """
-
-    # Setting this to False allows real permission checking on AnonymousUser.
-    # With the default of True, anonymous requests are categorically rejected.
-    authenticated_users_only = False
-
-    perms_map = permissions.DjangoObjectPermissions.perms_map
-    perms_map['GET'] = ['%(app_label)s.view_%(model_name)s']
-    perms_map['OPTIONS'] = perms_map['GET']
-    perms_map['HEAD'] = perms_map['GET']
-
-
 class PostMappedToChangePermission(IsOwnerOrReadOnly):
     """
     Maps POST requests to the change_model permission instead of DRF's default
@@ -347,6 +351,13 @@ class SubmissionPermission(AssetNestedObjectPermission):
                 ))
 
         return user_permissions
+
+
+class DuplicateSubmissionPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'POST': ['%(app_label)s.change_%(model_name)s'],
+    }
 
 
 class EditSubmissionPermission(SubmissionPermission):

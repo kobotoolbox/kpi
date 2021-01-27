@@ -6,7 +6,7 @@
 
 // /api/v2/permissions/
 const permissions = {
-  'count': 10,
+  'count': 11,
   'next': null,
   'previous': null,
   'results': [
@@ -51,6 +51,23 @@ const permissions = {
         '/api/v2/permissions/partial_submissions/'
       ],
       'name': 'Can delete submitted data for asset'
+    },
+    {
+      "url": "/api/v2/permissions/manage_asset.json",
+      "codename": "manage_asset",
+      "implied": [
+        "/api/v2/permissions/delete_submissions/",
+        "/api/v2/permissions/change_submissions/",
+        "/api/v2/permissions/validate_submissions/",
+        "/api/v2/permissions/view_asset/",
+        "/api/v2/permissions/change_asset/",
+        "/api/v2/permissions/view_submissions/",
+        "/api/v2/permissions/add_submissions/"
+      ],
+      'contradictory': [
+        '/api/v2/permissions/partial_submissions/'
+      ],
+      "name": "Can manage all aspects of asset"
     },
     {
       'url': '/api/v2/permissions/partial_submissions/',

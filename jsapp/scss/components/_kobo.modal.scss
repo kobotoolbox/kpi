@@ -94,6 +94,8 @@ $z-modal-x: 10;
   min-height: 70px;
   background: $kobo-blue;
   color: $kobo-white;
+  display: flex;
+  justify-content: space-between;
 }
 
 .modal__title {
@@ -104,10 +106,7 @@ $z-modal-x: 10;
 }
 
 .modal__x {
-  position: absolute;
   z-index: $z-modal-x;
-  top: 0;
-  right: 0;
   color: inherit;
   background-color: inherit;
   padding: 8px;
@@ -122,6 +121,15 @@ $z-modal-x: 10;
   }
 
   &:hover {opacity: 0.7;}
+}
+
+.modal__done {
+  @extend .modal__x;
+  padding: 24px;
+  margin: 0px;
+  font-size: 18px;
+  font-weight: 600;
+  color: $kobo-blue;
 }
 
 .modal__subheader {
@@ -253,6 +261,31 @@ $z-modal-x: 10;
     .checkbox__label {
       white-space: nowrap;
     }
+  }
+
+  .submission-duplicate__actions {
+    @extend .submission-actions;
+    margin: auto;
+    a {
+      width: 120px;
+    }
+  }
+
+  .submission-duplicate__button {
+    margin-left: 12px;
+  }
+
+  .submission-duplicate__text {
+    max-width: 60%;
+    text-align: center;
+    margin: auto;
+    margin-bottom: 24px;
+  }
+
+  .submission-duplicate__header {
+    @extend .submission-duplicate__text;
+    margin-bottom: 12px;
+    color: $kobo-blue;
   }
 
   .submission--warning {
@@ -668,17 +701,25 @@ $z-modal-x: 10;
 }
 
 .form-media__upload-url {
-  text-align: center;
-}
-
-.form-media__url-input {
   width: 70%;
-  margin-right: 10px;
-  padding: 7px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-bottom: 1px solid;
-  border-bottom-color: lighten($cool-gray, 25%);
+  margin: auto;
+  display: block;
+
+  label.form-media__label {
+    text-align: center;
+  }
+
+  // Custom TextBox css
+  label.text-box {
+    min-width: 80%;
+    display: inline-table;
+  }
+
+  button {
+    min-width: 19%;
+  }
+
+
 }
 
 .form-media__list-label {
@@ -732,6 +773,8 @@ $z-modal-x: 10;
     height: auto;
     position: relative;
     min-height: 18px;
+    max-width: 70%;
+    overflow-x: hidden;
     cursor: pointer;
   }
 }
@@ -790,5 +833,27 @@ $z-modal-x: 10;
   .modal.modal--open {
     min-width: 90%;
     max-width: 90%;
+  }
+}
+
+@media screen and (max-width: 1175px) {
+  .form-media__upload-url {
+    width: 100%;
+    padding-left: 5%;
+  }
+}
+
+@media screen and (max-width: 597px) {
+  .form-media__upload-url {
+    width: 100%;
+    padding-left: 0px;
+    label.text-box {
+      width: 100%;
+    }
+    button {
+      width: 100%;
+      margin-left: 0px !important;
+      margin-top: 12px;
+    }
   }
 }

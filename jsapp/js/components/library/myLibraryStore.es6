@@ -11,7 +11,7 @@ import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
-} from './assetsTable';
+} from './libraryConstants';
 
 const myLibraryStore = Reflux.createStore({
   /**
@@ -22,7 +22,7 @@ const myLibraryStore = Reflux.createStore({
   previousPath: null,
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
-  DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
+  DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
 
   isVirgin: true,
 
@@ -93,7 +93,7 @@ const myLibraryStore = Reflux.createStore({
     };
 
     if (this.data.filterColumnId !== null) {
-      const filterColumn = ASSETS_TABLE_COLUMNS.get(this.data.filterColumnId);
+      const filterColumn = ASSETS_TABLE_COLUMNS[this.data.filterColumnId];
       params.filterProperty = filterColumn.filterBy;
       params.filterValue = this.data.filterValue;
     }
@@ -122,8 +122,8 @@ const myLibraryStore = Reflux.createStore({
 
     params.metadata = needsMetadata;
 
-    const orderColumn = ASSETS_TABLE_COLUMNS.get(this.data.orderColumnId);
-    const direction = this.data.orderValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
+    const orderColumn = ASSETS_TABLE_COLUMNS[this.data.orderColumnId];
+    const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
     params.ordering = `${direction}${orderColumn.orderBy}`;
 
     actions.library.searchMyLibraryAssets(params);
@@ -297,6 +297,10 @@ const myLibraryStore = Reflux.createStore({
     ) {
       this.data.filterColumnId = filterColumnId;
       this.data.filterValue = filterValue;
+      // When a filter is selected, the pages reflects the total number of
+      // filtered assets, so we have to reset page number to display them
+      // properly, otherwise we can be out of bounds.
+      this.data.currentPage = 0;
       this.fetchData(true);
     }
   },
@@ -321,6 +325,10 @@ const myLibraryStore = Reflux.createStore({
 
   findAsset(uid) {
     return this.data.assets.find((asset) => {return asset.uid === uid;});
+  },
+
+  findAssetByUrl(url) {
+    return this.data.assets.find((asset) => {return asset.url === url;});
   }
 });
 

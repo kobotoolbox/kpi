@@ -68,6 +68,9 @@ actions.resources = Reflux.createActions({
   updateAsset: {asyncResult: true},
   updateSubmissionValidationStatus: {children: ['completed', 'failed']},
   removeSubmissionValidationStatus: {children: ['completed', 'failed']},
+  deleteSubmission: {children: ['completed', 'failed']},
+  duplicateSubmission: {children: ['completed', 'failed',]},
+  refreshTableSubmissions: {children: ['completed', 'failed',]},
   getAssetFiles: {children: ['completed', 'failed']},
   notFound: {}
 });
@@ -89,6 +92,12 @@ actions.misc = Reflux.createActions({
   getServerEnvironment: {children: ['completed', 'failed']},
 });
 
+actions.media = Reflux.createActions({
+  loadMedia: {children: ['completed', 'failed']},
+  uploadMedia: {children: ['completed', 'failed']},
+  deleteMedia: {children: ['completed', 'failed']},
+});
+
 // TODO move these callbacks to `actions/permissions.es6` after moving
 // `actions.resources` to separate file (circular dependency issue)
 permissionsActions.assignAssetPermission.failed.listen(() => {
@@ -96,6 +105,15 @@ permissionsActions.assignAssetPermission.failed.listen(() => {
 });
 permissionsActions.removeAssetPermission.failed.listen(() => {
   notify(t('Failed to remove permissions'), 'error');
+});
+permissionsActions.bulkSetAssetPermissions.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.assignCollectionPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.removeCollectionPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
 });
 permissionsActions.assignAssetPermission.completed.listen((uid) => {
   // needed to update publicShareSettings after enabling link sharing
@@ -173,6 +191,55 @@ actions.resources.createImport.listen((params, onCompleted, onFailed) => {
       actions.resources.createImport.failed(response);
       if (typeof onFailed === 'function') {onFailed(response);}
     });
+});
+
+/*
+ * Form media endpoint actions
+ */
+actions.media.uploadMedia.listen((uid, formMediaJSON) => {
+  dataInterface.postFormMedia(uid, formMediaJSON)
+    .done(() => {
+      actions.media.uploadMedia.completed(uid);
+    })
+    .fail((response) => {
+      actions.media.uploadMedia.failed(response);
+    });
+});
+actions.media.uploadMedia.completed.listen((uid) => {
+  actions.media.loadMedia(uid);
+});
+actions.media.uploadMedia.failed.listen(() => {
+  alertify.error(t('Could not upload your media'));
+});
+
+actions.media.loadMedia.listen((uid) => {
+  dataInterface.getFormMedia(uid)
+    .done((response) => {
+      actions.media.loadMedia.completed(response);
+    })
+    .fail((response) => {
+      actions.media.loadMedia.failed(response);
+    });
+});
+actions.media.loadMedia.failed.listen(() => {
+  alertify.error(t('Something went wrong with getting your media'));
+});
+
+actions.media.deleteMedia.listen((uid, url) => {
+  dataInterface.deleteFormMedia(url)
+    .done(() => {
+      actions.media.deleteMedia.completed(uid);
+    })
+    .fail((response) => {
+      actions.media.deleteMedia.failed(response);
+    });
+});
+actions.media.deleteMedia.completed.listen((uid) => {
+  notify(t('Successfully deleted media'));
+  actions.media.loadMedia(uid);
+});
+actions.media.deleteMedia.failed.listen(() => {
+  alertify.error(t('Failed to delete media!'));
 });
 
 actions.resources.createSnapshot.listen(function(details){
@@ -370,10 +437,6 @@ actions.resources.createResource.listen(function(details){
     });
 });
 
-/**
- * @param {object} params
- * @param {string} params.uid
- */
 actions.resources.deleteAsset.listen(function(details, params={}){
   dataInterface.deleteAsset(details)
     .done(() => {
@@ -510,6 +573,32 @@ actions.resources.removeSubmissionValidationStatus.listen((uid, sid) => {
     console.error(error);
     actions.resources.removeSubmissionValidationStatus.failed(error);
   });
+});
+
+actions.resources.deleteSubmission.listen((uid, sid) => {
+  dataInterface.deleteSubmission(uid, sid)
+    .done(() => {
+      notify(t('submission deleted'));
+      actions.resources.deleteSubmission.completed();
+      actions.resources.loadAsset({id: uid});
+    })
+    .fail(() => {
+      alertify.error(t('failed to delete submission'));
+      actions.resources.deleteSubmission.failed();
+    });
+});
+
+actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) => {
+  dataInterface.duplicateSubmission(uid, sid)
+    .done((response) => {
+      notify(t('Successfully duplicated submission'));
+      actions.resources.duplicateSubmission.completed(uid, response._id, duplicatedSubmission);
+      actions.resources.loadAsset({id: uid});
+    })
+    .fail((response) => {
+      alertify.error(t('Failed to duplciate submisson'));
+      actions.resources.duplicateSubmission.failed(response);
+    });
 });
 
 actions.hooks.getAll.listen((assetUid, callbacks = {}) => {
