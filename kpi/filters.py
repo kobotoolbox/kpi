@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from django.db.models import Case, Count, IntegerField, Value, When
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from rest_framework import filters
 
 from kpi.constants import (
@@ -286,23 +286,12 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
         his own permissions and Richard's permissions, but not any of Alana's
         permissions.
         """
-        asset_ids = (
-            ObjectPermission.objects.filter(user=user)
-            .values_list('asset_id', flat=True)
-            .distinct()
-        )
-
-        result = queryset.none()
-        # Find all the objects associated with those permissions, and then
-        # find all the owners' permissions applied to all of those objects
-        for asset_id, owner_id in (
-            Asset.objects.filter(pk__in=asset_ids)
-            .values_list('pk', 'owner_id')
-            .distinct()
-        ):
-            criteria = {'asset_id': asset_id}
-            if user.pk != owner_id:
-                criteria['user_id__in'] = (user.pk, owner_id)
-            result |= ObjectPermission.objects.filter(**criteria)
-
+        result = ObjectPermission.objects.filter(
+            Q(asset__owner=user)  # owner sees everything
+            | Q(user=user)  # everyone with access sees their own
+            | Q(
+                # everyone with access sees the owner's
+                asset__permissions__user=user, user=F('asset__owner')
+            )
+        ).distinct()
         return result
