@@ -6,20 +6,6 @@ from kpi.constants import PERM_MANAGE_ASSET, PERM_FROM_KC_ONLY
 
 class ObjectPermissionHelper:
 
-    @staticmethod
-    def user_can_share(
-        affected_object: 'kpi.models.Asset', user_object: 'auth.User'
-    ) -> bool:
-        """
-        Return `True` if `user_object` is the owner of `affected_object` (to
-        support Collection) or if `user_object` has the `manage_asset`
-        permission
-        """
-
-        return affected_object.owner == user_object or affected_object.has_perm(
-            user_object, PERM_MANAGE_ASSET
-        )
-
     @classmethod
     def get_user_permission_assignments_queryset(cls, affected_object, user):
         """
@@ -47,7 +33,7 @@ class ObjectPermissionHelper:
         # because it's specific to `ObjectPermission`.
         if not user or user.is_anonymous:
             queryset = queryset.filter(user_id=affected_object.owner_id)
-        elif not cls.user_can_share(affected_object, user):
+        elif not affected_object.has_perm(user, PERM_MANAGE_ASSET):
             # Display only users' permissions if they are not allowed to modify
             # others' permissions
             queryset = queryset.filter(user_id__in=[user.pk,
@@ -78,7 +64,7 @@ class ObjectPermissionHelper:
 
         if not user or user.is_anonymous:
             filtered_user_ids = [affected_object.owner_id]
-        elif not cls.user_can_share(affected_object, user):
+        elif not affected_object.has_perm(user, PERM_MANAGE_ASSET):
             # Display only users' permissions if they are not allowed to modify
             # others' permissions
             filtered_user_ids = [affected_object.owner_id,

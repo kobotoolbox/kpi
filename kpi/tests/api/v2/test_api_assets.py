@@ -601,17 +601,19 @@ class AssetFileTest(BaseTestCase):
         self.client.login(username='someuser', password='someuser')
         self.current_username = 'someuser'
         self.asset = Asset.objects.filter(owner__username='someuser').first()
-        self.list_url = reverse(
-            self._get_endpoint('asset-file-list'), args=[self.asset.uid]
-        )
+        self.list_url = reverse(self._get_endpoint('asset-file-list'), args=[self.asset.uid])
         # TODO: change the fixture so every asset's owner has all expected
         # permissions?  For now, call `save()` to recalculate permissions and
         # verify the result
         self.asset.save()
         self.assertListEqual(
             sorted(list(self.asset.get_perms(self.asset.owner))),
-            sorted(list(self.asset.get_assignable_permissions(with_partial=False)
-                        + Asset.CALCULATED_PERMISSIONS))
+            sorted(
+                list(
+                    self.asset.get_assignable_permissions(with_partial=False)
+                    + Asset.CALCULATED_PERMISSIONS
+                )
+            ),
         )
 
     def get_asset_file_content(self, url):
