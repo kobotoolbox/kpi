@@ -2,7 +2,7 @@ import {
   getRowName,
   getTranslatedRowLabel,
   getSurveyFlatPaths,
-  isRowSpecialLabelHolder
+  isRowSpecialLabelHolder,
 } from 'js/assetUtils';
 import {
   FORM_VERSION_NAME,
@@ -10,7 +10,8 @@ import {
   RANK_LEVEL_TYPE,
   MATRIX_PAIR_PROPS,
   GROUP_TYPES_BEGIN,
-  QUESTION_TYPES
+  QUESTION_TYPES,
+  CHOICE_LISTS,
 } from 'js/constants';
 
 export const DISPLAY_GROUP_TYPES = new Map();
@@ -19,7 +20,7 @@ new Set([
   'group_repeat',
   'group_regular',
   'group_matrix',
-  'group_matrix_row'
+  'group_matrix_row',
 ]).forEach((codename) => {DISPLAY_GROUP_TYPES.set(codename, codename);});
 
 /**
@@ -50,14 +51,20 @@ class DisplayGroup {
  * @property {string} type - One of QUESTION_TYPES
  * @property {string} label - Localized display label
  * @property {string} name - Unique identifier
+ * @property {string|undefined} listName - Unique identifier of a choices list,
+ *                                         only applicable for question types
+ *                                         that uses choices lists
  * @property {string|null} data - User response, `null` for no response
  */
 class DisplayResponse {
-  constructor(type, label, name, data = null) {
+  constructor(type, label, name, listName, data = null) {
     this.type = type;
     this.label = label;
     this.name = name;
     this.data = data;
+    if (listName) {
+      this.listName = listName;
+    }
   }
 }
 
@@ -85,6 +92,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
       const row = survey[rowIndex];
 
       const rowName = getRowName(row);
+      let rowListName = getRowListName(row);
       const rowLabel = getTranslatedRowLabel(rowName, survey, translationIndex);
 
       let parentGroupPath = null;
@@ -194,10 +202,20 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
           rowData = rowData[repeatIndex];
         }
 
+        // score and rank don't have list name on them and they need to use
+        // the one of their parent
+        if (row.type === SCORE_ROW_TYPE || row.type === RANK_LEVEL_TYPE) {
+          const parentGroupRow = survey.find((row) => {
+            return getRowName(row) === parentGroup.name;
+          });
+          rowListName = getRowListName(parentGroupRow);
+        }
+
         let rowObj = new DisplayResponse(
           row.type,
           rowLabel,
           rowName,
+          rowListName,
           rowData
         );
         parentGroup.addChild(rowObj);
@@ -276,6 +294,7 @@ function populateMatrixData(
         questionSurveyObj.type,
         getTranslatedRowLabel(questionName, survey, translationIndex),
         questionName,
+        getRowListName(questionSurveyObj),
         questionData
       );
       matrixRowGroupObj.addChild(questionObj);
@@ -379,8 +398,21 @@ function getRegularGroupAnswers(data, targetKey) {
   return answers;
 }
 
+/**
+ * @param {object} row
+ * @returns {string|undefiend}
+ */
+function getRowListName(row) {
+  return (
+    row[CHOICE_LISTS.SELECT] ||
+    row[CHOICE_LISTS.MATRIX] ||
+    row[CHOICE_LISTS.SCORE] ||
+    row[CHOICE_LISTS.RANK]
+  );
+}
+
 export default {
   DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
-  getRepeatGroupAnswers
+  getRepeatGroupAnswers,
 };

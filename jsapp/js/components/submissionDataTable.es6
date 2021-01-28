@@ -103,7 +103,7 @@ class SubmissionDataTable extends React.Component {
         </bem.SubmissionDataTable__column>
 
         <bem.SubmissionDataTable__column m='data'>
-          {this.renderResponseData(item.type, item.data)}
+          {this.renderResponseData(item.type, item.data, item.listName)}
         </bem.SubmissionDataTable__column>
       </bem.SubmissionDataTable__row>
     );
@@ -112,8 +112,9 @@ class SubmissionDataTable extends React.Component {
   /**
    * @prop {string} type
    * @prop {string|null} data
+   * @prop {string|undefined} listName
    */
-  renderResponseData(type, data) {
+  renderResponseData(type, data, listName) {
     if (data === null) {
       return null;
     }
@@ -124,24 +125,34 @@ class SubmissionDataTable extends React.Component {
       case QUESTION_TYPES.get('select_one').id:
       case SCORE_ROW_TYPE:
       case RANK_LEVEL_TYPE:
-        choice = this.findChoice(data);
-        return (
-          <bem.SubmissionDataTable__value>
-            {choice.label[this.props.translationIndex]}
-          </bem.SubmissionDataTable__value>
-        );
+        choice = this.findChoice(listName, data);
+        if (!choice) {
+          console.error(`Choice not found for "${listName}" and "${data}".`);
+          return null;
+        } else {
+          return (
+            <bem.SubmissionDataTable__value>
+              {choice.label[this.props.translationIndex] || choice.name}
+            </bem.SubmissionDataTable__value>
+          );
+        }
       case QUESTION_TYPES.get('select_multiple').id:
         return (
           <ul>
             {data.split(' ').map((answer, answerIndex) => {
-              choice = this.findChoice(answer);
-              return (
-                <li key={answerIndex}>
-                  <bem.SubmissionDataTable__value>
-                    {choice.label[this.props.translationIndex]}
-                  </bem.SubmissionDataTable__value>
-                </li>
-              );
+              choice = this.findChoice(listName, answer);
+              if (!choice) {
+                console.error(`Choice not found for "${listName}" and "${data}".`);
+                return null;
+              } else {
+                return (
+                  <li key={answerIndex}>
+                    <bem.SubmissionDataTable__value>
+                      {choice.label[this.props.translationIndex] || choice.name}
+                    </bem.SubmissionDataTable__value>
+                  </li>
+                );
+              }
             })}
           </ul>
         );
@@ -179,12 +190,13 @@ class SubmissionDataTable extends React.Component {
   }
 
   /**
-   * @prop {string} name
+   * @prop {string} listName
+   * @prop {string} choiceName
    * @returns {object|undefined}
    */
-  findChoice(name) {
+  findChoice(listName, choiceName) {
     return this.props.asset.content.choices.find((choice) => {
-      return choice.name === name;
+      return choice.name === choiceName && choice.list_name === listName;
     });
   }
 
