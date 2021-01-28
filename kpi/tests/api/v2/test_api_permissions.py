@@ -6,9 +6,8 @@ from rest_framework import status
 
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
-    ASSET_TYPE_SURVEY,
-    PERM_VIEW_ASSET,
     PERM_CHANGE_ASSET,
+    PERM_VIEW_ASSET,
 )
 from kpi.models import Asset, ObjectPermission
 from kpi.models.object_permission import get_anonymous_user
@@ -540,17 +539,9 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         self.anotheruser_password = 'anotheruser'
 
         self.collection = Asset.objects.create(
-            asset_type=ASSET_TYPE_COLLECTION,
-            owner=self.someuser,
+            asset_type=ASSET_TYPE_COLLECTION, owner=self.someuser
         )
-
-        self.asset = Asset.objects.create(
-            asset_type=ASSET_TYPE_SURVEY,
-            owner=self.someuser,
-            # perenially evil `auto_now_add` leaves the field NULL if a pk is
-            # specified, leading to `IntegrityError` unless we set it manually
-            date_created=timezone.now(),
-        )
+        self.asset = Asset.objects.create(owner=self.someuser)
 
     def test_anon_only_sees_owner_permissions(self):
         self.asset.assign_perm(self.anon, PERM_VIEW_ASSET)

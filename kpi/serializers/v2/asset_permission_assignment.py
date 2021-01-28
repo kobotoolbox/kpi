@@ -191,12 +191,12 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         """
         Checks if permission can be assigned on asset.
         """
-        asset = self.context.get('asset_uid')
         if not self._validate_permission(permission.codename):
             raise serializers.ValidationError(
-                _('`{codename}` cannot be assigned explicitly to Asset {asset}').format(
-                    codename=permission.codename, asset=asset
-                )
+                _(
+                    '{permission} cannot be assigned explicitly to '
+                    'Asset objects of this type.'
+                ).format(permission=permission.codename)
             )
         return permission
 

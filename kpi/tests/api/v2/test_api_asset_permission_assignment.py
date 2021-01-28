@@ -93,8 +93,10 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
     def test_submission_assignments_ignored_for_non_survey_assets(self):
         self.asset.asset_type = ASSET_TYPE_TEMPLATE
         self.asset.save()
-        response = self._grant_perm_as_logged_in_user('someuser', PERM_VIEW_SUBMISSIONS)
-        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = self._grant_perm_as_logged_in_user(
+            'someuser', PERM_VIEW_SUBMISSIONS
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(self.asset.has_perm(self.someuser, PERM_VIEW_SUBMISSIONS))
 
 
@@ -399,10 +401,12 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
     def test_submission_assignments_ignored_for_non_survey_assets(self):
         self.asset.asset_type = ASSET_TYPE_TEMPLATE
         self.asset.save()
-        response = self._assign_perms_as_logged_in_user([
-            ('someuser', PERM_VIEW_SUBMISSIONS),
-            ('anotheruser', PERM_VALIDATE_SUBMISSIONS),
-        ])
-        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response = self._assign_perms_as_logged_in_user(
+            [
+                ('someuser', PERM_VIEW_SUBMISSIONS),
+                ('anotheruser', PERM_VALIDATE_SUBMISSIONS),
+            ]
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(self.asset.has_perm(self.someuser, PERM_VIEW_SUBMISSIONS))
         self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS))
