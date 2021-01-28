@@ -29,6 +29,8 @@ import {
 } from 'utils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 import {getRepeatGroupAnswers} from 'js/submissionUtils';
+import TableBulkOptions from './tableBulkOptions';
+import TableBulkCheckbox from './tableBulkCheckbox';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
 
@@ -270,24 +272,29 @@ export class DataTable extends React.Component {
     var columns = [];
     if (this.userCan('validate_submissions', this.props.asset) || this.userCan('delete_submissions', this.props.asset)) {
       columns.push({
-        Header: row => (
-            <div className='table-header-checkbox'>
-              <Checkbox
-                checked={Object.keys(this.state.selectedRows).length === maxPageRes ? true : false}
-                onChange={this.bulkSelectAllRows}
-              />
-            </div>
-          ),
+        Header: () => {
+          return (
+            <TableBulkCheckbox
+              visibleRowsCount={maxPageRes}
+              selectedRowsCount={Object.keys(this.state.selectedRows).length}
+              totalRowsCount={this.state.resultsTotal}
+              onSelectAllPages={this.bulkSelectAll}
+              onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
+              onClearSelection={this.bulkClearSelection}
+            />
+          );
+        },
         accessor: 'sub-checkbox',
         index: '__0',
         id: '__SubmissionCheckbox',
-        minWidth: 45,
+        minWidth: 50,
         filterable: false,
         sortable: false,
         resizable: false,
+        headerClassName: 'table-bulk-checkbox-header',
         className: 'rt-checkbox',
         Cell: row => (
-          <div className='table-header-checkbox'>
+          <div className='table-bulk-checkbox'>
             <Checkbox
               checked={this.state.selectedRows[row.original._id] ? true : false}
               onChange={this.bulkUpdateChange.bind(this, row.original._id)}
@@ -698,6 +705,7 @@ export class DataTable extends React.Component {
   toggleFullscreen () {
     this.setState({isFullscreen: !this.state.isFullscreen});
   }
+
   componentDidMount() {
     this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
     this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
@@ -706,7 +714,12 @@ export class DataTable extends React.Component {
     this.listenTo(actions.resources.deleteSubmission.completed, this.refreshSubmissions);
     this.listenTo(actions.resources.duplicateSubmission.completed, this.refreshSubmissionModal);
     this.listenTo(actions.resources.refreshTableSubmissions, this.refreshSubmissions);
+    actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted);
+    actions.submissions.bulkPatchStatus.completed.listen(this.onBulkChangeCompleted);
+    actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted);
+    actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted);
   }
+
   refreshSubmissionValidationStatus(result, sid) {
     if (sid) {
       var subIndex = this.state.tableData.findIndex(x => x._id === parseInt(sid));
@@ -782,6 +795,10 @@ export class DataTable extends React.Component {
     if (!pageState.modal)
       return false;
 
+    if (pageState.modal.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS) {
+      return false;
+    }
+
     let params = pageState.modal,
         page = 0;
 
@@ -842,191 +859,54 @@ export class DataTable extends React.Component {
         selectAll: false
       });
     }
-
   }
 
-  onBulkUpdateStatus(evt) {
-    const val = evt.target.getAttribute('data-value');
-    const selectAll = this.state.selectAll;
-    const data = {};
-    let selectedCount;
-    // setting empty value requires deleting the statuses with different API call
-    const apiFn = val === null ? dataInterface.bulkRemoveSubmissionsValidationStatus : dataInterface.patchSubmissions;
-
-    if (selectAll) {
-      if (this.state.fetchState.filtered.length) {
-        data.query = {};
-        data['validation_status.uid'] = val;
-        this.state.fetchState.filtered.map((filteredItem) => {
-          data.query[filteredItem.id] = filteredItem.value;
-        });
-      } else {
-        data.confirm = true;
-        data['validation_status.uid'] = val;
-      }
-      selectedCount = this.state.resultsTotal;
-    } else {
-      data.submission_ids = Object.keys(this.state.selectedRows);
-      data['validation_status.uid'] = val;
-      selectedCount = data.submission_ids.length;
-    }
-
-    const dialog = alertify.dialog('confirm');
-    const opts = {
-      title: t('Update status of selected submissions'),
-      message: t('You have selected ## submissions. Are you sure you would like to update their status? This action is irreversible.').replace('##', selectedCount),
-      labels: {ok: t('Update Validation Status'), cancel: t('Cancel')},
-      onok: () => {
-        apiFn(this.props.asset.uid, data).done(() => {
-          this.fetchData(this.state.fetchState, this.state.fetchInstance);
-          dialog.destroy();
-        }).fail((jqxhr) => {
-          console.error(jqxhr);
-          alertify.error(t('Failed to update status.'));
-          dialog.destroy();
-        });
-        // keep the dialog open
-        return false;
-      },
-      oncancel: dialog.destroy
-    };
-    dialog.set(opts).show();
+  onBulkChangeCompleted() {
+    this.fetchData(this.state.fetchState, this.state.fetchInstance);
   }
+
   bulkSelectAll() {
-    this.setState({selectAll: true});
+    // make sure all rows on current page are selected
+    let s = this.state.selectedRows;
+    this.state.tableData.forEach(function(r) {
+      s[r._id] = true;
+    });
+
+    this.setState({
+      selectedRows: s,
+      selectAll: true
+    });
   }
-  clearSelection() {
+  bulkClearSelection() {
     this.setState({selectAll: false, selectedRows: {}});
   }
-  onBulkDelete() {
-    const apiFn = dataInterface.bulkDeleteSubmissions;
-    const data = {};
-    let selectedCount;
 
-    if (this.state.selectAll) {
-      if (this.state.fetchState.filtered.length) {
-        data.query = {};
-        this.state.fetchState.filtered.map((filteredItem) => {
-          data.query[filteredItem.id] = filteredItem.value;
-        });
-      } else {
-        data.confirm = true;
-      }
-      selectedCount = this.state.resultsTotal;
-    } else {
-      data.submission_ids = Object.keys(this.state.selectedRows);
-      selectedCount = data.submission_ids.length;
-    }
-    let msg, onshow;
-    msg = t('You are about to permanently delete ##count## data entries.').replace('##count##', selectedCount);
-    msg += `${renderCheckbox('dt1', t('All selected data associated with this form will be deleted.'))}`;
-    msg += `${renderCheckbox('dt2', t('I understand that if I delete the selected entries I will not be able to recover them.'))}`;
-    const dialog = alertify.dialog('confirm');
-    onshow = (evt) => {
-      let ok_button = dialog.elements.buttons.primary.firstChild;
-      let $els = $('.alertify-toggle input');
-
-      ok_button.disabled = true;
-
-      $els.each(function() {$(this).prop('checked', false);});
-      $els.change(function() {
-        ok_button.disabled = false;
-        $els.each(function () {
-          if (!$(this).prop('checked')) {
-            ok_button.disabled = true;
-          }
-        });
-      });
-    };
-
-    const opts = {
-      title: t('Delete selected submissions'),
-      message: msg,
-      labels: {ok: t('Delete selected'), cancel: t('Cancel')},
-      onshow: onshow,
-      onok: () => {
-        apiFn(this.props.asset.uid, data).done(() => {
-          this.fetchData(this.state.fetchState, this.state.fetchInstance);
-          dialog.destroy();
-        }).fail((jqxhr) => {
-          console.error(jqxhr);
-          alertify.error(t('Failed to delete submissions.'));
-          dialog.destroy();
-        });
-        // keep the dialog open
-        return false;
-      },
-      oncancel: () => {
-        dialog.destroy();
-      }
-    };
-    dialog.set(opts).show();
-  }
   bulkSelectUI() {
     if (!this.state.tableData.length) {
       return false;
     }
 
-    const { pageSize, currentPage, resultsTotal } = this.state;
-
-    const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1),
-          res1 = (resultsTotal === 0) ? 0 : (currentPage * pageSize) + 1,
-          res2 = Math.min((currentPage + 1) * pageSize, resultsTotal),
-          showingResults = `${res1} - ${res2} ${t('of')} ${resultsTotal} ${t('results')}`,
-          selected = this.state.selectedRows,
-          maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
-
-    let selectedCount = Object.keys(selected).length;
-    if (this.state.selectAll) {
-      selectedCount = resultsTotal;
-    }
-    const selectedLabel = t('##count## selected').replace('##count##', selectedCount);
+    const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
+    const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
 
     return (
-      <bem.FormView__item m='table-meta'>
-        <span>{showingResults}</span>
-        {selectedCount > 1 &&
-          <span>
-            <a className='select-all' onClick={this.clearSelection}>
-              {t('Clear selection')}
-            </a>
-          </span>
-        }
+      <bem.TableMeta>
+        <bem.TableMeta__counter>
+          {res1} - {res2} {t('of')} {' '} {this.state.resultsTotal}
+          <bem.TableMeta__additionalText>{' '}{t('results')}</bem.TableMeta__additionalText>
+        </bem.TableMeta__counter>
 
-        { !this.state.selectAll &&
-          Object.keys(selected).length === maxPageRes &&
-          resultsTotal > pageSize &&
-          <span>
-            <a className='select-all' onClick={this.bulkSelectAll}>
-              {t('Select all ##count##').replace('##count##', resultsTotal)}
-            </a>
-          </span>
-        }
-
-        {Object.keys(selected).length > 0 &&
-          <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={selectedLabel} >
-            {this.userCan('validate_submissions', this.props.asset) &&
-              VALIDATION_STATUSES_LIST.map((item, n) => {
-                return (
-                  <bem.PopoverMenu__link
-                    onClick={this.onBulkUpdateStatus}
-                    data-value={item.value}
-                    key={n}
-                  >
-                    {t('Set status: ##status##').replace('##status##', item.label)}
-                  </bem.PopoverMenu__link>
-                );
-              })
-            }
-            {this.userCan('delete_submissions', this.props.asset) &&
-            <bem.PopoverMenu__link
-              onClick={this.onBulkDelete}>
-              {t('Delete selected')}
-            </bem.PopoverMenu__link>
-            }
-          </ui.PopoverMenu>
-        }
-      </bem.FormView__item>
+        <TableBulkOptions
+          asset={this.props.asset}
+          data={this.state.tableData}
+          pageSize={this.state.pageSize}
+          totalRowsCount={this.state.resultsTotal}
+          selectedRows={this.state.selectedRows}
+          selectedAllPages={this.state.selectAll}
+          fetchState={this.state.fetchState}
+          onClearSelection={this.bulkClearSelection.bind(this)}
+        />
+      </bem.TableMeta>
     );
   }
   getMediaDownloadLink(fileName) {

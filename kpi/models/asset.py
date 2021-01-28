@@ -602,18 +602,8 @@ class Asset(ObjectPermissionMixin,
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
     # Depending on our `asset_type`, only some permissions might be applicable
     ASSIGNABLE_PERMISSIONS_BY_TYPE = {
-        ASSET_TYPE_SURVEY: (
-            PERM_VIEW_ASSET,
-            PERM_CHANGE_ASSET,
-            # Only collections may be "discoverable" at this time
-            # PERM_DISCOVER_ASSET,
-            PERM_MANAGE_ASSET,
-            PERM_ADD_SUBMISSIONS,
-            PERM_VIEW_SUBMISSIONS,
-            PERM_PARTIAL_SUBMISSIONS,
-            PERM_CHANGE_SUBMISSIONS,
-            PERM_DELETE_SUBMISSIONS,
-            PERM_VALIDATE_SUBMISSIONS,
+        ASSET_TYPE_SURVEY: tuple(
+            (p for p in ASSIGNABLE_PERMISSIONS if p != PERM_DISCOVER_ASSET)
         ),
         ASSET_TYPE_TEMPLATE: (
             PERM_VIEW_ASSET,

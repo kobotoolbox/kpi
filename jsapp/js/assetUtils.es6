@@ -13,7 +13,7 @@ import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
-  ROOT_URL
+  ROOT_URL,
 } from 'js/constants';
 
 /**
@@ -201,7 +201,7 @@ export function modifyDetails(asset) {
   }
   stores.pageState.showModal({
     type: modalType,
-    asset: asset
+    asset: asset,
   });
 }
 
@@ -212,7 +212,7 @@ export function modifyDetails(asset) {
 export function share(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.SHARING,
-    assetid: asset.uid
+    assetid: asset.uid,
   });
 }
 
@@ -223,7 +223,7 @@ export function share(asset) {
 export function editLanguages(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.FORM_LANGUAGES,
-    asset: asset
+    asset: asset,
   });
 }
 
@@ -234,7 +234,7 @@ export function editLanguages(asset) {
 export function editTags(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.ASSET_TAGS,
-    asset: asset
+    asset: asset,
   });
 }
 
@@ -245,12 +245,12 @@ export function editTags(asset) {
 export function replaceForm(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.REPLACE_PROJECT,
-    asset: asset
+    asset: asset,
   });
 }
 
 /**
- * NOTE: this works under a true assumption that all questions have unique names
+ * NOTE: this works based on a fact that all questions have unique names
  * @param {Array<object>} survey - from asset's `content.survey`
  * @param {boolean} [includeGroups] wheter to put groups into output
  * @returns {object} a pair of quesion names and their full paths
@@ -401,6 +401,7 @@ export function renderTypeIcon(type, additionalClassNames = []) {
 export function getFlatQuestionsList(survey) {
   const output = [];
   const openedGroups = [];
+  let openedRepeatGroupsCount = 0;
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
       openedGroups.push(getQuestionDisplayName(row));
@@ -409,12 +410,20 @@ export function getFlatQuestionsList(survey) {
       openedGroups.pop();
     }
 
+    if (row.type === 'begin_repeat') {
+      openedRepeatGroupsCount++;
+    } else if (row.type === 'end_repeat') {
+      openedRepeatGroupsCount--;
+    }
+
     if (QUESTION_TYPES[row.type]) {
       output.push({
         type: row.type,
+        name: getRowName(row),
         isRequired: row.required,
         label: getQuestionDisplayName(row),
-        parents: openedGroups.slice(0)
+        parents: openedGroups.slice(0),
+        hasRepatParent: openedRepeatGroupsCount >= 1,
       });
     }
   });
@@ -524,5 +533,5 @@ export default {
   renderTypeIcon,
   replaceForm,
   share,
-  removeInvalidChars
+  removeInvalidChars,
 };
