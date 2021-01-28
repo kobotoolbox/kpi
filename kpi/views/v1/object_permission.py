@@ -21,9 +21,8 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
         with transaction.atomic():
             affected_object = serializer.validated_data['content_object']
             codename = serializer.validated_data['permission'].codename
-            if not ObjectPermissionHelper.user_can_share(
-                affected_object,
-                self.request.user,
+            if not affected_object.has_perm(
+                self.request.user, PERM_MANAGE_ASSET
             ):
                 raise exceptions.PermissionDenied()
             serializer.save()
@@ -41,9 +40,8 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
         with transaction.atomic():
             affected_object = instance.content_object
             codename = instance.permission.codename
-            if not ObjectPermissionHelper.user_can_share(
-                affected_object,
-                self.request.user,
+            if not affected_object.has_perm(
+                self.request.user, PERM_MANAGE_ASSET
             ):
                 raise exceptions.PermissionDenied()
             instance.content_object.remove_perm(

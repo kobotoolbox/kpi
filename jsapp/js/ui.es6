@@ -314,8 +314,14 @@ class PopoverMenu extends React.Component {
     }
   }
   render () {
+    const mods = this.props.additionalModifiers || [];
+    mods.push(this.state.placement);
+    if (this.props.type) {
+      mods.push(this.props.type);
+    }
+
     return (
-      <bem.PopoverMenu m={[this.props.type, this.state.placement]}>
+      <bem.PopoverMenu m={mods}>
         <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip} tabIndex='1' className={this.props.triggerClassName}>
           {this.props.triggerLabel}
         </bem.PopoverMenu__toggle>

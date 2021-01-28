@@ -279,7 +279,7 @@ class ObjectPermissionMixin:
     CONTRADICTORY_PERMISSIONS = {}
 
     def get_assignable_permissions(
-        self, with_partial: bool = True
+        self, with_partial: bool = True, ignore_type: bool = False
     ) -> tuple:
         """
         The "versioned app registry" used during migrations apparently does
@@ -295,12 +295,14 @@ class ObjectPermissionMixin:
         permissions to owner of the object.
         """
 
-        try:
-            assignable_permissions = (
-                self.ASSIGNABLE_PERMISSIONS_BY_TYPE[self.asset_type]
-            )
-        except AttributeError:
-            assignable_permissions = self.ASSIGNABLE_PERMISSIONS
+        assignable_permissions = self.ASSIGNABLE_PERMISSIONS
+        if not ignore_type:
+            try:
+                assignable_permissions = (
+                    self.ASSIGNABLE_PERMISSIONS_BY_TYPE[self.asset_type]
+                )
+            except AttributeError:
+                pass
 
         if with_partial is False:
             assignable_permissions = tuple(ap for ap in assignable_permissions
@@ -833,10 +835,9 @@ class ObjectPermissionMixin:
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
         app_label, codename = perm_parse(perm, self)
-        # Unlike `assign_perm()`, do not pass `instance` to
-        # `get_assignable_permissions()`. That way, we can allow invalid
-        # permissions to be removed
-        if codename not in self.get_assignable_permissions():
+        # Get all assignable permissions, regardless of asset type. That way,
+        # we can allow invalid permissions to be removed
+        if codename not in self.get_assignable_permissions(ignore_type=True):
             # Some permissions are calculated and not stored in the database
             raise serializers.ValidationError({
                 'permission': f'{codename} cannot be removed explicitly.'

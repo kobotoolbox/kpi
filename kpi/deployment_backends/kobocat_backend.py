@@ -29,7 +29,10 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
-from .kc_access.shadow_models import ReadOnlyKobocatInstance, ReadOnlyKobocatXForm
+from .kc_access.shadow_models import (
+    ReadOnlyKobocatInstance,
+    ReadOnlyKobocatXForm,
+)
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
     instance_count,

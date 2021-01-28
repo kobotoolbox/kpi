@@ -58,7 +58,8 @@ export class AssetTagsForm extends React.Component {
     notify(t('Failed to update tags'), 'error');
   }
 
-  onSubmit() {
+  onSubmit(evt) {
+    evt.preventDefault();
     this.setState({isPending: true});
     actions.resources.updateAsset(
       this.props.asset.uid,

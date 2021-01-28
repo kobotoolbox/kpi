@@ -36,6 +36,7 @@ import {LibraryAssetForm} from './modalForms/libraryAssetForm';
 import LibraryNewItemForm from './modalForms/libraryNewItemForm';
 import LibraryUploadForm from './modalForms/libraryUploadForm';
 import EncryptForm from './modalForms/encryptForm.es6';
+import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
 import ProjectSettings from './modalForms/projectSettings';
 import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
@@ -145,6 +146,13 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.ENCRYPT_FORM:
         this.setModalTitle(t('Manage Form Encryption'));
+        break;
+
+      case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
+        // title is set by BulkEditSubmissionsForm
+        this.setState({
+          modalClass: 'modal--large modal--large-shorter'
+        });
         break;
 
       default:
@@ -359,10 +367,18 @@ class Modal extends React.Component {
                 langIndex={this.props.params.langIndex}
               />
             }
-            { this.props.params.type == MODAL_TYPES.ENCRYPT_FORM &&
+            { this.props.params.type === MODAL_TYPES.ENCRYPT_FORM &&
               <EncryptForm
                 asset={this.props.params.asset}
                 assetUid={this.props.params.assetUid}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS &&
+              <BulkEditSubmissionsForm
+                onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
+                asset={this.props.params.asset}
+                {...this.props.params}
               />
             }
         </ui.Modal.Body>
