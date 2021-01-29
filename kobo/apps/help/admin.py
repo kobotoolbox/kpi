@@ -37,7 +37,7 @@ class InAppMessageAdmin(MarkdownxModelAdmin):
         #     about the fieldset, including a list of fields to be displayed in
         #     it.
         #     The name is effectively a heading. To use multiple headings as
-        #     for warings, a second field set must be set with with the list
+        #     for warnings, a second field set must be set with with the list
         #     of fields set to an empty string.
         # https://docs.djangoproject.com/en/2.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fieldsets
         self.fieldsets = [
