@@ -247,7 +247,6 @@ export class ProjectDownloads extends React.Component {
                         <option value='csv_legacy'>{t('CSV (legacy)')}</option>
                         <option value='zip_legacy'>{t('Media Attachments (ZIP)')}</option>
                         <option value='kml_legacy'>{t('GPS coordinates (KML)')}</option>
-                        <option value='analyser_legacy'>{t('Excel Analyser')}</option>
                         <option value='spss_labels'>{t('SPSS Labels')}</option>
                       </select>
                     </bem.FormModal__item>
