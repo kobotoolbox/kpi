@@ -10,7 +10,6 @@ class AssetExportSettings(models.Model):
     uid = KpiUidField(uid_prefix='es')
     asset = models.ForeignKey('Asset', related_name='asset_export_settings',
                               on_delete=models.CASCADE)
-    date_created = models.DateTimeField(default=timezone.now)
     date_modified = models.DateTimeField(default=timezone.now)
     name = models.CharField(max_length=255)
     export_settings = JSONBField(null=True)
