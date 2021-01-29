@@ -547,6 +547,11 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             self.assertEqual(assignable_perm['label'], expected_response[index]['label'])
 
     def test_cannot_update_data_sharing_with_no_deployment(self):
+
+        if not self.URL_NAMESPACE:
+            # By pass test in v1. Data sharing is not available with v1
+            return
+
         self.assertFalse(self.asset.data_sharing.get('enabled'))
         payload = {
             'data_sharing': {
@@ -561,6 +566,11 @@ class AssetsDetailApiTests(BaseAssetTestCase):
                          'The specified asset has not been deployed')
 
     def test_cannot_update_data_sharing_with_invalid_payload(self):
+
+        if not self.URL_NAMESPACE:
+            # By pass test in v1. Data sharing is not available with v1
+            return
+
         self.assertFalse(self.asset.data_sharing.get('enabled'))
         self.asset.content = {
             'survey': [
@@ -628,6 +638,11 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         )
 
     def test_can_update_data_sharing(self):
+
+        if not self.URL_NAMESPACE:
+            # By pass test in v1. Data sharing is not available with v1
+            return
+
         self.assertFalse(self.asset.data_sharing.get('enabled'))
         self.asset.content = {
             'survey': [
@@ -647,9 +662,10 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
         payload = {
-            'data_sharing': True,
+            'data_sharing': {
+                'enabled': True,
+            },
         }
-        # First, try with invalid JSON
         response = self.client.patch(self.asset_url,
                                      data=payload,
                                      format='json')
@@ -657,8 +673,10 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.asset.refresh_from_db()
         data_sharing = self.asset.data_sharing
         self.assertEqual(data_sharing, response.data['data_sharing'])
-        self.assertEqual('users' in data_sharing)
-        self.assertEqual('fields' in data_sharing)
+        # Even 'users' and 'fields' are not provided in payload, they should
+        # exist after `PATCH`
+        self.assertTrue('users' in data_sharing)
+        self.assertTrue('fields' in data_sharing)
 
 
 class AssetsXmlExportApiTests(KpiTestCase):

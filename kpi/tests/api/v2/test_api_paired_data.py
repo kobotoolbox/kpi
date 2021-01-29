@@ -5,15 +5,16 @@ from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
 from kpi.constants import (
-    PERM_MANAGE_ASSET,
     PERM_CHANGE_ASSET,
+    PERM_MANAGE_ASSET,
+    PERM_VIEW_ASSET,
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class PairedListApiTests(BaseAssetTestCase):
+class BasePairedDataTestCase(BaseAssetTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -44,6 +45,7 @@ class PairedListApiTests(BaseAssetTestCase):
             },
         )
         self.parent_asset.deploy(backend='mock', active=True)
+        self.parent_asset.save()
         self.parent_asset_detail_url = reverse(
             self._get_endpoint('asset-detail'), args=[self.parent_asset.uid]
         )
@@ -116,6 +118,12 @@ class PairedListApiTests(BaseAssetTestCase):
                                     format='json')
         return response
 
+
+class PairedDataListApiTests(BasePairedDataTestCase):
+
+    def setUp(self):
+        super().setUp()
+
     def test_create_trivial_case(self):
         # Try to pair data with parent. No users nor fields filters provided
         self.toggle_parent_sharing(enabled=True)
@@ -145,10 +153,7 @@ class PairedListApiTests(BaseAssetTestCase):
         self.assertTrue(isinstance(response.data['fields'][0], ErrorDetail))
 
     def test_create_with_users(self):
-        # `anotheruser` is the owner of `self.child_asset`, but every user who
-        # manage their form should be able to pair data with the parent
-
-        # Restrict parent data sharing to user `randomuser`
+        # Restrict parent data sharing to user randomuser
         self.toggle_parent_sharing(enabled=True, users=['randomuser'])
         # Try to pair with `anotheruser`. They cannot pair data
         response = self.paired_data()
@@ -156,12 +161,12 @@ class PairedListApiTests(BaseAssetTestCase):
         self.assertTrue('parent' in response.data)
         self.assertTrue(isinstance(response.data['parent'][0], ErrorDetail))
 
-        # Restrict parent data sharing to user `anotheruser`
+        # Restrict parent data sharing to user anotheruser
         self.toggle_parent_sharing(enabled=True, users=['anotheruser'])
-        # Now, `another` should be able to pair data with parent
+        # Now, anotheruser should be able to pair data with parent
         response = self.paired_data()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Reset `child_data` paired data for rest of the test.
+        # Reset `self.child_asset` paired data for rest of the test.
         self.client.delete(response.data['url'])
 
         # Try with another user and another form
@@ -181,14 +186,14 @@ class PairedListApiTests(BaseAssetTestCase):
         self.assertTrue('parent' in response.data)
         self.assertTrue(isinstance(response.data['parent'][0], ErrorDetail))
 
-        # Allow `manager` to edit `another`s form and try again.
+        # Allow manager to edit anotheruser's form and try again.
         # It should still fail (access should be forbidden)
         self.child_asset.assign_perm(manager, PERM_CHANGE_ASSET)
         response = self.paired_data(login_username='manager',
                                     login_password='manager')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Let's give 'manage_asset' to `manager`. After all, that's what they
+        # Let's give 'manage_asset' to manager. After all, that's what they
         # are.
         self.child_asset.assign_perm(manager, PERM_MANAGE_ASSET)
         response = self.paired_data(login_username='manager',
@@ -242,44 +247,56 @@ class PairedListApiTests(BaseAssetTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-class PairedDetailApiTests(BaseAssetTestCase):
-    fixtures = ['test_data']
-
-    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+class PairedDataDetailApiTests(BasePairedDataTestCase):
 
     def setUp(self):
-        self.client.login(username='someuser', password='someuser')
-        url = reverse(self._get_endpoint('asset-list'))
-        data = {'content': '{}', 'asset_type': 'survey'}
-        self.r = self.client.post(url, data, format='json')
-        self.asset = Asset.objects.get(uid=self.r.data.get('uid'))
-        self.asset_url = self.r.data['url']
-        self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)
-        self.asset_uid = self.r.data['uid']
+        super().setUp()
+        # someuser enables data sharing on their form
+        self.toggle_parent_sharing(enabled=True)
+        # anotheruser pairs data with someuser's form
+        self.paired_data_detail_url = self.paired_data()
+
+        # Try with another user and another form
+        self.manager = User.objects.create_user(username='manager',
+                                                password='manager',
+                                                email='manager@example.com')
 
     def test_read_paired_data_owner(self):
-        pass
+        response = self.client.get(self.paired_data_detail_url)
+        self.assertTrue(response.status_code, status.HTTP_200_OK)
 
     def test_read_paired_data_other_user(self):
-        pass
+        self.login_as_other_user('manager', 'manager')
+        response = self.client.get(self.paired_data_detail_url)
+        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        self.child_asset.assign_perm(self.manager, PERM_VIEW_ASSET)
+        response = self.client.get(self.paired_data_detail_url)
+        self.assertTrue(response.status_code, status.HTTP_200_OK)
 
     def test_read_paired_data_anonymous(self):
-        pass
-
-    def test_update_paired_data_owner(self):
-        pass
-
-    def test_update_paired_data_other_user(self):
-        pass
-
-    def test_update_paired_data_anonymous(self):
-        pass
+        self.client.logout()
+        response = self.client.get(self.paired_data_detail_url)
+        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_paired_data(self):
-        pass
+        response = self.client.get(self.paired_data_detail_url)
+        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_paired_data_other_user(self):
-        pass
+        self.login_as_other_user('manager', 'manager')
+        response = self.client.get(self.paired_data_detail_url)
+        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        self.child_asset.assign_perm(self.manager, PERM_CHANGE_ASSET)
+        response = self.client.get(self.paired_data_detail_url)
+        self.assertTrue(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.child_asset.assign_perm(self.manager, PERM_MANAGE_ASSET)
+        response = self.client.get(self.paired_data_detail_url)
+        self.assertTrue(response.status_code, status.HTTP_200_OK)
 
     def test_delete_paired_data_anonymous(self):
-        pass
+        self.client.logout()
+        response = self.client.get(self.paired_data_detail_url)
+        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
