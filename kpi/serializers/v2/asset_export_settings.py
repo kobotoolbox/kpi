@@ -13,11 +13,10 @@ from kpi.fields import (
 class AssetExportSettingsSerializer(serializers.ModelSerializer):
     uid = serializers.ReadOnlyField()
     url = serializers.SerializerMethodField()
-    asset = RelativePrefixHyperlinkedRelatedField(
-        view_name='asset-detail', lookup_field='uid', read_only=True)
-    date_modified = serializers.CharField(read_only=True)
     name = serializers.CharField()
-    export_settings = WritableJSONField(required=False)
+    date_created = serializers.CharField(read_only=True)
+    date_modified = serializers.CharField(read_only=True)
+    export_settings = WritableJSONField()
 
     def get_url(self, obj):
         return reverse(
@@ -31,9 +30,9 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         fields = (
             'uid',
             'url',
-            'asset',
-            'date_modified',
             'name',
+            'date_created',
+            'date_modified',
             'export_settings',
         )
 

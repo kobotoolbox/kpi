@@ -28,3 +28,17 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     def get_queryset(self):
         return self.model.objects.all()
 
+    def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        Inject asset_uid to avoid extra queries to DB inside the serializer.
+        """
+
+        context_ = super().get_serializer_context()
+        context_.update({
+            'asset_uid': self.asset.uid
+        })
+        return context_
+
+    def perform_create(self, serializer):
+        serializer.save(asset=self.asset)
