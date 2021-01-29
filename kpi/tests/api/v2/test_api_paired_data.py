@@ -38,7 +38,7 @@ class PairedListApiTests(BaseAssetTestCase):
                     {
                         'name': 'city_name',
                         'type': 'text',
-                        'label': 'Where is it located',
+                        'label': 'Where is it located?',
                     }
                 ],
             },
@@ -115,19 +115,6 @@ class PairedListApiTests(BaseAssetTestCase):
                                     data=payload,
                                     format='json')
         return response
-
-    def test_enabling_parent_sharing(self):
-        self.assertFalse(self.parent_asset.data_sharing.get('enabled'))
-
-        response = self.toggle_parent_sharing(enabled=True)
-        self.assertTrue(response.data['data_sharing']['enabled'])
-        self.parent_asset.refresh_from_db()
-        self.assertTrue(self.parent_asset.data_sharing['enabled'])
-
-        response = self.toggle_parent_sharing(enabled=False)
-        self.assertFalse(response.data['data_sharing']['enabled'])
-        self.parent_asset.refresh_from_db()
-        self.assertFalse(self.parent_asset.data_sharing['enabled'])
 
     def test_create_trivial_case(self):
         # Try to pair data with parent. No users nor fields filters provided

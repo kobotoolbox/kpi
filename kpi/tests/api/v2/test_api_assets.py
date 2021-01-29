@@ -546,6 +546,120 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             self.assertEqual(assignable_perm['url'], expected_response[index]['url'])
             self.assertEqual(assignable_perm['label'], expected_response[index]['label'])
 
+    def test_cannot_update_data_sharing_with_no_deployment(self):
+        self.assertFalse(self.asset.data_sharing.get('enabled'))
+        payload = {
+            'data_sharing': {
+                'enabled': True,
+            }
+        }
+        response = self.client.patch(self.asset_url,
+                                     data=payload,
+                                     format='json')
+        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['detail'],
+                         'The specified asset has not been deployed')
+
+    def test_cannot_update_data_sharing_with_invalid_payload(self):
+        self.assertFalse(self.asset.data_sharing.get('enabled'))
+        self.asset.content = {
+            'survey': [
+                {
+                    'name': 'favourite_restaurant',
+                    'type': 'text',
+                    'label': 'What is your favourite restaurant?',
+                },
+                {
+                    'name': 'city_name',
+                    'type': 'text',
+                    'label': 'Where is it located?',
+                }
+            ],
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
+        payload = {
+            'data_sharing': True
+        }
+        # First, try with invalid JSON
+        response = self.client.patch(self.asset_url,
+                                     data=payload,
+                                     format='json')
+        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue('writable_jsonfield' in response.data['data_sharing'])
+        self.assertTrue('Unable to parse JSON' in response.data['data_sharing']['writable_jsonfield'])  # noqa
+
+        # 2. Omit `enabled` property, `users` and `fields` as str
+        payload = {
+            'data_sharing': {
+                'users': 'anotheruser',
+                'fields': 'foo',
+            }
+        }
+        response = self.client.patch(self.asset_url,
+                                     data=payload,
+                                     format='json')
+        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors = {
+            'enabled': 'The property is required',
+            'users': 'The property must be list',
+            'fields': 'The property must be list',
+        }
+        for key, error in errors.items():
+            self.assertTrue(response.data['data_sharing'][key].startswith(error))
+
+        # 3. Wrong fields
+        payload = {
+            'data_sharing': {
+                'enabled': True,
+                'fields': ['foo'],
+            }
+        }
+        response = self.client.patch(self.asset_url,
+                                     data=payload,
+                                     format='json')
+        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(len(list(response.data['data_sharing'])), 1)
+        self.assertTrue(
+            response.data['data_sharing']['fields'].startswith(
+                'Some fields are invalid'
+            )
+        )
+
+    def test_can_update_data_sharing(self):
+        self.assertFalse(self.asset.data_sharing.get('enabled'))
+        self.asset.content = {
+            'survey': [
+                {
+                    'name': 'favourite_restaurant',
+                    'type': 'text',
+                    'label': 'What is your favourite restaurant?',
+                },
+                {
+                    'name': 'city_name',
+                    'type': 'text',
+                    'label': 'Where is it located?',
+                }
+            ],
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
+        payload = {
+            'data_sharing': True,
+        }
+        # First, try with invalid JSON
+        response = self.client.patch(self.asset_url,
+                                     data=payload,
+                                     format='json')
+        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.asset.refresh_from_db()
+        data_sharing = self.asset.data_sharing
+        self.assertEqual(data_sharing, response.data['data_sharing'])
+        self.assertEqual('users' in data_sharing)
+        self.assertEqual('fields' in data_sharing)
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
 
@@ -782,7 +896,7 @@ class AssetFileTest(BaseTestCase):
                              args=(self.asset.uid, af_uid))
         anotheruser = User.objects.get(username='anotheruser')
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)g
+        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
         self.assertTrue(self.asset.has_perm(anotheruser, PERM_VIEW_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
         response = self.client.get(detail_url)
