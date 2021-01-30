@@ -27,6 +27,7 @@ export const PERMISSIONS_CODENAMES = new Map();
 new Set([
   'view_asset',
   'change_asset',
+  'manage_asset',
   'add_submissions',
   'view_submissions',
   'partial_submissions',

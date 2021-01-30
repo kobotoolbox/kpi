@@ -539,7 +539,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'csv_legacy': '/'.join((exports_base_url, 'csv/')),
             'zip_legacy': '/'.join((exports_base_url, 'zip/')),
             'kml_legacy': '/'.join((exports_base_url, 'kml/')),
-            'analyser_legacy': '/'.join((exports_base_url, 'analyser/')),
             # For GET requests that return files directly
             'xls': '/'.join((reports_base_url, 'export.xlsx')),
             'csv': '/'.join((reports_base_url, 'export.csv')),
@@ -683,10 +682,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             dict: message response from kobocat and uuid of created submission
             if successful
         """
-        # Must be a list of ids for validation
-        kwargs['instance_ids'] = [instance_id]
         params = self.validate_submission_list_params(
-            requesting_user_id, format_type=INSTANCE_FORMAT_TYPE_XML, **kwargs
+            requesting_user_id,
+            format_type=INSTANCE_FORMAT_TYPE_XML,
+            instance_ids=[instance_id],
         )
         submissions = self.__get_submissions_in_xml(**params)
 

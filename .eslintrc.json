@@ -19,6 +19,7 @@
     "arrow-spacing": 1,
     "block-spacing": [1, "never"],
     "brace-style": [1, "1tbs", {"allowSingleLine": true}],
+    "comma-dangle": [1, "always-multiline"],
     "comma-spacing": [1, { "before": false, "after": true }],
     "curly": 1,
     "eol-last": [1, "always"],
