@@ -3,17 +3,19 @@
 import copy
 import sys
 from collections import OrderedDict
+from functools import reduce
 from io import BytesIO
+from operator import add
+from typing import Union
 
 import six
 import xlsxwriter
+from django.conf import settings
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.utils.translation import ugettext_lazy as _
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
@@ -26,7 +28,9 @@ from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.constants import (
     ASSET_TYPES,
+    ASSET_TYPES_WITH_CONTENT,
     ASSET_TYPE_BLOCK,
+    ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_QUESTION,
     ASSET_TYPE_SURVEY,
@@ -34,16 +38,15 @@ from kpi.constants import (
     ASSET_TYPE_TEXT,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
-    PERM_CHANGE_COLLECTION,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_ASSET,
     PERM_DELETE_SUBMISSIONS,
+    PERM_DISCOVER_ASSET,
     PERM_FROM_KC_ONLY,
     PERM_MANAGE_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
-    PERM_VIEW_COLLECTION,
     PERM_VIEW_SUBMISSIONS,
     SUFFIX_SUBMISSIONS_PERMS,
 )
@@ -73,18 +76,48 @@ from kpi.utils.standardize_content import (needs_standardization,
                                            standardize_content_in_place)
 from .asset_user_partial_permission import AssetUserPartialPermission
 from .asset_version import AssetVersion
-from .object_permission import ObjectPermission, ObjectPermissionMixin
+from .object_permission import ObjectPermissionMixin, get_cached_code_names
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
-class TaggableModelManager(models.Manager):
+class AssetManager(models.Manager):
+    def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
+        update_parent_languages = kwargs.pop('update_parent_languages', True)
 
-    def create(self, *args, **kwargs):
-        tag_string = kwargs.pop('tag_string', None)
-        created = super().create(*args, **kwargs)
+        # 3 lines below are copied from django.db.models.query.QuerySet.create()
+        # because we need to pass an argument to save()
+        # (and the default Django create() does not allow that)
+        created = self.model(**kwargs)
+        self._for_write = True
+        created.save(force_insert=True, using=self.db,
+                     update_parent_languages=update_parent_languages)
+
         if tag_string:
             created.tag_string = tag_string
+        if children_to_create:
+            new_assets = []
+            for asset in children_to_create:
+                asset['parent'] = created
+                new_assets.append(Asset.objects.create(
+                    update_parent_languages=False, **asset))
+            created.update_languages(new_assets)
         return created
+
+    def deployed(self):
+        """
+        Filter for deployed assets (i.e. assets having at least one deployed
+        version) in an efficient way that doesn't involve joining or counting.
+        https://docs.djangoproject.com/en/2.2/ref/models/expressions/#django.db.models.Exists
+        """
+        deployed_versions = AssetVersion.objects.filter(
+            asset=OuterRef('pk'), deployed=True
+        )
+        return self.annotate(deployed=Exists(deployed_versions)).filter(
+            deployed=True
+        )
+
+    def filter_by_tag_name(self, tag_name):
+        return self.filter(tags__name=tag_name)
 
 
 class KpiTaggableManager(_TaggableManager):
@@ -104,44 +137,6 @@ class KpiTaggableManager(_TaggableManager):
                 t = t.strip().replace(' ', '-')
             tags_out.append(t)
         super().add(*tags_out, **kwargs)
-
-
-class AssetManager(TaggableModelManager):
-    def deployed(self):
-        """
-        Filter for deployed assets (i.e. assets having at least one deployed
-        version) in an efficient way that doesn't involve joining or counting.
-        https://docs.djangoproject.com/en/2.2/ref/models/expressions/#django.db.models.Exists
-        """
-        deployed_versions = AssetVersion.objects.filter(
-            asset=OuterRef('pk'), deployed=True
-        )
-        return self.annotate(deployed=Exists(deployed_versions)).filter(
-            deployed=True
-        )
-
-    def filter_by_tag_name(self, tag_name):
-        return self.filter(tags__name=tag_name)
-
-
-# TODO: Merge this functionality into the eventual common base class of `Asset`
-# and `Collection`.
-class TagStringMixin:
-
-    @property
-    def tag_string(self):
-        try:
-            tag_list = self.prefetched_tags
-        except AttributeError:
-            tag_names = self.tags.values_list('name', flat=True)
-        else:
-            tag_names = [t.name for t in tag_list]
-        return ','.join(tag_names)
-
-    @tag_string.setter
-    def tag_string(self, value):
-        intended_tags = value.split(',')
-        self.tags.set(*intended_tags)
 
 
 FLATTEN_OPTS = {
@@ -466,7 +461,6 @@ class XlsExportable:
 
 
 class Asset(ObjectPermissionMixin,
-            TagStringMixin,
             DeployableMixin,
             XlsExportable,
             FormpackXLSFormUtils,
@@ -482,7 +476,7 @@ class Asset(ObjectPermissionMixin,
     map_custom = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
-    parent = models.ForeignKey('Collection', related_name='assets',
+    parent = models.ForeignKey('Asset', related_name='children',
                                null=True, blank=True, on_delete=models.CASCADE)
     owner = models.ForeignKey('auth.User', related_name='assets', null=True,
                               on_delete=models.CASCADE)
@@ -494,8 +488,6 @@ class Asset(ObjectPermissionMixin,
     # provided by `DeployableMixin`
     _deployment_data = JSONBField(default=dict)
 
-    permissions = GenericRelation(ObjectPermission)
-
     objects = AssetManager()
 
     @property
@@ -503,12 +495,23 @@ class Asset(ObjectPermissionMixin,
         return 'asset'
 
     class Meta:
-        ordering = ('-date_modified',)
+
+        # Example in Django documentation  represents `ordering` as a list
+        # (even if it can be a list or a tuple). We enforce the type to `list`
+        # because `rest_framework.filters.OrderingFilter` work with lists.
+        # `AssetOrderingFilter` inherits from this class and it is used `
+        # in `AssetViewSet to sort the result.
+        # It avoids back and forth between types and/or coercing where
+        # ordering is needed
+        ordering = [
+            '-date_modified',
+        ]
 
         permissions = (
             # change_, add_, and delete_asset are provided automatically
             # by Django
             (PERM_VIEW_ASSET, _('Can view asset')),
+            (PERM_DISCOVER_ASSET, _('Can discover asset in public lists')),
             (PERM_MANAGE_ASSET, _('Can manage all aspects of asset')),
             # Permissions for collected data, i.e. submissions
             (PERM_ADD_SUBMISSIONS, _('Can submit data to asset')),
@@ -548,7 +551,7 @@ class Asset(ObjectPermissionMixin,
         ASSET_TYPE_QUESTION: _('question'),
         ASSET_TYPE_TEXT: _('text'),  # unused?
         ASSET_TYPE_EMPTY: _('empty'),  # unused?
-        # ASSET_TYPE_COLLECTION: _('collection'),
+        ASSET_TYPE_COLLECTION: _('collection'),
     }
 
     # Assignable permissions that are stored in the database.
@@ -557,6 +560,7 @@ class Asset(ObjectPermissionMixin,
     ASSIGNABLE_PERMISSIONS_WITH_LABELS = {
         PERM_VIEW_ASSET: _('View ##asset_type_label##'),
         PERM_CHANGE_ASSET: _('Edit ##asset_type_label##'),
+        PERM_DISCOVER_ASSET: _('Discover ##asset_type_label##'),
         PERM_MANAGE_ASSET: _('Manage ##asset_type_label##'),
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
@@ -568,7 +572,9 @@ class Asset(ObjectPermissionMixin,
     ASSIGNABLE_PERMISSIONS = tuple(ASSIGNABLE_PERMISSIONS_WITH_LABELS.keys())
     # Depending on our `asset_type`, only some permissions might be applicable
     ASSIGNABLE_PERMISSIONS_BY_TYPE = {
-        ASSET_TYPE_SURVEY: ASSIGNABLE_PERMISSIONS,  # all of them
+        ASSET_TYPE_SURVEY: tuple(
+            (p for p in ASSIGNABLE_PERMISSIONS if p != PERM_DISCOVER_ASSET)
+        ),
         ASSET_TYPE_TEMPLATE: (
             PERM_VIEW_ASSET,
             PERM_CHANGE_ASSET,
@@ -586,7 +592,12 @@ class Asset(ObjectPermissionMixin,
         ),
         ASSET_TYPE_TEXT: (),  # unused?
         ASSET_TYPE_EMPTY: (),  # unused?
-        # ASSET_TYPE_COLLECTION: # tbd
+        ASSET_TYPE_COLLECTION: (
+            PERM_VIEW_ASSET,
+            PERM_CHANGE_ASSET,
+            PERM_DISCOVER_ASSET,
+            PERM_MANAGE_ASSET,
+        ),
     }
 
     # Calculated permissions that are neither directly assignable nor stored
@@ -594,15 +605,17 @@ class Asset(ObjectPermissionMixin,
     CALCULATED_PERMISSIONS = (
         PERM_DELETE_ASSET,
     )
-    # Certain Collection permissions carry over to Asset
-    MAPPED_PARENT_PERMISSIONS = {
-        PERM_VIEW_COLLECTION: PERM_VIEW_ASSET,
-        PERM_CHANGE_COLLECTION: PERM_CHANGE_ASSET
+    # Only certain permissions can be inherited
+    HERITABLE_PERMISSIONS = {
+        # parent permission: child permission
+        PERM_VIEW_ASSET: PERM_VIEW_ASSET,
+        PERM_CHANGE_ASSET: PERM_CHANGE_ASSET
     }
     # Granting some permissions implies also granting other permissions
     IMPLIED_PERMISSIONS = {
         # Format: explicit: (implied, implied, ...)
         PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
+        PERM_DISCOVER_ASSET: (PERM_VIEW_ASSET,),
         PERM_MANAGE_ASSET: tuple(
             (
                 p
@@ -645,6 +658,10 @@ class Asset(ObjectPermissionMixin,
     KC_ANONYMOUS_PERMISSIONS_XFORM_FLAGS = {
         PERM_VIEW_SUBMISSIONS: {'shared': True, 'shared_data': True}
     }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__previous_parent_id = self.parent_id
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
@@ -692,12 +709,17 @@ class Asset(ObjectPermissionMixin,
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
 
-    def get_ancestors_or_none(self):
-        # ancestors are ordered from farthest to nearest
-        if self.parent is not None:
-            return self.parent.get_ancestors(include_self=True)
-        else:
+    @property
+    def discoverable_when_public(self):
+        # This property is only needed when `self` is a collection.
+        # We want to make a distinction between a collection which is not
+        # discoverable and an asset which is not a collection
+        # (which implies cannot be discoverable)
+        if self.asset_type != ASSET_TYPE_COLLECTION:
             return None
+
+        return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
+                                       user_id=settings.ANONYMOUS_USER_ID).exists()
 
     def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
         """
@@ -716,25 +738,29 @@ class Asset(ObjectPermissionMixin,
             return perms.get(perm)
         return None
 
-    def get_label_for_permission(self, permission_or_codename):
+    def get_label_for_permission(
+        self, permission_or_codename: Union[Permission, str]
+    ) -> str:
+        """
+        Get the correct label for a permission (object or codename) based on
+        the type of this asset
+        """
         try:
             codename = permission_or_codename.codename
             permission = permission_or_codename
         except AttributeError:
             codename = permission_or_codename
             permission = None
+
         try:
             label = self.ASSIGNABLE_PERMISSIONS_WITH_LABELS[codename]
         except KeyError:
-            if not permission:
-                # Seems expensive. Cache it?
-                permission = Permission.objects.get(
-                    # `content_type` and `codename` are `unique_together`
-                    # https://github.com/django/django/blob/e893c0ad8b0b5b0a1e5be3345c287044868effc4/django/contrib/auth/models.py#L69
-                    content_type=ContentType.objects.get_for_model(self),
-                    codename=codename
-                )
-            label = permission.name
+            if permission:
+                label = permission.name
+            else:
+                cached_code_names = get_cached_code_names()
+                label = cached_code_names[codename]['name']
+
         asset_type_label = self.ASSET_TYPE_LABELS_FOR_PERMISSIONS[
             self.asset_type
         ]
@@ -744,6 +770,7 @@ class Asset(ObjectPermissionMixin,
         except TypeError:
             # Others are just strings
             pass
+
         label = label.replace(
             '##asset_type_label##',
             # Raises TypeError if not coerced explicitly
@@ -751,12 +778,15 @@ class Asset(ObjectPermissionMixin,
         )
         return label
 
-    def get_partial_perms(self, user_id, with_filters=False):
+    def get_partial_perms(
+        self, user_id: int, with_filters: bool = False
+    ) -> Union[list, dict, None]:
         """
         Returns the list of permissions the user is restricted to,
         for this specific asset.
-        If `with_filters` is `True`, it returns a dict of permissions (as keys) and
-        the filters (as values) to apply on query to narrow down the results.
+        If `with_filters` is `True`, it returns a dict of permissions (as keys)
+        and the filters (as values) to apply on query to narrow down
+        the results.
 
         For example:
         `get_partial_perms(user1_obj.id)` would return
@@ -775,11 +805,6 @@ class Asset(ObjectPermissionMixin,
         ```
 
         If user doesn't have any partial permissions, it returns `None`.
-
-        :param user_obj: auth.User
-        :param with_filters: boolean. Optional
-
-        :return: list|dict|None
         """
 
         perms = self.asset_partial_permissions.filter(user_id=user_id)\
@@ -801,6 +826,17 @@ class Asset(ObjectPermissionMixin,
         :return: {boolean}
         """
         return self.hooks.filter(active=True).exists()
+
+    def has_subscribed_user(self, user_id):
+        # This property is only needed when `self` is a collection.
+        # We want to make a distinction between a collection which does not have
+        # the subscribed user and an asset which is not a collection
+        # (which implies cannot have subscriptions)
+        if self.asset_type != ASSET_TYPE_COLLECTION:
+            return None
+
+        # ToDo: See if using a loop can reduce the number of SQL queries.
+        return self.userassetsubscription_set.filter(user_id=user_id).exists()
 
     @property
     def latest_deployed_version(self):
@@ -832,11 +868,6 @@ class Asset(ObjectPermissionMixin,
             # for nested relations."
             'owner',
         ).prefetch_related(
-            # We previously prefetched `permissions__content_object`, but that
-            # actually pulled the entirety of each permission's linked asset
-            # from the database! For now, the solution is to remove
-            # `content_object` here *and* from
-            # `ObjectPermissionNestedSerializer`.
             'permissions__permission',
             'permissions__user',
             # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
@@ -872,6 +903,17 @@ class Asset(ObjectPermissionMixin,
         self.save()
 
     def save(self, *args, **kwargs):
+
+        is_new = self.pk is None
+        update_parent_languages = kwargs.pop('update_parent_languages', True)
+
+        if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
+            # so long as all of the operations in this overridden `save()`
+            # method pertain to content, bail out if it's impossible for this
+            # asset to have content in the first place
+            super().save(*args, **kwargs)
+            return
+
         if self.content is None:
             self.content = {}
 
@@ -900,6 +942,29 @@ class Asset(ObjectPermissionMixin,
         _create_version = kwargs.pop('create_version', True)
         super().save(*args, **kwargs)
 
+        # Update languages for parent and previous parent.
+        # e.g. if an survey has been moved from one collection to another,
+        # we want both collections to be updated.
+        if self.parent is not None and update_parent_languages:
+            if self.parent_id != self.__previous_parent_id and \
+               self.__previous_parent_id is not None:
+                try:
+                    previous_parent = Asset.objects.get(
+                        pk=self.__previous_parent_id)
+                    previous_parent.update_languages()
+                    self.__previous_parent_id = self.parent_id
+                except Asset.DoesNotExist:
+                    pass
+
+            # If object is new, we can add its languages to its parent without
+            # worrying about removing its old values. It avoids an extra query.
+            if is_new:
+                self.parent.update_languages([self])
+            else:
+                # Otherwise, because we cannot know which languages are from
+                # this object, update will be perform with all parent's children.
+                self.parent.update_languages()
+
         if _create_version:
             self.asset_versions.create(name=self.name,
                                        version_content=self.content,
@@ -912,6 +977,21 @@ class Asset(ObjectPermissionMixin,
     @property
     def snapshot(self):
         return self._snapshot(regenerate=False)
+
+    @property
+    def tag_string(self):
+        try:
+            tag_list = self.prefetched_tags
+        except AttributeError:
+            tag_names = self.tags.values_list('name', flat=True)
+        else:
+            tag_names = [t.name for t in tag_list]
+        return ','.join(tag_names)
+
+    @tag_string.setter
+    def tag_string(self, value):
+        intended_tags = value.split(',')
+        self.tags.set(*intended_tags)
 
     def to_clone_dict(self, version_uid=None, version=None):
         """
@@ -938,9 +1018,55 @@ class Asset(ObjectPermissionMixin,
     def to_ss_structure(self):
         return flatten_content(self.content, in_place=False)
 
+    def update_languages(self, children=None):
+        """
+        Updates object's languages by aggregating all its children's languages
+
+        Args:
+            children (list<Asset>): Optional. When specified, `children`'s languages
+            are merged with `self`'s languages. Otherwise, when it's `None`,
+            DB is fetched to build the list according to `self.children`
+
+        """
+        # If object is not a collection, it should not have any children.
+        # No need to go further.
+        if self.asset_type != ASSET_TYPE_COLLECTION:
+            return
+
+        obj_languages = self.summary.get('languages', [])
+        languages = set()
+
+        if children:
+            languages = set(obj_languages)
+            children_languages = [child.summary.get('languages')
+                                  for child in children
+                                  if child.summary.get('languages')]
+        else:
+            children_languages = list(self.children
+                                      .values_list('summary__languages',
+                                                   flat=True)
+                                      .exclude(Q(summary__languages=[]) |
+                                               Q(summary__languages=[None]))
+                                      .order_by())
+
+        if children_languages:
+            # Flatten `children_languages` to 1-dimension list.
+            languages.update(reduce(add, children_languages))
+
+        languages.discard(None)
+        # Object of type set is not JSON serializable
+        languages = list(languages)
+
+        # If languages are still the same, no needs to update the object
+        if sorted(obj_languages) == sorted(languages):
+            return
+
+        self.summary['languages'] = languages
+        self.save(update_fields=['summary'])
+
     @property
     def version__content_hash(self):
-        # Avoid reading the propery `self.latest_version` more than once, since
+        # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
@@ -948,7 +1074,7 @@ class Asset(ObjectPermissionMixin,
 
     @property
     def version_id(self):
-        # Avoid reading the propery `self.latest_version` more than once, since
+        # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
         latest_version = self.latest_version
         if latest_version:
@@ -1122,7 +1248,7 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     Remove above lines when PR is merged
     """
     xml = models.TextField()
-    source = JSONBField(null=True)
+    source = JSONBField(default=dict)
     details = JSONBField(default=dict)
     owner = models.ForeignKey('auth.User', related_name='asset_snapshots',
                               null=True, on_delete=models.CASCADE)
@@ -1223,3 +1349,14 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
                 'warnings': warnings,
             })
         return xml, details
+
+
+class UserAssetSubscription(models.Model):
+    """ Record a user's subscription to a publicly-discoverable collection,
+    i.e. one where the anonymous user has been granted `discover_asset` """
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    uid = KpiUidField(uid_prefix='b')
+
+    class Meta:
+        unique_together = ('asset', 'user')

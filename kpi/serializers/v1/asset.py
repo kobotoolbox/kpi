@@ -1,18 +1,23 @@
 # coding: utf-8
 from rest_framework import serializers
 
+from kpi.fields import PaginatedApiField
 from kpi.serializers.v2.asset import AssetSerializer as AssetSerializerV2
 from .object_permission import ObjectPermissionNestedSerializer
 
 
 class AssetSerializer(AssetSerializerV2):
 
+    # Only relevant for collections
+    children = PaginatedApiField(
+        serializer_class="kpi.serializers.v1.asset.AssetListSerializer"
+    )
+
     class Meta(AssetSerializerV2.Meta):
         fields = ('url',
                   'owner',
                   'owner__username',
                   'parent',
-                  'ancestors',
                   'settings',
                   'asset_type',
                   'date_created',
@@ -46,7 +51,9 @@ class AssetSerializer(AssetSerializerV2):
                   'name',
                   # 'assignable_permissions', # intentionally omitted
                   'permissions',
-                  'settings',)
+                  'settings',
+                  'children',
+                  )
 
     permissions = serializers.SerializerMethodField()
 

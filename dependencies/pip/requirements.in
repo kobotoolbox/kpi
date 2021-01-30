@@ -41,8 +41,12 @@ django-amazon-ses
 django-webpack-loader
 django-loginas
 django-markdownx
+
+# django-markitup # Not compatible with Django 2.0+ (see above ToDo²)
+
 django-markitup
 django-mptt
+
 django-reversion<3.0.2 # Migration issue with 3.0.2
 django-taggit
 django-private-storage
@@ -73,6 +77,7 @@ unicodecsv
 uWSGI
 xlrd
 xlwt
+xlutils
 XlsxWriter
 
 # These packages allow `requests` to support SNI

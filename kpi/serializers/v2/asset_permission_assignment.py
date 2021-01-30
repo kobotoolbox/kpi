@@ -92,14 +92,15 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
             if not partial_perms:
                 return None
 
-            hyperlinked_partial_perms = []
-            for perm_codename, filters in partial_perms.items():
-                url = self.__get_permission_hyperlink(perm_codename)
-                hyperlinked_partial_perms.append({
-                    'url': url,
-                    'filters': filters
-                })
-            return hyperlinked_partial_perms
+            if partial_perms:
+                hyperlinked_partial_perms = []
+                for perm_codename, filters in partial_perms.items():
+                    url = self.__get_permission_hyperlink(perm_codename)
+                    hyperlinked_partial_perms.append({
+                        'url': url,
+                        'filters': filters
+                    })
+                return hyperlinked_partial_perms
         return None
 
     def get_url(self, object_permission):
@@ -192,8 +193,11 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         """
         if not self._validate_permission(permission.codename):
             raise serializers.ValidationError(
-                '{} cannot be assigned explicitly to Asset objects.'.format(
-                    permission.codename))
+                _(
+                    '{permission} cannot be assigned explicitly to '
+                    'Asset objects of this type.'
+                ).format(permission=permission.codename)
+            )
         return permission
 
     def to_representation(self, instance):
@@ -232,8 +236,14 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         :param suffix: str.
         :return: bool.
         """
-        return (codename in Asset.get_assignable_permissions(with_partial=True)
-                and (suffix is None or codename.endswith(suffix)))
+        return (
+            # DONOTMERGE abusive to the database server?
+            codename in Asset.objects.only('asset_type').get(
+                uid=self.context['asset_uid']
+            ).get_assignable_permissions(
+                with_partial=True
+            ) and (suffix is None or codename.endswith(suffix))
+        )
 
     def __get_partial_permissions_generator(self, partial_permissions):
         """

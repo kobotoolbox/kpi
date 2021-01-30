@@ -54,7 +54,7 @@ if os.environ.get('SESSION_COOKIE_DOMAIN'):
 SESSION_COOKIE_AGE = 604800
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
+DEBUG = (os.environ.get('DJANGO_DEBUG', 'False') == 'True')
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
@@ -74,7 +74,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'reversion',
-    'mptt',
     'private_storage',
     'kobo.apps.KpiConfig',
     'hub',
@@ -209,8 +208,8 @@ WSGI_APPLICATION = 'kobo.wsgi.application'
 ANONYMOUS_USER_ID = -1
 # Permissions assigned to AnonymousUser are restricted to the following
 ALLOWED_ANONYMOUS_PERMISSIONS = (
-    'kpi.view_collection',
     'kpi.view_asset',
+    'kpi.discover_asset',
     'kpi.view_submissions',
 )
 
@@ -350,7 +349,7 @@ TEMPLATES = [
                 'kpi.context_processors.sitewide_messages',
                 'kpi.context_processors.config',
             ],
-            'debug': os.environ.get('TEMPLATE_DEBUG', 'True') == 'True',
+            'debug': os.environ.get('TEMPLATE_DEBUG', 'False') == 'True',
         },
     },
 ]
@@ -662,9 +661,6 @@ KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     # Each tuple must be (app_label, model_name)
     ('main', 'userprofile'),
     ('logger', 'xform'),
-    ('api', 'project'),
-    ('api', 'team'),
-    ('api', 'organizationprofile'),
     ('logger', 'note'),
 ]
 
@@ -698,6 +694,8 @@ MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
 SESSION_ENGINE = "redis_sessions.session"
 SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
+
+ENV = None
 
 # The maximum size in bytes that a request body may be before a SuspiciousOperation (RequestDataTooBig) is raised
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760

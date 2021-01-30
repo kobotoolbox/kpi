@@ -33,11 +33,13 @@ class AssetsListApiTests(BaseAssetTestCase):
         self.client.login(username='someuser', password='someuser')
         self.list_url = reverse(self._get_endpoint('asset-list'))
 
+    def login_as_other_user(self, username, password):
+        self.client.logout()
+        self.client.login(username=username, password=password)
+
     def test_login_as_other_users(self):
-        self.client.logout()
-        self.client.login(username='admin', password='pass')
-        self.client.logout()
-        self.client.login(username='anotheruser', password='anotheruser')
+        self.login_as_other_user(username='admin', password='pass')
+        self.login_as_other_user(username='anotheruser', password='anotheruser')
         self.client.logout()
 
     def test_create_asset(self):
@@ -62,8 +64,13 @@ class AssetsListApiTests(BaseAssetTestCase):
                          msg=list_response.data)
         expected_list_data = {
             field: detail_response.data[field]
-            for field in AssetListSerializer.Meta.fields
+            for field in AssetListSerializer.Meta.fields if field != 'children'
         }
+        # list endpoint only exposes children count.
+        expected_list_data['children'] = {
+            'count': detail_response.data['children']['count']
+        }
+
         list_result_detail = None
         for result in list_response.data['results']:
             if result['uid'] == expected_list_data['uid']:
@@ -112,7 +119,7 @@ class AssetsListApiTests(BaseAssetTestCase):
                     {
                         'name': 'zeppelin',
                         'type': 'select_one',
-                        'label': 'put on some zeppelin 🧀',
+                        'label': 'put on some zeppelin 🧀🧀🧀',
                         'select_from_list_name': 'choicelist',
                     }
                 ],
@@ -162,11 +169,85 @@ class AssetsListApiTests(BaseAssetTestCase):
         )
         self.assertListEqual(results, [template.uid, question.uid])
 
-        results = uids_from_search_results('🧀')
+        results = uids_from_search_results('🧀🧀🧀')
         self.assertListEqual(results, [template.uid])
 
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
+
+    def test_assets_ordering(self):
+
+        someuser = User.objects.get(username='someuser')
+        question = Asset.objects.create(
+            owner=someuser,
+            name='A question',
+            asset_type='question',
+        )
+        collection = Asset.objects.create(
+            owner=someuser,
+            name='Ze French collection',
+            asset_type='collection',
+        )
+        template = Asset.objects.create(
+            owner=someuser,
+            name='My template',
+            asset_type='template',
+            content={},
+        )
+        survey = Asset.objects.create(
+            owner=someuser,
+            name='survey',
+            asset_type='survey',
+        )
+        another_collection = Asset.objects.create(
+            owner=someuser,
+            name='Someuser’s collection',
+            asset_type='collection',
+        )
+
+        def uids_from_results(params: dict = None):
+            return [
+                r['uid']
+                for r in self.client.get(self.list_url, data=params).data[
+                    'results'
+                ]
+            ]
+
+        # Default is by date_modified desc
+        expected_default_order = [
+            another_collection.uid,
+            survey.uid,
+            template.uid,
+            collection.uid,
+            question.uid,
+        ]
+        uids = uids_from_results()
+        assert expected_default_order == uids
+
+        # Sorted by name asc
+        expected_order_by_name = [
+            question.uid,
+            template.uid,
+            another_collection.uid,
+            survey.uid,
+            collection.uid,
+        ]
+        uids = uids_from_results({'ordering': 'name'})
+        assert expected_order_by_name == uids
+
+        # Sorted by name asc but collections first
+        expected_order_by_name_collections_first = [
+            another_collection.uid,
+            collection.uid,
+            question.uid,
+            template.uid,
+            survey.uid,
+        ]
+        uids = uids_from_results({
+            'collections_first': 'true',
+            'ordering': 'name',
+        })
+        assert expected_order_by_name_collections_first == uids
 
 
 class AssetVersionApiTests(BaseTestCase):
@@ -527,8 +608,12 @@ class AssetFileTest(BaseTestCase):
         self.asset.save()
         self.assertListEqual(
             sorted(list(self.asset.get_perms(self.asset.owner))),
-            sorted(list(Asset.get_assignable_permissions(False) +
-                        Asset.CALCULATED_PERMISSIONS))
+            sorted(
+                list(
+                    self.asset.get_assignable_permissions(with_partial=False)
+                    + Asset.CALCULATED_PERMISSIONS
+                )
+            ),
         )
 
     def get_asset_file_content(self, url):

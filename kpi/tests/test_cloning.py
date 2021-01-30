@@ -97,7 +97,7 @@ class TestCloning(KpiTestCase):
         original_asset = self.create_asset('cloning_asset')
         parent_collection = self.create_collection('parent_collection')
         parent_url = reverse(
-            'collection-detail', kwargs={'uid': parent_collection.uid})
+            'asset-detail', kwargs={'uid': parent_collection.uid})
         cloned_asset = self._clone_asset(
             original_asset, parent=parent_url)
         self.assertEqual(cloned_asset.parent, parent_collection)
