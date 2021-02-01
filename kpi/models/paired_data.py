@@ -31,7 +31,7 @@ class PairedData:
             self.paired_data_uid = paired_data_uid
 
         if not hash_:
-            self.__generate_hash()
+            self.generate_hash()
         else:
             self.__hash = hash_
 
