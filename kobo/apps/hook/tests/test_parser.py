@@ -63,7 +63,8 @@ class ParserTestCase(HookTestCase):
                 asset_uid=self.asset_xml.uid,
                 id=uuid)
         )
-        expected_xml = etree.tostring(expected_etree, pretty_print=True)
+        expected_xml = etree.tostring(expected_etree, pretty_print=True,
+                                      xml_declaration=True, encoding='utf-8')
 
         def remove_whitespace(str_):
             return re.sub(r'>\s+<', '><', to_str(str_))
