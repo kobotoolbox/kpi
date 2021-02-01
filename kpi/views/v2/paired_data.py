@@ -48,15 +48,16 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         """
         Returns an XML which contains data submitted to paired asset
         """
-        asset = self.get_object()
+        paired_data = self.get_object()
 
         # Retrieve the parent if it exists
-        parent_asset = asset.get_paired_parent(paired_data_uid)
+        parent_asset = paired_data.get_parent()
+
         if not parent_asset:
             # ToDo Delete any related asset files
             raise Http404
 
-        if not asset.has_deployment:
+        if not self.asset.has_deployment:
             raise ObjectDeploymentDoesNotExist(
                 _('The specified asset has not been deployed')
             )
@@ -65,13 +66,13 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         # If data has already been fetched once, an `AssetFile` should exist.
         # Otherwise, we create one to store the generated XML.
         try:
-            asset_file = asset.asset_files.get(uid=paired_data_uid)
+            asset_file = self.asset.asset_files.get(uid=paired_data_uid)
         except AssetFile.DoesNotExist:
             asset_file = AssetFile(
                 uid=paired_data_uid,
-                asset=asset,
+                asset=self.asset,
                 file_type=AssetFile.PAIRED_DATA,
-                user=asset.owner,
+                user=self.asset.owner,
             )
             # When asset file is new, we consider its content as expired to
             # force its creation below
@@ -79,13 +80,13 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         else:
             timedelta = timezone.now() - asset_file.date_modified
             has_expired = (
-                    timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION
+                timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION
             )
 
         # If the content of `asset_file' has expired, let's regenerate the XML
         if has_expired:
             submissions = parent_asset.deployment.get_submissions(
-                asset.owner.pk,
+                self.asset.owner.pk,
                 format_type=INSTANCE_FORMAT_TYPE_XML
             )
             parsed_submissions = []
@@ -93,11 +94,18 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
             for submission in submissions:
                 # `strip_nodes` expects field names,
                 parsed_submissions.append(
-                    strip_nodes(submission, asset.paired_data_fields)
+                    strip_nodes(submission, paired_data.fields)
                 )
-            filename = asset.paired_data[parent_asset.uid]['filename']
-            xml_ = ''.join(parsed_submissions).replace(parent_asset.uid, 'data')
-
+            filename = paired_data.filename
+            parsed_submissions_to_str = ''.join(parsed_submissions).replace(
+                parent_asset.uid, 'data'
+            )
+            root_tag_name = SubmissionXMLRenderer.root_tag_name
+            xml_ = (
+                f'<{root_tag_name}>'
+                f'{parsed_submissions_to_str}'
+                f'</{root_tag_name}>'
+            )
             # We need to delete current file (if it exists) when filename has
             # changed. Otherwise it would leave an orphan file on storage
             if asset_file.pk and asset_file.content.name != filename:
@@ -105,8 +113,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
 
             asset_file.content = ContentFile(xml_.encode(), name=filename)
             asset_file.save()
-
-            # ToDo Update KoBoCAT hash
+            paired_data.save(generate_hash=True)
 
         return Response(asset_file.content.file.read().decode())
 

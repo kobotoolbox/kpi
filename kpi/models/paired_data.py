@@ -1,5 +1,6 @@
 # coding: utf-8
 import time
+from typing import Union
 
 from django.conf import settings
 from rest_framework.reverse import reverse
@@ -30,9 +31,7 @@ class PairedData:
             self.paired_data_uid = paired_data_uid
 
         if not hash_:
-            self.__hash = get_hash(
-                f'{self.kc_metadata_uniqid}.{str(time.time())}'
-            )
+            self.__generate_hash()
         else:
             self.__hash = hash_
 
@@ -46,6 +45,33 @@ class PairedData:
             adjust_content=False,
             create_version=False,
         )
+
+    def generate_hash(self):
+        self.__hash = get_hash(
+            f'{self.kc_metadata_uniqid}.{str(time.time())}'
+        )
+
+    def get_parent(self) -> Union['Asset', None]:
+
+        # Avoid circular import
+        Asset = self.asset.__class__  # noqa
+        try:
+            parent_asset = Asset.objects.get(uid=self.parent_uid)
+        except Asset.DoesNotExist:
+            return None
+
+        # Data sharing must be enabled on the parent
+        parent_data_sharing = parent_asset.data_sharing
+        if not parent_data_sharing.get('enabled'):
+            return None
+
+        # Validate `self.owner` is still allowed to see parent data
+        # ToDo : `self.owner` should have `PERM_VIEW_ASSET` on parent too
+        allowed_users = parent_data_sharing.get('users', [])
+        if allowed_users and self.asset.owner.username not in allowed_users:
+            return None
+
+        return parent_asset
 
     @property
     def kc_metadata_data_value(self):
@@ -90,6 +116,10 @@ class PairedData:
             self.asset.paired_data[self.parent_uid]['paired_data_uid']
         except KeyError:
             self.paired_data_uid = KpiUidField.generate_unique_id('pd')
+
+        generate_hash = kwargs.pop('generate_hash', False)
+        if generate_hash:
+            self.generate_hash()
 
         self.asset.paired_data[self.parent_uid] = {
             'fields': self.fields,
