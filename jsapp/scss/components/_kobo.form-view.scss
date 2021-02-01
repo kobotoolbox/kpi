@@ -210,6 +210,10 @@
       justify-content: flex-end;
     }
 
+    &.form-view__cell--columns-top {
+      align-items: flex-start;
+    }
+
     .form-view__cell--stretch {
       flex: 1;
     }
@@ -772,5 +776,36 @@
   .form-view__cell--date {
     display: block;
     margin-left: 0;
+  }
+}
+
+.form-modal__form.form-modal__form--bulk-edit-submissions {
+  // text links
+  .form-modal__item--wrapper > a:hover {
+    text-decoration: underline;
+  }
+
+  h2 {
+    font-size: inherit;
+    font-weight: 600;
+    margin: 0 auto 10px;
+  }
+
+  i.blue-response-dot {
+    width: 6px;
+    height: 6px;
+    display: inline-block;
+    vertical-align: middle;
+    background: $kobo-blue;
+    border-radius: 100%;
+    margin-right: 6px;
+  }
+
+  .text-box.text-box--bulk-edit-response .text-box__input {
+    min-height: 90px;
+  }
+
+  .modal__footer .footer-back-button {
+    float: left;
   }
 }

@@ -1,6 +1,10 @@
 # coding: utf-8
+import copy
 import json
+import uuid
+from datetime import datetime
 
+import pytz
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -50,6 +54,7 @@ class BaseSubmissionTestCase(BaseTestCase):
                 "q1": "a1",
                 "q2": "a2",
                 "_id": 1,
+                "instanceID": f'uuid:{uuid.uuid4()}',
                 "_validation_status": {
                     "by_whom": "someuser",
                     "timestamp": 1547839938,
@@ -64,6 +69,7 @@ class BaseSubmissionTestCase(BaseTestCase):
                 "q1": "a3",
                 "q2": "a4",
                 "_id": 2,
+                "instanceID": f'uuid:{uuid.uuid4()}',
                 "_validation_status": {
                     "by_whom": "someuser",
                     "timestamp": 1547839938,
@@ -435,6 +441,161 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
+
+    def setUp(self):
+        super().setUp()
+        v_uid = self.asset.latest_deployed_version.uid
+        current_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        self.submissions = [
+            {
+                '__version__': v_uid,
+                'instanceID': f'uuid:{uuid.uuid4()}',
+                'start': current_time,
+                'end': current_time,
+                'q1': 'a1',
+                'q2': 'a2',
+                '_id': 1,
+                '_validation_status': {
+                    'by_whom': 'someuser',
+                    'timestamp': 1547839938,
+                    'uid': 'validation_status_on_hold',
+                    'color': '#0000ff',
+                    'label': 'On Hold'
+                },
+                '_submitted_by': ''
+            },
+            {
+                '__version__': v_uid,
+                'instanceID': f'uuid:{uuid.uuid4()}',
+                'start': current_time,
+                'end': current_time,
+                'q1': 'a3',
+                'q2': 'a4',
+                '_id': 2,
+                '_validation_status': {
+                    'by_whom': 'someuser',
+                    'timestamp': 1547839938,
+                    'uid': 'validation_status_approved',
+                    'color': '#0000ff',
+                    'label': 'On Hold'
+                },
+                '_submitted_by': 'someuser'
+            }
+        ]
+        self.submission_url = reverse(
+            self._get_endpoint('submission-duplicate'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submissions[0].get(
+                    self.asset.deployment.INSTANCE_ID_FIELDNAME
+                ),
+            },
+        )
+
+    def _check_duplicate(self, response):
+        submission = self.submissions[0]
+        duplicate_submission = response.data
+
+        expected_next_id = max((sub['_id'] for sub in self.submissions)) + 1
+        assert submission['_id'] != duplicate_submission['_id']
+        assert duplicate_submission['_id'] == expected_next_id
+
+        assert submission['instanceID'] != duplicate_submission['instanceID']
+        assert submission['start'] != duplicate_submission['start']
+        assert submission['end'] != duplicate_submission['end']
+
+    def test_duplicate_submission_by_owner_allowed(self):
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
+        self._check_duplicate(response)
+
+    def test_duplicate_submission_by_anotheruser_not_allowed(self):
+        self._log_in_as_another_user()
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_duplicate_submission_by_anonymous_not_allowed(self):
+        self.client.logout()
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_duplicate_submission_by_anotheruser_shared_view_only_not_allowed(self):
+        self._share_with_another_user()
+        self._log_in_as_another_user()
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_duplicate_submission_by_anotheruser_shared_allowed(self):
+        self._share_with_another_user(view_only=False)
+        self._log_in_as_another_user()
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
+        self._check_duplicate(response)
+
+
+class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.submission_url = reverse(
+            self._get_endpoint('submission-bulk'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+            },
+        )
+        self.updated_submission_data = {
+            'submission_ids': ['1', '2'],
+            'data': {
+                'q1': '🕺',
+            },
+        }
+
+    def _check_bulk_update(self, response):
+        updated_submission_data = copy.copy(self.updated_submission_data)
+        submission_ids = updated_submission_data.pop('submission_ids')
+        # Check that the number of ids given matches the number of successful
+        assert len(submission_ids) == response.data['successes']
+
+    def test_bulk_update_submissions_by_owner_allowed(self):
+        response = self.client.patch(
+            self.submission_url, data=self.updated_submission_data, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
+
+    def test_bulk_update_submissions_by_anotheruser_not_allowed(self):
+        self._log_in_as_another_user()
+        response = self.client.patch(
+            self.submission_url, data=self.updated_submission_data, format='json'
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_bulk_update_submissions_by_anonymous_not_allowed(self):
+        self.client.logout()
+        response = self.client.patch(
+            self.submission_url, data=self.updated_submission_data, format='json'
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_bulk_update_submissions_by_anotheruser_shared_view_only_not_allowed(self):
+        self._share_with_another_user()
+        self._log_in_as_another_user()
+        response = self.client.patch(
+            self.submission_url, data=self.updated_submission_data, format='json'
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_bulk_update_submissions_by_anotheruser_shared_allowed(self):
+        self._share_with_another_user(view_only=False)
+        self._log_in_as_another_user()
+        response = self.client.patch(
+            self.submission_url, data=self.updated_submission_data, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
 
 
 class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):

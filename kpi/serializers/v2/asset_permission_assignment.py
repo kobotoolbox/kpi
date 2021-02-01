@@ -193,8 +193,11 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
         """
         if not self._validate_permission(permission.codename):
             raise serializers.ValidationError(
-                '{} cannot be assigned explicitly to Asset objects.'.format(
-                    permission.codename))
+                _(
+                    '{permission} cannot be assigned explicitly to '
+                    'Asset objects of this type.'
+                ).format(permission=permission.codename)
+            )
         return permission
 
     def to_representation(self, instance):
