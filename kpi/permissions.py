@@ -293,7 +293,7 @@ class PairedDataPermission(permissions.BasePermission):
         """
         # Check whether `asset` owner's account requires authentication:
         try:
-            require_auth = obj.owner.extra_details.data['require_auth']
+            require_auth = obj.asset.owner.extra_details.data['require_auth']
         except KeyError:
             require_auth = False
 
@@ -301,7 +301,7 @@ class PairedDataPermission(permissions.BasePermission):
         # 'add_submission' permission on `obj`
         if (
             require_auth
-            and not obj.has_perm(request.user, PERM_ADD_SUBMISSIONS)
+            and not obj.asset.has_perm(request.user, PERM_ADD_SUBMISSIONS)
         ):
             raise Http404
 

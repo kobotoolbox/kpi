@@ -491,7 +491,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                         schema = asset.latest_deployed_version.to_formpack_schema()  # noqa
                         form_pack = FormPack(versions=schema)
                         valid_fields = [
-                            f.name for f in form_pack.get_fields_for_versions()
+                            f.path for f in form_pack.get_fields_for_versions()
                         ]
                         unknown_fields = set(fields) - set(valid_fields)
                         if unknown_fields and valid_fields:

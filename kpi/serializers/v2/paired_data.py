@@ -94,7 +94,7 @@ class PairedDataSerializer(serializers.Serializer):
         schema = parent.latest_deployed_version.to_formpack_schema()
         form_pack = FormPack(versions=schema)
         valid_fields = [
-            f.name for f in form_pack.get_fields_for_versions()
+            f.path for f in form_pack.get_fields_for_versions()
         ]
 
         parent_fields = parent.data_sharing.get('fields') or valid_fields
