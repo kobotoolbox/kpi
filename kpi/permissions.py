@@ -231,6 +231,10 @@ class PairedDataPermission(permissions.BasePermission):
         - client must be Collect or Enketo Express
         """
 
+        # Skips validation if not on production environment
+        if settings.ENV != 'prod':
+            return True
+
         try:
             http_host = f"http://{request.META['HTTP_HOST']}"
         except KeyError:
