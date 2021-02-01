@@ -22,6 +22,7 @@ export const CHECKBOX_NAMES = {};
 new Set([
   'formView',
   'formEdit',
+  'formManage',
   'submissionsAdd',
   'submissionsView',
   'submissionsViewPartial',
@@ -63,6 +64,7 @@ Object.freeze(PARTIAL_PERM_PAIRS);
 export const CHECKBOX_PERM_PAIRS = {};
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.formView] = PERMISSIONS_CODENAMES.view_asset;
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.formEdit] = PERMISSIONS_CODENAMES.change_asset;
+CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.formManage] = PERMISSIONS_CODENAMES.manage_asset;
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsAdd] = PERMISSIONS_CODENAMES.add_submissions;
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsView] = PERMISSIONS_CODENAMES.view_submissions;
 CHECKBOX_PERM_PAIRS[CHECKBOX_NAMES.submissionsViewPartial] = PERMISSIONS_CODENAMES.partial_submissions;

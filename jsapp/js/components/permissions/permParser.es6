@@ -28,6 +28,7 @@ import {
  * @property {string} data.username - Who give permissions to.
  * @property {boolean} data.formView
  * @property {boolean} data.formEdit
+ * @property {boolean} data.formManage - Is able to change form permissions (and future stuff TBD).
  * @property {boolean} data.submissionsAdd
  * @property {boolean} data.submissionsView
  * @property {boolean} data.submissionsViewPartial
@@ -170,6 +171,9 @@ function buildFormData(permissions) {
     }
     if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.change_asset).url) {
       formData.formEdit = true;
+    }
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.manage_asset).url) {
+      formData.formManage = true;
     }
     if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.partial_submissions).url) {
       perm.partial_permissions.forEach((partial) => {

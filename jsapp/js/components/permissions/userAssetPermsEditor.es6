@@ -59,6 +59,7 @@ class UserAssetPermsEditor extends React.Component {
 
     this.setupStateCheckbox(CHECKBOX_NAMES.formView);
     this.setupStateCheckbox(CHECKBOX_NAMES.formEdit);
+    this.setupStateCheckbox(CHECKBOX_NAMES.formManage);
     this.setupStateCheckbox(CHECKBOX_NAMES.submissionsView);
     this.setupStateCheckbox(CHECKBOX_NAMES.submissionsAdd);
     this.setupStateCheckbox(CHECKBOX_NAMES.submissionsEdit);
@@ -505,6 +506,10 @@ class UserAssetPermsEditor extends React.Component {
 
           {this.isAssignable(PERMISSIONS_CODENAMES.change_asset) &&
             this.renderCheckbox(CHECKBOX_NAMES.formEdit)
+          }
+
+          {this.isAssignable(PERMISSIONS_CODENAMES.manage_asset) &&
+            this.renderCheckbox(CHECKBOX_NAMES.formManage)
           }
 
           {this.isAssignable(PERMISSIONS_CODENAMES.view_submissions) &&

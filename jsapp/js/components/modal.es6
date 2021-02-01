@@ -36,6 +36,7 @@ import {LibraryAssetForm} from './modalForms/libraryAssetForm';
 import LibraryNewItemForm from './modalForms/libraryNewItemForm';
 import LibraryUploadForm from './modalForms/libraryUploadForm';
 import EncryptForm from './modalForms/encryptForm.es6';
+import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
 import ProjectSettings from './modalForms/projectSettings';
 import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
@@ -112,7 +113,7 @@ class Modal extends React.Component {
         this.setState({
           title: this.submissionTitle(this.props),
           modalClass: 'modal--large modal-submission',
-          sid: this.props.params.sid
+          sid: this.props.params.sid,
         });
       break;
 
@@ -145,6 +146,13 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.ENCRYPT_FORM:
         this.setModalTitle(t('Manage Form Encryption'));
+        break;
+
+      case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
+        // title is set by BulkEditSubmissionsForm
+        this.setState({
+          modalClass: 'modal--large modal--large-shorter'
+        });
         break;
 
       default:
@@ -186,21 +194,25 @@ class Modal extends React.Component {
     }
   }
   submissionTitle(props) {
-    let title = t('Submission Record'),
-        p = props.params,
-        sid = parseInt(p.sid);
+    let title = t('Success!'),
+      p = props.params,
+      sid = parseInt(p.sid);
 
-    if (p.tableInfo) {
-      let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
-      title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
-    } else {
-      let index = p.ids.indexOf(sid);
-      if (p.ids.length === 1) {
-          title = `${t('Submission Record')}`;
+    if (!p.isDuplicated) {
+      title = t('Submission Record');
+      if (p.tableInfo) {
+        let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
+        title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
       } else {
-          title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+        let index = p.ids.indexOf(sid);
+        if (p.ids.length === 1) {
+            title = `${t('Submission Record')}`;
+        } else {
+            title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+        }
       }
     }
+
 
     return title;
   }
@@ -237,6 +249,7 @@ class Modal extends React.Component {
         onClose={this.onModalClose}
         title={this.state.title}
         className={this.state.modalClass}
+        isDuplicated={this.props.params.isDuplicated}
       >
         <ui.Modal.Body>
             { this.props.params.type === MODAL_TYPES.SHARING &&
@@ -316,6 +329,8 @@ class Modal extends React.Component {
               <Submission sid={this.state.sid}
                           asset={this.props.params.asset}
                           ids={this.props.params.ids}
+                          isDuplicated={this.props.params.isDuplicated}
+                          duplicatedSubmission={this.props.params.duplicatedSubmission}
                           tableInfo={this.props.params.tableInfo || false} />
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && !this.state.sid &&
@@ -352,10 +367,18 @@ class Modal extends React.Component {
                 langIndex={this.props.params.langIndex}
               />
             }
-            { this.props.params.type == MODAL_TYPES.ENCRYPT_FORM &&
+            { this.props.params.type === MODAL_TYPES.ENCRYPT_FORM &&
               <EncryptForm
                 asset={this.props.params.asset}
                 assetUid={this.props.params.assetUid}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS &&
+              <BulkEditSubmissionsForm
+                onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
+                asset={this.props.params.asset}
+                {...this.props.params}
               />
             }
         </ui.Modal.Body>
