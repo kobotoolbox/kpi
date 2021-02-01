@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
 from kpi.constants import (
+    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
@@ -32,9 +33,17 @@ class BasePairedDataTestCase(BaseAssetTestCase):
             content={
                 'survey': [
                     {
+                        'name': 'group_restaurant',
+                        'type': 'begin_group',
+                        "label": "Restaurant"
+                    },
+                    {
                         'name': 'favourite_restaurant',
                         'type': 'text',
                         'label': 'What is your favourite restaurant?',
+                    },
+                    {
+                        'type': 'end_group',
                     },
                     {
                         'name': 'city_name',
@@ -60,17 +69,17 @@ class BasePairedDataTestCase(BaseAssetTestCase):
                         'type': 'text',
                         'label': 'What is your favourite restaurant?',
                     },
-                    {
-                        'name': 'city_name',
-                        'type': 'text',
-                        'label': 'Where is it located?',
-                    }
                 ],
             },
         )
         self.child_asset_paired_data_url = reverse(
             self._get_endpoint('paired-data-list'), args=[self.child_asset.uid]
         )
+
+        # Create another user.
+        self.quidam = User.objects.create_user(username='quidam',
+                                               password='quidam',
+                                               email='quidam@example.com')
 
     def toggle_parent_sharing(
         self, enabled, users=[], fields=[], parent_url=None
@@ -144,24 +153,27 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertTrue('fields' in response.data)
         self.assertTrue(isinstance(response.data['fields'][0], ErrorDetail))
 
-        # Enable parent data sharing with the field 'city_name' only
-        self.toggle_parent_sharing(enabled=True, fields=['city_name'])
+        # Enable parent data sharing with the field
+        # 'group_restaurant/favourite_restaurant' only
+        self.toggle_parent_sharing(
+            enabled=True, fields=['group_restaurant/favourite_restaurant']
+        )
         # Try to pair with field not among parent fields
-        response = self.paired_data(fields=['restaurant'])
+        response = self.paired_data(fields=['city_name'])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('fields' in response.data)
         self.assertTrue(isinstance(response.data['fields'][0], ErrorDetail))
 
     def test_create_with_users(self):
-        # Restrict parent data sharing to user randomuser
+        # Restrict parent data sharing to a random user
         self.toggle_parent_sharing(enabled=True, users=['randomuser'])
-        # Try to pair with `anotheruser`. They cannot pair data
+        # Try to pair with another user. They cannot pair data
         response = self.paired_data()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('parent' in response.data)
         self.assertTrue(isinstance(response.data['parent'][0], ErrorDetail))
 
-        # Restrict parent data sharing to user anotheruser
+        # Restrict parent data sharing to user anotheruser.
         self.toggle_parent_sharing(enabled=True, users=['anotheruser'])
         # Now, anotheruser should be able to pair data with parent
         response = self.paired_data()
@@ -170,34 +182,30 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.client.delete(response.data['url'])
 
         # Try with another user and another form
-        manager = User.objects.create_user(username='manager',
-                                           password='manager',
-                                           email='manager@example.com')
         child_asset_clone = self.child_asset.clone()
-        child_asset_clone.owner = manager
+        child_asset_clone.owner = self.quidam
         child_asset_clone.save()
         paired_data_url = reverse(
             self._get_endpoint('paired-data-list'), args=[child_asset_clone.uid]
         )
         response = self.paired_data(child_url=paired_data_url,
-                                    login_username='manager', 
-                                    login_password='manager')
+                                    login_username='quidam',
+                                    login_password='quidam')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('parent' in response.data)
         self.assertTrue(isinstance(response.data['parent'][0], ErrorDetail))
 
-        # Allow manager to edit anotheruser's form and try again.
+        # Allow quidam to edit anotheruser's form and try again.
         # It should still fail (access should be forbidden)
-        self.child_asset.assign_perm(manager, PERM_CHANGE_ASSET)
-        response = self.paired_data(login_username='manager',
-                                    login_password='manager')
+        self.child_asset.assign_perm(self.quidam, PERM_CHANGE_ASSET)
+        response = self.paired_data(login_username='quidam',
+                                    login_password='quidam')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Let's give 'manage_asset' to manager. After all, that's what they
-        # are.
-        self.child_asset.assign_perm(manager, PERM_MANAGE_ASSET)
-        response = self.paired_data(login_username='manager',
-                                    login_password='manager')
+        # Let's give 'manage_asset' to user quidam.
+        self.child_asset.assign_perm(self.quidam, PERM_MANAGE_ASSET)
+        response = self.paired_data(login_username='quidam',
+                                    login_password='quidam')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_with_invalid_filename(self):
@@ -254,23 +262,19 @@ class PairedDataDetailApiTests(BasePairedDataTestCase):
         # someuser enables data sharing on their form
         self.toggle_parent_sharing(enabled=True)
         # anotheruser pairs data with someuser's form
-        self.paired_data_detail_url = self.paired_data()
-
-        # Try with another user and another form
-        self.manager = User.objects.create_user(username='manager',
-                                                password='manager',
-                                                email='manager@example.com')
+        paired_data_response = self.paired_data()
+        self.paired_data_detail_url = paired_data_response.data['url']
 
     def test_read_paired_data_owner(self):
         response = self.client.get(self.paired_data_detail_url)
         self.assertTrue(response.status_code, status.HTTP_200_OK)
 
     def test_read_paired_data_other_user(self):
-        self.login_as_other_user('manager', 'manager')
+        self.login_as_other_user('quidam', 'quidam')
         response = self.client.get(self.paired_data_detail_url)
         self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
 
-        self.child_asset.assign_perm(self.manager, PERM_VIEW_ASSET)
+        self.child_asset.assign_perm(self.quidam, PERM_VIEW_ASSET)
         response = self.client.get(self.paired_data_detail_url)
         self.assertTrue(response.status_code, status.HTTP_200_OK)
 
@@ -284,15 +288,15 @@ class PairedDataDetailApiTests(BasePairedDataTestCase):
         self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_paired_data_other_user(self):
-        self.login_as_other_user('manager', 'manager')
+        self.login_as_other_user('quidam', 'quidam')
         response = self.client.get(self.paired_data_detail_url)
         self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
 
-        self.child_asset.assign_perm(self.manager, PERM_CHANGE_ASSET)
+        self.child_asset.assign_perm(self.quidam, PERM_CHANGE_ASSET)
         response = self.client.get(self.paired_data_detail_url)
         self.assertTrue(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.child_asset.assign_perm(self.manager, PERM_MANAGE_ASSET)
+        self.child_asset.assign_perm(self.quidam, PERM_MANAGE_ASSET)
         response = self.client.get(self.paired_data_detail_url)
         self.assertTrue(response.status_code, status.HTTP_200_OK)
 
@@ -300,3 +304,39 @@ class PairedDataDetailApiTests(BasePairedDataTestCase):
         self.client.logout()
         response = self.client.get(self.paired_data_detail_url)
         self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class PairedDataExternalApiTests(BasePairedDataTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.child_asset.deploy(backend='mock', active=True)
+        self.child_asset.save()
+        # someuser enables data sharing on their form
+        self.toggle_parent_sharing(enabled=True)
+        # anotheruser pairs data with someuser's form
+        paired_data_response = self.paired_data()
+        self.paired_data_detail_url = paired_data_response.data['url']
+        self.external_xml_url = f'{self.paired_data_detail_url}external.xml'
+
+    def test_get_external_with_auth_on(self):
+        # When owner's child asset requires authentication,
+        # collectors need to have 'add_submission' permission to view the paired
+        # data.
+        self.anotheruser.extra_details.data['require_auth'] = True
+        self.anotheruser.extra_details.save()
+        self.login_as_other_user('quidam', 'quidam')
+        response = self.client.get(self.external_xml_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        self.child_asset.assign_perm(self.quidam, PERM_ADD_SUBMISSIONS)
+        response = self.client.get(self.external_xml_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_external_with_no_auth(self):
+        # When owner's child asset does not require any authentications,
+        # everybody can see their data
+
+        self.client.logout()
+        response = self.client.get(self.external_xml_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

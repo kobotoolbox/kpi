@@ -39,7 +39,8 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     permission_classes = (AssetNestedObjectPermission,)
     serializer_class = PairedDataSerializer
 
-    @action(detail=True, methods=['GET'],
+    @action(detail=True,
+            methods=['GET'],
             permission_classes=[PairedDataPermission],
             renderer_classes=[SubmissionXMLRenderer],
             filter_backends=[],
@@ -94,7 +95,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
             for submission in submissions:
                 # `strip_nodes` expects field names,
                 parsed_submissions.append(
-                    strip_nodes(submission, paired_data.fields)
+                    strip_nodes(submission, paired_data.fields, use_xpath=True)
                 )
             filename = paired_data.filename
             parsed_submissions_to_str = ''.join(parsed_submissions).replace(
@@ -123,6 +124,10 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         )
         if not obj:
             raise Http404
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+
         return obj
 
     def get_queryset(self, as_list=True):
