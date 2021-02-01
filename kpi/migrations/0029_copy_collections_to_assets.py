@@ -75,7 +75,6 @@ def migrate_collections_to_assets(apps, schema_editor):
         for attr in [
             'name',
             'owner',
-            'editors_can_change_permissions',
             'date_created',
             'date_modified',
         ]:
