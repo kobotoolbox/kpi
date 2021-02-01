@@ -190,7 +190,7 @@ class CollectionsTests(BaseTestCase):
         query_string = 'status=public-discoverable&q=asset_type:collection'
         url = f'{list_url}?{query_string}'
         response = self.client.get(url)
-        self.assertTrue(response.data.get('count') == 1)
+        self.assertEqual(response.data.get('count'), 1)
         self.assertEqual(
             response.data['results'][0]['uid'], public_collection.uid
         )
