@@ -298,6 +298,7 @@ stores.allAssets = Reflux.createStore({
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
+    this.listenTo(actions.permissions.removeAssetPermission.completed, this.onDeletePermissionCompleted);
   },
   whenLoaded (uid, cb) {
     if (typeof uid !== 'string' || typeof cb !== 'function') {
@@ -338,6 +339,20 @@ stores.allAssets = Reflux.createStore({
       window.setTimeout(()=> {
         this.data = this.data.filter(function(item){
           return item.uid !== asset.uid;
+        });
+        this.trigger(this.data);
+      }, 500);
+    }
+  },
+  onDeletePermissionCompleted (assetUid, isNonOwner) {
+    // Prevent form owner from deleting their own form if they remove another
+    // user's permissions
+    if (this.byUid[assetUid] && isNonOwner) {
+      this.byUid[assetUid].deleted = 'true';
+      this.trigger(this.data);
+      window.setTimeout(()=> {
+        this.data = this.data.filter(function(item){
+          return item.uid !== assetUid;
         });
         this.trigger(this.data);
       }, 500);

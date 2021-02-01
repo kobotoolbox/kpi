@@ -729,7 +729,10 @@ mixins.clickAssets = {
           message: `${t('Are you sure you want to remove this shared form?')}`,
           labels: {ok: t('Remove'), cancel: t('Cancel')},
           onok: (evt, val) => {
-            actions.permissions.removeAssetPermission(uid, userViewAssetPerm.url);
+            // Only non-owners should have the asset removed from their asset list.
+            // This menu option is only open to non-owners so we don't need to check again.
+            let isNonOwner = true;
+            actions.permissions.removeAssetPermission(uid, userViewAssetPerm.url, isNonOwner);
           },
           oncancel: () => {
             dialog.destroy();

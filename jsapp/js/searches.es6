@@ -116,7 +116,8 @@ function SearchContext(opts={}) {
     },
     // remove asset from all search store lists
     removeAsset(asset) {
-      let assetUid = asset.uid || asset
+      // Parse asset UID from self removed permissions as well
+      let assetUid = asset.uid || asset;
       this.removeAssetFromList(assetUid, 'defaultQueryResultsList');
       this.removeAssetFromList(assetUid, 'searchResultsList');
       this.rebuildCategorizedList(
