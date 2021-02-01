@@ -33,6 +33,11 @@
 }
 
 .kobo-select {
+  &.kobo-select--is-disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
   .kobo-select__control {
     box-shadow: none;
     border: none;

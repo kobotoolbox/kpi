@@ -12,7 +12,7 @@ import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
 import DataTable from './table';
-import OldProjectDownloads from './oldProjectDownloads';
+import ProjectDownloads from './projectDownloads';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
@@ -131,7 +131,7 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled');
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <OldProjectDownloads asset={this.state} />
+        <ProjectDownloads asset={this.state} />
       </DocumentTitle>
     );
   }
