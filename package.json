@@ -26,6 +26,7 @@
     "eslint-plugin-react": "^7.20.0",
     "file-loader": "^2.0.0",
     "font-awesome": "^4.7.0",
+    "fuse.js": "^6.4.3",
     "immutable": "^3.8.2",
     "jquery": "^3.5.1",
     "jquery-ui": "1.12.1",

@@ -10,6 +10,9 @@ export const bem = BEM.init();
 bem.Button = BEM('mdl-button', '<button>');
 
 bem.KoboButton = BEM('kobo-button', '<button>');
+bem.KoboLightButton = BEM('kobo-light-button', '<button>');
+bem.KoboTextButton = BEM('kobo-text-button', '<button>');
+bem.KoboLightBadge = BEM('kobo-light-badge', '<span>');
 
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
@@ -95,6 +98,11 @@ bem.SubmissionDataTable__row = bem.SubmissionDataTable.__('row');
 bem.SubmissionDataTable__column = bem.SubmissionDataTable.__('column');
 bem.SubmissionDataTable__XMLName = bem.SubmissionDataTable.__('xml-name');
 bem.SubmissionDataTable__value = bem.SubmissionDataTable.__('value');
+
+bem.TableMeta = bem('table-meta');
+bem.TableMeta__counter = bem.TableMeta.__('counter');
+bem.TableMeta__additionalText = bem.TableMeta.__('additional-text'); // generally text not needed on smaller screens
+bem.TableMeta__bulkOptions = bem.TableMeta.__('bulk-options');
 
 bem.CollectionsWrapper = bem('collections-wrapper');
 
@@ -253,6 +261,13 @@ bem.HelpBubble__popupContent = bem.HelpBubble.__('popup-content');
 bem.HelpBubble__row = bem.HelpBubble.__('row');
 bem.HelpBubble__rowAnchor = bem.HelpBubble.__('row', 'a');
 bem.HelpBubble__rowWrapper = bem.HelpBubble.__('row-wrapper');
+
+bem.SimpleTable = BEM('simple-table', 'table');
+bem.SimpleTable__header = bem.SimpleTable.__('header', 'thead');
+bem.SimpleTable__body = bem.SimpleTable.__('body', 'tbody');
+bem.SimpleTable__footer = bem.SimpleTable.__('footer', 'tfoot');
+bem.SimpleTable__row = bem.SimpleTable.__('row', 'tr');
+bem.SimpleTable__cell = bem.SimpleTable.__('cell', 'td');
 
 bem.AssetsTable = BEM('assets-table');
 bem.AssetsTable__header = bem.AssetsTable.__('header');

@@ -4,7 +4,7 @@ import re
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from django.db.models import Case, Count, IntegerField, Value, When
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.query import QuerySet
 from rest_framework import filters
 from rest_framework.request import Request
@@ -315,11 +315,16 @@ class SearchFilter(filters.BaseFilterBackend):
 
 
 class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
+    """
+    Used by kpi.views.v1.object_permission.ObjectPermissionViewSet only
+    """
+
     def filter_queryset(self, request, queryset, view):
         # TODO: omit objects for which the user has only a deny permission
         user = request.user
         if isinstance(request.user, AnonymousUser):
             user = get_anonymous_user()
+
         if user.is_superuser:
             # Superuser sees all
             return queryset
@@ -327,12 +332,18 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
             # Hide permissions from anonymous users
             return queryset.none()
         """
-        A regular user sees permissions for objects to which they have access.
-        For example, if Alana has view access to an object owned by Richard,
-        she should see all permissions for that object, including those
-        assigned to other users.
+        A regular user sees their own permissions and the owner's permissions
+        for objects to which they have access. For example, if Alana and John
+        have view access to an object owned by Richard, John should see all of
+        his own permissions and Richard's permissions, but not any of Alana's
+        permissions.
         """
         result = ObjectPermission.objects.filter(
-            asset__permissions__user=user
+            Q(asset__owner=user)  # owner sees everything
+            | Q(user=user)  # everyone with access sees their own
+            | Q(
+                # everyone with access sees the owner's
+                asset__permissions__user=user, user=F('asset__owner')
+            )
         ).distinct()
         return result
