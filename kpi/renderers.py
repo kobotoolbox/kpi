@@ -120,8 +120,6 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
 
 class SubmissionXMLRenderer(DRFXMLRenderer):
 
-    CUSTOM_ROOT = 'root'
-
     def render(self, data, accepted_media_type=None, renderer_context=None):
 
         # data should be str, but in case it's a dict, return as XML.
@@ -135,13 +133,15 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
 
             return self._get_xml(data)
 
-        if renderer_context.get('view').action in ['list', 'paired_data']:
-            opening_node = self._node_generator(self.CUSTOM_ROOT)
-            closing_node = self._node_generator(self.CUSTOM_ROOT, closing=True)
+        if isinstance(data, list):
+            opening_node = self._node_generator(self.root_tag_name)
+            closing_node = self._node_generator(
+                self.root_tag_name, closing=True
+            )
             data_str = ''.join(data)
-            return f'{opening_node}{data_str}{closing_node}'
-        else:
-            return data
+            data = f'{opening_node}{data_str}{closing_node}'
+
+        return f'<?xml version="1.0" encoding="UTF-8" ?>\n{data}'
 
     @classmethod
     def _get_xml(cls, data):
@@ -149,20 +149,22 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
         # Submissions are wrapped in `<item>` nodes.
         results = data.pop('results', False)
         if not results:
-            return dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
+            return dicttoxml(
+                data, attr_type=False, custom_root=cls.root_tag_name
+            )
 
         submissions_parent_node = 'results'
 
-        xml_ = dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
+        xml_ = dicttoxml(data, attr_type=False, custom_root=cls.root_tag_name)
         # Retrieve the beginning of the XML (without closing tag) in order
         # to concatenate `results` as XML nodes too.
-        xml_2_str = xml_.decode().replace(f'</{cls.CUSTOM_ROOT}>', '')
+        xml_2_str = xml_.decode().replace(f'</{cls.root_tag_name}>', '')
 
         opening_results_node = cls._node_generator(submissions_parent_node)
         closing_results_node = cls._node_generator(submissions_parent_node,
                                                    closing=True)
         results_data_str = ''.join(map(cls.__cleanup_submission, results))
-        closing_root_node = cls._node_generator(cls.CUSTOM_ROOT, closing=True)
+        closing_root_node = cls._node_generator(cls.root_tag_name, closing=True)
 
         xml_2_str += f'{opening_results_node}' \
                      f'{results_data_str}' \
@@ -192,8 +194,8 @@ class XMLRenderer(DRFXMLRenderer):
         renderer_context=None,
         relationship=None,
     ):
-        if hasattr(renderer_context.get("view"), "get_object"):
-            obj = renderer_context.get("view").get_object()
+        if hasattr(renderer_context.get('view'), 'get_object'):
+            obj = renderer_context.get('view').get_object()
             # If `relationship` is passed among arguments, retrieve `xml`
             # from this relationship.
             # e.g. obj is `Asset`, relationship can be `snapshot`
@@ -216,7 +218,7 @@ class XFormRenderer(XMLRenderer):
 
 
 class XlsRenderer(renderers.BaseRenderer):
-    media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' # noqa
     # Really, this should be `format = 'xlsx'`, but let's not make a breaking
     # change to the API just to use a newer Excel format. Instead, we'll rely
     # on `AssetViewSet.finalize_response()` to set the filename appropriately
