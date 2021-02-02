@@ -60,6 +60,7 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         :param view: ViewSet
         :return: Asset/Collection
         """
+        # TODO: remove all collection stuff
         if cls.MODEL_NAME == 'collection':
             return cls._get_collection(view)
         else:

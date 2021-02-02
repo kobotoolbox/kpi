@@ -12,6 +12,7 @@ import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
 } from './libraryConstants';
+import {ROUTES} from 'js/constants';
 
 const myLibraryStore = Reflux.createStore({
   /**
@@ -139,7 +140,7 @@ const myLibraryStore = Reflux.createStore({
         this.previousPath.split('/')[1] !== 'library' ||
         // public-collections is a special case that is kinda in library, but
         // actually outside of it
-        this.previousPath.startsWith('/library/public-collections')
+        this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)
       ) &&
       isOnLibraryRoute()
     ) {

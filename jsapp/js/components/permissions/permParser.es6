@@ -62,7 +62,7 @@ function parseFormData(data) {
   }
 
   if (data.formManage) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('manage_asset')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.manage_asset));
   }
 
   if (data.submissionsViewPartial) {
