@@ -207,7 +207,7 @@ class CollectionsTests(BaseTestCase):
 
         # Logged in as another user, retrieve explicitly-shared collections.
         query_string = 'asset_type:collection'
-        url = f'{list_url}?q={query_string}'
+        url = f'{list_url}?status=shared&q={query_string}'
         response = self.client.get(url)
         self.assertTrue(response.data.get('count') == 0)
         shared_collection.assign_perm(another_user, PERM_VIEW_ASSET)
@@ -317,7 +317,7 @@ class CollectionsTests(BaseTestCase):
         self.login_as_other_user(username="anotheruser", password="anotheruser")
 
         asset_list_url = reverse(self._get_endpoint('asset-list'))
-        coll_list_url = f'{asset_list_url}?q=asset_type:collection'
+        coll_list_url = f'{asset_list_url}?status=subscribed&q=asset_type:collection'
         sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))
         pub_coll_url = reverse(
             self._get_endpoint('asset-detail'),
@@ -360,7 +360,7 @@ class CollectionsTests(BaseTestCase):
         self.login_as_other_user(username="anotheruser", password="anotheruser")
 
         asset_list_url = reverse(self._get_endpoint('asset-list'))
-        coll_list_url = f'{asset_list_url}?q=asset_type:collection'
+        coll_list_url = f'{asset_list_url}?status=subscribed&q=asset_type:collection'
         sub_list_url = reverse(self._get_endpoint('userassetsubscription-list'))
         subscrbd_coll_url = \
             f"{asset_list_url}?q=parent__uid:{public_collection.uid}"
@@ -403,7 +403,7 @@ class CollectionsTests(BaseTestCase):
         )
 
         asset_list_url = reverse(self._get_endpoint('asset-list'))
-        coll_list_url = f'{asset_list_url}?q=asset_type:collection'
+        coll_list_url = f'{asset_list_url}?status=subscribed&q=asset_type:collection'
         self.login_as_other_user(username="anotheruser", password="anotheruser")
 
         # we should see the collection in our asset list

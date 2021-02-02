@@ -7,10 +7,11 @@ from rest_framework import filters
 
 from kpi.constants import (
     ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
-    ASSET_STATUS_SHARED,
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
+    ASSET_STATUS_SHARED,
+    ASSET_STATUS_SUBSCRIBED,
     PERM_DISCOVER_ASSET,
     PERM_VIEW_ASSET,
 )
@@ -74,143 +75,162 @@ class AssetOrderingFilter(filters.OrderingFilter):
         return queryset
 
 
-class KpiObjectPermissionsFilter:
+class AssetPermissionFilter:
+    """
+    Restricts a queryset to appropriate assets based on:
+    * directly granted user permissions
+    * permissions granted to the public, i.e. granted to AnonymousUser
+    * discoverablility, when invoked by a list view
+        * including the children of discoverable assets
+    * the optional 'status' query parameter
+    """
+    @staticmethod
+    def get_assets_granted_not_denied(**kwargs):
+        # TODO: use this to rewrite get_objects_for_user()?
+        if 'deny' in kwargs:
+            raise RuntimeError("Cannot filter on the 'deny' field")
+        grants = ObjectPermission.objects.filter(deny=False, **kwargs)
+        denies = ObjectPermission.objects.filter(deny=True, **kwargs)
+        effective_grants = grants.values('asset').difference(
+            denies.values('asset')
+        )
+        # distinct() required because inherited and directly-assigned
+        # permissions can exist simultaneously for the same asset; luckily,
+        # it's a cheap operation this time
+        return effective_grants.distinct()
+
+    @classmethod
+    def get_public_and_discoverable_pks(cls, queryset):
+        view_perm_pk = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
+        disco_perm_pk = get_perm_ids_from_code_names(PERM_DISCOVER_ASSET)
+        anon = get_anonymous_user()
+        public_pks = cls.get_assets_granted_not_denied(
+            user=anon, permission=view_perm_pk
+        )
+        disco_pks = cls.get_assets_granted_not_denied(
+            user=anon, permission=disco_perm_pk
+        )
+        disco_pks_and_kids = public_pks.intersection(
+            disco_pks.union(
+                # include the children of discoverable assets
+                # TODO: make discoverability inheritable?
+                queryset.order_by().filter(parent__in=disco_pks).values('pk')
+            )
+        ).distinct()
+        return public_pks, disco_pks_and_kids
+
+    @classmethod
+    def get_all_viewable_pks(cls, request, queryset, view):
+        public_pks, disco_pks_and_kids = cls.get_public_and_discoverable_pks(
+            queryset
+        )
+
+        view_perm_pk = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
+        if request.user.is_anonymous:
+            # we've already handled anonymous' view assignments as "public",
+            # so don't add anything here
+            explicitly_viewable_pks = ObjectPermission.objects.none()
+        else:
+            # find assets that the requestor specifically has permission to
+            # view
+            explicitly_viewable_pks = cls.get_assets_granted_not_denied(
+                user=request.user,
+                permission=view_perm_pk,
+            )
+
+        all_viewable_pks = explicitly_viewable_pks
+        if view.action == 'list':
+            # this is a list, so the only public assets we may reveal are the
+            # discoverable ones
+            all_viewable_pks = all_viewable_pks.union(disco_pks_and_kids)
+        else:
+            # if we're here, the requestor already knows the identity of a
+            # specific asset. discoverability doesn't matter!
+            all_viewable_pks = all_viewable_pks.union(public_pks)
+
+        return all_viewable_pks.distinct()
+
+    @classmethod
+    def filter_by_status(cls, status, user, queryset):
+        """
+        'status' is an optional query parameter that accepts the following
+        values:
+            * 'private': return only assets owned by requestor
+            * 'shared': return only assets that requestor has explicit
+                permission to access
+            * 'subscribed': return only assets to which requestor has
+                subscribed
+            * 'public-discoverable': return all discoverable assets
+        """
+        if status == ASSET_STATUS_PRIVATE:
+            return queryset.filter(owner=user)
+        elif status == ASSET_STATUS_SHARED:
+            return queryset.filter(
+                pk__in=cls.get_assets_granted_not_denied(
+                    user=user,
+                    permission=get_perm_ids_from_code_names(PERM_VIEW_ASSET),
+                )
+            )
+        elif status == ASSET_STATUS_SUBSCRIBED:
+            if user.is_anonymous:
+                # anonymous can't subscribe to anything
+                return queryset.none()
+            _, disco_pks_and_kids = cls.get_public_and_discoverable_pks(
+                queryset
+            )
+            subscribed_pks = UserAssetSubscription.objects.filter(
+                user=user
+            ).values('asset')
+            return queryset.filter(
+                pk__in=subscribed_pks.intersection(disco_pks_and_kids)
+            )
+        elif status == ASSET_STATUS_DISCOVERABLE:
+            _, disco_pks_and_kids = cls.get_public_and_discoverable_pks(
+                queryset
+            )
+            return queryset.filter(pk__in=disco_pks_and_kids)
+        elif status == ASSET_STATUS_PUBLIC:
+            # 'public' as returned by AssetSerializer._get_status() has nothing
+            # to do with subscriptions, but this class used to treat 'public'
+            # the way we treat 'subscribed' now
+            # FIXME: figure out the original intent
+            raise NotImplementedError("Cannot query the 'public' status")
+
+        # Invalid status filter: return no matches to make the mistake
+        # obvious
+        return queryset.none()
 
     def filter_queryset(self, request, queryset, view):
-
-        user = request.user
-        if user.is_superuser and view.action != 'list':
-            # For a list, we won't deluge the superuser with everyone else's
-            # stuff. This isn't a list, though, so return it all
-            return queryset
-
-        queryset = self._get_queryset_for_collection_statuses(request, queryset)
-        if self._return_queryset:
-            return queryset.distinct()
-
-        owned_and_explicit_shared = self._get_owned_and_explicitly_shared(user)
-
-        if view.action != 'list':
-            # Not a list, so discoverability doesn't matter
-            assets = owned_and_explicit_shared.union(self._get_publics())
-            return queryset.filter(pk__in=assets)
-
-        subscribed = self._get_subscribed(user)
-
-        # As other places in the code, coerce `asset_ids` as a list to force
-        # the query to be processed right now. Otherwise, because queryset is
-        # a lazy query, Django creates (left) joins on tables when queryset is
-        # interpreted and it is way slower than running this extra query.
-        asset_ids = list(
-            (
-                owned_and_explicit_shared
-                    .union(subscribed)
-                    # Since user would be subscribed to a collection and not
-                    # the assets themselves, we append children of subscribed
-                    # collections to the queryset in order for `?q=parent__uid`
-                    # queries to return the collection's children
-                    .union(queryset.filter(parent__in=subscribed).values("pk")
-                )
-            ).values_list("id", flat=True)
-        )
-        return queryset.filter(pk__in=asset_ids)
-
-    def _get_discoverable(self, queryset):
-        # We were asked not to consider subscriptions; return all
-        # discoverable objects
-        return get_objects_for_user(
-            get_anonymous_user(), PERM_DISCOVER_ASSET,
-            queryset
-        )
-
-    def _get_queryset_for_collection_statuses(self, request, queryset):
-        """
-        Narrow down the queryset based on `status` parameter.
-        It is useful when fetching Assets of type `collection`
-
-        If `status` is not detected in `q`, it returns the queryset as is.
-        Otherwise, there are 4 scenarios:
-        - `status` == 'private': collections owned by user
-        - `status` == 'shared': collections user can view
-        - `status` == 'public': collections user has subscribed to (ONLY)
-        - `status` == 'public-discoverable': all public collections
-
-        Args:
-            request
-            queryset
-        Returns:
-            QuerySet
-        """
-
-        # Governs whether returned queryset should be processed immediately
-        # and should stop other filtering on `queryset` in parent method of
-        # `_get_queryset_for_collection_statuses()`
-        self._return_queryset = False
-        user = request.user
         STATUS_PARAMETER = 'status'
-
         try:
             status = request.query_params[STATUS_PARAMETER].strip()
         except KeyError:
+            pass
+        else:
+            return self.filter_by_status(status, request.user, queryset)
+
+        if request.user.is_superuser:
+            # ok, boss, you get it all
             return queryset
 
-        if status == ASSET_STATUS_PRIVATE:
-            self._return_queryset = True
-            return queryset.filter(owner=request.user)
+        all_viewable_pks = self.get_all_viewable_pks(request, queryset, view)
 
-        elif status == ASSET_STATUS_SHARED:
-            self._return_queryset = True
-            return get_objects_for_user(user, PERM_VIEW_ASSET, queryset)
-
-        elif status == ASSET_STATUS_PUBLIC:
-            self._return_queryset = True
-            return queryset.filter(pk__in=self._get_subscribed(user))
-
-        elif status == ASSET_STATUS_DISCOVERABLE:
-            self._return_queryset = True
-            discoverable = self._get_discoverable(queryset)
-            # We were asked not to consider subscriptions; return all
-            # discoverable objects
-            return discoverable
-
-        return queryset
-
-    @staticmethod
-    def _get_owned_and_explicitly_shared(user):
-        view_asset_perm_id = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
-        if user.is_anonymous:
-            # Avoid giving anonymous users special treatment when viewing
-            # public objects
-            perms = ObjectPermission.objects.none()
-        else:
-            perms = ObjectPermission.objects.filter(
-                deny=False,
-                user=user,
-                permission_id=view_asset_perm_id)
-
-        return perms.values('asset')
-
-    @staticmethod
-    def _get_publics():
-        view_asset_perm_id = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
-        return ObjectPermission.objects.filter(
-            deny=False,
-            user=get_anonymous_user(),
-            permission_id=view_asset_perm_id).values('asset')
-
-    @classmethod
-    def _get_subscribed(cls, user):
-        # Of the public objects, determine to which the user has subscribed
-        if user.is_anonymous:
-            user = get_anonymous_user()
-
-        return UserAssetSubscription.objects.filter(asset__in=cls._get_publics(),
-                                                    user=user).values('asset')
+        # TODO: *why* does wrapping this in an extra `in` query speed it up so
+        # dramatically?
+        # given a user (tinok4 on kf.beta) with 5450 owned assets and 70
+        # non-owned but viewable assets, slicing the first 100 results off of
+        # the queryset and coercing them to a list takes 3+ minutes without
+        # wrapping, but only 10 seconds with wrapping. clearing the ordering
+        # also alleviates the slowdown without needing to wrap, but i imagine
+        # we need that default ordering
+        return queryset.filter(
+            pk__in=queryset.filter(pk__in=all_viewable_pks.distinct())
+        )
 
 
-class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):
+class RelatedAssetPermissionsFilter(AssetPermissionFilter):
     """
-    Uses KpiObjectPermissionsFilter to determine which assets the user
+    Uses AssetPermissionFilter to determine which assets the user
     may access, and then filters the provided queryset to include only objects
     related to those assets. The queryset's model must be related to `Asset`
     via a field named `asset`.

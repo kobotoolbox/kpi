@@ -89,6 +89,7 @@ ASSET_STATUS_DISCOVERABLE = 'public-discoverable'
 ASSET_STATUS_PRIVATE = 'private'
 ASSET_STATUS_PUBLIC = 'public'
 ASSET_STATUS_SHARED = 'shared'
+ASSET_STATUS_SUBSCRIBED = 'subscribed'
 
 # Terms that can be used to search and filter return values
 # from a query `q`

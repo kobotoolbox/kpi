@@ -27,8 +27,8 @@ from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import BadAssetTypeException
 from kpi.filters import (
     AssetOrderingFilter,
-    KpiObjectPermissionsFilter,
-    SearchFilter
+    AssetPermissionFilter,
+    SearchFilter,
 )
 from kpi.highlighters import highlight_xform
 from kpi.models import Asset
@@ -232,15 +232,15 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     ### CURRENT ENDPOINT
     """
 
-    # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
+    # Filtering handled by AssetPermissionFilter.filter_queryset()
     queryset = Asset.objects.all()
 
     lookup_field = 'uid'
     permission_classes = (IsOwnerOrReadOnly,)
     filter_backends = (
-        KpiObjectPermissionsFilter,
         SearchFilter,
-        AssetOrderingFilter
+        AssetPermissionFilter,
+        AssetOrderingFilter,
     )
     ordering_fields = [
         'asset_type',

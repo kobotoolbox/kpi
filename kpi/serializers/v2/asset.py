@@ -393,7 +393,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             # The list view should provide a cache
             asset_permission_assignments = self.context[
                 'object_permissions_per_asset'
-            ].get(obj.pk)
+            ].get(obj.pk, [])
         except KeyError:
             asset_permission_assignments = obj.permissions.all()
 
@@ -556,7 +556,8 @@ class AssetListSerializer(AssetSerializer):
     def get_permissions(self, asset):
         try:
             asset_permission_assignments = self.context[
-                'object_permissions_per_asset'].get(asset.pk)
+                'object_permissions_per_asset'
+            ].get(asset.pk, [])
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should
@@ -597,7 +598,8 @@ class AssetListSerializer(AssetSerializer):
 
         try:
             asset_perm_assignments = self.context[
-                'object_permissions_per_asset'].get(asset.pk)
+                'object_permissions_per_asset'
+            ].get(asset.pk, [])
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.
             # in the list context, `object_permissions_per_asset` should be
