@@ -16,7 +16,7 @@ import {bem} from '../bem';
 class ToggleSwitch extends React.Component {
   constructor(props){
     if (typeof props.onChange !== 'function') {
-      throw new Error('onChange callback missing!');
+      throw new Error('onChange callback in ToggleSwitch missing!');
     }
     super(props);
     autoBind(this);
@@ -24,20 +24,6 @@ class ToggleSwitch extends React.Component {
 
   onChange(evt) {
     this.props.onChange(evt.currentTarget.checked);
-    /*
-      <div>
-        <label className="switch">
-          <input type="checkbox"/>
-          <span className="slider round"/>
-        </label>
-    
-        {this.props.label &&
-          <bem.Checkbox__label htmlFor={this.props.id}>
-            {this.props.label}
-          </bem.Checkbox__label>
-        }
-      </div>
-      */
   }
 
   render() {
