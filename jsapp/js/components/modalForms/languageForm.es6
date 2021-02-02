@@ -1,7 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import TextBox from 'js/components/textBox';
+import TextBox from 'js/components/common/textBox';
 import {
   getLangAsObject,
   toTitleCase

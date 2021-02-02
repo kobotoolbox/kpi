@@ -18,7 +18,7 @@ import {
   GROUP_TYPES_END
 } from 'js/constants';
 import SubmissionDataTable from 'js/components/submissionDataTable';
-import Checkbox from 'js/components/checkbox';
+import Checkbox from 'js/components/common/checkbox';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 

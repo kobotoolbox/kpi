@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
-import Checkbox from '../components/checkbox';
+import Checkbox from 'js/components/common/checkbox';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';

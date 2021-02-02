@@ -10,13 +10,11 @@
  * @prop description <string>
  * @prop readOnly <boolean>
  * @prop customModifiers <string[]|string>
- *
- * TODO: would be best to move it to `jsapp/js/components/generic` directory.
  */
 
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from '../bem';
+import {bem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 
 class TextBox extends React.Component {

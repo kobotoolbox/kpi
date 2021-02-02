@@ -5,7 +5,7 @@ import Reflux from 'reflux';
 import TagsInput from 'react-tagsinput';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
-import TextBox from 'js/components/textBox';
+import TextBox from 'js/components/common/textBox';
 import {bem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
