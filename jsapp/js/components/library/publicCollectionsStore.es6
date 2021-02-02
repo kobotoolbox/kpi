@@ -13,7 +13,8 @@ import {
 } from './libraryConstants';
 import {
   ASSET_TYPES,
-  ACCESS_TYPES
+  ACCESS_TYPES,
+  ROUTES,
 } from 'js/constants';
 
 const publicCollectionsStore = Reflux.createStore({
@@ -125,7 +126,7 @@ const publicCollectionsStore = Reflux.createStore({
     if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
-      this.previousPath.startsWith('/library/public-collections') === false &&
+      this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS) === false &&
       isOnPublicCollectionsRoute()
     ) {
       // refresh data when navigating into public-collections from other place

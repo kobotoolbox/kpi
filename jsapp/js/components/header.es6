@@ -16,7 +16,10 @@ import {
   stringToColor,
 } from 'utils';
 import {getAssetIcon} from 'js/assetUtils';
-import {COMMON_QUERIES} from 'js/constants';
+import {
+  COMMON_QUERIES,
+  ROUTES,
+} from 'js/constants';
 import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
@@ -85,7 +88,7 @@ class MainHeader extends Reflux.Component {
   accountSettings () {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
-      hashHistory.push('account-settings');
+      hashHistory.push(ROUTES.ACCOUNT_SETTINGS);
     });
   }
   languageChange (evt) {
