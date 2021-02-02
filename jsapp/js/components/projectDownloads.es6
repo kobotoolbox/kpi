@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Select from 'react-select';
 import Checkbox from './checkbox';
+import Textbox from './textbox';
 import {bem} from 'js/bem';
 
 const EXPORT_TYPES = Object.freeze({
@@ -28,16 +29,53 @@ export default class ProjectDownloads extends React.Component {
     this.state = {
       selectedExportType: null,
       selectedExportFormat: null,
+      isIncludeGroupsEnabled: false,
+      groupSeparator: '/',
+      isSplitEnabled: false,
+      isAdvancedViewVisible: false,
     };
     autoBind(this);
   }
 
-  onExportTypeChange(exportTypeValue) {
-    this.setState({selectedExportType: exportTypeValue});
+  onExportTypeChange(newValue) {
+    this.setState({selectedExportType: newValue});
   }
 
-  onExportFormatChange(exportFormatValue) {
-    this.setState({selectedExportFormat: exportFormatValue});
+  onExportFormatChange(newValue) {
+    this.setState({selectedExportFormat: newValue});
+  }
+
+  onIncludeGroupsChange(isChecked) {
+    this.setState({isIncludeGroupsEnabled: isChecked});
+  }
+
+  onGroupSeparatorChange(newValue) {
+    this.setState({groupSeparator: newValue});
+  }
+
+  onSplitChange(isChecked) {
+    this.setState({isSplitEnabled: isChecked});
+  }
+
+  toggleAdvancedView() {
+    this.setState({isAdvancedViewVisible: !this.state.isAdvancedViewVisible});
+  }
+
+  renderAdvancedView() {
+    return (
+      <React.Fragment>
+        <Checkbox
+          checked={this.state.isSplitEnabled}
+          onChange={this.onSplitChange}
+          label={t('Split select_multiple questions')}
+        />
+
+        <Textbox
+          value={this.state.groupSeparator}
+          onChange={this.onGroupSeparatorChange}
+        />
+      </React.Fragment>
+    );
   }
 
   render() {
@@ -78,6 +116,26 @@ export default class ProjectDownloads extends React.Component {
                 isDisabled={!this.state.selectedExportType}
               />
             </label>
+
+            <Checkbox
+              checked={this.state.isIncludeGroupsEnabled}
+              onChange={this.onIncludeGroupsChange}
+              label={t('Include groups in headers')}
+            />
+
+            <span
+              onClick={this.toggleAdvancedView}
+            >
+              {t('Advanced options')}
+              {this.state.isAdvancedViewVisible &&
+                <i className='k-icon k-icon-up'/>
+              }
+              {!this.state.isAdvancedViewVisible &&
+                <i className='k-icon k-icon-down'/>
+              }
+            </span>
+
+            {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
           </bem.FormView__cell>
         </bem.FormView__row>
       </bem.FormView>
