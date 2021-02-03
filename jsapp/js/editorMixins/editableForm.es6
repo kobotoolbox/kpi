@@ -427,7 +427,7 @@ export default assign({
 
     let isEmptySurvey = (
         survey &&
-        Object.keys(survey.settings).length === 0 &&
+        (survey.settings && Object.keys(survey.settings).length === 0) &&
         survey.survey.length === 0
       );
 
