@@ -21,7 +21,6 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
 
     > Required permissions: `view_submissions` (View submissions)
 
-
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
     </pre>
