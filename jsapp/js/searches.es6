@@ -74,16 +74,19 @@ function SearchContext(opts={}) {
     },
     // add/update asset in all search store lists
     setAsset(asset) {
-      this.setAssetInList(asset, 'defaultQueryResultsList');
-      this.setAssetInList(asset, 'searchResultsList');
-      this.rebuildCategorizedList(
-        this.state.defaultQueryResultsList,
-        'defaultQueryCategorizedResultsLists'
-      );
-      this.rebuildCategorizedList(
-        this.state.searchResultsList,
-        'searchResultsCategorizedResultsLists'
-      );
+      // only update things if given asset matches the current context types
+      if (this.state.defaultQueryFilterParams?.assetType.includes(asset.asset_type)) {
+        this.setAssetInList(asset, 'defaultQueryResultsList');
+        this.setAssetInList(asset, 'searchResultsList');
+        this.rebuildCategorizedList(
+          this.state.defaultQueryResultsList,
+          'defaultQueryCategorizedResultsLists'
+        );
+        this.rebuildCategorizedList(
+          this.state.searchResultsList,
+          'searchResultsCategorizedResultsLists'
+        );
+      }
     },
     setAssetInList(asset, listName) {
       const list = this.state[listName];
@@ -115,19 +118,26 @@ function SearchContext(opts={}) {
       }
     },
     // remove asset from all search store lists
-    removeAsset(asset) {
-      // Parse asset UID from self removed permissions as well
-      let assetUid = asset.uid || asset;
-      this.removeAssetFromList(assetUid, 'defaultQueryResultsList');
-      this.removeAssetFromList(assetUid, 'searchResultsList');
-      this.rebuildCategorizedList(
-        this.state.defaultQueryResultsList,
-        'defaultQueryCategorizedResultsLists'
-      );
-      this.rebuildCategorizedList(
-        this.state.searchResultsList,
-        'searchResultsCategorizedResultsLists'
-      );
+    removeAsset(asset, isNonOwner) {
+      // only update things if given asset matches the current context types or
+      // a non-owner removed their own permissions
+      if (isNonOwner || this.state.defaultQueryFilterParams?.assetType.includes(asset.assetType)) {
+        // non-owner self permission removal only gives an assetUid string, not
+        // an object; for consistency we make it an object here
+        if (isNonOwner) {
+          asset = {uid: asset}
+        }
+        this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
+        this.removeAssetFromList(asset.uid, 'searchResultsList');
+        this.rebuildCategorizedList(
+          this.state.defaultQueryResultsList,
+          'defaultQueryCategorizedResultsLists'
+        );
+        this.rebuildCategorizedList(
+          this.state.searchResultsList,
+          'searchResultsCategorizedResultsLists'
+        );
+      }
     },
     removeAssetFromList(assetUid, listName) {
       let list = this.state[listName];
