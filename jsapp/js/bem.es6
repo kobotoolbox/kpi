@@ -303,6 +303,12 @@ bem.Checkbox__wrapper = bem.Checkbox.__('wrapper', '<label>');
 bem.Checkbox__input = bem.Checkbox.__('input', '<input>');
 bem.Checkbox__label = bem.Checkbox.__('label', '<span>');
 
+bem.ToggleSwitch = BEM('toggle-switch');
+bem.ToggleSwitch__wrapper = bem.ToggleSwitch.__('wrapper', '<label>');
+bem.ToggleSwitch__input = bem.ToggleSwitch.__('input', '<input>');
+bem.ToggleSwitch__slider = bem.ToggleSwitch.__('slider', '<span>');
+bem.ToggleSwitch__label = bem.ToggleSwitch.__('label', '<span>');
+
 bem.Radio = BEM('radio');
 bem.Radio__row = bem.Radio.__('row', '<label>');
 bem.Radio__input = bem.Radio.__('input', '<input>');
