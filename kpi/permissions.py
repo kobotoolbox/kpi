@@ -274,10 +274,6 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
 
 
 class AssetExportSettingsPermission(AssetNestedObjectPermission):
-    """
-    Maps POST requests to the change_model permission instead of DRF's default
-    of add_model
-    """
     perms_map = {
         'GET': ['%(app_label)s.view_submissions'],
         'POST': ['%(app_label)s.manage_asset'],
