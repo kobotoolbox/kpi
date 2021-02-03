@@ -153,7 +153,7 @@ const myLibraryStore = Reflux.createStore({
 
   searchBoxStoreChanged() {
     if (
-      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('my-library') &&
+      searchBoxStore.getContext() === SEARCH_CONTEXTS.MY_LIBRARY &&
       searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
     ) {
       // reset to first page when search changes

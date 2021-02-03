@@ -138,7 +138,7 @@ const publicCollectionsStore = Reflux.createStore({
 
   searchBoxStoreChanged() {
     if (
-      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('public-collections') &&
+      searchBoxStore.getContext() === SEARCH_CONTEXTS.PUBLIC_COLLECTIONS &&
       searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
     ) {
       // reset to first page when search changes
