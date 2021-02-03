@@ -119,7 +119,7 @@ function SearchContext(opts={}) {
     // remove asset from all search store lists
     removeAsset(asset) {
       // only update things if given asset matches the current context types
-      if (this.state.defaultQueryFilterParams?.assetType.includes(asset.asset_type)) {
+      if (this.state.defaultQueryFilterParams?.assetType.includes(asset.assetType)) {
         this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
         this.removeAssetFromList(asset.uid, 'searchResultsList');
         this.rebuildCategorizedList(
