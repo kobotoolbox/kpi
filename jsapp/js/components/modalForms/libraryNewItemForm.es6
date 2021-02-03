@@ -8,7 +8,8 @@ import {stores} from 'js/stores';
 import {hashHistory} from 'react-router';
 import {
   MODAL_TYPES,
-  ASSET_TYPES
+  ASSET_TYPES,
+  ROUTES,
 } from 'js/constants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
@@ -32,13 +33,13 @@ class LibraryNewItemForm extends React.Component {
   goToAssetCreator() {
     stores.pageState.hideModal();
 
-    let targetPath = '/library/asset/new';
+    let targetPath = ROUTES.NEW_LIBRARY_ITEM;
     if (this.isLibrarySingle()) {
       const found = ownedCollectionsStore.find(this.currentAssetID());
       if (found && found.asset_type === ASSET_TYPES.collection.id) {
         // when creating from within a collection page, make the new asset
         // a child of this collection
-        targetPath = `/library/asset/${found.uid}/new`;
+        targetPath = ROUTES.NEW_LIBRARY_CHILD.replace(':uid', found.uid);
       }
     }
 
