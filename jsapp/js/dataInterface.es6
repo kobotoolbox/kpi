@@ -368,7 +368,7 @@ export var dataInterface;
       };
 
       if (params.searchPhrase) {
-        searchData.q += ` AND "${params.searchPhrase}"`;
+        searchData.q += ` AND (${params.searchPhrase})`;
       }
 
       if (params.filterProperty && params.filterValue) {
@@ -406,7 +406,7 @@ export var dataInterface;
       };
 
       if (params.searchPhrase) {
-        searchData.q += ` AND "${params.searchPhrase}"`;
+        searchData.q += ` AND (${params.searchPhrase})`;
       }
 
       if (params.filterProperty && params.filterValue) {
