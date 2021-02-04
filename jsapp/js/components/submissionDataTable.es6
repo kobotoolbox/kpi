@@ -2,19 +2,19 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {
   formatTimeDate,
-  formatDate
+  formatDate,
 } from 'utils';
 import {bem} from 'js/bem';
 import {renderTypeIcon} from 'js/assetUtils';
 import {
   DISPLAY_GROUP_TYPES,
-  getSubmissionDisplayData
+  getSubmissionDisplayData,
 } from 'js/submissionUtils';
 import {
   META_QUESTION_TYPES,
   QUESTION_TYPES,
   SCORE_ROW_TYPE,
-  RANK_LEVEL_TYPE
+  RANK_LEVEL_TYPE,
 } from 'js/constants';
 
 /**
@@ -128,7 +128,8 @@ class SubmissionDataTable extends React.Component {
         choice = this.findChoice(listName, data);
         if (!choice) {
           console.error(`Choice not found for "${listName}" and "${data}".`);
-          return null;
+          // fallback to data to display anything meaningful
+          return data;
         } else {
           return (
             <bem.SubmissionDataTable__value>
@@ -143,7 +144,8 @@ class SubmissionDataTable extends React.Component {
               choice = this.findChoice(listName, answer);
               if (!choice) {
                 console.error(`Choice not found for "${listName}" and "${data}".`);
-                return null;
+                // fallback to data to display anything meaningful
+                return data;
               } else {
                 return (
                   <li key={answerIndex}>
