@@ -84,8 +84,8 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             returned
         """
 
-        XLS_FILE_PATTERN = '((.*?)\.xlsx?)'
-        XLS_URL_PATTERN = '\w+="?((.*?)\.xlsx?)"?'
+        XLS_FILE_PATTERN = r'((.*?)\.xlsx?)'
+        XLS_URL_PATTERN = r'\w+="?((.*?)\.xlsx?)"?'
 
         filename_or_none = request.POST.get('name', None)
         re_pattern = XLS_FILE_PATTERN
@@ -103,7 +103,7 @@ class ImportTaskViewSet(viewsets.ReadOnlyModelViewSet):
             filename_or_none = getattr(request.data['file'], 'name', None)
 
         if filename_or_none is None:
-            return (None, None)
+            return None, None
         else:
             filenames_re = re.search(re_pattern, filename_or_none)
             return (
