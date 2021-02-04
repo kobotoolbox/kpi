@@ -131,9 +131,21 @@ export default class AssetsTable extends React.Component {
   renderHeader(columnDef, option) {
     if (columnDef.orderBy) {
       return this.renderOrderableHeader(columnDef, option);
-    }
-    if (columnDef.filterBy) {
+    } else if (columnDef.filterBy) {
       return this.renderFilterableHeader(columnDef, option);
+    } else {
+      let displayLabel = columnDef.label;
+      if (
+        columnDef.id === ASSETS_TABLE_COLUMNS['items-count'].id &&
+        this.props.context === ASSETS_TABLE_CONTEXTS.COLLECTION_CONTENT
+      ) {
+        displayLabel = t('Questions');
+      }
+      return (
+        <bem.AssetsTableRow__column m={columnDef.id} disabled>
+          {displayLabel}
+        </bem.AssetsTableRow__column>
+      );
     }
   }
 
@@ -164,7 +176,7 @@ export default class AssetsTable extends React.Component {
     }
 
     // empty icon to take up space in column
-    let icon = (<i className='k-icon'/>);
+    let icon = (<i className='k-icon k-icon-filter-arrows'/>);
     if (this.props.filterColumnId === columnDef.id) {
       icon = (<i className='k-icon k-icon-check'/>);
     }
@@ -322,14 +334,15 @@ export default class AssetsTable extends React.Component {
           <bem.AssetsTableRow m='header'>
             {this.renderHeader(ASSETS_TABLE_COLUMNS['icon-status'], 'first')}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.name)}
+            {this.renderHeader(ASSETS_TABLE_COLUMNS['items-count'])}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.owner)}
             {this.props.context === ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
               this.renderHeader(ASSETS_TABLE_COLUMNS['subscribers-count'])
             }
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.organization)}
             {this.renderHeader(ASSETS_TABLE_COLUMNS.languages)}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS['primary-sector'])}
-            {this.renderHeader(ASSETS_TABLE_COLUMNS.country)}
+            {this.props.context === ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS &&
+              this.renderHeader(ASSETS_TABLE_COLUMNS['primary-sector'])
+            }
             {this.renderHeader(ASSETS_TABLE_COLUMNS['date-modified'], 'last')}
 
             {this.state.scrollbarWidth !== 0 && this.state.scrollbarWidth !== null &&

@@ -2,22 +2,23 @@ import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import {
   isOnMyLibraryRoute,
-  isOnPublicCollectionsRoute
+  isOnPublicCollectionsRoute,
 } from 'js/components/library/libraryUtils';
 
 const DEFAULT_SEARCH_PHRASE = '';
 
-export const SEARCH_CONTEXTS = new Map();
+export const SEARCH_CONTEXTS = {};
 new Set([
-  'my-library',
-  'public-collections'
-]).forEach((codename) => {SEARCH_CONTEXTS.set(codename, codename);});
+  'MY_LIBRARY',
+  'PUBLIC_COLLECTIONS',
+]).forEach((codename) => {SEARCH_CONTEXTS[codename] = codename;});
+Object.freeze(SEARCH_CONTEXTS);
 
 export const searchBoxStore = Reflux.createStore({
-  previousPath: null,
+  previousPath: hashHistory.getCurrentLocation().pathname,
   data: {
     context: null,
-    searchPhrase: DEFAULT_SEARCH_PHRASE
+    searchPhrase: DEFAULT_SEARCH_PHRASE,
   },
 
   init() {
@@ -27,10 +28,7 @@ export const searchBoxStore = Reflux.createStore({
 
   // manages clearing search when switching main routes
   onRouteChange(data) {
-    if (
-      this.previousPath !== null &&
-      this.previousPath.split('/')[1] !== data.pathname.split('/')[1]
-    ) {
+    if (this.previousPath.split('/')[1] !== data.pathname.split('/')[1]) {
       this.clear();
     }
     this.previousPath = data.pathname;
@@ -57,9 +55,9 @@ export const searchBoxStore = Reflux.createStore({
     let newContext = null;
 
     if (isOnMyLibraryRoute()) {
-      newContext = SEARCH_CONTEXTS.get('my-library');
+      newContext = SEARCH_CONTEXTS.MY_LIBRARY;
     } else if (isOnPublicCollectionsRoute()) {
-      newContext = SEARCH_CONTEXTS.get('public-collections');
+      newContext = SEARCH_CONTEXTS.PUBLIC_COLLECTIONS;
     }
 
     if (this.data.context !== newContext) {
@@ -71,5 +69,5 @@ export const searchBoxStore = Reflux.createStore({
 
   clear() {
     this.setSearchPhrase(DEFAULT_SEARCH_PHRASE);
-  }
+  },
 });

@@ -21,39 +21,47 @@
   display: block;
   cursor: pointer;
 
-  .k-icon { display: block; }
+  .k-icon {
+    display: block;
+    font-size: 32px;
+    color: inherit;
+  }
 }
 
 .asset-action-buttons__button {
   @include box-shadow;
 
+  border-radius: 3px;
   font-size: 0.9em;
   font-weight: 500;
   text-transform: uppercase;
   overflow: hidden;
   position: relative;
   padding: 5px 8px 5px 30px;
-  color: $kobo-white;
-  background-color: $kobo-darkgray;
-  text-shadow: -1px -1px 1px rgba($kobo-black, 0.125);
-  transition: background-color 0.2s, color 0.2s;
+  color: $kobo-darkgray;
+  background-color: $kobo-white;
+  border: 1px solid currentColor;
 
   &:hover {
-    background-color: darken($kobo-darkgray, 5%);
+    color: darken($kobo-darkgray, 5%);
+  }
+
+  &:active {
+    transform: translateY(1px);
   }
 
   &[disabled] {
     pointer-events: none;
 
-    &.asset-action-buttons__button--subscribe,
-    &.asset-action-buttons__button--unsubscribe {
-      background-color: $kobo-darkgray;
+    &.asset-action-buttons__button--on,
+    &.asset-action-buttons__button--off {
+      color: $kobo-midgray;
     }
   }
 
   &.asset-action-buttons__button--pending {
-    &.asset-action-buttons__button--subscribe,
-    &.asset-action-buttons__button--unsubscribe {
+    &.asset-action-buttons__button--on,
+    &.asset-action-buttons__button--off {
       padding-left: 8px;
     }
   }
@@ -65,19 +73,19 @@
     left: 0;
   }
 
-  &.asset-action-buttons__button--subscribe {
-    background-color: $kobo-teal;
+  &.asset-action-buttons__button--on {
+    color: $kobo-teal;
 
     &:hover {
-      background-color: darken($kobo-teal, 5%);
+      color: darken($kobo-teal, 5%);
     }
   }
 
-  &.asset-action-buttons__button--unsubscribe {
-    background-color: $kobo-red;
+  &.asset-action-buttons__button--off {
+    color: $kobo-red;
 
     &:hover {
-      background-color: darken($kobo-red, 5%);
+      color: darken($kobo-red, 5%);
     }
   }
 }

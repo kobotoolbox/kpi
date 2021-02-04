@@ -1,9 +1,5 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
-import {
-  SEARCH_CONTEXTS,
-  searchBoxStore
-} from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
 import {
   isOnLibraryAssetRoute,
@@ -14,6 +10,7 @@ import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
 } from './libraryConstants';
+import {ROUTES} from 'js/constants';
 
 // A store that listens for actions on assets from a single collection
 // Extends most functionality from myLibraryStore but overwrites some actions:
@@ -25,8 +22,7 @@ const singleCollectionStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-  previousPath: null,
-  previousSearchPhrase: searchBoxStore.getSearchPhrase(),
+  previousPath: hashHistory.getCurrentLocation().pathname,
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
 
@@ -46,7 +42,6 @@ const singleCollectionStore = Reflux.createStore({
     this.setDefaultColumns();
 
     hashHistory.listen(this.onRouteChange.bind(this));
-    searchBoxStore.listen(this.searchBoxStoreChanged);
     actions.library.moveToCollection.completed.listen(this.onMoveToCollectionCompleted);
     actions.library.subscribeToCollection.completed.listen(this.fetchData.bind(this, true));
     actions.library.unsubscribeFromCollection.completed.listen(this.fetchData.bind(this, true));
@@ -89,7 +84,6 @@ const singleCollectionStore = Reflux.createStore({
    */
   getSearchParams() {
     const params = {
-      searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
       uid: getCurrentLibraryAssetUID()
@@ -136,13 +130,12 @@ const singleCollectionStore = Reflux.createStore({
     if (this.isVirgin && isOnLibraryAssetRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
-      this.previousPath !== null &&
       (
         // coming from the library
         this.previousPath.split('/')[1] === 'library' ||
         // public-collections is a special case that is kinda in library, but
         // actually outside of it
-        this.previousPath.startsWith('/library/public-collections')
+        this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)
       ) &&
       isOnLibraryAssetRoute()
     ) {
@@ -151,20 +144,6 @@ const singleCollectionStore = Reflux.createStore({
       this.fetchData(true);
     }
     this.previousPath = data.pathname;
-  },
-
-  searchBoxStoreChanged() {
-    if (
-      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('my-library') &&
-      searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
-    ) {
-      // reset to first page when search changes
-      this.data.currentPage = 0;
-      this.data.totalPages = null;
-      this.data.totalSearchAssets = null;
-      this.previousSearchPhrase = searchBoxStore.getSearchPhrase();
-      this.fetchData(true);
-    }
   },
 
   onSearchStarted(abort) {
@@ -183,7 +162,7 @@ const singleCollectionStore = Reflux.createStore({
     }
     this.data.totalSearchAssets = response.count;
     // update total count for the first time and the ones that will get a full count
-    if (this.data.totalUserAssets === null || searchBoxStore.getSearchPhrase() === '') {
+    if (this.data.totalUserAssets === null) {
       this.data.totalUserAssets = this.data.totalSearchAssets;
     }
     this.data.isFetchingData = false;

@@ -303,6 +303,12 @@ bem.Checkbox__wrapper = bem.Checkbox.__('wrapper', '<label>');
 bem.Checkbox__input = bem.Checkbox.__('input', '<input>');
 bem.Checkbox__label = bem.Checkbox.__('label', '<span>');
 
+bem.ToggleSwitch = BEM('toggle-switch');
+bem.ToggleSwitch__wrapper = bem.ToggleSwitch.__('wrapper', '<label>');
+bem.ToggleSwitch__input = bem.ToggleSwitch.__('input', '<input>');
+bem.ToggleSwitch__slider = bem.ToggleSwitch.__('slider', '<span>');
+bem.ToggleSwitch__label = bem.ToggleSwitch.__('label', '<span>');
+
 bem.Radio = BEM('radio');
 bem.Radio__row = bem.Radio.__('row', '<label>');
 bem.Radio__input = bem.Radio.__('input', '<input>');
@@ -314,6 +320,15 @@ bem.PasswordStrength__bar = bem.PasswordStrength.__('bar');
 bem.PasswordStrength__indicator = bem.PasswordStrength.__('indicator');
 bem.PasswordStrength__messages = bem.PasswordStrength.__('messages', '<ul>');
 bem.PasswordStrength__message = bem.PasswordStrength.__('message', '<li>');
+
+bem.Breadcrumbs = BEM('breadcrumbs');
+bem.Breadcrumbs__crumb = bem.Breadcrumbs.__('crumb', '<a>');
+bem.Breadcrumbs__divider = bem.Breadcrumbs.__('divider', '<i>');
+
+bem.AssetInfoBox = BEM('asset-info-box');
+bem.AssetInfoBox__column = bem.AssetInfoBox.__('column');
+bem.AssetInfoBox__cell = bem.AssetInfoBox.__('cell');
+bem.AssetInfoBox__toggle = bem.AssetInfoBox.__('toggle', '<button>');
 
 bem.PrintOnly = BEM('print-only');
 
