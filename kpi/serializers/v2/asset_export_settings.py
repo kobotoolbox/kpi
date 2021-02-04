@@ -63,7 +63,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
 
     def validate_export_settings(self, export_settings):
         asset = self.context['view'].asset
-        asset_languages = asset.summary['languages']
+        asset_languages = asset.summary.get('languages', ())
         all_valid_languages = (*asset_languages, *VALID_DEFAULT_LANGUAGES)
 
         for required in REQUIRED_EXPORT_SETTINGS:

@@ -18,12 +18,12 @@ class AssetExportSettingsTestCase(TestCase):
         )
         self.name = 'foo'
         self.valid_export_settings = {
-            "fields_from_all_versions": "true",
-            "group_sep": "/",
-            "hierarchy_in_labels": "true",
-            "lang": "_default",
-            "multiple_select": "both",
-            "type": "csv",
+            'fields_from_all_versions': 'true',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'true',
+            'lang': '_default',
+            'multiple_select': 'both',
+            'type': 'csv',
         }
 
     def _create_foo_export_settings(self):
