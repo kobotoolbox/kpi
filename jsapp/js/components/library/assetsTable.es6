@@ -134,9 +134,16 @@ export default class AssetsTable extends React.Component {
     } else if (columnDef.filterBy) {
       return this.renderFilterableHeader(columnDef, option);
     } else {
+      let displayLabel = columnDef.label;
+      if (
+        columnDef.id === ASSETS_TABLE_COLUMNS['items-count'].id &&
+        this.props.context === ASSETS_TABLE_CONTEXTS.COLLECTION_CONTENT
+      ) {
+        displayLabel = t('Questions');
+      }
       return (
         <bem.AssetsTableRow__column m={columnDef.id} disabled>
-          {columnDef.label}
+          {displayLabel}
         </bem.AssetsTableRow__column>
       );
     }

@@ -93,7 +93,7 @@ class AssetInfoBox extends React.Component {
           <bem.AssetInfoBox__cell>
             {this.props.asset.asset_type === ASSET_TYPES.collection.id &&
               <React.Fragment>
-                <label>{t('Children')}</label>
+                <label>{t('Items')}</label>
                 {this.props.asset.children.count || 0}
               </React.Fragment>
             }
