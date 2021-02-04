@@ -16,7 +16,7 @@ import {
   IndexRedirect,
   Route,
   hashHistory,
-  Router
+  Router,
 } from 'react-router';
 import moment from 'moment';
 import {actions} from './actions';
@@ -29,7 +29,7 @@ import MainHeader from './components/header';
 import Drawer from './components/drawer';
 import {
   FormPage,
-  LibraryAssetEditor
+  LibraryAssetEditor,
 } from './components/formEditors';
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
@@ -47,10 +47,11 @@ import ChangePassword from './components/changePassword';
 import {
   assign,
   notify,
-  currentLang
+  currentLang,
 } from 'utils';
 import FormsSearchableList from './lists/forms';
 import permConfig from 'js/components/permissions/permConfig';
+import {ROUTES} from 'js/constants';
 
 class App extends React.Component {
   constructor(props) {
@@ -58,7 +59,7 @@ class App extends React.Component {
     moment.locale(currentLang());
     this.state = assign({
       isConfigReady: false,
-      pageState: stores.pageState.state
+      pageState: stores.pageState.state,
     });
   }
   componentWillReceiveProps() {
@@ -71,7 +72,7 @@ class App extends React.Component {
       stores.pageState.hideModal();
     }
   }
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
     actions.misc.getServerEnvironment();
@@ -109,7 +110,7 @@ class App extends React.Component {
     const pageWrapperModifiers = {
       'fixed-drawer': this.state.pageState.showFixedDrawer,
       'in-formbuilder': this.isFormBuilder(),
-      'is-modal-visible': Boolean(this.state.pageState.modal)
+      'is-modal-visible': Boolean(this.state.pageState.modal),
     };
 
     if (typeof this.state.pageState.modal === 'object') {
@@ -150,33 +151,27 @@ class App extends React.Component {
   }
 }
 
-App.contextTypes = {
-  router: PropTypes.object
-};
+App.contextTypes = {router: PropTypes.object};
 
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
 reactMixin(App.prototype, mixins.contextRouter);
 
 class FormJson extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
-    this.state = {
-      assetcontent: false
-    };
+    this.state = {assetcontent: false};
     autoBind(this);
   }
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(stores.asset, this.assetStoreTriggered);
     const uid = this.props.params.assetid || this.props.params.uid;
     actions.resources.loadAsset({id: uid});
 
   }
-  assetStoreTriggered (data, uid) {
-    this.setState({
-      assetcontent: data[uid].content
-    });
+  assetStoreTriggered(data, uid) {
+    this.setState({assetcontent: data[uid].content});
   }
-  render () {
+  render() {
     return (
         <ui.Panel>
           <bem.FormView>
@@ -196,24 +191,20 @@ class FormJson extends React.Component {
 reactMixin(FormJson.prototype, Reflux.ListenerMixin);
 
 class FormXform extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
-    this.state = {
-      xformLoaded: false
-    };
+    this.state = {xformLoaded: false};
   }
-  componentDidMount () {
+  componentDidMount() {
     const uid = this.props.params.assetid || this.props.params.uid;
-    dataInterface.getAssetXformView(uid).done((content)=>{
+    dataInterface.getAssetXformView(uid).done((content) => {
       this.setState({
         xformLoaded: true,
-        xformHtml: {
-          __html: $('<div>').html(content).find('.pygment').html()
-        },
+        xformHtml: {__html: $('<div>').html(content).find('.pygment').html()},
       });
     });
   }
-  render () {
+  render() {
     if (!this.state.xformLoaded) {
       return (
         <ui.Panel>
@@ -238,7 +229,7 @@ class FormXform extends React.Component {
 }
 
 class FormNotFound extends React.Component {
-  render () {
+  render() {
     return (
         <ui.Panel>
           <bem.Loading>
@@ -252,7 +243,7 @@ class FormNotFound extends React.Component {
 }
 
 class SectionNotFound extends React.Component {
-  render () {
+  render() {
     return (
         <ui.Panel className='k404'>
           <i />
@@ -264,63 +255,67 @@ class SectionNotFound extends React.Component {
 
 export var routes = (
   <Route name='home' path='/' component={App}>
-    <Route path='account-settings' component={AccountSettings} />
-    <Route path='change-password' component={ChangePassword} />
+    <Route path={ROUTES.ACCOUNT_SETTINGS} component={AccountSettings} />
+    <Route path={ROUTES.CHANGE_PASSWORD} component={ChangePassword} />
 
-    <Route path='library'>
-      <Route path='my-library' component={MyLibraryRoute}/>
-      <Route path='public-collections' component={PublicCollectionsRoute}/>
-      <Route path='asset/new' component={LibraryAssetEditor}/>
-      <Route path='asset/:uid' component={AssetRoute}/>
-      <Route path='asset/:uid/edit' component={LibraryAssetEditor}/>
-      <Route path='asset/:uid/new' component={LibraryAssetEditor}/>
-      <Route path='asset/:uid/json' component={FormJson}/>
-      <Route path='asset/:uid/xform' component={FormXform}/>
-      <IndexRedirect to='my-library'/>
+    <Route path={ROUTES.LIBRARY}>
+      <Route path={ROUTES.MY_LIBRARY} component={MyLibraryRoute}/>
+      <Route path={ROUTES.PUBLIC_COLLECTIONS} component={PublicCollectionsRoute}/>
+      <Route path={ROUTES.NEW_LIBRARY_ITEM} component={LibraryAssetEditor}/>
+      <Route path={ROUTES.LIBRARY_ITEM} component={AssetRoute}/>
+      <Route path={ROUTES.EDIT_LIBRARY_ITEM} component={LibraryAssetEditor}/>
+      <Route path={ROUTES.NEW_LIBRARY_CHILD} component={LibraryAssetEditor}/>
+      <Route path={ROUTES.LIBRARY_ITEM_JSON} component={FormJson}/>
+      <Route path={ROUTES.LIBRARY_ITEM_XFORM} component={FormXform}/>
+      <IndexRedirect to={ROUTES.MY_LIBRARY}/>
     </Route>
 
-    <IndexRedirect to='forms' />
-    <Route path='forms' >
+    <IndexRedirect to={ROUTES.FORMS} />
+    <Route path={ROUTES.FORMS} >
       <IndexRoute component={FormsSearchableList} />
 
-      <Route path='/forms/:assetid'>
-        <Route path='json' component={FormJson} />
-        <Route path='xform' component={FormXform} />
-        <Route path='edit' component={FormPage} />
+      <Route path={ROUTES.FORM}>
+        <Route path={ROUTES.FORM_JSON} component={FormJson} />
+        <Route path={ROUTES.FORM_XFORM} component={FormXform} />
+        <Route path={ROUTES.FORM_EDIT} component={FormPage} />
 
-        <Route path='summary'>
+        <Route path={ROUTES.FORM_SUMMARY}>
           <IndexRoute component={FormSummary} />
         </Route>
 
-        <Route path='landing'>
+        <Route path={ROUTES.FORM_LANDING}>
           <IndexRoute component={FormLanding} />
         </Route>
 
-        <Route path='data'>
-          <Route path='report' component={Reports} />
-          <Route path='report-legacy' component={FormSubScreens} />
-          <Route path='table' component={FormSubScreens} />
-          <Route path='downloads' component={FormSubScreens} />
-          <Route path='gallery' component={FormSubScreens} />
-          <Route path='map' component={FormSubScreens} />
-          <Route path='map/:viewby' component={FormSubScreens} />
-          <IndexRedirect to='report' />
+        <Route path={ROUTES.FORM_DATA}>
+          <Route path={ROUTES.FORM_REPORT} component={Reports} />
+          <Route path={ROUTES.FORM_REPORT_OLD} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_TABLE} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_DOWNLOADS} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_GALLERY} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_MAP} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_MAP_BY} component={FormSubScreens} />
+          <IndexRedirect to={ROUTES.FORM_REPORT} />
         </Route>
 
-        <Route path='settings'>
+        <Route path={ROUTES.FORM_SETTINGS}>
           <IndexRoute component={FormSubScreens} />
-          <Route path='media' component={FormSubScreens} />
-          <Route path='sharing' component={FormSubScreens} />
-          <Route path='records' component={FormSubScreens} />
-          <Route path='rest' component={FormSubScreens} />
-          <Route path='rest/:hookUid' component={FormSubScreens} />
-          <Route path='kobocat' component={FormSubScreens} />
+          <Route path={ROUTES.FORM_MEDIA} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_SHARING} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_REST} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_REST_HOOK} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_KOBOCAT} component={FormSubScreens} />
         </Route>
 
-        {/* used to force refresh form screens */}
-        <Route path='reset' component={FormSubScreens} />
+        {/**
+          * TODO change this HACKFIX to a better solution
+          *
+          * Used to force refresh form sub routes. It's some kine of a weird
+          * way of introducing a loading screen during sub route refresh.
+          **/}
+        <Route path={ROUTES.FORM_RESET} component={FormSubScreens} />
 
-        <IndexRedirect to='landing' />
+        <IndexRedirect to={ROUTES.FORM_LANDING} />
       </Route>
 
       <Route path='*' component={FormNotFound} />
@@ -345,7 +340,7 @@ export default class RunRoutes extends React.Component {
 
   render() {
     return (
-      <Router history={hashHistory} ref={ref=>this.router = ref} routes={this.props.routes} />
+      <Router history={hashHistory} ref={(ref) => {return this.router = ref;}} routes={this.props.routes} />
     );
   }
 }

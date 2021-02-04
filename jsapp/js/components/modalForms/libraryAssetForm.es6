@@ -111,7 +111,8 @@ export class LibraryAssetForm extends React.Component {
     notify(t('Failed to update ##type##').replace('##type##', this.getFormAssetType()), 'error');
   }
 
-  onSubmit() {
+  onSubmit(evt) {
+    evt.preventDefault();
     this.setState({isPending: true});
 
     if (this.props.asset) {

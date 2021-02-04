@@ -48,7 +48,7 @@ class AssetRow extends React.Component {
   }
 
   escFunction (evt) {
-    if (evt.keyCode === KEY_CODES.get('ESC') && this.state.isTagsInputVisible) {
+    if (evt.keyCode === KEY_CODES.ESC && this.state.isTagsInputVisible) {
       this.clickTagsToggle();
     }
   }
@@ -407,7 +407,7 @@ class AssetRow extends React.Component {
                   data-asset-type={this.props.kind}
                   data-asset-name={assetName}
                 >
-                  <i className='k-icon-template' />
+                  <i className='k-icon-template-new' />
                   {t('Create template')}
                 </bem.PopoverMenu__link>
               }

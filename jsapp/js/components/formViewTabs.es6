@@ -8,7 +8,10 @@ import {stores} from '../stores';
 import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
 import assetUtils from 'js/assetUtils';
-import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {
+  PERMISSIONS_CODENAMES,
+  ROUTES,
+} from 'js/constants';
 import {assign} from 'utils';
 
 class FormViewTabs extends Reflux.Component {
@@ -51,21 +54,21 @@ class FormViewTabs extends Reflux.Component {
       <bem.FormView__toptabs>
         { a.deployment__identifier != undefined && a.has_deployment && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
           <Link
-            to={`/forms/${this.state.assetid}/summary`}
+            to={ROUTES.FORM_SUMMARY.replace(':uid', this.state.assetid)}
             className='form-view__tab'
             activeClassName='active'>
             {t('Summary')}
           </Link>
         }
         <Link
-          to={`/forms/${this.state.assetid}/landing`}
+          to={ROUTES.FORM_LANDING.replace(':uid', this.state.assetid)}
           className='form-view__tab'
           activeClassName='active'>
           {t('Form')}
         </Link>
         { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
           <Link
-            to={`/forms/${this.state.assetid}/data`}
+            to={ROUTES.FORM_DATA.replace(':uid', this.state.assetid)}
             className='form-view__tab'
             activeClassName='active'>
             {t('Data')}
@@ -73,14 +76,14 @@ class FormViewTabs extends Reflux.Component {
         }
         {this.userCan('change_asset', a) &&
           <Link
-            to={`/forms/${this.state.assetid}/settings`}
+            to={ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid)}
             className='form-view__tab'
             activeClassName='active'>
             {t('Settings')}
           </Link>
         }
         <Link
-          to={'/forms'}
+          to={ROUTES.FORMS}
           className='form-view__link form-view__link--close'>
           <i className='k-icon-close' />
         </Link>
@@ -117,8 +120,8 @@ class FormViewTabs extends Reflux.Component {
 
       if (
         this.state.asset.deployment__active &&
-        mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('view_submissions'), this.state.asset) &&
-        mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('change_asset'), this.state.asset)
+        mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.state.asset) &&
+        mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.state.asset)
       ) {
         sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
       }

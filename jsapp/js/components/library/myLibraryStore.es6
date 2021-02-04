@@ -11,7 +11,8 @@ import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
-} from './assetsTable';
+} from './libraryConstants';
+import {ROUTES} from 'js/constants';
 
 const myLibraryStore = Reflux.createStore({
   /**
@@ -19,10 +20,10 @@ const myLibraryStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-  previousPath: null,
+  previousPath: hashHistory.getCurrentLocation().pathname,
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
-  DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS.get('date-modified'),
+  DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
 
   isVirgin: true,
 
@@ -89,11 +90,12 @@ const myLibraryStore = Reflux.createStore({
     const params = {
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage
+      page: this.data.currentPage,
+      collectionsFirst: true
     };
 
     if (this.data.filterColumnId !== null) {
-      const filterColumn = ASSETS_TABLE_COLUMNS.get(this.data.filterColumnId);
+      const filterColumn = ASSETS_TABLE_COLUMNS[this.data.filterColumnId];
       params.filterProperty = filterColumn.filterBy;
       params.filterValue = this.data.filterValue;
     }
@@ -122,8 +124,8 @@ const myLibraryStore = Reflux.createStore({
 
     params.metadata = needsMetadata;
 
-    const orderColumn = ASSETS_TABLE_COLUMNS.get(this.data.orderColumnId);
-    const direction = this.data.orderValue === ORDER_DIRECTIONS.get('ascending') ? '' : '-';
+    const orderColumn = ASSETS_TABLE_COLUMNS[this.data.orderColumnId];
+    const direction = this.data.orderValue === ORDER_DIRECTIONS.ascending ? '' : '-';
     params.ordering = `${direction}${orderColumn.orderBy}`;
 
     actions.library.searchMyLibraryAssets(params);
@@ -133,13 +135,12 @@ const myLibraryStore = Reflux.createStore({
     if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
-      this.previousPath !== null &&
       (
         // coming from outside of library
         this.previousPath.split('/')[1] !== 'library' ||
         // public-collections is a special case that is kinda in library, but
         // actually outside of it
-        this.previousPath.startsWith('/library/public-collections')
+        this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)
       ) &&
       isOnLibraryRoute()
     ) {
@@ -152,7 +153,7 @@ const myLibraryStore = Reflux.createStore({
 
   searchBoxStoreChanged() {
     if (
-      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('my-library') &&
+      searchBoxStore.getContext() === SEARCH_CONTEXTS.MY_LIBRARY &&
       searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
     ) {
       // reset to first page when search changes
@@ -325,6 +326,10 @@ const myLibraryStore = Reflux.createStore({
 
   findAsset(uid) {
     return this.data.assets.find((asset) => {return asset.uid === uid;});
+  },
+
+  findAssetByUrl(url) {
+    return this.data.assets.find((asset) => {return asset.url === url;});
   }
 });
 

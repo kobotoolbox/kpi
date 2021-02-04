@@ -4,11 +4,13 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
+import {bem} from 'js/bem';
 import publicCollectionsStore from './publicCollectionsStore';
+import AssetsTable from './assetsTable';
 import {
-  AssetsTable,
-  ASSETS_TABLE_CONTEXTS
-} from './assetsTable';
+  ROOT_BREADCRUMBS,
+  ASSETS_TABLE_CONTEXTS,
+} from 'js/components/library/libraryConstants';
 
 class PublicCollectionsRoute extends React.Component {
   constructor(props) {
@@ -63,8 +65,12 @@ class PublicCollectionsRoute extends React.Component {
     return (
       <DocumentTitle title={`${t('Public Collections')} | KoboToolbox`}>
         <div className='public-collections-wrapper'>
+          <bem.Breadcrumbs m='gray-wrapper'>
+            <bem.Breadcrumbs__crumb>{ROOT_BREADCRUMBS.PUBLIC_COLLECTIONS.label}</bem.Breadcrumbs__crumb>
+          </bem.Breadcrumbs>
+
           <AssetsTable
-            context={ASSETS_TABLE_CONTEXTS.get('public-collections')}
+            context={ASSETS_TABLE_CONTEXTS.PUBLIC_COLLECTIONS}
             isLoading={this.state.isLoading}
             assets={this.state.assets}
             totalAssets={this.state.totalAssets}

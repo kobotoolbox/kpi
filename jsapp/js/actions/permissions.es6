@@ -107,11 +107,11 @@ permissionsActions.setAssetPublic.listen((asset, shouldSetAnonPerms) => {
     });
     permsToSet.push({
       user: buildUserUrl(ANON_USERNAME),
-      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
+      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
     });
     permsToSet.push({
       user: buildUserUrl(ANON_USERNAME),
-      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('discover_asset')).url
+      permission: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset).url
     });
     dataInterface.bulkSetAssetPermissions(asset.uid, permsToSet)
       .done(() => {permissionsActions.setAssetPublic.completed(asset.uid, shouldSetAnonPerms);})
@@ -120,7 +120,7 @@ permissionsActions.setAssetPublic.listen((asset, shouldSetAnonPerms) => {
     const permToRemove = asset.permissions.find((permissionAssignment) => {
       return (
         permissionAssignment.user === buildUserUrl(ANON_USERNAME) &&
-        permissionAssignment.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url
+        permissionAssignment.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
       );
     });
     dataInterface.removePermission(permToRemove.url)

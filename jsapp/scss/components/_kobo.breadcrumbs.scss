@@ -1,0 +1,31 @@
+.breadcrumbs {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 40px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+
+  &.breadcrumbs--gray-wrapper {
+    background: $kobo-whitegray;
+    padding: 20px 10px;
+  }
+
+  .breadcrumbs__crumb,
+  .breadcrumbs__divider {
+    color: $kobo-darkgray;
+  }
+
+  .breadcrumbs__crumb {
+    &:last-of-type {
+      color: $kobo-black;
+    }
+  }
+
+  .breadcrumbs__divider {
+    @extend .k-icon, .k-icon-next;
+
+    font-size: 32px;
+  }
+}

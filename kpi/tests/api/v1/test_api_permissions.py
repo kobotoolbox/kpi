@@ -32,8 +32,8 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         * Superusers see it all (thank goodness for pagination)
         * Anonymous users see nothing
         * Regular users see everything that concerns them, namely all
-          permissions for all objects to which they have been assigned any
-          permission
+          their own permissions and all the owners' permissions for all objects
+          to which they have been assigned any permission
 
     See also `kpi.filters.KpiAssignedObjectPermissionsFilter`
     """
@@ -73,9 +73,15 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         self.asset.remove_perm(self.anon, 'view_asset')
         self.assertFalse(self.anon.has_perm('view_asset', self.asset))
 
-    def test_user_sees_all_permissions_on_assigned_objects(self):
+    def test_user_sees_relevant_permissions_on_assigned_objects(self):
+        # A user with explicitly-assigned permissions should see their
+        # own permissions and the owner's permissions, but not permissions
+        # assigned to other users
         self.asset.assign_perm(self.anotheruser, 'view_asset')
         self.assertTrue(self.anotheruser.has_perm('view_asset', self.asset))
+
+        irrelevant_user = User.objects.create(username='mindyourown')
+        self.asset.assign_perm(irrelevant_user, 'view_asset')
 
         self.client.login(username=self.anotheruser.username,
                           password=self.anotheruser_password)
@@ -86,11 +92,16 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
 
         returned_uids = [r['uid'] for r in response.data['results']]
         all_obj_perms = self.asset.permissions.all()
+        relevant_obj_perms = all_obj_perms.filter(
+            user__in=(self.asset.owner, self.anotheruser),
+            permission__codename__in=self.asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[
+                self.asset.asset_type
+            ],
+        )
 
-        self.assertTrue(
-            set(returned_uids).issuperset(
-                all_obj_perms.values_list('uid', flat=True)
-            )
+        self.assertListEqual(
+            sorted(returned_uids),
+            sorted(relevant_obj_perms.values_list('uid', flat=True)),
         )
 
         self.asset.remove_perm(self.anotheruser, 'view_asset')

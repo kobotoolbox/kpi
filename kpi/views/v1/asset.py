@@ -4,7 +4,7 @@ from rest_framework import exceptions, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from kpi.constants import CLONE_ARG_NAME, PERM_SHARE_ASSET, PERM_VIEW_ASSET
+from kpi.constants import CLONE_ARG_NAME, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
 from kpi.serializers.v1.asset import AssetSerializer, AssetListSerializer
 from kpi.views.v2.asset import AssetViewSet as AssetViewSetV2
@@ -165,19 +165,28 @@ class AssetViewSet(AssetViewSetV2):
     def get_serializer_context(self):
         return super(AssetViewSetV2, self).get_serializer_context()
 
-    @action(detail=True, methods=["PATCH"], renderer_classes=[renderers.JSONRenderer])
+    @action(
+        detail=True,
+        methods=["PATCH"],
+        renderer_classes=[renderers.JSONRenderer],
+    )
     def permissions(self, request, uid):
         target_asset = self.get_object()
-        source_asset = get_object_or_404(Asset, uid=request.data.get(CLONE_ARG_NAME))
+        source_asset = get_object_or_404(
+            Asset, uid=request.data.get(CLONE_ARG_NAME)
+        )
         user = request.user
         response = {}
         http_status = status.HTTP_204_NO_CONTENT
 
-        if user.has_perm(PERM_SHARE_ASSET, target_asset) and \
-                user.has_perm(PERM_VIEW_ASSET, source_asset):
+        if user.has_perm(PERM_MANAGE_ASSET, target_asset) and user.has_perm(
+            PERM_VIEW_ASSET, source_asset
+        ):
             if not target_asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
-                response = {"detail": "Source and destination objects don't seem to have the same type"}
+                response = {
+                    "detail": "Source and destination objects don't seem to have the same type"
+                }
         else:
             raise exceptions.PermissionDenied()
 

@@ -20,11 +20,12 @@ import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
   ASSET_TYPES,
-  ANON_USERNAME
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES,
+  ROUTES,
 } from './constants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
-import {searches} from './searches';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -35,6 +36,7 @@ import {
   buildUserUrl,
   renderCheckbox
 } from 'utils';
+import myLibraryStore from 'js/components/library/myLibraryStore';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -343,7 +345,7 @@ mixins.droppable = {
     let isProjectReplaceInForm = (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
       && router.isActive('forms')
-      && router.params.assetid !== undefined
+      && router.params.uid !== undefined
     );
     var isLibrary = router.isActive('library');
     var multipleFiles = params.totalFiles > 1 ? true : false;
@@ -484,19 +486,29 @@ mixins.clickAssets = {
           onok: (evt, value) => {
             ok_button.disabled = true;
             ok_button.innerText = t('Cloning...');
+
+            let canAddToParent = false;
+            if (asset.parent) {
+              const foundParentAsset = myLibraryStore.findAssetByUrl(asset.parent);
+              canAddToParent = (
+                typeof foundParentAsset !== 'undefined' &&
+                mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, foundParentAsset)
+              );
+            }
+
             actions.resources.cloneAsset({
               uid: asset.uid,
               name: value,
-              parent: asset.parent
+              parent: canAddToParent ? asset.parent : undefined
             }, {
             onComplete: (asset) => {
               ok_button.disabled = false;
               dialog.destroy();
 
               // TODO when on collection landing page and user clones this
-              // collection's child asset, instead of navigating to clone
+              // collection's child asset, instead of navigating to cloned asset
               // landing page, it would be better to stay here and refresh data
-              // (as the clone will keep the parent asset)
+              // (if the clone will keep the parent asset)
               let goToUrl;
               if (asset.asset_type === ASSET_TYPES.survey.id) {
                 goToUrl = `/forms/${asset.uid}/landing`;
@@ -739,25 +751,25 @@ mixins.permissions = {
 
 mixins.contextRouter = {
   isFormList() {
-    return this.context.router.isActive('forms') && this.currentAssetID() === undefined;
+    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
   },
   isLibrary() {
-    return this.context.router.isActive('library');
+    return this.context.router.isActive(ROUTES.LIBRARY);
   },
   isMyLibrary() {
-    return this.context.router.isActive('library/my-library');
+    return this.context.router.isActive(ROUTES.MY_LIBRARY);
   },
   isPublicCollections() {
-    return this.context.router.isActive('library/public-collections');
+    return this.context.router.isActive(ROUTES.PUBLIC_COLLECTIONS);
   },
   isLibraryList() {
-    return this.context.router.isActive('library') && this.currentAssetID() === undefined;
+    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() === undefined;
   },
   isLibrarySingle() {
-    return this.context.router.isActive('library') && this.currentAssetID() !== undefined;
+    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
   },
   isFormSingle() {
-    return this.context.router.isActive('forms') && this.currentAssetID() !== undefined;
+    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() !== undefined;
   },
   currentAssetID() {
     return this.context.router.params.assetid || this.context.router.params.uid;
@@ -769,16 +781,16 @@ mixins.contextRouter = {
     return this.context.router.isActive(path, indexOnly);
   },
   isFormBuilder() {
-    if (this.context.router.isActive('/library/asset/new')) {
+    if (this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM)) {
       return true;
     }
 
     const uid = this.currentAssetID();
     return (
       uid !== undefined &&
-      this.context.router.isActive(`/library/asset/${uid}/edit`) ||
-      this.context.router.isActive(`/library/asset/${uid}/new`) ||
-      this.context.router.isActive(`/forms/${uid}/edit`)
+      this.context.router.isActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
+      this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
+      this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
   }
 };
@@ -810,12 +822,12 @@ mixins.cloneAssetAsNewType = {
 
             switch (asset.asset_type) {
               case ASSET_TYPES.survey.id:
-                hashHistory.push(`/forms/${asset.uid}/landing`);
+                hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                 break;
               case ASSET_TYPES.template.id:
               case ASSET_TYPES.block.id:
               case ASSET_TYPES.question.id:
-                hashHistory.push('/library');
+                hashHistory.push(ROUTES.LIBRARY);
                 break;
             }
           },

@@ -13,7 +13,7 @@ import {
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
-  ROOT_URL
+  ROOT_URL,
 } from 'js/constants';
 
 /**
@@ -129,11 +129,15 @@ export function getAssetDisplayName(asset) {
 
 /**
  * @param {Object} question - Part of BE asset data
+ * @param {number} [translationIndex] - defaults to first (default) language
  * @returns {string} usable name of the question when possible, "Unlabelled" otherwise.
  */
-export function getQuestionDisplayName(question) {
-  if (question.label) {
-    return question.label[0];
+export function getQuestionDisplayName(question, translationIndex = 0) {
+  if (question.label && Array.isArray(question.label)) {
+    return question.label[translationIndex];
+  } else if (question.label && !Array.isArray(question.label)) {
+    // in rare cases the label could be a string
+    return question.label;
   } else if (question.name) {
     return question.name;
   } else if (question.$autoname) {
@@ -163,12 +167,11 @@ export function isLibraryAsset(assetType) {
  */
 export function getAssetIcon(asset) {
   if (asset.asset_type === ASSET_TYPES.template.id) {
-    return 'k-icon-template';
-  } else if (
-    asset.asset_type === ASSET_TYPES.question.id ||
-    asset.asset_type === ASSET_TYPES.block.id
-  ) {
-    return 'k-icon-question-block';
+    return 'k-icon-template-new';
+  } else if (asset.asset_type === ASSET_TYPES.question.id) {
+    return 'k-icon-question-new';
+  } else if (asset.asset_type === ASSET_TYPES.block.id) {
+    return 'k-icon-block-new';
   } else if (asset.asset_type === ASSET_TYPES.survey.id) {
     if (asset.has_deployment) {
       return 'k-icon-deploy';
@@ -176,11 +179,11 @@ export function getAssetIcon(asset) {
       return 'k-icon-drafts';
     }
   } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('subscribed'))) {
+    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
       return 'k-icon-folder-subscribed';
     } else if (isAssetPublic(asset.permissions)) {
       return 'k-icon-folder-public';
-    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.get('shared'))) {
+    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
       return 'k-icon-folder-shared';
     } else {
       return 'k-icon-folder';
@@ -201,7 +204,7 @@ export function modifyDetails(asset) {
   }
   stores.pageState.showModal({
     type: modalType,
-    asset: asset
+    asset: asset,
   });
 }
 
@@ -212,7 +215,7 @@ export function modifyDetails(asset) {
 export function share(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.SHARING,
-    assetid: asset.uid
+    assetid: asset.uid,
   });
 }
 
@@ -223,7 +226,7 @@ export function share(asset) {
 export function editLanguages(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.FORM_LANGUAGES,
-    asset: asset
+    asset: asset,
   });
 }
 
@@ -234,7 +237,7 @@ export function editLanguages(asset) {
 export function editTags(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.ASSET_TAGS,
-    asset: asset
+    asset: asset,
   });
 }
 
@@ -245,12 +248,12 @@ export function editTags(asset) {
 export function replaceForm(asset) {
   stores.pageState.showModal({
     type: MODAL_TYPES.REPLACE_PROJECT,
-    asset: asset
+    asset: asset,
   });
 }
 
 /**
- * NOTE: this works under a true assumption that all questions have unique names
+ * NOTE: this works based on a fact that all questions have unique names
  * @param {Array<object>} survey - from asset's `content.survey`
  * @param {boolean} [includeGroups] wheter to put groups into output
  * @returns {object} a pair of quesion names and their full paths
@@ -261,15 +264,15 @@ export function getSurveyFlatPaths(survey, includeGroups = false) {
 
   survey.forEach((row) => {
     const rowName = getRowName(row);
-    if (GROUP_TYPES_BEGIN.has(row.type)) {
+    if (typeof GROUP_TYPES_BEGIN[row.type] !== 'undefined') {
       openedGroups.push(rowName);
       if (includeGroups) {
         output[rowName] = openedGroups.join('/');
       }
-    } else if (GROUP_TYPES_END.has(row.type)) {
+    } else if (typeof GROUP_TYPES_END[row.type] !== 'undefined') {
       openedGroups.pop();
     } else if (
-      QUESTION_TYPES.has(row.type) ||
+      QUESTION_TYPES[row.type] ||
       row.type === SCORE_ROW_TYPE ||
       row.type === RANK_LEVEL_TYPE
     ) {
@@ -340,17 +343,17 @@ export function isRowSpecialLabelHolder(mainRow, holderRow) {
       (
         // this handles ranking questions
         holderRowName === `${mainRowName}_label` &&
-        holderRow.type === QUESTION_TYPES.get('note').id
+        holderRow.type === QUESTION_TYPES.note.id
       ) ||
       (
         // this handles matrix questions (partially)
         holderRowName === `${mainRowName}_note` &&
-        holderRow.type === QUESTION_TYPES.get('note').id
+        holderRow.type === QUESTION_TYPES.note.id
       ) ||
       (
         // this handles rating questions
         holderRowName === `${mainRowName}_header` &&
-        holderRow.type === QUESTION_TYPES.get('select_one').id // rating
+        holderRow.type === QUESTION_TYPES.select_one.id // rating
       )
     );
   }
@@ -377,11 +380,11 @@ function getRowLabelAtIndex(row, index) {
 export function renderTypeIcon(type, additionalClassNames = []) {
   let typeDef;
   if (type === SCORE_ROW_TYPE) {
-    typeDef = QUESTION_TYPES.get('score');
+    typeDef = QUESTION_TYPES.score;
   } else if (type === RANK_LEVEL_TYPE) {
-    typeDef = QUESTION_TYPES.get('rank');
+    typeDef = QUESTION_TYPES.rank;
   } else {
-    typeDef = QUESTION_TYPES.get(type);
+    typeDef = QUESTION_TYPES[type];
   }
 
   if (typeDef) {
@@ -396,25 +399,35 @@ export function renderTypeIcon(type, additionalClassNames = []) {
 
 /**
  * @param {Object} survey
+ * @param {number} [translationIndex] - defaults to first (default) language
  * @returns {Array<object>} a question object
  */
-export function getFlatQuestionsList(survey) {
+export function getFlatQuestionsList(survey, translationIndex = 0) {
   const output = [];
   const openedGroups = [];
+  let openedRepeatGroupsCount = 0;
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
-      openedGroups.push(getQuestionDisplayName(row));
+      openedGroups.push(getQuestionDisplayName(row, translationIndex));
     }
     if (row.type === 'end_group' || row.type === 'end_repeat') {
       openedGroups.pop();
     }
 
-    if (QUESTION_TYPES.has(row.type)) {
+    if (row.type === 'begin_repeat') {
+      openedRepeatGroupsCount++;
+    } else if (row.type === 'end_repeat') {
+      openedRepeatGroupsCount--;
+    }
+
+    if (QUESTION_TYPES[row.type]) {
       output.push({
         type: row.type,
+        name: getRowName(row),
         isRequired: row.required,
-        label: getQuestionDisplayName(row),
-        parents: openedGroups.slice(0)
+        label: getQuestionDisplayName(row, translationIndex),
+        parents: openedGroups.slice(0),
+        hasRepatParent: openedRepeatGroupsCount >= 1,
       });
     }
   });
@@ -460,7 +473,7 @@ export function isAssetPublic(permissions) {
   permissions.forEach((perm) => {
     if (
       perm.user === buildUserUrl(ANON_USERNAME) &&
-      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('discover_asset')).url
+      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset).url
     ) {
       isDiscoverableByAnonymous = true;
     }
@@ -524,5 +537,5 @@ export default {
   renderTypeIcon,
   replaceForm,
   share,
-  removeInvalidChars
+  removeInvalidChars,
 };

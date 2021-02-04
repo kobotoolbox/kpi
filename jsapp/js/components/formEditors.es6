@@ -4,7 +4,15 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import editableFormMixin from '../editorMixins/editableForm';
-import {update_states} from 'js/constants';
+import {
+  update_states,
+  ROUTES,
+} from 'js/constants';
+import mixins from '../mixins';
+
+/**
+ * These are the components that are used for Form Builder routes.
+ */
 
 export class FormPage extends React.Component {
   constructor(props) {
@@ -15,13 +23,14 @@ export class FormPage extends React.Component {
       surveyAppRendered: false,
       name: '',
       isNewAsset: false,
-      backRoute: '/forms'
+      backRoute: ROUTES.FORMS,
     };
     autoBind(this);
   }
 }
 reactMixin(FormPage.prototype, Reflux.ListenerMixin);
 reactMixin(FormPage.prototype, editableFormMixin);
+reactMixin(FormPage.prototype, mixins.permissions);
 FormPage.contextTypes = {router: PropTypes.object};
 
 export class LibraryAssetEditor extends React.Component {
@@ -33,22 +42,22 @@ export class LibraryAssetEditor extends React.Component {
       surveyAppRendered: false,
       name: '',
       isNewAsset: true,
-      backRoute: '/library'
+      backRoute: ROUTES.LIBRARY,
     };
     autoBind(this);
 
-    if (this.props.route.path === 'asset/:uid/edit') {
+    if (this.props.route.path === ROUTES.EDIT_LIBRARY_ITEM) {
       this.state.isNewAsset = false;
     }
 
-    if (this.props.route.path === 'asset/new') {
+    if (this.props.route.path === ROUTES.NEW_LIBRARY_ITEM) {
       this.state.asset = false;
     }
 
-    if (this.props.route.path === 'asset/:uid/new') {
+    if (this.props.route.path === ROUTES.NEW_LIBRARY_CHILD) {
       this.state.asset = false;
       this.state.parentAsset = this.props.params.uid;
-      this.state.backRoute = `/library/asset/${this.props.params.uid}`;
+      this.state.backRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.props.params.uid);
     }
 
     if (this.props.location.query.back) {

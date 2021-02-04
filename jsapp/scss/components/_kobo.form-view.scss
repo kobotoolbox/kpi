@@ -3,19 +3,6 @@
   .form-view {
     height: calc(100% - 48px);
   }
-
-  .form-view__sidetabs {
-    max-height: calc(100% - 48px);
-
-    & + .form-view,
-    & + .report-view,
-    & + .loading {
-      width: calc(100% - 170px);
-      height: calc(100% - 48px);
-      overflow: auto;
-      overflow-x: hidden;
-    }
-  }
 }
 
 .form-view {
@@ -52,6 +39,7 @@
   border-right: 1px solid $kobo-lightgray;
 
   & + .form-view,
+  & + .report-view,
   & + .loading {
     width: calc(100% - 170px);
     height: calc(100% - 48px);
@@ -224,6 +212,14 @@
     justify-content: space-between;
     align-items: center;
 
+    &.form-view__cell--columns-right {
+      justify-content: flex-end;
+    }
+
+    &.form-view__cell--columns-top {
+      align-items: flex-start;
+    }
+
     .form-view__cell--stretch {
       flex: 1;
     }
@@ -326,7 +322,7 @@
     .k-icon {
       font-size: 32px;
       vertical-align: top;
-      color: inherit;
+      color: $kobo-teal;
     }
   }
 
@@ -383,33 +379,6 @@
     color: $kobo-white;
     background-color: $kobo-green;
     border-radius: 2px;
-  }
-
-  &.form-view__cell--toggle-details {
-    button {
-      cursor: pointer;
-      color: $kobo-blue;
-      background: transparent;
-      text-transform: uppercase;
-      border: 0;
-      width: 100%;
-      text-align: center;
-      font-size: 12px;
-      padding: 8px 0 0;
-
-      &:hover {
-        color: $kobo-blue-dark;
-      }
-
-      &:active {
-        transform: translateY(1px);
-      }
-
-      .k-icon {
-        font-size: 24px;
-        vertical-align: -8px;
-      }
-    }
   }
 
   &.form-view__cell--warning {
@@ -748,10 +717,9 @@
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
     width: 50px;
-    padding-top: 0;
 
     a.form-view__tab {
-      padding: 3px;
+      padding-right: 3px;
       padding-left: 1px;
       font-size: 10px;
       line-height: 1.5em;
@@ -770,7 +738,6 @@
 
     a.form-view__tab {
       font-size: 12px;
-      padding: 8px 14px;
     }
 
     a.form-view__link {
@@ -783,10 +750,11 @@
     overflow-x: hidden;
   }
 
-  .form-view {
+  .form-view__toptabs + .form-view {
     height: calc(100% - 39px);
-    overflow-x: hidden;
+  }
 
+  .form-view {
     a.form-view__link {
       font-size: 32px;
       padding: 0 3px;
@@ -814,5 +782,36 @@
   .form-view__cell--date {
     display: block;
     margin-left: 0;
+  }
+}
+
+.form-modal__form.form-modal__form--bulk-edit-submissions {
+  // text links
+  .form-modal__item--wrapper > a:hover {
+    text-decoration: underline;
+  }
+
+  h2 {
+    font-size: inherit;
+    font-weight: 600;
+    margin: 0 auto 10px;
+  }
+
+  i.blue-response-dot {
+    width: 6px;
+    height: 6px;
+    display: inline-block;
+    vertical-align: middle;
+    background: $kobo-blue;
+    border-radius: 100%;
+    margin-right: 6px;
+  }
+
+  .text-box.text-box--bulk-edit-response .text-box__input {
+    min-height: 90px;
+  }
+
+  .modal__footer .footer-back-button {
+    float: left;
   }
 }
