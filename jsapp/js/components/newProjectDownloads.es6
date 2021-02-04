@@ -1,8 +1,8 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import Select from 'react-select';
-import Checkbox from './checkbox';
-import Textbox from './textbox';
+import Checkbox from 'js/components/checkbox';
+import TextBox from 'js/components/textBox';
 import {bem} from 'js/bem';
 
 const EXPORT_TYPES = Object.freeze({
@@ -70,7 +70,7 @@ export default class ProjectDownloads extends React.Component {
           label={t('Split select_multiple questions')}
         />
 
-        <Textbox
+        <TextBox
           value={this.state.groupSeparator}
           onChange={this.onGroupSeparatorChange}
         />
