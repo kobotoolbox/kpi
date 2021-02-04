@@ -255,7 +255,7 @@ class MainHeader extends Reflux.Component {
             { this.isLibrary() &&
               <div className='mdl-layout__header-searchers'>
                 <SearchBox
-                  placeholder={t('Search Library')}
+                  placeholder={this.isPublicCollections() ? t('Search Public Collections') : t('Search My Library')}
                   disabled={this.isSearchBoxDisabled()}
                 />
               </div>

@@ -2,11 +2,13 @@ import _ from 'underscore';
 import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
+import {hashHistory} from 'react-router';
 import autoBind from 'react-autobind';
 import ui from 'js/ui';
 import {bem} from 'js/bem';
 import {searchBoxStore} from './searchBoxStore';
-import {KEY_CODES} from 'js/constants';
+import {KEY_CODES, ROUTES} from 'js/constants';
+import {isOnLibraryAssetRoute} from '../library/libraryUtils';
 
 /**
  * @prop {string} placeholder - A text to be displayed in empty input.
@@ -40,7 +42,14 @@ export default class SearchBox extends React.Component {
 
   onInputKeyUp(evt) {
     if (evt.keyCode === KEY_CODES.ENTER) {
+      this.switchRouteIfNeeded();
       this.setSearchPhrase(evt.target.value.trim());
+    }
+  }
+
+  switchRouteIfNeeded() {
+    if (isOnLibraryAssetRoute()) {
+      hashHistory.push(ROUTES.LIBRARY);
     }
   }
 
