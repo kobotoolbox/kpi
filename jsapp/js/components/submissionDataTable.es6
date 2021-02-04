@@ -128,7 +128,7 @@ class SubmissionDataTable extends React.Component {
         choice = this.findChoice(listName, data);
         if (!choice) {
           console.error(`Choice not found for "${listName}" and "${data}".`);
-          // fallback to data to display anything meaningful
+          // fallback to raw data to display anything meaningful
           return data;
         } else {
           return (
@@ -143,9 +143,9 @@ class SubmissionDataTable extends React.Component {
             {data.split(' ').map((answer, answerIndex) => {
               choice = this.findChoice(listName, answer);
               if (!choice) {
-                console.error(`Choice not found for "${listName}" and "${data}".`);
-                // fallback to data to display anything meaningful
-                return data;
+                console.error(`Choice not found for "${listName}" and "${answer}".`);
+                // fallback to raw data to display anything meaningful
+                return answer;
               } else {
                 return (
                   <li key={answerIndex}>
