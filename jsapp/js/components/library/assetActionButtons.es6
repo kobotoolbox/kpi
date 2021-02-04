@@ -250,7 +250,7 @@ class AssetActionButtons extends React.Component {
 
         {userCanEdit && assetType === ASSET_TYPES.survey.id &&
           <bem.PopoverMenu__link onClick={this.cloneAsTemplate}>
-            <i className='k-icon k-icon-template'/>
+            <i className='k-icon k-icon-template-new'/>
             {t('Create template')}
           </bem.PopoverMenu__link>
         }
@@ -342,16 +342,20 @@ class AssetActionButtons extends React.Component {
     );
   }
 
-  renderSubButton(isUserSubscribed) {
+  renderSubButton() {
     const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
     const isPublic = assetUtils.isAssetPublic(this.props.asset.permissions);
+    const isUserSubscribed = (
+      this.props.asset.access_types &&
+      this.props.asset.access_types.includes(ACCESS_TYPES.subscribed)
+    );
 
     if (
       !isSelfOwned &&
       isPublic &&
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     ) {
-      const modifiers = isUserSubscribed ? ['unsubscribe'] : ['subscribe'];
+      const modifiers = isUserSubscribed ? ['off'] : ['on'];
       const fn = isUserSubscribed ? this.unsubscribeFromCollection.bind(this) : this.subscribeToCollection.bind(this);
       if (this.state.isSubscribePending) {
         modifiers.push('pending');
@@ -360,7 +364,7 @@ class AssetActionButtons extends React.Component {
       let title = t('Pending…');
       if (!this.state.isSubscribePending) {
         if (isUserSubscribed) {
-          icon = (<i className='k-icon k-icon-unsubscribe'/>);
+          icon = (<i className='k-icon k-icon-close'/>);
           title = t('Unsubscribe');
         } else {
           icon = (<i className='k-icon k-icon-subscribe'/>);
@@ -394,17 +398,13 @@ class AssetActionButtons extends React.Component {
       assetType === ASSET_TYPES.template.id ||
       assetType === ASSET_TYPES.collection.id
     );
-    const isUserSubscribed = (
-      this.props.asset.access_types &&
-      this.props.asset.access_types.includes(ACCESS_TYPES.subscribed)
-    );
 
     return (
       <bem.AssetActionButtons
         onMouseLeave={this.onMouseLeave}
         onMouseEnter={this.onMouseEnter}
       >
-        {this.renderSubButton(isUserSubscribed)}
+        {this.renderSubButton()}
 
         {userCanEdit && assetType !== ASSET_TYPES.collection.id &&
           <bem.AssetActionButtons__iconButton
