@@ -1,9 +1,13 @@
 # coding: utf-8
+import re
+
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from django.db.models import Case, Count, IntegerField, Value, When
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When
+from django.db.models.query import QuerySet
 from rest_framework import filters
+from rest_framework.request import Request
 
 from kpi.constants import (
     ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS,
@@ -85,6 +89,13 @@ class KpiObjectPermissionsFilter:
             return queryset
 
         queryset = self._get_queryset_for_collection_statuses(request, queryset)
+        if self._return_queryset:
+            return queryset.distinct()
+
+        # Getting the children of discoverable public collections
+        queryset = self._get_queryset_for_discoverable_child_assets(
+            request, queryset
+        )
         if self._return_queryset:
             return queryset.distinct()
 
@@ -172,6 +183,47 @@ class KpiObjectPermissionsFilter:
             # We were asked not to consider subscriptions; return all
             # discoverable objects
             return discoverable
+
+        return queryset
+
+    def _get_queryset_for_discoverable_child_assets(
+        self, request: Request, queryset: QuerySet
+    ) -> QuerySet:
+        """
+        Returns a queryset containing the children of publically discoverable
+        assets based on the discoverability of the child's parent. The parent
+        uid is passed in the request query string.
+
+        args:
+            request (Request)
+            queryset (QuerySet)
+
+        returns:
+            QuerySet
+        """
+
+        self._return_queryset = False
+        PARENT_UID_PARAMETER = 'parent__uid'
+
+        if 'q' not in request.query_params:
+            return queryset
+
+        request_query = request.query_params['q']
+        parent_uid = re.search(
+            f'{PARENT_UID_PARAMETER}:([a-zA-Z0-9]*)', request_query
+        )
+
+        if parent_uid is None:
+            return queryset
+
+        parent_obj = queryset.get(uid=parent_uid.group(1))
+
+        if not isinstance(parent_obj, Asset):
+            return queryset
+
+        if parent_obj.has_perm(get_anonymous_user(), PERM_DISCOVER_ASSET):
+            self._return_queryset = True
+            return queryset.filter(pk__in=self._get_publics())
 
         return queryset
 
@@ -263,11 +315,16 @@ class SearchFilter(filters.BaseFilterBackend):
 
 
 class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
+    """
+    Used by kpi.views.v1.object_permission.ObjectPermissionViewSet only
+    """
+
     def filter_queryset(self, request, queryset, view):
         # TODO: omit objects for which the user has only a deny permission
         user = request.user
         if isinstance(request.user, AnonymousUser):
             user = get_anonymous_user()
+
         if user.is_superuser:
             # Superuser sees all
             return queryset
@@ -275,12 +332,18 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
             # Hide permissions from anonymous users
             return queryset.none()
         """
-        A regular user sees permissions for objects to which they have access.
-        For example, if Alana has view access to an object owned by Richard,
-        she should see all permissions for that object, including those
-        assigned to other users.
+        A regular user sees their own permissions and the owner's permissions
+        for objects to which they have access. For example, if Alana and John
+        have view access to an object owned by Richard, John should see all of
+        his own permissions and Richard's permissions, but not any of Alana's
+        permissions.
         """
         result = ObjectPermission.objects.filter(
-            asset__permissions__user=user
+            Q(asset__owner=user)  # owner sees everything
+            | Q(user=user)  # everyone with access sees their own
+            | Q(
+                # everyone with access sees the owner's
+                asset__permissions__user=user, user=F('asset__owner')
+            )
         ).distinct()
         return result

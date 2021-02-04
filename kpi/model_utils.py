@@ -38,7 +38,8 @@ def _load_library_content(structure):
     for row in library_sheet:
         # preserve the additional sheets of imported library (but not the library)
         row_tags = []
-        for key, val in row.items():
+        row_copy = dict(row)
+        for key, val in row_copy.items():
             if str(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
                 continue
             if re.search(TAG_RE, key):

@@ -7,17 +7,16 @@ import {actions} from '../actions';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import mixins from '../mixins';
+import assetUtils from 'js/assetUtils';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
 import DataTable from './table';
-import ui from '../ui';
-import {ProjectDownloads} from './formEditors';
-
+import ProjectDownloads from './projectDownloads';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
-
 import FormMap from './map';
 import RESTServices from './RESTServices';
+import ui from '../ui';
 
 export class FormSubScreens extends React.Component {
   constructor(props){
@@ -42,7 +41,8 @@ export class FormSubScreens extends React.Component {
     if (!this.state.permissions)
       return false;
 
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings` &&
+    if ((this.props.location.pathname == `/forms/${this.state.uid}/settings` || this.props.location.pathname == `/forms/${this.state.uid}/settings/sharing`) &&
+        // TODO: Once "Manage Project" permission is added, remove "Edit Form" access here
         !this.userCan('change_asset', this.state)) {
       return (<ui.AccessDeniedMessage/>);
     }
@@ -52,7 +52,7 @@ export class FormSubScreens extends React.Component {
     }
 
     //TODO:Remove owner only access to settings/media after we remove KC iframe: https://github.com/kobotoolbox/kpi/issues/2647#issuecomment-624301693
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/media` && !this.userIsOwner(this.state)) {
+    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/media` && !assetUtils.isSelfOwned(this.state)) {
       return (<ui.AccessDeniedMessage/>);
     }
 
@@ -136,9 +136,10 @@ export class FormSubScreens extends React.Component {
     );
   }
   renderSharing() {
+    const uid = this.props.params.assetid || this.props.params.uid;
     return (
       <bem.FormView m='form-settings-sharing'>
-        <SharingForm uid={this.props.params.assetid} />
+        <SharingForm uid={uid} />
       </bem.FormView>
     );
   }

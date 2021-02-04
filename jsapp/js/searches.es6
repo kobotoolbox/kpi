@@ -73,16 +73,19 @@ function SearchContext(opts={}) {
     },
     // add/update asset in all search store lists
     setAsset(asset) {
-      this.setAssetInList(asset, 'defaultQueryResultsList');
-      this.setAssetInList(asset, 'searchResultsList');
-      this.rebuildCategorizedList(
-        this.state.defaultQueryResultsList,
-        'defaultQueryCategorizedResultsLists'
-      );
-      this.rebuildCategorizedList(
-        this.state.searchResultsList,
-        'searchResultsCategorizedResultsLists'
-      );
+      // only update things if given asset matches the current context types
+      if (this.state.defaultQueryFilterParams?.assetType.includes(asset.asset_type)) {
+        this.setAssetInList(asset, 'defaultQueryResultsList');
+        this.setAssetInList(asset, 'searchResultsList');
+        this.rebuildCategorizedList(
+          this.state.defaultQueryResultsList,
+          'defaultQueryCategorizedResultsLists'
+        );
+        this.rebuildCategorizedList(
+          this.state.searchResultsList,
+          'searchResultsCategorizedResultsLists'
+        );
+      }
     },
     setAssetInList(asset, listName) {
       const list = this.state[listName];
@@ -115,16 +118,19 @@ function SearchContext(opts={}) {
     },
     // remove asset from all search store lists
     removeAsset(asset) {
-      this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
-      this.removeAssetFromList(asset.uid, 'searchResultsList');
-      this.rebuildCategorizedList(
-        this.state.defaultQueryResultsList,
-        'defaultQueryCategorizedResultsLists'
-      );
-      this.rebuildCategorizedList(
-        this.state.searchResultsList,
-        'searchResultsCategorizedResultsLists'
-      );
+      // only update things if given asset matches the current context types
+      if (this.state.defaultQueryFilterParams?.assetType.includes(asset.assetType)) {
+        this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
+        this.removeAssetFromList(asset.uid, 'searchResultsList');
+        this.rebuildCategorizedList(
+          this.state.defaultQueryResultsList,
+          'defaultQueryCategorizedResultsLists'
+        );
+        this.rebuildCategorizedList(
+          this.state.searchResultsList,
+          'searchResultsCategorizedResultsLists'
+        );
+      }
     },
     removeAssetFromList(assetUid, listName) {
       let list = this.state[listName];
@@ -329,7 +335,7 @@ function SearchContext(opts={}) {
 
   search.completed.listen(function(searchParams, data, _opts){
     data.results = data.results.map(parsed);
-    data.results.forEach(stores.allAssets.registerAssetOrCollection);
+    data.results.forEach(stores.allAssets.registerAsset);
 
     var count = data.count;
 
@@ -454,9 +460,9 @@ var commonMethods = {
     });
     this.searchValue();
   },
-  searchCollectionChange (collectionUid) {
+  searchCollectionChange (assetUid) {
     this.quietUpdateStore({
-      parentUid: collectionUid
+      parentUid: assetUid
     });
     this.searchValue();
   },
