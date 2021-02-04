@@ -13,28 +13,7 @@
       opacity: 0.25;
     }
 
-    .form-view__item--table-meta {
-      flex-grow: 1;
-      line-height: 20px;
-      padding: 10px 0;
-
-      > *:not(:first-child)::before {
-        content: "·";
-        margin: auto 5px;
-      }
-
-      .select-all {
-        cursor: pointer;
-        color: $kobo-blue;
-
-        &:hover {
-          color: lighten($kobo-blue, 10%);
-        }
-      }
-    }
-
     .form-view__item--table-buttons {
-      flex-grow: 1;
       text-align: right;
 
       button {
@@ -56,14 +35,6 @@
 
     .rt-tbody, .rt-thead {
       overflow-x: hidden;
-
-      .table-header-checkbox {
-        min-height: 24px;
-        display: block;
-        text-align: center;
-
-        .checkbox__input {vertical-align: middle;}
-      }
     }
 
     // minimum body height so at least two rows are visible
@@ -74,6 +45,11 @@
     .rt-thead.-header {
       box-shadow: none;
       border-bottom: 2px solid $kobo-lightgray;
+      overflow-x: visible;
+
+      .table-bulk-checkbox-header {
+        overflow: visible;
+      }
     }
 
     .rt-thead {

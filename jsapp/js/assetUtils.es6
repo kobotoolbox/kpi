@@ -1,15 +1,255 @@
 import React from 'react';
-import {actions} from './actions';
+import {stores} from 'js/stores';
+import permConfig from 'js/components/permissions/permConfig';
+import {buildUserUrl} from 'utils';
 import {
+  ASSET_TYPES,
+  MODAL_TYPES,
+  QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
-  QUESTION_TYPES,
   SCORE_ROW_TYPE,
-  RANK_LEVEL_TYPE
+  RANK_LEVEL_TYPE,
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES,
+  ACCESS_TYPES,
+  ROOT_URL,
 } from 'js/constants';
 
 /**
- * NOTE: this works under a true assumption that all questions have unique names
+ * Removes whitespace from tags.
+ * NOTE: Behavior should match KpiTaggableManager.add()
+ * @param {Array<string>} tags - list of tags.
+ * @return {Array<string>} list of cleaned up tags.
+ */
+export function cleanupTags(tags) {
+  return tags.map(function(tag) {
+    return tag.trim().replace(/ /g, '-');
+  });
+}
+
+/**
+ * Returns nicer "me" label for your own assets.
+ * @param {string} username
+ * @returns {string} nice owner username.
+ */
+export function getAssetOwnerDisplayName(username) {
+  if (
+    stores.session.currentAccount &&
+    stores.session.currentAccount.username &&
+    stores.session.currentAccount.username === username
+  ) {
+    return t('me');
+  } else {
+    return username;
+  }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @returns {string}
+ */
+export function getOrganizationDisplayString(asset) {
+  if (asset.settings.organization) {
+    return asset.settings.organization;
+  } else {
+    return '-';
+  }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @returns {string}
+ */
+export function getLanguagesDisplayString(asset) {
+  if (
+    asset.summary &&
+    asset.summary.languages &&
+    asset.summary.languages.length >= 1
+  ) {
+    return asset.summary.languages.join(', ');
+  } else {
+    return '-';
+  }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @returns {string}
+ */
+export function getSectorDisplayString(asset) {
+  if (asset.settings.sector) {
+    return asset.settings.sector.label;
+  } else {
+    return '-';
+  }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @param {boolean} showLongName - shoul display long name
+ * @returns {string}
+ */
+export function getCountryDisplayString(asset, showLongName = false) {
+  if (asset.settings.country) {
+    return showLongName ? asset.settings.country.label : asset.settings.country.value;
+  } else {
+    return '-';
+  }
+}
+
+/**
+ * @typedef DisplayNameObj
+ * @prop {string} [original] - Name typed in by user.
+ * @prop {string} [question] - First question name.
+ * @prop {string} [empty] - Set when no other is available.
+ * @prop {string} final - original, question or empty name - the one to be displayed.
+ */
+
+/**
+ * Returns a name to be displayed for asset (especially unnamed ones).
+ * @param {Object} asset - BE asset data
+ * @returns {DisplayNameObj} object containing final name and all useful data.
+ */
+export function getAssetDisplayName(asset) {
+  const output = {};
+  if (asset.name) {
+    output.original = asset.name;
+  }
+  if (asset.summary && asset.summary.labels && asset.summary.labels.length > 0) {
+    // for unnamed assets, we try to display first question name
+    output.question = asset.summary.labels[0];
+  }
+  if (!output.original && !output.question) {
+    output.empty = t('untitled');
+  }
+  output.final = output.original || output.question || output.empty;
+  return output;
+}
+
+/**
+ * @param {Object} question - Part of BE asset data
+ * @returns {string} usable name of the question when possible, "Unlabelled" otherwise.
+ */
+export function getQuestionDisplayName(question) {
+  if (question.label) {
+    return question.label[0];
+  } else if (question.name) {
+    return question.name;
+  } else if (question.$autoname) {
+    return question.$autoname;
+  } else {
+    t('Unlabelled');
+  }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @returns {boolean}
+ */
+export function isLibraryAsset(assetType) {
+  return (
+    assetType === ASSET_TYPES.question.id ||
+    assetType === ASSET_TYPES.block.id ||
+    assetType === ASSET_TYPES.template.id ||
+    assetType === ASSET_TYPES.collection.id
+  );
+}
+
+/**
+ * For getting the icon class name for given asset type.
+ * @param {Object} asset - BE asset data
+ * @returns {string} k-icon CSS class name
+ */
+export function getAssetIcon(asset) {
+  if (asset.asset_type === ASSET_TYPES.template.id) {
+    return 'k-icon-template-new';
+  } else if (asset.asset_type === ASSET_TYPES.question.id) {
+    return 'k-icon-question-new';
+  } else if (asset.asset_type === ASSET_TYPES.block.id) {
+    return 'k-icon-block-new';
+  } else if (asset.asset_type === ASSET_TYPES.survey.id) {
+    if (asset.has_deployment) {
+      return 'k-icon-deploy';
+    } else {
+      return 'k-icon-drafts';
+    }
+  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
+    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
+      return 'k-icon-folder-subscribed';
+    } else if (isAssetPublic(asset.permissions)) {
+      return 'k-icon-folder-public';
+    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
+      return 'k-icon-folder-shared';
+    } else {
+      return 'k-icon-folder';
+    }
+  }
+}
+
+/**
+ * Opens a modal for editing asset details.
+ * @param {Object} asset - BE asset data
+ */
+export function modifyDetails(asset) {
+  let modalType;
+  if (asset.asset_type === ASSET_TYPES.template.id) {
+    modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
+  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
+    modalType = MODAL_TYPES.LIBRARY_COLLECTION;
+  }
+  stores.pageState.showModal({
+    type: modalType,
+    asset: asset,
+  });
+}
+
+/**
+ * Opens a modal for sharing asset.
+ * @param {Object} asset - BE asset data
+ */
+export function share(asset) {
+  stores.pageState.showModal({
+    type: MODAL_TYPES.SHARING,
+    assetid: asset.uid,
+  });
+}
+
+/**
+ * Opens a modal for modifying asset languages and translation strings.
+ * @param {Object} asset - BE asset data
+ */
+export function editLanguages(asset) {
+  stores.pageState.showModal({
+    type: MODAL_TYPES.FORM_LANGUAGES,
+    asset: asset,
+  });
+}
+
+/**
+ * Opens a modal for modifying asset tags (also editable in Details Modal).
+ * @param {Object} asset - BE asset data
+ */
+export function editTags(asset) {
+  stores.pageState.showModal({
+    type: MODAL_TYPES.ASSET_TAGS,
+    asset: asset,
+  });
+}
+
+/**
+ * Opens a modal for replacing an asset using a file.
+ * @param {Object} asset - BE asset data
+ */
+export function replaceForm(asset) {
+  stores.pageState.showModal({
+    type: MODAL_TYPES.REPLACE_PROJECT,
+    asset: asset,
+  });
+}
+
+/**
+ * NOTE: this works based on a fact that all questions have unique names
  * @param {Array<object>} survey - from asset's `content.survey`
  * @param {boolean} [includeGroups] wheter to put groups into output
  * @returns {object} a pair of quesion names and their full paths
@@ -20,15 +260,15 @@ export function getSurveyFlatPaths(survey, includeGroups = false) {
 
   survey.forEach((row) => {
     const rowName = getRowName(row);
-    if (GROUP_TYPES_BEGIN.has(row.type)) {
+    if (typeof GROUP_TYPES_BEGIN[row.type] !== 'undefined') {
       openedGroups.push(rowName);
       if (includeGroups) {
         output[rowName] = openedGroups.join('/');
       }
-    } else if (GROUP_TYPES_END.has(row.type)) {
+    } else if (typeof GROUP_TYPES_END[row.type] !== 'undefined') {
       openedGroups.pop();
     } else if (
-      QUESTION_TYPES.has(row.type) ||
+      QUESTION_TYPES[row.type] ||
       row.type === SCORE_ROW_TYPE ||
       row.type === RANK_LEVEL_TYPE
     ) {
@@ -99,17 +339,17 @@ export function isRowSpecialLabelHolder(mainRow, holderRow) {
       (
         // this handles ranking questions
         holderRowName === `${mainRowName}_label` &&
-        holderRow.type === QUESTION_TYPES.get('note').id
+        holderRow.type === QUESTION_TYPES.note.id
       ) ||
       (
         // this handles matrix questions (partially)
         holderRowName === `${mainRowName}_note` &&
-        holderRow.type === QUESTION_TYPES.get('note').id
+        holderRow.type === QUESTION_TYPES.note.id
       ) ||
       (
         // this handles rating questions
         holderRowName === `${mainRowName}_header` &&
-        holderRow.type === QUESTION_TYPES.get('select_one').id // rating
+        holderRow.type === QUESTION_TYPES.select_one.id // rating
       )
     );
   }
@@ -136,11 +376,11 @@ function getRowLabelAtIndex(row, index) {
 export function renderTypeIcon(type, additionalClassNames = []) {
   let typeDef;
   if (type === SCORE_ROW_TYPE) {
-    typeDef = QUESTION_TYPES.get('score');
+    typeDef = QUESTION_TYPES.score;
   } else if (type === RANK_LEVEL_TYPE) {
-    typeDef = QUESTION_TYPES.get('rank');
+    typeDef = QUESTION_TYPES.rank;
   } else {
-    typeDef = QUESTION_TYPES.get(type);
+    typeDef = QUESTION_TYPES[type];
   }
 
   if (typeDef) {
@@ -154,15 +394,106 @@ export function renderTypeIcon(type, additionalClassNames = []) {
 }
 
 /**
- * Moves asset to a non-nested collection.
- * @param {string} assetUid
- * @param {string} collectionId
+ * @param {Object} survey
+ * @returns {Array<object>} a question object
  */
-export function moveToCollection(assetUid, collectionId) {
-  actions.resources.updateAsset(
-    assetUid,
-    {parent: `/api/v2/collections/${collectionId}/`}
+export function getFlatQuestionsList(survey) {
+  const output = [];
+  const openedGroups = [];
+  let openedRepeatGroupsCount = 0;
+  survey.forEach((row) => {
+    if (row.type === 'begin_group' || row.type === 'begin_repeat') {
+      openedGroups.push(getQuestionDisplayName(row));
+    }
+    if (row.type === 'end_group' || row.type === 'end_repeat') {
+      openedGroups.pop();
+    }
+
+    if (row.type === 'begin_repeat') {
+      openedRepeatGroupsCount++;
+    } else if (row.type === 'end_repeat') {
+      openedRepeatGroupsCount--;
+    }
+
+    if (QUESTION_TYPES[row.type]) {
+      output.push({
+        type: row.type,
+        name: getRowName(row),
+        isRequired: row.required,
+        label: getQuestionDisplayName(row),
+        parents: openedGroups.slice(0),
+        hasRepatParent: openedRepeatGroupsCount >= 1,
+      });
+    }
+  });
+
+  return output;
+}
+
+/**
+ * Validates asset data to see if ready to be made public.
+ * NOTE: currently we assume the asset type is `collection`.
+ *
+ * @param {object} asset
+ *
+ * @returns {string[]} array of errors (empty array means no errors)
+ */
+export function isAssetPublicReady(asset) {
+  const errors = [];
+
+  if (asset.asset_type === ASSET_TYPES.collection.id) {
+    if (!asset.name || !asset.settings.organization || !asset.settings.sector) {
+      errors.push(t('Name, organization and sector are required to make collection public.'));
+    }
+    if (asset.children.count === 0) {
+      errors.push(t('Empty collection is not allowed to be made public.'));
+    }
+  } else {
+    errors.push(t('Only collections are allowed to be made public!'));
+  }
+
+  return errors;
+}
+
+/**
+ * Checks whether the asset is public - i.e. visible and discoverable by anyone.
+ * Note that `view_asset` is implied when you have `discover_asset`.
+ *
+ * @param {Object[]} permissions - Asset permissions.
+ *
+ * @returns {boolean} Is asset public.
+ */
+export function isAssetPublic(permissions) {
+  let isDiscoverableByAnonymous = false;
+  permissions.forEach((perm) => {
+    if (
+      perm.user === buildUserUrl(ANON_USERNAME) &&
+      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset).url
+    ) {
+      isDiscoverableByAnonymous = true;
+    }
+  });
+   return isDiscoverableByAnonymous;
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @return {boolean}
+ */
+export function isSelfOwned(asset) {
+  return (
+    asset &&
+    stores.session.currentAccount &&
+    asset.owner__username === stores.session.currentAccount.username
   );
+}
+
+/**
+ * @param {string} assetUid
+ * @return {string} assetUrl
+ */
+export function buildAssetUrl(assetUid) {
+  return `${ROOT_URL}/api/v2/assets/${assetUid}/`;
 }
 
 /*
@@ -176,11 +507,30 @@ export function removeInvalidChars(str) {
 }
 
 export default {
-  getSurveyFlatPaths,
+  buildAssetUrl,
+  cleanupTags,
+  editLanguages,
+  editTags,
+  getAssetDisplayName,
+  getAssetIcon,
+  getAssetOwnerDisplayName,
+  getCountryDisplayString,
+  getFlatQuestionsList,
+  getLanguagesDisplayString,
+  getOrganizationDisplayString,
+  getQuestionDisplayName,
   getRowName,
+  getSectorDisplayString,
+  getSurveyFlatPaths,
   getTranslatedRowLabel,
+  isAssetPublic,
+  isAssetPublicReady,
+  isLibraryAsset,
   isRowSpecialLabelHolder,
+  isSelfOwned,
+  modifyDetails,
   renderTypeIcon,
-  moveToCollection,
-  removeInvalidChars
+  replaceForm,
+  share,
+  removeInvalidChars,
 };

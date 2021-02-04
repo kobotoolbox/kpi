@@ -3,13 +3,14 @@ import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {actions} from '../actions';
 import {stores} from '../stores';
 import {bem} from '../bem';
 import {searches} from '../searches';
 import ui from '../ui';
-import mixins from '../mixins';
-import { ASSET_TYPES } from '../constants';
+import {
+  COMMON_QUERIES,
+  ASSET_TYPES
+} from '../constants';
 import {
   ListSearch,
   ListTagFilter,
@@ -153,7 +154,7 @@ class AssetNavigator extends Reflux.Component {
       imports: [],
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block OR asset_type:template'
+          assetType: COMMON_QUERIES.qbt
         }
       }),
       selectedTags: []
