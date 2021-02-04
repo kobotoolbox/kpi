@@ -6,11 +6,15 @@ import {QUESTION_TYPES} from 'js/constants';
 
 const DISPLAY_LIMIT = 8;
 
+/**
+ * AKA "Quick Look" component
+ */
+
 class AssetContentSummary extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      isExpanded: false
+      isExpanded: false,
     };
     autoBind(this);
   }
@@ -57,6 +61,7 @@ class AssetContentSummary extends React.Component {
       return null;
     }
 
+    // TODO add a language selection to display localized questions labels
     let items = getFlatQuestionsList(this.props.asset.content.survey);
     const isExpandable = items.length > DISPLAY_LIMIT;
 
