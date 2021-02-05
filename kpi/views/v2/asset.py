@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
@@ -45,6 +46,7 @@ from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
     XlsRenderer
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
+from kpi.tasks import sync_kobocat_xforms
 from kpi.utils.strings import hashable_str
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
@@ -617,6 +619,68 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         metadata = self.get_metadata(queryset)
         return Response(metadata)
+
+    @action(detail=False, methods=['GET'],
+            renderer_classes=[renderers.JSONRenderer],
+            url_path=r'migrate(?:/(?P<task_id>[\d\w\-]+))?')
+    def migrate(self, request, task_id: str = None, **kwargs):
+        """
+
+        Really basic endpoint what allows super users to migration projects
+        from KoBoCAT.
+
+        1. Call this endpoint with `?username=<username>`
+        2. Fetch url provided to check the state of the Celery task.
+           It can be:
+            - 'PENDING'
+            - 'FAILED'
+            - 'SUCCESS'
+
+        """
+        if not request.user.is_superuser:
+            raise Http404
+
+        if task_id:
+            from celery.result import AsyncResult
+            res = AsyncResult(task_id)
+            if res:
+                return Response(
+                    {
+                        'status': res.state
+                    },
+                )
+            else:
+                return Response(
+                    {
+                        'detail': 'Unknown task_id'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        try:
+            username = request.GET['username']
+        except KeyError:
+            return Response(
+                {
+                    'detail': 'You must provide a username. '
+                    'e.g. /api/v2/assets/migrate?username=foo'
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        task = sync_kobocat_xforms.delay(
+            username=username, quiet=True, populate_xform_kpi_asset_uid=True
+        )
+
+        return Response(
+            {
+                'celery_task': reverse(
+                    'asset-migrate',
+                    kwargs={'task_id': task.task_id},
+                    request=request
+                )
+            }
+        )
 
     def perform_destroy(self, instance):
         if hasattr(instance, 'has_deployment') and instance.has_deployment:

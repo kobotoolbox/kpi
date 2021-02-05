@@ -18,10 +18,12 @@ def export_in_background(export_task_uid):
 
 
 @shared_task
-def sync_kobocat_xforms(username=None, quiet=True):
-    call_command('sync_kobocat_xforms', username=username, quiet=quiet)
-
-
-@shared_task
-def import_survey_drafts_from_dkobo(**kwargs):
-    call_command('import_survey_drafts_from_dkobo', **kwargs)
+def sync_kobocat_xforms(
+    username=None, quiet=True, populate_xform_kpi_asset_uid=False
+):
+    call_command(
+        'sync_kobocat_xforms',
+        username=username,
+        quiet=quiet,
+        populate_xform_kpi_asset_uid=populate_xform_kpi_asset_uid,
+    )
