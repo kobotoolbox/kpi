@@ -231,6 +231,29 @@
     width: 30px;
     margin-right: 10px;
     text-align: center;
+    color: $kobo-darkgray;
+  }
+
+  &.form-view__cell--toggle-details button {
+    cursor: pointer;
+    color: $kobo-blue;
+    background: transparent;
+    border: 0;
+    padding: 5px;
+    text-align: center;
+
+    &:hover {
+      color: $kobo-blue-dark;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    .k-icon {
+      font-size: 24px;
+      vertical-align: -8px;
+    }
   }
 
   &.form-view__cell--asset-content-summary-name {

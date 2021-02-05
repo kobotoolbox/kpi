@@ -3,6 +3,7 @@
  * ========================================================================== */
 
 $assets-table-min-width: 820px;
+$assets-table-hover-bg: $kobo-teal-light;
 
 .form-view__cell--assets-table-wrapper {
   min-width: $assets-table-min-width + 2px;
@@ -34,6 +35,10 @@ $assets-table-min-width: 820px;
   }
 }
 
+.assets-table__header .assets-table-row .assets-table-row__column {
+  color: $kobo-black;
+}
+
 .assets-table__header,
 .assets-table__body,
 .assets-table__footer {
@@ -56,8 +61,8 @@ $assets-table-min-width: 820px;
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  border-top: 1px solid $kobo-lightgray;
   color: $kobo-darkgray;
+  background-color: $kobo-whitegray;
   height: 40px;
 
   .mdl-button {
@@ -78,8 +83,7 @@ $assets-table-min-width: 820px;
 
 .assets-table--MY_LIBRARY,
 .assets-table--PUBLIC_COLLECTIONS {
-  // 80px is for breadcrumbs
-  height: calc(100% - 80px);
+  height: calc(100% - #{$s-breadcrumbs-height});
   display: flex;
   flex-direction: column;
 
@@ -149,7 +153,7 @@ $z-assets-table-row-header: 30;
 
   &.assets-table-row--asset {
     &:hover {
-      background-color: $kobo-whitegray;
+      background-color: $assets-table-hover-bg;
 
       .assets-table-row__buttons {
         opacity: 1;
@@ -255,6 +259,9 @@ $z-assets-table-row-header: 30;
         top: 30px - 2px;
         z-index: $z-assets-table-row-header;
         padding: 10px;
+        max-width: calc(100% + 20px);
+        min-width: auto;
+        left: -10px;
 
         .k-icon {
           margin: -2px;
@@ -288,6 +295,7 @@ $z-assets-table-row-header: 30;
   .assets-table-row__column {
     border-top: 1px solid $kobo-lightgray;
     padding: 20px 10px;
+    color: $kobo-darkgray;
 
     &[disabled] {
       pointer-events: none;
@@ -300,6 +308,7 @@ $z-assets-table-row-header: 30;
 
     &.assets-table-row__column--name {
       flex: 1;
+      color: $kobo-black;
     }
 
     &.assets-table-row__column--owner {
@@ -349,18 +358,17 @@ $z-assets-table-row-header: 30;
 .assets-table-row__tag {
   display: inline-block;
   vertical-align: middle;
-  padding: 2px 4px;
+  padding: 3px 5px;
   font-size: 12px;
   line-height: 1;
   color: currentColor;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: $kobo-lightgray;
   border-radius: 2px;
 
   &.assets-table-row__tag--gray-circle {
+    min-width: 18px;
     border-radius: 1em;
-    background: $kobo-lightgray;
-    border-color: $kobo-lightgray;
+    text-align: center;
   }
 }
 
@@ -376,7 +384,7 @@ $z-assets-table-row-header: 30;
   bottom: 0; // stretch for whole row
   opacity: 0;
   visibility: hidden;
-  background-color: $kobo-whitegray;
+  background-color: $assets-table-hover-bg;
   padding: 13px 10px 0 0;
 
   // for nicer blending in with the possible text underneath
@@ -387,6 +395,6 @@ $z-assets-table-row-header: 30;
     top: 0;
     height: 100%;
     width: 15px;
-    background: linear-gradient(90deg, transparent, $kobo-whitegray);
+    background: linear-gradient(90deg, transparent, $assets-table-hover-bg);
   }
 }

@@ -6,6 +6,10 @@
   padding: 0;
   text-align: right;
 
+  &:not(:first-child) {
+    margin-left: 15px;
+  }
+
   .k-icon {
     font-size: 32px;
     color: inherit;
@@ -29,8 +33,6 @@
 }
 
 .asset-action-buttons__button {
-  @include box-shadow;
-
   border-radius: 3px;
   font-size: 0.9em;
   font-weight: 500;
@@ -39,11 +41,13 @@
   position: relative;
   padding: 5px 8px 5px 30px;
   color: $kobo-darkgray;
-  background-color: $kobo-white;
+  background-color: transparent;
   border: 1px solid currentColor;
 
   &:hover {
-    color: darken($kobo-darkgray, 5%);
+    color: $kobo-white;
+    background-color: $kobo-darkgray;
+    border-color: $kobo-darkgray;
   }
 
   &:active {
@@ -77,7 +81,9 @@
     color: $kobo-teal;
 
     &:hover {
-      color: darken($kobo-teal, 5%);
+      color: $kobo-white;
+      background-color: $kobo-teal;
+      border-color: $kobo-teal;
     }
   }
 
@@ -85,7 +91,9 @@
     color: $kobo-red;
 
     &:hover {
-      color: darken($kobo-red, 5%);
+      color: $kobo-white;
+      background-color: $kobo-red;
+      border-color: $kobo-red;
     }
   }
 }
