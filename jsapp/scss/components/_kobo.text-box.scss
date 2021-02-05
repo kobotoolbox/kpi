@@ -12,10 +12,9 @@ label.text-box {
     }
   }
 
-  &.text-box--on-white input.text-box__input {
-    border-top-color: rgba($kobo-lightgray, 0.5);
-    border-left-color: rgba($kobo-lightgray, 0.5);
-    border-right-color: rgba($kobo-lightgray, 0.5);
+  &.text-box--on-white input.text-box__input,
+  &.text-box--on-white textarea.text-box__input {
+    border-color: $kobo-lightgray;
 
     &:focus {
       border-color: $kobo-blue;

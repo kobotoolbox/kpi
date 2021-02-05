@@ -660,9 +660,9 @@ class ObjectPermissionMixin:
                 not deny
                 and fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS
             ):
-                raise serializers.ValidationError(
-                    f'Anonymous users cannot be granted the permission {codename}.'
-                )
+                raise serializers.ValidationError({
+                    'permission': f'Anonymous users cannot be granted the permission {codename}.'
+                })
             # Get the User database representation for AnonymousUser
             user_obj = get_anonymous_user()
         perm_model = Permission.objects.get(

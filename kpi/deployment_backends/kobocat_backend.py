@@ -4,17 +4,16 @@ import io
 import json
 import posixpath
 import re
+from typing import Union
 import requests
 import tempfile
 import uuid
 from datetime import datetime
-from typing import Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import pytz
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
@@ -37,7 +36,6 @@ from .kc_access.utils import (
 )
 from ..exceptions import (
     BadFormatException,
-    KobocatBulkUpdateSubmissionsException,
     KobocatBulkUpdateSubmissionsClientException,
     KobocatDeploymentException,
     KobocatDuplicateSubmissionException,

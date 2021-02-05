@@ -110,6 +110,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         return attrs
 
     def update(self, instance, validated_data):
+
         # "The `.update()` method does not support writable dotted-source
         # fields by default." --DRF
         extra_details = validated_data.pop('extra_details', False)
