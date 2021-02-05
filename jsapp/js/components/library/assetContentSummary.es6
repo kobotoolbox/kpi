@@ -78,18 +78,20 @@ class AssetContentSummary extends React.Component {
     }
 
     return (
-      <bem.FormView__cell m='box'>
-        {items.map(this.renderQuestion)}
+      <React.Fragment>
+        <bem.FormView__cell m='box'>
+          {items.map(this.renderQuestion)}
+        </bem.FormView__cell>
 
         {isExpandable &&
-          <bem.FormView__cell m={['bordertop', 'toggle-details']}>
+          <bem.FormView__cell m={['toggle-details']}>
             <button onClick={this.toggleExpanded}>
               {this.state.isExpanded ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}
               {this.state.isExpanded ? t('Show less') : t('Show more')}
             </button>
           </bem.FormView__cell>
         }
-      </bem.FormView__cell>
+      </React.Fragment>
     );
   }
 }
