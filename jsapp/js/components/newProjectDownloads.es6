@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import Select from 'react-select';
 import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
+import ToggleSwitch from 'js/components/toggleSwitch';
 import {bem} from 'js/bem';
 
 const EXPORT_TYPES = Object.freeze({
@@ -19,6 +20,10 @@ const EXPORT_FORMATS = Object.freeze({
   xml: {value: 'xml', label: t('XML values and headers')},
   labels: {value: 'labels', label: t('Labels')},
 });
+const EXPORT_MULTIPLE_OPTIONS = Object.freeze({
+  separate_columns: {value: 'separate_columns', label: t('Split into separate columns')},
+  TODO: {value: 'TODO', label: t('TODO')},
+});
 
 /**
  * @prop {object} asset
@@ -29,32 +34,22 @@ export default class ProjectDownloads extends React.Component {
     this.state = {
       selectedExportType: null,
       selectedExportFormat: null,
-      isIncludeGroupsEnabled: false,
       groupSeparator: '/',
-      isSplitEnabled: false,
+      selectedExportMultiple: null,
+      isIncludeGroupsEnabled: false,
+      isIncludeDataEnabled: false,
       isAdvancedViewVisible: false,
+      isSaveCustomExportEnabled: false,
+      customExportName: '',
+      isCustomSelectionEnabled: false,
     };
     autoBind(this);
   }
 
-  onExportTypeChange(newValue) {
-    this.setState({selectedExportType: newValue});
-  }
-
-  onExportFormatChange(newValue) {
-    this.setState({selectedExportFormat: newValue});
-  }
-
-  onIncludeGroupsChange(isChecked) {
-    this.setState({isIncludeGroupsEnabled: isChecked});
-  }
-
-  onGroupSeparatorChange(newValue) {
-    this.setState({groupSeparator: newValue});
-  }
-
-  onSplitChange(isChecked) {
-    this.setState({isSplitEnabled: isChecked});
+  onAnyInputChange(statePropName, isChecked) {
+    const newStateObj = {};
+    newStateObj[statePropName] = isChecked;
+    this.setState(newStateObj);
   }
 
   toggleAdvancedView() {
@@ -62,19 +57,53 @@ export default class ProjectDownloads extends React.Component {
   }
 
   renderAdvancedView() {
+    const deployedVersionsCount = 'TODO';
     return (
-      <React.Fragment>
+      <bem.FormView__cell>
+        <label>
+          {t('Export select_multiple responses')}
+
+          <Select
+            value={this.state.selectedExportMultiple}
+            options={Object.values(EXPORT_MULTIPLE_OPTIONS)}
+            onChange={this.onAnyInputChange.bind(this, 'selectedExportMultiple')}
+            className='kobo-select'
+            classNamePrefix='kobo-select'
+            menuPlacement='auto'
+            placeholder={t('Select…')}
+          />
+        </label>
+
         <Checkbox
-          checked={this.state.isSplitEnabled}
-          onChange={this.onSplitChange}
-          label={t('Split select_multiple questions')}
+          checked={this.state.isIncludeDataEnabled}
+          onChange={this.onAnyInputChange.bind(this, 'isIncludeDataEnabled')}
+          label={t('Include data from all ##count## versions').replace('##count##', deployedVersionsCount)}
+        />
+
+        <Checkbox
+          checked={this.state.isIncludeGroupsEnabled}
+          onChange={this.onAnyInputChange.bind(this, 'isIncludeGroupsEnabled')}
+          label={t('Include groups in headers')}
+        />
+
+        <Checkbox
+          checked={this.state.isSaveCustomExportEnabled}
+          onChange={this.onAnyInputChange.bind(this, 'isSaveCustomExportEnabled')}
+          label={t('Save selection as custom export')}
         />
 
         <TextBox
-          value={this.state.groupSeparator}
-          onChange={this.onGroupSeparatorChange}
+          value={this.state.customExportName}
+          onChange={this.onAnyInputChange.bind(this, 'customExportName')}
+          placeholder={t('Name your custom export')}
         />
-      </React.Fragment>
+
+        <ToggleSwitch
+          checked={this.state.isCustomSelectionEnabled}
+          onChange={this.onAnyInputChange.bind(this, 'isCustomSelectionEnabled')}
+          label={t('Custom selection export')}
+        />
+      </bem.FormView__cell>
     );
   }
 
@@ -90,50 +119,54 @@ export default class ProjectDownloads extends React.Component {
           </bem.FormView__cell>
 
           <bem.FormView__cell m={['box', 'padding']}>
-            <label>
-              {t('Select export type')}
+            <bem.FormView__cell>
+              <label>
+                {t('Select export type')}
 
-              <Select
-                value={this.state.selectedExportType}
-                options={Object.values(EXPORT_TYPES)}
-                onChange={this.onExportTypeChange}
-                className='kobo-select'
-                classNamePrefix='kobo-select'
-                menuPlacement='auto'
+                <Select
+                  value={this.state.selectedExportType}
+                  options={Object.values(EXPORT_TYPES)}
+                  onChange={this.onAnyInputChange.bind(this, 'selectedExportType')}
+                  className='kobo-select'
+                  classNamePrefix='kobo-select'
+                  menuPlacement='auto'
+                  placeholder={t('Select…')}
+                />
+              </label>
+
+              <label>
+                {t('Value and header format')}
+
+                <Select
+                  value={this.state.selectedExportFormat}
+                  options={Object.values(EXPORT_FORMATS)}
+                  onChange={this.onAnyInputChange.bind(this, 'selectedExportFormat')}
+                  className='kobo-select'
+                  classNamePrefix='kobo-select'
+                  menuPlacement='auto'
+                  placeholder={t('Select…')}
+                />
+              </label>
+
+              <TextBox
+                value={this.state.groupSeparator}
+                onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
               />
-            </label>
+            </bem.FormView__cell>
 
-            <label>
-              {t('Value and header format')}
-
-              <Select
-                value={this.state.selectedExportFormat}
-                options={Object.values(EXPORT_FORMATS)}
-                onChange={this.onExportFormatChange}
-                className='kobo-select'
-                classNamePrefix='kobo-select'
-                menuPlacement='auto'
-                isDisabled={!this.state.selectedExportType}
-              />
-            </label>
-
-            <Checkbox
-              checked={this.state.isIncludeGroupsEnabled}
-              onChange={this.onIncludeGroupsChange}
-              label={t('Include groups in headers')}
-            />
-
-            <span
-              onClick={this.toggleAdvancedView}
-            >
-              {t('Advanced options')}
-              {this.state.isAdvancedViewVisible &&
-                <i className='k-icon k-icon-up'/>
-              }
-              {!this.state.isAdvancedViewVisible &&
-                <i className='k-icon k-icon-down'/>
-              }
-            </span>
+            <bem.FormView__cell>
+              <span
+                onClick={this.toggleAdvancedView}
+              >
+                {t('Advanced options')}
+                {this.state.isAdvancedViewVisible &&
+                  <i className='k-icon k-icon-up'/>
+                }
+                {!this.state.isAdvancedViewVisible &&
+                  <i className='k-icon k-icon-down'/>
+                }
+              </span>
+            </bem.FormView__cell>
 
             {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
           </bem.FormView__cell>
