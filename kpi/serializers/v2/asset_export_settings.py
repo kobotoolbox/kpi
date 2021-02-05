@@ -3,40 +3,25 @@ from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from kpi.models import AssetExportSettings
+from kpi.constants import (
+    EXPORT_SETTING_FIELDS,
+    EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS,
+    EXPORT_SETTING_GROUP_SEP,
+    EXPORT_SETTING_HIERARCHY_IN_LABELS,
+    EXPORT_SETTING_LANG,
+    EXPORT_SETTING_MULTIPLE_SELECT,
+    EXPORT_SETTING_TYPE,
+    OPTIONAL_EXPORT_SETTINGS,
+    REQUIRED_EXPORT_SETTINGS,
+    TRUE,
+    VALID_BOOLEANS,
+    VALID_DEFAULT_LANGUAGES,
+    VALID_EXPORT_SETTINGS,
+    VALID_EXPORT_TYPES,
+    VALID_MULTIPLE_SELECTS,
+)
 from kpi.fields import WritableJSONField
-
-OPTIONAL_EXPORT_SETTINGS = ('fields',)
-REQUIRED_EXPORT_SETTINGS = (
-    'fields_from_all_versions',
-    'group_sep',
-    'hierarchy_in_labels',
-    'lang',
-    'multiple_select',
-    'type',
-)
-VALID_EXPORT_SETTINGS = OPTIONAL_EXPORT_SETTINGS + REQUIRED_EXPORT_SETTINGS
-VALID_MULTIPLE_SELECTS = (
-    'both',
-    'summary',
-    'details',
-)
-VALID_EXPORT_TYPES = (
-    'csv',
-    'geojson',
-    'kml',
-    'spss',
-    'xlsx',
-    'zip',
-)
-VALID_DEFAULT_LANGUAGES = (
-    '_xml',
-    '_default',
-)
-VALID_BOOLEANS = (
-    'true',
-    'false',
-)
+from kpi.models import Asset, AssetExportSettings
 
 
 class AssetExportSettingsSerializer(serializers.ModelSerializer):
@@ -61,16 +46,17 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
             'date_modified',
         )
 
-    def validate_export_settings(self, export_settings):
+    def validate_export_settings(self, export_settings: dict) -> dict:
         asset = self.context['view'].asset
-        asset_languages = asset.summary.get('languages', ())
-        all_valid_languages = (*asset_languages, *VALID_DEFAULT_LANGUAGES)
+        asset_languages = asset.summary.get('languages', [])
+        all_valid_languages = [*asset_languages, *VALID_DEFAULT_LANGUAGES]
 
         for required in REQUIRED_EXPORT_SETTINGS:
             if required not in export_settings:
                 raise serializers.ValidationError(
                     _(
-                        "`export_settings` must contain all the following required keys: {}"
+                        "`export_settings` must contain all the following "
+                        "required keys: {}"
                     ).format(
                         self.__format_exception_values(
                             REQUIRED_EXPORT_SETTINGS, 'and'
@@ -82,7 +68,8 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
             if key not in VALID_EXPORT_SETTINGS:
                 raise serializers.ValidationError(
                     _(
-                        "`export_settings` can contain only the following valid keys: {}"
+                        "`export_settings` can contain only the following "
+                        "valid keys: {}"
                     ).format(
                         self.__format_exception_values(
                             VALID_EXPORT_SETTINGS, 'and'
@@ -90,21 +77,27 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
                     )
                 )
 
-        if export_settings['multiple_select'] not in VALID_MULTIPLE_SELECTS:
+        if (
+            export_settings[EXPORT_SETTING_MULTIPLE_SELECT]
+            not in VALID_MULTIPLE_SELECTS
+        ):
             raise serializers.ValidationError(
                 _("`multiple_select` must be either {}").format(
                     self.__format_exception_values(VALID_MULTIPLE_SELECTS)
                 )
             )
 
-        if export_settings['type'] not in VALID_EXPORT_TYPES:
+        if export_settings[EXPORT_SETTING_TYPE] not in VALID_EXPORT_TYPES:
             raise serializers.ValidationError(
                 _("`type` must be either {}").format(
                     self.__format_exception_values(VALID_EXPORT_TYPES)
                 )
             )
 
-        for setting in ['fields_from_all_versions', 'hierarchy_in_labels']:
+        for setting in [
+            EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS,
+            EXPORT_SETTING_HIERARCHY_IN_LABELS,
+        ]:
             if export_settings[setting].lower() not in VALID_BOOLEANS:
                 raise serializers.ValidationError(
                     _("`{}` must be either {}").format(
@@ -113,35 +106,35 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
                 )
 
         if (
-            export_settings['hierarchy_in_labels'].lower() == 'true'
-            and len(export_settings['group_sep']) == 0
+            export_settings[EXPORT_SETTING_HIERARCHY_IN_LABELS].lower() == TRUE
+            and len(export_settings[EXPORT_SETTING_GROUP_SEP]) == 0
         ):
             raise serializers.ValidationError(
                 _('`group_sep` must be a non-empty value')
             )
 
-        if export_settings['lang'] not in all_valid_languages:
+        if export_settings[EXPORT_SETTING_LANG] not in all_valid_languages:
             raise serializers.ValidationError(
                 _("`lang` for this asset must be either {}").format(
                     self.__format_exception_values(all_valid_languages)
                 )
             )
 
-        if 'fields' not in export_settings:
+        if EXPORT_SETTING_FIELDS not in export_settings:
             return export_settings
 
-        fields = export_settings['fields']
+        fields = export_settings[EXPORT_SETTING_FIELDS]
         if not isinstance(fields, list):
             raise serializers.ValidationError(_('`fields` must be an array'))
 
-        if not all(map(lambda x: isinstance(x, str), fields)):
+        if not all((isinstance(field, str) for field in fields)):
             raise serializers.ValidationError(
                 _('All values in the `fields` array must be strings')
             )
 
         return export_settings
 
-    def get_url(self, obj):
+    def get_url(self, obj: Asset) -> str:
         return reverse(
             'asset-export-settings-detail',
             args=(obj.asset.uid, obj.uid),
