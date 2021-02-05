@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.utils.translation import ugettext as _
-from rest_framework import serializers, exceptions
+from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kpi.models import AssetExportSettings
@@ -68,7 +68,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
 
         for required in REQUIRED_EXPORT_SETTINGS:
             if required not in export_settings:
-                raise exceptions.ValidationError(
+                raise serializers.ValidationError(
                     _(
                         "`export_settings` must contain all the following required keys: {}"
                     ).format(
@@ -80,7 +80,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
 
         for key in export_settings:
             if key not in VALID_EXPORT_SETTINGS:
-                raise exceptions.ValidationError(
+                raise serializers.ValidationError(
                     _(
                         "`export_settings` can contain only the following valid keys: {}"
                     ).format(
@@ -91,14 +91,14 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
                 )
 
         if export_settings['multiple_select'] not in VALID_MULTIPLE_SELECTS:
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 _("`multiple_select` must be either {}").format(
                     self.__format_exception_values(VALID_MULTIPLE_SELECTS)
                 )
             )
 
         if export_settings['type'] not in VALID_EXPORT_TYPES:
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 _("`type` must be either {}").format(
                     self.__format_exception_values(VALID_EXPORT_TYPES)
                 )
@@ -106,7 +106,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
 
         for setting in ['fields_from_all_versions', 'hierarchy_in_labels']:
             if export_settings[setting].lower() not in VALID_BOOLEANS:
-                raise exceptions.ValidationError(
+                raise serializers.ValidationError(
                     _("`{}` must be either {}").format(
                         setting, self.__format_exception_values(VALID_BOOLEANS)
                     )
@@ -116,12 +116,12 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
             export_settings['hierarchy_in_labels'].lower() == 'true'
             and len(export_settings['group_sep']) == 0
         ):
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 _('`group_sep` must be a non-empty value')
             )
 
         if export_settings['lang'] not in all_valid_languages:
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 _("`lang` for this asset must be either {}").format(
                     self.__format_exception_values(all_valid_languages)
                 )
@@ -132,10 +132,10 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
 
         fields = export_settings['fields']
         if not isinstance(fields, list):
-            raise exceptions.ValidationError(_('`fields` must be an array'))
+            raise serializers.ValidationError(_('`fields` must be an array'))
 
         if not all(map(lambda x: isinstance(x, str), fields)):
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 _('All values in the `fields` array must be strings')
             )
 
