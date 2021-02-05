@@ -1,14 +1,19 @@
-$z-form-view-fullscreen: 101;
+// form landing takes .form-view__toptabs into account
+.page-wrapper__content--form-landing {
+  .form-view {
+    height: calc(100% - 48px);
+  }
+}
 
 .form-view {
   width: 100%;
-  height: calc(100% - 48px);
+  height: 100%;
   overflow-y: auto;
   background: $kobo-white;
 
   &.form-view--fullscreen {
     position: fixed;
-    z-index: $z-form-view-fullscreen;
+    z-index: $z-fullscreen;
     top: 0;
     left: 0;
     bottom: 0;
@@ -34,6 +39,7 @@ $z-form-view-fullscreen: 101;
   border-right: 1px solid $kobo-lightgray;
 
   & + .form-view,
+  & + .report-view,
   & + .loading {
     width: calc(100% - 170px);
     height: calc(100% - 48px);
@@ -60,6 +66,7 @@ $z-form-view-fullscreen: 101;
     background: transparent;
     border: none;
     padding: 6px;
+    border-left: 2px solid transparent;
     font-size: 14px;
     cursor: pointer;
     position: relative;
@@ -146,7 +153,6 @@ $z-form-view-fullscreen: 101;
 
 .form-view__row {
   margin: 40px;
-  margin-right: 44px;
 
   + .form-view__row {
     margin-top: 0;
@@ -165,6 +171,7 @@ $z-form-view-fullscreen: 101;
     max-height: 0;
     overflow: hidden;
     transition: 0.2s max-height;
+    padding-bottom: 0;
   }
 
   &.historyExpanded .form-view__cell--history-label,
@@ -178,6 +185,17 @@ $z-form-view-fullscreen: 101;
   }
 }
 
+.form-view__row--history {
+  .form-view__cell--history-table {
+    margin-bottom: 20px;
+  }
+}
+
+.form-view__cell-label {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
 .form-view__cell {
   &.form-view__cell--box {
     border: 1px solid $kobo-lightgray;
@@ -187,6 +205,59 @@ $z-form-view-fullscreen: 101;
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    &.form-view__cell--columns-right {
+      justify-content: flex-end;
+    }
+
+    &.form-view__cell--columns-top {
+      align-items: flex-start;
+    }
+
+    .form-view__cell--stretch {
+      flex: 1;
+    }
+  }
+
+  &.form-view__cell--column-1 {
+    flex: 1;
+  }
+
+  &.form-view__cell--column-2 {
+    flex: 2;
+  }
+
+  &.form-view__cell--column-icon {
+    width: 30px;
+    margin-right: 10px;
+    text-align: center;
+    color: $kobo-darkgray;
+  }
+
+  &.form-view__cell--toggle-details button {
+    cursor: pointer;
+    color: $kobo-blue;
+    background: transparent;
+    border: 0;
+    padding: 5px;
+    text-align: center;
+
+    &:hover {
+      color: $kobo-blue-dark;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    .k-icon {
+      font-size: 24px;
+      vertical-align: -8px;
+    }
+  }
+
+  &.form-view__cell--asset-content-summary-name {
+    line-height: 1;
   }
 
   &.form-view__cell--bordertop {
@@ -197,20 +268,29 @@ $z-form-view-fullscreen: 101;
     padding: 20px;
   }
 
+  &.form-view__cell--padding-small {
+    padding: 10px 20px;
+  }
+
+  // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
     font-size: 14px;
     color: $kobo-black;
     font-weight: 500;
-    padding-bottom: 20px;
 
     span {
       display: block;
       color: $kobo-darkgray;
       font-size: 12px;
     }
+
+    &::first-letter {
+      text-transform: uppercase;
+    }
   }
 
   &.form-view__cell--first {
+    padding-bottom: 20px;
     position: relative;
 
     .form-view__group {
@@ -223,6 +303,8 @@ $z-form-view-fullscreen: 101;
   }
 
   &.form-view__cell--buttons {
+    text-align: right;
+
     a.mdl-button {
       text-transform: uppercase;
       padding-left: 30px;
@@ -239,11 +321,41 @@ $z-form-view-fullscreen: 101;
     display: inline-block;
   }
 
+  &.form-view__cell--back-button {
+    margin-right: 20px;
+
+    &:first-child {
+      .k-icon {
+        margin-left: -10px;
+      }
+    }
+  }
+
+  &.form-view__cell--subscribed-badge {
+    margin-left: 20px;
+    margin-right: 20px;
+    line-height: 32px;
+
+    .k-icon {
+      font-size: 32px;
+      vertical-align: top;
+      color: $kobo-teal;
+    }
+  }
+
+  // visually take same amount of white space as without buttons
+  &.form-view__cell--label + &.form-view__cell--action-buttons {
+    margin: -8px 0;
+  }
+
   &.form-view__cell--date {
     font-weight: normal;
     opacity: 0.8;
     display: inline-block;
-    margin-left: 6px;
+
+    &:not(:first-child) {
+      margin-left: 6px;
+    }
   }
 
   &.form-view__cell--translation-list {
@@ -322,6 +434,13 @@ $z-form-view-fullscreen: 101;
 
   overflow: visible;
   padding: 0;
+  height: 32px;
+  line-height: 32px;
+  min-height: 32px;
+
+  > i {
+    vertical-align: -0.34375em;
+  }
 }
 
 // buttons in forms
@@ -332,6 +451,7 @@ $z-form-view-fullscreen: 101;
   color: $kobo-darkgray;
   cursor: pointer;
   vertical-align: middle;
+  display: inline-block;
 
   &:hover {
     color: $kobo-blue;
@@ -378,6 +498,11 @@ $z-form-view-fullscreen: 101;
 .form-view__group {
   .dropzone {
     display: inline;
+  }
+
+  .popover-menu .popover-menu__toggle {
+    // TODO: this is too generic, find out what was this really set for
+    height: 36px;
   }
 
   &.form-view__group--items {
@@ -433,13 +558,13 @@ $z-form-view-fullscreen: 101;
     }
   }
 
-  &--deployments {
+  .form-view__group--deployments {
     .form-view__group--items:hover {
       background: $hover-asset-row;
     }
   }
 
-  &--headings {
+  .form-view__group--headings {
     font-weight: 600;
     border-top: none;
 
@@ -609,10 +734,9 @@ $z-form-view-fullscreen: 101;
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
     width: 50px;
-    padding-top: 0;
 
     a.form-view__tab {
-      padding: 3px;
+      padding-right: 3px;
       padding-left: 1px;
       font-size: 10px;
       line-height: 1.5em;
@@ -631,7 +755,6 @@ $z-form-view-fullscreen: 101;
 
     a.form-view__tab {
       font-size: 12px;
-      padding: 8px 14px;
     }
 
     a.form-view__link {
@@ -644,10 +767,11 @@ $z-form-view-fullscreen: 101;
     overflow-x: hidden;
   }
 
-  .form-view {
+  .form-view__toptabs + .form-view {
     height: calc(100% - 39px);
-    overflow-x: hidden;
+  }
 
+  .form-view {
     a.form-view__link {
       font-size: 32px;
       padding: 0 3px;
@@ -675,5 +799,36 @@ $z-form-view-fullscreen: 101;
   .form-view__cell--date {
     display: block;
     margin-left: 0;
+  }
+}
+
+.form-modal__form.form-modal__form--bulk-edit-submissions {
+  // text links
+  .form-modal__item--wrapper > a:hover {
+    text-decoration: underline;
+  }
+
+  h2 {
+    font-size: inherit;
+    font-weight: 600;
+    margin: 0 auto 10px;
+  }
+
+  i.blue-response-dot {
+    width: 6px;
+    height: 6px;
+    display: inline-block;
+    vertical-align: middle;
+    background: $kobo-blue;
+    border-radius: 100%;
+    margin-right: 6px;
+  }
+
+  .text-box.text-box--bulk-edit-response .text-box__input {
+    min-height: 90px;
+  }
+
+  .modal__footer .footer-back-button {
+    float: left;
   }
 }

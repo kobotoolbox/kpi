@@ -9,14 +9,13 @@ import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {buildUserUrl} from 'utils';
 import {
-  ASSET_KINDS,
+  ASSET_TYPES,
   ANON_USERNAME
 } from 'js/constants';
 
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';
-import UserCollectionPermsEditor from './userCollectionPermsEditor';
 import PublicShareSettings from './publicShareSettings';
 import UserPermissionRow from './userPermissionRow';
 import {permParser} from './permParser';
@@ -31,12 +30,11 @@ class SharingForm extends React.Component {
     };
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(stores.asset, this.onAssetChange);
     this.listenTo(stores.allAssets, this.onAllAssetsChange);
     this.listenTo(actions.permissions.bulkSetAssetPermissions.completed, this.onAssetPermissionsUpdated);
     this.listenTo(actions.permissions.getAssetPermissions.completed, this.onAssetPermissionsUpdated);
-    this.listenTo(actions.permissions.getCollectionPermissions.completed, this.onCollectionPermissionsUpdated);
 
     if (this.props.uid) {
       actions.resources.loadAsset({id: this.props.uid});
@@ -66,42 +64,20 @@ class SharingForm extends React.Component {
     });
   }
 
-  onCollectionPermissionsUpdated(permissionAssignments) {
-    const parsedPerms = permParser.parseBackendData(permissionAssignments, this.state.asset.owner, true);
-    let nonOwnerPerms = permParser.parseUserWithPermsList(parsedPerms).filter((perm) => {
-      return perm.user !== buildUserUrl(this.state.asset.owner);
-    });
-
-    this.setState({
-      permissions: parsedPerms,
-      nonOwnerPerms: nonOwnerPerms
-    });
-  }
-
-  onAssetChange (data) {
+  onAssetChange(data) {
     const uid = this.props.uid || this.currentAssetID;
     const asset = data[uid];
 
     if (asset) {
-      this.setState({
-        asset: asset,
-        kind: asset.kind
-      });
+      this.setState({asset: asset});
     }
 
-    // TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
-    if (asset.kind === ASSET_KINDS.get('asset')) {
-      this.setState({
-        assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions)
-      });
-      // we need to fetch permissions after asset has loaded,
-      // as we need the owner username to parse permissions
-      actions.permissions.getAssetPermissions(uid);
-    } else if (asset.kind === ASSET_KINDS.get('collection')) {
-      this.setState({
-        permissions: permParser.parseOldBackendData(asset.permissions, asset.owner)
-      });
-    }
+    this.setState({
+      assignablePerms: this.getAssignablePermsMap(asset.assignable_permissions)
+    });
+    // we need to fetch permissions after asset has loaded,
+    // as we need the owner username to parse permissions
+    actions.permissions.getAssetPermissions(uid);
   }
 
   getAssignablePermsMap(backendPerms) {
@@ -133,13 +109,12 @@ class SharingForm extends React.Component {
     );
   }
 
-  render () {
+  render() {
     if (!this.state.permissions) {
       return this.renderLoadingMessage();
     }
 
     let uid = this.state.asset.uid,
-        kind = this.state.asset.kind,
         asset_type = this.state.asset.asset_type,
         objectUrl = this.state.asset.url;
 
@@ -163,7 +138,7 @@ class SharingForm extends React.Component {
               uid={uid}
               nonOwnerPerms={this.state.nonOwnerPerms}
               assignablePerms={this.state.assignablePerms}
-              kind={kind}
+              assetType={asset_type}
               {...perm}
             />;
           })}
@@ -187,29 +162,19 @@ class SharingForm extends React.Component {
                 <i className='k-icon k-icon-close'/>
               </bem.Button>
 
-              {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
-              {kind === ASSET_KINDS.get('asset') &&
-                <UserAssetPermsEditor
-                  uid={uid}
-                  assignablePerms={this.state.assignablePerms}
-                  nonOwnerPerms={this.state.nonOwnerPerms}
-                  onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-                />
-              }
-              {kind === ASSET_KINDS.get('collection') &&
-                <UserCollectionPermsEditor
-                  uid={uid}
-                  assignablePerms={this.state.assignablePerms}
-                  onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-                />
-              }
+              <UserAssetPermsEditor
+                uid={uid}
+                assignablePerms={this.state.assignablePerms}
+                nonOwnerPerms={this.state.nonOwnerPerms}
+                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+              />
 
             </bem.FormModal__item>
           }
         </bem.FormModal__item>
 
         {/* public sharing settings */}
-        { kind !== 'collection' && asset_type === 'survey' &&
+        { asset_type === ASSET_TYPES.survey.id &&
           <React.Fragment>
             <bem.Modal__hr/>
 
@@ -219,7 +184,6 @@ class SharingForm extends React.Component {
               <PublicShareSettings
                 publicPerms={this.state.publicPerms}
                 uid={uid}
-                kind={kind}
                 objectUrl={objectUrl}
                 deploymentActive={this.state.asset.deployment__active}
               />
@@ -228,13 +192,13 @@ class SharingForm extends React.Component {
         }
 
         {/* copying permissions from other assets */}
-        { kind !== 'collection' && this.state.allAssetsCount === 0 &&
+        { asset_type !== ASSET_TYPES.collection.id && this.state.allAssetsCount === 0 &&
           <React.Fragment>
             <bem.Modal__hr/>
             {t('Waiting for all projects to load…')}
           </React.Fragment>
         }
-        { kind !== 'collection' && this.state.allAssetsCount >= 2 &&
+        { asset_type !== ASSET_TYPES.collection.id && this.state.allAssetsCount >= 2 &&
           <React.Fragment>
             <bem.Modal__hr/>
             <CopyTeamPermissions uid={uid}/>

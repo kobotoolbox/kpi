@@ -14,6 +14,7 @@ import Checkbox from './checkbox';
 import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
 import {stringToColor} from 'utils';
+import {ROUTES} from 'js/constants';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 
@@ -305,7 +306,7 @@ export default class AccountSettings extends React.Component {
 
               <bem.AccountSettings__item m='password'>
                 <a
-                  href='/#/change-password'
+                  href={`/#${ROUTES.CHANGE_PASSWORD}`}
                   className='kobo-button kobo-button--teal'
                 >
                   {t('Modify Password')}

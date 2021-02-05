@@ -8,7 +8,7 @@ import {actions} from '../actions';
 import mixins from '../mixins';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
-import { QUERY_LIMIT_DEFAULT } from './map';
+import { QUERY_LIMIT_DEFAULT } from 'js/constants';
 import { dataInterface } from '../dataInterface';
 
 // see kobo.map.marker-colors.scss for styling details of each set

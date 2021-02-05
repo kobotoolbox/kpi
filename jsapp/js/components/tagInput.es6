@@ -1,21 +1,18 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
-import {stores} from '../stores';
 import {actions} from '../actions';
+import {cleanupTags} from 'js/assetUtils';
 
 class TagInput extends React.Component {
   constructor(props) {
-    super(props)
-    this.state = {tags: props.tags, tag: ''}
+    super(props);
+    this.state = {tags: props.tags, tag: ''};
     autoBind(this);
   }
 
   handleChange(tags) {
-    var transformed = tags.map(function(tag) {
-      // Behavior should match KpiTaggableManager.add()
-      return tag.trim().replace(/ /g, '-');
-    });
+    var transformed = cleanupTags(tags);
     this.setState({tags: transformed});
 
     var uid = this.props.uid;
@@ -26,7 +23,7 @@ class TagInput extends React.Component {
   }
 
   handleChangeInput(tag) {
-    this.setState({tag})
+    this.setState({tag});
   }
 
   render() {
@@ -41,7 +38,7 @@ class TagInput extends React.Component {
         inputProps={inputProps}
         onChangeInput={this.handleChangeInput.bind(this)}
       />
-    )
+    );
   }
 }
 

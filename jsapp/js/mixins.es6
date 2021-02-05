@@ -15,12 +15,14 @@ import _ from 'underscore';
 import React from 'react';
 import alertify from 'alertifyjs';
 import {hashHistory} from 'react-router';
-
+import assetUtils from 'js/assetUtils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
   ASSET_TYPES,
-  ANON_USERNAME
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES,
+  ROUTES,
 } from './constants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
@@ -34,6 +36,7 @@ import {
   buildUserUrl,
   renderCheckbox
 } from 'utils';
+import myLibraryStore from 'js/components/library/myLibraryStore';
 
 const IMPORT_CHECK_INTERVAL = 1000;
 
@@ -54,7 +57,7 @@ mixins.dmix = {
       value: name,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, value) => {
-        let uid = this.props.params.assetid;
+        const uid = this.props.params.assetid || this.props.params.uid;
         actions.resources.cloneAsset({
           uid: uid,
           name: value,
@@ -142,8 +145,8 @@ mixins.dmix = {
     dialog.set(opts).show();
   },
   deployAsset (asset) {
-    if (!asset || asset.kind != 'asset') {
-        if (this.state && this.state.kind == 'asset') {
+    if (!asset || asset.asset_type !== ASSET_TYPES.survey.id) {
+        if (this.state && this.state.asset_type === ASSET_TYPES.survey.id) {
           asset = this.state;
         } else {
           console.error('Neither the arguments nor the state supplied an asset.');
@@ -159,15 +162,15 @@ mixins.dmix = {
   archiveAsset (uid, callback) {
     mixins.clickAssets.click.asset.archive(uid, callback);
   },
-  unarchiveAsset (uid=null, callback) {
+  unarchiveAsset (uid = null, callback) {
     if (uid === null) {
       mixins.clickAssets.click.asset.unarchive(this.state, callback);
     } else {
       mixins.clickAssets.click.asset.unarchive(uid, callback);
     }
   },
-  deleteAsset (uid, name, callback) {
-    mixins.clickAssets.click.asset.delete(uid, name, callback);
+  deleteAsset(assetOrUid, name, callback) {
+    mixins.clickAssets.click.asset.delete(assetOrUid, name, callback);
   },
   toggleDeploymentHistory () {
     this.setState({
@@ -212,13 +215,32 @@ mixins.dmix = {
       return this.props.uid;
     }
   },
+  // TODO
+  // Fix `componentWillUpdate` and `componentDidMount` asset loading flow.
+  // Ideally we should build a single overaching component that would
+  // handle loading of the asset in all necessary cases in a way that all
+  // interested parties could use without duplication or confusion and with
+  // indication when the loading starts and when ends.
+  componentWillUpdate(newProps) {
+    if (
+      this.props.params &&
+      this.props.params.assetid &&
+      newProps.params &&
+      newProps.params.assetid &&
+      this.props.params.assetid !== newProps.params.assetid
+    ) {
+      // This case is used by other components (header.es6 is one such component)
+      // in a not clear way to gain a data on new asset.
+      actions.resources.loadAsset({id: newProps.params.assetid});
+    }
+  },
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
     const uid = this._getAssetUid();
 
     if (this.props.randdelay && uid) {
-      window.setTimeout(()=>{
+      window.setTimeout(() => {
         actions.resources.loadAsset({id: uid});
       }, Math.random() * 3000);
     } else if (uid) {
@@ -233,7 +255,7 @@ mixins.dmix = {
  */
 const applyImport = (params) => {
   const applyPromise = new Promise((resolve, reject) => {
-    dataInterface.postCreateImport(params).then((data)=> {
+    actions.resources.createImport(params, (data) => {
       const doneCheckInterval = setInterval(() => {
         dataInterface.getImportDetails({
           uid: data.uid,
@@ -261,7 +283,7 @@ const applyImport = (params) => {
               reject(importData);
             }
           }
-        }).fail((failData)=>{
+        }).fail((failData) => {
           clearInterval(doneCheckInterval);
           reject(failData);
         });
@@ -318,16 +340,16 @@ mixins.droppable = {
     return applyPromise;
   },
 
-  _forEachDroppedFile (params={}) {
+  _forEachDroppedFile(params = {}) {
     let router = this.context.router;
     let isProjectReplaceInForm = (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
       && router.isActive('forms')
-      && router.params.assetid != undefined
+      && router.params.uid !== undefined
     );
-    var library = router.isActive('library');
+    var isLibrary = router.isActive('library');
     var multipleFiles = params.totalFiles > 1 ? true : false;
-    params = assign({library: library}, params);
+    params = assign({library: isLibrary}, params);
 
     if (params.base64Encoded) {
       stores.pageState.showModal({
@@ -338,40 +360,40 @@ mixins.droppable = {
 
     delete params.totalFiles;
 
-    if (!library && params.base64Encoded) {
+    if (!isLibrary && params.base64Encoded) {
       let destination = params.destination || this.state.url;
       if (destination) {
         params = assign({ destination: destination }, params);
       }
     }
 
-    dataInterface.postCreateImport(params).then((data)=> {
-      window.setTimeout((() => {
+    actions.resources.createImport(params, (data) => {
+      // TODO get rid of this barbaric method of waiting a magic number of seconds
+      // to check if import was done - possibly while doing
+      // https://github.com/kobotoolbox/kpi/issues/476
+      window.setTimeout(() => {
         dataInterface.getImportDetails({
           uid: data.uid,
         }).done((importData) => {
           if (importData.status === 'complete') {
             var assetData = importData.messages.updated || importData.messages.created;
             var assetUid = assetData && assetData.length > 0 && assetData[0].uid;
-            if (multipleFiles) {
+            if (!isLibrary && multipleFiles) {
               this.searchDefault();
               // No message shown for multiple files when successful, to avoid overloading screen
-            } else {
-              if (!assetUid) {
-                // TODO: use a more specific error message here
-                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
-                if (params.assetUid)
-                  hashHistory.push(`/forms/${params.assetUid}`);
-              } else {
-                if (isProjectReplaceInForm) {
-                  actions.resources.loadAsset({id: assetUid});
-                } else if (library) {
-                  this.searchDefault();
-                } else {
-                  hashHistory.push(`/forms/${assetUid}`);
-                }
-                notify(t('XLS Import completed'));
+            } else if (!assetUid) {
+              // TODO: use a more specific error message here
+              alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
+              if (params.assetUid) {
+                hashHistory.push(`/forms/${params.assetUid}`);
               }
+            } else {
+              if (isProjectReplaceInForm) {
+                actions.resources.loadAsset({id: assetUid});
+              } else if (!isLibrary) {
+                hashHistory.push(`/forms/${assetUid}`);
+              }
+              notify(t('XLS Import completed'));
             }
           } else if (importData.status === 'processing') {
             // If the import task didn't complete immediately, inform the user accordingly.
@@ -391,22 +413,22 @@ mixins.droppable = {
           } else {
             alertify.error(t('Import Failed!'));
           }
-        }).fail((failData)=>{
+        }).fail((failData) => {
           alertify.error(t('Import Failed!'));
           log('import failed', failData);
         });
         stores.pageState.hideModal();
-      }), 2500);
-    }).fail((jqxhr)=> {
+      }, 2500);
+    }, (jqxhr) => {
       log('Failed to create import: ', jqxhr);
       alertify.error(t('Failed to create import.'));
     });
   },
 
-  dropFiles (files, rejectedFiles, evt, pms={}) {
+  dropFiles (files, rejectedFiles, evt, pms = {}) {
     files.map((file) => {
       var reader = new FileReader();
-      reader.onload = (e)=> {
+      reader.onload = (e) => {
         let params = assign({
           base64Encoded: e.target.result,
           name: file.name,
@@ -432,50 +454,70 @@ mixins.droppable = {
   }
 };
 
-mixins.collectionList = {
-  getInitialState () {
-    // initial state is a copy of "stores.collections.initialState"
-    return assign({}, stores.collections.initialState);
-  },
-  listCollections () {
-    actions.resources.listCollections();
-  },
-  componentDidMount () {
-    this.listenTo(stores.collections, this.collectionsChanged);
-  },
-  collectionsChanged (collections) {
-    this.setState(collections);
-  },
-};
-
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
     this.click.asset[action].call(this, uid, name);
   },
   click: {
     asset: {
-      clone: function(uid, name){
-        let assetType = ASSET_TYPES[stores.selectedAsset.asset.asset_type].label || '';
-        let newName = `${t('Clone of')} ${name}`;
+      clone: function(assetOrUid) {
+        let asset;
+        if (typeof assetOrUid === 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
+        let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
+
+        let newName;
+        const displayName = assetUtils.getAssetDisplayName(asset);
+        // propose new name only if source asset name is not empty
+        if (displayName.original) {
+          newName = `${t('Clone of')} ${displayName.original}`;
+        }
+
         let dialog = alertify.dialog('prompt');
         let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
-          title: `${t('Clone')} ${assetType}`,
-          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetType),
+          title: `${t('Clone')} ${assetTypeLabel}`,
+          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetTypeLabel),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
             ok_button.disabled = true;
             ok_button.innerText = t('Cloning...');
+
+            let canAddToParent = false;
+            if (asset.parent) {
+              const foundParentAsset = myLibraryStore.findAssetByUrl(asset.parent);
+              canAddToParent = (
+                typeof foundParentAsset !== 'undefined' &&
+                mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, foundParentAsset)
+              );
+            }
+
             actions.resources.cloneAsset({
-              uid: uid,
+              uid: asset.uid,
               name: value,
+              parent: canAddToParent ? asset.parent : undefined
             }, {
             onComplete: (asset) => {
               ok_button.disabled = false;
               dialog.destroy();
-              hashHistory.push(`/forms/${asset.uid}/landing`);
-              notify(t('cloned project created'));
+
+              // TODO when on collection landing page and user clones this
+              // collection's child asset, instead of navigating to cloned asset
+              // landing page, it would be better to stay here and refresh data
+              // (if the clone will keep the parent asset)
+              let goToUrl;
+              if (asset.asset_type === ASSET_TYPES.survey.id) {
+                goToUrl = `/forms/${asset.uid}/landing`;
+              } else {
+                goToUrl = `/library/asset/${asset.uid}`;
+              }
+
+              hashHistory.push(goToUrl);
+              notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
             }
             });
             // keep the dialog open
@@ -500,27 +542,34 @@ mixins.clickAssets = {
         mixins.cloneAssetAsNewType.dialog({
           sourceUid: sourceUid,
           sourceName: sourceName,
-          targetType: 'survey',
+          targetType: ASSET_TYPES.survey.id,
           promptTitle: t('Create new project from this template'),
           promptMessage: t('Enter the name of the new project.')
         });
       },
       edit: function (uid) {
-        if (this.context.router.isActive('library'))
-          hashHistory.push(`/library/${uid}/edit`);
-        else
+        if (this.context.router.isActive('library')) {
+          hashHistory.push(`/library/asset/${uid}/edit`);
+        } else {
           hashHistory.push(`/forms/${uid}/edit`);
+        }
       },
-      delete: function(uid, name, callback) {
-        const safeName = _.escape(name);
-        const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+      delete: function(assetOrUid, name, callback) {
+        let asset;
+        if (typeof assetOrUid === 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
         let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
+
+        const safeName = _.escape(name);
 
         let dialog = alertify.dialog('confirm');
         let deployed = asset.has_deployment;
         let msg, onshow;
         let onok = (evt, val) => {
-          actions.resources.deleteAsset({uid: uid}, {
+          actions.resources.deleteAsset({uid: asset.uid, assetType: asset.asset_type}, {
             onComplete: ()=> {
               notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel));
               if (typeof callback === 'function') {
@@ -531,10 +580,11 @@ mixins.clickAssets = {
         };
 
         if (!deployed) {
-          if (asset.asset_type != ASSET_TYPES.survey.id)
+          if (asset.asset_type !== ASSET_TYPES.survey.id) {
             msg = t('You are about to permanently delete this item from your library.');
-          else
+          } else {
             msg = t('You are about to permanently delete this draft.');
+          }
         } else {
           msg = `${t('You are about to permanently delete this form.')}`;
           if (asset.deployment__submission_count !== 0) {
@@ -580,8 +630,13 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset;
         mixins.dmix.deployAsset(asset);
       },
-      archive: function(uid, callback) {
-        let asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+      archive: function(assetOrUid, callback) {
+        let asset;
+        if (typeof assetOrUid === 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
         let dialog = alertify.dialog('confirm');
         let opts = {
           title: t('Archive Project'),
@@ -605,7 +660,7 @@ mixins.clickAssets = {
       },
       unarchive: function(assetOrUid, callback) {
         let asset;
-        if (typeof assetOrUid == 'object') {
+        if (typeof assetOrUid === 'object') {
           asset = assetOrUid;
         } else {
           asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
@@ -660,13 +715,6 @@ mixins.clickAssets = {
 };
 
 mixins.permissions = {
-  userIsOwner(asset) {
-    return (
-      asset &&
-      stores.session.currentAccount &&
-      asset.owner__username === stores.session.currentAccount.username
-    );
-  },
   userCan (permName, asset) {
     if (!asset.permissions) {
       return false;
@@ -702,39 +750,48 @@ mixins.permissions = {
 };
 
 mixins.contextRouter = {
-  isFormList () {
-    return this.context.router.isActive('forms') && this.context.router.params.assetid == undefined;
+  isFormList() {
+    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
   },
-  isLibrary () {
-    return this.context.router.isActive('library');
+  isLibrary() {
+    return this.context.router.isActive(ROUTES.LIBRARY);
   },
-  isFormSingle () {
-    return this.context.router.isActive('forms') && this.context.router.params.assetid != undefined;
+  isMyLibrary() {
+    return this.context.router.isActive(ROUTES.MY_LIBRARY);
   },
-  currentAssetID () {
-    return this.context.router.params.assetid;
+  isPublicCollections() {
+    return this.context.router.isActive(ROUTES.PUBLIC_COLLECTIONS);
   },
-  currentAsset () {
+  isLibraryList() {
+    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() === undefined;
+  },
+  isLibrarySingle() {
+    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
+  },
+  isFormSingle() {
+    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() !== undefined;
+  },
+  currentAssetID() {
+    return this.context.router.params.assetid || this.context.router.params.uid;
+  },
+  currentAsset() {
     return stores.asset.data[this.currentAssetID()];
   },
-  isActiveRoute (path, indexOnly = false) {
+  isActiveRoute(path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);
   },
-  isFormBuilder () {
-    if (this.context.router.isActive('/library/new'))
+  isFormBuilder() {
+    if (this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM)) {
       return true;
+    }
 
-    if (this.context.router.isActive('/library/new/template'))
-      return true;
-
-    if (this.context.router.params.assetid == undefined)
-      return false;
-
-    var assetid = this.context.router.params.assetid;
-    if (this.context.router.isActive(`/library/${assetid}/edit`))
-      return true;
-
-    return this.context.router.isActive(`/forms/${assetid}/edit`);
+    const uid = this.currentAssetID();
+    return (
+      uid !== undefined &&
+      this.context.router.isActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
+      this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
+      this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
+    );
   }
 };
 
@@ -765,12 +822,12 @@ mixins.cloneAssetAsNewType = {
 
             switch (asset.asset_type) {
               case ASSET_TYPES.survey.id:
-                hashHistory.push(`/forms/${asset.uid}/landing`);
+                hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                 break;
               case ASSET_TYPES.template.id:
               case ASSET_TYPES.block.id:
               case ASSET_TYPES.question.id:
-                hashHistory.push('/library');
+                hashHistory.push(ROUTES.LIBRARY);
                 break;
             }
           },

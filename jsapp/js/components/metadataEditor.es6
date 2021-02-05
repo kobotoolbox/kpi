@@ -32,7 +32,7 @@ export default class MetadataEditor extends React.Component {
     const newState = {
       metaProperties: []
     };
-    META_QUESTION_TYPES.forEach((metaType) => {
+    Object.keys(META_QUESTION_TYPES).forEach((metaType) => {
       const detail = this.getSurveyDetail(metaType);
       if (detail) {
         newState.metaProperties.push(assign({}, detail.attributes));
@@ -62,7 +62,7 @@ export default class MetadataEditor extends React.Component {
   }
 
   onAuditParametersChange(newVal) {
-    this.getSurveyDetail(META_QUESTION_TYPES.get('audit')).set('parameters', newVal);
+    this.getSurveyDetail(META_QUESTION_TYPES.audit).set('parameters', newVal);
     this.rebuildState();
     if (typeof this.props.onChange === 'function') {
       this.props.onChange();
@@ -70,12 +70,12 @@ export default class MetadataEditor extends React.Component {
   }
 
   isAuditEnabled() {
-    const metaProp = this.getMetaProperty(META_QUESTION_TYPES.get('audit'));
+    const metaProp = this.getMetaProperty(META_QUESTION_TYPES.audit);
     return metaProp.value === true;
   }
 
   getAuditParameters() {
-    const metaProp = this.getMetaProperty(META_QUESTION_TYPES.get('audit'));
+    const metaProp = this.getMetaProperty(META_QUESTION_TYPES.audit);
     return metaProp.parameters;
   }
 
@@ -103,17 +103,17 @@ export default class MetadataEditor extends React.Component {
     }
 
     const leftColumn = [
-      META_QUESTION_TYPES.get('start'),
-      META_QUESTION_TYPES.get('end'),
-      META_QUESTION_TYPES.get('today'),
-      META_QUESTION_TYPES.get('deviceid'),
-      META_QUESTION_TYPES.get('audit')
+      META_QUESTION_TYPES.start,
+      META_QUESTION_TYPES.end,
+      META_QUESTION_TYPES.today,
+      META_QUESTION_TYPES.deviceid,
+      META_QUESTION_TYPES.audit,
     ];
     const rightColumn = [
-      META_QUESTION_TYPES.get('username'),
-      META_QUESTION_TYPES.get('simserial'),
-      META_QUESTION_TYPES.get('subscriberid'),
-      META_QUESTION_TYPES.get('phonenumber')
+      META_QUESTION_TYPES.username,
+      META_QUESTION_TYPES.simserial,
+      META_QUESTION_TYPES.subscriberid,
+      META_QUESTION_TYPES.phonenumber,
     ];
 
     return (

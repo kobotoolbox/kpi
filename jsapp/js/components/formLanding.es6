@@ -180,11 +180,12 @@ export class FormLanding extends React.Component {
     );
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
-        <bem.FormView__cell m={['columns', 'history-label']}>
+        <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
           <bem.FormView__cell m='label'>
             {t('Form history')}
           </bem.FormView__cell>
         </bem.FormView__cell>
+
         <bem.FormView__cell m={['box', 'history-table']}>
           <bem.FormView__group m='deployments'>
             <bem.FormView__group m={['items', 'headings']}>
@@ -234,7 +235,7 @@ export class FormLanding extends React.Component {
           </bem.FormView__cell>
         }
       </bem.FormView__row>
-      );
+    );
   }
   renderCollectData () {
     var available_links = new Map([
@@ -287,10 +288,8 @@ export class FormLanding extends React.Component {
 
     return (
       <bem.FormView__row>
-        <bem.FormView__cell m='columns'>
-          <bem.FormView__cell m='label'>
-              {t('Collect data')}
-          </bem.FormView__cell>
+        <bem.FormView__cell m={['label', 'first']}>
+            {t('Collect data')}
         </bem.FormView__cell>
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m={['columns', 'padding']}>
@@ -396,11 +395,11 @@ export class FormLanding extends React.Component {
     }
 
     return (
-      <bem.FormView__group m='buttons'>
+      <React.Fragment>
         {userCanEdit ?
           <Link to={`/forms/${this.state.uid}/edit`}
                 className='form-view__link form-view__link--edit'
-                data-tip={t('edit')}>
+                data-tip={t('Edit in Form Builder')}>
             <i className='k-icon-edit' />
           </Link>
         :
@@ -445,7 +444,7 @@ export class FormLanding extends React.Component {
 
           {userCanEdit &&
             <bem.PopoverMenu__link onClick={this.showSharingModal}>
-              <i className='k-icon-share'/>
+              <i className='k-icon-user-share'/>
               {t('Share this project')}
             </bem.PopoverMenu__link>
           }
@@ -460,7 +459,7 @@ export class FormLanding extends React.Component {
             data-asset-uid={this.state.uid}
             data-asset-name={this.state.name}
           >
-            <i className='k-icon-template'/>
+            <i className='k-icon-template-new'/>
             {t('Create template')}
           </bem.PopoverMenu__link>
 
@@ -477,7 +476,7 @@ export class FormLanding extends React.Component {
           </bem.PopoverMenu__link>
           */ }
         </ui.PopoverMenu>
-      </bem.FormView__group>
+      </React.Fragment>
     );
   }
   renderLanguages (canEdit) {
@@ -541,7 +540,7 @@ export class FormLanding extends React.Component {
                   this.state.has_deployment ? t('Archived version') :
                     t('Draft version')}
               </bem.FormView__cell>
-              <bem.FormView__cell>
+              <bem.FormView__cell m='action-buttons'>
                 {this.renderButtons(userCanEdit)}
               </bem.FormView__cell>
             </bem.FormView__cell>
