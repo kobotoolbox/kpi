@@ -1,4 +1,5 @@
 @import "colors";
+@import "variables";
 
 @import "./libs/mdl";
 
@@ -50,6 +51,8 @@
 @import "./components/kobo.text-box";
 @import "./components/kobo.submission-data-table";
 @import "./components/kobo.simple-table";
+@import "./components/kobo.breadcrumbs";
+@import "./components/kobo.asset-info-box";
 
 @import "./formbuild/kobomatrix";
 
