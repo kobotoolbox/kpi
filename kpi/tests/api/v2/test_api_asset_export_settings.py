@@ -18,9 +18,9 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 class AssetExportSettingsApiTest(BaseTestCase):
     """
-    DataViewset uses `BrowsableAPIRenderer` as the first renderer.
-    Force JSON to test the API by specifying `format`, `HTTP_ACCEPT` or
-    `content_type`
+    AssetExportSettingsViewset uses `BrowsableAPIRenderer` as the first
+    renderer.  Force JSON to test the API by specifying `format`, `HTTP_ACCEPT`
+    or `content_type`
     """
 
     fixtures = ['test_data']
@@ -73,7 +73,17 @@ class AssetExportSettingsApiTest(BaseTestCase):
             export_settings=self.valid_export_settings,
         )
 
-    def test_api_create_asset_export_settings_for_owner(self):
+    def __get_detail_url(self, uid):
+        return reverse(
+            self._get_endpoint('asset-export-settings-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'uid': uid,
+                'format': 'json',
+            },
+        )
+
+    def test_api_create_valid_asset_export_settings_for_owner(self):
         response = self.client.post(
             self.export_settings_list_url,
             data={
@@ -90,6 +100,55 @@ class AssetExportSettingsApiTest(BaseTestCase):
         assert (
             data['export_settings'] == self.valid_export_settings
         )
+
+    def test_api_create_invalid_asset_export_settings_for_owner(self):
+        invalid_export_settings = {**self.valid_export_settings, 'type': 'pdf'}
+        response = self.client.post(
+            self.export_settings_list_url,
+            data={
+                'name': self.name,
+                'export_settings': invalid_export_settings,
+            },
+            format='json'
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert self.asset_export_settings.count() == 0
+
+    def test_api_update_valid_asset_export_settings_for_owner(self):
+        response = self.client.post(
+            self.export_settings_list_url,
+            data={
+                'name': self.name,
+                'export_settings': self.valid_export_settings,
+            },
+            format='json'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert self.asset_export_settings.count() == 1
+
+        data = response.json()
+        url = self.__get_detail_url(data['uid'])
+
+        new_name = 'bar'
+        new_export_type = 'xlsx'
+        updated_export_settings = {
+            **self.valid_export_settings,
+            'type': new_export_type,
+        }
+        response = self.client.patch(
+            url,
+            data={
+                'name': new_name,
+                'export_settings': updated_export_settings,
+            },
+            format='json',
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert self.asset_export_settings.count() == 1
+
+        data = response.json()
+        assert data['name'] == new_name
+        assert data['export_settings'] == updated_export_settings
 
     def test_api_delete_asset_export_settings_for_owner(self):
         response = self.client.post(
@@ -146,4 +205,12 @@ class AssetExportSettingsApiTest(BaseTestCase):
 
         data = response.json()
         assert data['count'] == self.asset_export_settings.count() == 1
+
+    def test_api_detail_asset_export_settings_without_perms(self):
+        export_settings = self._create_foo_export_settings()
+        url = self.__get_detail_url(export_settings.uid)
+
+        self._log_in_as_another_user()
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
