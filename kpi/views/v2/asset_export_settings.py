@@ -63,14 +63,14 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
 
     where:
 
-    * "name" (required) is the name of the exort setting displayed in the UI
+    * "name" (required) is the name of the export setting displayed in the UI
     * "export_settings" (required) is a map of defined settings containing the following valid options:
         * "fields" (optional) is an array of column names to be included in the export (including their group hierarchy). Valid inputs include:
             * An array containing any string value that matches the XML column name
             * An empty array which will result in all columns being included
             * If "fields" is not included in the "export_settings", all columns will be included in the export
         * "fields_from_all_versions" (required) is a boolean to specify whether fields from all form versions will be included in the export.
-        * "group_sep" (required) is a value used to seperate the names in a hierarchy of groups. Valid inputs include:
+        * "group_sep" (required) is a value used to separate the names in a hierarchy of groups. Valid inputs include:
             * Non-empty value
         * "hierarchy_in_labels" (required) is a boolean to specify whether the group hierarchy will be displayed in labels
         * "multiple_select" (required) is a value to specify the display of `multiple_select`-type responses. Valid inputs include:
