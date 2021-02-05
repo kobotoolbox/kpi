@@ -3,6 +3,7 @@
  * ========================================================================== */
 
 $assets-table-min-width: 820px;
+$assets-table-hover-bg: $kobo-teal-light;
 
 .form-view__cell--assets-table-wrapper {
   min-width: $assets-table-min-width + 2px;
@@ -78,8 +79,7 @@ $assets-table-min-width: 820px;
 
 .assets-table--MY_LIBRARY,
 .assets-table--PUBLIC_COLLECTIONS {
-  // 80px is for breadcrumbs
-  height: calc(100% - 80px);
+  height: calc(100% - #{$s-breadcrumbs-height});
   display: flex;
   flex-direction: column;
 
@@ -149,7 +149,7 @@ $z-assets-table-row-header: 30;
 
   &.assets-table-row--asset {
     &:hover {
-      background-color: $kobo-whitegray;
+      background-color: $assets-table-hover-bg;
 
       .assets-table-row__buttons {
         opacity: 1;
@@ -376,7 +376,7 @@ $z-assets-table-row-header: 30;
   bottom: 0; // stretch for whole row
   opacity: 0;
   visibility: hidden;
-  background-color: $kobo-whitegray;
+  background-color: $assets-table-hover-bg;
   padding: 13px 10px 0 0;
 
   // for nicer blending in with the possible text underneath
@@ -387,6 +387,6 @@ $z-assets-table-row-header: 30;
     top: 0;
     height: 100%;
     width: 15px;
-    background: linear-gradient(90deg, transparent, $kobo-whitegray);
+    background: linear-gradient(90deg, transparent, $assets-table-hover-bg);
   }
 }
