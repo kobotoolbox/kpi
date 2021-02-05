@@ -373,16 +373,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                    context=context).data
 
     def get_export_settings(self, obj: Asset) -> ReturnList:
-        context = {
-            **self.context,
-            'asset': obj,
-            'asset_uid': obj.uid,
-        }
         return AssetExportSettingsSerializer(
-            AssetExportSettings.objects.filter(asset=obj).all(),
+            AssetExportSettings.objects.filter(asset=obj),
             many=True,
             read_only=True,
-            context=context,
+            context=self.context,
         ).data
 
     def get_access_types(self, obj):
@@ -562,6 +557,7 @@ class AssetListSerializer(AssetSerializer):
                   'deployment__active',
                   'deployment__submission_count',
                   'permissions',
+                  'export_settings',
                   'downloads',
                   'data',
                   'subscribers_count',
