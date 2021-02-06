@@ -5,6 +5,7 @@ import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
 import ToggleSwitch from 'js/components/toggleSwitch';
 import {bem} from 'js/bem';
+import assetUtils from 'js/assetUtils';
 
 const EXPORT_TYPES = Object.freeze({
   xls: {value: 'xls', label: t('XLS')},
@@ -42,7 +43,15 @@ export default class ProjectDownloads extends React.Component {
       isSaveCustomExportEnabled: false,
       customExportName: '',
       isCustomSelectionEnabled: false,
+      selectedRows: new Set(),
     };
+
+    if (this.props.asset?.content?.survey) {
+      this.props.asset.content.survey.forEach((row) => {
+        this.state.selectedRows.add(assetUtils.getRowName(row));
+      });
+    }
+
     autoBind(this);
   }
 
@@ -52,8 +61,30 @@ export default class ProjectDownloads extends React.Component {
     this.setState(newStateObj);
   }
 
+  onRowSelected(rowName) {
+    const newSelectedRows = this.state.selectedRows;
+    if (this.state.selectedRows.has(rowName)) {
+      newSelectedRows.delete(rowName);
+    } else {
+      newSelectedRows.add(rowName);
+    }
+    this.setState({selectedRows: newSelectedRows});
+  }
+
   toggleAdvancedView() {
     this.setState({isAdvancedViewVisible: !this.state.isAdvancedViewVisible});
+  }
+
+  renderRowSelector(row) {
+    const rowName = assetUtils.getRowName(row);
+    let isChecked = this.state.selectedRows.has(rowName);
+    return (
+      <Checkbox
+        checked={isChecked}
+        onChange={this.onRowSelected.bind(this, rowName)}
+        label={assetUtils.getQuestionDisplayName(row)}
+      />
+    );
   }
 
   renderAdvancedView() {
@@ -98,11 +129,17 @@ export default class ProjectDownloads extends React.Component {
           placeholder={t('Name your custom export')}
         />
 
-        <ToggleSwitch
-          checked={this.state.isCustomSelectionEnabled}
-          onChange={this.onAnyInputChange.bind(this, 'isCustomSelectionEnabled')}
-          label={t('Custom selection export')}
-        />
+        <bem.FormView__cell>
+          <ToggleSwitch
+            checked={this.state.isCustomSelectionEnabled}
+            onChange={this.onAnyInputChange.bind(this, 'isCustomSelectionEnabled')}
+            label={t('Custom selection export')}
+          />
+
+          <bem.FormView__cell>
+            {this.props.asset.content.survey.map(this.renderRowSelector)}
+          </bem.FormView__cell>
+        </bem.FormView__cell>
       </bem.FormView__cell>
     );
   }
