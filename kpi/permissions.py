@@ -60,6 +60,7 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
         :param view: ViewSet
         :return: Asset/Collection
         """
+        # TODO: remove all collection stuff
         if cls.MODEL_NAME == 'collection':
             return cls._get_collection(view)
         else:
@@ -113,14 +114,14 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
 
     perms_map = {
         'GET': ['%(app_label)s.view_asset'],
-        'POST': ['%(app_label)s.change_asset'],
+        'POST': ['%(app_label)s.manage_asset'],
     }
 
     perms_map['OPTIONS'] = perms_map['GET']
     perms_map['HEAD'] = perms_map['GET']
     perms_map['PUT'] = perms_map['POST']
     perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['GET']
 
     def has_permission(self, request, view):
         if not request.user:
@@ -147,7 +148,11 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
             else:
                 raise Http404
 
-        has_perm = set(required_permissions).issubset(user_permissions)
+        if user == parent_object.owner:
+            # The owner can always manage permission assignments
+            has_perm = True
+        else:
+            has_perm = set(required_permissions).issubset(user_permissions)
 
         if has_perm:
             # Access granted!

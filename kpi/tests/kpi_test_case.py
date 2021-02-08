@@ -6,6 +6,8 @@ Created on Apr 6, 2015
 """
 import re
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.urls import reverse
 from rest_framework import status
 
@@ -49,6 +51,40 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
             raise NotImplementedError()
         obj = klass.objects.get(uid=uid)
         return obj
+
+    def obj_to_url(self, obj):
+        # Add more types as you need them
+        if isinstance(obj, ObjectPermission):
+            return reverse(
+                self._get_endpoint('asset-permission-assignment-detail'),
+                kwargs={'parent_lookup_asset': obj.asset.uid, 'uid': obj.uid},
+            )
+        if isinstance(obj, Permission):
+            return reverse(
+                self._get_endpoint('permission-detail'),
+                kwargs={'codename': obj.codename},
+            )
+        elif isinstance(obj, get_user_model()):
+            return reverse(
+                self._get_endpoint('user-detail'),
+                kwargs={'username': obj.username},
+            )
+        raise NotImplementedError
+
+    def get_asset_perm_assignment_list_url(self, asset):
+        return reverse(
+            self._get_endpoint('asset-permission-assignment-list'),
+            kwargs={'parent_lookup_asset': asset.uid}
+        )
+
+    def get_urls_for_asset_perm_assignment_objs(self, perm_assignments, asset):
+        return [
+            self.absolute_reverse(
+                self._get_endpoint('asset-permission-assignment-detail'),
+                kwargs={'uid': uid, 'parent_lookup_asset': asset.uid},
+            )
+            for uid in perm_assignments.values_list('uid', flat=True)
+        ]
 
     def create_collection(self, name, owner=None, owner_password=None,
                           **kwargs):

@@ -9,7 +9,12 @@
 
 import alertify from 'alertifyjs';
 import {assign} from 'utils';
-import {ROOT_URL} from './constants';
+import {
+  ROOT_URL,
+  COMMON_QUERIES
+} from './constants';
+
+const DEFAULT_PAGE_SIZE = 100;
 
 export var dataInterface;
 (function(){
@@ -47,6 +52,11 @@ export var dataInterface;
         url: `${ROOT_URL}/token/?format=json`
       });
     },
+    getUser: (userUrl) => {
+      return $ajax({
+        url: userUrl
+      });
+    },
     queryUserExistence: (username)=> {
       var d = new $.Deferred();
       $ajax({ url: `${ROOT_URL}/api/v2/users/${username}/` })
@@ -78,11 +88,24 @@ export var dataInterface;
     },
     listTemplates () {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/?q=asset_type:template`
+        url: `${ROOT_URL}/api/v2/assets/?q=${COMMON_QUERIES.t}`
       });
     },
-    listCollections () {
-      return $.getJSON(`${ROOT_URL}/api/v2/collections/?all_public=true`);
+    getCollections(params = {}) {
+      let q = COMMON_QUERIES.c;
+      if (params.owner) {
+        q += ` AND owner__username__exact:${params.owner}`;
+      }
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/`,
+        dataType: 'json',
+        data: {
+          q: q,
+          limit: params.pageSize || DEFAULT_PAGE_SIZE,
+          page: params.page || 0
+        },
+        method: 'GET'
+      });
     },
     createAssetSnapshot (data) {
       return $ajax({
@@ -178,26 +201,18 @@ export var dataInterface;
         url: `${ROOT_URL}/reports/${data.uid}/${identifierString}`,
       });
     },
-    cloneAsset ({uid, name, version_id, new_asset_type}) {
+    cloneAsset ({uid, name, version_id, new_asset_type, parent}) {
       let data = {
         clone_from: uid,
       };
       if (name) { data.name = name; }
       if (version_id) { data.clone_from_version_id = version_id; }
       if (new_asset_type) { data.asset_type = new_asset_type; }
+      if (parent) { data.parent = parent; }
       return $ajax({
         method: 'POST',
         url: `${ROOT_URL}/api/v2/assets/`,
         data: data,
-      });
-    },
-    cloneCollection ({uid}) {
-      return $ajax({
-        method: 'POST',
-        url: `${ROOT_URL}/api/v2/collections/`,
-        data: {
-          clone_from: uid
-        }
       });
     },
 
@@ -215,13 +230,6 @@ export var dataInterface;
     getAssetPermissions(assetUid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/permission-assignments/`,
-        method: 'GET'
-      });
-    },
-
-    getCollectionPermissions(uid) {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/collections/${uid}/permission-assignments/`,
         method: 'GET'
       });
     },
@@ -246,16 +254,6 @@ export var dataInterface;
       });
     },
 
-    assignCollectionPermission(uid, perm) {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/collections/${uid}/permission-assignments/`,
-        method: 'POST',
-        data: JSON.stringify(perm),
-        dataType: 'json',
-        contentType: 'application/json'
-      });
-    },
-
     removePermission (permUrl) {
       return $ajax({
         method: 'DELETE',
@@ -272,46 +270,26 @@ export var dataInterface;
         }
       });
     },
-    setCollectionDiscoverability (uid, discoverable) {
-      dataInterface.patchCollection(uid, {
-        discoverable_when_public: discoverable
-      });
-    },
-    libraryDefaultSearch () {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/`,
-        data: {
-          q: 'asset_type:question OR asset_type:block OR asset_type:template'
-        },
-        method: 'GET'
-      });
-    },
-    deleteCollection ({uid}) {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/collections/${uid}/`,
-        method: 'DELETE'
-      });
-    },
     deleteAsset ({uid}) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/`,
         method: 'DELETE'
       });
     },
-    subscribeCollection ({uid}) {
+    subscribeToCollection(assetUrl) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/asset_subscriptions/`,
         data: {
-          collection: `${ROOT_URL}/api/v2/collections/${uid}/`,
+          asset: assetUrl
         },
         method: 'POST'
       });
     },
-    unsubscribeCollection ({uid}) {
+    unsubscribeFromCollection(uid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/asset_subscriptions/`,
         data: {
-          collection__uid: uid
+          asset__uid: uid
         },
         method: 'GET'
       }).then((data) => {
@@ -331,7 +309,8 @@ export var dataInterface;
       if (params.url) {
         return $.getJSON(params.url);
       } else {
-        return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/`);
+        // limit is for collections children
+        return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/?limit=${DEFAULT_PAGE_SIZE}`);
       }
     },
     /**
@@ -370,8 +349,9 @@ export var dataInterface;
         dataType: 'html'
       });
     },
-    searchAssets (searchData) {
-      // override limit
+    searchAssets(searchData) {
+      // TODO https://github.com/kobotoolbox/kpi/issues/1983
+      // force set limit to get hacky "all" assets
       searchData.limit = 200;
       return $.ajax({
         url: `${ROOT_URL}/api/v2/assets/`,
@@ -380,24 +360,126 @@ export var dataInterface;
         method: 'GET'
       });
     },
+    _searchAssetsWithPredefinedQuery(params, predefinedQuery) {
+      const searchData = {
+        q: predefinedQuery,
+        limit: params.pageSize || DEFAULT_PAGE_SIZE,
+        offset: params.page * params.pageSize || 0
+      };
+
+      if (params.searchPhrase) {
+        searchData.q += ` AND (${params.searchPhrase})`;
+      }
+
+      if (params.filterProperty && params.filterValue) {
+        searchData.q += ` AND ${params.filterProperty}:${params.filterValue}`;
+      }
+
+      if (params.ordering) {
+        searchData.ordering = params.ordering;
+      }
+
+      if (params.metadata === true) {
+        searchData.metadata = 'on';
+      }
+
+      if (params.collectionsFirst === true) {
+        searchData.collections_first = 'true';
+      }
+
+      if (params.status) {
+        searchData.status = params.status;
+      }
+
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/`,
+        dataType: 'json',
+        data: searchData,
+        method: 'GET'
+      });
+    },
+    _searchMetadataWithPredefinedQuery(params, predefinedQuery) {
+      const searchData = {
+        q: predefinedQuery,
+        limit: params.pageSize || DEFAULT_PAGE_SIZE,
+        offset: params.page * params.pageSize || 0
+      };
+
+      if (params.searchPhrase) {
+        searchData.q += ` AND (${params.searchPhrase})`;
+      }
+
+      if (params.filterProperty && params.filterValue) {
+        searchData.q += ` AND ${params.filterProperty}:"${params.filterValue}"`;
+      }
+
+      if (params.ordering) {
+        searchData.ordering = params.ordering;
+      }
+
+      if (params.status) {
+        searchData.status = params.status;
+      }
+
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/metadata/`,
+        dataType: 'json',
+        data: searchData,
+        method: 'GET'
+      });
+    },
+    searchMyCollectionAssets(params = {}) {
+      return this._searchAssetsWithPredefinedQuery(
+        params,
+        // we only want the currently viewed collection's assets
+        `${COMMON_QUERIES.qbtc} AND parent__uid:${params.uid}`,
+      );
+    },
+    searchMyLibraryAssets(params = {}) {
+      // we only want orphans (assets not inside collection)
+      // unless it's a search
+      let query = COMMON_QUERIES.qbtc;
+      if (!params.searchPhrase) {
+        query += ' AND parent:null';
+      }
+
+      return this._searchAssetsWithPredefinedQuery(params, query);
+    },
+    searchMyCollectionMetadata(params = {}) {
+      return this._searchMetadataWithPredefinedQuery(
+        params,
+        // we only want the currently viewed collection's assets
+        `${COMMON_QUERIES.qbtc} AND parent__uid:${params.uid}`,
+      );
+    },
+    searchMyLibraryMetadata(params = {}) {
+      // we only want orphans (assets not inside collection)
+      // unless it's a search
+      let query = COMMON_QUERIES.qbtc;
+      if (!params.searchPhrase) {
+        query += ' AND parent:null';
+      }
+
+      return this._searchMetadataWithPredefinedQuery(params, query);
+    },
+    searchPublicCollections(params = {}) {
+      params.status = 'public-discoverable';
+      return this._searchAssetsWithPredefinedQuery(
+        params,
+        COMMON_QUERIES.c,
+      );
+    },
+    searchPublicCollectionsMetadata(params = {}) {
+      params.status = 'public-discoverable';
+      return this._searchMetadataWithPredefinedQuery(
+        params,
+        COMMON_QUERIES.c,
+      );
+    },
     assetsHash () {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/hash/`,
         method: 'GET'
-      });
-    },
-    createCollection (data) {
-      return $ajax({
-        method: 'POST',
-        url: `${ROOT_URL}/api/v2/collections/`,
-        data: data,
-      });
-    },
-    patchCollection (uid, data) {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/collections/${uid}/`,
-        method: 'PATCH',
-        data: data
       });
     },
     createResource (details) {
@@ -422,13 +504,6 @@ export var dataInterface;
           limit: 9999,
         }, data),
       });
-    },
-    getCollection (params={}) {
-      if (params.url) {
-        return $.getJSON(params.url);
-      } else {
-        return $.getJSON(`${ROOT_URL}/api/v2/collections/${params.id}/`);
-      }
     },
     loadNextPageUrl(nextPageUrl){
       return $ajax({
@@ -460,12 +535,12 @@ export var dataInterface;
         }
       });
     },
-    postCreateImport (contents) {
+    createImport(contents) {
       var formData = new FormData();
-      Object.keys(contents).forEach(function(key){
+      Object.keys(contents).forEach((key) => {
         formData.append(key, contents[key]);
       });
-      return $.ajax({
+      return $ajax({
         method: 'POST',
         url: `${ROOT_URL}/imports/`,
         data: formData,
@@ -478,7 +553,7 @@ export var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${ROOT_URL}/${assetType}/${id}/`);
     },
-    getSubmissions(uid, pageSize=100, page=0, sort=[], fields=[], filter='') {
+    getSubmissions(uid, pageSize=DEFAULT_PAGE_SIZE, page=0, sort=[], fields=[], filter='') {
       const query = `limit=${pageSize}&start=${page}`;
       var s = '&sort={"_id":-1}'; // default sort
       var f = '';
@@ -498,7 +573,23 @@ export var dataInterface;
         method: 'GET'
       });
     },
-    patchSubmissions(uid, data) {
+    duplicateSubmission(uid, sid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/duplicate/`,
+        method: 'POST'
+      });
+    },
+    bulkPatchSubmissionsValues(uid, submissionIds, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/bulk/`,
+        method: 'PATCH',
+        data: {'payload': JSON.stringify({
+          submission_ids: submissionIds,
+          data: data,
+        })}
+      });
+    },
+    bulkPatchSubmissionsValidationStatus(uid, data) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/validation_statuses/`,
         method: 'PATCH',

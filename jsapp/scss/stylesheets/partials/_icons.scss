@@ -73,8 +73,8 @@
 .fa.clock-over::after {
   content: "";
   position: absolute;
-  margin-left: -20px;
-  margin-top: -6px;
+  margin-left: -1.25em;
+  margin-top: -0.375em;
   background-color: $kobo-white;
   border-radius: 6px;
 }

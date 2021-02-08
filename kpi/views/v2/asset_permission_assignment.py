@@ -11,7 +11,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
     CLONE_ARG_NAME,
-    PERM_SHARE_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
 from kpi.deployment_backends.kc_access.utils import \
@@ -160,6 +160,8 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     serializer_class = AssetPermissionAssignmentSerializer
     permission_classes = (AssetNestedObjectPermission,)
     pagination_class = None
+    # filter_backends = Just kidding! Look at this instead:
+    #     kpi.utils.object_permission_helper.ObjectPermissionHelper.get_user_permission_assignments_queryset
 
     @action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer],
             url_path='bulk')
@@ -215,7 +217,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         source_asset = get_object_or_404(Asset, uid=source_asset_uid)
         user = request.user
 
-        if user.has_perm(PERM_SHARE_ASSET, self.asset) and \
+        if user.has_perm(PERM_MANAGE_ASSET, self.asset) and \
                 user.has_perm(PERM_VIEW_ASSET, source_asset):
             if not self.asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
@@ -232,7 +234,15 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     def destroy(self, request, *args, **kwargs):
         object_permission = self.get_object()
         user = object_permission.user
-        if user.pk == self.asset.owner_id:
+        # If the user is not the owner of the asset, but trying to delete the
+        # owner's permissions, raise permission denied error. However, if they
+        # are the owner of the asset, they should also be prevented from
+        # deleting their own permissions, but given a more appropriate response
+        if (self.request.user.pk != self.asset.owner_id) and (
+            self.request.user.pk != user.pk
+        ):
+            raise exceptions.PermissionDenied()
+        elif user.pk == self.asset.owner_id:
             return Response({
                 'detail': _("Owner's permissions cannot be deleted")
             }, status=status.HTTP_409_CONFLICT)

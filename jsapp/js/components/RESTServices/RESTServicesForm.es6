@@ -10,6 +10,7 @@ import Select from 'react-select';
 import Checkbox from '../checkbox';
 import Radio from '../radio';
 import TextBox from '../textBox';
+import {KEY_CODES} from 'js/constants';
 
 const EXPORT_TYPES = {
   json: {
@@ -290,11 +291,11 @@ export default class RESTServicesForm extends React.Component {
    */
 
  onCustomHeaderInputKeyPress(evt) {
-   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerName') {
+   if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerName') {
      evt.preventDefault();
      $(evt.currentTarget).parent().find('input[name="headerValue"]').focus();
    }
-   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerValue') {
+   if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerValue') {
      evt.preventDefault();
      this.addNewCustomHeaderRow();
    }

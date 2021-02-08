@@ -1,6 +1,8 @@
 # coding: utf-8
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
+
+from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import ImportTask
 
 
