@@ -12,7 +12,6 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import {removeInvalidChars} from 'js/assetUtils';
 import {
   surveyToValidJson,
   unnullifyTranslations,
@@ -24,8 +23,9 @@ import {
   AVAILABLE_FORM_STYLES,
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
-  NAME_MAX_LENGTH
-} from '../constants';
+  NAME_MAX_LENGTH,
+  ROUTES,
+} from 'js/constants';
 import ui from '../ui';
 import {bem} from '../bem';
 import {stores} from '../stores';
@@ -44,6 +44,12 @@ const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without 
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
+/**
+ * This is a component that displays Form Builder's header and aside. It is also
+ * responsible for rendering the survey editor app (all our coffee code). See
+ * the `launchAppForSurveyContent` method below for all the magic.
+ */
+
 export default assign({
   componentDidMount() {
     this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
@@ -55,13 +61,20 @@ export default assign({
       stores.allAssets.whenLoaded(uid, (asset) => {
         this.setState({asset: asset});
 
-        this.launchAppForSurveyContent(asset.content, {
-          name: asset.name,
-          settings__style: asset.settings__style,
-          asset_uid: asset.uid,
-          asset_type: asset.asset_type,
-          asset: asset,
-        });
+        // HACK switch to setState callback after updating to React 16+
+        //
+        // This needs to be called at least a single render after the state's
+        // asset is being set, because `.form-wrap` node needs to exist for
+        // `launchAppForSurveyContent` to work.
+        window.setTimeout(() => {
+          this.launchAppForSurveyContent(asset.content, {
+            name: asset.name,
+            settings__style: asset.settings__style,
+            asset_uid: asset.uid,
+            asset_type: asset.asset_type,
+            asset: asset,
+          });
+        }, 0);
       });
     } else {
       this.launchAppForSurveyContent();
@@ -154,7 +167,7 @@ export default assign({
 
   nameChange(evt) {
     this.setState({
-      name: removeInvalidChars(evt.target.value),
+      name: assetUtils.removeInvalidChars(evt.target.value),
     });
     this.onSurveyChange();
   },
@@ -357,7 +370,7 @@ export default assign({
         return hasSelect;
       })(); // todo: only true if survey has select questions
       ooo.name = this.state.name;
-      ooo.hasSettings = this.state.backRoute === '/forms';
+      ooo.hasSettings = this.state.backRoute === ROUTES.FORMS;
       ooo.styleValue = this.state.settings__style;
     }
     if (this.state.isNewAsset) {
@@ -402,6 +415,11 @@ export default assign({
     });
   },
 
+  /**
+   * The de facto function that is running our Form Builder survey editor app.
+   * It builds `dkobo_xlform.view.SurveyApp` using asset data and then appends
+   * it to `.form-wrap` node.
+   */
   launchAppForSurveyContent(survey, _state = {}) {
     if (_state.name) {
       _state.savedName = _state.name;
@@ -409,7 +427,7 @@ export default assign({
 
     let isEmptySurvey = (
         survey &&
-        Object.keys(survey.settings).length === 0 &&
+        (survey.settings && Object.keys(survey.settings).length === 0) &&
         survey.survey.length === 0
       );
 
@@ -477,19 +495,19 @@ export default assign({
   safeNavigateToList() {
     if (this.state.backRoute) {
       this.safeNavigateToRoute(this.state.backRoute);
-    } else if (this.props.location.pathname.startsWith('/library')) {
-      this.safeNavigateToRoute('/library');
+    } else if (this.props.location.pathname.startsWith(ROUTES.LIBRARY)) {
+      this.safeNavigateToRoute(ROUTES.LIBRARY);
     } else {
-      this.safeNavigateToRoute('/forms');
+      this.safeNavigateToRoute(ROUTES.FORMS);
     }
   },
 
   safeNavigateToAsset() {
     let targetRoute = this.state.backRoute;
-    if (this.state.backRoute === '/forms') {
-      targetRoute = `/forms/${this.state.asset_uid}`;
-    } else if (this.state.backRoute === '/library') {
-      targetRoute = `/library/asset/${this.state.asset_uid}`;
+    if (this.state.backRoute === ROUTES.FORMS) {
+      targetRoute = ROUTES.FORM.replace(':uid', this.state.asset_uid);
+    } else if (this.state.backRoute === ROUTES.LIBRARY) {
+      targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid);
     }
     this.safeNavigateToRoute(targetRoute);
   },

@@ -13,7 +13,8 @@ import {
 } from './libraryConstants';
 import {
   ASSET_TYPES,
-  ACCESS_TYPES
+  ACCESS_TYPES,
+  ROUTES,
 } from 'js/constants';
 
 const publicCollectionsStore = Reflux.createStore({
@@ -22,7 +23,7 @@ const publicCollectionsStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-  previousPath: null,
+  previousPath: hashHistory.getCurrentLocation().pathname,
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
@@ -125,8 +126,7 @@ const publicCollectionsStore = Reflux.createStore({
     if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
-      this.previousPath !== null &&
-      this.previousPath.startsWith('/library/public-collections') === false &&
+      this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS) === false &&
       isOnPublicCollectionsRoute()
     ) {
       // refresh data when navigating into public-collections from other place
@@ -138,7 +138,7 @@ const publicCollectionsStore = Reflux.createStore({
 
   searchBoxStoreChanged() {
     if (
-      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('public-collections') &&
+      searchBoxStore.getContext() === SEARCH_CONTEXTS.PUBLIC_COLLECTIONS &&
       searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
     ) {
       // reset to first page when search changes
@@ -256,7 +256,7 @@ const publicCollectionsStore = Reflux.createStore({
 
   onDeleteAssetCompleted({uid, assetType}) {
     if (assetType === ASSET_TYPES.collection.id) {
-      const found = this.data.assets.find((asset) => {return asset.uid === uid;});
+      const found = this.findAsset(uid);
       if (found) {
         this.fetchData(true);
       }
@@ -319,6 +319,10 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.filterColumnId === null &&
       this.data.filterValue === null
     );
+  },
+
+  findAsset(uid) {
+    return this.data.assets.find((asset) => {return asset.uid === uid;});
   }
 });
 

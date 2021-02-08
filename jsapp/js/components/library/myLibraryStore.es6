@@ -12,6 +12,7 @@ import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
 } from './libraryConstants';
+import {ROUTES} from 'js/constants';
 
 const myLibraryStore = Reflux.createStore({
   /**
@@ -19,7 +20,7 @@ const myLibraryStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-  previousPath: null,
+  previousPath: hashHistory.getCurrentLocation().pathname,
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
@@ -89,7 +90,8 @@ const myLibraryStore = Reflux.createStore({
     const params = {
       searchPhrase: searchBoxStore.getSearchPhrase(),
       pageSize: this.PAGE_SIZE,
-      page: this.data.currentPage
+      page: this.data.currentPage,
+      collectionsFirst: true
     };
 
     if (this.data.filterColumnId !== null) {
@@ -133,13 +135,12 @@ const myLibraryStore = Reflux.createStore({
     if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
-      this.previousPath !== null &&
       (
         // coming from outside of library
         this.previousPath.split('/')[1] !== 'library' ||
         // public-collections is a special case that is kinda in library, but
         // actually outside of it
-        this.previousPath.startsWith('/library/public-collections')
+        this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)
       ) &&
       isOnLibraryRoute()
     ) {
@@ -152,7 +153,7 @@ const myLibraryStore = Reflux.createStore({
 
   searchBoxStoreChanged() {
     if (
-      searchBoxStore.getContext() === SEARCH_CONTEXTS.get('my-library') &&
+      searchBoxStore.getContext() === SEARCH_CONTEXTS.MY_LIBRARY &&
       searchBoxStore.getSearchPhrase() !== this.previousSearchPhrase
     ) {
       // reset to first page when search changes
