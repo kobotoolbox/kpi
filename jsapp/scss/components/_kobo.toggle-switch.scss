@@ -44,7 +44,7 @@
   }
 
   input:checked + .toggle-switch__slider {
-    background-color: $kobo-blue;
+    background-color: $kobo-teal;
 
     &::before {
       transform: translateX(10px);
@@ -52,7 +52,7 @@
   }
 
   input:focus + .toggle-switch__slider {
-    box-shadow: 0 0 1px $kobo-blue;
+    box-shadow: 0 0 1px $kobo-teal;
   }
 
   .toggle-switch__label {
