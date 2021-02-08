@@ -9,7 +9,7 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: $kobo-white;
+  background: $kobo-whitegray;
 
   &.form-view--fullscreen {
     position: fixed;
@@ -162,10 +162,6 @@
     margin: 0;
   }
 
-  &.historyHidden .form-view__cell--box {
-    border: none;
-  }
-
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
     max-height: 0;
@@ -198,6 +194,10 @@
 
 .form-view__cell {
   &.form-view__cell--box {
+    background-color: $kobo-white;
+  }
+
+  &.form-view__cell--bordered {
     border: 1px solid $kobo-lightgray;
   }
 
@@ -406,10 +406,6 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-
-    .form-view__row & {
-      margin: 15px 20px 10px;
-    }
 
     i {
       color: $kobo-orange;
@@ -831,4 +827,8 @@
   .modal__footer .footer-back-button {
     float: left;
   }
+}
+
+.form-view--library-asset {
+  background: $kobo-white;
 }

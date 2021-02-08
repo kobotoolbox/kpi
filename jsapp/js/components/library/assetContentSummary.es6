@@ -79,7 +79,7 @@ class AssetContentSummary extends React.Component {
 
     return (
       <React.Fragment>
-        <bem.FormView__cell m='box'>
+        <bem.FormView__cell m={['box', 'bordered']}>
           {items.map(this.renderQuestion)}
         </bem.FormView__cell>
 

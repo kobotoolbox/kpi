@@ -104,7 +104,7 @@ class AssetRoute extends React.Component {
 
     return (
       <DocumentTitle title={`${assetName.final} | KoboToolbox`}>
-        <bem.FormView m='form'>
+        <bem.FormView m='library-asset'>
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'columns-right', 'first']}>
               {isUserSubscribed &&
@@ -140,7 +140,7 @@ class AssetRoute extends React.Component {
 
           {this.state.asset.asset_type === ASSET_TYPES.collection.id &&
             <bem.FormView__row>
-              <bem.FormView__cell m={['box', 'assets-table-wrapper']}>
+              <bem.FormView__cell m={['box', 'bordered', 'assets-table-wrapper']}>
                 <CollectionAssetsTable asset={this.state.asset}/>
               </bem.FormView__cell>
             </bem.FormView__row>
