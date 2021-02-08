@@ -2,10 +2,18 @@
  * AssetsTable
  * ========================================================================== */
 
+$assets-table-min-width: 820px;
+$assets-table-hover-bg: $kobo-teal-light;
+
+.form-view__cell--assets-table-wrapper {
+  min-width: $assets-table-min-width + 2px;
+}
+
 .assets-table {
   width: 100%;
   background-color: $kobo-white;
-  // for small screens we want the table to still be readable and it can't get to narrow
+  // for small screens we want the table to still be readable so we enable
+  // horizontal scroll
   overflow-x: auto;
 
   &.assets-table--fullscreen {
@@ -19,6 +27,16 @@
     width: 100%;
     height: 100%;
   }
+
+  &.assets-table--collection-content {
+    // we disable horizontal scrolling to make the popover menu appear outside the table
+    overflow-x: initial;
+    min-width: $assets-table-min-width;
+  }
+}
+
+.assets-table__header .assets-table-row .assets-table-row__column {
+  color: $kobo-black;
 }
 
 .assets-table__header,
@@ -33,7 +51,7 @@
 
 .assets-table__scrollbar-padding {
   // for taking the same space as scrollbar, width is being set in JS code
-  border-bottom: 2px solid $kobo-lightgray;
+  background-color: $kobo-whitegray;
   align-self: stretch;
 }
 
@@ -43,8 +61,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  border-top: 2px solid $kobo-lightgray;
   color: $kobo-darkgray;
+  background-color: $kobo-whitegray;
   height: 40px;
 
   .mdl-button {
@@ -65,7 +83,7 @@
 
 .assets-table--MY_LIBRARY,
 .assets-table--PUBLIC_COLLECTIONS {
-  height: 100%;
+  height: calc(100% - #{$s-breadcrumbs-height});
   display: flex;
   flex-direction: column;
 
@@ -126,7 +144,6 @@
 $z-assets-table-row-link: 10;
 $z-assets-table-row-buttons: 20;
 $z-assets-table-row-header: 30;
-$c-assets-table-row-hover: $kobo-whitegray;
 
 .assets-table-row {
   display: flex;
@@ -136,7 +153,7 @@ $c-assets-table-row-hover: $kobo-whitegray;
 
   &.assets-table-row--asset {
     &:hover {
-      background-color: $kobo-whitegray;
+      background-color: $assets-table-hover-bg;
 
       .assets-table-row__buttons {
         opacity: 1;
@@ -145,7 +162,7 @@ $c-assets-table-row-hover: $kobo-whitegray;
     }
 
     .assets-table-row__column--icon-status {
-      padding: 3px 0 0 0;
+      padding: 13px 0 0 0;
 
       .k-icon {
         font-size: 32px;
@@ -153,18 +170,40 @@ $c-assets-table-row-hover: $kobo-whitegray;
     }
   }
 
-  &.assets-table-row--is-subscribed {
-    .assets-table-row__column--icon-status {
-      color: $kobo-blue;
+  &.assets-table-row--type-collection {
+    .assets-table-row__column--name .asset-name {
+      font-weight: 700;
     }
 
-    .assets-table-row__column--name .asset-name {
-      font-weight: bold;
+    .assets-table-row__column--icon-status .k-icon {
+      position: relative;
+
+      &::before {
+        position: relative;
+        z-index: 1;
+        color: $kobo-white;
+      }
+
+      &::after {
+        content: "";
+        background-color: $kobo-teal;
+        position: absolute;
+        z-index: 0;
+        top: 0;
+        left: -5px;
+        right: -5px;
+        height: 100%;
+        border-radius: 6px;
+      }
     }
   }
 
   &:first-of-type .assets-table-row__column {
-    border-top: 0;
+    border-top-color: transparent;
+  }
+
+  &:first-of-type:hover .assets-table-row__column {
+    border-top-color: $kobo-lightgray;
   }
 
   // columns get very narrow
@@ -175,19 +214,16 @@ $c-assets-table-row-hover: $kobo-whitegray;
 
   &.assets-table-row--header .assets-table-row__column {
     border-top: 0;
-    border-bottom: 2px solid $kobo-lightgray;
     cursor: pointer;
     font-weight: 700;
     white-space: nowrap;
     height: 40px;
     line-height: 20px;
+    background-color: $kobo-whitegray;
+    padding: 10px;
 
     &:hover {
-      background-color: $kobo-whitegray;
-    }
-
-    &:active {
-      border-bottom-color: transparent;
+      background-color: $kobo-lightgray;
     }
 
     .k-icon {
@@ -196,6 +232,11 @@ $c-assets-table-row-hover: $kobo-whitegray;
       min-width: 20px;
       width: 20px;
       display: inline-block;
+
+      &.k-icon-filter-arrows {
+        font-size: 12px;
+        margin-left: 0px !important;
+      }
     }
 
     .popover-menu {
@@ -217,6 +258,10 @@ $c-assets-table-row-hover: $kobo-whitegray;
       .popover-menu__content {
         top: 30px - 2px;
         z-index: $z-assets-table-row-header;
+        padding: 10px;
+        max-width: calc(100% + 20px);
+        min-width: auto;
+        left: -10px;
 
         .k-icon {
           margin: -2px;
@@ -249,19 +294,21 @@ $c-assets-table-row-hover: $kobo-whitegray;
 
   .assets-table-row__column {
     border-top: 1px solid $kobo-lightgray;
-    padding: 10px;
+    padding: 20px 10px;
+    color: $kobo-darkgray;
 
     &[disabled] {
       pointer-events: none;
     }
 
     &.assets-table-row__column--icon-status {
-      width: 50px;
+      width: 70px;
       text-align: center;
     }
 
     &.assets-table-row__column--name {
       flex: 1;
+      color: $kobo-black;
     }
 
     &.assets-table-row__column--owner {
@@ -305,24 +352,23 @@ $c-assets-table-row-hover: $kobo-whitegray;
 
 .assets-table-row__tags {
   display: block;
-  margin-top: 0.5em;
+  margin-top: 5px;
 }
 
 .assets-table-row__tag {
   display: inline-block;
   vertical-align: middle;
-  padding: 2px 4px;
-  font-size: 9px;
+  padding: 3px 5px;
+  font-size: 12px;
   line-height: 1;
   color: currentColor;
-  background: transparent;
-  border: 1px solid currentColor;
+  background: $kobo-lightgray;
   border-radius: 2px;
 
   &.assets-table-row__tag--gray-circle {
+    min-width: 18px;
     border-radius: 1em;
-    background: $kobo-lightgray;
-    border-color: $kobo-lightgray;
+    text-align: center;
   }
 }
 
@@ -338,8 +384,8 @@ $c-assets-table-row-hover: $kobo-whitegray;
   bottom: 0; // stretch for whole row
   opacity: 0;
   visibility: hidden;
-  background-color: $c-assets-table-row-hover;
-  padding: 3px 10px 0 0;
+  background-color: $assets-table-hover-bg;
+  padding: 13px 10px 0 0;
 
   // for nicer blending in with the possible text underneath
   &::before {
@@ -349,6 +395,6 @@ $c-assets-table-row-hover: $kobo-whitegray;
     top: 0;
     height: 100%;
     width: 15px;
-    background: linear-gradient(90deg, transparent, $c-assets-table-row-hover);
+    background: linear-gradient(90deg, transparent, $assets-table-hover-bg);
   }
 }

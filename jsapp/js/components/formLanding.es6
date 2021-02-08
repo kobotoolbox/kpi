@@ -459,7 +459,7 @@ export class FormLanding extends React.Component {
             data-asset-uid={this.state.uid}
             data-asset-name={this.state.name}
           >
-            <i className='k-icon-template'/>
+            <i className='k-icon-template-new'/>
             {t('Create template')}
           </bem.PopoverMenu__link>
 

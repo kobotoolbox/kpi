@@ -25,7 +25,8 @@ import {
 } from 'utils';
 import {
   NAME_MAX_LENGTH,
-  PROJECT_SETTINGS_CONTEXTS
+  PROJECT_SETTINGS_CONTEXTS,
+  ROUTES,
 } from 'js/constants';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
@@ -305,12 +306,12 @@ class ProjectSettings extends React.Component {
       throw new Error('Unknown uid!');
     }
 
-    hashHistory.push(`/forms/${targetUid}/landing`);
+    hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', targetUid));
   }
 
   goToProjectsList() {
     stores.pageState.hideModal();
-    hashHistory.push('/forms');
+    hashHistory.push(ROUTES.FORMS);
   }
 
   /*
@@ -639,7 +640,7 @@ class ProjectSettings extends React.Component {
   renderChooseTemplateButton() {
     return (
       <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-        <i className='k-icon-template' />
+        <i className='k-icon-template-new' />
         {t('Use a template')}
       </button>
     );

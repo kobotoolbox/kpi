@@ -391,7 +391,7 @@ export var dataInterface;
       };
 
       if (params.searchPhrase) {
-        searchData.q += ` AND "${params.searchPhrase}"`;
+        searchData.q += ` AND (${params.searchPhrase})`;
       }
 
       if (params.filterProperty && params.filterValue) {
@@ -404,6 +404,10 @@ export var dataInterface;
 
       if (params.metadata === true) {
         searchData.metadata = 'on';
+      }
+
+      if (params.collectionsFirst === true) {
+        searchData.collections_first = 'true';
       }
 
       if (params.status) {
@@ -425,7 +429,7 @@ export var dataInterface;
       };
 
       if (params.searchPhrase) {
-        searchData.q += ` AND "${params.searchPhrase}"`;
+        searchData.q += ` AND (${params.searchPhrase})`;
       }
 
       if (params.filterProperty && params.filterValue) {
