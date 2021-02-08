@@ -1,3 +1,21 @@
+// TODO: This file is too big and it lost it's original purpose.
+// It was supposed to be a general form view layout (AKA "the content"), but
+// over time it accumulated many small unique modifiers.
+//
+// Best things to do here:
+// 1. For sure don't add anything new, unless it really makes sense to be part
+//    of the Form View. It is really tempting to add new modifier when writing
+//    JSX `<FormView__cell m='new-modifier'>`, but try not to do this.
+// 2. Try to split out logical parts of it that are unique to only single place
+//    in app. You can easily leave them as form-view__… for now.
+// 3. Add comments describing what you're adding.
+// 4. We should migrate form-view layout to flex box to avoid all those calc()
+//    and to make it context independent.
+
+////////////////////////////////////////////////////////////////////////////////
+// Main parts
+////////////////////////////////////////////////////////////////////////////////
+
 // form landing takes .form-view__toptabs into account
 .page-wrapper__content--form-landing {
   .form-view {
@@ -28,6 +46,7 @@
   }
 }
 
+// The additional side menu tabs on the left
 .form-view__sidetabs {
   width: 170px;
   height: 100%;
@@ -109,6 +128,7 @@
   }
 }
 
+// The main tabs on top
 .form-view__toptabs {
   background: $kobo-white;
   border-bottom: 1px solid $kobo-lightgray;
