@@ -170,7 +170,7 @@ export default class ProjectDownloads extends React.Component {
 
     return (
       <bem.FormView m='project-downloads'>
-        <bem.FormView__cell m={['label', 'first']}>
+        <bem.FormView__cell m={['page-title']}>
           {t('Downloads')}
         </bem.FormView__cell>
 

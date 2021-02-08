@@ -201,6 +201,12 @@
     border: 1px solid $kobo-lightgray;
   }
 
+  &.form-view__cell--page-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 30px 0 15px;
+  }
+
   &.form-view__cell--columns {
     display: flex;
     justify-content: space-between;
