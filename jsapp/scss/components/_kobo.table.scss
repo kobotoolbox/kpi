@@ -89,7 +89,7 @@
 
       .rt-th:hover,
       .rt-td:hover {
-        background: rgba($kobo-teal, 0.1);
+        background: $kobo-teal-light;
       }
 
       .rt-th.-sort-desc,
@@ -197,7 +197,7 @@
     }
 
     &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
-      background: rgba($kobo-teal, 0.1);
+      background: $kobo-teal-light;
     }
 
     &.has-frozen-column {
@@ -224,7 +224,7 @@
       }
 
       &.-striped .rt-tr:hover .frozen {
-        background: rgba($kobo-teal, 0.1);
+        background: $kobo-teal-light;
       }
 
       .rt-th.frozen {

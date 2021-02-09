@@ -9,7 +9,8 @@
 
   &.breadcrumbs--gray-wrapper {
     background: $kobo-whitegray;
-    padding: 20px 10px;
+    padding: #{($s-breadcrumbs-height - 40px) * 0.5} 20px;
+    height: $s-breadcrumbs-height;
   }
 
   .breadcrumbs__crumb,
