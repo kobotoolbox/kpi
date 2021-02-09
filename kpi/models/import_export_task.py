@@ -470,6 +470,7 @@ class ExportTask(ImportExportTask):
         group_sep = self.data.get('group_sep', '/')
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
+        fields = json.loads(self.data.get('fields', '[]'))
         try:
             # If applicable, substitute the constants that formpack expects for
             # friendlier language strings used by the API
@@ -486,6 +487,7 @@ class ExportTask(ImportExportTask):
             'copy_fields': self.COPY_FIELDS,
             'force_index': True,
             'tag_cols_for_header': tag_cols_for_header,
+            'filter_fields': fields,
         }
 
     def _record_last_submission_time(self, submission_stream):
