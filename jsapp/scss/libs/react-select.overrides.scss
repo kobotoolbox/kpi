@@ -41,17 +41,20 @@
   .kobo-select__control {
     box-shadow: none;
     border: none;
-    border-bottom: 1px solid $kobo-lightgray;
+    border-width: 0;
+    border-bottom-width: 1px;
+    border-style: solid;
+    border-color: $kobo-lightgray;
     border-radius: 0;
     background-color: $kobo-white;
-    transition: border-bottom-color 250ms;
+    transition: border-color 250ms;
 
     &:hover {
-      border-bottom-color: $kobo-lightgray;
+      border-color: $kobo-lightgray;
     }
 
     &.kobo-select__control--is-focused {
-      border-bottom-color: $kobo-blue;
+      border-color: $kobo-blue;
     }
   }
 
