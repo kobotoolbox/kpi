@@ -512,6 +512,9 @@ class ExportTask(ImportExportTask):
                     self.last_submission_time = timestamp
             yield submission
 
+    def _get_bool_from_data(self, field: str, compare: str = 'true') -> bool:
+        return self.data.get(field, compare).lower() == 'true'
+
     def _run_task(self, messages):
         """
         Generate the export and store the result in the `self.result`
@@ -520,9 +523,8 @@ class ExportTask(ImportExportTask):
         """
         source_url = self.data.get('source', False)
         fields = json.loads(self.data.get('fields', '[]'))
-        flatten = self.data.get('flatten', 'False').lower() == 'true'
-        include_form_data = self.data.get('include_form_data', 'True').lower() == 'true'
-        form_data_in_properties = self.data.get('form_data_in_properties', 'False').lower() == 'true'
+        flatten = self._get_bool_from_data('flatten', 'false')
+
         if not source_url:
             raise Exception('no source specified for the export')
         source = _resolve_url_to_asset(source_url)
@@ -543,7 +545,9 @@ class ExportTask(ImportExportTask):
         export_type = self.data.get('type', '').lower()
         if export_type not in ('xls', 'csv', 'geojson', 'spss_labels'):
             raise NotImplementedError(
-                'only `xls`, `csv`, `geojson`, and `spss_labels` are valid export types')
+                'only `xls`, `csv`, `geojson`, and `spss_labels` '
+                'are valid export types'
+            )
 
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
@@ -563,11 +567,6 @@ class ExportTask(ImportExportTask):
         submission_stream = self._record_last_submission_time(
             submission_stream)
 
-        default_translation = source.summary['default_translation']
-        language = self.data.get('lang', default_translation)
-        if language == '_default':
-            language = default_translation
-
         options = self._build_export_options(pack)
         export = pack.export(**options)
         filename = self._build_export_filename(export, export_type)
@@ -585,12 +584,7 @@ class ExportTask(ImportExportTask):
             elif export_type == 'geojson':
                 output_file.write(
                     export.to_geojson(
-                        submission_stream,
-                        flatten=flatten,
-                        include_form_data=include_form_data,
-                        form_data_in_properties=form_data_in_properties,
-                        language=language,
-                        use_osm_labels=True
+                        submission_stream, flatten=flatten
                     ).encode('utf-8')
                 )
             elif export_type == 'xls':
