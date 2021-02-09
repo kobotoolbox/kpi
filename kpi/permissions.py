@@ -269,6 +269,12 @@ class PairedDataPermission(permissions.BasePermission):
         offset = timedelta(seconds=5)
         ee_domain_name = urlparse(settings.ENKETO_SERVER).netloc
         ee_domain_name = ee_domain_name.replace('.', r'\.')
+        # Remove any ports because no one is appended to domain name when
+        # `X-User-Agent` is set on KoBoCAT side
+        # e.g.:
+        # settings.ENKETO_SERVER = https://ee.mydomain.tld:8080
+        # X-User-Agent = s:ee.mydomain.tld:...
+        ee_domain_name = re.sub(r':\d+$', '', ee_domain_name)
 
         pattern_collect = r'org\.[^\.]+\.collect\.android\/v[\d\w\-\.]+'
         pattern_ee = rf's:{ee_domain_name}:[\d\w\.]{{10,}}'
