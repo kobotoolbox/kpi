@@ -683,4 +683,9 @@ span.svg-icon {
       display: block;
     }
   }
+
+  &.dropzone--fullscreen {
+    @extend .assets-table, .assets-table--fullscreen;
+    position: fixed !important; // Why does the extended position not override?
+  }
 }
