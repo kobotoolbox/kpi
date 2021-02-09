@@ -865,3 +865,57 @@ $z-modal-x: 10;
     }
   }
 }
+
+.connect-projects {
+  margin: 24px;
+
+  .form-modal__item--data-sharing {
+    border-bottom: 1px solid;
+    border-color: lighten($kobo-midgray, 20%);
+    padding-bottom: 24px;
+  }
+
+  .form-modal__item {
+    margin-left: 10px;
+  }
+
+  .connect-projects-header {
+    display: flex;
+  }
+
+  .form-modal__item--import-other {
+    .imported-item {
+      position: relative;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid;
+      border-color: lighten($kobo-midgray, 20%)
+    }
+    .k-icon-check {
+      color: $kobo-blue;
+      font-weight: bold;
+    }
+    label {
+      margin-top: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      color: darken($kobo-midgray, 10%);
+    }
+    span {
+      position: absolute;
+      top: 6px;
+      font-weight: 500;
+    }
+  }
+
+  p {
+    margin-top: 0px;
+    margin-bottom: 28px;
+  }
+
+  i {
+    font-size: 32px;
+    margin-top: 10px;
+    margin-right: 5px;
+  }
+}

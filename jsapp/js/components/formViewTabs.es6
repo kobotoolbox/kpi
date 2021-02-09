@@ -115,6 +115,8 @@ class FormViewTabs extends Reflux.Component {
 
       sideTabs.push({label: t('Sharing'), icon: 'k-icon-user-share', path: `/forms/${this.state.assetid}/settings/sharing`});
 
+      sideTabs.push({label: t('Connect Projects'), icon: 'k-icon-attach', path: `/forms/${this.state.assetid}/settings/records`});
+
       if (
         this.state.asset.deployment__active &&
         mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.state.asset) &&
@@ -137,7 +139,9 @@ class FormViewTabs extends Reflux.Component {
               data-path={item.path}
               onClick={this.triggerRefresh}>
                 <i className={item.icon} />
-                {item.label}
+                <label className='form-view__tab--label'>
+                  {item.label}
+                </label>
             </Link>
           )}
         </bem.FormView__sidetabs>
