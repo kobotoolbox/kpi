@@ -584,11 +584,10 @@ class ExportTask(ImportExportTask):
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + "\r\n").encode('utf-8'))
             elif export_type == 'geojson':
-                output_file.write(
-                    export.to_geojson(
-                        submission_stream, flatten=flatten
-                    ).encode('utf-8')
-                )
+                for line in export.to_geojson(
+                    submission_stream, flatten=flatten
+                ):
+                    output_file.write(line.encode('utf-8'))
             elif export_type == 'xls':
                 # XLSX export actually requires a filename (limitation of
                 # pyexcelerate?)
