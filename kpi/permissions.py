@@ -246,7 +246,7 @@ class PairedDataPermission(permissions.BasePermission):
             if not http_host.startswith(settings.KOBOFORM_INTERNAL_URL):
                 raise Http404
 
-        kc_container_ip = socket.gethostbyname('kobocat')
+        kc_container_ip = socket.gethostbyname('kobocat.internal')
         if get_client_ip(request) != kc_container_ip:
             raise Http404
 
