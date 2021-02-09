@@ -384,8 +384,12 @@ class ExportTask(ImportExportTask):
 
     COPY_FIELDS = (
         '_id',
-        '_uuid',
+        '_notes',
+        '_status',
         '_submission_time',
+        '_submitted_by',
+        '_tags',
+        '_uuid',
         ValidationStatusCopyField,
     )
 
@@ -573,6 +577,7 @@ class ExportTask(ImportExportTask):
         # https://code.djangoproject.com/ticket/13809
         self.result.close()
         self.result.file.close()
+
         with self.result.storage.open(self.result.name, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
