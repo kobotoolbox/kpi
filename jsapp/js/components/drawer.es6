@@ -15,7 +15,8 @@ import {
 } from '../components/helpBubbles';
 import {
   COMMON_QUERIES,
-  MODAL_TYPES
+  MODAL_TYPES,
+  ROUTES,
 } from '../constants';
 import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
@@ -132,8 +133,8 @@ class Drawer extends Reflux.Component {
     return (
       <bem.KDrawer>
         <bem.KDrawer__primaryIcons>
-          <DrawerLink label={t('Projects')} linkto='/forms' ki-icon='projects' />
-          <DrawerLink label={t('Library')} linkto='/library' ki-icon='library' />
+          <DrawerLink label={t('Projects')} linkto={ROUTES.FORMS} ki-icon='projects' />
+          <DrawerLink label={t('Library')} linkto={ROUTES.LIBRARY} ki-icon='library' />
         </bem.KDrawer__primaryIcons>
 
         <bem.KDrawer__sidebar>
