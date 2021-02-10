@@ -343,6 +343,42 @@ export var dataInterface;
         method: 'DELETE'
       });
     },
+
+    getExportSettings(assetUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
+      });
+    },
+
+    getExportSetting(assetUid, settingUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+      });
+    },
+
+    updateExportSetting(assetUid, settingUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+        method: 'PATCH',
+        data: data,
+      });
+    },
+
+    createExportSetting(assetUid, settingUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+        method: 'PATCH',
+        data: data,
+      });
+    },
+
+    deleteExportSetting(assetUid, settingUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+        method: 'DELETE',
+      });
+    },
+
     getAssetXformView (uid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/xform/`,
