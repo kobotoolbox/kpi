@@ -15,7 +15,7 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, DEFAULT_JSON_FIELDS
+from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination

@@ -31,7 +31,6 @@ from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
-    DEFAULT_JSON_FIELDS,
 )
 from kpi.utils.log import logging
 from kpi.utils.strings import to_str

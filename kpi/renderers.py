@@ -73,7 +73,7 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
             versions=pack.versions.keys(),
             group_sep='/',
             lang=formpack.constants.UNSPECIFIED_TRANSLATION,
-            hierarchy_in_labels=False,
+            hierarchy_in_labels=True,
         )
         return ''.join(
             export.to_geojson(submission_stream)
