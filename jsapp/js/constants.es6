@@ -288,6 +288,7 @@ new Set([
   '_uuid',
   '_submission_time',
   '_submitted_by',
+  '_status',
 ]).forEach((codename) => {ADDITIONAL_SUBMISSION_PROPS[codename] = codename;});
 Object.freeze(ADDITIONAL_SUBMISSION_PROPS);
 

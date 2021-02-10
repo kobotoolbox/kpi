@@ -117,7 +117,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   renderAdvancedView() {
-    const deployedVersionsCount = 'TODO';
+    const deployedVersionsCount = this.props.asset.deployed_versions.count;
 
     const customSelectionLabel = (
       <span className='project-downloads__title'>
@@ -207,7 +207,6 @@ export default class ProjectExportsCreator extends React.Component {
 
   render() {
     let translations = this.props.asset.content.translations;
-    let dvcount = this.props.asset.deployed_versions.count;
 
     const groupSeparatorLabel = (
       <span className='project-downloads__title'>
