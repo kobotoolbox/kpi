@@ -524,7 +524,7 @@ class ExportTask(ImportExportTask):
         """
         source_url = self.data.get('source', False)
         fields = json.loads(self.data.get('fields', '[]'))
-        flatten = self._get_bool_from_data('flatten', 'false')
+        flatten = self._get_bool_from_data('flatten', 'true')
 
         if not source_url:
             raise Exception('no source specified for the export')
