@@ -319,12 +319,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
-        filt = {}
-        try:
-            filt = json.loads(dict(request.data)['payload'][0])
-            filters['fields'] = filt['fields']
-        except:
-            print('***** no payload', flush=True)
 
         if format_type == 'geojson':
             # For GeoJSON, get the submissions as JSON and let
