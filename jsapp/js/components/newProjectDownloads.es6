@@ -5,6 +5,11 @@ import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
 import ToggleSwitch from 'js/components/toggleSwitch';
 import {bem} from 'js/bem';
+import {
+  QUESTION_TYPES,
+  META_QUESTION_TYPES,
+  ADDITIONAL_SUBMISSION_PROPS,
+} from 'js/constants';
 import assetUtils from 'js/assetUtils';
 
 const EXPORT_TYPES = Object.freeze({
@@ -47,13 +52,23 @@ export default class ProjectDownloads extends React.Component {
       customExportName: '',
       isCustomSelectionEnabled: false,
       selectedRows: new Set(),
+      selectedDefinedExport: null,
+      definedExports: [],
     };
 
     if (this.props.asset?.content?.survey) {
       this.props.asset.content.survey.forEach((row) => {
         this.state.selectedRows.add(assetUtils.getRowName(row));
       });
+      Object.keys(ADDITIONAL_SUBMISSION_PROPS).forEach((submissionProp) => {
+        this.state.selectedRows.add(submissionProp);
+      });
     }
+
+    this.state.definedExports = [
+      {value: 'todo1', label: 'todo1'},
+      {value: 'todo2', label: 'todo2'},
+    ];
 
     autoBind(this);
   }
@@ -83,25 +98,57 @@ export default class ProjectDownloads extends React.Component {
     console.log(this.state);
   }
 
+  getQuestionsList() {
+    // survey rows with data
+    const output = this.props.asset.content.survey.filter((row) => {
+      return (
+        Object.keys(QUESTION_TYPES).includes(row.type) ||
+        Object.keys(META_QUESTION_TYPES).includes(row.type)
+      );
+    });
+
+    // additional submission properties added by backend
+    Object.keys(ADDITIONAL_SUBMISSION_PROPS).forEach((submissionProp) => {
+      output.push({
+        name: submissionProp,
+        type: submissionProp,
+      });
+    });
+
+    return output;
+  }
+
   renderRowSelector(row) {
     const rowName = assetUtils.getRowName(row);
     let isChecked = this.state.selectedRows.has(rowName);
     return (
-      <Checkbox
-        checked={isChecked}
-        onChange={this.onRowSelected.bind(this, rowName)}
-        label={assetUtils.getQuestionDisplayName(row)}
-      />
+      <li key={rowName}>
+        <Checkbox
+          disabled={!this.state.isCustomSelectionEnabled}
+          checked={isChecked}
+          onChange={this.onRowSelected.bind(this, rowName)}
+          label={assetUtils.getQuestionDisplayName(row)}
+        />
+      </li>
     );
   }
 
   renderAdvancedView() {
     const deployedVersionsCount = 'TODO';
+
+    const customSelectionLabel = (
+      <span className='project-downloads__title'>
+        {t('Custom selection export')}
+      </span>
+    );
+
     return (
       <div className='project-downloads__advanced-view'>
         <div className='project-downloads__column project-downloads__column--left'>
-          <label>
-            {t('Export select_multiple responses')}
+          <label className='project-downloads__column-row'>
+            <span className='project-downloads__title'>
+              {t('Export select_multiple responses')}
+            </span>
 
             <Select
               value={this.state.selectedExportMultiple}
@@ -117,36 +164,42 @@ export default class ProjectDownloads extends React.Component {
             />
           </label>
 
-          <Checkbox
-            checked={this.state.isIncludeDataEnabled}
-            onChange={this.onAnyInputChange.bind(this, 'isIncludeDataEnabled')}
-            label={t('Include data from all ##count## versions').replace(
-              '##count##',
-              deployedVersionsCount
-            )}
-          />
+          <div className='project-downloads__column-row'>
+            <Checkbox
+              checked={this.state.isIncludeDataEnabled}
+              onChange={this.onAnyInputChange.bind(this, 'isIncludeDataEnabled')}
+              label={t('Include data from all ##count## versions').replace(
+                '##count##',
+                deployedVersionsCount
+              )}
+            />
+          </div>
 
-          <Checkbox
-            checked={this.state.isIncludeGroupsEnabled}
-            onChange={this.onAnyInputChange.bind(this, 'isIncludeGroupsEnabled')}
-            label={t('Include groups in headers')}
-          />
+          <div className='project-downloads__column-row'>
+            <Checkbox
+              checked={this.state.isIncludeGroupsEnabled}
+              onChange={this.onAnyInputChange.bind(this, 'isIncludeGroupsEnabled')}
+              label={t('Include groups in headers')}
+            />
+          </div>
 
-          <Checkbox
-            checked={this.state.isSaveCustomExportEnabled}
-            onChange={this.onAnyInputChange.bind(
-              this,
-              'isSaveCustomExportEnabled'
-            )}
-            label={t('Save selection as custom export')}
-          />
+          <div className='project-downloads__column-row project-downloads__column-row--custom-export'>
+            <Checkbox
+              checked={this.state.isSaveCustomExportEnabled}
+              onChange={this.onAnyInputChange.bind(
+                this,
+                'isSaveCustomExportEnabled'
+              )}
+              label={t('Save selection as custom export')}
+            />
 
-          <TextBox
-            value={this.state.customExportName}
-            onChange={this.onAnyInputChange.bind(this, 'customExportName')}
-            placeholder={t('Name your custom export')}
-            customModifiers={['on-white']}
-          />
+            <TextBox
+              value={this.state.customExportName}
+              onChange={this.onAnyInputChange.bind(this, 'customExportName')}
+              placeholder={t('Name your custom export')}
+              customModifiers={['on-white']}
+            />
+          </div>
         </div>
 
         <div className='project-downloads__column project-downloads__column--right'>
@@ -156,12 +209,12 @@ export default class ProjectDownloads extends React.Component {
               this,
               'isCustomSelectionEnabled'
             )}
-            label={t('Custom selection export')}
+            label={customSelectionLabel}
           />
 
-          <div className='project-downloads__questions-list'>
-            {this.props.asset.content.survey.map(this.renderRowSelector)}
-          </div>
+          <ul className='project-downloads__questions-list'>
+            {this.getQuestionsList().map(this.renderRowSelector)}
+          </ul>
         </div>
 
         <hr />
@@ -242,9 +295,34 @@ export default class ProjectDownloads extends React.Component {
 
               {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
 
-              <bem.KoboButton type='submit' onClick={this.onSubmit}>
-                {t('Export')}
-              </bem.KoboButton>
+              <div className='project-downloads__submit-row'>
+                <div>
+                  <label>
+                    {t('Custom exports')}
+
+                    <Select
+                      value={this.state.selectedDefinedExport}
+                      options={this.state.definedExports}
+                      onChange={this.onAnyInputChange.bind(
+                        this,
+                        'selectedDefinedExport'
+                      )}
+                      className='kobo-select'
+                      classNamePrefix='kobo-select'
+                      menuPlacement='auto'
+                      placeholder={t('Select…')}
+                    />
+                  </label>
+                </div>
+
+                <bem.KoboButton
+                  m='blue'
+                  type='submit'
+                  onClick={this.onSubmit}
+                >
+                  {t('Export')}
+                </bem.KoboButton>
+              </div>
             </bem.FormView__form>
           </bem.FormView__cell>
         </bem.FormView__row>

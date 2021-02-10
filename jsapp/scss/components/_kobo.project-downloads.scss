@@ -65,8 +65,18 @@
 
   .project-downloads__advanced-view {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap: wrap;
+    padding-top: 12px;
+
+    .project-downloads__column--left .project-downloads__title {
+      margin-bottom: 6px;
+      display: inline-block;
+    }
+  }
+
+  .project-downloads__title {
+    font-weight: 700;
   }
 
   .project-downloads__column {
@@ -80,13 +90,42 @@
     &.project-downloads__column--right {
       flex: 1;
     }
+
+    .project-downloads__column-row {
+      display: block;
+
+      &:not(:last-child) {
+        margin-bottom: 20px;
+      }
+
+      &.project-downloads__column-row--custom-export {
+        .text-box {
+          display: block;
+          margin-left: 28px;
+          margin-top: 4px;
+        }
+      }
+    }
   }
 
   .project-downloads__questions-list {
+    list-style: none;
     height: 200px;
     width: 100%;
     overflow: hidden auto;
     border: 1px solid $kobo-lightgray;
     border-radius: 2px;
+    margin-top: 6px;
+
+    > li {
+      margin: 12px;
+    }
+  }
+
+  .project-downloads__submit-row {
+    display: flex;
+    justify-content: space-between;
+    align-content: flex-end;
+    margin-top: 20px;
   }
 }
