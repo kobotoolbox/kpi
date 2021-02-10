@@ -215,86 +215,19 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
 
 
 class PairedDataPermission(permissions.BasePermission):
-    """
-    We cannot rely on Django permissions because the form clients
-    (i.e. Enketo, Collect) need to get access even if user is not authenticated
-    The validations are not bullet proof because request headers are not
-    trustworthy as they can be overridden by any curl script
-    """
 
     def has_permission(self, request, view):
         """
-        To pass, the request must:
-        - be on the internal domain
-        - come from KoBoCAT container
-        - contains OpenRosa headers
-        - client must be Collect or Enketo Express
+        We cannot rely on Django permissions because the form clients
+        (i.e. Enketo, Collect) need to get access even if user is
+        not authenticated
         """
-
-        # Skips validation if not on production environment
-        if settings.ENV != 'prod':
-            return True
-
-        try:
-            http_host = f"http://{request.META['HTTP_HOST']}"
-        except KeyError:
-            raise Http404
-        else:
-            # We use `.startswith()` because the port is appended to
-            # `$http_host` in Nginx in dev mode.
-            # e.g. http://kf.docker.internal:8000
-            if not http_host.startswith(settings.KOBOFORM_INTERNAL_URL):
-                raise Http404
-
-        kc_container_ip = socket.gethostbyname('kobocat.internal')
-        if get_client_ip(request) != kc_container_ip:
-            raise Http404
-
-        # Open Rosa headers must be present
-        try:
-            client_user_agent = request.headers['X-User-Agent']
-            user_agent = request.headers['User-Agent']
-            open_rosa_date_str = request.headers['X-Openrosa-Date']
-            open_rosa_version = request.headers['X-Openrosa-Version']
-            open_rosa_version_value = request.headers['X-Openrosa-Version-Value']
-        except KeyError:
-            raise Http404
-        else:
-            try:
-                open_rosa_date = parser.parse(open_rosa_date_str)
-            except ValueError:
-                raise Http404
-
-        now = timezone.now()
-        offset = timedelta(seconds=5)
-        ee_domain_name = urlparse(settings.ENKETO_SERVER).netloc
-        ee_domain_name = ee_domain_name.replace('.', r'\.')
-        # Remove any ports because no one is appended to domain name when
-        # `X-User-Agent` is set on KoBoCAT side
-        # e.g.:
-        # settings.ENKETO_SERVER = https://ee.mydomain.tld:8080
-        # X-User-Agent = s:ee.mydomain.tld:...
-        ee_domain_name = re.sub(r':\d+$', '', ee_domain_name)
-
-        pattern_collect = r'org\.[^\.]+\.collect\.android\/v[\d\w\-\.]+'
-        pattern_ee = rf's:{ee_domain_name}:[\d\w\.]{{10,}}'
-        pattern = f'({pattern_collect})|({pattern_ee})'
-        is_collector = re.search(pattern, client_user_agent)
-
-        try:
-            assert user_agent.startswith('python-requests')
-            assert open_rosa_version == open_rosa_version_value
-            assert now - offset <= open_rosa_date <= now + offset
-            assert is_collector
-        except AssertionError:
-            raise Http404
-
         return True
 
     def has_object_permission(self, request, view, obj):
         """
         The responsibility for securing data behove to the owner of the
-        asset `obj` by requiring aggregators to authenticate.
+        asset `obj` by requiring authentication on their form.
         Otherwise, the paired parent data may be exposed to anyone
         """
         # Check whether `asset` owner's account requires authentication:
