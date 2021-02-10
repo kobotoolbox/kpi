@@ -16,7 +16,6 @@ from kpi.constants import (
 )
 from kpi.models.asset import Asset
 from kpi.models.object_permission import get_anonymous_user
-from kpi.utils.network import get_client_ip
 
 
 # FIXME: Move to `object_permissions` module.

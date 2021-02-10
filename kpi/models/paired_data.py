@@ -5,6 +5,10 @@ from typing import Union
 from django.conf import settings
 from rest_framework.reverse import reverse
 
+from kpi.constants import (
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.fields import KpiUidField
 from kpi.utils.hash import get_hash
 
@@ -61,14 +65,17 @@ class PairedData:
             return None
 
         # Data sharing must be enabled on the parent
-        parent_data_sharing = parent_asset.data_sharing
-        if not parent_data_sharing.get('enabled'):
+        if not parent_asset.data_sharing.get('enabled'):
             return None
 
-        # Validate `self.owner` is still allowed to see parent data
-        # ToDo : `self.owner` should have `PERM_VIEW_ASSET` on parent too
-        allowed_users = parent_data_sharing.get('users', [])
-        if allowed_users and self.asset.owner.username not in allowed_users:
+        # Validate `self.owner` is still allowed to see parent data.
+        # Their permissions could have been revoked since they linked their
+        # form to parent asset.
+        required_perms = [
+            PERM_PARTIAL_SUBMISSIONS,
+            PERM_VIEW_SUBMISSIONS,
+        ]
+        if not parent_asset.has_perms(self.asset.owner, required_perms):
             return None
 
         return parent_asset

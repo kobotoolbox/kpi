@@ -499,7 +499,6 @@ class Asset(ObjectPermissionMixin,
     # {
     #   'enable': True,
     #   'fields': []  # shares all when empty
-    #   'users': []  # allows all when empty
     # }
     data_sharing = LazyDefaultJSONBField(default=dict)
     # JSON with parent assets information

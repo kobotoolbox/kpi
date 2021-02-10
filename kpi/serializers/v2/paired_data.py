@@ -1,7 +1,6 @@
 # coding: utf-8
 import os
 import re
-from collections import OrderedDict
 
 from django.utils.translation import gettext as _
 from formpack import FormPack
@@ -9,7 +8,9 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from kpi.constants import (
-    ASSET_TYPE_SURVEY
+    ASSET_TYPE_SURVEY,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import (
     RelativePrefixHyperlinkedRelatedField,
@@ -26,7 +27,7 @@ class PairedDataSerializer(serializers.Serializer):
         required=True,
         style={'base_template': 'input.html'}  # Render as a simple text box
     )
-    fields = serializers.ListField(child=serializers.CharField())
+    fields = serializers.ListField(child=serializers.CharField(), required=False)
     filename = serializers.CharField()
 
     def create(self, validated_data):
@@ -87,7 +88,11 @@ class PairedDataSerializer(serializers.Serializer):
 
     def _validate_fields(self, attrs: dict):
 
-        if self.instance and 'fields' not in attrs:
+        if 'fields' not in attrs:
+            # if paired data is created and `fields` does not exist in `POST`
+            # payload, let's initialize it as an empty list
+            if not self.instance:
+                attrs['fields'] = []
             return
 
         parent = attrs['parent']
@@ -122,13 +127,17 @@ class PairedDataSerializer(serializers.Serializer):
         parent = attrs['parent']
         filename, extension = os.path.splitext(attrs['filename'])
 
-        if (
-            not re.match(r'^[\w\d-]+$', filename)
-            or (extension.lower() != '.xml' and extension != '')
-        ):
+        if not re.match(r'^[\w\d-]+$', filename):
             raise serializers.ValidationError(
                 {
                     'filename': _('Only letters, numbers and `-` are allowed')
+                }
+            )
+
+        if extension.lower() != '.xml' and extension != '':
+            raise serializers.ValidationError(
+                {
+                    'filename': _('Extension must be `xml`')
                 }
             )
 
@@ -169,7 +178,6 @@ class PairedDataSerializer(serializers.Serializer):
 
     def validate_parent(self, parent):
         asset = self.context['asset']
-        allowed_users = parent.data_sharing.get('users', [])
 
         if self.instance and self.instance.parent_uid != parent.uid:
             raise serializers.ValidationError(_(
@@ -185,11 +193,11 @@ class PairedDataSerializer(serializers.Serializer):
         # Validate whether owner of the asset is allowed to link their form
         # with the parent. Validation is made with owner of the asset instead of
         # `request.user`
-        if (
-            allowed_users
-            and asset.owner.username not in allowed_users
-            and parent.owner != asset.owner
-        ):
+        required_perms = [
+            PERM_PARTIAL_SUBMISSIONS,
+            PERM_VIEW_SUBMISSIONS,
+        ]
+        if not parent.has_perms(asset.owner, required_perms):
             raise serializers.ValidationError(_(
                 'Pairing data with `{parent_uid}` is not allowed'
             ).format(parent_uid=parent.uid))

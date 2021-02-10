@@ -502,14 +502,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                 else:
                     data_sharing['fields'] = []
 
-                if 'users' in data_sharing:
-                    if not isinstance(data_sharing['users'], list):
-                        errors['users'] = _(
-                            'The property must be list, not {}'
-                        ).format(data_sharing['users'].__class__.__name__)
-                else:
-                    data_sharing['users'] = []
-
                 if errors:
                     raise serializers.ValidationError(errors)
 
