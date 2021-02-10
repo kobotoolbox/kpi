@@ -11,7 +11,7 @@
   }
 
   // blue dot in response column
-  .simple-table__cell:nth-child(3) {
+  .simple-table__body .simple-table__cell:nth-child(3) {
     position: relative;
 
     .blue-response-dot {

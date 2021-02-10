@@ -46,7 +46,14 @@ export default class ProjectExportsList extends React.Component {
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          actions
+          <bem.KoboLightButton m='blue'>
+            <i className='k-icon k-icon-download'/>
+            {t('Download')}
+          </bem.KoboLightButton>
+
+          <bem.KoboLightButton m={['red', 'icon-only']}>
+            <i className='k-icon k-icon-trash'/>
+          </bem.KoboLightButton>
         </bem.SimpleTable__cell>
       </bem.SimpleTable__row>
     );

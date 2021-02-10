@@ -27,7 +27,15 @@
     font-size: 24px;
     position: relative;
     top: -5px;
-    margin-left: -6px;
+    margin-left: -6px; // this assumes there is a text and icon is first
+  }
+
+  &.kobo-light-button--icon-only,
+  &.kobo-light-badge--icon-only {
+    & i,
+    & .k-icon {
+      margin-right: -6px;
+    }
   }
 }
 
