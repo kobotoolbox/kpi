@@ -127,5 +127,9 @@
     justify-content: space-between;
     align-content: flex-end;
     margin-top: 20px;
+
+    > *:first-child {
+      width: 33%;
+    }
   }
 }

@@ -209,6 +209,12 @@ export default class ProjectExportsCreator extends React.Component {
     let translations = this.props.asset.content.translations;
     let dvcount = this.props.asset.deployed_versions.count;
 
+    const groupSeparatorLabel = (
+      <span className='project-downloads__title'>
+        {t('Group separator')}
+      </span>
+    );
+
     return (
       <bem.FormView__row>
         <bem.FormView__cell m={['page-title']}>
@@ -219,7 +225,9 @@ export default class ProjectExportsCreator extends React.Component {
           <bem.FormView__form>
             <div className='project-downloads__selector-row'>
               <label>
-                {t('Select export type')}
+                <span className='project-downloads__title'>
+                  {t('Select export type')}
+                </span>
 
                 <Select
                   value={this.state.selectedExportType}
@@ -236,7 +244,9 @@ export default class ProjectExportsCreator extends React.Component {
               </label>
 
               <label>
-                {t('Value and header format')}
+                <span className='project-downloads__title'>
+                  {t('Value and header format')}
+                </span>
 
                 <Select
                   value={this.state.selectedExportFormat}
@@ -255,7 +265,7 @@ export default class ProjectExportsCreator extends React.Component {
               <TextBox
                 value={this.state.groupSeparator}
                 onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
-                label={t('Group separator')}
+                label={groupSeparatorLabel}
                 customModifiers={['on-white', 'group-separator']}
               />
             </div>
@@ -280,7 +290,9 @@ export default class ProjectExportsCreator extends React.Component {
             <div className='project-downloads__submit-row'>
               <div>
                 <label>
-                  {t('Custom exports')}
+                  <span className='project-downloads__title'>
+                    {t('Custom exports')}
+                  </span>
 
                   <Select
                     value={this.state.selectedDefinedExport}
