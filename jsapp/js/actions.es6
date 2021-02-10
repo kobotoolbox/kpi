@@ -100,6 +100,12 @@ actions.media = Reflux.createActions({
   deleteMedia: {children: ['completed', 'failed']},
 });
 
+actions.dataShare = Reflux.createActions({
+  enableDataSharing: {children: ['completed', 'failed']},
+  disableDataSharing: {children: ['completed', 'failed']},
+  getSharedData: {children: ['completed', 'failed']},
+});
+
 // TODO move these callbacks to `actions/permissions.es6` after moving
 // `actions.resources` to separate file (circular dependency issue)
 permissionsActions.assignAssetPermission.failed.listen(() => {
@@ -175,6 +181,25 @@ actions.misc.getServerEnvironment.listen(function(){
   dataInterface.serverEnvironment()
     .done(actions.misc.getServerEnvironment.completed)
     .fail(actions.misc.getServerEnvironment.failed);
+});
+
+/*
+ * TODO: #2767 Dynamic data sharing, match with implemented API
+ */
+actions.dataShare.enableDataSharing.listen((uid) => {
+  dataInterface.enableDataSharing(uid)
+    .done(actions.dataShare.enableDataSharing.completed)
+    .fail(actions.dataShare.enableDataSharing.failed);
+});
+actions.dataShare.disableDataSharing.listen((uid) => {
+  dataInterface.disableDataSharing(uid)
+    .done(actions.dataShare.disableDataSharing.completed)
+    .fail(actions.dataShare.disableDataSharing.failed);
+});
+actions.dataShare.getSharedData.listen(() => {
+  dataInterface.getSharedData()
+    .done(actions.dataShare.getSharedData.completed)
+    .fail(actions.dataShare.getSharedData.failed);
 });
 
 actions.resources.createImport.listen((params, onCompleted, onFailed) => {
