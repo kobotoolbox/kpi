@@ -441,32 +441,29 @@ class AssetsDetailApiTests(BaseAssetTestCase):
 
     def test_report_submissions(self):
         # Prepare the mock data
+        report_url = reverse(
+            self._get_endpoint('asset-reports'), kwargs={'uid': self.asset_uid}
+        )
         anotheruser = User.objects.get(username='anotheruser')
-        self.asset.summary = {'geo': 'false', 'labels': ['q1'], "columns": [
-            "type",
-            "label",
-            "required",
-            "select_from_list_name",
-        ]}
-        self.asset.content = {'survey': [
-            {'type': 'select_one', 'label': 'q1', 'select_from_list_name': 'iu0sl99',},
+        self.asset.content = {"survey": [
+            {"type": "select_one", "label": "q1", "select_from_list_name": "iu0sl99",},
         ]
-        , 'choices': [
-            {'name': 'a1', 'label': ['a1'], 'list_name': 'iu0sl99'},
-            {'name': 'a3', 'label': ['a3'], 'list_name': 'iu0sl99'}
+        , "choices": [
+            {"name": "a1", "label": ["a1"], "list_name": "iu0sl99"},
+            {"name": "a3", "label": ["a3"], "list_name": "iu0sl99"},
         ]}
         self.asset.save()
         self.asset.deploy(backend='mock', active=True)
         submissions = [
             {
-                '__version__': self.asset.latest_deployed_version.uid,
-                'q1': 'a1',
-                '_submitted_by': anotheruser.username,
+                "__version__": self.asset.latest_deployed_version.uid,
+                "q1": "a1",
+                "_submitted_by": "",
             },
             {
-                '__version__': self.asset.latest_deployed_version.uid,
-                'q1': 'a3',
-                '_submitted_by': anotheruser.username,
+                "__version__": self.asset.latest_deployed_version.uid,
+                "q1": "a3",
+                "_submitted_by": "",
             },
         ]
 
@@ -478,18 +475,9 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             anotheruser, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms
         )
         # Verify endpoint works with the asset owner
-        asset_url = reverse(
-            self._get_endpoint('asset-detail'), kwargs={'uid': self.asset_uid}
-        )
-        asset_response = self.client.get(self.asset_url)
-        print(asset_response.data, flush=True)
-        report_url = reverse(
-            self._get_endpoint('asset-reports'), kwargs={'uid': self.asset_uid}
-        )
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Verify the endoiubt returns data
-        print(response.data, flush=True)
         self.assertEqual(response.data['count'], 1)
         # Verify the endpoint request fails when the user is logged out
         self.client.logout()
