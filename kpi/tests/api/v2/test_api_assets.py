@@ -600,10 +600,9 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.assertTrue('writable_jsonfield' in response.data['data_sharing'])
         self.assertTrue('Unable to parse JSON' in response.data['data_sharing']['writable_jsonfield'])  # noqa
 
-        # 2. Omit `enabled` property, `users` and `fields` as str
+        # 2. Omit `enabled` property and provide `fields` as str
         payload = {
             'data_sharing': {
-                'users': 'anotheruser',
                 'fields': 'foo',
             }
         }
@@ -613,7 +612,6 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
         errors = {
             'enabled': 'The property is required',
-            'users': 'The property must be list',
             'fields': 'The property must be list',
         }
         for key, error in errors.items():
@@ -673,9 +671,8 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.asset.refresh_from_db()
         data_sharing = self.asset.data_sharing
         self.assertEqual(data_sharing, response.data['data_sharing'])
-        # Even 'users' and 'fields' are not provided in payload, they should
+        # Even 'fields' are not provided in payload, they should
         # exist after `PATCH`
-        self.assertTrue('users' in data_sharing)
         self.assertTrue('fields' in data_sharing)
 
 

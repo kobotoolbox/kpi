@@ -9,6 +9,8 @@ from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
@@ -82,14 +84,13 @@ class BasePairedDataTestCase(BaseAssetTestCase):
                                                email='quidam@example.com')
 
     def toggle_parent_sharing(
-        self, enabled, users=[], fields=[], parent_url=None
+        self, enabled, fields=[], parent_url=None
     ):
         self.login_as_other_user('someuser', 'someuser')
         payload = {
             'data_sharing': {
                 'enabled': enabled,
                 'fields': fields,
-                'users': users
             }
         }
 
@@ -111,9 +112,23 @@ class BasePairedDataTestCase(BaseAssetTestCase):
         login_username='anotheruser',
         login_password='anotheruser',
     ):
+        """
+        Trivial case:
+            - anotheruser tries to link their form `self.child_asset`
+              with sometuser's asset `self.parent_asset`.
+            - `POST` request is made with anotheruser's account
+
+        Custom case:
+            - `POST` request can be made with someone else
+               (use `login_username` and `login_password`)
+            - parent and child assets can be different and can be customized
+              with their urls.
+        """
         self.login_as_other_user(login_username, login_password)
+
         if not parent_url:
             parent_url = self.parent_asset_detail_url
+
         if not child_url:
             child_url = self.child_asset_paired_data_url
 
@@ -134,18 +149,30 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         super().setUp()
 
     def test_create_trivial_case(self):
-        # Try to pair data with parent. No users nor fields filters provided
         self.toggle_parent_sharing(enabled=True)
+        self.parent_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+
+        # Try to pair data with parent.
         response = self.paired_data()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.client.delete(response.data['url'])
+
+        # Try with 'partial_submissions' permission too.
+        self.parent_asset.remove_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+        self.parent_asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.client.delete(response.data['url'])
 
     def test_create_with_invalid_parent(self):
+        self.parent_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+
         # Parent data sharing is not enabled
         response = self.paired_data()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_with_invalid_fields(self):
         self.toggle_parent_sharing(enabled=True)
+        self.parent_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
 
         # Try to pair with wrong field name
         response = self.paired_data(fields=['cityname'])
@@ -164,36 +191,34 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertTrue('fields' in response.data)
         self.assertTrue(isinstance(response.data['fields'][0], ErrorDetail))
 
-    def test_create_with_users(self):
-        # Restrict parent data sharing to a random user
-        self.toggle_parent_sharing(enabled=True, users=['randomuser'])
-        # Try to pair with another user. They cannot pair data
-        response = self.paired_data()
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue('parent' in response.data)
-        self.assertTrue(isinstance(response.data['parent'][0], ErrorDetail))
-
-        # Restrict parent data sharing to user anotheruser.
-        self.toggle_parent_sharing(enabled=True, users=['anotheruser'])
-        # Now, anotheruser should be able to pair data with parent
-        response = self.paired_data()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # Reset `self.child_asset` paired data for rest of the test.
-        self.client.delete(response.data['url'])
-
-        # Try with another user and another form
-        child_asset_clone = self.child_asset.clone()
-        child_asset_clone.owner = self.quidam
-        child_asset_clone.save()
-        paired_data_url = reverse(
-            self._get_endpoint('paired-data-list'), args=[child_asset_clone.uid]
+    def test_create_without_view_submission_permission(self):
+        self.toggle_parent_sharing(enabled=True)
+        # Try to pair with anotheruser, but they don't have 'view_submissions'
+        # nor 'partial_submissions' on parent
+        assert not self.parent_asset.has_perm(
+            self.anotheruser, PERM_VIEW_SUBMISSIONS
         )
-        response = self.paired_data(child_url=paired_data_url,
-                                    login_username='quidam',
-                                    login_password='quidam')
+        assert not self.parent_asset.has_perm(
+            self.anotheruser, PERM_PARTIAL_SUBMISSIONS
+        )
+        response = self.paired_data()
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('parent' in response.data)
         self.assertTrue(isinstance(response.data['parent'][0], ErrorDetail))
+
+    def test_create_by_child_manager(self):
+        self.toggle_parent_sharing(enabled=True)
+        self.parent_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+
+        assert not self.parent_asset.has_perm(
+            self.quidam, PERM_VIEW_SUBMISSIONS
+        )
+        assert not self.parent_asset.has_perm(
+            self.quidam, PERM_PARTIAL_SUBMISSIONS
+        )
+        response = self.paired_data(login_username='quidam',
+                                    login_password='quidam')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Allow quidam to edit anotheruser's form and try again.
         # It should still fail (access should be forbidden)
@@ -210,6 +235,8 @@ class PairedDataListApiTests(BasePairedDataTestCase):
 
     def test_create_with_invalid_filename(self):
         self.toggle_parent_sharing(enabled=True)
+        self.parent_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+
         # Try with empty filename
         response = self.paired_data(filename='')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -230,10 +257,16 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         asset_detail_url = reverse(
             self._get_endpoint('asset-detail'), args=[asset.uid]
         )
+
         self.toggle_parent_sharing(enabled=True)
+        self.parent_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+
         response = self.paired_data()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
         self.toggle_parent_sharing(enabled=True, parent_url=asset_detail_url)
+        asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+
         response = self.paired_data(parent_url=asset_detail_url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('filename' in response.data)
@@ -261,6 +294,8 @@ class PairedDataDetailApiTests(BasePairedDataTestCase):
         super().setUp()
         # someuser enables data sharing on their form
         self.toggle_parent_sharing(enabled=True)
+        self.parent_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+
         # anotheruser pairs data with someuser's form
         paired_data_response = self.paired_data()
         self.paired_data_detail_url = paired_data_response.data['url']
@@ -312,8 +347,11 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         super().setUp()
         self.child_asset.deploy(backend='mock', active=True)
         self.child_asset.save()
+
         # someuser enables data sharing on their form
         self.toggle_parent_sharing(enabled=True)
+        self.parent_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+
         # anotheruser pairs data with someuser's form
         paired_data_response = self.paired_data()
         self.paired_data_detail_url = paired_data_response.data['url']
