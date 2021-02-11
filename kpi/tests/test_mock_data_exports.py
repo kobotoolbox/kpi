@@ -380,6 +380,16 @@ class MockDataExports(MockDataExportsBase):
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
+    def test_csv_export_filter_fields(self):
+        export_options = {'fields': '["start", "end", "Do_you_descend_from_unicellular_organism"]'}
+        expected_lines = [
+            '"start";"end";"Do you descend from an ancestral unicellular organism?";"_index"',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"1"',
+            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"No";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Yes";"3"',
+        ]
+        self.run_csv_export_test(expected_lines, export_options)
+
     def test_xls_export_english_labels(self):
         export_options = {'lang': 'English'}
         expected_rows = [
@@ -400,6 +410,16 @@ class MockDataExports(MockDataExportsBase):
         ]
         self.run_xls_export_test(expected_rows, export_options,
                                  user=self.anotheruser)
+
+    def test_xls_export_filter_fields(self):
+        export_options = {'fields': '["start", "end", "Do_you_descend_from_unicellular_organism"]'}
+        expected_lines = [
+            [ "start", "end", "Do you descend from an ancestral unicellular organism?", "_index" ],
+            [ "2017-10-23T05:40:39.000-04:00", "2017-10-23T05:41:13.000-04:00", "No",  1.0  ],
+            [ "2017-10-23T05:41:14.000-04:00", "2017-10-23T05:41:32.000-04:00", "No",  2.0  ],
+            [ "2017-10-23T05:41:32.000-04:00", "2017-10-23T05:42:05.000-04:00", "Yes",  3.0  ],
+        ]
+        self.run_xls_export_test(expected_lines, export_options)
 
     def test_export_spss_labels(self):
         export_task = ExportTask()
