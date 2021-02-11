@@ -1,6 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import Select from 'react-select';
+import moment from 'moment';
 import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
 import ToggleSwitch from 'js/components/toggleSwitch';
@@ -29,11 +30,12 @@ export default class ProjectExportsCreator extends React.Component {
       groupSeparator: '/',
       selectedExportMultiple: null,
       isIncludeGroupsEnabled: false,
-      isIncludeDataEnabled: false,
+      isIncludeAllVersionsEnabled: false,
       isAdvancedViewVisible: false,
       isSaveCustomExportEnabled: false,
       customExportName: '',
       isCustomSelectionEnabled: false,
+      isFlattenGeoJsonEnabled: true,
       selectedRows: new Set(),
       selectedDefinedExport: null,
       definedExports: [],
@@ -79,6 +81,33 @@ export default class ProjectExportsCreator extends React.Component {
   onSubmit(evt) {
     evt.preventDefault();
     console.log(this.state);
+    console.log(this.getPayloadData());
+  }
+
+  generateDefaulExportName() {
+    const timeString = moment().format('YYYY/MM/DD HH:mm:ss');
+    return `Export ${timeString}`;
+  }
+
+  getPayloadData() {
+    let name = this.generateDefaulExportName();
+    if (this.state.customExportName) {
+      name = this.state.customExportName;
+    }
+
+    return {
+      name: name, // required
+      export_settings: {
+        fields_from_all_versions: 'true', // required
+        fields: ['field_1', 'field_2'], // optional; empty or missing means all fields
+        group_sep: '/', // required
+        hierarchy_in_labels: 'true', // required
+        lang: 'English (en)',
+        multiple_select: 'both', // required
+        type: 'csv', // required
+        flatten: true, // should default to true
+      },
+    };
   }
 
   getQuestionsList() {
@@ -117,7 +146,15 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   renderAdvancedView() {
-    const deployedVersionsCount = this.props.asset.deployed_versions.count;
+    const includeAllVersionsLabel = (
+      <span>
+        {t('Include data from all')}
+        &nbsp;
+        <strong>{this.props.asset.deployed_versions.count}</strong>
+        &nbsp;
+        {t('versions')}
+      </span>
+    );
 
     const customSelectionLabel = (
       <span className='project-downloads__title'>
@@ -149,12 +186,9 @@ export default class ProjectExportsCreator extends React.Component {
 
           <div className='project-downloads__column-row'>
             <Checkbox
-              checked={this.state.isIncludeDataEnabled}
-              onChange={this.onAnyInputChange.bind(this, 'isIncludeDataEnabled')}
-              label={t('Include data from all ##count## versions').replace(
-                '##count##',
-                deployedVersionsCount
-              )}
+              checked={this.state.isIncludeAllVersionsEnabled}
+              onChange={this.onAnyInputChange.bind(this, 'isIncludeAllVersionsEnabled')}
+              label={includeAllVersionsLabel}
             />
           </div>
 
@@ -165,6 +199,16 @@ export default class ProjectExportsCreator extends React.Component {
               label={t('Include groups in headers')}
             />
           </div>
+
+          {this.state.selectedExportType?.value === EXPORT_TYPES.geojson.value &&
+            <div className='project-downloads__column-row'>
+              <Checkbox
+                checked={this.state.isFlattenGeoJsonEnabled}
+                onChange={this.onAnyInputChange.bind(this, 'isFlattenGeoJsonEnabled')}
+                label={t('Flatten GeoJSON')}
+              />
+            </div>
+          }
 
           <div className='project-downloads__column-row project-downloads__column-row--custom-export'>
             <Checkbox
@@ -177,6 +221,7 @@ export default class ProjectExportsCreator extends React.Component {
             />
 
             <TextBox
+              disabled={!this.state.isSaveCustomExportEnabled}
               value={this.state.customExportName}
               onChange={this.onAnyInputChange.bind(this, 'customExportName')}
               placeholder={t('Name your custom export')}
@@ -287,6 +332,7 @@ export default class ProjectExportsCreator extends React.Component {
             {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
 
             <div className='project-downloads__submit-row'>
+              {/* show this only if definedExports exist */}
               <div>
                 <label>
                   <span className='project-downloads__title'>

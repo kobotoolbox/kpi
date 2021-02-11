@@ -65,7 +65,7 @@
 
   .project-downloads__advanced-view {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch; // needed for questions list stretching
     flex-wrap: wrap;
     padding-top: 12px;
 
@@ -89,6 +89,7 @@
 
     &.project-downloads__column--right {
       flex: 1;
+      position: relative; // needed to stretch question list with GeoJSON checkbox visible
     }
 
     .project-downloads__column-row {
@@ -110,7 +111,12 @@
 
   .project-downloads__questions-list {
     list-style: none;
-    height: 200px;
+    height: auto;
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     overflow: hidden auto;
     border: 1px solid $kobo-lightgray;
@@ -131,6 +137,18 @@
 
     > *:first-child {
       width: 33%;
+    }
+  }
+}
+
+.simple-table.simple-table--project-exports {
+  .simple-table__cell {
+    &:last-child() {
+      text-align: right;
+    }
+
+    .kobo-light-button:not(:last-child) {
+      margin-right: 5px;
     }
   }
 }

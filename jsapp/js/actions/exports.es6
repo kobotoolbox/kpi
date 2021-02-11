@@ -33,7 +33,7 @@ exportsActions.createExport.failed.listen(() => {
 });
 
 exportsActions.deleteExport.listen((exportUid) => {
-  dataInterface.deleteExport(exportUid)
+  dataInterface.deleteAssetExport(exportUid)
     .done(exportsActions.deleteExport.completed)
     .fail(exportsActions.deleteExport.failed);
 });

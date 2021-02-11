@@ -227,6 +227,12 @@
     margin: 30px 0 15px;
   }
 
+  &.form-view__cell--page-subtitle {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 30px 0 15px;
+  }
+
   &.form-view__cell--columns {
     display: flex;
     justify-content: space-between;

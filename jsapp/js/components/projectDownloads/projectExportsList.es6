@@ -1,16 +1,8 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import Select from 'react-select';
-import Checkbox from 'js/components/checkbox';
-import TextBox from 'js/components/textBox';
-import ToggleSwitch from 'js/components/toggleSwitch';
 import {bem} from 'js/bem';
-import {
-  QUESTION_TYPES,
-  META_QUESTION_TYPES,
-  ADDITIONAL_SUBMISSION_PROPS,
-} from 'js/constants';
-import assetUtils from 'js/assetUtils';
+import {actions} from 'js/actions';
+import {renderLoading} from 'js/components/modalForms/modalHelpers.es6';
 
 /**
  * @prop {object} asset
@@ -18,11 +10,44 @@ import assetUtils from 'js/assetUtils';
 export default class ProjectExportsList extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      isPending: true,
+    };
     autoBind(this);
   }
 
+  componentDidMount() {
+    actions.exports.getExports.completed.listen(this.onGetExports);
+    actions.exports.deleteExport.completed.listen(this.onDeleteExport);
+    this.fetchExports();
+  }
+
+  onGetExports(response) {
+    console.log('onGetExports', response);
+    this.setState({
+      isPending: false,
+      exports: response,
+    });
+  }
+
+  onDeleteExport(response) {
+    console.log('onDeleteExports', response);
+    this.setState({
+      exports: response,
+    });
+  }
+
+  fetchExports() {
+    actions.exports.getExports(this.props.asset.uid);
+  }
+
+  deleteExport(exportUid) {
+    actions.exports.deleteExport(exportUid);
+  }
+
   renderRow(rowData, itemIndex) {
+    const exportUid = 'TODO';
+
     return (
       <bem.SimpleTable__row key={itemIndex}>
         <bem.SimpleTable__cell>
@@ -51,7 +76,10 @@ export default class ProjectExportsList extends React.Component {
             {t('Download')}
           </bem.KoboLightButton>
 
-          <bem.KoboLightButton m={['red', 'icon-only']}>
+          <bem.KoboLightButton
+            m={['red', 'icon-only']}
+            onClick={this.deleteExport.bind(this, exportUid)}
+          >
             <i className='k-icon k-icon-trash'/>
           </bem.KoboLightButton>
         </bem.SimpleTable__cell>
@@ -62,44 +90,54 @@ export default class ProjectExportsList extends React.Component {
   render() {
     const todoRows = [1,2,3];
 
-    return (
-      <bem.FormView__row>
-        <bem.FormView__cell m={['page-title']}>
-          {t('Exports')}
-        </bem.FormView__cell>
+    if (this.state.isPending) {
+      return (
+        <bem.FormView__row>
+          <bem.FormView__cell>
+            {renderLoading()}
+          </bem.FormView__cell>
+        </bem.FormView__row>
+      )
+    } else {
+      return (
+        <bem.FormView__row>
+          <bem.FormView__cell m={['page-subtitle']}>
+            {t('Exports')}
+          </bem.FormView__cell>
 
-        <bem.SimpleTable m='project-exports'>
-          <bem.SimpleTable__header>
-            <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
-                {t('Type')}
-              </bem.SimpleTable__cell>
+          <bem.SimpleTable m='project-exports'>
+            <bem.SimpleTable__header>
+              <bem.SimpleTable__row>
+                <bem.SimpleTable__cell>
+                  {t('Type')}
+                </bem.SimpleTable__cell>
 
-              <bem.SimpleTable__cell>
-                {t('Created')}
-              </bem.SimpleTable__cell>
+                <bem.SimpleTable__cell>
+                  {t('Created')}
+                </bem.SimpleTable__cell>
 
-              <bem.SimpleTable__cell>
-                {t('Language')}
-              </bem.SimpleTable__cell>
+                <bem.SimpleTable__cell>
+                  {t('Language')}
+                </bem.SimpleTable__cell>
 
-              <bem.SimpleTable__cell>
-                {t('Include Groups')}
-              </bem.SimpleTable__cell>
+                <bem.SimpleTable__cell>
+                  {t('Include Groups')}
+                </bem.SimpleTable__cell>
 
-              <bem.SimpleTable__cell>
-                {t('Multiple Versions')}
-              </bem.SimpleTable__cell>
+                <bem.SimpleTable__cell>
+                  {t('Multiple Versions')}
+                </bem.SimpleTable__cell>
 
-              <bem.SimpleTable__cell/>
-            </bem.SimpleTable__row>
-          </bem.SimpleTable__header>
+                <bem.SimpleTable__cell/>
+              </bem.SimpleTable__row>
+            </bem.SimpleTable__header>
 
-          <bem.SimpleTable__body>
-            {todoRows.map(this.renderRow)}
-          </bem.SimpleTable__body>
-        </bem.SimpleTable>
-      </bem.FormView__row>
-    );
+            <bem.SimpleTable__body>
+              {todoRows.map(this.renderRow)}
+            </bem.SimpleTable__body>
+          </bem.SimpleTable>
+        </bem.FormView__row>
+      );
+    }
   }
 }
