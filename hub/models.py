@@ -34,7 +34,13 @@ class ConfigurationFile(models.Model):
     )
 
     slug = models.CharField(max_length=32, choices=SLUG_CHOICES, unique=True)
-    content = models.FileField()
+    content = models.FileField(
+        upload_to=settings.PUBLIC_MEDIA_PATH,
+        help_text=(
+            'Stored in a PUBLIC location where authentication is '
+            'NOT required for access'
+        ),
+    )
 
     def __str__(self):
         return self.slug
