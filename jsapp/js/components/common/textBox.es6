@@ -9,6 +9,7 @@
  * @prop placeholder <string>
  * @prop description <string>
  * @prop readOnly <boolean>
+ * @prop disabled <boolean>
  * @prop customModifiers <string[]|string>
  */
 
@@ -84,7 +85,8 @@ class TextBox extends React.Component {
       onChange: this.onChange,
       onBlur: this.onBlur,
       onKeyPress: this.onKeyPress,
-      readOnly: this.props.readOnly
+      readOnly: this.props.readOnly,
+      disabled: this.props.disabled,
     };
 
     return (

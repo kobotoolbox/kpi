@@ -455,7 +455,9 @@ class BulkEditRowForm extends React.Component {
   }
 
   onChange(newValue, evt) {
-    evt.preventDefault();
+    if (evt) {
+      evt.preventDefault();
+    }
     this.props.onChange(this.props.question.name, newValue);
   }
 

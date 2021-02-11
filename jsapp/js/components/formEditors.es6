@@ -10,6 +10,10 @@ import {
 } from 'js/constants';
 import mixins from '../mixins';
 
+/**
+ * These are the components that are used for Form Builder routes.
+ */
+
 export class FormPage extends React.Component {
   constructor(props) {
     super(props);

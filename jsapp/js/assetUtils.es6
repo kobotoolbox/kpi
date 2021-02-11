@@ -129,11 +129,15 @@ export function getAssetDisplayName(asset) {
 
 /**
  * @param {Object} question - Part of BE asset data
+ * @param {number} [translationIndex] - defaults to first (default) language
  * @returns {string} usable name of the question when possible, "Unlabelled" otherwise.
  */
-export function getQuestionDisplayName(question) {
-  if (question.label) {
-    return question.label[0];
+export function getQuestionDisplayName(question, translationIndex = 0) {
+  if (question.label && Array.isArray(question.label)) {
+    return question.label[translationIndex];
+  } else if (question.label && !Array.isArray(question.label)) {
+    // in rare cases the label could be a string
+    return question.label;
   } else if (question.name) {
     return question.name;
   } else if (question.$autoname) {
@@ -163,12 +167,11 @@ export function isLibraryAsset(assetType) {
  */
 export function getAssetIcon(asset) {
   if (asset.asset_type === ASSET_TYPES.template.id) {
-    return 'k-icon-template';
-  } else if (
-    asset.asset_type === ASSET_TYPES.question.id ||
-    asset.asset_type === ASSET_TYPES.block.id
-  ) {
-    return 'k-icon-question-block';
+    return 'k-icon-template-new';
+  } else if (asset.asset_type === ASSET_TYPES.question.id) {
+    return 'k-icon-question-new';
+  } else if (asset.asset_type === ASSET_TYPES.block.id) {
+    return 'k-icon-block-new';
   } else if (asset.asset_type === ASSET_TYPES.survey.id) {
     if (asset.has_deployment) {
       return 'k-icon-deploy';
@@ -396,15 +399,16 @@ export function renderTypeIcon(type, additionalClassNames = []) {
 
 /**
  * @param {Object} survey
+ * @param {number} [translationIndex] - defaults to first (default) language
  * @returns {Array<object>} a question object
  */
-export function getFlatQuestionsList(survey) {
+export function getFlatQuestionsList(survey, translationIndex = 0) {
   const output = [];
   const openedGroups = [];
   let openedRepeatGroupsCount = 0;
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
-      openedGroups.push(getQuestionDisplayName(row));
+      openedGroups.push(getQuestionDisplayName(row, translationIndex));
     }
     if (row.type === 'end_group' || row.type === 'end_repeat') {
       openedGroups.pop();
@@ -421,7 +425,7 @@ export function getFlatQuestionsList(survey) {
         type: row.type,
         name: getRowName(row),
         isRequired: row.required,
-        label: getQuestionDisplayName(row),
+        label: getQuestionDisplayName(row, translationIndex),
         parents: openedGroups.slice(0),
         hasRepatParent: openedRepeatGroupsCount >= 1,
       });

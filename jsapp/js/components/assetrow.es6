@@ -407,7 +407,7 @@ class AssetRow extends React.Component {
                   data-asset-type={this.props.kind}
                   data-asset-name={assetName}
                 >
-                  <i className='k-icon-template' />
+                  <i className='k-icon-template-new' />
                   {t('Create template')}
                 </bem.PopoverMenu__link>
               }

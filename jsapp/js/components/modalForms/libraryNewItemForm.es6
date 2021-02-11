@@ -87,12 +87,12 @@ class LibraryNewItemForm extends React.Component {
       <bem.FormModal__form className='project-settings project-settings--form-source'>
         <bem.FormModal__item m='form-source-buttons'>
           <button onClick={this.goToAssetCreator}>
-            <i className='k-icon-question-block' />
+            <i className='k-icon-block-new' />
             {t('Question Block')}
           </button>
 
           <button onClick={this.goToTemplate}>
-            <i className='k-icon-template' />
+            <i className='k-icon-template-new' />
             {t('Template')}
           </button>
 
