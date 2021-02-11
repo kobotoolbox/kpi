@@ -102,7 +102,7 @@ actions.media = Reflux.createActions({
 
 actions.dataShare = Reflux.createActions({
   attachToParent: {children: ['completed', 'failed']},
-  getSharedData: {children: ['completed', 'failed']},
+  getAttachedParent: {children: ['completed', 'failed']},
   toggleDataSharing: {children: ['completed', 'failed']},
 });
 
@@ -191,10 +191,12 @@ actions.dataShare.attachToParent.listen((assetUid, data) => {
     .done(actions.dataShare.attachToParent.completed)
     .fail(actions.dataShare.attachToParent.failed);
 });
-actions.dataShare.getSharedData.listen(() => {
-  dataInterface.getSharedData()
-    .done(actions.dataShare.getSharedData.completed)
-    .fail(actions.dataShare.getSharedData.failed);
+actions.dataShare.getAttachedParent.listen((assetUid) => {
+  dataInterface.getAttachedParent(assetUid)
+    .done((response) => {
+      actions.dataShare.getAttachedParent.completed(response);
+    })
+    .fail(actions.dataShare.getAttachedParent.failed);
 });
 actions.dataShare.toggleDataSharing.listen((uid, data) => {
   dataInterface.toggleDataSharing(uid, data)

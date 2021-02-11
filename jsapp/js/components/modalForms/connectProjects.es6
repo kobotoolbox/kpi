@@ -17,6 +17,7 @@ class ConnectProjects extends React.Component {
       isLoading: false,
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
+      attchedParent: null,
     };
 
     autoBind(this);
@@ -27,16 +28,22 @@ class ConnectProjects extends React.Component {
    */
 
   componentDidMount() {
-    actions.dataShare.getSharedData.completed.listen(this.onGetSharedDataCompleted);
+    actions.dataShare.getAttachedParent(this.props.asset.uid);
+
+    actions.dataShare.getAttachedParent.completed.listen(this.loadAttachedParent);
     actions.dataShare.toggleDataSharing.completed.listen(this.onToggleDataSharingCompleted);
+    actions.resources.loadAsset.completed.listen(this.onGetAttachedParentCompleted);
   }
 
   /*
    * action listeners
    */
 
-  onGetSharedDataCompleted() {
-    // TODO
+  loadAttachedParent(response) {
+    actions.resources.loadAsset({url: response.results[0].parent});
+  }
+  onGetAttachedParentCompleted(response) {
+    this.setState({attchedParent: response});
   }
   onToggleDataSharingCompleted() {
     this.setState({isShared: !this.state.isShared});
@@ -158,10 +165,15 @@ class ConnectProjects extends React.Component {
             className='kobo-select'
             classNamePrefix='kobo-select'
           />
-          <ul>
-            <label>{t('Imported')}</label>
-            {/*TODO: display attched parent here*/}
-          </ul>
+          {this.state.attchedParent &&
+            <ul>
+              <label>{t('Imported')}</label>
+              <li className='imported-item'>
+                  <i className="k-icon k-icon-check"/>
+                <span>{this.state.attchedParent.name}</span>
+              </li>
+            </ul>
+          }
 
         </bem.FormModal__item>
       </bem.FormModal__form>

@@ -250,9 +250,9 @@ export var dataInterface;
         contentType: 'application/json'
       });
     },
-    getSharedData() {
+    getAttachedParent(assetUid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/SOME-NEW-ENDPOINT/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
         method: 'GET',
       });
     },
