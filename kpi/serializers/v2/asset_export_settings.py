@@ -6,6 +6,7 @@ from rest_framework.reverse import reverse
 from kpi.constants import (
     EXPORT_SETTING_FIELDS,
     EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS,
+    EXPORT_SETTING_FLATTEN,
     EXPORT_SETTING_GROUP_SEP,
     EXPORT_SETTING_HIERARCHY_IN_LABELS,
     EXPORT_SETTING_LANG,
@@ -130,6 +131,18 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         if not all((isinstance(field, str) for field in fields)):
             raise serializers.ValidationError(
                 _('All values in the `fields` array must be strings')
+            )
+
+        # `flatten` is used for geoJSON exports only and is ignored otherwise
+        if EXPORT_SETTING_FLATTEN not in export_settings:
+            return export_settings
+
+        flatten = export_settings[EXPORT_SETTING_FLATTEN]
+        if flatten.lower() not in VALID_BOOLEANS:
+            raise serializers.ValidationError(
+                _("`flatten` must be either {}").format(
+                    setting, self.__format_exception_values(VALID_BOOLEANS)
+                )
             )
 
         return export_settings
