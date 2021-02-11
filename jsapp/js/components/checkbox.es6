@@ -3,6 +3,7 @@
  *
  * Properties:
  * - checked <boolean>
+ * - disabled <boolean>
  * - onChange <function>: required
  * - label <string>
  *
