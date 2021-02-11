@@ -5,6 +5,7 @@ import Select from 'react-select';
 import ToggleSwitch from '../toggleSwitch';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
+import {dataInterface} from '../../dataInterface';
 import {stores} from 'js/stores';
 
 /*
@@ -16,7 +17,8 @@ class ConnectProjects extends React.Component {
     this.state = {
       isVirgin: true,
       isLoading: false,
-      isShared: false,
+      // `data_sharing` is an empty object if never enabled before
+      isShared: props.asset.data_sharing?.enabled || false,
     };
 
     autoBind(this);
@@ -28,26 +30,36 @@ class ConnectProjects extends React.Component {
 
   componentDidMount() {
     actions.dataShare.getSharedData.completed.listen(this.onGetSharedDataCompleted);
-    actions.dataShare.enableDataSharing.completed.listen(this.onEnableDataSharingCompleted);
+    actions.dataShare.toggleDataSharing.completed.listen(this.onEnableDataSharingCompleted);
     actions.dataShare.disableDataSharing.completed.listen(this.onDisableDataSharingCompleted);
   }
 
   /*
    * action listeners
    */
+
   onGetSharedDataCompleted() {
-    // TODO
-  }
-  onEnableDataSharingCompleted() {
     // TODO
   }
   onDisableDataSharingCompleted() {
     // TODO
   }
+
+  onAssetSelect(asset) {
+    actions.dataShare.attachToParent(asset.uid);
+  }
+
   /*
    * Utilities
    */
+
   toggleSharingData() {
+    var data = JSON.stringify({
+      data_sharing: {
+        enabled: !this.state.isShared
+      }
+    });
+
     if (!this.state.isShared) {
       let dialog = alertify.dialog('confirm');
       let opts = {
@@ -55,7 +67,7 @@ class ConnectProjects extends React.Component {
         message: t('This will attach the full dataset from \"##ASSET_NAME##\" as a background XML file to this form. While not easily visbable, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if \"##ASSET_NAME##\" includes sensative data.').replaceAll('##ASSET_NAME##', this.props.asset.name),
         labels: {ok: t('Acknowledge and continue'), cancel: t('Cancel')},
         onok: (evt, value) => {
-          // TODO: set up api action depending on current shared status
+          actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
           dialog.destroy();
           this.setState({isShared: !this.state.isShared});
         },
@@ -65,8 +77,13 @@ class ConnectProjects extends React.Component {
       };
       dialog.set(opts).show();
     } else {
+      actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
       this.setState({isShared: !this.state.isShared});
     }
+  }
+
+  getSharingEnabledAssets() {
+    // TODO: need endpoint to get all assets with data sharing enabled
   }
 
   /*
@@ -105,11 +122,14 @@ class ConnectProjects extends React.Component {
   }
 
   render() {
-    const tempListForDisplay = [
-      'One of my forms',
-      'Made in 2021 or so',
-      'Happy New Year'
-    ];
+    const oneItemForNow = {
+      label: 'parent 1',
+      uid: 'ad9QdptBQZpNaQUwDW7FvL'
+    };
+    stores.session.environment.available_countries.forEach((item) => {
+      console.dir(item);
+    });
+
     return (
       <bem.FormModal__form className='project-settings project-settings--upload-file connect-projects'>
         <bem.FormModal__item m='data-sharing'>
@@ -136,20 +156,14 @@ class ConnectProjects extends React.Component {
           {/* stores env variable used as placeholder for now */}
           <Select
             placeholder={t('Select a different project to import data from')}
-            options={stores.session.environment.available_countries}
+            options={[oneItemForNow]}
+            onChange={this.onAssetSelect}
             className='kobo-select'
             classNamePrefix='kobo-select'
           />
           <ul>
             <label>{t('Imported')}</label>
-            {tempListForDisplay.map((item, n) => {
-              return(
-                <li key={n} className='imported-item'>
-                  <i class="k-icon k-icon-check"/>
-                  <span>{item}</span>
-                </li>
-              );
-            })}
+            {/*TODO: display attched parent here*/}
           </ul>
 
         </bem.FormModal__item>

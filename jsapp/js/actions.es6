@@ -101,7 +101,7 @@ actions.media = Reflux.createActions({
 });
 
 actions.dataShare = Reflux.createActions({
-  enableDataSharing: {children: ['completed', 'failed']},
+  toggleDataSharing: {children: ['completed', 'failed']},
   disableDataSharing: {children: ['completed', 'failed']},
   getSharedData: {children: ['completed', 'failed']},
 });
@@ -186,10 +186,10 @@ actions.misc.getServerEnvironment.listen(function(){
 /*
  * TODO: #2767 Dynamic data sharing, match with implemented API
  */
-actions.dataShare.enableDataSharing.listen((uid) => {
-  dataInterface.enableDataSharing(uid)
-    .done(actions.dataShare.enableDataSharing.completed)
-    .fail(actions.dataShare.enableDataSharing.failed);
+actions.dataShare.toggleDataSharing.listen((uid, data) => {
+  dataInterface.toggleDataSharing(uid, data)
+    .done(actions.dataShare.toggleDataSharing.completed)
+    .fail(actions.dataShare.toggleDataSharing.failed);
 });
 actions.dataShare.disableDataSharing.listen((uid) => {
   dataInterface.disableDataSharing(uid)

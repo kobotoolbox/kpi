@@ -242,13 +242,12 @@ export var dataInterface;
     /*
      * TODO: #2767 Dynamic data sharing, match with implemented API
      */
-    enableDataSharing(assetUid) {
+    toggleDataSharing(assetUid, data) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${assetUid}/SOME-NEW-ENDPOINT/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
         method: 'PATCH',
-        data: {
-          someNewBoolean: true
-        }
+        data: data,
+        contentType: 'application/json'
       });
     },
     disableDataSharing(assetUid) {
