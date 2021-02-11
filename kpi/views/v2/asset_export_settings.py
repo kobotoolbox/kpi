@@ -80,10 +80,8 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
         * "type" (required) specifies the export format. Valid export formats include:
             * "csv",
             * "geojson",
-            * "kml",
-            * "spss",
-            * "xlsx", or
-            * "zip"
+            * "spss_labels", or
+            * "xls"
 
     ### Retrieves a specific export setting
 

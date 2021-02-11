@@ -50,9 +50,9 @@ class AssetExportSettingsTestCase(TestCase):
         _export_settings.name = new_name
         assert _export_settings.name == new_name
 
-        new_export_settings = {**self.valid_export_settings, 'type': 'xlsx'}
+        new_export_settings = {**self.valid_export_settings, 'type': 'xls'}
         _export_settings.export_settings = new_export_settings
-        assert _export_settings.export_settings['type'] == 'xlsx'
+        assert _export_settings.export_settings['type'] == 'xls'
 
     def test_delete_export_settings(self):
         _export_settings = self._create_foo_export_settings()
