@@ -31,7 +31,6 @@ class ConnectProjects extends React.Component {
   componentDidMount() {
     actions.dataShare.getSharedData.completed.listen(this.onGetSharedDataCompleted);
     actions.dataShare.toggleDataSharing.completed.listen(this.onEnableDataSharingCompleted);
-    actions.dataShare.disableDataSharing.completed.listen(this.onDisableDataSharingCompleted);
   }
 
   /*
@@ -39,9 +38,6 @@ class ConnectProjects extends React.Component {
    */
 
   onGetSharedDataCompleted() {
-    // TODO
-  }
-  onDisableDataSharingCompleted() {
     // TODO
   }
 

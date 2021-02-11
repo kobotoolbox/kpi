@@ -102,7 +102,6 @@ actions.media = Reflux.createActions({
 
 actions.dataShare = Reflux.createActions({
   toggleDataSharing: {children: ['completed', 'failed']},
-  disableDataSharing: {children: ['completed', 'failed']},
   getSharedData: {children: ['completed', 'failed']},
 });
 
@@ -190,11 +189,6 @@ actions.dataShare.toggleDataSharing.listen((uid, data) => {
   dataInterface.toggleDataSharing(uid, data)
     .done(actions.dataShare.toggleDataSharing.completed)
     .fail(actions.dataShare.toggleDataSharing.failed);
-});
-actions.dataShare.disableDataSharing.listen((uid) => {
-  dataInterface.disableDataSharing(uid)
-    .done(actions.dataShare.disableDataSharing.completed)
-    .fail(actions.dataShare.disableDataSharing.failed);
 });
 actions.dataShare.getSharedData.listen(() => {
   dataInterface.getSharedData()

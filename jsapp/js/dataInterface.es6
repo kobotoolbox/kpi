@@ -250,15 +250,6 @@ export var dataInterface;
         contentType: 'application/json'
       });
     },
-    disableDataSharing(assetUid) {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${assetUid}/SOME-NEW-ENDPOINT/`,
-        method: 'PATCH',
-        data: {
-          someNewBoolean: false
-        }
-      });
-    },
     getSharedData() {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/SOME-NEW-ENDPOINT/`,
