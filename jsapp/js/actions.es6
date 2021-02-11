@@ -101,8 +101,9 @@ actions.media = Reflux.createActions({
 });
 
 actions.dataShare = Reflux.createActions({
-  toggleDataSharing: {children: ['completed', 'failed']},
+  attachToParent: {children: ['completed', 'failed']},
   getSharedData: {children: ['completed', 'failed']},
+  toggleDataSharing: {children: ['completed', 'failed']},
 });
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
@@ -185,15 +186,20 @@ actions.misc.getServerEnvironment.listen(function(){
 /*
  * TODO: #2767 Dynamic data sharing, match with implemented API
  */
-actions.dataShare.toggleDataSharing.listen((uid, data) => {
-  dataInterface.toggleDataSharing(uid, data)
-    .done(actions.dataShare.toggleDataSharing.completed)
-    .fail(actions.dataShare.toggleDataSharing.failed);
+actions.dataShare.attachToParent.listen((assetUid, data) => {
+  dataInterface.attachToParent(assetUid, data)
+    .done(actions.dataShare.attachToParent.completed)
+    .fail(actions.dataShare.attachToParent.failed);
 });
 actions.dataShare.getSharedData.listen(() => {
   dataInterface.getSharedData()
     .done(actions.dataShare.getSharedData.completed)
     .fail(actions.dataShare.getSharedData.failed);
+});
+actions.dataShare.toggleDataSharing.listen((uid, data) => {
+  dataInterface.toggleDataSharing(uid, data)
+    .done(actions.dataShare.toggleDataSharing.completed)
+    .fail(actions.dataShare.toggleDataSharing.failed);
 });
 
 actions.resources.createImport.listen((params, onCompleted, onFailed) => {

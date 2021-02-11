@@ -5,8 +5,6 @@ import Select from 'react-select';
 import ToggleSwitch from '../toggleSwitch';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
-import {dataInterface} from '../../dataInterface';
-import {stores} from 'js/stores';
 
 /*
  * Modal for uploading form media
@@ -30,7 +28,7 @@ class ConnectProjects extends React.Component {
 
   componentDidMount() {
     actions.dataShare.getSharedData.completed.listen(this.onGetSharedDataCompleted);
-    actions.dataShare.toggleDataSharing.completed.listen(this.onEnableDataSharingCompleted);
+    actions.dataShare.toggleDataSharing.completed.listen(this.onToggleDataSharingCompleted);
   }
 
   /*
@@ -40,9 +38,17 @@ class ConnectProjects extends React.Component {
   onGetSharedDataCompleted() {
     // TODO
   }
+  onToggleDataSharingCompleted() {
+    this.setState({isShared: !this.state.isShared});
+  }
 
-  onAssetSelect(asset) {
-    actions.dataShare.attachToParent(asset.uid);
+  onAssetSelect(selectedAsset) {
+    var data = JSON.stringify({
+      parent: selectedAsset.url,
+      fields: [],
+      filename: 'embed_xml', // TODO figure out how to set this external file
+    });
+    actions.dataShare.attachToParent(this.props.asset.uid, data);
   }
 
   /*
@@ -65,7 +71,6 @@ class ConnectProjects extends React.Component {
         onok: (evt, value) => {
           actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
           dialog.destroy();
-          this.setState({isShared: !this.state.isShared});
         },
         oncancel: () => {
           dialog.destroy();
@@ -74,7 +79,6 @@ class ConnectProjects extends React.Component {
       dialog.set(opts).show();
     } else {
       actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
-      this.setState({isShared: !this.state.isShared});
     }
   }
 
@@ -119,12 +123,9 @@ class ConnectProjects extends React.Component {
 
   render() {
     const oneItemForNow = {
-      label: 'parent 1',
-      uid: 'ad9QdptBQZpNaQUwDW7FvL'
+      label: 'parent2',
+      url: 'http://kf.kobo.local:70/api/v2/assets/aPcvmj4FyxkB5tnJUr2Mf2/'
     };
-    stores.session.environment.available_countries.forEach((item) => {
-      console.dir(item);
-    });
 
     return (
       <bem.FormModal__form className='project-settings project-settings--upload-file connect-projects'>
@@ -153,7 +154,7 @@ class ConnectProjects extends React.Component {
           <Select
             placeholder={t('Select a different project to import data from')}
             options={[oneItemForNow]}
-            onChange={this.onAssetSelect}
+            onChange={this.onAssetSelect.bind(this)}
             className='kobo-select'
             classNamePrefix='kobo-select'
           />
