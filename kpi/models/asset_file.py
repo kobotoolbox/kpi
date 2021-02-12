@@ -55,7 +55,7 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
     date_created = models.DateTimeField(default=timezone.now)
     content = PrivateFileField(upload_to=upload_to, max_length=380, null=True)
     metadata = JSONBField(default=dict)
-    deleted_at = models.DateTimeField(null=True, default=None)
+    date_deleted = models.DateTimeField(null=True, default=None)
 
     def delete(self, using=None, keep_parents=False, force=False):
 
