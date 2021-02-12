@@ -58,7 +58,7 @@ from kpi.constants import (
 from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import BadPermissionsException
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
-from kpi.models.open_rosa import AbstractOpenRosaFormListModel
+from kpi.interfaces.open_rosa import OpenRosaFormListInterface
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.asset_translation_utils import (
     compare_translations,
@@ -1299,7 +1299,7 @@ class Asset(ObjectPermissionMixin,
             clean_up_table()
 
 
-class AssetSnapshot(AbstractOpenRosaFormListModel,
+class AssetSnapshot(OpenRosaFormListInterface,
                     models.Model,
                     XlsExportable,
                     FormpackXLSFormUtils):
@@ -1333,20 +1333,20 @@ class AssetSnapshot(AbstractOpenRosaFormListModel,
     @property
     def description(self):
         """
-        Implements `AbstractOpenRosaFormListModel.description`
+        Implements `OpenRosaFormListInterface.description`
         """
         return self.asset.settings.get('description', '')
 
     @property
     def form_id(self):
         """
-        Implements `AbstractOpenRosaFormListModel.form_id()`
+        Implements `OpenRosaFormListInterface.form_id()`
         """
         return self.uid
 
     def get_download_url(self, request):
         """
-        Implements `AbstractOpenRosaFormListModel.get_download_url()`
+        Implements `OpenRosaFormListInterface.get_download_url()`
         """
         return reverse(
             viewname='assetsnapshot-detail',
@@ -1357,7 +1357,7 @@ class AssetSnapshot(AbstractOpenRosaFormListModel,
 
     def get_manifest_url(self, request):
         """
-        Implements `AbstractOpenRosaFormListModel.get_manifest_url()`
+        Implements `OpenRosaFormListInterface.get_manifest_url()`
         """
         return reverse(
             viewname='assetsnapshot-manifest',
@@ -1369,14 +1369,14 @@ class AssetSnapshot(AbstractOpenRosaFormListModel,
     @property
     def hash(self):
         """
-        Implements `AbstractOpenRosaFormListModel.hash()`
+        Implements `OpenRosaFormListInterface.hash()`
         """
         return f'md5:{get_hash(self.xml)}'
 
     @property
     def name(self):
         """
-        Implements `AbstractOpenRosaFormListModel.name()`
+        Implements `OpenRosaFormListInterface.name()`
         """
         return self.asset.name
 

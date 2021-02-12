@@ -1,21 +1,21 @@
 # coding: utf-8
 from rest_framework import serializers
 
-from kpi.models.open_rosa import (
-    AbstractOpenRosaFormListModel,
-    AbstractOpenRosaManifestModel,
+from kpi.interfaces.open_rosa import (
+    OpenRosaFormListInterface,
+    OpenRosaManifestInterface,
 )
 
 
 class FormListSerializer(serializers.Serializer):
     """
     This serializer is model-agnostic. The list of objects passed to the
-    serializer must inherit from `kpi.models.open_rosa.AbstractOpenRosaFormListModel`
+    serializer must inherit from `kpi.interfaces.open_rosa.OpenRosaFormListInterface`  # noqa
     to be sure expected methods and properties are defined.
     """
     # The PEP-8 naming convention is broken on purpose
     # Open Rosa XML uses CamelCase
-    # See https://docs.getodk.org/openrosa-form-list/#successful-response-document
+    # See https://docs.getodk.org/openrosa-form-list/#successful-response-document  # noqa
     formID = serializers.SerializerMethodField('get_form_id')
     name = serializers.SerializerMethodField('get_name')
     hash = serializers.SerializerMethodField('get_name')
@@ -44,7 +44,7 @@ class FormListSerializer(serializers.Serializer):
         return obj.name
 
     def __validate_object_inheritance(
-        self, obj: AbstractOpenRosaFormListModel
+        self, obj: OpenRosaFormListInterface
     ) -> bool:
         """
         Validates if object inherits from `AbstractOpenRosaFormListModel`.
@@ -53,7 +53,7 @@ class FormListSerializer(serializers.Serializer):
         """
         # Use private variable to test validation only once per instantiation
         if not getattr(self, '__validated', False):
-            assert issubclass(obj.__class__, AbstractOpenRosaFormListModel)
+            assert issubclass(obj.__class__, OpenRosaFormListInterface)
             self.__validate = True
         return self.__validate
 
@@ -61,7 +61,7 @@ class FormListSerializer(serializers.Serializer):
 class ManifestSerializer(serializers.Serializer):
     """
     This serializer is model-agnostic. The list of objects passed to the
-    serializer must inherit from `kpi.models.open_rosa.AbstractOpenRosaManifestModel`
+    serializer must inherit from `kpi.interfaces.open_rosa.OpenRosaManifestInterface`  # noqa
     to be sure expected methods and properties are defined.
     """
     # The PEP-8 naming convention is broken on purpose
@@ -69,7 +69,7 @@ class ManifestSerializer(serializers.Serializer):
     # See https://docs.getodk.org/openrosa-form-list/#the-manifest-document
     filename = serializers.SerializerMethodField()
     hash = serializers.SerializerMethodField()
-    downloadUrl = serializers.SerializerMethodField('get_download_url')  # noqa
+    downloadUrl = serializers.SerializerMethodField('get_download_url')
 
     def get_download_url(self, obj):
         self.__validate_object_inheritance(obj)
@@ -85,19 +85,15 @@ class ManifestSerializer(serializers.Serializer):
         return obj.hash
 
     def __validate_object_inheritance(
-        self, obj: AbstractOpenRosaManifestModel
+        self, obj: OpenRosaManifestInterface
     ) -> bool:
         """
-        Validates if object inherits from `AbstractOpenRosaFormListModel`.
+        Validates if object inherits from `OpenRosaFormModelInterface`.
         It helps to catch upstream missing properties and methods when 
         rendering data
         """
         # Use private variable to test validation only once per instantiation
         if not getattr(self, '__validated', False):
-            try:
-                assert issubclass(obj.__class__, AbstractOpenRosaManifestModel)
-            except AssertionError:
-                raise Exception('Object must inherit from '
-                                '`AbstractOpenRosaManifestModel`')
+            assert issubclass(obj.__class__, OpenRosaManifestInterface)
             self.__validated = True
         return self.__validated

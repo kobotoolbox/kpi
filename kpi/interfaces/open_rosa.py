@@ -1,6 +1,6 @@
 # coding: utf-8
 
-class AbstractOpenRosaFormListModel:
+class OpenRosaFormListInterface:
 
     @property
     def description(self):
@@ -31,7 +31,7 @@ class AbstractOpenRosaFormListModel:
                                   'subclasses')
 
 
-class AbstractOpenRosaManifestModel:
+class OpenRosaManifestInterface:
 
     @property
     def filename(self):
@@ -46,4 +46,3 @@ class AbstractOpenRosaManifestModel:
     def hash(self):
         raise NotImplementedError('This property should be implemented in '
                                   'subclasses')
-
