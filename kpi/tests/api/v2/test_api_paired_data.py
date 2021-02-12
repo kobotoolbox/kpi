@@ -159,7 +159,18 @@ class PairedDataListApiTests(BasePairedDataTestCase):
 
         # Try with 'partial_submissions' permission too.
         self.parent_asset.remove_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-        self.parent_asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS)
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [{
+                '_submitted_by': {'$in': [
+                    self.anotheruser.username
+                ]}
+            }]
+        }
+        self.parent_asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.client.delete(response.data['url'])
 
