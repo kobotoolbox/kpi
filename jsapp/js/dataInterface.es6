@@ -360,15 +360,15 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
         method: 'PATCH',
-        data: data,
+        data: {'payload': JSON.stringify(data)}
       });
     },
 
-    createExportSetting(assetUid, settingUid, data) {
+    createExportSetting(assetUid, data) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
-        method: 'PATCH',
-        data: data,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
+        method: 'POST',
+        data: {'payload': JSON.stringify(data)}
       });
     },
 

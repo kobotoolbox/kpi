@@ -97,7 +97,7 @@ export default class ProjectExportsList extends React.Component {
             {renderLoading()}
           </bem.FormView__cell>
         </bem.FormView__row>
-      )
+      );
     } else {
       return (
         <bem.FormView__row>

@@ -135,20 +135,27 @@
     align-content: flex-end;
     margin-top: 20px;
 
-    > *:first-child {
+    > *:first-child:not(:only-child) {
       width: 33%;
     }
   }
-}
 
-.simple-table.simple-table--project-exports {
-  .simple-table__cell {
-    &:last-child() {
-      text-align: right;
+  .exports-creator {
+    &.exports-creator--loading {
+      opacity: 0.5;
+      pointer-events: none;
     }
+  }
 
-    .kobo-light-button:not(:last-child) {
-      margin-right: 5px;
+  .simple-table.simple-table--project-exports {
+    .simple-table__cell {
+      &:last-child() {
+        text-align: right;
+      }
+
+      .kobo-light-button:not(:last-child) {
+        margin-right: 5px;
+      }
     }
   }
 }

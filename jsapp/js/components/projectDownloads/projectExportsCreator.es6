@@ -6,6 +6,7 @@ import Checkbox from 'js/components/checkbox';
 import TextBox from 'js/components/textBox';
 import ToggleSwitch from 'js/components/toggleSwitch';
 import {bem} from 'js/bem';
+import {actions} from 'js/actions';
 import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
@@ -20,15 +21,19 @@ import assetUtils from 'js/assetUtils';
 
 /**
  * @prop {object} asset
+ *
+ * NOTE: we use a nameless export setting to keep last used export settings that
+ * weren't saved as named custom setting.
  */
 export default class ProjectExportsCreator extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedExportType: null,
-      selectedExportFormat: null,
+      isVirgin: true,
+      selectedExportType: EXPORT_TYPES.xls,
+      selectedExportFormat: EXPORT_FORMATS._default,
       groupSeparator: '/',
-      selectedExportMultiple: null,
+      selectedExportMultiple: EXPORT_MULTIPLE_OPTIONS.both,
       isIncludeGroupsEnabled: false,
       isIncludeAllVersionsEnabled: false,
       isAdvancedViewVisible: false,
@@ -49,13 +54,44 @@ export default class ProjectExportsCreator extends React.Component {
         this.state.selectedRows.add(submissionProp);
       });
     }
-
-    this.state.definedExports = [
-      {value: 'todo1', label: 'todo1'},
-      {value: 'todo2', label: 'todo2'},
-    ];
-
     autoBind(this);
+  }
+
+  componentDidMount() {
+    actions.exports.getExportSettings.completed.listen(this.onGetExportSettings);
+    actions.exports.getExportSetting.completed.listen(this.onGetExportSetting);
+    actions.exports.updateExportSetting.completed.listen(this.onUpdateExportSetting);
+    actions.exports.createExportSetting.completed.listen(this.onCreateExportSetting);
+    actions.exports.deleteExportSetting.completed.listen(this.onDeleteExportSetting);
+    this.fetchExportSettings();
+  }
+
+  onGetExportSettings(response) {
+    if (this.state.isVirgin && response.count >= 1) {
+      // TODO load latest saved
+    }
+    console.log('onGetExportSettings', response);
+    this.setState({isVirgin: false});
+  }
+
+  onGetExportSetting(response) {
+    console.log('onGetExportSetting', response);
+  }
+
+  onUpdateExportSetting(response) {
+    console.log('onUpdateExportSetting', response);
+  }
+
+  onCreateExportSetting(response) {
+    console.log('onCreateExportSetting', response);
+  }
+
+  onDeleteExportSetting(response) {
+    console.log('onDeleteExportSetting', response);
+  }
+
+  fetchExportSettings() {
+    actions.exports.getExportSettings(this.props.asset.uid);
   }
 
   onAnyInputChange(statePropName, isChecked) {
@@ -81,33 +117,54 @@ export default class ProjectExportsCreator extends React.Component {
   onSubmit(evt) {
     evt.preventDefault();
     console.log(this.state);
-    console.log(this.getPayloadData());
-  }
 
-  generateDefaulExportName() {
-    const timeString = moment().format('YYYY/MM/DD HH:mm:ss');
-    return `Export ${timeString}`;
-  }
-
-  getPayloadData() {
-    let name = this.generateDefaulExportName();
-    if (this.state.customExportName) {
-      name = this.state.customExportName;
-    }
-
-    return {
-      name: name, // required
+    const payload = {
+      name: '',
       export_settings: {
-        fields_from_all_versions: 'true', // required
-        fields: ['field_1', 'field_2'], // optional; empty or missing means all fields
-        group_sep: '/', // required
-        hierarchy_in_labels: 'true', // required
-        lang: 'English (en)',
-        multiple_select: 'both', // required
-        type: 'csv', // required
-        flatten: true, // should default to true
+        fields_from_all_versions: this.state.isIncludeAllVersionsEnabled,
+        fields: [],
+        group_sep: this.state.groupSeparator,
+        hierarchy_in_labels: this.state.isIncludeGroupsEnabled,
+        lang: this.state.selectedExportFormat.value,
+        multiple_select: this.state.selectedExportMultiple.value,
+        type: this.state.selectedExportType.value,
+        // flatten: this.state.isFlattenGeoJsonEnabled,
       },
     };
+
+    // if custom export is enabled, but there is no name provided
+    // we generate a name for export ourselves
+    if (this.state.isSaveCustomExportEnabled) {
+      payload.name = this.state.customExportName || this.generateExportName();
+    }
+
+    // unless custom selection is enabled, we send empty fields (it means "all fields" for backend)
+    if (this.state.isCustomSelectionEnabled) {
+      payload.export_settings.fields = Array.from(this.state.selectedRows);
+    }
+
+    const foundDefinedExport = this.state.definedExports.find((definedExport) => {
+      return definedExport.name === payload.name;
+    });
+
+    if (foundDefinedExport) {
+      actions.exports.updateExportSetting(
+        this.props.asset.uid,
+        foundDefinedExport.uid,
+        payload
+      );
+    } else {
+      actions.exports.createExportSetting(
+        this.props.asset.uid,
+        payload
+      );
+    }
+    // when call goes through make a call to createExport using the setting
+  }
+
+  generateExportName() {
+    const timeString = moment().format('YYYY/MM/DD HH:mm:ss');
+    return `Export ${timeString}`;
   }
 
   getQuestionsList() {
@@ -133,13 +190,17 @@ export default class ProjectExportsCreator extends React.Component {
   renderRowSelector(row) {
     const rowName = assetUtils.getRowName(row);
     let isChecked = this.state.selectedRows.has(rowName);
+    let checkboxLabel = assetUtils.getQuestionDisplayName(row);
+    if (this.state.selectedExportFormat.value === EXPORT_FORMATS._xml.value) {
+      checkboxLabel = rowName;
+    }
     return (
       <li key={rowName}>
         <Checkbox
           disabled={!this.state.isCustomSelectionEnabled}
           checked={isChecked}
           onChange={this.onRowSelected.bind(this, rowName)}
-          label={assetUtils.getQuestionDisplayName(row)}
+          label={checkboxLabel}
         />
       </li>
     );
@@ -200,7 +261,7 @@ export default class ProjectExportsCreator extends React.Component {
             />
           </div>
 
-          {this.state.selectedExportType?.value === EXPORT_TYPES.geojson.value &&
+          {this.state.selectedExportType.value === EXPORT_TYPES.geojson.value &&
             <div className='project-downloads__column-row'>
               <Checkbox
                 checked={this.state.isFlattenGeoJsonEnabled}
@@ -259,6 +320,11 @@ export default class ProjectExportsCreator extends React.Component {
       </span>
     );
 
+    let formClassNames = ['exports-creator'];
+    if (this.state.isVirgin) {
+      formClassNames.push('exports-creator--loading');
+    }
+
     return (
       <bem.FormView__row>
         <bem.FormView__cell m={['page-title']}>
@@ -266,7 +332,7 @@ export default class ProjectExportsCreator extends React.Component {
         </bem.FormView__cell>
 
         <bem.FormView__cell m={['box', 'padding']}>
-          <bem.FormView__form>
+          <bem.FormView__form className={formClassNames.join(' ')}>
             <div className='project-downloads__selector-row'>
               <label>
                 <span className='project-downloads__title'>
@@ -283,7 +349,6 @@ export default class ProjectExportsCreator extends React.Component {
                   className='kobo-select'
                   classNamePrefix='kobo-select'
                   menuPlacement='auto'
-                  placeholder={t('Select…')}
                 />
               </label>
 
@@ -302,7 +367,6 @@ export default class ProjectExportsCreator extends React.Component {
                   className='kobo-select'
                   classNamePrefix='kobo-select'
                   menuPlacement='auto'
-                  placeholder={t('Select…')}
                 />
               </label>
 
@@ -332,26 +396,27 @@ export default class ProjectExportsCreator extends React.Component {
             {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
 
             <div className='project-downloads__submit-row'>
-              {/* show this only if definedExports exist */}
               <div>
-                <label>
-                  <span className='project-downloads__title'>
-                    {t('Custom exports')}
-                  </span>
+                {this.state.definedExports.length >= 1 &&
+                  <label>
+                    <span className='project-downloads__title'>
+                      {t('Custom exports')}
+                    </span>
 
-                  <Select
-                    value={this.state.selectedDefinedExport}
-                    options={this.state.definedExports}
-                    onChange={this.onAnyInputChange.bind(
-                      this,
-                      'selectedDefinedExport'
-                    )}
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    menuPlacement='auto'
-                    placeholder={t('Select…')}
-                  />
-                </label>
+                    <Select
+                      value={this.state.selectedDefinedExport}
+                      options={this.state.definedExports}
+                      onChange={this.onAnyInputChange.bind(
+                        this,
+                        'selectedDefinedExport'
+                      )}
+                      className='kobo-select'
+                      classNamePrefix='kobo-select'
+                      menuPlacement='auto'
+                      placeholder={t('Select…')}
+                    />
+                  </label>
+                }
               </div>
 
               <bem.KoboButton

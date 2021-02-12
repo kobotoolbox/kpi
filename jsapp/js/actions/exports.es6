@@ -62,8 +62,8 @@ exportsActions.updateExportSetting.failed.listen(() => {
   notify(t('Failed to update export setting'), 'error');
 });
 
-exportsActions.createExportSetting.listen((assetUid, settingUid, data) => {
-  dataInterface.createExportSetting(assetUid, settingUid, data)
+exportsActions.createExportSetting.listen((assetUid, data) => {
+  dataInterface.createExportSetting(assetUid, data)
     .done(exportsActions.createExportSetting.completed)
     .fail(exportsActions.createExportSetting.failed);
 });
