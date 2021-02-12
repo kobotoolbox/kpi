@@ -183,27 +183,6 @@ actions.misc.getServerEnvironment.listen(function(){
     .fail(actions.misc.getServerEnvironment.failed);
 });
 
-/*
- * TODO: #2767 Dynamic data sharing, match with implemented API
- */
-actions.dataShare.attachToParent.listen((assetUid, data) => {
-  dataInterface.attachToParent(assetUid, data)
-    .done(actions.dataShare.attachToParent.completed)
-    .fail(actions.dataShare.attachToParent.failed);
-});
-actions.dataShare.getAttachedParent.listen((assetUid) => {
-  dataInterface.getAttachedParent(assetUid)
-    .done((response) => {
-      actions.dataShare.getAttachedParent.completed(response);
-    })
-    .fail(actions.dataShare.getAttachedParent.failed);
-});
-actions.dataShare.toggleDataSharing.listen((uid, data) => {
-  dataInterface.toggleDataSharing(uid, data)
-    .done(actions.dataShare.toggleDataSharing.completed)
-    .fail(actions.dataShare.toggleDataSharing.failed);
-});
-
 actions.resources.createImport.listen((params, onCompleted, onFailed) => {
   dataInterface.createImport(params)
     .done((response) => {
@@ -214,6 +193,45 @@ actions.resources.createImport.listen((params, onCompleted, onFailed) => {
       actions.resources.createImport.failed(response);
       if (typeof onFailed === 'function') {onFailed(response);}
     });
+});
+
+/*
+ * Dynamic data attachments
+ */
+actions.dataShare.attachToParent.listen((assetUid, data) => {
+  dataInterface.attachToParent(assetUid, data)
+    .done(() => {
+      actions.dataShare.attachToParent.completed(assetUid);
+    })
+    .fail((response) => {
+      actions.dataShare.attachToParent.failed(response)
+    })
+});
+actions.dataShare.attachToParent.failed.listen((response) => {
+  console.dir(response);
+  alertify.error(
+    response?.responseJSON.parent[0] ||
+    t('Failed to connect to external project')
+  );
+});
+
+actions.dataShare.getAttachedParent.listen((assetUid) => {
+  dataInterface.getAttachedParent(assetUid)
+    .done((response) => {
+      if (response.results.length > 0) {
+        dataInterface.getAsset({url: response.results[0].parent})
+          .done((attachedParent) => {
+            actions.dataShare.getAttachedParent.completed(attachedParent);
+          });
+      }
+    })
+    .fail(actions.dataShare.getAttachedParent.failed);
+});
+
+actions.dataShare.toggleDataSharing.listen((uid, data) => {
+  dataInterface.toggleDataSharing(uid, data)
+    .done(actions.dataShare.toggleDataSharing.completed)
+    .fail(actions.dataShare.toggleDataSharing.failed);
 });
 
 /*

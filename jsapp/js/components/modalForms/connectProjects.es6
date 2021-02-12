@@ -6,8 +6,10 @@ import ToggleSwitch from '../toggleSwitch';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
 
+const XML_EXTERNAL = 'xml-external';
+
 /*
- * Modal for uploading form media
+ * Modal for connecting project data
  */
 class ConnectProjects extends React.Component {
   constructor(props) {
@@ -17,7 +19,7 @@ class ConnectProjects extends React.Component {
       isLoading: false,
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
-      attchedParent: null,
+      attachedParent: null,
     };
 
     autoBind(this);
@@ -30,32 +32,37 @@ class ConnectProjects extends React.Component {
   componentDidMount() {
     actions.dataShare.getAttachedParent(this.props.asset.uid);
 
-    actions.dataShare.getAttachedParent.completed.listen(this.loadAttachedParent);
+    actions.dataShare.attachToParent.completed.listen(this.onAttachToParentCompleted);
+    actions.dataShare.getAttachedParent.completed.listen(this.onGetAttachedParentCompleted);
     actions.dataShare.toggleDataSharing.completed.listen(this.onToggleDataSharingCompleted);
-    actions.resources.loadAsset.completed.listen(this.onGetAttachedParentCompleted);
   }
 
   /*
    * action listeners
    */
 
-  loadAttachedParent(response) {
-    actions.resources.loadAsset({url: response.results[0].parent});
+  onAttachToParentCompleted(assetUid) {
+    actions.dataShare.getAttachedParent(assetUid);
   }
   onGetAttachedParentCompleted(response) {
-    this.setState({attchedParent: response});
+    this.setState({attachedParent: response});
   }
   onToggleDataSharingCompleted() {
     this.setState({isShared: !this.state.isShared});
   }
 
   onAssetSelect(selectedAsset) {
-    var data = JSON.stringify({
-      parent: selectedAsset.url,
-      fields: [],
-      filename: 'embed_xml', // TODO figure out how to set this external file
-    });
-    actions.dataShare.attachToParent(this.props.asset.uid, data);
+    let filename = this.getExteralFilename();
+    if (filename !== '') {
+      var data = JSON.stringify({
+        parent: selectedAsset.url,
+        fields: [],
+        filename: filename,
+      });
+      actions.dataShare.attachToParent(this.props.asset.uid, data);
+    } else {
+      alertify.error(t('An `xml-external` question must exist in form'));
+    }
   }
 
   /*
@@ -91,6 +98,17 @@ class ConnectProjects extends React.Component {
 
   getSharingEnabledAssets() {
     // TODO: need endpoint to get all assets with data sharing enabled
+  }
+
+  getExteralFilename() {
+    let filename = '';
+    this.props.asset.content.survey.some((element) => {
+      if (element.type === XML_EXTERNAL) {
+        filename = element.name;
+      }
+    });
+    console.dir(filename);
+    return filename;
   }
 
   /*
@@ -130,8 +148,8 @@ class ConnectProjects extends React.Component {
 
   render() {
     const oneItemForNow = {
-      label: 'parent2',
-      url: 'http://kf.kobo.local:70/api/v2/assets/aPcvmj4FyxkB5tnJUr2Mf2/'
+      label: 'parent1',
+      url: 'http://kf.kobo.local:70/api/v2/assets/ad9QdptBQZpNaQUwDW7FvL/'
     };
 
     return (
@@ -165,12 +183,12 @@ class ConnectProjects extends React.Component {
             className='kobo-select'
             classNamePrefix='kobo-select'
           />
-          {this.state.attchedParent &&
+          {this.state.attachedParent &&
             <ul>
               <label>{t('Imported')}</label>
               <li className='imported-item'>
                   <i className="k-icon k-icon-check"/>
-                <span>{this.state.attchedParent.name}</span>
+                <span>{this.state.attachedParent.name}</span>
               </li>
             </ul>
           }
