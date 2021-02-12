@@ -9,7 +9,7 @@ from private_storage.fields import PrivateFileField
 from rest_framework.reverse import reverse
 
 from kpi.fields import KpiUidField
-from kpi.models.open_rosa import AbstractOpenRosaManifestModel
+from kpi.interfaces.open_rosa import OpenRosaManifestInterface
 from kpi.utils.hash import get_hash
 
 
@@ -24,7 +24,7 @@ def upload_to(self, filename):
     return AssetFile.get_path(self.asset, self.file_type, filename)
 
 
-class AssetFile(AbstractOpenRosaManifestModel, models.Model):
+class AssetFile(OpenRosaManifestInterface, models.Model):
 
     # More to come!
     MAP_LAYER = 'map_layer'
@@ -73,7 +73,7 @@ class AssetFile(AbstractOpenRosaManifestModel, models.Model):
     @property
     def filename(self):
         """
-        Implements `AbstractOpenRosaManifestModel.filename()`
+        Implements `OpenRosaManifestInterface.filename()`
         """
         if hasattr(self, '__filename'):
             return self.__filename
@@ -84,7 +84,7 @@ class AssetFile(AbstractOpenRosaManifestModel, models.Model):
 
     def get_download_url(self, request):
         """
-        Implements `AbstractOpenRosaManifestModel.get_download_url()`
+        Implements `OpenRosaManifestInterface.get_download_url()`
         """
         return reverse('asset-file-content',
                        args=(self.asset.uid, self.uid),
@@ -103,7 +103,7 @@ class AssetFile(AbstractOpenRosaManifestModel, models.Model):
     @property
     def hash(self):
         """
-        Implements `AbstractOpenRosaManifestModel.hash()`
+        Implements `OpenRosaManifestInterface.hash()`
         """
         if hasattr(self, '__hash'):
             return self.__hash
