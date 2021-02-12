@@ -110,7 +110,10 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
 class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
     """
     Permissions for nested objects of Asset.
-    Users need `*_asset` permissions to operate on these objects
+    Only owner and managers can have write access on these objects.
+    i.e.:
+        - Reads need 'view_asset' permission
+        - Writes need 'manage_asset' permission
     """
 
     perms_map = {
@@ -122,7 +125,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
     perms_map['HEAD'] = perms_map['GET']
     perms_map['PUT'] = perms_map['POST']
     perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['GET']
+    perms_map['DELETE'] = perms_map['POST']
 
     def has_permission(self, request, view):
         if not request.user:
@@ -168,12 +171,26 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         raise Http404
 
 
+class AssetEditorPermission(AssetNestedObjectPermission):
+    """
+    Owner, managers and editors can write.
+    i.e.:
+        - Reads need 'view_asset' permission
+        - Writes need 'change_asset' permission
+    """
+    perms_map = AssetNestedObjectPermission.perms_map.copy()
+    perms_map['POST'] = ['%(app_label)s.change_asset']
+    perms_map['PUT'] = perms_map['POST']
+    perms_map['PATCH'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['POST']
+
+
 class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
     """
     Permissions for objects that are nested under Asset whose only users can
     change/edit and need to view submissions
-    Others should receive a 404 response (instead of 403) to avoid revealing existence
-    of objects.
+    Others should receive a 404 response (instead of 403) to avoid revealing
+    existence of objects.
     """
 
     required_permissions = ['%(app_label)s.change_asset',
@@ -187,6 +204,14 @@ class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
     }
 
 
+class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
+
+    perms_map = AssetNestedObjectPermission.perms_map.copy()
+    # This change allows users with `view_asset` to permissions to
+    # remove themselves from an asset that has been shared with them
+    perms_map['DELETE'] = perms_map['GET']
+
+
 # FIXME: Name is no longer accurate.
 class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     """
@@ -197,7 +222,7 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     # With the default of True, anonymous requests are categorically rejected.
     authenticated_users_only = False
 
-    perms_map = permissions.DjangoObjectPermissions.perms_map
+    perms_map = permissions.DjangoObjectPermissions.perms_map.copy()
     perms_map['GET'] = ['%(app_label)s.view_%(model_name)s']
     perms_map['OPTIONS'] = perms_map['GET']
     perms_map['HEAD'] = perms_map['GET']
@@ -208,7 +233,7 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
     Maps POST requests to the change_model permission instead of DRF's default
     of add_model
     """
-    perms_map = IsOwnerOrReadOnly.perms_map
+    perms_map = IsOwnerOrReadOnly.perms_map.copy()
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
