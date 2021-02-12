@@ -737,4 +737,4 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
                 },
             ],
         }
-        self.assertDictEqual(expected_output, json.loads(response.content))
+        assert expected_output == json.loads(response.content)

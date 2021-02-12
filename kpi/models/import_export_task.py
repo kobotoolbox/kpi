@@ -553,11 +553,9 @@ class ExportTask(ImportExportTask):
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
-        #submission_stream = source.deployment.get_submissions(self.user.id)
-        filters = {'fields': fields if len(fields) != 0 else []}
         submission_stream = source.deployment.get_submissions(
             requesting_user_id=self.user.id,
-            **filters
+            fields=fields
         )
 
         pack, submission_stream = build_formpack(
