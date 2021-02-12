@@ -20,6 +20,7 @@ class AssetExportSettings(models.Model):
 
     class Meta:
         ordering = ['-date_modified']
+        unique_together = ('asset', 'name')
 
     def __str__(self):
         return f'{self.name} {self.uid}'
