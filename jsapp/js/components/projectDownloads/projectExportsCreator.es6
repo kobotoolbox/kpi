@@ -360,6 +360,10 @@ export default class ProjectExportsCreator extends React.Component {
   render() {
     let translations = this.props.asset.content.translations;
 
+    // TODO Someone without manage_asset should not be able to modify these exports
+
+    // TODO each time someone does an export and doesn't decide to save their settings (i.e. they also have manage_asset) the "last used" settings are updated (with a PATCH?). If that person doesn't have manage_asset but they can still export data, must the frontend ensure that it doesn't send a PATCH to update the "last used" settings?
+
     const groupSeparatorLabel = (
       <span className='project-downloads__title'>
         {t('Group separator')}
