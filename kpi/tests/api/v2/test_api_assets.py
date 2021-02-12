@@ -865,45 +865,25 @@ class AssetFileTest(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         # TODO: test that the file itself is removed
 
-    def test_manager_can_create_file(self):
+    def test_editor_can_create_file(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, PERM_MANAGE_ASSET)
-        self.assertTrue(self.asset.has_perm(anotheruser, PERM_MANAGE_ASSET))
+        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
         self.verify_asset_file(self.create_asset_file())
 
-    def test_manager_can_delete_file(self):
+    def test_editor_can_delete_file(self):
         anotheruser = User.objects.get(username='anotheruser')
         self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, PERM_MANAGE_ASSET)
-        self.assertTrue(self.asset.has_perm(anotheruser, PERM_MANAGE_ASSET))
+        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
+        self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
         self.switch_user(username='anotheruser', password='anotheruser')
         af_uid = self.verify_asset_file(self.create_asset_file())
         detail_url = reverse(self._get_endpoint('asset-file-detail'),
                              args=(self.asset.uid, af_uid))
         response = self.client.delete(detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-    def test_editor_cannot_create_file(self):
-        anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
-        self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
-        self.switch_user(username='anotheruser', password='anotheruser')
-        self.create_asset_file(status_code=status.HTTP_403_FORBIDDEN)
-
-    def test_editor_cannot_delete_file(self):
-        af_uid = self.verify_asset_file(self.create_asset_file())
-        anotheruser = User.objects.get(username='anotheruser')
-        self.assertListEqual(list(self.asset.get_perms(anotheruser)), [])
-        self.asset.assign_perm(anotheruser, PERM_CHANGE_ASSET)
-        self.assertTrue(self.asset.has_perm(anotheruser, PERM_CHANGE_ASSET))
-        self.switch_user(username='anotheruser', password='anotheruser')
-        detail_url = reverse(self._get_endpoint('asset-file-detail'),
-                             args=(self.asset.uid, af_uid))
-        response = self.client.delete(detail_url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_viewer_can_access_file(self):
         af_uid = self.verify_asset_file(self.create_asset_file())
