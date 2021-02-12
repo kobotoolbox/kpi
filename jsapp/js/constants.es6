@@ -380,9 +380,16 @@ export const SCORE_ROW_TYPE = 'score__row';
 // a custom question type for rank
 export const RANK_LEVEL_TYPE = 'rank__level';
 
+export const CHOICE_LISTS = Object.freeze({
+  SELECT: 'select_from_list_name',
+  MATRIX: 'kobo--matrix_list',
+  SCORE: 'kobo--score-choices',
+  RANK: 'kobo--rank-items',
+});
+
 export const MATRIX_PAIR_PROPS = {
-  inSurvey: 'kobo--matrix_list',
-  inChoices: 'list_name'
+  inSurvey: CHOICE_LISTS.MATRIX,
+  inChoices: 'list_name',
 };
 
 export const NAME_MAX_LENGTH = 255;
@@ -417,6 +424,7 @@ const constants = {
   RANK_LEVEL_TYPE,
   NAME_MAX_LENGTH,
   CATEGORY_LABELS,
+  CHOICE_LISTS,
 };
 
 export default constants;
