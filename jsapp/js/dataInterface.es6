@@ -360,7 +360,7 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
         method: 'PATCH',
-        data: {'payload': JSON.stringify(data)}
+        data: data
       });
     },
 
@@ -368,7 +368,7 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
         method: 'POST',
-        data: {'payload': JSON.stringify(data)}
+        data: data
       });
     },
 
