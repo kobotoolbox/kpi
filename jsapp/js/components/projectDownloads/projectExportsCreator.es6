@@ -46,6 +46,9 @@ export default class ProjectExportsCreator extends React.Component {
       definedExports: [],
     };
 
+    this.unlisteners = [];
+
+    // preselect all rows
     if (this.props.asset?.content?.survey) {
       this.props.asset.content.survey.forEach((row) => {
         this.state.selectedRows.add(assetUtils.getRowName(row));
@@ -54,24 +57,47 @@ export default class ProjectExportsCreator extends React.Component {
         this.state.selectedRows.add(submissionProp);
       });
     }
+
     autoBind(this);
   }
 
   componentDidMount() {
-    actions.exports.getExportSettings.completed.listen(this.onGetExportSettings);
-    actions.exports.getExportSetting.completed.listen(this.onGetExportSetting);
-    actions.exports.updateExportSetting.completed.listen(this.onUpdateExportSetting);
-    actions.exports.createExportSetting.completed.listen(this.onCreateExportSetting);
-    actions.exports.deleteExportSetting.completed.listen(this.onDeleteExportSetting);
+    this.unlisteners.push(
+      actions.exports.getExportSettings.completed.listen(this.onGetExportSettings),
+      actions.exports.getExportSetting.completed.listen(this.onGetExportSetting),
+      actions.exports.updateExportSetting.completed.listen(this.onUpdateExportSetting),
+      actions.exports.createExportSetting.completed.listen(this.onCreateExportSetting),
+      actions.exports.deleteExportSetting.completed.listen(this.onDeleteExportSetting),
+    );
+
     this.fetchExportSettings();
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   onGetExportSettings(response) {
     if (this.state.isVirgin && response.count >= 1) {
       // TODO load latest saved
+      this.applyExportSettingToState(response.results[0]);
     }
     console.log('onGetExportSettings', response);
-    this.setState({isVirgin: false});
+
+    // we need to prepare the results to be displayed in Select
+    const definedExports = [];
+    response.results.forEach((result, index) => {
+      definedExports.push({
+        value: index,
+        label: result.name,
+        data: result,
+      });
+    });
+
+    this.setState({
+      isVirgin: false,
+      definedExports: definedExports,
+    });
   }
 
   onGetExportSetting(response) {
@@ -84,19 +110,34 @@ export default class ProjectExportsCreator extends React.Component {
 
   onCreateExportSetting(response) {
     console.log('onCreateExportSetting', response);
+    this.fetchExportSettings();
   }
 
   onDeleteExportSetting(response) {
     console.log('onDeleteExportSetting', response);
+    this.setState({selectedDefinedExport: null});
+    this.fetchExportSettings();
   }
 
   fetchExportSettings() {
     actions.exports.getExportSettings(this.props.asset.uid);
   }
 
-  onAnyInputChange(statePropName, isChecked) {
+  deleteExportSetting(exportSettingUid) {
+    actions.exports.deleteExportSetting(this.props.asset.uid, exportSettingUid);
+  }
+
+  onSelectedDefinedExportChange(newDefinedExport) {
+    this.applyExportSettingToState(newDefinedExport.data);
+
+    this.setState({selectedDefinedExport: newDefinedExport});
+  }
+
+  onAnyInputChange(statePropName, newValue) {
     const newStateObj = {};
-    newStateObj[statePropName] = isChecked;
+    newStateObj[statePropName] = newValue;
+    // changing anything in the form clears the selected defined export
+    newStateObj.selectedDefinedExport = null;
     this.setState(newStateObj);
   }
 
@@ -114,6 +155,10 @@ export default class ProjectExportsCreator extends React.Component {
     this.setState({isAdvancedViewVisible: !this.state.isAdvancedViewVisible});
   }
 
+  applyExportSettingToState(exportSettingData) {
+    console.log('applyExportSettingToState', exportSettingData);
+  }
+
   onSubmit(evt) {
     evt.preventDefault();
     console.log(this.state);
@@ -128,7 +173,7 @@ export default class ProjectExportsCreator extends React.Component {
         lang: this.state.selectedExportFormat.value,
         multiple_select: this.state.selectedExportMultiple.value,
         type: this.state.selectedExportType.value,
-        // flatten: this.state.isFlattenGeoJsonEnabled,
+        flatten: this.state.isFlattenGeoJsonEnabled,
       },
     };
 
@@ -159,7 +204,8 @@ export default class ProjectExportsCreator extends React.Component {
         payload
       );
     }
-    // when call goes through make a call to createExport using the setting
+
+    // TODO when call goes through make a call to createExport using the setting
   }
 
   generateExportName() {
@@ -396,26 +442,37 @@ export default class ProjectExportsCreator extends React.Component {
             {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
 
             <div className='project-downloads__submit-row'>
-              <div>
+              <div className='project-downloads__defined-exports-selector'>
                 {this.state.definedExports.length >= 1 &&
-                  <label>
-                    <span className='project-downloads__title'>
-                      {t('Custom exports')}
-                    </span>
+                  <React.Fragment>
+                    <label>
+                      <span className='project-downloads__title'>
+                        {t('Custom exports')}
+                      </span>
 
-                    <Select
-                      value={this.state.selectedDefinedExport}
-                      options={this.state.definedExports}
-                      onChange={this.onAnyInputChange.bind(
-                        this,
-                        'selectedDefinedExport'
-                      )}
-                      className='kobo-select'
-                      classNamePrefix='kobo-select'
-                      menuPlacement='auto'
-                      placeholder={t('Select…')}
-                    />
-                  </label>
+                      <Select
+                        value={this.state.selectedDefinedExport}
+                        options={this.state.definedExports}
+                        onChange={this.onSelectedDefinedExportChange}
+                        className='kobo-select'
+                        classNamePrefix='kobo-select'
+                        menuPlacement='auto'
+                        placeholder={t('Select…')}
+                      />
+                    </label>
+
+                    {this.state.selectedDefinedExport &&
+                      <bem.KoboLightButton
+                        m={['red', 'icon-only']}
+                        onClick={this.deleteExportSetting.bind(
+                          this,
+                          this.state.selectedDefinedExport.data.uid
+                        )}
+                      >
+                        <i className='k-icon k-icon-trash'/>
+                      </bem.KoboLightButton>
+                    }
+                  </React.Fragment>
                 }
               </div>
 

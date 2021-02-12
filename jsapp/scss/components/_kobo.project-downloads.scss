@@ -135,8 +135,19 @@
     align-content: flex-end;
     margin-top: 20px;
 
-    > *:first-child:not(:only-child) {
+    .project-downloads__defined-exports-selector {
       width: 33%;
+      position: relative;
+
+      // this is the delete button
+      > .kobo-light-button {
+        position: absolute;
+        left: 100%;
+        margin-left: 5px;
+        bottom: 0;
+        height: 38px;
+        line-height: 38px;
+      }
     }
   }
 
