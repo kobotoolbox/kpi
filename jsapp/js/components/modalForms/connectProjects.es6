@@ -5,7 +5,6 @@ import Select from 'react-select';
 import ToggleSwitch from '../toggleSwitch';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
-import {stores} from 'js/stores';
 
 /*
  * Modal for uploading form media
@@ -16,7 +15,9 @@ class ConnectProjects extends React.Component {
     this.state = {
       isVirgin: true,
       isLoading: false,
-      isShared: false,
+      // `data_sharing` is an empty object if never enabled before
+      isShared: props.asset.data_sharing?.enabled || false,
+      attchedParent: null,
     };
 
     autoBind(this);
@@ -27,27 +28,47 @@ class ConnectProjects extends React.Component {
    */
 
   componentDidMount() {
-    actions.dataShare.getSharedData.completed.listen(this.onGetSharedDataCompleted);
-    actions.dataShare.enableDataSharing.completed.listen(this.onEnableDataSharingCompleted);
-    actions.dataShare.disableDataSharing.completed.listen(this.onDisableDataSharingCompleted);
+    actions.dataShare.getAttachedParent(this.props.asset.uid);
+
+    actions.dataShare.getAttachedParent.completed.listen(this.loadAttachedParent);
+    actions.dataShare.toggleDataSharing.completed.listen(this.onToggleDataSharingCompleted);
+    actions.resources.loadAsset.completed.listen(this.onGetAttachedParentCompleted);
   }
 
   /*
    * action listeners
    */
-  onGetSharedDataCompleted() {
-    // TODO
+
+  loadAttachedParent(response) {
+    actions.resources.loadAsset({url: response.results[0].parent});
   }
-  onEnableDataSharingCompleted() {
-    // TODO
+  onGetAttachedParentCompleted(response) {
+    this.setState({attchedParent: response});
   }
-  onDisableDataSharingCompleted() {
-    // TODO
+  onToggleDataSharingCompleted() {
+    this.setState({isShared: !this.state.isShared});
   }
+
+  onAssetSelect(selectedAsset) {
+    var data = JSON.stringify({
+      parent: selectedAsset.url,
+      fields: [],
+      filename: 'embed_xml', // TODO figure out how to set this external file
+    });
+    actions.dataShare.attachToParent(this.props.asset.uid, data);
+  }
+
   /*
    * Utilities
    */
+
   toggleSharingData() {
+    var data = JSON.stringify({
+      data_sharing: {
+        enabled: !this.state.isShared
+      }
+    });
+
     if (!this.state.isShared) {
       let dialog = alertify.dialog('confirm');
       let opts = {
@@ -55,9 +76,8 @@ class ConnectProjects extends React.Component {
         message: t('This will attach the full dataset from \"##ASSET_NAME##\" as a background XML file to this form. While not easily visbable, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if \"##ASSET_NAME##\" includes sensative data.').replaceAll('##ASSET_NAME##', this.props.asset.name),
         labels: {ok: t('Acknowledge and continue'), cancel: t('Cancel')},
         onok: (evt, value) => {
-          // TODO: set up api action depending on current shared status
+          actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
           dialog.destroy();
-          this.setState({isShared: !this.state.isShared});
         },
         oncancel: () => {
           dialog.destroy();
@@ -65,8 +85,12 @@ class ConnectProjects extends React.Component {
       };
       dialog.set(opts).show();
     } else {
-      this.setState({isShared: !this.state.isShared});
+      actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
     }
+  }
+
+  getSharingEnabledAssets() {
+    // TODO: need endpoint to get all assets with data sharing enabled
   }
 
   /*
@@ -105,11 +129,11 @@ class ConnectProjects extends React.Component {
   }
 
   render() {
-    const tempListForDisplay = [
-      'One of my forms',
-      'Made in 2021 or so',
-      'Happy New Year'
-    ];
+    const oneItemForNow = {
+      label: 'parent2',
+      url: 'http://kf.kobo.local:70/api/v2/assets/aPcvmj4FyxkB5tnJUr2Mf2/'
+    };
+
     return (
       <bem.FormModal__form className='project-settings project-settings--upload-file connect-projects'>
         <bem.FormModal__item m='data-sharing'>
@@ -136,21 +160,20 @@ class ConnectProjects extends React.Component {
           {/* stores env variable used as placeholder for now */}
           <Select
             placeholder={t('Select a different project to import data from')}
-            options={stores.session.environment.available_countries}
+            options={[oneItemForNow]}
+            onChange={this.onAssetSelect.bind(this)}
             className='kobo-select'
             classNamePrefix='kobo-select'
           />
-          <ul>
-            <label>{t('Imported')}</label>
-            {tempListForDisplay.map((item, n) => {
-              return(
-                <li key={n} className='imported-item'>
-                  <i class="k-icon k-icon-check"/>
-                  <span>{item}</span>
-                </li>
-              );
-            })}
-          </ul>
+          {this.state.attchedParent &&
+            <ul>
+              <label>{t('Imported')}</label>
+              <li className='imported-item'>
+                  <i className="k-icon k-icon-check"/>
+                <span>{this.state.attchedParent.name}</span>
+              </li>
+            </ul>
+          }
 
         </bem.FormModal__item>
       </bem.FormModal__form>

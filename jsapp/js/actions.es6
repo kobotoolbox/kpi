@@ -101,9 +101,9 @@ actions.media = Reflux.createActions({
 });
 
 actions.dataShare = Reflux.createActions({
-  enableDataSharing: {children: ['completed', 'failed']},
-  disableDataSharing: {children: ['completed', 'failed']},
-  getSharedData: {children: ['completed', 'failed']},
+  attachToParent: {children: ['completed', 'failed']},
+  getAttachedParent: {children: ['completed', 'failed']},
+  toggleDataSharing: {children: ['completed', 'failed']},
 });
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
@@ -186,20 +186,22 @@ actions.misc.getServerEnvironment.listen(function(){
 /*
  * TODO: #2767 Dynamic data sharing, match with implemented API
  */
-actions.dataShare.enableDataSharing.listen((uid) => {
-  dataInterface.enableDataSharing(uid)
-    .done(actions.dataShare.enableDataSharing.completed)
-    .fail(actions.dataShare.enableDataSharing.failed);
+actions.dataShare.attachToParent.listen((assetUid, data) => {
+  dataInterface.attachToParent(assetUid, data)
+    .done(actions.dataShare.attachToParent.completed)
+    .fail(actions.dataShare.attachToParent.failed);
 });
-actions.dataShare.disableDataSharing.listen((uid) => {
-  dataInterface.disableDataSharing(uid)
-    .done(actions.dataShare.disableDataSharing.completed)
-    .fail(actions.dataShare.disableDataSharing.failed);
+actions.dataShare.getAttachedParent.listen((assetUid) => {
+  dataInterface.getAttachedParent(assetUid)
+    .done((response) => {
+      actions.dataShare.getAttachedParent.completed(response);
+    })
+    .fail(actions.dataShare.getAttachedParent.failed);
 });
-actions.dataShare.getSharedData.listen(() => {
-  dataInterface.getSharedData()
-    .done(actions.dataShare.getSharedData.completed)
-    .fail(actions.dataShare.getSharedData.failed);
+actions.dataShare.toggleDataSharing.listen((uid, data) => {
+  dataInterface.toggleDataSharing(uid, data)
+    .done(actions.dataShare.toggleDataSharing.completed)
+    .fail(actions.dataShare.toggleDataSharing.failed);
 });
 
 actions.resources.createImport.listen((params, onCompleted, onFailed) => {

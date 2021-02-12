@@ -242,28 +242,26 @@ export var dataInterface;
     /*
      * TODO: #2767 Dynamic data sharing, match with implemented API
      */
-    enableDataSharing(assetUid) {
+    attachToParent(assetUid, data) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${assetUid}/SOME-NEW-ENDPOINT/`,
-        method: 'PATCH',
-        data: {
-          someNewBoolean: true
-        }
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'POST',
+        data: data,
+        contentType: 'application/json'
       });
     },
-    disableDataSharing(assetUid) {
+    getAttachedParent(assetUid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${assetUid}/SOME-NEW-ENDPOINT/`,
-        method: 'PATCH',
-        data: {
-          someNewBoolean: false
-        }
-      });
-    },
-    getSharedData() {
-      return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/SOME-NEW-ENDPOINT/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
         method: 'GET',
+      });
+    },
+    toggleDataSharing(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
+        method: 'PATCH',
+        data: data,
+        contentType: 'application/json'
       });
     },
 
