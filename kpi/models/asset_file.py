@@ -9,7 +9,10 @@ from private_storage.fields import PrivateFileField
 from rest_framework.reverse import reverse
 
 from kpi.fields import KpiUidField
-from kpi.interfaces.open_rosa import OpenRosaManifestInterface
+from kpi.interfaces import (
+    OpenRosaManifestInterface,
+    SyncBackendMediaInterface,
+)
 from kpi.utils.hash import get_hash
 
 
@@ -24,7 +27,9 @@ def upload_to(self, filename):
     return AssetFile.get_path(self.asset, self.file_type, filename)
 
 
-class AssetFile(OpenRosaManifestInterface, models.Model):
+class AssetFile(models.Model,
+                OpenRosaManifestInterface,
+                SyncBackendMediaInterface):
 
     # More to come!
     MAP_LAYER = 'map_layer'
@@ -62,8 +67,29 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
     date_deleted = models.DateTimeField(null=True, default=None)
     date_modified = models.DateTimeField(default=timezone.now)
 
-    def delete(self, using=None, keep_parents=False, force=False):
+    @property
+    def backend_data_value(self):
+        """
+        Implements `SyncBackendMediaInterface.backend_data_value()`
+        """
+        return (
+            self.metadata['redirect_url']
+            if self.is_remote_url
+            else self.filename
+        )
 
+    @property
+    def backend_uniqid(self):
+        """
+        Implements `SyncBackendMediaInterface.backend_uniqid()`
+        """
+        return (
+            self.metadata['filename']
+            if not self.is_remote_url
+            else self.metadata['redirect_url']
+        )
+
+    def delete(self, using=None, keep_parents=False, force=False):
         # Delete object and files on storage if `force` is True or file type
         # is anything else than 'form_media'
         if force or self.file_type != self.FORM_MEDIA:
@@ -72,13 +98,23 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
             return super().delete(using=using, keep_parents=keep_parents)
 
         # Otherwise, just flag the file as deleted.
-        self.deleted_at = timezone.now()
-        self.save(update_fields=['deleted_at'])
+        self.date_deleted = timezone.now()
+        self.save(update_fields=['date_deleted'])
+
+    @property
+    def deleted_at(self):
+        """
+        Implements:
+        - `SyncBackendMediaInterface.deleted_at()`
+        """
+        return self.date_deleted
 
     @property
     def filename(self):
         """
-        Implements `OpenRosaManifestInterface.filename()`
+        Implements:
+        - `OpenRosaManifestInterface.filename()`
+        - `SyncBackendMediaInterface.filename()`
         """
         if hasattr(self, '__filename'):
             return self.__filename
@@ -108,7 +144,9 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
     @property
     def hash(self):
         """
-        Implements `OpenRosaManifestInterface.hash()`
+        Implements:
+         - `OpenRosaManifestInterface.hash()`
+         - `SyncBackendMediaInterface.hash()`
         """
         if hasattr(self, '__hash'):
             return self.__hash
@@ -119,6 +157,9 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
 
     @property
     def is_remote_url(self):
+        """
+        Implements `SyncBackendMediaInterface.is_remote_url()`
+        """
         try:
             self.metadata['redirect_url']
         except KeyError:
@@ -127,23 +168,10 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
         return True
 
     @property
-    def kc_metadata_data_value(self):
-        return (
-            self.metadata['redirect_url']
-            if self.is_remote_url
-            else self.filename
-        )
-
-    @property
-    def kc_metadata_uniqid(self):
-        return (
-            self.metadata['filename']
-            if not self.is_remote_url
-            else self.metadata['redirect_url']
-        )
-
-    @property
     def mimetype(self):
+        """
+        Implements `SyncBackendMediaInterface.mimetype()`
+        """
         if hasattr(self, '__mimetype'):
             return self.__mimetype
 

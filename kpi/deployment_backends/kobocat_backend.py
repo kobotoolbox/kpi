@@ -25,6 +25,7 @@ from kpi.constants import (
     INSTANCE_FORMAT_TYPE_XML,
     PERM_FROM_KC_ONLY,
 )
+from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
@@ -818,11 +819,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         kc_filenames = kc_files.keys()
 
-        queryset = self.__get_metadata_queryset(file_type=file_type)
+        queryset = self._get_metadata_queryset(file_type=file_type)
 
         for obj in queryset:
 
-            uniq = obj.kc_metadata_uniqid
+            uniq = obj.backend_uniqid
 
             # File does not exist in KC
             if uniq not in kc_filenames:
@@ -998,19 +999,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Delete file in KPI if requested
         file_.delete(force=True)
-
-    def __get_metadata_queryset(
-        self, file_type: str
-    ) -> Union['django.db.models.QuerySet', list]:
-        if file_type == AssetFile.FORM_MEDIA:
-            # Order by `deleted_at` to process deleted files first in case
-            # two entries contain the same file but one is flagged as deleted
-            return self.asset.asset_files.filter(
-                file_type=AssetFile.FORM_MEDIA
-            ).order_by('deleted_at')
-        else:
-            queryset = PairedData.objects(self.asset).values()
-            return queryset
 
     def __get_server_from_identifier(self, identifier):
         parsed_identifier = urlparse(identifier)
@@ -1224,7 +1212,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             },
         }
 
-    def __save_kc_metadata(self, file_: Union[AssetFile, PairedData]):
+    def __save_kc_metadata(self, file_: SyncBackendMediaInterface):
         """
         Prepares request and data corresponding to the kind of media file
         (i.e. FileStorage or remote URL) to `POST` to KC through proxy.
@@ -1239,7 +1227,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         kwargs = {
             'data': {
-                'data_value': file_.kc_metadata_data_value,
+                'data_value': file_.backend_data_value,
                 'xform': self.xform_id,
                 'data_type': 'media',
                 'from_kpi': True,
@@ -1252,9 +1240,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if not file_.is_remote_url:
             kwargs['files'] = {
                 'data_file': (
-                    file_.metadata['filename'],
+                    file_.filename,
                     file_.content.file.read(),
-                    file_.metadata['mimetype'],
+                    file_.mimetype,
                 )
             }
 

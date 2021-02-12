@@ -10,10 +10,11 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import KpiUidField
+from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.utils.hash import get_hash
 
 
-class PairedData:
+class PairedData(SyncBackendMediaInterface):
 
     def __init__(
         self,
@@ -26,9 +27,9 @@ class PairedData:
     ):
         self.parent_uid = parent_uid
         self.asset = asset
-        self.filename = filename
+        self.__filename = filename
         self.fields = fields
-        self.deleted_at = None
+
         if not paired_data_uid:
             self.paired_data_uid = KpiUidField.generate_unique_id('pd')
         else:
@@ -42,7 +43,33 @@ class PairedData:
     def __str__(self):
         return f'<PairedData {self.paired_data_uid} ({self.filename})>'
 
+    @property
+    def backend_data_value(self):
+        """
+        Implements `SyncBackendMediaInterface.backend_data_value()`
+        """
+        return self.backend_uniqid
+
+    @property
+    def backend_uniqid(self):
+        """
+        Implements `SyncBackendMediaInterface.backend_uniqid()`
+        """
+        from kpi.urls.router_api_v2 import URL_NAMESPACE  # avoid circular imports # noqa
+        paired_data_url = reverse(
+            f'{URL_NAMESPACE}:paired-data-external',
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'paired_data_uid': self.paired_data_uid,
+                'format': 'xml'
+            },
+        )
+        return f'{settings.KOBOFORM_URL}{paired_data_url}'
+
     def delete(self, **kwargs):
+        """
+        Implements `SyncBackendMediaInterface.delete()`
+        """
         del self.asset.paired_data[self.parent_uid]
         self.asset.save(
             update_fields=['paired_data'],
@@ -50,9 +77,23 @@ class PairedData:
             create_version=False,
         )
 
+    @property
+    def deleted_at(self):
+        """
+        Implements `SyncBackendMediaInterface.deleted_at()`
+        """
+        return None
+
+    @property
+    def filename(self):
+        """
+        Implements `SyncBackendMediaInterface.filename()`
+        """
+        return self.__filename
+
     def generate_hash(self):
         self.__hash = get_hash(
-            f'{self.kc_metadata_uniqid}.{str(time.time())}'
+            f'{self.backend_uniqid}.{str(time.time())}'
         )
 
     def get_parent(self) -> Union['Asset', None]:
@@ -81,32 +122,24 @@ class PairedData:
         return parent_asset
 
     @property
-    def kc_metadata_data_value(self):
-        return self.kc_metadata_uniqid
-
-    @property
-    def kc_metadata_uniqid(self):
-        from kpi.urls.router_api_v2 import URL_NAMESPACE  # avoid circular imports # noqa
-        paired_data_url = reverse(
-            f'{URL_NAMESPACE}:paired-data-external',
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'paired_data_uid': self.paired_data_uid,
-                'format': 'xml'
-            },
-        )
-        return f'{settings.KOBOFORM_URL}{paired_data_url}'
-
-    @property
     def hash(self):
+        """
+        Implements `SyncBackendMediaInterface.hash()`
+        """
         return f'md5:{self.__hash}'
 
     @property
     def is_remote_url(self):
+        """
+        Implements `SyncBackendMediaInterface.is_remote_url()`
+        """
         return True
 
     @property
     def mimetype(self):
+        """
+        Implements `SyncBackendMediaInterface.mimetype()`
+        """
         return 'application/xml'
 
     @classmethod

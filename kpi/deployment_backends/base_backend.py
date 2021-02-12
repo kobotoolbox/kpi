@@ -1,12 +1,17 @@
 # coding: utf-8
 import json
+from typing import Union
 
 from bson import json_util
+from django.db.models.query import QuerySet
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
+from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
+from kpi.models.asset_file import AssetFile
+from kpi.models.paired_data import PairedData
 from kpi.utils.jsonbfield_helper import ReplaceValue
 
 
@@ -100,8 +105,10 @@ class BaseDeploymentBackend:
     def submission_count(self):
         return self._submission_count()
 
-    def sync_media_files(self, *args, **kwargs):
-        pass
+    def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
+        queryset = self._get_metadata_queryset(file_type=file_type)
+        for obj in queryset:
+            assert issubclass(obj.__class__, SyncBackendMediaInterface)
 
     def remove_from_kc_only_flag(self, *args, **kwargs):
         # TODO: This exists only to support KoBoCAT (see #1161) and should be
@@ -249,4 +256,13 @@ class BaseDeploymentBackend:
     def version_id(self):
         return self.asset.deployment_data.get('version', None)
 
-
+    def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
+        if file_type == AssetFile.FORM_MEDIA:
+            # Order by `date_deleted` to process deleted files first in case
+            # two entries contain the same file but one is flagged as deleted
+            return self.asset.asset_files.filter(
+                file_type=AssetFile.FORM_MEDIA
+            ).order_by('date_deleted')
+        else:
+            queryset = PairedData.objects(self.asset).values()
+            return queryset
