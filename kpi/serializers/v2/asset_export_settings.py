@@ -28,7 +28,7 @@ from kpi.models import Asset, AssetExportSettings
 class AssetExportSettingsSerializer(serializers.ModelSerializer):
     uid = serializers.ReadOnlyField()
     url = serializers.SerializerMethodField()
-    name = serializers.CharField()
+    name = serializers.CharField(allow_blank=True)
     date_modified = serializers.CharField(read_only=True)
     export_settings = WritableJSONField()
 

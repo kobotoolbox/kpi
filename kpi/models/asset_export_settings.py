@@ -11,7 +11,7 @@ class AssetExportSettings(models.Model):
     asset = models.ForeignKey('Asset', related_name='asset_export_settings',
                               on_delete=models.CASCADE)
     date_modified = models.DateTimeField()
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, blank=True, default='')
     export_settings = JSONBField(null=True)
 
     def save(self, *args, **kwargs):
@@ -20,6 +20,7 @@ class AssetExportSettings(models.Model):
 
     class Meta:
         ordering = ['-date_modified']
+        unique_together = ('asset', 'name')
 
     def __str__(self):
         return f'{self.name} {self.uid}'
