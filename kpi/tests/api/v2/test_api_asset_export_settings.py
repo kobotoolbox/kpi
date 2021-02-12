@@ -130,7 +130,7 @@ class AssetExportSettingsApiTest(BaseTestCase):
         url = self.__get_detail_url(data['uid'])
 
         new_name = 'bar'
-        new_export_type = 'xlsx'
+        new_export_type = 'xls'
         updated_export_settings = {
             **self.valid_export_settings,
             'type': new_export_type,
