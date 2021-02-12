@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='assetfile',
-            name='deleted_at',
+            name='date_deleted',
             field=models.DateTimeField(null=True, default=None),
         ),
     ]

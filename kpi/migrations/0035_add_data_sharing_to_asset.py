@@ -8,7 +8,7 @@ import kpi.models.import_export_task
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0034_add_delete_at_field_to_asset_files'),
+        ('kpi', '0034_add_date_deleted_field_to_asset_files'),
     ]
 
     operations = [
