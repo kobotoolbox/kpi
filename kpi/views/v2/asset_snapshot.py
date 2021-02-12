@@ -80,7 +80,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         snapshot = self.get_object()
         asset = snapshot.asset
         files = asset.asset_files.filter(file_type=AssetFile.FORM_MEDIA,
-                                         deleted_at__isnull=True)
+                                         date_deleted__isnull=True)
         context = {'request': request}
         serializer = ManifestSerializer(files, many=True, context=context)
 

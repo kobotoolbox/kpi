@@ -851,7 +851,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # one is flagged as deleted
         asset_files = self.asset.asset_files.filter(
             file_type=AssetFile.FORM_MEDIA
-        ).order_by('deleted_at')
+        ).order_by('date_deleted')
 
         url = self.external_to_internal_url(self.backend_response['url'])
         response = self._kobocat_request('GET', url)
@@ -875,7 +875,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
             # File does not exist in KC
             if uniq not in kc_filenames:
-                if file.deleted_at is None:
+                if file.date_deleted is None:
                     # New file
                     _upload_to_kc(file)
                 else:
@@ -886,7 +886,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # Existing file
             if uniq in kc_filenames:
                 kc_file = kc_files[uniq]
-                if file.deleted_at is None:
+                if file.date_deleted is None:
                     # If md5 differs, we need to re-upload it.
                     if file.metadata.get('hash') != kc_file['md5']:
                         _delete_kc_file(kc_file)

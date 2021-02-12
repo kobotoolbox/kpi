@@ -151,7 +151,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
             asset = getattr(view, 'asset', self.context.get('asset'))
             # File name must be unique
             if AssetFile.objects.filter(asset=asset,
-                                        deleted_at__isnull=True,
+                                        date_deleted__isnull=True,
                                         metadata__filename=filename).exists():
                 error = self.__format_error(field_name,
                                             _('File already exists'))
