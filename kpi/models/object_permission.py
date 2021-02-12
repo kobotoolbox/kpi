@@ -1,6 +1,5 @@
 # coding: utf-8
 import copy
-import re
 from collections import defaultdict
 from typing import Union
 
@@ -8,7 +7,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
