@@ -134,7 +134,9 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         file_type = self.request.GET.get('file_type')
         if file_type is not None:
             _queryset = _queryset.filter(file_type=file_type)
-        _queryset = _queryset.filter(date_deleted__isnull=True)
+        _queryset = _queryset.filter(date_deleted__isnull=True).exclude(
+            file_type=AssetFile.PAIRED_DATA
+        )
         return _queryset
 
     def perform_create(self, serializer):

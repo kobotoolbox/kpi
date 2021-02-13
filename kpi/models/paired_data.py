@@ -89,7 +89,13 @@ class PairedData(SyncBackendMediaInterface):
         """
         Implements `SyncBackendMediaInterface.filename()`
         """
+        # Could be easier to just use a public attribute, but (IMHO) the
+        # `@property` makes the implementation of the interface more obvious
         return self.__filename
+
+    @filename.setter
+    def filename(self, f):
+        self.__filename = f
 
     def generate_hash(self):
         self.__hash = get_hash(
@@ -181,5 +187,5 @@ class PairedData(SyncBackendMediaInterface):
             setattr(self, key, value)
 
         self.__hash = get_hash(
-            f'{self.kc_metadata_uniqid}.{str(time.time())}'
+            f'{self.backend_uniqid}.{str(time.time())}'
         )
