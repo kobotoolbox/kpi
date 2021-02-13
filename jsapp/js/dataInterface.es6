@@ -229,7 +229,7 @@ export var dataInterface;
     getFormMedia (uid) {
       return $ajax({
         method: 'GET',
-        url: `${ROOT_URL}/api/v2/assets/${uid}/files.json/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/files.json?file_type=form_media`,
       });
     },
     deleteFormMedia(url) {
