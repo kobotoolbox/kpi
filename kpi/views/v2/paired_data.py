@@ -90,8 +90,8 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >       }
     >
 
-    * `fields`: Optional. List of fields of parent asset represented by their XPath (Hierarchy group must be kept)
-    * `filename`: Must be unique among all asset files. Only accept letters, numbers and '-'
+    * `fields`: Optional. List of questions of parent asset represented by their XPath I.e., Hierarchy group must be kept.
+    * `filename`: Must be unique among all asset files. Only accept letters, numbers and '-'.
 
     ### Retrieve a project
 

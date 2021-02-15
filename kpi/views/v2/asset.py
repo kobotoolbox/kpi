@@ -237,6 +237,43 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >       curl -X PUT https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
 
 
+    ### Data sharing
+    Enable data sharing for the current asset
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v2/assets/{uid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/
+    >
+    > **Payload**
+    >
+    >        {
+    >           "data_sharing": {
+    >              "enabled": true,
+    >              "fields": []"
+    >           }
+    >        }
+    >
+
+    * `fields`: Optional. List of questions of asset represented by their XPath. I.e., Hierarchy group must be kept.
+
+    >
+    > Response
+    >
+    >       HTTP 200 Ok
+    >        {
+    >           ...
+    >           "data_sharing": {
+    >              "enabled": true,
+    >              "fields": []"
+    >           }
+    >        }
+    >
+
+
     ### CURRENT ENDPOINT
     """
 
