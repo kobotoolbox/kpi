@@ -239,15 +239,21 @@ class FormMedia extends React.Component {
                   {this.renderLoading(t('loading media'))}
                 </li>
               }
-              {this.state.uploadedAssets !== null && this.state.uploadedAssets.map((item, n) => {
-                return (
-                  <li key={n} className='form-media__list-item'>
-                    {this.renderIcon(item)}
-                    {this.renderFileName(item)}
-                    <i className='k-icon-trash' onClick={() => this.onDeleteMedia(item.url)}/>
-                  </li>
-                );
-              })}
+              {(this.state.uploadedAssets !== null &&
+                  this.state.uploadedAssets !== undefined) &&
+                  this.state.uploadedAssets.map((item, n) => {
+                    return (
+                      <li key={n} className="form-media__list-item">
+                        {this.renderIcon(item)}
+                        {this.renderFileName(item)}
+                        <i
+                          className="k-icon-trash"
+                          onClick={() => this.onDeleteMedia(item.url)}
+                        />
+                      </li>
+                    );
+                  })
+              }
               {!this.state.isVirgin && (this.state.uploadedAssets === null || this.state.uploadedAssets.length == 0) &&
                 <li className='form-media__default-item form-media__list-item'>
                     {t('No files uploaded yet')}
