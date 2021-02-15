@@ -95,6 +95,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     status = serializers.SerializerMethodField()
     access_types = serializers.SerializerMethodField()
     data_sharing = WritableJSONField(required=False)
+    paired_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -144,6 +145,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'status',
                   'access_types',
                   'data_sharing',
+                  'paired_data',
                   )
         extra_kwargs = {
             'parent': {
@@ -364,6 +366,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             order_by('user_id', 'permission__codename')
 
         return self._get_status(perm_assignments)
+
+    def get_paired_data(self, asset):
+        request = self.context.get('request')
+        return reverse('paired-data-list', args=(asset.uid,), request=request)
 
     def get_permissions(self, obj):
         context = self.context
