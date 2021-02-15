@@ -319,6 +319,7 @@ export var dataInterface;
         url: `${ROOT_URL}/exports/`,
         data: {
           q: `source:${assetUid}`,
+          ordering: '-date_created',
           // TODO: handle pagination of this in future, for now we get "all"
           limit: 9999,
         },

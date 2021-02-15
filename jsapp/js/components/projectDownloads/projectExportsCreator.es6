@@ -51,16 +51,10 @@ export default class ProjectExportsCreator extends React.Component {
 
     this.unlisteners = [];
 
-    // preselect all rows
-    if (this.props.asset?.content?.survey) {
-      this.props.asset.content.survey.forEach((row) => {
-        this.state.selectedRows.add(assetUtils.getRowName(row));
-        this.state.selectableRowsCount++;
-      });
-      Object.keys(ADDITIONAL_SUBMISSION_PROPS).forEach((submissionProp) => {
-        this.state.selectedRows.add(submissionProp);
-        this.state.selectableRowsCount++;
-      });
+    const allSelectableRows = this.getAllSelectableRows();
+    if (allSelectableRows) {
+      this.state.selectedRows = new Set(allSelectableRows);
+      this.state.selectableRowsCount = this.state.selectedRows.size;
     }
 
     autoBind(this);
@@ -82,31 +76,45 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   onGetExportSettings(response) {
-    if (!this.state.isComponentReady && response.count >= 1) {
-      // load first export settings on initial list load
-      this.applyExportSettingToState(response.results[0]);
-    }
-
     // we need to prepare the results to be displayed in Select
     const definedExports = [];
     response.results.forEach((result, index) => {
       definedExports.push({
         value: index,
-        label: result.name,
+        label: result.name ? result.name : t('Latest export'),
         data: result,
       });
     });
 
     this.setState({
-      isComponentReady: true,
       isUpdatingDefinedExportsList: false,
       definedExports: definedExports,
     });
+
+    if (!this.state.isComponentReady && response.count >= 1) {
+      // load first export settings on initial list load
+      this.applyExportSettingToState(response.results[0]);
+    }
+
+    this.setState({isComponentReady: true});
   }
 
   onDeleteExportSetting() {
     this.setState({selectedDefinedExport: null});
     this.fetchExportSettings();
+  }
+
+  getAllSelectableRows() {
+    const allRows = new Set();
+    if (this.props.asset?.content?.survey) {
+      this.props.asset.content.survey.forEach((row) => {
+        allRows.add(assetUtils.getRowName(row));
+      });
+      Object.keys(ADDITIONAL_SUBMISSION_PROPS).forEach((submissionProp) => {
+        allRows.add(submissionProp);
+      });
+    }
+    return allRows;
   }
 
   /**
@@ -138,7 +146,6 @@ export default class ProjectExportsCreator extends React.Component {
 
   onSelectedDefinedExportChange(newDefinedExport) {
     this.applyExportSettingToState(newDefinedExport.data);
-    this.setState({selectedDefinedExport: newDefinedExport});
   }
 
   onAnyInputChange(statePropName, newValue) {
@@ -180,6 +187,19 @@ export default class ProjectExportsCreator extends React.Component {
       isFlattenGeoJsonEnabled: data.export_settings.flatten,
       selectedRows: new Set(data.export_settings.fields),
     };
+
+    // if all rows are selected then fields will be empty, so we need to select all checkboxes manually
+    if (newStateObj.selectedRows.size === 0) {
+      newStateObj.selectedRows = new Set(this.getAllSelectableRows());
+    }
+
+    // select existing item from the dropdown
+    this.state.definedExports.forEach((definedExport) => {
+      if (definedExport.data.name === data.name) {
+        newStateObj.selectedDefinedExport = definedExport;
+      }
+    });
+
     this.setState(newStateObj);
   }
 

@@ -12,6 +12,9 @@ export const EXPORT_TYPES = Object.freeze({
 
 export const EXPORT_FORMATS = Object.freeze({
   _default: {value: '_default', label: t('Labels')},
+  // Exports previously used `xml` (no underscore) for this, which works so long
+  // as the form has no language called `xml`. We shouldn't bank on that:
+  // https://en.wikipedia.org/wiki/Malaysian_Sign_Language
   _xml: {value: '_xml', label: t('XML values and headers')},
 });
 

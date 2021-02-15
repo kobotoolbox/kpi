@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
-import {formatTimeDate} from 'js/utils';
+import {formatTime} from 'js/utils';
 import {renderLoading} from 'js/components/modalForms/modalHelpers.es6';
 import {
   EXPORT_TYPES,
@@ -35,7 +35,7 @@ export default class ProjectExportsList extends React.Component {
       actions.exports.createExport.completed.listen(this.onCreateExport),
       actions.exports.deleteExport.completed.listen(this.onDeleteExport),
       actions.exports.getExport.completed.listen(this.onGetExport),
-    )
+    );
     this.fetchExports();
   }
 
@@ -45,6 +45,10 @@ export default class ProjectExportsList extends React.Component {
   }
 
   onGetExports(response) {
+    // TODO for now exports endpoint doesn't allow `ordering` parameter, and the
+    // results are oldest first, so:
+    response.results.reverse();
+
     response.results.forEach((exportData) => {
       this.prepareFetchInterval(exportData.uid, exportData.status);
     });
@@ -137,7 +141,7 @@ export default class ProjectExportsList extends React.Component {
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          {formatTimeDate(exportData.date_created)}
+          {formatTime(exportData.date_created)}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
