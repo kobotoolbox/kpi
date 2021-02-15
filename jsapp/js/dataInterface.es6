@@ -256,6 +256,12 @@ export var dataInterface;
         method: 'GET',
       });
     },
+    getSharingEnabledAssets() {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/?q=data_sharing__enabled:True`,
+        method: 'GET',
+      });
+    },
     toggleDataSharing(assetUid, data) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,

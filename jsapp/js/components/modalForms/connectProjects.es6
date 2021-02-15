@@ -20,6 +20,7 @@ class ConnectProjects extends React.Component {
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
       attachedParent: null,
+      sharingEnabledAssets: null,
     };
 
     autoBind(this);
@@ -31,7 +32,9 @@ class ConnectProjects extends React.Component {
 
   componentDidMount() {
     actions.dataShare.getAttachedParent(this.props.asset.uid);
+    actions.dataShare.getSharingEnabledAssets();
 
+    actions.dataShare.getSharingEnabledAssets.completed.listen(this.onGetSharingEnabledAssetsCompleted);
     actions.dataShare.attachToParent.completed.listen(this.onAttachToParentCompleted);
     actions.dataShare.getAttachedParent.completed.listen(this.onGetAttachedParentCompleted);
     actions.dataShare.toggleDataSharing.completed.listen(this.onToggleDataSharingCompleted);
@@ -46,6 +49,9 @@ class ConnectProjects extends React.Component {
   }
   onGetAttachedParentCompleted(response) {
     this.setState({attachedParent: response});
+  }
+  onGetSharingEnabledAssetsCompleted(response) {
+    this.setState({sharingEnabledAssets: response});
   }
   onToggleDataSharingCompleted() {
     this.setState({isShared: !this.state.isShared});
@@ -147,10 +153,7 @@ class ConnectProjects extends React.Component {
   }
 
   render() {
-    const oneItemForNow = {
-      label: 'parent1',
-      url: 'http://kf.kobo.local:70/api/v2/assets/ad9QdptBQZpNaQUwDW7FvL/'
-    };
+    const sharingEnabledAssets = this.state.sharingEnabledAssets?.results;
 
     return (
       <bem.FormModal__form className='project-settings project-settings--upload-file connect-projects'>
@@ -176,13 +179,17 @@ class ConnectProjects extends React.Component {
             {t('.')}
           </p>
           {/* stores env variable used as placeholder for now */}
-          <Select
-            placeholder={t('Select a different project to import data from')}
-            options={[oneItemForNow]}
-            onChange={this.onAssetSelect.bind(this)}
-            className='kobo-select'
-            classNamePrefix='kobo-select'
-          />
+          {sharingEnabledAssets &&
+            <Select
+              placeholder={t('Select a different project to import data from')}
+              options={sharingEnabledAssets}
+              getOptionLabel={option => option.name}
+              getOptionValue={option => option.url}
+              onChange={this.onAssetSelect.bind(this)}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+            />
+          }
           {this.state.attachedParent &&
             <ul>
               <label>{t('Imported')}</label>

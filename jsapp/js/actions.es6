@@ -103,6 +103,7 @@ actions.media = Reflux.createActions({
 actions.dataShare = Reflux.createActions({
   attachToParent: {children: ['completed', 'failed']},
   getAttachedParent: {children: ['completed', 'failed']},
+  getSharingEnabledAssets: {children: ['completed', 'failed']},
   toggleDataSharing: {children: ['completed', 'failed']},
 });
 
@@ -208,7 +209,6 @@ actions.dataShare.attachToParent.listen((assetUid, data) => {
     })
 });
 actions.dataShare.attachToParent.failed.listen((response) => {
-  console.dir(response);
   alertify.error(
     response?.responseJSON.parent[0] ||
     t('Failed to connect to external project')
@@ -226,6 +226,17 @@ actions.dataShare.getAttachedParent.listen((assetUid) => {
       }
     })
     .fail(actions.dataShare.getAttachedParent.failed);
+});
+
+actions.dataShare.getSharingEnabledAssets.listen(() => {
+  dataInterface.getSharingEnabledAssets()
+    .done((response) => {
+      actions.dataShare.getSharingEnabledAssets.completed(response);
+    })
+    .fail(actions.dataShare.getSharingEnabledAssets.failed);
+});
+actions.dataShare.getSharingEnabledAssets.failed.listen((response) => {
+  alertify.error(t('Failed to retrieve sharing enabled assets'));
 });
 
 actions.dataShare.toggleDataSharing.listen((uid, data) => {
