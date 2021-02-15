@@ -26,6 +26,142 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
                         NestedViewSetMixin,
                         viewsets.ModelViewSet):
     """
+    ## List of paired project endpoints
+
+    ### Retrieve all paired projects
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/
+
+    > Response
+    >
+    >       HTTP 200 OK
+    >       {
+    >           "count": 1,
+    >           "next": null,
+    >           "previous": null,
+    >           "results": [
+    >               {
+    >                   "parent": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
+    >                   "fields": [],
+    >                   "filename": "external-data.xml",
+    >                   "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
+    >               }
+    >           ]
+    >       }
+    >
+
+    The endpoint is paginated. Accept these parameters:
+    - `offset`: The initial index from which to return the results
+    - `limit`: Number of results to return per page
+
+    ### Link a project
+
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/
+
+    > **Payload**
+    >
+    >        {
+    >           "parent": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
+    >           "filename": "external-data.xml",
+    >           "fields": []",
+    >        }
+    >
+    >
+    > Response
+    >
+    >       HTTP 201 Created
+    >       {
+    >           "parent": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
+    >           "fields": [],
+    >           "filename": "external-data.xml",
+    >           "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
+    >       }
+    >
+
+    * `fields`: Optional. List of fields of parent asset represented by their XPath (Hierarchy group must be kept)
+    * `filename`: Must be unique among all asset files. Only accept letters, numbers and '-'
+
+    ### Retrieve a project
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/{paired_data_uid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/
+    >
+    > Response
+    >
+    >       HTTP 200 Ok
+    >       {
+    >           "parent": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
+    >           "fields": [],
+    >           "filename": "external-data.xml",
+    >           "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
+    >       }
+    >
+
+    ### Update a project
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/{paired_data_uid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/
+    >
+    > **Payload**
+    >
+    >        {
+    >           "filename": "data-external.xml",
+    >           "fields": ['group/question_1']",
+    >        }
+    >
+
+    _Notes: `parent` cannot be changed_
+
+    > Response
+    >
+    >       HTTP 200 Ok
+    >       {
+    >           "parent": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
+    >           "fields": ['group/question_1'],
+    >           "filename": "data-external.xml",
+    >           "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
+    >       }
+    >
+
+    ### Delete a project
+
+    <pre class="prettyprint">
+    <b>DELETE</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/{paired_data_uid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/
+    >
+    > Response
+    >
+    >       HTTP 204 No Content
+    >
+    >
+
+
     ### CURRENT ENDPOINT
     """
 
