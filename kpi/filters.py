@@ -4,7 +4,17 @@ import re
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from django.db.models import Case, Count, F, IntegerField, Q, Value, When
+from django.db.models import (
+    Case,
+    Count,
+    F,
+    IntegerField,
+    Q,
+    Value,
+    When,
+    TextField,
+)
+from django.db.models.functions import Cast
 from django.db.models.query import QuerySet
 from rest_framework import filters
 from rest_framework.request import Request
@@ -21,7 +31,8 @@ from kpi.constants import (
 from kpi.exceptions import SearchQueryTooShortException
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
-from .models import Asset, ObjectPermission
+from kpi.model_utils import remove_string_prefix
+from .models import Asset, ObjectPermission, ExportTask
 from .models.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
@@ -76,6 +87,54 @@ class AssetOrderingFilter(filters.OrderingFilter):
             return queryset.order_by(*ordering)
 
         return queryset
+
+
+class ExportObjectPermissionsFilter:
+    def filter_queryset(self, request, queryset, view):
+        if request.user.is_anonymous:
+            return ExportTask.objects.none()
+
+        return ExportTask.objects.filter(user=request.user)
+
+
+class ExportObjectFilter:
+
+    def filter_queryset(self, request, queryset, view):
+        # Ultra-basic filtering by:
+        # * source URL or UID if `q=source:[URL|UID]` was provided;
+        # * comma-separated list of `ExportTask` UIDs if
+        #   `q=uid__in:[UID],[UID],...` was provided
+        q = request.query_params.get('q', False)
+        if not q:
+            # No filter requested
+            return queryset
+        if q.startswith('source:'):
+            q = remove_string_prefix(q, 'source:')
+            # Crude, but `data__source` is a URL. Cast `data__source` to a
+            # `TextField` to avoid the special behavior of `__contains` for
+            # `JSONField`s. See
+            # https://docs.djangoproject.com/en/2.2/ref/contrib/postgres/fields/#std:fieldlookup-hstorefield.contains
+            queryset = queryset.annotate(
+                source_str=Cast('data__source', output_field=TextField())
+            ).filter(source_str__contains=q)
+        elif q.startswith('uid__in:'):
+            q = remove_string_prefix(q, 'uid__in:')
+            uids = [uid.strip() for uid in q.split(',')]
+            queryset = queryset.filter(uid__in=uids)
+        else:
+            # Filter requested that we don't understand; make it obvious by
+            # returning nothing
+            return ExportTask.objects.none()
+        return queryset
+
+
+class ExportObjectOrderingFilter(filters.OrderingFilter):
+    def filter_queryset(self, request, queryset, view):
+        ordering = self.get_ordering(request, queryset, view)
+        if ordering:
+            return queryset.order_by(*ordering)
+
+        return queryset.order_by('-date_created')
 
 
 class KpiObjectPermissionsFilter:
