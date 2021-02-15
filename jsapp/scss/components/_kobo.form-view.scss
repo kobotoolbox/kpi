@@ -505,24 +505,6 @@
   }
 }
 
-@keyframes processing {
-  0% {
-    opacity: 1;
-  }
-
-  25% {
-    opacity: 0.6;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
 .form-view__group {
   .dropzone {
     display: inline;
@@ -581,9 +563,7 @@
       animation: recent 5s 1;
     }
 
-    .animate-processing {
-      animation: processing 1.5s infinite;
-    }
+
   }
 
   .form-view__group--deployments {

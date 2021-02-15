@@ -29,7 +29,8 @@ export default class ProjectExportsCreator extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isVirgin: true,
+      isComponentReady: false,
+      isPending: false, // is either saving setting or creating export
       selectedExportType: EXPORT_TYPES.xls,
       selectedExportFormat: EXPORT_FORMATS._default,
       groupSeparator: '/',
@@ -42,8 +43,10 @@ export default class ProjectExportsCreator extends React.Component {
       isCustomSelectionEnabled: false,
       isFlattenGeoJsonEnabled: true,
       selectedRows: new Set(),
+      selectableRowsCount: 0,
       selectedDefinedExport: null,
       definedExports: [],
+      isUpdatingDefinedExportsList: false,
     };
 
     this.unlisteners = [];
@@ -52,9 +55,11 @@ export default class ProjectExportsCreator extends React.Component {
     if (this.props.asset?.content?.survey) {
       this.props.asset.content.survey.forEach((row) => {
         this.state.selectedRows.add(assetUtils.getRowName(row));
+        this.state.selectableRowsCount++;
       });
       Object.keys(ADDITIONAL_SUBMISSION_PROPS).forEach((submissionProp) => {
         this.state.selectedRows.add(submissionProp);
+        this.state.selectableRowsCount++;
       });
     }
 
@@ -64,9 +69,8 @@ export default class ProjectExportsCreator extends React.Component {
   componentDidMount() {
     this.unlisteners.push(
       actions.exports.getExportSettings.completed.listen(this.onGetExportSettings),
-      actions.exports.getExportSetting.completed.listen(this.onGetExportSetting),
-      actions.exports.updateExportSetting.completed.listen(this.onUpdateExportSetting),
-      actions.exports.createExportSetting.completed.listen(this.onCreateExportSetting),
+      actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings),
+      actions.exports.createExportSetting.completed.listen(this.fetchExportSettings),
       actions.exports.deleteExportSetting.completed.listen(this.onDeleteExportSetting),
     );
 
@@ -78,11 +82,10 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   onGetExportSettings(response) {
-    if (this.state.isVirgin && response.count >= 1) {
-      // TODO load latest saved
+    if (!this.state.isComponentReady && response.count >= 1) {
+      // load first export settings on initial list load
       this.applyExportSettingToState(response.results[0]);
     }
-    console.log('onGetExportSettings', response);
 
     // we need to prepare the results to be displayed in Select
     const definedExports = [];
@@ -95,31 +98,37 @@ export default class ProjectExportsCreator extends React.Component {
     });
 
     this.setState({
-      isVirgin: false,
+      isComponentReady: true,
+      isUpdatingDefinedExportsList: false,
       definedExports: definedExports,
     });
   }
 
-  onGetExportSetting(response) {
-    console.log('onGetExportSetting', response);
-  }
-
-  onUpdateExportSetting(response) {
-    console.log('onUpdateExportSetting', response);
-  }
-
-  onCreateExportSetting(response) {
-    console.log('onCreateExportSetting', response);
-    this.fetchExportSettings();
-  }
-
-  onDeleteExportSetting(response) {
-    console.log('onDeleteExportSetting', response);
+  onDeleteExportSetting() {
     this.setState({selectedDefinedExport: null});
     this.fetchExportSettings();
   }
 
+  /**
+   * Used when update/create export settings call goes through to make a next
+   * call to create an export from this settings.
+   * We did not want to make export from every update/create response to make
+   * sure the export was actually wanted.
+   */
+  handleScheduledExport(response) {
+    if (typeof this.cancelScheduledExport === 'function') {
+      this.cancelScheduledExport();
+    }
+
+    this.setState({isPending: true});
+
+    const exportParams = response.export_settings;
+    exportParams.source = this.props.asset.url;
+    actions.exports.createExport(exportParams);
+  }
+
   fetchExportSettings() {
+    this.setState({isUpdatingDefinedExportsList: true});
     actions.exports.getExportSettings(this.props.asset.uid);
   }
 
@@ -129,7 +138,6 @@ export default class ProjectExportsCreator extends React.Component {
 
   onSelectedDefinedExportChange(newDefinedExport) {
     this.applyExportSettingToState(newDefinedExport.data);
-
     this.setState({selectedDefinedExport: newDefinedExport});
   }
 
@@ -155,13 +163,28 @@ export default class ProjectExportsCreator extends React.Component {
     this.setState({isAdvancedViewVisible: !this.state.isAdvancedViewVisible});
   }
 
-  applyExportSettingToState(exportSettingData) {
-    console.log('applyExportSettingToState', exportSettingData);
+  applyExportSettingToState(data) {
+    const newStateObj = {
+      selectedExportType: EXPORT_TYPES[data.export_settings.type],
+      selectedExportFormat: EXPORT_FORMATS[data.export_settings.lang],
+      groupSeparator: data.export_settings.group_sep,
+      selectedExportMultiple: EXPORT_MULTIPLE_OPTIONS[data.export_settings.multiple_select],
+      // FYI Backend keeps booleans as strings
+      isIncludeGroupsEnabled: Boolean(data.export_settings.hierarchy_in_labels),
+      isIncludeAllVersionsEnabled: Boolean(data.export_settings.fields_from_all_versions),
+      // check whether a custom name was given
+      isSaveCustomExportEnabled: typeof data.name === 'string' && data.name.length >= 1,
+      customExportName: data.name,
+      // Select custom export toggle if not all rows are selected
+      isCustomSelectionEnabled: this.state.selectableRowsCount !== data.export_settings.fields.length,
+      isFlattenGeoJsonEnabled: data.export_settings.flatten,
+      selectedRows: new Set(data.export_settings.fields),
+    };
+    this.setState(newStateObj);
   }
 
   onSubmit(evt) {
     evt.preventDefault();
-    console.log(this.state);
 
     const payload = {
       name: '',
@@ -192,20 +215,33 @@ export default class ProjectExportsCreator extends React.Component {
       return definedExport.name === payload.name;
     });
 
+    this.setState({isPending: true});
+
+    if (typeof this.cancelScheduledExport === 'function') {
+      this.cancelScheduledExport();
+    }
+
+    // TODO if someone selected a defined export and doesn't change it in any way
+    // we don't need to save it, we just need to schedule export
+
     if (foundDefinedExport) {
+      this.cancelScheduledExport = actions.exports.updateExportSetting.completed.listen(
+        this.handleScheduledExport
+      );
       actions.exports.updateExportSetting(
         this.props.asset.uid,
         foundDefinedExport.uid,
-        payload
+        payload,
       );
     } else {
+      this.cancelScheduledExport = actions.exports.createExportSetting.completed.listen(
+        this.handleScheduledExport
+      );
       actions.exports.createExportSetting(
         this.props.asset.uid,
-        payload
+        payload,
       );
     }
-
-    // TODO when call goes through make a call to createExport using the setting
   }
 
   generateExportName() {
@@ -371,7 +407,7 @@ export default class ProjectExportsCreator extends React.Component {
     );
 
     let formClassNames = ['exports-creator'];
-    if (this.state.isVirgin) {
+    if (!this.state.isComponentReady) {
       formClassNames.push('exports-creator--loading');
     }
 
@@ -455,6 +491,7 @@ export default class ProjectExportsCreator extends React.Component {
                       </span>
 
                       <Select
+                        isLoading={this.state.isUpdatingDefinedExportsList}
                         value={this.state.selectedDefinedExport}
                         options={this.state.definedExports}
                         onChange={this.onSelectedDefinedExportChange}

@@ -7,6 +7,7 @@ import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 
 const exportsActions = Reflux.createActions({
+  getExport: {children: ['completed', 'failed']},
   getExports: {children: ['completed', 'failed']},
   createExport: {children: ['completed', 'failed']},
   deleteExport: {children: ['completed', 'failed']},
@@ -23,8 +24,19 @@ exportsActions.getExports.listen((assetUid) => {
     .fail(exportsActions.getExports.failed);
 });
 
+exportsActions.getExport.listen((assetUid) => {
+  dataInterface.getAssetExport(assetUid)
+    .done(exportsActions.getExport.completed)
+    .fail(exportsActions.getExport.failed);
+});
+
+/**
+ * @param {object} data
+ * @param {string} data.source - asset uid
+ * …and the rest of parameters should match export_settings
+ */
 exportsActions.createExport.listen((data) => {
-  dataInterface.createExport(data)
+  dataInterface.createAssetExport(data)
     .done(exportsActions.createExport.completed)
     .fail(exportsActions.createExport.failed);
 });

@@ -313,40 +313,45 @@ export var dataInterface;
         return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/?limit=${DEFAULT_PAGE_SIZE}`);
       }
     },
-    /**
-     * @param {object} data
-     * @param {string} [data.source]
-     * @param {string} [data.type]
-     * @param {boolean} [data.fields_from_all_versions]
-     * @param {string} [data.lang]
-     * @param {boolean} [data.hierarchy_in_labels]
-     * @param {string} [data.group_sep]
-     */
-    createExport (data) {
-      return $ajax({
-        url: `${ROOT_URL}/exports/`,
-        method: 'POST',
-        data: data
-      });
-    },
-    getAssetExports (uid) {
+
+    getAssetExports(assetUid) {
       return $ajax({
         url: `${ROOT_URL}/exports/`,
         data: {
-          q: `source:${uid}`
-        }
+          q: `source:${assetUid}`,
+          // TODO: handle pagination of this in future, for now we get "all"
+          limit: 9999,
+        },
       });
     },
-    deleteAssetExport (euid) {
+
+    createAssetExport(data) {
       return $ajax({
-        url: `${ROOT_URL}/exports/${euid}/`,
-        method: 'DELETE'
+        url: `${ROOT_URL}/exports/`,
+        method: 'POST',
+        data: data,
+      });
+    },
+
+    getAssetExport(exportUid) {
+      return $ajax({
+        url: `${ROOT_URL}/exports/${exportUid}/`,
+        method: 'GET',
+      });
+    },
+
+    deleteAssetExport(exportUid) {
+      return $ajax({
+        url: `${ROOT_URL}/exports/${exportUid}/`,
+        method: 'DELETE',
       });
     },
 
     getExportSettings(assetUid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
+        // TODO: handle pagination of this in future, for now we get "all"
+        data: {limit: 9999},
       });
     },
 

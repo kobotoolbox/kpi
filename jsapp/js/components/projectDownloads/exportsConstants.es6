@@ -29,3 +29,12 @@ export const EXPORT_MULTIPLE_OPTIONS = Object.freeze({
     label: t('Only the summary column'),
   },
 });
+
+export const EXPORT_STATUSES = {};
+new Set([
+  'created',
+  'processing',
+  'complete',
+  'error',
+]).forEach((kind) => {EXPORT_STATUSES[kind] = kind;});
+Object.freeze(EXPORT_STATUSES);

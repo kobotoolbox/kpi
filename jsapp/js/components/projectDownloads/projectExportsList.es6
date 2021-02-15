@@ -2,7 +2,15 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
+import {formatTimeDate} from 'js/utils';
 import {renderLoading} from 'js/components/modalForms/modalHelpers.es6';
+import {
+  EXPORT_TYPES,
+  EXPORT_FORMATS,
+  EXPORT_STATUSES,
+} from './exportsConstants';
+
+const EXPORT_REFRESH_TIME = 4000;
 
 /**
  * @prop {object} asset
@@ -11,30 +19,98 @@ export default class ProjectExportsList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isPending: true,
+      isComponentReady: false,
+      rows: [],
     };
+
+    this.unlisteners = [];
+    this.fetchIntervals = new Map();
+
     autoBind(this);
   }
 
   componentDidMount() {
-    actions.exports.getExports.completed.listen(this.onGetExports);
-    actions.exports.deleteExport.completed.listen(this.onDeleteExport);
+    this.unlisteners.push(
+      actions.exports.getExports.completed.listen(this.onGetExports),
+      actions.exports.createExport.completed.listen(this.onCreateExport),
+      actions.exports.deleteExport.completed.listen(this.onDeleteExport),
+      actions.exports.getExport.completed.listen(this.onGetExport),
+    )
     this.fetchExports();
   }
 
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+    this.removeAllFetchIntervals();
+  }
+
   onGetExports(response) {
-    console.log('onGetExports', response);
+    response.results.forEach((exportData) => {
+      this.prepareFetchInterval(exportData.uid, exportData.status);
+    });
+
     this.setState({
-      isPending: false,
-      exports: response,
+      isComponentReady: true,
+      rows: response.results,
     });
   }
 
-  onDeleteExport(response) {
-    console.log('onDeleteExports', response);
-    this.setState({
-      exports: response,
+  onCreateExport(response) {
+    this.fetchExport(response.uid);
+  }
+
+  onDeleteExport() {
+    this.fetchExports();
+  }
+
+  onGetExport(exportData) {
+    this.prepareFetchInterval(exportData.uid, exportData.status);
+
+    // Replace existing export with fresh data or add new on top
+    const newStateObj = {rows: this.state.rows};
+    let wasAdded = false;
+    newStateObj.rows.forEach((rowData, index) => {
+      if (rowData.uid === exportData.uid) {
+        newStateObj.rows[index] = exportData;
+        wasAdded = true;
+      }
     });
+    if (!wasAdded) {
+      newStateObj.rows.unshift(exportData);
+    }
+    this.setState(newStateObj);
+  }
+
+  prepareFetchInterval(exportUid, exportStatus) {
+    // if the export is not complete yet, and there is no fetch interval
+    // fetch it in some time again and again
+    if (
+      exportStatus !== EXPORT_STATUSES.complete &&
+      !this.fetchIntervals.has(exportUid)
+    ) {
+      const intervalId = setInterval(this.fetchExport.bind(this, exportUid), EXPORT_REFRESH_TIME);
+      this.fetchIntervals.set(exportUid, intervalId);
+    }
+
+    // clean up after it is completed
+    if (exportStatus === EXPORT_STATUSES.complete) {
+      this.removeFetchInterval(exportUid);
+    }
+  }
+
+  removeFetchInterval(exportUid) {
+    clearInterval(this.fetchIntervals.get(exportUid));
+    this.fetchIntervals.delete(exportUid);
+  }
+
+  removeAllFetchIntervals() {
+    this.fetchIntervals.forEach((intervalId, exportUid) => {
+      this.removeFetchInterval(exportUid);
+    });
+  }
+
+  fetchExport(exportUid) {
+    actions.exports.getExport(exportUid);
   }
 
   fetchExports() {
@@ -45,40 +121,64 @@ export default class ProjectExportsList extends React.Component {
     actions.exports.deleteExport(exportUid);
   }
 
-  renderRow(rowData, itemIndex) {
-    const exportUid = 'TODO';
+  renderBooleanAnswer(isTrue) {
+    if (isTrue) {
+      return t('Yes');
+    } else {
+      return t('No');
+    }
+  }
 
+  renderRow(exportData) {
     return (
-      <bem.SimpleTable__row key={itemIndex}>
+      <bem.SimpleTable__row key={exportData.uid}>
         <bem.SimpleTable__cell>
-          type
+          {EXPORT_TYPES[exportData.data.type]?.label}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          date
+          {formatTimeDate(exportData.date_created)}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          lang
+          {EXPORT_FORMATS[exportData.data.lang]?.label}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          yes/no
+          {this.renderBooleanAnswer(exportData.data.hierarchy_in_labels)}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          yes/no
+          {this.renderBooleanAnswer(exportData.data.fields_from_all_versions)}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          <bem.KoboLightButton m='blue'>
-            <i className='k-icon k-icon-download'/>
-            {t('Download')}
-          </bem.KoboLightButton>
+          {exportData.status === EXPORT_STATUSES.complete &&
+            <a
+              className='kobo-light-button kobo-light-button--blue'
+              href={exportData.result}
+            >
+              <i className='k-icon k-icon-download'/>
+              {t('Download')}
+            </a>
+          }
+
+          {exportData.status === EXPORT_STATUSES.error &&
+            <span data-tip={exportData.messages?.error}>
+              {t('Export Failed')}
+            </span>
+          }
+
+          {(
+            exportData.status !== EXPORT_STATUSES.complete &&
+            exportData.status !== EXPORT_STATUSES.error
+          ) &&
+            <span className='animate-processing'>{t('Processing…')}</span>
+          }
 
           <bem.KoboLightButton
             m={['red', 'icon-only']}
-            onClick={this.deleteExport.bind(this, exportUid)}
+            onClick={this.deleteExport.bind(this, exportData.uid)}
           >
             <i className='k-icon k-icon-trash'/>
           </bem.KoboLightButton>
@@ -88,9 +188,7 @@ export default class ProjectExportsList extends React.Component {
   }
 
   render() {
-    const todoRows = [1,2,3];
-
-    if (this.state.isPending) {
+    if (!this.state.isComponentReady) {
       return (
         <bem.FormView__row>
           <bem.FormView__cell>
@@ -98,6 +196,9 @@ export default class ProjectExportsList extends React.Component {
           </bem.FormView__cell>
         </bem.FormView__row>
       );
+    } else if (this.state.rows.length === 0) {
+      // don't display the component if no exports
+      return null;
     } else {
       return (
         <bem.FormView__row>
@@ -133,7 +234,7 @@ export default class ProjectExportsList extends React.Component {
             </bem.SimpleTable__header>
 
             <bem.SimpleTable__body>
-              {todoRows.map(this.renderRow)}
+              {this.state.rows.map(this.renderRow)}
             </bem.SimpleTable__body>
           </bem.SimpleTable>
         </bem.FormView__row>
