@@ -194,8 +194,12 @@ class ConnectProjects extends React.Component {
             <ul>
               <label>{t('Imported')}</label>
               <li className='imported-item'>
-                  <i className="k-icon k-icon-check"/>
+                <i className="k-icon k-icon-check"/>
                 <span>{this.state.attachedParent.name}</span>
+                <i
+                  className="k-icon-trash"
+                  onClick={() => this.removeAttachment(item.url)}
+                />
               </li>
             </ul>
           }

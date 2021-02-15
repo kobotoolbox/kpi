@@ -891,10 +891,20 @@ $z-modal-x: 10;
       border-bottom: 1px solid;
       border-color: lighten($kobo-midgray, 15%)
     }
-    .k-icon-check {
+
+    i.k-icon-check {
       color: $kobo-blue;
       font-weight: bold;
     }
+    i.k-icon-trash {
+      color: $kobo-red;
+      font-weight: bold;
+      position: absolute;
+      bottom: 6px;
+      right: 0;
+      cursor: pointer;
+    }
+
     label {
       margin-top: 20px;
       font-size: 14px;
