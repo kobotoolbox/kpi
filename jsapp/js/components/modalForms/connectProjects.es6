@@ -14,7 +14,6 @@ class ConnectProjects extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      // For loading
       isVirgin: true,
       isLoading: false,
       // `data_sharing` is an empty object if never enabled before
@@ -23,6 +22,7 @@ class ConnectProjects extends React.Component {
       sharingEnabledAssets: null,
       newParentUrl: '',
       newFilename: '',
+      fieldsErrors: {},
     };
 
     autoBind(this);
@@ -38,6 +38,9 @@ class ConnectProjects extends React.Component {
 
     actions.dataShare.attachToParent.completed.listen(
       this.refreshAttachmentList
+    );
+    actions.dataShare.attachToParent.failed.listen(
+      this.onAttachToParentFailed
     );
     actions.dataShare.detachParent.completed.listen(
       this.refreshAttachmentList
@@ -57,6 +60,12 @@ class ConnectProjects extends React.Component {
    * `actions` Listeners
    */
 
+  onAttachToParentFailed(response) {
+    this.setState({
+      isLoading: false,
+      fieldsErrors: response.responseJSON,
+    });
+  }
   onGetAttachedParentsCompleted(response) {
     this.setState({
       isVirgin: false,
@@ -84,7 +93,10 @@ class ConnectProjects extends React.Component {
     let parentUrl = this.state.newParentUrl;
     let filename = this.state.newFilename;
     if (filename !== '' && parentUrl !== '') {
-      this.setState({isLoading: true});
+      this.setState({
+        isLoading: true,
+        fieldsErrors: {},
+      });
 
       var data = JSON.stringify({
         parent: parentUrl,
@@ -93,8 +105,20 @@ class ConnectProjects extends React.Component {
       });
       actions.dataShare.attachToParent(this.props.asset.uid, data);
     } else {
-      // TODO TextBox errors
-      alertify.error(t('An `xml-external` question must exist in form'));
+      if (parentUrl === '') {
+        this.setState({
+          fieldsErrors: Object.assign(
+            this.state.fieldsErrors, {emptyParent: 'No project selected'}
+          )
+        });
+      }
+      if (filename === '') {
+        this.setState({
+          fieldsErrors: Object.assign(
+            this.state.fieldsErrors, {emptyFilename: 'Field is empty'}
+          )
+        });
+      }
     }
   }
   onParentChange(newVal) {
@@ -186,6 +210,29 @@ class ConnectProjects extends React.Component {
     }
   }
 
+  renderSelect(sharingEnabledAssets) {
+    const selectClassNames = ['kobo-select__wrapper'];
+    if (this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent) {
+      selectClassNames.push('kobo-select__wrapper--error');
+    }
+    return(
+      <div className={selectClassNames.join(' ')}>
+        <Select
+          placeholder={t('Select a different project to import data from')}
+          options={sharingEnabledAssets}
+          getOptionLabel={option => option.name}
+          getOptionValue={option => option.url}
+          onChange={this.onParentChange}
+          className='kobo-select'
+          classNamePrefix='kobo-select'
+        />
+        <label className='select-errors'>
+          {this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent}
+        </label>
+      </div>
+    );
+  }
+
   render() {
     const sharingEnabledAssets = this.state.sharingEnabledAssets?.results;
 
@@ -225,22 +272,14 @@ class ConnectProjects extends React.Component {
           }
           {sharingEnabledAssets &&
             <div className='import-data-form'>
-              <Select
-                placeholder={t('Select a different project to import data from')}
-                options={sharingEnabledAssets}
-                getOptionLabel={option => option.name}
-                getOptionValue={option => option.url}
-                onChange={this.onParentChange}
-                className='kobo-select'
-                classNamePrefix='kobo-select'
-              />
+              {this.renderSelect(sharingEnabledAssets)}
               <TextBox
                 placeholder={t('Give a unique name to the import')}
                 onChange={this.onFilenameChange}
+                errors={this.state.fieldsErrors.emptyFilename ||
+                        this.state.fieldsErrors.filename}
               />
-              <bem.KoboButton
-                m='blue'
-              >
+              <bem.KoboButton m='blue'>
                 {t('Import')}
               </bem.KoboButton>
             </div>

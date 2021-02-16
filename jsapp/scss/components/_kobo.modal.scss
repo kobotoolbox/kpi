@@ -895,9 +895,15 @@ $z-modal-x: 10;
       position: relative;
       display: flex;
 
-      .kobo-select {
+      .kobo-select__wrapper {
         width: 50%;
         margin-right: 50px;
+        label {
+          margin-top: 0px;
+        }
+        .kobo-select__placeholder {
+          color: $kobo-black;
+        }
       }
       .text-box {
         width: 35%;
@@ -906,6 +912,7 @@ $z-modal-x: 10;
         input {
           padding: 9px 10px;
           background-color: $kobo-white;
+          color: $kobo-black;
         }
       }
       .kobo-button {
