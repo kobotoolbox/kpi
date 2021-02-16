@@ -102,7 +102,8 @@ actions.media = Reflux.createActions({
 
 actions.dataShare = Reflux.createActions({
   attachToParent: {children: ['completed', 'failed']},
-  getAttachedParent: {children: ['completed', 'failed']},
+  detachParent: {children: ['completed', 'failed']},
+  getAttachedParents: {children: ['completed', 'failed']},
   getSharingEnabledAssets: {children: ['completed', 'failed']},
   toggleDataSharing: {children: ['completed', 'failed']},
 });
@@ -215,17 +216,41 @@ actions.dataShare.attachToParent.failed.listen((response) => {
   );
 });
 
-actions.dataShare.getAttachedParent.listen((assetUid) => {
-  dataInterface.getAttachedParent(assetUid)
+actions.dataShare.detachParent.listen((attachmentUrl) => {
+  dataInterface.detachParent(attachmentUrl)
+    .done(() => {
+      actions.dataShare.detachParent.completed();
+    })
+    .fail((response) => {
+      actions.dataShare.detachParent.failed(response)
+    })
+});
+
+actions.dataShare.getAttachedParents.listen((assetUid) => {
+  dataInterface.getAttachedParents(assetUid)
     .done((response) => {
       if (response.results.length > 0) {
-        dataInterface.getAsset({url: response.results[0].parent})
-          .done((attachedParent) => {
-            actions.dataShare.getAttachedParent.completed(attachedParent);
-          });
+        // For each parent, we get the entire survey so that the user can
+        // specify which questions they want to import
+        let allParents = [];
+        response.results.forEach((parent) => {
+          dataInterface.getAsset({url: parent.parent})
+            .done((attachedParent) => {
+              // Removes all past last `.` in a string (ex. file extentions)
+              let filename = parent.filename.replace(/\.[^/.]+$/, '');
+              allParents.push({
+                parent: attachedParent,
+                filename: filename,
+                attachmentUrl: parent.url,
+              });
+              actions.dataShare.getAttachedParents.completed(allParents);
+            });
+        });
+      } else {
+        actions.dataShare.getAttachedParents.completed([]);
       }
     })
-    .fail(actions.dataShare.getAttachedParent.failed);
+    .fail(actions.dataShare.getAttachedParents.failed);
 });
 
 actions.dataShare.getSharingEnabledAssets.listen(() => {

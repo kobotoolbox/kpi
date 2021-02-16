@@ -250,7 +250,13 @@ export var dataInterface;
         contentType: 'application/json'
       });
     },
-    getAttachedParent(assetUid) {
+    detachParent(attachmentUrl) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'DELETE',
+      });
+    },
+    getAttachedParents(assetUid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
         method: 'GET',

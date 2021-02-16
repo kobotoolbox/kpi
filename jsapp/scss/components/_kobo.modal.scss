@@ -883,26 +883,68 @@ $z-modal-x: 10;
     display: flex;
   }
 
-  .form-modal__item--import-other {
+  .form-modal__item--import-data {
+    .import-data-menu {
+      position: relative;
+      display: flex;
+
+      .kobo-select {
+        width: 50%;
+        margin-right: 50px;
+      }
+      .text-box {
+        width: 35%;
+        margin-top: 0px;
+        margin-right: 24px;
+        input {
+          padding: 9px 10px;
+          background-color: $kobo-white;
+        }
+      }
+      .kobo-button {
+        max-height: 40px;
+      }
+    }
+
     .imported-item {
       position: relative;
       margin-top: 10px;
       margin-bottom: 10px;
       border-bottom: 1px solid;
-      border-color: lighten($kobo-midgray, 15%)
-    }
+      border-color: lighten($kobo-midgray, 15%);
 
-    i.k-icon-check {
-      color: $kobo-blue;
-      font-weight: bold;
+      i.k-icon-check {
+        color: $kobo-blue;
+        font-weight: bold;
+      }
+      i.k-icon-trash {
+        color: $kobo-red;
+        font-weight: bold;
+        position: absolute;
+        bottom: 6px;
+        right: 0;
+        cursor: pointer;
+      }
+
+      .imported-names {
+        position: absolute;
+        top: 6px;
+        left: 32px;
+        font-weight: 500;
+
+        .imported-parent {
+          margin-left: 24px;
+          font-weight: 400;
+          color: darken($kobo-midgray, 20%);
+        }
+      }
+
     }
-    i.k-icon-trash {
-      color: $kobo-red;
-      font-weight: bold;
-      position: absolute;
-      bottom: 6px;
-      right: 0;
-      cursor: pointer;
+    .no-imports {
+      @extend .imported-item;
+      font-style: italic;
+      color: $kobo-midgray;
+      padding-bottom: 10px;
     }
 
     label {
@@ -910,11 +952,6 @@ $z-modal-x: 10;
       font-size: 14px;
       font-weight: bold;
       color: darken($kobo-midgray, 10%);
-    }
-    span {
-      position: absolute;
-      top: 6px;
-      font-weight: 500;
     }
   }
 
