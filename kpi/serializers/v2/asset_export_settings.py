@@ -23,6 +23,7 @@ from kpi.constants import (
 )
 from kpi.fields import WritableJSONField
 from kpi.models import Asset, AssetExportSettings
+from kpi.utils.export_task import format_exception_values
 
 
 class AssetExportSettingsSerializer(serializers.ModelSerializer):
@@ -59,9 +60,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
                         "`export_settings` must contain all the following "
                         "required keys: {}"
                     ).format(
-                        self.__format_exception_values(
-                            REQUIRED_EXPORT_SETTINGS, 'and'
-                        )
+                        format_exception_values(REQUIRED_EXPORT_SETTINGS, 'and')
                     )
                 )
 
@@ -72,9 +71,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
                         "`export_settings` can contain only the following "
                         "valid keys: {}"
                     ).format(
-                        self.__format_exception_values(
-                            VALID_EXPORT_SETTINGS, 'and'
-                        )
+                        format_exception_values(VALID_EXPORT_SETTINGS, 'and')
                     )
                 )
 
@@ -84,14 +81,14 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError(
                 _("`multiple_select` must be either {}").format(
-                    self.__format_exception_values(VALID_MULTIPLE_SELECTS)
+                    format_exception_values(VALID_MULTIPLE_SELECTS)
                 )
             )
 
         if export_settings[EXPORT_SETTING_TYPE] not in VALID_EXPORT_TYPES:
             raise serializers.ValidationError(
                 _("`type` must be either {}").format(
-                    self.__format_exception_values(VALID_EXPORT_TYPES)
+                    format_exception_values(VALID_EXPORT_TYPES)
                 )
             )
 
@@ -102,7 +99,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
             if export_settings[setting].lower() not in VALID_BOOLEANS:
                 raise serializers.ValidationError(
                     _("`{}` must be either {}").format(
-                        setting, self.__format_exception_values(VALID_BOOLEANS)
+                        setting, format_exception_values(VALID_BOOLEANS)
                     )
                 )
 
@@ -117,7 +114,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         if export_settings[EXPORT_SETTING_LANG] not in all_valid_languages:
             raise serializers.ValidationError(
                 _("`lang` for this asset must be either {}").format(
-                    self.__format_exception_values(all_valid_languages)
+                    format_exception_values(all_valid_languages)
                 )
             )
 
@@ -141,7 +138,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         if flatten.lower() not in VALID_BOOLEANS:
             raise serializers.ValidationError(
                 _("`flatten` must be either {}").format(
-                    setting, self.__format_exception_values(VALID_BOOLEANS)
+                    setting, format_exception_values(VALID_BOOLEANS)
                 )
             )
 
@@ -152,11 +149,5 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
             'asset-export-settings-detail',
             args=(obj.asset.uid, obj.uid),
             request=self.context.get('request', None),
-        )
-
-    @staticmethod
-    def __format_exception_values(values: list, sep: str = 'or') -> str:
-        return "{} {} '{}'".format(
-            ', '.join([f"'{v}'" for v in values[:-1]]), sep, values[-1]
         )
 

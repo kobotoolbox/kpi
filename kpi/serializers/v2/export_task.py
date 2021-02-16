@@ -11,6 +11,7 @@ from kpi.constants import (
 from kpi.fields import ReadOnlyJSONField, WritableJSONField
 from kpi.models.import_export_task import _resolve_url_to_asset
 from kpi.models import ExportTask
+from kpi.utils.export_task import format_exception_values
 
 
 class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
@@ -62,9 +63,7 @@ class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
                         '`data` must contain all the following '
                         'required keys: {}'
                     ).format(
-                        self.__format_exception_values(
-                            REQUIRED_EXPORT_SETTINGS, 'and'
-                        )
+                        format_exception_values(REQUIRED_EXPORT_SETTINGS, 'and')
                     )
                 )
 
@@ -75,9 +74,7 @@ class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
                         '`data` can contain only the following '
                         'valid keys: {}'
                     ).format(
-                        self.__format_exception_values(
-                            valid_export_settings, 'and'
-                        )
+                        format_exception_values(valid_export_settings, 'and')
                     )
                 )
 
@@ -92,10 +89,4 @@ class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
                 kwargs={'uid': obj.uid},
                 request=self.context.get('request', None),
             )
-
-    @staticmethod
-    def __format_exception_values(values: list, sep: str = 'or') -> str:
-        return "{} {} '{}'".format(
-            ', '.join([f"'{v}'" for v in values[:-1]]), sep, values[-1]
-        )
 
