@@ -19,6 +19,8 @@ import {
 } from './exportsConstants';
 import assetUtils from 'js/assetUtils';
 
+const NAMELESS_EXPORT_NAME = t('Latest settings');
+
 /**
  * @prop {object} asset
  *
@@ -81,7 +83,7 @@ export default class ProjectExportsCreator extends React.Component {
     response.results.forEach((result, index) => {
       definedExports.push({
         value: index,
-        label: result.name ? result.name : t('Latest export'),
+        label: result.name ? result.name : NAMELESS_EXPORT_NAME,
         data: result,
       });
     });
