@@ -133,6 +133,13 @@ class FormMedia extends React.Component {
     actions.media.deleteMedia(this.props.asset.uid, url);
   }
 
+  uploadedAssetsIsEmpty() {
+    return (
+      this.state.uploadedAssets === null ||
+      this.state.uploadedAssets === undefined
+    );
+  }
+
   /*
    * rendering
    */
@@ -239,8 +246,7 @@ class FormMedia extends React.Component {
                   {this.renderLoading(t('loading media'))}
                 </li>
               }
-              {(this.state.uploadedAssets !== null &&
-                  this.state.uploadedAssets !== undefined) &&
+              {!this.uploadedAssetsIsEmpty() &&
                   this.state.uploadedAssets.map((item, n) => {
                     return (
                       <li key={n} className="form-media__list-item">
@@ -254,10 +260,12 @@ class FormMedia extends React.Component {
                     );
                   })
               }
-              {!this.state.isVirgin && (this.state.uploadedAssets === null || this.state.uploadedAssets.length == 0) &&
-                <li className='form-media__default-item form-media__list-item'>
-                    {t('No files uploaded yet')}
-                </li>
+              {!this.state.isVirgin &&
+                (this.uploadedAssetsIsEmpty() ||
+                  this.state.uploadedAssets.length == 0) &&
+                  <li className='form-media__default-item form-media__list-item'>
+                      {t('No files uploaded yet')}
+                  </li>
               }
             </ul>
         </div>
