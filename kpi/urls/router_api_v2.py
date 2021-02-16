@@ -6,6 +6,7 @@ from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
 
 from kpi.views.v2.asset import AssetViewSet
+from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
@@ -44,6 +45,12 @@ asset_routes.register(r'versions',
 asset_routes.register(r'data',
                       DataViewSet,
                       basename='submission',
+                      parents_query_lookups=['asset'],
+                      )
+
+asset_routes.register(r'export-settings',
+                      AssetExportSettingsViewSet,
+                      basename='asset-export-settings',
                       parents_query_lookups=['asset'],
                       )
 
