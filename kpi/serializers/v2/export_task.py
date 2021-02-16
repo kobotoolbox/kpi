@@ -60,8 +60,7 @@ class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
             if required not in data:
                 raise serializers.ValidationError(
                     _(
-                        '`data` must contain all the following '
-                        'required keys: {}'
+                        '`data` must contain all the following required keys: {}'
                     ).format(
                         format_exception_values(REQUIRED_EXPORT_SETTINGS, 'and')
                     )
@@ -71,8 +70,7 @@ class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
             if key not in valid_export_settings:
                 raise serializers.ValidationError(
                     _(
-                        '`data` can contain only the following '
-                        'valid keys: {}'
+                        '`data` can contain only the following valid keys: {}'
                     ).format(
                         format_exception_values(valid_export_settings, 'and')
                     )
