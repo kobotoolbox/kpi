@@ -869,6 +869,13 @@ $z-modal-x: 10;
 .connect-projects {
   margin: 24px;
 
+  label {
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: darken($kobo-midgray, 10%);
+  }
+
   .form-modal__item--data-sharing {
     border-bottom: 1px solid;
     border-color: lighten($kobo-midgray, 20%);
@@ -884,7 +891,7 @@ $z-modal-x: 10;
   }
 
   .form-modal__item--import-data {
-    .import-data-menu {
+    .import-data-form {
       position: relative;
       display: flex;
 
@@ -938,20 +945,19 @@ $z-modal-x: 10;
           color: darken($kobo-midgray, 20%);
         }
       }
-
     }
+
+    .loading__inner {
+      i {
+        vertical-align: text-bottom;
+      }
+    }
+
     .no-imports {
       @extend .imported-item;
       font-style: italic;
       color: $kobo-midgray;
       padding-bottom: 10px;
-    }
-
-    label {
-      margin-top: 20px;
-      font-size: 14px;
-      font-weight: bold;
-      color: darken($kobo-midgray, 10%);
     }
   }
 

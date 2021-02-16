@@ -60,6 +60,7 @@ class ConnectProjects extends React.Component {
   onGetAttachedParentsCompleted(response) {
     this.setState({
       isVirgin: false,
+      isLoading: false,
       attachedParents: response,
     });
   }
@@ -79,9 +80,12 @@ class ConnectProjects extends React.Component {
    */
 
   confirmAttachment() {
+
     let parentUrl = this.state.newParentUrl;
     let filename = this.state.newFilename;
     if (filename !== '' && parentUrl !== '') {
+      this.setState({isLoading: true});
+
       var data = JSON.stringify({
         parent: parentUrl,
         fields: [],
@@ -100,6 +104,7 @@ class ConnectProjects extends React.Component {
     this.setState({newFilename: newVal});
   }
   removeAttachment(newVal) {
+    this.setState({isLoading: true})
     actions.dataShare.detachParent(newVal);
   }
 
@@ -185,7 +190,10 @@ class ConnectProjects extends React.Component {
     const sharingEnabledAssets = this.state.sharingEnabledAssets?.results;
 
     return (
-      <bem.FormModal__form className='project-settings project-settings--upload-file connect-projects'>
+      <bem.FormModal__form
+        className='project-settings project-settings--upload-file connect-projects'
+        onSubmit={this.confirmAttachment}
+      >
         {/* Enable data sharing */}
         <bem.FormModal__item m='data-sharing'>
           <div className='connect-projects-header'>
@@ -209,9 +217,14 @@ class ConnectProjects extends React.Component {
             <a href='#'>here</a>
             {t('.')}
           </p>
-          {/* Select a project */}
+          {/* Selecting project form*/}
+          {(this.state.isVirgin || !sharingEnabledAssets) &&
+            <div className='import-data-form'>
+              {this.renderLoading(t('Loading sharing enabled projects'))}
+            </div>
+          }
           {sharingEnabledAssets &&
-            <div className='import-data-menu'>
+            <div className='import-data-form'>
               <Select
                 placeholder={t('Select a different project to import data from')}
                 options={sharingEnabledAssets}
@@ -227,7 +240,6 @@ class ConnectProjects extends React.Component {
               />
               <bem.KoboButton
                 m='blue'
-                onClick={this.confirmAttachment}
               >
                 {t('Import')}
               </bem.KoboButton>
@@ -237,12 +249,17 @@ class ConnectProjects extends React.Component {
           {/* Display attached projects */}
           <ul>
             <label>{t('Imported')}</label>
-            {this.state.attachedParents.length == 0 &&
+            {(this.state.isVirgin || this.state.isLoading) &&
+              <div className='imported-item'>
+                {this.renderLoading(t('Loading imported projects'))}
+              </div>
+            }
+            {!this.state.isLoading && this.state.attachedParents.length == 0 &&
               <li className='no-imports'>
                 {t('No data imported')}
               </li>
             }
-            {this.state.attachedParents.length > 0 &&
+            {!this.state.isLoading && this.state.attachedParents.length > 0 &&
                 this.state.attachedParents.map((item, n) => {
                   return (
                     <li key={n} className='imported-item'>
