@@ -123,6 +123,7 @@ class ConnectProjects extends React.Component {
   }
   onParentChange(newVal) {
     this.setState({newParentUrl: newVal.url});
+    this.generateAutoname(newVal);
   }
   onFilenameChange(newVal) {
     this.setState({newFilename: newVal});
@@ -131,11 +132,6 @@ class ConnectProjects extends React.Component {
     this.setState({isLoading: true})
     actions.dataShare.detachParent(newVal);
   }
-
-  /*
-   * Utilities
-   */
-
   toggleSharingData() {
     var data = JSON.stringify({
       data_sharing: {
@@ -163,7 +159,25 @@ class ConnectProjects extends React.Component {
     }
   }
 
- /* May be useful later, but now we make users specify filename
+  /*
+   * Utilities
+   */
+
+  generateAutoname(newParent) {
+    if (newParent) {
+      let autoname = newParent.name;
+      autoname = autoname.toLowerCase().substring(0, 30).replace(/\ /g, '_');
+      this.setState({newFilename: autoname});
+    }
+  }
+
+  generateTruncatedDisplayName(name) {
+    return name.length > 30 ? `${name.substring(0, 30)}...` : name;
+  }
+
+ /*
+  * May be useful later for replacing autoname with existing name
+  *
   * getExteralFilename() {
   *   let filename = '';
   *   this.props.asset.content.survey.some((element) => {
@@ -275,6 +289,7 @@ class ConnectProjects extends React.Component {
               {this.renderSelect(sharingEnabledAssets)}
               <TextBox
                 placeholder={t('Give a unique name to the import')}
+                value={this.state.newFilename}
                 onChange={this.onFilenameChange}
                 errors={this.state.fieldsErrors.emptyFilename ||
                         this.state.fieldsErrors.filename}
@@ -304,8 +319,12 @@ class ConnectProjects extends React.Component {
                     <li key={n} className='imported-item'>
                       <i className="k-icon k-icon-check"/>
                       <div className='imported-names'>
-                        <span className='imported-filename'>{item.filename}</span>
-                        <span className='imported-parent'>{item.parent.name}</span>
+                        <span className='imported-filename'>
+                          {item.filename}
+                        </span>
+                        <span className='imported-parent'>
+                          {this.generateTruncatedDisplayName(item.parent.name)}
+                        </span>
                       </div>
                       <i
                         className="k-icon-trash"
