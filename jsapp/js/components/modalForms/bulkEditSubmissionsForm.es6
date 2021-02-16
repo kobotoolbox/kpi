@@ -13,11 +13,13 @@ import TextBox from 'js/components/textBox';
 import {stores} from 'js/stores';
 
 const FUSE_OPTIONS = {
+  isCaseSensitive: false,
   includeScore: true,
   minMatchCharLength: 1,
   shouldSort: false,
   ignoreFieldNorm: true,
   threshold: 0.2,
+  ignoreLocation: true,
 };
 
 // we need a text to display when we need to say "this question has no answer"
