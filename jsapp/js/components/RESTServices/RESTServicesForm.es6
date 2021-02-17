@@ -7,9 +7,9 @@ import {dataInterface} from '../../dataInterface';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
 import Select from 'react-select';
-import Checkbox from '../checkbox';
-import Radio from '../radio';
-import TextBox from '../textBox';
+import Checkbox from 'js/components/common/checkbox';
+import Radio from 'js/components/common/radio';
+import TextBox from 'js/components/common/textBox';
 import {KEY_CODES} from 'js/constants';
 
 const EXPORT_TYPES = {

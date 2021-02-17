@@ -12,7 +12,7 @@ import {
   KEY_CODES,
   ASSET_TYPES
 } from 'js/constants';
-import TagInput from '../components/tagInput';
+import TagInput from 'js/components/tagInput';
 import {formatTime} from 'utils';
 
 class AssetRow extends React.Component {

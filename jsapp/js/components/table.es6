@@ -5,7 +5,7 @@ import reactMixin from 'react-mixin';
 import _ from 'underscore';
 import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from '../dataInterface';
-import Checkbox from './checkbox';
+import Checkbox from 'js/components/common/checkbox';
 import {actions} from '../actions';
 import {bem} from '../bem';
 import ui from '../ui';
