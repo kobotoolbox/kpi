@@ -67,7 +67,8 @@ function cleanupExportSettingData(data) {
       lang: data.export_settings.lang,
       multiple_select: data.export_settings.multiple_select,
       type: data.export_settings.type,
-      // flatten: data.export_settings.flatten, // TODO DISABLED FOR NOW
+      // Backend expects booleans as strings
+      flatten: String(data.export_settings.flatten),
     }),
   };
 }
