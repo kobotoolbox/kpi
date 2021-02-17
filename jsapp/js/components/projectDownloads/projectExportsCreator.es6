@@ -2,9 +2,9 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Select from 'react-select';
 import moment from 'moment';
-import Checkbox from 'js/components/checkbox';
-import TextBox from 'js/components/textBox';
-import ToggleSwitch from 'js/components/toggleSwitch';
+import Checkbox from 'js/components/common/checkbox';
+import TextBox from 'js/components/common/textBox';
+import ToggleSwitch from 'js/components/common/toggleSwitch';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import {
