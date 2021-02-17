@@ -1,5 +1,11 @@
 # coding: utf-8
-from rest_framework import exceptions, serializers, status, renderers, viewsets
+from rest_framework import (
+    exceptions,
+    renderers,
+    serializers,
+    status,
+    viewsets,
+)
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -12,10 +18,10 @@ from kpi.filters import (
 from kpi.models import ExportTask
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.tasks import export_in_background
-from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.views.no_update_model import NoUpdateModelViewSet
 
-# TODO: make sure to see what NoUpdateModelViewSet is all about
+
 class ExportTaskViewSet(NoUpdateModelViewSet):
     """
     ## List of export tasks endpoints
