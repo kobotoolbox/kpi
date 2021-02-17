@@ -1,5 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import alertify from 'alertifyjs';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import {formatTime} from 'js/utils';
@@ -130,7 +131,15 @@ export default class ProjectExportsList extends React.Component {
   }
 
   deleteExport(exportUid) {
-    actions.exports.deleteExport(exportUid);
+    const dialog = alertify.dialog('confirm');
+    const opts = {
+      title: t('Delete export?'),
+      message: t('Are you sure you want to delete this export? This action is not reversible.'),
+      labels: {ok: t('Delete'), cancel: t('Cancel')},
+      onok: () => {actions.exports.deleteExport(exportUid);},
+      oncancel: () => {dialog.destroy();},
+    };
+    dialog.set(opts).show();
   }
 
   renderBooleanAnswer(isTrue) {
@@ -141,15 +150,24 @@ export default class ProjectExportsList extends React.Component {
     }
   }
 
-  renderRow(exportData) {
-    let languageDisplay = '';
-    const langIndex = getLanguageIndex(this.props.asset, exportData.data.lang);
+  /**
+   * Unchecked wisdom copied from old version of this component:
+   * > Some old SPSS exports may have a meaningless `lang` attribute -- disregard it
+   */
+  renderLanguage(exportLang) {
+    // Unknown happens when export was done for a translated language that
+    // doesn't exist in current form version
+    let languageDisplay = (<em>{t('Unknown')}</em>);
+    const langIndex = getLanguageIndex(this.props.asset, exportLang);
     if (langIndex !== null) {
-      languageDisplay = exportData.data.lang;
-    } else {
-      languageDisplay = EXPORT_FORMATS[exportData.data.lang]?.label;
+      languageDisplay = exportLang;
+    } else if (EXPORT_FORMATS[exportLang]) {
+      languageDisplay = EXPORT_FORMATS[exportLang].label;
     }
+    return languageDisplay;
+  }
 
+  renderRow(exportData) {
     return (
       <bem.SimpleTable__row key={exportData.uid}>
         <bem.SimpleTable__cell>
@@ -161,7 +179,7 @@ export default class ProjectExportsList extends React.Component {
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          {languageDisplay}
+          {this.renderLanguage(exportData.data.lang)}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>

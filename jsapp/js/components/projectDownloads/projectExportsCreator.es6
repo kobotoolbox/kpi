@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Select from 'react-select';
 import moment from 'moment';
+import alertify from 'alertifyjs';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
@@ -185,7 +186,20 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   deleteExportSetting(exportSettingUid) {
-    actions.exports.deleteExportSetting(this.props.asset.uid, exportSettingUid);
+    const dialog = alertify.dialog('confirm');
+    const opts = {
+      title: t('Delete export settings?'),
+      message: t('Are you sure you want to delete this settings? This action is not reversible.'),
+      labels: {ok: t('Delete'), cancel: t('Cancel')},
+      onok: () => {
+        actions.exports.deleteExportSetting(
+          this.props.asset.uid,
+          exportSettingUid
+        );
+      },
+      oncancel: () => {dialog.destroy();},
+    };
+    dialog.set(opts).show();
   }
 
   onSelectedDefinedExportChange(newDefinedExport) {
