@@ -78,7 +78,7 @@ class ExportTaskSerializer(serializers.HyperlinkedModelSerializer):
 
         return data
 
-    def get_url(self, obj) -> str:
+    def get_url(self, obj: ExportTask) -> str:
         # TODO: Not sure why this fails if this check is not made... sometimes
         # `obj` is an OrderedDict which causes `obj.uid` to fail
         if isinstance(obj, ExportTask):
