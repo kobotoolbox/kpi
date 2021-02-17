@@ -8,10 +8,12 @@ import TextBox from 'js/components/common/textBox';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
+import mixins from 'js/mixins';
 import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
+  PERMISSIONS_CODENAMES,
 } from 'js/constants';
 import {
   EXPORT_TYPES,
@@ -324,7 +326,11 @@ export default class ProjectExportsCreator extends React.Component {
 
     // Case 1: We don't need to save the export if currently selected a saved
     // one, so we get directly to export creation.
-    if (this.state.selectedDefinedExport !== null) {
+    // We also omit saving if user doesn't have permissions to save.
+    if (
+      this.state.selectedDefinedExport !== null ||
+      mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset)
+    ) {
       this.handleScheduledExport(foundDefinedExport.data);
     // Case 2: There is a defined export with the same name already, so we need
     // to update it.
@@ -624,6 +630,7 @@ export default class ProjectExportsCreator extends React.Component {
                 </label>
 
                 {this.state.selectedDefinedExport &&
+                  mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
                   <bem.KoboLightButton
                     m={['red', 'icon-only']}
                     onClick={this.deleteExportSetting.bind(
@@ -651,10 +658,6 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   render() {
-    // TODO Someone without manage_asset should not be able to modify these exports
-
-    // TODO each time someone does an export and doesn't decide to save their settings (i.e. they also have manage_asset) the "last used" settings are updated (with a PATCH?). If that person doesn't have manage_asset but they can still export data, must the frontend ensure that it doesn't send a PATCH to update the "last used" settings?
-
     let formClassNames = ['exports-creator'];
     if (!this.state.isComponentReady) {
       formClassNames.push('exports-creator--loading');

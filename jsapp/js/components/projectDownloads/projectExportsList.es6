@@ -1,11 +1,13 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
+import mixins from 'js/mixins';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import {formatTime} from 'js/utils';
 import {getLanguageIndex} from 'js/assetUtils';
 import {renderLoading} from 'js/components/modalForms/modalHelpers.es6';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {
   EXPORT_TYPES,
   EXPORT_FORMATS,
@@ -205,7 +207,7 @@ export default class ProjectExportsList extends React.Component {
           }
 
           {exportData.status === EXPORT_STATUSES.error &&
-            <span data-tip={exportData.messages?.error}>
+            <span className='right-tooltip' data-tip={exportData.messages?.error}>
               {t('Export Failed')}
             </span>
           }
@@ -217,12 +219,14 @@ export default class ProjectExportsList extends React.Component {
             <span className='animate-processing'>{t('Processing…')}</span>
           }
 
-          <bem.KoboLightButton
-            m={['red', 'icon-only']}
-            onClick={this.deleteExport.bind(this, exportData.uid)}
-          >
-            <i className='k-icon k-icon-trash'/>
-          </bem.KoboLightButton>
+          {mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
+            <bem.KoboLightButton
+              m={['red', 'icon-only']}
+              onClick={this.deleteExport.bind(this, exportData.uid)}
+            >
+              <i className='k-icon k-icon-trash'/>
+            </bem.KoboLightButton>
+          }
         </bem.SimpleTable__cell>
       </bem.SimpleTable__row>
     );
