@@ -170,9 +170,21 @@ class ConnectProjects extends React.Component {
       this.setState({newFilename: autoname});
     }
   }
-
   generateTruncatedDisplayName(name) {
     return name.length > 30 ? `${name.substring(0, 30)}...` : name;
+  }
+  generateFilteredAssetList() {
+    let attachedParentUids = [];
+    this.state.attachedParents.forEach((item) => {
+      attachedParentUids.push(item.parent.uid)
+    });
+
+    // Filter displayed asset list based on unattached projects
+    return (
+      this.state.sharingEnabledAssets.results.filter(
+        item => !attachedParentUids.includes(item.uid)
+      )
+    );
   }
 
  /*
@@ -248,7 +260,10 @@ class ConnectProjects extends React.Component {
   }
 
   render() {
-    const sharingEnabledAssets = this.state.sharingEnabledAssets?.results;
+    let sharingEnabledAssets = [];
+    if (this.state.sharingEnabledAssets !== null) {
+      sharingEnabledAssets = this.generateFilteredAssetList();
+    }
 
     return (
       <bem.FormModal__form
