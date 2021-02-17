@@ -15,6 +15,7 @@ from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
 from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.user import UserViewSet
+from kpi.views.v2.import_task import ImportTaskViewSet
 
 
 URL_NAMESPACE = 'api_v2'
@@ -69,10 +70,11 @@ router_api_v2.register(
     r'asset_subscriptions', UserAssetSubscriptionViewSet)
 router_api_v2.register(r'users', UserViewSet)
 router_api_v2.register(r'permissions', PermissionViewSet)
+router_api_v2.register(r'imports', ImportTaskViewSet)
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'reports', ReportsViewSet, basename='reports')
-# router_api_v2.register(r'imports', ImportTaskViewSet)
+# 
 # router_api_v2.register(r'exports', ExportTaskViewSet)
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)
 #

@@ -404,14 +404,7 @@ class ProjectSettings extends React.Component {
         resolve(this.state.formAsset);
       } else {
         dataInterface.createResource({
-          name: 'Untitled',
-          asset_type: 'survey',
-          settings: JSON.stringify({
-            description: '',
-            sector: null,
-            country: null,
-            'share-metadata': false
-          })
+          asset_type: 'empty',
         }).done((asset) => {
           resolve(asset);
         }).fail(function(r){
@@ -500,12 +493,7 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  // TODO: allow serializers to take care of file names to
-                  // remove this bandaid fix for "Untitled" filenames
                   var assetName = finalAsset.name;
-                  if (assetName === 'Untitled') {
-                    assetName = this.getFilenameFromURI(importUrl);
-                  }
                   this.setState({
                     formAsset: finalAsset,
                     name: assetName,
@@ -563,12 +551,7 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  // TODO: allow serializers to take care of file names to
-                  // remove this bandaid fix for "Untitled" filenames
                   var assetName = finalAsset.name;
-                  if (assetName === 'Untitled') {
-                    assetName = files[0].name.split('.xlsx')[0];
-                  }
                   this.setState({
                     formAsset: finalAsset,
                     name: assetName,
