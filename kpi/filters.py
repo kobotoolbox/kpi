@@ -1,10 +1,21 @@
 # coding: utf-8
 import re
+from distutils.util import strtobool
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from django.db.models import Case, Count, F, IntegerField, Q, Value, When
+from django.db.models import (
+    Case,
+    Count,
+    F,
+    IntegerField,
+    Q,
+    Value,
+    When,
+    TextField,
+)
+from django.db.models.functions import Cast
 from django.db.models.query import QuerySet
 from rest_framework import filters
 from rest_framework.request import Request
@@ -21,7 +32,7 @@ from kpi.constants import (
 from kpi.exceptions import SearchQueryTooShortException
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
-from .models import Asset, ObjectPermission
+from .models import Asset, ObjectPermission, ExportTask
 from .models.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
@@ -76,6 +87,23 @@ class AssetOrderingFilter(filters.OrderingFilter):
             return queryset.order_by(*ordering)
 
         return queryset
+
+
+class ExportObjectPermissionsFilter:
+    def filter_queryset(self, request, queryset, view):
+        if request.user.is_anonymous:
+            return ExportTask.objects.none()
+
+        return ExportTask.objects.filter(user=request.user)
+
+
+class ExportObjectOrderingFilter(filters.OrderingFilter):
+    def filter_queryset(self, request, queryset, view):
+        ordering = self.get_ordering(request, queryset, view)
+        if ordering:
+            return queryset.order_by(*ordering)
+
+        return queryset.order_by('-date_created')
 
 
 class KpiObjectPermissionsFilter:
@@ -295,7 +323,7 @@ class SearchFilter(filters.BaseFilterBackend):
 
         try:
             q_obj = parse(
-                q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
+                q, default_field_lookups=view.search_default_field_lookups
             )
         except ParseError:
             return queryset.model.objects.none()
