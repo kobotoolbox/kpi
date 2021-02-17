@@ -1,23 +1,22 @@
-/**
- * A text box generic component.
- *
- * @prop type <string>: one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
- * @prop value <string>: required
- * @prop onChange <function>: required
- * @prop errors <string[]> or <string> or <boolean>: for visual error indication and displaying error messages
- * @prop label <string>
- * @prop placeholder <string>
- * @prop description <string>
- * @prop readOnly <boolean>
- * @prop disabled <boolean>
- * @prop customModifiers <string[]|string>
- */
-
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 
+/**
+ * A text box generic component.
+ *
+ * @prop {string} type one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
+ * @prop {string} value required
+ * @prop {function} onChange required
+ * @prop {string[]|string|boolean} errors for visual error indication and displaying error messages
+ * @prop {string} label
+ * @prop {string} placeholder
+ * @prop {string} description
+ * @prop {boolean} readOnly
+ * @prop {boolean} disabled
+ * @prop {string[]|string} customModifiers
+ */
 class TextBox extends React.Component {
   constructor(props){
     super(props);
@@ -26,7 +25,7 @@ class TextBox extends React.Component {
       'text',
       'email',
       'password',
-      'url'
+      'url',
     ];
     this.DEFAULT_TYPE = 'text';
     autoBind(this);
