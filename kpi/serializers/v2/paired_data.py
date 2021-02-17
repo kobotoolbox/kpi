@@ -205,8 +205,8 @@ class PairedDataSerializer(serializers.Serializer):
 
         if not self.instance and parent.uid in asset.paired_data:
             raise serializers.ValidationError(_(
-                'Parent `{parent_uid}` is already paired'
-            ).format(parent_uid=parent.uid))
+                'Parent `{parent}` is already paired'
+            ).format(parent=parent.name))
 
         return parent
 
