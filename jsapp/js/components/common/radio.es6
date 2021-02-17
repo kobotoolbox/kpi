@@ -6,13 +6,11 @@
  * - name <string>: required
  * - onChange <function>: required
  * - selected <value>: selected option
- *
- * TODO: would be best to move it to `jsapp/js/components/generic` directory.
  */
 
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from '../bem';
+import {bem} from 'js/bem';
 
 class Radio extends React.Component {
   constructor(props){
