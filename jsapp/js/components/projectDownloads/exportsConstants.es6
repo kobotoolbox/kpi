@@ -1,5 +1,5 @@
 export const EXPORT_TYPES = Object.freeze({
-  analyser_legacy: {value: 'analyser_legacy', label: t('Excel Analyser'), isLegacy: true},
+  analyser: {value: 'analyser', label: t('Excel Analyser'), isLegacy: true},
   csv_legacy: {value: 'csv_legacy', label: t('CSV (legacy)'), isLegacy: true},
   csv: {value: 'csv', label: t('CSV'), isLegacy: false},
   geojson: {value: 'geojson', label: t('GeoJSON'), isLegacy: false},

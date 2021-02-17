@@ -20,7 +20,7 @@ import {
 import assetUtils from 'js/assetUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 
-const NAMELESS_EXPORT_NAME = t('Latest settings');
+const NAMELESS_EXPORT_NAME = t('Latest unsaved settings');
 
 /**
  * @prop {object} asset
@@ -82,7 +82,18 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   onExportsStoreChange() {
-    this.setState({selectedExportType: exportsStore.getExportType()});
+    const newExportType = exportsStore.getExportType();
+    if (newExportType.value !== this.state.selectedExportType.value) {
+      const newStateObj = {
+        selectedExportType: newExportType,
+        // when export type changes, make sure the custom export is cleared
+        // to avoid users saving unwanted changes (the custom export name is not
+        // visible unless Advanced View is toggled)
+        isSaveCustomExportEnabled: false,
+        customExportName: '',
+      };
+      this.setState(newStateObj);
+    }
   }
 
   onGetExportSettings(response) {
@@ -110,7 +121,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   onDeleteExportSetting() {
-    this.setState({selectedDefinedExport: null});
+    this.clearSelectedDefinedExport();
     this.fetchExportSettings();
   }
 
@@ -134,8 +145,8 @@ export default class ProjectExportsCreator extends React.Component {
    * sure the export was actually wanted.
    */
   handleScheduledExport(response) {
-    if (typeof this.cancelScheduledExport === 'function') {
-      this.cancelScheduledExport();
+    if (typeof this.clearScheduledExport === 'function') {
+      this.clearScheduledExport();
     }
 
     this.setState({isPending: true});
@@ -254,29 +265,33 @@ export default class ProjectExportsCreator extends React.Component {
     }
 
     const foundDefinedExport = this.state.definedExports.find((definedExport) => {
-      return definedExport.name === payload.name;
+      return definedExport.data.name === payload.name;
     });
 
     this.setState({isPending: true});
 
-    if (typeof this.cancelScheduledExport === 'function') {
-      this.cancelScheduledExport();
+    if (typeof this.clearScheduledExport === 'function') {
+      this.clearScheduledExport();
     }
 
-    // TODO if someone selected a defined export and doesn't change it in any way
-    // we don't need to save it, we just need to schedule export
-
-    if (foundDefinedExport) {
-      this.cancelScheduledExport = actions.exports.updateExportSetting.completed.listen(
+    // Case 1: We don't need to save the export if currently selected a saved
+    // one, so we get directly to export creation.
+    if (this.state.selectedDefinedExport !== null) {
+      this.handleScheduledExport(foundDefinedExport.data);
+    // Case 2: There is a defined export with the same name already, so we need
+    // to update it.
+    } else if (foundDefinedExport) {
+      this.clearScheduledExport = actions.exports.updateExportSetting.completed.listen(
         this.handleScheduledExport
       );
       actions.exports.updateExportSetting(
         this.props.asset.uid,
-        foundDefinedExport.uid,
+        foundDefinedExport.data.uid,
         payload,
       );
+    // Case 3: There is no defined export like this one, we need to create it.
     } else {
-      this.cancelScheduledExport = actions.exports.createExportSetting.completed.listen(
+      this.clearScheduledExport = actions.exports.createExportSetting.completed.listen(
         this.handleScheduledExport
       );
       actions.exports.createExportSetting(

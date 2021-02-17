@@ -316,9 +316,9 @@ export var dataInterface;
 
     getAssetExports(assetUid) {
       return $ajax({
-        url: `${ROOT_URL}/exports/`,
+        url: `${ROOT_URL}/api/v2/exports/`,
         data: {
-          q: `source:${assetUid}`,
+          q: `data__source__icontains:${assetUid}`,
           ordering: '-date_created',
           // TODO: handle pagination of this in future, for now we get "all"
           limit: 9999,
@@ -328,22 +328,22 @@ export var dataInterface;
 
     createAssetExport(data) {
       return $ajax({
-        url: `${ROOT_URL}/exports/`,
+        url: `${ROOT_URL}/api/v2/exports/`,
         method: 'POST',
-        data: data,
+        data: {data: JSON.stringify(data)},
       });
     },
 
     getAssetExport(exportUid) {
       return $ajax({
-        url: `${ROOT_URL}/exports/${exportUid}/`,
+        url: `${ROOT_URL}/api/v2/exports/${exportUid}/`,
         method: 'GET',
       });
     },
 
     deleteAssetExport(exportUid) {
       return $ajax({
-        url: `${ROOT_URL}/exports/${exportUid}/`,
+        url: `${ROOT_URL}/api/v2/exports/${exportUid}/`,
         method: 'DELETE',
       });
     },

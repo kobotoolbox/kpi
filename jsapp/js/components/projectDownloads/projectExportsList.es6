@@ -52,10 +52,6 @@ export default class ProjectExportsList extends React.Component {
   }
 
   onGetExports(response) {
-    // TODO for now exports endpoint doesn't allow `ordering` parameter, and the
-    // results are oldest first, so:
-    response.results.reverse();
-
     response.results.forEach((exportData) => {
       this.prepareFetchInterval(exportData.uid, exportData.status);
     });
