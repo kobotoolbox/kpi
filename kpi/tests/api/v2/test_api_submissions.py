@@ -678,146 +678,63 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
         a.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_list_url = a.deployment.submission_list_url
 
-    def test_list_submissions_geojson_defaults(self):
-        response = self.client.get(self.submission_list_url,
-                                  {'format': 'geojson'})
-        expected_output = {
-            "features": [
-                {
-                    "geometry": {
-                        "coordinates": [10.12, 10.11, 10.13],
-                        "type": "Point"
-                    },
-                    "properties": {
-                        "_geo1_altitude": "10.13",
-                        "_geo1_latitude": "10.11",
-                        "_geo1_longitude": "10.12",
-                        "_geo1_precision": "10.14",
-                        "_geo2_altitude": "10.23",
-                        "_geo2_latitude": "10.21",
-                        "_geo2_longitude": "10.22",
-                        "_geo2_precision": "10.24",
-                        "geo1": "10.11 10.12 10.13 10.14",
-                        "geo2": "10.21 10.22 10.23 10.24",
-                        "text": "Tired"
-                    },
-                    "type": "Feature"
-                },
-                {
-                    "geometry": {
-                        "coordinates": [20.12, 20.11, 20.13],
-                        "type": "Point"
-                    },
-                    "properties": {
-                        "_geo1_altitude": "20.13",
-                        "_geo1_latitude": "20.11",
-                        "_geo1_longitude": "20.12",
-                        "_geo1_precision": "20.14",
-                        "_geo2_altitude": "20.23",
-                        "_geo2_latitude": "20.21",
-                        "_geo2_longitude": "20.22",
-                        "_geo2_precision": "20.24",
-                        "geo1": "20.11 20.12 20.13 20.14",
-                        "geo2": "20.21 20.22 20.23 20.24",
-                        "text": "Relieved"
-                    },
-                    "type": "Feature"
-                },
-                {
-                    "geometry": {
-                        "coordinates": [30.12, 30.11, 30.13],
-                        "type": "Point"
-                    },
-                    "properties": {
-                        "_geo1_altitude": "30.13",
-                        "_geo1_latitude": "30.11",
-                        "_geo1_longitude": "30.12",
-                        "_geo1_precision": "30.14",
-                        "_geo2_altitude": "30.23",
-                        "_geo2_latitude": "30.21",
-                        "_geo2_longitude": "30.22",
-                        "_geo2_precision": "30.24",
-                        "geo1": "30.11 30.12 30.13 30.14",
-                        "geo2": "30.21 30.22 30.23 30.24",
-                        "text": "Excited"
-                    },
-                    "type": "Feature"
-                }
-            ],
-            "name": "Two points and one text",
-            "type": "FeatureCollection"
-        }
-        self.assertDictEqual(expected_output, json.loads(response.content))
-
-    def test_list_submissions_geojson_other_geo_question(self):
+    def test_list_submissions_geojson(self):
         response = self.client.get(
             self.submission_list_url,
-            {'format': 'geojson', 'geo_question_name': 'geo2'}
+            {'format': 'geojson'}
         )
         expected_output = {
+            "type": "FeatureCollection",
+            "name": "Two points and one text",
             "features": [
                 {
+                    "type": "Feature",
                     "geometry": {
-                        "coordinates": [10.22, 10.21, 10.23],
-                        "type": "Point"
+                        "type": "Point",
+                        "coordinates": [10.12, 10.11, 10.14],
                     },
-                    "properties": {
-                        "_geo1_altitude": "10.13",
-                        "_geo1_latitude": "10.11",
-                        "_geo1_longitude": "10.12",
-                        "_geo1_precision": "10.14",
-                        "_geo2_altitude": "10.23",
-                        "_geo2_latitude": "10.21",
-                        "_geo2_longitude": "10.22",
-                        "_geo2_precision": "10.24",
-                        "geo1": "10.11 10.12 10.13 10.14",
-                        "geo2": "10.21 10.22 10.23 10.24",
-                        "text": "Tired"
-                    },
-                    "type": "Feature"
+                    "properties": {"text": "Tired"},
                 },
                 {
+                    "type": "Feature",
                     "geometry": {
-                        "coordinates": [20.22, 20.21, 20.23],
-                        "type": "Point"
+                        "type": "Point",
+                        "coordinates": [10.22, 10.21, 10.24],
                     },
-                    "properties": {
-                        "_geo1_altitude": "20.13",
-                        "_geo1_latitude": "20.11",
-                        "_geo1_longitude": "20.12",
-                        "_geo1_precision": "20.14",
-                        "_geo2_altitude": "20.23",
-                        "_geo2_latitude": "20.21",
-                        "_geo2_longitude": "20.22",
-                        "_geo2_precision": "20.24",
-                        "geo1": "20.11 20.12 20.13 20.14",
-                        "geo2": "20.21 20.22 20.23 20.24",
-                        "text": "Relieved"
-                    },
-                    "type": "Feature"
+                    "properties": {"text": "Tired"},
                 },
                 {
+                    "type": "Feature",
                     "geometry": {
-                        "coordinates": [30.22, 30.21, 30.23],
-                        "type": "Point"
+                        "type": "Point",
+                        "coordinates": [20.12, 20.11, 20.14],
                     },
-                    "properties": {
-                        "_geo1_altitude": "30.13",
-                        "_geo1_latitude": "30.11",
-                        "_geo1_longitude": "30.12",
-                        "_geo1_precision": "30.14",
-                        "_geo2_altitude": "30.23",
-                        "_geo2_latitude": "30.21",
-                        "_geo2_longitude": "30.22",
-                        "_geo2_precision": "30.24",
-                        "geo1": "30.11 30.12 30.13 30.14",
-                        "geo2": "30.21 30.22 30.23 30.24",
-                        "text": "Excited"
+                    "properties": {"text": "Relieved"},
+                },
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [20.22, 20.21, 20.24],
                     },
-                    "type": "Feature"
-                }
+                    "properties": {"text": "Relieved"},
+                },
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [30.12, 30.11, 30.14],
+                    },
+                    "properties": {"text": "Excited"},
+                },
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [30.22, 30.21, 30.24],
+                    },
+                    "properties": {"text": "Excited"},
+                },
             ],
-            "name": "Two points and one text",
-            "type": "FeatureCollection"
         }
-        self.assertDictEqual(expected_output, json.loads(response.content))
+        assert expected_output == json.loads(response.content)
