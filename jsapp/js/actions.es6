@@ -209,12 +209,6 @@ actions.dataShare.attachToParent.listen((assetUid, data) => {
       actions.dataShare.attachToParent.failed(response)
     })
 });
-actions.dataShare.attachToParent.failed.listen((response) => {
-  alertify.error(
-    response?.responseJSON.parent[0] ||
-    t('Failed to connect to external project')
-  );
-});
 
 actions.dataShare.detachParent.listen((attachmentUrl) => {
   dataInterface.detachParent(attachmentUrl)
