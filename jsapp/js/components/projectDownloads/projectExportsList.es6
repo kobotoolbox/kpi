@@ -142,6 +142,9 @@ export default class ProjectExportsList extends React.Component {
     dialog.set(opts).show();
   }
 
+  /**
+   * For `true` it is "Yes", any other (e.g. `false` or missing) is "No"
+   */
   renderBooleanAnswer(isTrue) {
     if (isTrue) {
       return t('Yes');
