@@ -18,6 +18,7 @@ import {
   EXPORT_MULTIPLE_OPTIONS,
 } from './exportsConstants';
 import assetUtils from 'js/assetUtils';
+import exportsStore from 'js/components/projectDownloads/exportsStore';
 
 const NAMELESS_EXPORT_NAME = t('Latest settings');
 
@@ -33,7 +34,9 @@ export default class ProjectExportsCreator extends React.Component {
     this.state = {
       isComponentReady: false,
       isPending: false, // is either saving setting or creating export
-      selectedExportType: EXPORT_TYPES.xls,
+      // selectedExportType is being handled by exportsStore to allow other
+      // components to know it changed
+      selectedExportType: exportsStore.getExportType(),
       selectedExportFormat: EXPORT_FORMATS._default,
       groupSeparator: '/',
       selectedExportMultiple: EXPORT_MULTIPLE_OPTIONS.both,
@@ -64,6 +67,7 @@ export default class ProjectExportsCreator extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
+      exportsStore.listen(this.onExportsStoreChange),
       actions.exports.getExportSettings.completed.listen(this.onGetExportSettings),
       actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings),
       actions.exports.createExportSetting.completed.listen(this.fetchExportSettings),
@@ -75,6 +79,10 @@ export default class ProjectExportsCreator extends React.Component {
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  onExportsStoreChange() {
+    this.setState({selectedExportType: exportsStore.getExportType()});
   }
 
   onGetExportSettings(response) {
@@ -150,12 +158,21 @@ export default class ProjectExportsCreator extends React.Component {
     this.applyExportSettingToState(newDefinedExport.data);
   }
 
+  // changing anything in the form should clear the selected defined export
+  clearSelectedDefinedExport() {
+    this.setState({selectedDefinedExport: null});
+  }
+
   onAnyInputChange(statePropName, newValue) {
     const newStateObj = {};
     newStateObj[statePropName] = newValue;
-    // changing anything in the form clears the selected defined export
-    newStateObj.selectedDefinedExport = null;
     this.setState(newStateObj);
+    this.clearSelectedDefinedExport();
+  }
+
+  onSelectedExportTypeChange(newValue) {
+    this.clearSelectedDefinedExport();
+    exportsStore.setExportType(newValue);
   }
 
   onRowSelected(rowName) {
@@ -173,6 +190,9 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   applyExportSettingToState(data) {
+    // this silently sets exportsStore value to current one
+    exportsStore.setExportType(EXPORT_TYPES[data.export_settings.type], false);
+
     const newStateObj = {
       selectedExportType: EXPORT_TYPES[data.export_settings.type],
       selectedExportFormat: EXPORT_FORMATS[data.export_settings.lang],
@@ -415,18 +435,155 @@ export default class ProjectExportsCreator extends React.Component {
     );
   }
 
-  render() {
-    let translations = this.props.asset.content.translations;
-
-    // TODO Someone without manage_asset should not be able to modify these exports
-
-    // TODO each time someone does an export and doesn't decide to save their settings (i.e. they also have manage_asset) the "last used" settings are updated (with a PATCH?). If that person doesn't have manage_asset but they can still export data, must the frontend ensure that it doesn't send a PATCH to update the "last used" settings?
-
-    const groupSeparatorLabel = (
+  getGroupSeparatorLabel() {
+    return (
       <span className='project-downloads__title'>
         {t('Group separator')}
       </span>
     );
+  }
+
+  renderExportTypeSelector() {
+    return (
+      <label>
+        <span className='project-downloads__title'>
+          {t('Select export type')}
+        </span>
+
+        <Select
+          value={this.state.selectedExportType}
+          options={Object.values(EXPORT_TYPES)}
+          onChange={this.onSelectedExportTypeChange}
+          className='kobo-select'
+          classNamePrefix='kobo-select'
+          menuPlacement='auto'
+        />
+      </label>
+    );
+  }
+
+  renderLegacy() {
+    return (
+      <React.Fragment>
+        <div className='project-downloads__selector-row'>
+          {this.renderExportTypeSelector()}
+        </div>
+
+        <bem.FormView__cell m='warning'>
+          <i className='k-icon-alert' />
+          <p>{t('This export format will not be supported in the future. Please consider using one of the other export types available.')}</p>
+        </bem.FormView__cell>
+
+        <div className='project-downloads__legacy-iframe-wrapper'>
+          <iframe src={
+            this.props.asset.deployment__data_download_links[this.state.selectedExportType.value]
+          } />
+        </div>
+      </React.Fragment>
+    );
+  }
+
+  renderNonLegacy() {
+    return (
+      <React.Fragment>
+        <div className='project-downloads__selector-row'>
+          {this.renderExportTypeSelector()}
+
+          <label>
+            <span className='project-downloads__title'>
+              {t('Value and header format')}
+            </span>
+
+            <Select
+              value={this.state.selectedExportFormat}
+              options={Object.values(EXPORT_FORMATS)}
+              onChange={this.onAnyInputChange.bind(
+                this,
+                'selectedExportFormat'
+              )}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              menuPlacement='auto'
+            />
+          </label>
+
+          <TextBox
+            value={this.state.groupSeparator}
+            onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
+            label={this.getGroupSeparatorLabel()}
+            customModifiers={['on-white', 'group-separator']}
+          />
+        </div>
+
+        <div
+          className='project-downloads__advanced-toggle'
+          onClick={this.toggleAdvancedView}
+        >
+          {t('Advanced options')}
+          {this.state.isAdvancedViewVisible && (
+            <i className='k-icon k-icon-up' />
+          )}
+          {!this.state.isAdvancedViewVisible && (
+            <i className='k-icon k-icon-down' />
+          )}
+        </div>
+
+        <hr />
+
+        {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
+
+        <div className='project-downloads__submit-row'>
+          <div className='project-downloads__defined-exports-selector'>
+            {this.state.definedExports.length >= 1 &&
+              <React.Fragment>
+                <label>
+                  <span className='project-downloads__title'>
+                    {t('Custom exports')}
+                  </span>
+
+                  <Select
+                    isLoading={this.state.isUpdatingDefinedExportsList}
+                    value={this.state.selectedDefinedExport}
+                    options={this.state.definedExports}
+                    onChange={this.onSelectedDefinedExportChange}
+                    className='kobo-select'
+                    classNamePrefix='kobo-select'
+                    menuPlacement='auto'
+                    placeholder={t('Select…')}
+                  />
+                </label>
+
+                {this.state.selectedDefinedExport &&
+                  <bem.KoboLightButton
+                    m={['red', 'icon-only']}
+                    onClick={this.deleteExportSetting.bind(
+                      this,
+                      this.state.selectedDefinedExport.data.uid
+                    )}
+                  >
+                    <i className='k-icon k-icon-trash'/>
+                  </bem.KoboLightButton>
+                }
+              </React.Fragment>
+            }
+          </div>
+
+          <bem.KoboButton
+            m='blue'
+            type='submit'
+            onClick={this.onSubmit}
+          >
+            {t('Export')}
+          </bem.KoboButton>
+        </div>
+      </React.Fragment>
+    );
+  }
+
+  render() {
+    // TODO Someone without manage_asset should not be able to modify these exports
+
+    // TODO each time someone does an export and doesn't decide to save their settings (i.e. they also have manage_asset) the "last used" settings are updated (with a PATCH?). If that person doesn't have manage_asset but they can still export data, must the frontend ensure that it doesn't send a PATCH to update the "last used" settings?
 
     let formClassNames = ['exports-creator'];
     if (!this.state.isComponentReady) {
@@ -441,112 +598,13 @@ export default class ProjectExportsCreator extends React.Component {
 
         <bem.FormView__cell m={['box', 'padding']}>
           <bem.FormView__form className={formClassNames.join(' ')}>
-            <div className='project-downloads__selector-row'>
-              <label>
-                <span className='project-downloads__title'>
-                  {t('Select export type')}
-                </span>
+            {this.state.selectedExportType.isLegacy &&
+              this.renderLegacy()
+            }
 
-                <Select
-                  value={this.state.selectedExportType}
-                  options={Object.values(EXPORT_TYPES)}
-                  onChange={this.onAnyInputChange.bind(
-                    this,
-                    'selectedExportType'
-                  )}
-                  className='kobo-select'
-                  classNamePrefix='kobo-select'
-                  menuPlacement='auto'
-                />
-              </label>
-
-              <label>
-                <span className='project-downloads__title'>
-                  {t('Value and header format')}
-                </span>
-
-                <Select
-                  value={this.state.selectedExportFormat}
-                  options={Object.values(EXPORT_FORMATS)}
-                  onChange={this.onAnyInputChange.bind(
-                    this,
-                    'selectedExportFormat'
-                  )}
-                  className='kobo-select'
-                  classNamePrefix='kobo-select'
-                  menuPlacement='auto'
-                />
-              </label>
-
-              <TextBox
-                value={this.state.groupSeparator}
-                onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
-                label={groupSeparatorLabel}
-                customModifiers={['on-white', 'group-separator']}
-              />
-            </div>
-
-            <div
-              className='project-downloads__advanced-toggle'
-              onClick={this.toggleAdvancedView}
-            >
-              {t('Advanced options')}
-              {this.state.isAdvancedViewVisible && (
-                <i className='k-icon k-icon-up' />
-              )}
-              {!this.state.isAdvancedViewVisible && (
-                <i className='k-icon k-icon-down' />
-              )}
-            </div>
-
-            <hr />
-
-            {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
-
-            <div className='project-downloads__submit-row'>
-              <div className='project-downloads__defined-exports-selector'>
-                {this.state.definedExports.length >= 1 &&
-                  <React.Fragment>
-                    <label>
-                      <span className='project-downloads__title'>
-                        {t('Custom exports')}
-                      </span>
-
-                      <Select
-                        isLoading={this.state.isUpdatingDefinedExportsList}
-                        value={this.state.selectedDefinedExport}
-                        options={this.state.definedExports}
-                        onChange={this.onSelectedDefinedExportChange}
-                        className='kobo-select'
-                        classNamePrefix='kobo-select'
-                        menuPlacement='auto'
-                        placeholder={t('Select…')}
-                      />
-                    </label>
-
-                    {this.state.selectedDefinedExport &&
-                      <bem.KoboLightButton
-                        m={['red', 'icon-only']}
-                        onClick={this.deleteExportSetting.bind(
-                          this,
-                          this.state.selectedDefinedExport.data.uid
-                        )}
-                      >
-                        <i className='k-icon k-icon-trash'/>
-                      </bem.KoboLightButton>
-                    }
-                  </React.Fragment>
-                }
-              </div>
-
-              <bem.KoboButton
-                m='blue'
-                type='submit'
-                onClick={this.onSubmit}
-              >
-                {t('Export')}
-              </bem.KoboButton>
-            </div>
+            {!this.state.selectedExportType.isLegacy &&
+              this.renderNonLegacy()
+            }
           </bem.FormView__form>
         </bem.FormView__cell>
       </bem.FormView__row>

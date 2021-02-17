@@ -1,13 +1,13 @@
 export const EXPORT_TYPES = Object.freeze({
-  analyser_legacy: {value: 'analyser_legacy', label: t('Excel Analyser')},
-  csv_legacy: {value: 'csv_legacy', label: t('CSV (legacy)')},
-  csv: {value: 'csv', label: t('CSV')},
-  geojson: {value: 'geojson', label: t('GeoJSON')},
-  kml_legacy: {value: 'kml_legacy', label: t('GPS coordinates (KML)')},
-  spss_labels: {value: 'spss_labels', label: t('SPSS Labels')},
-  xls_legacy: {value: 'xls_legacy', label: t('XLS (legacy)')},
-  xls: {value: 'xls', label: t('XLS')},
-  zip_legacy: {value: 'zip_legacy', label: t('Media Attachments (ZIP)')},
+  analyser_legacy: {value: 'analyser_legacy', label: t('Excel Analyser'), isLegacy: true},
+  csv_legacy: {value: 'csv_legacy', label: t('CSV (legacy)'), isLegacy: true},
+  csv: {value: 'csv', label: t('CSV'), isLegacy: false},
+  geojson: {value: 'geojson', label: t('GeoJSON'), isLegacy: false},
+  kml_legacy: {value: 'kml_legacy', label: t('GPS coordinates (KML)'), isLegacy: true},
+  spss_labels: {value: 'spss_labels', label: t('SPSS Labels'), isLegacy: false},
+  xls_legacy: {value: 'xls_legacy', label: t('XLS (legacy)'), isLegacy: true},
+  xls: {value: 'xls', label: t('XLS'), isLegacy: false},
+  zip_legacy: {value: 'zip_legacy', label: t('Media Attachments (ZIP)'), isLegacy: true},
 });
 
 export const EXPORT_FORMATS = Object.freeze({

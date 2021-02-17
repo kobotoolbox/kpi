@@ -9,6 +9,7 @@ import {
   EXPORT_FORMATS,
   EXPORT_STATUSES,
 } from './exportsConstants';
+import exportsStore from 'js/components/projectDownloads/exportsStore';
 
 const EXPORT_REFRESH_TIME = 4000;
 
@@ -21,6 +22,7 @@ export default class ProjectExportsList extends React.Component {
     this.state = {
       isComponentReady: false,
       rows: [],
+      selectedExportType: exportsStore.getExportType(),
     };
 
     this.unlisteners = [];
@@ -31,6 +33,7 @@ export default class ProjectExportsList extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
+      exportsStore.listen(this.onExportsStoreChange),
       actions.exports.getExports.completed.listen(this.onGetExports),
       actions.exports.createExport.completed.listen(this.onCreateExport),
       actions.exports.deleteExport.completed.listen(this.onDeleteExport),
@@ -42,6 +45,10 @@ export default class ProjectExportsList extends React.Component {
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
     this.removeAllFetchIntervals();
+  }
+
+  onExportsStoreChange() {
+    this.setState({selectedExportType: exportsStore.getExportType()});
   }
 
   onGetExports(response) {
@@ -200,8 +207,12 @@ export default class ProjectExportsList extends React.Component {
           </bem.FormView__cell>
         </bem.FormView__row>
       );
-    } else if (this.state.rows.length === 0) {
-      // don't display the component if no exports
+    // don't display the component if no exports
+    // or if selected a legacy type
+    } else if (
+      this.state.rows.length === 0 ||
+      this.state.selectedExportType.isLegacy
+    ) {
       return null;
     } else {
       return (
