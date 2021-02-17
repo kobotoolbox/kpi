@@ -254,14 +254,19 @@ actions.dataShare.getSharingEnabledAssets.listen(() => {
     })
     .fail(actions.dataShare.getSharingEnabledAssets.failed);
 });
-actions.dataShare.getSharingEnabledAssets.failed.listen((response) => {
+actions.dataShare.getSharingEnabledAssets.failed.listen(() => {
   alertify.error(t('Failed to retrieve sharing enabled assets'));
 });
 
 actions.dataShare.toggleDataSharing.listen((uid, data) => {
   dataInterface.toggleDataSharing(uid, data)
     .done(actions.dataShare.toggleDataSharing.completed)
-    .fail(actions.dataShare.toggleDataSharing.failed);
+    .fail((response) => {
+      actions.dataShare.toggleDataSharing.failed(response);
+    });
+});
+actions.dataShare.toggleDataSharing.failed.listen((response) => {
+  alertify.error(response.responseJSON.detail);
 });
 
 /*
