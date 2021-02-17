@@ -1,5 +1,6 @@
 # coding: utf-8
 import re
+from distutils.util import strtobool
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -31,7 +32,6 @@ from kpi.constants import (
 from kpi.exceptions import SearchQueryTooShortException
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
-from kpi.utils.export_task import filter_export_tasks
 from .models import Asset, ObjectPermission, ExportTask
 from .models.object_permission import (
     get_objects_for_user,
@@ -95,11 +95,6 @@ class ExportObjectPermissionsFilter:
             return ExportTask.objects.none()
 
         return ExportTask.objects.filter(user=request.user)
-
-
-class ExportObjectFilter:
-    def filter_queryset(self, request, queryset, view):
-        return filter_export_tasks(request, queryset)
 
 
 class ExportObjectOrderingFilter(filters.OrderingFilter):
@@ -328,7 +323,7 @@ class SearchFilter(filters.BaseFilterBackend):
 
         try:
             q_obj = parse(
-                q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
+                q, default_field_lookups=view.search_default_field_lookups
             )
         except ParseError:
             return queryset.model.objects.none()

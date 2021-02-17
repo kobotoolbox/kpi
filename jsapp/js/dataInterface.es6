@@ -333,7 +333,7 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/exports/`,
         data: {
-          q: `source:${uid}`
+          q: `data__source__icontains:${uid}`
         }
       });
     },
