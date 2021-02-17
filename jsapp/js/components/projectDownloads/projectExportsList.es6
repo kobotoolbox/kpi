@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import {formatTime} from 'js/utils';
+import {getLanguageIndex} from 'js/assetUtils';
 import {renderLoading} from 'js/components/modalForms/modalHelpers.es6';
 import {
   EXPORT_TYPES,
@@ -92,6 +93,7 @@ export default class ProjectExportsList extends React.Component {
     // if the export is not complete yet, and there is no fetch interval
     // fetch it in some time again and again
     if (
+      exportStatus !== EXPORT_STATUSES.error &&
       exportStatus !== EXPORT_STATUSES.complete &&
       !this.fetchIntervals.has(exportUid)
     ) {
@@ -100,7 +102,10 @@ export default class ProjectExportsList extends React.Component {
     }
 
     // clean up after it is completed
-    if (exportStatus === EXPORT_STATUSES.complete) {
+    if (
+      exportStatus === EXPORT_STATUSES.error ||
+      exportStatus === EXPORT_STATUSES.complete
+    ) {
       this.removeFetchInterval(exportUid);
     }
   }
@@ -137,6 +142,14 @@ export default class ProjectExportsList extends React.Component {
   }
 
   renderRow(exportData) {
+    let languageDisplay = '';
+    const langIndex = getLanguageIndex(this.props.asset, exportData.data.lang);
+    if (langIndex !== null) {
+      languageDisplay = exportData.data.lang;
+    } else {
+      languageDisplay = EXPORT_FORMATS[exportData.data.lang]?.label;
+    }
+
     return (
       <bem.SimpleTable__row key={exportData.uid}>
         <bem.SimpleTable__cell>
@@ -148,7 +161,7 @@ export default class ProjectExportsList extends React.Component {
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
-          {EXPORT_FORMATS[exportData.data.lang]?.label}
+          {languageDisplay}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>

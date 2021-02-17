@@ -54,7 +54,7 @@ exportsActions.deleteExport.failed.listen(() => {
 });
 
 function cleanupExportSettingData(data) {
-  return {
+  const cleanData = {
     name: data.name,
     // Backend requires export_settings to be stringified JSON
     export_settings: JSON.stringify({
@@ -67,10 +67,15 @@ function cleanupExportSettingData(data) {
       lang: data.export_settings.lang,
       multiple_select: data.export_settings.multiple_select,
       type: data.export_settings.type,
-      // Backend expects booleans as strings
-      flatten: String(data.export_settings.flatten),
     }),
   };
+
+  if (data.export_settings.flatten) {
+    // Backend expects booleans as strings
+    cleanData.flatten = String(data.export_settings.flatten);
+  }
+
+  return cleanData;
 }
 
 exportsActions.getExportSettings.listen((assetUid) => {

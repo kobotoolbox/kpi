@@ -37,7 +37,7 @@ export default class ProjectExportsCreator extends React.Component {
       // selectedExportType is being handled by exportsStore to allow other
       // components to know it changed
       selectedExportType: exportsStore.getExportType(),
-      selectedExportFormat: EXPORT_FORMATS._default,
+      selectedExportFormat: null,
       groupSeparator: '/',
       selectedExportMultiple: EXPORT_MULTIPLE_OPTIONS.both,
       isIncludeGroupsEnabled: false,
@@ -60,6 +60,12 @@ export default class ProjectExportsCreator extends React.Component {
     if (allSelectableRows) {
       this.state.selectedRows = new Set(allSelectableRows);
       this.state.selectableRowsCount = this.state.selectedRows.size;
+    }
+
+    const exportFormatOtions = this.getExportFormatOptions();
+    if (exportFormatOtions) {
+      // first option is the default one
+      this.state.selectedExportFormat = exportFormatOtions[0];
     }
 
     autoBind(this);
@@ -92,6 +98,7 @@ export default class ProjectExportsCreator extends React.Component {
         isSaveCustomExportEnabled: false,
         customExportName: '',
       };
+
       this.setState(newStateObj);
     }
   }
@@ -123,6 +130,22 @@ export default class ProjectExportsCreator extends React.Component {
   onDeleteExportSetting() {
     this.clearSelectedDefinedExport();
     this.fetchExportSettings();
+  }
+
+  getExportFormatOptions() {
+    if (this.props.asset.summary?.languages.length >= 2) {
+      const options = [EXPORT_FORMATS._xml];
+      this.props.asset.summary.languages.forEach((language, index) => {
+        options.push({
+          value: language,
+          label: language,
+          langIndex: index,
+        });
+      });
+      return options;
+    } else {
+      return Object.values(EXPORT_FORMATS);
+    }
   }
 
   getAllSelectableRows() {
@@ -169,7 +192,9 @@ export default class ProjectExportsCreator extends React.Component {
     this.applyExportSettingToState(newDefinedExport.data);
   }
 
-  // changing anything in the form should clear the selected defined export
+  /**
+   * FYI changing anything in the form should clear the selected defined export
+   */
   clearSelectedDefinedExport() {
     this.setState({selectedDefinedExport: null});
   }
@@ -204,9 +229,14 @@ export default class ProjectExportsCreator extends React.Component {
     // this silently sets exportsStore value to current one
     exportsStore.setExportType(EXPORT_TYPES[data.export_settings.type], false);
 
+    const exportFormatOtions = this.getExportFormatOptions();
+    const selectedExportFormat = exportFormatOtions.find((option) => {
+      return option.value === data.export_settings.lang;
+    });
+
     const newStateObj = {
       selectedExportType: EXPORT_TYPES[data.export_settings.type],
-      selectedExportFormat: EXPORT_FORMATS[data.export_settings.lang],
+      selectedExportFormat: selectedExportFormat,
       groupSeparator: data.export_settings.group_sep,
       selectedExportMultiple: EXPORT_MULTIPLE_OPTIONS[data.export_settings.multiple_select],
       // FYI Backend keeps booleans as strings
@@ -249,9 +279,13 @@ export default class ProjectExportsCreator extends React.Component {
         lang: this.state.selectedExportFormat.value,
         multiple_select: this.state.selectedExportMultiple.value,
         type: this.state.selectedExportType.value,
-        flatten: this.state.isFlattenGeoJsonEnabled,
       },
     };
+
+    // flatten is only for GeoJSON
+    if (this.state.selectedExportType.value === EXPORT_TYPES.geojson.value) {
+      payload.export_settings.flatten = this.state.isFlattenGeoJsonEnabled;
+    }
 
     // if custom export is enabled, but there is no name provided
     // we generate a name for export ourselves
@@ -329,7 +363,12 @@ export default class ProjectExportsCreator extends React.Component {
   renderRowSelector(row) {
     const rowName = assetUtils.getRowName(row);
     let isChecked = this.state.selectedRows.has(rowName);
-    let checkboxLabel = assetUtils.getQuestionDisplayName(row);
+
+    let checkboxLabel = assetUtils.getQuestionDisplayName(
+      row,
+      this.state.selectedExportFormat?.langIndex
+    );
+
     if (this.state.selectedExportFormat.value === EXPORT_FORMATS._xml.value) {
       checkboxLabel = rowName;
     }
@@ -499,6 +538,8 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   renderNonLegacy() {
+    const exportFormatOtions = this.getExportFormatOptions();
+
     return (
       <React.Fragment>
         <div className='project-downloads__selector-row'>
@@ -511,7 +552,7 @@ export default class ProjectExportsCreator extends React.Component {
 
             <Select
               value={this.state.selectedExportFormat}
-              options={Object.values(EXPORT_FORMATS)}
+              options={exportFormatOtions}
               onChange={this.onAnyInputChange.bind(
                 this,
                 'selectedExportFormat'

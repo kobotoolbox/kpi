@@ -59,6 +59,25 @@ export function getOrganizationDisplayString(asset) {
 
 /**
  * @param {Object} asset - BE asset data
+ * @param {string} langString - language string (the de facto "id")
+ * @returns {number|null} the index of language or null if not found
+ */
+export function getLanguageIndex(asset, langString) {
+  let foundIndex = null;
+
+  if (asset.summary?.languages?.length >= 1) {
+    asset.summary.languages.forEach((language, index) => {
+      if (language === langString) {
+        foundIndex = index;
+      }
+    });
+  }
+
+  return foundIndex;
+}
+
+/**
+ * @param {Object} asset - BE asset data
  * @returns {string}
  */
 export function getLanguagesDisplayString(asset) {
@@ -521,6 +540,7 @@ export default {
   getAssetOwnerDisplayName,
   getCountryDisplayString,
   getFlatQuestionsList,
+  getLanguageIndex,
   getLanguagesDisplayString,
   getOrganizationDisplayString,
   getQuestionDisplayName,
