@@ -262,7 +262,8 @@ class ConnectProjects extends React.Component {
             <h2>{t('Share data with other project forms')}</h2>
           </div>
           <p>
-            {t('You can open this project to make the data collected here available in other forms. This data will be dynamic and will update automatically in the new forms you link when anything is modified in this project. You can change this at any time and customize who has access to this data.')}
+            {t('Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments')}
+            <a href='#'>{t(' ' + 'here')}</a>
           </p>
           {this.renderSwitchLabel()}
         </bem.FormModal__item>
@@ -274,9 +275,8 @@ class ConnectProjects extends React.Component {
             <h2>{t('Import other project data')}</h2>
           </div>
           <p>
-            {t('You can also link available projects to this form, permitting data coming from the new proejct to be available in the form builder. In order to do this, you will need to introduce the appropriate code in the desired questions. You can learn more about it ')}
-            <a href='#'>here</a>
-            {t('.')}
+            {t('Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments')}
+            <a href='#'>{t(' ' + 'here')}</a>
           </p>
           {/* Selecting project form*/}
           {(this.state.isVirgin || !sharingEnabledAssets) &&
