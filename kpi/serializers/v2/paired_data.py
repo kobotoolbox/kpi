@@ -142,6 +142,7 @@ class PairedDataSerializer(serializers.Serializer):
             )
 
         # force XML extension
+        basename = filename
         filename = f'{filename}.xml'
 
         # Validate uniqueness of `filename`
@@ -169,8 +170,8 @@ class PairedDataSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 {
                     'filename': _(
-                        '`{filename}` is already used, filename must be unique'
-                    ).format(filename=filename)
+                        '`{basename}` is already used'
+                    ).format(basename=basename)
                 }
             )
 
@@ -180,9 +181,9 @@ class PairedDataSerializer(serializers.Serializer):
         asset = self.context['asset']
 
         if self.instance and self.instance.parent_uid != parent.uid:
-            raise serializers.ValidationError(_(
-                'Parent cannot be changed'
-            ).format(parent_uid=parent.uid))
+            raise serializers.ValidationError(
+                _('Parent cannot be changed')
+            )
 
         # Parent data sharing must be enabled before going further
         if not parent.data_sharing.get('enabled'):
