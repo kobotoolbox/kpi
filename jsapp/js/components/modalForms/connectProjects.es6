@@ -20,7 +20,7 @@ class ConnectProjects extends React.Component {
       isShared: props.asset.data_sharing?.enabled || false,
       attachedParents: [],
       sharingEnabledAssets: null,
-      newParentUrl: '',
+      newParent: null,
       newFilename: '',
       fieldsErrors: {},
     };
@@ -63,7 +63,7 @@ class ConnectProjects extends React.Component {
   onAttachToParentFailed(response) {
     this.setState({
       isLoading: false,
-      fieldsErrors: response.responseJSON,
+      fieldsErrors: response.responseJSON || {},
     });
   }
   onGetAttachedParentsCompleted(response) {
@@ -80,6 +80,10 @@ class ConnectProjects extends React.Component {
     this.setState({isShared: !this.state.isShared});
   }
   refreshAttachmentList() {
+    this.setState({
+      newParent: null,
+      newFilename: '',
+    });
     actions.dataShare.getAttachedParents(this.props.asset.uid);
   }
 
@@ -90,9 +94,9 @@ class ConnectProjects extends React.Component {
 
   confirmAttachment() {
 
-    let parentUrl = this.state.newParentUrl;
+    let parentUrl = this.state.newParent?.url;
     let filename = this.state.newFilename;
-    if (filename !== '' && parentUrl !== '') {
+    if (filename !== '' && parentUrl) {
       this.setState({
         isLoading: true,
         fieldsErrors: {},
@@ -105,7 +109,7 @@ class ConnectProjects extends React.Component {
       });
       actions.dataShare.attachToParent(this.props.asset.uid, data);
     } else {
-      if (parentUrl === '') {
+      if (!parentUrl) {
         this.setState({
           fieldsErrors: Object.assign(
             this.state.fieldsErrors, {emptyParent: 'No project selected'}
@@ -122,11 +126,17 @@ class ConnectProjects extends React.Component {
     }
   }
   onParentChange(newVal) {
-    this.setState({newParentUrl: newVal.url});
+    this.setState({
+      newParent: newVal,
+      fieldsErrors: {},
+    });
     this.generateAutoname(newVal);
   }
   onFilenameChange(newVal) {
-    this.setState({newFilename: newVal});
+    this.setState({
+      newFilename: newVal,
+      fieldsErrors: {},
+    });
   }
   removeAttachment(newVal) {
     this.setState({isLoading: true})
@@ -215,7 +225,6 @@ class ConnectProjects extends React.Component {
       </bem.Loading>
     );
   }
-
   renderSwitchLabel() {
     if (this.state.isShared) {
       return (
@@ -235,7 +244,6 @@ class ConnectProjects extends React.Component {
       );
     }
   }
-
   renderSelect(sharingEnabledAssets) {
     const selectClassNames = ['kobo-select__wrapper'];
     if (this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent) {
@@ -246,8 +254,11 @@ class ConnectProjects extends React.Component {
         <Select
           placeholder={t('Select a different project to import data from')}
           options={sharingEnabledAssets}
+          value={this.state.newParent}
+          isLoading={(this.state.isVirgin || this.state.isLoading || !sharingEnabledAssets)}
           getOptionLabel={option => option.name}
           getOptionValue={option => option.url}
+          noOptionsMessage={() => {return t('No projects to connect')}}
           onChange={this.onParentChange}
           className='kobo-select'
           classNamePrefix='kobo-select'
@@ -294,11 +305,6 @@ class ConnectProjects extends React.Component {
             <a href='#'>{t(' ' + 'here')}</a>
           </p>
           {/* Selecting project form*/}
-          {(this.state.isVirgin || !sharingEnabledAssets) &&
-            <div className='import-data-form'>
-              {this.renderLoading(t('Loading sharing enabled projects'))}
-            </div>
-          }
           {sharingEnabledAssets &&
             <div className='import-data-form'>
               {this.renderSelect(sharingEnabledAssets)}
