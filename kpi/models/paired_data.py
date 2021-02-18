@@ -11,6 +11,7 @@ from kpi.constants import (
 )
 from kpi.fields import KpiUidField
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
+from kpi.models.asset_file import AssetFile
 from kpi.utils.hash import get_hash
 
 
@@ -70,6 +71,15 @@ class PairedData(SyncBackendMediaInterface):
         """
         Implements `SyncBackendMediaInterface.delete()`
         """
+        # Delete XML file
+        try:
+            asset_file = AssetFile.objects.get(uid=self.paired_data_uid)
+        except AssetFile.DoesNotExist:
+            pass
+        else:
+            asset_file.delete()
+
+        # Update asset
         del self.asset.paired_data[self.parent_uid]
         self.asset.save(
             update_fields=['paired_data'],
