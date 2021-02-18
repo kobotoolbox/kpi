@@ -29,10 +29,10 @@ class MultiCheckbox extends React.Component {
 
   render() {
     return (
-      <ul className='multi-checkbox multi-checkbox__list'>
+      <ul className='multi-checkbox'>
         {this.props.items.map((item, itemIndex) => {
           return (
-            <li className='multi-checkbox__list-item' key={itemIndex}>
+            <li className='multi-checkbox__item' key={itemIndex}>
               <Checkbox
                 checked={item.checked}
                 disabled={item.disabled}
