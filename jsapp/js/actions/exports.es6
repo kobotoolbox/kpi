@@ -36,7 +36,8 @@ exportsActions.getExport.listen((assetUid) => {
  * …and the rest of parameters should match export_settings
  */
 exportsActions.createExport.listen((data) => {
-  dataInterface.createAssetExport(data)
+  const cleanData = cleanupExportSettings(data);
+  dataInterface.createAssetExport(cleanData)
     .done(exportsActions.createExport.completed)
     .fail(exportsActions.createExport.failed);
 });
@@ -53,29 +54,29 @@ exportsActions.deleteExport.failed.listen(() => {
   notify(t('Failed to delete export'), 'error');
 });
 
-function cleanupExportSettingData(data) {
-  const cleanData = {
-    name: data.name,
-    // Backend requires export_settings to be stringified JSON
-    export_settings: JSON.stringify({
-      // Backend expects booleans as strings
-      fields_from_all_versions: String(data.export_settings.fields_from_all_versions),
-      fields: data.export_settings.fields,
-      group_sep: data.export_settings.group_sep,
-      // Backend expects booleans as strings
-      hierarchy_in_labels: String(data.export_settings.hierarchy_in_labels),
-      lang: data.export_settings.lang,
-      multiple_select: data.export_settings.multiple_select,
-      type: data.export_settings.type,
-    }),
+function cleanupExportSettings(export_settings) {
+  const clean = {
+    // Backend expects booleans as strings
+    fields_from_all_versions: String(export_settings.fields_from_all_versions),
+    fields: export_settings.fields,
+    group_sep: export_settings.group_sep,
+    // Backend expects booleans as strings
+    hierarchy_in_labels: String(export_settings.hierarchy_in_labels),
+    lang: export_settings.lang,
+    multiple_select: export_settings.multiple_select,
+    type: export_settings.type,
   };
 
-  if (data.export_settings.flatten) {
+  if (export_settings.flatten) {
     // Backend expects booleans as strings
-    cleanData.flatten = String(data.export_settings.flatten);
+    clean.flatten = String(export_settings.flatten);
   }
 
-  return cleanData;
+  if (export_settings.source) {
+    clean.source = export_settings.source;
+  }
+
+  return clean;
 }
 
 exportsActions.getExportSettings.listen((assetUid) => {
@@ -91,7 +92,10 @@ exportsActions.getExportSetting.listen((assetUid, settingUid) => {
 });
 
 exportsActions.updateExportSetting.listen((assetUid, settingUid, data) => {
-  const cleanData = cleanupExportSettingData(data);
+  const cleanData = {
+    name: data.name,
+    export_settings: JSON.stringify(cleanupExportSettings(data.export_settings)),
+  };
   dataInterface.updateExportSetting(assetUid, settingUid, cleanData)
     .done(exportsActions.updateExportSetting.completed)
     .fail(exportsActions.updateExportSetting.failed);
@@ -101,7 +105,10 @@ exportsActions.updateExportSetting.failed.listen(() => {
 });
 
 exportsActions.createExportSetting.listen((assetUid, data) => {
-  const cleanData = cleanupExportSettingData(data);
+  const cleanData = {
+    name: data.name,
+    export_settings: JSON.stringify(cleanupExportSettings(data.export_settings)),
+  };
   dataInterface.createExportSetting(assetUid, cleanData)
     .done(exportsActions.createExportSetting.completed)
     .fail(exportsActions.createExportSetting.failed);

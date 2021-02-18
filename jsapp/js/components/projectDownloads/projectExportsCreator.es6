@@ -246,9 +246,16 @@ export default class ProjectExportsCreator extends React.Component {
     exportsStore.setExportType(EXPORT_TYPES[data.export_settings.type], false);
 
     const exportFormatOtions = this.getExportFormatOptions();
-    const selectedExportFormat = exportFormatOtions.find((option) => {
+    let selectedExportFormat = exportFormatOtions.find((option) => {
       return option.value === data.export_settings.lang;
     });
+
+    // If saved export lang option doesn't exist anymore, just select first one
+    // e.g. language was deleted, or _default was used and in current form
+    // version there are languages defined (so no _default available).
+    if (!selectedExportFormat) {
+      selectedExportFormat = exportFormatOtions[0];
+    }
 
     const newStateObj = {
       selectedExportType: EXPORT_TYPES[data.export_settings.type],
@@ -263,7 +270,7 @@ export default class ProjectExportsCreator extends React.Component {
       customExportName: data.name,
       // Select custom export toggle if not all rows are selected
       isCustomSelectionEnabled: this.state.selectableRowsCount !== data.export_settings.fields.length,
-      isFlattenGeoJsonEnabled: data.export_settings.flatten,
+      isFlattenGeoJsonEnabled: Boolean(data.export_settings.flatten),
       selectedRows: new Set(data.export_settings.fields),
     };
 
@@ -324,15 +331,15 @@ export default class ProjectExportsCreator extends React.Component {
       this.clearScheduledExport();
     }
 
-    // Case 1: We don't need to save the export if currently selected a saved
-    // one, so we get directly to export creation.
-    // We also omit saving if user doesn't have permissions to save.
+    // Case 1: Don't need to save the export if currently selected a saved one,
+    // so we get directly to export creation.
+    // Case 2: Also omit saving if user doesn't have permissions to save.
     if (
       this.state.selectedDefinedExport !== null ||
-      mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset)
+      !mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset)
     ) {
-      this.handleScheduledExport(foundDefinedExport.data);
-    // Case 2: There is a defined export with the same name already, so we need
+      this.handleScheduledExport(payload);
+    // Case 3: There is a defined export with the same name already, so we need
     // to update it.
     } else if (foundDefinedExport) {
       this.clearScheduledExport = actions.exports.updateExportSetting.completed.listen(
@@ -343,7 +350,7 @@ export default class ProjectExportsCreator extends React.Component {
         foundDefinedExport.data.uid,
         payload,
       );
-    // Case 3: There is no defined export like this one, we need to create it.
+    // Case 4: There is no defined export like this one, we need to create it.
     } else {
       this.clearScheduledExport = actions.exports.createExportSetting.completed.listen(
         this.handleScheduledExport
