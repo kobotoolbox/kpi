@@ -21,33 +21,28 @@ class MultiCheckbox extends React.Component {
     autoBind(this);
   }
 
-  onChange(response) {
+  onChange(itemIndex, isChecked) {
     let updatedList = this.props.items;
-    updatedList[response].checked = !updatedList[response].checked;
+    updatedList[itemIndex].checked = isChecked;
     this.props.onChange(updatedList);
   }
 
   render() {
     return (
-      <div className='project-downloads__column project-downloads__column--right'>
-        <span className='project-downloads__title'>
-          {this.props.label}
-        </span>
-        <ul className='project-downloads__questions-list'>
-          {this.props.items.map((item, n) => {
-            return (
-              <li key={n}>
-                <Checkbox
-                  disabled={item.disabled || false}
-                  checked={item.checked || false}
-                  onChange={this.onChange.bind(this, n)}
-                  label={item.label}
-                />
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+      <ul className='multi-checkbox multi-checkbox__list'>
+        {this.props.items.map((item, itemIndex) => {
+          return (
+            <li className='multi-checkbox__list-item' key={itemIndex}>
+              <Checkbox
+                checked={item.checked}
+                disabled={item.disabled}
+                onChange={this.onChange.bind(this, itemIndex)}
+                label={item.label}
+              />
+            </li>
+          );
+        })}
+      </ul>
     );
   }
 }
