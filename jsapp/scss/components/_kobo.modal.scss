@@ -869,11 +869,71 @@ $z-modal-x: 10;
 .connect-projects {
   margin: 24px;
 
-  label {
-    margin-top: 20px;
-    font-size: 14px;
-    font-weight: bold;
-    color: darken($kobo-midgray, 10%);
+  .connect-projects__export {
+    display: flex;
+    justify-content: space-between;
+
+    .connect-projects__export-switch {
+      display: block;
+      margin-top: 20px;
+      margin-right: 32px;
+      width: 30%;
+      .toggle-switch {
+        margin-bottom: 10px;
+        .toggle-switch__label {
+          font-weight: bold;
+        }
+      }
+    }
+
+    .connect-projects__export-multicheckbox {
+      width: 60%;
+      position: relative;
+      height: 200px;
+    }
+  }
+
+  .attached-projects-list {
+    label {
+      margin-top: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      color: darken($kobo-midgray, 10%);
+    }
+
+    .imported-item {
+      position: relative;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid;
+      border-color: lighten($kobo-midgray, 15%);
+
+      i.k-icon-check {
+        color: $kobo-blue;
+        font-weight: bold;
+      }
+      i.k-icon-trash {
+        color: $kobo-red;
+        font-weight: bold;
+        position: absolute;
+        bottom: 6px;
+        right: 0;
+        cursor: pointer;
+      }
+
+      .imported-names {
+        position: absolute;
+        top: 6px;
+        left: 32px;
+        font-weight: 500;
+
+        .imported-parent {
+          margin-left: 24px;
+          font-weight: 400;
+          color: darken($kobo-midgray, 20%);
+        }
+      }
+    }
   }
 
   .form-modal__item--data-sharing {
@@ -917,40 +977,6 @@ $z-modal-x: 10;
       }
       .kobo-button {
         max-height: 40px;
-      }
-    }
-
-    .imported-item {
-      position: relative;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      border-bottom: 1px solid;
-      border-color: lighten($kobo-midgray, 15%);
-
-      i.k-icon-check {
-        color: $kobo-blue;
-        font-weight: bold;
-      }
-      i.k-icon-trash {
-        color: $kobo-red;
-        font-weight: bold;
-        position: absolute;
-        bottom: 6px;
-        right: 0;
-        cursor: pointer;
-      }
-
-      .imported-names {
-        position: absolute;
-        top: 6px;
-        left: 32px;
-        font-weight: 500;
-
-        .imported-parent {
-          margin-left: 24px;
-          font-weight: 400;
-          color: darken($kobo-midgray, 20%);
-        }
       }
     }
 

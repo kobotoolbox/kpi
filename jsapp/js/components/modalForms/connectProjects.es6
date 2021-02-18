@@ -1,8 +1,10 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
+import assetUtils from 'js/assetUtils';
 import Select from 'react-select';
 import ToggleSwitch from 'js/components/toggleSwitch';
+import MultiCheckbox from 'js/components/multiCheckbox';
 import TextBox from 'js/components/textBox';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
@@ -22,6 +24,7 @@ class ConnectProjects extends React.Component {
       sharingEnabledAssets: null,
       newParent: null,
       newFilename: '',
+      newColumnFilters: [],
       fieldsErrors: {},
     };
 
@@ -92,10 +95,29 @@ class ConnectProjects extends React.Component {
    * UI Listeners
    */
 
-  confirmAttachment() {
+  onFilenameChange(newVal) {
+    this.setState({
+      newFilename: newVal,
+      fieldsErrors: {},
+    });
+  }
+  onParentChange(newVal) {
+    this.setState({
+      newParent: newVal,
+      fieldsErrors: {},
+    });
+    this.generateAutoname(newVal);
+  }
+  onRowSelected(newVal) {
+    this.setState({
+      newColumnFilters: newVal,
+    });
+  }
 
+  confirmAttachment() {
     let parentUrl = this.state.newParent?.url;
     let filename = this.state.newFilename;
+    let fields = this.state.newColumnFilters.filter(item => item.checked);
     if (filename !== '' && parentUrl) {
       this.setState({
         isLoading: true,
@@ -104,7 +126,7 @@ class ConnectProjects extends React.Component {
 
       var data = JSON.stringify({
         parent: parentUrl,
-        fields: [],
+        fields: fields,
         filename: filename,
       });
       actions.dataShare.attachToParent(this.props.asset.uid, data);
@@ -124,19 +146,6 @@ class ConnectProjects extends React.Component {
         });
       }
     }
-  }
-  onParentChange(newVal) {
-    this.setState({
-      newParent: newVal,
-      fieldsErrors: {},
-    });
-    this.generateAutoname(newVal);
-  }
-  onFilenameChange(newVal) {
-    this.setState({
-      newFilename: newVal,
-      fieldsErrors: {},
-    });
   }
   removeAttachment(newVal) {
     this.setState({isLoading: true})
@@ -225,25 +234,6 @@ class ConnectProjects extends React.Component {
       </bem.Loading>
     );
   }
-  renderSwitchLabel() {
-    if (this.state.isShared) {
-      return (
-        <ToggleSwitch
-          onChange={this.toggleSharingData.bind(this)}
-          label={t('Data sharing enabled')}
-          checked={this.state.isShared}
-        />
-      );
-    } else {
-      return (
-        <ToggleSwitch
-          onChange={this.toggleSharingData.bind(this)}
-          label={t('Data sharing disabled')}
-          checked={this.state.isShared}
-        />
-      );
-    }
-  }
   renderSelect(sharingEnabledAssets) {
     const selectClassNames = ['kobo-select__wrapper'];
     if (this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent) {
@@ -269,29 +259,83 @@ class ConnectProjects extends React.Component {
       </div>
     );
   }
+  renderSwitch() {
+    if (this.state.isShared) {
+      return (
+        <div className='connect-projects__export connect-projects__export-switch'>
+          <ToggleSwitch
+            onChange={this.toggleSharingData.bind(this)}
+            label={t('Data sharing enabled')}
+            checked={this.state.isShared}
+          />
+          <br />
+          {t('Deselect any questions you do not want to share in the right side table')}
+        </div>
+      );
+    } else {
+      return (
+        <div className='connect-projects__export connect-projects__export-switch'>
+          <ToggleSwitch
+            onChange={this.toggleSharingData.bind(this)}
+            label={t('Data sharing disabled')}
+            checked={this.state.isShared}
+          />
+        </div>
+      );
+    }
+  }
 
   render() {
     let sharingEnabledAssets = [];
     if (this.state.sharingEnabledAssets !== null) {
       sharingEnabledAssets = this.generateFilteredAssetList();
     }
+    let questions = assetUtils.getSurveyFlatPaths(this.props.asset.content.survey);
 
     return (
       <bem.FormModal__form
         className='project-settings project-settings--upload-file connect-projects'
         onSubmit={this.confirmAttachment}
       >
+
         {/* Enable data sharing */}
         <bem.FormModal__item m='data-sharing'>
           <div className='connect-projects-header'>
             <i className="k-icon k-icon-folder-out"/>
             <h2>{t('Share data with other project forms')}</h2>
           </div>
-          <p>
+          <span>
             {t('Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments')}
             <a href='#'>{t(' ' + 'here')}</a>
-          </p>
-          {this.renderSwitchLabel()}
+          </span>
+          <div className='connect-projects__export'>
+            {this.renderSwitch()}
+            <div className='connect-projects__export connect-projects__export-multicheckbox'>
+              <MultiCheckbox
+                items={[
+                  {label:'a', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                  {label:'b', checked:true},
+                 ]}
+                onChange={console.log}
+              />
+            </div>
+          </div>
         </bem.FormModal__item>
 
         {/* Attach other projects data */}
@@ -322,7 +366,7 @@ class ConnectProjects extends React.Component {
           }
 
           {/* Display attached projects */}
-          <ul>
+          <ul className='attached-projects-list'>
             <label>{t('Imported')}</label>
             {(this.state.isVirgin || this.state.isLoading) &&
               <div className='imported-item'>
