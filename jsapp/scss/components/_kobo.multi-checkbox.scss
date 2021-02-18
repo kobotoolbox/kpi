@@ -1,0 +1,18 @@
+.multi-checkbox__list {
+  list-style: none;
+  height: auto;
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  overflow: hidden auto;
+  border: 1px solid $kobo-lightgray;
+  border-radius: 2px;
+  margin-top: 6px;
+
+  .multi-checkbox__list-item {
+    margin: 12px;
+  }
+}
