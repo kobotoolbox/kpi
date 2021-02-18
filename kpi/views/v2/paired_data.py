@@ -191,7 +191,16 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         parent_asset = paired_data.get_parent()
 
         if not parent_asset:
-            # ToDo Delete any related asset files
+            # We can enter this condition when parent data sharing has been
+            # deactivated after it has been paired with current form.
+            # We don't want to keep zombie files on storage.
+            try:
+                asset_file = self.asset.asset_files.get(uid=paired_data_uid)
+            except AssetFile.DoesNotExist:
+                pass
+            else:
+                asset_file.delete()
+
             raise Http404
 
         if not self.asset.has_deployment:
@@ -249,8 +258,11 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
                 asset_file.content.delete()
 
             asset_file.content = ContentFile(xml_.encode(), name=filename)
+            # We don't need to regenerate a hash when asset file is created.
+            # It also avoid synchronizing the file with the back end again.
+            generate_hash = bool(asset_file.pk)
             asset_file.save()
-            paired_data.save(generate_hash=True)
+            paired_data.save(generate_hash=generate_hash)
 
         return Response(asset_file.content.file.read().decode())
 
