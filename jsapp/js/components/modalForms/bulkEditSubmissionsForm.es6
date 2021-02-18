@@ -9,15 +9,17 @@ import {
 import {QUESTION_TYPES} from 'js/constants';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
-import TextBox from 'js/components/textBox';
+import TextBox from 'js/components/common/textBox';
 import {stores} from 'js/stores';
 
 const FUSE_OPTIONS = {
+  isCaseSensitive: false,
   includeScore: true,
   minMatchCharLength: 1,
   shouldSort: false,
   ignoreFieldNorm: true,
   threshold: 0.2,
+  ignoreLocation: true,
 };
 
 // we need a text to display when we need to say "this question has no answer"
@@ -455,7 +457,9 @@ class BulkEditRowForm extends React.Component {
   }
 
   onChange(newValue, evt) {
-    evt.preventDefault();
+    if (evt) {
+      evt.preventDefault();
+    }
     this.props.onChange(this.props.question.name, newValue);
   }
 

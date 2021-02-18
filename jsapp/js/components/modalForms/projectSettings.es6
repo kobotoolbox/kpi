@@ -6,8 +6,8 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import Select from 'react-select';
 import Dropzone from 'react-dropzone';
-import TextBox from 'js/components/textBox';
-import Checkbox from 'js/components/checkbox';
+import TextBox from 'js/components/common/textBox';
+import Checkbox from 'js/components/common/checkbox';
 import {bem} from 'js/bem';
 import assetUtils from 'js/assetUtils';
 import TextareaAutosize from 'react-autosize-textarea';
@@ -640,7 +640,7 @@ class ProjectSettings extends React.Component {
   renderChooseTemplateButton() {
     return (
       <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-        <i className='k-icon-template' />
+        <i className='k-icon-template-new' />
         {t('Use a template')}
       </button>
     );

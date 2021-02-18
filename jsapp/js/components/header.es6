@@ -38,11 +38,11 @@ class MainHeader extends Reflux.Component {
           assetType: COMMON_QUERIES.s,
         },
         filterTags: COMMON_QUERIES.s,
-      })
+      }),
     }, stores.pageState.state);
     this.stores = [
       stores.session,
-      stores.pageState
+      stores.pageState,
     ];
     this.unlisteners = [];
     autoBind(this);
@@ -79,19 +79,19 @@ class MainHeader extends Reflux.Component {
     const asset = data[this.props.assetid];
     this.setState(assign({asset: asset}));
   }
-  logout () {
+  logout() {
     actions.auth.logout();
   }
   toggleLanguageSelector() {
     this.setState({isLanguageSelectorVisible: !this.state.isLanguageSelectorVisible});
   }
-  accountSettings () {
+  accountSettings() {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
       hashHistory.push(ROUTES.ACCOUNT_SETTINGS);
     });
   }
-  languageChange (evt) {
+  languageChange(evt) {
     evt.preventDefault();
     let langCode = $(evt.target).data('key');
     if (langCode) {
@@ -114,7 +114,7 @@ class MainHeader extends Reflux.Component {
       </bem.AccountBox__menuLI>
     );
   }
-  renderAccountNavMenu () {
+  renderAccountNavMenu() {
     let shouldDisplayUrls = false;
     if (
       stores.session &&
@@ -204,7 +204,7 @@ class MainHeader extends Reflux.Component {
 
     return null;
   }
-  renderGitRevInfo () {
+  renderGitRevInfo() {
     if (stores.session.currentAccount && stores.session.currentAccount.git_rev) {
       var gitRev = stores.session.currentAccount.git_rev;
       return (
@@ -236,6 +236,11 @@ class MainHeader extends Reflux.Component {
       iconClassName = getAssetIcon(this.state.asset);
     }
 
+    let librarySearchBoxPlaceholder = t('Search My Library');
+    if (this.isPublicCollections()) {
+      librarySearchBoxPlaceholder = t('Search Public Collections');
+    }
+
     return (
         <bem.MainHeader className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
@@ -252,15 +257,15 @@ class MainHeader extends Reflux.Component {
                 <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
-            { this.isLibraryList() &&
+            { (this.isMyLibrary() || this.isPublicCollections()) &&
               <div className='mdl-layout__header-searchers'>
                 <SearchBox
-                  placeholder={t('Search Library')}
+                  placeholder={librarySearchBoxPlaceholder}
                   disabled={this.isSearchBoxDisabled()}
                 />
               </div>
             }
-            { this.state.asset && (this.isFormSingle() || this.isLibrarySingle()) &&
+            { !this.isLibrary() && this.state.asset && this.isFormSingle() &&
               <React.Fragment>
                 <bem.MainHeader__icon className={iconClassName} />
 
@@ -288,8 +293,6 @@ reactMixin(MainHeader.prototype, Reflux.ListenerMixin);
 reactMixin(MainHeader.prototype, mixins.contextRouter);
 reactMixin(MainHeader.prototype, mixins.permissions);
 
-MainHeader.contextTypes = {
-  router: PropTypes.object
-};
+MainHeader.contextTypes = {router: PropTypes.object};
 
 export default MainHeader;

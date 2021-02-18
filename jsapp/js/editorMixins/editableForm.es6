@@ -4,7 +4,6 @@ import autoBind from 'react-autobind';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
-import Checkbox from '../components/checkbox';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
@@ -12,7 +11,6 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import {removeInvalidChars} from 'js/assetUtils';
 import {
   surveyToValidJson,
   unnullifyTranslations,
@@ -45,6 +43,12 @@ const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without 
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
+/**
+ * This is a component that displays Form Builder's header and aside. It is also
+ * responsible for rendering the survey editor app (all our coffee code). See
+ * the `launchAppForSurveyContent` method below for all the magic.
+ */
+
 export default assign({
   componentDidMount() {
     this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
@@ -56,13 +60,20 @@ export default assign({
       stores.allAssets.whenLoaded(uid, (asset) => {
         this.setState({asset: asset});
 
-        this.launchAppForSurveyContent(asset.content, {
-          name: asset.name,
-          settings__style: asset.settings__style,
-          asset_uid: asset.uid,
-          asset_type: asset.asset_type,
-          asset: asset,
-        });
+        // HACK switch to setState callback after updating to React 16+
+        //
+        // This needs to be called at least a single render after the state's
+        // asset is being set, because `.form-wrap` node needs to exist for
+        // `launchAppForSurveyContent` to work.
+        window.setTimeout(() => {
+          this.launchAppForSurveyContent(asset.content, {
+            name: asset.name,
+            settings__style: asset.settings__style,
+            asset_uid: asset.uid,
+            asset_type: asset.asset_type,
+            asset: asset,
+          });
+        }, 0);
       });
     } else {
       this.launchAppForSurveyContent();
@@ -155,7 +166,7 @@ export default assign({
 
   nameChange(evt) {
     this.setState({
-      name: removeInvalidChars(evt.target.value),
+      name: assetUtils.removeInvalidChars(evt.target.value),
     });
     this.onSurveyChange();
   },
@@ -403,6 +414,11 @@ export default assign({
     });
   },
 
+  /**
+   * The de facto function that is running our Form Builder survey editor app.
+   * It builds `dkobo_xlform.view.SurveyApp` using asset data and then appends
+   * it to `.form-wrap` node.
+   */
   launchAppForSurveyContent(survey, _state = {}) {
     if (_state.name) {
       _state.savedName = _state.name;
@@ -410,7 +426,7 @@ export default assign({
 
     let isEmptySurvey = (
         survey &&
-        Object.keys(survey.settings).length === 0 &&
+        (survey.settings && Object.keys(survey.settings).length === 0) &&
         survey.survey.length === 0
       );
 
