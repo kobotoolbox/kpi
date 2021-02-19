@@ -274,7 +274,9 @@ actions.dataShare.toggleDataSharing.failed.listen((response) => {
 
 actions.dataShare.updateColumnFilters.listen((uid, data) => {
   dataInterface.patchDataSharing(uid, data)
-    .done(actions.dataShare.updateColumnFilters.completed)
+    .done((response) => {
+      actions.dataShare.updateColumnFilters.completed(response)
+    })
     .fail((response) => {
       actions.dataShare.updateColumnFilters.failed(response);
     });

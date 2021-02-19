@@ -37,7 +37,7 @@ class ConnectProjects extends React.Component {
 
   componentDidMount() {
     this.refreshAttachmentList();
-    this.generateColumnFilters();
+    this.generateColumnFilters(this.props.asset.data_sharing.fields);
     actions.dataShare.getSharingEnabledAssets();
 
     actions.dataShare.attachToParent.completed.listen(
@@ -57,6 +57,9 @@ class ConnectProjects extends React.Component {
     );
     actions.dataShare.toggleDataSharing.completed.listen(
       this.onToggleDataSharingCompleted
+    );
+    actions.dataShare.updateColumnFilters.completed.listen(
+      this.onUpdateColumnFiltersCompleted
     );
   }
 
@@ -82,7 +85,11 @@ class ConnectProjects extends React.Component {
   }
   onToggleDataSharingCompleted() {
     this.setState({isShared: !this.state.isShared});
-    this.generateColumnFilters();
+    this.generateColumnFilters(this.props.asset.data_sharing.fields);
+  }
+  // Safely update state after guaranteed columm changes
+  onUpdateColumnFiltersCompleted(response) {
+    this.generateColumnFilters(response.data_sharing.fields)
   }
   refreshAttachmentList() {
     this.setState({
@@ -175,8 +182,6 @@ class ConnectProjects extends React.Component {
     }
   }
   onColumnSelected(columnList) {
-    this.setState({newColumnFilters: columnList});
-
     let fields = [];
     columnList.forEach((item) => {
       if (item.checked) {
@@ -204,12 +209,12 @@ class ConnectProjects extends React.Component {
       this.setState({newFilename: autoname});
     }
   }
-  generateColumnFilters() {
-    // Ignore if sharing is disabled
+  generateColumnFilters(columns) {
     if (this.state.isShared) {
-      let selectableColumns = []; // Columns available
-      let selectedColumns = this.props.asset.data_sharing.fields || []; // Columns currently selected
+      let selectableColumns = [];
+      let selectedColumns = columns || []; // Columns currently selected
 
+      // Get current asset's available columns
       if (this.props?.asset?.content?.survey) {
         let questions = assetUtils.getSurveyFlatPaths(
           this.props.asset.content.survey
