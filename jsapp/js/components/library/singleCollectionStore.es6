@@ -106,6 +106,13 @@ const singleCollectionStore = Reflux.createStore({
    * @param {boolean} needsMetadata
    */
   fetchData(needsMetadata = false) {
+    // Avoid triggering search if not on the collection route (e.g. subscribed
+    // to a collection from Public Collections list) as it will cause 500 error
+    // caused by getCurrentLibraryAssetUID being `undefined` (rightfuly so)
+    if (!isOnLibraryAssetRoute()) {
+      return;
+    }
+
     if (this.abortFetchData) {
       this.abortFetchData();
     }
