@@ -106,6 +106,7 @@ actions.dataShare = Reflux.createActions({
   getAttachedParents: {children: ['completed', 'failed']},
   getSharingEnabledAssets: {children: ['completed', 'failed']},
   toggleDataSharing: {children: ['completed', 'failed']},
+  updateColumnFilters: {children: ['completed', 'failed']},
 });
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
@@ -258,8 +259,10 @@ actions.dataShare.getSharingEnabledAssets.failed.listen(() => {
   alertify.error(t('Failed to retrieve sharing enabled assets'));
 });
 
+// The next two actions have the same endpoint but are called on very different
+// situations, so we keep them as separate actions
 actions.dataShare.toggleDataSharing.listen((uid, data) => {
-  dataInterface.toggleDataSharing(uid, data)
+  dataInterface.patchDataSharing(uid, data)
     .done(actions.dataShare.toggleDataSharing.completed)
     .fail((response) => {
       actions.dataShare.toggleDataSharing.failed(response);
@@ -267,6 +270,17 @@ actions.dataShare.toggleDataSharing.listen((uid, data) => {
 });
 actions.dataShare.toggleDataSharing.failed.listen((response) => {
   alertify.error(response.responseJSON.detail);
+});
+
+actions.dataShare.updateColumnFilters.listen((uid, data) => {
+  dataInterface.patchDataSharing(uid, data)
+    .done(actions.dataShare.updateColumnFilters.completed)
+    .fail((response) => {
+      actions.dataShare.updateColumnFilters.failed(response);
+    });
+});
+actions.dataShare.updateColumnFilters.failed.listen((response) => {
+  alertify.error(response.responseJSON);
 });
 
 /*

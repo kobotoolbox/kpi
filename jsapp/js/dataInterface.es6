@@ -268,7 +268,7 @@ export var dataInterface;
         method: 'GET',
       });
     },
-    toggleDataSharing(assetUid, data) {
+    patchDataSharing(assetUid, data) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
         method: 'PATCH',

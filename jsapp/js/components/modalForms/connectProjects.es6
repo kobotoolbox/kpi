@@ -37,6 +37,7 @@ class ConnectProjects extends React.Component {
 
   componentDidMount() {
     this.refreshAttachmentList();
+    this.generateColumnFilters();
     actions.dataShare.getSharingEnabledAssets();
 
     actions.dataShare.attachToParent.completed.listen(
@@ -81,6 +82,7 @@ class ConnectProjects extends React.Component {
   }
   onToggleDataSharingCompleted() {
     this.setState({isShared: !this.state.isShared});
+    this.generateColumnFilters();
   }
   refreshAttachmentList() {
     this.setState({
@@ -108,16 +110,11 @@ class ConnectProjects extends React.Component {
     });
     this.generateAutoname(newVal);
   }
-  onRowSelected(newVal) {
-    this.setState({
-      newColumnFilters: newVal,
-    });
-  }
 
-  confirmAttachment() {
+  onConfirmAttachment() {
     let parentUrl = this.state.newParent?.url;
     let filename = this.state.newFilename;
-    let fields = this.state.newColumnFilters.filter(item => item.checked);
+    let fields = []; // TODO parent filters must be seperate
     if (filename !== '' && parentUrl) {
       this.setState({
         isLoading: true,
@@ -147,11 +144,11 @@ class ConnectProjects extends React.Component {
       }
     }
   }
-  removeAttachment(newVal) {
+  onRemoveAttachment(newVal) {
     this.setState({isLoading: true})
     actions.dataShare.detachParent(newVal);
   }
-  toggleSharingData() {
+  onToggleSharingData() {
     var data = JSON.stringify({
       data_sharing: {
         enabled: !this.state.isShared
@@ -177,6 +174,24 @@ class ConnectProjects extends React.Component {
       actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
     }
   }
+  onColumnSelected(columnList) {
+    this.setState({newColumnFilters: columnList});
+
+    let fields = [];
+    columnList.forEach((item) => {
+      if (item.checked) {
+        fields.push(item.label);
+      }
+    })
+    var data = JSON.stringify({
+      data_sharing: {
+        enabled: this.state.isShared,
+        fields: fields,
+      }
+    });
+
+    actions.dataShare.updateColumnFilters(this.props.asset.uid, data);
+  }
 
   /*
    * Utilities
@@ -187,6 +202,45 @@ class ConnectProjects extends React.Component {
       let autoname = newParent.name;
       autoname = autoname.toLowerCase().substring(0, 30).replace(/\ /g, '_');
       this.setState({newFilename: autoname});
+    }
+  }
+  generateColumnFilters() {
+    // Ignore if sharing is disabled
+    if (this.state.isShared) {
+      let selectableColumns = []; // Columns available
+      let selectedColumns = this.props.asset.data_sharing.fields || []; // Columns currently selected
+
+      if (this.props?.asset?.content?.survey) {
+        let questions = assetUtils.getSurveyFlatPaths(
+          this.props.asset.content.survey
+        );
+        for (const key in questions) {
+          if (!questions[key].includes('version')) {
+            selectableColumns.push(questions[key]);
+          }
+        }
+      }
+
+      // Figure out what columns need to be 'checked'
+      let columnsToDisplay = [];
+      // 'Check' every column if no fields exist, or every column is already checked
+      if (
+        selectedColumns.length == 0 ||
+        selectedColumns.length == selectableColumns.length
+      ) {
+        selectableColumns.forEach((column) => {
+          columnsToDisplay.push({label: column, checked: true});
+        });
+      } else {
+        selectableColumns.forEach((column) => {
+          // 'Check' only matching columns
+          columnsToDisplay.push({
+            label: column,
+            checked: selectedColumns.includes(column),
+          });
+        });
+      }
+      this.setState({newColumnFilters: columnsToDisplay});
     }
   }
   generateTruncatedDisplayName(name) {
@@ -262,24 +316,34 @@ class ConnectProjects extends React.Component {
   renderSwitch() {
     if (this.state.isShared) {
       return (
-        <div className='connect-projects__export connect-projects__export-switch'>
-          <ToggleSwitch
-            onChange={this.toggleSharingData.bind(this)}
-            label={t('Data sharing enabled')}
-            checked={this.state.isShared}
-          />
-          <br />
-          {t('Deselect any questions you do not want to share in the right side table')}
+        <div className='connect-projects__export'>
+          <div className='connect-projects__export connect-projects__export-switch'>
+            <ToggleSwitch
+              onChange={this.onToggleSharingData.bind(this)}
+              label={t('Data sharing enabled')}
+              checked={this.state.isShared}
+            />
+            <br />
+            {t('Deselect any questions you do not want to share in the right side table')}
+          </div>
+          <div className='connect-projects__export connect-projects__export-multicheckbox'>
+            <MultiCheckbox
+              items={this.state.newColumnFilters}
+              onChange={this.onColumnSelected}
+            />
+          </div>
         </div>
       );
     } else {
       return (
-        <div className='connect-projects__export connect-projects__export-switch'>
-          <ToggleSwitch
-            onChange={this.toggleSharingData.bind(this)}
-            label={t('Data sharing disabled')}
-            checked={this.state.isShared}
-          />
+        <div className='connect-projects__export'>
+          <div className='connect-projects__export-switch'>
+            <ToggleSwitch
+              onChange={this.onToggleSharingData.bind(this)}
+              label={t('Data sharing disabled')}
+              checked={this.state.isShared}
+            />
+          </div>
         </div>
       );
     }
@@ -290,12 +354,11 @@ class ConnectProjects extends React.Component {
     if (this.state.sharingEnabledAssets !== null) {
       sharingEnabledAssets = this.generateFilteredAssetList();
     }
-    let questions = assetUtils.getSurveyFlatPaths(this.props.asset.content.survey);
 
     return (
       <bem.FormModal__form
         className='project-settings project-settings--upload-file connect-projects'
-        onSubmit={this.confirmAttachment}
+        onSubmit={this.onConfirmAttachment}
       >
 
         {/* Enable data sharing */}
@@ -308,34 +371,7 @@ class ConnectProjects extends React.Component {
             {t('Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments')}
             <a href='#'>{t(' ' + 'here')}</a>
           </span>
-          <div className='connect-projects__export'>
-            {this.renderSwitch()}
-            <div className='connect-projects__export connect-projects__export-multicheckbox'>
-              <MultiCheckbox
-                items={[
-                  {label:'a', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                  {label:'b', checked:true},
-                 ]}
-                onChange={console.log}
-              />
-            </div>
-          </div>
+          {this.renderSwitch()}
         </bem.FormModal__item>
 
         {/* Attach other projects data */}
@@ -393,7 +429,7 @@ class ConnectProjects extends React.Component {
                       </div>
                       <i
                         className="k-icon-trash"
-                        onClick={() => this.removeAttachment(item.attachmentUrl)}
+                        onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
                       />
                     </li>
                   );
