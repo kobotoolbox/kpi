@@ -37,6 +37,7 @@ import LibraryNewItemForm from './modalForms/libraryNewItemForm';
 import LibraryUploadForm from './modalForms/libraryUploadForm';
 import EncryptForm from './modalForms/encryptForm.es6';
 import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
+import DataAttachmentColumnsForm from './modalForms/dataAttachmentColumnsForm.es6';
 import ProjectSettings from './modalForms/projectSettings';
 import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
@@ -153,6 +154,10 @@ class Modal extends React.Component {
         this.setState({
           modalClass: 'modal--large modal--large-shorter'
         });
+        break;
+
+      case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
+        // title is set by DataAttachmentColumnsForm
         break;
 
       default:
@@ -378,6 +383,13 @@ class Modal extends React.Component {
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
                 asset={this.props.params.asset}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS &&
+              <DataAttachmentColumnsForm
+                onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
                 {...this.props.params}
               />
             }

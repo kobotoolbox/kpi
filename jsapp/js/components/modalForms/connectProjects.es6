@@ -7,7 +7,11 @@ import ToggleSwitch from 'js/components/toggleSwitch';
 import MultiCheckbox from 'js/components/multiCheckbox';
 import TextBox from 'js/components/textBox';
 import {actions} from '../../actions';
+import {stores} from '../../stores';
 import {bem} from 'js/bem';
+import {
+  MODAL_TYPES,
+} from '../../constants';
 
 /*
  * Modal for connecting project data
@@ -25,6 +29,7 @@ class ConnectProjects extends React.Component {
       newParent: null,
       newFilename: '',
       newColumnFilters: [],
+      parentColumnFilters: [],
       fieldsErrors: {},
     };
 
@@ -82,9 +87,11 @@ class ConnectProjects extends React.Component {
   }
   onGetSharingEnabledAssetsCompleted(response) {
     this.setState({sharingEnabledAssets: response});
+    response.results.forEach(item => console.log(item.data_sharing.fields));
   }
   onToggleDataSharingCompleted() {
     this.setState({isShared: !this.state.isShared});
+    // Genereate checkboxes for all questions here
     this.generateColumnFilters(this.props.asset.data_sharing.fields);
   }
   // Safely update state after guaranteed columm changes
@@ -115,34 +122,42 @@ class ConnectProjects extends React.Component {
       newParent: newVal,
       fieldsErrors: {},
     });
+    console.log(newVal);
     this.generateAutoname(newVal);
   }
 
   onConfirmAttachment() {
-    let parentUrl = this.state.newParent?.url;
-    let filename = this.state.newFilename;
-    let fields = []; // TODO parent filters must be seperate
-    if (filename !== '' && parentUrl) {
+    if (this.state.newFilename !== '' && this.state.newParent?.url) {
       this.setState({
-        isLoading: true,
         fieldsErrors: {},
       });
 
+      stores.pageState.showModal(
+        {
+          type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
+          parent: this.state.newParent,
+          filename: this.state.newFilename,
+          fields: this.state.newParent?.data_sharing.fields,
+        }
+      );
+
+      /* this all must be in that modal ^
       var data = JSON.stringify({
         parent: parentUrl,
         fields: fields,
         filename: filename,
       });
       actions.dataShare.attachToParent(this.props.asset.uid, data);
+      */
     } else {
-      if (!parentUrl) {
+      if (!this.state.newParent?.url) {
         this.setState({
           fieldsErrors: Object.assign(
             this.state.fieldsErrors, {emptyParent: 'No project selected'}
           )
         });
       }
-      if (filename === '') {
+      if (this.state.newFilename === '') {
         this.setState({
           fieldsErrors: Object.assign(
             this.state.fieldsErrors, {emptyFilename: 'Field is empty'}

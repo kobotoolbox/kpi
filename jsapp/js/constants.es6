@@ -70,6 +70,7 @@ export const MODAL_TYPES = {
   ASSET_TAGS: 'asset-tags',
   ENCRYPT_FORM: 'encrypt-form',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
+  DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = {

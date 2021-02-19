@@ -868,6 +868,42 @@
   }
 }
 
+.form-modal__form.form-modal__form--data-attachment-columns {
+   color: darken($kobo-lightgray, 40%);
+
+  .bulk-options-wrapper {
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    .bulk-description {
+      font-weight: bold;
+    }
+    .bulk-options {
+      span {
+        margin-left: 12px;
+        margin-right: 12px;
+      }
+      a {
+        text-decoration: underline;
+      cursor: pointer;
+      }
+    }
+  }
+
+  .checkbox-wrapper {
+    position: relative;
+    min-height: 200px;
+  }
+
+  .modal__footer {
+    text-align: center;
+    button {
+      padding-left: 64px;
+      padding-right: 64px;
+    }
+  }
+}
+
 .form-view--library-asset {
   background: $kobo-white;
 }

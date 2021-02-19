@@ -620,7 +620,8 @@ class AssetListSerializer(AssetSerializer):
                   'subscribers_count',
                   'status',
                   'access_types',
-                  'children'
+                  'children',
+                  'data_sharing'
                   )
 
     def get_permissions(self, asset):
