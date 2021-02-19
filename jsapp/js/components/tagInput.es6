@@ -1,3 +1,10 @@
+// NOTE Plese do not use it!
+//
+// TODO This component is very specific in usage as it is calling actions itself
+// to update the tags. It should be incorporated into assetrow (the only file
+// that uses it) with the use of KoboTagsInput. OR it should be left here to die
+// as assetrow is going away in future.
+
 import React from 'react';
 import autoBind from 'react-autobind';
 import TagsInput from 'react-tagsinput';
