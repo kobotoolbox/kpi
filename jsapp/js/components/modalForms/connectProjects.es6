@@ -135,6 +135,7 @@ class ConnectProjects extends React.Component {
       stores.pageState.showModal(
         {
           type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
+          asset: this.props.asset,
           parent: this.state.newParent,
           filename: this.state.newFilename,
           fields: this.state.newParent?.data_sharing.fields,
@@ -173,7 +174,9 @@ class ConnectProjects extends React.Component {
   onToggleSharingData() {
     var data = JSON.stringify({
       data_sharing: {
-        enabled: !this.state.isShared
+        enabled: !this.state.isShared,
+        // Populate fields array if enabling
+        fields: !this.state.isShared ? this.generateAvailableColumns() : [],
       }
     });
 
@@ -226,20 +229,8 @@ class ConnectProjects extends React.Component {
   }
   generateColumnFilters(columns) {
     if (this.state.isShared) {
-      let selectableColumns = [];
+      let selectableColumns = this.generateAvailableColumns() || [];
       let selectedColumns = columns || []; // Columns currently selected
-
-      // Get current asset's available columns
-      if (this.props?.asset?.content?.survey) {
-        let questions = assetUtils.getSurveyFlatPaths(
-          this.props.asset.content.survey
-        );
-        for (const key in questions) {
-          if (!questions[key].includes('version')) {
-            selectableColumns.push(questions[key]);
-          }
-        }
-      }
 
       // Figure out what columns need to be 'checked'
       let columnsToDisplay = [];
@@ -262,6 +253,20 @@ class ConnectProjects extends React.Component {
       }
       this.setState({newColumnFilters: columnsToDisplay});
     }
+  }
+  generateAvailableColumns() {
+    let selectableColumns = [];
+    if (this.props?.asset?.content?.survey) {
+      let questions = assetUtils.getSurveyFlatPaths(
+        this.props.asset.content.survey
+      );
+      for (const key in questions) {
+        if (!questions[key].includes('version')) {
+          selectableColumns.push(questions[key]);
+        }
+      }
+    }
+    return selectableColumns;
   }
   generateTruncatedDisplayName(name) {
     return name.length > 30 ? `${name.substring(0, 30)}...` : name;
