@@ -1,5 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import {bem} from 'js/bem';
 import Checkbox from 'js/components/common/checkbox';
 
 /**
@@ -7,6 +8,7 @@ import Checkbox from 'js/components/common/checkbox';
  * @prop {boolean} checked
  * @prop {boolean} disabled
  * @prop {string} label
+ * @prop … any other properties will be passed back with onChange
  */
 
 /**
@@ -29,20 +31,20 @@ class MultiCheckbox extends React.Component {
 
   render() {
     return (
-      <ul className='multi-checkbox'>
+      <bem.MultiCheckbox>
         {this.props.items.map((item, itemIndex) => {
           return (
-            <li className='multi-checkbox__item' key={itemIndex}>
+            <bem.MultiCheckbox__item key={itemIndex}>
               <Checkbox
                 checked={item.checked}
                 disabled={item.disabled}
                 onChange={this.onChange.bind(this, itemIndex)}
                 label={item.label}
               />
-            </li>
+            </bem.MultiCheckbox__item>
           );
         })}
-      </ul>
+      </bem.MultiCheckbox>
     );
   }
 }
