@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import Select from 'react-select';
 import moment from 'moment';
 import alertify from 'alertifyjs';
+import MultiCheckbox from 'js/components/common/multiCheckbox';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
@@ -227,13 +228,13 @@ export default class ProjectExportsCreator extends React.Component {
     exportsStore.setExportType(newValue);
   }
 
-  onRowSelected(rowName) {
-    const newSelectedRows = this.state.selectedRows;
-    if (this.state.selectedRows.has(rowName)) {
-      newSelectedRows.delete(rowName);
-    } else {
-      newSelectedRows.add(rowName);
-    }
+  onSelectedRowsChange(newRowsArray) {
+    const newSelectedRows = new Set();
+    newRowsArray.forEach((item) => {
+      if (item.checked) {
+        newSelectedRows.add(item.name);
+      }
+    });
     this.setState({selectedRows: newSelectedRows});
   }
 
@@ -387,27 +388,31 @@ export default class ProjectExportsCreator extends React.Component {
     return output;
   }
 
-  renderRowSelector(row) {
-    const rowName = assetUtils.getRowName(row);
-    let isChecked = this.state.selectedRows.has(rowName);
+  renderRowsSelector() {
+    const rows = this.getQuestionsList().map((row) => {
+      const rowName = assetUtils.getRowName(row);
 
-    let checkboxLabel = assetUtils.getQuestionDisplayName(
-      row,
-      this.state.selectedExportFormat?.langIndex
-    );
+      let checkboxLabel = assetUtils.getQuestionDisplayName(
+        row,
+        this.state.selectedExportFormat?.langIndex
+      );
+      if (this.state.selectedExportFormat.value === EXPORT_FORMATS._xml.value) {
+        checkboxLabel = rowName;
+      }
 
-    if (this.state.selectedExportFormat.value === EXPORT_FORMATS._xml.value) {
-      checkboxLabel = rowName;
-    }
+      return {
+        checked: this.state.selectedRows.has(rowName),
+        disabled: !this.state.isCustomSelectionEnabled,
+        label: checkboxLabel,
+        name: rowName,
+      };
+    });
+
     return (
-      <li key={rowName}>
-        <Checkbox
-          disabled={!this.state.isCustomSelectionEnabled}
-          checked={isChecked}
-          onChange={this.onRowSelected.bind(this, rowName)}
-          label={checkboxLabel}
-        />
-      </li>
+      <MultiCheckbox
+        items={rows}
+        onChange={this.onSelectedRowsChange}
+      />
     );
   }
 
@@ -506,9 +511,7 @@ export default class ProjectExportsCreator extends React.Component {
             label={customSelectionLabel}
           />
 
-          <ul className='project-downloads__questions-list'>
-            {this.getQuestionsList().map(this.renderRowSelector)}
-          </ul>
+          {this.renderRowsSelector()}
         </div>
 
         <hr />
