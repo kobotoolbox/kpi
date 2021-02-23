@@ -583,8 +583,8 @@ class ExportTask(ImportExportTask):
                     # If preserve_breaks is False, let's replace all new-line
                     # and carriage-return characters from the text
                     if not preserve_breaks:
-                        for rep in [r'\r', r'\n', '\r', '\n']:
-                            line = line.replace(rep, ' ')
+                        for item in [r'\r', r'\n', '\r', '\n']:
+                            line = line.replace(item, ' ')
                     output_file.write((line + "\r\n").encode('utf-8'))
             elif export_type == 'geojson':
                 for line in export.to_geojson(
