@@ -524,7 +524,8 @@ class ExportTask(ImportExportTask):
         """
         source_url = self.data.get('source', False)
         fields = json.loads(self.data.get('fields', '[]'))
-        flatten = self._get_bool_from_data('flatten', 'true')
+        flatten = self._get_bool_from_data('flatten')
+        preserve_breaks = self._get_bool_from_data('preserve_breaks')
 
         if not source_url:
             raise Exception('no source specified for the export')
@@ -579,6 +580,11 @@ class ExportTask(ImportExportTask):
         with self.result.storage.open(self.result.name, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
+                    # If preserve_breaks is False, let's replace all new-line
+                    # and carriage-return characters from the text
+                    if not preserve_breaks:
+                        for rep in ['\r', '\n']:
+                            line = line.replace(rep, ' ')
                     output_file.write((line + "\r\n").encode('utf-8'))
             elif export_type == 'geojson':
                 for line in export.to_geojson(

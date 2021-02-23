@@ -66,6 +66,7 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
             'fields_from_all_versions',
             'fields',
             'flatten',
+            'preserve_breaks',
         )
         task_data = {}
         for opt in valid_options:
