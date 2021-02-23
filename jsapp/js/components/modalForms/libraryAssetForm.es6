@@ -2,7 +2,7 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import TagsInput from 'react-tagsinput';
+import KoboTagsInput from 'js/components/common/koboTagsInput';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
 import TextBox from 'js/components/common/textBox';
@@ -37,7 +37,7 @@ export class LibraryAssetForm extends React.Component {
         organization: '',
         country: null,
         sector: null,
-        tags: [],
+        tags: '',
         description: ''
       },
       isPending: false
@@ -78,7 +78,7 @@ export class LibraryAssetForm extends React.Component {
       this.state.data.sector = this.props.asset.settings.sector;
     }
     if (this.props.asset.tag_string) {
-      this.state.data.tags = this.props.asset.tag_string.split(',');
+      this.state.data.tags = this.props.asset.tag_string;
     }
     if (this.props.asset.settings.description) {
       this.state.data.description = this.props.asset.settings.description;
@@ -126,7 +126,7 @@ export class LibraryAssetForm extends React.Component {
             sector: this.state.data.sector,
             description: this.state.data.description
           }),
-          tag_string: this.state.data.tags.join(',')
+          tag_string: this.state.data.tags,
         }
       );
     } else {
@@ -139,7 +139,7 @@ export class LibraryAssetForm extends React.Component {
           sector: this.state.data.sector,
           description: this.state.data.description
         }),
-        tag_string: this.state.data.tags.join(',')
+        tag_string: this.state.data.tags,
       };
 
       if (
@@ -168,7 +168,7 @@ export class LibraryAssetForm extends React.Component {
   onOrganizationChange(newValue) {this.onPropertyChange('organization', newValue);}
   onCountryChange(newValue) {this.onPropertyChange('country', newValue);}
   onSectorChange(newValue) {this.onPropertyChange('sector', newValue);}
-  onTagsChange(newValue) {this.onPropertyChange('tags', assetUtils.cleanupTags(newValue));}
+  onTagsChange(newValue) {this.onPropertyChange('tags', newValue);}
   onDescriptionChange(evt) {this.onPropertyChange('description', assetUtils.removeInvalidChars(evt.target.value));}
 
   /**
@@ -258,10 +258,10 @@ export class LibraryAssetForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <TagsInput
-              value={this.state.data.tags}
+            <KoboTagsInput
+              tags={this.state.data.tags}
               onChange={this.onTagsChange}
-              inputProps={{placeholder: t('Tags')}}
+              label={t('Tags')}
             />
           </bem.FormModal__item>
 
