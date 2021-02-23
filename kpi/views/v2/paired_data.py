@@ -287,4 +287,14 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     def get_serializer_context(self):
         context_ = super().get_serializer_context()
         context_['asset'] = self.asset
+
+        # To avoid multiple calls to DB within the serializer on the
+        # list endpoint, we retrieve all parent names and cache them in a dict.
+        # The serializer can access it through the context.
+        parent_uids = self.asset.paired_data.keys()
+        parent_names = {}
+        records = Asset.objects.values('uid', 'name').filter(uid__in=parent_uids)  # noqa
+        for record in records:
+            parent_names[record['uid']] = record['name']
+        context_['parent_names'] = parent_names
         return context_
