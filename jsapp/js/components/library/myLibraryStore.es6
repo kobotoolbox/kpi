@@ -100,6 +100,12 @@ const myLibraryStore = Reflux.createStore({
       params.filterValue = this.data.filterValue;
     }
 
+    // Surrounds `filterValue` with double quotes to avoid filters that have
+    // spaces which would split the query in two, thus breaking the filter
+    if (params.filterValue !== undefined) {
+      params.filterValue = JSON.stringify(params.filterValue); // Adds quotes
+    }
+
     return params;
   },
 
@@ -116,11 +122,6 @@ const myLibraryStore = Reflux.createStore({
     }
 
     const params = this.getSearchParams();
-    // Surrounds `filterValue` with double quotes to avoid filters that have
-    // spaces which would split the query in two, thus breaking the filter
-    if (params.filterProperty !== undefined) {
-      params.filterValue = JSON.stringify(params.filterValue); // Adds quotes
-    }
 
     params.metadata = needsMetadata;
 
