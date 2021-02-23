@@ -30,17 +30,32 @@ class TestCloningOrm(AssetsTestCase):
         self.asset.save()
         v3_uid = self.asset.asset_versions.first().uid
 
-        # unused feature. TODO: fix test when time
-        '''
-        v3_clone_data = self.asset.to_clone_dict(version_uid=v3_uid)
-        v2_clone_data = self.asset.to_clone_dict(version_uid=v2_uid)
+        v3_clone_data = self.asset.to_clone_dict(version=v3_uid)
+        v2_clone_data = self.asset.to_clone_dict(version=v2_uid)
 
         self.assertEqual(v2_clone_data['name'], 'Version 2')
         self.assertEqual(v2_clone_data['content']['survey'][0]['type'], 'integer')
 
         self.assertEqual(v3_clone_data['name'], 'Version 3')
         self.assertEqual(v3_clone_data['content']['survey'][0]['type'], 'note')
-        '''
+
+    def test_clone_asset_without_version(self):
+        """
+        This test is pretty basic. It just validates that a version is created
+        when asset is cloned if it does have any
+        """
+        self.asset.asset_versions.all().delete()
+        asset_versions_count = self.asset.asset_versions.count()
+        assert asset_versions_count == 0
+        cloned_dict = self.asset.to_clone_dict()
+        expected = {
+            'name': self.asset.name,
+            'content': self.asset.content,
+            'asset_type': self.asset.asset_type,
+            'tag_string': self.asset.tag_string,
+        }
+        self.assertEqual(cloned_dict, expected)
+        assert asset_versions_count + 1 == self.asset.asset_versions.count()
 
 
 class TestCloning(KpiTestCase):
