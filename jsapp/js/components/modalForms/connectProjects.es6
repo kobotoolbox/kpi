@@ -153,7 +153,7 @@ class ConnectProjects extends React.Component {
       let dialog = alertify.dialog('confirm');
       let opts = {
         title: `${t('Privacy Notice')}`,
-        message: t('This will attach the full dataset from \"##ASSET_NAME##\" as a background XML file to this form. While not easily visbable, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if \"##ASSET_NAME##\" includes sensative data.').replaceAll('##ASSET_NAME##', this.props.asset.name),
+        message: t('This will attach the full dataset from \"##ASSET_NAME##\" as a background XML file to this form. While not easily visible, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if \"##ASSET_NAME##\" includes sensitive data.').replaceAll('##ASSET_NAME##', this.props.asset.name),
         labels: {ok: t('Acknowledge and continue'), cancel: t('Cancel')},
         onok: (evt, value) => {
           actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
