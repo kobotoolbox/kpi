@@ -123,13 +123,22 @@ class MockDataExportsBase(TestCase):
                       'name': 'Do_you_descend_from_unicellular_organism',
                       'required': False,
                       'select_from_list_name': 'yes_no',
-                      'type': 'select_one'}],
+                      'type': 'select_one'},
+                     {'$autoname': 'How_do_you_feel_after_all_those_questions',
+                      '$kuid': 'bfde6908',
+                      'label': ['How do you feel after all those questions?',
+                                '¿Cómo te sientes después de todas esas preguntas?'],
+                      'name': 'How_do_you_feel_after_all_those_questions',
+                      'required': False,
+                      'type': 'text'},
+                     ],
          'translated': ['label'],
          'translations': ['English', 'Spanish']
     }
 
     submissions = [
-        {'Do_you_descend_from_unicellular_organism': 'no',
+        {'How_do_you_feel_after_all_those_questions': 'Good',
+         'Do_you_descend_from_unicellular_organism': 'no',
          'Do_you_have_body_flu_intracellular_space': 'yes__and_some_',
          '_attachments': [],
          '_bamboo_dataset_id': '',
@@ -148,7 +157,8 @@ class MockDataExportsBase(TestCase):
          'formhub/uuid': '1511083383a64c9dad1eca3795cd3788',
          'meta/instanceID': 'uuid:48583952-1892-4931-8d9c-869e7b49bafb',
          'start': '2017-10-23T05:40:39.000-04:00'},
-        {'Do_you_descend_from_unicellular_organism': 'no',
+        {'How_do_you_feel_after_all_those_questions': r'Pretty good.\nCould have been better.\rThanks',
+         'Do_you_descend_from_unicellular_organism': 'no',
          'Do_you_have_body_flu_intracellular_space': 'yes',
          '_attachments': [],
          '_bamboo_dataset_id': '',
@@ -167,7 +177,8 @@ class MockDataExportsBase(TestCase):
          'formhub/uuid': '1511083383a64c9dad1eca3795cd3788',
          'meta/instanceID': 'uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b',
          'start': '2017-10-23T05:41:14.000-04:00'},
-        {'Do_you_descend_from_unicellular_organism': 'yes',
+        {'How_do_you_feel_after_all_those_questions': 'Meh',
+         'Do_you_descend_from_unicellular_organism': 'yes',
          'Do_you_have_body_flu_intracellular_space': 'no___unsure',
          '_attachments': [],
          '_bamboo_dataset_id': '',
@@ -299,19 +310,19 @@ class MockDataExports(MockDataExportsBase):
 
     def test_csv_export_default_options(self):
         expected_lines = [
-            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
-            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
+            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"How do you feel after all those questions?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
+            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"Good";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
+            r'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"Pretty good.\nCould have been better.\rThanks";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"Meh";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
         ]
         self.run_csv_export_test(expected_lines)
 
     def test_csv_export_default_options_partial_submissions(self):
         expected_lines = [
-            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
-            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"1"',
+            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"How do you feel after all those questions?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
+            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"Meh";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"1"',
         ]
         self.run_csv_export_test(expected_lines, user=self.anotheruser)
 
@@ -320,11 +331,11 @@ class MockDataExports(MockDataExportsBase):
             'lang': 'English',
         }
         expected_lines = [
-            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
-            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
+            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"How do you feel after all those questions?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
+            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"Good";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
+            r'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"Pretty good.\nCould have been better.\rThanks";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"Meh";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -333,11 +344,11 @@ class MockDataExports(MockDataExportsBase):
             'lang': 'Spanish',
         }
         expected_lines = [
-            '"start";"end";"¿Qué tipo de simetría tiene?";"¿Qué tipo de simetría tiene?/Esférico";"¿Qué tipo de simetría tiene?/Radial";"¿Qué tipo de simetría tiene?/Bilateral";"¿Cuántos segmentos tiene tu cuerpo?";"¿Tienes fluidos corporales que ocupan espacio intracelular?";"¿Desciende de un organismo unicelular ancestral?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
-            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Esférico Radial Bilateral";"1";"1";"1";"6";"Sí, y algún espacio extracelular";"No";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Sí";"No";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
+            '"start";"end";"¿Qué tipo de simetría tiene?";"¿Qué tipo de simetría tiene?/Esférico";"¿Qué tipo de simetría tiene?/Radial";"¿Qué tipo de simetría tiene?/Bilateral";"¿Cuántos segmentos tiene tu cuerpo?";"¿Tienes fluidos corporales que ocupan espacio intracelular?";"¿Desciende de un organismo unicelular ancestral?";"¿Cómo te sientes después de todas esas preguntas?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
+            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Esférico Radial Bilateral";"1";"1";"1";"6";"Sí, y algún espacio extracelular";"No";"Good";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
+            r'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Sí";"No";"Pretty good.\nCould have been better.\rThanks";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Inseguro";"Sí";"Meh";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -347,10 +358,10 @@ class MockDataExports(MockDataExportsBase):
             'tag_cols_for_header': [],
         }
         expected_lines = [
-            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
+            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?/Spherical";"What kind of symmetry do you have?/Radial";"What kind of symmetry do you have?/Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"How do you feel after all those questions?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"Good";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
+            r'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"Pretty good.\nCould have been better.\rThanks";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"Meh";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -361,22 +372,22 @@ class MockDataExports(MockDataExportsBase):
             'group_sep': '%',
         }
         expected_lines = [
-            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?%Spherical";"What kind of symmetry do you have?%Radial";"What kind of symmetry do you have?%Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
-            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
+            '"start";"end";"What kind of symmetry do you have?";"What kind of symmetry do you have?%Spherical";"What kind of symmetry do you have?%Radial";"What kind of symmetry do you have?%Bilateral";"How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"How do you feel after all those questions?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
+            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"Good";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
+            r'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"Pretty good.\nCould have been better.\rThanks";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"Meh";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_hierarchy_in_labels(self):
         export_options = {'hierarchy_in_labels': 'true'}
         expected_lines = [
-            '"start";"end";"External Characteristics/What kind of symmetry do you have?";"External Characteristics/What kind of symmetry do you have?/Spherical";"External Characteristics/What kind of symmetry do you have?/Radial";"External Characteristics/What kind of symmetry do you have?/Bilateral";"External Characteristics/How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
-            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";""',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
+            '"start";"end";"External Characteristics/What kind of symmetry do you have?";"External Characteristics/What kind of symmetry do you have?/Spherical";"External Characteristics/What kind of symmetry do you have?/Radial";"External Characteristics/What kind of symmetry do you have?/Bilateral";"External Characteristics/How many segments does your body have?";"Do you have body fluids that occupy intracellular space?";"Do you descend from an ancestral unicellular organism?";"How do you feel after all those questions?";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"',
+            '"";"";"#symmetry";"";"";"";"#segments";"#fluids";"";"";"";"";"";"";"";"";"";"";""',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"Spherical Radial Bilateral";"1";"1";"1";"6";"Yes, and some extracellular space";"No";"Good";"61";"";"submitted_via_web";"2017-10-23T09:41:19";"None";"";"48583952-1892-4931-8d9c-869e7b49bafb";"";"1"',
+            r'"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"Radial";"0";"1";"0";"3";"Yes";"No";"Pretty good.\nCould have been better.\rThanks";"62";"";"submitted_via_web";"2017-10-23T09:41:38";"None";"";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Bilateral";"0";"0";"1";"2";"No / Unsure";"Yes";"Meh";"63";"";"submitted_via_web";"2017-10-23T09:42:11";"anotheruser";"";"3f15cdfe-3eab-4678-8352-7806febf158d";"";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -393,20 +404,20 @@ class MockDataExports(MockDataExportsBase):
     def test_xls_export_english_labels(self):
         export_options = {'lang': 'English'}
         expected_rows = [
-            ['start', 'end', 'What kind of symmetry do you have?', 'What kind of symmetry do you have?/Spherical', 'What kind of symmetry do you have?/Radial', 'What kind of symmetry do you have?/Bilateral', 'How many segments does your body have?', 'Do you have body fluids that occupy intracellular space?', 'Do you descend from an ancestral unicellular organism?', '_id', '_notes', '_status', '_submission_time', '_submitted_by', '_tags', '_uuid', '_validation_status', '_index'],
-            ['', '', '#symmetry', '', '', '', '#segments', '#fluids', '', '', '', '', '', '', '', '', '', ''],
-            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'Spherical Radial Bilateral', '1', '1', '1', '6', 'Yes, and some extracellular space', 'No', 61.0, '', 'submitted_via_web', '2017-10-23T09:41:19', '', '', '48583952-1892-4931-8d9c-869e7b49bafb', '', 1.0],
-            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'Radial', '0', '1', '0', '3', 'Yes', 'No', 62.0, '', 'submitted_via_web', '2017-10-23T09:41:38', '', '', '317ba7b7-bea4-4a8c-8620-a483c3079c4b', '', 2.0],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Bilateral', '0', '0', '1', '2', 'No / Unsure', 'Yes', 63.0, '', 'submitted_via_web', '2017-10-23T09:42:11', 'anotheruser', '', '3f15cdfe-3eab-4678-8352-7806febf158d', '', 3.0]
+            ['start', 'end', 'What kind of symmetry do you have?', 'What kind of symmetry do you have?/Spherical', 'What kind of symmetry do you have?/Radial', 'What kind of symmetry do you have?/Bilateral', 'How many segments does your body have?', 'Do you have body fluids that occupy intracellular space?', 'Do you descend from an ancestral unicellular organism?', 'How do you feel after all those questions?', '_id', '_notes', '_status', '_submission_time', '_submitted_by', '_tags', '_uuid', '_validation_status', '_index'],
+            ['', '', '#symmetry', '', '', '', '#segments', '#fluids', '', '', '', '', '', '', '', '', '', '', ''],
+            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'Spherical Radial Bilateral', '1', '1', '1', '6', 'Yes, and some extracellular space', 'No', 'Good', 61.0, '', 'submitted_via_web', '2017-10-23T09:41:19', '', '', '48583952-1892-4931-8d9c-869e7b49bafb', '', 1.0],
+            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'Radial', '0', '1', '0', '3', 'Yes', 'No', r'Pretty good.\nCould have been better.\rThanks', 62.0, '', 'submitted_via_web', '2017-10-23T09:41:38', '', '', '317ba7b7-bea4-4a8c-8620-a483c3079c4b', '', 2.0],
+            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Bilateral', '0', '0', '1', '2', 'No / Unsure', 'Yes', 'Meh', 63.0, '', 'submitted_via_web', '2017-10-23T09:42:11', 'anotheruser', '', '3f15cdfe-3eab-4678-8352-7806febf158d', '', 3.0]
         ]
         self.run_xls_export_test(expected_rows, export_options)
 
     def test_xls_export_english_labels_partial_submissions(self):
         export_options = {'lang': 'English'}
         expected_rows = [
-            ['start', 'end', 'What kind of symmetry do you have?', 'What kind of symmetry do you have?/Spherical', 'What kind of symmetry do you have?/Radial', 'What kind of symmetry do you have?/Bilateral', 'How many segments does your body have?', 'Do you have body fluids that occupy intracellular space?', 'Do you descend from an ancestral unicellular organism?', '_id', '_notes', '_status', '_submission_time', '_submitted_by', '_tags', '_uuid', '_validation_status', '_index'],
-            ['', '', '#symmetry', '', '', '', '#segments', '#fluids', '', '', '', '', '', '', '', '', '', ''],
-            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Bilateral', '0', '0', '1', '2', 'No / Unsure', 'Yes', 63.0, '', 'submitted_via_web', '2017-10-23T09:42:11', 'anotheruser', '', '3f15cdfe-3eab-4678-8352-7806febf158d', '', 1.0]
+            ['start', 'end', 'What kind of symmetry do you have?', 'What kind of symmetry do you have?/Spherical', 'What kind of symmetry do you have?/Radial', 'What kind of symmetry do you have?/Bilateral', 'How many segments does your body have?', 'Do you have body fluids that occupy intracellular space?', 'Do you descend from an ancestral unicellular organism?', 'How do you feel after all those questions?', '_id', '_notes', '_status', '_submission_time', '_submitted_by', '_tags', '_uuid', '_validation_status', '_index'],
+            ['', '', '#symmetry', '', '', '', '#segments', '#fluids', '', '', '', '', '', '', '', '', '', '', ''],
+            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Bilateral', '0', '0', '1', '2', 'No / Unsure', 'Yes', 'Meh', 63.0, '', 'submitted_via_web', '2017-10-23T09:42:11', 'anotheruser', '', '3f15cdfe-3eab-4678-8352-7806febf158d', '', 1.0]
         ]
         self.run_xls_export_test(expected_rows, export_options,
                                  user=self.anotheruser)
@@ -453,6 +464,7 @@ class MockDataExports(MockDataExportsBase):
                 " /How_many_segments_does_your_body_have '\xbfCu\xe1ntos segmentos tiene tu cuerpo?'",
                 " /Do_you_have_body_flu_intracellular_space '\xbfTienes fluidos corporales que ocupan espacio intracelular?'",
                 " /Do_you_descend_from_unicellular_organism '\xbfDesciende de un organismo unicelular ancestral?'",
+                " /How_do_you_feel_after_all_those_questions '¿Cómo te sientes después de todas esas preguntas?'",
                 " /_id '_id'",
                 " /_notes '_notes'",
                 " /_status '_status'",
@@ -483,6 +495,7 @@ class MockDataExports(MockDataExportsBase):
                 " /How_many_segments_does_your_body_have 'How many segments does your body have?'",
                 " /Do_you_have_body_flu_intracellular_space 'Do you have body fluids that occupy intracellular space?'",
                 " /Do_you_descend_from_unicellular_organism 'Do you descend from an ancestral unicellular organism?'",
+                " /How_do_you_feel_after_all_those_questions 'How do you feel after all those questions?'",
                 " /_id '_id'",
                 " /_notes '_notes'",
                 " /_status '_status'",
