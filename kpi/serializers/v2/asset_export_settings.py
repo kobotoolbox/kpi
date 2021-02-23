@@ -11,6 +11,7 @@ from kpi.constants import (
     EXPORT_SETTING_HIERARCHY_IN_LABELS,
     EXPORT_SETTING_LANG,
     EXPORT_SETTING_MULTIPLE_SELECT,
+    EXPORT_SETTING_PRESERVE_BREAKS,
     EXPORT_SETTING_TYPE,
     OPTIONAL_EXPORT_SETTINGS,
     REQUIRED_EXPORT_SETTINGS,
@@ -121,27 +122,34 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
                 )
             )
 
-        if EXPORT_SETTING_FIELDS not in export_settings:
-            return export_settings
-
-        fields = export_settings[EXPORT_SETTING_FIELDS]
+        fields = export_settings.get(EXPORT_SETTING_FIELDS, [])
         if not isinstance(fields, list):
             raise serializers.ValidationError(_('`fields` must be an array'))
 
-        if not all((isinstance(field, str) for field in fields)):
+        if len(fields) > 0 and not all(
+            (isinstance(field, str) for field in fields)
+        ):
             raise serializers.ValidationError(
                 _('All values in the `fields` array must be strings')
             )
 
         # `flatten` is used for geoJSON exports only and is ignored otherwise
-        if EXPORT_SETTING_FLATTEN not in export_settings:
-            return export_settings
-
-        flatten = export_settings[EXPORT_SETTING_FLATTEN]
-        if flatten.lower() not in VALID_BOOLEANS:
+        flatten = export_settings.get(EXPORT_SETTING_FLATTEN)
+        if flatten is not None and flatten.lower() not in VALID_BOOLEANS:
             raise serializers.ValidationError(
                 _("`flatten` must be either {}").format(
-                    setting, self.__format_exception_values(VALID_BOOLEANS)
+                    self.__format_exception_values(VALID_BOOLEANS)
+                )
+            )
+
+        preserve_breaks = export_settings.get(EXPORT_SETTING_PRESERVE_BREAKS)
+        if (
+            preserve_breaks is not None
+            and preserve_breaks.lower() not in VALID_BOOLEANS
+        ):
+            raise serializers.ValidationError(
+                _("`preserve_breaks` must be either {}").format(
+                    self.__format_exception_values(VALID_BOOLEANS)
                 )
             )
 
