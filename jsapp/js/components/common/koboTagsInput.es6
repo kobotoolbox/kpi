@@ -22,7 +22,11 @@ class KoboTagsInput extends React.Component {
   }
 
   onChange(tags) {
-    const cleanTags = cleanupTags(tags);
+    // make sure to split all multiple tags added (i.e. when users types in few
+    // tags at once separated by TAGS_SEPARATOR)
+    let cleanTags = tags.join(TAGS_SEPARATOR).split(TAGS_SEPARATOR);
+    // we then make sure the list contains only unique values and cleaned up
+    cleanTags = Array.from(new Set(cleanupTags(cleanTags)));
     this.props.onChange(cleanTags.join(TAGS_SEPARATOR));
   }
 
