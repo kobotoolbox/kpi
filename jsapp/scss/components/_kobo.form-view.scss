@@ -880,19 +880,17 @@
     }
     .bulk-options {
       span {
-        margin-left: 12px;
-        margin-right: 12px;
+        margin: 12px;
       }
       a {
         text-decoration: underline;
-      cursor: pointer;
+        cursor: pointer;
       }
     }
   }
 
-  .checkbox-wrapper {
-    position: relative;
-    min-height: 200px;
+  .multi-checkbox {
+    margin-top: 12px;
   }
 
   .modal__footer {

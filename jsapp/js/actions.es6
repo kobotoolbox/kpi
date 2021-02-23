@@ -103,6 +103,7 @@ actions.media = Reflux.createActions({
 actions.dataShare = Reflux.createActions({
   attachToParent: {children: ['completed', 'failed']},
   detachParent: {children: ['completed', 'failed']},
+  patchParent: {children: ['completed', 'failed']},
   getAttachedParents: {children: ['completed', 'failed']},
   getSharingEnabledAssets: {children: ['completed', 'failed']},
   toggleDataSharing: {children: ['completed', 'failed']},
@@ -221,12 +222,21 @@ actions.dataShare.detachParent.listen((attachmentUrl) => {
     })
 });
 
+actions.dataShare.patchParent.listen((attachmentUrl, data) => {
+  dataInterface.patchParent(attachmentUrl, data)
+    .done((response) => {
+      actions.dataShare.patchParent.completed(response);
+    })
+    .fail((response) => {
+      actions.dataShare.patchParent.failed(response)
+    })
+});
+
 actions.dataShare.getAttachedParents.listen((assetUid) => {
   dataInterface.getAttachedParents(assetUid)
     .done((response) => {
       if (response.results.length > 0) {
-        // For each parent, we get the entire survey so that the user can
-        // specify which questions they want to import
+        // To get the name of each parent we need to get their content
         let allParents = [];
         response.results.forEach((parent) => {
           dataInterface.getAsset({url: parent.parent})
@@ -237,6 +247,7 @@ actions.dataShare.getAttachedParents.listen((assetUid) => {
                 parent: attachedParent,
                 filename: filename,
                 attachmentUrl: parent.url,
+                fields: parent.fields,
               });
               actions.dataShare.getAttachedParents.completed(allParents);
             });

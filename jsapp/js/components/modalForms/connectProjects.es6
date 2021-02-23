@@ -42,7 +42,13 @@ class ConnectProjects extends React.Component {
 
   componentDidMount() {
     this.refreshAttachmentList();
-    this.generateColumnFilters(this.props.asset.data_sharing.fields);
+    if (this.state.isShared) {
+      this.setState({
+        newColumnFilters: this.generateColumnFilters(
+          this.props.asset.data_sharing.fields
+        ),
+      });
+    }
     actions.dataShare.getSharingEnabledAssets();
 
     actions.dataShare.attachToParent.completed.listen(
@@ -53,6 +59,9 @@ class ConnectProjects extends React.Component {
     );
     actions.dataShare.detachParent.completed.listen(
       this.refreshAttachmentList
+    );
+    actions.dataShare.patchParent.completed.listen(
+      this.onPatchParentCompleted
     );
     actions.dataShare.getSharingEnabledAssets.completed.listen(
       this.onGetSharingEnabledAssetsCompleted
@@ -87,16 +96,25 @@ class ConnectProjects extends React.Component {
   }
   onGetSharingEnabledAssetsCompleted(response) {
     this.setState({sharingEnabledAssets: response});
-    response.results.forEach(item => console.log(item.data_sharing.fields));
   }
   onToggleDataSharingCompleted() {
-    this.setState({isShared: !this.state.isShared});
-    // Genereate checkboxes for all questions here
-    this.generateColumnFilters(this.props.asset.data_sharing.fields);
+    this.setState({
+      isShared: !this.state.isShared,
+      newColumnFilters: this.generateColumnFilters(
+        this.props.asset.data_sharing.fields
+      ),
+    });
   }
   // Safely update state after guaranteed columm changes
   onUpdateColumnFiltersCompleted(response) {
-    this.generateColumnFilters(response.data_sharing.fields)
+    this.setState({
+      newColumnFilters: this.generateColumnFilters(
+        response.data_sharing.fields
+      ),
+    });
+  }
+  onPatchParentCompleted() {
+    actions.dataShare.getAttachedParents(this.props.asset.uid);
   }
   refreshAttachmentList() {
     this.setState({
@@ -122,34 +140,22 @@ class ConnectProjects extends React.Component {
       newParent: newVal,
       fieldsErrors: {},
     });
-    console.log(newVal);
     this.generateAutoname(newVal);
   }
 
-  onConfirmAttachment() {
+  onConfirmAttachment(evt) {
+    evt.preventDefault();
     if (this.state.newFilename !== '' && this.state.newParent?.url) {
       this.setState({
         fieldsErrors: {},
       });
 
-      stores.pageState.showModal(
-        {
-          type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
-          asset: this.props.asset,
-          parent: this.state.newParent,
-          filename: this.state.newFilename,
-          fields: this.state.newParent?.data_sharing.fields,
-        }
+      this.showColumnFilterModal(
+        this.props.asset,
+        this.state.newParent,
+        this.state.newFilename,
+        this.state.newParent?.data_sharing.fields,
       );
-
-      /* this all must be in that modal ^
-      var data = JSON.stringify({
-        parent: parentUrl,
-        fields: fields,
-        filename: filename,
-      });
-      actions.dataShare.attachToParent(this.props.asset.uid, data);
-      */
     } else {
       if (!this.state.newParent?.url) {
         this.setState({
@@ -176,7 +182,9 @@ class ConnectProjects extends React.Component {
       data_sharing: {
         enabled: !this.state.isShared,
         // Populate fields array if enabling
-        fields: !this.state.isShared ? this.generateAvailableColumns() : [],
+        fields: !this.state.isShared
+        ? this.generateAvailableColumns(this.props.asset.content.survey)
+        : [],
       }
     });
 
@@ -227,39 +235,39 @@ class ConnectProjects extends React.Component {
       this.setState({newFilename: autoname});
     }
   }
-  generateColumnFilters(columns) {
-    if (this.state.isShared) {
-      let selectableColumns = this.generateAvailableColumns() || [];
-      let selectedColumns = columns || []; // Columns currently selected
+  generateColumnFilters(columns, parentColumns=[]) {
+    // If parentColumns is empty, assume we are the parent
+    let selectableColumns =
+      parentColumns.length > 0
+        ? parentColumns
+        : this.generateAvailableColumns(this.props.asset.content.survey);
+    let selectedColumns = columns || []; // Columns currently selected
 
-      // Figure out what columns need to be 'checked'
-      let columnsToDisplay = [];
-      // 'Check' every column if no fields exist, or every column is already checked
-      if (
-        selectedColumns.length == 0 ||
-        selectedColumns.length == selectableColumns.length
-      ) {
-        selectableColumns.forEach((column) => {
-          columnsToDisplay.push({label: column, checked: true});
+    // Figure out what columns need to be 'checked'
+    let columnsToDisplay = [];
+    // 'Check' every column if no fields exist, or every column is already checked
+    if (
+      selectedColumns.length == 0 ||
+      selectedColumns.length == selectableColumns.length
+    ) {
+      selectableColumns.forEach((column) => {
+        columnsToDisplay.push({label: column, checked: true});
+      });
+    } else {
+      selectableColumns.forEach((column) => {
+        // 'Check' only matching columns
+        columnsToDisplay.push({
+          label: column,
+          checked: selectedColumns.includes(column),
         });
-      } else {
-        selectableColumns.forEach((column) => {
-          // 'Check' only matching columns
-          columnsToDisplay.push({
-            label: column,
-            checked: selectedColumns.includes(column),
-          });
-        });
-      }
-      this.setState({newColumnFilters: columnsToDisplay});
+      });
     }
+    return columnsToDisplay;
   }
-  generateAvailableColumns() {
+  generateAvailableColumns(survey) {
     let selectableColumns = [];
-    if (this.props?.asset?.content?.survey) {
-      let questions = assetUtils.getSurveyFlatPaths(
-        this.props.asset.content.survey
-      );
+    if (survey) {
+      let questions = assetUtils.getSurveyFlatPaths(survey);
       for (const key in questions) {
         if (!questions[key].includes('version')) {
           selectableColumns.push(questions[key]);
@@ -285,19 +293,19 @@ class ConnectProjects extends React.Component {
     );
   }
 
- /*
-  * May be useful later for replacing autoname with existing name
-  *
-  * getExteralFilename() {
-  *   let filename = '';
-  *   this.props.asset.content.survey.some((element) => {
-  *     if (element.type === XML_EXTERNAL) {
-  *       filename = element.name;
-  *     }
-  *   });
-  *   return filename;
-  * }
-  */
+  showColumnFilterModal(asset, parent, filename, fields, attachmentUrl) {
+    stores.pageState.showModal(
+      {
+        type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
+        generateAvailableColumns: this.generateAvailableColumns,
+        asset: asset,
+        parent: parent,
+        filename: filename,
+        fields: fields,
+        attachmentUrl: attachmentUrl,
+      }
+    );
+  }
 
   /*
    * Rendering
@@ -440,25 +448,37 @@ class ConnectProjects extends React.Component {
               </li>
             }
             {!this.state.isLoading && this.state.attachedParents.length > 0 &&
-                this.state.attachedParents.map((item, n) => {
-                  return (
-                    <li key={n} className='imported-item'>
-                      <i className="k-icon k-icon-check"/>
-                      <div className='imported-names'>
-                        <span className='imported-filename'>
-                          {item.filename}
-                        </span>
-                        <span className='imported-parent'>
-                          {this.generateTruncatedDisplayName(item.parent.name)}
-                        </span>
-                      </div>
+              this.state.attachedParents.map((item, n) => {
+                return (
+                  <li key={n} className='imported-item'>
+                    <i className="k-icon k-icon-check"/>
+                    <div className='imported-names'>
+                      <span className='imported-filename'>
+                        {item.filename}
+                      </span>
+                      <span className='imported-parent'>
+                        {this.generateTruncatedDisplayName(item.parent.name)}
+                      </span>
+                    </div>
+                    <div className='imported-options'>
                       <i
                         className="k-icon-trash"
                         onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
                       />
-                    </li>
-                  );
-                })
+                      <i
+                        className="k-icon-settings"
+                        onClick={() => this.showColumnFilterModal(
+                          this.props.asset,
+                          item.parent,
+                          item.filename,
+                          item.fields,
+                          item.attachmentUrl,
+                        )}
+                      />
+                    </div>
+                  </li>
+                );
+              })
             }
           </ul>
         </bem.FormModal__item>

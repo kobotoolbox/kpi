@@ -256,6 +256,14 @@ export var dataInterface;
         method: 'DELETE',
       });
     },
+    patchParent(attachmentUrl, data) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'PATCH',
+        data: data,
+        contentType: 'application/json'
+      });
+    },
     getAttachedParents(assetUid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,

@@ -11,9 +11,13 @@ import {actions} from 'js/actions';
  * @prop {function} onSetModalTitle - for changing the modal title by this component
  * @prop {function} onModalClose - causes the modal to close
  * @prop {function} triggerLoading - causes parent modal to show loading
+ * @prop {function} generateAvailableColumns - generates columns for multicheckbox
+ * @prop {object} asset - current asset
  * @prop {object} parent - selected parent's asset
  * @prop {string} fileName
- * @prop {fields[]} fields - available columns exposed to child
+ * @prop {fields[]} fields - child selected fields
+ * @prop {string} attachmentUrl - if exists, we are patching an existing attachment
+                                  otherwise, this is a new import
  */
 class dataAttachmentColumnsForm extends React.Component {
   constructor(props) {
@@ -27,10 +31,19 @@ class dataAttachmentColumnsForm extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({columnsToDisplay: this.generateColumnFilters()})
+    // We must query for parent's asset content in order to display their
+    // available columns
+    actions.resources.loadAsset({id: this.props.parent.uid});
+
     this.unlisteners.push(
       actions.dataShare.attachToParent.completed.listen(
         this.onAttachToParentCompleted
+      ),
+      actions.dataShare.patchParent.completed.listen(
+        this.onPatchParentCompleted
+      ),
+      actions.resources.loadAsset.completed.listen(
+        this.onLoadAssetContentCompleted
       ),
     );
     this.setModalTitle();
@@ -42,8 +55,40 @@ class dataAttachmentColumnsForm extends React.Component {
 
   setModalTitle() {
     this.props.onSetModalTitle(
-      t('Import data from ##PARENT_NAME##').replace('##PARENT_NAME##', this.props.parent.name)
+      t('Import data from ##PARENT_NAME##')
+        .replace('##PARENT_NAME##', this.props.parent.name)
     );
+  }
+
+  onAttachToParentCompleted() {
+    this.props.onModalClose();
+  }
+  onLoadAssetContentCompleted(response) {
+    if (
+      response.data_sharing.fields !== undefined &&
+      response.data_sharing.fields.length > 0
+    ) {
+      this.setState({
+        columnsToDisplay: this.generateColumnFilters(
+          response.data_sharing.fields
+        ),
+      });
+    } else {
+      // empty `fields` implies all parent questions are exposed
+      this.setState({
+        columnsToDisplay: this.generateColumnFilters(
+          this.props.generateAvailableColumns(response.content.survey)
+        ),
+      });
+    }
+  }
+  onPatchParentCompleted(response) {
+    this.setState({
+      columnsToDisplay: this.generateColumnFilters(
+        response.fields
+      ),
+    });
+    this.props.onModalClose();
   }
 
   onColumnSelected(newList) {
@@ -52,25 +97,41 @@ class dataAttachmentColumnsForm extends React.Component {
 
   onSubmit(evt) {
     evt.preventDefault();
-    let fields = this.state.columnsToDisplay.map((item) => {
+    let fields = [];
+    var data = '';
+    this.state.columnsToDisplay.map((item) => {
       if (item.checked) {
-        return item.label;
+        fields.push(item.label);
       }
     });
-    var data = JSON.stringify({
-      parent: this.props.parent.url,
-      fields: fields,
-      filename: this.props.filename,
-    });
-    actions.dataShare.attachToParent(this.props.asset.uid, data);
+    if (this.props.attachmentUrl) {
+      data = JSON.stringify({
+        fields: fields,
+        filename: this.props.filename,
+      });
+      actions.dataShare.patchParent(this.props.attachmentUrl, data);
+    } else {
+      data = JSON.stringify({
+        parent: this.props.parent.url,
+        fields: fields,
+        filename: this.props.filename,
+      });
+      actions.dataShare.attachToParent(this.props.asset.uid, data);
+    }
     this.setState({isLoading: true});
   }
 
-  generateColumnFilters() {
-    // We assume parent fields will be populated if they enabled data sharing
-    return this.props.parent.data_sharing.fields.map((item) => {
-      return {label: item, checked: true};
-    });
+  generateColumnFilters(fields) {
+    // Parent has exposed more questions than child has imported
+    if (this.props.fields.length == 0) {
+      return fields.map((item) => {
+        return {label: item, checked: true};
+      });
+    } else if (this.props.fields.length !== fields.length) {
+      return fields.map((item) => {
+        return {label: item, checked: this.props.fields.includes(item)};
+      });
+    }
   }
 
   render() {
@@ -97,12 +158,10 @@ class dataAttachmentColumnsForm extends React.Component {
             </div>
           </div>
         </div>
-        <div className='checkbox-wrapper'>
-          <MultiCheckbox
-            items={this.state.columnsToDisplay}
-            onChange={this.onColumnSelected}
-          />
-        </div>
+        <MultiCheckbox
+          items={this.state.columnsToDisplay}
+          onChange={this.onColumnSelected}
+        />
         <footer className='modal__footer'>
           <bem.KoboButton
             m='blue'
