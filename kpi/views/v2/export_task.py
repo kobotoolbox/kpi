@@ -10,12 +10,9 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.filters import (
-    ExportObjectOrderingFilter,
-    ExportObjectPermissionsFilter,
-    SearchFilter,
-)
+from kpi.filters import ExportObjectOrderingFilter
 from kpi.models import ExportTask
+from kpi.permissions import ExportTaskPermission
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.tasks import export_in_background
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -151,7 +148,8 @@ class ExportTaskViewSet(
         renderers.BrowsableAPIRenderer,
         renderers.JSONRenderer,
     ]
-    # TODO: add permissions class (subclass nested)
+    filter_backends = [ExportObjectOrderingFilter,]
+    permission_classes = [ExportTaskPermission,]
 
     def get_queryset(self):
         return self.model.objects.filter(

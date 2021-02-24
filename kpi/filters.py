@@ -89,14 +89,6 @@ class AssetOrderingFilter(filters.OrderingFilter):
         return queryset
 
 
-class ExportObjectPermissionsFilter:
-    def filter_queryset(self, request, queryset, view):
-        if request.user.is_anonymous:
-            return ExportTask.objects.none()
-
-        return ExportTask.objects.filter(user=request.user)
-
-
 class ExportObjectOrderingFilter(filters.OrderingFilter):
     def filter_queryset(self, request, queryset, view):
         ordering = self.get_ordering(request, queryset, view)
