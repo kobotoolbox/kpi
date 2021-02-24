@@ -1,6 +1,7 @@
 # coding: utf-8
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
+from rest_framework.request import Request
 from rest_framework.reverse import reverse
 
 from kpi.constants import (
@@ -26,7 +27,7 @@ from kpi.fields import (
     ReadOnlyJSONField,
     WritableJSONField,
 )
-from kpi.models import ExportTask
+from kpi.models import ExportTask, Asset
 from kpi.utils.export_task import format_exception_values
 from kpi.tasks import export_in_background
 
@@ -55,7 +56,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             'result',
         )
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> ExportTask:
         # Create a new export task
         export_task = ExportTask.objects.create(user=self._get_request.user,
                                                 data=validated_data)
@@ -65,14 +66,14 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         return export_task
 
     @property
-    def _get_request(self):
+    def _get_request(self) -> Request:
         return self.context['request']
 
     @property
-    def _get_asset(self):
+    def _get_asset(self) -> Asset:
         return self.context['view'].asset
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict) -> dict:
         data_ = self.validate_data(self._get_request.data)
         attrs[
             EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS

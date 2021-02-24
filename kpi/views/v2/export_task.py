@@ -47,7 +47,7 @@ class ExportTaskViewSet(
     > Examples:
     > **Exports matching `uid`s**
     >
-    >      curl -X GET https://[kpi]/api/v2/exports/?q=uid__in:ehZUwRctkhp9QfJgvEWGg OR uid__in:ehZUwRctkhp9QfJgvDnjud
+    >      curl -X GET https://[kpi]/api/v2/assets/<code>{asset_uid}</code>/exports/?q=uid__in:ehZUwRctkhp9QfJgvEWGg OR uid__in:ehZUwRctkhp9QfJgvDnjud
 
 
     ## CRUD
