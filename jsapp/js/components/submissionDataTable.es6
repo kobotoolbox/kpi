@@ -266,14 +266,19 @@ class SubmissionDataTable extends React.Component {
   renderAttachment(type, filename) {
     const attachment = this.findAttachmentData(filename);
 
-    if (type === QUESTION_TYPES.get('image').id) {
-      return (
-        <a href={attachment.download_url} target='_blank'>
-          <img src={attachment.download_small_url}/>
-        </a>
-      );
+    if (attachment) {
+      if (type === QUESTION_TYPES.get('image').id) {
+        return (
+          <a href={attachment.download_url} target='_blank'>
+            <img src={attachment.download_small_url}/>
+          </a>
+        );
+      } else {
+        return (<a href={attachment.download_url} target='_blank'>{filename}</a>);
+      }
+    // In the case that an attachment is missing, don't crash the page
     } else {
-      return (<a href={attachment.download_url} target='_blank'>{filename}</a>);
+      return(t('Could not retrieve attachment'));
     }
   }
 
