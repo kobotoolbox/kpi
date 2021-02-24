@@ -8,6 +8,7 @@ from rest_framework import (
 )
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.filters import (
     ExportObjectOrderingFilter,
@@ -17,10 +18,12 @@ from kpi.filters import (
 from kpi.models import ExportTask
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.tasks import export_in_background
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.views.no_update_model import NoUpdateModelViewSet
 
-
-class ExportTaskViewSet(NoUpdateModelViewSet):
+class ExportTaskViewSet(
+    AssetNestedObjectViewsetMixin, NestedViewSetMixin, NoUpdateModelViewSet
+):
     """
     ## List of export tasks endpoints
 
@@ -142,7 +145,6 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
     """
 
     model = ExportTask
-    queryset = ExportTask.objects.all()
     serializer_class = ExportTaskSerializer
     lookup_field = 'uid'
     renderer_classes = [
@@ -150,37 +152,9 @@ class ExportTaskViewSet(NoUpdateModelViewSet):
         renderers.JSONRenderer,
     ]
     # TODO: add permissions class (subclass nested)
-    filter_backends = [
-        ExportObjectPermissionsFilter,
-        SearchFilter,
-        ExportObjectOrderingFilter,
-    ]
-    # Terms that can be used to search and filter return values from a query `q`
-    search_default_field_lookups = [
-        'data__source__icontains',
-        'uid__icontains',
-    ]
 
-#    def create(self, request, *args, **kwargs):
-#        if self.request.user.is_anonymous:
-#            raise exceptions.NotAuthenticated()
-#
-#        serializer = self.get_serializer(data=request.data)
-#        serializer.is_valid(raise_exception=True)
-#
-#        # Create a new export task
-#        print('***** serializer.data', str(serializer.data), flush=True)
-#        export_task = ExportTask.objects.create(user=request.user,
-#                                                data=serializer.data)
-#        # Have Celery run the export in the background
-#        export_in_background.delay(export_task_uid=export_task.uid)
-#
-#        return Response({
-#            'uid': export_task.uid,
-#            'url': reverse(
-#                'api_v2:exporttask-detail',
-#                kwargs={'uid': export_task.uid},
-#                request=request),
-#            'status': ExportTask.PROCESSING
-#        }, status.HTTP_201_CREATED)
+    def get_queryset(self):
+        return self.model.objects.filter(
+            data__source__icontains=self.kwargs['parent_lookup_asset']
+        )
 
