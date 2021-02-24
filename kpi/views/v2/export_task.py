@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.filters import ExportObjectOrderingFilter
+from kpi.filters import ExportTaskOrderingFilter, SearchFilter
 from kpi.models import ExportTask
 from kpi.permissions import ExportTaskPermission
 from kpi.serializers.v2.export_task import ExportTaskSerializer
@@ -30,33 +30,21 @@ class ExportTaskViewSet(
     > Required permissions: `view_submissions` (View submissions)
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/exports/
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/exports/
     </pre>
 
     > Examples
     >
-    >       curl -X GET https://[kpi]/api/v2/exports/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/exports/
 
-    > List can be filtered with the [query parser](https://github.com/kobotoolbox/kpi#searching)
-    > Query searches within `data.source` and `uid` by default if no field is provided in `q`.
+    > The list can be filtered with the [query parser](https://github.com/kobotoolbox/kpi#searching)
+    > Query searches within `uid` by default if no field is provided in `q`.
 
-    >       curl -X GET https://[kpi]/api/v2/exports/?q=zVEkrWg5Gd
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/exports/?q=zVEkrWg5Gd
 
     Otherwise, the search can be more specific:
 
-    - Exports from a source
-    - Exports matching `uid`s
-
     > Examples:
-    >
-    > **Exports from source asset uid is `aSAvYreNzVEkrWg5Gdcvg`**
-    >
-    >      curl -X GET https://[kpi]/api/v2/exports/?q=data__source:https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg
-    >
-    > **Exports from source asset uid which contains `aSAvYreNzVEkrWg5Gdcvg`**
-    >
-    >      curl -X GET https://[kpi]/api/v2/exports/?q=data__source__icontains:aSAvYreNzVEkrWg5Gdcvg
-    >
     > **Exports matching `uid`s**
     >
     >      curl -X GET https://[kpi]/api/v2/exports/?q=uid__in:ehZUwRctkhp9QfJgvEWGg OR uid__in:ehZUwRctkhp9QfJgvDnjud
@@ -70,32 +58,28 @@ class ExportTaskViewSet(
     ### Creates an export task
 
     <pre class="prettyprint">
-    <b>POST</b> /api/v2/exports/
+    <b>POST</b> /api/v2/assets/<code>{asset_uid}</code>/exports/
     </pre>
 
     > Example
     >
-    >       curl -X POST https://[kpi]/api/v2/exports/
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/exports/
 
     > **Payload**
     >
     >        {
-    >           "data": {
-    >               "source": "https://[kpi]/api/v2/assets/aeztFxgduFxPTefFfYhfN7/",
-    >               "fields_from_all_versions": "true",
-    >               "group_sep": "/",
-    >               "hierarchy_in_labels": "true",
-    >               "lang": "English (en)",
-    >               "multiple_select": "both",
-    >               "type": "geojson",
-    >               "fields": ["field_1", "field_2"],
-    >               "flatten": "true"
-    >           }
+    >           "fields_from_all_versions": "true",
+    >           "group_sep": "/",
+    >           "hierarchy_in_labels": "true",
+    >           "lang": "English (en)",
+    >           "multiple_select": "both",
+    >           "type": "geojson",
+    >           "fields": ["field_1", "field_2"],
+    >           "flatten": "true"
     >        }
 
     where:
 
-    * "source" (required) is the URL of the source asset that contains the intended submissions for export
     * "fields_from_all_versions" (required) is a boolean to specify whether fields from all form versions will be included in the export.
     * "group_sep" (required) is a value used to separate the names in a hierarchy of groups. Valid inputs include:
         * Non-empty value
@@ -119,23 +103,23 @@ class ExportTaskViewSet(
     ### Retrieves current export task
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/exports/<code>{uid}</code>/
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/exports/<code>{uid}</code>/
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi]/api/v2/exports/ehZUwRctkop9QfJgvDmkdh/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/exports/ehZUwRctkop9QfJgvDmkdh/
 
 
     ### Deletes current export task
 
     <pre class="prettyprint">
-    <b>DELETE</b> /api/v2/exports/<code>{uid}</code>/
+    <b>DELETE</b> /api/v2/assets/<code>{asset_uid}</code>/exports/<code>{uid}</code>/
     </pre>
 
     > Example
     >
-    >       curl -X DELETE https://[kpi]/api/v2/exports/ehZUwRctkop9QfJgvDmkdh/
+    >       curl -X DELETE https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/exports/ehZUwRctkop9QfJgvDmkdh/
 
 
     ### CURRENT ENDPOINT
@@ -148,8 +132,16 @@ class ExportTaskViewSet(
         renderers.BrowsableAPIRenderer,
         renderers.JSONRenderer,
     ]
-    filter_backends = [ExportObjectOrderingFilter,]
-    permission_classes = [ExportTaskPermission,]
+    filter_backends = [
+        ExportTaskOrderingFilter,
+        SearchFilter,
+    ]
+    permission_classes = [
+        ExportTaskPermission,
+    ]
+    search_default_field_lookups = [
+        'uid__icontains',
+    ]
 
     def get_queryset(self):
         return self.model.objects.filter(

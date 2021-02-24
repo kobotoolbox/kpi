@@ -32,7 +32,7 @@ from kpi.constants import (
 from kpi.exceptions import SearchQueryTooShortException
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import parse, ParseError
-from .models import Asset, ObjectPermission, ExportTask
+from .models import Asset, ObjectPermission
 from .models.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
@@ -89,7 +89,7 @@ class AssetOrderingFilter(filters.OrderingFilter):
         return queryset
 
 
-class ExportObjectOrderingFilter(filters.OrderingFilter):
+class ExportTaskOrderingFilter(filters.OrderingFilter):
     def filter_queryset(self, request, queryset, view):
         ordering = self.get_ordering(request, queryset, view)
         if ordering:
