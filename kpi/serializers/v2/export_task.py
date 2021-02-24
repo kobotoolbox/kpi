@@ -122,6 +122,17 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
         return data
 
+    def validate_fields(self, data: dict) -> list:
+        fields = data[EXPORT_SETTING_FIELDS]
+        if not isinstance(fields, list):
+            raise serializers.ValidationError(_('`fields` must be an array'))
+
+        if not all((isinstance(field, str) for field in fields)):
+            raise serializers.ValidationError(
+                _('All values in the `fields` array must be strings')
+            )
+        return fields
+
     def validate_fields_from_all_versions(self, data: dict) -> str:
         fields_from_all_versions = data[EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS]
         if fields_from_all_versions not in VALID_BOOLEANS:
