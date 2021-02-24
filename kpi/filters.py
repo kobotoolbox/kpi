@@ -5,16 +5,7 @@ from distutils.util import strtobool
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
-from django.db.models import (
-    Case,
-    Count,
-    F,
-    IntegerField,
-    Q,
-    Value,
-    When,
-    TextField,
-)
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.db.models.functions import Cast
 from django.db.models.query import QuerySet
 from rest_framework import filters
