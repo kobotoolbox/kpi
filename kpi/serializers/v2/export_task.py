@@ -25,9 +25,8 @@ from kpi.constants import (
 from kpi.fields import (
     ReadOnlyJSONField,
     WritableJSONField,
-    RelativePrefixHyperlinkedRelatedField,
 )
-from kpi.models import ExportTask, Asset
+from kpi.models import ExportTask
 from kpi.utils.export_task import format_exception_values
 from kpi.tasks import export_in_background
 
