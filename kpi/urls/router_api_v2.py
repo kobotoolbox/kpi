@@ -54,6 +54,12 @@ asset_routes.register(r'export-settings',
                       parents_query_lookups=['asset'],
                       )
 
+asset_routes.register(r'exports',
+                      ExportTaskViewSet,
+                      basename='asset-export',
+                      parents_query_lookups=['asset'],
+                      )
+
 asset_routes.register(r'hook-signal',
                       HookSignalViewSet,
                       basename='hook-signal',
@@ -77,7 +83,6 @@ router_api_v2.register(
     r'asset_subscriptions', UserAssetSubscriptionViewSet)
 router_api_v2.register(r'users', UserViewSet)
 router_api_v2.register(r'permissions', PermissionViewSet)
-router_api_v2.register(r'exports', ExportTaskViewSet)
 
 # TODO migrate ViewSet below
 # router_api_v2.register(r'reports', ReportsViewSet, basename='reports')
