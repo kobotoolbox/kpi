@@ -15,6 +15,8 @@ import {
 
 /*
  * Modal for connecting project data
+ *
+ * @prop {object} asset
  */
 class ConnectProjects extends React.Component {
   constructor(props) {

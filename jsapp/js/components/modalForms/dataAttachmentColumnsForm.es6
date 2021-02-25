@@ -24,7 +24,7 @@ import {actions} from 'js/actions';
  * @prop {object} asset - current asset
  * @prop {parentAttributes} parent
  * @prop {string} fileName
- * @prop {fields[]} fields - child selected fields
+ * @prop {string[]} fields - child selected fields
  * @prop {string} attachmentUrl - if exists, we are patching an existing attachment
                                   otherwise, this is a new import
  */
@@ -72,6 +72,18 @@ class dataAttachmentColumnsForm extends React.Component {
   onAttachToParentCompleted() {
     this.props.onModalClose();
   }
+  onBulkSelect() {
+    let newList = this.state.columnsToDisplay.map((item) => {
+      return {label: item.label, checked: true}
+    });
+    this.setState({columnsToDisplay: newList})
+  }
+  onBulkDeselect() {
+    let newList = this.state.columnsToDisplay.map((item) => {
+      return {label: item.label, checked: false}
+    });
+    this.setState({columnsToDisplay: newList})
+  }
   onLoadAssetContentCompleted(response) {
     if (
       response.data_sharing.fields !== undefined &&
@@ -93,6 +105,7 @@ class dataAttachmentColumnsForm extends React.Component {
   }
   onPatchParentCompleted(response) {
     this.setState({
+      isLoading: false,
       columnsToDisplay: this.generateColumnFilters(
         response.fields
       ),
@@ -106,13 +119,16 @@ class dataAttachmentColumnsForm extends React.Component {
 
   onSubmit(evt) {
     evt.preventDefault();
+
     let fields = [];
     var data = '';
+
     this.state.columnsToDisplay.map((item) => {
       if (item.checked) {
         fields.push(item.label);
       }
     });
+
     if (this.props.attachmentUrl) {
       data = JSON.stringify({
         fields: fields,
@@ -131,8 +147,8 @@ class dataAttachmentColumnsForm extends React.Component {
   }
 
   generateColumnFilters(fields) {
-    // Parent has exposed more questions than child has imported
-    if (this.props.fields.length == 0) {
+    // Empty child fields implies import all questions
+    if (this.props.fields.length == 0 || this.props.fields.length == fields.length) {
       return fields.map((item) => {
         return {label: item, checked: true};
       });
@@ -155,13 +171,13 @@ class dataAttachmentColumnsForm extends React.Component {
               {t('Select below the questions you want to import')}
             </span>
             <div className='bulk-options'>
-              <a onClick={this.bulkSelect}>
+              <a onClick={this.onBulkSelect}>
                 {t('select all')}
               </a>
               <span>
                 {t('|')}
               </span>
-              <a onClick={this.bulkDeselect}>
+              <a onClick={this.onBulkDeselect}>
                 {t('deselect all')}
               </a>
             </div>
@@ -176,7 +192,7 @@ class dataAttachmentColumnsForm extends React.Component {
             m='blue'
             type='submit'
             onClick={this.onSubmit}
-            disabled={this.state.isPending}
+            disabled={this.state.isLoading}
           >
             {t('Accept')}
           </bem.KoboButton>
