@@ -421,7 +421,7 @@ class XlsExportable:
                  'calculation': '\'{}\''.format(self.version_id),
                  'type': 'calculate'}
             )
-            append_settings.update({'version': self.version_id})
+            append_settings.update({'version': self.version_number_and_date})
             kwargs['append']['settings'] = append_settings
         try:
             def _add_contents_to_sheet(sheet, contents):
@@ -708,6 +708,21 @@ class Asset(ObjectPermissionMixin,
     def deployed_versions(self):
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
+
+    @property
+    def version_number_and_date(self):
+        # Returns the count of all deployed version + a version
+        # if the most recent version is undeployed and the date
+        # the asset was last modified
+        asset_versions = AssetVersion.objects.filter(
+            asset=self.pk).order_by('-date_modified')
+        latest_version = asset_versions.first()
+        count = self.deployed_versions.count()
+
+        if latest_version.deployed is False:
+            count = count + 1
+
+        return f'{count} {self.date_modified:(%m-%d-%Y %H:%M:%S)}'
 
     @property
     def discoverable_when_public(self):
