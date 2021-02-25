@@ -910,6 +910,9 @@ $z-modal-x: 10;
       margin-bottom: 10px;
       border-bottom: 1px solid;
       border-color: lighten($kobo-midgray, 15%);
+      i.k-icon-check {
+        color: $kobo-blue;
+      }
 
       .imported-names {
         i.k-icon-check {
@@ -975,6 +978,9 @@ $z-modal-x: 10;
 
   .connect-projects-header {
     display: flex;
+    i {
+      margin-top: 10px;
+    }
   }
 
   .form-modal__item--import-data {
