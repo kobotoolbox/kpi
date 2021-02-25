@@ -1,9 +1,5 @@
 # coding: utf-8
-"""
-Created on Jun 15, 2015
 
-@author: esmail
-"""
 import json
 import unittest
 
@@ -42,7 +38,7 @@ class TestCloningOrm(AssetsTestCase):
     def test_clone_asset_without_version(self):
         """
         This test is pretty basic. It just validates that a version is created
-        when asset is cloned if it does have any
+        when asset is cloned if it does not have any
         """
         self.asset.asset_versions.all().delete()
         asset_versions_count = self.asset.asset_versions.count()
