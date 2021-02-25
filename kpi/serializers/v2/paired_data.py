@@ -29,44 +29,36 @@ class PairedDataSerializer(serializers.Serializer):
     )
     fields = serializers.ListField(child=serializers.CharField(), required=False)
     filename = serializers.CharField()
+    parent_name = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         return self.__save(validated_data)
 
-    def __get_download_url(self, instance: 'kpi.models.PairedData') -> str:
-        request = self.context['request']
-        asset_uid = instance.asset.uid
-        paired_data_uid = instance.paired_data_uid
-        return reverse(
-            'paired-data-detail',
-            args=[asset_uid, paired_data_uid],
-            request=request,
-        )
-
-    def __get_parent_asset_url(self, instance: 'kpi.models.PairedData') -> str:
-        request = self.context['request']
-        return reverse('asset-detail',
-                       args=[instance.parent_uid],
-                       request=request)
-
-    def __save(self, validated_data):
-        asset = self.context['asset']
-        parent = validated_data.pop('parent', None)
-        if not self.instance:
-            self.instance = PairedData(
-                parent_uid=parent.uid,
-                asset=asset,
-                **validated_data
+    def get_parent_name(self, paired_data):
+        # To avoid multiple calls to DB, try to retrieve parent names from
+        # the context.
+        parent_name = None
+        try:
+            parent_name = self.context['parent_names'].get(
+                paired_data.parent_uid
             )
-        else:
-            self.instance.update(validated_data)
+        except KeyError:
+            # Fallback on DB query.
+            try:
+                parent_name = Asset.objects.values_list('name', flat=True).get(
+                    uid=paired_data.parent_uid
+                )
+            except Asset.DoesNotExist:
+                pass
+            else:
+                parent_name = parent.name
 
-        self.instance.save()
-        return self.instance
+        return parent_name
 
     def to_representation(self, instance):
         return {
             'parent': self.__get_parent_asset_url(instance),
+            'parent_name': self.get_parent_name(instance),
             'fields': instance.fields,
             'filename': instance.filename,
             'url': self.__get_download_url(instance),
@@ -85,6 +77,42 @@ class PairedDataSerializer(serializers.Serializer):
         self._validate_filename(attrs)
         self._validate_fields(attrs)
         return attrs
+
+    def validate_parent(self, parent):
+        asset = self.context['asset']
+
+        if self.instance and self.instance.parent_uid != parent.uid:
+            raise serializers.ValidationError(
+                _('Parent cannot be changed')
+            )
+
+        # Parent data sharing must be enabled before going further
+        if not parent.data_sharing.get('enabled'):
+            raise serializers.ValidationError(_(
+                'Data sharing for `{parent_uid}` is not enabled'
+            ).format(parent_uid=parent.uid))
+
+        # Validate whether owner of the asset is allowed to link their form
+        # with the parent. Validation is made with owner of the asset instead of
+        # `request.user`
+        required_perms = [
+            PERM_PARTIAL_SUBMISSIONS,
+            PERM_VIEW_SUBMISSIONS,
+        ]
+        if not parent.has_perms(asset.owner, required_perms):
+            raise serializers.ValidationError(_(
+                'Pairing data with `{parent_uid}` is not allowed'
+            ).format(parent_uid=parent.uid))
+
+        if not self.instance and parent.uid in asset.paired_data:
+            raise serializers.ValidationError(_(
+                'Parent `{parent}` is already paired'
+            ).format(parent=parent.name))
+
+        return parent
+
+    def update(self, instance, validated_data):
+        return self.__save(validated_data)
 
     def _validate_fields(self, attrs: dict):
 
@@ -177,38 +205,33 @@ class PairedDataSerializer(serializers.Serializer):
 
         attrs['filename'] = filename
 
-    def validate_parent(self, parent):
+    def __get_download_url(self, instance: 'kpi.models.PairedData') -> str:
+        request = self.context['request']
+        asset_uid = instance.asset.uid
+        paired_data_uid = instance.paired_data_uid
+        return reverse(
+            'paired-data-detail',
+            args=[asset_uid, paired_data_uid],
+            request=request,
+        )
+
+    def __get_parent_asset_url(self, instance: 'kpi.models.PairedData') -> str:
+        request = self.context['request']
+        return reverse('asset-detail',
+                       args=[instance.parent_uid],
+                       request=request)
+
+    def __save(self, validated_data):
         asset = self.context['asset']
-
-        if self.instance and self.instance.parent_uid != parent.uid:
-            raise serializers.ValidationError(
-                _('Parent cannot be changed')
+        parent = validated_data.pop('parent', None)
+        if not self.instance:
+            self.instance = PairedData(
+                parent_uid=parent.uid,
+                asset=asset,
+                **validated_data
             )
+        else:
+            self.instance.update(validated_data)
 
-        # Parent data sharing must be enabled before going further
-        if not parent.data_sharing.get('enabled'):
-            raise serializers.ValidationError(_(
-                'Data sharing for `{parent_uid}` is not enabled'
-            ).format(parent_uid=parent.uid))
-
-        # Validate whether owner of the asset is allowed to link their form
-        # with the parent. Validation is made with owner of the asset instead of
-        # `request.user`
-        required_perms = [
-            PERM_PARTIAL_SUBMISSIONS,
-            PERM_VIEW_SUBMISSIONS,
-        ]
-        if not parent.has_perms(asset.owner, required_perms):
-            raise serializers.ValidationError(_(
-                'Pairing data with `{parent_uid}` is not allowed'
-            ).format(parent_uid=parent.uid))
-
-        if not self.instance and parent.uid in asset.paired_data:
-            raise serializers.ValidationError(_(
-                'Parent `{parent}` is already paired'
-            ).format(parent=parent.name))
-
-        return parent
-
-    def update(self, instance, validated_data):
-        return self.__save(validated_data)
+        self.instance.save()
+        return self.instance

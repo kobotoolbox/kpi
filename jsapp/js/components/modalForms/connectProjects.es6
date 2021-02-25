@@ -154,7 +154,7 @@ class ConnectProjects extends React.Component {
         this.props.asset,
         this.state.newParent,
         this.state.newFilename,
-        this.state.newParent?.data_sharing.fields,
+        [],
       );
     } else {
       if (!this.state.newParent?.url) {
@@ -192,7 +192,7 @@ class ConnectProjects extends React.Component {
       let dialog = alertify.dialog('confirm');
       let opts = {
         title: `${t('Privacy Notice')}`,
-        message: t('This will attach the full dataset from \"##ASSET_NAME##\" as a background XML file to this form. While not easily visbable, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if \"##ASSET_NAME##\" includes sensative data.').replaceAll('##ASSET_NAME##', this.props.asset.name),
+        message: t('This will attach the full dataset from \"##ASSET_NAME##\" as a background XML file to this form. While not easily visible, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if \"##ASSET_NAME##\" includes sensitive data.').replaceAll('##ASSET_NAME##', this.props.asset.name),
         labels: {ok: t('Acknowledge and continue'), cancel: t('Cancel')},
         onok: (evt, value) => {
           actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
@@ -231,7 +231,7 @@ class ConnectProjects extends React.Component {
   generateAutoname(newParent) {
     if (newParent) {
       let autoname = newParent.name;
-      autoname = autoname.toLowerCase().substring(0, 30).replace(/\ /g, '_');
+      autoname = autoname.toLowerCase().substring(0, 30).replace(/(\ |\.)/g, '_');
       this.setState({newFilename: autoname});
     }
   }
@@ -282,7 +282,7 @@ class ConnectProjects extends React.Component {
   generateFilteredAssetList() {
     let attachedParentUids = [];
     this.state.attachedParents.forEach((item) => {
-      attachedParentUids.push(item.parent.uid)
+      attachedParentUids.push(item.parentUid)
     });
 
     // Filter displayed asset list based on unattached projects
@@ -457,7 +457,7 @@ class ConnectProjects extends React.Component {
                         {item.filename}
                       </span>
                       <span className='imported-parent'>
-                        {this.generateTruncatedDisplayName(item.parent.name)}
+                        {this.generateTruncatedDisplayName(item.parentName)}
                       </span>
                     </div>
                     <div className='imported-options'>
@@ -469,9 +469,13 @@ class ConnectProjects extends React.Component {
                         className="k-icon-settings"
                         onClick={() => this.showColumnFilterModal(
                           this.props.asset,
-                          item.parent,
+                          {
+                            uid: item.parentUid,
+                            name: item.parentName,
+                            url: item.parentUrl,
+                          },
                           item.filename,
-                          item.fields,
+                          item.childFields,
                           item.attachmentUrl,
                         )}
                       />

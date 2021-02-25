@@ -6,6 +6,15 @@ import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 
 /**
+ * Attributes from parent needed to generate `columnsToDisplay`
+ *
+ * @namespace parentAttributes
+ * @prop {string} uid
+ * @prop {string} name
+ * @prop {string} url
+ */
+
+/**
  * The content of the DATA_ATTACHMENT_COLUMNS modal
  *
  * @prop {function} onSetModalTitle - for changing the modal title by this component
@@ -13,7 +22,7 @@ import {actions} from 'js/actions';
  * @prop {function} triggerLoading - causes parent modal to show loading
  * @prop {function} generateAvailableColumns - generates columns for multicheckbox
  * @prop {object} asset - current asset
- * @prop {object} parent - selected parent's asset
+ * @prop {parentAttributes} parent
  * @prop {string} fileName
  * @prop {fields[]} fields - child selected fields
  * @prop {string} attachmentUrl - if exists, we are patching an existing attachment
