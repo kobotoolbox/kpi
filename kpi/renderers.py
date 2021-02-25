@@ -75,8 +75,24 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
             lang=formpack.constants.UNSPECIFIED_TRANSLATION,
             hierarchy_in_labels=True,
         )
+        geo_question_name = view.request.query_params.get('geo_question_name')
+        if not geo_question_name:
+            # No geo question specified; use the first one in the latest
+            # version of the form
+            latest_version = next(reversed(list(pack.versions.values())))
+            first_section = next(iter(latest_version.sections.values()))
+            geo_questions = (field for field in first_section.fields.values()
+                             if field.data_type in GEO_QUESTION_TYPES)
+            try:
+                geo_question_name = next(geo_questions).name
+            except StopIteration:
+                # formpack will gracefully return an empty `features` array
+                geo_question_name = None
         return ''.join(
-            export.to_geojson(submission_stream)
+            export.to_geojson(
+                submission_stream,
+                geo_question_name=geo_question_name,
+            )
         )
 
 
