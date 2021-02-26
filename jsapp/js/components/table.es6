@@ -270,7 +270,11 @@ export class DataTable extends React.Component {
     }
 
     var columns = [];
-    if (this.userCan('validate_submissions', this.props.asset) || this.userCan('delete_submissions', this.props.asset)) {
+    if (
+      this.userCan('validate_submissions', this.props.asset) ||
+      this.userCan('delete_submissions', this.props.asset) ||
+      this.userCan('change_submissions', this.props.asset)
+    ) {
       columns.push({
         Header: () => {
           return (
