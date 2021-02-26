@@ -28,8 +28,8 @@ from kpi.fields import (
     WritableJSONField,
 )
 from kpi.models import ExportTask, Asset
-from kpi.utils.export_task import format_exception_values
 from kpi.tasks import export_in_background
+from kpi.utils.export_task import format_exception_values
 
 
 class ExportTaskSerializer(serializers.ModelSerializer):
@@ -47,7 +47,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             'date_created',
             'last_submission_time',
             'result',
-            'data'
+            'data',
         )
         read_only_fields = (
             'status',
@@ -58,20 +58,13 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data: dict) -> ExportTask:
         # Create a new export task
-        export_task = ExportTask.objects.create(user=self._get_request.user,
-                                                data=validated_data)
+        export_task = ExportTask.objects.create(
+            user=self._get_request.user, data=validated_data
+        )
         # Have Celery run the export in the background
         export_in_background.delay(export_task_uid=export_task.uid)
 
         return export_task
-
-    @property
-    def _get_request(self) -> Request:
-        return self.context['request']
-
-    @property
-    def _get_asset(self) -> Asset:
-        return self.context['view'].asset
 
     def validate(self, attrs: dict) -> dict:
         data_ = self.validate_data(self._get_request.data)
@@ -103,21 +96,29 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         for required in REQUIRED_EXPORT_SETTINGS:
             if required not in data:
                 raise serializers.ValidationError(
-                    _(
-                        '`data` must contain all the following required keys: {}'
-                    ).format(
-                        format_exception_values(REQUIRED_EXPORT_SETTINGS, 'and')
-                    )
+                    {
+                        'data': _(
+                            'Must contain all the following required keys: {}'
+                        ).format(
+                            format_exception_values(
+                                REQUIRED_EXPORT_SETTINGS, 'and'
+                            )
+                        )
+                    }
                 )
 
         for key in data:
             if key not in valid_export_settings:
                 raise serializers.ValidationError(
-                    _(
-                        '`data` can contain only the following valid keys: {}'
-                    ).format(
-                        format_exception_values(valid_export_settings, 'and')
-                    )
+                    {
+                        'data': _(
+                            'Can contain only the following valid keys: {}'
+                        ).format(
+                            format_exception_values(
+                                valid_export_settings, 'and'
+                            )
+                        )
+                    }
                 )
 
         return data
@@ -125,11 +126,17 @@ class ExportTaskSerializer(serializers.ModelSerializer):
     def validate_fields(self, data: dict) -> list:
         fields = data[EXPORT_SETTING_FIELDS]
         if not isinstance(fields, list):
-            raise serializers.ValidationError(_('`fields` must be an array'))
+            raise serializers.ValidationError(
+                {EXPORT_SETTING_FIELDS: _('Must be an array')}
+            )
 
         if not all((isinstance(field, str) for field in fields)):
             raise serializers.ValidationError(
-                _('All values in the `fields` array must be strings')
+                {
+                    EXPORT_SETTING_FIELDS: _(
+                        'All values in the array must be strings'
+                    )
+                }
             )
         return fields
 
@@ -137,9 +144,11 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         fields_from_all_versions = data[EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS]
         if fields_from_all_versions not in VALID_BOOLEANS:
             raise serializers.ValidationError(
-                _("`fields_from_all_versions` must be either {}").format(
-                    format_exception_values(VALID_BOOLEANS)
-                )
+                {
+                    EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS: _(
+                        'Must be either {}'
+                    ).format(format_exception_values(VALID_BOOLEANS))
+                }
             )
         return fields_from_all_versions
 
@@ -147,9 +156,11 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         flatten = data[EXPORT_SETTING_FLATTEN]
         if flatten not in VALID_BOOLEANS:
             raise serializers.ValidationError(
-                _("`flatten` must be either {}").format(
-                    format_exception_values(VALID_BOOLEANS)
-                )
+                {
+                    EXPORT_SETTING_FLATTEN: _('Must be either {}').format(
+                        format_exception_values(VALID_BOOLEANS)
+                    )
+                }
             )
         return flatten
 
@@ -160,7 +171,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             and not group_sep
         ):
             raise serializers.ValidationError(
-                _('`group_sep` must be a non-empty value')
+                {EXPORT_SETTING_GROUP_SEP: _('Must be a non-empty value')}
             )
         return group_sep
 
@@ -168,9 +179,11 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         hierarchy_in_labels = data[EXPORT_SETTING_HIERARCHY_IN_LABELS]
         if hierarchy_in_labels not in VALID_BOOLEANS:
             raise serializers.ValidationError(
-                _("`hierarchy_in_labels` must be either {}").format(
-                    format_exception_values(VALID_BOOLEANS)
-                )
+                {
+                    EXPORT_SETTING_HIERARCHY_IN_LABELS: _(
+                        'Must be either {}'
+                    ).format(format_exception_values(VALID_BOOLEANS))
+                }
             )
         return hierarchy_in_labels
 
@@ -181,9 +194,11 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         lang = data[EXPORT_SETTING_LANG]
         if data[EXPORT_SETTING_LANG] not in all_valid_languages:
             raise serializers.ValidationError(
-                _("`lang` for this asset must be either {}").format(
-                    format_exception_values(all_valid_languages)
-                )
+                {
+                    EXPORT_SETTING_LANG: _(
+                        'For this asset must be either {}'
+                    ).format(format_exception_values(all_valid_languages))
+                }
             )
         return lang
 
@@ -191,9 +206,11 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         multiple_select = data[EXPORT_SETTING_MULTIPLE_SELECT]
         if multiple_select not in VALID_MULTIPLE_SELECTS:
             raise serializers.ValidationError(
-                _("`multiple_select` must be either {}").format(
-                    format_exception_values(VALID_MULTIPLE_SELECTS)
-                )
+                {
+                    EXPORT_SETTING_MULTIPLE_SELECT: _(
+                        'Must be either {}'
+                    ).format(format_exception_values(VALID_MULTIPLE_SELECTS))
+                }
             )
         return multiple_select
 
@@ -201,7 +218,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         # Complain if it's not deployed
         if not self._get_asset.has_deployment:
             raise serializers.ValidationError(
-                _('The specified asset must be deployed.')
+                {EXPORT_SETTING_SOURCE: _('The asset must be deployed.')}
             )
         return reverse(
             'asset-detail',
@@ -213,9 +230,11 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         export_type = data[EXPORT_SETTING_TYPE]
         if export_type not in VALID_EXPORT_TYPES:
             raise serializers.ValidationError(
-                _("`type` must be either {}").format(
-                    format_exception_values(VALID_EXPORT_TYPES)
-                )
+                {
+                    EXPORT_SETTING_TYPE: _('Must be either {}').format(
+                        format_exception_values(VALID_EXPORT_TYPES)
+                    )
+                }
             )
         return export_type
 
@@ -225,4 +244,12 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             args=(self._get_asset.uid, obj.uid),
             request=self._get_request,
         )
+
+    @property
+    def _get_asset(self) -> Asset:
+        return self.context['view'].asset
+
+    @property
+    def _get_request(self) -> Request:
+        return self.context['request']
 
