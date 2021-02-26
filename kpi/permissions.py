@@ -279,6 +279,8 @@ class ReportPermission(IsOwnerOrReadOnly):
         # Checks if the user has the require permissions
         # To access the submission data in reports
         user = request.user
+        if user.is_superuser:
+            return True
         if user.is_anonymous:
             user = get_anonymous_user()
         permissions = list(obj.get_perms(user))

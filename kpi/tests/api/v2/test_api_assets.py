@@ -445,6 +445,7 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             self._get_endpoint('asset-reports'), kwargs={'uid': self.asset_uid}
         )
         anotheruser = User.objects.get(username='anotheruser')
+        partialaccess = User.objects.create(username='partialaccess', password='partialaccess')
         self.asset.content = {"survey": [
             {"type": "select_one", "label": "q1", "select_from_list_name": "iu0sl99",},
         ]
@@ -472,7 +473,7 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': anotheruser.username}]
         }
         self.asset.assign_perm(
-            anotheruser, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms
+            partialaccess, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms
         )
         # Verify endpoint works with the asset owner
         response = self.client.get(report_url)
@@ -483,16 +484,20 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.client.logout()
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        # Verify a user with partial view permissions can access the data
+        # Verify a user with no permissions for the asset or submission
+        # cannot access the report
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(report_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Verify a user with no permissions for the submissions or asset cannot
-        # access the data
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        # Verify an admin user has access the data
         self.client.logout()
         self.client.login(username='admin', password='pass')
         response = self.client.get(report_url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Verify a user with partial view permissions can access the data
+        self.client.login(username='partialaccess', password='partialaccess')
+        response = self.client.get(report_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_map_styles_field(self):
         self.check_asset_writable_json_field('map_styles')
