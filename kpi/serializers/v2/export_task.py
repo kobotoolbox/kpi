@@ -3,8 +3,7 @@ from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.request import Request
 from rest_framework.reverse import reverse
-
-from kpi.constants import (
+from formpack.constants import (
     EXPORT_SETTING_FIELDS,
     EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS,
     EXPORT_SETTING_FLATTEN,
@@ -23,6 +22,7 @@ from kpi.constants import (
     VALID_EXPORT_TYPES,
     VALID_MULTIPLE_SELECTS,
 )
+
 from kpi.fields import (
     ReadOnlyJSONField,
     WritableJSONField,
