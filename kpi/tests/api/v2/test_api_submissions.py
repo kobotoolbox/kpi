@@ -684,56 +684,32 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
             {'format': 'geojson'}
         )
         expected_output = {
-            "type": "FeatureCollection",
-            "name": "Two points and one text",
-            "features": [
+            'type': 'FeatureCollection',
+            'name': 'Two points and one text',
+            'features': [
                 {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [10.12, 10.11, 10.14],
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [10.12, 10.11, 10.13],
                     },
-                    "properties": {"text": "Tired"},
+                    'properties': {'text': 'Tired'},
                 },
                 {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [10.22, 10.21, 10.24],
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [20.12, 20.11, 20.13],
                     },
-                    "properties": {"text": "Tired"},
+                    'properties': {'text': 'Relieved'},
                 },
                 {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [20.12, 20.11, 20.14],
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [30.12, 30.11, 30.13],
                     },
-                    "properties": {"text": "Relieved"},
-                },
-                {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [20.22, 20.21, 20.24],
-                    },
-                    "properties": {"text": "Relieved"},
-                },
-                {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [30.12, 30.11, 30.14],
-                    },
-                    "properties": {"text": "Excited"},
-                },
-                {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [30.22, 30.21, 30.24],
-                    },
-                    "properties": {"text": "Excited"},
+                    'properties': {'text': 'Excited'},
                 },
             ],
         }
