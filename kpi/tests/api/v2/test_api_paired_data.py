@@ -12,6 +12,7 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import DeploymentNotFound
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -55,8 +56,6 @@ class BasePairedDataTestCase(BaseAssetTestCase):
                 ],
             },
         )
-        self.parent_asset.deploy(backend='mock', active=True)
-        self.parent_asset.save()
         self.parent_asset_detail_url = reverse(
             self._get_endpoint('asset-detail'), args=[self.parent_asset.uid]
         )
@@ -263,7 +262,6 @@ class PairedDataListApiTests(BasePairedDataTestCase):
     def test_create_with_already_used_filename(self):
         asset = self.parent_asset.clone()
         asset.owner = self.someuser
-        asset.deploy(backend='mock', active=True)
         asset.save()
         asset_detail_url = reverse(
             self._get_endpoint('asset-detail'), args=[asset.uid]
@@ -282,9 +280,8 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('filename' in response.data)
         self.assertTrue(isinstance(response.data['filename'][0], ErrorDetail))
-        self.assertTrue(
-            'filename must be unique' in str(response.data['filename'][0])
-        )
+        self.assertEqual('`paired_data` is already used',
+                         str(response.data['filename'][0]))
 
     def test_create_paired_data_anonymous(self):
         self.toggle_parent_sharing(enabled=True)
@@ -358,7 +355,6 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         super().setUp()
         self.child_asset.deploy(backend='mock', active=True)
         self.child_asset.save()
-
         # someuser enables data sharing on their form
         self.toggle_parent_sharing(enabled=True)
         self.parent_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
@@ -368,10 +364,18 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         self.paired_data_detail_url = paired_data_response.data['url']
         self.external_xml_url = f'{self.paired_data_detail_url}external.xml'
 
+    def test_get_external_with_not_deployed_parent(self):
+        with self.assertRaises(DeploymentNotFound):
+            response = self.client.get(self.external_xml_url)
+            self.assertEqual(response.status_code,
+                             status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def test_get_external_with_auth_on(self):
+        self.deploy_parent()
         # When owner's child asset requires authentication,
         # collectors need to have 'add_submission' permission to view the paired
         # data.
+        self.client.logout()
         self.anotheruser.extra_details.data['require_auth'] = True
         self.anotheruser.extra_details.save()
         self.login_as_other_user('quidam', 'quidam')
@@ -383,9 +387,16 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_external_with_no_auth(self):
+        self.deploy_parent()
         # When owner's child asset does not require any authentications,
         # everybody can see their data
-
         self.client.logout()
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def deploy_parent(self):
+        # Refresh parent asset from DB, it has been altered by
+        # `self.toggle_parent_sharing()`
+        self.parent_asset.refresh_from_db()
+        self.parent_asset.deploy(backend='mock', active=True)
+        self.parent_asset.save()
