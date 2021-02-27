@@ -79,15 +79,6 @@ class AssetOrderingFilter(filters.OrderingFilter):
         return queryset
 
 
-class ExportTaskOrderingFilter(filters.OrderingFilter):
-    def filter_queryset(self, request, queryset, view):
-        ordering = self.get_ordering(request, queryset, view)
-        if ordering:
-            return queryset.order_by(*ordering)
-
-        return queryset.order_by('-date_created')
-
-
 class KpiObjectPermissionsFilter:
 
     def filter_queryset(self, request, queryset, view):

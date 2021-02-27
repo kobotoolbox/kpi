@@ -1,6 +1,7 @@
 # coding: utf-8
 from rest_framework import (
     exceptions,
+    filters,
     renderers,
     serializers,
     status,
@@ -10,13 +11,14 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.filters import ExportTaskOrderingFilter, SearchFilter
+from kpi.filters import SearchFilter
 from kpi.models import ExportTask
 from kpi.permissions import ExportTaskPermission
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.tasks import export_in_background
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.views.no_update_model import NoUpdateModelViewSet
+
 
 class ExportTaskViewSet(
     AssetNestedObjectViewsetMixin, NestedViewSetMixin, NoUpdateModelViewSet
@@ -133,7 +135,7 @@ class ExportTaskViewSet(
         renderers.JSONRenderer,
     ]
     filter_backends = [
-        ExportTaskOrderingFilter,
+        filters.OrderingFilter,
         SearchFilter,
     ]
     permission_classes = [

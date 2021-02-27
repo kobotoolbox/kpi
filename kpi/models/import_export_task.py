@@ -399,6 +399,9 @@ class ExportTask(ImportExportTask):
     # Above 244 seems to cause 'Download error' in Chrome 64/Linux
     MAXIMUM_FILENAME_LENGTH = 240
 
+    class Meta:
+        ordering = ['-date_created']
+
     @property
     def _fields_from_all_versions(self):
         return self.data.get(
