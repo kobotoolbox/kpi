@@ -445,7 +445,6 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             self._get_endpoint('asset-reports'), kwargs={'uid': self.asset_uid}
         )
         anotheruser = User.objects.get(username='anotheruser')
-        partialaccess = User.objects.create(username='partialaccess', password='partialaccess')
         self.asset.content = {"survey": [
             {"type": "select_one", "label": "q1", "select_from_list_name": "iu0sl99",},
         ]
@@ -459,7 +458,7 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             {
                 "__version__": self.asset.latest_deployed_version.uid,
                 "q1": "a1",
-                "_submitted_by": "",
+                "_submitted_by": "anotheruser",
             },
             {
                 "__version__": self.asset.latest_deployed_version.uid,
@@ -472,13 +471,10 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': anotheruser.username}]
         }
-        self.asset.assign_perm(
-            partialaccess, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms
-        )
         # Verify endpoint works with the asset owner
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Verify the endoiubt returns data
+        # Verify the endpoint returns data
         self.assertEqual(response.data['count'], 1)
         # Verify the endpoint request fails when the user is logged out
         self.client.logout()
@@ -489,13 +485,20 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.client.login(username='anotheruser', password='anotheruser')
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        # Verify an admin user has access the data
-        self.client.logout()
-        self.client.login(username='admin', password='pass')
+        # Test that a user with partial permissions is able to access data
+        self.asset.assign_perm(anotheruser, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms)
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Verify a user with partial view permissions can access the data
-        self.client.login(username='partialaccess', password='partialaccess')
+        # Test that a user with the permissions to view submissions can 
+        # access the data
+        self.asset.remove_perm(anotheruser, PERM_PARTIAL_SUBMISSIONS)
+        self.asset.assign_perm(anotheruser, PERM_VIEW_SUBMISSIONS)
+        response = self.client.get(report_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify an admin user has access to the data
+        self.client.logout()
+        self.client.login(username='admin', password='pass')
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

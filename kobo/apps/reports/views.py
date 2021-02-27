@@ -15,6 +15,13 @@ from .serializers import ReportsListSerializer, ReportsDetailSerializer
 class ReportsViewSet(mixins.ListModelMixin,
                      mixins.RetrieveModelMixin,
                      viewsets.GenericViewSet):
+    """
+        ## This document is for a deprecated version of kpi's Report Endpoint.
+
+        **Please upgrade to the newest API version `/api/v2/assets/{asset_uid}/reports**
+        **This endpoint may be removed in future a future release**
+    """
+
     lookup_field = 'uid'
     # Requesting user must have *any* of these permissions
     required_permissions = [
