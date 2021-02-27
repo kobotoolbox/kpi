@@ -176,7 +176,7 @@ class ConnectProjects extends React.Component {
   generateAutoname(newParent) {
     if (newParent) {
       let autoname = newParent.name;
-      autoname = autoname.toLowerCase().substring(0, 30).replace(/\ /g, '_');
+      autoname = autoname.toLowerCase().substring(0, 30).replace(/(\ |\.)/g, '_');
       this.setState({newFilename: autoname});
     }
   }
@@ -186,7 +186,7 @@ class ConnectProjects extends React.Component {
   generateFilteredAssetList() {
     let attachedParentUids = [];
     this.state.attachedParents.forEach((item) => {
-      attachedParentUids.push(item.parent.uid)
+      attachedParentUids.push(item.parentUid)
     });
 
     // Filter displayed asset list based on unattached projects
@@ -344,7 +344,7 @@ class ConnectProjects extends React.Component {
                           {item.filename}
                         </span>
                         <span className='imported-parent'>
-                          {this.generateTruncatedDisplayName(item.parent.name)}
+                          {this.generateTruncatedDisplayName(item.parentName)}
                         </span>
                       </div>
                       <i

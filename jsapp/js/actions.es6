@@ -224,21 +224,20 @@ actions.dataShare.getAttachedParents.listen((assetUid) => {
   dataInterface.getAttachedParents(assetUid)
     .done((response) => {
       if (response.results.length > 0) {
-        // For each parent, we get the entire survey so that the user can
-        // specify which questions they want to import
         let allParents = [];
         response.results.forEach((parent) => {
-          dataInterface.getAsset({url: parent.parent})
-            .done((attachedParent) => {
-              // Removes all past last `.` in a string (ex. file extentions)
-              let filename = parent.filename.replace(/\.[^/.]+$/, '');
-              allParents.push({
-                parent: attachedParent,
-                filename: filename,
-                attachmentUrl: parent.url,
-              });
-              actions.dataShare.getAttachedParents.completed(allParents);
-            });
+          // Remove file extension
+          let filename = parent.filename.replace(/\.[^/.]+$/, '');
+          // Get Uid from url
+          let parentUid = parent.parent.match(/.*\/([^/]+)\//)[1];
+          allParents.push({
+            parentName: parent.parent_name,
+            parentUrl: parent.parent,
+            parentUid: parentUid,
+            filename: filename,
+            attachmentUrl: parent.url,
+          });
+          actions.dataShare.getAttachedParents.completed(allParents);
         });
       } else {
         actions.dataShare.getAttachedParents.completed([]);
