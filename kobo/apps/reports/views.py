@@ -19,7 +19,7 @@ class ReportsViewSet(mixins.ListModelMixin,
         ## This document is for a deprecated version of kpi's Report Endpoint.
 
         **Please upgrade to the newest API version `/api/v2/assets/{asset_uid}/reports**
-        **This endpoint may be removed in future a future release**
+        **This endpoint may be removed in a future release**
     """
 
     lookup_field = 'uid'
