@@ -29,7 +29,29 @@ class Paginated(LimitOffsetPagination):
         return reverse_lazy('api-root', request=self.context.get('request'))
 
 
+import time
+roundms = lambda x: round(x*1000)
 class AssetPagination(Paginated):
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.count = self.get_count(queryset)
+        self.limit = self.get_limit(request)
+        if self.limit is None:
+            return None
+
+        self.offset = self.get_offset(request)
+        self.request = request
+        if self.count > self.limit and self.template is not None:
+            self.display_page_controls = True
+
+        if self.count == 0 or self.offset > self.count:
+            return []
+
+        t1 = time.time()
+        chonk = list(queryset[self.offset:self.offset + self.limit])
+        t2 = time.time()
+        print('BIG CHONK took', roundms(t2 - t1))
+        return chonk
 
     def get_paginated_response(self, data, metadata):
 
@@ -44,28 +66,10 @@ class AssetPagination(Paginated):
 
         return Response(response)
 
-    @staticmethod
-    @cache_for_request
-    def get_all_asset_ids_from_queryset(queryset):
-        # Micro optimization, coerce `asset_ids` as a list to force the query
-        # to be processed right now. Otherwise, because queryset is a lazy query,
-        # it creates (left) joins on tables when queryset is interpreted
-        # and it is way slower than running this extra query.
-        #
-        # `AssetPagination.get_count()` and `AssetViewSet.get_serializer_context()`
-        # use the same query base. So use it here to retrieve `asset_ids`
-        # and cache them.
-        asset_ids = list(queryset.values_list('id', flat=True).distinct().order_by())
-        return asset_ids
-
     def get_count(self, queryset):
-        """
-        Determine total number of assets.
-        Use `len()` instead of `queryset.count()`.
-
-        See cls.get_all_asset_ids_from_queryset())
-        """
-        return len(AssetPagination.get_all_asset_ids_from_queryset(queryset))
+        t0 = time.time(); c = super().get_count(queryset); t1 = time.time()
+        print('COUNT TOOK', roundms(t1 - t0))
+        return c
 
     def get_paginated_response_schema(self, schema):
         return {

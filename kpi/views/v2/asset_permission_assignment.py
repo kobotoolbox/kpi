@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
@@ -11,6 +12,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
     CLONE_ARG_NAME,
+    PERM_FROM_KC_ONLY,
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
@@ -23,7 +25,6 @@ from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
 )
-from kpi.utils.object_permission_helper import ObjectPermissionHelper
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -160,8 +161,6 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     serializer_class = AssetPermissionAssignmentSerializer
     permission_classes = (AssetNestedObjectPermission,)
     pagination_class = None
-    # filter_backends = Just kidding! Look at this instead:
-    #     kpi.utils.object_permission_helper.ObjectPermissionHelper.get_user_permission_assignments_queryset
 
     @action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer],
             url_path='bulk')
@@ -264,9 +263,36 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         return context_
 
     def get_queryset(self):
-        return ObjectPermissionHelper. \
-            get_user_permission_assignments_queryset(self.asset,
-                                                     self.request.user)
+        # TODO: Put this logic in one place (maybe
+        # KpiAssignedObjectPermissionsFilter) and allow filtering to be done
+        # either in Python (to take advantage of prefetch_related) or via ORM.
+        # (Could also put the logic into the query used by prefetch_related)
+
+        queryset = (
+            self.asset.permissions.filter(deny=False)
+            .select_related('asset', 'permission', 'user')
+            .order_by('user__username', 'permission__codename')
+            .exclude(permission__codename=PERM_FROM_KC_ONLY)
+            .all()
+        )
+
+        user = self.request.user
+        if user.is_anonymous:
+            queryset = queryset.filter(user_id=self.asset.owner_id)
+        elif not self.asset.has_perm(user, PERM_MANAGE_ASSET):
+            # If the requesting user is not allowed to modify others'
+            # permissions, display only their own assignments as well as
+            # assignments for anonymous and the owner
+            queryset = queryset.filter(
+                user_id__in=[
+                    user.pk,
+                    self.asset.owner_id,
+                    settings.ANONYMOUS_USER_ID,
+                ]
+            )
+
+        return queryset
+
 
     def perform_create(self, serializer):
         serializer.save(asset=self.asset)

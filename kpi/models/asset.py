@@ -856,7 +856,7 @@ class Asset(ObjectPermissionMixin,
             return None
 
         # ToDo: See if using a loop can reduce the number of SQL queries.
-        return self.userassetsubscription_set.filter(user_id=user_id).exists()
+        return self.subscriptions.filter(user_id=user_id).exists()
 
     @property
     def latest_deployed_version(self):
@@ -882,14 +882,14 @@ class Asset(ObjectPermissionMixin,
             # and we don't need them for list views.
             'content', 'report_styles'
         ).select_related(
-            # We only need `username`, but `select_related('owner__username')`
-            # actually pulled in the entire `auth_user` table under Django 1.8.
-            # In Django 1.9+, "select_related() prohibits non-relational fields
-            # for nested relations."
-            'owner',
+            # We only need `username`, but `owner__username` doesn't work:
+            # https://code.djangoproject.com/ticket/29072
+            'owner', 'parent',
         ).prefetch_related(
             'permissions__permission',
             'permissions__user',
+            'subscriptions',
+            'children',
             # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
             # related objects in a list (`prefetched_list`) that we can use in
             # other methods to avoid additional queries; see:
@@ -909,13 +909,6 @@ class Asset(ObjectPermissionMixin,
         if not self._has_translations(self.content, 2):
             raise ValueError('no translations available')
         self._rename_translation(self.content, _from, _to)
-
-    # todo: test and implement this method
-    # todo 2019-04-25: Still needed, `revert_to_version` does the same?
-    # def restore_version(self, uid):
-    #     _version_to_restore = self.asset_versions.get(uid=uid)
-    #     self.content = _version_to_restore.version_content
-    #     self.name = _version_to_restore.name
 
     def revert_to_version(self, version_uid):
         av = self.asset_versions.get(uid=version_uid)
@@ -1371,7 +1364,9 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
 class UserAssetSubscription(models.Model):
     """ Record a user's subscription to a publicly-discoverable collection,
     i.e. one where the anonymous user has been granted `discover_asset` """
-    asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
+    asset = models.ForeignKey(
+        Asset, related_name='subscriptions', on_delete=models.CASCADE
+    )
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix='b')
 

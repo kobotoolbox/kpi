@@ -476,7 +476,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         return metadata
 
-    def get_paginated_response(self, data, metadata):
+    def get_paginated_response(self, data, metadata=None):
         """
         Override parent `get_paginated_response` response to include `metadata`
         """
@@ -489,96 +489,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         else:
             return AssetSerializer
 
-    def get_serializer_context(self):
-        """
-        Extra context provided to the serializer class.
-        """
-
-        context_ = super().get_serializer_context()
-        if self.action == 'list':
-            # To avoid making a triple join-query for each asset in the list
-            # to retrieve related objects, we populated dicts key-ed by asset ids
-            # with the data needed by serializer.
-            # We create one (big) query per dict instead of a separate query
-            # for each asset in the list.
-            # The serializer will be able to pick what it needs from that dict
-            # and narrow down data according to users' permissions.
-
-            # self.__filtered_queryset is set in the `list()` method that
-            # DRF automatically calls and is overridden below. This is
-            # to prevent double calls to `filter_queryset()` as described in
-            # the issue here: https://github.com/kobotoolbox/kpi/issues/2576
-            queryset = self.__filtered_queryset
-
-            # 1) Retrieve all asset IDs of current list
-            asset_ids = AssetPagination.\
-                get_all_asset_ids_from_queryset(queryset)
-
-            # 2) Get object permissions per asset
-            object_permissions = ObjectPermission.objects.filter(
-                asset_id__in=asset_ids,
-                deny=False,
-            ).exclude(
-                permission__codename=PERM_FROM_KC_ONLY
-            ).select_related(
-                'user', 'permission'
-            ).order_by(
-                'user__username', 'permission__codename'
-            )
-
-            object_permissions_per_asset = defaultdict(list)
-
-            for op in object_permissions:
-                object_permissions_per_asset[op.asset_id].append(op)
-
-            context_['object_permissions_per_asset'] = object_permissions_per_asset
-
-            # 3) Get the collection subscriptions per asset
-            subscriptions_queryset = UserAssetSubscription.objects. \
-                values('asset_id', 'user_id').distinct().order_by('asset_id')
-
-            user_subscriptions_per_asset = defaultdict(list)
-            for record in subscriptions_queryset:
-                user_subscriptions_per_asset[record['asset_id']].append(
-                    record['user_id'])
-
-            context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
-
-            # 4) Get children count per asset
-            # Ordering must be cleared otherwise group_by is wrong
-            # (i.e. default ordered field `date_modified` must be removed)
-            records = Asset.objects.filter(parent_id__in=asset_ids). \
-                values('parent_id').annotate(children_count=Count('id')).order_by()
-
-            children_count_per_asset = {
-                r.get('parent_id'): r.get('children_count', 0)
-                for r in records if r.get('parent_id') is not None
-            }
-
-            context_['children_count_per_asset'] = children_count_per_asset
-
-        return context_
-
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def koboform(self, request, *args, **kwargs):
         asset = self.get_object()
         return Response({'asset': asset, }, template_name='koboform.html')
-
-    def list(self, request, *args, **kwargs):
-        # assigning global filtered query set to prevent additional,
-        # unnecessary calls to `filter_queryset`
-        self.__filtered_queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(self.__filtered_queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            metadata = None
-            if request.GET.get('metadata') == 'on':
-                metadata = self.get_metadata(self.__filtered_queryset)
-            return self.get_paginated_response(serializer.data, metadata)
-
-        serializer = self.get_serializer(self.__filtered_queryset, many=True)
-        return Response(serializer.data)
 
     @action(detail=False, methods=['GET'],
             renderer_classes=[renderers.JSONRenderer])

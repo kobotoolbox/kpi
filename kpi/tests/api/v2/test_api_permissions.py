@@ -628,9 +628,6 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         * Regular users see everything that concerns them, namely all
           their own permissions and all the owners' permissions for all objects
           to which they have been assigned any permission
-
-    See also
-        kpi.utils.object_permission_helper.ObjectPermissionHelper.get_user_permission_assignments_queryset
     """
 
     # TODO: does this duplicate stuff in

@@ -21,7 +21,6 @@ from kpi.utils.query_parser import parse, ParseError
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
     get_objects_for_user,
-    get_anonymous_user,
     get_perm_ids_from_code_names
 )
 
@@ -33,6 +32,7 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
+        print(type(self), 'filter_queryset()')
         fields = {"asset__owner": request.user}
         return queryset.filter(**fields)
 
@@ -40,6 +40,7 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
 class AssetOrderingFilter(filters.OrderingFilter):
 
     def filter_queryset(self, request, queryset, view):
+        print(type(self), 'filter_queryset()')
         query_params = request.query_params
         collections_first = query_params.get('collections_first',
                                              'false').lower() == 'true'
@@ -103,12 +104,12 @@ class AssetPermissionFilter:
     def get_public_and_discoverable_pks(cls, queryset):
         view_perm_pk = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
         disco_perm_pk = get_perm_ids_from_code_names(PERM_DISCOVER_ASSET)
-        anon = get_anonymous_user()
+        anon_pk = settings.ANONYMOUS_USER_ID
         public_pks = cls.get_assets_granted_not_denied(
-            user=anon, permission=view_perm_pk
+            user=anon_pk, permission=view_perm_pk
         )
         disco_pks = cls.get_assets_granted_not_denied(
-            user=anon, permission=disco_perm_pk
+            user=anon_pk, permission=disco_perm_pk
         )
         disco_pks_and_kids = public_pks.intersection(
             disco_pks.union(
@@ -162,6 +163,10 @@ class AssetPermissionFilter:
                 subscribed
             * 'public-discoverable': return all discoverable assets
         """
+        is_anonymous = False
+        if user.is_anonymous:
+            user = settings.ANONYMOUS_USER_ID
+            is_anonymous = True
         if status == ASSET_STATUS_PRIVATE:
             return queryset.filter(owner=user)
         elif status == ASSET_STATUS_SHARED:
@@ -172,7 +177,7 @@ class AssetPermissionFilter:
                 )
             )
         elif status == ASSET_STATUS_SUBSCRIBED:
-            if user.is_anonymous:
+            if is_anonymous:
                 # anonymous can't subscribe to anything
                 return queryset.none()
             _, disco_pks_and_kids = cls.get_public_and_discoverable_pks(
@@ -201,6 +206,8 @@ class AssetPermissionFilter:
         return queryset.none()
 
     def filter_queryset(self, request, queryset, view):
+        print(type(self), 'filter_queryset()')
+        #return queryset.filter(owner__username='hundo')
         STATUS_PARAMETER = 'status'
         try:
             status = request.query_params[STATUS_PARAMETER].strip()
@@ -209,23 +216,18 @@ class AssetPermissionFilter:
         else:
             return self.filter_by_status(status, request.user, queryset)
 
-        if request.user.is_superuser:
+        if request.user.is_superuser and view.action != 'list':
             # ok, boss, you get it all
             return queryset
 
+        return self.filter_by_status('shared', request.user, queryset) | self.filter_by_status('subscribed', request.user, queryset)
+        '''
         all_viewable_pks = self.get_all_viewable_pks(request, queryset, view)
 
-        # TODO: *why* does wrapping this in an extra `in` query speed it up so
-        # dramatically?
-        # given a user (tinok4 on kf.beta) with 5450 owned assets and 70
-        # non-owned but viewable assets, slicing the first 100 results off of
-        # the queryset and coercing them to a list takes 3+ minutes without
-        # wrapping, but only 10 seconds with wrapping. clearing the ordering
-        # also alleviates the slowdown without needing to wrap, but i imagine
-        # we need that default ordering
         return queryset.filter(
             pk__in=queryset.filter(pk__in=all_viewable_pks.distinct())
         )
+        '''
 
 
 class RelatedAssetPermissionsFilter(AssetPermissionFilter):
@@ -237,6 +239,7 @@ class RelatedAssetPermissionsFilter(AssetPermissionFilter):
     """
 
     def filter_queryset(self, request, queryset, view):
+        print(type(self), 'filter_queryset()')
         available_assets = super().filter_queryset(
             request=request,
             queryset=Asset.objects.all(),
@@ -256,6 +259,7 @@ class SearchFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
+        print(type(self), 'filter_queryset()')
         try:
             q = request.query_params['q']
         except KeyError:
@@ -288,17 +292,15 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
+        print(type(self), 'filter_queryset()')
         # TODO: omit objects for which the user has only a deny permission
         user = request.user
         if isinstance(request.user, AnonymousUser):
-            user = get_anonymous_user()
+            return queryset.none()
 
         if user.is_superuser:
             # Superuser sees all
             return queryset
-        if user.pk == settings.ANONYMOUS_USER_ID:
-            # Hide permissions from anonymous users
-            return queryset.none()
         """
         A regular user sees their own permissions and the owner's permissions
         for objects to which they have access. For example, if Alana and John
