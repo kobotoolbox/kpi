@@ -871,17 +871,20 @@
 .form-modal__form.form-modal__form--data-attachment-columns {
    color: darken($kobo-lightgray, 40%);
 
-  .bulk-options-wrapper {
+  .bulk-options {
     margin-top: 14px;
     display: flex;
     justify-content: space-between;
-    .bulk-description {
+
+    .bulk-options__description {
       font-weight: bold;
     }
-    .bulk-options {
+
+    .bulk-options__buttons {
       span {
         margin: 12px;
       }
+
       a {
         text-decoration: underline;
         cursor: pointer;
@@ -896,6 +899,7 @@
 
   .modal__footer {
     text-align: center;
+
     button {
       padding-left: 64px;
       padding-right: 64px;

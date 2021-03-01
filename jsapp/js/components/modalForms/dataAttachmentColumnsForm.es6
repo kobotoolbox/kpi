@@ -155,27 +155,33 @@ class dataAttachmentColumnsForm extends React.Component {
           <span className='modal-description'>
             {t('You are about to import ##PARENT_NAME##. Select or deselect in the list below to narrow down the number of questions to import.').replace('##PARENT_NAME##', this.props.parent.name)}
           </span>
-          <div className='bulk-options-wrapper'>
-            <span className='bulk-description'>
+
+          <div className='bulk-options'>
+            <span className='bulk-options__description'>
               {t('Select below the questions you want to import')}
             </span>
-            <div className='bulk-options'>
+
+            <div className='bulk-options__buttons'>
               <a onClick={this.onBulkSelect}>
                 {t('select all')}
               </a>
+
               <span>
                 {t('|')}
               </span>
+
               <a onClick={this.onBulkDeselect}>
                 {t('deselect all')}
               </a>
             </div>
           </div>
         </div>
+
         <MultiCheckbox
           items={this.state.columnsToDisplay}
           onChange={this.onColumnSelected}
         />
+
         <footer className='modal__footer'>
           <bem.KoboButton
             m='blue'
@@ -186,6 +192,7 @@ class dataAttachmentColumnsForm extends React.Component {
             {t('Accept')}
           </bem.KoboButton>
         </footer>
+
       </bem.FormModal__form>
     );
   }
