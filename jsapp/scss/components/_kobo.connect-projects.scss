@@ -1,11 +1,22 @@
 .connect-projects {
-  margin: 24px;
+  i {
+    font-size: 32px;
+    margin-right: 5px;
+  }
+
+  .form-view__cell--page-title {
+    display: flex;
+    margin-top: 20px;
+    i {
+      margin-top: 10px;
+    }
+  }
 
   .connect-projects__export {
     display: flex;
     justify-content: space-between;
 
-    .connect-projects__export-switch {
+    .connect-projects__export--switch {
       display: block;
       margin-top: 20px;
       margin-right: 32px;
@@ -18,14 +29,51 @@
       }
     }
 
-    .connect-projects__export-multicheckbox {
+    .connect-projects__export--multicheckbox {
       width: 60%;
       position: relative;
-      height: 200px;
+      .multi-checkbox {
+        height: 200px;
+      }
     }
   }
 
-  .attached-projects-list {
+  .connect-projects__import {
+    .connect-projects__import--form {
+      position: relative;
+      display: flex;
+      margin-top: 10px;
+
+      .kobo-select__wrapper {
+        width: 50%;
+        margin-right: 50px;
+        label {
+          margin-top: 0px;
+        }
+        .kobo-select__placeholder {
+          color: $kobo-black;
+        }
+      }
+
+      .text-box {
+        width: 35%;
+        margin-top: 0px;
+        margin-right: 24px;
+        input {
+          padding: 9px 10px;
+          background-color: $kobo-white;
+          color: $kobo-black;
+        }
+      }
+
+      .kobo-button {
+        max-height: 40px;
+      }
+    }
+  }
+  .connect-projects__import--list {
+    margin-top: 20px;
+
     label {
       margin-top: 20px;
       font-size: 14px;
@@ -33,7 +81,7 @@
       color: darken($kobo-midgray, 10%);
     }
 
-    .imported-item {
+    .connect-projects__import--list-item {
       position: relative;
       display: flex;
       justify-content: space-between;
@@ -42,6 +90,7 @@
       margin-bottom: 10px;
       border-bottom: 1px solid;
       border-color: lighten($kobo-midgray, 15%);
+
       i.k-icon-check {
         color: $kobo-blue;
       }
@@ -96,55 +145,6 @@
         }
       }
     }
-  }
-
-  .form-modal__item--data-sharing {
-    border-bottom: 1px solid;
-    border-color: lighten($kobo-midgray, 20%);
-    padding-bottom: 24px;
-  }
-
-  .form-modal__item {
-    margin-left: 10px;
-  }
-
-  .connect-projects-header {
-    display: flex;
-    i {
-      margin-top: 10px;
-    }
-  }
-
-  .form-modal__item--import-data {
-    .import-data-form {
-      position: relative;
-      display: flex;
-
-      .kobo-select__wrapper {
-        width: 50%;
-        margin-right: 50px;
-        label {
-          margin-top: 0px;
-        }
-        .kobo-select__placeholder {
-          color: $kobo-black;
-        }
-      }
-      .text-box {
-        width: 35%;
-        margin-top: 0px;
-        margin-right: 24px;
-        input {
-          padding: 9px 10px;
-          background-color: $kobo-white;
-          color: $kobo-black;
-        }
-      }
-      .kobo-button {
-        max-height: 40px;
-      }
-    }
-
     .loading__inner {
       i {
         vertical-align: text-bottom;
@@ -152,20 +152,10 @@
     }
 
     .no-imports {
-      @extend .imported-item;
+      @extend .connect-projects__import--list-item;
       font-style: italic;
       color: $kobo-midgray;
       padding-bottom: 10px;
     }
-  }
-
-  p {
-    margin-top: 0px;
-    margin-bottom: 28px;
-  }
-
-  i {
-    font-size: 32px;
-    margin-right: 5px;
   }
 }

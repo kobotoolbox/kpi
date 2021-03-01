@@ -367,7 +367,7 @@ class ConnectProjects extends React.Component {
     if (this.state.isShared) {
       return (
         <div className='connect-projects__export'>
-          <div className='connect-projects__export connect-projects__export-switch'>
+          <div className='connect-projects__export--switch'>
             <ToggleSwitch
               onChange={this.onToggleSharingData.bind(this)}
               label={t('Data sharing enabled')}
@@ -376,7 +376,7 @@ class ConnectProjects extends React.Component {
             <br />
             {t('Deselect any questions you do not want to share in the right side table')}
           </div>
-          <div className='connect-projects__export connect-projects__export-multicheckbox'>
+          <div className='connect-projects__export--multicheckbox'>
             <MultiCheckbox
               items={this.state.newColumnFilters}
               onChange={this.onColumnSelected}
@@ -387,7 +387,7 @@ class ConnectProjects extends React.Component {
     } else {
       return (
         <div className='connect-projects__export'>
-          <div className='connect-projects__export-switch'>
+          <div className='connect-projects__export--switch'>
             <ToggleSwitch
               onChange={this.onToggleSharingData.bind(this)}
               label={t('Data sharing disabled')}
@@ -399,62 +399,33 @@ class ConnectProjects extends React.Component {
     }
   }
 
-  render() {
-    let sharingEnabledAssets = [];
-    if (this.state.sharingEnabledAssets !== null) {
-      sharingEnabledAssets = this.generateFilteredAssetList();
-    }
+  renderImports(sharingEnabledAssets) {
+    if (sharingEnabledAssets) {
+      return (
+        <div className='connect-projects__import'>
+          <div className='connect-projects__import--form'>
+            {this.renderSelect(sharingEnabledAssets)}
 
-    return (
-      <bem.FormModal__form
-        className='project-settings project-settings--upload-file connect-projects'
-        onSubmit={this.onConfirmAttachment}
-      >
+            <TextBox
+              placeholder={t('Give a unique name to the import')}
+              value={this.state.newFilename}
+              onChange={this.onFilenameChange}
+              errors={this.state.fieldsErrors.filename}
+            />
 
-        {/* Enable data sharing */}
-        <bem.FormModal__item m='data-sharing'>
-          <div className='connect-projects-header'>
-            <i className="k-icon k-icon-folder-out"/>
-            <h2>{t('Share data with other project forms')}</h2>
+            <bem.KoboButton
+              m='blue'
+              onClick={this.onConfirmAttachment}
+            >
+              {t('Import')}
+            </bem.KoboButton>
           </div>
-          <span>
-            {t('Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments')}
-            <a href='#'>{t(' ' + 'here')}</a>
-          </span>
-          {this.renderSwitch()}
-        </bem.FormModal__item>
-
-        {/* Attach other projects data */}
-        <bem.FormModal__item m='import-data'>
-          <div className='connect-projects-header'>
-            <i className="k-icon k-icon-folder-in"/>
-            <h2>{t('Import other project data')}</h2>
-          </div>
-          <p>
-            {t('Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments')}
-            <a href='#'>{t(' ' + 'here')}</a>
-          </p>
-          {/* Selecting project form*/}
-          {sharingEnabledAssets &&
-            <div className='import-data-form'>
-              {this.renderSelect(sharingEnabledAssets)}
-              <TextBox
-                placeholder={t('Give a unique name to the import')}
-                value={this.state.newFilename}
-                onChange={this.onFilenameChange}
-                errors={this.state.fieldsErrors.filename}
-              />
-              <bem.KoboButton m='blue'>
-                {t('Import')}
-              </bem.KoboButton>
-            </div>
-          }
 
           {/* Display attached projects */}
-          <ul className='attached-projects-list'>
+          <ul className='connect-projects__import--list'>
             <label>{t('Imported')}</label>
             {(this.state.isVirgin || this.state.isLoading) &&
-              <div className='imported-item'>
+              <div className='connect-projects__import--list-item'>
                 {this.renderLoading(t('Loading imported projects'))}
               </div>
             }
@@ -466,7 +437,7 @@ class ConnectProjects extends React.Component {
             {!this.state.isLoading && this.state.attachedParents.length > 0 &&
               this.state.attachedParents.map((item, n) => {
                 return (
-                  <li key={n} className='imported-item'>
+                  <li key={n} className='connect-projects__import--list-item'>
                     <i className="k-icon k-icon-check"/>
                     <div className='imported-names'>
                       <span className='imported-filename'>
@@ -501,9 +472,52 @@ class ConnectProjects extends React.Component {
               })
             }
           </ul>
-        </bem.FormModal__item>
+        </div>
+      );
+    }
+  }
 
-      </bem.FormModal__form>
+  render() {
+    let sharingEnabledAssets = [];
+    if (this.state.sharingEnabledAssets !== null) {
+      sharingEnabledAssets = this.generateFilteredAssetList();
+    }
+
+    return (
+      <bem.FormView__row>
+
+        {/* Enable data sharing */}
+        <bem.FormView__cell m={['page-title']}>
+          <i className="k-icon k-icon-folder-out"/>
+          <h2>{t('Share data with other project forms')}</h2>
+        </bem.FormView__cell>
+
+        <bem.FormView__cell m={['box', 'padding']}>
+          <bem.FormView__form>
+            <span>
+              {t('Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments')}
+              <a href='#'>{t(' ' + 'here')}</a>
+            </span>
+            {this.renderSwitch()}
+          </bem.FormView__form>
+        </bem.FormView__cell>
+
+        {/* Attach other projects data */}
+        <bem.FormView__cell m={['page-title']}>
+          <i className="k-icon k-icon-folder-in"/>
+          <h2>{t('Import other project data')}</h2>
+        </bem.FormView__cell>
+
+        <bem.FormView__cell m={['box', 'padding']}>
+          <bem.FormView__form>
+            <span>
+              {t('Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments')}
+              <a href='#'>{t(' ' + 'here')}</a>
+            </span>
+            {this.renderImports(sharingEnabledAssets)}
+          </bem.FormView__form>
+        </bem.FormView__cell>
+      </bem.FormView__row>
     );
   }
 }
