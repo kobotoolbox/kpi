@@ -11,7 +11,7 @@ from rest_framework.reverse import reverse
 
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
-from kpi.models import AssetSnapshot, AssetFile
+from kpi.models import AssetSnapshot, AssetFile, PairedData
 from kpi.renderers import (
     OpenRosaFormListRenderer,
     OpenRosaManifestRenderer,
@@ -79,8 +79,14 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         """
         snapshot = self.get_object()
         asset = snapshot.asset
-        files = asset.asset_files.filter(file_type=AssetFile.FORM_MEDIA,
-                                         date_deleted__isnull=True)
+        form_media_files = list(
+            asset.asset_files.filter(
+                file_type=AssetFile.FORM_MEDIA,
+                date_deleted__isnull=True,
+            )
+        )
+        paired_data_files = list(PairedData.objects(asset).values())
+        files = form_media_files + paired_data_files
         context = {'request': request}
         serializer = ManifestSerializer(files, many=True, context=context)
 

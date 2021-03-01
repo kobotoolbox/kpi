@@ -10,12 +10,16 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.fields import KpiUidField
-from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
+from kpi.interfaces import (
+    OpenRosaManifestInterface,
+    SyncBackendMediaInterface,
+)
 from kpi.models.asset_file import AssetFile
 from kpi.utils.hash import get_hash
 
 
-class PairedData(SyncBackendMediaInterface):
+class PairedData(OpenRosaManifestInterface,
+                 SyncBackendMediaInterface):
 
     def __init__(
         self,
@@ -97,7 +101,9 @@ class PairedData(SyncBackendMediaInterface):
     @property
     def filename(self):
         """
-        Implements `SyncBackendMediaInterface.filename()`
+        Implements:
+        - `OpenRosaManifestInterface.filename()`
+        - `SyncBackendMediaInterface.filename()`
         """
         # Could be easier to just use a public attribute, but (IMHO) the
         # `@property` makes the implementation of the interface more obvious
@@ -111,6 +117,14 @@ class PairedData(SyncBackendMediaInterface):
         self.__hash = get_hash(
             f'{self.backend_uniqid}.{str(time.time())}'
         )
+
+    def get_download_url(self, request):
+        """
+        Implements `OpenRosaManifestInterface.get_download_url()`
+        """
+        return reverse('paired-data-external',
+                       args=(self.asset.uid, self.paired_data_uid, 'xml'),
+                       request=request)
 
     def get_parent(self) -> Union['Asset', None]:
 
@@ -140,7 +154,9 @@ class PairedData(SyncBackendMediaInterface):
     @property
     def hash(self):
         """
-        Implements `SyncBackendMediaInterface.hash()`
+        Implements:
+         - `OpenRosaManifestInterface.hash()`
+         - `SyncBackendMediaInterface.hash()`
         """
         return f'md5:{self.__hash}'
 
