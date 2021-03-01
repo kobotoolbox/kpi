@@ -238,16 +238,19 @@ actions.dataShare.getAttachedParents.listen((assetUid) => {
       if (response.results.length > 0) {
         let allParents = [];
         response.results.forEach((parent) => {
-          // Remove file extension
+          // Assume file extension is after last `.` of filename and remove it
           let filename = parent.filename.replace(/\.[^/.]+$/, '');
-          // Get Uid from url
+          // Assume uid is after last `/` of its asset url
           let parentUid = parent.parent.match(/.*\/([^/]+)\//)[1];
           allParents.push({
             parentName: parent.parent_name,
+            // Parent's asset url
             parentUrl: parent.parent,
             parentUid: parentUid,
+            // Fields that the child has selected to import
             childFields: parent.fields,
             filename: filename,
+            // Child-parent attachment endpoint
             attachmentUrl: parent.url,
           });
           actions.dataShare.getAttachedParents.completed(allParents);

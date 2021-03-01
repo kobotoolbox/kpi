@@ -44,6 +44,7 @@ class ConnectProjects extends React.Component {
 
   componentDidMount() {
     this.refreshAttachmentList();
+
     if (this.state.isShared) {
       this.setState({
         newColumnFilters: this.generateColumnFilters(
@@ -52,6 +53,7 @@ class ConnectProjects extends React.Component {
         ),
       });
     }
+
     actions.dataShare.getSharingEnabledAssets();
 
     actions.dataShare.attachToParent.completed.listen(
@@ -87,9 +89,10 @@ class ConnectProjects extends React.Component {
   onAttachToParentFailed(response) {
     this.setState({
       isLoading: false,
-      fieldsErrors: response.responseJSON || {},
+      fieldsErrors: response.responseJSON,
     });
   }
+
   onGetAttachedParentsCompleted(response) {
     this.setState({
       isVirgin: false,
@@ -97,9 +100,11 @@ class ConnectProjects extends React.Component {
       attachedParents: response,
     });
   }
+
   onGetSharingEnabledAssetsCompleted(response) {
     this.setState({sharingEnabledAssets: response});
   }
+
   onToggleDataSharingCompleted() {
     this.setState({
       isShared: !this.state.isShared,
@@ -109,6 +114,7 @@ class ConnectProjects extends React.Component {
       ),
     });
   }
+
   // Safely update state after guaranteed columm changes
   onUpdateColumnFiltersCompleted(response) {
     this.setState({
@@ -118,9 +124,11 @@ class ConnectProjects extends React.Component {
       ),
     });
   }
+
   onPatchParentCompleted() {
     actions.dataShare.getAttachedParents(this.props.asset.uid);
   }
+
   refreshAttachmentList() {
     this.setState({
       newParent: null,
@@ -128,7 +136,6 @@ class ConnectProjects extends React.Component {
     });
     actions.dataShare.getAttachedParents(this.props.asset.uid);
   }
-
 
   /*
    * UI Listeners
@@ -140,6 +147,7 @@ class ConnectProjects extends React.Component {
       fieldsErrors: {},
     });
   }
+
   onParentChange(newVal) {
     this.setState({
       newParent: newVal,
@@ -165,23 +173,25 @@ class ConnectProjects extends React.Component {
       if (!this.state.newParent?.url) {
         this.setState({
           fieldsErrors: Object.assign(
-            this.state.fieldsErrors, {emptyParent: 'No project selected'}
+            this.state.fieldsErrors, {parent: 'No project selected'}
           )
         });
       }
       if (this.state.newFilename === '') {
         this.setState({
           fieldsErrors: Object.assign(
-            this.state.fieldsErrors, {emptyFilename: 'Field is empty'}
+            this.state.fieldsErrors, {filename: 'Field is empty'}
           )
         });
       }
     }
   }
+
   onRemoveAttachment(newVal) {
     this.setState({isLoading: true})
     actions.dataShare.detachParent(newVal);
   }
+
   onToggleSharingData() {
     var data = JSON.stringify({
       data_sharing: {
@@ -212,6 +222,7 @@ class ConnectProjects extends React.Component {
       actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
     }
   }
+
   onColumnSelected(columnList) {
     let fields = [];
     columnList.forEach((item) => {
@@ -240,6 +251,7 @@ class ConnectProjects extends React.Component {
       this.setState({newFilename: autoname});
     }
   }
+
   generateColumnFilters(selectedColumns, selectableQuestions) {
     let selectableColumns = [];
     // We need to flatten questions if coming from survey
@@ -277,16 +289,18 @@ class ConnectProjects extends React.Component {
     }
     return columnsToDisplay;
   }
+
   generateTruncatedDisplayName(name) {
     return name.length > 30 ? `${name.substring(0, 30)}...` : name;
   }
+
   generateFilteredAssetList() {
     let attachedParentUids = [];
     this.state.attachedParents.forEach((item) => {
       attachedParentUids.push(item.parentUid)
     });
 
-    // Filter displayed asset list based on unattached projects
+    // Filter out attached projects from displayed asset list
     return (
       this.state.sharingEnabledAssets.results.filter(
         item => !attachedParentUids.includes(item.uid)
@@ -322,9 +336,10 @@ class ConnectProjects extends React.Component {
       </bem.Loading>
     );
   }
+
   renderSelect(sharingEnabledAssets) {
     const selectClassNames = ['kobo-select__wrapper'];
-    if (this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent) {
+    if (this.state.fieldsErrors.parent) {
       selectClassNames.push('kobo-select__wrapper--error');
     }
     return(
@@ -342,11 +357,12 @@ class ConnectProjects extends React.Component {
           classNamePrefix='kobo-select'
         />
         <label className='select-errors'>
-          {this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent}
+          {this.state.fieldsErrors.parent}
         </label>
       </div>
     );
   }
+
   renderSwitch() {
     if (this.state.isShared) {
       return (
@@ -426,8 +442,7 @@ class ConnectProjects extends React.Component {
                 placeholder={t('Give a unique name to the import')}
                 value={this.state.newFilename}
                 onChange={this.onFilenameChange}
-                errors={this.state.fieldsErrors.emptyFilename ||
-                        this.state.fieldsErrors.filename}
+                errors={this.state.fieldsErrors.filename}
               />
               <bem.KoboButton m='blue'>
                 {t('Import')}
