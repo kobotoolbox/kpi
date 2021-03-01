@@ -125,7 +125,7 @@ export default class ProjectExportsList extends React.Component {
   }
 
   fetchExport(exportUid) {
-    actions.exports.getExport(exportUid);
+    actions.exports.getExport(this.props.asset.uid, exportUid);
   }
 
   fetchExports() {
@@ -138,7 +138,7 @@ export default class ProjectExportsList extends React.Component {
       title: t('Delete export?'),
       message: t('Are you sure you want to delete this export? This action is not reversible.'),
       labels: {ok: t('Delete'), cancel: t('Cancel')},
-      onok: () => {actions.exports.deleteExport(exportUid);},
+      onok: () => {actions.exports.deleteExport(this.props.asset.uid, exportUid);},
       oncancel: () => {dialog.destroy();},
     };
     dialog.set(opts).show();

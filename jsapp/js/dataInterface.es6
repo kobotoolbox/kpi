@@ -316,9 +316,8 @@ export var dataInterface;
 
     getAssetExports(assetUid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/exports/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
         data: {
-          q: `data__source__icontains:${assetUid}`,
           ordering: '-date_created',
           // TODO: handle pagination of this in future, for now we get "all"
           limit: 9999,
@@ -326,24 +325,26 @@ export var dataInterface;
       });
     },
 
-    createAssetExport(data) {
+    createAssetExport(assetUid, data) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/exports/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
         method: 'POST',
-        data: {data: JSON.stringify(data)},
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json',
       });
     },
 
-    getAssetExport(exportUid) {
+    getAssetExport(assetUid, exportUid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/exports/${exportUid}/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${exportUid}/`,
         method: 'GET',
       });
     },
 
-    deleteAssetExport(exportUid) {
+    deleteAssetExport(assetUid, exportUid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/exports/${exportUid}/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${exportUid}/`,
         method: 'DELETE',
       });
     },

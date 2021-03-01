@@ -18,26 +18,34 @@ const exportsActions = Reflux.createActions({
   deleteExportSetting: {children: ['completed', 'failed']},
 });
 
+/**
+ * @param {string} assetUid
+ */
 exportsActions.getExports.listen((assetUid) => {
   dataInterface.getAssetExports(assetUid)
     .done(exportsActions.getExports.completed)
     .fail(exportsActions.getExports.failed);
 });
 
-exportsActions.getExport.listen((assetUid) => {
-  dataInterface.getAssetExport(assetUid)
+/**
+ * @param {string} assetUid
+ * @param {string} exportUid
+ */
+exportsActions.getExport.listen((assetUid, exportUid) => {
+  dataInterface.getAssetExport(assetUid, exportUid)
     .done(exportsActions.getExport.completed)
     .fail(exportsActions.getExport.failed);
 });
 
 /**
+ * @param {string} assetUid
  * @param {object} data
  * @param {string} data.source - asset uid
  * …and the rest of parameters should match export_settings
  */
-exportsActions.createExport.listen((data) => {
+exportsActions.createExport.listen((assetUid, data) => {
   const cleanData = cleanupExportSettings(data);
-  dataInterface.createAssetExport(cleanData)
+  dataInterface.createAssetExport(assetUid, cleanData)
     .done(exportsActions.createExport.completed)
     .fail(exportsActions.createExport.failed);
 });
@@ -45,8 +53,12 @@ exportsActions.createExport.failed.listen(() => {
   notify(t('Failed to create export'), 'error');
 });
 
-exportsActions.deleteExport.listen((exportUid) => {
-  dataInterface.deleteAssetExport(exportUid)
+/**
+ * @param {string} assetUid
+ * @param {string} exportUid
+ */
+exportsActions.deleteExport.listen((assetUid, exportUid) => {
+  dataInterface.deleteAssetExport(assetUid, exportUid)
     .done(exportsActions.deleteExport.completed)
     .fail(exportsActions.deleteExport.failed);
 });
@@ -79,18 +91,30 @@ function cleanupExportSettings(export_settings) {
   return clean;
 }
 
+/**
+ * @param {string} assetUid
+ */
 exportsActions.getExportSettings.listen((assetUid) => {
   dataInterface.getExportSettings(assetUid)
     .done(exportsActions.getExportSettings.completed)
     .fail(exportsActions.getExportSettings.failed);
 });
 
+/**
+ * @param {string} assetUid
+ * @param {string} settingUid
+ */
 exportsActions.getExportSetting.listen((assetUid, settingUid) => {
   dataInterface.getExportSetting(assetUid, settingUid)
     .done(exportsActions.getExportSetting.completed)
     .fail(exportsActions.getExportSetting.failed);
 });
 
+/**
+ * @param {string} assetUid
+ * @param {string} settingUid
+ * @param {object} data
+ */
 exportsActions.updateExportSetting.listen((assetUid, settingUid, data) => {
   const cleanData = {
     name: data.name,
@@ -104,6 +128,10 @@ exportsActions.updateExportSetting.failed.listen(() => {
   notify(t('Failed to update export setting'), 'error');
 });
 
+/**
+ * @param {string} assetUid
+ * @param {object} data
+ */
 exportsActions.createExportSetting.listen((assetUid, data) => {
   const cleanData = {
     name: data.name,
@@ -117,6 +145,10 @@ exportsActions.createExportSetting.failed.listen(() => {
   notify(t('Failed to create export setting'), 'error');
 });
 
+/**
+ * @param {string} assetUid
+ * @param {string} settingUid
+ */
 exportsActions.deleteExportSetting.listen((assetUid, settingUid) => {
   dataInterface.deleteExportSetting(assetUid, settingUid)
     .done(exportsActions.deleteExportSetting.completed)

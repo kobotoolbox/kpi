@@ -78,10 +78,10 @@ export default class ProjectExportsCreator extends React.Component {
   componentDidMount() {
     this.unlisteners.push(
       exportsStore.listen(this.onExportsStoreChange),
-      actions.exports.getExportSettings.completed.listen(this.onGetExportSettings),
+      actions.exports.getExportSettings.completed.listen(this.onGetExportSettingsCompleted),
       actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings),
       actions.exports.createExportSetting.completed.listen(this.fetchExportSettings),
-      actions.exports.deleteExportSetting.completed.listen(this.onDeleteExportSetting),
+      actions.exports.deleteExportSetting.completed.listen(this.onDeleteExportSettingCompleted),
     );
 
     this.fetchExportSettings();
@@ -107,7 +107,7 @@ export default class ProjectExportsCreator extends React.Component {
     }
   }
 
-  onGetExportSettings(response) {
+  onGetExportSettingsCompleted(response) {
     // we need to prepare the results to be displayed in Select
     const definedExports = [];
     response.results.forEach((result, index) => {
@@ -131,7 +131,7 @@ export default class ProjectExportsCreator extends React.Component {
     this.setState({isComponentReady: true});
   }
 
-  onDeleteExportSetting() {
+  onDeleteExportSettingCompleted() {
     this.clearSelectedDefinedExport();
     this.fetchExportSettings();
   }
@@ -179,8 +179,7 @@ export default class ProjectExportsCreator extends React.Component {
     this.setState({isPending: true});
 
     const exportParams = response.export_settings;
-    exportParams.source = this.props.asset.url;
-    actions.exports.createExport(exportParams);
+    actions.exports.createExport(this.props.asset.uid, exportParams);
   }
 
   fetchExportSettings() {
@@ -188,7 +187,9 @@ export default class ProjectExportsCreator extends React.Component {
     actions.exports.getExportSettings(this.props.asset.uid);
   }
 
-  deleteExportSetting(exportSettingUid) {
+  onDeleteExportSetting(exportSettingUid, evt) {
+    evt.preventDefault();
+
     const dialog = alertify.dialog('confirm');
     const opts = {
       title: t('Delete export settings?'),
@@ -643,7 +644,7 @@ export default class ProjectExportsCreator extends React.Component {
                   mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
                   <bem.KoboLightButton
                     m={['red', 'icon-only']}
-                    onClick={this.deleteExportSetting.bind(
+                    onClick={this.onDeleteExportSetting.bind(
                       this,
                       this.state.selectedDefinedExport.data.uid
                     )}
