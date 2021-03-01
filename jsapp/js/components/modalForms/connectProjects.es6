@@ -47,7 +47,8 @@ class ConnectProjects extends React.Component {
     if (this.state.isShared) {
       this.setState({
         newColumnFilters: this.generateColumnFilters(
-          this.props.asset.data_sharing.fields
+          this.props.asset.data_sharing.fields,
+          this.props.asset.content.survey,
         ),
       });
     }
@@ -103,7 +104,8 @@ class ConnectProjects extends React.Component {
     this.setState({
       isShared: !this.state.isShared,
       newColumnFilters: this.generateColumnFilters(
-        this.props.asset.data_sharing.fields
+        this.props.asset.data_sharing.fields,
+        this.props.asset.content.survey,
       ),
     });
   }
@@ -111,7 +113,8 @@ class ConnectProjects extends React.Component {
   onUpdateColumnFiltersCompleted(response) {
     this.setState({
       newColumnFilters: this.generateColumnFilters(
-        response.data_sharing.fields
+        response.data_sharing.fields,
+        this.props.asset.content.survey,
       ),
     });
   }
@@ -237,15 +240,23 @@ class ConnectProjects extends React.Component {
       this.setState({newFilename: autoname});
     }
   }
-  generateColumnFilters(columns, parentColumns=[]) {
-    // If parentColumns is empty, assume we are the parent
-    let selectableColumns =
-      parentColumns.length > 0
-        ? parentColumns
-        : this.generateAvailableColumns(this.props.asset.content.survey);
-    let selectedColumns = columns || []; // Columns currently selected
+  generateColumnFilters(selectedColumns, selectableQuestions) {
+    let selectableColumns = [];
+    // We need to flatten questions if coming from survey
+    if (selectableQuestions?.length && typeof selectableQuestions[0] === 'object') {
+      let questions = assetUtils.getSurveyFlatPaths(selectableQuestions);
+      for (const key in questions) {
+        if (!questions[key].includes('version')) {
+          selectableColumns.push(questions[key]);
+        }
+      }
+    } else {
+      selectableColumns = selectableQuestions;
+    }
 
-    // Figure out what columns need to be 'checked'
+    // Figure out what columns need to be 'checked' or 'unchecked' by comparing
+    // `selectedColumns` - the columns are already selected versus
+    // `selectableColumns` - the columns that are allowed to be exposed
     let columnsToDisplay = [];
     // 'Check' every column if no fields exist, or every column is already checked
     if (
@@ -265,18 +276,6 @@ class ConnectProjects extends React.Component {
       });
     }
     return columnsToDisplay;
-  }
-  generateAvailableColumns(survey) {
-    let selectableColumns = [];
-    if (survey) {
-      let questions = assetUtils.getSurveyFlatPaths(survey);
-      for (const key in questions) {
-        if (!questions[key].includes('version')) {
-          selectableColumns.push(questions[key]);
-        }
-      }
-    }
-    return selectableColumns;
   }
   generateTruncatedDisplayName(name) {
     return name.length > 30 ? `${name.substring(0, 30)}...` : name;
@@ -299,7 +298,7 @@ class ConnectProjects extends React.Component {
     stores.pageState.showModal(
       {
         type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
-        generateAvailableColumns: this.generateAvailableColumns,
+        generateColumnFilters: this.generateColumnFilters,
         asset: asset,
         parent: parent,
         filename: filename,

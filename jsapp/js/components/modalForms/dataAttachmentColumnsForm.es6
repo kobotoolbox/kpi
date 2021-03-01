@@ -20,7 +20,7 @@ import {actions} from 'js/actions';
  * @prop {function} onSetModalTitle - for changing the modal title by this component
  * @prop {function} onModalClose - causes the modal to close
  * @prop {function} triggerLoading - causes parent modal to show loading
- * @prop {function} generateAvailableColumns - generates columns for multicheckbox
+ * @prop {function} generateColumnFilters - generates columns for multicheckbox
  * @prop {object} asset - current asset
  * @prop {parentAttributes} parent
  * @prop {string} fileName
@@ -86,19 +86,20 @@ class dataAttachmentColumnsForm extends React.Component {
   }
   onLoadAssetContentCompleted(response) {
     if (
-      response.data_sharing.fields !== undefined &&
-      response.data_sharing.fields.length > 0
+      response.data_sharing?.fields.length > 0
     ) {
       this.setState({
-        columnsToDisplay: this.generateColumnFilters(
-          response.data_sharing.fields
+        columnsToDisplay: this.props.generateColumnFilters(
+          this.props.fields,
+          response.data_sharing.fields,
         ),
       });
     } else {
       // empty `fields` implies all parent questions are exposed
       this.setState({
-        columnsToDisplay: this.generateColumnFilters(
-          this.props.generateAvailableColumns(response.content.survey)
+        columnsToDisplay: this.props.generateColumnFilters(
+          this.props.fields,
+          response.content.survey,
         ),
       });
     }
@@ -106,8 +107,9 @@ class dataAttachmentColumnsForm extends React.Component {
   onPatchParentCompleted(response) {
     this.setState({
       isLoading: false,
-      columnsToDisplay: this.generateColumnFilters(
-        response.fields
+      columnsToDisplay: this.props.generateColumnFilters(
+        this.props.fields,
+        response.fields,
       ),
     });
     this.props.onModalClose();
@@ -144,19 +146,6 @@ class dataAttachmentColumnsForm extends React.Component {
       actions.dataShare.attachToParent(this.props.asset.uid, data);
     }
     this.setState({isLoading: true});
-  }
-
-  generateColumnFilters(fields) {
-    // Empty child fields implies import all questions
-    if (this.props.fields.length == 0 || this.props.fields.length == fields.length) {
-      return fields.map((item) => {
-        return {label: item, checked: true};
-      });
-    } else if (this.props.fields.length !== fields.length) {
-      return fields.map((item) => {
-        return {label: item, checked: this.props.fields.includes(item)};
-      });
-    }
   }
 
   render() {
