@@ -390,12 +390,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset(*args, **kwargs)
-        if self.action == 'list':
-            return queryset.model.optimize_queryset_for_list(queryset)
-        else:
-            # This is called to retrieve an individual record. How much do we
-            # have to care about optimizations for that?
-            return queryset
+        return queryset
 
     def get_metadata(self, queryset):
         """

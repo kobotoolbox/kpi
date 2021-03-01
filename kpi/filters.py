@@ -86,7 +86,7 @@ class AssetPermissionFilter:
     * the optional 'status' query parameter
     """
     @staticmethod
-    def get_assets_granted_not_denied(**kwargs):
+    def get_asset_pks_granted_not_denied(**kwargs):
         # TODO: use this to rewrite get_objects_for_user()?
         if 'deny' in kwargs:
             raise RuntimeError("Cannot filter on the 'deny' field")
@@ -98,26 +98,28 @@ class AssetPermissionFilter:
         # distinct() required because inherited and directly-assigned
         # permissions can exist simultaneously for the same asset; luckily,
         # it's a cheap operation this time
-        return effective_grants.distinct()
+        return set(effective_grants.distinct().values_list('asset', flat=True))
 
     @classmethod
     def get_public_and_discoverable_pks(cls, queryset):
         view_perm_pk = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
         disco_perm_pk = get_perm_ids_from_code_names(PERM_DISCOVER_ASSET)
         anon_pk = settings.ANONYMOUS_USER_ID
-        public_pks = cls.get_assets_granted_not_denied(
+        public_pks = cls.get_asset_pks_granted_not_denied(
             user=anon_pk, permission=view_perm_pk
         )
-        disco_pks = cls.get_assets_granted_not_denied(
+        disco_pks = cls.get_asset_pks_granted_not_denied(
             user=anon_pk, permission=disco_perm_pk
         )
         disco_pks_and_kids = public_pks.intersection(
             disco_pks.union(
                 # include the children of discoverable assets
                 # TODO: make discoverability inheritable?
-                queryset.order_by().filter(parent__in=disco_pks).values('pk')
+                queryset.order_by()
+                .filter(parent__in=disco_pks)
+                .values_list('pk', flat=True)
             )
-        ).distinct()
+        )
         return public_pks, disco_pks_and_kids
 
     @classmethod
@@ -130,11 +132,11 @@ class AssetPermissionFilter:
         if request.user.is_anonymous:
             # we've already handled anonymous' view assignments as "public",
             # so don't add anything here
-            explicitly_viewable_pks = ObjectPermission.objects.none()
+            explicitly_viewable_pks = []
         else:
             # find assets that the requestor specifically has permission to
             # view
-            explicitly_viewable_pks = cls.get_assets_granted_not_denied(
+            explicitly_viewable_pks = cls.get_asset_pks_granted_not_denied(
                 user=request.user,
                 permission=view_perm_pk,
             )
@@ -143,13 +145,13 @@ class AssetPermissionFilter:
         if view.action == 'list':
             # this is a list, so the only public assets we may reveal are the
             # discoverable ones
-            all_viewable_pks = all_viewable_pks.union(disco_pks_and_kids)
+            all_viewable_pks.update(disco_pks_and_kids)
         else:
             # if we're here, the requestor already knows the identity of a
             # specific asset. discoverability doesn't matter!
-            all_viewable_pks = all_viewable_pks.union(public_pks)
+            all_viewable_pks.update(public_pks)
 
-        return all_viewable_pks.distinct()
+        return all_viewable_pks
 
     @classmethod
     def filter_by_status(cls, status, user, queryset):
@@ -171,7 +173,7 @@ class AssetPermissionFilter:
             return queryset.filter(owner=user)
         elif status == ASSET_STATUS_SHARED:
             return queryset.filter(
-                pk__in=cls.get_assets_granted_not_denied(
+                pk__in=cls.get_asset_pks_granted_not_denied(
                     user=user,
                     permission=get_perm_ids_from_code_names(PERM_VIEW_ASSET),
                 )
@@ -220,14 +222,13 @@ class AssetPermissionFilter:
             # ok, boss, you get it all
             return queryset
 
-        return self.filter_by_status('shared', request.user, queryset) | self.filter_by_status('subscribed', request.user, queryset)
-        '''
+        #return self.filter_by_status('shared', request.user, queryset) | self.filter_by_status('subscribed', request.user, queryset)
         all_viewable_pks = self.get_all_viewable_pks(request, queryset, view)
 
-        return queryset.filter(
-            pk__in=queryset.filter(pk__in=all_viewable_pks.distinct())
-        )
-        '''
+        christ = queryset.filter(pk__in=all_viewable_pks)
+        raisin = len(all_viewable_pks)
+        christ.count = lambda: raisin
+        return christ
 
 
 class RelatedAssetPermissionsFilter(AssetPermissionFilter):

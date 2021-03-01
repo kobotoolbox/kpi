@@ -877,19 +877,20 @@ class Asset(ObjectPermissionMixin,
     @staticmethod
     def optimize_queryset_for_list(queryset):
         """ Used by serializers to improve performance when listing assets """
-        queryset = queryset.defer(
-            # Avoid pulling these from the database because they are often huge
-            # and we don't need them for list views.
-            'content', 'report_styles'
-        ).select_related(
+        queryset = queryset.select_related(
             # We only need `username`, but `owner__username` doesn't work:
             # https://code.djangoproject.com/ticket/29072
             'owner', 'parent',
+        ).defer(
+            # Avoid pulling these from the database because they are often huge
+            # and we don't need them for list views.
+            'content', 'report_styles',
+            'parent__content', 'parent__report_styles',
         ).prefetch_related(
             'permissions__permission',
             'permissions__user',
             'subscriptions',
-            'children',
+            Prefetch('children', queryset=Asset.objects.only('parent', 'uid')),
             # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
             # related objects in a list (`prefetched_list`) that we can use in
             # other methods to avoid additional queries; see:

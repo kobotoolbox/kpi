@@ -48,7 +48,19 @@ class AssetPagination(Paginated):
             return []
 
         t1 = time.time()
-        chonk = list(queryset[self.offset:self.offset + self.limit])
+        chonk = list(
+            queryset.model.optimize_queryset_for_list(
+                queryset.filter(
+                    pk__in=list(
+                        queryset.values_list('pk', flat=True)[
+                            self.offset : self.offset + self.limit
+                        ]
+                    )
+                )
+            )
+        )
+        #chonk = list(queryset.model.optimize_queryset_for_list(queryset[self.offset:self.offset + self.limit]))
+        #chonk = list(queryset[self.offset:self.offset + self.limit])
         t2 = time.time()
         print('BIG CHONK took', roundms(t2 - t1))
         return chonk

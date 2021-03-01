@@ -348,7 +348,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             (
                 not a.deny
                 for a in all_assignments
-                if a.user == user and a.permission.codename == PERM_MANAGE_ASSET
+                if a.user_id == user.pk
+                and a.permission.codename == PERM_MANAGE_ASSET
             )
         )
         if requestor_can_manage:
@@ -400,7 +401,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return None
 
         access_types = []
-        if request.user == obj.owner:
+        if request.user.pk == obj.owner_id:
             access_types.append('owned')
 
         # User can view the collection.
@@ -422,7 +423,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             ):
                 access_types.append('public')
 
-                if request.user == obj.owner:
+                if request.user.pk == obj.owner_id:
                     # Do not go further, `access_type` cannot be `shared`
                     # and `owned`
                     break
@@ -430,7 +431,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             if (
                 request.user != obj.owner
                 and not obj_permission.deny
-                and obj_permission.user == request.user
+                and obj_permission.user_id == request.user.pk
             ):
                 access_types.append('shared')
                 # Do not go further, we assume `settings.ANONYMOUS_USER_ID`
@@ -440,7 +441,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         # User has subscribed to this collection
         for subscription in obj.subscriptions.all():
-            if subscription.user == request.user:
+            if subscription.user_id == request.user.pk:
                 access_types.append('subscribed')
                 break
 
