@@ -546,25 +546,6 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             self.assertEqual(assignable_perm['url'], expected_response[index]['url'])
             self.assertEqual(assignable_perm['label'], expected_response[index]['label'])
 
-    def test_cannot_update_data_sharing_with_no_deployment(self):
-
-        if not self.URL_NAMESPACE:
-            # By pass test in v1. Data sharing is not available with v1
-            return
-
-        self.assertFalse(self.asset.data_sharing.get('enabled'))
-        payload = {
-            'data_sharing': {
-                'enabled': True,
-            }
-        }
-        response = self.client.patch(self.asset_url,
-                                     data=payload,
-                                     format='json')
-        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['detail'],
-                         'The specified asset has not been deployed')
-
     def test_cannot_update_data_sharing_with_invalid_payload(self):
 
         if not self.URL_NAMESPACE:

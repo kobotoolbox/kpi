@@ -1,6 +1,6 @@
 # coding: utf-8
 from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.exceptions import BadAssetTypeException
+from kpi.exceptions import BadAssetTypeException, DeploymentNotFound
 from .backends import DEPLOYMENT_BACKENDS
 
 
@@ -52,7 +52,7 @@ class DeployableMixin:
     @property
     def deployment(self):
         if not self.has_deployment:
-            raise Exception('must call asset.connect_deployment first')
+            raise DeploymentNotFound
         try:
             backend = self._deployment_data['backend']
             return DEPLOYMENT_BACKENDS[backend](self)

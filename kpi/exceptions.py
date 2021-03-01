@@ -19,13 +19,23 @@ class BadFormatException(Exception):
     pass
 
 
+class DeploymentNotFound(Exception):
+
+    def __init__(self,
+                 message=_('Must call `asset.connect_deployment()` first')):
+        self.message = message
+        super().__init__(self.message)
+
+
 class ImportAssetException(Exception):
     pass
 
 
 class PairedParentException(Exception):
 
-    def __init__(self, message='Parent is not set. Call `self.get_paired_data()` first'):
+    def __init__(self,
+                 message=_('Parent is not set. '
+                           'Must call `asset.get_paired_data()` first')):
         self.message = message
         super().__init__(self.message)
 

@@ -124,7 +124,7 @@ class PairedDataSerializer(serializers.Serializer):
             return
 
         parent = attrs['parent']
-        schema = parent.latest_deployed_version.to_formpack_schema()
+        schema = parent.latest_version.to_formpack_schema()
         form_pack = FormPack(versions=schema)
         valid_fields = [
             f.path for f in form_pack.get_fields_for_versions()

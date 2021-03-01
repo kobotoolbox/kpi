@@ -476,40 +476,36 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         The responsibility of valid date is on users
         """
         errors = {}
-        if data_sharing is not None:
-            if not self.instance or not self.instance.has_deployment:
-                raise ObjectDeploymentDoesNotExist(
-                    _('The specified asset has not been deployed')
-                )
+        if not self.instance or not data_sharing:
+            return data_sharing
 
-            if data_sharing != {}:
-                if 'enabled' not in data_sharing:
-                    errors['enabled'] = _('The property is required')
+        if 'enabled' not in data_sharing:
+            errors['enabled'] = _('The property is required')
 
-                if 'fields' in data_sharing:
-                    if not isinstance(data_sharing['fields'], list):
-                        errors['fields'] = _(
-                            'The property must be list, not {}'
-                        ).format(data_sharing['fields'].__class__.__name__)
-                    else:
-                        asset = self.instance
-                        fields = data_sharing['fields']
-                        schema = asset.latest_deployed_version.to_formpack_schema()  # noqa
-                        form_pack = FormPack(versions=schema)
-                        valid_fields = [
-                            f.path for f in form_pack.get_fields_for_versions()
-                        ]
-                        unknown_fields = set(fields) - set(valid_fields)
-                        if unknown_fields and valid_fields:
-                            errors['fields'] = _(
-                                'Some fields are invalid, '
-                                'choices are: `{valid_fields}`'
-                            ).format(valid_fields='`,`'.join(valid_fields))
-                else:
-                    data_sharing['fields'] = []
+        if 'fields' in data_sharing:
+            if not isinstance(data_sharing['fields'], list):
+                errors['fields'] = _(
+                    'The property must be list, not {}'
+                ).format(data_sharing['fields'].__class__.__name__)
+            else:
+                asset = self.instance
+                fields = data_sharing['fields']
+                schema = asset.latest_version.to_formpack_schema()
+                form_pack = FormPack(versions=schema)
+                valid_fields = [
+                    f.path for f in form_pack.get_fields_for_versions()
+                ]
+                unknown_fields = set(fields) - set(valid_fields)
+                if unknown_fields and valid_fields:
+                    errors['fields'] = _(
+                        'Some fields are invalid, '
+                        'choices are: `{valid_fields}`'
+                    ).format(valid_fields='`,`'.join(valid_fields))
+        else:
+            data_sharing['fields'] = []
 
-                if errors:
-                    raise serializers.ValidationError(errors)
+        if errors:
+            raise serializers.ValidationError(errors)
 
         return data_sharing
 
