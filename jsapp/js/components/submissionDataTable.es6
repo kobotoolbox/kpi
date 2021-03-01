@@ -136,6 +136,7 @@ class SubmissionDataTable extends React.Component {
               {choice.label[this.props.translationIndex] || choice.name}
             </bem.SubmissionDataTable__value>
           );
+        }
       case QUESTION_TYPES.select_multiple.id:
         return (
           <ul>
