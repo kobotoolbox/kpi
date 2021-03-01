@@ -1,0 +1,171 @@
+.connect-projects {
+  margin: 24px;
+
+  .connect-projects__export {
+    display: flex;
+    justify-content: space-between;
+
+    .connect-projects__export-switch {
+      display: block;
+      margin-top: 20px;
+      margin-right: 32px;
+      width: 30%;
+      .toggle-switch {
+        margin-bottom: 10px;
+        .toggle-switch__label {
+          font-weight: bold;
+        }
+      }
+    }
+
+    .connect-projects__export-multicheckbox {
+      width: 60%;
+      position: relative;
+      height: 200px;
+    }
+  }
+
+  .attached-projects-list {
+    label {
+      margin-top: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      color: darken($kobo-midgray, 10%);
+    }
+
+    .imported-item {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 10px;
+      margin-top: 7px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid;
+      border-color: lighten($kobo-midgray, 15%);
+      i.k-icon-check {
+        color: $kobo-blue;
+      }
+
+      .imported-names {
+        i.k-icon-check {
+          color: $kobo-blue;
+          font-weight: bold;
+        }
+
+        position: absolute;
+        top: 6px;
+        left: 32px;
+        font-weight: 500;
+
+        .imported-parent {
+          margin-left: 24px;
+          font-weight: 400;
+          color: darken($kobo-midgray, 20%);
+        }
+      }
+
+      .imported-options {
+        position: relative;
+        i {
+          position: absolute;
+          right: 0;
+          font-weight: bold;
+          cursor: pointer;
+          border: 1px solid;
+          border-radius: 10%;
+        }
+        i:not(:first-child) {
+          margin-right: 45px;
+        }
+
+        i.k-icon-trash {
+          color: $kobo-red;
+          &:hover {
+            color: $kobo-white;
+            background-color: $kobo-red;
+            border-color: $kobo-red;
+          }
+        }
+        i.k-icon-settings {
+          color: $kobo-blue;
+          &:hover {
+            color: $kobo-white;
+            background-color: $kobo-blue;
+            border-color: $kobo-blue;
+          }
+        }
+      }
+    }
+  }
+
+  .form-modal__item--data-sharing {
+    border-bottom: 1px solid;
+    border-color: lighten($kobo-midgray, 20%);
+    padding-bottom: 24px;
+  }
+
+  .form-modal__item {
+    margin-left: 10px;
+  }
+
+  .connect-projects-header {
+    display: flex;
+    i {
+      margin-top: 10px;
+    }
+  }
+
+  .form-modal__item--import-data {
+    .import-data-form {
+      position: relative;
+      display: flex;
+
+      .kobo-select__wrapper {
+        width: 50%;
+        margin-right: 50px;
+        label {
+          margin-top: 0px;
+        }
+        .kobo-select__placeholder {
+          color: $kobo-black;
+        }
+      }
+      .text-box {
+        width: 35%;
+        margin-top: 0px;
+        margin-right: 24px;
+        input {
+          padding: 9px 10px;
+          background-color: $kobo-white;
+          color: $kobo-black;
+        }
+      }
+      .kobo-button {
+        max-height: 40px;
+      }
+    }
+
+    .loading__inner {
+      i {
+        vertical-align: text-bottom;
+      }
+    }
+
+    .no-imports {
+      @extend .imported-item;
+      font-style: italic;
+      color: $kobo-midgray;
+      padding-bottom: 10px;
+    }
+  }
+
+  p {
+    margin-top: 0px;
+    margin-bottom: 28px;
+  }
+
+  i {
+    font-size: 32px;
+    margin-right: 5px;
+  }
+}
