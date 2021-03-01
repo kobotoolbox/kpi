@@ -405,13 +405,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             access_types.append('owned')
 
         # User can view the collection.
-        try:
-            # The list view should provide a cache
-            asset_permission_assignments = self.context[
-                'object_permissions_per_asset'
-            ].get(obj.pk, [])
-        except KeyError:
-            asset_permission_assignments = obj.permissions.all()
+        asset_permission_assignments = obj.permissions.all()
 
         # We test at the same time whether the collection is public or not
         for obj_permission in asset_permission_assignments:
@@ -491,35 +485,38 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         """
         Returns a string summarizing the permission assignments on this object:
             - 'private': only the owner has permissions
-            - 'public': anonymous has `view_` but not `discover_`
-            - 'public-discoverable': anonymous has `discover_`
-            - 'shared': non-owning users have permissions
+            - 'public': anonymous has `view_asset` but not `discover_asset`
+            - 'public-discoverable': anonymous has `discover_asset`
+            - 'shared': non-owning users have `view_asset`
         """
         # TODO: why is this method needed if we return `permissions` in the
         # list serializer?
-        has_anonymous_discover = False
-        has_anonymous_other = False
-        has_non_owner_access = False
-        # Don't `filter()` here to take advantage of `prefetch_related()`
-        for perm_assignment in obj.permissions.all():
-            if perm_assignment.deny:
-                continue
-            if perm_assignment.user_id == settings.ANONYMOUS_USER_ID:
-                if perm_assignment.permission.codename == 'PERM_DISCOVER_ASSET':
-                    has_anonymous_discover = True
-                else:
-                    has_anonymous_other = True
-            elif perm_assignment.user_id != obj.owner_id:
-                has_non_owner_access = True
 
-        if has_anonymous_discover:
-            return 'public-discoverable'
-        elif has_anonymous_other:
-            return 'public'
-        elif has_non_owner_access:
-            return 'shared'
-        else:
-            return 'private'
+        # Don't `obj.permissions.filter()` to take advantage of
+        # `prefetch_related()`
+        grants = {
+            (pa.user_id, pa.permission.codename)
+            for pa in obj.permissions.all()
+            if pa.deny == False
+        }
+        denials = {
+            (pa.user_id, pa.permission.codename)
+            for pa in obj.permissions.all()
+            if pa.deny == True
+        }
+        effective = grants.difference(denials)
+        if (settings.ANONYMOUS_USER_ID, PERM_DISCOVER_ASSET) in effective:
+            return ASSET_STATUS_DISCOVERABLE
+        if (settings.ANONYMOUS_USER_ID, PERM_VIEW_ASSET) in effective:
+            return ASSET_STATUS_PUBLIC
+        for user_id, _ in effective:
+            if (
+                user_id != settings.ANONYMOUS_USER_ID
+                and user_id != obj.owner_id
+            ):
+                return ASSET_STATUS_SHARED
+
+        return ASSET_STATUS_PRIVATE
 
     def _table_url(self, obj):
         request = self.context.get('request', None)
@@ -528,20 +525,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                        request=request)
 
 
-import pickle, time
 class AssetListSerializer(AssetSerializer):
-
-    def __init__(self, *args, **kwargs):
-        self.total_took = 0
-        print()
-        super().__init__(*args, **kwargs)
-
-    def to_representation(self, *args, **kwargs):
-        t0 = time.time(); r = super().to_representation(*args, **kwargs); t1 = time.time()
-        took = round((t1 - t0) * 1000)
-        self.total_took += took
-        print('\rSERI TOOK', took, 'TOTAL', self.total_took, end='    ', flush=True)
-        return r
 
     class Meta(AssetSerializer.Meta):
         # WARNING! If you're changing something here, please update

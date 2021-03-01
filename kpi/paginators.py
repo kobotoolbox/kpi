@@ -11,6 +11,8 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
 
+from kpi.utils.naughty import clear_filtering
+
 
 class DataPagination(LimitOffsetPagination):
     """
@@ -29,11 +31,15 @@ class Paginated(LimitOffsetPagination):
         return reverse_lazy('api-root', request=self.context.get('request'))
 
 
-import time
-roundms = lambda x: round(x*1000)
 class AssetPagination(Paginated):
 
     def paginate_queryset(self, queryset, request, view=None):
+        """
+        Largely copied from rest_framework.pagination.LimitOffsetPagination.
+        For the moment (Django REST Framework 3.10.3), we cannot
+        `super().paginate_queryset()` because the superclass coerces the
+        queryset slice into a list before returning
+        """
         self.count = self.get_count(queryset)
         self.limit = self.get_limit(request)
         if self.limit is None:
@@ -47,23 +53,23 @@ class AssetPagination(Paginated):
         if self.count == 0 or self.offset > self.count:
             return []
 
-        t1 = time.time()
-        chonk = list(
-            queryset.model.optimize_queryset_for_list(
-                queryset.filter(
-                    pk__in=list(
-                        queryset.values_list('pk', flat=True)[
-                            self.offset : self.offset + self.limit
-                        ]
-                    )
-                )
+        # Remove filtering (but keep other options!) from the queryset since we
+        # don't need to filter by some PKs and then filter again by a subset of
+        # those same PKs
+        unfiltered_qs = clear_filtering(queryset)
+        # Minimize the expense of `optimize_queryset_for_list()`, which pulls
+        # in tons of data, by running it on a new queryset filtered for this
+        # particular page only, not the overall queryset that potentially
+        # contains several thousand results
+        sliced_qs = unfiltered_qs.filter(
+            pk__in=list(
+                queryset.values_list('pk', flat=True)[
+                    self.offset : self.offset + self.limit
+                ]
             )
         )
-        #chonk = list(queryset.model.optimize_queryset_for_list(queryset[self.offset:self.offset + self.limit]))
-        #chonk = list(queryset[self.offset:self.offset + self.limit])
-        t2 = time.time()
-        print('BIG CHONK took', roundms(t2 - t1))
-        return chonk
+        this_page_qs = queryset.model.optimize_queryset_for_list(sliced_qs)
+        return list(this_page_qs)  # because that's what the superclass does!
 
     def get_paginated_response(self, data, metadata):
 
@@ -79,9 +85,10 @@ class AssetPagination(Paginated):
         return Response(response)
 
     def get_count(self, queryset):
-        t0 = time.time(); c = super().get_count(queryset); t1 = time.time()
-        print('COUNT TOOK', roundms(t1 - t0))
-        return c
+        # TODO: Optimize! We have a starting count from the length of the list
+        # of Asset PKs returned by ObjectPermission queries, but that doesn't
+        # help once other filtering comes into play
+        return super().get_count(queryset)
 
     def get_paginated_response_schema(self, schema):
         return {

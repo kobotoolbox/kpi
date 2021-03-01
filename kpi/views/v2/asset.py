@@ -388,10 +388,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return super().finalize_response(
             request, response, *args, **kwargs)
 
-    def get_queryset(self, *args, **kwargs):
-        queryset = super().get_queryset(*args, **kwargs)
-        return queryset
-
     def get_metadata(self, queryset):
         """
         Prepare metadata to inject in list endpoint.

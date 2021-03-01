@@ -1,4 +1,6 @@
 # coding: utf-8
+from typing import Tuple
+
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
@@ -32,7 +34,6 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-        print(type(self), 'filter_queryset()')
         fields = {"asset__owner": request.user}
         return queryset.filter(**fields)
 
@@ -40,7 +41,6 @@ class AssetOwnerFilterBackend(filters.BaseFilterBackend):
 class AssetOrderingFilter(filters.OrderingFilter):
 
     def filter_queryset(self, request, queryset, view):
-        print(type(self), 'filter_queryset()')
         query_params = request.query_params
         collections_first = query_params.get('collections_first',
                                              'false').lower() == 'true'
@@ -86,10 +86,23 @@ class AssetPermissionFilter:
     * the optional 'status' query parameter
     """
     @staticmethod
-    def get_asset_pks_granted_not_denied(**kwargs):
+    def get_asset_pks_granted_not_denied(**kwargs) -> set:
         # TODO: use this to rewrite get_objects_for_user()?
         if 'deny' in kwargs:
             raise RuntimeError("Cannot filter on the 'deny' field")
+
+        # Another option would be the Postgres-specific BoolOr annotation, but
+        # it seems to be slightly slower. I'm leaving it here in case my
+        # benchmarking turns out to be wrong:
+        #
+        # return set(
+        #     ObjectPermission.objects.filter(**kwargs)
+        #     .values('asset')
+        #     .annotate(any_deny=BoolOr('deny'))
+        #     .filter(any_deny=False)
+        #     .values_list('asset', flat=True).distinct()
+        # )
+
         grants = ObjectPermission.objects.filter(deny=False, **kwargs)
         denies = ObjectPermission.objects.filter(deny=True, **kwargs)
         effective_grants = grants.values('asset').difference(
@@ -100,8 +113,11 @@ class AssetPermissionFilter:
         # it's a cheap operation this time
         return set(effective_grants.distinct().values_list('asset', flat=True))
 
+
     @classmethod
-    def get_public_and_discoverable_pks(cls, queryset):
+    def get_public_and_discoverable_pks(
+        cls, queryset, include_children_of_discoverable=False
+    ) -> Tuple[set, set]:
         view_perm_pk = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
         disco_perm_pk = get_perm_ids_from_code_names(PERM_DISCOVER_ASSET)
         anon_pk = settings.ANONYMOUS_USER_ID
@@ -111,28 +127,32 @@ class AssetPermissionFilter:
         disco_pks = cls.get_asset_pks_granted_not_denied(
             user=anon_pk, permission=disco_perm_pk
         )
-        disco_pks_and_kids = public_pks.intersection(
-            disco_pks.union(
-                # include the children of discoverable assets
-                # TODO: make discoverability inheritable?
-                queryset.order_by()
-                .filter(parent__in=disco_pks)
-                .values_list('pk', flat=True)
+        if include_children_of_discoverable:
+            disco_pks_and_kids = public_pks.intersection(
+                disco_pks.union(
+                    # include the children of discoverable assets
+                    # TODO: make discoverability inheritable?
+                    queryset.order_by()
+                    .filter(parent__in=disco_pks)
+                    .values_list('pk', flat=True)
+                )
             )
-        )
-        return public_pks, disco_pks_and_kids
+            return public_pks, disco_pks_and_kids
+        else:
+            return public_pks, disco_pks
 
     @classmethod
-    def get_all_viewable_pks(cls, request, queryset, view):
+    def get_all_viewable_pks(cls, request, queryset, view) -> set:
         public_pks, disco_pks_and_kids = cls.get_public_and_discoverable_pks(
-            queryset
+            # NOCOMMIT wretched bullshit
+            queryset, include_children_of_discoverable='parent__uid:' in request.query_params.get('q', '')
         )
 
         view_perm_pk = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
         if request.user.is_anonymous:
             # we've already handled anonymous' view assignments as "public",
             # so don't add anything here
-            explicitly_viewable_pks = []
+            explicitly_viewable_pks = set()
         else:
             # find assets that the requestor specifically has permission to
             # view
@@ -154,7 +174,7 @@ class AssetPermissionFilter:
         return all_viewable_pks
 
     @classmethod
-    def filter_by_status(cls, status, user, queryset):
+    def get_pks_for_status(cls, status, user, queryset) -> set:
         """
         'status' is an optional query parameter that accepts the following
         values:
@@ -172,11 +192,9 @@ class AssetPermissionFilter:
         if status == ASSET_STATUS_PRIVATE:
             return queryset.filter(owner=user)
         elif status == ASSET_STATUS_SHARED:
-            return queryset.filter(
-                pk__in=cls.get_asset_pks_granted_not_denied(
-                    user=user,
-                    permission=get_perm_ids_from_code_names(PERM_VIEW_ASSET),
-                )
+            return cls.get_asset_pks_granted_not_denied(
+                user=user,
+                permission=get_perm_ids_from_code_names(PERM_VIEW_ASSET),
             )
         elif status == ASSET_STATUS_SUBSCRIBED:
             if is_anonymous:
@@ -185,50 +203,58 @@ class AssetPermissionFilter:
             _, disco_pks_and_kids = cls.get_public_and_discoverable_pks(
                 queryset
             )
-            subscribed_pks = UserAssetSubscription.objects.filter(
-                user=user
-            ).values('asset')
-            return queryset.filter(
-                pk__in=subscribed_pks.intersection(disco_pks_and_kids)
+            subscribed_pks = set(
+                UserAssetSubscription.objects.filter(user=user).values_list(
+                    'asset', flat=True
+                )
             )
+            return subscribed_pks.intersection(disco_pks_and_kids)
         elif status == ASSET_STATUS_DISCOVERABLE:
             _, disco_pks_and_kids = cls.get_public_and_discoverable_pks(
                 queryset
             )
-            return queryset.filter(pk__in=disco_pks_and_kids)
+            return disco_pks_and_kids
         elif status == ASSET_STATUS_PUBLIC:
             # 'public' as returned by AssetSerializer._get_status() has nothing
             # to do with subscriptions, but this class used to treat 'public'
             # the way we treat 'subscribed' now
-            # FIXME: figure out the original intent
+            # FIXME: figure out the original intent. For now, cause a 500 error
+            # to attract developer attention if this is actually used anywhere
             raise NotImplementedError("Cannot query the 'public' status")
 
         # Invalid status filter: return no matches to make the mistake
         # obvious
-        return queryset.none()
+        return set()
 
     def filter_queryset(self, request, queryset, view):
-        print(type(self), 'filter_queryset()')
-        #return queryset.filter(owner__username='hundo')
+        # TODO: make the query parser accept callables for non-database fields
         STATUS_PARAMETER = 'status'
-        try:
-            status = request.query_params[STATUS_PARAMETER].strip()
-        except KeyError:
-            pass
-        else:
-            return self.filter_by_status(status, request.user, queryset)
 
         if request.user.is_superuser and view.action != 'list':
-            # ok, boss, you get it all
+            # ok, boss, you get whatever you want individually, but not an
+            # overwhelming list of everything in the system
             return queryset
 
-        #return self.filter_by_status('shared', request.user, queryset) | self.filter_by_status('subscribed', request.user, queryset)
-        all_viewable_pks = self.get_all_viewable_pks(request, queryset, view)
+        status = request.query_params.get(STATUS_PARAMETER, '').strip()
+        if status:
+            pks = self.get_pks_for_status(status, request.user, queryset)
+        else:
+            pks = self.get_all_viewable_pks(request, queryset, view)
 
-        christ = queryset.filter(pk__in=all_viewable_pks)
-        raisin = len(all_viewable_pks)
-        christ.count = lambda: raisin
-        return christ
+        # We are back with our old friend, the huge `SELECT…WHERE id IN (∞)`
+        # query. It's working better than some alternatives, but there may be
+        # better ways to filter by a large number of PKs. Ideas:
+        #   https://dba.stackexchange.com/a/91254
+        #   https://stackoverflow.com/q/52393204
+        #   https://github.com/dimagi/django-cte (?)
+        #
+        # WARNING: the Django Debug Toolbar takes a HUGE amount of time to
+        # parse long SQL queries. The SQL panel still provides accurate timing
+        # information, but its parsing kills the overall response time (like
+        # 60+ seconds vs. <1.5 seconds for ~5000 assets). The `djdt_flamegraph`
+        # panel helped me get a handle on this when the built-in profiler
+        # wasn't accounting for all the CPU time. --jnm 20210301
+        return queryset.filter(pk__in=pks)
 
 
 class RelatedAssetPermissionsFilter(AssetPermissionFilter):
@@ -240,7 +266,6 @@ class RelatedAssetPermissionsFilter(AssetPermissionFilter):
     """
 
     def filter_queryset(self, request, queryset, view):
-        print(type(self), 'filter_queryset()')
         available_assets = super().filter_queryset(
             request=request,
             queryset=Asset.objects.all(),
@@ -260,7 +285,6 @@ class SearchFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-        print(type(self), 'filter_queryset()')
         try:
             q = request.query_params['q']
         except KeyError:
@@ -293,7 +317,6 @@ class KpiAssignedObjectPermissionsFilter(filters.BaseFilterBackend):
     """
 
     def filter_queryset(self, request, queryset, view):
-        print(type(self), 'filter_queryset()')
         # TODO: omit objects for which the user has only a deny permission
         user = request.user
         if isinstance(request.user, AnonymousUser):
