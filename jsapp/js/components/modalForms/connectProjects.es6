@@ -196,10 +196,7 @@ class ConnectProjects extends React.Component {
     var data = JSON.stringify({
       data_sharing: {
         enabled: !this.state.isShared,
-        // Populate fields array if enabling
-        fields: !this.state.isShared
-        ? this.generateAvailableColumns(this.props.asset.content.survey)
-        : [],
+        fields: [],
       }
     });
 
