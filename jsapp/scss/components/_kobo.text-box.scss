@@ -12,10 +12,9 @@ label.text-box {
     }
   }
 
-  &.text-box--on-white input.text-box__input {
-    border-top-color: rgba($kobo-lightgray, 0.5);
-    border-left-color: rgba($kobo-lightgray, 0.5);
-    border-right-color: rgba($kobo-lightgray, 0.5);
+  &.text-box--on-white input.text-box__input,
+  &.text-box--on-white textarea.text-box__input {
+    border-color: $kobo-lightgray;
 
     &:focus {
       border-color: $kobo-blue;
@@ -41,6 +40,8 @@ label.text-box {
     width: 100%;
     padding: 4px 10px;
     font-size: 15px;
+    color: inherit;
+    background-color: transparent;
     border: 1px solid transparent;
     border-bottom-color: $kobo-lightgray;
     transition: border-color 0.3s;
@@ -48,6 +49,19 @@ label.text-box {
     &:focus {
       transition: border-color 0.3s;
       border-bottom-color: $kobo-blue;
+    }
+
+    &:disabled {
+      color: $kobo-midgray;
+      pointer-events: none;
+
+      &::placeholder {
+        color: $kobo-midgray;
+      }
+    }
+
+    &::placeholder {
+      color: $kobo-darkgray;
     }
   }
 }

@@ -14,7 +14,7 @@ from django.core.management.base import BaseCommand
 from pyxform.xls2json_backends import csv_to_dict
 
 from kpi.models import Asset
-from kpi.models import Collection
+from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.model_utils import _set_auto_field_update
 
 
@@ -34,7 +34,10 @@ def _import_user_drafts(server, username, draft_id, fpath):
         owner.set_password('password')
         owner.save()
 
-    (collection, created) = Collection.objects.get_or_create(name="%s's drafts" % (username,), owner=owner)
+    (collection, created) = Asset.objects.get_or_create(
+        asset_type=ASSET_TYPE_COLLECTION,
+        name="%s's drafts" % (username,), owner=owner
+    )
 
     sd = {}
     with open(fpath, 'rb') as ff:
@@ -49,7 +52,9 @@ def _import_user_drafts(server, username, draft_id, fpath):
 
     _set_auto_field_update(Asset, "date_created", True)
     _set_auto_field_update(Asset, "date_modified", True)
-    (asset, sa_created) = collection.assets.get_or_create(name=obj['name'], owner=owner)
+    (asset, sa_created) = collection.children.get_or_create(
+        name=obj["name"], owner=owner
+    )
 
     collection.tags = "server-%s" % server
     survey_dict = _csv_to_dict(sd['body'])
@@ -71,7 +76,6 @@ class Command(BaseCommand):
             raise Exception("directory doesnt exist")
 
         Asset.objects.all().delete()
-        Collection.objects.all().delete()
 
         n = 0
         maxn = 300000

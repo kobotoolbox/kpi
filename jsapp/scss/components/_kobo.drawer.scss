@@ -76,11 +76,8 @@ $drawer-background: $kobo-whitegray;
   width: calc(100% - #{$drawer-icons-width});
   height: 100%;
   padding: 20px 14px;
-
-  .form-sidebar__wrapper,
-  .collections-wrapper {
-    height: 100%;
-  }
+  display: flex;
+  flex-direction: column;
 
   button.mdl-button {
     width: 100%;

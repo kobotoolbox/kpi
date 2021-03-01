@@ -3,7 +3,6 @@ from django.http import Http404
 from rest_framework import exceptions, permissions
 
 from kpi.models.asset import Asset
-from kpi.models.collection import Collection
 from kpi.models.object_permission import get_anonymous_user
 from kpi.constants import PERM_PARTIAL_SUBMISSIONS
 
@@ -23,7 +22,7 @@ def get_perm_name(perm_name_prefix, model_instance):
     :type perm_name_prefix: str
     :param model_instance: An instance of the model for which the permission
         name is desired.
-    :type model_instance: :py:class:`Collection` or :py:class:`Asset`
+    :type model_instance: :py:class:`Asset`
     :return: The computed permission name.
     :rtype: str
     """
@@ -33,23 +32,24 @@ def get_perm_name(perm_name_prefix, model_instance):
     return perm_name
 
 
-class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
+class BaseAssetNestedObjectPermission(permissions.BasePermission):
     """
-    Main abstract class for Asset/Collection and related objects permissions
-    Common methods are property are defined within this class.
+    Base class for Asset and related objects permissions
     """
 
-    @property
-    def perms_map(self):
-        raise NotImplementedError
+    MODEL_NAME = Asset._meta.model_name
+    APP_LABEL = Asset._meta.app_label
 
-    def has_permission(self, request, view):
-        raise NotImplementedError
-
-    def has_object_permission(self, request, view, obj):
-        # Because authentication checks have already executed via has_permission,
-        # always return True.
-        return True
+    @staticmethod
+    def _get_asset(view):
+        """
+        Returns Asset from the view.
+        The view must have a property `asset`.
+        It's easily done with `AssetNestedObjectViewsetMixin (kpi.utils.viewset_mixins.py)
+        :param view: ViewSet
+        :return: Asset
+        """
+        return view.asset
 
     @classmethod
     def _get_parent_object(cls, view):
@@ -60,6 +60,7 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
         :param view: ViewSet
         :return: Asset/Collection
         """
+        # TODO: remove all collection stuff
         if cls.MODEL_NAME == 'collection':
             return cls._get_collection(view)
         else:
@@ -99,45 +100,10 @@ class AbstractParentObjectNestedObjectPermission(permissions.BasePermission):
         # `app_label` prefix before returning
         return [perm.replace("{}.".format(app_label), "") for perm in perms]
 
-
-class BaseAssetNestedObjectPermission(AbstractParentObjectNestedObjectPermission):
-    """
-    Base class for Asset and related objects permissions
-    """
-
-    MODEL_NAME = Asset._meta.model_name
-    APP_LABEL = Asset._meta.app_label
-
-    @staticmethod
-    def _get_asset(view):
-        """
-        Returns Asset from the view.
-        The view must have a property `asset`.
-        It's easily done with `AssetNestedObjectViewsetMixin (kpi.utils.viewset_mixins.py)
-        :param view: ViewSet
-        :return: Asset
-        """
-        return view.asset
-
-
-class BaseCollectionNestedObjectPermission(AbstractParentObjectNestedObjectPermission):
-    """
-    Base class for Collection and related objects permissions
-    """
-
-    MODEL_NAME = Collection._meta.model_name
-    APP_LABEL = Collection._meta.app_label
-
-    @staticmethod
-    def _get_collection(view):
-        """
-        Returns Collection from the view.
-        The view must have a property `collection`.
-        It's easily done with `CollectionNestedObjectViewsetMixin (kpi.utils.viewset_mixins.py)
-        :param view: ViewSet
-        :return: Collection
-        """
-        return view.collection
+    def has_object_permission(self, request, view, obj):
+        # Because authentication checks have already executed via has_permission,
+        # always return True.
+        return True
 
 
 class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
@@ -155,7 +121,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
     perms_map['HEAD'] = perms_map['GET']
     perms_map['PUT'] = perms_map['POST']
     perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['GET']
 
     def has_permission(self, request, view):
         if not request.user:
@@ -220,26 +186,6 @@ class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
     }
 
 
-class CollectionNestedObjectPermission(BaseCollectionNestedObjectPermission,
-                                       AssetNestedObjectPermission):
-    """
-    Permissions for nested objects of Collection.
-    Users need `*_collection` permissions to operate on these objects
-    """
-
-    perms_map = {
-        'GET': ['%(app_label)s.view_collection'],
-        # TODO: trash this once Collection is a type of Asset
-        'POST': ['%(app_label)s.INTENTIONALLY IMPOSSIBLE TO MATCH'],
-    }
-
-    perms_map['OPTIONS'] = perms_map['GET']
-    perms_map['HEAD'] = perms_map['GET']
-    perms_map['PUT'] = perms_map['POST']
-    perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['POST']
-
-
 # FIXME: Name is no longer accurate.
 class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     """
@@ -271,7 +217,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
     """
 
     MODEL_NAME = "submissions"  # Hard-code `model_name` to match permissions
-    
+
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
         'OPTIONS': ['%(app_label)s.view_%(model_name)s'],
@@ -312,10 +258,18 @@ class EditSubmissionPermission(SubmissionPermission):
     }
 
 
+class DuplicateSubmissionPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'POST': ['%(app_label)s.change_%(model_name)s'],
+    }
+
+
 class SubmissionValidationStatusPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
         'PATCH': ['%(app_label)s.validate_%(model_name)s'],
         'DELETE': ['%(app_label)s.validate_%(model_name)s'],
     }
+
 

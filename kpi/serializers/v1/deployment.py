@@ -1,7 +1,6 @@
 # coding: utf-8
 from django.conf import settings
 from rest_framework import serializers
-from rest_framework import exceptions
 
 from .asset import AssetSerializer
 
@@ -52,7 +51,7 @@ class DeploymentSerializer(serializers.Serializer):
 
         if 'backend' in validated_data and \
                 validated_data['backend'] != deployment.backend:
-            raise exceptions.ValidationError(
+            raise serializers.ValidationError(
                 {'backend': 'This field cannot be modified after the initial '
                             'deployment.'})
 

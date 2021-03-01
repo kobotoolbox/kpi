@@ -2,8 +2,8 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import Checkbox from 'js/components/checkbox';
-import TextBox from 'js/components/textBox';
+import Checkbox from 'js/components/common/checkbox';
+import TextBox from 'js/components/common/textBox';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
@@ -248,7 +248,7 @@ class UserAssetPermsEditor extends React.Component {
    * Enables Enter key on input.
    */
   onInputKeyPress(key, evt) {
-    if (key === KEY_CODES.get('ENTER')) {
+    if (key === KEY_CODES.ENTER) {
       evt.currentTarget.blur();
       evt.preventDefault(); // prevent submitting form
     }
@@ -313,7 +313,7 @@ class UserAssetPermsEditor extends React.Component {
   getLabel(permCodename) {
     return this.props.assignablePerms.get(
       permConfig.getPermissionByCodename(
-        PERMISSIONS_CODENAMES.get(permCodename)
+        PERMISSIONS_CODENAMES[permCodename]
       ).url
     );
   }
@@ -321,7 +321,7 @@ class UserAssetPermsEditor extends React.Component {
   isAssignable(permCodename) {
     return this.props.assignablePerms.has(
       permConfig.getPermissionByCodename(
-        PERMISSIONS_CODENAMES.get(permCodename)
+        PERMISSIONS_CODENAMES[permCodename]
       ).url
     );
   }

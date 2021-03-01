@@ -4,7 +4,6 @@ import autoBind from 'react-autobind';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
-import Checkbox from '../components/checkbox';
 import SurveyScope from '../models/surveyScope';
 import {cascadeMixin} from './cascadeMixin';
 import AssetNavigator from './assetNavigator';
@@ -12,7 +11,6 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import {removeInvalidChars} from 'js/assetUtils';
 import {
   surveyToValidJson,
   unnullifyTranslations,
@@ -24,14 +22,17 @@ import {
   AVAILABLE_FORM_STYLES,
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
-  NAME_MAX_LENGTH
-} from '../constants';
+  NAME_MAX_LENGTH,
+  ROUTES,
+} from 'js/constants';
 import ui from '../ui';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
+import assetUtils from 'js/assetUtils';
+import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -42,23 +43,37 @@ const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without 
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
+/**
+ * This is a component that displays Form Builder's header and aside. It is also
+ * responsible for rendering the survey editor app (all our coffee code). See
+ * the `launchAppForSurveyContent` method below for all the magic.
+ */
+
 export default assign({
   componentDidMount() {
     this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
 
     this.loadAsideSettings();
 
-    if (this.state.editorState === 'existing') {
-      let uid = this.props.params.assetid;
+    if (!this.state.isNewAsset) {
+      let uid = this.props.params.assetid || this.props.params.uid;
       stores.allAssets.whenLoaded(uid, (asset) => {
         this.setState({asset: asset});
 
-        this.launchAppForSurveyContent(asset.content, {
-          name: asset.name,
-          settings__style: asset.settings__style,
-          asset_uid: asset.uid,
-          asset_type: asset.asset_type,
-        });
+        // HACK switch to setState callback after updating to React 16+
+        //
+        // This needs to be called at least a single render after the state's
+        // asset is being set, because `.form-wrap` node needs to exist for
+        // `launchAppForSurveyContent` to work.
+        window.setTimeout(() => {
+          this.launchAppForSurveyContent(asset.content, {
+            name: asset.name,
+            settings__style: asset.settings__style,
+            asset_uid: asset.uid,
+            asset_type: asset.asset_type,
+            asset: asset,
+          });
+        }, 0);
       });
     } else {
       this.launchAppForSurveyContent();
@@ -151,7 +166,7 @@ export default assign({
 
   nameChange(evt) {
     this.setState({
-      name: removeInvalidChars(evt.target.value),
+      name: assetUtils.removeInvalidChars(evt.target.value),
     });
     this.onSurveyChange();
   },
@@ -262,7 +277,7 @@ export default assign({
       params.settings = JSON.stringify(settings);
     }
 
-    if (this.state.editorState === 'new') {
+    if (this.state.isNewAsset) {
       // we're intentionally leaving after creating new asset,
       // so there is nothing unsaved here
       this.unpreventClosingTab();
@@ -273,15 +288,18 @@ export default assign({
       } else {
         params.asset_type = 'block';
       }
+      if (this.state.parentAsset) {
+        params.parent = assetUtils.buildAssetUrl(this.state.parentAsset);
+      }
       actions.resources.createResource.triggerAsync(params)
         .then(() => {
-          hashHistory.push('/library');
+          hashHistory.push(this.state.backRoute);
         });
     } else {
       // update existing asset
-      var assetId = this.props.params.assetid;
+      const uid = this.props.params.assetid || this.props.params.uid;
 
-      actions.resources.updateAsset.triggerAsync(assetId, params)
+      actions.resources.updateAsset.triggerAsync(uid, params)
         .then(() => {
           this.unpreventClosingTab();
           this.setState({
@@ -351,10 +369,10 @@ export default assign({
         return hasSelect;
       })(); // todo: only true if survey has select questions
       ooo.name = this.state.name;
-      ooo.hasSettings = this.state.backRoute === '/forms';
+      ooo.hasSettings = this.state.backRoute === ROUTES.FORMS;
       ooo.styleValue = this.state.settings__style;
     }
-    if (this.state.editorState === 'new') {
+    if (this.state.isNewAsset) {
       ooo.saveButtonText = t('create');
     } else if (this.state.surveySaveFail) {
       ooo.saveButtonText = `${t('save')} (${t('retry')}) `;
@@ -396,6 +414,11 @@ export default assign({
     });
   },
 
+  /**
+   * The de facto function that is running our Form Builder survey editor app.
+   * It builds `dkobo_xlform.view.SurveyApp` using asset data and then appends
+   * it to `.form-wrap` node.
+   */
   launchAppForSurveyContent(survey, _state = {}) {
     if (_state.name) {
       _state.savedName = _state.name;
@@ -403,7 +426,7 @@ export default assign({
 
     let isEmptySurvey = (
         survey &&
-        Object.keys(survey.settings).length === 0 &&
+        (survey.settings && Object.keys(survey.settings).length === 0) &&
         survey.survey.length === 0
       );
 
@@ -469,25 +492,23 @@ export default assign({
   },
 
   safeNavigateToList() {
-    if (this.state.asset_type) {
-      if (this.state.asset_type === 'survey') {
-        this.safeNavigateToRoute('/forms/');
-      } else {
-        this.safeNavigateToRoute('/library/');
-      }
-    } else if (this.props.location.pathname.startsWith('/library/new')) {
-      this.safeNavigateToRoute('/library/');
+    if (this.state.backRoute) {
+      this.safeNavigateToRoute(this.state.backRoute);
+    } else if (this.props.location.pathname.startsWith(ROUTES.LIBRARY)) {
+      this.safeNavigateToRoute(ROUTES.LIBRARY);
     } else {
-      this.safeNavigateToRoute('/forms/');
+      this.safeNavigateToRoute(ROUTES.FORMS);
     }
   },
 
-  safeNavigateToForm() {
-    var backRoute = this.state.backRoute;
-    if (this.state.backRoute === '/forms') {
-      backRoute = `/forms/${this.state.asset_uid}`;
+  safeNavigateToAsset() {
+    let targetRoute = this.state.backRoute;
+    if (this.state.backRoute === ROUTES.FORMS) {
+      targetRoute = ROUTES.FORM.replace(':uid', this.state.asset_uid);
+    } else if (this.state.backRoute === ROUTES.LIBRARY) {
+      targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid);
     }
-    this.safeNavigateToRoute(backRoute);
+    this.safeNavigateToRoute(targetRoute);
   },
 
   // rendering methods
@@ -571,7 +592,7 @@ export default assign({
 
             <bem.FormBuilderHeader__close
               m={[{'close-warning': this.needsSave()}]}
-              onClick={this.safeNavigateToForm}
+              onClick={this.safeNavigateToAsset}
             >
               <i className='k-icon-close'/>
             </bem.FormBuilderHeader__close>
@@ -774,35 +795,49 @@ export default assign({
       );
     }
 
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
+    return renderLoading();
   },
 
   render() {
     var docTitle = this.state.name || t('Untitled');
+
+    if (!this.state.isNewAsset && !this.state.asset) {
+      return (
+        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+          {renderLoading()}
+        </DocumentTitle>
+      );
+    }
+
+    // Only allow user to edit form if they have "Edit Form" permission
+    var userCanEditForm = (
+      this.state.isNewAsset ||
+      assetUtils.isSelfOwned(this.state.asset) ||
+      this.userCan('change_asset', this.state.asset)
+    );
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <ui.Panel m={['transparent', 'fixed']}>
           {this.renderAside()}
 
-          <bem.FormBuilder>
+          {userCanEditForm &&
+            <bem.FormBuilder>
             {this.renderFormBuilderHeader()}
 
-            <bem.FormBuilder__contents>
-              <div ref='form-wrap' className='form-wrap'>
-                {!this.state.surveyAppRendered &&
-                  this.renderNotLoadedMessage()
-                }
-              </div>
-            </bem.FormBuilder__contents>
-          </bem.FormBuilder>
+              <bem.FormBuilder__contents>
+                <div ref='form-wrap' className='form-wrap'>
+                  {!this.state.surveyAppRendered &&
+                    this.renderNotLoadedMessage()
+                  }
+                </div>
+              </bem.FormBuilder__contents>
+            </bem.FormBuilder>
+          }
+
+          {(!userCanEditForm) &&
+            <ui.AccessDeniedMessage/>
+          }
 
           {this.state.enketopreviewOverlay &&
             <ui.Modal

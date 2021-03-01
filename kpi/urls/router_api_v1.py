@@ -12,7 +12,6 @@ from kpi.views.v1 import (
     AssetSnapshotViewSet,
     AssetFileViewSet,
     AuthorizedApplicationUserViewSet,
-    CollectionViewSet,
     ExportTaskViewSet,
     ImportTaskViewSet,
     ObjectPermissionViewSet,
@@ -20,7 +19,7 @@ from kpi.views.v1 import (
     SitewideMessageViewSet,
     SubmissionViewSet,
     UserViewSet,
-    UserCollectionSubscriptionViewSet,
+    UserAssetSubscriptionViewSet,
     TagViewSet,
 )
 
@@ -61,8 +60,7 @@ hook_routes.register(r'logs',
 
 router_api_v1.register(r'asset_snapshots', AssetSnapshotViewSet)
 router_api_v1.register(
-    r'collection_subscriptions', UserCollectionSubscriptionViewSet)
-router_api_v1.register(r'collections', CollectionViewSet)
+    r'asset_subscriptions', UserAssetSubscriptionViewSet)
 router_api_v1.register(r'users', UserViewSet)
 router_api_v1.register(r'tags', TagViewSet)
 router_api_v1.register(r'permissions', ObjectPermissionViewSet)

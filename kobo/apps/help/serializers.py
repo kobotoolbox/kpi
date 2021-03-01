@@ -1,5 +1,4 @@
 # coding: utf-8
-from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
@@ -46,9 +45,9 @@ class InAppMessageSerializer(serializers.ModelSerializer):
             try:
                 interactions.interactions.update(data)
             except (TypeError, ValueError):
-                raise ValidationError(
-                    _('Value must be a JSON object of name/value pairs.')
-                )
+                raise serializers.ValidationError({
+                    'interactions_field': _('Value must be a JSON object of name/value pairs.')
+                })
             else:
                 interactions.save()
 
