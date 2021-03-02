@@ -4,6 +4,7 @@ import alertify from 'alertifyjs';
 import assetUtils from 'js/assetUtils';
 import Select from 'react-select';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
+import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import MultiCheckbox from 'js/components/multiCheckbox';
 import Radio from 'js/components/common/radio';
@@ -13,17 +14,6 @@ import {bem} from 'js/bem';
 import {
   MODAL_TYPES,
 } from '../../constants';
-
-const SHARING_OPTIONS = {
-  all: {
-    value: 'all',
-    label: t('Share all questions')
-  },
-  some: {
-    value: 'some',
-    label: t('Share some questions')
-  }
-};
 
 /*
  * Modal for connecting project data
@@ -38,6 +28,7 @@ class ConnectProjects extends React.Component {
       isLoading: false,
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
+      isSharingSomeQuestions: props.asset.data_sharing?.fields?.length || false,
       attachedParents: [],
       sharingEnabledAssets: null,
       newParent: null,
@@ -45,13 +36,6 @@ class ConnectProjects extends React.Component {
       newColumnFilters: [],
       parentColumnFilters: [],
       fieldsErrors: {},
-      sharing: props.asset.data_sharing?.fields?.length > 0
-        ? SHARING_OPTIONS.some.value
-        : SHARING_OPTIONS.all.value,
-      sharingOptions: [
-        SHARING_OPTIONS.all,
-        SHARING_OPTIONS.some,
-      ],
     };
 
     autoBind(this);
@@ -127,7 +111,7 @@ class ConnectProjects extends React.Component {
   onToggleDataSharingCompleted() {
     this.setState({
       isShared: !this.state.isShared,
-      sharing: SHARING_OPTIONS.all.value,
+      isSharingSomeQuestions: false,
       newColumnFilters: this.generateColumnFilters(
         [],
         this.props.asset.content.survey,
@@ -257,9 +241,9 @@ class ConnectProjects extends React.Component {
     actions.dataShare.updateColumnFilters(this.props.asset.uid, data);
   }
 
-  onSharingRadioChange(name, value) {
+  onSharingCheckboxChange(checked) {
     let columnsToDisplay = this.state.newColumnFilters;
-    if (value === 'all') {
+    if (!checked) {
       columnsToDisplay = [];
       var data = JSON.stringify({
         data_sharing: {
@@ -272,7 +256,7 @@ class ConnectProjects extends React.Component {
 
     this.setState({
       newColumnFilters: columnsToDisplay,
-      [name]: value,
+      isSharingSomeQuestions: checked,
     });
   }
 
@@ -408,14 +392,14 @@ class ConnectProjects extends React.Component {
               label={t('Data sharing enabled')}
               checked={this.state.isShared}
             />
-            <Radio
+            <Checkbox
               name='sharing'
-              options={this.state.sharingOptions}
-              onChange={this.onSharingRadioChange.bind(this)}
-              selected={this.state.sharing}
+              checked={this.state.isSharingSomeQuestions}
+              onChange={this.onSharingCheckboxChange}
+              label={t('Select specific questions to share')}
             />
           </div>
-          {this.state.sharing === SHARING_OPTIONS.some.value &&
+          {this.state.isSharingSomeQuestions &&
             <div className='connect-projects__export--multicheckbox'>
               <span>
                 {t('Select any questions you want to share in the right side table')}

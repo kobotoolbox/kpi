@@ -19,6 +19,7 @@
     .connect-projects__export--options {
       display: flex;
       justify-content: space-between;
+      padding-bottom: 12px;
 
       .toggle-switch {
         .toggle-switch__label {
@@ -26,8 +27,7 @@
         }
       }
 
-      .radio {
-        padding-bottom: 6px;
+      .checkbox {
         width: 50%;
       }
     }
