@@ -1,23 +1,25 @@
+import React from 'react';
+import autoBind from 'react-autobind';
+import {bem} from 'js/bem';
+
+/**
+ * @namespace RadioOption
+ * @property {string} label
+ * @property {string} value
+ */
+
 /**
  * A radio input generic component.
  *
- * Properties:
- * - options {label: <string>, value: <string>}[] - array of objects, required
- * - name <string>: required
- * - onChange <function>: required
- * - selected <value>: selected option
- *
- * TODO: would be best to move it to `jsapp/js/components/generic` directory.
+ * @prop {RadioOption[]} options required
+ * @prop {string} name required
+ * @prop {function} onChange required
+ * @prop {value} selected selected option
  */
-
-import React from 'react';
-import autoBind from 'react-autobind';
-import {bem} from '../bem';
-
 class Radio extends React.Component {
   constructor(props){
     if (typeof props.onChange !== 'function') {
-      throw new Error('onChange callback missing!')
+      throw new Error('onChange callback missing!');
     }
     super(props);
     autoBind(this);
@@ -51,10 +53,10 @@ class Radio extends React.Component {
                 {option.label}
               </bem.Radio__label>
             </bem.Radio__row>
-          )
+          );
         })}
       </bem.Radio>
-    )
+    );
   }
 }
 

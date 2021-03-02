@@ -236,6 +236,11 @@ class MainHeader extends Reflux.Component {
       iconClassName = getAssetIcon(this.state.asset);
     }
 
+    let librarySearchBoxPlaceholder = t('Search My Library');
+    if (this.isPublicCollections()) {
+      librarySearchBoxPlaceholder = t('Search Public Collections');
+    }
+
     return (
         <bem.MainHeader className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
@@ -255,7 +260,7 @@ class MainHeader extends Reflux.Component {
             { (this.isMyLibrary() || this.isPublicCollections()) &&
               <div className='mdl-layout__header-searchers'>
                 <SearchBox
-                  placeholder={t('Search Library')}
+                  placeholder={librarySearchBoxPlaceholder}
                   disabled={this.isSearchBoxDisabled()}
                 />
               </div>
