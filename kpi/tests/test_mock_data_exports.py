@@ -678,33 +678,10 @@ class MockDataExports(MockDataExportsBase):
 
         anonymous_user = get_anonymous_user()
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == False
-        assert PERM_VIEW_ASSET not in self.asset.get_perms(self.anotheruser)
-        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == False
-        assert PERM_CHANGE_ASSET not in self.asset.get_perms(self.anotheruser)
-
+        assert not self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         # required to export
-        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_ASSET)
-
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
-        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
-        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == True
-        assert PERM_CHANGE_ASSET in self.asset.get_perms(self.anotheruser)
-
-        assert (
-            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-            == False
-        )
-        assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(
-            self.anotheruser
-        )
-
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
-
-        assert (
-            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
-        )
-        assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
 
         # testing anotheruser can export data
         self.run_csv_export_test(user=self.anotheruser)
@@ -720,6 +697,5 @@ class MockDataExports(MockDataExportsBase):
             PERM_PARTIAL_SUBMISSIONS,
             partial_perms=partial_perms,
         )
-        self.asset.remove_perm(self.anotheruser, PERM_CHANGE_ASSET)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
