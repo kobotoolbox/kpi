@@ -6,12 +6,24 @@ import Select from 'react-select';
 import ToggleSwitch from 'js/components/toggleSwitch';
 import MultiCheckbox from 'js/components/multiCheckbox';
 import TextBox from 'js/components/textBox';
+import Radio from 'js/components/radio';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
 import {bem} from 'js/bem';
 import {
   MODAL_TYPES,
 } from '../../constants';
+
+const SHARING_OPTIONS = {
+  all: {
+    value: 'all',
+    label: t('Share all questions')
+  },
+  some: {
+    value: 'some',
+    label: t('Share some questions')
+  }
+};
 
 /*
  * Modal for connecting project data
@@ -33,6 +45,13 @@ class ConnectProjects extends React.Component {
       newColumnFilters: [],
       parentColumnFilters: [],
       fieldsErrors: {},
+      sharing: props.asset.data_sharing?.fields.length > 0
+        ? SHARING_OPTIONS.some.value
+        : SHARING_OPTIONS.all.value,
+      sharingOptions: [
+        SHARING_OPTIONS.all,
+        SHARING_OPTIONS.some,
+      ],
     };
 
     autoBind(this);
@@ -108,8 +127,9 @@ class ConnectProjects extends React.Component {
   onToggleDataSharingCompleted() {
     this.setState({
       isShared: !this.state.isShared,
+      sharing: SHARING_OPTIONS.all.value,
       newColumnFilters: this.generateColumnFilters(
-        this.props.asset.data_sharing.fields,
+        [],
         this.props.asset.content.survey,
       ),
     });
@@ -237,6 +257,25 @@ class ConnectProjects extends React.Component {
     actions.dataShare.updateColumnFilters(this.props.asset.uid, data);
   }
 
+  onSharingRadioChange(name, value) {
+    let columnsToDisplay = this.state.newColumnFilters;
+    if (value === 'all') {
+      columnsToDisplay = [];
+      var data = JSON.stringify({
+        data_sharing: {
+          enabled: this.state.isShared,
+          fields: [],
+        }
+      });
+      actions.dataShare.updateColumnFilters(this.props.asset.uid, data);
+    }
+
+    this.setState({
+      newColumnFilters: columnsToDisplay,
+      [name]: value,
+    });
+  }
+
   /*
    * Utilities
    */
@@ -249,8 +288,12 @@ class ConnectProjects extends React.Component {
     }
   }
 
+  // Figure out what columns need to be 'checked' or 'unchecked' by comparing
+  // `selectedColumns` - the columns that are already selected versus
+  // `selectableColumns` - the columns that are allowed to be exposed
   generateColumnFilters(selectedColumns, selectableQuestions) {
     let selectableColumns = [];
+
     // We need to flatten questions if coming from survey
     if (selectableQuestions?.length && typeof selectableQuestions[0] === 'object') {
       let questions = assetUtils.getSurveyFlatPaths(selectableQuestions);
@@ -263,17 +306,12 @@ class ConnectProjects extends React.Component {
       selectableColumns = selectableQuestions;
     }
 
-    // Figure out what columns need to be 'checked' or 'unchecked' by comparing
-    // `selectedColumns` - the columns are already selected versus
-    // `selectableColumns` - the columns that are allowed to be exposed
     let columnsToDisplay = [];
-    // 'Check' every column if no fields exist, or every column is already checked
-    if (
-      selectedColumns.length == 0 ||
-      selectedColumns.length == selectableColumns.length
-    ) {
+    // Columns are unchecked by default to avoid exposing new questions if user
+    // has selected `Share some questions`
+    if (selectedColumns.length == 0) {
       selectableColumns.forEach((column) => {
-        columnsToDisplay.push({label: column, checked: true});
+        columnsToDisplay.push({label: column, checked: false});
       });
     } else {
       selectableColumns.forEach((column) => {
@@ -360,25 +398,34 @@ class ConnectProjects extends React.Component {
     );
   }
 
-  renderSwitch() {
+  renderExports() {
     if (this.state.isShared) {
       return (
         <div className='connect-projects__export'>
-          <div className='connect-projects__export--switch'>
+          <div className='connect-projects__export--options'>
             <ToggleSwitch
               onChange={this.onToggleSharingData.bind(this)}
               label={t('Data sharing enabled')}
               checked={this.state.isShared}
             />
-            <br />
-            {t('Deselect any questions you do not want to share in the right side table')}
-          </div>
-          <div className='connect-projects__export--multicheckbox'>
-            <MultiCheckbox
-              items={this.state.newColumnFilters}
-              onChange={this.onColumnSelected}
+            <Radio
+              name='sharing'
+              options={this.state.sharingOptions}
+              onChange={this.onSharingRadioChange.bind(this)}
+              selected={this.state.sharing}
             />
           </div>
+          {this.state.sharing === SHARING_OPTIONS.some.value &&
+            <div className='connect-projects__export--multicheckbox'>
+              <span>
+                {t('Select any questions you want to share in the right side table')}
+              </span>
+                <MultiCheckbox
+                  items={this.state.newColumnFilters}
+                  onChange={this.onColumnSelected}
+                />
+            </div>
+          }
         </div>
       );
     } else {
@@ -436,19 +483,23 @@ class ConnectProjects extends React.Component {
                 return (
                   <li key={n} className='connect-projects__import--list-item'>
                     <i className="k-icon k-icon-check"/>
+
                     <div className='imported-names'>
                       <span className='imported-filename'>
                         {item.filename}
                       </span>
+
                       <span className='imported-parent'>
                         {this.generateTruncatedDisplayName(item.parentName)}
                       </span>
                     </div>
+
                     <div className='imported-options'>
                       <i
                         className="k-icon-trash"
                         onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
                       />
+
                       <i
                         className="k-icon-settings"
                         onClick={() => this.showColumnFilterModal(
@@ -495,7 +546,7 @@ class ConnectProjects extends React.Component {
               {t('Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments')}
               <a href='#'>{t(' ' + 'here')}</a>
             </span>
-            {this.renderSwitch()}
+            {this.renderExports()}
           </bem.FormView__form>
         </bem.FormView__cell>
 
