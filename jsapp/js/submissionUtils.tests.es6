@@ -1,5 +1,6 @@
 import {
   simpleSurvey,
+  simpleSurveyChoices,
   simpleSurveySubmission,
   simpleSurveyDisplayData,
   simpleSurveySubmissionEmpty,
@@ -25,21 +26,19 @@ import {
   matrixRepeatSurvey,
   matrixRepeatSurveyChoices,
   matrixRepeatSurveySubmission,
-  matrixRepeatSurveyDisplayData
+  matrixRepeatSurveyDisplayData,
 } from 'js/submissionUtils.mocks';
-import {
-  getSubmissionDisplayData
-} from 'js/submissionUtils';
+import {getSubmissionDisplayData} from 'js/submissionUtils';
 
 describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with a group', () => {
-      const test = getSubmissionDisplayData(simpleSurvey, null, 1, simpleSurveySubmission).children;
+      const test = getSubmissionDisplayData(simpleSurvey, simpleSurveyChoices, 1, simpleSurveySubmission).children;
       const target = simpleSurveyDisplayData;
       expect(test).to.deep.equal(target);
   });
 
   it('should return a null data entries for a survey with no answers', () => {
-      const test = getSubmissionDisplayData(simpleSurvey, null, 0, simpleSurveySubmissionEmpty).children;
+      const test = getSubmissionDisplayData(simpleSurvey, simpleSurveyChoices, 0, simpleSurveySubmissionEmpty).children;
       const target = simpleSurveyDisplayDataEmpty;
       expect(test).to.deep.equal(target);
   });

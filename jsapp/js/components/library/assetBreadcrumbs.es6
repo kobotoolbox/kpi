@@ -1,14 +1,17 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import {getAssetDisplayName} from 'js/assetUtils';
+import {
+  isSelfOwned,
+  getAssetDisplayName
+} from 'js/assetUtils';
 import {isOnLibraryRoute} from './libraryUtils';
 import myLibraryStore from './myLibraryStore';
 import publicCollectionsStore from './publicCollectionsStore';
 import {ROOT_BREADCRUMBS} from './libraryConstants';
 import {
   ACCESS_TYPES,
-  ASSET_TYPES
+  ASSET_TYPES,
 } from 'js/constants';
 
 /**
@@ -24,6 +27,12 @@ class AssetBreadcrumbs extends React.Component {
     const parentAssetData = this.getParentAssetData();
 
     if (
+      isOnLibraryRoute() &&
+      isSelfOwned(this.props.asset)
+    ) {
+      // case for self owned asset
+      return ROOT_BREADCRUMBS.MY_LIBRARY;
+    } else if (
       isOnLibraryRoute() &&
       this.props.asset &&
       this.props.asset.asset_type === ASSET_TYPES.collection.id &&

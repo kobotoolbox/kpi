@@ -3,10 +3,10 @@ import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import assetUtils from 'js/assetUtils';
 import Select from 'react-select';
-import ToggleSwitch from 'js/components/toggleSwitch';
+import ToggleSwitch from 'js/components/common/toggleSwitch';
+import TextBox from 'js/components/common/textBox';
 import MultiCheckbox from 'js/components/multiCheckbox';
-import TextBox from 'js/components/textBox';
-import Radio from 'js/components/radio';
+import Radio from 'js/components/common/radio';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
 import {bem} from 'js/bem';
@@ -45,7 +45,7 @@ class ConnectProjects extends React.Component {
       newColumnFilters: [],
       parentColumnFilters: [],
       fieldsErrors: {},
-      sharing: props.asset.data_sharing?.fields.length > 0
+      sharing: props.asset.data_sharing?.fields?.length > 0
         ? SHARING_OPTIONS.some.value
         : SHARING_OPTIONS.all.value,
       sharingOptions: [

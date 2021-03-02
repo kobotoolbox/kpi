@@ -1,7 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import assetUtils from 'js/assetUtils';
-import MultiCheckbox from '../multiCheckbox';
+import MultiCheckbox from 'js/components/multiCheckbox';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 
