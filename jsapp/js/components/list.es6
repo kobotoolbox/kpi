@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Select from 'react-select';
-import Checkbox from './checkbox';
+import Checkbox from 'js/components/common/checkbox';
 import ui from '../ui';
 import {bem} from '../bem';
 import {actions} from '../actions';

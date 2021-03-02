@@ -3,12 +3,12 @@ import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
   isOnLibraryAssetRoute,
-  getCurrentLibraryAssetUID
+  getCurrentLibraryAssetUID,
 } from './libraryUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
-  ASSETS_TABLE_COLUMNS
+  ASSETS_TABLE_COLUMNS,
 } from './libraryConstants';
 import {ROUTES} from 'js/constants';
 
@@ -35,7 +35,7 @@ const singleCollectionStore = Reflux.createStore({
     totalUserAssets: null,
     totalSearchAssets: null,
     assets: [],
-    metadata: {}
+    metadata: {},
   },
 
   init() {
@@ -86,7 +86,7 @@ const singleCollectionStore = Reflux.createStore({
     const params = {
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
-      uid: getCurrentLibraryAssetUID()
+      uid: getCurrentLibraryAssetUID(),
     };
 
     if (this.data.filterColumnId !== null) {
@@ -106,6 +106,13 @@ const singleCollectionStore = Reflux.createStore({
    * @param {boolean} needsMetadata
    */
   fetchData(needsMetadata = false) {
+    // Avoid triggering search if not on the collection route (e.g. subscribed
+    // to a collection from Public Collections list) as it will cause 500 error
+    // caused by getCurrentLibraryAssetUID being `undefined` (rightfuly so)
+    if (!isOnLibraryAssetRoute()) {
+      return;
+    }
+
     if (this.abortFetchData) {
       this.abortFetchData();
     }
@@ -307,7 +314,7 @@ const singleCollectionStore = Reflux.createStore({
 
   findAsset(uid) {
     return this.data.assets.find((asset) => {return asset.uid === uid;});
-  }
+  },
 });
 
 export default singleCollectionStore;
