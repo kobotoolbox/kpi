@@ -124,6 +124,11 @@ export default class AssetsTable extends React.Component {
     }
   }
 
+  onClearFilter(evt) {
+    evt.stopPropagation();
+    this.props.onFilterChange(null, null);
+  }
+
   /**
    * @param {AssetsTableColumn} columnDef - Given column definition.
    * @param {string} [option] - Currently either 'first' or 'last'.
@@ -175,10 +180,9 @@ export default class AssetsTable extends React.Component {
       );
     }
 
-    // empty icon to take up space in column
     let icon = (<i className='k-icon k-icon-filter-arrows'/>);
     if (this.props.filterColumnId === columnDef.id) {
-      icon = (<i className='k-icon k-icon-check'/>);
+      icon = (<i className='k-icon k-icon-close' onClick={this.onClearFilter}/>);
     }
 
     return (
