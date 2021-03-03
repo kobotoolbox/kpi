@@ -172,3 +172,51 @@
     }
   }
 }
+
+// Compensate for when sidebar(s) messes up modal a bit
+@media
+  (min-width: 1000px) and (max-width: 1140px),
+  (min-width: 770px) and (max-width: 860px),
+  (max-width: 700px) {
+  .connect-projects__export--multicheckbox {
+    display: block !important;
+
+    .multi-checkbox {
+      margin-top: 12px;
+      width: 100% !important;
+      overflow-x: scroll;
+    }
+  }
+
+  .connect-projects__import--form {
+    display: block !important;
+
+    .kobo-select__wrapper {
+      width: 100% !important;
+      margin-bottom: 12px;
+    }
+
+    .text-box {
+      width: 100%;
+    }
+
+    .kobo-button {
+      display: block;
+      margin-top: 12px;
+      width: 70%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+
+@media screen and (max-width: 530px) {
+  .connect-projects__export--options {
+    display: block !important;
+
+    .checkbox {
+      margin-top: 20px;
+      width: 100% !important;
+    }
+  }
+}
