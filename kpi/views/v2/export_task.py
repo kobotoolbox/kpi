@@ -147,6 +147,7 @@ class ExportTaskViewSet(
 
     def get_queryset(self):
         return self.model.objects.filter(
-            data__source__icontains=self.kwargs['parent_lookup_asset']
+            user=self.request.user,
+            data__source__icontains=self.kwargs['parent_lookup_asset'],
         )
 
