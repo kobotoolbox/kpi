@@ -1,9 +1,9 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import assetUtils from 'js/assetUtils';
 import MultiCheckbox from 'js/components/multiCheckbox';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
+import {renderLoading} from '../modalForms/modalHelpers';
 
 /**
  * Attributes from parent needed to generate `columnsToDisplay`
@@ -19,7 +19,7 @@ import {actions} from 'js/actions';
  *
  * @prop {function} onSetModalTitle - for changing the modal title by this component
  * @prop {function} onModalClose - causes the modal to close
- * @prop {function} triggerLoading - causes parent modal to show loading
+ * @prop {function} triggerParentLoading - triggers loading on parent modal
  * @prop {function} generateColumnFilters - generates columns for multicheckbox
  * @prop {object} asset - current asset
  * @prop {parentAttributes} parent
@@ -32,6 +32,7 @@ class dataAttachmentColumnsForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      isVirgin: true,
       isLoading: false,
       columnsToDisplay: [],
     };
@@ -48,8 +49,14 @@ class dataAttachmentColumnsForm extends React.Component {
       actions.dataShare.attachToParent.completed.listen(
         this.onAttachToParentCompleted
       ),
+      actions.dataShare.attachToParent.failed.listen(
+        this.onAttachToParentFailed
+      ),
       actions.dataShare.patchParent.completed.listen(
         this.onPatchParentCompleted
+      ),
+      actions.dataShare.patchParent.failed.listen(
+        this.onPatchParentFailed
       ),
       actions.resources.loadAsset.completed.listen(
         this.onLoadAssetContentCompleted
@@ -72,6 +79,9 @@ class dataAttachmentColumnsForm extends React.Component {
   onAttachToParentCompleted() {
     this.props.onModalClose();
   }
+  onAttachToParentFailed() {
+    this.setState({isLoading: false});
+  }
   onBulkSelect() {
     let newList = this.state.columnsToDisplay.map((item) => {
       return {label: item.label, checked: true}
@@ -89,6 +99,7 @@ class dataAttachmentColumnsForm extends React.Component {
       response.data_sharing?.fields.length > 0
     ) {
       this.setState({
+        isVirgin: false,
         columnsToDisplay: this.props.generateColumnFilters(
           this.props.fields,
           response.data_sharing.fields,
@@ -97,6 +108,7 @@ class dataAttachmentColumnsForm extends React.Component {
     } else {
       // empty `fields` implies all parent questions are exposed
       this.setState({
+        isVirgin: false,
         columnsToDisplay: this.props.generateColumnFilters(
           this.props.fields,
           response.content.survey,
@@ -114,6 +126,9 @@ class dataAttachmentColumnsForm extends React.Component {
     });
     this.props.onModalClose();
   }
+  onPatchParentFailed() {
+    this.setState({isLoading: false});
+  }
 
   onColumnSelected(newList) {
     this.setState({columnsToDisplay: newList});
@@ -121,6 +136,8 @@ class dataAttachmentColumnsForm extends React.Component {
 
   onSubmit(evt) {
     evt.preventDefault();
+    this.setState({isLoading: true});
+    this.props.triggerParentLoading();
 
     let fields = [];
     var data = '';
@@ -145,7 +162,6 @@ class dataAttachmentColumnsForm extends React.Component {
       });
       actions.dataShare.attachToParent(this.props.asset.uid, data);
     }
-    this.setState({isLoading: true});
   }
 
   render() {
@@ -177,10 +193,19 @@ class dataAttachmentColumnsForm extends React.Component {
           </div>
         </div>
 
+        {this.state.isVirgin &&
+          renderLoading(t('Loading imported questions'))
+        }
+
         <MultiCheckbox
           items={this.state.columnsToDisplay}
           onChange={this.onColumnSelected}
+          disabled={this.state.isLoading}
         />
+
+        {this.state.isLoading &&
+          renderLoading(t('Updating imported questions'))
+        }
 
         <footer className='modal__footer'>
           <bem.KoboButton

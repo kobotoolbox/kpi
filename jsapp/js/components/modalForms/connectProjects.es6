@@ -11,6 +11,7 @@ import Radio from 'js/components/common/radio';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
 import {bem} from 'js/bem';
+import {renderLoading} from '../modalForms/modalHelpers';
 import {
   MODAL_TYPES,
 } from '../../constants';
@@ -33,12 +34,13 @@ class ConnectProjects extends React.Component {
       sharingEnabledAssets: null,
       newParent: null,
       newFilename: '',
-      newColumnFilters: [],
-      parentColumnFilters: [],
+      columnsToDisplay: [],
       fieldsErrors: {},
     };
 
     autoBind(this);
+
+    this.unlisteners = [];
   }
 
   /*
@@ -50,7 +52,7 @@ class ConnectProjects extends React.Component {
 
     if (this.state.isShared) {
       this.setState({
-        newColumnFilters: this.generateColumnFilters(
+        columnsToDisplay: this.generateColumnFilters(
           this.props.asset.data_sharing.fields,
           this.props.asset.content.survey,
         ),
@@ -59,30 +61,45 @@ class ConnectProjects extends React.Component {
 
     actions.dataShare.getSharingEnabledAssets();
 
-    actions.dataShare.attachToParent.completed.listen(
-      this.refreshAttachmentList
+    this.unlisteners.push(
+      actions.dataShare.attachToParent.completed.listen(
+        this.refreshAttachmentList
+      ),
+      actions.dataShare.attachToParent.failed.listen(
+        this.onAttachToParentFailed
+      ),
+      actions.dataShare.detachParent.completed.listen(
+        this.refreshAttachmentList
+      ),
+      actions.dataShare.patchParent.completed.listen(
+        this.onPatchParentCompleted
+      ),
+      actions.dataShare.getSharingEnabledAssets.completed.listen(
+        this.onGetSharingEnabledAssetsCompleted
+      ),
+      actions.dataShare.getAttachedParents.completed.listen(
+        this.onGetAttachedParentsCompleted
+      ),
+      actions.dataShare.toggleDataSharing.completed.listen(
+        this.onToggleDataSharingCompleted
+      ),
+      actions.dataShare.updateColumnFilters.completed.listen(
+        this.onUpdateColumnFiltersCompleted
+      ),
+      actions.dataShare.updateColumnFilters.failed.listen(
+        this.stopLoading
+      ),
+      actions.dataShare.patchParent.completed.listen(
+        this.stopLoading
+      ),
+      actions.dataShare.patchParent.failed.listen(
+        this.stopLoading
+      ),
     );
-    actions.dataShare.attachToParent.failed.listen(
-      this.onAttachToParentFailed
-    );
-    actions.dataShare.detachParent.completed.listen(
-      this.refreshAttachmentList
-    );
-    actions.dataShare.patchParent.completed.listen(
-      this.onPatchParentCompleted
-    );
-    actions.dataShare.getSharingEnabledAssets.completed.listen(
-      this.onGetSharingEnabledAssetsCompleted
-    );
-    actions.dataShare.getAttachedParents.completed.listen(
-      this.onGetAttachedParentsCompleted
-    );
-    actions.dataShare.toggleDataSharing.completed.listen(
-      this.onToggleDataSharingCompleted
-    );
-    actions.dataShare.updateColumnFilters.completed.listen(
-      this.onUpdateColumnFiltersCompleted
-    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   /*
@@ -112,7 +129,7 @@ class ConnectProjects extends React.Component {
     this.setState({
       isShared: !this.state.isShared,
       isSharingSomeQuestions: false,
-      newColumnFilters: this.generateColumnFilters(
+      columnsToDisplay: this.generateColumnFilters(
         [],
         this.props.asset.content.survey,
       ),
@@ -122,7 +139,8 @@ class ConnectProjects extends React.Component {
   // Safely update state after guaranteed columm changes
   onUpdateColumnFiltersCompleted(response) {
     this.setState({
-      newColumnFilters: this.generateColumnFilters(
+      isLoading: false,
+      columnsToDisplay: this.generateColumnFilters(
         response.data_sharing.fields,
         this.props.asset.content.survey,
       ),
@@ -139,6 +157,10 @@ class ConnectProjects extends React.Component {
       newFilename: '',
     });
     actions.dataShare.getAttachedParents(this.props.asset.uid);
+  }
+
+  stopLoading () {
+    this.setState({isLoading: false});
   }
 
   /*
@@ -225,6 +247,8 @@ class ConnectProjects extends React.Component {
   }
 
   onColumnSelected(columnList) {
+    this.setState({isLoading: true});
+
     let fields = [];
     columnList.forEach((item) => {
       if (item.checked) {
@@ -242,7 +266,7 @@ class ConnectProjects extends React.Component {
   }
 
   onSharingCheckboxChange(checked) {
-    let columnsToDisplay = this.state.newColumnFilters;
+    let columnsToDisplay = this.state.columnsToDisplay;
     if (!checked) {
       columnsToDisplay = [];
       var data = JSON.stringify({
@@ -255,7 +279,7 @@ class ConnectProjects extends React.Component {
     }
 
     this.setState({
-      newColumnFilters: columnsToDisplay,
+      columnsToDisplay: columnsToDisplay,
       isSharingSomeQuestions: checked,
     });
   }
@@ -332,6 +356,7 @@ class ConnectProjects extends React.Component {
       {
         type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
         generateColumnFilters: this.generateColumnFilters,
+        triggerParentLoading: this.triggerParentLoading,
         asset: asset,
         parent: parent,
         filename: filename,
@@ -341,20 +366,14 @@ class ConnectProjects extends React.Component {
     );
   }
 
+  // Lets import modal trigger loading of this modal
+  triggerParentLoading() {
+    this.setState({isLoading: true})
+  }
+
   /*
    * Rendering
    */
-
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
 
   renderSelect(sharingEnabledAssets) {
     const selectClassNames = ['kobo-select__wrapper'];
@@ -392,6 +411,7 @@ class ConnectProjects extends React.Component {
               label={t('Data sharing enabled')}
               checked={this.state.isShared}
             />
+
             <Checkbox
               name='sharing'
               checked={this.state.isSharingSomeQuestions}
@@ -403,11 +423,16 @@ class ConnectProjects extends React.Component {
             <div className='connect-projects__export--multicheckbox'>
               <span>
                 {t('Select any questions you want to share in the right side table')}
+                {this.state.isLoading &&
+                  renderLoading(t('Updating shared questions'))
+                }
               </span>
-                <MultiCheckbox
-                  items={this.state.newColumnFilters}
-                  onChange={this.onColumnSelected}
-                />
+
+              <MultiCheckbox
+                items={this.state.columnsToDisplay}
+                disabled={this.state.isLoading}
+                onChange={this.onColumnSelected}
+              />
             </div>
           }
         </div>
@@ -454,7 +479,7 @@ class ConnectProjects extends React.Component {
             <label>{t('Imported')}</label>
             {(this.state.isVirgin || this.state.isLoading) &&
               <div className='connect-projects__import--list-item'>
-                {this.renderLoading(t('Loading imported projects'))}
+                {renderLoading(t('Loading imported projects'))}
               </div>
             }
             {!this.state.isLoading && this.state.attachedParents.length == 0 &&
