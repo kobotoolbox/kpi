@@ -15,6 +15,10 @@ from kpi.views.no_update_model import NoUpdateModelViewSet
 
 class ExportTaskViewSet(NoUpdateModelViewSet):
     """
+    ## This document is for a deprecated version of kpi's API.
+
+    **Please upgrade to latest release `/api/v2/assets/<code>{asset_uid}</code>/exports`**
+
     ## List of export tasks endpoints
 
     Lists the export tasks accessible to requesting user, for anonymous access
