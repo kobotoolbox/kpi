@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import moment from 'moment';
-import Checkbox from './checkbox';
+import Checkbox from 'js/components/common/checkbox';
 import {bem} from '../bem';
 import DocumentTitle from 'react-document-title';
 import {dataInterface} from '../dataInterface';

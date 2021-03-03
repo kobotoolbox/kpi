@@ -185,8 +185,9 @@ def get_cached_code_names(model_: models.Model = None) -> dict:
 
 
 @cache_for_request
-def get_perm_ids_from_code_names(code_names: Union[str, list],
-                                 model_: models.Model = None) -> Union[int, list]:
+def get_perm_ids_from_code_names(
+    code_names: Union[str, list, tuple, set], model_: models.Model = None
+) -> Union[int, list]:
     """
     Returns id or a list of ids corresponding to `code_names`.
 
@@ -200,7 +201,7 @@ def get_perm_ids_from_code_names(code_names: Union[str, list],
     """
     # `get_cached_code_names` handles defaulting `model_` to `kpi.Asset`
     perm_ids = get_cached_code_names(model_)
-    if isinstance(code_names, list):
+    if isinstance(code_names, (list, tuple, set)):
         return [v['id'] for k, v in perm_ids.items() if k in code_names]
     else:
         return perm_ids[code_names]['id']
