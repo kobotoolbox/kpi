@@ -1,15 +1,15 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import TagsInput from 'react-tagsinput';
+import KoboTagsInput from 'js/components/common/koboTagsInput';
 import alertify from 'alertifyjs';
 import {bem} from '../../bem';
 import {dataInterface} from '../../dataInterface';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
 import Select from 'react-select';
-import Checkbox from '../checkbox';
-import Radio from '../radio';
-import TextBox from '../textBox';
+import Checkbox from 'js/components/common/checkbox';
+import Radio from 'js/components/common/radio';
+import TextBox from 'js/components/common/textBox';
 import {KEY_CODES} from 'js/constants';
 
 const EXPORT_TYPES = {
@@ -383,26 +383,18 @@ export default class RESTServicesForm extends React.Component {
    * handle fields
    */
 
-  onSubsetFieldsChange(evt) {
-    this.setState({subsetFields: evt});
+  onSubsetFieldsChange(newValue) {
+    this.setState({subsetFields: newValue.split(',')});
   }
 
   renderFieldsSelector() {
-    const inputProps = {
-      placeholder: t('Add field(s)'),
-      id: 'subset-fields-input'
-    };
-
     return (
       <bem.FormModal__item>
-        <label htmlFor='subset-fields-input'>
-          {t('Select fields subset')}
-        </label>
-
-        <TagsInput
-          value={this.state.subsetFields}
-          onChange={this.onSubsetFieldsChange.bind(this)}
-          inputProps={inputProps}
+        <KoboTagsInput
+          tags={this.state.subsetFields.join(',')}
+          onChange={this.onSubsetFieldsChange}
+          placeholder={t('Add field(s)')}
+          label={t('Select fields subset')}
         />
       </bem.FormModal__item>
     );

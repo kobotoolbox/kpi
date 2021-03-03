@@ -9,7 +9,7 @@ import {
 import {QUESTION_TYPES} from 'js/constants';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
-import TextBox from 'js/components/textBox';
+import TextBox from 'js/components/common/textBox';
 import {stores} from 'js/stores';
 
 const FUSE_OPTIONS = {

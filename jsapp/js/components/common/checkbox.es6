@@ -1,19 +1,15 @@
+import React from 'react';
+import autoBind from 'react-autobind';
+import {bem} from 'js/bem';
+
 /**
  * A checkbox generic component.
  *
- * Properties:
- * - checked <boolean>
- * - disabled <boolean>
- * - onChange <function>: required
- * - label <string>
- *
- * TODO: would be best to move it to `jsapp/js/components/generic` directory.
+ * @prop {boolean} checked
+ * @prop {boolean} disabled
+ * @prop {function} onChange : required
+ * @prop {string} label
  */
-
-import React from 'react';
-import autoBind from 'react-autobind';
-import {bem} from '../bem';
-
 class Checkbox extends React.Component {
   constructor(props){
     if (typeof props.onChange !== 'function') {

@@ -1,18 +1,14 @@
+import React from 'react';
+import autoBind from 'react-autobind';
+import {bem} from 'js/bem';
+
 /**
  * A toggle switch generic component. Operates same as checkbox, different look.
  *
- * Properties:
- * - checked <boolean>
- * - onChange <function>: required
- * - label <string>
- *
- * TODO: would be best to move it to `jsapp/js/components/generic` directory.
+ * @prop {boolean} checked
+ * @prop {function} onChange required
+ * @prop {string} label
  */
-
-import React from 'react';
-import autoBind from 'react-autobind';
-import {bem} from '../bem';
-
 class ToggleSwitch extends React.Component {
   constructor(props){
     if (typeof props.onChange !== 'function') {
