@@ -126,6 +126,10 @@ class PairedData(OpenRosaManifestInterface,
                 prefix=True
             )
         else:
+            # Use `fast=True` because the file can increase pretty quickly and
+            # can be become gigantic.
+            # Moreover, if matches KoBoCAT setting when generating a hash for
+            # paired data XML files.
             self.__hash = get_hash(asset_file.content, fast=True, prefix=True)
 
     def get_download_url(self, request):
@@ -222,6 +226,4 @@ class PairedData(OpenRosaManifestInterface,
                 continue
             setattr(self, key, value)
 
-        self.__hash = get_hash(
-            f'{self.backend_uniqid}.{str(time.time())}'
-        )
+        self.generate_hash()
