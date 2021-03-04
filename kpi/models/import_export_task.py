@@ -469,7 +469,7 @@ class ExportTask(ImportExportTask):
         group_sep = self.data.get('group_sep', '/')
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
-        fields = json.loads(self.data.get('fields', '[]'))
+        fields = self.data.get('fields', [])
         try:
             # If applicable, substitute the constants that formpack expects for
             # friendlier language strings used by the API
@@ -523,7 +523,7 @@ class ExportTask(ImportExportTask):
         superclass. The `submission_stream` method is provided for testing
         """
         source_url = self.data.get('source', False)
-        fields = json.loads(self.data.get('fields', '[]'))
+        fields = self.data.get('fields', [])
         flatten = self._get_bool_from_data('flatten', 'true')
 
         if not source_url:
