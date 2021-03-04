@@ -126,12 +126,23 @@ def strip_nodes(
     ).decode()
 
 
-def add_xml_declaration(xml_content: Union[str, bytes]) -> str:
-    xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
-    if isinstance(xml_content, bytes):
-        xml_content = xml_content.decode()
+def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
+    xml_declarations = (
+        '<?xml version="1.0" encoding="utf-8"?>',  # lxml version
+        '<?xml version="1.0" encoding="UTF-8" ?>',  # dicttoxml version
+    )
 
-    if xml_content.startswith(xml_declaration):
+    use_bytes = False
+    xml_content_as_str = xml_content
+
+    if isinstance(xml_content, bytes):
+        use_bytes = True
+        xml_content_as_str = xml_content.decode()
+
+    if xml_content_as_str.startswith(xml_declarations):
         return xml_content
 
-    return f'{xml_declaration}\n{xml_content}'
+    xml_ = f'{xml_declarations[0]}\n{xml_content_as_str}'
+    if use_bytes:
+        return xml_.encode()
+    return xml_
