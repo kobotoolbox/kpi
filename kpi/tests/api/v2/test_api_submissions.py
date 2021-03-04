@@ -678,7 +678,7 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
         a.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_list_url = a.deployment.submission_list_url
 
-    def test_list_submissions_geojson(self):
+    def test_list_submissions_geojson_defaults(self):
         response = self.client.get(
             self.submission_list_url,
             {'format': 'geojson'}
@@ -714,3 +714,40 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
             ],
         }
         assert expected_output == json.loads(response.content)
+
+    def test_list_submissions_geojson_other_geo_question(self):
+        response = self.client.get(
+            self.submission_list_url,
+            {'format': 'geojson', 'geo_question_name': 'geo2'},
+        )
+        expected_output = {
+            'name': 'Two points and one text',
+            'type': 'FeatureCollection',
+            'features': [
+                {
+                    'type': 'Feature',
+                    'geometry': {
+                        'coordinates': [10.22, 10.21, 10.23],
+                        'type': 'Point',
+                    },
+                    'properties': {'text': 'Tired'},
+                },
+                {
+                    'type': 'Feature',
+                    'geometry': {
+                        'coordinates': [20.22, 20.21, 20.23],
+                        'type': 'Point',
+                    },
+                    'properties': {'text': 'Relieved'},
+                },
+                {
+                    'type': 'Feature',
+                    'geometry': {
+                        'coordinates': [30.22, 30.21, 30.23],
+                        'type': 'Point',
+                    },
+                    'properties': {'text': 'Excited'},
+                },
+            ],
+        }
+        self.assertDictEqual(expected_output, json.loads(response.content))
