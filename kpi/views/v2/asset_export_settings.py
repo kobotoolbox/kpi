@@ -73,7 +73,7 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
         * "group_sep" (required) is a value used to separate the names in a hierarchy of groups. Valid inputs include:
             * Non-empty value
         * "hierarchy_in_labels" (required) is a boolean to specify whether the group hierarchy will be displayed in labels
-        * "multiple_select" (required) is a value to specify the display of `multiple_select`-type responses. Valid inputs include:
+        * "multiple_select" (required) is a value to specify the display of multiple-select-type responses. Valid inputs include:
             * "both",
             * "summary", or
             * "details"
@@ -82,6 +82,12 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
             * "geojson",
             * "spss_labels", or
             * "xls"
+
+    **Note that the following behaviour can be expected when specifying a value for the "multiple_select" field:**
+
+    * "summary": Includes one column per question, with all selected choices separated by spaces;
+    * "details": Expands each multiple-select question to one column per choice, with each of those columns having a binary 1 or 0 to indicate whether that choice was chosen;
+    * "both": Includes the format of "summary" _and_ "details" in the export
 
     ### Retrieves a specific export setting
 
