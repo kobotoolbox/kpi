@@ -19,7 +19,7 @@ from kpi.permissions import (
 from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.renderers import SubmissionXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.utils.xml import strip_nodes
+from kpi.utils.xml import strip_nodes, add_xml_declaration
 
 
 class PairedDataViewset(AssetNestedObjectViewsetMixin,
@@ -247,19 +247,19 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
                 parent_asset.uid, 'data'
             )
             root_tag_name = SubmissionXMLRenderer.root_tag_name
-            xml_ = (
+            xml_ = add_xml_declaration(
                 f'<{root_tag_name}>'
                 f'{parsed_submissions_to_str}'
                 f'</{root_tag_name}>'
             )
-            # We need to delete the current file (if it exists) when filename has
-            # changed. Otherwise, it would leave an orphan file on storage
+            # We need to delete the current file (if it exists) when filename
+            # has changed. Otherwise, it would leave an orphan file on storage
             if asset_file.pk and asset_file.content.name != filename:
                 asset_file.content.delete()
 
             asset_file.content = ContentFile(xml_.encode(), name=filename)
             # We don't need to regenerate a hash when asset file is created.
-            # It also avoid synchronizing the file with the back end again.
+            # It also avoids synchronizing the file with the back end again.
             generate_hash = bool(asset_file.pk)
             asset_file.save()
             paired_data.save(generate_hash=generate_hash)

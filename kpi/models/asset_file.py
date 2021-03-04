@@ -197,13 +197,15 @@ class AssetFile(models.Model,
     def set_hash(self):
         if not self.metadata.get('hash'):
             if self.is_remote_url:
-                md5_hash = get_hash(self.metadata['redirect_url'])
+                md5_hash = get_hash(self.metadata['redirect_url'],
+                                    fast=True,
+                                    prefix=True)
             else:
-                md5_hash = get_hash(self.content.file.read())
+                md5_hash = get_hash(self.content.file.read(),
+                                    prefix=True)
 
-            self.metadata['hash'] = f'md5:{md5_hash}'
+            self.metadata['hash'] = md5_hash
 
     def set_mimetype(self):
         mimetype, _ = guess_type(self.filename)
         self.metadata['mimetype'] = mimetype
-

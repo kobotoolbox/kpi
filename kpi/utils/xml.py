@@ -1,19 +1,22 @@
 # coding: utf-8
+from typing import Union
 from lxml import etree
 
 
 def strip_nodes(
-    source: str,
+    source: Union[str, bytes],
     nodes_to_keep: list,
     use_xpath: bool = False,
     xml_declaration: bool = False,
 ) -> str:
     """
-    Returns an stripped version of `source`. It keeps only nodes provided in
+    Returns a stripped version of `source`. It keeps only nodes provided in
     `nodes_to_keep`
     """
-    if len(nodes_to_keep) == 0:
-        return source
+    # Force `source` to be bytes in case it contains an XML declaration
+    # `etree` does not support strings with xml declarations.
+    if isinstance(source, str):
+        source = source.encode()
 
     # Build xml to be parsed
     xml_doc = etree.fromstring(source)
@@ -111,8 +114,9 @@ def strip_nodes(
     def remove_root_path(path_: str) -> str:
         return path_.replace(root_path, '')
 
-    xpath_matches = get_xpath_matches()
-    process_node(root_element, xpath_matches)
+    if len(nodes_to_keep):
+        xpath_matches = get_xpath_matches()
+        process_node(root_element, xpath_matches)
 
     return etree.tostring(
         tree,
@@ -120,3 +124,14 @@ def strip_nodes(
         encoding='utf-8',
         xml_declaration=xml_declaration,
     ).decode()
+
+
+def add_xml_declaration(xml_content: Union[str, bytes]) -> str:
+    xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
+    if isinstance(xml_content, bytes):
+        xml_content = xml_content.decode()
+
+    if xml_content.startswith(xml_declaration):
+        return xml_content
+
+    return f'{xml_declaration}\n{xml_content}'
