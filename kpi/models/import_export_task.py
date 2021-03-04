@@ -2,6 +2,7 @@
 import base64
 import datetime
 import posixpath
+import json
 import re
 import tempfile
 from collections import defaultdict
@@ -382,8 +383,12 @@ class ExportTask(ImportExportTask):
 
     COPY_FIELDS = (
         '_id',
-        '_uuid',
+        '_notes',
+        '_status',
         '_submission_time',
+        '_submitted_by',
+        '_tags',
+        '_uuid',
         ValidationStatusCopyField,
     )
 
@@ -464,6 +469,7 @@ class ExportTask(ImportExportTask):
         group_sep = self.data.get('group_sep', '/')
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
+        fields = self.data.get('fields', [])
         try:
             # If applicable, substitute the constants that formpack expects for
             # friendlier language strings used by the API
@@ -480,6 +486,7 @@ class ExportTask(ImportExportTask):
             'copy_fields': self.COPY_FIELDS,
             'force_index': True,
             'tag_cols_for_header': tag_cols_for_header,
+            'filter_fields': fields,
         }
 
     def _record_last_submission_time(self, submission_stream):
@@ -506,6 +513,9 @@ class ExportTask(ImportExportTask):
                     self.last_submission_time = timestamp
             yield submission
 
+    def _get_bool_from_data(self, field: str, compare: str = 'true') -> bool:
+        return self.data.get(field, compare).lower() == 'true'
+
     def _run_task(self, messages):
         """
         Generate the export and store the result in the `self.result`
@@ -513,6 +523,9 @@ class ExportTask(ImportExportTask):
         superclass. The `submission_stream` method is provided for testing
         """
         source_url = self.data.get('source', False)
+        fields = self.data.get('fields', [])
+        flatten = self._get_bool_from_data('flatten', 'true')
+
         if not source_url:
             raise Exception('no source specified for the export')
         source = _resolve_url_to_asset(source_url)
@@ -531,14 +544,19 @@ class ExportTask(ImportExportTask):
             raise Exception('the source must be deployed prior to export')
 
         export_type = self.data.get('type', '').lower()
-        if export_type not in ('xls', 'csv', 'spss_labels'):
+        if export_type not in ('xls', 'csv', 'geojson', 'spss_labels'):
             raise NotImplementedError(
-                'only `xls`, `csv`, and `spss_labels` are valid export types')
+                'only `xls`, `csv`, `geojson`, and `spss_labels` '
+                'are valid export types'
+            )
 
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
-        submission_stream = source.deployment.get_submissions(self.user.id)
+        submission_stream = source.deployment.get_submissions(
+            requesting_user_id=self.user.id,
+            fields=fields
+        )
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions)
@@ -557,10 +575,16 @@ class ExportTask(ImportExportTask):
         # https://code.djangoproject.com/ticket/13809
         self.result.close()
         self.result.file.close()
+
         with self.result.storage.open(self.result.name, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + "\r\n").encode('utf-8'))
+            elif export_type == 'geojson':
+                for line in export.to_geojson(
+                    submission_stream, flatten=flatten
+                ):
+                    output_file.write(line.encode('utf-8'))
             elif export_type == 'xls':
                 # XLSX export actually requires a filename (limitation of
                 # pyexcelerate?)
