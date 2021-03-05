@@ -265,6 +265,11 @@ export const QUESTION_TYPES = Object.freeze({
     faIcon: 'fa-lato-range',
     id: 'range',
   },
+  xml_external: {
+    label: t('External XML'),
+    faIcon: 'fa-external-link',
+    id: 'xml-external',
+  },
 });
 
 export const META_QUESTION_TYPES = {};
