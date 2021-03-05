@@ -73,8 +73,6 @@ router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'imports', ImportTaskViewSet)
 
 # TODO migrate ViewSet below
-# router_api_v2.register(r'reports', ReportsViewSet, basename='reports')
-# 
 # router_api_v2.register(r'exports', ExportTaskViewSet)
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)
 #
