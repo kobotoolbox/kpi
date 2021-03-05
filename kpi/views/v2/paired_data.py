@@ -229,42 +229,44 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
                 timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION
             )
 
+        if not has_expired:
+            return Response(asset_file.content.file.read().decode())
+
         # If the content of `asset_file' has expired, let's regenerate the XML
-        if has_expired:
-            submissions = parent_asset.deployment.get_submissions(
-                self.asset.owner.pk,
-                format_type=INSTANCE_FORMAT_TYPE_XML
-            )
-            parsed_submissions = []
+        submissions = parent_asset.deployment.get_submissions(
+            self.asset.owner.pk,
+            format_type=INSTANCE_FORMAT_TYPE_XML
+        )
+        parsed_submissions = []
 
-            for submission in submissions:
-                # `strip_nodes` expects field names,
-                parsed_submissions.append(
-                    strip_nodes(submission, paired_data.fields, use_xpath=True)
-                )
-            filename = paired_data.filename
-            parsed_submissions_to_str = ''.join(parsed_submissions).replace(
-                parent_asset.uid, 'data'
+        for submission in submissions:
+            # `strip_nodes` expects field names,
+            parsed_submissions.append(
+                strip_nodes(submission, paired_data.fields, use_xpath=True)
             )
-            root_tag_name = SubmissionXMLRenderer.root_tag_name
-            xml_ = add_xml_declaration(
-                f'<{root_tag_name}>'
-                f'{parsed_submissions_to_str}'
-                f'</{root_tag_name}>'
-            )
-            # We need to delete the current file (if it exists) when filename
-            # has changed. Otherwise, it would leave an orphan file on storage
-            if asset_file.pk and asset_file.content.name != filename:
-                asset_file.content.delete()
+        filename = paired_data.filename
+        parsed_submissions_to_str = ''.join(parsed_submissions).replace(
+            parent_asset.uid, 'data'
+        )
+        root_tag_name = SubmissionXMLRenderer.root_tag_name
+        xml_ = add_xml_declaration(
+            f'<{root_tag_name}>'
+            f'{parsed_submissions_to_str}'
+            f'</{root_tag_name}>'
+        )
+        # We need to delete the current file (if it exists) when filename
+        # has changed. Otherwise, it would leave an orphan file on storage
+        if asset_file.pk and asset_file.content.name != filename:
+            asset_file.content.delete()
 
-            asset_file.content = ContentFile(xml_.encode(), name=filename)
-            # We don't need to regenerate a hash when asset file is created.
-            # It also avoids synchronizing the file with the back end again.
-            generate_hash = bool(asset_file.pk)
-            asset_file.save()
-            paired_data.save(generate_hash=generate_hash)
+        asset_file.content = ContentFile(xml_.encode(), name=filename)
+        # We don't need to regenerate a hash when asset file is created.
+        # It also avoids synchronizing the file with the back end again.
+        generate_hash = bool(asset_file.pk)
+        asset_file.save()
+        paired_data.save(generate_hash=generate_hash)
 
-        return Response(asset_file.content.file.read().decode())
+        return Response(xml_)
 
     def get_object(self):
         obj = self.get_queryset(as_list=False).get(
