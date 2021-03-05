@@ -115,14 +115,14 @@ class PairedData(OpenRosaManifestInterface,
 
     def generate_hash(self):
         # It generates the hash based on the related AssetFile content.
-        # If the file does not exist yet, the hash is calculated based on
-        # `self.backend_uniqid` - aka the paired data external URL - and current
-        # time. It is needed to synchronize with KoBoCAt
+        # If the file does not exist yet, the hash is randomly generated with
+        # the current timestamp and `self.backend_uniqid`. A hash is needed to
+        # synchronize with KoBoCAt
         try:
             asset_file = AssetFile.objects.get(uid=self.paired_data_uid)
         except AssetFile.DoesNotExist:
             self.__hash = get_hash(
-                f'{self.backend_uniqid}.{str(time.time())}',
+                f'{str(time.time())}.{self.backend_uniqid}',
                 prefix=True
             )
         else:

@@ -1,4 +1,5 @@
 # coding: utf-8
+import re
 from typing import Union
 from lxml import etree
 
@@ -127,11 +128,9 @@ def strip_nodes(
 
 
 def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
-    xml_declarations = (
-        '<?xml version="1.0" encoding="utf-8"?>',  # lxml version
-        '<?xml version="1.0" encoding="UTF-8" ?>',  # dicttoxml version
-    )
-
+    xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
+    # Should support ̀ lmxl` and `dicttoxml`
+    pattern = r'<\?xml version=\"1.0\"( encoding=\"utf-8\" ?)?\?>'
     use_bytes = False
     xml_content_as_str = xml_content
 
@@ -139,10 +138,10 @@ def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
         use_bytes = True
         xml_content_as_str = xml_content.decode()
 
-    if xml_content_as_str.startswith(xml_declarations):
+    if re.match(pattern, xml_content_as_str, re.IGNORECASE):
         return xml_content
 
-    xml_ = f'{xml_declarations[0]}\n{xml_content_as_str}'
+    xml_ = f'{xml_declaration}\n{xml_content_as_str}'
     if use_bytes:
         return xml_.encode()
     return xml_
