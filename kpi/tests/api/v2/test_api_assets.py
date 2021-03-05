@@ -445,25 +445,31 @@ class AssetsDetailApiTests(BaseAssetTestCase):
             self._get_endpoint('asset-reports'), kwargs={'uid': self.asset_uid}
         )
         anotheruser = User.objects.get(username='anotheruser')
-        self.asset.content = {"survey": [
-            {"type": "select_one", "label": "q1", "select_from_list_name": "iu0sl99",},
-        ]
-        , "choices": [
-            {"name": "a1", "label": ["a1"], "list_name": "iu0sl99"},
-            {"name": "a3", "label": ["a3"], "list_name": "iu0sl99"},
-        ]}
+        self.asset.content = {
+            'survey': [
+                {
+                    'type': 'select_one',
+                    'label': 'q1',
+                    'select_from_list_name': 'iu0sl99'
+                },
+            ],
+            'choices': [
+                {'name': 'a1', 'label': ['a1'], 'list_name': 'iu0sl99'},
+                {'name': 'a3', 'label': ['a3'], 'list_name': 'iu0sl99'},
+            ]
+        }
         self.asset.save()
         self.asset.deploy(backend='mock', active=True)
         submissions = [
             {
-                "__version__": self.asset.latest_deployed_version.uid,
-                "q1": "a1",
-                "_submitted_by": "anotheruser",
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a1',
+                '_submitted_by': 'anotheruser',
             },
             {
-                "__version__": self.asset.latest_deployed_version.uid,
-                "q1": "a3",
-                "_submitted_by": "",
+                '__version__': self.asset.latest_deployed_version.uid,
+                'q1': 'a3',
+                '_submitted_by': '',
             },
         ]
 
@@ -486,7 +492,8 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         # Test that a user with partial permissions is able to access data
-        self.asset.assign_perm(anotheruser, PERM_PARTIAL_SUBMISSIONS, partial_perms=partial_perms)
+        self.asset.assign_perm(anotheruser, PERM_PARTIAL_SUBMISSIONS,
+                               partial_perms=partial_perms)
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Test that a user with the permissions to view submissions can 
