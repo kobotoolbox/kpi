@@ -23,10 +23,7 @@ from formpack.constants import (
     VALID_MULTIPLE_SELECTS,
 )
 
-from kpi.fields import (
-    ReadOnlyJSONField,
-    WritableJSONField,
-)
+from kpi.fields import ReadOnlyJSONField
 from kpi.models import ExportTask, Asset
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
