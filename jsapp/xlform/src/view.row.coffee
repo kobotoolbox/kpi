@@ -62,10 +62,28 @@ module.exports = do ->
 
       @
     _renderError: ->
-      @$el.addClass("xlf-row-view-error")
-      atts = $viewUtils.cleanStringify(@model.toJSON())
-      @$el.html $viewTemplates.$$render('row.rowErrorView', atts)
-      @
+      # HACK FIX: Dynamic data attachments require an `xml-external` typed
+      # media file in order to share data across forms. To avoid spitting out an
+      # error for an unsupported type, we add a read only row in its place
+      # TODO: Complete formbuilder intergration
+      if this.model.attributes.type.attributes.value == 'xml-external'
+        @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
+        @$label = @$('.js-card-label')
+        @$hint = @$('.card__header-hint')
+        @$card = @$('.card')
+        @$header = @$('.card__header')
+
+        # Hack together how it should look
+        @$label[0].value=@model.attributes.$autoname.attributes.value
+        @$hint.hide()
+        @$header.children().eq(1).find('i.fa').addClass('fa-external-link')
+        @$header.find('div.card__buttons').hide()
+        @
+      else
+        @$el.addClass("xlf-row-view-error")
+        atts = $viewUtils.cleanStringify(@model.toJSON())
+        @$el.html $viewTemplates.$$render('row.rowErrorView', atts)
+        @
     _renderRow: ->
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
       @$label = @$('.js-card-label')
