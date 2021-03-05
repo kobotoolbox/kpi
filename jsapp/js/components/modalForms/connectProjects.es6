@@ -92,7 +92,8 @@ class ConnectProjects extends React.Component {
    * UI Listeners
    */
 
-  confirmAttachment() {
+  confirmAttachment(evt) {
+    evt.preventDefault();
 
     let parentUrl = this.state.newParent?.url;
     let filename = this.state.newFilename;
