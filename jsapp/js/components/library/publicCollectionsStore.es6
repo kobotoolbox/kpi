@@ -96,6 +96,12 @@ const publicCollectionsStore = Reflux.createStore({
       params.filterValue = this.data.filterValue;
     }
 
+    // Surrounds `filterValue` with double quotes to avoid filters that have
+    // spaces which would split the query in two, thus breaking the filter
+    if (params.filterValue !== undefined) {
+      params.filterValue = JSON.stringify(params.filterValue); // Adds quotes
+    }
+
     return params;
   },
 
@@ -297,11 +303,6 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.filterValue !== filterValue
     ) {
       this.data.filterColumnId = filterColumnId;
-      // Surrounds `filterValue` with double quotes to avoid filters that have
-      // spaces which would split the query in two, thus breaking the filter
-      if (filterValue !== undefined) {
-        filterValue = JSON.stringify(filterValue); // Adds quotes
-      }
       this.data.filterValue = filterValue;
       this.fetchData(true);
     }
