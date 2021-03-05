@@ -455,9 +455,14 @@ module.exports = do ->
   class row.RowError extends row.BaseRow
     constructor: (obj, options)->
       @_error = options.error
-      unless window.xlfHideWarnings
-        console?.error("Error creating row: [#{options.error}]", obj)
-        alertify.error("Error creating row: [#{options.error}]");
+      # HACK FIX: Dynamic data attachments require an `xml-external` typed
+      # media file in order to share data across forms. To avoid spitting out an
+      # error for an unsupported type, we add a read only row in its place
+      # TODO: Complete formbuilder intergration
+      if !obj.type == 'xml-external'
+        unless window.xlfHideWarnings
+          console?.error("Error creating row: [#{options.error}]", obj)
+          alertify.error("Error creating row: [#{options.error}]");
       super(obj, options)
     isError: -> true
     getValue: (what)->
