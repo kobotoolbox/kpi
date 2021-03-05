@@ -179,7 +179,6 @@ class ImportTask(ImportExportTask):
             )
             return
 
-
         # Get filename
         try:
             filename = self.data['filename']
