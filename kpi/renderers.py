@@ -13,6 +13,7 @@ from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
+from kpi.utils.xml import add_xml_declaration
 
 
 class AssetJsonRenderer(renderers.JSONRenderer):
@@ -131,7 +132,7 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
                 if isinstance(v, ErrorDetail):
                     data[k] = str(v)
 
-            return self._get_xml(data)
+            return add_xml_declaration(self._get_xml(data))
 
         if isinstance(data, list):
             opening_node = self._node_generator(self.root_tag_name)
@@ -141,7 +142,7 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
             data_str = ''.join(data)
             data = f'{opening_node}{data_str}{closing_node}'
 
-        return f'<?xml version="1.0" encoding="UTF-8" ?>\n{data}'
+        return add_xml_declaration(data)
 
     @classmethod
     def _get_xml(cls, data):
@@ -201,7 +202,7 @@ class XMLRenderer(DRFXMLRenderer):
             # e.g. obj is `Asset`, relationship can be `snapshot`
             if relationship is not None and hasattr(obj, relationship):
                 return getattr(obj, relationship).xml
-            return obj.xml
+            return add_xml_declaration(obj.xml)
         else:
             return super().render(data=data,
                                   accepted_media_type=accepted_media_type,

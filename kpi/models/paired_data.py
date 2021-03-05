@@ -114,9 +114,23 @@ class PairedData(OpenRosaManifestInterface,
         self.__filename = f
 
     def generate_hash(self):
-        self.__hash = get_hash(
-            f'{self.backend_uniqid}.{str(time.time())}'
-        )
+        # It generates the hash based on the related AssetFile content.
+        # If the file does not exist yet, the hash is randomly generated with
+        # the current timestamp and `self.backend_uniqid`. A hash is needed to
+        # synchronize with KoBoCAt
+        try:
+            asset_file = AssetFile.objects.get(uid=self.paired_data_uid)
+        except AssetFile.DoesNotExist:
+            self.__hash = get_hash(
+                f'{str(time.time())}.{self.backend_uniqid}',
+                prefix=True
+            )
+        else:
+            # Use `fast=True` because the file can increase pretty quickly and
+            # can be become gigantic.
+            # Moreover, if matches KoBoCAT setting when generating a hash for
+            # paired data XML files.
+            self.__hash = get_hash(asset_file.content, fast=True, prefix=True)
 
     def get_download_url(self, request):
         """
@@ -158,7 +172,7 @@ class PairedData(OpenRosaManifestInterface,
          - `OpenRosaManifestInterface.hash()`
          - `SyncBackendMediaInterface.hash()`
         """
-        return f'md5:{self.__hash}'
+        return self.__hash
 
     @property
     def is_remote_url(self):
@@ -212,6 +226,4 @@ class PairedData(OpenRosaManifestInterface,
                 continue
             setattr(self, key, value)
 
-        self.__hash = get_hash(
-            f'{self.backend_uniqid}.{str(time.time())}'
-        )
+        self.generate_hash()

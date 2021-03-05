@@ -10,7 +10,3 @@ def to_str(obj):
     if isinstance(obj, bytes):
         return obj.decode()
     return obj
-
-
-def hashable_str(obj):
-    return obj.encode()
