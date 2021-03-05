@@ -1,5 +1,6 @@
 # coding: utf-8
 import re
+from distutils.util import strtobool
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -295,7 +296,7 @@ class SearchFilter(filters.BaseFilterBackend):
 
         try:
             q_obj = parse(
-                q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
+                q, default_field_lookups=view.search_default_field_lookups
             )
         except ParseError:
             return queryset.model.objects.none()

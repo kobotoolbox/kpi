@@ -12,6 +12,7 @@ from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentVi
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.data import DataViewSet
+from kpi.views.v2.export_task import ExportTaskViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
 from kpi.views.v2.permission import PermissionViewSet
@@ -53,6 +54,12 @@ asset_routes.register(r'export-settings',
                       parents_query_lookups=['asset'],
                       )
 
+asset_routes.register(r'exports',
+                      ExportTaskViewSet,
+                      basename='asset-export',
+                      parents_query_lookups=['asset'],
+                      )
+
 asset_routes.register(r'hook-signal',
                       HookSignalViewSet,
                       basename='hook-signal',
@@ -80,7 +87,6 @@ router_api_v2.register(r'permissions', PermissionViewSet)
 # TODO migrate ViewSet below
 # router_api_v2.register(r'reports', ReportsViewSet, basename='reports')
 # router_api_v2.register(r'imports', ImportTaskViewSet)
-# router_api_v2.register(r'exports', ExportTaskViewSet)
 # router_api_v2.register(r'sitewide_messages', SitewideMessageViewSet)
 #
 # router_api_v2.register(r'authorized_application/users',
