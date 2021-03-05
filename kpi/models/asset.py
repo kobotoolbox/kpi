@@ -591,7 +591,11 @@ class Asset(ObjectPermissionMixin,
             PERM_MANAGE_ASSET,
         ),
         ASSET_TYPE_TEXT: (),  # unused?
-        ASSET_TYPE_EMPTY: (),  # unused?
+        ASSET_TYPE_EMPTY: (
+            PERM_VIEW_ASSET,
+            PERM_CHANGE_ASSET,
+            PERM_MANAGE_ASSET,
+        ),
         ASSET_TYPE_COLLECTION: (
             PERM_VIEW_ASSET,
             PERM_CHANGE_ASSET,
