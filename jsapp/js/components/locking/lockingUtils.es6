@@ -1,3 +1,10 @@
+import {
+  QUESTION_RESTRICTIONS,
+  GROUP_RESTRICTIONS,
+  FORM_RESTRICTIONS,
+  DEFAULT_LOCKING_PROFILE,
+} from './lockingConstants';
+
 /**
  * @param {object} asset
  * @param {string} rowName - row or group name
@@ -29,9 +36,18 @@ export function hasAssetRestriction(asset, restrictionName) {
 /**
  * @param {object} asset
  * @param {string} profileName
- * @returns {object}
+ * @returns {object|null} null for no found
  */
 export function getLockingProfile(asset, profileName) {
-  // TODO find profile by name
-  return {}
+  let found = null;
+  if (profileName === DEFAULT_LOCKING_PROFILE.name) {
+    return DEFAULT_LOCKING_PROFILE;
+  } else if (asset.settings && asset.settings['locking-profiles']) {
+    asset.settings['locking-profiles'].forEach((profile) => {
+      if (profile.name === profileName) {
+        found = profile;
+      }
+    });
+  }
+  return found;
 }

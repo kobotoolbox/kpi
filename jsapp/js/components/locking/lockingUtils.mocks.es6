@@ -143,16 +143,23 @@ export const simpleTemplateLocked = {
     'locking-profiles': [
       {
         name: 'mycustomlock1',
-        label: 'My custom lock',
         restrictions: [
           'choice_add',
-          'choice_label_edit',
-          'skip_logic_edit',
-          'group_question_delete',
-          'group_delete',
-          'group_settings_edit',
+          'choice_delete',
+          'choice_edit',
+          'question_settings_edit',
+          'group_label_edit',
+          'group_question_order_edit',
           'group_add',
-          'translation_add',
+          'question_order_edit',
+        ],
+      },
+      {
+        name: 'lock2',
+        restrictions: [
+          'question_delete',
+          'group_delete',
+          'translation_manage',
         ],
       },
     ],
@@ -194,7 +201,7 @@ export const simpleTemplateLocked = {
         'required': false,
         '$autoname': 'Best_thing_in_the_world',
         'select_from_list_name': 'dp8iw04',
-        'kobo--lock': 'mycustomlock1',
+        'kobo--lock': 'lock2',
       }, {
         'name': 'person',
         'type': 'begin_group',
@@ -203,7 +210,7 @@ export const simpleTemplateLocked = {
           'Person', 'Osoba',
         ],
         '$autoname': 'person',
-        'kobo--lock': 'mycustomlock1',
+        'kobo--lock': 'lock2',
       }, {
         'type': 'text',
         '$kuid': 'xw6go48',
