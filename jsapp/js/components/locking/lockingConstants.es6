@@ -1,13 +1,17 @@
 /**
  * TODO notes
  *
+ * https://github.com/kobotoolbox/kpi/issues/3032
+ *
+ * https://docs.google.com/spreadsheets/d/1JI2JQ2UFrPvUh3ZuwiAoMBrol_KshkIARloSTi6UOM4/edit#gid=1847621029
+ *
  * there are three types of restrictions: question, group, form
  *
  * form has list of custom locking profile (plus two default ones)
  *
  * locking profile can be assigned to form, group and question
  *
- * locking profile has a name, label and list of enabled restrictions
+ * locking profile has a name and list of enabled restrictions
  *
  * restriction definitions are hardcoded on FE
  *
@@ -50,105 +54,40 @@
 // NOTE to self: please try to use "lockpick" name for anything
 
 export const QUESTION_RESTRICTIONS = Object.freeze({
-  question_delete: {
-    name: 'question_delete',
-    label: t('Delete question'),
-  },
-  choice_add: {
-    name: 'choice_add',
-    label: t('Add choice to question'),
-  },
-  choice_delete: {
-    name: 'choice_delete',
-    label: t('Remove choice from question'),
-  },
-  question_label_edit: {
-    name: 'question_label_edit',
-    label: t('Edit question labels'),
-  },
-  choice_label_edit: {
-    name: 'choice_label_edit',
-    label: t('Edit choice labels'),
-  },
-  choice_order_edit: {
-    name: 'choice_order_edit',
-    label: t('Change choice order'),
-  },
-  question_settings_edit: {
-    name: 'question_settings_edit',
-    label: t('Edit question settings'),
-  },
-  skip_logic_edit: {
-    name: 'skip_logic_edit',
-    label: t('Edit skip logic'),
-  },
-  constraint_edit: {
-    name: 'constraint_edit',
-    label: t('Edit constraint'),
-  },
+  choice_add: {name: 'choice_add', label: t('Add choice to question')},
+  choice_delete: {name: 'choice_delete', label: t('Remove choice from question')},
+  choice_edit: {name: 'choice_edit', label: t('Edit choice labels')},
+  choice_order_edit: {name: 'choice_order_edit', label: t('Change choice order')},
+  question_delete: {name: 'question_delete', label: t('Delete question')},
+  question_label_edit: {name: 'question_label_edit', label: t('Edit question labels')},
+  question_settings_edit: {name: 'question_settings_edit', label: t('Edit question settings')},
+  question_skip_logic_edit: {name: 'question_skip_logic_edit', label: t('Edit skip logic')},
+  question_validation_edit: {name: 'question_validation_edit', label: t('Edit validation')},
 });
 
 export const GROUP_RESTRICTIONS = Object.freeze({
-  group_question_add: {
-    name: 'group_question_add',
-    label: t('Add question to group'),
-  },
-  group_question_delete: {
-    name: 'group_question_delete',
-    label: t('Remove question from group'),
-  },
-  group_delete: {
-    name: 'group_delete',
-    label: t('Delete entire group'),
-  },
-  group_label_edit: {
-    name: 'group_label_edit',
-    label: t('Edit group labels'),
-  },
-  group_question_label_edit: {
-    name: 'group_question_label_edit',
-    label: t('Change question order within group'),
-  },
-  group_settings_edit: {
-    name: 'group_settings_edit',
-    label: t('Edit group settings'),
-  },
-  skip_logic_edit: {
-    name: 'skip_logic_edit',
-    label: t('Edit skip logic'),
-  },
-  question_children_delete: {
-    name: 'question_children_delete',
-    label: t('Child questions can be removed'),
-  },
+  group_delete: {name: 'group_delete', label: t('Delete entire group')},
+  group_label_edit: {name: 'group_label_edit', label: t('Edit group labels')},
+  group_question_add: {name: 'group_question_add', label: t('Add question to group')},
+  group_question_delete: {name: 'group_question_delete', label: t('Remove question from group')},
+  group_question_order_edit: {name: 'group_question_order_edit', label: t('Change question order within group')},
+  group_settings_edit: {name: 'group_settings_edit', label: t('Edit group settings')},
+  group_skip_logic_edit: {name: 'skip_logic_edit', label: t('Edit skip logic')},
 });
 
 export const FORM_RESTRICTIONS = Object.freeze({
-  question_add: {
-    name: 'question_add',
-    label: t('Add question'),
-  },
-  group_add: {
-    name: 'group_add',
-    label: t('Add group'),
-  },
-  question_order_edit: {
-    name: 'question_order_edit',
-    label: t('Change question order'),
-  },
-  translation_add: {
-    name: 'translation_add',
-    label: t('Add translation'),
-  },
-  xlsform_replace: {
-    name: 'xlsform_replace',
-    label: t('Replace form from XLSForm'),
-  },
+  form_replace: {name: 'form_replace', label: t('Replace whole form')},
+  group_add: {name: 'group_add', label: t('Add group')},
+  question_add: {name: 'question_add', label: t('Add question')},
+  question_order_edit: {name: 'question_order_edit', label: t('Change question order')},
+  translation_manage: {name: 'translation_manage', label: t('Manage translations')},
 });
 
+export const LOCKING_PROP_NAME = 'kobo--lock';
+
 export const DEFAULT_LOCKING_PROFILE = {
-  name: 'kobo',
-  label: t('Default'),
+  name: 'kobo_default',
+  label: t('Kobo Default'),
   restrictions: [],
 };
 DEFAULT_LOCKING_PROFILE.restrictions = [].concat(
@@ -169,11 +108,3 @@ export const CUSTOM_LOCKING_PROFILE_COLORS = {
 export const CUSTOM_LOCKING_PROFILE_ICONS = {
   // 4 icons
 };
-
-export const LOCKING_PROP_NAME = 'kobo--lock';
-
-
-// TODO
-//
-// 1. function to check if has X restriction
-// 2. disabling things
