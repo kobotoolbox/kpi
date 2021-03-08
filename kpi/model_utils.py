@@ -17,8 +17,8 @@ importing kpi.model_utils:
   File "kpi/models/import_task.py", line 6, in <module>
     from kpi.model_utils import create_assets
 '''
+from .constants import ASSET_TYPE_COLLECTION
 from .models import Asset
-from .models import Collection
 
 
 TAG_RE = r'tag:(.*)'
@@ -38,7 +38,8 @@ def _load_library_content(structure):
     for row in library_sheet:
         # preserve the additional sheets of imported library (but not the library)
         row_tags = []
-        for key, val in row.items():
+        row_copy = dict(row)
+        for key, val in row_copy.items():
             if str(val).lower() in ['false', '0', 'no', 'n', '', 'none']:
                 continue
             if re.search(TAG_RE, key):
@@ -46,7 +47,7 @@ def _load_library_content(structure):
                 row_tags.append(tag_name)
                 tag_name_to_pk[tag_name] = None # Will be filled in later
                 del row[key]
-        block_name = row.get('block', None)
+        block_name = row.pop('block', None)
         grouped[block_name].append((row, row_tags,))
 
     # Resolve tag names to PKs
@@ -65,8 +66,10 @@ def _load_library_content(structure):
     collection_name = structure['name']
     if not collection_name:
         collection_name = 'Collection'
-    collection = Collection.objects.create(
-        owner=structure['owner'], name=collection_name)
+    collection = Asset.objects.create(
+        asset_type=ASSET_TYPE_COLLECTION, owner=structure['owner'],
+        name=collection_name
+    )
 
     for block_name, rows in grouped.items():
         if block_name is None:
@@ -77,13 +80,14 @@ def _load_library_content(structure):
                     content=scontent,
                     asset_type='question',
                     owner=structure['owner'],
-                    parent=collection
+                    parent=collection,
+                    update_parent_languages=False,
                 )
                 created_asset_pks.append(sa.pk)
                 for tag_name in row_tags:
                     ti = TaggedItem.objects.create(
-                        tag_id = tag_name_to_pk[tag_name],
-                        content_object = sa
+                        tag_id=tag_name_to_pk[tag_name],
+                        content_object=sa
                     )
         else:
             block_rows = []
@@ -99,15 +103,19 @@ def _load_library_content(structure):
                 asset_type='block',
                 name=block_name,
                 parent=collection,
-                owner=structure['owner']
+                owner=structure['owner'],
+                update_parent_languages=False,
             )
             created_asset_pks.append(sa.pk)
             for tag_name in block_tags:
                 ti = TaggedItem.objects.create(
-                    tag_id = tag_name_to_pk[tag_name],
-                    content_object = sa
+                    tag_id=tag_name_to_pk[tag_name],
+                    content_object=sa
                 )
 
+    # To improve performance, we deferred this until the end using
+    # `update_parent_languages=False`
+    collection.update_languages()
     return collection
 
 
@@ -119,7 +127,9 @@ def _set_auto_field_update(kls, field_name, val):
 
 def create_assets(kls, structure, **options):
     if kls == "collection":
-        obj = Collection.objects.create(**structure)
+        obj = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION, **structure
+        )
     elif kls == "asset":
         if 'library' in structure.get('content', {}):
             obj = _load_library_content(structure)

@@ -25,13 +25,22 @@ import formpack.constants
 from formpack.schema.fields import ValidationStatusCopyField
 from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
-from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
+from kpi.constants import (
+    ASSET_TYPE_COLLECTION,
+    PERM_CHANGE_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+)
 from kpi.utils.log import logging
 from kpi.utils.strings import to_str
+from kpi.utils.rename_xls_sheet import (
+    rename_xls_sheet, NoFromSheetError, ConflictSheetError,
+)
+
 from ..fields import KpiUidField
 from ..model_utils import create_assets, _load_library_content, \
     remove_string_prefix
-from ..models import Collection, Asset
+from ..models import Asset
 from ..zip_importer import HttpContentParse
 
 
@@ -43,7 +52,8 @@ def utcnow(*args, **kwargs):
     return datetime.datetime.utcnow()
 
 
-def _resolve_url_to_asset_or_collection(item_path):
+def _resolve_url_to_asset(item_path):
+    # TODO: is this still necessary now that `Collection` has been removed?
     if item_path.startswith(('http', 'https')):
         item_path = urlparse(item_path).path
     try:
@@ -54,10 +64,7 @@ def _resolve_url_to_asset_or_collection(item_path):
         match = resolve(remove_string_prefix(item_path, settings.KPI_PREFIX))
 
     uid = match.kwargs.get('uid')
-    if match.url_name == 'asset-detail':
-        return 'asset', Asset.objects.get(uid=uid)
-    elif match.url_name == 'collection-detail':
-        return 'collection', Collection.objects.get(uid=uid)
+    return Asset.objects.get(uid=uid)
 
 
 class ImportExportTask(models.Model):
@@ -142,21 +149,20 @@ class ImportExportTask(models.Model):
 class ImportTask(ImportExportTask):
     uid = KpiUidField(uid_prefix='i')
     """
-    someting that would be done after the file has uploaded
+    Something that would be done after the file has uploaded
     ...although we probably would need to store the file in a blob
     """
 
     def _run_task(self, messages):
         self.status = self.PROCESSING
         self.save(update_fields=['status'])
-        dest_item = dest_kls = has_necessary_perm = False
+        dest_item = has_necessary_perm = False
 
         if 'destination' in self.data and self.data['destination']:
             _d = self.data.get('destination')
-            (dest_kls, dest_item) = _resolve_url_to_asset_or_collection(_d)
-            necessary_perm = 'change_%s' % dest_kls
-            if not dest_item.has_perm(self.user, necessary_perm):
-                raise exceptions.PermissionDenied('user cannot update %s' % dest_kls)
+            dest_item = _resolve_url_to_asset(_d)
+            if not dest_item.has_perm(self.user, PERM_CHANGE_ASSET):
+                raise exceptions.PermissionDenied('user cannot update asset')
             else:
                 has_necessary_perm = True
 
@@ -165,7 +171,6 @@ class ImportTask(ImportExportTask):
                 messages=messages,
                 url=self.data.get('url'),
                 destination=dest_item,
-                destination_kls=dest_kls,
                 has_necessary_perm=has_necessary_perm,
             )
             return
@@ -186,7 +191,6 @@ class ImportTask(ImportExportTask):
                 messages=messages,
                 library=self.data.get('library', False),
                 destination=dest_item,
-                destination_kls=dest_kls,
                 has_necessary_perm=has_necessary_perm,
             )
             return
@@ -198,7 +202,6 @@ class ImportTask(ImportExportTask):
 
     def _load_assets_from_url(self, url, messages, **kwargs):
         destination = kwargs.get('destination', False)
-        destination_kls = kwargs.get('destination_kls', False)
         has_necessary_perm = kwargs.get('has_necessary_perm', False)
         req = requests.get(url, allow_redirects=True)
         fif = HttpContentParse(request=req).parse()
@@ -206,7 +209,7 @@ class ImportTask(ImportExportTask):
         fif.remove_empty_collections()
 
         destination_collection = destination \
-            if destination_kls == 'collection' else False
+            if destination.asset_type == ASSET_TYPE_COLLECTION else False
 
         if destination_collection and not has_necessary_perm:
             # redundant check
@@ -220,6 +223,9 @@ class ImportTask(ImportExportTask):
             }
 
             if item.get_type() == 'collection':
+                # FIXME: seems to allow importing nested collections, even
+                # though uploading from a file does not (`_parse_b64_upload()`
+                # raises `NotImplementedError`)
                 item._orm = create_assets(item.get_type(), extra_args)
             elif item.get_type() == 'asset':
                 kontent = xls2json_backends.xls_to_dict(item.readable)
@@ -265,14 +271,13 @@ class ImportTask(ImportExportTask):
         survey_dict_keys = survey_dict.keys()
 
         destination = kwargs.get('destination', False)
-        destination_kls = kwargs.get('destination_kls', False)
         has_necessary_perm = kwargs.get('has_necessary_perm', False)
 
         if destination and not has_necessary_perm:
             # redundant check
             raise exceptions.PermissionDenied('user cannot update item')
 
-        if destination_kls == 'collection':
+        if destination and destination.asset_type == ASSET_TYPE_COLLECTION:
             raise NotImplementedError('cannot import into a collection at this'
                                       ' time')
 
@@ -280,9 +285,6 @@ class ImportTask(ImportExportTask):
             if not library:
                 raise ValueError('a library cannot be imported into the'
                                  ' form list')
-            if 'survey' in survey_dict_keys:
-                raise ValueError('An import cannot have both "survey" and'
-                                 ' "library" sheets.')
             if destination:
                 raise SyntaxError('libraries cannot be imported into assets')
             collection = _load_library_content({
@@ -513,12 +515,7 @@ class ExportTask(ImportExportTask):
         source_url = self.data.get('source', False)
         if not source_url:
             raise Exception('no source specified for the export')
-        source_type, source = _resolve_url_to_asset_or_collection(source_url)
-
-        if source_type != 'asset':
-            raise NotImplementedError(
-                'only an `Asset` may be exported at this time')
-
+        source = _resolve_url_to_asset(source_url)
         source_perms = source.get_perms(self.user)
 
         if (PERM_VIEW_SUBMISSIONS not in source_perms and
@@ -650,14 +647,29 @@ class ExportTask(ImportExportTask):
             settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM:
         ]
         for export in excess_exports:
-            # The `result` file must be deleted manually
-            export.result.delete()
             export.delete()
+
+    def delete(self, *args, **kwargs):
+        # removing exported file from storage
+        self.result.delete(save=False)
+        super().delete(*args, **kwargs)
 
 
 def _b64_xls_to_dict(base64_encoded_upload):
     decoded_str = base64.b64decode(base64_encoded_upload)
-    survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
+    try:
+        xls_with_renamed_sheet = rename_xls_sheet(BytesIO(decoded_str),
+                                                  from_sheet='library',
+                                                  to_sheet='survey')
+    except ConflictSheetError:
+        raise ValueError('An import cannot have both "survey" and'
+                         ' "library" sheets.')
+    except NoFromSheetError:
+        # library did not exist in the xls file
+        survey_dict = xls2json_backends.xls_to_dict(BytesIO(decoded_str))
+    else:
+        survey_dict = xls2json_backends.xls_to_dict(xls_with_renamed_sheet)
+        survey_dict['library'] = survey_dict.pop('survey')
     return _strip_header_keys(survey_dict)
 
 

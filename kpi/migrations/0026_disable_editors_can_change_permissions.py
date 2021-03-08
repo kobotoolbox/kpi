@@ -28,6 +28,7 @@ def reverse_func(apps, schema_editor):
     Asset.objects.update(editors_can_change_permissions=True)
     Collection.objects.update(editors_can_change_permissions=True)
 
+
 class Migration(migrations.Migration):
 
     dependencies = [

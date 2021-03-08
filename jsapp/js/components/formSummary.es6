@@ -46,8 +46,9 @@ class FormSummary extends React.Component {
     }
   }
   prep() {
-    this.getLatestSubmissionTime(this.props.params.assetid);
-    this.prepSubmissions(this.props.params.assetid);
+    const uid = this.props.params.assetid || this.props.params.uid;
+    this.getLatestSubmissionTime(uid);
+    this.prepSubmissions(uid);
   }
   createChart() {
     Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
@@ -145,7 +146,7 @@ class FormSummary extends React.Component {
   renderSubmissionsGraph() {
     return (
       <bem.FormView__row m='summary-submissions'>
-        <bem.FormView__cell m='label'>
+        <bem.FormView__cell m={['label', 'first']}>
           {t('Submissions')}
         </bem.FormView__cell>
         <bem.FormView__cell m={['box']}>
@@ -218,7 +219,7 @@ class FormSummary extends React.Component {
         </Link>
         {this.userCan('change_asset', this.state) &&
           <bem.PopoverMenu__link onClick={this.sharingModal}>
-            <i className='k-icon-share'/>
+            <i className='k-icon-user-share'/>
             {t('Share project')}
             <i className='fa fa-angle-right' />
           </bem.PopoverMenu__link>
@@ -297,12 +298,12 @@ class FormSummary extends React.Component {
 
     return (
       <bem.FormView__row m='team'>
-        <bem.FormView__cell m='label'>
+        <bem.FormView__cell m={['label', 'first']}>
           {t('Team members')}
         </bem.FormView__cell>
         {this.userCan('change_asset', this.state) &&
           <a onClick={this.sharingModal} className='team-sharing-button'>
-            <i className='k-icon-share' />
+            <i className='k-icon-user-share' />
           </a>
         }
         <bem.FormView__cell m={['box', 'padding']}>
@@ -344,7 +345,7 @@ class FormSummary extends React.Component {
           <bem.FormView__column m='left'>
             {(this.state.settings && (this.state.settings.country || this.state.settings.sector || this.state.settings.description)) &&
               <bem.FormView__row m='summary-description'>
-                <bem.FormView__cell m='label'>
+                <bem.FormView__cell m={['label', 'first']}>
                   {t('Description')}
                 </bem.FormView__cell>
                 <bem.FormView__cell m={['box']}>
@@ -365,7 +366,7 @@ class FormSummary extends React.Component {
                     </bem.FormView__group>
                   }
                   {this.state.settings.description &&
-                    <bem.FormView__cell m='description'>
+                    <bem.FormView__cell m={['padding', 'description']}>
                       {this.state.settings.description}
                     </bem.FormView__cell>
                   }
@@ -374,11 +375,11 @@ class FormSummary extends React.Component {
             }
             {this.renderSubmissionsGraph()}
             <bem.FormView__row m='summary-details'>
-              <bem.FormView__cell m='label'>
+              <bem.FormView__cell m={['label', 'first']}>
                 {t('Form details')}
               </bem.FormView__cell>
               <bem.FormView__cell m={['box']}>
-                <bem.FormView__group m={['items', 'summary-details-cols']}>
+                <bem.FormView__group m='summary-details-cols'>
                   <bem.FormView__cell>
                     <bem.FormView__label>{t('Last modified')}</bem.FormView__label>
                     {formatTime(this.state.date_modified)}
@@ -415,7 +416,7 @@ class FormSummary extends React.Component {
 
           <bem.FormView__column m='right'>
             <bem.FormView__row m='quick-links'>
-              <bem.FormView__cell m='label'>
+              <bem.FormView__cell m={['label', 'first']}>
                 {t('Quick Links')}
               </bem.FormView__cell>
               <bem.FormView__cell m='box'>
@@ -425,7 +426,7 @@ class FormSummary extends React.Component {
 
             {this.state.deployment__submission_count > 0 &&
               <bem.FormView__row m='data-links'>
-                <bem.FormView__cell m='label'>
+                <bem.FormView__cell m={['label', 'first']}>
                   {t('Data')}
                 </bem.FormView__cell>
                 <bem.FormView__cell m='box'>

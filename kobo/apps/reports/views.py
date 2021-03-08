@@ -43,7 +43,6 @@ class ReportsViewSet(mixins.ListModelMixin,
                 return asset
         raise Http404
 
-
     def get_queryset(self):
         queryset = Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY)
         if self.action == 'retrieve':
@@ -67,7 +66,7 @@ class ReportsViewSet(mixins.ListModelMixin,
             get_anonymous_user(),
             self.required_permissions,
             queryset.filter(
-                parent__usercollectionsubscription__user=self.request.user
+                parent__userassetsubscription__user=self.request.user
             ),
             all_perms_required=False,
         )
@@ -75,6 +74,6 @@ class ReportsViewSet(mixins.ListModelMixin,
         # Find which of these are deployed, using a custom manager method
         deployed_assets = (
             owned_and_explicitly_shared | subscribed_and_public
-        ) & Asset.objects.deployed()
+        ) & Asset.objects.deployed().distinct()
 
         return deployed_assets

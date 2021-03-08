@@ -6,7 +6,7 @@ import DocumentTitle from 'react-document-title';
 import {actions} from '../actions';
 import {bem} from '../bem';
 import {stores} from '../stores';
-import TextBox from './textBox';
+import TextBox from 'js/components/common/textBox';
 import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
 import {stringToColor} from 'utils';

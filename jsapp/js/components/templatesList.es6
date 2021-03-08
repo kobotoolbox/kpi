@@ -12,6 +12,7 @@ import {bem} from '../bem';
 import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
 import {formatTime} from 'utils';
+import {getAssetOwnerDisplayName} from 'js/assetUtils';
 
 class TemplatesList extends React.Component {
   constructor(props) {
@@ -84,10 +85,6 @@ class TemplatesList extends React.Component {
 
           {this.state.templates.map((template) => {
             const htmlId = `selected_template_${template.uid}`;
-            let owner = template.owner__username;
-            if (owner === this.state.currentAccountUsername) {
-              owner = t('me');
-            }
 
             return (
               <bem.TemplatesList__template
@@ -99,7 +96,7 @@ class TemplatesList extends React.Component {
                   {template.name}
                 </bem.TemplatesList__column>
                 <bem.TemplatesList__column m='owner'>
-                  {owner}
+                  {getAssetOwnerDisplayName(template.owner__username)}
                 </bem.TemplatesList__column>
                 <bem.TemplatesList__column m='date'>
                   {formatTime(template.date_modified)}

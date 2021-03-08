@@ -1,12 +1,15 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import TextBox from 'js/components/textBox';
-import {getLangAsObject} from 'utils';
+import TextBox from 'js/components/common/textBox';
+import {
+  getLangAsObject,
+  toTitleCase
+} from 'utils';
 
 /*
 Properties:
-- langString <string>: follows pattern "NAME (CODE)"
+- langString <string>: follows pattern "Name (code)"
 - langIndex <string>
 - onLanguageChange <function>: required
 - existingLanguages <langString[]>: for validation purposes
@@ -108,13 +111,13 @@ class LanguageForm extends React.Component {
       }, langIndex);
     }
   }
-  onNameChange (newName) {
-    this.setState({name: newName.trim()});
+  onNameChange(newName) {
+    this.setState({name: toTitleCase(newName.trim().toLowerCase())});
   }
-  onCodeChange (newCode) {
-    this.setState({code: newCode.trim()});
+  onCodeChange(newCode) {
+    this.setState({code: newCode.trim().toLowerCase()});
   }
-  render () {
+  render() {
     let isAnyFieldEmpty = this.state.name.length === 0 || this.state.code.length === 0;
 
     return (

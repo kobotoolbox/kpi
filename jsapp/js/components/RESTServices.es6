@@ -17,8 +17,8 @@ export default class RESTServices extends React.Component {
   render() {
     const docTitle = this.props.asset.name || t('Untitled');
     let hasAccess = (
-      mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('view_submissions'), this.props.asset) &&
-      mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('change_asset'), this.props.asset)
+      mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) &&
+      mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset)
     );
 
     return (

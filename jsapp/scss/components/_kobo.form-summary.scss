@@ -12,9 +12,10 @@
   }
 }
 
-.form-view__cell.form-view__cell--description {
-  border-top: 1px solid $kobo-lightgray;
-  padding: 20px;
+.form-view__row--summary-description {
+  .form-view__cell--description:not(:first-child) {
+    border-top: 1px solid $kobo-lightgray;
+  }
 }
 
 .form-view__group.form-view__group--summary-details-cols {
@@ -82,7 +83,7 @@
   display: flex;
 
   .form-view__cell {
-    background: $kobo-whitegray;
+    border: 1px solid $kobo-lightgray;
     padding: 20px;
     flex: 2;
     margin-right: 10px;
@@ -114,7 +115,7 @@
 
     &:hover {
       color: $kobo-black;
-      background: $kobo-whitegray;
+      background: $kobo-teal-light;
     }
 
     i {
@@ -176,7 +177,7 @@
     justify-content: center;
     align-items: center;
     display: flex;
-    background: $kobo-whitegray;
+    border: 1px solid $kobo-lightgray;
 
     span {
       font-size: 16px;

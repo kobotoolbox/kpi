@@ -4,6 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import { Link } from 'react-router';
 import {bem} from '../bem';
+import assetUtils from 'js/assetUtils';
 import ui from '../ui';
 import {stores} from '../stores';
 import mixins from '../mixins';
@@ -11,9 +12,8 @@ import {
   KEY_CODES,
   ASSET_TYPES
 } from 'js/constants';
-import TagInput from '../components/tagInput';
+import TagInput from 'js/components/tagInput';
 import {formatTime} from 'utils';
-import assetUtils from 'js/assetUtils';
 
 class AssetRow extends React.Component {
   constructor(props){
@@ -68,7 +68,7 @@ class AssetRow extends React.Component {
   }
 
   render () {
-    const isSelfOwned = this.userIsOwner(this.props);
+    const isSelfOwned = assetUtils.isSelfOwned(this.props);
     var _rc = this.props.summary && this.props.summary.row_count || 0;
 
     var hrefTo = `/forms/${this.props.uid}`,
@@ -88,8 +88,8 @@ class AssetRow extends React.Component {
     }
 
     if (this.isLibrary()) {
-      hrefTo = `/library/${this.props.uid}/edit`;
-      parent = this.props.parent || undefined;
+      hrefTo = `/library/asset/${this.props.uid}`;
+      parent = this.state.parent || undefined;
       ownedCollections = this.props.ownedCollections.map(function(c){
         var p = false;
         if (parent != undefined && parent.indexOf(c.uid) !== -1) {
@@ -177,7 +177,7 @@ class AssetRow extends React.Component {
                 <span>{ isSelfOwned ? ' ' : this.props.owner__username }</span>
               }
               { this.props.asset_type != ASSET_TYPES.survey.id &&
-                <span>{isSelfOwned ? t('me') : this.props.owner__username}</span>
+                <span>{assetUtils.getAssetOwnerDisplayName(this.props.owner__username)}</span>
               }
             </bem.AssetRow__cell>
 
@@ -256,7 +256,7 @@ class AssetRow extends React.Component {
                   data-tip= {t('Share')}
                   data-disabled={false}
                   >
-                <i className='k-icon-share' />
+                <i className='k-icon-user-share' />
               </bem.AssetRow__actionIcon>
             }
 
@@ -288,7 +288,7 @@ class AssetRow extends React.Component {
               </bem.AssetRow__actionIcon>
             }
 
-            { this.props.kind === 'collection' &&
+            { this.props.asset_type === ASSET_TYPES.collection.id &&
               [/*'view',*/ 'sharing'].map((actn)=>{
                 return (
                       <bem.AssetRow__actionIcon
@@ -385,9 +385,6 @@ class AssetRow extends React.Component {
                           m='move-coll-item'>
                             <i className='k-icon-folder' />
                             {col.label}
-                            {col.hasParent &&
-                              <span className='has-parent'>&bull;</span>
-                            }
                         </bem.PopoverMenu__item>
                       );
                   })}
@@ -410,7 +407,7 @@ class AssetRow extends React.Component {
                   data-asset-type={this.props.kind}
                   data-asset-name={assetName}
                 >
-                  <i className='k-icon-template' />
+                  <i className='k-icon-template-new' />
                   {t('Create template')}
                 </bem.PopoverMenu__link>
               }

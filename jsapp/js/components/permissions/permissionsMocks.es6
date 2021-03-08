@@ -110,23 +110,7 @@ const permissions = {
       'contradictory': [
         '/api/v2/permissions/partial_submissions/'
       ],
-      'name': 'Can view submitted data for asset'
-    },
-    {
-      'url': '/api/v2/permissions/change_collection/',
-      'codename': 'change_collection',
-      'implied': [
-        '/api/v2/permissions/view_collection/'
-      ],
-      'contradictory': [],
-      'name': 'Can change collection'
-    },
-    {
-      'url': '/api/v2/permissions/view_collection/',
-      'codename': 'view_collection',
-      'implied': [],
-      'contradictory': [],
-      'name': 'Can view collection'
+      'name': 'Can view submitted data for asset',
     }
   ]
 };

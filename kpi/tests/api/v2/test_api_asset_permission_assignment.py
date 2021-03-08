@@ -93,13 +93,10 @@ class ApiAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
     def test_submission_assignments_ignored_for_non_survey_assets(self):
         self.asset.asset_type = ASSET_TYPE_TEMPLATE
         self.asset.save()
-        # FIXME: should handle ValidationError somewhere and return HTTP 405
-        self.assertRaises(
-            ValidationError,
-            self._grant_perm_as_logged_in_user,
-            'someuser',
-            PERM_VIEW_SUBMISSIONS,
+        response = self._grant_perm_as_logged_in_user(
+            'someuser', PERM_VIEW_SUBMISSIONS
         )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(self.asset.has_perm(self.someuser, PERM_VIEW_SUBMISSIONS))
 
 
@@ -132,7 +129,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         # `anotheruser` must see only permissions assigned to themselves, the
         # owner (`self.admin`) and the anonymous user. Permissions assigned to
         # `someuser` must not appear
-        assignable_perms = Asset.get_assignable_permissions()
+        assignable_perms = self.asset.get_assignable_permissions()
         expected_perms = []
         for user in [self.admin, self.anotheruser, get_anonymous_user()]:
             user_perms = self.asset.get_perms(user)
@@ -172,7 +169,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         returned_urls = [r['url'] for r in response.data]
-        all_obj_perms = ObjectPermission.objects.filter_for_object(self.asset)
+        all_obj_perms = self.asset.permissions.all()
         assigned_obj_perms = all_obj_perms.filter(
             permission__codename__in=self.asset.get_assignable_permissions(
                 with_partial=False
@@ -199,7 +196,8 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         )
         results = permission_list_response.data
 
-        assignable_perms = Asset.get_assignable_permissions()
+        # As an editor of the asset, `someuser` should see all.
+        assignable_perms = self.asset.get_assignable_permissions()
         expected_perms = []
         for user in [
             self.admin,
@@ -244,7 +242,7 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
         # Get admin permissions.
         expected_perms = []
         for admin_perm in admin_perms:
-            if admin_perm in Asset.get_assignable_permissions():
+            if admin_perm in self.asset.get_assignable_permissions():
                 expected_perms.append((self.admin.username, admin_perm))
 
         expected_perms = sorted(expected_perms, key=lambda element: (element[0],
@@ -310,7 +308,7 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         returned_urls = [r['url'] for r in response.data]
-        all_obj_perms = ObjectPermission.objects.filter_for_object(self.asset)
+        all_obj_perms = self.asset.permissions.all()
         assigned_obj_perms = all_obj_perms.filter(
             permission__codename__in=self.asset.get_assignable_permissions(
                 with_partial=False
@@ -403,14 +401,12 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
     def test_submission_assignments_ignored_for_non_survey_assets(self):
         self.asset.asset_type = ASSET_TYPE_TEMPLATE
         self.asset.save()
-        # FIXME: should handle ValidationError somewhere and return HTTP 405
-        self.assertRaises(
-            ValidationError,
-            self._assign_perms_as_logged_in_user,
+        response = self._assign_perms_as_logged_in_user(
             [
                 ('someuser', PERM_VIEW_SUBMISSIONS),
                 ('anotheruser', PERM_VALIDATE_SUBMISSIONS),
-            ],
+            ]
         )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(self.asset.has_perm(self.someuser, PERM_VIEW_SUBMISSIONS))
         self.assertFalse(self.asset.has_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS))

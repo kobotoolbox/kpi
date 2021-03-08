@@ -1,5 +1,6 @@
 # coding: utf-8
 from rest_framework import exceptions
+from django.utils.translation import ugettext_lazy as _
 
 
 class BadPermissionsException(Exception):
@@ -7,6 +8,10 @@ class BadPermissionsException(Exception):
 
 
 class BadAssetTypeException(Exception):
+    pass
+
+
+class BadContentTypeException(Exception):
     pass
 
 
@@ -20,6 +25,17 @@ class ImportAssetException(Exception):
 
 class KobocatProfileException(Exception):
     pass
+
+
+class InvalidSearchException(exceptions.APIException):
+    status_code = 400
+    default_detail = _('Invalid search. Please try again')
+    default_code = 'invalid_search'
+
+
+class SearchQueryTooShortException(InvalidSearchException):
+    default_detail = _('Your query is too short')
+    default_code = 'query_too_short'
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -38,3 +54,27 @@ class KobocatDeploymentException(exceptions.APIException):
             'contain no spaces.',
         )
         return self.detail in invalid_form_id_responses
+
+
+class KobocatDuplicateSubmissionException(exceptions.APIException):
+    status_code = 500
+    default_detail = _('An error occurred trying to duplicate the submission.')
+    default_code = 'submission_duplication_error'
+
+
+class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
+    status_code = 500
+    default_detail = _('An error occurred trying to bulk update the submissions.')
+    default_code = 'bulk_update_submissions_error'
+
+
+class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
+    # This is message should be overridden with something more specific
+    default_detail = _('Invalid payload for bulk updating of submissions')
+    default_code = 'bulk_update_submissions_client_error'
+
+
+class ObjectDeploymentDoesNotExist(exceptions.APIException):
+    status_code = 400
+    default_detail = _('The specified object has not been deployed')
+    default_code = 'deployment_does_not_exist'
