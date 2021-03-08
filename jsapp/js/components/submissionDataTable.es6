@@ -278,7 +278,7 @@ class SubmissionDataTable extends React.Component {
       }
     // In the case that an attachment is missing, don't crash the page
     } else {
-      return(t('Could not retrieve attachment'));
+      return(t('Could not retrieve') + ' ' + filename);
     }
   }
 
