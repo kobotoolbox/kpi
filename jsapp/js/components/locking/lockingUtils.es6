@@ -1,4 +1,6 @@
+import {findRow} from 'js/assetUtils.es6';
 import {
+  LOCKING_PROP_NAME,
   QUESTION_RESTRICTIONS,
   GROUP_RESTRICTIONS,
   FORM_RESTRICTIONS,
@@ -12,12 +14,18 @@ import {
  * @returns {boolean}
  */
 export function hasRowRestriction(asset, rowName, restrictionName) {
-  // TODO do actual check
-  // 1. find row by rowName
-  // 2. get it's locking profile
-  // 3. find locking profile definition (getLockingProfile)
-  // 4. see if definition has the restriction
-  return true;
+  const foundRow = findRow(asset, rowName);
+  if (
+    foundRow &&
+    foundRow[LOCKING_PROP_NAME]
+  ) {
+    const lockingProfile = getLockingProfile(asset, foundRow[LOCKING_PROP_NAME]);
+    return (
+      lockingProfile !== null &&
+      lockingProfile.restrictions.includes(restrictionName)
+    );
+  }
+  return false;
 }
 
 /**
@@ -26,11 +34,14 @@ export function hasRowRestriction(asset, rowName, restrictionName) {
  * @param {string} restrictionName - from FORM_RESTRICTIONS
  */
 export function hasAssetRestriction(asset, restrictionName) {
-  // TODO:
-  // 1. get asset's locking profile
-  // 2. find locking profile definition (getLockingProfile)
-  // 3. see if definition has the restriction
-  return true;
+  if (asset[LOCKING_PROP_NAME]) {
+    const lockingProfile = getLockingProfile(asset, asset[LOCKING_PROP_NAME]);
+    return (
+      lockingProfile !== null &&
+      lockingProfile.restrictions.includes(restrictionName)
+    );
+  }
+  return false;
 }
 
 /**
