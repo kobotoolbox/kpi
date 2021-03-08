@@ -20,6 +20,7 @@ from django.db import models, transaction
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
 from rest_framework import exceptions
+from werkzeug.http import parse_options_header
 
 import formpack.constants
 from formpack.schema.fields import ValidationStatusCopyField
@@ -27,6 +28,8 @@ from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
+    ASSET_TYPE_EMPTY,
+    ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -167,6 +170,7 @@ class ImportTask(ImportExportTask):
                 has_necessary_perm = True
 
         if 'url' in self.data:
+            # Retrieve file name from URL
             self._load_assets_from_url(
                 messages=messages,
                 url=self.data.get('url'),
@@ -175,19 +179,43 @@ class ImportTask(ImportExportTask):
             )
             return
 
+        # Get filename
+        try:
+            filename = self.data['filename']
+        except KeyError:
+            filename = None
+
         if 'single_xls_url' in self.data:
+            # Retrieve file name from URL
             # TODO: merge with `url` handling above; currently kept separate
             # because `_load_assets_from_url()` uses complex logic to deal with
             # multiple XLS files in a directory structure within a ZIP archive
             response = requests.get(self.data['single_xls_url'])
             response.raise_for_status()
             encoded_xls = to_str(base64.b64encode(response.content))
+
+            # if filename is empty or None, try to retrieve
+            # file name from the response headers
+            if not filename:
+                filename_from_header = parse_options_header(
+                    response.headers['Content-Disposition']
+                )
+            
+                try:
+                    filename = filename_from_header[1]['filename']
+                except (TypeError, IndexError, KeyError):
+                    pass
+            
             self.data['base64Encoded'] = encoded_xls
 
         if 'base64Encoded' in self.data:
+            # When a file is uploaded as base64, 
+            # no name is provided in the encoded string
+            # We should rely on self.data.get(:filename:)
+
             self._parse_b64_upload(
                 base64_encoded_upload=self.data['base64Encoded'],
-                filename=self.data.get('filename', None),
+                filename=filename,
                 messages=messages,
                 library=self.data.get('library', False),
                 destination=dest_item,
@@ -314,6 +342,10 @@ class ImportTask(ImportExportTask):
                 msg_key = 'created'
             else:
                 asset = destination
+                if not asset.name:
+                    asset.name = filename
+                if asset.asset_type == ASSET_TYPE_EMPTY:
+                    asset.asset_type = ASSET_TYPE_SURVEY 
                 asset.content = survey_dict
                 asset.save()
                 msg_key = 'updated'

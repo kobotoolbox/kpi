@@ -223,15 +223,11 @@ mixins.dmix = {
   // indication when the loading starts and when ends.
   componentWillUpdate(newProps) {
     if (
-      this.props.params &&
-      this.props.params.assetid &&
-      newProps.params &&
-      newProps.params.assetid &&
-      this.props.params.assetid !== newProps.params.assetid
+      this.props.params?.uid !== newProps.params?.uid
     ) {
       // This case is used by other components (header.es6 is one such component)
       // in a not clear way to gain a data on new asset.
-      actions.resources.loadAsset({id: newProps.params.assetid});
+      actions.resources.loadAsset({id: newProps.params.uid});
     }
   },
   componentDidMount () {
