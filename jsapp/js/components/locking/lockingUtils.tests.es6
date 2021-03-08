@@ -21,61 +21,31 @@ const ROW_RESTRICTIONS = [].concat(
 );
 
 describe('hasRowRestriction', () => {
-  it('should say no restriction for everything in un-locked template', () => {
-    simpleTemplate.content.survey.forEach((row) => {
-      ROW_RESTRICTIONS.forEach((restriction) => {
-        const test = hasRowRestriction(simpleTemplate, getRowName(row), restriction.name);
+  simpleTemplate.content.survey.forEach((row) => {
+    ROW_RESTRICTIONS.forEach((restrictionName) => {
+      const rowName = getRowName(row);
+      it(`should say no restriction for row ${rowName} and restriction ${restrictionName} in un-locked template`, () => {
+        const test = hasRowRestriction(simpleTemplate, getRowName(row), restrictionName);
         expect(test).to.equal(false);
       });
     });
   });
 
-  it('should check rows restrictions in locked template', () => {
-    const expectedRestrictions = {
-      start: [],
-      end: [],
-      Best_thing_in_the_world: [
-        'question_delete',
-        'group_delete',
-        'translation_manage',
-      ],
-      person: [
-        'question_delete',
-        'group_delete',
-        'translation_manage',
-      ],
-      Your_name: [],
-      Your_age: [
-        'choice_add',
-        'choice_delete',
-        'choice_edit',
-        'question_settings_edit',
-        'group_label_edit',
-        'group_question_order_edit',
-        'group_add',
-        'question_order_edit',
-      ],
-    };
-
-    Object.keys(expectedRestrictions).forEach((rowName) => {
-      ROW_RESTRICTIONS.forEach((restriction) => {
-        const test = hasRowRestriction(simpleTemplateLocked, rowName, restriction.name);
-        expect(test).to.equal(expectedRestrictions[rowName].includes(restriction.name));
-      });
-    });
-  });
-});
-
-describe('hasAssetRestriction', () => {
-  it('should say no restriction for asset in un-locked template', () => {
-    Object.keys(FORM_RESTRICTIONS).forEach((restrictionName) => {
-      const test = hasAssetRestriction(simpleTemplate, restrictionName);
-      expect(test).to.equal(false);
-    });
-  });
-
-  it('should check asset restrictions in locked template', () => {
-    const expectedRestrictions = [
+  const expectedRestrictions = {
+    start: [],
+    end: [],
+    Best_thing_in_the_world: [
+      'question_delete',
+      'group_delete',
+      'translation_manage',
+    ],
+    person: [
+      'question_delete',
+      'group_delete',
+      'translation_manage',
+    ],
+    Your_name: [],
+    Your_age: [
       'choice_add',
       'choice_delete',
       'choice_edit',
@@ -84,9 +54,39 @@ describe('hasAssetRestriction', () => {
       'group_question_order_edit',
       'group_add',
       'question_order_edit',
-    ];
-    Object.keys(FORM_RESTRICTIONS).forEach((restrictionName) => {
+    ],
+  };
+  Object.keys(expectedRestrictions).forEach((rowName) => {
+    ROW_RESTRICTIONS.forEach((restrictionName) => {
+      it(`should check row ${rowName} restriction ${restrictionName} in locked template`, () => {
+        const test = hasRowRestriction(simpleTemplateLocked, rowName, restrictionName);
+        expect(test).to.equal(expectedRestrictions[rowName].includes(restrictionName));
+      });
+    });
+  });
+});
+
+describe('hasAssetRestriction', () => {
+  Object.keys(FORM_RESTRICTIONS).forEach((restrictionName) => {
+    it(`should say no restriction ${restrictionName} for asset in an un-locked template`, () => {
       const test = hasAssetRestriction(simpleTemplate, restrictionName);
+      expect(test).to.equal(false);
+    });
+  });
+
+  const expectedRestrictions = [
+    'choice_add',
+    'choice_delete',
+    'choice_edit',
+    'question_settings_edit',
+    'group_label_edit',
+    'group_question_order_edit',
+    'group_add',
+    'question_order_edit',
+  ];
+  Object.keys(FORM_RESTRICTIONS).forEach((restrictionName) => {
+    it(`should check asset restriction ${restrictionName} in locked template`, () => {
+      const test = hasAssetRestriction(simpleTemplateLocked, restrictionName);
       expect(test).to.equal(expectedRestrictions.includes(restrictionName));
     });
   });
