@@ -118,14 +118,21 @@ function SearchContext(opts={}) {
       }
     },
     // remove asset from all search store lists
-    removeAsset(asset, isNonOwner) {
+    removeAsset(assetOrUid, isNonOwner) {
       // only update things if given asset matches the current context types or
       // a non-owner removed their own permissions
       if (isNonOwner || this.state.defaultQueryFilterParams?.assetType.includes(asset.assetType)) {
+        let asset;
+        if (typeof assetOrUid === 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
+
         // non-owner self permission removal only gives an assetUid string, not
         // an object; for consistency we make it an object here
-        if (isNonOwner) {
-          asset = {uid: asset}
+        if (!asset) {
+         asset = {uid: assetOrUid};
         }
         this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
         this.removeAssetFromList(asset.uid, 'searchResultsList');

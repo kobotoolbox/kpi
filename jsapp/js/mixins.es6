@@ -715,9 +715,10 @@ mixins.clickAssets = {
         const userViewAssetPerm = asset.permissions.find((perm) => {
           // Get permissions url related to current user
           var permUserUrl = perm.user.split('/');
-          if (permUserUrl[permUserUrl.length - 2] === stores.session.currentAccount.username) {
-            return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url;
-          }
+          return (
+            permUserUrl[permUserUrl.length - 2] === stores.session.currentAccount.username &&
+            perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
+          );
         });
 
         let dialog = alertify.dialog('confirm');

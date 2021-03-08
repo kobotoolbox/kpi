@@ -345,17 +345,10 @@ stores.allAssets = Reflux.createStore({
     }
   },
   onDeletePermissionCompleted (assetUid, isNonOwner) {
-    // Prevent form owner from deleting their own form if they remove another
-    // user's permissions
-    if (this.byUid[assetUid] && isNonOwner) {
-      this.byUid[assetUid].deleted = 'true';
-      this.trigger(this.data);
-      window.setTimeout(()=> {
-        this.data = this.data.filter(function(item){
-          return item.uid !== assetUid;
-        });
-        this.trigger(this.data);
-      }, 500);
+    // When non owner self removes all his asset permissions, it's as if the
+    // asset was deleted for them
+    if (isNonOwner) {
+      this.onDeleteAssetCompleted({uid: assetUid});
     }
   },
   registerAsset (asset) {
