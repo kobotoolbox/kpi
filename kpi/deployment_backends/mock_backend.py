@@ -209,6 +209,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def duplicate_submission(
         self, requesting_user_id: int, instance_id: int, **kwargs: dict
     ) -> dict:
+        # TODO: Make this operate on XML somehow and reuse code from
+        # KobocatDeploymentBackend, to catch issues like #3054
         all_submissions = self.asset._deployment_data['submissions']
         submission = next(
             filter(lambda sub: sub['_id'] == instance_id, all_submissions)

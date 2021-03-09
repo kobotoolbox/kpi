@@ -449,6 +449,10 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         super().setUp()
         v_uid = self.asset.latest_deployed_version.uid
         current_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        # TODO: also test a submission that's missing `start` or `end`; see
+        # #3054. Right now that would be useless, though, because the
+        # MockDeploymentBackend doesn't use XML at all and won't fail if an
+        # expected field is missing
         self.submissions = [
             {
                 '__version__': v_uid,
