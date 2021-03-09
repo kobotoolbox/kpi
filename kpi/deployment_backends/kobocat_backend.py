@@ -4,7 +4,7 @@ import io
 import json
 import posixpath
 import re
-from typing import Union
+from typing import Union, Optional
 import requests
 import tempfile
 import uuid
@@ -649,7 +649,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return _uuid, f'uuid:{_uuid}'
 
     @staticmethod
-    def format_openrosa_datetime(dt: datetime = None) -> str:
+    def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:
         """
         Format a given datetime object or generate a new timestamp matching the
         OpenRosa datetime formatting
@@ -687,16 +687,20 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         submissions = self.__get_submissions_in_xml(**params)
 
-        # parsing XML
+        # parse XML string to ET object
         xml_parsed = ET.fromstring(next(submissions))
 
+        # attempt to update XML fields for duplicate submission. Note that
+        # `start` and `end` are not guaranteed to be included in the XML object
         _uuid, uuid_formatted = self.generate_new_instance_id()
         date_formatted = self.format_openrosa_datetime()
-
-        # updating xml fields for duplicate submission
-        xml_parsed.find('start').text = date_formatted
-        xml_parsed.find('end').text = date_formatted
-        xml_parsed.find('meta/instanceID').text = uuid_formatted
+        update_fields = [
+            ('start', date_formatted),
+            ('end', date_formatted),
+            ('meta/instanceID', uuid_formatted),
+        ]
+        for element_str, update_str in update_fields:
+            self.__update_xml_text(xml_parsed, element_str, update_str)
 
         file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
         files = {'xml_submission_file': file_tuple}
@@ -1118,4 +1122,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'results': results,
             },
         }
+
+    @staticmethod
+    def __update_xml_text(obj: ET.Element, element: str, update: str) -> None:
+        """
+        Ensure that the `text` attribute is only accessed and updated if the
+        node element is found, otherwise return None
+        """
+        node_or_none = obj.find(element)
+        if node_or_none is None:
+            return
+        node_or_none.text = update
 
