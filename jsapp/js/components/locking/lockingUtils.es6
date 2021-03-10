@@ -1,10 +1,8 @@
 import {findRow} from 'js/assetUtils.es6';
 import {
-  LOCKING_PROP_NAME,
-  QUESTION_RESTRICTIONS,
-  GROUP_RESTRICTIONS,
-  FORM_RESTRICTIONS,
-  DEFAULT_LOCKING_PROFILE,
+  FORM_RESTRICTION_NAMES,
+  ROW_RESTRICTION_NAMES,
+  LOCK_ALL_RESTRICTION_NAMES,
 } from './lockingConstants';
 
 /**
@@ -14,17 +12,33 @@ import {
  * @returns {boolean}
  */
 export function hasRowRestriction(asset, rowName, restrictionName) {
+  // case 1
+  // only check row restrictions
+  if (!ROW_RESTRICTION_NAMES.includes(restrictionName)) {
+    console.warn(`row ${rowName} can't have restriction ${restrictionName}`);
+    return false;
+  }
+
+  // case 2
+  // if lock_all is enabled, then all rows have all restrictions from lock all list
+  if (asset.lock_all === true) {
+    return LOCK_ALL_RESTRICTION_NAMES.inclues(restrictionName);
+  }
+
+  // case 3
   const foundRow = findRow(asset, rowName);
   if (
     foundRow &&
-    foundRow[LOCKING_PROP_NAME]
+    foundRow.locking_profile
   ) {
-    const lockingProfile = getLockingProfile(asset, foundRow[LOCKING_PROP_NAME]);
+    const lockingProfile = getLockingProfile(asset, foundRow.locking_profile);
     return (
       lockingProfile !== null &&
       lockingProfile.restrictions.includes(restrictionName)
     );
   }
+
+  // default
   return false;
 }
 
@@ -34,13 +48,29 @@ export function hasRowRestriction(asset, rowName, restrictionName) {
  * @param {string} restrictionName - from FORM_RESTRICTIONS
  */
 export function hasAssetRestriction(asset, restrictionName) {
-  if (asset[LOCKING_PROP_NAME]) {
-    const lockingProfile = getLockingProfile(asset, asset[LOCKING_PROP_NAME]);
+  // case 1
+  // only check form restrictions
+  if (!FORM_RESTRICTION_NAMES.includes(restrictionName)) {
+    console.warn(`asset can't have restriction ${restrictionName}`);
+    return false;
+  }
+
+  // case 2
+  // if lock_all is enabled, then form has all restrictions from lock all list
+  if (asset.lock_all === true) {
+    return LOCK_ALL_RESTRICTION_NAMES.inclues(restrictionName);
+  }
+
+  // case 3
+  if (asset.locking_profile) {
+    const lockingProfile = getLockingProfile(asset, asset.locking_profile);
     return (
       lockingProfile !== null &&
       lockingProfile.restrictions.includes(restrictionName)
     );
   }
+
+  // default
   return false;
 }
 
@@ -51,9 +81,7 @@ export function hasAssetRestriction(asset, restrictionName) {
  */
 export function getLockingProfile(asset, profileName) {
   let found = null;
-  if (profileName === DEFAULT_LOCKING_PROFILE.name) {
-    return DEFAULT_LOCKING_PROFILE;
-  } else if (asset.settings && asset.settings['locking-profiles']) {
+  if (asset.settings && asset.settings['locking-profiles']) {
     asset.settings['locking-profiles'].forEach((profile) => {
       if (profile.name === profileName) {
         found = profile;

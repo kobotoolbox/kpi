@@ -53,7 +53,8 @@
 
 // NOTE to self: please try to use "lockpick" name for anything
 
-export const QUESTION_RESTRICTIONS = Object.freeze({
+export const LOCKING_RESTRICTIONS = Object.freeze({
+  // question related
   choice_add: {name: 'choice_add', label: t('Add choice to question')},
   choice_delete: {name: 'choice_delete', label: t('Remove choice from question')},
   choice_edit: {name: 'choice_edit', label: t('Edit choice labels')},
@@ -63,9 +64,7 @@ export const QUESTION_RESTRICTIONS = Object.freeze({
   question_settings_edit: {name: 'question_settings_edit', label: t('Edit question settings')},
   question_skip_logic_edit: {name: 'question_skip_logic_edit', label: t('Edit skip logic')},
   question_validation_edit: {name: 'question_validation_edit', label: t('Edit validation')},
-});
-
-export const GROUP_RESTRICTIONS = Object.freeze({
+  // group related
   group_delete: {name: 'group_delete', label: t('Delete entire group')},
   group_label_edit: {name: 'group_label_edit', label: t('Edit group labels')},
   group_question_add: {name: 'group_question_add', label: t('Add question to group')},
@@ -73,9 +72,7 @@ export const GROUP_RESTRICTIONS = Object.freeze({
   group_question_order_edit: {name: 'group_question_order_edit', label: t('Change question order within group')},
   group_settings_edit: {name: 'group_settings_edit', label: t('Edit group settings')},
   group_skip_logic_edit: {name: 'skip_logic_edit', label: t('Edit skip logic')},
-});
-
-export const FORM_RESTRICTIONS = Object.freeze({
+  // form related
   form_replace: {name: 'form_replace', label: t('Replace whole form')},
   group_add: {name: 'group_add', label: t('Add group')},
   question_add: {name: 'question_add', label: t('Add question')},
@@ -83,28 +80,64 @@ export const FORM_RESTRICTIONS = Object.freeze({
   translation_manage: {name: 'translation_manage', label: t('Manage translations')},
 });
 
-export const LOCKING_PROP_NAME = 'kobo--lock';
+export const QUESTION_RESTRICTION_NAMES = [
+  LOCKING_RESTRICTIONS.choice_add.name,
+  LOCKING_RESTRICTIONS.choice_delete.name,
+  LOCKING_RESTRICTIONS.choice_edit.name,
+  LOCKING_RESTRICTIONS.choice_order_edit.name,
+  LOCKING_RESTRICTIONS.question_delete.name,
+  LOCKING_RESTRICTIONS.question_label_edit.name,
+  LOCKING_RESTRICTIONS.question_settings_edit.name,
+  LOCKING_RESTRICTIONS.question_skip_logic_edit.name,
+  LOCKING_RESTRICTIONS.question_validation_edit.name,
+];
 
-export const DEFAULT_LOCKING_PROFILE = {
-  name: 'kobo_default',
-  label: t('Kobo Default'),
-  restrictions: [],
-};
-DEFAULT_LOCKING_PROFILE.restrictions = [].concat(
-  Object.keys(QUESTION_RESTRICTIONS),
-  Object.keys(GROUP_RESTRICTIONS),
-  Object.keys(FORM_RESTRICTIONS)
+export const GROUP_RESTRICTION_NAMES = [
+  LOCKING_RESTRICTIONS.group_delete.name,
+  LOCKING_RESTRICTIONS.group_label_edit.name,
+  LOCKING_RESTRICTIONS.group_question_add.name,
+  LOCKING_RESTRICTIONS.group_question_delete.name,
+  LOCKING_RESTRICTIONS.group_question_order_edit.name,
+  LOCKING_RESTRICTIONS.group_settings_edit.name,
+  LOCKING_RESTRICTIONS.group_skip_logic_edit.name,
+];
+
+export const FORM_RESTRICTION_NAMES = [
+  LOCKING_RESTRICTIONS.form_replace.name,
+  LOCKING_RESTRICTIONS.group_add.name,
+  LOCKING_RESTRICTIONS.question_add.name,
+  LOCKING_RESTRICTIONS.question_order_edit.name,
+  LOCKING_RESTRICTIONS.translation_manage.name,
+];
+
+// group + question restriction names
+export const ROW_RESTRICTION_NAMES = [].concat(
+  QUESTION_RESTRICTION_NAMES,
+  GROUP_RESTRICTION_NAMES,
 );
-Object.freeze(DEFAULT_LOCKING_PROFILE);
 
-// unlocked profile is just an absence of profile
-
-// ??
-export const CUSTOM_LOCKING_PROFILE_COLORS = {
-  // 4 colors
-};
-
-// ??
-export const CUSTOM_LOCKING_PROFILE_ICONS = {
-  // 4 icons
-};
+// currently lock_all has all restrictions,
+// but we want to be flexible, so we use an array
+export const LOCK_ALL_RESTRICTION_NAMES = [
+  LOCKING_RESTRICTIONS.choice_add.name,
+  LOCKING_RESTRICTIONS.choice_delete.name,
+  LOCKING_RESTRICTIONS.choice_edit.name,
+  LOCKING_RESTRICTIONS.choice_order_edit.name,
+  LOCKING_RESTRICTIONS.question_delete.name,
+  LOCKING_RESTRICTIONS.question_label_edit.name,
+  LOCKING_RESTRICTIONS.question_settings_edit.name,
+  LOCKING_RESTRICTIONS.question_skip_logic_edit.name,
+  LOCKING_RESTRICTIONS.question_validation_edit.name,
+  LOCKING_RESTRICTIONS.group_delete.name,
+  LOCKING_RESTRICTIONS.group_label_edit.name,
+  LOCKING_RESTRICTIONS.group_question_add.name,
+  LOCKING_RESTRICTIONS.group_question_delete.name,
+  LOCKING_RESTRICTIONS.group_question_order_edit.name,
+  LOCKING_RESTRICTIONS.group_settings_edit.name,
+  LOCKING_RESTRICTIONS.group_skip_logic_edit.name,
+  LOCKING_RESTRICTIONS.form_replace.name,
+  LOCKING_RESTRICTIONS.group_add.name,
+  LOCKING_RESTRICTIONS.question_add.name,
+  LOCKING_RESTRICTIONS.question_order_edit.name,
+  LOCKING_RESTRICTIONS.translation_manage.name,
+];
