@@ -127,7 +127,6 @@ export const simpleTemplateLocked = {
   'owner': 'http://kf.kobo.local/api/v2/users/kobo/',
   'owner__username': 'kobo',
   'parent': null,
-  'locking_profile': 'mycustomlock1',
   'settings': {
     'sector': {
       'label': 'Other',
@@ -140,29 +139,6 @@ export const simpleTemplateLocked = {
     'description': '',
     'organization': 'Kobo Inc.',
     'share-metadata': true,
-    'locking_profiles': [
-      {
-        name: 'mycustomlock1',
-        restrictions: [
-          'choice_add',
-          'choice_delete',
-          'choice_edit',
-          'question_settings_edit',
-          'group_label_edit',
-          'group_question_order_edit',
-          'group_add',
-          'question_order_edit',
-        ],
-      },
-      {
-        name: 'lock2',
-        restrictions: [
-          'question_delete',
-          'group_delete',
-          'translation_manage',
-        ],
-      },
-    ],
   },
   'asset_type': 'template',
   'summary': {
@@ -201,7 +177,7 @@ export const simpleTemplateLocked = {
         'required': false,
         '$autoname': 'Best_thing_in_the_world',
         'select_from_list_name': 'dp8iw04',
-        'locking_profile': 'lock2',
+        'kobo--lock': 'lock2',
       }, {
         'name': 'person',
         'type': 'begin_group',
@@ -210,7 +186,7 @@ export const simpleTemplateLocked = {
           'Person', 'Osoba',
         ],
         '$autoname': 'person',
-        'locking_profile': 'lock2',
+        'kobo--lock': 'lock2',
       }, {
         'type': 'text',
         '$kuid': 'xw6go48',
@@ -227,7 +203,7 @@ export const simpleTemplateLocked = {
         ],
         'required': false,
         '$autoname': 'Your_age',
-        'locking_profile': 'mycustomlock1',
+        'kobo--lock': 'mycustomlock1',
       }, {
         'type': 'end_group',
         '$kuid': '/xl7sb31',
@@ -260,8 +236,32 @@ export const simpleTemplateLocked = {
         '$autovalue': 'understanding',
       },
     ],
+    'kobo--locks': [
+      {
+        name: 'mycustomlock1',
+        restrictions: [
+          'choice_add',
+          'choice_delete',
+          'choice_edit',
+          'question_settings_edit',
+          'group_label_edit',
+          'group_question_order_edit',
+          'group_add',
+          'question_order_edit',
+        ],
+      },
+      {
+        name: 'lock2',
+        restrictions: [
+          'question_delete',
+          'group_delete',
+          'translation_manage',
+        ],
+      },
+    ],
     'settings': {
       'default_language': 'English (en)',
+      'kobo--lock': 'mycustomlock1',
     },
     'translated': ['label'],
     'translations': ['English (en)', 'Polski (pl)'],

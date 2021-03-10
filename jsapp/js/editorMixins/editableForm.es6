@@ -33,6 +33,7 @@ import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 import assetUtils from 'js/assetUtils';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
+import FormLockedMessage from 'js/components/locking/formLockedMessage';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -827,10 +828,9 @@ export default assign({
             {this.renderFormBuilderHeader()}
 
               <bem.FormBuilder__contents>
-                <bem.FormBuilder__messageBox>
-                  {/* TODO */}
-                  this is locked be aware
-                </bem.FormBuilder__messageBox>
+                {this.state.asset &&
+                  <FormLockedMessage asset={this.state.asset}/>
+                }
 
                 <div ref='form-wrap' className='form-wrap'>
                   {!this.state.surveyAppRendered &&

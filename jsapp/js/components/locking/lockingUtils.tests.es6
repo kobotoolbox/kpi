@@ -12,14 +12,15 @@ import {
 import {
   FORM_RESTRICTION_NAMES,
   ROW_RESTRICTION_NAMES,
+  LOCK_ALL_PROP_NAME,
 } from './lockingConstants';
 import {getRowName} from 'js/assetUtils';
 
 const simpleTemplateLockedWithAll = clonedeep(simpleTemplateLocked);
-simpleTemplateLockedWithAll.lock_all = true;
+simpleTemplateLockedWithAll.content.settings[LOCK_ALL_PROP_NAME] = true;
 
 const simpleTemplateWithAll = clonedeep(simpleTemplate);
-simpleTemplateWithAll.lock_all = true;
+simpleTemplateWithAll.content.settings[LOCK_ALL_PROP_NAME] = true;
 
 describe('hasRowRestriction', () => {
   it('should be false for all restriction for rows in un-locked template', () => {

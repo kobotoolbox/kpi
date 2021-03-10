@@ -3,6 +3,9 @@ import {
   FORM_RESTRICTION_NAMES,
   ROW_RESTRICTION_NAMES,
   LOCK_ALL_RESTRICTION_NAMES,
+  LOCK_ALL_PROP_NAME,
+  LOCKING_PROFILE_PROP_NAME,
+  LOCKING_PROFILES_PROP_NAME,
 } from './lockingConstants';
 
 /**
@@ -21,7 +24,10 @@ export function hasRowRestriction(asset, rowName, restrictionName) {
 
   // case 2
   // if lock_all is enabled, then all rows have all restrictions from lock all list
-  if (asset.lock_all === true) {
+  if (
+    asset.content?.settings &&
+    asset.content.settings[LOCK_ALL_PROP_NAME] === true
+  ) {
     return LOCK_ALL_RESTRICTION_NAMES.includes(restrictionName);
   }
 
@@ -29,9 +35,9 @@ export function hasRowRestriction(asset, rowName, restrictionName) {
   const foundRow = findRow(asset, rowName);
   if (
     foundRow &&
-    foundRow.locking_profile
+    foundRow[LOCKING_PROFILE_PROP_NAME]
   ) {
-    const lockingProfile = getLockingProfile(asset, foundRow.locking_profile);
+    const lockingProfile = getLockingProfile(asset, foundRow[LOCKING_PROFILE_PROP_NAME]);
     return (
       lockingProfile !== null &&
       lockingProfile.restrictions.includes(restrictionName)
@@ -57,13 +63,19 @@ export function hasAssetRestriction(asset, restrictionName) {
 
   // case 2
   // if lock_all is enabled, then form has all restrictions from lock all list
-  if (asset.lock_all === true) {
+  if (
+    asset.content?.settings &&
+    asset.content.settings[LOCK_ALL_PROP_NAME] === true
+  ) {
     return LOCK_ALL_RESTRICTION_NAMES.includes(restrictionName);
   }
 
   // case 3
-  if (asset.locking_profile) {
-    const lockingProfile = getLockingProfile(asset, asset.locking_profile);
+  if (
+    asset.content?.settings &&
+    asset.content.settings[LOCKING_PROFILE_PROP_NAME]
+  ) {
+    const lockingProfile = getLockingProfile(asset, asset.content.settings[LOCKING_PROFILE_PROP_NAME]);
     return (
       lockingProfile !== null &&
       lockingProfile.restrictions.includes(restrictionName)
@@ -81,8 +93,11 @@ export function hasAssetRestriction(asset, restrictionName) {
  */
 export function getLockingProfile(asset, profileName) {
   let found = null;
-  if (asset.settings && asset.settings.locking_profiles) {
-    asset.settings.locking_profiles.forEach((profile) => {
+  if (
+    asset.content &&
+    Array.isArray(asset.content.[LOCKING_PROFILES_PROP_NAME])
+  ) {
+    asset.content.[LOCKING_PROFILES_PROP_NAME].forEach((profile) => {
       if (profile.name === profileName) {
         found = profile;
       }
@@ -101,15 +116,18 @@ export function getLockingProfile(asset, profileName) {
 export function isAssetLocked(asset) {
   // case 1
   // asset has lock_all
-  if (asset.lock_all === true) {
+  if (
+    asset.content?.settings &&
+    asset.content.settings[LOCK_ALL_PROP_NAME] === true
+  ) {
     return true;
   }
 
   // case 2
   // asset has locking profile
   if (
-    typeof asset.locking_profile === 'string' &&
-    asset.locking_profile.length >= 1
+    typeof asset[LOCKING_PROFILE_PROP_NAME] === 'string' &&
+    asset[LOCKING_PROFILE_PROP_NAME].length >= 1
   ) {
     return true;
   }
@@ -118,8 +136,8 @@ export function isAssetLocked(asset) {
   // at least one row has locking profile
   const foundRow = asset.content.survey.find((row) => {
     return (
-      typeof row.locking_profile === 'string' &&
-      row.locking_profile.length >= 1
+      typeof row[LOCKING_PROFILE_PROP_NAME] === 'string' &&
+      row[LOCKING_PROFILE_PROP_NAME].length >= 1
     );
   });
   return Boolean(foundRow);
