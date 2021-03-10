@@ -41,12 +41,12 @@ from kpi.models.object_permission import (
 from kpi.models.asset import UserAssetSubscription
 from kpi.paginators import AssetPagination
 from kpi.permissions import IsOwnerOrReadOnly, PostMappedToChangePermission, \
-    get_perm_name
+    get_perm_name, ReportPermission
 from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
     XlsRenderer
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
-from kpi.tasks import sync_kobocat_xforms
+from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.strings import hashable_str
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
@@ -230,6 +230,19 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >
     >       curl -X PUT https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
 
+    ### Reports
+
+    Returns the submission data for all deployments of a survey. 
+    This data is grouped by answers, and does not show the data for individual submissions.
+    The endpoint will return a <b>404 NOT FOUND</b> error if the asset is not deployed and will only return the data for the most recently deployed version.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/{uid}/reports/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/reports/
 
     ### CURRENT ENDPOINT
     """
@@ -238,12 +251,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Asset.objects.all()
 
     lookup_field = 'uid'
-    permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (
-        KpiObjectPermissionsFilter,
-        SearchFilter,
-        AssetOrderingFilter
-    )
+    pagination_class = AssetPagination
+    permission_classes = [IsOwnerOrReadOnly]
     ordering_fields = [
         'asset_type',
         'date_modified',
@@ -251,14 +260,28 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'owner__username',
         'subscribers_count',
     ]
-    renderer_classes = (renderers.BrowsableAPIRenderer,
-                        AssetJsonRenderer,
-                        SSJsonRenderer,
-                        XFormRenderer,
-                        XlsRenderer,
-                        )
-
-    pagination_class = AssetPagination
+    filter_backends = [
+        KpiObjectPermissionsFilter,
+        SearchFilter,
+        AssetOrderingFilter,
+    ]
+    renderer_classes = [
+        renderers.BrowsableAPIRenderer,
+        AssetJsonRenderer,
+        SSJsonRenderer,
+        XFormRenderer,
+        XlsRenderer,
+    ]
+    # Terms that can be used to search and filter return values
+    # from a query `q`
+    search_default_field_lookups = [
+        'name__icontains',
+        'owner__username__icontains',
+        'settings__description__icontains',
+        'summary__icontains',
+        'tags__name__icontains',
+        'uid__icontains',
+    ]
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
@@ -650,6 +673,20 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if hasattr(instance, 'has_deployment') and instance.has_deployment:
             instance.deployment.delete()
         return super().perform_destroy(instance)
+
+    @action(
+        detail=True,
+        permission_classes=[ReportPermission],
+        methods=['GET'],
+        renderer_classes=[renderers.JSONRenderer],
+    )
+    def reports(self, request, *args, **kwargs):
+        asset = self.get_object()
+        if not asset.has_deployment:
+            raise Http404
+        serializer = ReportsDetailSerializer(asset, 
+                                             context=self.get_serializer_context())
+        return Response(serializer.data)
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def valid_content(self, request, uid):

@@ -591,7 +591,11 @@ class Asset(ObjectPermissionMixin,
             PERM_MANAGE_ASSET,
         ),
         ASSET_TYPE_TEXT: (),  # unused?
-        ASSET_TYPE_EMPTY: (),  # unused?
+        ASSET_TYPE_EMPTY: (
+            PERM_VIEW_ASSET,
+            PERM_CHANGE_ASSET,
+            PERM_MANAGE_ASSET,
+        ),
         ASSET_TYPE_COLLECTION: (
             PERM_VIEW_ASSET,
             PERM_CHANGE_ASSET,
@@ -702,7 +706,27 @@ class Asset(ObjectPermissionMixin,
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
-        return Asset.objects.create(**self.to_clone_dict(version_uid))
+        return Asset.objects.create(**self.to_clone_dict(version=version_uid))
+
+    def create_version(self) -> [AssetVersion, None]:
+        """
+        Create a version of current asset.
+        Asset has to belong to `ASSET_TYPE_WITH_CONTENT` otherwise no version
+        is created and `None` is returned.
+        """
+        if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
+            return
+
+        return self.asset_versions.create(
+            name=self.name,
+            version_content=self.content,
+            _deployment_data=self._deployment_data,
+            # Any new version starts out as not-deployed,
+            # even if the asset itself is already deployed.
+            # Note: `asset_version.deployed` is set in the
+            # serializer `DeploymentSerializer`
+            deployed=False,
+        )
 
     @property
     def deployed_versions(self):
@@ -966,13 +990,7 @@ class Asset(ObjectPermissionMixin,
                 self.parent.update_languages()
 
         if _create_version:
-            self.asset_versions.create(name=self.name,
-                                       version_content=self.content,
-                                       _deployment_data=self._deployment_data,
-                                       # asset_version.deployed is set in the
-                                       # DeploymentSerializer
-                                       deployed=False,
-                                       )
+            self.create_version()
 
     @property
     def snapshot(self):
@@ -993,20 +1011,23 @@ class Asset(ObjectPermissionMixin,
         intended_tags = value.split(',')
         self.tags.set(*intended_tags)
 
-    def to_clone_dict(self, version_uid=None, version=None):
+    def to_clone_dict(
+            self,
+            version: Union[str, AssetVersion] = None
+    ) -> dict:
         """
-        Returns a dictionary of the asset based on version_uid or version.
-        If `version` is specified, there are no needs to provide `version_uid` and make another request to DB.
-        :param version_uid: string
-        :param version: AssetVersion
-        :return: dict
-        """
+        Returns a dictionary of the asset based on its version.
 
+        :param version: Optional. It can be an object or its unique id
+        :return dict
+        """
         if not isinstance(version, AssetVersion):
-            if version_uid:
-                version = self.asset_versions.get(uid=version_uid)
+            if version:
+                version = self.asset_versions.get(uid=version)
             else:
                 version = self.asset_versions.first()
+                if not version:
+                    version = self.create_version()
 
         return {
             'name': version.name,

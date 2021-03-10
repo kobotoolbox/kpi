@@ -5,7 +5,7 @@ import reactMixin from 'react-mixin';
 import _ from 'underscore';
 import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from '../dataInterface';
-import Checkbox from './checkbox';
+import Checkbox from 'js/components/common/checkbox';
 import {actions} from '../actions';
 import {bem} from '../bem';
 import ui from '../ui';
@@ -270,7 +270,11 @@ export class DataTable extends React.Component {
     }
 
     var columns = [];
-    if (this.userCan('validate_submissions', this.props.asset) || this.userCan('delete_submissions', this.props.asset)) {
+    if (
+      this.userCan('validate_submissions', this.props.asset) ||
+      this.userCan('delete_submissions', this.props.asset) ||
+      this.userCan('change_submissions', this.props.asset)
+    ) {
       columns.push({
         Header: () => {
           return (
@@ -556,7 +560,7 @@ export class DataTable extends React.Component {
             {choices.filter(c => c.list_name === col.question.select_from_list_name).map((item, n) => {
               let displayLabel = t('Unlabelled');
               if (item.label) {
-                displayLabel = item.label[0];
+                displayLabel = item.label[translationIndex];
               } else if (item.name) {
                 displayLabel = item.name;
               } else if (item.$autoname) {
