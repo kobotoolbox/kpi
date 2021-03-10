@@ -114,7 +114,10 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
                 # formpack will gracefully return an empty `features` array
                 geo_question_name = None
         return ''.join(
-            export.to_geojson(submission_stream, geo_question_name)
+            export.to_geojson(
+                submission_stream,
+                geo_question_name=geo_question_name,
+            )
         )
 
 
