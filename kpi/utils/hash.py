@@ -5,6 +5,7 @@ from typing import Union, BinaryIO
 
 import requests
 from django.conf import settings
+from rest_framework import status
 
 
 def get_hash(source: Union[str, bytes, BinaryIO],
@@ -43,15 +44,31 @@ def get_hash(source: Union[str, bytes, BinaryIO],
         if not source.startswith('http'):
             hashable = source.encode()
         else:
+            # Try to get hash from the content of a URL.
+            # If the any requests fail, it returns the hash of the URL itself.
+            # We do not want to raise a `RequestException` while calculating
+            # the hash.
+            # ToDo: Evaluate whether it could be better to return ̀`None` when
+            # a request exception occurs
+
             # Ensure we do not receive a gzip response.
             headers = {'Accept-Encoding': None}
+            url_hash = hashlib_def(source.encode()).hexdigest()
             # Get remote file size
             # `requests.get(url, stream=True)` only gets headers. Body is
             # only retrieved when `response.content` is called.
             # It avoids making a second request to get the body
             # (i.e.: vs `requests.head()`).
-            response = requests.get(source, stream=True, headers=headers)
-            response.raise_for_status()
+            try:
+                response = requests.get(source, stream=True, headers=headers)
+                response.raise_for_status()
+            except requests.exceptions.RequestException:
+                # With `stream=True`, the connection is kept alive until it is
+                # closed or all the data is consumed. Because, we do not consume
+                # the data, we have to close the connexion manually.
+                response.close()
+                return _prefix_hash(hex_digest=url_hash)
+
             file_size = int(response.headers['Content-Length'])
             # If the remote file is smaller than the threshold or smaller than
             # 3 times the chunk, we retrieve the whole file to avoid extra
@@ -63,6 +80,11 @@ def get_hash(source: Union[str, bytes, BinaryIO],
             ):
                 hashable = response.content
             else:
+                # With `stream=True`, the connection is kept alive until it is
+                # closed or all the data is consumed. Because, we do not consume
+                # the data, we have to close the connexion manually.
+                response.close()
+
                 # We fetch 3 parts of the file.
                 # - One chunk at the beginning
                 # - One chunk in the middle
@@ -78,15 +100,18 @@ def get_hash(source: Union[str, bytes, BinaryIO],
                 # 1) First part
                 range_ = f'0-{settings.HASH_BIG_FILE_CHUNK - 1}'
                 headers['Range'] = f'bytes={range_}'
-                response = requests.get(source, stream=True, headers=headers)
-                response.raise_for_status()
                 try:
-                    response.headers['Content-Range']
-                except KeyError:
-                    # Remove server does not support ranges
-                    hex_digest = hashlib_def(source.encode()).hexdigest()
-                    return _prefix_hash(hex_digest=hex_digest)
-
+                    response = requests.get(source, stream=True, headers=headers)
+                    response.raise_for_status()
+                except requests.exceptions.RequestException:
+                    response.close()
+                    return _prefix_hash(hex_digest=url_hash)
+                else:
+                    if response.status_code != status.HTTP_206_PARTIAL_CONTENT:
+                        # Remove server does not support ranges. The file may be
+                        # huge. Do not try to download it
+                        response.close()
+                        return _prefix_hash(hex_digest=url_hash)
                 hashable = response.content
 
                 # 2) Second part
@@ -95,8 +120,11 @@ def get_hash(source: Union[str, bytes, BinaryIO],
                                      + settings.HASH_BIG_FILE_CHUNK - 1)
                 range_ = f'{range_lower_bound}-{range_upper_bound}'
                 headers['Range'] = f'bytes={range_}'
-                response = requests.get(source, headers=headers)
-                response.raise_for_status()
+                try:
+                    response = requests.get(source, headers=headers)
+                    response.raise_for_status()
+                except requests.exceptions.RequestException:
+                    return _prefix_hash(hex_digest=url_hash)
                 hashable += response.content
 
                 # 3) Last part
@@ -104,8 +132,11 @@ def get_hash(source: Union[str, bytes, BinaryIO],
                 range_upper_bound = file_size - 1
                 range_ = f'{range_lower_bound}-{range_upper_bound}'
                 headers['Range'] = f'bytes={range_}'
-                response = requests.get(source, headers=headers)
-                response.raise_for_status()
+                try:
+                    response = requests.get(source, headers=headers)
+                    response.raise_for_status()
+                except requests.exceptions.RequestException:
+                    return _prefix_hash(hex_digest=url_hash)
                 hashable += response.content
 
         return _prefix_hash(hashlib_def(hashable).hexdigest())

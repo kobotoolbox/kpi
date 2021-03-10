@@ -708,10 +708,12 @@ SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
 
 ENV = None
 
-# The maximum size in bytes that a request body may be before a SuspiciousOperation (RequestDataTooBig) is raised
+# The maximum size in bytes that a request body may be before a
+# SuspiciousOperation (RequestDataTooBig) is raised
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
-# The maximum size (in bytes) that an upload will be before it gets streamed to the file system
+# The maximum size (in bytes) that an upload will be before it gets streamed
+# to the file system
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
 # OpenRosa setting in bytes
@@ -721,10 +723,10 @@ OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
 # Should match KoBoCAT setting
 PAIRED_DATA_EXPIRATION = 300
 
-# In bytes
+# Minimum size (in bytes) of files to allow fast calculation of hashes
 # Should match KoBoCAT setting
-HASH_BIG_FILE_SIZE_THRESHOLD = 0.5 * 1024 * 1024  # 1 MB
+HASH_BIG_FILE_SIZE_THRESHOLD = 0.5 * 1024 * 1024  # 512 kB
 
-# In bytes
+# Chunk size in bytes to read per iteration when hash of a file is calculated
 # Should match KoBoCAT setting
 HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
