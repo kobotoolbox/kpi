@@ -257,7 +257,7 @@ module.exports = do ->
 
     activateGroupButton: (active) ->
       @surveyStateStore.setState({groupButtonIsActive: active})
-      $('.formBuilder-header__button--group').attr('disabled', !active)
+      $('.form-builder-header__button--group').attr('disabled', !active)
       return
 
     getApp: -> @
