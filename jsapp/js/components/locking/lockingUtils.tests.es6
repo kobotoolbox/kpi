@@ -1,3 +1,4 @@
+import clonedeep from 'lodash.clonedeep';
 import {
   simpleTemplate,
   simpleTemplateLocked,
@@ -6,6 +7,7 @@ import {
   hasRowRestriction,
   hasAssetRestriction,
   getLockingProfile,
+  isAssetLocked,
 } from './lockingUtils';
 import {
   FORM_RESTRICTION_NAMES,
@@ -13,45 +15,68 @@ import {
 } from './lockingConstants';
 import {getRowName} from 'js/assetUtils';
 
+const simpleTemplateLockedWithAll = clonedeep(simpleTemplateLocked);
+simpleTemplateLockedWithAll.lock_all = true;
+
+const simpleTemplateWithAll = clonedeep(simpleTemplate);
+simpleTemplateWithAll.lock_all = true;
+
 describe('hasRowRestriction', () => {
-  simpleTemplate.content.survey.forEach((row) => {
-    ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
-      const rowName = getRowName(row);
-      it(`should say no restriction for row ${rowName} and restriction ${restrictionName} in un-locked template`, () => {
+  it('should be false for all restriction for rows in un-locked template', () => {
+    simpleTemplate.content.survey.forEach((row) => {
+      ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
         const test = hasRowRestriction(simpleTemplate, getRowName(row), restrictionName);
         expect(test).to.equal(false);
       });
     });
   });
 
-  const expectedRestrictions = {
-    start: [],
-    end: [],
-    Best_thing_in_the_world: [
-      'question_delete',
-      'group_delete',
-      'translation_manage',
-    ],
-    person: [
-      'question_delete',
-      'group_delete',
-      'translation_manage',
-    ],
-    Your_name: [],
-    Your_age: [
-      'choice_add',
-      'choice_delete',
-      'choice_edit',
-      'question_settings_edit',
-      'group_label_edit',
-      'group_question_order_edit',
-      'group_add',
-      'question_order_edit',
-    ],
-  };
-  Object.keys(expectedRestrictions).forEach((rowName) => {
-    ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
-      it(`should check row ${rowName} restriction ${restrictionName} in locked template`, () => {
+  it('should be true for all restrictions for rows in lock_all template', () => {
+    simpleTemplateWithAll.content.survey.forEach((row) => {
+      ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
+        const test = hasRowRestriction(simpleTemplateWithAll, getRowName(row), restrictionName);
+        expect(test).to.equal(true);
+      });
+    });
+  });
+
+  it('should be true for all restrictions for rows in lock_all template regardless of locking profile', () => {
+    simpleTemplateLockedWithAll.content.survey.forEach((row) => {
+      ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
+        const test = hasRowRestriction(simpleTemplateLockedWithAll, getRowName(row), restrictionName);
+        expect(test).to.equal(true);
+      });
+    });
+  });
+
+  it('should check row restriction in locked template', () => {
+    const expectedRestrictions = {
+      start: [],
+      end: [],
+      Best_thing_in_the_world: [
+        'question_delete',
+        'group_delete',
+        'translation_manage',
+      ],
+      person: [
+        'question_delete',
+        'group_delete',
+        'translation_manage',
+      ],
+      Your_name: [],
+      Your_age: [
+        'choice_add',
+        'choice_delete',
+        'choice_edit',
+        'question_settings_edit',
+        'group_label_edit',
+        'group_question_order_edit',
+        'group_add',
+        'question_order_edit',
+      ],
+    };
+    Object.keys(expectedRestrictions).forEach((rowName) => {
+      ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
         const test = hasRowRestriction(simpleTemplateLocked, rowName, restrictionName);
         expect(test).to.equal(expectedRestrictions[rowName].includes(restrictionName));
       });
@@ -60,25 +85,39 @@ describe('hasRowRestriction', () => {
 });
 
 describe('hasAssetRestriction', () => {
-  FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
-    it(`should say no restriction ${restrictionName} for asset in an un-locked template`, () => {
+  it('should say no restrictions for un-locked template', () => {
+    FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
       const test = hasAssetRestriction(simpleTemplate, restrictionName);
       expect(test).to.equal(false);
     });
   });
 
-  const expectedRestrictions = [
-    'choice_add',
-    'choice_delete',
-    'choice_edit',
-    'question_settings_edit',
-    'group_label_edit',
-    'group_question_order_edit',
-    'group_add',
-    'question_order_edit',
-  ];
-  FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
-    it(`should check asset restriction ${restrictionName} in locked template`, () => {
+  it('should be true for all restrictions for lock_all template', () => {
+    FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
+      const test = hasAssetRestriction(simpleTemplateWithAll, restrictionName);
+      expect(test).to.equal(true);
+    });
+  });
+
+  it('should be true for all restrictions for lock_all template regardless of locking profiles', () => {
+    FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
+      const test = hasAssetRestriction(simpleTemplateLockedWithAll, restrictionName);
+      expect(test).to.equal(true);
+    });
+  });
+
+  it('should check asset restrictions in locked template', () => {
+    const expectedRestrictions = [
+      'choice_add',
+      'choice_delete',
+      'choice_edit',
+      'question_settings_edit',
+      'group_label_edit',
+      'group_question_order_edit',
+      'group_add',
+      'question_order_edit',
+    ];
+    FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
       const test = hasAssetRestriction(simpleTemplateLocked, restrictionName);
       expect(test).to.equal(expectedRestrictions.includes(restrictionName));
     });
@@ -103,13 +142,25 @@ describe('getLockingProfile', () => {
     });
   });
 
-  it('should find default locking profile', () => {
-    const test = getLockingProfile(simpleTemplateLocked, 'kobo_default');
-    expect(test).to.deep.equal(DEFAULT_LOCKING_PROFILE);
-  });
-
   it('should return null for not found', () => {
     const test = getLockingProfile(simpleTemplateLocked, 'nothingness_approaching');
     expect(test).to.equal(null);
+  });
+});
+
+describe('isAssetLocked', () => {
+  it('should be false for un-locked template', () => {
+    const test = isAssetLocked(simpleTemplate);
+    expect(test).to.equal(false);
+  });
+
+  it('should be true for template with some locking', () => {
+    const test = isAssetLocked(simpleTemplateLocked);
+    expect(test).to.equal(true);
+  });
+
+  it('should be true for template with lock_all', () => {
+    const test = isAssetLocked(simpleTemplateWithAll);
+    expect(test).to.equal(true);
   });
 });
