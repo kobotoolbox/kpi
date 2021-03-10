@@ -562,6 +562,7 @@ export default assign({
 
           <bem.FormBuilderHeader__cell m={'name'} >
             <bem.FormModal__item>
+              <span>is locked?</span>
               {nameFieldLabel &&
                 <label>{nameFieldLabel}</label>
               }
@@ -826,6 +827,11 @@ export default assign({
             {this.renderFormBuilderHeader()}
 
               <bem.FormBuilder__contents>
+                <bem.FormBuilder__messageBox>
+                  {/* TODO */}
+                  this is locked be aware
+                </bem.FormBuilder__messageBox>
+
                 <div ref='form-wrap' className='form-wrap'>
                   {!this.state.surveyAppRendered &&
                     this.renderNotLoadedMessage()

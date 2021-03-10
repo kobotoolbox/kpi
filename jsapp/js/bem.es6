@@ -44,9 +44,9 @@ bem.ServiceRow__actionButton = bem.ServiceRow.__('action-button', '<button>');
 bem.ServiceRow__linkOverlay = bem.ServiceRow.__('link-overlay', '<a>');
 bem.ServiceRowButton = BEM('service-row-button', '<button>');
 
-bem.FormBuilder = BEM('formBuilder');
-bem.FormBuilder__row = bem.FormBuilder.__('row');
+bem.FormBuilder = BEM('form-builder');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
+bem.FormBuilder__messageBox = bem.FormBuilder.__('message-box');
 
 bem.FormBuilderMeta = bem('form-builder-meta');
 bem.FormBuilderMeta__columns = bem.FormBuilderMeta.__('columns');
@@ -58,7 +58,7 @@ bem.FormBuilderAside__content = bem.FormBuilderAside.__('content');
 bem.FormBuilderAside__header = bem.FormBuilderAside.__('header', '<h2>');
 bem.FormBuilderAside__row = bem.FormBuilderAside.__('row', '<section>');
 
-bem.FormBuilderHeader = BEM('formBuilder-header');
+bem.FormBuilderHeader = BEM('form-builder-header');
 bem.FormBuilderHeader__row = bem.FormBuilderHeader.__('row');
 bem.FormBuilderHeader__cell = bem.FormBuilderHeader.__('cell');
 bem.FormBuilderHeader__item = bem.FormBuilderHeader.__('item', '<span>');
