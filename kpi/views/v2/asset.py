@@ -250,12 +250,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Asset.objects.all()
 
     lookup_field = 'uid'
-    permission_classes = (IsOwnerOrReadOnly,)
-    filter_backends = (
-        KpiObjectPermissionsFilter,
-        SearchFilter,
-        AssetOrderingFilter
-    )
+    pagination_class = AssetPagination
+    permission_classes = [IsOwnerOrReadOnly]
     ordering_fields = [
         'asset_type',
         'date_modified',
@@ -263,14 +259,28 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         'owner__username',
         'subscribers_count',
     ]
-    renderer_classes = (renderers.BrowsableAPIRenderer,
-                        AssetJsonRenderer,
-                        SSJsonRenderer,
-                        XFormRenderer,
-                        XlsRenderer,
-                        )
-
-    pagination_class = AssetPagination
+    filter_backends = [
+        KpiObjectPermissionsFilter,
+        SearchFilter,
+        AssetOrderingFilter,
+    ]
+    renderer_classes = [
+        renderers.BrowsableAPIRenderer,
+        AssetJsonRenderer,
+        SSJsonRenderer,
+        XFormRenderer,
+        XlsRenderer,
+    ]
+    # Terms that can be used to search and filter return values
+    # from a query `q`
+    search_default_field_lookups = [
+        'name__icontains',
+        'owner__username__icontains',
+        'settings__description__icontains',
+        'summary__icontains',
+        'tags__name__icontains',
+        'uid__icontains',
+    ]
 
     @action(detail=True, renderer_classes=[renderers.JSONRenderer])
     def content(self, request, uid):
