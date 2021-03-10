@@ -5,16 +5,6 @@
  *
  * https://docs.google.com/spreadsheets/d/1JI2JQ2UFrPvUh3ZuwiAoMBrol_KshkIARloSTi6UOM4/edit#gid=1847621029
  *
- * there are three types of restrictions: question, group, form
- *
- * form has list of custom locking profile (plus two default ones)
- *
- * locking profile can be assigned to form, group and question
- *
- * locking profile has a name and list of enabled restrictions
- *
- * restriction definitions are hardcoded on FE
- *
  * form is "locked" if at least one question, one group or the form itself has a locking profile assigned
  *
  * Things to actually do:
