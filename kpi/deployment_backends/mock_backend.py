@@ -8,8 +8,10 @@ import pytz
 from django.urls import reverse
 from rest_framework import status
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
-from kpi.exceptions import KobocatBulkUpdateSubmissionsException
+from kpi.constants import (
+    INSTANCE_FORMAT_TYPE_JSON,
+    INSTANCE_FORMAT_TYPE_XML,
+)
 from .base_backend import BaseDeploymentBackend
 
 
