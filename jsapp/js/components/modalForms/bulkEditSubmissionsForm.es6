@@ -6,7 +6,10 @@ import {
   getSurveyFlatPaths,
   getFlatQuestionsList,
 } from 'js/assetUtils';
-import {QUESTION_TYPES} from 'js/constants';
+import {
+  QUESTION_TYPES,
+  FORM_VERSION_NAME,
+} from 'js/constants';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
@@ -173,10 +176,23 @@ class BulkEditSubmissionsForm extends React.Component {
    * @returns {object[]} a list of question objects with all responses included
    */
   getDisplayData() {
-    const questions = getFlatQuestionsList(this.props.asset.content.survey);
+    let questions = getFlatQuestionsList(this.props.asset.content.survey);
     const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
 
-    questions.forEach((question) => {
+    questions = questions.filter((question) => {
+      // we don't want to include special calculate row used to store form version
+      if (question.type === QUESTION_TYPES.calculate.id && question.name === FORM_VERSION_NAME) {
+        return false;
+      }
+      // notes and hidden don't carry submission data, we ignore them
+      if (
+        question.type === QUESTION_TYPES.note.id ||
+        question.type === QUESTION_TYPES.hidden.id
+      ) {
+        return false;
+      }
+
+      // build selected data for question
       question.selectedData = [];
       const questionPath = flatPaths[question.name];
       this.props.data.forEach((submissionData) => {
@@ -187,6 +203,7 @@ class BulkEditSubmissionsForm extends React.Component {
           });
         }
       });
+      return true;
     });
     return questions;
   }
@@ -213,6 +230,8 @@ class BulkEditSubmissionsForm extends React.Component {
     }
 
     let modifiers = [];
+    // we don't support bulk editing questions from repeat groups yet
+    // we display them but disabled
     if (question.hasRepatParent) {
       modifiers.push('bulk-edit-row-disabled');
     }

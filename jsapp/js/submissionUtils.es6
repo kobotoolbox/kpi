@@ -114,8 +114,11 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
       if (row.type === QUESTION_TYPES.calculate.id && rowName === FORM_VERSION_NAME) {
         continue;
       }
-      // notes don't carry submission data, we ignore them
-      if (row.type === QUESTION_TYPES.note.id) {
+      // notes and hidden don't carry submission data, we ignore them
+      if (
+        row.type === QUESTION_TYPES.note.id ||
+        row.type === QUESTION_TYPES.hidden.id
+      ) {
         continue;
       }
       /*
