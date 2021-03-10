@@ -18,19 +18,12 @@ def export_in_background(export_task_uid):
 
 
 @shared_task
-def sync_kobocat_xforms(username=None, quiet=True):
-    call_command('sync_kobocat_xforms', username=username, quiet=quiet)
-
-
-@shared_task
-def import_survey_drafts_from_dkobo(**kwargs):
-    call_command('import_survey_drafts_from_dkobo', **kwargs)
-
-
-@shared_task
-def sync_media_files(asset_uid):
-    asset = Asset.objects.get(uid=asset_uid)
-    asset.deployment.set_status(asset.deployment.STATUS_NOT_SYNCED)
-    asset.deployment.sync_media_files()
-    # If no exceptions have been raised, let's tag the deployment has sync'ed
-    asset.deployment.set_status(asset.deployment.STATUS_SYNCED)
+def sync_kobocat_xforms(
+    username=None, quiet=True, populate_xform_kpi_asset_uid=False
+):
+    call_command(
+        'sync_kobocat_xforms',
+        username=username,
+        quiet=quiet,
+        populate_xform_kpi_asset_uid=populate_xform_kpi_asset_uid,
+    )

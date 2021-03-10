@@ -8,6 +8,7 @@ from formpack import FormPack
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
+from rest_framework.utils.serializer_helpers import ReturnList
 
 from kpi.constants import (
     ASSET_STATUS_DISCOVERABLE,
@@ -28,7 +29,7 @@ from kpi.fields import (
     RelativePrefixHyperlinkedRelatedField,
     WritableJSONField,
 )
-from kpi.models import Asset, AssetVersion
+from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.models.asset import UserAssetSubscription
 from kpi.models.object_permission import get_anonymous_user
 
@@ -36,6 +37,7 @@ from kpi.utils.object_permission_helper import ObjectPermissionHelper
 
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
+from .asset_export_settings import AssetExportSettingsSerializer
 
 
 class AssetSerializer(serializers.HyperlinkedModelSerializer):
@@ -68,6 +70,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     assignable_permissions = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
+    exports = serializers.SerializerMethodField()
+    export_settings = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
     version__content_hash = serializers.CharField(read_only=True)
@@ -138,6 +142,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'name',
                   'assignable_permissions',
                   'permissions',
+                  'exports',
+                  'export_settings',
                   'settings',
                   'data',
                   'children',
@@ -387,6 +393,21 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                                                    many=True, read_only=True,
                                                    context=context).data
 
+    def get_exports(self, obj: Asset) -> str:
+        return reverse(
+            'asset-export-list',
+            args=(obj.uid,),
+            request=self.context.get('request', None),
+        )
+
+    def get_export_settings(self, obj: Asset) -> ReturnList:
+        return AssetExportSettingsSerializer(
+            AssetExportSettings.objects.filter(asset=obj),
+            many=True,
+            read_only=True,
+            context=self.context,
+        ).data
+
     def get_access_types(self, obj):
         """
         Handles the detail endpoint but also takes advantage of the
@@ -611,6 +632,7 @@ class AssetListSerializer(AssetSerializer):
                   'deployment__active',
                   'deployment__submission_count',
                   'permissions',
+                  'export_settings',
                   'downloads',
                   'data',
                   'subscribers_count',

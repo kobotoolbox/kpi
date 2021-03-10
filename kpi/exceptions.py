@@ -1,6 +1,6 @@
 # coding: utf-8
-from rest_framework import exceptions
 from django.utils.translation import ugettext_lazy as _
+from rest_framework import exceptions
 
 
 class BadPermissionsException(Exception):

@@ -364,7 +364,7 @@ export var dataInterface;
       return $.getJSON(`${ROOT_URL}/api/v2/assets/${id}/content/`);
     },
     getImportDetails ({uid}) {
-      return $.getJSON(`${ROOT_URL}/imports/${uid}/`);
+      return $.getJSON(`${ROOT_URL}/api/v2/imports/${uid}/`);
     },
     getAsset (params={}) {
       if (params.url) {
@@ -603,7 +603,7 @@ export var dataInterface;
       });
       return $ajax({
         method: 'POST',
-        url: `${ROOT_URL}/imports/`,
+        url: `${ROOT_URL}/api/v2/imports/`,
         data: formData,
         processData: false,
         contentType: false
