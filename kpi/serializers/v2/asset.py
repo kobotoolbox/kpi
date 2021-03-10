@@ -67,6 +67,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     )
     assignable_permissions = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
+    exports = serializers.SerializerMethodField()
     export_settings = serializers.SerializerMethodField()
     tag_string = serializers.CharField(required=False, allow_blank=True)
     version_id = serializers.CharField(read_only=True)
@@ -134,6 +135,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'name',
                   'assignable_permissions',
                   'permissions',
+                  'exports',
                   'export_settings',
                   'settings',
                   'data',
@@ -371,6 +373,13 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return AssetPermissionAssignmentSerializer(queryset.all(),
                                                    many=True, read_only=True,
                                                    context=context).data
+
+    def get_exports(self, obj: Asset) -> str:
+        return reverse(
+            'asset-export-list',
+            args=(obj.uid,),
+            request=self.context.get('request', None),
+        )
 
     def get_export_settings(self, obj: Asset) -> ReturnList:
         return AssetExportSettingsSerializer(

@@ -12,7 +12,7 @@ class AssetExportSettings(models.Model):
                               on_delete=models.CASCADE)
     date_modified = models.DateTimeField()
     name = models.CharField(max_length=255, blank=True, default='')
-    export_settings = JSONBField(null=True)
+    export_settings = JSONBField(default=dict)
 
     def save(self, *args, **kwargs):
         self.date_modified = timezone.now()

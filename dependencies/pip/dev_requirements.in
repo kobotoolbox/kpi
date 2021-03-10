@@ -1,7 +1,6 @@
 -r requirements.in
 
 Fabric
-Werkzeug
 ipython
 pytest-django
 pytest-env

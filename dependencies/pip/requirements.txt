@@ -278,6 +278,8 @@ vine==1.3.0
     # via
     #   amqp
     #   celery
+werkzeug==1.0.1
+    # via -r dependencies/pip/requirements.in
 xlrd==1.2.0
     # via
     #   -r dependencies/pip/requirements.in

@@ -8,6 +8,7 @@ from rest_framework import status
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_MANAGE_ASSET,
+    PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset, AssetExportSettings
@@ -73,7 +74,7 @@ class AssetExportSettingsApiTest(BaseTestCase):
             export_settings=self.valid_export_settings,
         )
 
-    def __get_detail_url(self, uid):
+    def _get_detail_url(self, uid):
         return reverse(
             self._get_endpoint('asset-export-settings-detail'),
             kwargs={
@@ -127,7 +128,7 @@ class AssetExportSettingsApiTest(BaseTestCase):
         assert self.asset_export_settings.count() == 1
 
         data = response.json()
-        url = self.__get_detail_url(data['uid'])
+        url = self._get_detail_url(data['uid'])
 
         new_name = 'bar'
         new_export_type = 'xls'
@@ -165,8 +166,10 @@ class AssetExportSettingsApiTest(BaseTestCase):
 
         assert self.asset_export_settings.count() == 1
 
-        delete_response = self.client.delete(export_settings_url)
-        assert delete_response.status_code == status.HTTP_200_OK
+        delete_response = self.client.delete(
+            export_settings_url, HTTP_ACCEPT='application/json'
+        )
+        assert delete_response.status_code == status.HTTP_204_NO_CONTENT
         assert self.asset_export_settings.count() == 0
 
     def test_api_list_asset_export_settings_for_owner(self):
@@ -188,6 +191,9 @@ class AssetExportSettingsApiTest(BaseTestCase):
     def test_api_list_asset_export_settings_without_perms(self):
         self._create_foo_export_settings()
 
+        # assign `view_asset` to anotheruser
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
+
         self._log_in_as_another_user()
         response = self.client.get(self.export_settings_list_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -208,9 +214,37 @@ class AssetExportSettingsApiTest(BaseTestCase):
 
     def test_api_detail_asset_export_settings_without_perms(self):
         export_settings = self._create_foo_export_settings()
-        url = self.__get_detail_url(export_settings.uid)
+        url = self._get_detail_url(export_settings.uid)
 
         self._log_in_as_another_user()
         response = self.client.get(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_api_detail_asset_export_settings_shared_with_manage_asset_perms(self):
+        export_settings = self._create_foo_export_settings()
+        url = self._get_detail_url(export_settings.uid)
+        self._log_in_as_another_user()
+
+        # assign `view_asset` to anotheruser so that they can see the asset but
+        # not the export settings
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        # assign `view_submissions` to anotheruser so that they can see the
+        # settings but not make changes
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        delete_response = self.client.delete(
+            url, HTTP_ACCEPT='application/json'
+        )
+        assert delete_response.status_code == status.HTTP_403_FORBIDDEN
+
+        # assign `manage_asset` to anotheruser so that they can make changes
+        self.asset.assign_perm(self.anotheruser, PERM_MANAGE_ASSET)
+        delete_response = self.client.delete(
+            url, HTTP_ACCEPT='application/json'
+        )
+        assert delete_response.status_code == status.HTTP_204_NO_CONTENT
 

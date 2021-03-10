@@ -3,8 +3,9 @@ from django.http import Http404
 from rest_framework import exceptions, permissions
 
 from kpi.models.asset import Asset
+from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.object_permission import get_anonymous_user
-from kpi.constants import PERM_PARTIAL_SUBMISSIONS
+from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 
 
 # FIXME: Move to `object_permissions` module.
@@ -293,3 +294,21 @@ class ExportTaskPermission(AssetNestedObjectPermission):
     perms_map['POST'] = perms_map['GET']
     perms_map['DELETE'] = perms_map['GET']
 
+
+class ReportPermission(IsOwnerOrReadOnly):
+    def has_object_permission(self, request, view, obj):
+        # Checks if the user has the require permissions
+        # To access the submission data in reports
+        user = request.user
+        if user.is_superuser:
+            return True
+        if user.is_anonymous:
+            user = get_anonymous_user()
+        permissions = list(obj.get_perms(user))
+        required_permissions = [
+            PERM_VIEW_SUBMISSIONS,
+            PERM_PARTIAL_SUBMISSIONS,
+        ]
+        return any(
+            perm in permissions for perm in required_permissions
+        )

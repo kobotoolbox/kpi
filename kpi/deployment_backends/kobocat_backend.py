@@ -4,7 +4,7 @@ import io
 import json
 import posixpath
 import re
-from typing import Union
+from typing import Union, Optional
 import requests
 import tempfile
 import uuid
@@ -649,7 +649,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return _uuid, f'uuid:{_uuid}'
 
     @staticmethod
-    def format_openrosa_datetime(dt: datetime = None) -> str:
+    def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:
         """
         Format a given datetime object or generate a new timestamp matching the
         OpenRosa datetime formatting
@@ -687,15 +687,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         submissions = self.__get_submissions_in_xml(**params)
 
-        # parsing XML
+        # parse XML string to ET object
         xml_parsed = ET.fromstring(next(submissions))
 
+        # attempt to update XML fields for duplicate submission. Note that
+        # `start` and `end` are not guaranteed to be included in the XML object
         _uuid, uuid_formatted = self.generate_new_instance_id()
         date_formatted = self.format_openrosa_datetime()
-
-        # updating xml fields for duplicate submission
-        xml_parsed.find('start').text = date_formatted
-        xml_parsed.find('end').text = date_formatted
+        for date_field in ('start', 'end'):
+            element = xml_parsed.find(date_field)
+            # Even if the element is found, `bool(element)` is `False`. How
+            # very un-Pythonic!
+            if element is not None:
+                element.text = date_formatted
+        # Rely on `meta/instanceID` being present. If it's absent, something is
+        # fishy enough to warrant raising an exception instead of continuing
+        # silently
         xml_parsed.find('meta/instanceID').text = uuid_formatted
 
         file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))

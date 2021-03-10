@@ -355,7 +355,7 @@ wcwidth==0.1.7
     #   prompt-toolkit
     #   pytest
 werkzeug==0.16.0
-    # via -r dependencies/pip/dev_requirements.in
+    # via -r dependencies/pip/requirements.in
 xlrd==1.2.0
     # via
     #   -r dependencies/pip/requirements.in
