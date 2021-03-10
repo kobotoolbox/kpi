@@ -13,7 +13,7 @@ import {
  */
 export function hasRowRestriction(asset, rowName, restrictionName) {
   // case 1
-  // only check row restrictions
+  // only check restrictions that apply to rows
   if (!ROW_RESTRICTION_NAMES.includes(restrictionName)) {
     console.warn(`row ${rowName} can't have restriction ${restrictionName}`);
     return false;
@@ -22,7 +22,7 @@ export function hasRowRestriction(asset, rowName, restrictionName) {
   // case 2
   // if lock_all is enabled, then all rows have all restrictions from lock all list
   if (asset.lock_all === true) {
-    return LOCK_ALL_RESTRICTION_NAMES.inclues(restrictionName);
+    return LOCK_ALL_RESTRICTION_NAMES.includes(restrictionName);
   }
 
   // case 3
@@ -49,7 +49,7 @@ export function hasRowRestriction(asset, rowName, restrictionName) {
  */
 export function hasAssetRestriction(asset, restrictionName) {
   // case 1
-  // only check form restrictions
+  // only check restrictions that apply to forms
   if (!FORM_RESTRICTION_NAMES.includes(restrictionName)) {
     console.warn(`asset can't have restriction ${restrictionName}`);
     return false;
@@ -58,7 +58,7 @@ export function hasAssetRestriction(asset, restrictionName) {
   // case 2
   // if lock_all is enabled, then form has all restrictions from lock all list
   if (asset.lock_all === true) {
-    return LOCK_ALL_RESTRICTION_NAMES.inclues(restrictionName);
+    return LOCK_ALL_RESTRICTION_NAMES.includes(restrictionName);
   }
 
   // case 3
@@ -81,12 +81,46 @@ export function hasAssetRestriction(asset, restrictionName) {
  */
 export function getLockingProfile(asset, profileName) {
   let found = null;
-  if (asset.settings && asset.settings['locking-profiles']) {
-    asset.settings['locking-profiles'].forEach((profile) => {
+  if (asset.settings && asset.settings.locking_profiles) {
+    asset.settings.locking_profiles.forEach((profile) => {
       if (profile.name === profileName) {
         found = profile;
       }
     });
   }
   return found;
+}
+
+/**
+ * Checks if anything in the asset is locked, i.e. asset has `lock_all` or
+ * `locking_profile` is being set for it or any row.
+ *
+ * @param {object} asset
+ * @returns {boolean} whether form or any row has locking on it
+ */
+export function isAssetLocked(asset) {
+  // case 1
+  // asset has lock_all
+  if (asset.lock_all === true) {
+    return true;
+  }
+
+  // case 2
+  // asset has locking profile
+  if (
+    typeof asset.locking_profile === 'string' &&
+    asset.locking_profile.length >= 1
+  ) {
+    return true;
+  }
+
+  // case 3
+  // at least one row has locking profile
+  const foundRow = asset.content.survey.find((row) => {
+    return (
+      typeof row.locking_profile === 'string' &&
+      row.locking_profile.length >= 1
+    );
+  });
+  return Boolean(foundRow);
 }
