@@ -131,3 +131,9 @@ export const LOCK_ALL_RESTRICTION_NAMES = [
   LOCKING_RESTRICTIONS.question_order_edit.name,
   LOCKING_RESTRICTIONS.translation_manage.name,
 ];
+
+export const LOCK_ALL_PROP_NAME = 'kobo--lock_all';
+
+export const LOCKING_PROFILE_PROP_NAME = 'kobo--lock';
+
+export const LOCKING_PROFILES_PROP_NAME = 'kobo--locks';
