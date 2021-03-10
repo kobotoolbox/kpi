@@ -8,21 +8,14 @@ import {
   getLockingProfile,
 } from './lockingUtils';
 import {
-  QUESTION_RESTRICTIONS,
-  GROUP_RESTRICTIONS,
-  FORM_RESTRICTIONS,
-  DEFAULT_LOCKING_PROFILE,
+  FORM_RESTRICTION_NAMES,
+  ROW_RESTRICTION_NAMES,
 } from './lockingConstants';
 import {getRowName} from 'js/assetUtils';
 
-const ROW_RESTRICTIONS = [].concat(
-  Object.keys(QUESTION_RESTRICTIONS),
-  Object.keys(GROUP_RESTRICTIONS)
-);
-
 describe('hasRowRestriction', () => {
   simpleTemplate.content.survey.forEach((row) => {
-    ROW_RESTRICTIONS.forEach((restrictionName) => {
+    ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
       const rowName = getRowName(row);
       it(`should say no restriction for row ${rowName} and restriction ${restrictionName} in un-locked template`, () => {
         const test = hasRowRestriction(simpleTemplate, getRowName(row), restrictionName);
@@ -57,7 +50,7 @@ describe('hasRowRestriction', () => {
     ],
   };
   Object.keys(expectedRestrictions).forEach((rowName) => {
-    ROW_RESTRICTIONS.forEach((restrictionName) => {
+    ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
       it(`should check row ${rowName} restriction ${restrictionName} in locked template`, () => {
         const test = hasRowRestriction(simpleTemplateLocked, rowName, restrictionName);
         expect(test).to.equal(expectedRestrictions[rowName].includes(restrictionName));
@@ -67,7 +60,7 @@ describe('hasRowRestriction', () => {
 });
 
 describe('hasAssetRestriction', () => {
-  Object.keys(FORM_RESTRICTIONS).forEach((restrictionName) => {
+  FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
     it(`should say no restriction ${restrictionName} for asset in an un-locked template`, () => {
       const test = hasAssetRestriction(simpleTemplate, restrictionName);
       expect(test).to.equal(false);
@@ -84,7 +77,7 @@ describe('hasAssetRestriction', () => {
     'group_add',
     'question_order_edit',
   ];
-  Object.keys(FORM_RESTRICTIONS).forEach((restrictionName) => {
+  FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
     it(`should check asset restriction ${restrictionName} in locked template`, () => {
       const test = hasAssetRestriction(simpleTemplateLocked, restrictionName);
       expect(test).to.equal(expectedRestrictions.includes(restrictionName));
