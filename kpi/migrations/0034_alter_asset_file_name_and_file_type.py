@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0031_remove_objectpermission_generic_relation'),
+        ('kpi', '0033_add_meta_ordering_export_task'),
     ]
 
     operations = [
