@@ -63,6 +63,11 @@ module.exports = do ->
             <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
             <input type="text" placeholder="#{t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
+          <div class="card__locking-icons">
+            <span>lbl</span>
+            <span>edt</span>
+            <span>del</span>
+          </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
             <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="fa fa-trash-o"></i></span>
@@ -84,6 +89,11 @@ module.exports = do ->
       <header class="group__header">
         <i class="group__caret js-toggle-group-expansion fa fa-fw fa-caret-down"></i>
         <input type="text" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
+        <div class="card__locking-icons">
+          <span>lbl</span>
+          <span>edt</span>
+          <span>del</span>
+        </div>
         <div class="group__header__buttons">
           <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="fa fa-cog"></i></span>
           <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="fa fa-trash-o"></i></span>
@@ -105,6 +115,11 @@ module.exports = do ->
           </div>
           <div class="card__text">
             <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
+          </div>
+          <div class="card__locking-icons">
+            <span>lbl</span>
+            <span>edt</span>
+            <span>del</span>
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>

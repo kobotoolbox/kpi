@@ -290,7 +290,7 @@ tr .scorecell__radio:hover {
   color: $kobo-orange-dark;
   position: absolute;
   top: 0;
-  right: 30px;
+  right: 5px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width;
   text-align: right;
   margin: 0;
   padding: 2px;
