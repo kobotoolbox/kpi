@@ -71,7 +71,7 @@ def delete_related_objects(modeladmin, request, queryset):
                 n += 1
         modeladmin.message_user(
             request,
-            _("Successfully deleted %(count)d related objects.") % {
+            "Successfully deleted %(count)d related objects." % {
                 "count": n, "items": model_ngettext(modeladmin.opts, n)},
             messages.SUCCESS
         )
@@ -84,9 +84,9 @@ def delete_related_objects(modeladmin, request, queryset):
         objects_name = force_text(opts.verbose_name_plural)
 
     if perms_needed or protected:
-        title = _("Cannot delete %(name)s") % {"name": objects_name}
+        title = "Cannot delete %(name)s" % {"name": objects_name}
     else:
-        title = _("Are you sure?")
+        title = "Are you sure?"
 
     context = dict(
         modeladmin.admin_site.each_context(request),
@@ -109,9 +109,9 @@ def delete_related_objects(modeladmin, request, queryset):
         context)
 
 
-delete_related_objects.short_description = ugettext_lazy(
+delete_related_objects.short_description =
     "Remove related objects for these %(verbose_name_plural)s "
-    "(deletion step 1)")
+    "(deletion step 1)"
 
 
 def remove_from_kobocat(modeladmin, kpi_request, queryset):
@@ -135,7 +135,6 @@ def remove_from_kobocat(modeladmin, kpi_request, queryset):
     return response
 
 
-remove_from_kobocat.short_description = ugettext_lazy(
+remove_from_kobocat.short_description = 
     "View these %(verbose_name_plural)s in the KoBoCAT admin interface "
     "(deletion step 2)"
-)

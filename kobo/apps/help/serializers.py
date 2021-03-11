@@ -46,7 +46,7 @@ class InAppMessageSerializer(serializers.ModelSerializer):
                 interactions.interactions.update(data)
             except (TypeError, ValueError):
                 raise serializers.ValidationError({
-                    'interactions_field': _('Value must be a JSON object of name/value pairs.')
+                    'interactions_field': 'Value must be a JSON object of name/value pairs.'
                 })
             else:
                 interactions.save()

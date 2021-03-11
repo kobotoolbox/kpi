@@ -154,7 +154,7 @@ class KobocatContentType(ShadowModel):
     contrib.contenttypes.models.ContentType
     """
     app_label = models.CharField(max_length=100)
-    model = models.CharField(_('python model class name'), max_length=100)
+    model = models.CharField('python model class name', max_length=100)
 
     class Meta(ShadowModel.Meta):
         db_table = 'django_content_type'
@@ -171,9 +171,9 @@ class KobocatPermission(ShadowModel):
     """
     Minimal representation of Django 1.8's contrib.auth.models.Permission
     """
-    name = models.CharField(_('name'), max_length=255)
+    name = models.CharField('name', max_length=255)
     content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
-    codename = models.CharField(_('codename'), max_length=100)
+    codename = models.CharField('codename', max_length=100)
 
     class Meta(ShadowModel.Meta):
         db_table = 'auth_permission'
@@ -190,16 +190,16 @@ class KobocatPermission(ShadowModel):
 
 class KobocatUser(ShadowModel):
 
-    username = models.CharField(_("username"), max_length=30)
-    password = models.CharField(_("password"), max_length=128)
-    last_login = models.DateTimeField(_("last login"), blank=True, null=True)
-    is_superuser = models.BooleanField(_('superuser status'), default=False)
-    first_name = models.CharField(_('first name'), max_length=30, blank=True)
-    last_name = models.CharField(_('last name'), max_length=150, blank=True)
-    email = models.EmailField(_('email address'), blank=True)
-    is_staff = models.BooleanField(_('staff status'), default=False)
-    is_active = models.BooleanField(_('active'), default=True)
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    username = models.CharField("username", max_length=30)
+    password = models.CharField("password", max_length=128)
+    last_login = models.DateTimeField("last login", blank=True, null=True)
+    is_superuser = models.BooleanField('superuser status', default=False)
+    first_name = models.CharField('first name', max_length=30, blank=True)
+    last_name = models.CharField('last name', max_length=150, blank=True)
+    email = models.EmailField('email address', blank=True)
+    is_staff = models.BooleanField('staff status', default=False)
+    is_active = models.BooleanField('active', default=True)
+    date_joined = models.DateTimeField('date joined', default=timezone.now)
 
     class Meta(ShadowModel.Meta):
         db_table = "auth_user"
@@ -251,7 +251,7 @@ class KobocatUserObjectPermission(ShadowModel):
     """
     permission = models.ForeignKey(KobocatPermission, on_delete=models.CASCADE)
     content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
-    object_pk = models.CharField(_('object ID'), max_length=255)
+    object_pk = models.CharField('object ID', max_length=255)
     content_object = GenericForeignKey(fk_field='object_pk')
     # It's okay not to use `KobocatUser` as long as PKs are synchronized
     user = models.ForeignKey(
@@ -324,9 +324,7 @@ class KobocatUserProfile(ShadowModel):
     description = models.CharField(max_length=255, blank=True)
     require_auth = models.BooleanField(
         default=False,
-        verbose_name=_(
-            "Require authentication to see forms and submit data"
-        )
+        verbose_name="Require authentication to see forms and submit data"
     )
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
@@ -338,11 +336,11 @@ class KobocatUserProfile(ShadowModel):
 
 class KobocatToken(ShadowModel):
 
-    key = models.CharField(_("Key"), max_length=40, primary_key=True)
+    key = models.CharField("Key", max_length=40, primary_key=True)
     user = models.OneToOneField(KobocatUser,
                                 related_name='auth_token',
-                                on_delete=models.CASCADE, verbose_name=_("User"))
-    created = models.DateTimeField(_("Created"), auto_now_add=True)
+                                on_delete=models.CASCADE, verbose_name="User")
+    created = models.DateTimeField("Created", auto_now_add=True)
 
     class Meta(ShadowModel.Meta):
         db_table = "authtoken_token"
