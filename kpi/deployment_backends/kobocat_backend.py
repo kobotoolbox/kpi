@@ -995,9 +995,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
                 prepared_drf_response['data'] = {
-                    'detail': _(
+                    'detail':
                         'KoBoCAT returned an unexpected response: {}'.format(str(e))
-                    )
                 }
 
         return prepared_drf_response
@@ -1009,27 +1008,27 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         if not 'submission_ids' in payload:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('`submission_ids` must be included in the payload')
+                detail='`submission_ids` must be included in the payload'
             )
 
         if not isinstance(payload['submission_ids'], list):
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('`submission_ids` must be an array')
+                detail='`submission_ids` must be an array'
             )
 
         if len(payload['submission_ids']) == 0:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('`submission_ids` must contain at least one value')
+                detail='`submission_ids` must contain at least one value'
             )
 
         if not 'data' in payload:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('`data` must be included in the payload')
+                detail='`data` must be included in the payload'
             )
 
         if len(payload['data']) == 0:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('Payload must contain data to update the submissions')
+                detail='Payload must contain data to update the submissions'
             )
 
         return payload
@@ -1049,7 +1048,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         except ValueError as e:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('`submission_ids` must only contain integer values')
+                detail='`submission_ids` must only contain integer values'
             )
 
         # Sanitizing the payload of potentially destructive keys
@@ -1066,7 +1065,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def __validate_bulk_update_submissions(submissions: list) -> list:
         if len(submissions) == 0:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('No submissions match the given `submission_ids`')
+                detail='No submissions match the given `submission_ids`'
             )
         return submissions
 
@@ -1093,13 +1092,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         results = []
         for response in kc_responses:
             try:
-                message = _(
-                    ET.fromstring(response['response'].content)
-                    .find(OPEN_ROSA_XML_MESSAGE)
-                    .text
-                )
+                message = ET.fromstring(
+                        response['response'].content
+                    ).find(OPEN_ROSA_XML_MESSAGE).text
             except ET.ParseError:
-                message = _('Something went wrong')
+                message = 'Something went wrong'
 
             results.append(
                 {

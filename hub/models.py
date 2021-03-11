@@ -65,11 +65,11 @@ class PerUserSetting(models.Model):
     a user matches certain criteria
     """
     user_queries = JSONBField(
-        help_text=_('A JSON representation of a *list* of Django queries, '
-                    'e.g. `[{"email__iendswith": "@kobotoolbox.org"}, '
-                    '{"email__iendswith": "@kbtdev.org"}]`. '
-                    'A matching user is one who would be returned by ANY of '
-                    'the queries in the list.')
+        help_text='A JSON representation of a *list* of Django queries, '
+                  'e.g. `[{"email__iendswith": "@kobotoolbox.org"}, '
+                  '{"email__iendswith": "@kbtdev.org"}]`. '
+                  'A matching user is one who would be returned by ANY of '
+                  'the queries in the list.'
     )
     name = models.CharField(max_length=255, unique=True,
                             default='INTERCOM_APP_ID')  # The only one for now!
@@ -107,7 +107,7 @@ class PerUserSetting(models.Model):
             raise ValidationError({'user_queries': e.message})
         except TypeError:
             raise ValidationError(
-                {'user_queries': _('JSON structure is incorrect.')})
+                {'user_queries': 'JSON structure is incorrect.'})
 
     def __str__(self):
         return self.name
