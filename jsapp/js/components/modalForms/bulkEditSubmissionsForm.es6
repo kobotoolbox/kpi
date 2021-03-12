@@ -173,10 +173,20 @@ class BulkEditSubmissionsForm extends React.Component {
    * @returns {object[]} a list of question objects with all responses included
    */
   getDisplayData() {
-    const questions = getFlatQuestionsList(this.props.asset.content.survey);
+    let questions = getFlatQuestionsList(this.props.asset.content.survey);
     const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
 
-    questions.forEach((question) => {
+    questions = questions.filter((question) => {
+      // let's hide rows that don't carry any submission data
+      if (
+        question.type === QUESTION_TYPES.calculate.id ||
+        question.type === QUESTION_TYPES.note.id ||
+        question.type === QUESTION_TYPES.hidden.id
+      ) {
+        return false;
+      }
+
+      // build selected data for question
       question.selectedData = [];
       const questionPath = flatPaths[question.name];
       this.props.data.forEach((submissionData) => {
@@ -187,6 +197,7 @@ class BulkEditSubmissionsForm extends React.Component {
           });
         }
       });
+      return true;
     });
     return questions;
   }
@@ -213,6 +224,8 @@ class BulkEditSubmissionsForm extends React.Component {
     }
 
     let modifiers = [];
+    // we don't support bulk editing questions from repeat groups yet
+    // we display them but disabled
     if (question.hasRepatParent) {
       modifiers.push('bulk-edit-row-disabled');
     }
