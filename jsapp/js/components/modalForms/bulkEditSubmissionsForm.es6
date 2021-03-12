@@ -6,10 +6,7 @@ import {
   getSurveyFlatPaths,
   getFlatQuestionsList,
 } from 'js/assetUtils';
-import {
-  QUESTION_TYPES,
-  FORM_VERSION_NAME,
-} from 'js/constants';
+import {QUESTION_TYPES} from 'js/constants';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
@@ -180,12 +177,9 @@ class BulkEditSubmissionsForm extends React.Component {
     const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
 
     questions = questions.filter((question) => {
-      // we don't want to include special calculate row used to store form version
-      if (question.type === QUESTION_TYPES.calculate.id && question.name === FORM_VERSION_NAME) {
-        return false;
-      }
-      // notes and hidden don't carry submission data, we ignore them
+      // let's hide rows that don't carry any submission data
       if (
+        question.type === QUESTION_TYPES.calculate.id ||
         question.type === QUESTION_TYPES.note.id ||
         question.type === QUESTION_TYPES.hidden.id
       ) {
