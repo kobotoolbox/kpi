@@ -5,7 +5,6 @@ import json
 import posixpath
 import re
 import uuid
-
 from collections import defaultdict
 from datetime import datetime
 from typing import Union
@@ -315,18 +314,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(kc_response)
 
     def duplicate_submission(
-        self, requesting_user_id: int, instance_id: int
+            self, requesting_user_id: int, instance_id: int
     ) -> dict:
         """
-        Duplicates a single submission proxied through kobocat. The submission
+        Dupicates a single submission proxied through kobocat. The submission
         with the given `instance_id` is duplicated and the `start`, `end` and
         `instanceID` parameters of the submission are reset before being posted
         to kobocat.
-
         Args:
             requesting_user_id (int)
             instance_id (int)
-
         Returns:
             dict: message response from kobocat and uuid of created submission
             if successful
@@ -338,15 +335,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         submissions = self.__get_submissions_in_xml(**params)
 
-        # parsing XML
+        # parse XML string to ET object
         xml_parsed = ET.fromstring(next(submissions))
 
+        # attempt to update XML fields for duplicate submission. Note that
+        # `start` and `end` are not guaranteed to be included in the XML object
         _uuid, uuid_formatted = self.generate_new_instance_id()
         date_formatted = self.format_openrosa_datetime()
-
-        # updating xml fields for duplicate submission
-        xml_parsed.find('start').text = date_formatted
-        xml_parsed.find('end').text = date_formatted
+        for date_field in ('start', 'end'):
+            element = xml_parsed.find(date_field)
+            # Even if the element is found, `bool(element)` is `False`. How
+            # very un-Pythonic!
+            if element is not None:
+                element.text = date_formatted
+        # Rely on `meta/instanceID` being present. If it's absent, something is
+        # fishy enough to warrant raising an exception instead of continuing
+        # silently
         xml_parsed.find('meta/instanceID').text = uuid_formatted
 
         file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
@@ -680,8 +684,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                   during this call, otherwise `False`.
         """
         is_synchronized = not (
-                force or
-                self.backend_response.get('kpi_asset_uid', None) is None
+            force or
+            self.backend_response.get('kpi_asset_uid', None) is None
         )
         if is_synchronized:
             return False

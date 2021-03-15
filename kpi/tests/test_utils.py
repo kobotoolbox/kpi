@@ -177,55 +177,53 @@ class UtilsTestCase(TestCase):
                 snakes:🐍🐍 AND NOT alphabet:🍲soup
             ) NOT 'in a house' NOT "with a mouse"
         '''
+
+        default_field_lookups = [
+            'field_a__icontains',
+            'field_b'
+        ]
+
         expected_q = (
             (Q(a='a') | Q(b='b') & Q(c='c')) & Q(d='d') | (
                 Q(snakes='🐍🐍') & ~Q(alphabet='🍲soup')
             )
             & ~(
-                Q(name__icontains='in a house') |
-                Q(owner__username__icontains='in a house') |
-                Q(settings__description__icontains='in a house') |
-                Q(summary__icontains='in a house') |
-                Q(tags__name__icontains='in a house') |
-                Q(uid__icontains='in a house')
+                Q(field_a__icontains='in a house') |
+                Q(field_b='in a house')
             )
             & ~(
-                Q(name__icontains='with a mouse') |
-                Q(owner__username__icontains='with a mouse') |
-                Q(settings__description__icontains='with a mouse') |
-                Q(summary__icontains='with a mouse') |
-                Q(tags__name__icontains='with a mouse') |
-                Q(uid__icontains='with a mouse')
+                Q(field_a__icontains='with a mouse') |
+                Q(field_b='with a mouse')
             )
         )
-        assert (
-            expected_q
-            == parse(query_string, ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)
-        )
+        assert expected_q == parse(query_string, default_field_lookups)
 
     def test_query_parser_no_specified_field(self):
         query_string = 'foo'
+        default_field_lookups = [
+            'field_a__icontains',
+            'field_b'
+        ]
         expected_q = (
-            Q(name__icontains='foo') |
-            Q(owner__username__icontains='foo') |
-            Q(settings__description__icontains='foo') |
-            Q(summary__icontains='foo') |
-            Q(tags__name__icontains='foo') |
-            Q(uid__icontains='foo')
+            Q(field_a__icontains='foo') |
+            Q(field_b='foo')
         )
-        self.assertEqual(
-            repr(expected_q),
-            repr(parse(query_string, ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)),
+        assert repr(expected_q) == repr(
+            parse(query_string, default_field_lookups)
         )
 
     def test_query_parser_default_search_too_short(self):
         # if the search query without a field is less than a specified
         # length of characters (currently 3), then it should
         # throw `SearchQueryTooShortException()` from `query_parser.py`
+        default_field_lookups = [
+            'field_a__icontains',
+            'field_b'
+        ]
         query_string = 'fo'
         with self.assertRaises(SearchQueryTooShortException) as e:
-            parse(query_string, ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)
-        self.assertTrue('Your query is too short' in str(e.exception))
+            parse(query_string, default_field_lookups)
+        assert 'Your query is too short' in str(e.exception)
 
 
 class XmlUtilsTestCase(TestCase):
