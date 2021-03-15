@@ -415,13 +415,13 @@ class ExportTask(ImportExportTask):
 
     COPY_FIELDS = (
         '_id',
+        '_uuid',
+        '_submission_time',
+        ValidationStatusCopyField,
         '_notes',
         '_status',
-        '_submission_time',
         '_submitted_by',
         '_tags',
-        '_uuid',
-        ValidationStatusCopyField,
     )
 
     # It's not very nice to ask our API users to submit `null` or `false`,
