@@ -1,7 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import Select from 'react-select';
-import moment from 'moment';
 import alertify from 'alertifyjs';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import Checkbox from 'js/components/common/checkbox';
@@ -9,6 +8,7 @@ import TextBox from 'js/components/common/textBox';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
+import {formatTimeDate} from 'js/utils';
 import mixins from 'js/mixins';
 import {
   QUESTION_TYPES,
@@ -365,8 +365,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   generateExportName() {
-    const timeString = moment().format('YYYY/MM/DD HH:mm:ss');
-    return `Export ${timeString}`;
+    return `Export ${formatTimeDate()}`;
   }
 
   getQuestionsList() {
