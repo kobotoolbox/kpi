@@ -68,20 +68,17 @@ exportsActions.deleteExport.failed.listen(() => {
 
 function cleanupExportSettings(export_settings) {
   const clean = {
-    // Backend expects booleans as strings
-    fields_from_all_versions: String(export_settings.fields_from_all_versions),
+    fields_from_all_versions: export_settings.fields_from_all_versions,
     fields: export_settings.fields,
     group_sep: export_settings.group_sep,
-    // Backend expects booleans as strings
-    hierarchy_in_labels: String(export_settings.hierarchy_in_labels),
+    hierarchy_in_labels: export_settings.hierarchy_in_labels,
     lang: export_settings.lang,
     multiple_select: export_settings.multiple_select,
     type: export_settings.type,
   };
 
   if (export_settings.flatten) {
-    // Backend expects booleans as strings
-    clean.flatten = String(export_settings.flatten);
+    clean.flatten = export_settings.flatten;
   }
 
   if (export_settings.source) {

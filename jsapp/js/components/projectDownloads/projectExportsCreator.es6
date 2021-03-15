@@ -264,15 +264,14 @@ export default class ProjectExportsCreator extends React.Component {
       selectedExportFormat: selectedExportFormat,
       groupSeparator: data.export_settings.group_sep,
       selectedExportMultiple: EXPORT_MULTIPLE_OPTIONS[data.export_settings.multiple_select],
-      // FYI Backend keeps booleans as strings
-      isIncludeGroupsEnabled: Boolean(data.export_settings.hierarchy_in_labels),
-      isIncludeAllVersionsEnabled: Boolean(data.export_settings.fields_from_all_versions),
+      isIncludeGroupsEnabled: data.export_settings.hierarchy_in_labels,
+      isIncludeAllVersionsEnabled: data.export_settings.fields_from_all_versions,
       // check whether a custom name was given
       isSaveCustomExportEnabled: typeof data.name === 'string' && data.name.length >= 1,
       customExportName: data.name,
       // Select custom export toggle if not all rows are selected
       isCustomSelectionEnabled: this.state.selectableRowsCount !== data.export_settings.fields.length,
-      isFlattenGeoJsonEnabled: Boolean(data.export_settings.flatten),
+      isFlattenGeoJsonEnabled: data.export_settings.flatten,
       selectedRows: new Set(data.export_settings.fields),
     };
 
