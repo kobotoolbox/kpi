@@ -281,7 +281,8 @@ new Set([
 ]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
 Object.freeze(META_QUESTION_TYPES);
 
-// submission data extras being added (by backend?)
+// submission data extras being added by backend. see:
+// https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
 export const ADDITIONAL_SUBMISSION_PROPS = {};
 new Set([
   '_id',
