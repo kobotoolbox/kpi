@@ -1,9 +1,9 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import {
-  isOnMyLibraryRoute,
-  isOnPublicCollectionsRoute,
-} from 'js/components/library/libraryUtils';
+  isMyLibraryRoute,
+  isPublicCollectionsRoute,
+} from 'js/routerUtils';
 
 const DEFAULT_SEARCH_PHRASE = '';
 
@@ -54,9 +54,9 @@ export const searchBoxStore = Reflux.createStore({
   resetContext() {
     let newContext = null;
 
-    if (isOnMyLibraryRoute()) {
+    if (isMyLibraryRoute()) {
       newContext = SEARCH_CONTEXTS.MY_LIBRARY;
-    } else if (isOnPublicCollectionsRoute()) {
+    } else if (isPublicCollectionsRoute()) {
       newContext = SEARCH_CONTEXTS.PUBLIC_COLLECTIONS;
     }
 
