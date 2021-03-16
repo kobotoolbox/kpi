@@ -1,7 +1,10 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
-import {isAnyLibraryAssetRoute} from 'js/routerUtils';
+import {
+  getCurrentPath,
+  isAnyLibraryAssetRoute,
+} from 'js/routerUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
@@ -19,7 +22,7 @@ const singleCollectionStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-  previousPath: hashHistory.getCurrentLocation().pathname,
+  previousPath: getCurrentPath(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
 
@@ -75,7 +78,7 @@ const singleCollectionStore = Reflux.createStore({
   },
 
   getCurrentLibraryAssetUID() {
-    const path = hashHistory.getCurrentLocation().pathname;
+    const path = getCurrentPath();
     if (
       path.split('/')[1] === 'library' &&
       path.split('/')[2] === 'asset'
