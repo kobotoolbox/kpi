@@ -385,8 +385,6 @@ export default class ProjectExportsCreator extends React.Component {
       });
     });
 
-    console.log(output);
-
     return output;
   }
 
