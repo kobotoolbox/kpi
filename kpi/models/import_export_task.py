@@ -416,6 +416,9 @@ class ExportTask(ImportExportTask):
     COPY_FIELDS = (
         '_id',
         '_notes',
+        # '_status' is always 'submitted_via_web' unless the submission was
+        # made via KoBoCAT's bulk-submission-form; in that case, it's 'zip':
+        # https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/logger/import_tools.py#L67
         '_status',
         '_submission_time',
         '_submitted_by',
