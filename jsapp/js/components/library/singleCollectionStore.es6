@@ -3,7 +3,7 @@ import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
-  isAnyLibraryAssetRoute,
+  isAnyLibraryItemRoute,
 } from 'js/routerUtils';
 import {actions} from 'js/actions';
 import {
@@ -65,7 +65,7 @@ const singleCollectionStore = Reflux.createStore({
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (this.isVirgin && isAnyLibraryAssetRoute() && !this.data.isFetchingData) {
+    if (this.isVirgin && isAnyLibraryItemRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
   },
@@ -119,7 +119,7 @@ const singleCollectionStore = Reflux.createStore({
     // Avoid triggering search if not on the collection route (e.g. subscribed
     // to a collection from Public Collections list) as it will cause 500 error
     // caused by getCurrentLibraryAssetUID being `undefined` (rightfuly so)
-    if (!isAnyLibraryAssetRoute()) {
+    if (!isAnyLibraryItemRoute()) {
       return;
     }
 
@@ -144,7 +144,7 @@ const singleCollectionStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    if (this.isVirgin && isAnyLibraryAssetRoute() && !this.data.isFetchingData) {
+    if (this.isVirgin && isAnyLibraryItemRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
       (
@@ -154,7 +154,7 @@ const singleCollectionStore = Reflux.createStore({
         // actually outside of it
         this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)
       ) &&
-      isAnyLibraryAssetRoute()
+      isAnyLibraryItemRoute()
     ) {
       // refresh data when navigating into library from other place
       this.setDefaultColumns();
