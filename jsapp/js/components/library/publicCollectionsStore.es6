@@ -5,7 +5,7 @@ import {
   searchBoxStore
 } from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
-import {isOnPublicCollectionsRoute} from './libraryUtils';
+import {isPublicCollectionsRoute} from 'js/routerUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
@@ -66,7 +66,7 @@ const publicCollectionsStore = Reflux.createStore({
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
+    if (this.isVirgin && isPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
   },
@@ -129,11 +129,11 @@ const publicCollectionsStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
+    if (this.isVirgin && isPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
       this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS) === false &&
-      isOnPublicCollectionsRoute()
+      isPublicCollectionsRoute()
     ) {
       // refresh data when navigating into public-collections from other place
       this.setDefaultColumns();
