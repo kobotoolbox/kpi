@@ -202,9 +202,7 @@ actions.media.uploadMedia.listen((uid, formMediaJSON) => {
     .done(() => {
       actions.media.uploadMedia.completed(uid);
     })
-    .fail((response) => {
-      actions.media.uploadMedia.failed(response);
-    });
+    .fail(actions.media.uploadMedia.failed);
 });
 actions.media.uploadMedia.completed.listen((uid) => {
   actions.media.loadMedia(uid);
@@ -215,12 +213,8 @@ actions.media.uploadMedia.failed.listen(() => {
 
 actions.media.loadMedia.listen((uid) => {
   dataInterface.getFormMedia(uid)
-    .done((response) => {
-      actions.media.loadMedia.completed(response);
-    })
-    .fail((response) => {
-      actions.media.loadMedia.failed(response);
-    });
+    .done(actions.media.loadMedia.completed)
+    .fail(actions.media.loadMedia.failed);
 });
 actions.media.loadMedia.failed.listen(() => {
   alertify.error(t('Something went wrong with getting your media'));
@@ -231,9 +225,7 @@ actions.media.deleteMedia.listen((uid, url) => {
     .done(() => {
       actions.media.deleteMedia.completed(uid);
     })
-    .fail((response) => {
-      actions.media.deleteMedia.failed(response);
-    });
+    .fail(actions.media.deleteMedia.failed);
 });
 actions.media.deleteMedia.completed.listen((uid) => {
   notify(t('Successfully deleted media'));
