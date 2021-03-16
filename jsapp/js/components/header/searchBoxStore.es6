@@ -1,6 +1,7 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import {
+  getCurrentPath,
   isMyLibraryRoute,
   isPublicCollectionsRoute,
 } from 'js/routerUtils';
@@ -15,7 +16,7 @@ new Set([
 Object.freeze(SEARCH_CONTEXTS);
 
 export const searchBoxStore = Reflux.createStore({
-  previousPath: hashHistory.getCurrentLocation().pathname,
+  previousPath: getCurrentPath(),
   data: {
     context: null,
     searchPhrase: DEFAULT_SEARCH_PHRASE,

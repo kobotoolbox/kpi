@@ -11,7 +11,7 @@
 import {hashHistory} from 'react-router';
 import {ROUTES} from 'js/constants';
 
-function getCurrentPath() {
+export function getCurrentPath() {
   return hashHistory.getCurrentLocation().pathname;
 }
 
