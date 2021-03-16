@@ -11,8 +11,6 @@ import {actions} from 'js/actions';
 import {formatTimeDate} from 'js/utils';
 import mixins from 'js/mixins';
 import {
-  QUESTION_TYPES,
-  META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
   PERMISSIONS_CODENAMES,
 } from 'js/constants';
@@ -155,9 +153,12 @@ export default class ProjectExportsCreator extends React.Component {
   getAllSelectableRows() {
     const allRows = new Set();
     if (this.props.asset?.content?.survey) {
-      this.props.asset.content.survey.forEach((row) => {
-        allRows.add(assetUtils.getRowName(row));
-      });
+      const flatPaths = assetUtils.getSurveyFlatPaths(
+        this.props.asset.content.survey,
+        false,
+        true
+      );
+      Object.values(flatPaths).forEach((path) => {allRows.add(path);});
       Object.keys(ADDITIONAL_SUBMISSION_PROPS).forEach((submissionProp) => {
         allRows.add(submissionProp);
       });
@@ -233,7 +234,7 @@ export default class ProjectExportsCreator extends React.Component {
     const newSelectedRows = new Set();
     newRowsArray.forEach((item) => {
       if (item.checked) {
-        newSelectedRows.add(item.name);
+        newSelectedRows.add(item.path);
       }
     });
     this.setState({selectedRows: newSelectedRows});
@@ -368,42 +369,43 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   getQuestionsList() {
-    // survey rows with data
-    const output = this.props.asset.content.survey.filter((row) => {
-      return (
-        Object.keys(QUESTION_TYPES).includes(row.type) ||
-        Object.keys(META_QUESTION_TYPES).includes(row.type)
-      );
-    });
+    // survey question rows with data
+    const output = assetUtils.getFlatQuestionsList(
+      this.props.asset.content.survey,
+      this.state.selectedExportFormat?.langIndex,
+      true
+    );
 
     // additional submission properties added by backend
     Object.keys(ADDITIONAL_SUBMISSION_PROPS).forEach((submissionProp) => {
       output.push({
         name: submissionProp,
-        type: submissionProp,
+        label: submissionProp,
+        path: submissionProp,
       });
     });
+
+    console.log(output);
 
     return output;
   }
 
   renderRowsSelector() {
     const rows = this.getQuestionsList().map((row) => {
-      const rowName = assetUtils.getRowName(row);
-
-      let checkboxLabel = assetUtils.getQuestionDisplayName(
-        row,
-        this.state.selectedExportFormat?.langIndex
-      );
+      let checkboxLabel = '';
       if (this.state.selectedExportFormat.value === EXPORT_FORMATS._xml.value) {
-        checkboxLabel = rowName;
+        checkboxLabel = row.path;
+      } else if (row.parents?.length >= 1) {
+        checkboxLabel = row.parents.join(' / ') + ' / ' + row.label;
+      } else {
+        checkboxLabel = row.label;
       }
 
       return {
-        checked: this.state.selectedRows.has(rowName),
+        checked: this.state.selectedRows.has(row.path),
         disabled: !this.state.isCustomSelectionEnabled,
         label: checkboxLabel,
-        name: rowName,
+        path: row.path,
       };
     });
 
