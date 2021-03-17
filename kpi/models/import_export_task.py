@@ -2,6 +2,7 @@
 import base64
 import datetime
 import posixpath
+import json
 import re
 import tempfile
 from collections import defaultdict
@@ -20,6 +21,7 @@ from django.db import models, transaction
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
 from rest_framework import exceptions
+from werkzeug.http import parse_options_header
 
 import formpack.constants
 from formpack.schema.fields import ValidationStatusCopyField
@@ -27,6 +29,8 @@ from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
+    ASSET_TYPE_EMPTY,
+    ASSET_TYPE_SURVEY,
     PERM_CHANGE_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -167,6 +171,7 @@ class ImportTask(ImportExportTask):
                 has_necessary_perm = True
 
         if 'url' in self.data:
+            # Retrieve file name from URL
             self._load_assets_from_url(
                 messages=messages,
                 url=self.data.get('url'),
@@ -175,19 +180,43 @@ class ImportTask(ImportExportTask):
             )
             return
 
+        # Get filename
+        try:
+            filename = self.data['filename']
+        except KeyError:
+            filename = None
+
         if 'single_xls_url' in self.data:
+            # Retrieve file name from URL
             # TODO: merge with `url` handling above; currently kept separate
             # because `_load_assets_from_url()` uses complex logic to deal with
             # multiple XLS files in a directory structure within a ZIP archive
             response = requests.get(self.data['single_xls_url'])
             response.raise_for_status()
             encoded_xls = to_str(base64.b64encode(response.content))
+
+            # if filename is empty or None, try to retrieve
+            # file name from the response headers
+            if not filename:
+                filename_from_header = parse_options_header(
+                    response.headers['Content-Disposition']
+                )
+            
+                try:
+                    filename = filename_from_header[1]['filename']
+                except (TypeError, IndexError, KeyError):
+                    pass
+            
             self.data['base64Encoded'] = encoded_xls
 
         if 'base64Encoded' in self.data:
+            # When a file is uploaded as base64, 
+            # no name is provided in the encoded string
+            # We should rely on self.data.get(:filename:)
+
             self._parse_b64_upload(
                 base64_encoded_upload=self.data['base64Encoded'],
-                filename=self.data.get('filename', None),
+                filename=filename,
                 messages=messages,
                 library=self.data.get('library', False),
                 destination=dest_item,
@@ -314,6 +343,10 @@ class ImportTask(ImportExportTask):
                 msg_key = 'created'
             else:
                 asset = destination
+                if not asset.name:
+                    asset.name = filename
+                if asset.asset_type == ASSET_TYPE_EMPTY:
+                    asset.asset_type = ASSET_TYPE_SURVEY 
                 asset.content = survey_dict
                 asset.save()
                 msg_key = 'updated'
@@ -385,6 +418,10 @@ class ExportTask(ImportExportTask):
         '_uuid',
         '_submission_time',
         ValidationStatusCopyField,
+        '_notes',
+        '_status',
+        '_submitted_by',
+        '_tags',
     )
 
     # It's not very nice to ask our API users to submit `null` or `false`,
@@ -398,6 +435,9 @@ class ExportTask(ImportExportTask):
     TIMESTAMP_KEY = '_submission_time'
     # Above 244 seems to cause 'Download error' in Chrome 64/Linux
     MAXIMUM_FILENAME_LENGTH = 240
+
+    class Meta:
+        ordering = ['-date_created']
 
     @property
     def _fields_from_all_versions(self):
@@ -464,6 +504,7 @@ class ExportTask(ImportExportTask):
         group_sep = self.data.get('group_sep', '/')
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
+        fields = self.data.get('fields', [])
         try:
             # If applicable, substitute the constants that formpack expects for
             # friendlier language strings used by the API
@@ -480,6 +521,7 @@ class ExportTask(ImportExportTask):
             'copy_fields': self.COPY_FIELDS,
             'force_index': True,
             'tag_cols_for_header': tag_cols_for_header,
+            'filter_fields': fields,
         }
 
     def _record_last_submission_time(self, submission_stream):
@@ -506,6 +548,9 @@ class ExportTask(ImportExportTask):
                     self.last_submission_time = timestamp
             yield submission
 
+    def _get_bool_from_data(self, field: str, compare: str = 'true') -> bool:
+        return self.data.get(field, compare).lower() == 'true'
+
     def _run_task(self, messages):
         """
         Generate the export and store the result in the `self.result`
@@ -513,6 +558,9 @@ class ExportTask(ImportExportTask):
         superclass. The `submission_stream` method is provided for testing
         """
         source_url = self.data.get('source', False)
+        fields = self.data.get('fields', [])
+        flatten = self._get_bool_from_data('flatten', 'true')
+
         if not source_url:
             raise Exception('no source specified for the export')
         source = _resolve_url_to_asset(source_url)
@@ -531,14 +579,19 @@ class ExportTask(ImportExportTask):
             raise Exception('the source must be deployed prior to export')
 
         export_type = self.data.get('type', '').lower()
-        if export_type not in ('xls', 'csv', 'spss_labels'):
+        if export_type not in ('xls', 'csv', 'geojson', 'spss_labels'):
             raise NotImplementedError(
-                'only `xls`, `csv`, and `spss_labels` are valid export types')
+                'only `xls`, `csv`, `geojson`, and `spss_labels` '
+                'are valid export types'
+            )
 
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
-        submission_stream = source.deployment.get_submissions(self.user.id)
+        submission_stream = source.deployment.get_submissions(
+            requesting_user_id=self.user.id,
+            fields=fields
+        )
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions)
@@ -557,10 +610,16 @@ class ExportTask(ImportExportTask):
         # https://code.djangoproject.com/ticket/13809
         self.result.close()
         self.result.file.close()
+
         with self.result.storage.open(self.result.name, 'wb') as output_file:
             if export_type == 'csv':
                 for line in export.to_csv(submission_stream):
                     output_file.write((line + "\r\n").encode('utf-8'))
+            elif export_type == 'geojson':
+                for line in export.to_geojson(
+                    submission_stream, flatten=flatten
+                ):
+                    output_file.write(line.encode('utf-8'))
             elif export_type == 'xls':
                 # XLSX export actually requires a filename (limitation of
                 # pyexcelerate?)

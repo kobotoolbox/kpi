@@ -560,7 +560,7 @@ export class DataTable extends React.Component {
             {choices.filter(c => c.list_name === col.question.select_from_list_name).map((item, n) => {
               let displayLabel = t('Unlabelled');
               if (item.label) {
-                displayLabel = item.label[0];
+                displayLabel = item.label[translationIndex];
               } else if (item.name) {
                 displayLabel = item.name;
               } else if (item.$autoname) {

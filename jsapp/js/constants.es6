@@ -327,16 +327,21 @@ new Set([
 ]).forEach((kind) => {GROUP_TYPES_END[kind] = kind;});
 Object.freeze(GROUP_TYPES_END);
 
-export const FORM_VERSION_NAME = '__version__';
-
 // a custom question type for score
 export const SCORE_ROW_TYPE = 'score__row';
 
 // a custom question type for rank
 export const RANK_LEVEL_TYPE = 'rank__level';
 
+export const CHOICE_LISTS = Object.freeze({
+  SELECT: 'select_from_list_name',
+  MATRIX: 'kobo--matrix_list',
+  SCORE: 'kobo--score-choices',
+  RANK: 'kobo--rank-items',
+});
+
 export const MATRIX_PAIR_PROPS = {
-  inSurvey: 'kobo--matrix_list',
+  inSurvey: CHOICE_LISTS.MATRIX,
   inChoices: 'list_name',
 };
 
@@ -413,13 +418,13 @@ const constants = {
   ACCESS_TYPES,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
-  FORM_VERSION_NAME,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
   REPORT_STYLES,
   ROUTES,
   QUERY_LIMIT_DEFAULT,
+  CHOICE_LISTS,
 };
 
 export default constants;
