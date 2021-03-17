@@ -72,12 +72,12 @@ export default class ProjectExportsCreator extends React.Component {
     this.unlisteners.push(
       exportsStore.listen(this.onExportsStoreChange),
       actions.exports.getExportSettings.completed.listen(this.onGetExportSettingsCompleted),
-      actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings),
-      actions.exports.createExportSetting.completed.listen(this.fetchExportSettings),
+      actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
+      actions.exports.createExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
       actions.exports.deleteExportSetting.completed.listen(this.onDeleteExportSettingCompleted),
     );
 
-    this.fetchExportSettings();
+    this.fetchExportSettings(true);
   }
 
   componentWillUnmount() {
@@ -116,7 +116,7 @@ export default class ProjectExportsCreator extends React.Component {
     }
   }
 
-  onGetExportSettingsCompleted(response) {
+  onGetExportSettingsCompleted(response, passData) {
     // we need to prepare the results to be displayed in Select
     const definedExports = [];
     response.results.forEach((result, index) => {
@@ -132,12 +132,14 @@ export default class ProjectExportsCreator extends React.Component {
       definedExports: definedExports,
     });
 
-    if (!this.state.isComponentReady && response.count >= 1) {
-      // load first export settings on initial list load
+    // load last saved settings
+    if (response.count >= 1 && passData?.preselectLastSettings) {
       this.applyExportSettingToState(response.results[0]);
     }
 
-    this.setState({isComponentReady: true});
+    if (!this.state.isComponentReady) {
+      this.setState({isComponentReady: true});
+    }
   }
 
   onDeleteExportSettingCompleted() {
@@ -194,9 +196,13 @@ export default class ProjectExportsCreator extends React.Component {
     actions.exports.createExport(this.props.asset.uid, exportParams);
   }
 
-  fetchExportSettings() {
+  /**
+   * @param {boolean} preselectLastSettings - wheter to make the last saved
+   * settings selected in the dropdown after fetching data
+   */
+  fetchExportSettings(preselectLastSettings = false) {
     this.setState({isUpdatingDefinedExportsList: true});
-    actions.exports.getExportSettings(this.props.asset.uid);
+    actions.exports.getExportSettings(this.props.asset.uid, {preselectLastSettings});
   }
 
   onDeleteExportSetting(exportSettingUid, evt) {

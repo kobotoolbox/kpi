@@ -67,10 +67,14 @@ exportsActions.deleteExport.failed.listen(() => {
 
 /**
  * @param {string} assetUid
+ * @param {object} [passData] - object with custom properties to be passed to
+ *                              success response
  */
-exportsActions.getExportSettings.listen((assetUid) => {
+exportsActions.getExportSettings.listen((assetUid, passData = {}) => {
   dataInterface.getExportSettings(assetUid)
-    .done(exportsActions.getExportSettings.completed)
+    .done((response) => {
+      exportsActions.getExportSettings.completed(response, passData);
+    })
     .fail(exportsActions.getExportSettings.failed);
 });
 
