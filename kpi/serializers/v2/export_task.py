@@ -15,8 +15,6 @@ from formpack.constants import (
     EXPORT_SETTING_TYPE,
     OPTIONAL_EXPORT_SETTINGS,
     REQUIRED_EXPORT_SETTINGS,
-    TRUE,
-    VALID_BOOLEANS,
     VALID_DEFAULT_LANGUAGES,
     VALID_EXPORT_SETTINGS,
     VALID_EXPORT_TYPES,
@@ -65,13 +63,13 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs: dict) -> dict:
         data_ = self.validate_data(self._get_request.data)
-        attrs[
+        attrs[EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS] = data_[
             EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS
-        ] = self.validate_fields_from_all_versions(data_)
+        ]
         attrs[EXPORT_SETTING_GROUP_SEP] = self.validate_group_sep(data_)
-        attrs[
+        attrs[EXPORT_SETTING_HIERARCHY_IN_LABELS] = data_[
             EXPORT_SETTING_HIERARCHY_IN_LABELS
-        ] = self.validate_hierarchy_in_labels(data_)
+        ]
         attrs[EXPORT_SETTING_LANG] = self.validate_lang(data_)
         attrs[EXPORT_SETTING_MULTIPLE_SELECT] = self.validate_multiple_select(
             data_
@@ -83,7 +81,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             attrs[EXPORT_SETTING_FIELDS] = self.validate_fields(data_)
 
         if EXPORT_SETTING_FLATTEN in data_:
-            attrs[EXPORT_SETTING_FLATTEN] = self.validate_flatten(data_)
+            attrs[EXPORT_SETTING_FLATTEN] = data_[EXPORT_SETTING_FLATTEN]
 
         return attrs
 
@@ -137,52 +135,13 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             )
         return fields
 
-    def validate_fields_from_all_versions(self, data: dict) -> str:
-        fields_from_all_versions = data[EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS]
-        if fields_from_all_versions not in VALID_BOOLEANS:
-            raise serializers.ValidationError(
-                {
-                    EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS: _(
-                        'Must be either {}'
-                    ).format(format_exception_values(VALID_BOOLEANS))
-                }
-            )
-        return fields_from_all_versions
-
-    def validate_flatten(self, data: dict) -> str:
-        flatten = data[EXPORT_SETTING_FLATTEN]
-        if flatten not in VALID_BOOLEANS:
-            raise serializers.ValidationError(
-                {
-                    EXPORT_SETTING_FLATTEN: _('Must be either {}').format(
-                        format_exception_values(VALID_BOOLEANS)
-                    )
-                }
-            )
-        return flatten
-
     def validate_group_sep(self, data: dict) -> str:
         group_sep = data[EXPORT_SETTING_GROUP_SEP]
-        if (
-            data[EXPORT_SETTING_HIERARCHY_IN_LABELS].lower() == TRUE
-            and not group_sep
-        ):
+        if data[EXPORT_SETTING_HIERARCHY_IN_LABELS] and not group_sep:
             raise serializers.ValidationError(
                 {EXPORT_SETTING_GROUP_SEP: _('Must be a non-empty value')}
             )
         return group_sep
-
-    def validate_hierarchy_in_labels(self, data: dict) -> str:
-        hierarchy_in_labels = data[EXPORT_SETTING_HIERARCHY_IN_LABELS]
-        if hierarchy_in_labels not in VALID_BOOLEANS:
-            raise serializers.ValidationError(
-                {
-                    EXPORT_SETTING_HIERARCHY_IN_LABELS: _(
-                        'Must be either {}'
-                    ).format(format_exception_values(VALID_BOOLEANS))
-                }
-            )
-        return hierarchy_in_labels
 
     def validate_lang(self, data: dict) -> str:
         asset_languages = self._get_asset.summary.get('languages', [])
