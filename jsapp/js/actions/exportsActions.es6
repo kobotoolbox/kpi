@@ -44,8 +44,7 @@ exportsActions.getExport.listen((assetUid, exportUid) => {
  * …and the rest of parameters should match export_settings
  */
 exportsActions.createExport.listen((assetUid, data) => {
-  const cleanData = cleanupExportSettings(data);
-  dataInterface.createAssetExport(assetUid, cleanData)
+  dataInterface.createAssetExport(assetUid, data)
     .done(exportsActions.createExport.completed)
     .fail(exportsActions.createExport.failed);
 });
@@ -65,28 +64,6 @@ exportsActions.deleteExport.listen((assetUid, exportUid) => {
 exportsActions.deleteExport.failed.listen(() => {
   notify(t('Failed to delete export'), 'error');
 });
-
-function cleanupExportSettings(export_settings) {
-  const clean = {
-    fields_from_all_versions: export_settings.fields_from_all_versions,
-    fields: export_settings.fields,
-    group_sep: export_settings.group_sep,
-    hierarchy_in_labels: export_settings.hierarchy_in_labels,
-    lang: export_settings.lang,
-    multiple_select: export_settings.multiple_select,
-    type: export_settings.type,
-  };
-
-  if (export_settings.flatten) {
-    clean.flatten = export_settings.flatten;
-  }
-
-  if (export_settings.source) {
-    clean.source = export_settings.source;
-  }
-
-  return clean;
-}
 
 /**
  * @param {string} assetUid
@@ -115,7 +92,7 @@ exportsActions.getExportSetting.listen((assetUid, settingUid) => {
 exportsActions.updateExportSetting.listen((assetUid, settingUid, data) => {
   const cleanData = {
     name: data.name,
-    export_settings: JSON.stringify(cleanupExportSettings(data.export_settings)),
+    export_settings: JSON.stringify(data.export_settings),
   };
   dataInterface.updateExportSetting(assetUid, settingUid, cleanData)
     .done(exportsActions.updateExportSetting.completed)
@@ -132,7 +109,7 @@ exportsActions.updateExportSetting.failed.listen(() => {
 exportsActions.createExportSetting.listen((assetUid, data) => {
   const cleanData = {
     name: data.name,
-    export_settings: JSON.stringify(cleanupExportSettings(data.export_settings)),
+    export_settings: JSON.stringify(data.export_settings),
   };
   dataInterface.createExportSetting(assetUid, cleanData)
     .done(exportsActions.createExportSetting.completed)
