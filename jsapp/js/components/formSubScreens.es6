@@ -8,7 +8,6 @@ import {actions} from '../actions';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import mixins from '../mixins';
-import assetUtils from 'js/assetUtils';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
