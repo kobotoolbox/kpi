@@ -1,12 +1,11 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
-import {DEFAULT_EXPORT_TYPE} from './exportsConstants';
+import {DEFAULT_EXPORT_SETTINGS} from './exportsConstants';
 
 const exportsStore = Reflux.createStore({
   previousPath: hashHistory.getCurrentLocation().pathname,
   data: {
-    // one of EXPORT_TYPES
-    exportType: DEFAULT_EXPORT_TYPE,
+    exportType: DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE,
   },
 
   init() {
@@ -15,7 +14,8 @@ const exportsStore = Reflux.createStore({
 
   onRouteChange() {
     if (!this.isOnProjectDownloadsRoute()) {
-      this.data.exportType = DEFAULT_EXPORT_TYPE;
+      // when leaving the custom downloads route, reset the store
+      this.data.exportType = DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE;
       this.trigger(this.data);
     }
   },

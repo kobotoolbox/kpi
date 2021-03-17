@@ -16,7 +16,7 @@ import {
 } from 'js/constants';
 import {
   EXPORT_TYPES,
-  DEFAULT_EXPORT_TYPE,
+  DEFAULT_EXPORT_SETTINGS,
   EXPORT_FORMATS,
   EXPORT_MULTIPLE_OPTIONS,
 } from './exportsConstants';
@@ -24,8 +24,6 @@ import assetUtils from 'js/assetUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings');
-const DEFAULT_GROUP_SEPARATOR = '/';
-const DEFAULT_EXPORT_MULTIPLE = EXPORT_MULTIPLE_OPTIONS.both;
 
 /**
  * @prop {object} asset
@@ -42,16 +40,16 @@ export default class ProjectExportsCreator extends React.Component {
       // selectedExportType is being handled by exportsStore to allow other
       // components to know it changed
       selectedExportType: exportsStore.getExportType(),
-      selectedExportFormat: this.getDefaultExportFormatOption(),
-      groupSeparator: DEFAULT_GROUP_SEPARATOR,
-      selectedExportMultiple: DEFAULT_EXPORT_MULTIPLE,
-      isIncludeGroupsEnabled: false,
-      isIncludeAllVersionsEnabled: false,
+      selectedExportFormat: DEFAULT_EXPORT_SETTINGS.EXPORT_FORMAT,
+      groupSeparator: DEFAULT_EXPORT_SETTINGS.GROUP_SEPARATOR,
+      selectedExportMultiple: DEFAULT_EXPORT_SETTINGS.EXPORT_MULTIPLE,
+      isIncludeGroupsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_GROUPS,
+      isIncludeAllVersionsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_ALL_VERSIONS,
       isAdvancedViewVisible: false,
-      isSaveCustomExportEnabled: false,
-      customExportName: '',
-      isCustomSelectionEnabled: false,
-      isFlattenGeoJsonEnabled: true,
+      isSaveCustomExportEnabled: DEFAULT_EXPORT_SETTINGS.SAVE_CUSTOM_EXPORT,
+      customExportName: DEFAULT_EXPORT_SETTINGS.CUSTOM_EXPORT_NAME,
+      isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
+      isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
       selectedRows: new Set(),
       selectableRowsCount: 0,
       selectedDefinedExport: null,
@@ -87,17 +85,17 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   setDefaultExportSettings() {
-    exportsStore.setExportType(DEFAULT_EXPORT_TYPE);
+    exportsStore.setExportType(DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE);
     this.setState({
-      selectedExportFormat: this.getDefaultExportFormatOption(),
-      groupSeparator: DEFAULT_GROUP_SEPARATOR,
-      selectedExportMultiple: DEFAULT_EXPORT_MULTIPLE,
-      isIncludeGroupsEnabled: false,
-      isIncludeAllVersionsEnabled: false,
-      isSaveCustomExportEnabled: false,
-      customExportName: '',
-      isCustomSelectionEnabled: false,
-      isFlattenGeoJsonEnabled: false,
+      selectedExportFormat: DEFAULT_EXPORT_SETTINGS.EXPORT_FORMAT,
+      groupSeparator: DEFAULT_EXPORT_SETTINGS.GROUP_SEPARATOR,
+      selectedExportMultiple: DEFAULT_EXPORT_SETTINGS.EXPORT_MULTIPLE,
+      isIncludeGroupsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_GROUPS,
+      isIncludeAllVersionsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_ALL_VERSIONS,
+      isSaveCustomExportEnabled: DEFAULT_EXPORT_SETTINGS.SAVE_CUSTOM_EXPORT,
+      customExportName: DEFAULT_EXPORT_SETTINGS.CUSTOM_EXPORT_NAME,
+      isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
+      isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
       selectedRows: new Set(this.getAllSelectableRows()),
     });
   }
@@ -161,12 +159,6 @@ export default class ProjectExportsCreator extends React.Component {
     } else {
       return Object.values(EXPORT_FORMATS);
     }
-  }
-
-  getDefaultExportFormatOption() {
-    const exportFormatOtions = this.getExportFormatOptions();
-    // first option is the default one
-    return exportFormatOtions[0];
   }
 
   getAllSelectableRows() {
@@ -291,7 +283,7 @@ export default class ProjectExportsCreator extends React.Component {
     // e.g. language was deleted, or _default was used and in current form
     // version there are languages defined (so no _default available).
     if (!selectedExportFormat) {
-      selectedExportFormat = this.getDefaultExportFormatOption();
+      selectedExportFormat = DEFAULT_EXPORT_SETTINGS.EXPORT_FORMAT;
     }
 
     const newStateObj = {
