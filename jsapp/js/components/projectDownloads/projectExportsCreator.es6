@@ -458,12 +458,6 @@ export default class ProjectExportsCreator extends React.Component {
       </span>
     );
 
-    const customSelectionLabel = (
-      <span className='project-downloads__title'>
-        {t('Select which questions to be exported')}
-      </span>
-    );
-
     // make sure the order is right, can't trust object definition ordering :)
     const exportMultipleOptions = [
       EXPORT_MULTIPLE_OPTIONS.details,
@@ -562,7 +556,7 @@ export default class ProjectExportsCreator extends React.Component {
               this,
               'isCustomSelectionEnabled'
             )}
-            label={customSelectionLabel}
+            label={t('Select which questions to be exported')}
           />
 
           {this.renderRowsSelector()}
@@ -700,15 +694,15 @@ export default class ProjectExportsCreator extends React.Component {
 
                 {this.state.selectedDefinedExport &&
                   mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
-                  <bem.KoboLightButton
-                    m={['red', 'icon-only']}
+                  <button
+                    className='project-downloads__delete-settings-button'
                     onClick={this.onDeleteExportSetting.bind(
                       this,
                       this.state.selectedDefinedExport.data.uid
                     )}
                   >
                     <i className='k-icon k-icon-trash'/>
-                  </bem.KoboLightButton>
+                  </button>
                 }
               </React.Fragment>
             }

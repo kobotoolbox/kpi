@@ -109,11 +109,11 @@
     align-items: stretch; // needed for questions list stretching
     flex-wrap: wrap;
     padding-top: 12px;
+  }
 
-    .project-downloads__column--left .project-downloads__title {
-      margin-bottom: 6px;
-      display: inline-block;
-    }
+  .project-downloads__title {
+    margin-bottom: 6px;
+    display: inline-block;
   }
 
   .project-downloads__column {
@@ -157,15 +157,32 @@
     .project-downloads__defined-exports-selector {
       width: 33%;
       position: relative;
+    }
 
-      // this is the delete button
-      > .kobo-light-button {
-        position: absolute;
-        left: 100%;
-        margin-left: 5px;
-        bottom: 0;
-        height: 38px;
-        line-height: 38px;
+    .project-downloads__delete-settings-button {
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      color: $kobo-red;
+      display: inline-block;
+      vertical-align: middle;
+      background: transparent;
+      font-size: 32px;
+
+      // positioning
+      position: absolute;
+      left: 100%;
+      margin-left: 5px;
+      bottom: 0;
+      height: 38px;
+      line-height: 38px;
+
+      &:hover {
+        color: $kobo-red-dark;
+      }
+
+      &:active {
+        transform: translateY(1px);
       }
     }
   }
