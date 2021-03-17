@@ -7,7 +7,9 @@ import {actions} from '../../actions';
 import {bem} from 'js/bem';
 import {ASSET_FILE_TYPES} from '../../constants';
 
-/*
+/**
+ * @prop {object} asset
+ *
  * Modal for uploading form media
  */
 class FormMedia extends React.Component {
