@@ -9,6 +9,8 @@ export const EXPORT_TYPES = Object.freeze({
   zip_legacy: {value: 'zip_legacy', label: t('Media Attachments (ZIP)'), isLegacy: true},
 });
 
+export const DEFAULT_EXPORT_TYPE = EXPORT_TYPES.xls;
+
 export const EXPORT_FORMATS = Object.freeze({
   // Unchecked wisdom from old component:
   // > The value of `formpack.constants.UNTRANSLATED` is `null` which is the same as `_default`
@@ -24,17 +26,17 @@ export const EXPORT_FORMATS = Object.freeze({
 });
 
 export const EXPORT_MULTIPLE_OPTIONS = Object.freeze({
-  both: {
-    value: 'both',
-    label: t('Both'),
-  },
   details: {
     value: 'details',
-    label: t('Only the details column'),
+    label: t('Separate columns'),
   },
   summary: {
     value: 'summary',
-    label: t('Only the summary column'),
+    label: t('Single column'),
+  },
+  both: {
+    value: 'both',
+    label: t('Single and separate columns'),
   },
 });
 

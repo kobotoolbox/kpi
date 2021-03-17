@@ -48,6 +48,7 @@
     border-radius: 0;
     background-color: $kobo-white;
     transition: border-color 250ms;
+    cursor: pointer;
 
     &:hover {
       border-color: $kobo-lightgray;
@@ -77,19 +78,31 @@
     @include box-shadow;
     // getting select menus to appear over checkboxes
     z-index: 2;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   .kobo-select__menu-list {
-    max-height: 36px * 3.5 + 8px; // display 3.5 items
+    // NOTE: we previously restricted height of select dropdown by brute force
+    // but it seems that our current version of react-select handles this very
+    // well. I will leave this commented out for now here.
+    // max-height: 36px * 3.5 + 8px; // display 3.5 items
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
   .kobo-select__option {
-    &.kobo-select__option--is-focused {
-      background-color: $kobo-whitegray;
-    }
+    cursor: pointer;
 
     &.kobo-select__option--is-selected {
-      background-color: $kobo-blue;
+      background-color: $kobo-white;
+      color: $kobo-blue;
+      font-weight: 700;
+    }
+
+    // is-focused needs to go after is-selected
+    &.kobo-select__option--is-focused {
+      background-color: $kobo-whitegray;
     }
   }
 }

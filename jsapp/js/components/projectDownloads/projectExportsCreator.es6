@@ -16,6 +16,7 @@ import {
 } from 'js/constants';
 import {
   EXPORT_TYPES,
+  DEFAULT_EXPORT_TYPE,
   EXPORT_FORMATS,
   EXPORT_MULTIPLE_OPTIONS,
 } from './exportsConstants';
@@ -23,6 +24,8 @@ import assetUtils from 'js/assetUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings');
+const DEFAULT_GROUP_SEPARATOR = '/';
+const DEFAULT_EXPORT_MULTIPLE = EXPORT_MULTIPLE_OPTIONS.both;
 
 /**
  * @prop {object} asset
@@ -39,9 +42,9 @@ export default class ProjectExportsCreator extends React.Component {
       // selectedExportType is being handled by exportsStore to allow other
       // components to know it changed
       selectedExportType: exportsStore.getExportType(),
-      selectedExportFormat: null,
-      groupSeparator: '/',
-      selectedExportMultiple: EXPORT_MULTIPLE_OPTIONS.both,
+      selectedExportFormat: this.getDefaultExportFormatOption(),
+      groupSeparator: DEFAULT_GROUP_SEPARATOR,
+      selectedExportMultiple: DEFAULT_EXPORT_MULTIPLE,
       isIncludeGroupsEnabled: false,
       isIncludeAllVersionsEnabled: false,
       isAdvancedViewVisible: false,
@@ -64,12 +67,6 @@ export default class ProjectExportsCreator extends React.Component {
       this.state.selectableRowsCount = this.state.selectedRows.size;
     }
 
-    const exportFormatOtions = this.getExportFormatOptions();
-    if (exportFormatOtions) {
-      // first option is the default one
-      this.state.selectedExportFormat = exportFormatOtions[0];
-    }
-
     autoBind(this);
   }
 
@@ -87,6 +84,22 @@ export default class ProjectExportsCreator extends React.Component {
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  setDefaultExportSettings() {
+    exportsStore.setExportType(DEFAULT_EXPORT_TYPE);
+    this.setState({
+      selectedExportFormat: this.getDefaultExportFormatOption(),
+      groupSeparator: DEFAULT_GROUP_SEPARATOR,
+      selectedExportMultiple: DEFAULT_EXPORT_MULTIPLE,
+      isIncludeGroupsEnabled: false,
+      isIncludeAllVersionsEnabled: false,
+      isSaveCustomExportEnabled: false,
+      customExportName: '',
+      isCustomSelectionEnabled: false,
+      isFlattenGeoJsonEnabled: false,
+      selectedRows: new Set(this.getAllSelectableRows()),
+    });
   }
 
   onExportsStoreChange() {
@@ -150,6 +163,12 @@ export default class ProjectExportsCreator extends React.Component {
     }
   }
 
+  getDefaultExportFormatOption() {
+    const exportFormatOtions = this.getExportFormatOptions();
+    // first option is the default one
+    return exportFormatOtions[0];
+  }
+
   getAllSelectableRows() {
     const allRows = new Set();
     if (this.props.asset?.content?.survey) {
@@ -208,7 +227,22 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   onSelectedDefinedExportChange(newDefinedExport) {
-    this.applyExportSettingToState(newDefinedExport.data);
+    if (newDefinedExport.value === null) {
+      this.setDefaultExportSettings();
+      this.clearSelectedDefinedExport();
+    } else {
+      this.applyExportSettingToState(newDefinedExport.data);
+    }
+  }
+
+  getSelectedDefinedExportOptions() {
+    return [
+      {
+        value: null,
+        label: t('None'),
+      },
+      ...this.state.definedExports,
+    ];
   }
 
   /**
@@ -257,7 +291,7 @@ export default class ProjectExportsCreator extends React.Component {
     // e.g. language was deleted, or _default was used and in current form
     // version there are languages defined (so no _default available).
     if (!selectedExportFormat) {
-      selectedExportFormat = exportFormatOtions[0];
+      selectedExportFormat = this.getDefaultExportFormatOption();
     }
 
     const newStateObj = {
@@ -428,21 +462,32 @@ export default class ProjectExportsCreator extends React.Component {
 
     const customSelectionLabel = (
       <span className='project-downloads__title'>
-        {t('Custom selection export')}
+        {t('Select which questions to be exported')}
       </span>
     );
+
+    // make sure the order is right, can't trust object definition ordering :)
+    const exportMultipleOptions = [
+      EXPORT_MULTIPLE_OPTIONS.details,
+      EXPORT_MULTIPLE_OPTIONS.summary,
+      EXPORT_MULTIPLE_OPTIONS.both,
+    ];
 
     return (
       <div className='project-downloads__advanced-view'>
         <div className='project-downloads__column project-downloads__column--left'>
           <label className='project-downloads__column-row'>
             <span className='project-downloads__title'>
-              {t('Export select_multiple responses')}
+              {t('Export')}
+              &nbsp;
+              <em>{t('Select Many')}</em>
+              &nbsp;
+              {t('questions as…')}
             </span>
 
             <Select
               value={this.state.selectedExportMultiple}
-              options={Object.values(EXPORT_MULTIPLE_OPTIONS)}
+              options={exportMultipleOptions}
               onChange={this.onAnyInputChange.bind(
                 this,
                 'selectedExportMultiple'
@@ -468,6 +513,18 @@ export default class ProjectExportsCreator extends React.Component {
               onChange={this.onAnyInputChange.bind(this, 'isIncludeGroupsEnabled')}
               label={t('Include groups in headers')}
             />
+
+            <TextBox
+              disabled={!this.state.isIncludeGroupsEnabled}
+              value={this.state.groupSeparator}
+              onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
+              label={t('Group separator')}
+              customModifiers={[
+                'on-white',
+                'group-separator',
+                (!this.state.isIncludeGroupsEnabled ? 'group-separator-disabled' : undefined),
+              ]}
+            />
           </div>
 
           {this.state.selectedExportType.value === EXPORT_TYPES.geojson.value &&
@@ -480,22 +537,22 @@ export default class ProjectExportsCreator extends React.Component {
             </div>
           }
 
-          <div className='project-downloads__column-row project-downloads__column-row--custom-export'>
+          <div className='project-downloads__column-row'>
             <Checkbox
               checked={this.state.isSaveCustomExportEnabled}
               onChange={this.onAnyInputChange.bind(
                 this,
                 'isSaveCustomExportEnabled'
               )}
-              label={t('Save selection as custom export')}
+              label={t('Save selection as…')}
             />
 
             <TextBox
               disabled={!this.state.isSaveCustomExportEnabled}
               value={this.state.customExportName}
               onChange={this.onAnyInputChange.bind(this, 'customExportName')}
-              placeholder={t('Name your custom export')}
-              customModifiers={['on-white']}
+              placeholder={t('Name your export settings')}
+              customModifiers={['on-white', 'custom-export']}
             />
           </div>
         </div>
@@ -527,6 +584,18 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   renderExportTypeSelector() {
+    // make xls topmost (as most popular), then with non-legacy and finish with legacy
+    const exportTypesOptions = [
+      EXPORT_TYPES.xls,
+      EXPORT_TYPES.csv,
+      EXPORT_TYPES.geojson,
+      EXPORT_TYPES.spss_labels,
+      EXPORT_TYPES.csv_legacy,
+      EXPORT_TYPES.kml_legacy,
+      EXPORT_TYPES.xls_legacy,
+      EXPORT_TYPES.zip_legacy,
+    ];
+
     return (
       <label>
         <span className='project-downloads__title'>
@@ -535,7 +604,7 @@ export default class ProjectExportsCreator extends React.Component {
 
         <Select
           value={this.state.selectedExportType}
-          options={Object.values(EXPORT_TYPES)}
+          options={exportTypesOptions}
           onChange={this.onSelectedExportTypeChange}
           className='kobo-select'
           classNamePrefix='kobo-select'
@@ -591,13 +660,6 @@ export default class ProjectExportsCreator extends React.Component {
               menuPlacement='auto'
             />
           </label>
-
-          <TextBox
-            value={this.state.groupSeparator}
-            onChange={this.onAnyInputChange.bind(this, 'groupSeparator')}
-            label={this.getGroupSeparatorLabel()}
-            customModifiers={['on-white', 'group-separator']}
-          />
         </div>
 
         <div
@@ -623,18 +685,18 @@ export default class ProjectExportsCreator extends React.Component {
               <React.Fragment>
                 <label>
                   <span className='project-downloads__title'>
-                    {t('Custom exports')}
+                    {t('Apply saved export settings')}
                   </span>
 
                   <Select
                     isLoading={this.state.isUpdatingDefinedExportsList}
                     value={this.state.selectedDefinedExport}
-                    options={this.state.definedExports}
+                    options={this.getSelectedDefinedExportOptions()}
                     onChange={this.onSelectedDefinedExportChange}
                     className='kobo-select'
                     classNamePrefix='kobo-select'
                     menuPlacement='auto'
-                    placeholder={t('Select…')}
+                    placeholder={t('No export settings selected')}
                   />
                 </label>
 

@@ -1,8 +1,6 @@
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
-import {EXPORT_TYPES} from './exportsConstants';
-
-const DEFAULT_EXPORT_TYPE = EXPORT_TYPES.xls;
+import {DEFAULT_EXPORT_TYPE} from './exportsConstants';
 
 const exportsStore = Reflux.createStore({
   previousPath: hashHistory.getCurrentLocation().pathname,
