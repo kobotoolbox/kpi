@@ -17,7 +17,7 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
-import exportsActions from './actions/exports';
+import exportsActions from './actions/exportsActions';
 import {
   notify,
   replaceSupportEmail,
