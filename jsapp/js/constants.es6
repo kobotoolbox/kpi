@@ -144,6 +144,17 @@ export const ASSET_TYPES = {
   },
 };
 
+export const ASSET_FILE_TYPES = {
+  map_layer: {
+    id: 'map_layer',
+    label: t('map layer'),
+  },
+  form_media: {
+    id: 'form_media',
+    label: t('form media'),
+  },
+}
+
 export const QUESTION_TYPES = Object.freeze({
   select_one: {
     label: t('Select One'),
@@ -411,6 +422,7 @@ const constants = {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   ASSET_TYPES,
+  ASSET_FILE_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   NAME_MAX_LENGTH,

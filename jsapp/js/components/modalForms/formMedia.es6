@@ -5,6 +5,7 @@ import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
+import {ASSET_FILE_TYPES} from '../../constants';
 
 /*
  * Modal for uploading form media
@@ -96,7 +97,7 @@ class FormMedia extends React.Component {
         var base64File = await this.toBase64(file);
 	    var formMediaJSON = {
 	      description: 'default',
-          file_type: 'form_media',
+          file_type: ASSET_FILE_TYPES.form_media.id,
           metadata: JSON.stringify({filename: file.name}),
 	      base64Encoded: base64File
 	    };
@@ -122,7 +123,7 @@ class FormMedia extends React.Component {
 
       var formMediaJSON = {
         description: 'default',
-        file_type: 'form_media',
+        file_type: ASSET_FILE_TYPES.form_media.id,
         metadata: JSON.stringify({redirect_url: url}),
       };
       this.uploadMedia(formMediaJSON);
