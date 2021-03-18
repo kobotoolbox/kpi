@@ -34,13 +34,10 @@ class FormMedia extends React.Component {
    */
 
   componentDidMount() {
-    actions.media.loadMedia.completed.listen(this.onGetMediaCompleted);
-    actions.media.uploadMedia.completed.listen(this.onUploadCompleted);
-    actions.media.uploadMedia.failed.listen(this.onUploadFailed);
-    actions.media.deleteMedia.completed.listen(this.onGetMediaCompleted);
-    actions.media.deleteMedia.failed.listen(this.onDeleteMediaFailed);
-
     actions.media.loadMedia(this.props.asset.uid);
+
+    actions.media.loadMedia.completed.listen(this.onGetMediaCompleted);
+    actions.media.uploadMedia.failed.listen(this.onUploadFailed);
   }
 
   /*
