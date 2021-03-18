@@ -21,6 +21,7 @@ from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
 from formpack import FormPack
+from formpack.constants import KOBO_LOCKING_RESTRICTIONS
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
@@ -239,6 +240,20 @@ class FormpackXLSFormUtils:
             if '$prev' in row:
                 del row['$prev']
 
+    def _revert_kobo_lock_structre(self, content):
+        if 'kobo--locks' not in content:
+            return
+        locking_profiles = []
+        for res in KOBO_LOCKING_RESTRICTIONS:
+            profile = {'restriction': res}
+            for item in content['kobo--locks']:
+                name = item['name']
+                restrictions = item['restrictions']
+                if res in restrictions:
+                    profile[name] = 'true'
+            locking_profiles.append(profile)
+        content['kobo--locks'] = locking_profiles
+
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
 
@@ -398,6 +413,7 @@ class XlsExportable:
             self._autoname(content)
             self._populate_fields_with_autofields(content)
             self._strip_kuids(content)
+            self._revert_kobo_lock_structre(content)
         content = OrderedDict(content)
         self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
         return content
