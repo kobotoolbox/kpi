@@ -58,7 +58,6 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
     deleted_at = models.DateTimeField(null=True, default=None)
 
     def delete(self, using=None, keep_parents=False, force=False):
-
         # Delete object and files on storage if `force` is True or file type
         # is anything else than 'form_media'
         if force or self.file_type != self.FORM_MEDIA:
@@ -67,8 +66,8 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
             return super().delete(using=using, keep_parents=keep_parents)
 
         # Otherwise, just flag the file as deleted.
-        self.deleted_at = timezone.now()
-        self.save(update_fields=['deleted_at'])
+        self.date_deleted = timezone.now()
+        self.save(update_fields=['date_deleted'])
 
     @property
     def filename(self):
@@ -145,4 +144,3 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
     def set_mimetype(self):
         mimetype, _ = guess_type(self.metadata['filename'])
         self.metadata['mimetype'] = mimetype
-
