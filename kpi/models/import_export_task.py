@@ -26,6 +26,7 @@ from werkzeug.http import parse_options_header
 import formpack.constants
 from formpack.schema.fields import ValidationStatusCopyField
 from formpack.utils.string import ellipsize
+from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
@@ -743,6 +744,11 @@ def _b64_xls_to_dict(base64_encoded_upload):
     else:
         survey_dict = xls2json_backends.xls_to_dict(xls_with_renamed_sheet)
         survey_dict['library'] = survey_dict.pop('survey')
+
+    kobo_locks = get_kobo_locking_profiles(BytesIO(decoded_str))
+    if kobo_locks:
+        survey_dict['kobo--locks'] = kobo_locks
+
     return _strip_header_keys(survey_dict)
 
 
