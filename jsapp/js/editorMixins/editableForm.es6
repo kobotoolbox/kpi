@@ -34,6 +34,11 @@ import {dataInterface} from '../dataInterface';
 import assetUtils from 'js/assetUtils';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
 import FormLockedMessage from 'js/components/locking/formLockedMessage';
+import {
+  isAssetLocked,
+  isAssetAllLocked,
+} from 'js/components/locking/lockingUtils';
+import {getFormBuilderAssetType} from 'js/components/formBuilder/formBuilderUtils';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -523,31 +528,6 @@ export default assign({
       saveButtonText,
     } = this.buttonStates();
 
-    let nameFieldLabel;
-    switch (this.state.asset_type) {
-      case ASSET_TYPES.template.id:
-        nameFieldLabel = ASSET_TYPES.template.label;
-        break;
-      case ASSET_TYPES.survey.id:
-        nameFieldLabel = ASSET_TYPES.survey.label;
-        break;
-      case ASSET_TYPES.block.id:
-        nameFieldLabel = ASSET_TYPES.block.label;
-        break;
-      case ASSET_TYPES.question.id:
-        nameFieldLabel = ASSET_TYPES.question.label;
-        break;
-      default:
-        nameFieldLabel = null;
-    }
-
-    if (
-      nameFieldLabel === null &&
-      this.state.desiredAssetType === ASSET_TYPES.template.id
-    ) {
-      nameFieldLabel = ASSET_TYPES.template.label;
-    }
-
     return (
       <bem.FormBuilderHeader>
         <bem.FormBuilderHeader__row m='primary'>
@@ -563,10 +543,7 @@ export default assign({
 
           <bem.FormBuilderHeader__cell m={'name'} >
             <bem.FormModal__item>
-              <span>is locked?</span>
-              {nameFieldLabel &&
-                <label>{nameFieldLabel}</label>
-              }
+              {this.renderAssetLabel()}
               <input
                 type='text'
                 maxLength={NAME_MAX_LENGTH}
@@ -798,6 +775,31 @@ export default assign({
     }
 
     return renderLoading();
+  },
+
+  renderAssetLabel() {
+    let assetTypeLabel = getFormBuilderAssetType(this.state.asset_type, this.state.desiredAssetType)?.label;
+
+    const isLocked = isAssetLocked(this.state.asset);
+    const isAllLocked = isAssetAllLocked(this.state.asset);
+
+    // Case 1: there is no asset yet (creting a new) or asset is not locked
+    if (!this.state.asset || !isLocked) {
+      return assetTypeLabel;
+    // Case 2: asset is locked fully or partially
+    } else {
+      let lockedLabel = t('Partially locked ##type##').replace('##type##', assetTypeLabel);
+      if (isAllLocked) {
+        lockedLabel = t('Fully locked ##type##').replace('##type##', assetTypeLabel);
+      }
+      return (
+        <span>
+          <small>padlock</small>
+          {lockedLabel}
+          <small>help icon</small>
+        </span>
+      );
+    }
   },
 
   render() {

@@ -72,6 +72,7 @@ module.exports = do ->
       @$hint = @$('.card__header-hint')
       @$card = @$('.card')
       @$header = @$('.card__header')
+      @$indicator = @$('.card__indicator')
       context = {warnings: []}
 
       questionType = @model.get('type').get('typeId')
@@ -105,7 +106,11 @@ module.exports = do ->
         view.render().insertInDOM(@)
       if @model.getValue('required')
         @$card.addClass('card--required')
-      @
+
+      if @$indicator
+        @$indicator.prepend($.parseHTML('<span>locked</span>'))
+
+      return @
 
     toggleSettings: (show)->
       if show is undefined
