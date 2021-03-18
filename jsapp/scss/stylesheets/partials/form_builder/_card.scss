@@ -188,21 +188,6 @@ $cardIndicatorIconWidth: 21px;
 }
 
 // ==========================================================================
-// Card locking icons buttons
-// ==========================================================================
-
-.card__locking-icons {
-  border: $cardBorderStyle;
-  border-width: 0 0 0 1px;
-  position: absolute;
-  top: 0px;
-  right: $s-fb-row-buttons-width;
-  width: $s-fb-row-locking-icons-width;
-  height: 100%;
-  z-index: 1;
-}
-
-// ==========================================================================
 // Card quick buttons
 // ==========================================================================
 

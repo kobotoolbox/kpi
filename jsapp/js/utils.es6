@@ -70,6 +70,7 @@ export function surveyToValidJson(survey) {
   return JSON.stringify(survey.toFlatJSON());
 }
 
+// TODO: move nullifyTranslations and unnullifyTranslations to formBuilderUtils.es6 file
 
 /**
  * This function reverses what `nullifyTranslations` did to the form data.

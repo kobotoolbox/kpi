@@ -8,6 +8,7 @@ import {
   hasAssetRestriction,
   getLockingProfile,
   isAssetLocked,
+  isAssetAllLocked,
 } from './lockingUtils';
 import {
   FORM_RESTRICTION_NAMES,
@@ -163,5 +164,27 @@ describe('isAssetLocked', () => {
   it('should be true for template with lock_all', () => {
     const test = isAssetLocked(simpleTemplateWithAll);
     expect(test).to.equal(true);
+  });
+});
+
+describe('isAssetAllLocked', () => {
+  it('should be false for un-locked template', () => {
+    const test = isAssetAllLocked(simpleTemplate);
+    expect(test).to.equal(false);
+  });
+
+  it('should be false for template with some locking', () => {
+    const test = isAssetAllLocked(simpleTemplateLocked);
+    expect(test).to.equal(false);
+  });
+
+  it('should be true for template with lock_all', () => {
+    const test = isAssetAllLocked(simpleTemplateWithAll);
+    expect(test).to.equal(true);
+  });
+
+  it('should be false for template without content', () => {
+    const test = isAssetAllLocked({});
+    expect(test).to.equal(false);
   });
 });

@@ -142,3 +142,16 @@ export function isAssetLocked(asset) {
   });
   return Boolean(foundRow);
 }
+
+/**
+ * Checks if asset has `lock_all`, i.e. everything locked
+ *
+ * @param {object} asset
+ * @returns {boolean}
+ */
+export function isAssetAllLocked(asset) {
+  return Boolean(
+    asset.content?.settings &&
+    asset.content.settings[LOCK_ALL_PROP_NAME] === true
+  );
+}
