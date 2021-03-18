@@ -94,13 +94,13 @@ class FormMedia extends React.Component {
 
       files.forEach(async (file) => {
         var base64File = await this.toBase64(file);
-	    var formMediaJSON = {
+
+        this.uploadMedia({
 	      description: 'default',
           file_type: ASSET_FILE_TYPES.form_media.id,
           metadata: JSON.stringify({filename: file.name}),
 	      base64Encoded: base64File
-	    };
-        this.uploadMedia(formMediaJSON);
+	    });
       });
     }
   }
@@ -120,12 +120,11 @@ class FormMedia extends React.Component {
         inputURL: ''
       });
 
-      var formMediaJSON = {
+      this.uploadMedia({
         description: 'default',
         file_type: ASSET_FILE_TYPES.form_media.id,
         metadata: JSON.stringify({redirect_url: url}),
-      };
-      this.uploadMedia(formMediaJSON);
+      });
     }
   }
 
