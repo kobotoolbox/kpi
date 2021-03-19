@@ -502,6 +502,7 @@ class ExportTask(ImportExportTask):
             'hierarchy_in_labels', ''
         ).lower() == 'true'
         group_sep = self.data.get('group_sep', '/')
+        multiple_select = self.data.get('multiple_select', 'both')
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
         fields = self.data.get('fields', [])
@@ -516,6 +517,7 @@ class ExportTask(ImportExportTask):
         return {
             'versions': pack.versions.keys(),
             'group_sep': group_sep,
+            'multiple_select': multiple_select,
             'lang': lang,
             'hierarchy_in_labels': hierarchy_in_labels,
             'copy_fields': self.COPY_FIELDS,
