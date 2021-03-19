@@ -673,7 +673,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             raise exceptions.NotAuthenticated()
         else:
             accessible_assets = (
-                get_objects_for_user(user, "view_asset", Asset)
+                get_objects_for_user(user, 'view_asset', Asset)
                 .filter(asset_type=ASSET_TYPE_SURVEY)
                 .order_by("uid")
             )
@@ -760,10 +760,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response('<!doctype html>\n'
                         '<html><body><code><pre>' + md_table.strip())
 
-    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
-    def xls(self, request, *args, **kwargs):
-        return self.table_view(self, request, *args, **kwargs)
-
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
         asset = self.get_object()
@@ -777,6 +773,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if export.xml != '':
             response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
         return Response(response_data, template_name='highlighted_xform.html')
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def xls(self, request, *args, **kwargs):
+        return self.table_view(self, request, *args, **kwargs)
 
     def _get_clone_serializer(self, current_asset=None):
         """
@@ -878,223 +878,3 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 is_valid = False
 
         return is_valid
-
-    def create(self, request, *args, **kwargs):
-        if CLONE_ARG_NAME in request.data:
-            serializer = self._get_clone_serializer()
-        else:
-            serializer = self.get_serializer(data=request.data)
-
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED,
-                        headers=headers)
-
-    @action(detail=False, methods=["GET"],
-            renderer_classes=[renderers.JSONRenderer])
-    def hash(self, request):
-        """
-        Creates an hash of `version_id` of all accessible assets by the user.
-        Useful to detect changes between each request.
-
-        :param request:
-        :return: JSON
-        """
-        user = self.request.user
-        if user.is_anonymous:
-            raise exceptions.NotAuthenticated()
-        else:
-            accessible_assets = get_objects_for_user(
-                user, "view_asset", Asset).filter(asset_type=ASSET_TYPE_SURVEY) \
-                .order_by("uid")
-
-            assets_version_ids = [asset.version_id for asset in accessible_assets if asset.version_id is not None]
-            # Sort alphabetically
-            assets_version_ids.sort()
-
-            if len(assets_version_ids) > 0:
-                hash = get_hash("".join(assets_version_ids))
-            else:
-                hash = ""
-
-            return Response({
-                "hash": hash
-            })
-
-    @action(detail=True, renderer_classes=[renderers.JSONRenderer])
-    def content(self, request, uid):
-        asset = self.get_object()
-        return Response({
-            'kind': 'asset.content',
-            'uid': asset.uid,
-            'data': asset.to_ss_structure(),
-        })
-
-    @action(detail=True, renderer_classes=[renderers.JSONRenderer])
-    def valid_content(self, request, uid):
-        asset = self.get_object()
-        return Response({
-            'kind': 'asset.valid_content',
-            'uid': asset.uid,
-            'data': to_xlsform_structure(asset.content),
-        })
-
-    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
-    def koboform(self, request, *args, **kwargs):
-        asset = self.get_object()
-        return Response({'asset': asset, }, template_name='koboform.html')
-
-    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
-    def table_view(self, request, *args, **kwargs):
-        sa = self.get_object()
-        md_table = ss_structure_to_mdtable(sa.ordered_xlsform_content())
-        return Response('<!doctype html>\n'
-                        '<html><body><code><pre>' + md_table.strip())
-
-    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
-    def xls(self, request, *args, **kwargs):
-        return self.table_view(self, request, *args, **kwargs)
-
-    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
-    def xform(self, request, *args, **kwargs):
-        asset = self.get_object()
-        export = asset._snapshot(regenerate=True)
-        # TODO-- forward to AssetSnapshotViewset.xform
-        response_data = copy.copy(export.details)
-        options = {
-            'linenos': True,
-            'full': True,
-        }
-        if export.xml != '':
-            response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
-        return Response(response_data, template_name='highlighted_xform.html')
-
-    @action(detail=True, 
-            methods=['get', 'post', 'patch'],
-            permission_classes=[PostMappedToChangePermission])
-    def deployment(self, request, uid):
-        """
-        A GET request retrieves the existing deployment, if any.
-        A POST request creates a new deployment, but only if a deployment does
-            not exist already.
-        A PATCH request updates the `active` field of the existing deployment.
-        A PUT request overwrites the entire deployment, including the form
-            contents, but does not change the deployment's identifier
-        """
-        asset = self.get_object()
-        serializer_context = self.get_serializer_context()
-        serializer_context['asset'] = asset
-
-        # TODO: Require the client to provide a fully-qualified identifier,
-        # otherwise provide less kludgy solution
-        if 'identifier' not in request.data and 'id_string' in request.data:
-            id_string = request.data.pop('id_string')[0]
-            backend_name = request.data['backend']
-            try:
-                backend = DEPLOYMENT_BACKENDS[backend_name]
-            except KeyError:
-                raise KeyError(
-                    'cannot retrieve asset backend: "{}"'.format(backend_name))
-            request.data['identifier'] = backend.make_identifier(
-                request.user.username, id_string)
-
-        if request.method == 'GET':
-            if not asset.has_deployment:
-                raise Http404
-            else:
-                serializer = DeploymentSerializer(
-                    asset.deployment, context=serializer_context
-                )
-                # TODO: Understand why this 404s when `serializer.data` is not
-                # coerced to a dict
-                return Response(dict(serializer.data))
-        elif request.method == 'POST':
-            if not asset.can_be_deployed:
-                raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                    asset.asset_type))
-            else:
-                if asset.has_deployment:
-                    raise exceptions.MethodNotAllowed(
-                        method=request.method,
-                        detail='Use PATCH to update an existing deployment'
-                    )
-                serializer = DeploymentSerializer(
-                    data=request.data,
-                    context=serializer_context
-                )
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-                # TODO: Understand why this 404s when `serializer.data` is not
-                # coerced to a dict
-                return Response(dict(serializer.data))
-
-        elif request.method == 'PATCH':
-            if not asset.can_be_deployed:
-                raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                    asset.asset_type))
-            else:
-                if not asset.has_deployment:
-                    raise exceptions.MethodNotAllowed(
-                        method=request.method,
-                        detail='Use POST to create a new deployment'
-                    )
-                serializer = DeploymentSerializer(
-                    asset.deployment,
-                    data=request.data,
-                    context=serializer_context,
-                    partial=True
-                )
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-                # TODO: Understand why this 404s when `serializer.data` is not
-                # coerced to a dict
-                return Response(dict(serializer.data))
-
-    def perform_create(self, serializer):
-        # Check if the user is anonymous. The
-        # django.contrib.auth.models.AnonymousUser object doesn't work for
-        # queries.
-        user = self.request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
-        serializer.save(owner=user)
-
-    def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
-
-        if CLONE_ARG_NAME in request.data:
-            serializer = self._get_clone_serializer(instance)
-        else:
-            serializer = self.get_serializer(instance, data=request.data, partial=True)
-
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
-
-    def perform_destroy(self, instance):
-        if hasattr(instance, 'has_deployment') and instance.has_deployment:
-            instance.deployment.delete()
-        return super().perform_destroy(instance)
-
-    def finalize_response(self, request, response, *args, **kwargs):
-        """ Manipulate the headers as appropriate for the requested format.
-        See https://github.com/tomchristie/django-rest-framework/issues/1041#issuecomment-22709658.
-        """
-        # If the request fails at an early stage, e.g. the user has no
-        # model-level permissions, accepted_renderer won't be present.
-        if hasattr(request, 'accepted_renderer'):
-            # Check the class of the renderer instead of just looking at the
-            # format, because we don't want to set Content-Disposition:
-            # attachment on asset snapshot XML
-            if (isinstance(request.accepted_renderer, XlsRenderer) or
-                    isinstance(request.accepted_renderer, XFormRenderer)):
-                response[
-                    'Content-Disposition'
-                ] = 'attachment; filename={}.{}'.format(
-                    self.get_object().uid,
-                    request.accepted_renderer.format
-                )
-
-        return super().finalize_response(
-            request, response, *args, **kwargs)

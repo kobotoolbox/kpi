@@ -5,8 +5,11 @@ import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
+import {ASSET_FILE_TYPES} from '../../constants';
 
-/*
+/**
+ * @prop {object} asset
+ *
  * Modal for uploading form media
  */
 class FormMedia extends React.Component {
@@ -31,13 +34,10 @@ class FormMedia extends React.Component {
    */
 
   componentDidMount() {
-    actions.media.loadMedia.completed.listen(this.onGetMediaCompleted);
-    actions.media.uploadMedia.completed.listen(this.onUploadCompleted);
-    actions.media.uploadMedia.failed.listen(this.onUploadFailed);
-    actions.media.deleteMedia.completed.listen(this.onGetMediaCompleted);
-    actions.media.deleteMedia.failed.listen(this.onDeleteMediaFailed);
-
     actions.media.loadMedia(this.props.asset.uid);
+
+    actions.media.loadMedia.completed.listen(this.onGetMediaCompleted);
+    actions.media.uploadMedia.failed.listen(this.onUploadFailed);
   }
 
   /*
@@ -94,13 +94,13 @@ class FormMedia extends React.Component {
 
       files.forEach(async (file) => {
         var base64File = await this.toBase64(file);
-	    var formMediaJSON = {
+
+        this.uploadMedia({
 	      description: 'default',
-          file_type: 'form_media',
+          file_type: ASSET_FILE_TYPES.form_media.id,
           metadata: JSON.stringify({filename: file.name}),
 	      base64Encoded: base64File
-	    };
-        this.uploadMedia(formMediaJSON);
+	    });
       });
     }
   }
@@ -120,12 +120,11 @@ class FormMedia extends React.Component {
         inputURL: ''
       });
 
-      var formMediaJSON = {
+      this.uploadMedia({
         description: 'default',
-        file_type: 'form_media',
+        file_type: ASSET_FILE_TYPES.form_media.id,
         metadata: JSON.stringify({redirect_url: url}),
-      };
-      this.uploadMedia(formMediaJSON);
+      });
     }
   }
 
