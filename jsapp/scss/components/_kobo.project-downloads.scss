@@ -84,7 +84,11 @@
     }
   }
 
-  .project-downloads__advanced-toggle {
+  .project-downloads__text-button {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    background: none;
     display: inline-block;
     color: $kobo-blue;
     cursor: pointer;
@@ -134,6 +138,25 @@
 
       &:not(:last-child) {
         margin-bottom: 20px;
+      }
+
+      &.project-downloads__column-row--rows-selector-header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        .toggle-switch {
+          flex: 1;
+        }
+
+        .project-downloads__vr {
+          width: 1px;
+          height: 1em;
+          display: block;
+          vertical-align: middle;
+          margin: 0 10px;
+          background-color: $kobo-lightgray;
+        }
       }
     }
   }
@@ -200,8 +223,8 @@
     }
   }
 
-  .exports-creator {
-    &.exports-creator--loading {
+  .project-downloads__exports-creator {
+    &.project-downloads__exports-creator--loading {
       opacity: 0.5;
       pointer-events: none;
     }

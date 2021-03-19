@@ -272,7 +272,18 @@ export default class ProjectExportsCreator extends React.Component {
     this.setState({selectedRows: newSelectedRows});
   }
 
-  toggleAdvancedView() {
+  selectAllRows(evt) {
+    evt.preventDefault();
+    this.setState({selectedRows: new Set(this.getAllSelectableRows())});
+  }
+
+  clearSelectedRows(evt) {
+    evt.preventDefault();
+    this.setState({selectedRows: new Set()});
+  }
+
+  toggleAdvancedView(evt) {
+    evt.preventDefault();
     this.setState({isAdvancedViewVisible: !this.state.isAdvancedViewVisible});
   }
 
@@ -466,16 +477,16 @@ export default class ProjectExportsCreator extends React.Component {
     ];
 
     return (
-      <div className='project-downloads__advanced-view'>
-        <div className='project-downloads__column project-downloads__column--left'>
+      <bem.ProjectDownloads__advancedView>
+        <bem.ProjectDownloads__column m='left'>
           <label className='project-downloads__column-row'>
-            <span className='project-downloads__title'>
+            <bem.ProjectDownloads__title>
               {t('Export')}
               &nbsp;
               <em>{t('Select Many')}</em>
               &nbsp;
               {t('questions as…')}
-            </span>
+            </bem.ProjectDownloads__title>
 
             <Select
               value={this.state.selectedExportMultiple}
@@ -491,15 +502,15 @@ export default class ProjectExportsCreator extends React.Component {
             />
           </label>
 
-          <div className='project-downloads__column-row'>
+          <bem.ProjectDownloads__columnRow>
             <Checkbox
               checked={this.state.isIncludeAllVersionsEnabled}
               onChange={this.onAnyInputChange.bind(this, 'isIncludeAllVersionsEnabled')}
               label={includeAllVersionsLabel}
             />
-          </div>
+          </bem.ProjectDownloads__columnRow>
 
-          <div className='project-downloads__column-row'>
+          <bem.ProjectDownloads__columnRow>
             <Checkbox
               checked={this.state.isIncludeGroupsEnabled}
               onChange={this.onAnyInputChange.bind(this, 'isIncludeGroupsEnabled')}
@@ -517,19 +528,19 @@ export default class ProjectExportsCreator extends React.Component {
                 (!this.state.isIncludeGroupsEnabled ? 'group-separator-disabled' : undefined),
               ]}
             />
-          </div>
+          </bem.ProjectDownloads__columnRow>
 
           {this.state.selectedExportType.value === EXPORT_TYPES.geojson.value &&
-            <div className='project-downloads__column-row'>
+            <bem.ProjectDownloads__columnRow>
               <Checkbox
                 checked={this.state.isFlattenGeoJsonEnabled}
                 onChange={this.onAnyInputChange.bind(this, 'isFlattenGeoJsonEnabled')}
                 label={t('Flatten GeoJSON')}
               />
-            </div>
+            </bem.ProjectDownloads__columnRow>
           }
 
-          <div className='project-downloads__column-row'>
+          <bem.ProjectDownloads__columnRow>
             <Checkbox
               checked={this.state.isSaveCustomExportEnabled}
               onChange={this.onAnyInputChange.bind(
@@ -546,32 +557,44 @@ export default class ProjectExportsCreator extends React.Component {
               placeholder={t('Name your export settings')}
               customModifiers={['on-white', 'custom-export']}
             />
-          </div>
-        </div>
+          </bem.ProjectDownloads__columnRow>
+        </bem.ProjectDownloads__column>
 
-        <div className='project-downloads__column project-downloads__column--right'>
-          <ToggleSwitch
-            checked={this.state.isCustomSelectionEnabled}
-            onChange={this.onAnyInputChange.bind(
-              this,
-              'isCustomSelectionEnabled'
-            )}
-            label={t('Select which questions to be exported')}
-          />
+        <bem.ProjectDownloads__column m='right'>
+          <bem.ProjectDownloads__columnRow m='rows-selector-header'>
+            <ToggleSwitch
+              checked={this.state.isCustomSelectionEnabled}
+              onChange={this.onAnyInputChange.bind(
+                this,
+                'isCustomSelectionEnabled'
+              )}
+              label={t('Select which questions to be exported')}
+            />
+
+            <bem.ProjectDownloads__textButton onClick={this.selectAllRows}>
+              {t('Select all')}
+            </bem.ProjectDownloads__textButton>
+
+            <span className='project-downloads__vr'/>
+
+            <bem.ProjectDownloads__textButton onClick={this.clearSelectedRows}>
+              {t('Deselect all')}
+            </bem.ProjectDownloads__textButton>
+          </bem.ProjectDownloads__columnRow>
 
           {this.renderRowsSelector()}
-        </div>
+        </bem.ProjectDownloads__column>
 
         <hr />
-      </div>
+      </bem.ProjectDownloads__advancedView>
     );
   }
 
   getGroupSeparatorLabel() {
     return (
-      <span className='project-downloads__title'>
+      <bem.ProjectDownloads__title>
         {t('Group separator')}
-      </span>
+      </bem.ProjectDownloads__title>
     );
   }
 
@@ -590,9 +613,9 @@ export default class ProjectExportsCreator extends React.Component {
 
     return (
       <label>
-        <span className='project-downloads__title'>
+        <bem.ProjectDownloads__title>
           {t('Select export type')}
-        </span>
+        </bem.ProjectDownloads__title>
 
         <Select
           value={this.state.selectedExportType}
@@ -609,9 +632,9 @@ export default class ProjectExportsCreator extends React.Component {
   renderLegacy() {
     return (
       <React.Fragment>
-        <div className='project-downloads__selector-row'>
+        <bem.ProjectDownloads__selectorRow>
           {this.renderExportTypeSelector()}
-        </div>
+        </bem.ProjectDownloads__selectorRow>
 
         <bem.FormView__cell m='warning'>
           <i className='k-icon-alert' />
@@ -632,13 +655,13 @@ export default class ProjectExportsCreator extends React.Component {
 
     return (
       <React.Fragment>
-        <div className='project-downloads__selector-row'>
+        <bem.ProjectDownloads__selectorRow>
           {this.renderExportTypeSelector()}
 
           <label>
-            <span className='project-downloads__title'>
+            <bem.ProjectDownloads__title>
               {t('Value and header format')}
-            </span>
+            </bem.ProjectDownloads__title>
 
             <Select
               value={this.state.selectedExportFormat}
@@ -652,12 +675,9 @@ export default class ProjectExportsCreator extends React.Component {
               menuPlacement='auto'
             />
           </label>
-        </div>
+        </bem.ProjectDownloads__selectorRow>
 
-        <div
-          className='project-downloads__advanced-toggle'
-          onClick={this.toggleAdvancedView}
-        >
+        <bem.ProjectDownloads__textButton onClick={this.toggleAdvancedView}>
           {t('Advanced options')}
           {this.state.isAdvancedViewVisible && (
             <i className='k-icon k-icon-up' />
@@ -665,20 +685,20 @@ export default class ProjectExportsCreator extends React.Component {
           {!this.state.isAdvancedViewVisible && (
             <i className='k-icon k-icon-down' />
           )}
-        </div>
+        </bem.ProjectDownloads__textButton>
 
         <hr />
 
         {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
 
-        <div className='project-downloads__submit-row'>
-          <div className='project-downloads__defined-exports-selector'>
+        <bem.ProjectDownloads__submitRow>
+          <bem.ProjectDownloads__definedExportsSelector>
             {this.state.definedExports.length >= 1 &&
               <React.Fragment>
                 <label>
-                  <span className='project-downloads__title'>
+                  <bem.ProjectDownloads__title>
                     {t('Apply saved export settings')}
-                  </span>
+                  </bem.ProjectDownloads__title>
 
                   <Select
                     isLoading={this.state.isUpdatingDefinedExportsList}
@@ -694,19 +714,18 @@ export default class ProjectExportsCreator extends React.Component {
 
                 {this.state.selectedDefinedExport &&
                   mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
-                  <button
-                    className='project-downloads__delete-settings-button'
+                  <bem.ProjectDownloads__deleteSettingsButton
                     onClick={this.onDeleteExportSetting.bind(
                       this,
                       this.state.selectedDefinedExport.data.uid
                     )}
                   >
                     <i className='k-icon k-icon-trash'/>
-                  </button>
+                  </bem.ProjectDownloads__deleteSettingsButton>
                 }
               </React.Fragment>
             }
-          </div>
+          </bem.ProjectDownloads__definedExportsSelector>
 
           <bem.KoboButton
             m='blue'
@@ -715,15 +734,15 @@ export default class ProjectExportsCreator extends React.Component {
           >
             {t('Export')}
           </bem.KoboButton>
-        </div>
+        </bem.ProjectDownloads__submitRow>
       </React.Fragment>
     );
   }
 
   render() {
-    let formClassNames = ['exports-creator'];
+    let formClassNames = ['project-downloads__exports-creator'];
     if (!this.state.isComponentReady) {
-      formClassNames.push('exports-creator--loading');
+      formClassNames.push('project-downloads__exports-creator--loading');
     }
 
     return (
