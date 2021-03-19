@@ -285,11 +285,15 @@ Object.freeze(META_QUESTION_TYPES);
 // https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
 export const ADDITIONAL_SUBMISSION_PROPS = {};
 new Set([
+  // match the ordering of (Python) kpi.models.import_export_task.ExportTask.COPY_FIELDS
   '_id',
   '_uuid',
   '_submission_time',
-  '_submitted_by',
+  '_validation_status',
+  '_notes',
   '_status',
+  '_submitted_by',
+  '_tags',
 ]).forEach((codename) => {ADDITIONAL_SUBMISSION_PROPS[codename] = codename;});
 Object.freeze(ADDITIONAL_SUBMISSION_PROPS);
 
