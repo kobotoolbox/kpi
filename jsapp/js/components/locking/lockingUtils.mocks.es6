@@ -177,7 +177,7 @@ export const simpleTemplateLocked = {
         'required': false,
         '$autoname': 'Best_thing_in_the_world',
         'select_from_list_name': 'dp8iw04',
-        'kobo--lock': 'lock2',
+        'kobo--locking-profile': 'lock2',
       }, {
         'name': 'person',
         'type': 'begin_group',
@@ -186,7 +186,7 @@ export const simpleTemplateLocked = {
           'Person', 'Osoba',
         ],
         '$autoname': 'person',
-        'kobo--lock': 'lock2',
+        'kobo--locking-profile': 'lock2',
       }, {
         'type': 'text',
         '$kuid': 'xw6go48',
@@ -203,7 +203,7 @@ export const simpleTemplateLocked = {
         ],
         'required': false,
         '$autoname': 'Your_age',
-        'kobo--lock': 'mycustomlock1',
+        'kobo--locking-profile': 'mycustomlock1',
       }, {
         'type': 'end_group',
         '$kuid': '/xl7sb31',
@@ -236,7 +236,7 @@ export const simpleTemplateLocked = {
         '$autovalue': 'understanding',
       },
     ],
-    'kobo--locks': [
+    'kobo--locking-profiles': [
       {
         name: 'mycustomlock1',
         restrictions: [
@@ -261,7 +261,7 @@ export const simpleTemplateLocked = {
     ],
     'settings': {
       'default_language': 'English (en)',
-      'kobo--lock': 'mycustomlock1',
+      'kobo--locking-profile': 'mycustomlock1',
     },
     'translated': ['label'],
     'translations': ['English (en)', 'Polski (pl)'],

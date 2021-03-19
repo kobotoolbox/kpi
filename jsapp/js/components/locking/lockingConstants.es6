@@ -134,6 +134,6 @@ export const LOCK_ALL_RESTRICTION_NAMES = [
 
 export const LOCK_ALL_PROP_NAME = 'kobo--lock_all';
 
-export const LOCKING_PROFILE_PROP_NAME = 'kobo--lock';
+export const LOCKING_PROFILE_PROP_NAME = 'kobo--locking-profile';
 
-export const LOCKING_PROFILES_PROP_NAME = 'kobo--locks';
+export const LOCKING_PROFILES_PROP_NAME = 'kobo--locking-profiles';
