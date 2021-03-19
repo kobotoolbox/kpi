@@ -620,21 +620,25 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if user.is_anonymous:
             raise exceptions.NotAuthenticated()
         else:
-            accessible_assets = get_objects_for_user(
-                user, "view_asset", Asset).filter(asset_type=ASSET_TYPE_SURVEY) \
+            accessible_assets = (
+                get_objects_for_user(user, 'view_asset', Asset)
+                .filter(asset_type=ASSET_TYPE_SURVEY)
                 .order_by("uid")
+            )
 
-            assets_version_ids = [asset.version_id for asset in accessible_assets if asset.version_id is not None]
+            assets_version_ids = [asset.version_id
+                                  for asset in accessible_assets
+                                  if asset.version_id is not None]
             # Sort alphabetically
             assets_version_ids.sort()
 
             if len(assets_version_ids) > 0:
-                hash = md5(hashable_str("".join(assets_version_ids))).hexdigest()
+                hash_ = get_hash(''.join(assets_version_ids))
             else:
-                hash = ""
+                hash_ = ''
 
             return Response({
-                "hash": hash
+                'hash': hash_
             })
 
     @action(detail=False, methods=['GET'],
@@ -643,11 +647,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         metadata = self.get_metadata(queryset)
         return Response(metadata)
-
-    def perform_destroy(self, instance):
-        if hasattr(instance, 'has_deployment') and instance.has_deployment:
-            instance.deployment.delete()
-        return super().perform_destroy(instance)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -705,10 +704,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response('<!doctype html>\n'
                         '<html><body><code><pre>' + md_table.strip())
 
-    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
-    def xls(self, request, *args, **kwargs):
-        return self.table_view(self, request, *args, **kwargs)
-
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
         asset = self.get_object()
@@ -722,6 +717,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if export.xml != '':
             response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
         return Response(response_data, template_name='highlighted_xform.html')
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def xls(self, request, *args, **kwargs):
+        return self.table_view(self, request, *args, **kwargs)
 
     def _get_clone_serializer(self, current_asset=None):
         """
