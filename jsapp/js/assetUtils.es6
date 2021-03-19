@@ -296,17 +296,6 @@ export function getRowName(row) {
 }
 
 /**
- * @param {asset} asset
- * @param {string} rowName
- * @returns {object|undefined} row or undefined for not found
- */
-export function findRow(asset, rowName) {
-  return asset.content.survey.find((row) => {
-    return getRowName(row) === rowName;
-  });
-}
-
-/**
  * @param {string} rowName - could be either a survey row name or choices row name
  * @param {Array<object>} data - should be either a survey or choices of asset
  * @param {number} translationIndex
@@ -536,7 +525,6 @@ export default {
   getOrganizationDisplayString,
   getQuestionDisplayName,
   getRowName,
-  findRow,
   getSectorDisplayString,
   getSurveyFlatPaths,
   getTranslatedRowLabel,

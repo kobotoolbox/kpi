@@ -27,7 +27,11 @@ describe('hasRowRestriction', () => {
   it('should be false for all restriction for rows in un-locked template', () => {
     simpleTemplate.content.survey.forEach((row) => {
       ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
-        const test = hasRowRestriction(simpleTemplate, getRowName(row), restrictionName);
+        const test = hasRowRestriction(
+          simpleTemplate.content,
+          getRowName(row),
+          restrictionName
+        );
         expect(test).to.equal(false);
       });
     });
@@ -36,7 +40,11 @@ describe('hasRowRestriction', () => {
   it('should be true for all restrictions for rows in lock_all template', () => {
     simpleTemplateWithAll.content.survey.forEach((row) => {
       ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
-        const test = hasRowRestriction(simpleTemplateWithAll, getRowName(row), restrictionName);
+        const test = hasRowRestriction(
+          simpleTemplateWithAll.content,
+          getRowName(row),
+          restrictionName
+        );
         expect(test).to.equal(true);
       });
     });
@@ -45,7 +53,11 @@ describe('hasRowRestriction', () => {
   it('should be true for all restrictions for rows in lock_all template regardless of locking profile', () => {
     simpleTemplateLockedWithAll.content.survey.forEach((row) => {
       ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
-        const test = hasRowRestriction(simpleTemplateLockedWithAll, getRowName(row), restrictionName);
+        const test = hasRowRestriction(
+          simpleTemplateLockedWithAll.content,
+          getRowName(row),
+          restrictionName
+        );
         expect(test).to.equal(true);
       });
     });
@@ -79,7 +91,11 @@ describe('hasRowRestriction', () => {
     };
     Object.keys(expectedRestrictions).forEach((rowName) => {
       ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
-        const test = hasRowRestriction(simpleTemplateLocked, rowName, restrictionName);
+        const test = hasRowRestriction(
+          simpleTemplateLocked.content,
+          rowName,
+          restrictionName
+        );
         expect(test).to.equal(expectedRestrictions[rowName].includes(restrictionName));
       });
     });
@@ -89,21 +105,21 @@ describe('hasRowRestriction', () => {
 describe('hasAssetRestriction', () => {
   it('should say no restrictions for un-locked template', () => {
     FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
-      const test = hasAssetRestriction(simpleTemplate, restrictionName);
+      const test = hasAssetRestriction(simpleTemplate.content, restrictionName);
       expect(test).to.equal(false);
     });
   });
 
   it('should be true for all restrictions for lock_all template', () => {
     FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
-      const test = hasAssetRestriction(simpleTemplateWithAll, restrictionName);
+      const test = hasAssetRestriction(simpleTemplateWithAll.content, restrictionName);
       expect(test).to.equal(true);
     });
   });
 
   it('should be true for all restrictions for lock_all template regardless of locking profiles', () => {
     FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
-      const test = hasAssetRestriction(simpleTemplateLockedWithAll, restrictionName);
+      const test = hasAssetRestriction(simpleTemplateLockedWithAll.content, restrictionName);
       expect(test).to.equal(true);
     });
   });
@@ -120,7 +136,7 @@ describe('hasAssetRestriction', () => {
       'question_order_edit',
     ];
     FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
-      const test = hasAssetRestriction(simpleTemplateLocked, restrictionName);
+      const test = hasAssetRestriction(simpleTemplateLocked.content, restrictionName);
       expect(test).to.equal(expectedRestrictions.includes(restrictionName));
     });
   });
@@ -128,7 +144,7 @@ describe('hasAssetRestriction', () => {
 
 describe('getLockingProfile', () => {
   it('should find custom locking profile', () => {
-    const test = getLockingProfile(simpleTemplateLocked, 'mycustomlock1');
+    const test = getLockingProfile(simpleTemplateLocked.content, 'mycustomlock1');
     expect(test).to.deep.equal({
       name: 'mycustomlock1',
       restrictions: [
@@ -145,41 +161,41 @@ describe('getLockingProfile', () => {
   });
 
   it('should return null for not found', () => {
-    const test = getLockingProfile(simpleTemplateLocked, 'nothingness_approaching');
+    const test = getLockingProfile(simpleTemplateLocked.content, 'nothingness_approaching');
     expect(test).to.equal(null);
   });
 });
 
 describe('isAssetLocked', () => {
   it('should be false for un-locked template', () => {
-    const test = isAssetLocked(simpleTemplate);
+    const test = isAssetLocked(simpleTemplate.content);
     expect(test).to.equal(false);
   });
 
   it('should be true for template with some locking', () => {
-    const test = isAssetLocked(simpleTemplateLocked);
+    const test = isAssetLocked(simpleTemplateLocked.content);
     expect(test).to.equal(true);
   });
 
   it('should be true for template with lock_all', () => {
-    const test = isAssetLocked(simpleTemplateWithAll);
+    const test = isAssetLocked(simpleTemplateWithAll.content);
     expect(test).to.equal(true);
   });
 });
 
 describe('isAssetAllLocked', () => {
   it('should be false for un-locked template', () => {
-    const test = isAssetAllLocked(simpleTemplate);
+    const test = isAssetAllLocked(simpleTemplate.content);
     expect(test).to.equal(false);
   });
 
   it('should be false for template with some locking', () => {
-    const test = isAssetAllLocked(simpleTemplateLocked);
+    const test = isAssetAllLocked(simpleTemplateLocked.content);
     expect(test).to.equal(false);
   });
 
   it('should be true for template with lock_all', () => {
-    const test = isAssetAllLocked(simpleTemplateWithAll);
+    const test = isAssetAllLocked(simpleTemplateWithAll.content);
     expect(test).to.equal(true);
   });
 

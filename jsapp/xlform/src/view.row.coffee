@@ -12,6 +12,8 @@ $viewMandatorySetting = require './view.mandatorySetting'
 $acceptedFilesView = require './view.acceptedFiles'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
+hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
+LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 alertify = require 'alertifyjs'
 
 module.exports = do ->
@@ -39,6 +41,9 @@ module.exports = do ->
 
     # expandRowSelector: ->
     #   new $rowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), ngScope: @ngScope, spawnedFromView: @).expand()
+
+    hasRestriction: (restrictionName) ->
+      return hasRowRestriction(@ngScope.rawSurvey, @model.get('name'), restrictionName)
 
     render: (opts={})->
       fixScroll = opts.fixScroll
@@ -108,7 +113,15 @@ module.exports = do ->
         @$card.addClass('card--required')
 
       if @$indicator
-        @$indicator.prepend($.parseHTML('<span>locked</span>'))
+        @$indicator.prepend($.parseHTML('<small>padlock</small>'))
+
+      console.log(@ngScope)
+
+      if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
+        console.log('yay delete!')
+
+      if (@hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
+        console.log('yay label edit!')
 
       return @
 
@@ -148,6 +161,7 @@ module.exports = do ->
     className: "survey__row survey__row--group  xlf-row-view xlf-row-view--depr"
     initialize: (opts)->
       @options = opts
+      @ngScope = opts.ngScope
       @_shrunk = !!opts.shrunk
       @$el.attr("data-row-id", @model.cid)
       @surveyView = @options.surveyView
@@ -179,6 +193,9 @@ module.exports = do ->
         # only render the row details which are necessary for the initial view (ie 'label')
         view = new $viewRowDetail.DetailView(model: @model.get('label'), rowView: @)
         view.render().insertInDOM(@)
+
+      if (@hasRestriction(LOCKING_RESTRICTIONS.group_delete.name))
+        console.log('yay delete group!')
 
       @already_rendered = true
       @

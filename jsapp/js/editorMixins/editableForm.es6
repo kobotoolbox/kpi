@@ -1,3 +1,4 @@
+import clonedeep from 'lodash.clonedeep';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
@@ -425,22 +426,28 @@ export default assign({
    * It builds `dkobo_xlform.view.SurveyApp` using asset data and then appends
    * it to `.form-wrap` node.
    */
-  launchAppForSurveyContent(survey, _state = {}) {
+  launchAppForSurveyContent(assetContent, _state = {}) {
     if (_state.name) {
       _state.savedName = _state.name;
     }
 
+    // asset content is being mutated somewhere during form builder initialisation
+    // so we need to make sure this stays untouched
+    const rawAssetContent = Object.freeze(clonedeep(assetContent));
+
     let isEmptySurvey = (
-        survey &&
-        (survey.settings && Object.keys(survey.settings).length === 0) &&
-        survey.survey.length === 0
+        assetContent &&
+        (assetContent.settings && Object.keys(assetContent.settings).length === 0) &&
+        assetContent.survey.length === 0
       );
 
+    let survey = null;
+
     try {
-      if (!survey) {
+      if (!assetContent) {
         survey = dkobo_xlform.model.Survey.create();
       } else {
-        survey = dkobo_xlform.model.Survey.loadDict(survey);
+        survey = dkobo_xlform.model.Survey.loadDict(assetContent);
         if (isEmptySurvey) {
           survey.surveyDetails.importDefaults();
         }
@@ -454,7 +461,8 @@ export default assign({
       _state.surveyAppRendered = true;
 
       var skp = new SurveyScope({
-        survey: survey
+        survey: survey,
+        rawSurvey: rawAssetContent,
       });
       this.app = new dkobo_xlform.view.SurveyApp({
         survey: survey,
@@ -780,8 +788,8 @@ export default assign({
   renderAssetLabel() {
     let assetTypeLabel = getFormBuilderAssetType(this.state.asset_type, this.state.desiredAssetType)?.label;
 
-    const isLocked = isAssetLocked(this.state.asset);
-    const isAllLocked = isAssetAllLocked(this.state.asset);
+    const isLocked = isAssetLocked(this.state.asset.content);
+    const isAllLocked = isAssetAllLocked(this.state.asset.content);
 
     // Case 1: there is no asset yet (creting a new) or asset is not locked
     if (!this.state.asset || !isLocked) {
