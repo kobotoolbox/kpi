@@ -286,13 +286,14 @@ Object.freeze(META_QUESTION_TYPES);
 // 2. https://github.com/kobotoolbox/kpi/blob/7db39015866c905edc645677d72b9c1ea16067b1/jsapp/js/constants.es6#L284-L294
 export const ADDITIONAL_SUBMISSION_PROPS = {};
 new Set([
+  // match the ordering of (Python) kpi.models.import_export_task.ExportTask.COPY_FIELDS
   '_id',
   '_uuid',
   '_submission_time',
-  '_submitted_by',
-  '_status',
   '_validation_status',
   '_notes',
+  '_status',
+  '_submitted_by',
   '_tags',
 ]).forEach((codename) => {ADDITIONAL_SUBMISSION_PROPS[codename] = codename;});
 Object.freeze(ADDITIONAL_SUBMISSION_PROPS);
