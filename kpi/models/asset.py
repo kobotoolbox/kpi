@@ -1118,16 +1118,16 @@ class Asset(ObjectPermissionMixin,
             return latest_version.uid
 
     @property
-    def version_number_and_date(self):
-        # Returns the count of all deployed version + a version
-        # if the most recent version is undeployed and the date
-        # the asset was last modified
+    def version_number_and_date(self) -> str:
+        # Returns the count of all deployed versions (plus one for the current
+        # version if it is not deployed) and the date the asset was last
+        # modified
         count = self.deployed_versions.count()
 
         if not self.latest_version.deployed:
             count = count + 1
 
-        return f'{count} {self.date_modified:(%m-%d-%Y %H:%M:%S)}'
+        return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})

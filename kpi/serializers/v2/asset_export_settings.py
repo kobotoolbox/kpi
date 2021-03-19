@@ -13,8 +13,6 @@ from formpack.constants import (
     EXPORT_SETTING_TYPE,
     OPTIONAL_EXPORT_SETTINGS,
     REQUIRED_EXPORT_SETTINGS,
-    TRUE,
-    VALID_BOOLEANS,
     VALID_DEFAULT_LANGUAGES,
     VALID_EXPORT_SETTINGS,
     VALID_EXPORT_TYPES,
@@ -92,19 +90,8 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
                 )
             )
 
-        for setting in [
-            EXPORT_SETTING_FIELDS_FROM_ALL_VERSIONS,
-            EXPORT_SETTING_HIERARCHY_IN_LABELS,
-        ]:
-            if export_settings[setting].lower() not in VALID_BOOLEANS:
-                raise serializers.ValidationError(
-                    _("`{}` must be either {}").format(
-                        setting, format_exception_values(VALID_BOOLEANS)
-                    )
-                )
-
         if (
-            export_settings[EXPORT_SETTING_HIERARCHY_IN_LABELS].lower() == TRUE
+            export_settings[EXPORT_SETTING_HIERARCHY_IN_LABELS]
             and len(export_settings[EXPORT_SETTING_GROUP_SEP]) == 0
         ):
             raise serializers.ValidationError(
@@ -133,14 +120,6 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         # `flatten` is used for geoJSON exports only and is ignored otherwise
         if EXPORT_SETTING_FLATTEN not in export_settings:
             return export_settings
-
-        flatten = export_settings[EXPORT_SETTING_FLATTEN]
-        if flatten.lower() not in VALID_BOOLEANS:
-            raise serializers.ValidationError(
-                _("`flatten` must be either {}").format(
-                    setting, format_exception_values(VALID_BOOLEANS)
-                )
-            )
 
         return export_settings
 
