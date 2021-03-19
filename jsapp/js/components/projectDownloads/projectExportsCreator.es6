@@ -40,7 +40,7 @@ export default class ProjectExportsCreator extends React.Component {
       // selectedExportType is being handled by exportsStore to allow other
       // components to know it changed
       selectedExportType: exportsStore.getExportType(),
-      selectedExportFormat: DEFAULT_EXPORT_SETTINGS.EXPORT_FORMAT,
+      selectedExportFormat: this.getContextualDefaultExportFormat(),
       groupSeparator: DEFAULT_EXPORT_SETTINGS.GROUP_SEPARATOR,
       selectedExportMultiple: DEFAULT_EXPORT_SETTINGS.EXPORT_MULTIPLE,
       isIncludeGroupsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_GROUPS,
@@ -87,7 +87,7 @@ export default class ProjectExportsCreator extends React.Component {
   setDefaultExportSettings() {
     exportsStore.setExportType(DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE);
     this.setState({
-      selectedExportFormat: DEFAULT_EXPORT_SETTINGS.EXPORT_FORMAT,
+      selectedExportFormat: this.getContextualDefaultExportFormat(),
       groupSeparator: DEFAULT_EXPORT_SETTINGS.GROUP_SEPARATOR,
       selectedExportMultiple: DEFAULT_EXPORT_SETTINGS.EXPORT_MULTIPLE,
       isIncludeGroupsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_GROUPS,
@@ -149,18 +149,38 @@ export default class ProjectExportsCreator extends React.Component {
 
   getExportFormatOptions() {
     if (this.props.asset.summary?.languages.length >= 2) {
-      const options = [EXPORT_FORMATS._xml];
+      const options = [];
+      // all defined languages should go first
+      // and they replace `_default` option
       this.props.asset.summary.languages.forEach((language, index) => {
         options.push({
           value: language,
           label: language,
-          langIndex: index,
+          langIndex: index, // needed for later
         });
       });
+      options.push(EXPORT_FORMATS._xml);
       return options;
     } else {
-      return Object.values(EXPORT_FORMATS);
+      return [
+        // `_default` should be first
+        EXPORT_FORMATS._default,
+        EXPORT_FORMATS._xml,
+      ];
     }
+  }
+
+  /**
+   * @returns one of export format options, either the asset's default language
+   * or `_default` (or more precisely: the first option)
+   */
+  getContextualDefaultExportFormat() {
+    const exportFormatOptions = this.getExportFormatOptions();
+    const defaultAssetLanguage = this.props.asset.summary?.default_translation;
+    const defaultAssetLanguageOption = exportFormatOptions.find((option) => {
+      return defaultAssetLanguage === option.value;
+    });
+    return defaultAssetLanguageOption || exportFormatOptions[0];
   }
 
   getAllSelectableRows() {
@@ -291,16 +311,14 @@ export default class ProjectExportsCreator extends React.Component {
     // this silently sets exportsStore value to current one
     exportsStore.setExportType(EXPORT_TYPES[data.export_settings.type], false);
 
-    const exportFormatOtions = this.getExportFormatOptions();
-    let selectedExportFormat = exportFormatOtions.find((option) => {
+    const exportFormatOptions = this.getExportFormatOptions();
+    let selectedExportFormat = exportFormatOptions.find((option) => {
       return option.value === data.export_settings.lang;
     });
 
-    // If saved export lang option doesn't exist anymore, just select first one
-    // e.g. language was deleted, or _default was used and in current form
-    // version there are languages defined (so no _default available).
+    // If saved export lang option doesn't exist anymore select default one
     if (!selectedExportFormat) {
-      selectedExportFormat = DEFAULT_EXPORT_SETTINGS.EXPORT_FORMAT;
+      selectedExportFormat = this.getContextualDefaultExportFormat();
     }
 
     const newStateObj = {
@@ -651,7 +669,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   renderNonLegacy() {
-    const exportFormatOtions = this.getExportFormatOptions();
+    const exportFormatOptions = this.getExportFormatOptions();
 
     return (
       <React.Fragment>
@@ -665,7 +683,7 @@ export default class ProjectExportsCreator extends React.Component {
 
             <Select
               value={this.state.selectedExportFormat}
-              options={exportFormatOtions}
+              options={exportFormatOptions}
               onChange={this.onAnyInputChange.bind(
                 this,
                 'selectedExportFormat'
