@@ -80,31 +80,6 @@ $t-form-builder-aside-open: 200ms;
   }
 }
 
-// FORM BUILDER MESSAGE BOX
-
-.form-builder__message-box {
-  width: 100%;
-  margin: 0 auto 20px;
-  background-color: $kobo-darkgray;
-  color: $kobo-white;
-  padding: 10px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  i {
-    color: $kobo-white;
-    font-size: 32px;
-    margin-right: 5px;
-    vertical-align: -11px;
-    display: inline-block;
-  }
-
-  p {
-    margin: 0;
-  }
-}
-
 // FORM BUILDER HEADER
 
 .form-builder-header {

@@ -5,8 +5,9 @@ import {
 } from 'utils';
 
 class SurveyScope {
-  constructor ({survey}) {
+  constructor ({survey, rawSurvey}) {
     this.survey = survey;
+    this.rawSurvey = rawSurvey;
   }
   add_row_to_question_library (row, assetContent) {
     if (row.constructor.kls === 'Row') {

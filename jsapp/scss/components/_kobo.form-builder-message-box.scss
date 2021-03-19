@@ -1,0 +1,57 @@
+.form-builder-message-box {
+  width: 100%;
+  margin: 0 auto 20px;
+  background-color: $kobo-darkgray;
+  color: $kobo-white;
+  padding: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  i {
+    color: $kobo-white;
+    font-size: 32px;
+    margin-right: 5px;
+    vertical-align: -11px;
+    display: inline-block;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .form-builder-message-box__toggle {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $kobo-blue-pale;
+
+    &:active {
+      transform: translateY(1px);
+    }
+  }
+
+  .form-builder-message-box__details {
+    padding: 10px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+  }
+
+  .form-builder-message-box__list {
+    list-style: none;
+  }
+
+  .form-builder-message-box__list-title {
+    color: inherit;
+  }
+
+  .form-builder-message-box__list-item {
+    padding: 5px;
+  }
+}

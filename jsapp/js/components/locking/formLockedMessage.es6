@@ -25,7 +25,7 @@ class FormLockedMessage extends React.Component {
   }
 
   getMessageText() {
-    const isAllLocked = isAssetAllLocked(this.props.asset);
+    const isAllLocked = isAssetAllLocked(this.props.asset.content);
     if (this.props.asset.asset_type === ASSET_TYPES.template.id) {
       if (isAllLocked) {
         return 'fully locked tempalte msg';
@@ -40,20 +40,55 @@ class FormLockedMessage extends React.Component {
   }
 
   render() {
-    if (!isAssetLocked(this.props.asset)) {
+    if (!isAssetLocked(this.props.asset.content)) {
       return null;
     }
 
     return (
-      <bem.FormBuilder__messageBox>
+      <bem.FormBuilderMessageBox>
         {/* <span>lockpad icon</span> */}
-        <span>{this.getMessageText()}</span>
-        <span onClick={this.toggleMoreInfo}>{t('see more')}</span>
+        <p>{this.getMessageText()}</p>
+
+        {/* see more is not needed for fully locked template */}
+        <bem.FormBuilderMessageBox__toggle onClick={this.toggleMoreInfo}>
+          {t('see more')}
+        </bem.FormBuilderMessageBox__toggle>
 
         {this.state.isOpen &&
-          <div>a list of cans and can'ts</div>
+          <bem.FormBuilderMessageBox__details>
+            a list of cans and can'ts
+
+            <bem.FormBuilderMessageBox__list>
+              <bem.FormBuilderMessageBox__listTitle>
+                can's
+              </bem.FormBuilderMessageBox__listTitle>
+
+              <bem.FormBuilderMessageBox__listItem>
+                can 1
+              </bem.FormBuilderMessageBox__listItem>
+              <bem.FormBuilderMessageBox__listItem>
+                can 2
+              </bem.FormBuilderMessageBox__listItem>
+              <bem.FormBuilderMessageBox__listItem>
+                can 3
+              </bem.FormBuilderMessageBox__listItem>
+            </bem.FormBuilderMessageBox__list>
+
+            <bem.FormBuilderMessageBox__list>
+              <bem.FormBuilderMessageBox__listTitle>
+                cant's
+              </bem.FormBuilderMessageBox__listTitle>
+
+              <bem.FormBuilderMessageBox__listItem>
+                cant 1
+              </bem.FormBuilderMessageBox__listItem>
+              <bem.FormBuilderMessageBox__listItem>
+                cant 2
+              </bem.FormBuilderMessageBox__listItem>
+            </bem.FormBuilderMessageBox__list>
+          </bem.FormBuilderMessageBox__details>
         }
-      </bem.FormBuilder__messageBox>
+      </bem.FormBuilderMessageBox>
     );
   }
 }
