@@ -52,7 +52,7 @@ export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   CUSTOM_SELECTION: false,
   // Export format options are contextual - if asset has multiple languages,
   // then there is no `_default` option, but the list of languages. Only `_xml`
-  // option is always here, so we make it a default.
+  // option is always here, so we treat it as a fallback default.
   EXPORT_FORMAT: EXPORT_FORMATS._xml,
   EXPORT_MULTIPLE: EXPORT_MULTIPLE_OPTIONS.both,
   // xls is the most popular choice and we respect that
