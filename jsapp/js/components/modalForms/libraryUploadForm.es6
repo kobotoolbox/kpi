@@ -82,7 +82,7 @@ class LibraryUploadForm extends React.Component {
     }
 
     return (
-      <bem.FormModal__form className='project-settings project-settings--upload-file'>
+      <bem.FormModal__form className='project-settings'>
         <bem.Modal__subheader>
           {t('Import an XLSForm from your computer.')}
         </bem.Modal__subheader>
