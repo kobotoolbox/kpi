@@ -20,7 +20,7 @@ class FormMedia extends React.Component {
       fieldsErrors: {},
       inputURL: '',
       // to show loading icon instead of nothing on first load
-      isVirgin: true,
+      isInitialised: false,
       // to show loading icon while uploading any file
       isUploadFilePending: false,
       isUploadURLPending: false
@@ -49,7 +49,7 @@ class FormMedia extends React.Component {
       uploadedAssets: uploadedAssets.results,
       isUploadFilePending: false,
       isUploadURLPending: false,
-      isVirgin: false,
+      isInitialised: true,
     });
   }
 
@@ -240,7 +240,7 @@ class FormMedia extends React.Component {
         <div className='form-media__file-list'>
           <label className='form-media__list-label'>{t('File(s) uploaded to this project')}</label>
             <ul>
-              {(this.state.isVirgin || this.state.isUploadFilePending || this.state.isUploadURLPending) &&
+              {(!this.state.isInitialised || this.state.isUploadFilePending || this.state.isUploadURLPending) &&
                 <li className='form-media__default-item form-media__list-item'>
                   {this.renderLoading(t('loading media'))}
                 </li>
@@ -259,7 +259,7 @@ class FormMedia extends React.Component {
                     );
                   })
               }
-              {!this.state.isVirgin &&
+              {this.state.isInitialised &&
                 (this.uploadedAssetsIsEmpty() ||
                   this.state.uploadedAssets.length == 0) &&
                   <li className='form-media__default-item form-media__list-item'>
