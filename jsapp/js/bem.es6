@@ -344,4 +344,17 @@ bem.PrintOnly = BEM('print-only');
 bem.GitRev = BEM('git-rev');
 bem.GitRev__item = bem.GitRev.__('item', '<div>');
 
+bem.ProjectDownloads = BEM('project-downloads');
+bem.ProjectDownloads__advancedView = bem.ProjectDownloads.__('advanced-view', 'section');
+bem.ProjectDownloads__column = bem.ProjectDownloads.__('column');
+bem.ProjectDownloads__columnRow = bem.ProjectDownloads.__('column-row');
+bem.ProjectDownloads__title = bem.ProjectDownloads.__('title', 'span');
+bem.ProjectDownloads__textButton = bem.ProjectDownloads.__('text-button', 'button');
+bem.ProjectDownloads__selectorRow = bem.ProjectDownloads.__('selector-row');
+bem.ProjectDownloads__legacyIframeWrapper = bem.ProjectDownloads.__('legacy-iframe-wrapper');
+bem.ProjectDownloads__submitRow = bem.ProjectDownloads.__('submit-row', 'footer');
+bem.ProjectDownloads__definedExportsSelector = bem.ProjectDownloads.__('defined-exports-selector');
+bem.ProjectDownloads__deleteSettingsButton = bem.ProjectDownloads.__('delete-settings-button', 'button');
+bem.ProjectDownloads__exportsCreator = bem.ProjectDownloads.__('exports-creator');
+
 bem.create = BEM;
