@@ -219,14 +219,14 @@ export var dataInterface;
     /*
      * form media
      */
-    postFormMedia (uid, data) {
+    postFormMedia(uid, data) {
       return $ajax({
         method: 'POST',
         url: `${ROOT_URL}/api/v2/assets/${uid}/files/`,
         data: data,
       });
     },
-    getFormMedia (uid) {
+    getFormMedia(uid) {
       return $ajax({
         method: 'GET',
         url: `${ROOT_URL}/api/v2/assets/${uid}/files.json?file_type=form_media`,
