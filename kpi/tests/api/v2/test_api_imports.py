@@ -75,6 +75,198 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
+    def _prepare_survey_content(self, survey):
+        _survey = []
+        for item in survey:
+            _survey.append(
+                {k: v for k, v in item.items() if not k.startswith('$')}
+            )
+        return _survey
+
+    def _construct_xls_for_import(self, content, name):
+        # Construct a binary XLS file that we'll import later
+        workbook_to_import = xlwt.Workbook()
+        for sheet_name, sheet_content in content:
+            worksheet = workbook_to_import.add_sheet(sheet_name)
+            for row_num, row_list in enumerate(sheet_content):
+                for col_num, cell_value in enumerate(row_list):
+                    if cell_value and cell_value is not None:
+                        worksheet.write(row_num, col_num, cell_value)
+        xls_import_io = BytesIO()
+        workbook_to_import.save(xls_import_io)
+        xls_import_io.seek(0)
+
+        # Import the XLS
+        encoded_xls = base64.b64encode(xls_import_io.read())
+        return {
+            'base64Encoded': f'base64:{to_str(encoded_xls)}',
+            'name': name,
+        }
+
+    def test_import_locking_xls(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo--locking-profile'],
+            ['today', 'today', '', '', '', ''],
+            ['select_one gender', 'gender', "Respondent's gender?", 'yes', '', 'flex'],
+            ['integer', 'age', "Respondent's age?", 'yes', '', ''],
+            ['select_one yesno', 'confirm', 'Is your age really ${age}?', 'yes', "${age}!=''", 'delete'],
+            ['begin group', 'group_1', 'A message from our sponsors', '', '', 'core'],
+            ['note', 'note_1', 'Hi there 👋', '', '', ''],
+            ['end group', '', '', '', '', '']
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+            ['gender', 'female', 'Female'],
+            ['gender', 'male', 'Male'],
+            ['gender', 'other', 'Other'],
+            ['yesno', 'yes', 'Yes'],
+            ['yesno', 'no', 'No'],
+        ]
+        kobo_locks_sheet_content = [
+            ['restriction', 'core', 'flex', 'delete'],
+            ['choice_add', 'true', 'true', ''],
+            ['choice_delete', '', '', 'true'],
+            ['choice_edit', '', '', ''],
+            ['choice_order_edit', 'true', '', ''],
+            ['question_delete', 'true', 'true', 'true'],
+            ['question_label_edit', 'true', 'true', ''],
+            ['question_settings_edit', 'true', 'true', ''],
+            ['question_skip_logic_edit', 'true', 'true', ''],
+            ['question_validation_edit', 'true', 'true', ''],
+            ['group_delete', 'true', '', 'true'],
+            ['group_label_edit', '', '', ''],
+            ['group_question_add', 'true', 'true', ''],
+            ['group_question_delete', 'true', 'true', 'true'],
+            ['group_question_order_edit', 'true', 'true', ''],
+            ['group_settings_edit', 'true', 'true', ''],
+            ['group_skip_logic_edit', 'true', 'true', ''],
+            ['form_replace', 'true', '', ''],
+            ['group_add', 'true', '', ''],
+            ['question_add', 'true', '', ''],
+            ['question_order_edit', 'true', '', ''],
+            ['translations_manage', 'true', '', ''],
+            ['form_appearance', 'true', '', ''],
+        ]
+
+        expected_content_survey = [
+            {'name': 'today', 'type': 'today'},
+            {
+                'name': 'gender',
+                'type': 'select_one',
+                'label': ["Respondent's gender?"],
+                'required': True,
+                'kobo--locking-profile': 'flex',
+                'select_from_list_name': 'gender',
+            },
+            {
+                'name': 'age',
+                'type': 'integer',
+                'label': ["Respondent's age?"],
+                'required': True,
+            },
+            {
+                'name': 'confirm',
+                'type': 'select_one',
+                'label': ['Is your age really ${age}?'],
+                'relevant': "${age}!=''",
+                'required': True,
+                'kobo--locking-profile': 'delete',
+                'select_from_list_name': 'yesno',
+            },
+            {
+                'name': 'group_1',
+                'type': 'begin_group',
+                'label': ['A message from our sponsors'],
+                'kobo--locking-profile': 'core',
+            },
+            {'name': 'note_1', 'type': 'note', 'label': ['Hi there 👋']},
+            {'type': 'end_group'},
+        ]
+        expected_content_kobo_locks = [
+            {
+                'name': 'core',
+                'restrictions': [
+                    'choice_add',
+                    'choice_order_edit',
+                    'question_delete',
+                    'question_label_edit',
+                    'question_settings_edit',
+                    'question_skip_logic_edit',
+                    'question_validation_edit',
+                    'group_delete',
+                    'group_question_add',
+                    'group_question_delete',
+                    'group_question_order_edit',
+                    'group_settings_edit',
+                    'group_skip_logic_edit',
+                    'form_replace',
+                    'group_add',
+                    'question_add',
+                    'question_order_edit',
+                    'translations_manage',
+                    'form_appearance',
+                ],
+            },
+            {
+                'name': 'delete',
+                'restrictions': [
+                    'choice_delete',
+                    'question_delete',
+                    'group_delete',
+                    'group_question_delete',
+                ],
+            },
+            {
+                'name': 'flex',
+                'restrictions': [
+                    'choice_add',
+                    'question_delete',
+                    'question_label_edit',
+                    'question_settings_edit',
+                    'question_skip_logic_edit',
+                    'question_validation_edit',
+                    'group_question_add',
+                    'group_question_delete',
+                    'group_question_order_edit',
+                    'group_settings_edit',
+                    'group_skip_logic_edit',
+                ],
+            },
+        ]
+
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+            ('kobo--locking-profiles', kobo_locks_sheet_content),
+        )
+        task_data = self._construct_xls_for_import(
+            content, name='survey with library locking'
+        )
+        post_url = reverse('importtask-list')
+        response = self.client.post(post_url, task_data)
+        assert response.status_code == status.HTTP_201_CREATED
+        detail_response = self.client.get(response.data['url'])
+
+        # Find the new collection created by the import
+        created_details = detail_response.data['messages']['created'][0]
+        assert created_details['kind'] == 'asset'
+        created_survey= Asset.objects.get(uid=created_details['uid'])
+
+        # Ensure the kobo--locks are showing up correctly
+        assert created_survey.name == task_data['name']
+        assert expected_content_survey == self._prepare_survey_content(
+            created_survey.content['survey']
+        )
+        for profiles in expected_content_kobo_locks:
+            name = profiles['name']
+            expected_restrictions = profiles['restrictions']
+            actual_restrictions = [
+                val['restrictions']
+                for val in created_survey.content['kobo--locking-profiles']
+                if val['name'] == name
+            ][0]
+            assert expected_restrictions == actual_restrictions
+
     def test_import_library_bulk_xls(self):
         library_sheet_content = [
             ['block', 'name', 'type', 'label', 'tag:subject:fungus', 'tag:subject:useless'],
@@ -94,27 +286,13 @@ class AssetImportTaskTest(BaseTestCase):
             ['seasons', 'winter', 'Winter'],
         ]
 
-        # Construct a binary XLS file that we'll import later
-        workbook_to_import = xlwt.Workbook()
-        for sheet_name, sheet_content in (
+        content = (
             ('library', library_sheet_content),
             ('choices', choices_sheet_content),
-        ):
-            worksheet = workbook_to_import.add_sheet(sheet_name)
-            for row_num, row_list in enumerate(sheet_content):
-                for col_num, cell_value in enumerate(row_list):
-                    if cell_value is not None:
-                        worksheet.write(row_num, col_num, cell_value)
-        xls_import_io = BytesIO()
-        workbook_to_import.save(xls_import_io)
-        xls_import_io.seek(0)
-
-        # Import the XLS
-        encoded_xls = base64.b64encode(xls_import_io.read())
-        task_data = {
-            'base64Encoded': f'base64:{to_str(encoded_xls)}',
-            'name': 'Collection created from bulk library import',
-        }
+        )
+        task_data = self._construct_xls_for_import(
+            content, name='Collection created from bulk library import'
+        )
         post_url = reverse('api_v2:importtask-list')
         response = self.client.post(post_url, task_data)
         assert response.status_code == status.HTTP_201_CREATED
