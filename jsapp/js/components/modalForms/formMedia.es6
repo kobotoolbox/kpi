@@ -6,6 +6,7 @@ import TextBox from 'js/components/common/textBox';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
 import {ASSET_FILE_TYPES} from '../../constants';
+import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 /**
  * @prop {object} asset
@@ -179,17 +180,6 @@ class FormMedia extends React.Component {
     );
   }
 
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
   render() {
     return (
       <bem.FormModal__form className='project-settings project-settings--upload-file media-settings--upload-file' onSubmit={this.onSubmitURL}>
@@ -214,7 +204,7 @@ class FormMedia extends React.Component {
           }
           {this.state.isUploadFilePending &&
             <div className='dropzone'>
-              {this.renderLoading(t('Uploading file…'))}
+              {renderLoading(t('Uploading file…'))}
             </div>
           }
           <div className='form-media__upload-url'>
@@ -235,7 +225,7 @@ class FormMedia extends React.Component {
             <ul>
               {(!this.state.isInitialised || this.state.isUploadFilePending || this.state.isUploadURLPending) &&
                 <li className='form-media__default-item form-media__list-item'>
-                  {this.renderLoading(t('loading media'))}
+                  {renderLoading(t('loading media'))}
                 </li>
               }
               {this.state.uploadedAssets.map((item, n) => {
