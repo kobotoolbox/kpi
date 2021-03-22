@@ -53,28 +53,6 @@ class AssetImportTaskTest(BaseTestCase):
         self.assertEqual(created_asset.name, task_data['name'])
         self._assert_assets_contents_equal(created_asset, source)
 
-    @responses.activate
-    def test_import_asset_from_xls_url(self):
-        # Host the XLS on a mock HTTP server
-        mock_xls_url = 'http://mock.kbtdev.org/form.xls'
-        responses.add(responses.GET, mock_xls_url,
-                      content_type='application/xls',
-                      body=self.asset.to_xls_io().read())
-        task_data = {
-            'url': mock_xls_url,
-            'name': 'I was imported via URL!',
-        }
-        self._post_import_task_and_compare_created_asset_to_source(task_data,
-                                                                   self.asset)
-    def test_import_asset_base64_xls(self):
-        encoded_xls = base64.b64encode(self.asset.to_xls_io().read())
-        task_data = {
-            'base64Encoded': 'base64:{}'.format(to_str(encoded_xls)),
-            'name': 'I was imported via base64-encoded XLS!',
-        }
-        self._post_import_task_and_compare_created_asset_to_source(task_data,
-                                                                   self.asset)
-
     def _prepare_survey_content(self, survey):
         _survey = []
         for item in survey:
@@ -103,6 +81,28 @@ class AssetImportTaskTest(BaseTestCase):
             'name': name,
         }
 
+    @responses.activate
+    def test_import_asset_from_xls_url(self):
+        # Host the XLS on a mock HTTP server
+        mock_xls_url = 'http://mock.kbtdev.org/form.xls'
+        responses.add(responses.GET, mock_xls_url,
+                      content_type='application/xls',
+                      body=self.asset.to_xls_io().read())
+        task_data = {
+            'url': mock_xls_url,
+            'name': 'I was imported via URL!',
+        }
+        self._post_import_task_and_compare_created_asset_to_source(task_data,
+                                                                   self.asset)
+    def test_import_asset_base64_xls(self):
+        encoded_xls = base64.b64encode(self.asset.to_xls_io().read())
+        task_data = {
+            'base64Encoded': 'base64:{}'.format(to_str(encoded_xls)),
+            'name': 'I was imported via base64-encoded XLS!',
+        }
+        self._post_import_task_and_compare_created_asset_to_source(task_data,
+                                                                   self.asset)
+
     def test_import_locking_xls(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo--locking-profile'],
@@ -121,6 +121,10 @@ class AssetImportTaskTest(BaseTestCase):
             ['gender', 'other', 'Other'],
             ['yesno', 'yes', 'Yes'],
             ['yesno', 'no', 'No'],
+        ]
+        settings_sheet_content = [
+            ['kobo--locking-profile', 'kobo--locks_all'],
+            ['form', 'false'],
         ]
         kobo_locks_sheet_content = [
             ['restriction', 'core', 'flex', 'delete'],
@@ -182,6 +186,10 @@ class AssetImportTaskTest(BaseTestCase):
             {'name': 'note_1', 'type': 'note', 'label': ['Hi there 👋']},
             {'type': 'end_group'},
         ]
+        expected_content_settings = {
+            'kobo--locking-profile': 'form',
+            'kobo--locks_all': 'false',
+        }
         expected_content_kobo_locks = [
             {
                 'name': 'core',
@@ -237,6 +245,7 @@ class AssetImportTaskTest(BaseTestCase):
         content = (
             ('survey', survey_sheet_content),
             ('choices', choices_sheet_content),
+            #('settings', settings_sheet_content),
             ('kobo--locking-profiles', kobo_locks_sheet_content),
         )
         task_data = self._construct_xls_for_import(
@@ -257,6 +266,7 @@ class AssetImportTaskTest(BaseTestCase):
         assert expected_content_survey == self._prepare_survey_content(
             created_survey.content['survey']
         )
+        #assert expected_content_settings == created_survey.content['settings']
         for profiles in expected_content_kobo_locks:
             name = profiles['name']
             expected_restrictions = profiles['restrictions']
