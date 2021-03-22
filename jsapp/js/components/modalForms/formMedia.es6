@@ -182,7 +182,7 @@ class FormMedia extends React.Component {
 
   render() {
     return (
-      <bem.FormModal__form className='project-settings project-settings--upload-file media-settings--upload-file' onSubmit={this.onSubmitURL}>
+      <bem.FormModal__form className='project-settings media-settings--upload-file' onSubmit={this.onSubmitURL}>
 	    <div className='form-media__upload'>
           {!this.state.isUploadFilePending &&
             <Dropzone
