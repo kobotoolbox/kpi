@@ -62,6 +62,154 @@ class TestCloning(KpiTestCase):
         self.another_user = User.objects.get(username='anotheruser')
         self.another_user_password = 'anotheruser'
 
+        self.kobo_locking_content = {
+            'schema': '1',
+            'survey': [
+                {
+                    'name': 'today',
+                    'type': 'today',
+                    '$kuid': 'qIKwmekNC',
+                    '$autoname': 'today',
+                },
+                {
+                    'name': 'gender',
+                    'type': 'select_one',
+                    '$kuid': 'hL7zxMVp6',
+                    'label': ["Respondent's gender?"],
+                    'required': True,
+                    '$autoname': 'gender',
+                    'kobo--lock': 'flex',
+                    'select_from_list_name': 'gender',
+                },
+                {
+                    'name': 'age',
+                    'type': 'integer',
+                    '$kuid': 'WKYJFvLDU',
+                    'label': ["Respondent's age?"],
+                    'required': True,
+                    '$autoname': 'age',
+                },
+                {
+                    'name': 'confirm',
+                    'type': 'select_one',
+                    '$kuid': 'DEj4Bwlf9',
+                    'label': ['Is your age really ${age}?'],
+                    'relevant': "${age}!=''",
+                    'required': True,
+                    '$autoname': 'confirm',
+                    'kobo--lock': 'delete',
+                    'select_from_list_name': 'yesno',
+                },
+                {
+                    'name': 'group_1',
+                    'type': 'begin_group',
+                    '$kuid': '2xoHm2SHp',
+                    'label': ['A message from our sponsors'],
+                    '$autoname': 'group_1',
+                    'kobo--lock': 'core',
+                },
+                {
+                    'name': 'note_1',
+                    'type': 'note',
+                    '$kuid': '46slXdjjI',
+                    'label': ['Hi there 👋'],
+                    '$autoname': 'note_1',
+                },
+                {'type': 'end_group', '$kuid': 'yn9UY3Y1a'},
+            ],
+            'choices': [
+                {
+                    'name': 'female',
+                    '$kuid': '4uZUP95b3',
+                    'label': ['Female'],
+                    'list_name': 'gender',
+                    '$autovalue': 'female',
+                },
+                {
+                    'name': 'male',
+                    '$kuid': 'bWA4zmUB3',
+                    'label': ['Male'],
+                    'list_name': 'gender',
+                    '$autovalue': 'male',
+                },
+                {
+                    'name': 'other',
+                    '$kuid': 'SHfBvgrwS',
+                    'label': ['Other'],
+                    'list_name': 'gender',
+                    '$autovalue': 'other',
+                },
+                {
+                    'name': 'yes',
+                    '$kuid': '4dQp18JrR',
+                    'label': ['Yes'],
+                    'list_name': 'yesno',
+                    '$autovalue': 'yes',
+                },
+                {
+                    'name': 'no',
+                    '$kuid': 'VMJyR8F6k',
+                    'label': ['No'],
+                    'list_name': 'yesno',
+                    '$autovalue': 'no',
+                },
+            ],
+            'settings': {'kobo--lock': 'form', 'kobo--lock_all': 'false'},
+            'translated': ['label'],
+            'kobo--locks': [
+                {
+                    'name': 'core',
+                    'restrictions': [
+                        'choice_add',
+                        'choice_order_edit',
+                        'question_delete',
+                        'question_label_edit',
+                        'question_settings_edit',
+                        'question_skip_logic_edit',
+                        'question_validation_edit',
+                        'group_delete',
+                        'group_question_add',
+                        'group_question_delete',
+                        'group_question_order_edit',
+                        'group_settings_edit',
+                        'group_skip_logic_edit',
+                        'form_replace',
+                        'group_add',
+                        'question_add',
+                        'question_order_edit',
+                        'translations_manage',
+                        'form_appearance',
+                    ],
+                },
+                {
+                    'name': 'flex',
+                    'restrictions': [
+                        'choice_add',
+                        'question_delete',
+                        'question_label_edit',
+                        'question_settings_edit',
+                        'question_skip_logic_edit',
+                        'question_validation_edit',
+                        'group_question_add',
+                        'group_question_delete',
+                        'group_question_order_edit',
+                        'group_settings_edit',
+                        'group_skip_logic_edit',
+                    ],
+                },
+                {
+                    'name': 'delete',
+                    'restrictions': [
+                        'choice_delete',
+                        'question_delete',
+                        'group_delete',
+                        'group_question_delete',
+                    ],
+                },
+            ],
+            'translations': ['English (en)'],
+        }
+
     def _clone_asset(self, original_asset, partial_update=False, **kwargs):
 
         kwargs.update({'clone_from': original_asset.uid})
@@ -148,6 +296,19 @@ class TestCloning(KpiTestCase):
         self.assertEqual(template_asset.asset_type, ASSET_TYPE_TEMPLATE)
         self.assertEqual(template_asset.settings, settings)
 
+    def test_clone_kobo_locked_survey_to_template(self):
+        self.login(self.someuser.username, self.someuser_password)
+        original_asset = self.create_asset(
+            'kobo locked asset to template',
+            content=json.dumps(self.kobo_locking_content),
+        )
+        template_asset = self._clone_asset(
+            original_asset, asset_type=ASSET_TYPE_TEMPLATE
+        )
+        assert template_asset.asset_type == ASSET_TYPE_TEMPLATE
+        # Ensure that all the content has stayed intact
+        assert template_asset.content == original_asset.content
+
     def test_clone_template_to_survey(self):
         self.login(self.someuser.username, self.someuser_password)
         settings = {
@@ -172,6 +333,20 @@ class TestCloning(KpiTestCase):
         settings.pop("share-metadata", None)
         self.assertEqual(survey_asset.asset_type, ASSET_TYPE_SURVEY)
         self.assertEqual(survey_asset.settings, settings)
+
+    def test_clone_kobo_locked_template_to_survey(self):
+        self.login(self.someuser.username, self.someuser_password)
+        original_asset = self.create_asset(
+            'kobo locked template to asset',
+            content=json.dumps(self.kobo_locking_content),
+            asset_type=ASSET_TYPE_TEMPLATE,
+        )
+        survey_asset = self._clone_asset(
+            original_asset, asset_type=ASSET_TYPE_SURVEY
+        )
+        assert survey_asset.asset_type == ASSET_TYPE_SURVEY
+        # Ensure that all the content has stayed intact
+        assert survey_asset.content == original_asset.content
 
     def test_clone_survey_to_library(self):
         self.login(self.someuser.username, self.someuser_password)
