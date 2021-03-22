@@ -203,7 +203,7 @@ class FormMedia extends React.Component {
                 </bem.FormView__cell>
               }
               <i className='k-icon-upload' />
-              {t(' Drag and drop files here')}
+              {t('Drag and drop files here')}
               <div className='form-media__desc'>
                 {t('or')} <a>{t('click here to browse')}</a>
               </div>
