@@ -150,7 +150,7 @@ class FormMedia extends React.Component {
   }
 
   renderFileName(item){
-    // Check if current item is uploaded vis URL. `redirect_url` is the indicator
+    // Check if current item is uploaded via URL. `redirect_url` is the indicator
     var fileName = item.metadata.filename;
     if (item.metadata.redirect_url) {
       // Shorten URL to exactly 50 chars
@@ -167,7 +167,7 @@ class FormMedia extends React.Component {
 
   renderIcon(item) {
     const iconClassNames = ['form-media__file-type', 'fa'];
-    // Check if current item is uploaded vis URL. `redirect_url` is the indicator
+    // Check if current item is uploaded via URL. `redirect_url` is the indicator
     if (item.metadata.redirect_url) {
       iconClassNames.push('fa-link');
     } else {
