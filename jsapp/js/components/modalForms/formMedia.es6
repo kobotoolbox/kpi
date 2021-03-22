@@ -143,7 +143,10 @@ class FormMedia extends React.Component {
       buttonClassNames.push('formBuilder-header__button--savepending');
     }
     return (
-      <button className={buttonClassNames.join(' ')}>
+      <button
+        className={buttonClassNames.join(' ')}
+        onClick={this.onSubmitURL}
+      >
         <i />
         {t('ADD')}
       </button>
@@ -182,12 +185,12 @@ class FormMedia extends React.Component {
 
   render() {
     return (
-      <bem.FormModal__form className='project-settings media-settings--upload-file' onSubmit={this.onSubmitURL}>
+      <bem.FormView m='form-media' className='form-media'>
 	    <div className='form-media__upload'>
           {!this.state.isUploadFilePending &&
             <Dropzone
                 onDrop={this.onFileDrop.bind(this)}
-                className='dropzone'
+                className='dropzone-settings'
             >
               {this.state.fieldsErrors.base64Encoded &&
                 <bem.FormView__cell m='error'>
@@ -202,53 +205,67 @@ class FormMedia extends React.Component {
               </div>
             </Dropzone>
           }
+
           {this.state.isUploadFilePending &&
-            <div className='dropzone'>
+            <div className='dropzone-settings'>
               {renderLoading(t('Uploading file…'))}
             </div>
           }
+
           <div className='form-media__upload-url'>
-            <label className='form-media__label'>{t('You can also add files using a URL')}</label>
-            <TextBox
-              type='url'
-              placeholder={t('Paste URL here')}
-              errors={this.state.fieldsErrors.metadata}
-              value={this.state.inputURL}
-              onChange={this.onInputURLChange}
-            />
-            {this.renderButton()}
+            <label className='form-media__upload-url--label'>
+              {t('You can also add files using a URL')}
+            </label>
+            <div className='form-media__upload-url--form'>
+              <TextBox
+                type='url'
+                placeholder={t('Paste URL here')}
+                errors={this.state.fieldsErrors.metadata}
+                value={this.state.inputURL}
+                onChange={this.onInputURLChange}
+              />
+              {this.renderButton()}
+            </div>
           </div>
         </div>
 
-        <div className='form-media__file-list'>
-          <label className='form-media__list-label'>{t('File(s) uploaded to this project')}</label>
-            <ul>
-              {(!this.state.isInitialised || this.state.isUploadFilePending || this.state.isUploadURLPending) &&
-                <li className='form-media__default-item form-media__list-item'>
+        <div className='form-media__list'>
+          <label className='form-media__list--label'>
+            {t('File(s) uploaded to this project')}
+          </label>
+
+          <ul>
+            {
+              (!this.state.isInitialised ||
+                this.state.isUploadFilePending ||
+                this.state.isUploadURLPending) &&
+                <li className='form-media__list--default-item form-media__list--item'>
                   {renderLoading(t('loading media'))}
                 </li>
-              }
-              {this.state.uploadedAssets.map((item, n) => {
-                  return (
-                    <li key={n} className="form-media__list-item">
-                      {this.renderIcon(item)}
-                      {this.renderFileName(item)}
-                      <i
-                        className="k-icon-trash"
-                        onClick={() => this.onDeleteMedia(item.url)}
-                      />
-                    </li>
-                  );
-              })}
-              {this.state.isInitialised &&
-                this.state.uploadedAssets.length == 0 &&
-                  <li className='form-media__default-item form-media__list-item'>
-                      {t('No files uploaded yet')}
+            }
+
+            {this.state.uploadedAssets.map((item, n) => {
+                return (
+                  <li key={n} className="form-media__list--item">
+                    {this.renderIcon(item)}
+                    {this.renderFileName(item)}
+                    <i
+                      className="k-icon-trash"
+                      onClick={() => this.onDeleteMedia(item.url)}
+                    />
                   </li>
-              }
-            </ul>
+                );
+            })}
+
+            {this.state.isInitialised &&
+              this.state.uploadedAssets.length == 0 &&
+                <li className='form-media__default--item form-media__list--item'>
+                    {t('No files uploaded yet')}
+                </li>
+            }
+          </ul>
         </div>
-      </bem.FormModal__form>
+      </bem.FormView>
     );
   }
 }

@@ -1,0 +1,107 @@
+.form-media {
+  padding: 40px;
+  background-color: $kobo-white;
+
+  .form-media__label {
+    font-weight: 400;
+    font-size: 18px;
+    text-align: center;
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 5px;
+    color: $cool-gray;
+  }
+
+  .form-media__upload-url {
+    font-size: 18px;
+    width: 90%;
+    margin: auto;
+    margin-top: 12px;
+    display: block;
+    text-align: center;
+
+    .form-media__upload-url--label {
+      margin: 12px 0 12px 0;
+    }
+
+    .form-media__upload-url--form {
+
+      label.text-box {
+        padding-top: 7px;
+        min-width: 70%;
+        display: inline-table;
+      }
+
+      button {
+        margin-left: 24px;
+        min-width: 20%;
+      }
+    }
+  }
+
+  .form-media__list {
+    .form-media__list--label {
+      margin-top: 32px;
+      color: black;
+      font-weight: 500;
+      font-size: 22px;
+      display: block;
+      margin-bottom: 11px;
+      border-bottom: 1px solid lighten($cool-gray, 25%);
+      padding-bottom: 16px;
+    }
+
+    .form-media__list--default-item {
+      padding-left: 10px;
+    }
+
+    .form-media__list--item {
+      font-size: 16px;
+      position: relative;
+      padding-bottom: 12px;
+      border-bottom: 1px solid lighten($cool-gray, 25%);
+      margin-bottom: 12px;
+
+      i.k-icon-trash {
+        right: 10px;
+        position: absolute;
+        top:-5px;
+        color: $cool-light-red;
+        font-size: 36px;
+        float: right;
+        cursor: pointer;
+      }
+
+      i.form-media__file-type {
+        position: absolute;
+        left: -5px;
+        top: 4px;
+        color: grey;
+        font-size: 18px;
+      }
+
+      a {
+        font-weight: 400;
+        padding: 5px;
+        margin-left: 25px;
+        font-size: 18;
+        display: inline-block;
+        min-width: 10px;
+        vertical-align: top;
+        height: auto;
+        position: relative;
+        min-height: 18px;
+        max-width: 70%;
+        overflow-x: hidden;
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .media-settings--upload-file {
+    width: auto;
+  }
+}
+
