@@ -6,6 +6,8 @@ import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 
+const FORM_MEDIA_FILE_TYPE = 'form_media';
+
 const formMediaActions = Reflux.createActions({
   loadMedia: {children: ['completed', 'failed']},
   uploadMedia: {children: ['completed', 'failed']},
@@ -27,7 +29,7 @@ formMediaActions.uploadMedia.failed.listen(() => {
 });
 
 formMediaActions.loadMedia.listen((uid) => {
-  dataInterface.getFormMedia(uid)
+  dataInterface.getAssetFiles(uid, FORM_MEDIA_FILE_TYPE)
     .done(formMediaActions.loadMedia.completed)
     .fail(formMediaActions.loadMedia.failed);
 });
