@@ -157,11 +157,15 @@ class FormMedia extends React.Component {
     // Check if current item is uploaded via URL. `redirect_url` is the indicator
     var fileName = item.metadata.filename;
     if (item.metadata.redirect_url) {
-      // Shorten URL to exactly 50 chars
       var url = item.metadata.redirect_url;
-      var urlBack = url.slice(url.length - 22);
-      var urlFront = url.replace('https://', '').replace('http://', '').substr(0, 25);
-      fileName = urlFront + '...' + urlBack;
+      if (url.length > 50) {
+        // Shorten URL to exactly 50 chars
+        var urlBack = url.slice(url.length - 24);
+        var urlFront = url.replace('https://', '').replace('http://', '').substr(0, 25);
+        fileName = urlFront + '…' + urlBack;
+      } else {
+        fileName = url;
+      }
     }
 
     return (
