@@ -16,7 +16,7 @@ class FormMedia extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      uploadedAssets: null,
+      uploadedAssets: [],
       fieldsErrors: {},
       inputURL: '',
       // to show loading icon instead of nothing on first load
@@ -132,13 +132,6 @@ class FormMedia extends React.Component {
     actions.media.deleteMedia(this.props.asset.uid, url);
   }
 
-  uploadedAssetsIsEmpty() {
-    return (
-      this.state.uploadedAssets === null ||
-      this.state.uploadedAssets === undefined
-    );
-  }
-
   /*
    * rendering
    */
@@ -245,23 +238,20 @@ class FormMedia extends React.Component {
                   {this.renderLoading(t('loading media'))}
                 </li>
               }
-              {!this.uploadedAssetsIsEmpty() &&
-                  this.state.uploadedAssets.map((item, n) => {
-                    return (
-                      <li key={n} className="form-media__list-item">
-                        {this.renderIcon(item)}
-                        {this.renderFileName(item)}
-                        <i
-                          className="k-icon-trash"
-                          onClick={() => this.onDeleteMedia(item.url)}
-                        />
-                      </li>
-                    );
-                  })
-              }
+              {this.state.uploadedAssets.map((item, n) => {
+                  return (
+                    <li key={n} className="form-media__list-item">
+                      {this.renderIcon(item)}
+                      {this.renderFileName(item)}
+                      <i
+                        className="k-icon-trash"
+                        onClick={() => this.onDeleteMedia(item.url)}
+                      />
+                    </li>
+                  );
+              })}
               {this.state.isInitialised &&
-                (this.uploadedAssetsIsEmpty() ||
-                  this.state.uploadedAssets.length == 0) &&
+                this.state.uploadedAssets.length == 0 &&
                   <li className='form-media__default-item form-media__list-item'>
                       {t('No files uploaded yet')}
                   </li>
