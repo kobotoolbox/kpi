@@ -3,17 +3,17 @@ import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
+import {ASSET_FILE_TYPES} from '../../constants';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
-import {truncateString} from '../../utils';
 
 import {
-  ASSET_FILE_TYPES,
-  TRUNCATION_TYPES,
-} from '../../constants';
+  truncateString,
+  truncateUrl,
+} from '../../utils';
 
-const MAX_URL_LENGTH = 50;
+const MAX_ITEM_LENGTH = 50;
 
 /**
  * @prop {object} asset
@@ -164,10 +164,9 @@ class FormMedia extends React.Component {
     // Check if current item is uploaded via URL. `redirect_url` is the indicator
     var fileName = item.metadata.filename;
     if (item.metadata.redirect_url) {
-      var url = item.metadata.redirect_url;
-      fileName = truncateString(url, MAX_URL_LENGTH, TRUNCATION_TYPES.URL);
+      fileName = truncateUrl(item.metadata.redirect_url, MAX_ITEM_LENGTH);
     } else {
-      fileName = truncateString(fileName, MAX_URL_LENGTH);
+      fileName = truncateString(fileName, MAX_ITEM_LENGTH);
     }
 
     return (

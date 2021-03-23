@@ -587,28 +587,15 @@ export function launchPrinting() {
 }
 
 /**
- * Trunactes strings to specified length, removes additional text based on
- * specified type
+ * Trunactes strings to specified length
  *
  * @param {string} str
  * @param {number} length - resultant length
- * @param {('url'|'file'|'')} type - supported types
  * @returns {string} truncatedString
  */
 export function truncateString(str, length, type='') {
   let truncatedString = str;
   const HALFWAY = Math.trunc(length / 2);
-
-  // Filter down string based on type
-  if (type === 'url') {
-    truncatedString = truncatedString
-      .replace('https://', '')
-      .replace('http://', '');
-  } else if (type === 'file') {
-    // Remove file extension with simple regex that truncates everything past
-    // the last occurance of `.` inclusively
-    truncatedString = truncatedString.replace(/\.[^/.]+$/, '');
-  }
 
   if (length < truncatedString.length) {
     let truncatedStringFront = truncatedString.substring(0, HALFWAY);
@@ -619,4 +606,32 @@ export function truncateString(str, length, type='') {
   }
 
   return truncatedString;
+}
+
+/**
+ * Removes protocol then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateUrl(str, length) {
+  let truncatedString = str.replace('https://', '').replace('http://', '');
+
+  return truncateString(truncatedString, length);
+}
+
+/**
+ * Removes file extension then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateFile(str, length) {
+  // Remove file extension with simple regex that truncates everything past
+  // the last occurance of `.` inclusively
+  let truncatedString = str.replace(/\.[^/.]+$/, '');
+
+  return truncateString(truncatedString, length);
 }
