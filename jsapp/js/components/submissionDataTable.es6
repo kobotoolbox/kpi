@@ -267,7 +267,7 @@ class SubmissionDataTable extends React.Component {
     const attachment = this.findAttachmentData(filename);
 
     if (attachment) {
-      if (type === QUESTION_TYPES.get('image').id) {
+      if (type === QUESTION_TYPES.image.id) {
         return (
           <a href={attachment.download_url} target='_blank'>
             <img src={attachment.download_small_url}/>
