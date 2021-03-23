@@ -585,3 +585,38 @@ export function toTitleCase(str) {
 export function launchPrinting() {
   window.print();
 }
+
+/**
+ * Trunactes strings to specified length, removes additional text based on
+ * specified type
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @param {('url'|'file'|'')} type - supported types
+ * @returns {string} truncatedString
+ */
+export function truncateString(str, length, type='') {
+  let truncatedString = str;
+  const HALFWAY = Math.trunc(length / 2);
+
+  // Filter down string based on type
+  if (type === 'url') {
+    truncatedString = truncatedString
+      .replace('https://', '')
+      .replace('http://', '');
+  } else if (type === 'file') {
+    // Remove file extension with simple regex that truncates everything past
+    // the last occurance of `.` inclusively
+    truncatedString = truncatedString.replace(/\.[^/.]+$/, '');
+  }
+
+  if (length < truncatedString.length) {
+    let truncatedStringFront = truncatedString.substring(0, HALFWAY);
+    let truncatedStringBack = truncatedString.slice(
+      truncatedString.length - HALFWAY
+    );
+    truncatedString = truncatedStringFront + '…' + truncatedStringBack;
+  }
+
+  return truncatedString;
+}

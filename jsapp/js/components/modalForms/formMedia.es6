@@ -5,8 +5,15 @@ import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
-import {ASSET_FILE_TYPES} from '../../constants';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
+import {truncateString} from '../../utils';
+
+import {
+  ASSET_FILE_TYPES,
+  TRUNCATION_TYPES,
+} from '../../constants';
+
+const MAX_URL_LENGTH = 50;
 
 /**
  * @prop {object} asset
@@ -158,14 +165,9 @@ class FormMedia extends React.Component {
     var fileName = item.metadata.filename;
     if (item.metadata.redirect_url) {
       var url = item.metadata.redirect_url;
-      if (url.length > 50) {
-        // Shorten URL to exactly 50 chars
-        var urlBack = url.slice(url.length - 24);
-        var urlFront = url.replace('https://', '').replace('http://', '').substr(0, 25);
-        fileName = urlFront + '…' + urlBack;
-      } else {
-        fileName = url;
-      }
+      fileName = truncateString(url, MAX_URL_LENGTH, TRUNCATION_TYPES.URL);
+    } else {
+      fileName = truncateString(fileName, MAX_URL_LENGTH);
     }
 
     return (
