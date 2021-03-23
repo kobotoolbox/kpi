@@ -2,9 +2,9 @@
  * Form Media related actions
  */
 
+import alertify from 'alertifyjs';
 import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
-import {notify} from 'utils';
 
 const FORM_MEDIA_FILE_TYPE = 'form_media';
 
@@ -45,7 +45,7 @@ formMediaActions.deleteMedia.listen((uid, url) => {
     .fail(formMediaActions.deleteMedia.failed);
 });
 formMediaActions.deleteMedia.completed.listen((uid) => {
-  notify(t('Successfully deleted media'));
+  alertify.success(t('Successfully deleted media'));
   formMediaActions.loadMedia(uid);
 });
 formMediaActions.deleteMedia.failed.listen(() => {
