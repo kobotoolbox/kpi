@@ -6,6 +6,8 @@ import {
   nullifyTranslations,
   unnullifyTranslations,
   truncateString,
+  truncateUrl,
+  truncateFile,
 } from 'utils';
 
 describe('utils', () => {
@@ -60,7 +62,7 @@ describe('utils', () => {
     });
   });
 
-  describe("truncateString", () => {
+  describe("truncateString, truncateUrl, truncateFile", () => {
     it("should not truncate strings shorter than specified length", () => {
       const testString = "veryShortString";
       const testLength = 1000;
@@ -70,18 +72,16 @@ describe('utils', () => {
     it("should not apply extension truncation to when there is no extension", () => {
       const testString = "veryShortString";
       const testLength = 1000;
-      const testType = "file";
       chai
-        .expect(truncateString(testString, testLength, testType))
+        .expect(truncateFile(testString, testLength))
         .to.equal(testString);
     });
 
     it("should not apply protocol truncation to when there is no protocol", () => {
       const testString = "veryShortString";
       const testLength = 1000;
-      const testType = "url";
       chai
-        .expect(truncateString(testString, testLength, testType))
+        .expect(truncateUrl(testString, testLength))
         .to.equal(testString);
     });
 
@@ -96,27 +96,24 @@ describe('utils', () => {
     it("should remove extensions if specified", () => {
       const testString = "veryShortString.xml";
       const testLength = 10;
-      const testType = "file";
       chai
-        .expect(truncateString(testString, testLength, testType))
+        .expect(truncateFile(testString, testLength))
         .to.equal("veryS…tring");
     });
 
     it("should remove protocols if specified", () => {
       const testString = "http://veryShortString.com";
       const testLength = 10;
-      const testType = "url";
       chai
-        .expect(truncateString(testString, testLength, testType))
+        .expect(truncateUrl(testString, testLength))
         .to.equal("veryS…g.com");
     });
 
     it("should impose its type specific truncation regardless of content", () => {
       const testString = "http://veryShortString.com";
       const testLength = 10;
-      const testType = "file";
       chai
-        .expect(truncateString(testString, testLength, testType))
+        .expect(truncateFile(testString, testLength))
         .to.equal("http:…tring");
     });
   });
