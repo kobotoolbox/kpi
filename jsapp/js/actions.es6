@@ -18,6 +18,7 @@ import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
 import formMediaActions from './actions/media';
+import exportsActions from './actions/exportsActions';
 import {
   notify,
   replaceSupportEmail,
@@ -32,6 +33,7 @@ export const actions = {
   library: libraryActions,
   submissions: submissionsActions,
   media: formMediaActions,
+  exports: exportsActions,
 };
 
 actions.navigation = Reflux.createActions([

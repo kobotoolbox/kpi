@@ -29,16 +29,25 @@ export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
 }
 
+/**
+ * @returns {string} something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
+ */
 export function formatTime(timeStr) {
   var _m = moment(timeStr);
   return _m.calendar(null, {sameElse: 'LL'});
 }
 
+/**
+ * @returns {string} something like "March 15, 2021 4:06 PM"
+ */
 export function formatTimeDate(timeStr) {
   var _m = moment(timeStr);
   return _m.format('LLL');
 }
 
+/**
+ * @returns {string} something like "Mar 15, 2021"
+ */
 export function formatDate(timeStr) {
   var _m = moment(timeStr);
   return _m.format('ll');
