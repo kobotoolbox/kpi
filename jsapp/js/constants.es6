@@ -409,6 +409,11 @@ export const ROUTES = Object.freeze({
   FORM_RESET: '/forms/:uid/reset',
 });
 
+export const TRUNCATION_TYPES = Object.freeze({
+  URL: 'url',
+  FILE: 'file',
+});
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -437,6 +442,7 @@ const constants = {
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
+  TRUNCATION_TYPES,
 };
 
 export default constants;
