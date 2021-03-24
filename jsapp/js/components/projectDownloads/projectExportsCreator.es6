@@ -148,26 +148,33 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   getExportFormatOptions() {
-    if (this.props.asset.summary?.languages.length >= 2) {
-      const options = [];
-      // all defined languages should go first
-      // and they replace `_default` option
+    const options = [];
+
+    // Step 1: add all defined languages as options (both named and unnamed)
+    if (this.props.asset.summary?.languages.length >= 1) {
       this.props.asset.summary.languages.forEach((language, index) => {
-        options.push({
-          value: language,
-          label: language,
-          langIndex: index, // needed for later
-        });
+        // unnamed language gives the `_default` option
+        if (language === null) {
+          options.push(EXPORT_FORMATS._default);
+        } else {
+          options.push({
+            value: language,
+            label: language,
+            langIndex: index, // needed for later
+          });
+        }
       });
-      options.push(EXPORT_FORMATS._xml);
-      return options;
-    } else {
-      return [
-        // `_default` should be first
-        EXPORT_FORMATS._default,
-        EXPORT_FORMATS._xml,
-      ];
     }
+
+    // Step 2: if for some reason nothing was added yet, add `_default`
+    if (options.length === 0) {
+      options.push(EXPORT_FORMATS._default);
+    }
+
+    // Step 3: `_xml` is always available and always last
+    options.push(EXPORT_FORMATS._xml);
+
+    return options;
   }
 
   /**
