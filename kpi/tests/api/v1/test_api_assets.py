@@ -291,7 +291,7 @@ class AssetExportTaskTest(BaseTestCase):
         result_content = result_response.getvalue().decode('utf-8')
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
         expected_content = ''.join([
-            '"q1";"_id";"_notes";"_status";"_submission_time";"_submitted_by";"_tags";"_uuid";"_validation_status";"_index"\r\n',
+            '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"_tags";"_index"\r\n',
             '"¿Qué tal?";"";"";"";"";"";"";"";"";"1"\r\n',
         ])
 

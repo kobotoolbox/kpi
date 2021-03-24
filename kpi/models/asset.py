@@ -421,7 +421,7 @@ class XlsExportable:
                  'calculation': '\'{}\''.format(self.version_id),
                  'type': 'calculate'}
             )
-            append_settings.update({'version': self.version_id})
+            append_settings.update({'version': self.version_number_and_date})
             kwargs['append']['settings'] = append_settings
         try:
             def _add_contents_to_sheet(sheet, contents):
@@ -1100,6 +1100,18 @@ class Asset(ObjectPermissionMixin,
         latest_version = self.latest_version
         if latest_version:
             return latest_version.uid
+
+    @property
+    def version_number_and_date(self) -> str:
+        # Returns the count of all deployed versions (plus one for the current
+        # version if it is not deployed) and the date the asset was last
+        # modified
+        count = self.deployed_versions.count()
+
+        if not self.latest_version.deployed:
+            count = count + 1
+
+        return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
