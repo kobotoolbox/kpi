@@ -586,7 +586,7 @@ export default class ProjectExportsCreator extends React.Component {
                 this,
                 'isCustomSelectionEnabled'
               )}
-              label={t('Select which questions to be exported')}
+              label={t('Select questions to be exported')}
             />
 
             <bem.ProjectDownloads__textButton
