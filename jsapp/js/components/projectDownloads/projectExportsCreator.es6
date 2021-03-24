@@ -589,13 +589,19 @@ export default class ProjectExportsCreator extends React.Component {
               label={t('Select which questions to be exported')}
             />
 
-            <bem.ProjectDownloads__textButton onClick={this.selectAllRows}>
+            <bem.ProjectDownloads__textButton
+              disabled={!this.state.isCustomSelectionEnabled}
+              onClick={this.selectAllRows}
+            >
               {t('Select all')}
             </bem.ProjectDownloads__textButton>
 
             <span className='project-downloads__vr'/>
 
-            <bem.ProjectDownloads__textButton onClick={this.clearSelectedRows}>
+            <bem.ProjectDownloads__textButton
+              disabled={!this.state.isCustomSelectionEnabled}
+              onClick={this.clearSelectedRows}
+            >
               {t('Deselect all')}
             </bem.ProjectDownloads__textButton>
           </bem.ProjectDownloads__columnRow>
