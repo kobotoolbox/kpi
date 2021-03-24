@@ -755,6 +755,7 @@ export default class ProjectExportsCreator extends React.Component {
             m='blue'
             type='submit'
             onClick={this.onSubmit}
+            disabled={this.state.selectedRows.size === 0}
           >
             {t('Export')}
           </bem.KoboButton>
