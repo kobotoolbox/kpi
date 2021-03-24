@@ -321,6 +321,13 @@ export default class ProjectExportsCreator extends React.Component {
       selectedExportFormat = this.getContextualDefaultExportFormat();
     }
 
+    // Select custom export toggle if not all rows are selected
+    // but only if at least one is selected
+    const customSelectionEnabled = (
+      data.export_settings.fields.length !== 0 &&
+      this.state.selectableRowsCount !== data.export_settings.fields.length
+    );
+
     const newStateObj = {
       selectedExportType: EXPORT_TYPES[data.export_settings.type],
       selectedExportFormat: selectedExportFormat,
@@ -331,8 +338,7 @@ export default class ProjectExportsCreator extends React.Component {
       // check whether a custom name was given
       isSaveCustomExportEnabled: typeof data.name === 'string' && data.name.length >= 1,
       customExportName: data.name,
-      // Select custom export toggle if not all rows are selected
-      isCustomSelectionEnabled: this.state.selectableRowsCount !== data.export_settings.fields.length,
+      isCustomSelectionEnabled: customSelectionEnabled,
       isFlattenGeoJsonEnabled: data.export_settings.flatten,
       selectedRows: new Set(data.export_settings.fields),
     };
