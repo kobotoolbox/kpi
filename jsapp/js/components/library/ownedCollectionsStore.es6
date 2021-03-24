@@ -7,7 +7,7 @@ import {isOnLibraryRoute} from './libraryUtils';
 import {ASSET_TYPES} from 'js/constants';
 
 const ownedCollectionsStore = Reflux.createStore({
-  isVirgin: true,
+  isInitialised: false,
 
   data: {
     isFetchingData: false,
@@ -33,7 +33,7 @@ const ownedCollectionsStore = Reflux.createStore({
 
   startupStore() {
     if (
-      this.isVirgin &&
+      !this.isInitialised &&
       isOnLibraryRoute() &&
       stores.session.currentAccount !== undefined &&
       !this.data.isFetchingData
@@ -47,7 +47,7 @@ const ownedCollectionsStore = Reflux.createStore({
   onGetCollectionsCompleted(response) {
     this.data.collections = response.results;
     this.data.isFetchingData = false;
-    this.isVirgin = false;
+    this.isInitialised = true;
     this.trigger(this.data);
   },
 
