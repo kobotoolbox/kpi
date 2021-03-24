@@ -24,12 +24,10 @@ from rest_framework import exceptions
 from werkzeug.http import parse_options_header
 
 import formpack.constants
+from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import ValidationStatusCopyField
 from formpack.utils.string import ellipsize
-from formpack.utils.kobo_locking import (
-    get_kobo_locking_profiles,
-    KOBO_LOCK_SHEET,
-)
+from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
