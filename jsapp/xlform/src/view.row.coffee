@@ -77,7 +77,6 @@ module.exports = do ->
       @$hint = @$('.card__header-hint')
       @$card = @$('.card')
       @$header = @$('.card__header')
-      @$indicator = @$('.card__indicator')
       context = {warnings: []}
 
       questionType = @model.get('type').get('typeId')
@@ -112,18 +111,26 @@ module.exports = do ->
       if @model.getValue('required')
         @$card.addClass('card--required')
 
+      @applyLocking()
+
+      return @
+
+    # To be run at the end of rendering
+    applyLocking: () ->
+      console.log('applyLocking', @model.get('name'), @ngScope)
+
+      @$indicator = @$('.card__indicator')
+      @$deleteButton = @$('.js-delete-row')
+
       if @$indicator
         @$indicator.prepend($.parseHTML('<small>padlock</small>'))
-
-      console.log(@ngScope)
 
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
         console.log('yay delete!')
 
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
         console.log('yay label edit!')
-
-      return @
+      return
 
     toggleSettings: (show)->
       if show is undefined

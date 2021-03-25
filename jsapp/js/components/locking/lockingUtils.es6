@@ -1,7 +1,5 @@
 import {getRowName} from 'js/assetUtils.es6';
 import {
-  FORM_RESTRICTION_NAMES,
-  ROW_RESTRICTION_NAMES,
   LOCK_ALL_RESTRICTION_NAMES,
   LOCK_ALL_PROP_NAME,
   LOCKING_PROFILE_PROP_NAME,
@@ -16,13 +14,6 @@ import {
  */
 export function hasRowRestriction(assetContent, rowName, restrictionName) {
   // case 1
-  // only check restrictions that apply to rows
-  if (!ROW_RESTRICTION_NAMES.includes(restrictionName)) {
-    console.warn(`row ${rowName} can't have restriction ${restrictionName}`);
-    return false;
-  }
-
-  // case 2
   // if lock_all is enabled, then all rows have all restrictions from lock all list
   if (
     assetContent.settings &&
@@ -31,7 +22,8 @@ export function hasRowRestriction(assetContent, rowName, restrictionName) {
     return LOCK_ALL_RESTRICTION_NAMES.includes(restrictionName);
   }
 
-  // case 3
+  // case 2
+  // check if row's locking profile definition has the searched restriction
   const foundRow = assetContent.survey.find((row) => {
     return getRowName(row) === rowName;
   });
@@ -57,13 +49,6 @@ export function hasRowRestriction(assetContent, rowName, restrictionName) {
  */
 export function hasAssetRestriction(assetContent, restrictionName) {
   // case 1
-  // only check restrictions that apply to forms
-  if (!FORM_RESTRICTION_NAMES.includes(restrictionName)) {
-    console.warn(`asset can't have restriction ${restrictionName}`);
-    return false;
-  }
-
-  // case 2
   // if lock_all is enabled, then form has all restrictions from lock all list
   if (
     assetContent.settings &&
@@ -72,7 +57,8 @@ export function hasAssetRestriction(assetContent, restrictionName) {
     return LOCK_ALL_RESTRICTION_NAMES.includes(restrictionName);
   }
 
-  // case 3
+  // case 2
+  // check if asset's locking profile definition has the searched restriction
   if (
     assetContent.settings &&
     assetContent.settings[LOCKING_PROFILE_PROP_NAME]
