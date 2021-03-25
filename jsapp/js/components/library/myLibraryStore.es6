@@ -25,7 +25,7 @@ const myLibraryStore = Reflux.createStore({
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
 
-  isVirgin: true,
+  isInitialised: false,
 
   data: {
     isFetchingData: false,
@@ -69,7 +69,7 @@ const myLibraryStore = Reflux.createStore({
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+    if (!this.isInitialised && isOnLibraryRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
   },
@@ -133,7 +133,7 @@ const myLibraryStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+    if (!this.isInitialised && isOnLibraryRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
       (
@@ -186,7 +186,7 @@ const myLibraryStore = Reflux.createStore({
       this.data.totalUserAssets = this.data.totalSearchAssets;
     }
     this.data.isFetchingData = false;
-    this.isVirgin = false;
+    this.isInitialised = true;
     this.trigger(this.data);
   },
 
