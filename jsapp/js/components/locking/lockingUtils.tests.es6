@@ -11,8 +11,7 @@ import {
   isAssetAllLocked,
 } from './lockingUtils';
 import {
-  FORM_RESTRICTION_NAMES,
-  ROW_RESTRICTION_NAMES,
+  LOCKING_RESTRICTIONS,
   LOCK_ALL_PROP_NAME,
 } from './lockingConstants';
 import {getRowName} from 'js/assetUtils';
@@ -26,7 +25,7 @@ simpleTemplateWithAll.content.settings[LOCK_ALL_PROP_NAME] = true;
 describe('hasRowRestriction', () => {
   it('should be false for all restriction for rows in un-locked template', () => {
     simpleTemplate.content.survey.forEach((row) => {
-      ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
+      Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
         const test = hasRowRestriction(
           simpleTemplate.content,
           getRowName(row),
@@ -39,7 +38,7 @@ describe('hasRowRestriction', () => {
 
   it('should be true for all restrictions for rows in lock_all template', () => {
     simpleTemplateWithAll.content.survey.forEach((row) => {
-      ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
+      Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
         const test = hasRowRestriction(
           simpleTemplateWithAll.content,
           getRowName(row),
@@ -52,7 +51,7 @@ describe('hasRowRestriction', () => {
 
   it('should be true for all restrictions for rows in lock_all template regardless of locking profile', () => {
     simpleTemplateLockedWithAll.content.survey.forEach((row) => {
-      ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
+      Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
         const test = hasRowRestriction(
           simpleTemplateLockedWithAll.content,
           getRowName(row),
@@ -90,7 +89,7 @@ describe('hasRowRestriction', () => {
       ],
     };
     Object.keys(expectedRestrictions).forEach((rowName) => {
-      ROW_RESTRICTION_NAMES.forEach((restrictionName) => {
+      Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
         const test = hasRowRestriction(
           simpleTemplateLocked.content,
           rowName,
@@ -104,21 +103,21 @@ describe('hasRowRestriction', () => {
 
 describe('hasAssetRestriction', () => {
   it('should say no restrictions for un-locked template', () => {
-    FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
+    Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
       const test = hasAssetRestriction(simpleTemplate.content, restrictionName);
       expect(test).to.equal(false);
     });
   });
 
   it('should be true for all restrictions for lock_all template', () => {
-    FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
+    Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
       const test = hasAssetRestriction(simpleTemplateWithAll.content, restrictionName);
       expect(test).to.equal(true);
     });
   });
 
   it('should be true for all restrictions for lock_all template regardless of locking profiles', () => {
-    FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
+    Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
       const test = hasAssetRestriction(simpleTemplateLockedWithAll.content, restrictionName);
       expect(test).to.equal(true);
     });
@@ -135,7 +134,7 @@ describe('hasAssetRestriction', () => {
       'group_add',
       'question_order_edit',
     ];
-    FORM_RESTRICTION_NAMES.forEach((restrictionName) => {
+    Object.keys(LOCKING_RESTRICTIONS).forEach((restrictionName) => {
       const test = hasAssetRestriction(simpleTemplateLocked.content, restrictionName);
       expect(test).to.equal(expectedRestrictions.includes(restrictionName));
     });
