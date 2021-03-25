@@ -43,7 +43,7 @@ module.exports = do ->
     #   new $rowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), ngScope: @ngScope, spawnedFromView: @).expand()
 
     hasRestriction: (restrictionName) ->
-      return hasRowRestriction(@ngScope.rawSurvey, @model.get('name'), restrictionName)
+      return hasRowRestriction(@ngScope.rawSurvey, @model.getValue('$autoname'), restrictionName)
 
     render: (opts={})->
       fixScroll = opts.fixScroll
@@ -117,16 +117,16 @@ module.exports = do ->
 
     # To be run at the end of rendering
     applyLocking: () ->
-      console.log('applyLocking', @model.get('name'), @ngScope)
+      console.log('applyLocking', @model.getValue('$autoname'), @ngScope)
+
 
       @$indicator = @$('.card__indicator')
-      @$deleteButton = @$('.js-delete-row')
-
       if @$indicator
         @$indicator.prepend($.parseHTML('<small>padlock</small>'))
 
+      @$deleteRowButton = @$('.js-delete-row')
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
-        console.log('yay delete!')
+        @$deleteRowButton.addClass('locking__ui-hidden');
 
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
         console.log('yay label edit!')
