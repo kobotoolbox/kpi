@@ -1,0 +1,16 @@
+// All Locking feature styles gathered in one place
+
+.locking__ui-locked {
+  // pointer-events: none;
+  // opacity: 0.5;
+
+  // DEV STYLES, uncomment above
+  background-color: blueviolet !important;
+}
+
+.locking__ui-hidden {
+  // display: none;
+
+  // DEV STYLES, uncomment above
+  background-color: hotpink !important;
+}
