@@ -119,14 +119,14 @@ class ConnectProjects extends React.Component {
       if (!parentUrl) {
         this.setState({
           fieldsErrors: Object.assign(
-            this.state.fieldsErrors, {emptyParent: 'No project selected'}
+            this.state.fieldsErrors, {emptyParent: t('No project selected')}
           )
         });
       }
       if (filename === '') {
         this.setState({
           fieldsErrors: Object.assign(
-            this.state.fieldsErrors, {emptyFilename: 'Field is empty'}
+            this.state.fieldsErrors, {emptyFilename: t('Field is empty')}
           )
         });
       }
