@@ -3,8 +3,8 @@
  */
 
 import Reflux from 'reflux';
+import alertify from 'alertifyjs';
 import {dataInterface} from 'js/dataInterface';
-import {notify} from 'utils';
 
 const dataShareActions = Reflux.createActions({
   attachToParent: {children: ['completed', 'failed']},
@@ -16,22 +16,14 @@ const dataShareActions = Reflux.createActions({
 
 dataShareActions.attachToParent.listen((assetUid, data) => {
   dataInterface.attachToParent(assetUid, data)
-    .done(() => {
-      dataShareActions.attachToParent.completed(assetUid);
-    })
-    .fail((response) => {
-      dataShareActions.attachToParent.failed(response)
-    })
+    .done(dataShareActions.attachToParent.completed)
+    .fail(dataShareActions.attachToParent.failed);
 });
 
 dataShareActions.detachParent.listen((attachmentUrl) => {
   dataInterface.detachParent(attachmentUrl)
-    .done(() => {
-      dataShareActions.detachParent.completed();
-    })
-    .fail((response) => {
-      dataShareActions.detachParent.failed(response)
-    })
+    .done(dataShareActions.detachParent.completed)
+    .fail(dataShareActions.detachParent.failed);
 });
 
 dataShareActions.getAttachedParents.listen((assetUid) => {
@@ -62,9 +54,7 @@ dataShareActions.getAttachedParents.listen((assetUid) => {
 
 dataShareActions.getSharingEnabledAssets.listen(() => {
   dataInterface.getSharingEnabledAssets()
-    .done((response) => {
-      dataShareActions.getSharingEnabledAssets.completed(response);
-    })
+    .done(dataShareActions.getSharingEnabledAssets.completed)
     .fail(dataShareActions.getSharingEnabledAssets.failed);
 });
 dataShareActions.getSharingEnabledAssets.failed.listen(() => {
@@ -74,12 +64,10 @@ dataShareActions.getSharingEnabledAssets.failed.listen(() => {
 dataShareActions.toggleDataSharing.listen((uid, data) => {
   dataInterface.toggleDataSharing(uid, data)
     .done(dataShareActions.toggleDataSharing.completed)
-    .fail((response) => {
-      dataShareActions.toggleDataSharing.failed(response);
-    });
+    .fail(dataShareActions.toggleDataSharing.failed);
 });
 dataShareActions.toggleDataSharing.failed.listen((response) => {
-  alertify.error(response.responseJSON.detail);
+  alertify.error(response?.responseJSON?.detail || t('Failed to toggle sharing'))
 });
 
 export default dataShareActions;
