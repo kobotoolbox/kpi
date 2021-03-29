@@ -209,23 +209,17 @@ class ConnectProjects extends React.Component {
    */
 
   renderSwitchLabel() {
-    if (this.state.isShared) {
-      return (
-        <ToggleSwitch
-          onChange={this.toggleSharingData.bind(this)}
-          label={t('Data sharing enabled')}
-          checked={this.state.isShared}
-        />
-      );
-    } else {
-      return (
-        <ToggleSwitch
-          onChange={this.toggleSharingData.bind(this)}
-          label={t('Data sharing disabled')}
-          checked={this.state.isShared}
-        />
-      );
-    }
+    let switchLabel = this.state.isShared
+      ? t('Data sharing enabled')
+      : t('Data sharing disabled');
+
+    return (
+      <ToggleSwitch
+        onChange={this.toggleSharingData.bind(this)}
+        label={switchLabel}
+        checked={this.state.isShared}
+      />
+    );
   }
   renderSelect(sharingEnabledAssets) {
     const selectClassNames = ['kobo-select__wrapper'];
