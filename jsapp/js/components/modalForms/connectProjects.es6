@@ -4,7 +4,7 @@ import alertify from 'alertifyjs';
 import Select from 'react-select';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import TextBox from 'js/components/common/textBox';
-import {actions} from '../../actions';
+import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {
   truncateFile,
