@@ -447,36 +447,6 @@ $z-modal-x: 10;
       }
     }
   }
-
-  .dropzone {
-    background: $kobo-whitegray;
-    padding: 30px;
-    border: 2px dashed $kobo-lightgray;
-    cursor: pointer;
-    border-radius: 6px;
-    text-align: center;
-
-    i {
-      display: block;
-      margin: 0 auto;
-      font-size: 72px;
-      opacity: 0.5;
-    }
-
-    .loading {
-      font-size: inherit;
-    }
-
-    .loading i {
-      font-size: 36px;
-      margin-top: 20px;
-      margin-bottom: 16px;
-    }
-
-    &:hover {border-color: $kobo-blue;}
-    &.dropzone-active {border-color: $kobo-blue;}
-    &.dropzone-reject {border-color: $kobo-red;}
-  }
 }
 
 @media screen and (min-height: 600px) {
@@ -698,128 +668,6 @@ $z-modal-x: 10;
   }
 }
 
-.form-media__label {
-  font-weight: 400;
-  font-size: 18px;
-  text-align: center;
-  display: block;
-  margin-top: 20px;
-  margin-bottom: 5px;
-  color: $cool-gray;
-}
-
-.form-media__upload-url {
-  width: 70%;
-  margin: auto;
-  display: block;
-
-  label.form-media__label {
-    text-align: center;
-  }
-
-  // Custom TextBox css
-  label.text-box {
-    min-width: 80%;
-    display: inline-table;
-  }
-
-  button {
-    min-width: 19%;
-  }
-
-
-}
-
-.form-media__list-label {
-  margin-top: 32px;
-  color: black;
-  font-weight: 500;
-  font-size: 22px;
-  display: block;
-  margin-bottom: 11px;
-  border-bottom: 1px solid lighten($cool-gray, 25%);
-  padding-bottom: 16px;
-}
-
-.form-media__default-item {
-  padding-left: 10px;
-}
-
-.form-media__list-item {
-  font-size: 16px;
-  position: relative;
-  padding-bottom: 12px;
-  border-bottom: 1px solid lighten($cool-gray, 25%);
-  margin-bottom: 12px;
-
-  i.k-icon-trash {
-    right: 10px;
-    position: absolute;
-    top:-5px;
-    color: $cool-light-red;
-    font-size: 36px;
-    float: right;
-    cursor: pointer;
-  }
-
-  i.form-media__file-type {
-    position: absolute;
-    left: -5px;
-    top: 4px;
-    color: grey;
-    font-size: 18px;
-  }
-
-  a {
-    font-weight: 400;
-    padding: 5px;
-    margin-left: 25px;
-    font-size: 18;
-    display: inline-block;
-    min-width: 10px;
-    vertical-align: top;
-    height: auto;
-    position: relative;
-    min-height: 18px;
-    max-width: 70%;
-    overflow-x: hidden;
-    cursor: pointer;
-  }
-}
-
-.media-settings--upload-file {
-  width: calc(100% - 170px);
-  overflow-y: scroll;
-  position: relative;
-  height: 100%;
-  padding: 20px;
-
-  .dropzone {
-    font-weight: 400;
-    font-size: 18px;
-    color: $cool-gray;
-    border-color: lighten($cool-gray, 30%);
-
-    i {
-      font-size: 50px;
-    }
-
-    div {
-      font-size: 14px;
-
-      a {
-        text-decoration: underline;
-      }
-    }
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .media-settings--upload-file {
-    width: auto;
-  }
-}
-
 .form-view__cell--encrypt-key {
   padding-bottom: 12px;
 }
@@ -835,6 +683,37 @@ $z-modal-x: 10;
 
 .remove-encryption {
   float: right;
+}
+
+// Extension of `dropzone` used in settings modals
+.dropzone-settings {
+  background: $kobo-whitegray;
+  padding: 30px;
+  border: 2px dashed $kobo-lightgray;
+  cursor: pointer;
+  border-radius: 6px;
+  text-align: center;
+
+  i {
+    display: block;
+    margin: 0 auto;
+    font-size: 72px;
+    opacity: 0.5;
+  }
+
+  .loading {
+    font-size: inherit;
+  }
+
+  .loading i {
+    font-size: 36px;
+    margin-top: 20px;
+    margin-bottom: 16px;
+  }
+
+  &:hover {border-color: $kobo-blue;}
+  &.dropzone-active {border-color: $kobo-blue;}
+  &.dropzone-reject {border-color: $kobo-red;}
 }
 
 @media screen and (max-width: 767px) {

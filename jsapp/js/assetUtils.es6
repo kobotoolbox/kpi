@@ -6,6 +6,7 @@ import {
   ASSET_TYPES,
   MODAL_TYPES,
   QUESTION_TYPES,
+  META_QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
   SCORE_ROW_TYPE,
@@ -55,6 +56,25 @@ export function getOrganizationDisplayString(asset) {
   } else {
     return '-';
   }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @param {string} langString - language string (the de facto "id")
+ * @returns {number|null} the index of language or null if not found
+ */
+export function getLanguageIndex(asset, langString) {
+  let foundIndex = null;
+
+  if (asset.summary?.languages?.length >= 1) {
+    asset.summary.languages.forEach((language, index) => {
+      if (language === langString) {
+        foundIndex = index;
+      }
+    });
+  }
+
+  return foundIndex;
 }
 
 /**
@@ -256,9 +276,10 @@ export function replaceForm(asset) {
  * NOTE: this works based on a fact that all questions have unique names
  * @param {Array<object>} survey - from asset's `content.survey`
  * @param {boolean} [includeGroups] wheter to put groups into output
+ * @param {boolean} [includeMeta] - whether to include meta question types (false on default)
  * @returns {object} a pair of quesion names and their full paths
  */
-export function getSurveyFlatPaths(survey, includeGroups = false) {
+export function getSurveyFlatPaths(survey, includeGroups = false, includeMeta = false) {
   const output = {};
   const openedGroups = [];
 
@@ -274,7 +295,8 @@ export function getSurveyFlatPaths(survey, includeGroups = false) {
     } else if (
       QUESTION_TYPES[row.type] ||
       row.type === SCORE_ROW_TYPE ||
-      row.type === RANK_LEVEL_TYPE
+      row.type === RANK_LEVEL_TYPE ||
+      (includeMeta && META_QUESTION_TYPES[row.type])
     ) {
       let groupsPath = '';
       if (openedGroups.length >= 1) {
@@ -398,11 +420,16 @@ export function renderTypeIcon(type, additionalClassNames = []) {
 }
 
 /**
+ * Use this to get a nice parsed list of survey questions (optionally with meta
+ * questions included). Useful when you need to render form questions to users.
+ *
  * @param {Object} survey
  * @param {number} [translationIndex] - defaults to first (default) language
- * @returns {Array<object>} a question object
+ * @param {boolean} [includeMeta] - whether to include meta question types (false on default)
+ * @returns {Array<object>} a list of parsed questions
  */
-export function getFlatQuestionsList(survey, translationIndex = 0) {
+export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta = false) {
+  const flatPaths = getSurveyFlatPaths(survey, false, true);
   const output = [];
   const openedGroups = [];
   let openedRepeatGroupsCount = 0;
@@ -420,12 +447,17 @@ export function getFlatQuestionsList(survey, translationIndex = 0) {
       openedRepeatGroupsCount--;
     }
 
-    if (QUESTION_TYPES[row.type]) {
+    if (
+      QUESTION_TYPES[row.type] ||
+      (includeMeta && META_QUESTION_TYPES[row.type])
+    ) {
+      const rowName = getRowName(row);
       output.push({
         type: row.type,
-        name: getRowName(row),
-        isRequired: row.required,
+        name: rowName,
+        isRequired: Boolean(row.required),
         label: getQuestionDisplayName(row, translationIndex),
+        path: flatPaths[rowName],
         parents: openedGroups.slice(0),
         hasRepatParent: openedRepeatGroupsCount >= 1,
       });
@@ -521,6 +553,7 @@ export default {
   getAssetOwnerDisplayName,
   getCountryDisplayString,
   getFlatQuestionsList,
+  getLanguageIndex,
   getLanguagesDisplayString,
   getOrganizationDisplayString,
   getQuestionDisplayName,

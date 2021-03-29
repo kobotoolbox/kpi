@@ -691,7 +691,7 @@ class ProjectSettings extends React.Component {
 
   renderStepUploadFile() {
     return (
-      <bem.FormModal__form className='project-settings project-settings--upload-file'>
+      <bem.FormModal__form className='project-settings'>
         <bem.Modal__subheader>
           {t('Import an XLSForm from your computer.')}
         </bem.Modal__subheader>
@@ -700,7 +700,7 @@ class ProjectSettings extends React.Component {
           <Dropzone
             onDrop={this.onFileDrop.bind(this)}
             multiple={false}
-            className='dropzone'
+            className='dropzone-settings'
             activeClassName='dropzone-active'
             rejectClassName='dropzone-reject'
             accept={validFileTypes()}
@@ -710,7 +710,7 @@ class ProjectSettings extends React.Component {
           </Dropzone>
         }
         {this.state.isUploadFilePending &&
-          <div className='dropzone'>
+          <div className='dropzone-settings'>
             {this.renderLoading(t('Uploading file…'))}
           </div>
         }

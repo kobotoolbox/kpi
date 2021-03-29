@@ -17,6 +17,8 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
+import formMediaActions from './actions/media';
+import exportsActions from './actions/exportsActions';
 import {
   notify,
   replaceSupportEmail,
@@ -30,6 +32,8 @@ export const actions = {
   help: helpActions,
   library: libraryActions,
   submissions: submissionsActions,
+  media: formMediaActions,
+  exports: exportsActions,
 };
 
 actions.navigation = Reflux.createActions([
@@ -92,12 +96,6 @@ actions.misc = Reflux.createActions({
   checkUsername: {asyncResult: true, children: ['completed', 'failed']},
   updateProfile: {children: ['completed', 'failed']},
   getServerEnvironment: {children: ['completed', 'failed']},
-});
-
-actions.media = Reflux.createActions({
-  loadMedia: {children: ['completed', 'failed']},
-  uploadMedia: {children: ['completed', 'failed']},
-  deleteMedia: {children: ['completed', 'failed']},
 });
 
 actions.dataShare = Reflux.createActions({
@@ -266,47 +264,6 @@ actions.dataShare.toggleDataSharing.listen((uid, data) => {
 });
 actions.dataShare.toggleDataSharing.failed.listen((response) => {
   alertify.error(response.responseJSON.detail);
-});
-
-/*
- * Form media endpoint actions
- */
-actions.media.uploadMedia.listen((uid, formMediaJSON) => {
-  dataInterface.postFormMedia(uid, formMediaJSON)
-    .done(() => {
-      actions.media.uploadMedia.completed(uid);
-    })
-    .fail(actions.media.uploadMedia.failed);
-});
-actions.media.uploadMedia.completed.listen((uid) => {
-  actions.media.loadMedia(uid);
-});
-actions.media.uploadMedia.failed.listen(() => {
-  alertify.error(t('Could not upload your media'));
-});
-
-actions.media.loadMedia.listen((uid) => {
-  dataInterface.getFormMedia(uid)
-    .done(actions.media.loadMedia.completed)
-    .fail(actions.media.loadMedia.failed);
-});
-actions.media.loadMedia.failed.listen(() => {
-  alertify.error(t('Something went wrong with getting your media'));
-});
-
-actions.media.deleteMedia.listen((uid, url) => {
-  dataInterface.deleteFormMedia(url)
-    .done(() => {
-      actions.media.deleteMedia.completed(uid);
-    })
-    .fail(actions.media.deleteMedia.failed);
-});
-actions.media.deleteMedia.completed.listen((uid) => {
-  notify(t('Successfully deleted media'));
-  actions.media.loadMedia(uid);
-});
-actions.media.deleteMedia.failed.listen(() => {
-  alertify.error(t('Failed to delete media!'));
 });
 
 actions.resources.createSnapshot.listen(function(details){

@@ -13,7 +13,8 @@ import ProjectSettings from './modalForms/projectSettings';
 import ConnectProjects from './modalForms/connectProjects';
 import FormMedia from './modalForms/formMedia';
 import DataTable from './table';
-import ProjectDownloads from './projectDownloads';
+import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
+import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
@@ -128,7 +129,10 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled');
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <ProjectDownloads asset={this.state} />
+        <bem.FormView className='project-downloads'>
+          <ProjectExportsCreator asset={this.state} />
+          <ProjectExportsList asset={this.state} />
+        </bem.FormView>
       </DocumentTitle>
     );
   }

@@ -29,16 +29,25 @@ export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
 }
 
+/**
+ * @returns {string} something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
+ */
 export function formatTime(timeStr) {
   var _m = moment(timeStr);
   return _m.calendar(null, {sameElse: 'LL'});
 }
 
+/**
+ * @returns {string} something like "March 15, 2021 4:06 PM"
+ */
 export function formatTimeDate(timeStr) {
   var _m = moment(timeStr);
   return _m.format('LLL');
 }
 
+/**
+ * @returns {string} something like "Mar 15, 2021"
+ */
 export function formatDate(timeStr) {
   var _m = moment(timeStr);
   return _m.format('ll');
@@ -571,4 +580,54 @@ export function toTitleCase(str) {
 
 export function launchPrinting() {
   window.print();
+}
+
+/**
+ * Trunactes strings to specified length
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateString(str, length, type='') {
+  let truncatedString = str;
+  const HALFWAY = Math.trunc(length / 2);
+
+  if (length < truncatedString.length) {
+    let truncatedStringFront = truncatedString.substring(0, HALFWAY);
+    let truncatedStringBack = truncatedString.slice(
+      truncatedString.length - HALFWAY
+    );
+    truncatedString = truncatedStringFront + '…' + truncatedStringBack;
+  }
+
+  return truncatedString;
+}
+
+/**
+ * Removes protocol then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateUrl(str, length) {
+  let truncatedString = str.replace('https://', '').replace('http://', '');
+
+  return truncateString(truncatedString, length);
+}
+
+/**
+ * Removes file extension then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateFile(str, length) {
+  // Remove file extension with simple regex that truncates everything past
+  // the last occurance of `.` inclusively
+  let truncatedString = str.replace(/\.[^/.]+$/, '');
+
+  return truncateString(truncatedString, length);
 }
