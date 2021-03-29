@@ -6,6 +6,12 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import TextBox from 'js/components/common/textBox';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
+import {
+  truncateFile,
+  truncateString,
+} from '../../utils';
+
+const MAX_DISPLAYED_STRING_LENGTH = 30;
 
 /*
  * Modal for connecting project data
@@ -177,12 +183,9 @@ class ConnectProjects extends React.Component {
   generateAutoname(newParent) {
     if (newParent) {
       let autoname = newParent.name;
-      autoname = autoname.toLowerCase().substring(0, 30).replace(/(\ |\.)/g, '_');
+      autoname = autoname.toLowerCase().substring(0, MAX_DISPLAYED_STRING_LENGTH).replace(/(\ |\.)/g, '_');
       this.setState({newFilename: autoname});
     }
-  }
-  generateTruncatedDisplayName(name) {
-    return name.length > 30 ? `${name.substring(0, 30)}...` : name;
   }
   generateFilteredAssetList() {
     let attachedParentUids = [];
@@ -197,20 +200,6 @@ class ConnectProjects extends React.Component {
       )
     );
   }
-
- /*
-  * May be useful later for replacing autoname with existing name
-  *
-  * getExteralFilename() {
-  *   let filename = '';
-  *   this.props.asset.content.survey.some((element) => {
-  *     if (element.type === XML_EXTERNAL) {
-  *       filename = element.name;
-  *     }
-  *   });
-  *   return filename;
-  * }
-  */
 
   /*
    * Rendering
@@ -342,10 +331,10 @@ class ConnectProjects extends React.Component {
                       <i className="k-icon k-icon-check"/>
                       <div className='imported-names'>
                         <span className='imported-filename'>
-                          {item.filename}
+                          {truncateFile(item.filename, MAX_DISPLAYED_STRING_LENGTH)}
                         </span>
                         <span className='imported-parent'>
-                          {this.generateTruncatedDisplayName(item.parentName)}
+                          {truncateString(item.parentName, MAX_DISPLAYED_STRING_LENGTH)}
                         </span>
                       </div>
                       <i

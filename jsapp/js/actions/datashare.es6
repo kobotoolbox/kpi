@@ -31,15 +31,13 @@ dataShareActions.getAttachedParents.listen((assetUid) => {
     .done((response) => {
       let allParents = [];
       response.results.forEach((parent) => {
-        // Remove file extension
-        let filename = parent.filename.replace(/\.[^/.]+$/, '');
         // Get Uid from url
         let parentUid = parent.parent.match(/.*\/([^/]+)\//)[1];
         allParents.push({
           parentName: parent.parent_name,
           parentUrl: parent.parent,
           parentUid: parentUid,
-          filename: filename,
+          filename: parent.filename,
           attachmentUrl: parent.url,
         });
       });
