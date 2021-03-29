@@ -258,7 +258,7 @@ export var dataInterface;
     },
     getSharingEnabledAssets() {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/?q=data_sharing__enabled:True`,
+        url: `${ROOT_URL}/api/v2/assets/?q=data_sharing__enabled:true`,
         method: 'GET',
       });
     },
