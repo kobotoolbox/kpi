@@ -39,9 +39,6 @@ class ConnectProjects extends React.Component {
    */
 
   componentDidMount() {
-    this.refreshAttachmentList();
-    actions.dataShare.getSharingEnabledAssets();
-
     actions.dataShare.attachToParent.completed.listen(
       this.refreshAttachmentList
     );
@@ -60,6 +57,9 @@ class ConnectProjects extends React.Component {
     actions.dataShare.toggleDataSharing.completed.listen(
       this.onToggleDataSharingCompleted
     );
+
+    this.refreshAttachmentList();
+    actions.dataShare.getSharingEnabledAssets();
   }
 
   /*
