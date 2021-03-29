@@ -20,7 +20,7 @@ class ConnectProjects extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isVirgin: true,
+      isInitialised: false,
       isLoading: false,
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
@@ -74,7 +74,7 @@ class ConnectProjects extends React.Component {
   }
   onGetAttachedParentsCompleted(response) {
     this.setState({
-      isVirgin: false,
+      isInitialised: true,
       isLoading: false,
       attachedParents: response,
     });
@@ -245,7 +245,7 @@ class ConnectProjects extends React.Component {
           placeholder={t('Select a different project to import data from')}
           options={sharingEnabledAssets}
           value={this.state.newParent}
-          isLoading={(this.state.isVirgin || this.state.isLoading || !sharingEnabledAssets)}
+          isLoading={(!this.state.isInitialised || this.state.isLoading || !sharingEnabledAssets)}
           getOptionLabel={option => option.name}
           getOptionValue={option => option.url}
           noOptionsMessage={() => {return t('No projects to connect')}}
@@ -314,7 +314,7 @@ class ConnectProjects extends React.Component {
           {/* Display attached projects */}
           <ul>
             <label>{t('Imported')}</label>
-            {(this.state.isVirgin || this.state.isLoading) &&
+            {(!this.state.isInitialised || this.state.isLoading) &&
               <div className='imported-item'>
                 {this.renderLoading(t('Loading imported projects'))}
               </div>
