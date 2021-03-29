@@ -283,7 +283,8 @@ class ConnectProjects extends React.Component {
           </div>
           <p>
             {t('Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments')}
-            <a href='#'>{t(' ' + 'here')}</a>
+            &nbsp;
+            <a href='#'>{t('here')}</a>
           </p>
           {this.renderSwitchLabel()}
         </bem.FormModal__item>
@@ -296,7 +297,8 @@ class ConnectProjects extends React.Component {
           </div>
           <p>
             {t('Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments')}
-            <a href='#'>{t(' ' + 'here')}</a>
+            &nbsp;
+            <a href='#'>{t('here')}</a>
           </p>
 
           {this.renderSelect()}
