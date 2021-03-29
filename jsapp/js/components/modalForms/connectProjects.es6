@@ -180,6 +180,8 @@ class ConnectProjects extends React.Component {
    * Utilities
    */
 
+  // Generates a filename for the selected parent, done so by taking the first
+  // 30 characters, turning them lowercase and replacing spaces with underscores
   generateAutoname(newParent) {
     if (newParent) {
       let autoname = newParent.name;
