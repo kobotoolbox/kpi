@@ -272,7 +272,7 @@ class ConnectProjects extends React.Component {
   render() {
     return (
       <bem.FormModal__form
-        className='project-settings project-settings--upload-file connect-projects'
+        className='connect-projects'
         onSubmit={this.confirmAttachment}
       >
         {/* Enable data sharing */}
