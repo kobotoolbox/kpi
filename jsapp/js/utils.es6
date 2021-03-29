@@ -227,6 +227,10 @@ export function getUsernameFromUrl(userUrl) {
   return userUrl.match(/\/users\/(.*)\//)[1];
 }
 
+export function getAssetUIDFromUrl(userUrl) {
+  return userUrl.match(/.*\/([^/]+)\//)[1];
+}
+
 export function buildUserUrl(username) {
   if (username.startsWith(window.location.protocol)) {
     console.error("buildUserUrl() called with URL instead of username (incomplete v2 migration)");

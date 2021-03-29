@@ -4,6 +4,7 @@
 
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
+import {getAssetUIDFromUrl} from '../utils';
 import {dataInterface} from 'js/dataInterface';
 
 const dataShareActions = Reflux.createActions({
@@ -31,8 +32,7 @@ dataShareActions.getAttachedParents.listen((assetUid) => {
     .done((response) => {
       let allParents = [];
       response.results.forEach((parent) => {
-        // Get Uid from url
-        let parentUid = parent.parent.match(/.*\/([^/]+)\//)[1];
+        let parentUid = getAssetUIDFromUrl(parent.parent);
         allParents.push({
           parentName: parent.parent_name,
           parentUrl: parent.parent,
