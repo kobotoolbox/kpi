@@ -221,38 +221,55 @@ class ConnectProjects extends React.Component {
       />
     );
   }
-  renderSelect(sharingEnabledAssets) {
-    const selectClassNames = ['kobo-select__wrapper'];
-    if (this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent) {
-      selectClassNames.push('kobo-select__wrapper--error');
+  renderSelect() {
+    // Don't crash the page before `actions.dataShare.sharingEnabledAssets` finishes
+    if (this.state.sharingEnabledAssets !== null) {
+      let sharingEnabledAssets = this.generateFilteredAssetList();
+
+      const selectClassNames = ['kobo-select__wrapper'];
+      if (this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent) {
+        selectClassNames.push('kobo-select__wrapper--error');
+      }
+
+      return(
+        <div className='import-data-form'>
+          <div className={selectClassNames.join(' ')}>
+            <Select
+              placeholder={t('Select a different project to import data from')}
+              options={sharingEnabledAssets}
+              value={this.state.newParent}
+              isLoading={(!this.state.isInitialised || this.state.isLoading || !sharingEnabledAssets)}
+              getOptionLabel={option => option.name}
+              getOptionValue={option => option.url}
+              noOptionsMessage={() => {return t('No projects to connect')}}
+              onChange={this.onParentChange}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+            />
+            <label className='select-errors'>
+              {this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent}
+            </label>
+          </div>
+
+          <TextBox
+            placeholder={t('Give a unique name to the import')}
+            value={this.state.newFilename}
+            onChange={this.onFilenameChange}
+            errors={this.state.fieldsErrors.emptyFilename ||
+                    this.state.fieldsErrors.filename}
+          />
+
+          <bem.KoboButton m='blue'>
+            {t('Import')}
+          </bem.KoboButton>
+        </div>
+      );
+    } else {
+      return null;
     }
-    return(
-      <div className={selectClassNames.join(' ')}>
-        <Select
-          placeholder={t('Select a different project to import data from')}
-          options={sharingEnabledAssets}
-          value={this.state.newParent}
-          isLoading={(!this.state.isInitialised || this.state.isLoading || !sharingEnabledAssets)}
-          getOptionLabel={option => option.name}
-          getOptionValue={option => option.url}
-          noOptionsMessage={() => {return t('No projects to connect')}}
-          onChange={this.onParentChange}
-          className='kobo-select'
-          classNamePrefix='kobo-select'
-        />
-        <label className='select-errors'>
-          {this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent}
-        </label>
-      </div>
-    );
   }
 
   render() {
-    let sharingEnabledAssets = [];
-    if (this.state.sharingEnabledAssets !== null) {
-      sharingEnabledAssets = this.generateFilteredAssetList();
-    }
-
     return (
       <bem.FormModal__form
         className='project-settings project-settings--upload-file connect-projects'
@@ -281,22 +298,8 @@ class ConnectProjects extends React.Component {
             {t('Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments')}
             <a href='#'>{t(' ' + 'here')}</a>
           </p>
-          {/* Selecting project form*/}
-          {sharingEnabledAssets &&
-            <div className='import-data-form'>
-              {this.renderSelect(sharingEnabledAssets)}
-              <TextBox
-                placeholder={t('Give a unique name to the import')}
-                value={this.state.newFilename}
-                onChange={this.onFilenameChange}
-                errors={this.state.fieldsErrors.emptyFilename ||
-                        this.state.fieldsErrors.filename}
-              />
-              <bem.KoboButton m='blue'>
-                {t('Import')}
-              </bem.KoboButton>
-            </div>
-          }
+
+          {this.renderSelect()}
 
           {/* Display attached projects */}
           <ul>
