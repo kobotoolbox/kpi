@@ -82,8 +82,8 @@ class ConnectProjects extends React.Component {
   onGetSharingEnabledAssetsCompleted(response) {
     this.setState({sharingEnabledAssets: response});
   }
-  onToggleDataSharingCompleted() {
-    this.setState({isShared: !this.state.isShared});
+  onToggleDataSharingCompleted(response) {
+    this.setState({isShared: response.data_sharing.enabled});
   }
   refreshAttachmentList() {
     this.setState({
