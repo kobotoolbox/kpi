@@ -6,6 +6,7 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import TextBox from 'js/components/common/textBox';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
+import {renderLoading} from './modalHelpers';
 import {
   truncateFile,
   truncateString,
@@ -207,16 +208,6 @@ class ConnectProjects extends React.Component {
    * Rendering
    */
 
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
   renderSwitchLabel() {
     if (this.state.isShared) {
       return (
@@ -318,7 +309,7 @@ class ConnectProjects extends React.Component {
             <label>{t('Imported')}</label>
             {(!this.state.isInitialised || this.state.isLoading) &&
               <div className='imported-item'>
-                {this.renderLoading(t('Loading imported projects'))}
+                {renderLoading(t('Loading imported projects'))}
               </div>
             }
             {!this.state.isLoading && this.state.attachedParents.length == 0 &&
