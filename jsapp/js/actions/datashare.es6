@@ -29,25 +29,21 @@ dataShareActions.detachParent.listen((attachmentUrl) => {
 dataShareActions.getAttachedParents.listen((assetUid) => {
   dataInterface.getAttachedParents(assetUid)
     .done((response) => {
-      if (response.results.length > 0) {
-        let allParents = [];
-        response.results.forEach((parent) => {
-          // Remove file extension
-          let filename = parent.filename.replace(/\.[^/.]+$/, '');
-          // Get Uid from url
-          let parentUid = parent.parent.match(/.*\/([^/]+)\//)[1];
-          allParents.push({
-            parentName: parent.parent_name,
-            parentUrl: parent.parent,
-            parentUid: parentUid,
-            filename: filename,
-            attachmentUrl: parent.url,
-          });
-          dataShareActions.getAttachedParents.completed(allParents);
+      let allParents = [];
+      response.results.forEach((parent) => {
+        // Remove file extension
+        let filename = parent.filename.replace(/\.[^/.]+$/, '');
+        // Get Uid from url
+        let parentUid = parent.parent.match(/.*\/([^/]+)\//)[1];
+        allParents.push({
+          parentName: parent.parent_name,
+          parentUrl: parent.parent,
+          parentUid: parentUid,
+          filename: filename,
+          attachmentUrl: parent.url,
         });
-      } else {
-        dataShareActions.getAttachedParents.completed([]);
-      }
+      });
+      dataShareActions.getAttachedParents.completed(allParents);
     })
     .fail(dataShareActions.getAttachedParents.failed);
 });
