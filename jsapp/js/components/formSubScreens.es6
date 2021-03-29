@@ -69,9 +69,6 @@ export class FormSubScreens extends React.Component {
           break;
         case ROUTES.FORM_TABLE.replace(':uid', this.state.uid):
           return <DataTable asset={this.state} />;
-        case `/forms/${this.state.uid}/data/table-legacy`:
-          iframeUrl = report__base+'/export.html';
-          break;
         case ROUTES.FORM_GALLERY.replace(':uid', this.state.uid):
           iframeUrl = deployment__identifier+'/photos';
           break;
