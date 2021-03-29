@@ -326,7 +326,6 @@ class ConnectProjects extends React.Component {
             }
             {!this.state.isLoading && this.state.attachedParents.length > 0 &&
                 this.state.attachedParents.map((item, n) => {
-                  console.log(item);
                   return (
                     <li key={n} className='imported-item'>
                       <i className="k-icon k-icon-check"/>

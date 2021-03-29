@@ -151,7 +151,7 @@ export class FormSubScreens extends React.Component {
   }
   renderRecords() {
     return (
-      <bem.FormView m='form-settings-connect-projects'>
+      <bem.FormView>
         <ConnectProjects asset={this.state}/>
       </bem.FormView>
     );
