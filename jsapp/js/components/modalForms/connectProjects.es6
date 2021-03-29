@@ -238,7 +238,7 @@ class ConnectProjects extends React.Component {
               placeholder={t('Select a different project to import data from')}
               options={sharingEnabledAssets}
               value={this.state.newParent}
-              isLoading={(!this.state.isInitialised || this.state.isLoading || !sharingEnabledAssets)}
+              isLoading={(!this.state.isInitialised || this.state.isLoading)}
               getOptionLabel={option => option.name}
               getOptionValue={option => option.url}
               noOptionsMessage={() => {return t('No projects to connect')}}
