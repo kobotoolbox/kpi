@@ -328,7 +328,8 @@ $t-form-builder-aside-open: 200ms;
     }
 
     i.k-icon {
-      font-size: 32px;
+      font-size: 24px;
+      margin-right: 3px;
       vertical-align: middle;
     }
 
@@ -377,12 +378,9 @@ $t-form-builder-aside-open: 200ms;
     font-weight: 700;
 
     .k-icon {
-      font-size: 28px;
-      vertical-align: bottom;
-
-      &::before {
-        vertical-align: inherit;
-      }
+      font-size: 20px;
+      margin-left: 3px;
+      vertical-align: middle;
     }
   }
 
