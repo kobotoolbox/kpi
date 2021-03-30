@@ -219,7 +219,7 @@ export default class ProjectExportsList extends React.Component {
             <span className='animate-processing'>{t('Processing…')}</span>
           }
 
-          {mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
+          {mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) &&
             <bem.KoboLightButton
               m={['red', 'icon-only']}
               onClick={this.deleteExport.bind(this, exportData.uid)}

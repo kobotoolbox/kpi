@@ -102,6 +102,11 @@
       transform: translateY(1px);
     }
 
+    &[disabled] {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
     .k-icon {
       vertical-align: middle;
       margin-left: 3px;
