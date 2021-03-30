@@ -394,7 +394,7 @@ class ConnectProjects extends React.Component {
             placeholder={t('Select a different project to import data from')}
             options={sharingEnabledAssets}
             value={this.state.newParent}
-            isLoading={(this.state.isVirgin || this.state.isLoading || !sharingEnabledAssets)}
+            isLoading={(!this.state.isInitialised || this.state.isLoading)}
             getOptionLabel={option => option.name}
             getOptionValue={option => option.url}
             noOptionsMessage={() => {return t('No projects to connect')}}
@@ -488,7 +488,7 @@ class ConnectProjects extends React.Component {
         <ul className='connect-projects__import--list'>
           <label>{t('Imported')}</label>
 
-          {(this.state.isVirgin || this.state.isLoading) &&
+          {(!this.state.isInitialised || this.state.isLoading) &&
             <div className='connect-projects__import--list-item'>
               {renderLoading(t('Loading imported projects'))}
             </div>
