@@ -159,6 +159,10 @@ export function isAnyLibraryRoute() {
   return getCurrentPath().startsWith(ROUTES.LIBRARY);
 }
 
-export function isAnyLibraryItemRoute(uid) {
-  return getCurrentPath().startsWith(ROUTES.LIBRARY_ITEM.replace(':uid', uid));
+/**
+ * Checks if on any `/library/asset/…` route.
+ */
+export function isAnyLibraryItemRoute() {
+  // disregard the `:uid` parameter in url, as we are interested in any asset uid
+  return getCurrentPath().startsWith(ROUTES.LIBRARY_ITEM.replace(':uid', ''));
 }
