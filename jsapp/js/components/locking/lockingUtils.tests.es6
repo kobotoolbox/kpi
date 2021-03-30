@@ -7,10 +7,12 @@ import {
   hasRowRestriction,
   hasAssetRestriction,
   getLockingProfile,
+  isRowLocked,
   isAssetLocked,
   isAssetAllLocked,
 } from './lockingUtils';
 import {
+  LOCK_ALL_RESTRICTION_NAMES,
   LOCKING_RESTRICTIONS,
   LOCK_ALL_PROP_NAME,
 } from './lockingConstants';
@@ -162,6 +164,44 @@ describe('getLockingProfile', () => {
   it('should return null for not found', () => {
     const test = getLockingProfile(simpleTemplateLocked.content, 'nothingness_approaching');
     expect(test).to.equal(null);
+  });
+});
+
+describe('isRowLocked', () => {
+  it('should be false for all rows in un-locked template', () => {
+    simpleTemplate.content.survey.forEach((row) => {
+      const test = isRowLocked(simpleTemplate.content, getRowName(row));
+      expect(test).to.equal(false);
+    });
+  });
+
+  it('should be true for all rows in lock_all template', () => {
+    simpleTemplateWithAll.content.survey.forEach((row) => {
+      const test = isRowLocked(simpleTemplateWithAll.content, getRowName(row));
+      expect(test).to.equal(true);
+    });
+  });
+
+  it('should be true for all rows in lock_all template regardless of locking profile', () => {
+    simpleTemplateLockedWithAll.content.survey.forEach((row) => {
+      const test = isRowLocked(simpleTemplateLockedWithAll.content, getRowName(row));
+      expect(test).to.equal(true);
+    });
+  });
+
+  it('should check row being locked in locked template', () => {
+    const expectedRestrictions = {
+      start: false,
+      end: false,
+      Best_thing_in_the_world: true,
+      person: true,
+      Your_name: false,
+      Your_age: true,
+    };
+    Object.keys(expectedRestrictions).forEach((rowName) => {
+      const test = isRowLocked(simpleTemplateLocked.content, rowName);
+      expect(test).to.equal(expectedRestrictions[rowName]);
+    });
   });
 });
 

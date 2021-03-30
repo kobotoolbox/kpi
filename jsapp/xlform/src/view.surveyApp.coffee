@@ -9,6 +9,8 @@ $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
 alertify = require 'alertifyjs'
+hasAssetRestriction = require('js/components/locking/lockingUtils').hasAssetRestriction
+LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 
 module.exports = do ->
   surveyApp = {}
@@ -361,6 +363,18 @@ module.exports = do ->
           _settings.set('style', $inps.style.val())
       ###
 
+    hasRestriction: (restrictionName) ->
+      return hasAssetRestriction(@ngScope.rawSurvey, restrictionName)
+
+    applyLocking: ->
+      console.log('apply locking')
+
+      # hide delete row button
+      @$cloneQuestionButtons = @$('.js-clone-question')
+      if (@hasRestriction(LOCKING_RESTRICTIONS.question_add.name))
+        @$cloneQuestionButtons.addClass('locking__ui-hidden');
+      return
+
     _render_addSubViews: ->
       meta_view = new $viewUtils.ViewComposer()
 
@@ -398,6 +412,8 @@ module.exports = do ->
         @_reset()
 
         @_render_hideConditionallyDisplayedContent()
+
+        @applyLocking()
 
       catch error
         @$el.addClass("survey-editor--error")
