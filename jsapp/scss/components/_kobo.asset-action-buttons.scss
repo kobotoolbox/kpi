@@ -10,14 +10,17 @@
     margin-left: 15px;
   }
 
-  .k-icon {
-    font-size: 32px;
-    color: inherit;
-  }
-
   .popover-menu__toggle .k-icon {
     display: block;
   }
+}
+
+.asset-action-buttons .k-icon,
+.asset-action-buttons__button .k-icon,
+.asset-action-buttons__icon-button .k-icon {
+  font-size: 24px;
+  margin: 3px;
+  color: inherit;
 }
 
 .asset-action-buttons__button,
@@ -27,8 +30,6 @@
 
   .k-icon {
     display: block;
-    font-size: 32px;
-    color: inherit;
   }
 }
 
