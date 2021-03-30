@@ -232,7 +232,7 @@ class ConnectProjects extends React.Component {
       }
 
       return(
-        <div className='import-data-form'>
+        <div className='connect-projects__import-data-form'>
           <div className={selectClassNames.join(' ')}>
             <Select
               placeholder={t('Select a different project to import data from')}
@@ -246,7 +246,7 @@ class ConnectProjects extends React.Component {
               className='kobo-select'
               classNamePrefix='kobo-select'
             />
-            <label className='select-errors'>
+            <label className='connect-projects__label select-errors'>
               {this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent}
             </label>
           </div>
@@ -277,7 +277,7 @@ class ConnectProjects extends React.Component {
       >
         {/* Enable data sharing */}
         <bem.FormModal__item m='data-sharing'>
-          <div className='connect-projects-header'>
+          <div className='connect-projects__header'>
             <i className="k-icon k-icon-folder-out"/>
             <h2>{t('Share data with other project forms')}</h2>
           </div>
@@ -291,7 +291,7 @@ class ConnectProjects extends React.Component {
 
         {/* Attach other projects data */}
         <bem.FormModal__item m='import-data'>
-          <div className='connect-projects-header'>
+          <div className='connect-projects__header'>
             <i className="k-icon k-icon-folder-in"/>
             <h2>{t('Import other project data')}</h2>
           </div>
@@ -305,32 +305,34 @@ class ConnectProjects extends React.Component {
 
           {/* Display attached projects */}
           <ul>
-            <label>{t('Imported')}</label>
+            <label className='connect-projects__label'>
+              {t('Imported')}
+            </label>
             {(!this.state.isInitialised || this.state.isLoading) &&
-              <div className='imported-item'>
+              <li className='connect-projects__imported-item'>
                 {renderLoading(t('Loading imported projects'))}
-              </div>
+              </li>
             }
             {!this.state.isLoading && this.state.attachedParents.length == 0 &&
-              <li className='no-imports'>
+              <li className='connect-projects__no-imports'>
                 {t('No data imported')}
               </li>
             }
             {!this.state.isLoading && this.state.attachedParents.length > 0 &&
                 this.state.attachedParents.map((item, n) => {
                   return (
-                    <li key={n} className='imported-item'>
+                    <li key={n} className='connect-projects__imported-item'>
                       <i className="k-icon k-icon-check"/>
-                      <div className='imported-names'>
-                        <span className='imported-filename'>
+                      <div className='connect-projects__imported-names'>
+                        <span className='connect-projects__imported-filename'>
                           {truncateFile(item.filename, MAX_DISPLAYED_STRING_LENGTH)}
                         </span>
-                        <span className='imported-parent'>
+                        <span className='connect-projects__imported-parent'>
                           {truncateString(item.parentName, MAX_DISPLAYED_STRING_LENGTH)}
                         </span>
                       </div>
                       <i
-                        className="k-icon-trash"
+                        className="k-icon k-icon-trash"
                         onClick={() => this.removeAttachment(item.attachmentUrl)}
                       />
                     </li>
