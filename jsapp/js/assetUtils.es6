@@ -187,11 +187,11 @@ export function isLibraryAsset(assetType) {
  */
 export function getAssetIcon(asset) {
   if (asset.asset_type === ASSET_TYPES.template.id) {
-    return 'k-icon-template-new';
+    return 'k-icon-template';
   } else if (asset.asset_type === ASSET_TYPES.question.id) {
-    return 'k-icon-question-new';
+    return 'k-icon-question';
   } else if (asset.asset_type === ASSET_TYPES.block.id) {
-    return 'k-icon-block-new';
+    return 'k-icon-block';
   } else if (asset.asset_type === ASSET_TYPES.survey.id) {
     if (asset.has_deployment) {
       return 'k-icon-deploy';
