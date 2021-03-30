@@ -147,8 +147,8 @@ $z-modal-x: 10;
   color: $kobo-darkgray;
 
   i {
-    margin: 2px 10px 10px 0;
-    font-size: 32px;
+    margin: 5px 10px 10px 3px;
+    font-size: 24px;
     float: left;
   }
 }
@@ -305,8 +305,8 @@ $z-modal-x: 10;
 
     i {
       color: $kobo-orange;
-      font-size: 40px;
-      margin-right: 10px;
+      font-size: 28px;
+      margin-right: 13px;
       vertical-align: middle;
       display: inline-block;
     }
@@ -429,8 +429,8 @@ $z-modal-x: 10;
 
       i {
         display: block;
-        margin: 0 auto;
-        font-size: 48px;
+        margin: 3px auto;
+        font-size: 34px;
         color: currentColor;
       }
 
@@ -458,8 +458,8 @@ $z-modal-x: 10;
 
     i {
       display: block;
-      margin: 0 auto;
-      font-size: 72px;
+      margin: 5px auto;
+      font-size: 52px;
       opacity: 0.5;
     }
 
@@ -580,7 +580,8 @@ $z-modal-x: 10;
       top: 6px;
 
       i {
-        font-size: 24px;
+        font-size: 18px;
+        margin: 3px;
       }
     }
   }
@@ -633,7 +634,8 @@ $z-modal-x: 10;
       top: 6px;
 
       i {
-        font-size: 24px;
+        font-size: 18px;
+        margin: 3px;
       }
     }
   }
