@@ -6,7 +6,7 @@ import Select from 'react-select';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
-import MultiCheckbox from 'js/components/multiCheckbox';
+import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {actions} from 'js/actions';
 import {stores} from '../../stores';
 import {bem} from 'js/bem';

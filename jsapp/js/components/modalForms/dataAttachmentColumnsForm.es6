@@ -1,6 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import MultiCheckbox from 'js/components/multiCheckbox';
+import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import {renderLoading} from '../modalForms/modalHelpers';
