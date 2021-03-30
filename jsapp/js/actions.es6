@@ -17,6 +17,9 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
+import formMediaActions from './actions/media';
+import exportsActions from './actions/exportsActions';
+import dataShareActions from './actions/datashare';
 import {
   notify,
   replaceSupportEmail,
@@ -30,6 +33,9 @@ export const actions = {
   help: helpActions,
   library: libraryActions,
   submissions: submissionsActions,
+  media: formMediaActions,
+  exports: exportsActions,
+  dataShare: dataShareActions,
 };
 
 actions.navigation = Reflux.createActions([
@@ -92,22 +98,6 @@ actions.misc = Reflux.createActions({
   checkUsername: {asyncResult: true, children: ['completed', 'failed']},
   updateProfile: {children: ['completed', 'failed']},
   getServerEnvironment: {children: ['completed', 'failed']},
-});
-
-actions.media = Reflux.createActions({
-  loadMedia: {children: ['completed', 'failed']},
-  uploadMedia: {children: ['completed', 'failed']},
-  deleteMedia: {children: ['completed', 'failed']},
-});
-
-actions.dataShare = Reflux.createActions({
-  attachToParent: {children: ['completed', 'failed']},
-  detachParent: {children: ['completed', 'failed']},
-  patchParent: {children: ['completed', 'failed']},
-  getAttachedParents: {children: ['completed', 'failed']},
-  getSharingEnabledAssets: {children: ['completed', 'failed']},
-  toggleDataSharing: {children: ['completed', 'failed']},
-  updateColumnFilters: {children: ['completed', 'failed']},
 });
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
@@ -197,155 +187,6 @@ actions.resources.createImport.listen((params, onCompleted, onFailed) => {
       actions.resources.createImport.failed(response);
       if (typeof onFailed === 'function') {onFailed(response);}
     });
-});
-
-/*
- * Dynamic data attachments
- */
-actions.dataShare.attachToParent.listen((assetUid, data) => {
-  dataInterface.attachToParent(assetUid, data)
-    .done(() => {
-      actions.dataShare.attachToParent.completed(assetUid);
-    })
-    .fail((response) => {
-      actions.dataShare.attachToParent.failed(response)
-    })
-});
-
-actions.dataShare.detachParent.listen((attachmentUrl) => {
-  dataInterface.detachParent(attachmentUrl)
-    .done(() => {
-      actions.dataShare.detachParent.completed();
-    })
-    .fail((response) => {
-      actions.dataShare.detachParent.failed(response)
-    })
-});
-
-actions.dataShare.patchParent.listen((attachmentUrl, data) => {
-  dataInterface.patchParent(attachmentUrl, data)
-    .done((response) => {
-      actions.dataShare.patchParent.completed(response);
-    })
-    .fail((response) => {
-      actions.dataShare.patchParent.failed(response)
-    })
-});
-
-actions.dataShare.getAttachedParents.listen((assetUid) => {
-  dataInterface.getAttachedParents(assetUid)
-    .done((response) => {
-      if (response.results.length > 0) {
-        let allParents = [];
-        response.results.forEach((parent) => {
-          // Assume file extension is after last `.` of filename and remove it
-          let filename = parent.filename.replace(/\.[^/.]+$/, '');
-          // Assume uid is after last `/` of its asset url
-          let parentUid = parent.parent.match(/.*\/([^/]+)\//)[1];
-          allParents.push({
-            parentName: parent.parent_name,
-            // Parent's asset url
-            parentUrl: parent.parent,
-            parentUid: parentUid,
-            // Fields that the child has selected to import
-            childFields: parent.fields,
-            filename: filename,
-            // Child-parent attachment endpoint
-            attachmentUrl: parent.url,
-          });
-          actions.dataShare.getAttachedParents.completed(allParents);
-        });
-      } else {
-        actions.dataShare.getAttachedParents.completed([]);
-      }
-    })
-    .fail(actions.dataShare.getAttachedParents.failed);
-});
-
-actions.dataShare.getSharingEnabledAssets.listen(() => {
-  dataInterface.getSharingEnabledAssets()
-    .done((response) => {
-      actions.dataShare.getSharingEnabledAssets.completed(response);
-    })
-    .fail(actions.dataShare.getSharingEnabledAssets.failed);
-});
-actions.dataShare.getSharingEnabledAssets.failed.listen(() => {
-  alertify.error(t('Failed to retrieve sharing enabled assets'));
-});
-
-// The next two actions have the same endpoint but are called on very different
-// situations, so we keep them as separate actions
-actions.dataShare.toggleDataSharing.listen((uid, data) => {
-  dataInterface.patchDataSharing(uid, data)
-    .done(actions.dataShare.toggleDataSharing.completed)
-    .fail((response) => {
-      actions.dataShare.toggleDataSharing.failed(response);
-    });
-});
-actions.dataShare.toggleDataSharing.failed.listen((response) => {
-  alertify.error(response.responseJSON.detail);
-});
-
-actions.dataShare.updateColumnFilters.listen((uid, data) => {
-  dataInterface.patchDataSharing(uid, data)
-    .done((response) => {
-      actions.dataShare.updateColumnFilters.completed(response)
-    })
-    .fail((response) => {
-      actions.dataShare.updateColumnFilters.failed(response);
-    });
-});
-actions.dataShare.updateColumnFilters.failed.listen((response) => {
-  alertify.error(response.responseJSON);
-});
-
-/*
- * Form media endpoint actions
- */
-actions.media.uploadMedia.listen((uid, formMediaJSON) => {
-  dataInterface.postFormMedia(uid, formMediaJSON)
-    .done(() => {
-      actions.media.uploadMedia.completed(uid);
-    })
-    .fail((response) => {
-      actions.media.uploadMedia.failed(response);
-    });
-});
-actions.media.uploadMedia.completed.listen((uid) => {
-  actions.media.loadMedia(uid);
-});
-actions.media.uploadMedia.failed.listen(() => {
-  alertify.error(t('Could not upload your media'));
-});
-
-actions.media.loadMedia.listen((uid) => {
-  dataInterface.getFormMedia(uid)
-    .done((response) => {
-      actions.media.loadMedia.completed(response);
-    })
-    .fail((response) => {
-      actions.media.loadMedia.failed(response);
-    });
-});
-actions.media.loadMedia.failed.listen(() => {
-  alertify.error(t('Something went wrong with getting your media'));
-});
-
-actions.media.deleteMedia.listen((uid, url) => {
-  dataInterface.deleteFormMedia(url)
-    .done(() => {
-      actions.media.deleteMedia.completed(uid);
-    })
-    .fail((response) => {
-      actions.media.deleteMedia.failed(response);
-    });
-});
-actions.media.deleteMedia.completed.listen((uid) => {
-  notify(t('Successfully deleted media'));
-  actions.media.loadMedia(uid);
-});
-actions.media.deleteMedia.failed.listen(() => {
-  alertify.error(t('Failed to delete media!'));
 });
 
 actions.resources.createSnapshot.listen(function(details){

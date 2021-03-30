@@ -127,7 +127,7 @@
     }
   }
 
-  label.form-view__tab--label {
+  label.form-view__tab-label {
     display: inline-block;
     width: 70%;
     vertical-align: middle;
@@ -225,6 +225,18 @@
 
   &.form-view__cell--bordered {
     border: 1px solid $kobo-lightgray;
+  }
+
+  &.form-view__cell--page-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 30px 0 15px;
+  }
+
+  &.form-view__cell--page-subtitle {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 30px 0 15px;
   }
 
   &.form-view__cell--columns {
@@ -512,24 +524,6 @@
   }
 }
 
-@keyframes processing {
-  0% {
-    opacity: 1;
-  }
-
-  25% {
-    opacity: 0.6;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
 .form-view__group {
   .dropzone {
     display: inline;
@@ -588,9 +582,7 @@
       animation: recent 5s 1;
     }
 
-    .animate-processing {
-      animation: processing 1.5s infinite;
-    }
+
   }
 
   .form-view__group--deployments {

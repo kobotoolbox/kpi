@@ -5,7 +5,6 @@ import {
   isRowSpecialLabelHolder,
 } from 'js/assetUtils';
 import {
-  FORM_VERSION_NAME,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   MATRIX_PAIR_PROPS,
@@ -110,12 +109,11 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
       if (!isRowCurrentLevel) {
         continue;
       }
-      // we don't want to include special calculate row used to store form version
-      if (row.type === QUESTION_TYPES.calculate.id && rowName === FORM_VERSION_NAME) {
-        continue;
-      }
-      // notes don't carry submission data, we ignore them
-      if (row.type === QUESTION_TYPES.note.id) {
+      // let's hide rows that don't carry any submission data
+      if (
+        row.type === QUESTION_TYPES.note.id ||
+        row.type === QUESTION_TYPES.hidden.id
+      ) {
         continue;
       }
       /*

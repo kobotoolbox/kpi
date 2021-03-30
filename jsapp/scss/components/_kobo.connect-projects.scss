@@ -1,10 +1,11 @@
 .connect-projects {
-  i {
+  i.k-icon {
     font-size: 32px;
     margin-right: 5px;
   }
 
   .form-view__cell--page-title {
+    font-size: 14px;
     display: flex;
     margin-top: 20px;
     i {
@@ -91,7 +92,7 @@
       margin-top: 20px;
       font-size: 14px;
       font-weight: bold;
-      color: darken($kobo-midgray, 10%);
+      color: $kobo-darkgray;
     }
 
     .connect-projects__import--list-item {
@@ -102,31 +103,31 @@
       margin-top: 7px;
       margin-bottom: 10px;
       border-bottom: 1px solid;
-      border-color: lighten($kobo-midgray, 15%);
+      border-color: $kobo-lightgray;
 
       i.k-icon-check {
         color: $kobo-blue;
       }
 
-      .imported-names {
-        i.k-icon-check {
-          color: $kobo-blue;
-          font-weight: bold;
-        }
-
+      .connect-projects__import--labels {
         position: absolute;
         top: 6px;
         left: 32px;
         font-weight: 500;
 
-        .imported-parent {
+        i.k-icon-check {
+          color: $kobo-blue;
+          font-weight: bold;
+        }
+
+        .connect-projects__import--labels--parent {
           margin-left: 24px;
           font-weight: 400;
-          color: darken($kobo-midgray, 20%);
+          color: $kobo-darkgray;
         }
       }
 
-      .imported-options {
+      .connect-projects__import--options {
         position: relative;
         i {
           position: absolute;
@@ -136,6 +137,7 @@
           border: 1px solid;
           border-radius: 10%;
         }
+
         i:not(:first-child) {
           margin-right: 45px;
         }

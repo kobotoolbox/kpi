@@ -5,19 +5,32 @@ import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
+import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
-/*
+import {
+  ASSET_FILE_TYPES,
+  MAX_DISPLAYED_STRING_LENGTH,
+} from '../../constants';
+
+import {
+  truncateString,
+  truncateUrl,
+} from '../../utils';
+
+/**
+ * @prop {object} asset
+ *
  * Modal for uploading form media
  */
 class FormMedia extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      uploadedAssets: null,
+      uploadedAssets: [],
       fieldsErrors: {},
       inputURL: '',
       // to show loading icon instead of nothing on first load
-      isVirgin: true,
+      isInitialised: false,
       // to show loading icon while uploading any file
       isUploadFilePending: false,
       isUploadURLPending: false
@@ -31,13 +44,10 @@ class FormMedia extends React.Component {
    */
 
   componentDidMount() {
-    actions.media.loadMedia.completed.listen(this.onGetMediaCompleted);
-    actions.media.uploadMedia.completed.listen(this.onUploadCompleted);
-    actions.media.uploadMedia.failed.listen(this.onUploadFailed);
-    actions.media.deleteMedia.completed.listen(this.onGetMediaCompleted);
-    actions.media.deleteMedia.failed.listen(this.onDeleteMediaFailed);
-
     actions.media.loadMedia(this.props.asset.uid);
+
+    actions.media.loadMedia.completed.listen(this.onGetMediaCompleted);
+    actions.media.uploadMedia.failed.listen(this.onUploadFailed);
   }
 
   /*
@@ -49,7 +59,7 @@ class FormMedia extends React.Component {
       uploadedAssets: uploadedAssets.results,
       isUploadFilePending: false,
       isUploadURLPending: false,
-      isVirgin: false,
+      isInitialised: true,
     });
   }
 
@@ -94,13 +104,13 @@ class FormMedia extends React.Component {
 
       files.forEach(async (file) => {
         var base64File = await this.toBase64(file);
-	    var formMediaJSON = {
+
+        this.uploadMedia({
 	      description: 'default',
-          file_type: 'form_media',
+          file_type: ASSET_FILE_TYPES.form_media.id,
           metadata: JSON.stringify({filename: file.name}),
 	      base64Encoded: base64File
-	    };
-        this.uploadMedia(formMediaJSON);
+	    });
       });
     }
   }
@@ -120,24 +130,16 @@ class FormMedia extends React.Component {
         inputURL: ''
       });
 
-      var formMediaJSON = {
+      this.uploadMedia({
         description: 'default',
-        file_type: 'form_media',
+        file_type: ASSET_FILE_TYPES.form_media.id,
         metadata: JSON.stringify({redirect_url: url}),
-      };
-      this.uploadMedia(formMediaJSON);
+      });
     }
   }
 
   onDeleteMedia(url) {
     actions.media.deleteMedia(this.props.asset.uid, url);
-  }
-
-  uploadedAssetsIsEmpty() {
-    return (
-      this.state.uploadedAssets === null ||
-      this.state.uploadedAssets === undefined
-    );
   }
 
   /*
@@ -150,7 +152,10 @@ class FormMedia extends React.Component {
       buttonClassNames.push('formBuilder-header__button--savepending');
     }
     return (
-      <button className={buttonClassNames.join(' ')}>
+      <button
+        className={buttonClassNames.join(' ')}
+        onClick={this.onSubmitURL}
+      >
         <i />
         {t('ADD')}
       </button>
@@ -158,14 +163,12 @@ class FormMedia extends React.Component {
   }
 
   renderFileName(item){
-    // Check if current item is uploaded vis URL. `redirect_url` is the indicator
+    // Check if current item is uploaded via URL. `redirect_url` is the indicator
     var fileName = item.metadata.filename;
     if (item.metadata.redirect_url) {
-      // Shorten URL to exactly 50 chars
-      var url = item.metadata.redirect_url;
-      var urlBack = url.slice(url.length - 22);
-      var urlFront = url.replace('https://', '').replace('http://', '').substr(0, 25);
-      fileName = urlFront + '...' + urlBack;
+      fileName = truncateUrl(item.metadata.redirect_url, MAX_DISPLAYED_STRING_LENGTH.form_media);
+    } else {
+      fileName = truncateString(fileName, MAX_DISPLAYED_STRING_LENGTH.form_media);
     }
 
     return (
@@ -175,7 +178,7 @@ class FormMedia extends React.Component {
 
   renderIcon(item) {
     const iconClassNames = ['form-media__file-type', 'fa'];
-    // Check if current item is uploaded vis URL. `redirect_url` is the indicator
+    // Check if current item is uploaded via URL. `redirect_url` is the indicator
     if (item.metadata.redirect_url) {
       iconClassNames.push('fa-link');
     } else {
@@ -187,25 +190,14 @@ class FormMedia extends React.Component {
     );
   }
 
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
   render() {
     return (
-      <bem.FormModal__form className='project-settings project-settings--upload-file media-settings--upload-file' onSubmit={this.onSubmitURL}>
+      <bem.FormView m='form-media' className='form-media'>
 	    <div className='form-media__upload'>
           {!this.state.isUploadFilePending &&
             <Dropzone
                 onDrop={this.onFileDrop.bind(this)}
-                className='dropzone'
+                className='dropzone-settings'
             >
               {this.state.fieldsErrors.base64Encoded &&
                 <bem.FormView__cell m='error'>
@@ -214,62 +206,73 @@ class FormMedia extends React.Component {
                 </bem.FormView__cell>
               }
               <i className='k-icon-upload' />
-              {t(' Drag and drop files here')}
+              {t('Drag and drop files here')}
               <div className='form-media__desc'>
                 {t('or')} <a>{t('click here to browse')}</a>
               </div>
             </Dropzone>
           }
+
           {this.state.isUploadFilePending &&
-            <div className='dropzone'>
-              {this.renderLoading(t('Uploading file…'))}
+            <div className='dropzone-settings'>
+              {renderLoading(t('Uploading file…'))}
             </div>
           }
+
           <div className='form-media__upload-url'>
-            <label className='form-media__label'>{t('You can also add files using a URL')}</label>
-            <TextBox
-              type='url'
-              placeholder={t('Paste URL here')}
-              errors={this.state.fieldsErrors.metadata}
-              value={this.state.inputURL}
-              onChange={this.onInputURLChange}
-            />
-            {this.renderButton()}
+            <label className='form-media__upload-url--label'>
+              {t('You can also add files using a URL')}
+            </label>
+            <div className='form-media__upload-url--form'>
+              <TextBox
+                type='url'
+                placeholder={t('Paste URL here')}
+                errors={this.state.fieldsErrors.metadata}
+                value={this.state.inputURL}
+                onChange={this.onInputURLChange}
+              />
+              {this.renderButton()}
+            </div>
           </div>
         </div>
 
-        <div className='form-media__file-list'>
-          <label className='form-media__list-label'>{t('File(s) uploaded to this project')}</label>
-            <ul>
-              {(this.state.isVirgin || this.state.isUploadFilePending || this.state.isUploadURLPending) &&
-                <li className='form-media__default-item form-media__list-item'>
-                  {this.renderLoading(t('loading media'))}
+        <div className='form-media__list'>
+          <label className='form-media__list--label'>
+            {t('File(s) uploaded to this project')}
+          </label>
+
+          <ul>
+            {
+              (!this.state.isInitialised ||
+                this.state.isUploadFilePending ||
+                this.state.isUploadURLPending) &&
+                <li className='form-media__list--default-item form-media__list--item'>
+                  {renderLoading(t('loading media'))}
                 </li>
-              }
-              {!this.uploadedAssetsIsEmpty() &&
-                  this.state.uploadedAssets.map((item, n) => {
-                    return (
-                      <li key={n} className="form-media__list-item">
-                        {this.renderIcon(item)}
-                        {this.renderFileName(item)}
-                        <i
-                          className="k-icon-trash"
-                          onClick={() => this.onDeleteMedia(item.url)}
-                        />
-                      </li>
-                    );
-                  })
-              }
-              {!this.state.isVirgin &&
-                (this.uploadedAssetsIsEmpty() ||
-                  this.state.uploadedAssets.length == 0) &&
-                  <li className='form-media__default-item form-media__list-item'>
-                      {t('No files uploaded yet')}
+            }
+
+            {this.state.uploadedAssets.map((item, n) => {
+                return (
+                  <li key={n} className="form-media__list--item">
+                    {this.renderIcon(item)}
+                    {this.renderFileName(item)}
+                    <i
+                      className="k-icon-trash"
+                      onClick={() => this.onDeleteMedia(item.url)}
+                    />
                   </li>
-              }
-            </ul>
+                );
+            })}
+
+            {this.state.isInitialised &&
+              this.state.uploadedAssets.length == 0 &&
+                <li className='form-media__default--item form-media__list--item'>
+                    {t('No files uploaded yet')}
+                </li>
+            }
+          </ul>
         </div>
-      </bem.FormModal__form>
+      </bem.FormView>
     );
   }
 }

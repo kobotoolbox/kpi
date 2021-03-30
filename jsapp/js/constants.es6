@@ -145,6 +145,17 @@ export const ASSET_TYPES = {
   },
 };
 
+export const ASSET_FILE_TYPES = {
+  map_layer: {
+    id: 'map_layer',
+    label: t('map layer'),
+  },
+  form_media: {
+    id: 'form_media',
+    label: t('form media'),
+  },
+}
+
 export const QUESTION_TYPES = Object.freeze({
   select_one: {
     label: t('Select One'),
@@ -287,6 +298,23 @@ new Set([
 ]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
 Object.freeze(META_QUESTION_TYPES);
 
+// submission data extras being added by backend. see both of these:
+// 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
+// 2. https://github.com/kobotoolbox/kpi/blob/7db39015866c905edc645677d72b9c1ea16067b1/jsapp/js/constants.es6#L284-L294
+export const ADDITIONAL_SUBMISSION_PROPS = {};
+new Set([
+  // match the ordering of (Python) kpi.models.import_export_task.ExportTask.COPY_FIELDS
+  '_id',
+  '_uuid',
+  '_submission_time',
+  '_validation_status',
+  '_notes',
+  '_status',
+  '_submitted_by',
+  '_tags',
+]).forEach((codename) => {ADDITIONAL_SUBMISSION_PROPS[codename] = codename;});
+Object.freeze(ADDITIONAL_SUBMISSION_PROPS);
+
 export const NAME_MAX_LENGTH = 255;
 
 /**
@@ -332,8 +360,6 @@ new Set([
   'end_repeat',
 ]).forEach((kind) => {GROUP_TYPES_END[kind] = kind;});
 Object.freeze(GROUP_TYPES_END);
-
-export const FORM_VERSION_NAME = '__version__';
 
 // a custom question type for score
 export const SCORE_ROW_TYPE = 'score__row';
@@ -407,6 +433,11 @@ export const ROUTES = Object.freeze({
   FORM_RESET: '/forms/:uid/reset',
 });
 
+export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
+  form_media: 50,
+  connect_projects: 30,
+});
+
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -420,14 +451,15 @@ const constants = {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   ASSET_TYPES,
+  ASSET_FILE_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
+  ADDITIONAL_SUBMISSION_PROPS,
   NAME_MAX_LENGTH,
   COMMON_QUERIES,
   ACCESS_TYPES,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
-  FORM_VERSION_NAME,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
@@ -435,6 +467,7 @@ const constants = {
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
+  MAX_DISPLAYED_STRING_LENGTH,
 };
 
 export default constants;

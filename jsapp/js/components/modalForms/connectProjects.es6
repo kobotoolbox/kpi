@@ -7,14 +7,19 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import MultiCheckbox from 'js/components/multiCheckbox';
-import Radio from 'js/components/common/radio';
-import {actions} from '../../actions';
+import {actions} from 'js/actions';
 import {stores} from '../../stores';
 import {bem} from 'js/bem';
 import {renderLoading} from '../modalForms/modalHelpers';
+
 import {
   MODAL_TYPES,
+  MAX_DISPLAYED_STRING_LENGTH,
 } from '../../constants';
+import {
+  truncateFile,
+  truncateString,
+} from '../../utils';
 
 /*
  * Modal for connecting project data
@@ -25,7 +30,7 @@ class ConnectProjects extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isVirgin: true,
+      isInitialised: false,
       isLoading: false,
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
@@ -48,19 +53,6 @@ class ConnectProjects extends React.Component {
    */
 
   componentDidMount() {
-    this.refreshAttachmentList();
-
-    if (this.state.isShared) {
-      this.setState({
-        columnsToDisplay: this.generateColumnFilters(
-          this.props.asset.data_sharing.fields,
-          this.props.asset.content.survey,
-        ),
-      });
-    }
-
-    actions.dataShare.getSharingEnabledAssets();
-
     this.unlisteners.push(
       actions.dataShare.attachToParent.completed.listen(
         this.refreshAttachmentList
@@ -96,6 +88,19 @@ class ConnectProjects extends React.Component {
         this.stopLoading
       ),
     );
+
+    this.refreshAttachmentList();
+
+    if (this.state.isShared) {
+      this.setState({
+        columnsToDisplay: this.generateColumnFilters(
+          this.props.asset.data_sharing.fields,
+          this.props.asset.content.survey,
+        ),
+      });
+    }
+
+    actions.dataShare.getSharingEnabledAssets();
   }
 
   componentWillUnmount() {
@@ -115,7 +120,7 @@ class ConnectProjects extends React.Component {
 
   onGetAttachedParentsCompleted(response) {
     this.setState({
-      isVirgin: false,
+      isInitialised: true,
       isLoading: false,
       attachedParents: response,
     });
@@ -125,9 +130,9 @@ class ConnectProjects extends React.Component {
     this.setState({sharingEnabledAssets: response});
   }
 
-  onToggleDataSharingCompleted() {
+  onToggleDataSharingCompleted(response) {
     this.setState({
-      isShared: !this.state.isShared,
+      isShared: response.data_sharing.enabled,
       isSharingSomeQuestions: false,
       columnsToDisplay: this.generateColumnFilters(
         [],
@@ -136,7 +141,7 @@ class ConnectProjects extends React.Component {
     });
   }
 
-  // Safely update state after guaranteed columm changes
+  // Safely update state after guaranteed column changes
   onUpdateColumnFiltersCompleted(response) {
     this.setState({
       isLoading: false,
@@ -199,14 +204,14 @@ class ConnectProjects extends React.Component {
       if (!this.state.newParent?.url) {
         this.setState({
           fieldsErrors: Object.assign(
-            this.state.fieldsErrors, {parent: 'No project selected'}
+            this.state.fieldsErrors, {parent: t('No project selected')}
           )
         });
       }
       if (this.state.newFilename === '') {
         this.setState({
           fieldsErrors: Object.assign(
-            this.state.fieldsErrors, {filename: 'Field is empty'}
+            this.state.fieldsErrors, {filename: t('Field is empty')}
           )
         });
       }
@@ -288,10 +293,15 @@ class ConnectProjects extends React.Component {
    * Utilities
    */
 
+  // Generates a filename for the selected parent, done so by taking the first
+  // 30 characters, turning them lowercase and replacing spaces with underscores
   generateAutoname(newParent) {
     if (newParent) {
       let autoname = newParent.name;
-      autoname = autoname.toLowerCase().substring(0, 30).replace(/(\ |\.)/g, '_');
+      autoname = autoname
+        .toLowerCase()
+        .substring(0, MAX_DISPLAYED_STRING_LENGTH.connect_projects)
+        .replace(/(\ |\.)/g, '_');
       this.setState({newFilename: autoname});
     }
   }
@@ -333,10 +343,6 @@ class ConnectProjects extends React.Component {
     return columnsToDisplay;
   }
 
-  generateTruncatedDisplayName(name) {
-    return name.length > 30 ? `${name.substring(0, 30)}...` : name;
-  }
-
   generateFilteredAssetList() {
     let attachedParentUids = [];
     this.state.attachedParents.forEach((item) => {
@@ -366,7 +372,7 @@ class ConnectProjects extends React.Component {
     );
   }
 
-  // Lets import modal trigger loading of this modal
+  // Allows import modal trigger loading of this modal
   triggerParentLoading() {
     this.setState({isLoading: true})
   }
@@ -375,30 +381,34 @@ class ConnectProjects extends React.Component {
    * Rendering
    */
 
-  renderSelect(sharingEnabledAssets) {
-    const selectClassNames = ['kobo-select__wrapper'];
-    if (this.state.fieldsErrors.parent) {
-      selectClassNames.push('kobo-select__wrapper--error');
+  renderSelect() {
+    if (this.state.sharingEnabledAssets !== null) {
+      let sharingEnabledAssets = this.generateFilteredAssetList();
+      const selectClassNames = ['kobo-select__wrapper'];
+      if (this.state.fieldsErrors.parent) {
+        selectClassNames.push('kobo-select__wrapper--error');
+      }
+      return(
+        <div className={selectClassNames.join(' ')}>
+          <Select
+            placeholder={t('Select a different project to import data from')}
+            options={sharingEnabledAssets}
+            value={this.state.newParent}
+            isLoading={(this.state.isVirgin || this.state.isLoading || !sharingEnabledAssets)}
+            getOptionLabel={option => option.name}
+            getOptionValue={option => option.url}
+            noOptionsMessage={() => {return t('No projects to connect')}}
+            onChange={this.onParentChange}
+            className='kobo-select'
+            classNamePrefix='kobo-select'
+          />
+
+          <label className='select-errors'>
+            {this.state.fieldsErrors.parent}
+          </label>
+        </div>
+      );
     }
-    return(
-      <div className={selectClassNames.join(' ')}>
-        <Select
-          placeholder={t('Select a different project to import data from')}
-          options={sharingEnabledAssets}
-          value={this.state.newParent}
-          isLoading={(this.state.isVirgin || this.state.isLoading || !sharingEnabledAssets)}
-          getOptionLabel={option => option.name}
-          getOptionValue={option => option.url}
-          noOptionsMessage={() => {return t('No projects to connect')}}
-          onChange={this.onParentChange}
-          className='kobo-select'
-          classNamePrefix='kobo-select'
-        />
-        <label className='select-errors'>
-          {this.state.fieldsErrors.parent}
-        </label>
-      </div>
-    );
   }
 
   renderExports() {
@@ -419,6 +429,7 @@ class ConnectProjects extends React.Component {
               label={t('Select specific questions to share')}
             />
           </div>
+
           {this.state.isSharingSomeQuestions &&
             <div className='connect-projects__export--multicheckbox'>
               <span>
@@ -452,97 +463,92 @@ class ConnectProjects extends React.Component {
     }
   }
 
-  renderImports(sharingEnabledAssets) {
-    if (sharingEnabledAssets) {
-      return (
-        <div className='connect-projects__import'>
-          <div className='connect-projects__import--form'>
-            {this.renderSelect(sharingEnabledAssets)}
+  renderImports() {
+    return (
+      <div className='connect-projects__import'>
+        <div className='connect-projects__import--form'>
+          {this.renderSelect()}
 
-            <TextBox
-              placeholder={t('Give a unique name to the import')}
-              value={this.state.newFilename}
-              onChange={this.onFilenameChange}
-              errors={this.state.fieldsErrors.filename}
-            />
+          <TextBox
+            placeholder={t('Give a unique name to the import')}
+            value={this.state.newFilename}
+            onChange={this.onFilenameChange}
+            errors={this.state.fieldsErrors.filename}
+          />
 
-            <bem.KoboButton
-              m='blue'
-              onClick={this.onConfirmAttachment}
-            >
-              {t('Import')}
-            </bem.KoboButton>
-          </div>
-
-          {/* Display attached projects */}
-          <ul className='connect-projects__import--list'>
-            <label>{t('Imported')}</label>
-            {(this.state.isVirgin || this.state.isLoading) &&
-              <div className='connect-projects__import--list-item'>
-                {renderLoading(t('Loading imported projects'))}
-              </div>
-            }
-            {!this.state.isLoading && this.state.attachedParents.length == 0 &&
-              <li className='no-imports'>
-                {t('No data imported')}
-              </li>
-            }
-            {!this.state.isLoading && this.state.attachedParents.length > 0 &&
-              this.state.attachedParents.map((item, n) => {
-                return (
-                  <li key={n} className='connect-projects__import--list-item'>
-                    <i className="k-icon k-icon-check"/>
-
-                    <div className='imported-names'>
-                      <span className='imported-filename'>
-                        {item.filename}
-                      </span>
-
-                      <span className='imported-parent'>
-                        {this.generateTruncatedDisplayName(item.parentName)}
-                      </span>
-                    </div>
-
-                    <div className='imported-options'>
-                      <i
-                        className="k-icon-trash"
-                        onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
-                      />
-
-                      <i
-                        className="k-icon-settings"
-                        onClick={() => this.showColumnFilterModal(
-                          this.props.asset,
-                          {
-                            uid: item.parentUid,
-                            name: item.parentName,
-                            url: item.parentUrl,
-                          },
-                          item.filename,
-                          item.childFields,
-                          item.attachmentUrl,
-                        )}
-                      />
-                    </div>
-                  </li>
-                );
-              })
-            }
-          </ul>
+          <bem.KoboButton
+            m='blue'
+            onClick={this.onConfirmAttachment}
+          >
+            {t('Import')}
+          </bem.KoboButton>
         </div>
-      );
-    }
+
+        {/* Display attached projects */}
+        <ul className='connect-projects__import--list'>
+          <label>{t('Imported')}</label>
+
+          {(this.state.isVirgin || this.state.isLoading) &&
+            <div className='connect-projects__import--list-item'>
+              {renderLoading(t('Loading imported projects'))}
+            </div>
+          }
+
+          {!this.state.isLoading && this.state.attachedParents.length == 0 &&
+            <li className='connect-projects__no-imports'>
+              {t('No data imported')}
+            </li>
+          }
+
+          {!this.state.isLoading && this.state.attachedParents.length > 0 &&
+            this.state.attachedParents.map((item, n) => {
+              return (
+                <li key={n} className='connect-projects__import--list-item'>
+                  <i className="k-icon k-icon-check"/>
+
+                  <div className='connect-projects__import--labels'>
+                    <span className='connect-projects__import--labels--filename'>
+                      {item.filename}
+                    </span>
+
+                    <span className='connect-projects__import--labels--parent'>
+                      {item.parentName}
+                    </span>
+                  </div>
+
+                  <div className='connect-projects__import--options'>
+                    <i
+                      className="k-icon k-icon-trash"
+                      onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
+                    />
+
+                    <i
+                      className="k-icon k-icon-settings"
+                      onClick={() => this.showColumnFilterModal(
+                        this.props.asset,
+                        {
+                          uid: item.parentUid,
+                          name: item.parentName,
+                          url: item.parentUrl,
+                        },
+                        item.filename,
+                        item.childFields,
+                        item.attachmentUrl,
+                      )}
+                    />
+                  </div>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </div>
+    );
   }
 
   render() {
-    let sharingEnabledAssets = [];
-    if (this.state.sharingEnabledAssets !== null) {
-      sharingEnabledAssets = this.generateFilteredAssetList();
-    }
-
     return (
       <bem.FormView__row>
-
         {/* Enable data sharing */}
         <bem.FormView__cell m={['page-title']}>
           <i className="k-icon k-icon-folder-out"/>
@@ -553,8 +559,10 @@ class ConnectProjects extends React.Component {
           <bem.FormView__form>
             <span>
               {t('Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments')}
-              <a href='#'>{t(' ' + 'here')}</a>
+              &nbsp;
+              <a href='#'>{t('here')}</a>
             </span>
+
             {this.renderExports()}
           </bem.FormView__form>
         </bem.FormView__cell>
@@ -569,9 +577,11 @@ class ConnectProjects extends React.Component {
           <bem.FormView__form>
             <span>
               {t('Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments')}
-              <a href='#'>{t(' ' + 'here')}</a>
+              &nbsp;
+              <a href='#'>{t('here')}</a>
             </span>
-            {this.renderImports(sharingEnabledAssets)}
+
+            {this.renderImports()}
           </bem.FormView__form>
         </bem.FormView__cell>
       </bem.FormView__row>
