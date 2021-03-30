@@ -623,7 +623,7 @@ class ProjectSettings extends React.Component {
   renderChooseTemplateButton() {
     return (
       <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-        <i className='k-icon-template-new' />
+        <i className='k-icon-template' />
         {t('Use a template')}
       </button>
     );
