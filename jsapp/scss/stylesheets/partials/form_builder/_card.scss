@@ -199,12 +199,14 @@ $cardIndicatorIconWidth: 21px;
     right: 0;
     width: $s-fb-row-buttons-width;
     height: 100%;
-    cursor: pointer;
     z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .card--shaded .card__buttons {
-    border:none;
+    border-color: transparent;
 }
 
 // ==========================================================================
@@ -258,26 +260,10 @@ $cardIndicatorIconWidth: 21px;
 .card__buttons__button {
     height: 20px;
     line-height: 20px;
-    width: 26px;
-    position: absolute;
-    right: -2px;
+    width: $s-fb-row-buttons-width;
     text-align: center;
-
-    &:nth-child(1) {
-      margin-top: 0;
-    }
-
-    &:nth-child(2) {
-      margin-top: 20px;
-    }
-
-    &:nth-child(3) {
-      margin-top: 40px;
-    }
-
-    &:nth-child(4) {
-      margin-top: 60px;
-    }
+    position: relative;
+    cursor: pointer;
 
     &.card__buttons__button--gray {
         color: $kobo-darkgray;

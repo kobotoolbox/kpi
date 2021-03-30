@@ -12,9 +12,10 @@ $viewMandatorySetting = require './view.mandatorySetting'
 $acceptedFilesView = require './view.acceptedFiles'
 $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
-hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
-LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 alertify = require 'alertifyjs'
+hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
+isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
+LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
@@ -119,13 +120,14 @@ module.exports = do ->
     applyLocking: () ->
       console.log('applyLocking', @model.getValue('$autoname'), @ngScope)
 
-
       @$indicator = @$('.card__indicator')
-      if @$indicator
+      if @$indicator and isRowLocked(@ngScope.rawSurvey, @model.getValue('$autoname'))
+        # mark type icon as locked
         @$indicator.prepend($.parseHTML('<small>padlock</small>'))
 
-      @$deleteRowButton = @$('.js-delete-row')
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
+        # hide delete row button
+        @$deleteRowButton = @$('.js-delete-row')
         @$deleteRowButton.addClass('locking__ui-hidden');
 
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))

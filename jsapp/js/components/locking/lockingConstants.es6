@@ -16,7 +16,7 @@ export const LOCKING_RESTRICTIONS = Object.freeze({
   group_question_delete: {name: 'group_question_delete', label: t('Remove question from group')},
   group_question_order_edit: {name: 'group_question_order_edit', label: t('Change question order within group')},
   group_settings_edit: {name: 'group_settings_edit', label: t('Edit group settings')},
-  group_skip_logic_edit: {name: 'skip_logic_edit', label: t('Edit skip logic')},
+  group_skip_logic_edit: {name: 'group_skip_logic_edit', label: t('Edit skip logic')},
   // form related
   form_replace: {name: 'form_replace', label: t('Replace whole form')},
   group_add: {name: 'group_add', label: t('Add group')},
