@@ -36,12 +36,8 @@ dataShareActions.detachParent.listen((attachmentUrl) => {
 
 dataShareActions.patchParent.listen((attachmentUrl, data) => {
   dataInterface.patchParent(attachmentUrl, data)
-    .done((response) => {
-      dataShareActions.patchParent.completed(response);
-    })
-    .fail((response) => {
-      dataShareActions.patchParent.failed(response)
-    })
+    .done(dataShareActions.patchParent.completed)
+    .fail(dataShareActions.patchParent.failed)
 });
 
 dataShareActions.getAttachedParents.listen((assetUid) => {
