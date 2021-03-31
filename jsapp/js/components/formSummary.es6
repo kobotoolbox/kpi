@@ -264,9 +264,9 @@ class FormSummary extends React.Component {
             className='form-view__tab'
             data-path={item.path}
             onClick={this.triggerRefresh}>
-              <i className={item.icon} />
+              <i className={`k-icon ${item.icon}`} />
               {item.label}
-              <i className={'fa fa-angle-right'} />
+              <i className='k-icon k-icon-next' />
           </Link>
         )}
       </bem.FormView__cell>

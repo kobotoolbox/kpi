@@ -269,6 +269,15 @@ $z-modal-x: 10;
     .checkbox__label {
       white-space: nowrap;
     }
+
+    .mdl-button--icon {
+      padding-left: 6px;
+      padding-right: 6px;
+
+      &:not(:first-child) {
+        margin-left: 10px;
+      }
+    }
   }
 
   .submission-duplicate__actions {
