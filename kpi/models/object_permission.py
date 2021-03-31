@@ -749,7 +749,7 @@ class ObjectPermissionMixin:
         """
         Returns the list of partial permissions related to the user.
 
-        Should implemented on classes that inherit from this mixin
+        Should be implemented on classes that inherit from this mixin
         """
         return []
 
@@ -758,7 +758,7 @@ class ObjectPermissionMixin:
         Returns the list of (Mongo) filters for a specific permission `perm`
         and this specific object.
 
-        Should implemented on classes that inherit from this mixin
+        Should be implemented on classes that inherit from this mixin
         """
         return None
 

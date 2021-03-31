@@ -8,7 +8,11 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
+from kpi.constants import (
+    INSTANCE_FORMAT_TYPE_XML,
+    INSTANCE_FORMAT_TYPE_JSON,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
@@ -192,8 +196,9 @@ class BaseDeploymentBackend:
         # This error should not be returned as `ValidationError` to user.
         # We want to return a 500.
         try:
+            partial_perm = kwargs.pop('partial_perm', PERM_VIEW_SUBMISSIONS)
             permission_filters = self.asset.get_filters_for_partial_perm(
-                requesting_user_id)
+                requesting_user_id, perm=partial_perm)
         except ValueError:
             raise ValueError(_('Invalid `requesting_user_id` param'))
 

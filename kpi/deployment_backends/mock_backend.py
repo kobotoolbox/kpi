@@ -78,7 +78,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def duplicate_submission(
-        self, requesting_user_id: int, instance_id: int, **kwargs: dict
+        self, requesting_user: 'auth.User', instance_id: int, **kwargs: dict
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
