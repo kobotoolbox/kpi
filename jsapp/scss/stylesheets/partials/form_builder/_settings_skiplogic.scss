@@ -101,7 +101,7 @@ div.skiplogic__responseval {
 .skiplogic__main {
   position: relative;
 
-  .mdl-button {
+  .kobo-button {
     width: 100%;
 
     &:not(:first-child) {
@@ -114,7 +114,7 @@ div.skiplogic__responseval {
   margin: 0;
   margin-top: 10px;
   height: 36px;
-  width: 180px;
+  min-width: 180px;
   display: inline-block;
 }
 
