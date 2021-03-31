@@ -14,7 +14,8 @@ from xml.etree import ElementTree as ET
 import pytz
 import requests
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.http import QueryDict
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -23,6 +24,10 @@ from kpi.constants import (
     INSTANCE_FORMAT_TYPE_JSON,
     INSTANCE_FORMAT_TYPE_XML,
     PERM_FROM_KC_ONLY,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
@@ -66,7 +71,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def bulk_assign_mapped_perms(self):
         """
-        Bulk assign all `kc` permissions related to `kpi` permissions.
+        Bulk assign all KoBoCAT permissions related to KPI permissions.
         Useful to assign permissions retroactively upon deployment.
         Beware: it only adds permissions, it does not remove or sync permissions.
         """
@@ -83,10 +88,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             assign_applicable_kc_permissions(self.asset, user, perms)
 
     def bulk_update_submissions(
-            self, request_data: dict, requesting_user_id: int
+            self, request_data: dict, requesting_user: 'auth.User'
     ) -> dict:
         """
-        Allows for bulk updating of submissions proxied through kobocat. A
+        Allows for bulk updating of submissions proxied through KoBoCAT. A
         `deprecatedID` for each submission is given the previous value of
         `instanceID` and `instanceID` receives an updated uuid. For each key
         and value within `request_data`, either a new element is created on the
@@ -96,18 +101,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Args:
             request_data (dict): must contain a list of `submission_ids` and at
                 least one other key:value field for updating the submissions
-            requesting_user_id (int)
+            requesting_user (int)
 
         Returns:
             dict: formatted dict to be passed to a Response object
         """
         payload = self.__prepare_bulk_update_payload(request_data)
-        kwargs = {'instance_ids': payload.pop('submission_ids')}
-        params = self.validate_submission_list_params(
-            requesting_user_id, format_type=INSTANCE_FORMAT_TYPE_XML,
-            **kwargs
+        instance_ids = payload.pop('submission_ids')
+        self._validate_write_partial_permissions(
+            user=requesting_user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            instance_ids=instance_ids,
         )
-        submissions = list(self.__get_submissions_in_xml(**params))
+        submissions = list(self.get_submissions(
+            requesting_user_id=requesting_user.pk,
+            format_type=INSTANCE_FORMAT_TYPE_XML,
+            instance_ids=instance_ids
+        ))
         validated_submissions = self.__validate_bulk_update_submissions(
             submissions
         )
@@ -172,7 +182,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # duplicating a submission
             file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
-            # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
+            # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission # noqa
             kc_request = requests.Request(
                 method='POST', url=self.submission_url, files=files
             )
@@ -250,8 +260,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # - KC `XForm`'s `id_string` can be different than `Asset`'s `uid`, then
         #   we can't rely on it to find its related `Asset`.
         # - Removing, renaming `has_kpi_hook` will force PostgreSQL to rewrite
-        #   every records of `logger_xform`. It can be also used to filter
-        #   queries as it's faster to query a boolean than string.
+        #   every record of `logger_xform`. It can be also used to filter
+        #   queries as it is faster to query a boolean than string.
         # Don't forget to run Management Command `populate_kc_xform_kpi_asset_uid`
         payload = {
             'downloadable': active,
@@ -287,25 +297,39 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise
         super().delete()
 
-    def delete_submission(self, pk, user):
+    def delete_submission(self, pk: int, user: 'auth.User') -> dict:
         """
-        Deletes submission through KoBoCAT proxy
-        :param pk: int
-        :param user: User
-        :return: dict
+        Deletes a submission through KoBoCAT proxy
         """
+
+        self._validate_write_partial_permissions(
+            requesting_user=user,
+            perm=PERM_DELETE_SUBMISSIONS,
+            instance_ids=[pk]
+        )
+
         kc_url = self.get_submission_detail_url(pk)
-        kc_request = requests.Request(method="DELETE", url=kc_url)
+        kc_request = requests.Request(method='DELETE', url=kc_url)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def delete_submissions(self, data, user):
+    def delete_submissions(self, data: QueryDict, user: 'auth.User') -> dict:
         """
-        Deletes submissions through KoBoCAT proxy
-        :param user: User
-        :return: dict
+        Deletes provided submissions through KoBoCAT proxy
+
+        `data` contains the payload posted with `DELETE` request, and it should
+        contain all submission ids to delete.
+        Example:
+             {"payload": {"submission_ids": [1,2,3]}}
+
         """
+
+        self._validate_write_partial_permissions(
+            requesting_user=user,
+            perm=PERM_DELETE_SUBMISSIONS,
+            instance_ids=data['payload']['submissions_ids'],
+        )
 
         kc_url = self.submission_list_url
         kc_request = requests.Request(method='DELETE', url=kc_url, data=data)
@@ -314,26 +338,29 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(kc_response)
 
     def duplicate_submission(
-            self, requesting_user_id: int, instance_id: int
+            self, requesting_user: 'auth.User', instance_id: int
     ) -> dict:
         """
-        Dupicates a single submission proxied through kobocat. The submission
+        Duplicates a single submission proxied through KoBoCAT. The submission
         with the given `instance_id` is duplicated and the `start`, `end` and
         `instanceID` parameters of the submission are reset before being posted
-        to kobocat.
-        Args:
-            requesting_user_id (int)
-            instance_id (int)
-        Returns:
-            dict: message response from kobocat and uuid of created submission
-            if successful
+        to KoBoCAT.
+
+        Returns a dict with message response from KoBoCAT and uuid of created
+        submission if successful
         """
-        params = self.validate_submission_list_params(
-            requesting_user_id,
-            format_type=INSTANCE_FORMAT_TYPE_XML,
+
+        self._validate_write_partial_permissions(
+            user=requesting_user,
+            perm=PERM_CHANGE_SUBMISSIONS,
             instance_ids=[instance_id],
         )
-        submissions = self.__get_submissions_in_xml(**params)
+
+        submissions = self.get_submissions(
+            requesting_user_id=requesting_user.pk,
+            format_type=INSTANCE_FORMAT_TYPE_XML,
+            instance_ids=[instance_id]
+        )
 
         # parse XML string to ET object
         xml_parsed = ET.fromstring(next(submissions))
@@ -364,7 +391,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if kc_response.status_code == status.HTTP_201_CREATED:
             return next(
-                self.get_submissions(requesting_user_id, query={'_uuid': _uuid})
+                self.get_submissions(requesting_user.pk, query={'_uuid': _uuid})
             )
         else:
             raise KobocatDuplicateSubmissionException
@@ -516,7 +543,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 https://docs.mongodb.com/manual/reference/operator/query/
 
         Returns:
-            (dict|str|`None`): Depending of `format_type`, it can return:
+            (dict|str|`None`): Depending on `format_type`, it can return:
                 - Mongo JSON representation as a dict
                 - Instances' XML as string
                 - `None` if no results
@@ -985,6 +1012,26 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return instance_count(xform_id_string=id_string,
                               user_id=self.asset.owner.pk,
                               )
+
+    def _validate_write_partial_permissions(self,
+                                            user: 'auth.User',
+                                            perm: str,
+                                            instance_ids: list):
+
+        if PERM_PARTIAL_SUBMISSIONS not in self.get_perms(user):
+            return
+
+        results = self.get_submissions(
+            requesting_user_id=user.pk,
+            format_type=INSTANCE_FORMAT_TYPE_JSON,
+            partial_perm=perm,
+            fields=['_id'],
+            instance_ids=instance_ids,
+        )
+        allowed_instance_ids = [r['_id'] for r in results]
+
+        if sorted(allowed_instance_ids) != sorted(instance_ids):
+            raise PermissionDenied
 
     def __delete_kc_metadata(
         self, kc_file_: dict, file_: Union[AssetFile, PairedData] = None
