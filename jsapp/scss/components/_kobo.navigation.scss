@@ -243,10 +243,10 @@
       padding: 0px;
       color: $kobo-white;
 
-      i {
-        line-height: 1.5em;
-        display: inline-block;
-        font-size: 18px;
+      .k-icon.k-icon-menu {
+        font-size: 32px;
+        line-height: 32px;
+        display: block;
         margin: 3px;
       }
     }
