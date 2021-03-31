@@ -14,7 +14,7 @@ module.exports = do ->
       <section class="card__settings  row-extras row-extras--depr">
         <i class="card__settings-close fa fa-times js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
-          <li class="heading"><i class="fa fa-cog"></i> #{t("Settings")}</li>
+          <li class="heading"><i class="k-icon k-icon-settings"></i> #{t("Settings")}</li>
           <li data-card-settings-tab-id="all" class="card__settings__tabs__tab--active">#{t("All group settings")}</li>
           <li data-card-settings-tab-id="skip-logic" class="">#{t("Skip Logic")}</li>
         </ul>
@@ -30,7 +30,7 @@ module.exports = do ->
       <section class="card__settings  row-extras row-extras--depr">
         <i class="card__settings-close fa fa-times js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
-          <li class="heading"><i class="fa fa-cog"></i> #{t("Settings")}</li>
+          <li class="heading"><i class="k-icon k-icon-settings"></i> #{t("Settings")}</li>
           <li data-card-settings-tab-id="question-options" class="card__settings__tabs__tab--active">#{t("Question Options")}</li>
           <li data-card-settings-tab-id="skip-logic" class="">#{t("Skip Logic")}</li>
           <li data-card-settings-tab-id="validation-criteria" class="">#{t("Validation Criteria")}</li>
@@ -64,8 +64,8 @@ module.exports = do ->
             <input type="text" placeholder="#{t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
-            <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
-            <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="fa fa-trash-o"></i></span>
+            <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="k-icon k-icon-settings"></i></span>
+            <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="k-icon k-icon-trash"></i></span>
       """
       if surveyView.features.multipleQuestions
         template += """<span class="card__buttons__button card__buttons__button--copy card__buttons__button--blue js-clone-question" data-button-name="duplicate"><i class="fa fa-copy"></i></span>
@@ -85,7 +85,7 @@ module.exports = do ->
         <i class="group__caret js-toggle-group-expansion fa fa-fw fa-caret-down"></i>
         <input type="text" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
         <div class="group__header__buttons">
-          <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="fa fa-cog"></i></span>
+          <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="k-icon k-icon-settings"></i></span>
           <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="fa fa-trash-o"></i></span>
         </div>
       </header>
@@ -107,7 +107,7 @@ module.exports = do ->
             <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
-            <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
+            <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="k-icon k-icon-settings"></i></span>
             <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="fa fa-trash-o"></i></span>
           </div>
         </div>
