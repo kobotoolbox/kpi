@@ -264,6 +264,11 @@
     margin-right: 10px;
     text-align: center;
     color: $kobo-darkgray;
+
+    .k-icon {
+      font-size: 24px;
+      display: block;
+    }
   }
 
   &.form-view__cell--toggle-details button {
