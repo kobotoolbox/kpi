@@ -6,34 +6,30 @@ $t-form-builder-aside-open: 200ms;
 
 // FORM BUILDER MAIN LAYOUT
 
-.formBuilder {
+.form-builder {
   background-color: $kobo-white;
 }
 
-.formBuilder-header {
-  height: $s-form-builder-header;
-}
-
-.formBuilder__contents {
+.form-builder__contents {
   height: calc(100% - #{$s-form-builder-header});
   overflow-x: auto;
   overflow-y: scroll;
-  padding-top: 10px;
   margin-right: 0;
   transition: margin $t-form-builder-aside-open;
+  padding: 20px 40px;
+  width: auto;
 }
 
 @media screen and (min-width: 1100px) {
-  .form-builder-aside--visible + .formBuilder,
-  .lib-nav--visible + .formBuilder {
-    .formBuilder__contents {
+  .form-builder-aside--visible + .form-builder,
+  .lib-nav--visible + .form-builder {
+    .form-builder__contents {
       margin-right: $s-form-builder-aside;
     }
   }
 }
 
 .form-wrap {
-  padding: 45px 75px;
   width: 100%;
 
   input,
@@ -86,17 +82,18 @@ $t-form-builder-aside-open: 200ms;
 
 // FORM BUILDER HEADER
 
-.formBuilder-header {
+.form-builder-header {
+  height: $s-form-builder-header;
   position: relative;
   z-index: $z-form-builder-header;
 
-  .formBuilder-header__row {
+  .form-builder-header__row {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
 
-    &.formBuilder-header__row--primary {
+    &.form-builder-header__row--primary {
       background-color: $kobo-white;
       height: 75px;
       position: relative;
@@ -104,7 +101,7 @@ $t-form-builder-aside-open: 200ms;
       box-shadow: 0 0 3px 0 rgba($kobo-black, 0.2), 0 0 10px 0 rgba($kobo-black, 0.1);
     }
 
-    &.formBuilder-header__row--secondary {
+    &.form-builder-header__row--secondary {
       background: $kobo-whitegray;
       height: 50px;
       position: relative;
@@ -113,8 +110,8 @@ $t-form-builder-aside-open: 200ms;
     }
   }
 
-  .formBuilder-header__cell {
-    &.formBuilder-header__cell--logo {
+  .form-builder-header__cell {
+    &.form-builder-header__cell--logo {
       background-color: $kobo-teal;
       width: 75px;
       text-align: center;
@@ -150,7 +147,7 @@ $t-form-builder-aside-open: 200ms;
       }
     }
 
-    &.formBuilder-header__cell--name {
+    &.form-builder-header__cell--name {
       flex: 1;
       margin-left: 20px;
 
@@ -164,7 +161,7 @@ $t-form-builder-aside-open: 200ms;
       }
     }
 
-    &.formBuilder-header__cell--translations {
+    &.form-builder-header__cell--translations {
       p {
         margin: 0 0 0 10px;
         line-height: 15px;
@@ -182,7 +179,7 @@ $t-form-builder-aside-open: 200ms;
       }
     }
 
-    &.formBuilder-header__cell--buttonsTopRight {
+    &.form-builder-header__cell--buttonsTopRight {
       text-align: right;
       margin: 0 10px;
 
@@ -191,7 +188,7 @@ $t-form-builder-aside-open: 200ms;
       }
     }
 
-    &.formBuilder-header__cell--close {
+    &.form-builder-header__cell--close {
       width: 45px;
       text-align: right;
       padding: 5px;
@@ -199,7 +196,7 @@ $t-form-builder-aside-open: 200ms;
     }
 
     // second row
-    &.formBuilder-header__cell--toolsButtons {
+    &.form-builder-header__cell--toolsButtons {
       margin: 0 10px;
 
       button {
@@ -234,12 +231,12 @@ $t-form-builder-aside-open: 200ms;
       }
     }
 
-    &.formBuilder-header__cell--spacer {
+    &.form-builder-header__cell--spacer {
       flex-grow: 1;
       height: 100%;
     }
 
-    &.formBuilder-header__cell--verticalRule {
+    &.form-builder-header__cell--verticalRule {
       width: 1px;
       background: $kobo-lightgray;
       height: 100%;
@@ -247,7 +244,7 @@ $t-form-builder-aside-open: 200ms;
   }
 }
 
-.formBuilder-header__close {
+.form-builder-header__close {
   border: none;
   color: $kobo-darkgray;
   cursor: pointer;
@@ -265,7 +262,7 @@ $t-form-builder-aside-open: 200ms;
   }
 }
 
-.formBuilder-header__button {
+.form-builder-header__button {
   @extend .mdl-button;
 
   > i {
@@ -278,8 +275,8 @@ $t-form-builder-aside-open: 200ms;
     }
   }
 
-  &.formBuilder-header__button--create,
-  &.formBuilder-header__button--save {
+  &.form-builder-header__button--create,
+  &.form-builder-header__button--save {
     margin-left: 10px;
     text-transform: uppercase;
     min-width: 85px;
@@ -296,8 +293,8 @@ $t-form-builder-aside-open: 200ms;
     }
   }
 
-  &.formBuilder-header__button--savepending,
-  &.formBuilder-header__button--create-pending {
+  &.form-builder-header__button--savepending,
+  &.form-builder-header__button--create-pending {
     > i {
       @extend .k-spin, .fa-circle-o-notch;
 
@@ -313,16 +310,16 @@ $t-form-builder-aside-open: 200ms;
     }
   }
 
-  &.formBuilder-header__button--savefailed::after,
-  &.formBuilder-header__button--saveneeded::after {
+  &.form-builder-header__button--savefailed::after,
+  &.form-builder-header__button--saveneeded::after {
     content: '*';
     color: $kobo-white;
   }
 
-  &.formBuilder-header__button--panel-toggle {
+  &.form-builder-header__button--panel-toggle {
     padding: 0 10px;
 
-    &.formBuilder-header__button--active {
+    &.form-builder-header__button--active {
       i.k-icon {
         color: $kobo-blue;
       }
@@ -477,42 +474,38 @@ $t-form-builder-aside-open: 200ms;
 // FORM BUILDER SMALL SCREEN ADJUSTMENTS
 
 @media screen and (max-width: 767px) {
-  .formBuilder-header__cell--logo {
+  .form-builder-header__cell--logo {
     display: none;
   }
 
-  .formBuilder-header__cell--buttonsTopRight {
-    .formBuilder-header__button--save {
+  .form-builder-header__cell--buttonsTopRight {
+    .form-builder-header__button--save {
       max-width: 120px;
       text-overflow: ellipsis;
     }
   }
 
-  .formBuilder-header__button--panel-toggle {
+  .form-builder-header__button--panel-toggle {
     .panel-toggle-name {
       display: none;
     }
   }
-
-  .form-wrap {
-    padding: 30px 45px;
-  }
 }
 
 @media screen and (max-width: 767px) {
-  .formBuilder-header__cell--library-toggle {
+  .form-builder-header__cell--library-toggle {
     display: none;
   }
 }
 
 @media screen and (pointer: coarse) {
-  .formBuilder-header__cell--library-toggle {
+  .form-builder-header__cell--library-toggle {
     display: none;
   }
 }
 
 @media screen and (max-width: 480px) {
-  .formBuilder-header__cell--toolsButtons button {
+  .form-builder-header__cell--toolsButtons button {
     padding: 0;
     border-radius: 0;
   }
@@ -544,10 +537,6 @@ $t-form-builder-aside-open: 200ms;
         overflow: hidden;
       }
     }
-  }
-
-  .form-wrap {
-    padding: 15px 30px;
   }
 
   .btn--addrow {

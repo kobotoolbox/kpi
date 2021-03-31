@@ -20,7 +20,8 @@
     }
     .card__header {
         border: $cardBorderStyle;
-        padding: 20px 40px 20px 75px;
+        // right padding needs to make space for absolute positioned icons
+        padding: 20px #{15px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width} 20px 75px;
         display: block;
         background: $kobo-white;
         cursor: move;
@@ -177,17 +178,18 @@ $cardIndicatorIconWidth: 21px;
     border: $cardBorderStyle;
     border-width: 0 0 0 1px;
     position: absolute;
-    top: 0px;
-    right: 2px;
-    width: 25px;
+    top: 0;
+    right: 0;
+    width: $s-fb-row-buttons-width;
     height: 100%;
-    cursor: pointer;
     z-index: 3;
-
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .card--shaded .card__buttons {
-    border:none;
+    border-color: transparent;
 }
 
 // ==========================================================================
@@ -237,35 +239,35 @@ $cardIndicatorIconWidth: 21px;
         border-left: $cardInSortThinBorderStyle;
     }
 }
+
 .card__buttons__button {
     height: 20px;
     line-height: 20px;
-    width: 26px;
-    position: absolute;
-    right: -2px;
-    bottom: 0px;
+    width: $s-fb-row-buttons-width;
     text-align: center;
+    position: relative;
+    cursor: pointer;
+
     &.card__buttons__button--gray {
         color: $kobo-darkgray;
-        top:0px;
     }
+
     &.card__buttons__button--red {
         color: $kobo-red;
-        top:37%;
-        margin-top:-10px;
     }
+
     &.card__buttons__button--blue {
-        color:$kobo-blue;
+        color: $kobo-blue;
     }
-    &.card__buttons__button--copy {
-        bottom: 26%;
-    }
+
     &.card__buttons__button--activated {
         color: $kobo-darkgray;
         background-color: $kobo-lightgray;
         opacity: 1;
     }
-    &:hover, &.card__buttons__button--activated:hover {
+
+    &:hover,
+    &.card__buttons__button--activated:hover {
         opacity: 0.5;
     }
 

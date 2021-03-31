@@ -47,7 +47,7 @@ $mdl-layout-width: 1440px;
   flex-direction: column;
 
   > .asset-view__content,
-  > .formBuilder {
+  > .form-builder {
     @extend .mdl-cell, .mdl-cell--12-col;
 
     flex-flow: column;
@@ -58,7 +58,7 @@ $mdl-layout-width: 1440px;
     height: 100%;
   }
 
-  > .formBuilder {
+  > .form-builder {
     height: 100%;
   }
 }

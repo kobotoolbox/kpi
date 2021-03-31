@@ -52,11 +52,11 @@ $formbuilder-group-bg: $kobo-whitegray;
 
 .group__header__buttons {
     border: $cardBorderStyle;
-    border-width: 0 0 0 2px;
+    border-width: 0 0 0 1px;
     position: absolute;
     top: 0px;
-    right: 2px;
-    width: 26px;
+    right: 0;
+    width: $s-fb-row-buttons-width;
     height: 100%;
     cursor: pointer;
 }
@@ -84,9 +84,6 @@ $formbuilder-group-bg: $kobo-whitegray;
       font-size: 18px;
     }
 }
-
-
-
 
 // Overrides
 // --------------------------------------------------------------------------
