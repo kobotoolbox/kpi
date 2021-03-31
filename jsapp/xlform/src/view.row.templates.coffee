@@ -57,7 +57,7 @@ module.exports = do ->
         <div class="card__header">
           <div class="card__header--shade"><span></span></div>
           <div class="card__indicator">
-            <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon"></i></div>
+            <div class="noop card__indicator__icon"><i class="card__header-icon"></i></div>
           </div>
           <div class="card__text">
             <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
@@ -101,7 +101,7 @@ module.exports = do ->
         <div class="card__header">
           <div class="card__header--shade"><span></span></div>
           <div class="card__indicator">
-            <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon fa-table"></i></div>
+            <div class="noop card__indicator__icon"><i class="card__header-icon k-icon k-icon-matrix"></i></div>
           </div>
           <div class="card__text">
             <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">

@@ -167,23 +167,6 @@ $cardIndicatorIconWidth: 21px;
     line-height: 20px;
     text-align: center;
     color: $kobo-darkgray;
-
-    .fa.invert {
-        padding: 3px 1px;
-        font-size: 0.95em;
-        background-color: $kobo-darkgray;
-    }
-    .fa-lato-range,
-    .fa-lato-calculate,
-    .fa-lato-decimal,
-    .fa-lato-integer,
-    .fa-lato-text {
-        font-size: 15px;
-        width: $cardIndicatorIconWidth;
-    }
-    .fa-lato-decimal {
-        margin-left:2px;
-    }
 }
 
 // ==========================================================================
