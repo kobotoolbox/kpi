@@ -374,6 +374,10 @@ $t-form-builder-aside-open: 200ms;
     padding: 30px;
     overflow-y: auto;
     height: 100%;
+
+    .form-builder-aside__row:last-child {
+      margin-bottom: 30px;
+    }
   }
 
   .form-builder-aside__header {
