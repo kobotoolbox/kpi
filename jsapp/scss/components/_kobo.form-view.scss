@@ -116,10 +116,11 @@
       }
     }
 
-    i {
-      font-size: 36px;
-      vertical-align: -13px;
-      margin-right: 4px;
+    .k-icon {
+      font-size: 26px;
+      vertical-align: -7px;
+      line-height: 36px;
+      margin: 0 9px 0 5px;
     }
 
     span {
@@ -714,10 +715,10 @@
       padding: 5px;
     }
 
-    i {
-      margin: 0 6px;
-      font-size: 18px;
+    .k-icon.k-icon-more-vertical {
+      font-size: 20px;
       display: inline-block;
+      vertical-align: top;
     }
   }
 
