@@ -407,6 +407,10 @@ $nested-btn--addrow-height: 24px;
   display: block;
 }
 
+.survey-editor__list > .survey__row:last-child {
+  margin-bottom: 30px;
+}
+
 // helper class
 .btn--hidden {
   // https://github.com/csswizardry/CSS-Guidelines#important
