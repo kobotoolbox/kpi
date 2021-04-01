@@ -4,7 +4,7 @@ module.exports = do ->
   expandingSpacerHtml = """
       <div class="survey__row__spacer  row clearfix expanding-spacer-between-rows expanding-spacer-between-rows--depr">
         <div tabIndex="0" class="js-expand-row-selector btn btn--addrow btn--block  btn-xs  btn-default"
-            ><i class="fa fa-plus"></i></div>
+            ><i class="k-icon k-icon-plus"></i></div>
         <div class="line">&nbsp;</div>
       </div>
   """
@@ -69,7 +69,7 @@ module.exports = do ->
       """
       if surveyView.features.multipleQuestions
         template += """<span class="card__buttons__button card__buttons__button--copy card__buttons__button--blue js-clone-question" data-button-name="duplicate"><i class="fa fa-copy"></i></span>
-                  <span class="card__buttons__button card__buttons__button--add card__buttons__button--gray-green js-add-to-question-library" data-button-name="add-to-library"><i class="fa fa-folder-o"><i class="fa fa-plus"></i></i></span>"""
+                  <span class="card__buttons__button card__buttons__button--add card__buttons__button--green js-add-to-question-library" data-button-name="add-to-library"><i class="k-icon k-icon-folder-plus"></i></i></span>"""
 
       return template + """
           </div>
