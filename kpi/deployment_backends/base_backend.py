@@ -1,11 +1,11 @@
 # coding: utf-8
 import json
-from typing import Union
+from typing import Union, Iterator
 
 from bson import json_util
 from django.db.models.query import QuerySet
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import serializers, status
+from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 
 from kpi.constants import (
@@ -49,7 +49,7 @@ class BaseDeploymentBackend:
         raise NotImplementedError(
             'This method should be implemented in subclasses')
 
-    def calculated_submission_count(self, requesting_user_id, **kwargs):
+    def calculated_submission_count(self, user: 'auth.User', **kwargs):
         raise NotImplementedError(
             'This method should be implemented in subclasses')
 
@@ -60,7 +60,9 @@ class BaseDeploymentBackend:
         raise NotImplementedError(
             'This method should be implemented in subclasses')
 
-    def duplicate_submission(self):
+    def duplicate_submission(
+            self, user: 'auth.User', instance_id: int, **kwargs: dict
+    ) -> dict:
         raise NotImplementedError(
             'This method should be implemented in subclasses')
 
@@ -72,26 +74,24 @@ class BaseDeploymentBackend:
         raise NotImplementedError(
             'This method should be implemented in subclasses')
 
-    def get_submission(self, pk, requesting_user_id,
-                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
+    def get_submission(self,
+                       pk: int,
+                       user: 'auth.User',
+                       format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+                       **kwargs: dict) -> Union[dict, str, None]:
         """
-        Returns submission if `pk` exists otherwise `None`
+        Returns the corresponding submission whose id equals `pk` and which
+        `user` is allowed to access.
+        Otherwise, it returns `None`.
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.INSTANCE_FORMAT_TYPE_JSON)
+        - 'xml' (See `kpi.constants.INSTANCE_FORMAT_TYPE_XML)
 
-        Args:
-            pk (int): Submission's primary key
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
-
-        Returns:
-            (dict|str|`None`): Depending of `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instance's XML as string
-                - `None` if doesn't exist
+        MongoDB filters can be passed through `kwargs` to narrow down the
+        result.
         """
 
-        submissions = list(self.get_submissions(requesting_user_id,
+        submissions = list(self.get_submissions(user,
                                                 format_type, [int(pk)],
                                                 **kwargs))
         try:
@@ -116,15 +116,20 @@ class BaseDeploymentBackend:
         )
         return url
 
-    def get_submissions(self, requesting_user_id,
-                        format_type=INSTANCE_FORMAT_TYPE_JSON,
-                        instance_ids=[], **kwargs):
+    def get_submissions(self,
+                        user: 'auth.User',
+                        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+                        instance_ids: list = [],
+                        **kwargs: dict) -> [Iterator[dict], Iterator[str]]:
         raise NotImplementedError(
             'This method should be implemented in subclasses')
 
     def get_validation_status(self, submission_pk, params, user):
-        submission = self.get_submission(submission_pk, user.id,
-                                         INSTANCE_FORMAT_TYPE_JSON)
+        submission = self.get_submission(
+            submission_pk,
+            user=user,
+            format_type=INSTANCE_FORMAT_TYPE_JSON,
+        )
         return {
             "data": submission.get("_validation_status")
         }
@@ -199,30 +204,27 @@ class BaseDeploymentBackend:
         raise NotImplementedError(
             'This method should be implemented in subclasses')
 
-    def validate_submission_list_params(self,
-                                        requesting_user_id,
-                                        format_type=INSTANCE_FORMAT_TYPE_JSON,
-                                        validate_count=False,
-                                        **kwargs):
+    def validate_submission_list_params(
+            self,
+            user: 'auth.User',
+            format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+            validate_count: bool = False,
+            **kwargs: dict) -> dict:
         """
-        Ensure types of query and each param.
+        Validates parameters (`kwargs`) to be passed to Mongo.
+        parameters can be:
+            - start
+            - limit
+            - sort
+            - fields
+            - query
+            - instance_ids
+        If `validate_count` is True,`start`, `limit`, `fields` and `sort` are
+        ignored.
 
-        Args:
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            validate_count (bool): If `True`, ignores `start`, `limit`, `fields`
-            & `sort`
-            kwargs (dict): Can contain
-                - start
-                - limit
-                - sort
-                - fields
-                - query
-                - instance_ids
-
-
-        Returns:
-            dict
+        If `user` has partial permissions, conditions are
+        applied to the query to narrow down results to what they are allowed
+        to see.
         """
 
         if 'count' in kwargs:
@@ -274,9 +276,9 @@ class BaseDeploymentBackend:
         try:
             partial_perm = kwargs.pop('partial_perm', PERM_VIEW_SUBMISSIONS)
             permission_filters = self.asset.get_filters_for_partial_perm(
-                requesting_user_id, perm=partial_perm)
+                user.pk, perm=partial_perm)
         except ValueError:
-            raise ValueError(_('Invalid `requesting_user_id` param'))
+            raise ValueError(_('Invalid `user_id` param'))
 
         if validate_count:
             return {

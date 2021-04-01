@@ -7,7 +7,7 @@ import re
 import uuid
 from collections import defaultdict
 from datetime import datetime
-from typing import Union
+from typing import Union, Generator
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
@@ -88,7 +88,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             assign_applicable_kc_permissions(self.asset, user, perms)
 
     def bulk_update_submissions(
-            self, request_data: dict, requesting_user: 'auth.User'
+            self, request_data: dict, user: 'auth.User'
     ) -> dict:
         """
         Allows for bulk updating of submissions proxied through KoBoCAT. A
@@ -101,7 +101,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Args:
             request_data (dict): must contain a list of `submission_ids` and at
                 least one other key:value field for updating the submissions
-            requesting_user (int)
+            user (int)
 
         Returns:
             dict: formatted dict to be passed to a Response object
@@ -109,12 +109,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         payload = self.__prepare_bulk_update_payload(request_data)
         instance_ids = payload.pop('submission_ids')
         self._validate_write_partial_permissions(
-            user=requesting_user,
+            user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
             instance_ids=instance_ids,
         )
         submissions = self.get_submissions(
-            requesting_user_id=requesting_user.pk,
+            user=user,
             format_type=INSTANCE_FORMAT_TYPE_XML,
             instance_ids=instance_ids
         )
@@ -199,8 +199,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return self.__prepare_bulk_update_response(kc_responses)
 
-    def calculated_submission_count(self, requesting_user_id, **kwargs):
-        params = self.validate_submission_list_params(requesting_user_id,
+    def calculated_submission_count(self, user: 'auth.User', **kwargs):
+        params = self.validate_submission_list_params(user,
                                                       validate_count=True,
                                                       **kwargs)
         return MongoHelper.get_count(self.mongo_userform_id, **params)
@@ -303,7 +303,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         self._validate_write_partial_permissions(
-            requesting_user=user,
+            user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             instance_ids=[pk]
         )
@@ -326,7 +326,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         self._validate_write_partial_permissions(
-            requesting_user=user,
+            user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             instance_ids=data['payload']['submissions_ids'],
         )
@@ -338,7 +338,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(kc_response)
 
     def duplicate_submission(
-            self, requesting_user: 'auth.User', instance_id: int
+            self, user: 'auth.User', instance_id: int
     ) -> dict:
         """
         Duplicates a single submission proxied through KoBoCAT. The submission
@@ -351,14 +351,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         self._validate_write_partial_permissions(
-            user=requesting_user,
+            user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
             instance_ids=[instance_id],
         )
 
         submission = self.get_submission(
             instance_id,
-            requesting_user_id=requesting_user.pk,
+            user=user,
             format_type=INSTANCE_FORMAT_TYPE_XML,
         )
 
@@ -391,7 +391,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if kc_response.status_code == status.HTTP_201_CREATED:
             return next(
-                self.get_submissions(requesting_user.pk, query={'_uuid': _uuid})
+                self.get_submissions(user, query={'_uuid': _uuid})
             )
         else:
             raise KobocatDuplicateSubmissionException
@@ -528,29 +528,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submissions(self, requesting_user_id,
-                        format_type=INSTANCE_FORMAT_TYPE_JSON,
-                        instance_ids=[], **kwargs):
+    def get_submissions(self,
+                        user: 'auth.User',
+                        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+                        instance_ids: list = [],
+                        **kwargs: dict) -> Generator[dict, None, None]:
         """
-        Retrieves submissions through Postgres or Mongo depending on `format_type`.
-        It can be filtered on instances ids.
+        Retrieves submissions which `user` is allowed to access
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.INSTANCE_FORMAT_TYPE_JSON)
+        - 'xml' (See `kpi.constants.INSTANCE_FORMAT_TYPE_XML)
 
-        Args:
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            instance_ids (list): Instance ids to retrieve
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
-
-        Returns:
-            (dict|str|`None`): Depending on `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instances' XML as string
-                - `None` if no results
+        Results can be filtered on instance ids and/or MongoDB filters can be
+        passed through `kwargs`
         """
 
         kwargs['instance_ids'] = instance_ids
-        params = self.validate_submission_list_params(requesting_user_id,
+        params = self.validate_submission_list_params(user,
                                                       format_type=format_type,
                                                       **kwargs)
 
@@ -1012,11 +1006,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                                             perm: str,
                                             instance_ids: list):
 
-        if PERM_PARTIAL_SUBMISSIONS not in self.get_perms(user):
+        if PERM_PARTIAL_SUBMISSIONS not in self.asset.get_perms(user):
             return
 
         results = self.get_submissions(
-            requesting_user_id=user.pk,
+            user=user,
             format_type=INSTANCE_FORMAT_TYPE_JSON,
             partial_perm=perm,
             fields=['_id'],

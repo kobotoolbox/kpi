@@ -290,7 +290,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                                                           request.user)
         elif request.method == 'PATCH':
             json_response = deployment.bulk_update_submissions(
-                dict(request.data), request.user.id
+                dict(request.data), request.user
             )
         return Response(**json_response)
 
@@ -326,13 +326,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             # `SubmissionGeoJsonRenderer` handle the rest
             return Response(
                 deployment.get_submissions(
-                    requesting_user_id=request.user,
+                    user=request.user,
                     format_type=INSTANCE_FORMAT_TYPE_JSON,
                     **filters
                 )
             )
 
-        submissions = deployment.get_submissions(request.user.id,
+        submissions = deployment.get_submissions(request.user,
                                                  format_type=format_type,
                                                  **filters)
         # Create a dummy list to let the Paginator do all the calculation
@@ -350,10 +350,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
         try:
-            submission = deployment.get_submission(positive_int(pk),
-                                                   request.user.id,
-                                                   format_type=format_type,
-                                                   **filters)
+            submission = deployment.get_submission(
+                positive_int(pk),
+                user=request.user,
+                format_type=format_type,
+                **filters,
+            )
         except ValueError:
             raise Http404
         else:
@@ -370,7 +372,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         deployment = self._get_deployment()
         duplicate_response = deployment.duplicate_submission(
-            requesting_user=request.user, instance_id=positive_int(pk)
+            user=request.user, instance_id=positive_int(pk)
         )
         return Response(duplicate_response, status=status.HTTP_201_CREATED)
 

@@ -29,7 +29,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         pass
 
     def bulk_update_submissions(
-        self, request_data: dict, requesting_user_id: int
+        self, request_data: dict, user: int
     ) -> dict:
         payload = self.__prepare_bulk_update_payload(request_data)
         all_submissions = copy.copy(self.asset.deployment_data['submissions'])
@@ -52,11 +52,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         return self.__prepare_bulk_update_response(responses)
 
-    def calculated_submission_count(self, requesting_user_id, **kwargs):
-        params = self.validate_submission_list_params(requesting_user_id,
+    def calculated_submission_count(self, user: 'auth.User', **kwargs):
+        params = self.validate_submission_list_params(user=user,
                                                       validate_count=True,
                                                       **kwargs)
-        instances = self.get_submissions(requesting_user_id, **params)
+        instances = self.get_submissions(user, **params)
         return len(instances)
 
     def connect(self, active=False):
@@ -77,7 +77,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def duplicate_submission(
-        self, requesting_user: 'auth.User', instance_id: int, **kwargs: dict
+        self, user: 'auth.User', instance_id: int, **kwargs: dict
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
@@ -110,30 +110,24 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
         }
 
-    def get_submissions(self, requesting_user_id,
-                        format_type=INSTANCE_FORMAT_TYPE_JSON,
-                        instance_ids=[], **kwargs):
+    def get_submissions(self,
+                        user: 'auth.User',
+                        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+                        instance_ids: list = [],
+                        **kwargs: dict) -> list:
         """
-        Retrieves submissions on `format_type`.
-        It can be filtered on instances ids.
+        Retrieves submissions which `user` is allowed to access
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.INSTANCE_FORMAT_TYPE_JSON)
+        - 'xml' (See `kpi.constants.INSTANCE_FORMAT_TYPE_XML)
 
-        Args:
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            instance_ids (list): Instance ids to retrieve
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
-
-        Returns:
-            (dict|str|`None`): Depending of `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instances' XML as string
-                - `None` if no results
+        Results can be filtered on instance ids and/or MongoDB filters can be
+        passed through `kwargs`
         """
 
-        submissions = self.asset.deployment_data.get("submissions", [])
+        submissions = self.asset.deployment_data.get('submissions', [])
         kwargs['instance_ids'] = instance_ids
-        params = self.validate_submission_list_params(requesting_user_id,
+        params = self.validate_submission_list_params(user,
                                                       format_type=format_type,
                                                       **kwargs)
         permission_filters = params['permission_filters']
@@ -142,7 +136,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             if format_type == INSTANCE_FORMAT_TYPE_XML:
                 instance_ids = [str(instance_id) for instance_id in
                                 instance_ids]
-                # ugly way to find matches, but it avoids to load each xml in memory.
+                # ugly way to find matches, but it avoids loading each xml in memory  # noqa
                 pattern = r'<{id_field}>({instance_ids})<\/{id_field}>'.format(
                     instance_ids='|'.join(instance_ids),
                     id_field=self.INSTANCE_ID_FIELDNAME
@@ -209,8 +203,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return url
 
     def get_validation_status(self, submission_pk, params, user):
-        submission = self.get_submission(submission_pk, user.id,
-                                         INSTANCE_FORMAT_TYPE_JSON)
+        submission = self.get_submission(
+            submission_pk,
+            user=user,
+            format_type=INSTANCE_FORMAT_TYPE_JSON,
+        )
         return {
             'data': submission.get('_validation_status')
         }

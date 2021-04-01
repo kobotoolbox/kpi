@@ -56,7 +56,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # Check if instance really belongs to Asset.
         try:
             instance = self.asset.deployment.get_submission(instance_id,
-                                                            request.user.id)
+                                                            request.user)
         except ValueError:
             raise Http404
 
