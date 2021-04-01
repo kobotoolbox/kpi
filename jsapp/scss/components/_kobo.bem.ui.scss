@@ -599,7 +599,7 @@ span.svg-icon {
   }
 }
 
-// faster spinning icons, based on fa-spin
+// spinning with easing
 .k-spin {
   transform-origin: center;
   animation: spinner 1.2s infinite ease-in-out;

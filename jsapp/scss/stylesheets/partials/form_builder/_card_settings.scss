@@ -119,17 +119,23 @@
 }
 
 .card__settings-close {
-  background: C5CACF;
+  background: $kobo-midgray;
   position: absolute;
   right: 6px;
   top: 6px;
   color: $kobo-white;
   padding: 3px;
   border-radius: 3px;
+  font-size: 18px;
+  line-height: 18px;
   cursor: pointer;
 
   &:hover {
     background: $linkColor;
+  }
+
+  &:active {
+    transform: translateY(1px);
   }
 }
 

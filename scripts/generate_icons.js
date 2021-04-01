@@ -10,7 +10,7 @@ const destDir = 'jsapp/fonts/';
 
 console.warn(
   '\x1b[31m***\n',
-  'Please make sure SVGs are at least 1200px in size! Otherwise glyphs will look terrible during svg2ttf conversion.',
+  'Please make sure SVGs are at least 640px in size! Otherwise glyphs will look terrible during svg2ttf conversion.',
   '\n***',
   '\x1b[0m'
 );

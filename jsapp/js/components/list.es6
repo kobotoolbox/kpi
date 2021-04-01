@@ -99,7 +99,6 @@ export class ListTagFilter extends React.Component {
   render () {
     return (
       <bem.tagSelect>
-        <i className='fa fa-search' />
         <Select
           name='tags'
           isMulti

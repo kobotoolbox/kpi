@@ -19,6 +19,8 @@
       height: calc(100% - 20px);
       padding-right: 40px;
       overflow: auto;
+
+       > *:last-child { margin-bottom: 20px; }
     }
 
     .form-modal__item--api-token {

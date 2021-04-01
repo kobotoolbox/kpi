@@ -131,6 +131,11 @@ $formbuilder-group-bg: $kobo-whitegray;
 .group__caret {
     cursor: pointer;
     color: $kobo-darkgray;
+
+    &.k-icon {
+      font-size: 18px;
+      vertical-align: -4px;
+    }
 }
 .group--shrunk {
     border-bottom: none;
