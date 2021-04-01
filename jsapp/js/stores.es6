@@ -277,6 +277,7 @@ stores.allAssets = Reflux.createStore({
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
+    this.listenTo(actions.permissions.removeAssetPermission.completed, this.onDeletePermissionCompleted);
   },
   whenLoaded (uid, cb) {
     if (typeof uid !== 'string' || typeof cb !== 'function') {
@@ -320,6 +321,13 @@ stores.allAssets = Reflux.createStore({
         });
         this.trigger(this.data);
       }, 500);
+    }
+  },
+  onDeletePermissionCompleted (assetUid, isNonOwner) {
+    // When non owner self removes all his asset permissions, it's as if the
+    // asset was deleted for them
+    if (isNonOwner) {
+      this.onDeleteAssetCompleted({uid: assetUid});
     }
   },
   registerAsset (asset) {
