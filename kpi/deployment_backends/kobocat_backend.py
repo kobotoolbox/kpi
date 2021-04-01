@@ -356,14 +356,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             instance_ids=[instance_id],
         )
 
-        submissions = self.get_submissions(
+        submission = self.get_submission(
+            instance_id,
             requesting_user_id=requesting_user.pk,
             format_type=INSTANCE_FORMAT_TYPE_XML,
-            instance_ids=[instance_id]
         )
 
         # parse XML string to ET object
-        xml_parsed = ET.fromstring(next(submissions))
+        xml_parsed = ET.fromstring(submission)
 
         # attempt to update XML fields for duplicate submission. Note that
         # `start` and `end` are not guaranteed to be included in the XML object
@@ -764,19 +764,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'backend_response': json_response,
             })
 
-    def set_validation_status(self, submission_pk, data, user, method):
+    def set_validation_status(self,
+                              submission_pk: int,
+                              data: dict,
+                              user: 'auth.User',
+                              method: str) -> dict:
         """
-        Updates validation status from `kc` through proxy
-        If method is `DELETE`, it resets the status to `None`
+        Updates validation status in KoBoCAT through the proxy.
+        `data` is values that need to be updated if method is `PATCH`.
+        Otherwise, if method is `DELETE`, it resets the status to `None`.
 
-        Args:
-            submission_pk (int)
-            data (dict): data to update when `PATCH` is used.
-            user (User)
-            method (string): 'PATCH'|'DELETE'
-
-        Returns:
-            dict (a formatted dict to be passed to a Response object)
+        It returns the proxy response formatted as dictionary to be passed to
+        a Response object
         """
         kc_request_params = {
             'method': method,
@@ -790,18 +789,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validation_statuses(self, data, user, method):
+    def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
         """
-        Bulk update for validation status from `kc` through proxy
-        If method is `DELETE`, it resets statuses to `None`
+        Bulk updates validation statuses in KoBoCAT through the proxy.
+        `data` is values that need to be updated.
 
-        Args:
-            data (dict): data to update when `PATCH` is used.
-            user (User)
-            method (string): 'PATCH'|'DELETE'
-
-        Returns:
-            dict (a formatted dict to be passed to a Response object)
+        It returns the proxy response formatted as dictionary to be passed to
+        a Response object
         """
         url = self.submission_list_url
         data = data.copy()  # Need to get a copy to update the dict

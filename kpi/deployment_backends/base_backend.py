@@ -5,7 +5,7 @@ from typing import Union
 from bson import json_util
 from django.db.models.query import QuerySet
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.pagination import _positive_int as positive_int
 
 from kpi.constants import (
@@ -13,7 +13,6 @@ from kpi.constants import (
     INSTANCE_FORMAT_TYPE_JSON,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.jsonbfield_helper import ReplaceValue
@@ -34,15 +33,44 @@ class BaseDeploymentBackend:
     def active(self):
         return self.asset.deployment_data.get('active', False)
 
+    def connect(self, active=False):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
     @property
     def backend(self):
         return self.asset.deployment_data.get('backend', None)
 
+    def bulk_assign_mapped_perms(self):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
+    def bulk_update_submissions(self):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
     def calculated_submission_count(self, requesting_user_id, **kwargs):
-        raise NotImplementedError('This method should be implemented in subclasses')
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
 
     def delete(self):
         self.asset.deployment_data.clear()
+
+    def delete_submission(self, pk: int, user: 'auth.User') -> dict:
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
+    def duplicate_submission(self):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
+    def get_data_download_links(self):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
+    def get_enketo_survey_links(self):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
 
     def get_submission(self, pk, requesting_user_id,
                        format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
@@ -72,6 +100,35 @@ class BaseDeploymentBackend:
             pass
         return None
 
+    def get_submission_detail_url(self, submission_pk):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
+    def get_submission_edit_url(self, submission_pk, user, params=None):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
+    def get_submission_validation_status_url(self, submission_pk):
+        # This doesn't really need to be implemented.
+        # We keep it to stay close to `KobocatDeploymentBackend`
+        url = '{detail_url}validation_status/'.format(
+            detail_url=self.get_submission_detail_url(submission_pk)
+        )
+        return url
+
+    def get_submissions(self, requesting_user_id,
+                        format_type=INSTANCE_FORMAT_TYPE_JSON,
+                        instance_ids=[], **kwargs):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
+    def get_validation_status(self, submission_pk, params, user):
+        submission = self.get_submission(submission_pk, user.id,
+                                         INSTANCE_FORMAT_TYPE_JSON)
+        return {
+            "data": submission.get("_validation_status")
+        }
+
     @property
     def identifier(self):
         return self.asset.deployment_data.get('identifier', None)
@@ -83,6 +140,18 @@ class BaseDeploymentBackend:
     @property
     def mongo_userform_id(self):
         return None
+
+    def redeploy(self, active=None):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
+    def set_active(self, active):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
+    def set_has_kpi_hooks(self):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
 
     def set_status(self, status):
         # Avoid circular imports
@@ -98,6 +167,18 @@ class BaseDeploymentBackend:
             'status': status,
         })
 
+    def set_validation_status(self,
+                              submission_pk: int,
+                              data: dict,
+                              user: 'auth.User',
+                              method: str) -> dict:
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
+    def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
     @property
     def status(self):
         return self.asset.deployment_data.get('status')
@@ -109,19 +190,14 @@ class BaseDeploymentBackend:
     def submission_count(self):
         return self._submission_count()
 
+    @property
+    def submission_list_url(self):
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
+
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
-        queryset = self._get_metadata_queryset(file_type=file_type)
-        for obj in queryset:
-            assert issubclass(obj.__class__, SyncBackendMediaInterface)
-
-    def remove_from_kc_only_flag(self, *args, **kwargs):
-        # TODO: This exists only to support KoBoCAT (see #1161) and should be
-        # removed, along with all places where it is called, once we remove
-        # KoBoCAT's ability to assign permissions (kobotoolbox/kobocat#642)
-
-        # Do nothing, without complaint, so that callers don't have to worry
-        # about whether the back end is KoBoCAT or something else
-        pass
+        raise NotImplementedError(
+            'This method should be implemented in subclasses')
 
     def validate_submission_list_params(self,
                                         requesting_user_id,
@@ -262,6 +338,11 @@ class BaseDeploymentBackend:
         return self.asset.deployment_data.get('version', None)
 
     def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
+        """
+        Returns a list of objects, or a QuerySet to pass to Celery to
+        synchronize with the backend.
+        Can be used inside the implementation of `sync_media_files()`
+        """
         if file_type == AssetFile.FORM_MEDIA:
             # Order by `date_deleted` to process deleted files first in case
             # two entries contain the same file but one is flagged as deleted

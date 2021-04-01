@@ -12,6 +12,8 @@ from kpi.constants import (
     INSTANCE_FORMAT_TYPE_JSON,
     INSTANCE_FORMAT_TYPE_XML,
 )
+from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
+from kpi.models.asset_file import AssetFile
 from .base_backend import BaseDeploymentBackend
 
 
@@ -30,7 +32,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self, request_data: dict, requesting_user_id: int
     ) -> dict:
         payload = self.__prepare_bulk_update_payload(request_data)
-        all_submissions = copy.copy(self.asset._deployment_data['submissions'])
+        all_submissions = copy.copy(self.asset.deployment_data['submissions'])
         instance_ids = payload.pop('submission_ids')
 
         responses = []
@@ -64,12 +66,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 'active': active,
             })
 
-    def delete_submission(self, pk, user):
+    def delete_submission(self, pk: int, user: 'auth.User'):
         """
         Deletes submission
-        :param pk: int
-        :param user: User
-        :return: JSON
         """
         # No need to delete data, just fake it
         return {
@@ -82,7 +81,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
-        all_submissions = self.asset._deployment_data['submissions']
+        all_submissions = self.asset.deployment_data['submissions']
         submission = next(
             filter(lambda sub: sub['_id'] == instance_id, all_submissions)
         )
@@ -213,7 +212,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         submission = self.get_submission(submission_pk, user.id,
                                          INSTANCE_FORMAT_TYPE_JSON)
         return {
-            "data": submission.get("_validation_status")
+            'data': submission.get('_validation_status')
         }
 
     def mock_submissions(self, submissions):
@@ -249,10 +248,17 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
         has_active_hooks = self.asset.has_active_hooks
         self.store_data({
-            "has_kpi_hooks": has_active_hooks,
+            'has_kpi_hooks': has_active_hooks,
         })
 
-    def set_validation_statuses(self, data, user, method):
+    def set_validation_status(self,
+                              submission_pk: int,
+                              data: dict,
+                              user: 'auth.User',
+                              method: str) -> dict:
+        pass
+
+    def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
         pass
 
     @property
@@ -264,32 +270,23 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         if namespace is not None:
             view_name = '{}:{}'.format(namespace, view_name)
         return reverse(view_name,
-                       kwargs={"parent_lookup_asset": self.asset.uid})
+                       kwargs={'parent_lookup_asset': self.asset.uid})
 
-    def _mock_submission(self, submission):
-        """
-        @TODO may be useless because of mock_submissions. Remove if it's not used anymore anywhere else.
-        :param submission:
-        """
-        submissions = self.asset.deployment_data.get('submissions', [])
-        submissions.append(submission)
-        self.store_data({
-            'submissions': submissions,
-            })
+    def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
+        queryset = self._get_metadata_queryset(file_type=file_type)
+        for obj in queryset:
+            assert issubclass(obj.__class__, SyncBackendMediaInterface)
 
     def _submission_count(self):
         submissions = self.asset.deployment_data.get('submissions', [])
         return len(submissions)
-
-    def set_validation_status(self, submission_pk, data, user, method):
-        pass
 
     @staticmethod
     def __prepare_bulk_update_payload(request_data: dict) -> dict:
         # For some reason DRF puts the strings into a list so this just takes
         # them back out again to more accurately reflect the behaviour of the
         # non-mocked methods
-        for k,v in request_data['data'].items():
+        for k, v in request_data['data'].items():
             request_data['data'][k] = v[0]
 
         request_data['submission_ids'] = list(
