@@ -22,6 +22,7 @@
         border: $cardBorderStyle;
         // right padding needs to make space for absolute positioned icons
         padding: 20px #{15px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width} 20px 75px;
+        min-height: 82px; // to fit all icons in
         display: block;
         background: $kobo-white;
         cursor: move;

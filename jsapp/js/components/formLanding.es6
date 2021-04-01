@@ -520,14 +520,7 @@ export class FormLanding extends React.Component {
     const userCanEdit = this.userCan('change_asset', this.state);
 
     if (this.state.uid === undefined) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<ui.LoadingSpinner/>);
     }
 
     return (

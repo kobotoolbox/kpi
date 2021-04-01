@@ -135,8 +135,6 @@ bem.AssetItems = BEM('asset-items', '<ul>');
 bem.AssetListSorts = BEM('asset-list-sorts', '<div>');
 bem.AssetListSorts__item = bem.AssetListSorts.__('item');
 
-bem.Message = BEM('message');
-
 bem.FormView = BEM('form-view');
 // used in header.es6
 bem.FormView__title = bem.FormView.__('title');

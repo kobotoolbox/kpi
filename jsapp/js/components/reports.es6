@@ -1046,10 +1046,7 @@ class Reports extends React.Component {
                 </code>
               </bem.Loading__inner>
             :
-              <bem.Loading__inner>
-                <i />
-                {t('loading...')}
-              </bem.Loading__inner>
+              <ui.LoadingSpinner/>
             }
           </bem.Loading>
       );
@@ -1089,10 +1086,7 @@ class Reports extends React.Component {
               </code>
             </bem.Loading__inner>
           :
-            <bem.Loading__inner>
-              <i />
-              {t('loading...')}
-            </bem.Loading__inner>
+            <ui.LoadingSpinner/>
           }
         </bem.Loading>
       );

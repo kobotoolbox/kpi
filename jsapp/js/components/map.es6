@@ -823,7 +823,7 @@ export class FormMap extends React.Component {
         {!this.state.markers && !this.state.heatmap &&
           <bem.Loading>
             <bem.Loading__inner>
-              <i />
+              <i className='k-spin k-icon k-icon-spinner'/>
             </bem.Loading__inner>
           </bem.Loading>
         }
