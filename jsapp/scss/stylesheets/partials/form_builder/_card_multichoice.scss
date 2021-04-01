@@ -19,17 +19,6 @@
 // Overrides
 // ==========================================================================
 
-// multi-choice expanded
-.right-and-down-caret {
-  @extend .fa, .fa-fw, .fa-caret-right;
-}
-
-.card--expandedchoices {
-  .right-and-down-caret {
-    @extend .fa-caret-down;
-  }
-}
-
 .card--selectquestion {
   .row__multioptions {
     display: none;
