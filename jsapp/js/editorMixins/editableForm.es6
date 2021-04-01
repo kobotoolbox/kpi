@@ -808,9 +808,9 @@ export default assign({
       }
       return (
         <span>
-          <small>padlock</small>
+          <i className='k-icon k-icon-lock'/>
           {lockedLabel}
-          <small>help icon</small>
+          <i className='k-icon k-icon-help'/>
         </span>
       );
     }
