@@ -325,14 +325,7 @@ class FormSummary extends React.Component {
     let permAccess = this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state);
 
     if (!this.state.permissions) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<ui.LoadingSpinner/>);
     }
 
     if (!permAccess) {

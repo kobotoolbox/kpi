@@ -89,14 +89,7 @@ class App extends React.Component {
   }
   render() {
     if (!this.state.isConfigReady) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<ui.LoadingSpinner/>);
     }
 
     var assetid = this.props.params.assetid || this.props.params.uid || null;

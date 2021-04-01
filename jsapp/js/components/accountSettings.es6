@@ -7,6 +7,7 @@ import TextareaAutosize from 'react-autosize-textarea';
 import alertify from 'alertifyjs';
 import {actions} from '../actions';
 import {bem} from '../bem';
+import {LoadingSpinner} from 'js/ui';
 import {stores} from '../stores';
 import Select from 'react-select';
 import TextBox from 'js/components/common/textBox';
@@ -224,12 +225,7 @@ export default class AccountSettings extends React.Component {
       return (
         <bem.AccountSettings>
           <bem.AccountSettings__item>
-            <bem.Loading>
-              <bem.Loading__inner>
-                <i />
-                {t('loading...')}
-              </bem.Loading__inner>
-            </bem.Loading>
+            <LoadingSpinner/>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
       );

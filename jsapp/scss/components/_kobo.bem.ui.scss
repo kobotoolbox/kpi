@@ -87,18 +87,6 @@ $mdl-layout-width: 1440px;
   opacity: .75;
 }
 
-.message--error {
-  text-decoration: uppercase;
-}
-
-.message--loading {
-  text-align: center;
-
-  > i:first-child {
-    @extend .fa, .fa-fw, .fa-circle-o-notch, .k-spin;
-  }
-}
-
 // Loading messages
 .loading {
   display: table;
@@ -109,11 +97,10 @@ $mdl-layout-width: 1440px;
   opacity: 0.8;
 
   i:first-child {
-    @extend .fa, .k-spin, .fa-circle-o-notch;
-
     margin-right: 12px;
     vertical-align: middle;
-    font-size: 24px;
+    font-size: 28px;
+    display: inline-block;
   }
 
   &__inner {
@@ -603,10 +590,19 @@ span.svg-icon {
   }
 }
 
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 // faster spinning icons, based on fa-spin
 .k-spin {
-  -webkit-animation: fa-spin 1.2s infinite linear;
-  animation: fa-spin 1.2s infinite linear;
+  transform-origin: center;
+  animation: spinner 1.2s infinite ease-in-out;
 }
 
 // Scrollbar overrides

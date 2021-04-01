@@ -32,7 +32,6 @@ import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 import assetUtils from 'js/assetUtils';
-import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -795,7 +794,7 @@ export default assign({
       );
     }
 
-    return renderLoading();
+    return (<ui.LoadingSpinner/>);
   },
 
   render() {
@@ -804,7 +803,7 @@ export default assign({
     if (!this.state.isNewAsset && !this.state.asset) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          {renderLoading()}
+          <ui.LoadingSpinner/>
         </DocumentTitle>
       );
     }

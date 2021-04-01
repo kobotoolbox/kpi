@@ -296,11 +296,11 @@ $t-form-builder-aside-open: 200ms;
   &.form-builder-header__button--savepending,
   &.form-builder-header__button--create-pending {
     > i {
-      @extend .k-spin, .fa-circle-o-notch;
+      @extend .k-spin, .k-icon, .k-icon-spinner;
 
-      font-size: 18px;
+      font-size: 24px;
       display: inline-block;
-      vertical-align: -1px;
+      vertical-align: middle;
       margin-right: 3px;
       margin-left: -2px;
     }

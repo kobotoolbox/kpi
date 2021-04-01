@@ -4,6 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import PropTypes from 'prop-types';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import {stores} from 'js/stores';
 import {hashHistory} from 'react-router';
 import {
@@ -67,20 +68,9 @@ class LibraryNewItemForm extends React.Component {
     });
   }
 
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
   render() {
     if (!this.state.isSessionLoaded) {
-      return this.renderLoading();
+      return (<LoadingSpinner/>);
     }
 
     return (

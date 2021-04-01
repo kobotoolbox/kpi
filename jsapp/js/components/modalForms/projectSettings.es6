@@ -9,6 +9,7 @@ import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import assetUtils from 'js/assetUtils';
 import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
@@ -711,7 +712,7 @@ class ProjectSettings extends React.Component {
         }
         {this.state.isUploadFilePending &&
           <div className='dropzone'>
-            {this.renderLoading(t('Uploading file…'))}
+            <LoadingSpinner message={t('Uploading file…')}/>
           </div>
         }
 
@@ -948,20 +949,9 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
   render() {
     if (!this.state.isSessionLoaded || !this.state.currentStep) {
-      return this.renderLoading();
+      return (<LoadingSpinner/>);
     }
 
     switch (this.state.currentStep) {
