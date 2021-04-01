@@ -54,11 +54,6 @@ module.exports = do ->
       "click .js-delete-group": "clickDeleteGroup"
       "click .js-add-to-question-library": "clickAddRowToQuestionLibrary"
       "click .js-clone-question": "clickCloneQuestion"
-      "click #xlf-preview": "previewButtonClick"
-      "click #csv-preview": "previewCsv"
-      "click #xlf-download": "downloadButtonClick"
-      "click #save": "saveButtonClick"
-      "click #publish": "publishButtonClick"
       "update-sort": "updateSort"
       "click .js-select-row": "selectRow"
       "click .js-select-row--force": "forceSelectRow"
@@ -67,7 +62,6 @@ module.exports = do ->
       "click .js-toggle-row-multioptions": "toggleRowMultioptions"
       "click .js-close-warning": "closeWarningBox"
       "click .js-expand-row-selector": "expandRowSelector"
-      "click .rowselector_toggle-library": "toggleLibrary"
       "mouseenter .card__buttons__button": "buttonHoverIn"
       "mouseleave .card__buttons__button": "buttonHoverOut"
       "click .card__settings__tabs li": "switchTab"
@@ -281,15 +275,20 @@ module.exports = do ->
           groupShrunk: groupsAreShrunk
         })
       $et = $(evt.currentTarget)
-      $et.toggleClass('fa-caret-right')
-      $et.toggleClass('fa-caret-down')
+      $et.toggleClass('k-icon-caret-right')
+      $et.toggleClass('k-icon-caret-down')
 
       view.$el.toggleClass('group--shrunk', !groupsAreShrunk)
 
 
     toggleRowMultioptions: (evt)->
+      $et = $(evt.currentTarget)
+      $et.find('.k-icon').toggleClass('k-icon-caret-right')
+      $et.find('.k-icon').toggleClass('k-icon-caret-down')
+
       view = @_getViewForTarget(evt)
       view.toggleMultioptions()
+      return
 
     expandRowSelector: (evt)->
       $ect = $(evt.currentTarget)
@@ -559,12 +558,6 @@ module.exports = do ->
 
       return @survey._validate()
 
-    previewCsv: ->
-      scsv = @survey.toCSV()
-      console?.clear()
-      log scsv
-      return
-
     ensureElInView: (row, parentView, $parentEl)->
       view = @getViewForRow(row)
       $el = view.$el
@@ -742,50 +735,7 @@ module.exports = do ->
       rows
 
     onEscapeKeydown: -> #noop. to be overridden
-    previewButtonClick: (evt)->
-      if evt.shiftKey #and evt.altKey
-        evt.preventDefault()
-        if evt.altKey
-          content = @survey.toCSV()
-        else
-          content = JSON.stringify(@survey.toJSON(), null, 4)
-        $viewUtils.debugFrame content.replace(new RegExp(' ', 'g'), '&nbsp;')
-        @onEscapeKeydown = $viewUtils.debugFrame.close
-      else
-        $viewUtils.enketoIframe.fromCsv @survey.toCSV(),
-          previewServer: window.koboConfigs?.previewServer or "https://kf.kobotoolbox.org"
-          enketoServer: window.koboConfigs?.enketoServer or false
-          enketoPreviewUri: window.koboConfigs?.enketoPreviewUri or false
-          onSuccess: => @onEscapeKeydown = $viewUtils.enketoIframe.close
-          onError: (message)=> alertify.error(message)
-      return
-    downloadButtonClick: (evt)->
-      # Download = save a CSV file to the disk
-      surveyCsv = @survey.toCSV()
-      if surveyCsv
-        evt.target.href = "data:text/csv;charset=utf-8,#{encodeURIComponent(@survey.toCSV())}"
-    saveButtonClick: (evt)->
-      # Save = store CSV in local storage.
-      icon = $(evt.currentTarget).find('i')
-      icon.addClass 'fa-spinner fa-spin blue'
-      icon.removeClass 'fa-check-circle green'
-      @onSave.apply(@, arguments).finally () ->
-        icon.removeClass 'fa-spinner fa-spin blue'
-        icon.addClass 'fa-check-circle green'
 
-    publishButtonClick: (evt)->
-      # Publish = trigger publish action (ie. post to formhub)
-      @onPublish.apply(@, arguments)
-    toggleLibrary: (evt)->
-      evt.stopPropagation()
-      $et = $(evt.target)
-      $et.toggleClass('active__sidebar')
-      $("section.form-builder").toggleClass('active__sidebar')
-      @ngScope.displayQlib = !@ngScope.displayQlib
-      @ngScope.$apply()
-
-      $("section.koboform__questionlibrary").toggleClass('active').data("rowIndex", -1)
-      return
     buttonHoverIn: (evt)->
       evt.stopPropagation()
       $et = $(evt.currentTarget)

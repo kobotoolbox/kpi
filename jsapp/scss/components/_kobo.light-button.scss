@@ -24,17 +24,17 @@
   i,
   .k-icon {
     vertical-align: top;
-    font-size: 24px;
+    font-size: 18px;
     position: relative;
-    top: -5px;
-    margin-left: -6px; // this assumes there is a text and icon is first
+    top: -2px;
+    margin-right: 3px;
   }
 
   &.kobo-light-button--icon-only,
   &.kobo-light-badge--icon-only {
     & i,
     & .k-icon {
-      margin-right: -6px;
+      margin-right: 0;
     }
   }
 }

@@ -33,7 +33,6 @@ import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 import assetUtils from 'js/assetUtils';
-import {renderLoading} from 'js/components/modalForms/modalHelpers';
 import FormLockedMessage from 'js/components/locking/formLockedMessage';
 import {
   isAssetLocked,
@@ -546,7 +545,7 @@ export default assign({
             tabIndex='0'
             onClick={this.safeNavigateToList}
           >
-            <i className='k-icon-kobo' />
+            <i className='k-icon k-icon-kobo' />
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'name'} >
@@ -782,7 +781,7 @@ export default assign({
       );
     }
 
-    return renderLoading();
+    return (<ui.LoadingSpinner/>);
   },
 
   renderAssetLabel() {
@@ -816,7 +815,7 @@ export default assign({
     if (!this.state.isNewAsset && !this.state.asset) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          {renderLoading()}
+          <ui.LoadingSpinner/>
         </DocumentTitle>
       );
     }

@@ -987,12 +987,7 @@ export class DataTable extends React.Component {
           loading={loading}
           previousText={t('Prev')}
           nextText={t('Next')}
-          loadingText={
-            <span>
-              <i className='fa k-spin fa-circle-o-notch' />
-              {t('Loading...')}
-            </span>
-          }
+          loadingText={<ui.LoadingSpinner/>}
           noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}
           ofText={t('of')}

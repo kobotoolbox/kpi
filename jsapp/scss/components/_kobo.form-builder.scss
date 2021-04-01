@@ -118,7 +118,7 @@ $t-form-builder-aside-open: 200ms;
       vertical-align: middle;
       height: 75px;
       cursor: pointer;
-      transition: background-color 0.2s, color 0.2s;
+      transition: 0.2s;
 
       &:hover {
         background-color: darken($kobo-teal, 10%);
@@ -126,18 +126,20 @@ $t-form-builder-aside-open: 200ms;
 
       &:focus {
         background-color: darken($kobo-teal, 10%);
-        i {
-          font-size: 56px;
-          padding-top: 8px;
+
+        .k-icon {
+          font-size: 40px;
+          top: calc(50% - 19px);
+          left: calc(50% - 19px);
         }
       }
 
-      i {
+      .k-icon {
         color: $kobo-white;
-        font-size: 48px;
-        padding-top: 14px;
-        display: inline-block;
-        vertical-align: middle;
+        font-size: 36px;
+        position: absolute;
+        top: calc(50% - 17px);
+        left: calc(50% - 17px);
 
         &::before {
           margin-right: 0;
@@ -218,7 +220,8 @@ $t-form-builder-aside-open: 200ms;
         }
 
         i {
-          font-size: 32px;
+          font-size: 24px;
+          margin: 3px;
           vertical-align: middle;
 
           &::before {
@@ -262,10 +265,6 @@ $t-form-builder-aside-open: 200ms;
 .form-builder-header__button {
   @extend .mdl-button;
 
-  > i {
-    @extend .fa, .fa-fw;
-  }
-
   &:focus {
     i {
       @include form-builder-focus();
@@ -293,11 +292,13 @@ $t-form-builder-aside-open: 200ms;
   &.form-builder-header__button--savepending,
   &.form-builder-header__button--create-pending {
     > i {
-      @extend .k-spin, .fa-circle-o-notch;
+      @extend .k-spin, .k-icon, .k-icon-spinner;
 
-      font-size: 22px;
-      line-height: 35px;
+      font-size: 24px;
       display: inline-block;
+      vertical-align: middle;
+      margin-right: 3px;
+      margin-left: -2px;
     }
 
     > i + span {
@@ -325,7 +326,8 @@ $t-form-builder-aside-open: 200ms;
     }
 
     i.k-icon {
-      font-size: 32px;
+      font-size: 24px;
+      margin-right: 3px;
       vertical-align: middle;
     }
 
@@ -365,6 +367,10 @@ $t-form-builder-aside-open: 200ms;
     padding: 30px;
     overflow-y: auto;
     height: 100%;
+
+    .form-builder-aside__row:last-child {
+      margin-bottom: 30px;
+    }
   }
 
   .form-builder-aside__header {
@@ -374,12 +380,9 @@ $t-form-builder-aside-open: 200ms;
     font-weight: 700;
 
     .k-icon {
-      font-size: 28px;
-      vertical-align: bottom;
-
-      &::before {
-        vertical-align: inherit;
-      }
+      font-size: 20px;
+      margin-left: 3px;
+      vertical-align: middle;
     }
   }
 
@@ -449,7 +452,7 @@ $t-form-builder-aside-open: 200ms;
     text-align: right;
 
     i {
-      font-size: 26px;
+      font-size: 18px;
       color: $kobo-darkgray;
     }
   }

@@ -55,7 +55,7 @@ export default class SearchBox extends React.Component {
   render() {
     return (
       <bem.Search>
-        <bem.Search__icon/>
+        <bem.Search__icon className='k-icon k-icon-search'/>
         <ui.SearchBox
           value={this.state.inputVal}
           onChange={this.onInputChange}
@@ -64,7 +64,7 @@ export default class SearchBox extends React.Component {
           disabled={this.props.disabled}
         />
         {this.state.inputVal !== '' &&
-          <bem.Search__cancel onClick={this.clear}/>
+          <bem.Search__cancel className='k-icon k-icon-close' onClick={this.clear}/>
         }
       </bem.Search>
     );

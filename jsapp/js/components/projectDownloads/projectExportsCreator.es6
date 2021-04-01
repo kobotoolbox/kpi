@@ -278,10 +278,10 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   onAnyInputChange(statePropName, newValue) {
+    this.clearSelectedDefinedExport();
     const newStateObj = {};
     newStateObj[statePropName] = newValue;
     this.setState(newStateObj);
-    this.clearSelectedDefinedExport();
   }
 
   onSelectedExportTypeChange(newValue) {
@@ -290,6 +290,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   onSelectedRowsChange(newRowsArray) {
+    this.clearSelectedDefinedExport();
     const newSelectedRows = new Set();
     newRowsArray.forEach((item) => {
       if (item.checked) {
@@ -301,11 +302,13 @@ export default class ProjectExportsCreator extends React.Component {
 
   selectAllRows(evt) {
     evt.preventDefault();
+    this.clearSelectedDefinedExport();
     this.setState({selectedRows: new Set(this.getAllSelectableRows())});
   }
 
   clearSelectedRows(evt) {
     evt.preventDefault();
+    this.clearSelectedDefinedExport();
     this.setState({selectedRows: new Set()});
   }
 
@@ -392,7 +395,8 @@ export default class ProjectExportsCreator extends React.Component {
       payload.name = this.state.customExportName || this.generateExportName();
     }
 
-    // unless custom selection is enabled, we send empty fields (it means "all fields" for backend)
+    // unless custom selection is enabled, we send empty fields (it means "all
+    // fields" for backend); otherwise we send the selected rows
     if (this.state.isCustomSelectionEnabled) {
       payload.export_settings.fields = Array.from(this.state.selectedRows);
     }
@@ -603,7 +607,10 @@ export default class ProjectExportsCreator extends React.Component {
             />
 
             <bem.ProjectDownloads__textButton
-              disabled={!this.state.isCustomSelectionEnabled}
+              disabled={(
+                !this.state.isCustomSelectionEnabled ||
+                this.state.selectedRows.size === this.state.selectableRowsCount
+              )}
               onClick={this.selectAllRows}
             >
               {t('Select all')}
@@ -612,7 +619,10 @@ export default class ProjectExportsCreator extends React.Component {
             <span className='project-downloads__vr'/>
 
             <bem.ProjectDownloads__textButton
-              disabled={!this.state.isCustomSelectionEnabled}
+              disabled={(
+                !this.state.isCustomSelectionEnabled ||
+                this.state.selectedRows.size === 0
+              )}
               onClick={this.clearSelectedRows}
             >
               {t('Deselect all')}

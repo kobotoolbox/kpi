@@ -369,7 +369,7 @@ export class FormLanding extends React.Component {
                   &nbsp;
                   {t('on your Android device.')}
                 </li>
-                <li>{t('Click on')} <i className='fa fa-ellipsis-v'/> {t('to open settings.')}</li>
+                <li>{t('Click on')} <i className='k-icon k-icon-more-vertical'/> {t('to open settings.')}</li>
                 <li>
                   {t('Enter the server URL')}&nbsp;
                   <code>{kobocollect_url}</code>&nbsp;
@@ -459,7 +459,7 @@ export class FormLanding extends React.Component {
             data-asset-uid={this.state.uid}
             data-asset-name={this.state.name}
           >
-            <i className='k-icon-template-new'/>
+            <i className='k-icon-template'/>
             {t('Create template')}
           </bem.PopoverMenu__link>
 
@@ -520,14 +520,7 @@ export class FormLanding extends React.Component {
     const userCanEdit = this.userCan('change_asset', this.state);
 
     if (this.state.uid === undefined) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<ui.LoadingSpinner/>);
     }
 
     return (

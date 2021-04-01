@@ -40,9 +40,8 @@
     }
 
     i {
-      font-size: 36px;
-      margin-right: -1px;
-      margin-left: -4px;
+      font-size: 26px;
+      margin: 5px 4px 5px 1px;
       display: inline-block;
     }
 
@@ -88,15 +87,6 @@
 
     &.form-sidebar__item--active {
       background: #ededee;
-    }
-
-    i {
-      font-size: 32px;
-      margin: -5px -1px -5px 0;
-    }
-
-    i + .form-sidebar__item-text {
-      margin-top: 5px;
     }
   }
 }

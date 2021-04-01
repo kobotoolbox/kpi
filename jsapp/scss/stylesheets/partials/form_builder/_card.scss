@@ -22,6 +22,7 @@
         border: $cardBorderStyle;
         // right padding needs to make space for absolute positioned icons
         padding: 20px #{15px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width} 20px 75px;
+        min-height: 82px; // to fit all icons in
         display: block;
         background: $kobo-white;
         cursor: move;
@@ -49,9 +50,9 @@
             margin-top:-30px;
             padding-top: 22px;
             padding-bottom: 22px;
-            .fa {
-                width: 12px;
-                font-size: 15px;
+
+            .k-icon {
+              font-size: 15px;
             }
         }
     }
@@ -168,23 +169,6 @@ $cardIndicatorIconWidth: 21px;
     line-height: 20px;
     text-align: center;
     color: $kobo-darkgray;
-
-    .fa.invert {
-        padding: 3px 1px;
-        font-size: 0.95em;
-        background-color: $kobo-darkgray;
-    }
-    .fa-lato-range,
-    .fa-lato-calculate,
-    .fa-lato-decimal,
-    .fa-lato-integer,
-    .fa-lato-text {
-        font-size: 15px;
-        width: $cardIndicatorIconWidth;
-    }
-    .fa-lato-decimal {
-        margin-left:2px;
-    }
 }
 
 // ==========================================================================
@@ -277,6 +261,10 @@ $cardIndicatorIconWidth: 21px;
         color: $kobo-blue;
     }
 
+    &.card__buttons__button--green {
+        color: $kobo-green;
+    }
+
     &.card__buttons__button--activated {
         color: $kobo-darkgray;
         background-color: $kobo-lightgray;
@@ -286,6 +274,10 @@ $cardIndicatorIconWidth: 21px;
     &:hover,
     &.card__buttons__button--activated:hover {
         opacity: 0.5;
+    }
+
+    .k-icon {
+      font-size: 18px;
     }
 }
 
