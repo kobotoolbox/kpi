@@ -163,7 +163,7 @@ class Drawer extends Reflux.Component {
             stores.serverEnvironment.state.source_code_url &&
             <a href={stores.serverEnvironment.state.source_code_url}
               className='k-drawer__link' target='_blank' data-tip={t('Source')}>
-              <i className='k-icon k-icon-github' />
+              <i className='k-icon k-icon-logo-github' />
             </a>
           }
         </bem.KDrawer__secondaryIcons>

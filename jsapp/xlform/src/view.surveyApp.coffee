@@ -279,8 +279,8 @@ module.exports = do ->
           groupShrunk: groupsAreShrunk
         })
       $et = $(evt.currentTarget)
-      $et.toggleClass('fa-caret-right')
-      $et.toggleClass('fa-caret-down')
+      $et.toggleClass('k-icon-caret-right')
+      $et.toggleClass('k-icon-caret-down')
 
       view.$el.toggleClass('group--shrunk', !groupsAreShrunk)
 

@@ -422,7 +422,7 @@ export default class AccountSettings extends React.Component {
                 <label>{t('Social')}</label>
 
                 <label>
-                  <i className='fa fa-twitter' />
+                  <i className='k-icon k-icon-logo-twitter' />
 
                   <input
                     type='text'
@@ -432,7 +432,7 @@ export default class AccountSettings extends React.Component {
                 </label>
 
                 <label>
-                  <i className='fa fa-linkedin' />
+                  <i className='k-icon k-icon-logo-linkedin' />
 
                   <input
                     type='text'
@@ -442,7 +442,7 @@ export default class AccountSettings extends React.Component {
                 </label>
 
                 <label>
-                  <i className='fa fa-instagram' />
+                  <i className='k-icon k-icon-logo-instagram' />
 
                   <input
                     type='text'
