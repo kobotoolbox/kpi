@@ -334,30 +334,16 @@ $mdl-layout-width: 1440px;
     }
 
     &::after {
-      content: "\F107";
-      font-family: "FontAwesome";
+      content: "\25BC";
+      font-size: 8px;
       margin-left: 3px;
+      display: inline-block;
+      vertical-align: 1px;
     }
   }
 
   .popover-menu__content {
     line-height: 20px;
-  }
-}
-
-.popover-menu--question-language {
-  .popover-menu__toggle {
-    @extend .mdl-button;
-
-    text-transform: uppercase;
-    padding-left: 0px;
-
-    &::after {
-      content: "\f107";
-      font-family: "FontAwesome";
-      font-size: 18px;
-      margin-left: 5px;
-    }
   }
 }
 
@@ -369,10 +355,11 @@ $mdl-layout-width: 1440px;
     padding-left: 0px;
 
     &::after {
-      content: "\f107";
-      font-family: "FontAwesome";
-      font-size: 18px;
+      content: "\25BC";
+      font-size: 10px;
       margin-left: 5px;
+      display: inline-block;
+      vertical-align: 1px;
     }
   }
 
@@ -406,10 +393,9 @@ $mdl-layout-width: 1440px;
     &::after {
       position: absolute;
       right: 10px;
-      top: 8px;
-      content: "\f0d7";
-      font-family: "FontAwesome";
-      font-size: 16px;
+      top: 9px;
+      content: "\25BC";
+      font-size: 10px;
     }
   }
 

@@ -280,8 +280,13 @@ module.exports = do ->
 
 
     toggleRowMultioptions: (evt)->
+      $et = $(evt.currentTarget)
+      $et.find('.k-icon').toggleClass('k-icon-caret-right')
+      $et.find('.k-icon').toggleClass('k-icon-caret-down')
+
       view = @_getViewForTarget(evt)
       view.toggleMultioptions()
+      return
 
     expandRowSelector: (evt)->
       $ect = $(evt.currentTarget)

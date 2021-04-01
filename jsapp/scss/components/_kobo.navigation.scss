@@ -98,23 +98,17 @@
     .search__icon,
     .search__cancel {
       position: absolute;
-      top: 11px;
+      top: 9px;
       color: $kobo-white;
-
-      &::before {
-        font-size: 18px;
-      }
+      font-size: 24px;
     }
 
     .search__icon {
-      @extend .fa, .fa-search;
-
       left: 12px;
     }
 
     .search__cancel {
-      @extend .fa, .fa-close;
-
+      cursor: pointer;
       right: 12px;
     }
   }

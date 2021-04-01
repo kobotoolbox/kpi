@@ -265,10 +265,6 @@ $t-form-builder-aside-open: 200ms;
 .form-builder-header__button {
   @extend .mdl-button;
 
-  > i {
-    @extend .fa, .fa-fw;
-  }
-
   &:focus {
     i {
       @include form-builder-focus();

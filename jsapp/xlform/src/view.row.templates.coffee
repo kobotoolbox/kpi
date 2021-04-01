@@ -319,7 +319,7 @@ module.exports = do ->
 
   expandChoiceList = ()->
     """
-    <span class="card__buttons__multioptions js-toggle-row-multioptions js-cancel-select-row"><i class='right-and-down-caret' /></span>
+    <span class="card__buttons__multioptions js-toggle-row-multioptions js-cancel-select-row"><i class='k-icon k-icon-caret-down' /></span>
     """
 
   rowErrorView = (atts)->
