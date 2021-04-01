@@ -153,8 +153,9 @@ module.exports = do ->
         iconClassName = $icons.get(typeStr)?.get("iconClassName")
         if !iconClassName
           console?.error("could not find icon for type: #{typeStr}")
-          iconClassName = "k-icon k-icon-alert"
-        rowView.$el.find(".card__header-icon").addClass(iconClassName)
+          iconClassName = "k-icon-alert"
+        rowView.$el.find(".card__header-icon").addClass('k-icon').addClass(iconClassName)
+      return
 
 
   viewRowDetail.DetailViewMixins.label =

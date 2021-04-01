@@ -16,6 +16,7 @@ alertify = require 'alertifyjs'
 hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
 isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
 LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
+$icons = require './view.icons'
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
@@ -120,10 +121,12 @@ module.exports = do ->
     applyLocking: () ->
       console.log('applyLocking', @model.getValue('$autoname'), @ngScope)
 
-      @$indicator = @$('.card__indicator')
-      if @$indicator and isRowLocked(@ngScope.rawSurvey, @model.getValue('$autoname'))
-        # mark type icon as locked
-        @$indicator.prepend($.parseHTML('<small>padlock</small>'))
+      @$indicatorIcon = @$('.card__indicator__icon .k-icon')
+      if @$indicatorIcon and isRowLocked(@ngScope.rawSurvey, @model.getValue('$autoname'))
+        iconRegular = $icons.get(@model.get('type').get('value'))?.get("iconClassName")
+        iconLocked = $icons.get(@model.get('type').get('value'))?.get("iconClassNameLocked")
+        @$indicatorIcon.toggleClass(iconRegular)
+        @$indicatorIcon.toggleClass(iconLocked)
 
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
         # hide delete row button

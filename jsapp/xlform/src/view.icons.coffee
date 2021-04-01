@@ -8,7 +8,8 @@ module.exports = do ->
   addIconToRow = (typeDef, group) =>
     iconDetails.push({
       label: typeDef.label,
-      iconClassName: "k-icon k-icon-#{typeDef.icon}",
+      iconClassName: "k-icon-#{typeDef.icon}",
+      iconClassNameLocked: "k-icon-#{typeDef.icon}-lock",
       grouping: group,
       id: typeDef.id
     })
