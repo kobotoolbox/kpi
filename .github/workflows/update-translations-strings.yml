@@ -3,6 +3,8 @@ name: Update Translations
 
 on:
   pull_request:
+#   Github actions does not support an `on merge` type action
+#   So I substituted with pull_quests.closed
     types: [ closed ]
     branches: [ master ]
 
