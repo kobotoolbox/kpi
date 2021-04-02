@@ -7,12 +7,12 @@ import {
   hasRowRestriction,
   hasAssetRestriction,
   getLockingProfile,
+  getRowLockingProfile,
   isRowLocked,
   isAssetLocked,
   isAssetAllLocked,
 } from './lockingUtils';
 import {
-  LOCK_ALL_RESTRICTION_NAMES,
   LOCKING_RESTRICTIONS,
   LOCK_ALL_PROP_NAME,
 } from './lockingConstants';
@@ -147,6 +147,45 @@ describe('getLockingProfile', () => {
   it('should find custom locking profile', () => {
     const test = getLockingProfile(simpleTemplateLocked.content, 'mycustomlock1');
     expect(test).to.deep.equal({
+      index: 0,
+      name: 'mycustomlock1',
+      restrictions: [
+        'choice_add',
+        'choice_delete',
+        'choice_edit',
+        'question_settings_edit',
+        'group_label_edit',
+        'group_question_order_edit',
+        'group_add',
+        'question_order_edit',
+      ],
+    });
+  });
+
+  it('should return proper index for found locking profile', () => {
+    const test = getLockingProfile(simpleTemplateLocked.content, 'lock2');
+    expect(test).to.deep.equal({
+      index: 1,
+      name: 'lock2',
+      restrictions: [
+        'question_delete',
+        'group_delete',
+        'translation_manage',
+      ],
+    });
+  });
+
+  it('should return null for not found', () => {
+    const test = getLockingProfile(simpleTemplateLocked.content, 'nothingness_approaching');
+    expect(test).to.equal(null);
+  });
+});
+
+describe('getRowLockingProfile', () => {
+  it('should find custom locking profile for a Row', () => {
+    const test = getRowLockingProfile(simpleTemplateLocked.content, 'Your_age');
+    expect(test).to.deep.equal({
+      index: 0,
       name: 'mycustomlock1',
       restrictions: [
         'choice_add',
@@ -162,7 +201,7 @@ describe('getLockingProfile', () => {
   });
 
   it('should return null for not found', () => {
-    const test = getLockingProfile(simpleTemplateLocked.content, 'nothingness_approaching');
+    const test = getRowLockingProfile(simpleTemplateLocked.content, 'Your_name');
     expect(test).to.equal(null);
   });
 });

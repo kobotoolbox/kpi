@@ -14,6 +14,7 @@ $viewRowDetail = require './view.rowDetail'
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
 alertify = require 'alertifyjs'
 hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
+getRowLockingProfile = require('js/components/locking/lockingUtils').getRowLockingProfile
 isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
 LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 $icons = require './view.icons'
@@ -40,6 +41,9 @@ module.exports = do ->
 
     getApp: ->
       @surveyView.getApp()
+
+    getRawType: ->
+      return @model.get('type').get('typeId')
 
     # expandRowSelector: ->
     #   new $rowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), ngScope: @ngScope, spawnedFromView: @).expand()
@@ -81,7 +85,7 @@ module.exports = do ->
       @$header = @$('.card__header')
       context = {warnings: []}
 
-      questionType = @model.get('type').get('typeId')
+      questionType = @getRawType()
       if (
         $configs.questionParams[questionType] and
         'getParameters' of @model and
@@ -105,7 +109,7 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
       for [key, val] in @model.attributesArray() when key in ['label', 'hint', 'type']
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
-        if key == 'label' and @model.get('type').get('value') == 'calculate'
+        if key == 'label' and @getRawType() == 'calculate'
           view.model = @model.get('calculation')
           @model.finalize()
           val.set('value', '')
@@ -122,11 +126,19 @@ module.exports = do ->
       console.log('applyLocking', @model.getValue('$autoname'), @ngScope)
 
       @$indicatorIcon = @$('.card__indicator__icon .k-icon')
-      if @$indicatorIcon and isRowLocked(@ngScope.rawSurvey, @model.getValue('$autoname'))
-        iconRegular = $icons.get(@model.get('type').get('value'))?.get("iconClassName")
-        iconLocked = $icons.get(@model.get('type').get('value'))?.get("iconClassNameLocked")
+      iconDef = $icons.get(@getRawType())
+      if @$indicatorIcon and iconDef and isRowLocked(@ngScope.rawSurvey, @model.getValue('$autoname'))
+        iconRegular = iconDef.get("iconClassName")
+        iconLocked = iconDef.get("iconClassNameLocked")
         @$indicatorIcon.toggleClass(iconRegular)
         @$indicatorIcon.toggleClass(iconLocked)
+        profileDef = getRowLockingProfile(@ngScope.rawSurvey, @model.getValue('$autoname'))
+        if profileDef and profileDef.index is 0
+          @$indicatorIcon.addClass('locking__level-1')
+        else if profileDef and profileDef.index is 1
+          @$indicatorIcon.addClass('locking__level-2')
+        else if profileDef and profileDef.index >= 2
+          @$indicatorIcon.addClass('locking__level-3-plus')
 
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
         # hide delete row button

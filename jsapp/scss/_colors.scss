@@ -8,8 +8,9 @@
 /*
   Group 1: Blueish grays
 
-  WARNING: All text should either be $kobo-black/$kobo-darkgray for light backgrounds
-  or $kobo-white/$kobo-whitegray for dark backgrounds.
+  WARNING: All text should either be:
+  - $kobo-black/$kobo-darkgray for light backgrounds
+  - $kobo-white/$kobo-whitegray for dark backgrounds.
 */
 
 $kobo-black: hsl(230, 12%, 20%); // base text color
@@ -22,20 +23,27 @@ $kobo-white: hsl(0, 0%, 100%);
 /*
   Group 2: Accent colors
 */
+
 $kobo-blue: hsl(206, 90%, 55%);
+$kobo-blue-darker: hsl(206, 90%, 33%);
 $kobo-blue-dark: hsl(206, 90%, 45%);
 $kobo-blue-light: hsl(206, 90%, 60%);
 $kobo-blue-pale: hsl(206, 90%, 80%);
+
 $kobo-teal: hsl(185, 70%, 45%);
 $kobo-teal-light: hsl(185, 70%, 95%); // the row hover color
+$kobo-teal-pale: hsl(185, 60%, 60%);
+
 // positive colors
 $kobo-green: hsl(149, 65%, 45%);
 $kobo-green-dark: hsl(149, 65%, 35%);
 $kobo-green-light: hsl(149, 65%, 90%);
+
 // error/negative colors
 $kobo-red: hsl(352, 77%, 60%);
 $kobo-red-dark: hsl(352, 70%, 40%);
 $kobo-red-light: hsl(352, 70%, 90%);
+
 // warning colors
 $kobo-orange: hsl(30, 80%, 50%);
 $kobo-orange-dark: hsl(30, 80%, 40%);

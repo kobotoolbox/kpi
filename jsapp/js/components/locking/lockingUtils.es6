@@ -21,18 +21,9 @@ export function hasRowRestriction(assetContent, rowName, restrictionName) {
 
   // case 2
   // check if row's locking profile definition has the searched restriction
-  const foundRow = assetContent.survey.find((row) => {
-    return getRowName(row) === rowName;
-  });
-  if (
-    foundRow &&
-    foundRow[LOCKING_PROFILE_PROP_NAME]
-  ) {
-    const lockingProfile = getLockingProfile(assetContent, foundRow[LOCKING_PROFILE_PROP_NAME]);
-    return (
-      lockingProfile !== null &&
-      lockingProfile.restrictions.includes(restrictionName)
-    );
+  const foundProfile = getRowLockingProfile(assetContent, rowName);
+  if (foundProfile) {
+    return foundProfile.restrictions.includes(restrictionName);
   }
 
   // default
@@ -68,6 +59,8 @@ export function hasAssetRestriction(assetContent, restrictionName) {
 }
 
 /**
+ * Finds locking profile by name
+ *
  * @param {object} assetContent asset's object content property
  * @param {string} profileName
  * @returns {object|null} null for no found
@@ -78,12 +71,41 @@ export function getLockingProfile(assetContent, profileName) {
     assetContent &&
     Array.isArray(assetContent[LOCKING_PROFILES_PROP_NAME])
   ) {
-    assetContent[LOCKING_PROFILES_PROP_NAME].forEach((profile) => {
+    assetContent[LOCKING_PROFILES_PROP_NAME].forEach((profile, index) => {
       if (profile.name === profileName) {
-        found = profile;
+        // we make a copy of profile definition to add index to it
+        found = {
+          index: index,
+          name: profile.name,
+          restrictions: profile.restrictions,
+        };
       }
     });
   }
+  return found;
+}
+
+/**
+ * Find locking profile of given row - you don't need to know if row has
+ * a profile or what's it's name.
+ *
+ * @param {object} assetContent asset's object content property
+ * @param {string} rowName
+ * @returns {object|null} null for no found
+ */
+export function getRowLockingProfile(assetContent, rowName) {
+  let found = null;
+
+  const foundRow = assetContent.survey.find((row) => {
+    return getRowName(row) === rowName;
+  });
+  if (
+    foundRow &&
+    foundRow[LOCKING_PROFILE_PROP_NAME]
+  ) {
+    return getLockingProfile(assetContent, foundRow[LOCKING_PROFILE_PROP_NAME]);
+  }
+
   return found;
 }
 
