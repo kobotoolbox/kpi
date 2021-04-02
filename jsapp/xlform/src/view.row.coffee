@@ -16,6 +16,7 @@ alertify = require 'alertifyjs'
 hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
 getRowLockingProfile = require('js/components/locking/lockingUtils').getRowLockingProfile
 isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
+isAssetAllLocked = require('js/components/locking/lockingUtils').isAssetAllLocked
 LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 $icons = require './view.icons'
 
@@ -45,9 +46,6 @@ module.exports = do ->
     getRawType: ->
       return @model.get('type').get('typeId')
 
-    # expandRowSelector: ->
-    #   new $rowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), ngScope: @ngScope, spawnedFromView: @).expand()
-
     hasRestriction: (restrictionName) ->
       return hasRowRestriction(@ngScope.rawSurvey, @model.getValue('$autoname'), restrictionName)
 
@@ -71,12 +69,14 @@ module.exports = do ->
       if fixScroll
         @$el.attr('style', '')
 
-      @
+      return @
+
     _renderError: ->
       @$el.addClass("xlf-row-view-error")
       atts = $viewUtils.cleanStringify(@model.toJSON())
       @$el.html $viewTemplates.$$render('row.rowErrorView', atts)
-      @
+      return @
+
     _renderRow: ->
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
       @$label = @$('.js-card-label')
@@ -125,20 +125,23 @@ module.exports = do ->
     applyLocking: () ->
       console.log('applyLocking', @model.getValue('$autoname'), @ngScope)
 
+      profileDef = getRowLockingProfile(@ngScope.rawSurvey, @model.getValue('$autoname'))
+      if isAssetAllLocked(@ngScope.rawSurvey)
+        @$el.addClass('locking__level-all')
+      else if profileDef and profileDef.index is 0
+        @$el.addClass('locking__level-1')
+      else if profileDef and profileDef.index is 1
+        @$el.addClass('locking__level-2')
+      else if profileDef and profileDef.index >= 2
+        @$el.addClass('locking__level-3-plus')
+
       @$indicatorIcon = @$('.card__indicator__icon .k-icon')
       iconDef = $icons.get(@getRawType())
-      if @$indicatorIcon and iconDef and isRowLocked(@ngScope.rawSurvey, @model.getValue('$autoname'))
+      if (@$indicatorIcon and iconDef and isRowLocked(@ngScope.rawSurvey, @model.getValue('$autoname')))
         iconRegular = iconDef.get("iconClassName")
         iconLocked = iconDef.get("iconClassNameLocked")
         @$indicatorIcon.toggleClass(iconRegular)
         @$indicatorIcon.toggleClass(iconLocked)
-        profileDef = getRowLockingProfile(@ngScope.rawSurvey, @model.getValue('$autoname'))
-        if profileDef and profileDef.index is 0
-          @$indicatorIcon.addClass('locking__level-1')
-        else if profileDef and profileDef.index is 1
-          @$indicatorIcon.addClass('locking__level-2')
-        else if profileDef and profileDef.index >= 2
-          @$indicatorIcon.addClass('locking__level-3-plus')
 
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
         # hide delete row button
@@ -225,7 +228,8 @@ module.exports = do ->
       @
 
     hasNestedGroups: ->
-      _.filter(@model.rows.models, (row) -> row.constructor.key == 'group').length > 0
+      return _.filter(@model.rows.models, (row) -> row.constructor.key == 'group').length > 0
+
     _expandedRender: ->
       @$header.after($viewTemplates.row.groupSettingsView())
       @cardSettingsWrap = @$('.card__settings').eq(0)
@@ -247,7 +251,7 @@ module.exports = do ->
       @model.on 'remove', (row) =>
         if row.constructor.key == 'group' && !@hasNestedGroups()
           @$('.xlf-dv-appearance').eq(0).show()
-      @
+      return @
 
   class RowView extends BaseRowView
     _expandedRender: ->

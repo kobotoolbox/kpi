@@ -15,14 +15,39 @@
   background-color: hotpink !important;
 }
 
+.locking__level-all {
+  .card__header,
+  .question__tags,
+  .card__settings,
+  .card--selectquestion__expansion {
+    background-color: $kobo-whitegray;
+  }
+
+  .question__tags::after,
+  .card__settings::after,
+  .card--selectquestion__expansion::after {
+    border-bottom-color: $kobo-whitegray;
+  }
+
+  .card__addoptions__layer {
+    background-color: rgba($kobo-whitegray, 0.5);
+  }
+}
+
 .locking__level-1 {
-  color: $kobo-blue-darker;
+  .card__header-icon {
+    color: $kobo-blue-darker;
+  }
 }
 
 .locking__level-2 {
-  color: $kobo-blue;
+  .card__header-icon {
+    color: $kobo-blue;
+  }
 }
 
 .locking__level-3-plus {
-  color: $kobo-teal-pale;
+  .card__header-icon {
+    color: $kobo-teal-pale;
+  }
 }
