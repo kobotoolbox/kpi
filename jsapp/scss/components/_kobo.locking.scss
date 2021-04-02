@@ -1,4 +1,4 @@
-// All Locking feature styles gathered in one place
+// All custom Locking feature styles gathered in one place
 
 .locking__ui-locked {
   // pointer-events: none;
@@ -13,4 +13,16 @@
 
   // DEV STYLES, uncomment above
   background-color: hotpink !important;
+}
+
+.locking__level-1 {
+  color: $kobo-blue-darker;
+}
+
+.locking__level-2 {
+  color: $kobo-blue;
+}
+
+.locking__level-3-plus {
+  color: $kobo-teal-pale;
 }
