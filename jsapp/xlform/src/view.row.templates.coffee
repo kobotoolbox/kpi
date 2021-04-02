@@ -79,7 +79,7 @@ module.exports = do ->
     """
     <div class="survey__row__item survey__row__item--group group card js-select-row">
       <header class="group__header">
-        <i class="group__caret js-toggle-group-expansion k-icon k-icon-caret-right"></i>
+        <i class="group__caret js-toggle-group-expansion k-icon k-icon-caret-down"></i>
         <input type="text" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
         <div class="group__header__buttons">
           <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="k-icon k-icon-settings"></i></span>
