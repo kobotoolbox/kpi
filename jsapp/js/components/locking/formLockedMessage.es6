@@ -28,28 +28,20 @@ class FormLockedMessage extends React.Component {
     const isAllLocked = isAssetAllLocked(this.props.asset.content);
     if (this.props.asset.asset_type === ASSET_TYPES.template.id) {
       if (isAllLocked) {
-        return 'fully locked tempalte msg';
+        return 'TODO fully locked tempalte msg';
       } else {
-        return 'partially locked tempalte msg';
+        return 'TODO partially locked tempalte msg';
       }
     } else if (isAllLocked) {
-      return 'fully locked form msg';
+      return 'TODO fully locked form msg';
     } else {
-      return 'partially locked form msg';
+      return 'TODO partially locked form msg';
     }
   }
 
-  render() {
-    if (!isAssetLocked(this.props.asset.content)) {
-      return null;
-    }
-
+  renderSeeMore() {
     return (
-      <bem.FormBuilderMessageBox>
-        {/* <span>lockpad icon</span> */}
-        <p>{this.getMessageText()}</p>
-
-        {/* see more is not needed for fully locked template */}
+      <React.Fragment>
         <bem.FormBuilderMessageBox__toggle onClick={this.toggleMoreInfo}>
           {t('see more')}
         </bem.FormBuilderMessageBox__toggle>
@@ -88,6 +80,24 @@ class FormLockedMessage extends React.Component {
             </bem.FormBuilderMessageBox__list>
           </bem.FormBuilderMessageBox__details>
         }
+      </React.Fragment>
+    );
+  }
+
+  render() {
+    if (!isAssetLocked(this.props.asset.content)) {
+      return null;
+    }
+
+    const isAllLocked = isAssetAllLocked(this.props.asset.content);
+
+    return (
+      <bem.FormBuilderMessageBox>
+        <i className='k-icon k-icon-lock'/>
+
+        <p>{this.getMessageText()}</p>
+
+        {!isAllLocked && this.renderSeeMore()}
       </bem.FormBuilderMessageBox>
     );
   }

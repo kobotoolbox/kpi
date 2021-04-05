@@ -228,6 +228,10 @@ module.exports = do ->
     # go all levels deep
     ###
     applyLocking: ->
+      if (isRowLocked(@ngScope.rawSurvey, @getRowName()))
+        $groupIcon = @$('.js-group-icon')
+        $groupIcon.addClass('k-icon-lock-alt')
+
       # hide group delete button
       if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name))
         @$el.find('.js-delete-group').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
