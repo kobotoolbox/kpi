@@ -9,6 +9,7 @@ $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
 alertify = require 'alertifyjs'
+isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
 hasAssetRestriction = require('js/components/locking/lockingUtils').hasAssetRestriction
 LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
@@ -325,15 +326,24 @@ module.exports = do ->
     hasRestriction: (restrictionName) ->
       return hasAssetRestriction(@ngScope.rawSurvey, restrictionName)
 
+    isLockable: ->
+      return isAssetLockable(@ngScope.assetType?.id)
+
     applyLocking: ->
       # hide all ways of adding new questions
-      if (@hasRestriction(LOCKING_RESTRICTIONS.question_add.name))
+      if (
+        @isLockable() and
+        @hasRestriction(LOCKING_RESTRICTIONS.question_add.name)
+      )
         # "+" buttons
         @$('.js-add-row-button').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
         # clone buttons
         @$('.js-clone-question').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
-      if (@hasRestriction(LOCKING_RESTRICTIONS.translation_manage.name))
+      if (
+        @isLockable() and
+        @hasRestriction(LOCKING_RESTRICTIONS.translation_manage.name)
+      )
         @$('.js-card-label').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
         @$('.js-card-hint').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
         @$('.js-translatable-text-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
@@ -640,7 +650,10 @@ module.exports = do ->
 
       if (
         @features.multipleQuestions and
-        not @hasRestriction(LOCKING_RESTRICTIONS.question_order_edit.name)
+        not (
+          @isLockable() and
+          @hasRestriction(LOCKING_RESTRICTIONS.question_order_edit.name)
+        )
       )
         @activateSortable()
 

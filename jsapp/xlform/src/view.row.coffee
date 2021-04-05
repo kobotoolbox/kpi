@@ -16,6 +16,7 @@ alertify = require 'alertifyjs'
 hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
 getRowLockingProfile = require('js/components/locking/lockingUtils').getRowLockingProfile
 isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
+isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
 isAssetAllLocked = require('js/components/locking/lockingUtils').isAssetAllLocked
 LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
@@ -53,6 +54,9 @@ module.exports = do ->
 
     hasRestriction: (restrictionName) ->
       return hasRowRestriction(@ngScope.rawSurvey, @getRowName(), restrictionName)
+
+    isLockable: ->
+      return isAssetLockable(@ngScope.assetType?.id)
 
     render: (opts={})->
       fixScroll = opts.fixScroll
@@ -108,7 +112,10 @@ module.exports = do ->
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
         @is_expanded = true
-        isSortableDisabled = @hasRestriction(LOCKING_RESTRICTIONS.choice_order_edit.name)
+        isSortableDisabled = (
+          @isLockable() and
+          @hasRestriction(LOCKING_RESTRICTIONS.choice_order_edit.name)
+        )
         @listView = new $viewChoices.ListView(model: cl, rowView: @).render(isSortableDisabled)
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
@@ -221,37 +228,35 @@ module.exports = do ->
     # go all levels deep
     ###
     applyLocking: ->
-      # TODO only apply if survey or template
-
       # hide group delete button
-      if (@hasRestriction(LOCKING_RESTRICTIONS.group_delete.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name))
         @$el.find('.js-delete-group').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
       # disable group name label
-      if (@hasRestriction(LOCKING_RESTRICTIONS.group_label_edit.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_label_edit.name))
         @$header.find('.js-card-label').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # hide all add and clone buttons for questions inside the group
-      if (@hasRestriction(LOCKING_RESTRICTIONS.group_question_add.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_question_add.name))
         @$el.find('.js-add-row-button').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
         @$el.find('.js-clone-question').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
       # hide all child and sub-child question's delete button
-      if (@hasRestriction(LOCKING_RESTRICTIONS.group_question_delete.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_question_delete.name))
         @$el.find('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
       # disable reordering all children in the group: questions and groups and
       # their children, don't apply to question options though
-      if (@hasRestriction(LOCKING_RESTRICTIONS.group_question_order_edit.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_question_order_edit.name))
         @$card.find('.group__rows.ui-sortable').sortable('disable')
         @$card.find('.group__rows.ui-sortable').removeClass('js-sortable-enabled')
 
       # disable all UI from "Settings" tab of group settings
-      if (@hasRestriction(LOCKING_RESTRICTIONS.group_settings_edit.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_settings_edit.name))
         @$card.find('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # disable all UI from "Skip Logic" tab of group settings
-      if (@hasRestriction(LOCKING_RESTRICTIONS.group_skip_logic_edit.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_skip_logic_edit.name))
         @$card.find('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       return
@@ -339,8 +344,6 @@ module.exports = do ->
     # nodes are created.
     ###
     applyLocking: () ->
-      # TODO only apply locking if template or survey
-
       # set visual styles for given locking profile
       profileDef = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())
       if isAssetAllLocked(@ngScope.rawSurvey)
@@ -360,40 +363,40 @@ module.exports = do ->
         $indicatorIcon.toggleClass(iconDef.get("iconClassNameLocked"))
 
       # disable adding new question options
-      if (@hasRestriction(LOCKING_RESTRICTIONS.choice_add.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_add.name))
         @$('.js-card-add-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # disable removing question options
-      if (@hasRestriction(LOCKING_RESTRICTIONS.choice_delete.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_delete.name))
         @$('.js-remove-option').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # disable changing question options labels and names
-      if (@hasRestriction(LOCKING_RESTRICTIONS.choice_edit.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_edit.name))
         @$('.js-option-label-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
         @$('.js-option-name-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # hide delete question button
-      if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
         @$('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
       # disable editing question label and hint
-      if (@hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
         if @$label
           @$label.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
         if @$hint
           @$hint.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # disable all UI from "Settings" tab of question settings and Params View (if applicable)
-      if (@hasRestriction(LOCKING_RESTRICTIONS.question_settings_edit.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_settings_edit.name))
         @$('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
         @$('.js-params-view').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # disable all UI from "Skip Logic" tab of question settings
-      if (@hasRestriction(LOCKING_RESTRICTIONS.question_skip_logic_edit.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_skip_logic_edit.name))
         @$('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # disable all UI from "Validation Criteria" tab of question settings
-      if (@hasRestriction(LOCKING_RESTRICTIONS.question_validation_edit.name))
+      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_validation_edit.name))
         @$('.js-card-settings-validation-criteria').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       return
