@@ -108,7 +108,8 @@ module.exports = do ->
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
         @is_expanded = true
-        @listView = new $viewChoices.ListView(model: cl, rowView: @).render()
+        isSortableDisabled = @hasRestriction(LOCKING_RESTRICTIONS.choice_order_edit.name)
+        @listView = new $viewChoices.ListView(model: cl, rowView: @).render(isSortableDisabled)
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
       @defaultRowDetailParent = @cardSettingsWrap.find('.js-card-settings-row-options').eq(0)
@@ -171,6 +172,10 @@ module.exports = do ->
 
       # reapply locking after changes, so e.g. added option gets all locking
       @model.getSurvey()?.on("change", () => @applyLocking() )
+      # reapply locking after group sortable is initialized, as there is no
+      # simple way to prevent the sortable from being created, we go around it
+      # in a creative BAD CODE™ way
+      @model.getSurvey()?.on("group-sortable-created", () => @applyLocking() )
 
       return
 
@@ -209,6 +214,8 @@ module.exports = do ->
       return @
 
     ###
+    # Locking function for groups.
+    #
     # Makes sure the locking restrictions are applied propery, i.e. some should
     # be applied only to this group and not to child groups, but others should
     # go all levels deep
@@ -233,9 +240,11 @@ module.exports = do ->
       if (@hasRestriction(LOCKING_RESTRICTIONS.group_question_delete.name))
         @$el.find('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
+      # disable reordering all children in the group: questions and groups and
+      # their children, don't apply to question options though
       if (@hasRestriction(LOCKING_RESTRICTIONS.group_question_order_edit.name))
-        # TODO disable  sortable
-        console.log('group_question_order_edit')
+        @$card.find('.group__rows.ui-sortable').sortable('disable')
+        @$card.find('.group__rows.ui-sortable').removeClass('js-sortable-enabled')
 
       # disable all UI from "Settings" tab of group settings
       if (@hasRestriction(LOCKING_RESTRICTIONS.group_settings_edit.name))
@@ -324,6 +333,8 @@ module.exports = do ->
       return @
 
     ###
+    # Locking function for questions.
+    #
     # This needs be run at the end of rendering, also re-run each time some new
     # nodes are created.
     ###
@@ -361,11 +372,6 @@ module.exports = do ->
         @$('.js-option-label-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
         @$('.js-option-name-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
-      # disable reordering question options
-      if (@hasRestriction(LOCKING_RESTRICTIONS.choice_order_edit.name))
-        # TODO get sortable instance and disable it
-        console.log('todo sortable disable')
-
       # hide delete question button
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
         @$('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
@@ -377,9 +383,10 @@ module.exports = do ->
         if @$hint
           @$hint.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
-      # disable all UI from "Settings" tab of question settings
+      # disable all UI from "Settings" tab of question settings and Params View (if applicable)
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_settings_edit.name))
         @$('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        @$('.js-params-view').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # disable all UI from "Skip Logic" tab of question settings
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_skip_logic_edit.name))
