@@ -27,7 +27,8 @@ Things to actually do:
   - [x] disable row label inside group
   - [x] disable all group settings editing
   - [x] disable group skip logic
-  - [ ] hide add row button
+  - [x] hide add row button
+  - [x] disable change translation (inside form builder)
   - [ ] disable change translation (outside form builder)
   - [ ] disable choice order change
   - [x] hide button for adding row to group

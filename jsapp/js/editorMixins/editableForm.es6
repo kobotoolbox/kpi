@@ -536,10 +536,17 @@ export default assign({
     this.safeNavigateToRoute(targetRoute);
   },
 
-  isAddingQuestionsDisabled() {
+  isAddingQuestionsRestricted() {
     return (
       this.state.asset &&
       hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.question_add.name)
+    );
+  },
+
+  isAddingGroupsRestricted() {
+    return (
+      this.state.asset &&
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.group_add.name)
     );
   },
 
@@ -629,6 +636,7 @@ export default assign({
               m={['group', {groupable: groupable}]}
               onClick={this.groupQuestions}
               disabled={!groupable}
+              className={this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
               <i className='k-icon-group' />
@@ -639,6 +647,7 @@ export default assign({
                 m={['cascading']}
                 onClick={this.toggleCascade}
                 data-tip={t('Insert cascading select')}
+                className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
               >
                 <i className='k-icon-cascading' />
               </bem.FormBuilderHeader__button>
@@ -655,7 +664,7 @@ export default assign({
             <bem.FormBuilderHeader__button
               m={['panel-toggle', this.state.asideLibrarySearchVisible ? 'active' : null]}
               onClick={this.toggleAsideLibrarySearch}
-              className={this.isAddingQuestionsDisabled() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+              className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
             >
               <i className={['k-icon', this.state.asideLibrarySearchVisible ? 'k-icon-close' : 'k-icon-library' ].join(' ')} />
               <span className='panel-toggle-name'>{t('Add from Library')}</span>
@@ -772,7 +781,7 @@ export default assign({
         }
         { this.state.asideLibrarySearchVisible &&
           <bem.FormBuilderAside__content
-            className={this.isAddingQuestionsDisabled() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+            className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
           >
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>

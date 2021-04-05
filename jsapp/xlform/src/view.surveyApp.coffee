@@ -326,28 +326,18 @@ module.exports = do ->
       return hasAssetRestriction(@ngScope.rawSurvey, restrictionName)
 
     applyLocking: ->
-      if (@hasRestriction(LOCKING_RESTRICTIONS.form_replace.name))
-        console.log('form_replace')
-
-      if (@hasRestriction(LOCKING_RESTRICTIONS.group_add.name))
-        # disable grouping button
-        console.log('group_add')
-
       # hide all ways of adding new questions
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_add.name))
         # "+" buttons
         @$('.js-add-row-button').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
         # clone buttons
         @$('.js-clone-question').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
-        # Add from Library is blocked elsewhere
 
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_order_edit.name))
         # TODO disable all sortable instances
         console.log('question_order_edit')
 
       if (@hasRestriction(LOCKING_RESTRICTIONS.translation_manage.name))
-        # TODO disable changing all labels
-        console.log('translation_manage')
         @$('.js-card-label').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
         @$('.js-card-hint').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
         @$('.js-translatable-text-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
