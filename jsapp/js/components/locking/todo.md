@@ -7,7 +7,7 @@ https://github.com/kobotoolbox/kpi/issues/3032
 https://docs.google.com/spreadsheets/d/1JI2JQ2UFrPvUh3ZuwiAoMBrol_KshkIARloSTi6UOM4/edit#gid=1847621029
 
 Things to actually do:
-1. [] Create information message
+1. [ ] Create information message
 2. [ ] restricted form info near title
 3. [x] assign a color to locking profile (1st, 2nd, 3rd+, fully locked)
 4. [x] locked alternative row type icon
@@ -30,8 +30,8 @@ Things to actually do:
   - [x] hide add row button
   - [x] disable change translation (inside form builder)
   - [ ] disable change translation (outside form builder)
-  - [ ] disable choice order change
+  - [x] disable choice order change
   - [x] hide button for adding row to group
-  - [ ] disable question order change
+  - [x] disable question order change
   - [ ] disable replacing form button (outside form builder)
 7. AssetsTable alternative type icon for `isAssetLocked`
