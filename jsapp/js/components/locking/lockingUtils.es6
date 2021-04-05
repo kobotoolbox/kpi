@@ -1,4 +1,5 @@
 import {getRowName} from 'js/assetUtils.es6';
+import {ASSET_TYPES} from 'js/constants.es6';
 import {
   LOCK_ALL_RESTRICTION_NAMES,
   LOCK_ALL_PROP_NAME,
@@ -185,4 +186,16 @@ export function isAssetAllLocked(assetContent) {
     assetContent?.settings &&
     assetContent.settings[LOCK_ALL_PROP_NAME] === true
   );
+}
+
+/**
+ * Useful to check if given asset should have the UI elements locked (e.g.
+ * disabled or hidden)
+ *
+ * @param {string} assetType one of ASSET_TYPES
+ * @returns {boolean} whether the asset can be locked
+ */
+export function isAssetLockable(assetType) {
+  // currently only surveys are lockeable
+  return assetType === ASSET_TYPES.survey.id;
 }

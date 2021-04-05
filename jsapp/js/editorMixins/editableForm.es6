@@ -39,6 +39,7 @@ import {
   hasAssetRestriction,
   isAssetLocked,
   isAssetAllLocked,
+  isAssetLockable,
 } from 'js/components/locking/lockingUtils';
 import {
   LOCKING_RESTRICTIONS,
@@ -474,6 +475,7 @@ export default assign({
       var skp = new SurveyScope({
         survey: survey,
         rawSurvey: rawAssetContent,
+        assetType: getFormBuilderAssetType(this.state.asset_type, this.state.desiredAssetType),
       });
       this.app = new dkobo_xlform.view.SurveyApp({
         survey: survey,
@@ -539,6 +541,7 @@ export default assign({
   isAddingQuestionsRestricted() {
     return (
       this.state.asset &&
+      isAssetLockable(this.state.asset_type) &&
       hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.question_add.name)
     );
   },
@@ -546,6 +549,7 @@ export default assign({
   isAddingGroupsRestricted() {
     return (
       this.state.asset &&
+      isAssetLockable(this.state.asset_type) &&
       hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.group_add.name)
     );
   },
@@ -818,16 +822,13 @@ export default assign({
   renderAssetLabel() {
     let assetTypeLabel = getFormBuilderAssetType(this.state.asset_type, this.state.desiredAssetType)?.label;
 
-    const isLocked = isAssetLocked(this.state.asset.content);
-    const isAllLocked = isAssetAllLocked(this.state.asset.content);
-
     // Case 1: there is no asset yet (creting a new) or asset is not locked
-    if (!this.state.asset || !isLocked) {
+    if (!this.state.asset || !isAssetLocked(this.state.asset.content)) {
       return assetTypeLabel;
     // Case 2: asset is locked fully or partially
     } else {
       let lockedLabel = t('Partially locked ##type##').replace('##type##', assetTypeLabel);
-      if (isAllLocked) {
+      if (isAssetAllLocked(this.state.asset.content)) {
         lockedLabel = t('Fully locked ##type##').replace('##type##', assetTypeLabel);
       }
       return (
