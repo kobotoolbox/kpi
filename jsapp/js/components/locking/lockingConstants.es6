@@ -56,3 +56,8 @@ export const LOCK_ALL_PROP_NAME = 'kobo--lock_all';
 export const LOCKING_PROFILE_PROP_NAME = 'kobo--locking-profile';
 
 export const LOCKING_PROFILES_PROP_NAME = 'kobo--locking-profiles';
+
+export const LOCKING_UI_CLASSNAMES = {
+  HIDDEN: 'locking__ui-hidden',
+  DISABLED: 'locking__ui-disabled',
+};
