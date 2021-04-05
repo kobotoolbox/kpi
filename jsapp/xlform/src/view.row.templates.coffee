@@ -9,6 +9,14 @@ module.exports = do ->
       </div>
   """
 
+  iconTooltip = (title, message) ->
+    return """
+      <div class="k-tooltip">
+        #{if title then "<strong>" + title + "</strong>" else ""}
+        <p>#{message}</p>
+      </div>
+    """
+
   groupSettingsView = ->
     """
       <section class="card__settings  row-extras row-extras--depr">
@@ -80,7 +88,9 @@ module.exports = do ->
     """
     <div class="survey__row__item survey__row__item--group group card js-select-row">
       <header class="group__header">
-        <i class="group__header__icon js-group-icon k-icon"></i>
+        <div class="group__header__icon js-group-icon">
+          <i class="k-icon"></i>
+        </div>
         <i class="group__caret js-toggle-group-expansion k-icon k-icon-caret-down"></i>
         <input type="text" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
         <div class="group__header__buttons">
@@ -342,3 +352,4 @@ module.exports = do ->
   rankView: rankView
   groupSettingsView: groupSettingsView
   rowSettingsView: rowSettingsView
+  iconTooltip: iconTooltip

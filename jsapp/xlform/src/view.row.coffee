@@ -229,8 +229,24 @@ module.exports = do ->
     ###
     applyLocking: ->
       if (isRowLocked(@ngScope.rawSurvey, @getRowName()))
-        $groupIcon = @$('.js-group-icon')
-        $groupIcon.addClass('k-icon-lock-alt')
+        $groupIcon = @$header.find('.js-group-icon')
+        $groupIcon.find('.k-icon').addClass('k-icon-lock-alt')
+        # add tooltip
+        if not $groupIcon.hasClass('k-tooltip__parent')
+          isAllLocked = isAssetAllLocked(@ngScope.rawSurvey)
+
+          profileName = null
+          if !isAllLocked
+            profileName = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())?.name
+
+          tooltipMsg = t('fully locked group')
+          if !isAllLocked
+            tooltipMsg = t('partially locked group')
+
+          $groupIcon.addClass('k-tooltip__parent')
+          iconTooltip = $($viewTemplates.row.iconTooltip(profileName, tooltipMsg))
+          $groupIcon.append(iconTooltip)
+
 
       # hide group delete button
       if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name))
@@ -348,9 +364,11 @@ module.exports = do ->
     # nodes are created.
     ###
     applyLocking: () ->
+      isAllLocked = isAssetAllLocked(@ngScope.rawSurvey)
+
       # set visual styles for given locking profile
       profileDef = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())
-      if isAssetAllLocked(@ngScope.rawSurvey)
+      if isAllLocked
         @$el.addClass('locking__level-all')
       else if profileDef and profileDef.index is 0
         @$el.addClass('locking__level-1')
@@ -362,9 +380,23 @@ module.exports = do ->
       # change row type icon to locked version
       iconDef = $icons.get(@getRawType())
       if (iconDef and isRowLocked(@ngScope.rawSurvey, @getRowName()))
-        $indicatorIcon = @$('.card__indicator__icon .k-icon')
-        $indicatorIcon.removeClass(iconDef.get("iconClassName"))
-        $indicatorIcon.addClass(iconDef.get("iconClassNameLocked"))
+        $indicatorIcon = @$('.card__indicator__icon')
+        $indicatorIcon.find('.card__header-icon').removeClass(iconDef.get("iconClassName"))
+        $indicatorIcon.find('.card__header-icon').addClass(iconDef.get("iconClassNameLocked"))
+
+        # add tooltip
+        if not $indicatorIcon.hasClass('k-tooltip__parent')
+          profileName = null
+          if !isAllLocked
+            profileName = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())?.name
+
+          tooltipMsg = t('fully locked question')
+          if !isAllLocked
+            tooltipMsg = t('partially locked question')
+
+          $indicatorIcon.addClass('k-tooltip__parent')
+          iconTooltip = $($viewTemplates.row.iconTooltip(profileName, tooltipMsg))
+          $indicatorIcon.append(iconTooltip)
 
       # disable adding new question options
       if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_add.name))

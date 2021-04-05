@@ -124,13 +124,14 @@ $formbuilder-group-bg: $kobo-whitegray;
 }
 
 .group__header__icon,
+.group__header__icon .k-icon,
 .group__caret {
   color: $kobo-darkgray;
   display: inline-block;
   vertical-align: middle;
 }
 
-.group__header__icon {
+.group__header__icon .k-icon {
   font-size: 16px;
 }
 

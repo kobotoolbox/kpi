@@ -115,7 +115,8 @@ export function getRowLockingProfile(assetContent, rowName) {
  * this locking profile has a definition in the asset content settings. As it is
  * actually possible for row to have a locking profile name that the asset
  * doesn't have a definition for.
- * Alternatively `lock_all`
+ *
+ * If asset has `lock_all` this will also be true.
  *
  * @param {object} assetContent asset's object content property
  * @param {string} rowName - row or group name
@@ -130,14 +131,7 @@ export function isRowLocked(assetContent, rowName) {
 
   // case 2
   // row has locking profile that is defined in asset
-  const foundRow = assetContent.survey.find((row) => {
-    return getRowName(row) === rowName;
-  });
-  return (
-    foundRow &&
-    Boolean(foundRow[LOCKING_PROFILE_PROP_NAME]) &&
-    Boolean(getLockingProfile(assetContent, foundRow[LOCKING_PROFILE_PROP_NAME]))
-  );
+  return Boolean(getRowLockingProfile(assetContent), rowName);
 }
 
 /**
