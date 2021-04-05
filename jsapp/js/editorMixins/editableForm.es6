@@ -36,9 +36,14 @@ import assetUtils from 'js/assetUtils';
 import {renderLoading} from 'js/components/modalForms/modalHelpers';
 import FormLockedMessage from 'js/components/locking/formLockedMessage';
 import {
+  hasAssetRestriction,
   isAssetLocked,
   isAssetAllLocked,
 } from 'js/components/locking/lockingUtils';
+import {
+  LOCKING_RESTRICTIONS,
+  LOCKING_UI_CLASSNAMES,
+} from 'js/components/locking/lockingConstants';
 import {getFormBuilderAssetType} from 'js/components/formBuilder/formBuilderUtils';
 
 const ErrorMessage = bem.create('error-message');
@@ -531,6 +536,13 @@ export default assign({
     this.safeNavigateToRoute(targetRoute);
   },
 
+  isAddingQuestionsDisabled() {
+    return (
+      this.state.asset &&
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.question_add.name)
+    );
+  },
+
   // rendering methods
 
   renderFormBuilderHeader () {
@@ -643,6 +655,7 @@ export default assign({
             <bem.FormBuilderHeader__button
               m={['panel-toggle', this.state.asideLibrarySearchVisible ? 'active' : null]}
               onClick={this.toggleAsideLibrarySearch}
+              className={this.isAddingQuestionsDisabled() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
             >
               <i className={['k-icon', this.state.asideLibrarySearchVisible ? 'k-icon-close' : 'k-icon-library' ].join(' ')} />
               <span className='panel-toggle-name'>{t('Add from Library')}</span>
@@ -758,7 +771,9 @@ export default assign({
           </bem.FormBuilderAside__content>
         }
         { this.state.asideLibrarySearchVisible &&
-          <bem.FormBuilderAside__content>
+          <bem.FormBuilderAside__content
+            className={this.isAddingQuestionsDisabled() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+          >
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>
                 {t('Search Library')}

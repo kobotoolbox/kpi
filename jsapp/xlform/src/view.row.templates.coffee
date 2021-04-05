@@ -3,7 +3,7 @@ module.exports = do ->
 
   expandingSpacerHtml = """
       <div class="survey__row__spacer  row clearfix expanding-spacer-between-rows expanding-spacer-between-rows--depr">
-        <div tabIndex="0" class="js-expand-row-selector btn btn--addrow btn--block  btn-xs  btn-default"
+        <div tabIndex="0" class="js-expand-row-selector js-add-row-button btn btn--addrow btn--block  btn-xs  btn-default"
             ><i class="k-icon k-icon-plus"></i></div>
         <div class="line">&nbsp;</div>
       </div>
@@ -15,13 +15,16 @@ module.exports = do ->
         <i class="card__settings-close k-icon k-icon-close js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
           <li class="heading"><i class="k-icon k-icon-settings"></i> #{t("Settings")}</li>
-          <li data-card-settings-tab-id="all" class="card__settings__tabs__tab--active">#{t("All group settings")}</li>
-          <li data-card-settings-tab-id="skip-logic" class="">#{t("Skip Logic")}</li>
+          <li data-card-settings-tab-id="row-options" class="card__settings__tabs__tab card__settings__tabs__tab--active">
+            #{t("All group settings")}
+          </li>
+          <li data-card-settings-tab-id="skip-logic" class="card__settings__tabs__tab">
+            #{t("Skip Logic")}
+          </li>
         </ul>
         <div class="card__settings__content">
-          <div class="card__settings__fields card__settings__fields--active card__settings__fields--all">
-          </div>
-          <div class="card__settings__fields card__settings__fields--skip-logic"></div>
+          <div class="js-card-settings-row-options card__settings__fields card__settings__fields--active"></div>
+          <div class="js-card-settings-skip-logic card__settings__fields"></div>
         </div>
       </section>
     """
@@ -31,22 +34,16 @@ module.exports = do ->
         <i class="card__settings-close k-icon k-icon-close js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
           <li class="heading"><i class="k-icon k-icon-settings"></i> #{t("Settings")}</li>
-          <li data-card-settings-tab-id="question-options" class="card__settings__tabs__tab--active">#{t("Question Options")}</li>
+          <li data-card-settings-tab-id="row-options" class="card__settings__tabs__tab--active">#{t("Question Options")}</li>
           <li data-card-settings-tab-id="skip-logic" class="">#{t("Skip Logic")}</li>
           <li data-card-settings-tab-id="validation-criteria" class="">#{t("Validation Criteria")}</li>
         </ul>
         <div class="card__settings__content">
-          <ul class="card__settings__fields card__settings__fields--active card__settings__fields--question-options">
-          </ul>
+          <ul class="js-card-settings-row-options card__settings__fields card__settings__fields--active"></ul>
 
-          <ul class="card__settings__fields card__settings__fields--skip-logic">
-          </ul>
+          <ul class="js-card-settings-skip-logic card__settings__fields"></ul>
 
-          <ul class="card__settings__fields card__settings__fields--validation-criteria">
-          </ul>
-
-          <ul class="card__settings__fields card__settings__fields--response-type">
-          </ul>
+          <ul class="js-card-settings-validation-criteria card__settings__fields"></ul>
         </div>
       </section>
     """
@@ -61,7 +58,7 @@ module.exports = do ->
           </div>
           <div class="card__text">
             <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
-            <input type="text" placeholder="#{t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
+            <input type="text" placeholder="#{t("Question hint")}" class="card__header-hint js-card-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
             <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="k-icon k-icon-settings"></i></span>
@@ -89,8 +86,7 @@ module.exports = do ->
           <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="k-icon k-icon-trash"></i></span>
         </div>
       </header>
-      <ul class="group__rows">
-      </ul>
+      <ul class="group__rows"></ul>
     </div>
     #{expandingSpacerHtml}
     """

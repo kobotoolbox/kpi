@@ -18,6 +18,7 @@ getRowLockingProfile = require('js/components/locking/lockingUtils').getRowLocki
 isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
 isAssetAllLocked = require('js/components/locking/lockingUtils').isAssetAllLocked
 LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
+LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
 $icons = require './view.icons'
 
 module.exports = do ->
@@ -36,6 +37,7 @@ module.exports = do ->
       @model.on "detail-change", (key, value, ctxt)=>
         customEventName = $viewUtils.normalizeEventName("row-detail-change-#{key}")
         @$(".on-#{customEventName}").trigger(customEventName, key, value, ctxt)
+      return
 
     drop: (evt, index)->
       @$el.trigger("update-sort", [@model, index])
@@ -46,8 +48,11 @@ module.exports = do ->
     getRawType: ->
       return @model.get('type').get('typeId')
 
+    getRowName: ->
+      return @model.getValue('name')
+
     hasRestriction: (restrictionName) ->
-      return hasRowRestriction(@ngScope.rawSurvey, @model.getValue('$autoname'), restrictionName)
+      return hasRowRestriction(@ngScope.rawSurvey, @getRowName(), restrictionName)
 
     render: (opts={})->
       fixScroll = opts.fixScroll
@@ -80,7 +85,7 @@ module.exports = do ->
     _renderRow: ->
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
       @$label = @$('.js-card-label')
-      @$hint = @$('.card__header-hint')
+      @$hint = @$('.js-card-hint')
       @$card = @$('.card')
       @$header = @$('.card__header')
       context = {warnings: []}
@@ -106,7 +111,7 @@ module.exports = do ->
         @listView = new $viewChoices.ListView(model: cl, rowView: @).render()
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
-      @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
+      @defaultRowDetailParent = @cardSettingsWrap.find('.js-card-settings-row-options').eq(0)
       for [key, val] in @model.attributesArray() when key in ['label', 'hint', 'type']
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
         if key == 'label' and @getRawType() == 'calculate'
@@ -117,40 +122,7 @@ module.exports = do ->
       if @model.getValue('required')
         @$card.addClass('card--required')
 
-      @applyLocking()
-
       return @
-
-    # To be run at the end of rendering
-    applyLocking: () ->
-      console.log('applyLocking', @model.getValue('$autoname'), @ngScope)
-
-      profileDef = getRowLockingProfile(@ngScope.rawSurvey, @model.getValue('$autoname'))
-      if isAssetAllLocked(@ngScope.rawSurvey)
-        @$el.addClass('locking__level-all')
-      else if profileDef and profileDef.index is 0
-        @$el.addClass('locking__level-1')
-      else if profileDef and profileDef.index is 1
-        @$el.addClass('locking__level-2')
-      else if profileDef and profileDef.index >= 2
-        @$el.addClass('locking__level-3-plus')
-
-      @$indicatorIcon = @$('.card__indicator__icon .k-icon')
-      iconDef = $icons.get(@getRawType())
-      if (@$indicatorIcon and iconDef and isRowLocked(@ngScope.rawSurvey, @model.getValue('$autoname')))
-        iconRegular = iconDef.get("iconClassName")
-        iconLocked = iconDef.get("iconClassNameLocked")
-        @$indicatorIcon.toggleClass(iconRegular)
-        @$indicatorIcon.toggleClass(iconLocked)
-
-      if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
-        # hide delete row button
-        @$deleteRowButton = @$('.js-delete-row')
-        @$deleteRowButton.addClass('locking__ui-hidden');
-
-      if (@hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
-        console.log('yay label edit!')
-      return
 
     toggleSettings: (show)->
       if show is undefined
@@ -161,6 +133,9 @@ module.exports = do ->
         @$card.addClass('card--expanded-settings')
         @hideMultioptions?()
         @_settingsExpanded = true
+        # rerender locking (if applies to class extending BaseRowView)
+        if @applyLocking
+          @applyLocking()
       else if !show and @_settingsExpanded
         @$card.removeClass('card--expanded-settings')
         @_cleanupExpandedRender()
@@ -186,12 +161,18 @@ module.exports = do ->
 
   class GroupView extends BaseRowView
     className: "survey__row survey__row--group  xlf-row-view xlf-row-view--depr"
+
     initialize: (opts)->
       @options = opts
       @ngScope = opts.ngScope
       @_shrunk = !!opts.shrunk
       @$el.attr("data-row-id", @model.cid)
       @surveyView = @options.surveyView
+
+      # reapply locking after changes, so e.g. added option gets all locking
+      @model.getSurvey()?.on("change", () => @applyLocking() )
+
+      return
 
     deleteGroup: (evt)=>
       skipConfirm = $(evt.currentTarget).hasClass('js-force-delete-group')
@@ -208,9 +189,9 @@ module.exports = do ->
     render: ->
       if !@already_rendered
         @$el.html $viewTemplates.row.groupView(@model)
-        @$label = @$('.js-card-label')
+        @$label = @$('.js-card-label').eq(0)
         @$rows = @$('.group__rows').eq(0)
-        @$card = @$('.card')
+        @$card = @$('.card').eq(0)
         @$header = @$('.card__header,.group__header').eq(0)
 
       @model.rows.each (row)=>
@@ -221,11 +202,50 @@ module.exports = do ->
         view = new $viewRowDetail.DetailView(model: @model.get('label'), rowView: @)
         view.render().insertInDOM(@)
 
-      if (@hasRestriction(LOCKING_RESTRICTIONS.group_delete.name))
-        console.log('yay delete group!')
-
       @already_rendered = true
-      @
+
+      @applyLocking()
+
+      return @
+
+    ###
+    # Makes sure the locking restrictions are applied propery, i.e. some should
+    # be applied only to this group and not to child groups, but others should
+    # go all levels deep
+    ###
+    applyLocking: ->
+      # TODO only apply if survey or template
+
+      # hide group delete button
+      if (@hasRestriction(LOCKING_RESTRICTIONS.group_delete.name))
+        @$el.find('.js-delete-group').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+
+      # disable group name label
+      if (@hasRestriction(LOCKING_RESTRICTIONS.group_label_edit.name))
+        @$header.find('.js-card-label').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      # hide all add and clone buttons for questions inside the group
+      if (@hasRestriction(LOCKING_RESTRICTIONS.group_question_add.name))
+        @$el.find('.js-add-row-button').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        @$el.find('.js-clone-question').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+
+      # hide all child and sub-child question's delete button
+      if (@hasRestriction(LOCKING_RESTRICTIONS.group_question_delete.name))
+        @$el.find('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+
+      if (@hasRestriction(LOCKING_RESTRICTIONS.group_question_order_edit.name))
+        # TODO disable  sortable
+        console.log('group_question_order_edit')
+
+      # disable all UI from "Settings" tab of group settings
+      if (@hasRestriction(LOCKING_RESTRICTIONS.group_settings_edit.name))
+        @$card.find('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      # disable all UI from "Skip Logic" tab of group settings
+      if (@hasRestriction(LOCKING_RESTRICTIONS.group_skip_logic_edit.name))
+        @$card.find('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      return
 
     hasNestedGroups: ->
       return _.filter(@model.rows.models, (row) -> row.constructor.key == 'group').length > 0
@@ -254,10 +274,21 @@ module.exports = do ->
       return @
 
   class RowView extends BaseRowView
+    initialize: (opts) ->
+      super(opts)
+      # reapply locking after changes, so e.g. added option gets all locking
+      @model.getSurvey()?.on("change", () => @applyLocking() )
+      return
+
+    _renderRow: ->
+      super()
+      @applyLocking()
+      return @
+
     _expandedRender: ->
       @$header.after($viewTemplates.row.rowSettingsView())
       @cardSettingsWrap = @$('.card__settings').eq(0)
-      @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
+      @defaultRowDetailParent = @cardSettingsWrap.find('.js-card-settings-row-options').eq(0)
 
       # don't display columns that start with a $
       hiddenFields = ['label', 'hint', 'type', 'select_from_list_name', 'kobo--matrix_list', 'parameters']
@@ -292,13 +323,84 @@ module.exports = do ->
 
       return @
 
+    ###
+    # This needs be run at the end of rendering, also re-run each time some new
+    # nodes are created.
+    ###
+    applyLocking: () ->
+      # TODO only apply locking if template or survey
+
+      # set visual styles for given locking profile
+      profileDef = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())
+      if isAssetAllLocked(@ngScope.rawSurvey)
+        @$el.addClass('locking__level-all')
+      else if profileDef and profileDef.index is 0
+        @$el.addClass('locking__level-1')
+      else if profileDef and profileDef.index is 1
+        @$el.addClass('locking__level-2')
+      else if profileDef and profileDef.index >= 2
+        @$el.addClass('locking__level-3-plus')
+
+      # change row type icon to locked version
+      iconDef = $icons.get(@getRawType())
+      if (iconDef and isRowLocked(@ngScope.rawSurvey, @getRowName()))
+        $indicatorIcon = @$('.card__indicator__icon .k-icon')
+        $indicatorIcon.toggleClass(iconDef.get("iconClassName"))
+        $indicatorIcon.toggleClass(iconDef.get("iconClassNameLocked"))
+
+      # disable adding new question options
+      if (@hasRestriction(LOCKING_RESTRICTIONS.choice_add.name))
+        @$('.js-card-add-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      # disable removing question options
+      if (@hasRestriction(LOCKING_RESTRICTIONS.choice_delete.name))
+        @$('.js-remove-option').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      # disable changing question options labels and names
+      if (@hasRestriction(LOCKING_RESTRICTIONS.choice_edit.name))
+        @$('.js-option-label-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        @$('.js-option-name-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      # disable reordering question options
+      if (@hasRestriction(LOCKING_RESTRICTIONS.choice_order_edit.name))
+        # TODO get sortable instance and disable it
+        console.log('todo sortable disable')
+
+      # hide delete question button
+      if (@hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
+        @$('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+
+      # disable editing question label and hint
+      if (@hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
+        if @$label
+          @$label.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        if @$hint
+          @$hint.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      # disable all UI from "Settings" tab of question settings
+      if (@hasRestriction(LOCKING_RESTRICTIONS.question_settings_edit.name))
+        @$('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      # disable all UI from "Skip Logic" tab of question settings
+      if (@hasRestriction(LOCKING_RESTRICTIONS.question_skip_logic_edit.name))
+        @$('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      # disable all UI from "Validation Criteria" tab of question settings
+      if (@hasRestriction(LOCKING_RESTRICTIONS.question_validation_edit.name))
+        @$('.js-card-settings-validation-criteria').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      return
+
     hideMultioptions: ->
       @$card.removeClass('card--expandedchoices')
       @is_expanded = false
+      return
+
     showMultioptions: ->
       @$card.addClass('card--expandedchoices')
       @$card.removeClass('card--expanded-settings')
       @toggleSettings(false)
+      return
 
     toggleMultioptions: ->
       if @is_expanded
@@ -310,18 +412,20 @@ module.exports = do ->
 
   class KoboMatrixView extends RowView
     className: "survey__row survey__row--kobo-matrix"
+
     _expandedRender: ->
       super()
       @$('.xlf-dv-required').hide()
       @$("li[data-card-settings-tab-id='validation-criteria']").hide()
       @$("li[data-card-settings-tab-id='skip-logic']").hide()
+
     _renderRow: ->
       @$el.html $viewTemplates.row.koboMatrixView()
       @matrix = @$('.card__kobomatrix')
       renderKobomatrix(@, @matrix)
-      @$label = @$('.js-card-label')
-      @$card = @$('.card')
-      @$header = @$('.card__header')
+      @$label = @$('.js-card-label').eq(0)
+      @$card = @$('.card').eq(0)
+      @$header = @$('.card__header').eq(0)
       context = {warnings: []}
 
       for [key, val] in @model.attributesArray() when key is 'label' or key is 'type'
@@ -331,7 +435,7 @@ module.exports = do ->
           @model.finalize()
           val.set('value', '')
         view.render().insertInDOM(@)
-      @
+      return @
 
   class RankScoreView extends RowView
     _expandedRender: ->

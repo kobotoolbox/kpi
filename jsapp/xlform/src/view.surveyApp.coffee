@@ -11,6 +11,7 @@ $viewUtils = require './view.utils'
 alertify = require 'alertifyjs'
 hasAssetRestriction = require('js/components/locking/lockingUtils').hasAssetRestriction
 LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
+LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
 
 module.exports = do ->
   surveyApp = {}
@@ -83,7 +84,7 @@ module.exports = do ->
       $et.addClass('card__settings__tabs__tab--active')
 
       $et.parents('.card__settings').find(".card__settings__fields--active").removeClass('card__settings__fields--active')
-      $et.parents('.card__settings').find(".card__settings__fields--#{tabId}").addClass('card__settings__fields--active')
+      $et.parents('.card__settings').find(".js-card-settings-#{tabId}").addClass('card__settings__fields--active')
 
     surveyRowSortableStop: (evt)->
       @survey.trigger('change')
@@ -308,30 +309,9 @@ module.exports = do ->
 
     _render_html: ->
       @$el.html $viewTemplates.$$render('surveyApp', @)
-
-      ###
-      @$settings =
-        form_id: @$('.form__settings__field--form_id')
-        version: @$('.form__settings__field--version')
-        style: @$('.form__settings__field--style')
-
-      @$settings.form_id.find('input').val(@survey.settings.get('form_id'))
-      @$settings.version.find('input').val(@survey.settings.get('version'))
-
-      _style_val = @survey.settings.get('style') || ""
-
-      if @$settings.style.find('select option')
-          .filter(((i, opt)-> opt.value is _style_val)).length is 0
-        # user has specified a style other than the available styles
-        _inp = $("<input>", {type: 'text'})
-        @$settings.style.find('select').replaceWith(_inp)
-        _inp.val(_style_val)
-      else
-        @$settings.style.find('select').val(_style_val)
-      ###
-
       @formEditorEl = @$(".-form-editor")
       @settingsBox = @$(".form__settings-meta__questions")
+      return
 
     _render_attachEvents: ->
       @survey.settings.on 'validated:invalid', (model, validations) ->
@@ -340,38 +320,38 @@ module.exports = do ->
 
       $inps = {}
       _settings = @survey.settings
-
-      ###
-      if @$settings.form_id.length > 0
-        $inps.form_id = @$settings.form_id.find('input').eq(0)
-        $inps.form_id.change (evt)->
-          _val = $inps.form_id.val()
-          _sluggified = $modelUtils.sluggify(_val)
-          _settings.set('form_id', _sluggified)
-          if _sluggified isnt _val
-            $inps.form_id.val(_sluggified)
-
-      if @$settings.version.length > 0
-        $inps.version = @$settings.version.find('input').eq(0)
-        $inps.version.change (evt)->
-          _settings.set('version', $inps.version.val())
-
-      if @$settings.style.length > 0
-        $inps.style = @$settings.style.find('input,select').eq(0)
-        $inps.style.change (evt)->
-          _settings.set('style', $inps.style.val())
-      ###
+      return
 
     hasRestriction: (restrictionName) ->
       return hasAssetRestriction(@ngScope.rawSurvey, restrictionName)
 
     applyLocking: ->
-      console.log('apply locking')
+      if (@hasRestriction(LOCKING_RESTRICTIONS.form_replace.name))
+        console.log('form_replace')
 
-      # hide delete row button
-      @$cloneQuestionButtons = @$('.js-clone-question')
+      if (@hasRestriction(LOCKING_RESTRICTIONS.group_add.name))
+        # disable grouping button
+        console.log('group_add')
+
+      # hide all ways of adding new questions
       if (@hasRestriction(LOCKING_RESTRICTIONS.question_add.name))
-        @$cloneQuestionButtons.addClass('locking__ui-hidden');
+        # "+" buttons
+        @$('.js-add-row-button').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        # clone buttons
+        @$('.js-clone-question').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        # Add from Library is blocked elsewhere
+
+      if (@hasRestriction(LOCKING_RESTRICTIONS.question_order_edit.name))
+        # TODO disable all sortable instances
+        console.log('question_order_edit')
+
+      if (@hasRestriction(LOCKING_RESTRICTIONS.translation_manage.name))
+        # TODO disable changing all labels
+        console.log('translation_manage')
+        @$('.js-card-label').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        @$('.js-card-hint').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        @$('.js-translatable-text-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
       return
 
     _render_addSubViews: ->
