@@ -15,7 +15,7 @@ module.exports = do ->
       @$el = @rowView.$(".list-view")
       @ulClasses = @$("ul").prop("className")
 
-    render: ->
+    render: (isSortableDisabled) ->
       cardText = @rowView.$el.find('.card__text')
       if cardText.find('.card__buttons__multioptions.js-expand-multioptions').length is 0
         cardText.prepend $.parseHTML($viewTemplates.row.expandChoiceList())
@@ -30,21 +30,29 @@ module.exports = do ->
         @$el.removeClass("hidden")
       else
         @$el.addClass("hidden")
-      @ul.sortable({
-          axis: "y"
-          cursor: "move"
-          distance: 5
-          items: "> li"
-          placeholder: "option-placeholder"
-          opacity: 0.9
-          scroll: false
-          deactivate: =>
-            if @hasReordered
-              @reordered()
-              @model.getSurvey()?.trigger('change')
-            true
-          change: => @hasReordered = true
-        })
+
+      # sortable is usually enabled, but sometimes (e.g. locking restriction
+      # enabled) it is not
+      if not isSortableDisabled
+        @ul.sortable({
+            axis: "y"
+            cursor: "move"
+            distance: 5
+            items: "> li"
+            placeholder: "option-placeholder"
+            opacity: 0.9
+            scroll: false
+            create: =>
+              @ul.addClass('js-sortable-enabled')
+              return
+            deactivate: =>
+              if @hasReordered
+                @reordered()
+                @model.getSurvey()?.trigger('change')
+              true
+            change: => @hasReordered = true
+          })
+
       btn = $($viewTemplates.$$render('xlfListView.addOptionButton'))
       btn.click(() =>
         i = @model.options.length

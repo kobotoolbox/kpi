@@ -11,13 +11,11 @@
     margin-bottom: 4px;
     position: relative;
 
-    &.card--movable {
-      cursor: move;
-    }
     &.card--error {
         padding: 12px 20px;
         background-color: rgba($kobo-red, 0.5);
     }
+
     .card__header {
         border: $cardBorderStyle;
         // right padding needs to make space for absolute positioned icons
@@ -25,8 +23,20 @@
         min-height: 82px; // to fit all icons in
         display: block;
         background: $kobo-white;
-        cursor: move;
         position: relative;
+
+        // don't show move cursor if not inside an enabled sortable instance
+        // HACK: `.ui-sortable-disabled` only applies to a group, so not to the
+        // root form sortable - we apply move cursor to all enabled
+        .ui-sortable.js-sortable-enabled & {
+          cursor: move;
+        }
+        // … but then we remove it from all disabled ones :)
+        // This is because root form sortable is not created when locking is on
+        // but groups sortable is always created, but disabled later
+        .ui-sortable.ui-sortable-disabled & {
+          cursor: initial !important;
+        }
     }
 
     .card__text {

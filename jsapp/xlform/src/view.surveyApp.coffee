@@ -333,10 +333,6 @@ module.exports = do ->
         # clone buttons
         @$('.js-clone-question').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
-      if (@hasRestriction(LOCKING_RESTRICTIONS.question_order_edit.name))
-        # TODO disable all sortable instances
-        console.log('question_order_edit')
-
       if (@hasRestriction(LOCKING_RESTRICTIONS.translation_manage.name))
         @$('.js-card-label').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
         @$('.js-card-hint').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
@@ -433,6 +429,8 @@ module.exports = do ->
         i++
 
       return i
+
+    # responsible for groups and questions sortable
     activateSortable: ->
       $el = @formEditorEl
       survey = @survey
@@ -462,6 +460,9 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          create: =>
+            @formEditorEl.addClass('js-sortable-enabled')
+            return
           receive: (evt, ui) =>
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
@@ -477,6 +478,8 @@ module.exports = do ->
             # default action is handled by surveyRowSortableStop
             return
         })
+
+      # apply sortable to all groups
       group_rows = @formEditorEl.find('.group__rows')
       group_rows.each (index) =>
         $(group_rows[index]).sortable({
@@ -491,6 +494,14 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          create: =>
+            # HACK: We dispatch this event to make all instances know that
+            # sortable is created (so in fact rendered). This allows for the
+            # groups to check themselves if they should disable it due to
+            # locking restrictions.
+            @survey.trigger('group-sortable-created', group_rows[index])
+            $(group_rows[index]).addClass('js-sortable-enabled')
+            return
           receive: (evt, ui) =>
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
@@ -625,7 +636,12 @@ module.exports = do ->
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")
       null_top_row.toggleClass("survey-editor__null-top-row--hidden", !isEmpty)
 
-      if @features.multipleQuestions
+      @activateSortable() # TODO remove dev temp
+
+      if (
+        @features.multipleQuestions and
+        not @hasRestriction(LOCKING_RESTRICTIONS.question_order_edit.name)
+      )
         @activateSortable()
 
       return

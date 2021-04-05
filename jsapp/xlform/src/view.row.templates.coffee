@@ -289,7 +289,7 @@ module.exports = do ->
 
   paramsSettingsField = ->
     """
-    <div class="card__settings__fields__field params-view__settings-wrapper">
+    <div class="js-params-view card__settings__fields__field params-view__settings-wrapper">
       <label>#{t('Parameters')}:</label>
       <span class="settings__input">
         <div class="params-view"></div>
@@ -299,7 +299,7 @@ module.exports = do ->
 
   paramsSimple = ->
     """
-    <div class="params-view__simple-wrapper">
+    <div class="js-params-view params-view__simple-wrapper">
       <div class="params-view"></div>
     </div>
     """
