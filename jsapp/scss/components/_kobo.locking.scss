@@ -1,25 +1,20 @@
 // All custom Locking feature styles gathered in one place
 
 .locking__ui-disabled {
-  // pointer-events: none;
-  // opacity: 0.5;
-
-  // DEV STYLES, uncomment above
-  background-color: blueviolet !important;
+  pointer-events: none !important;
+  opacity: 0.5 !important;
 }
 
 .locking__ui-hidden {
-  // display: none;
-
-  // DEV STYLES, uncomment above
-  background-color: hotpink !important;
+  display: none !important;
 }
 
 .locking__level-all {
   .card__header,
   .question__tags,
   .card__settings,
-  .card--selectquestion__expansion {
+  .card--selectquestion__expansion,
+  .params-view__simple-wrapper {
     background-color: $kobo-whitegray;
   }
 
