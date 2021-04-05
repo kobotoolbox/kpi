@@ -359,8 +359,8 @@ module.exports = do ->
       iconDef = $icons.get(@getRawType())
       if (iconDef and isRowLocked(@ngScope.rawSurvey, @getRowName()))
         $indicatorIcon = @$('.card__indicator__icon .k-icon')
-        $indicatorIcon.toggleClass(iconDef.get("iconClassName"))
-        $indicatorIcon.toggleClass(iconDef.get("iconClassNameLocked"))
+        $indicatorIcon.removeClass(iconDef.get("iconClassName"))
+        $indicatorIcon.addClass(iconDef.get("iconClassNameLocked"))
 
       # disable adding new question options
       if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_add.name))
