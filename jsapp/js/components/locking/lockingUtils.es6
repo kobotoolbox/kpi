@@ -46,7 +46,8 @@ export function hasAssetRestriction(assetContent, restrictionName) {
   // check if asset's locking profile definition has the searched restriction
   if (
     assetContent.settings &&
-    assetContent.settings[LOCKING_PROFILE_PROP_NAME]
+    typeof assetContent.settings[LOCKING_PROFILE_PROP_NAME] === 'string' &&
+    assetContent.settings[LOCKING_PROFILE_PROP_NAME].length >= 1
   ) {
     const lockingProfile = getLockingProfile(assetContent, assetContent.settings[LOCKING_PROFILE_PROP_NAME]);
     return (
@@ -102,7 +103,8 @@ export function getRowLockingProfile(assetContent, rowName) {
   });
   if (
     foundRow &&
-    foundRow[LOCKING_PROFILE_PROP_NAME]
+    typeof foundRow[LOCKING_PROFILE_PROP_NAME] === 'string' &&
+    foundRow[LOCKING_PROFILE_PROP_NAME].length >= 1
   ) {
     return getLockingProfile(assetContent, foundRow[LOCKING_PROFILE_PROP_NAME]);
   }
@@ -131,7 +133,7 @@ export function isRowLocked(assetContent, rowName) {
 
   // case 2
   // row has locking profile that is defined in asset
-  return Boolean(getRowLockingProfile(assetContent), rowName);
+  return Boolean(getRowLockingProfile(assetContent, rowName));
 }
 
 /**
@@ -149,22 +151,20 @@ export function isAssetLocked(assetContent) {
   }
 
   // case 2
-  // asset has locking profile
+  // asset has locking profile and the profile definition exist
   if (
     assetContent?.settings &&
     typeof assetContent.settings[LOCKING_PROFILE_PROP_NAME] === 'string' &&
-    assetContent.settings[LOCKING_PROFILE_PROP_NAME].length >= 1
+    assetContent.settings[LOCKING_PROFILE_PROP_NAME].length >= 1 &&
+    Boolean(getLockingProfile(assetContent, assetContent.settings[LOCKING_PROFILE_PROP_NAME]))
   ) {
     return true;
   }
 
   // case 3
-  // at least one row has locking profile
+  // at least one row has locking profile that is defined in asset
   const foundRow = assetContent?.survey.find((row) => {
-    return (
-      typeof row[LOCKING_PROFILE_PROP_NAME] === 'string' &&
-      row[LOCKING_PROFILE_PROP_NAME].length >= 1
-    );
+    return Boolean(getRowLockingProfile(assetContent, getRowName(row)));
   });
   return Boolean(foundRow);
 }
@@ -193,3 +193,15 @@ export function isAssetLockable(assetType) {
   // currently only surveys are lockeable
   return assetType === ASSET_TYPES.survey.id;
 }
+
+// TODO: see if we will use it for hiding locking features UI for blocks and questions
+//
+// /**
+//  * Useful to check if given asset should have the locking UI elements displayed
+//  *
+//  * @param {string} assetType one of ASSET_TYPES
+//  * @returns {boolean} whether the asset has locking features
+//  */
+// export function hasAssetLockingFeatures(assetType) {
+//   return assetType === ASSET_TYPES.survey.id || assetType === ASSET_TYPES.template.id;
+// }
