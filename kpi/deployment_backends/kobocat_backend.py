@@ -101,7 +101,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Args:
             request_data (dict): must contain a list of `submission_ids` and at
                 least one other key:value field for updating the submissions
-            user (int)
+            user (User)
 
         Returns:
             dict: formatted dict to be passed to a Response object
@@ -113,11 +113,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             perm=PERM_CHANGE_SUBMISSIONS,
             instance_ids=instance_ids,
         )
-        submissions = self.get_submissions(
+        submissions = list(self.get_submissions(
             user=user,
             format_type=INSTANCE_FORMAT_TYPE_XML,
             instance_ids=instance_ids
-        )
+        ))
+
         validated_submissions = self.__validate_bulk_update_submissions(
             submissions
         )
@@ -337,9 +338,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def duplicate_submission(
-            self, user: 'auth.User', instance_id: int
-    ) -> dict:
+    def duplicate_submission(self, user: 'auth.User', instance_id: int) -> dict:
         """
         Duplicates a single submission proxied through KoBoCAT. The submission
         with the given `instance_id` is duplicated and the `start`, `end` and
@@ -390,9 +389,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         if kc_response.status_code == status.HTTP_201_CREATED:
-            return next(
-                self.get_submissions(user, query={'_uuid': _uuid})
-            )
+            return next(self.get_submissions(user, query={'_uuid': _uuid}))
         else:
             raise KobocatDuplicateSubmissionException
 
