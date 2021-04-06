@@ -235,7 +235,7 @@ module.exports = do ->
         if not $groupIcon.hasClass('k-tooltip__parent')
           isAllLocked = isAssetAllLocked(@ngScope.rawSurvey)
 
-          profileName = null
+          profileName = t('Locked')
           if !isAllLocked
             profileName = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())?.name
 
@@ -386,7 +386,7 @@ module.exports = do ->
 
         # add tooltip
         if not $indicatorIcon.hasClass('k-tooltip__parent')
-          profileName = null
+          profileName = t('Locked')
           if !isAllLocked
             profileName = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())?.name
 

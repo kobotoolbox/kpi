@@ -11,10 +11,7 @@ module.exports = do ->
 
   iconTooltip = (title, message) ->
     return """
-      <div class="k-tooltip">
-        #{if title then "<strong>" + title + "</strong>" else ""}
-        <p>#{message}</p>
-      </div>
+      <div class="k-tooltip"><strong>#{title}</strong><p>#{message}</p></div>
     """
 
   groupSettingsView = ->

@@ -11,7 +11,7 @@ Things to actually do:
 2. [ ] restricted form info near title
 3. [x] assign a color to locking profile (1st, 2nd, 3rd+, fully locked)
 4. [x] locked alternative row type icon
-5. [ ] special big tooltip for disabled row type icon
+5. [x] special big tooltip for disabled row type icon
 6. [ ] restriction based UI changes (either attribute `disable` or hidden)
   - [x] hide delete row button
   - [x] hide duplicate row button
@@ -34,4 +34,5 @@ Things to actually do:
   - [x] hide button for adding row to group
   - [x] disable question order change
   - [ ] disable replacing form button (outside form builder)
-7. AssetsTable alternative type icon for `isAssetLocked`
+7. [ ] AssetsTable alternative type icon for `isAssetLocked`
+8. [ ] new row settings tab "Locked Functions" with cans cants lists
