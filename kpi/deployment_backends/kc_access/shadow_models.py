@@ -462,3 +462,39 @@ def safe_kc_read(func):
             raise ProgrammingError('kc_access error accessing kobocat '
                                    'tables: {}'.format(e.message))
     return _wrapper
+
+class KobocatSubmissionCounter(ShadowModel):
+    user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
+    count = models.IntegerField()
+    timestamp = models.DateTimeField()
+
+    class Meta(ShadowModel.Meta):
+        db_table = "logger_submissioncounter"
+
+    @property
+    def year(self):
+        year = self.timestamp.year
+        return year
+
+    @property
+    def month(self):
+        month = self.timestamp.month
+        return month
+
+    @property
+    def form_count(self):
+        form_count = Asset.objects.filter(
+            owner=self.user,
+            date_created__month=self.month,
+            date_created__year=self.year,
+        ).count
+        return form_count
+
+    @property
+    def deployed_form_count(self):
+        deployed_form_count = Asset.objects.filter(
+            owner=self.user,
+            date_created__month=self.month,
+            date_created__year=self.year,
+            deployed=True,
+        )

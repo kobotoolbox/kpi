@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 
 from kpi.deployment_backends.kc_access.utils import delete_kc_users
 from kpi.models.asset import Asset
+from kpi.deployment_backends.kc_access.shadow_models import KobocatSubmissionCounter
 from .models import SitewideMessage, ConfigurationFile, PerUserSetting
 
 
