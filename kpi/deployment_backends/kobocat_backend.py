@@ -7,7 +7,7 @@ import re
 import uuid
 from collections import defaultdict
 from datetime import datetime
-from typing import Union
+from typing import Union, Optional
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
@@ -172,7 +172,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 or ('type' in json_response and
                     json_response['type'] == 'alert-error')
                 or (
-                        'formid' not in json_response and sync_media_files is False)):
+                    'formid' not in json_response and sync_media_files is False)
+        ):
             if 'text' in json_response:
                 # KC API refused us for a specified reason, likely invalid
                 # input Raise a 400 error that includes the reason
@@ -423,9 +424,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             json_response = self._kobocat_request('PATCH', url, data=payload)
         except KobocatDeploymentException as e:
             if (
-                    has_active_hooks is False
-                    and hasattr(e, 'response')
-                    and e.response.status_code == status.HTTP_404_NOT_FOUND
+                has_active_hooks is False
+                and hasattr(e, 'response')
+                and e.response.status_code == status.HTTP_404_NOT_FOUND
             ):
                 # It's okay if we're trying to unset the active hooks flag and
                 # the KoBoCAT project is already gone. See #2497
@@ -653,7 +654,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return _uuid, f'uuid:{_uuid}'
 
     @staticmethod
-    def format_openrosa_datetime(dt: datetime = None) -> str:
+    def format_openrosa_datetime(dt: Optional[datetime] = None) -> str:
         """
         Format a given datetime object or generate a new timestamp matching the
         OpenRosa datetime formatting
@@ -668,7 +669,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return dt.isoformat('T', 'milliseconds')
 
     def duplicate_submission(
-            self, requesting_user_id: int, instance_id: int
+        self, requesting_user_id: int, instance_id: int
     ) -> dict:
         """
         Dupicates a single submission proxied through kobocat. The submission
@@ -777,7 +778,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(kc_response)
 
     def bulk_update_submissions(
-            self, request_data: dict, requesting_user_id: int
+        self, request_data: dict, requesting_user_id: int
     ) -> dict:
         """
         Allows for bulk updating of submissions proxied through kobocat. A
@@ -822,8 +823,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             deprecated_id_or_new = (
                 deprecated_id
                 if deprecated_id is not None
-                else ET.SubElement(xml_parsed.find('meta'),
-                                   'deprecatedID')
+                else ET.SubElement(xml_parsed.find('meta'), 'deprecatedID')
             )
             deprecated_id_or_new.text = instance_id.text
             instance_id.text = uuid_formatted
@@ -846,11 +846,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                             ET.SubElement(xml_parsed, element)
                             accumulated_elements.append(element)
                         else:
-                            updated_xml_path = '/'.join(
-                                accumulated_elements)
+                            updated_xml_path = '/'.join(accumulated_elements)
                             ET.SubElement(
-                                xml_parsed.find(updated_xml_path),
-                                element
+                                xml_parsed.find(updated_xml_path), element
                             )
                             accumulated_elements.append(element)
 
