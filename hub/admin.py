@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.utils.translation import gettext as _
 
 from kpi.deployment_backends.kc_access.utils import delete_kc_users
+from kpi.deployment_backends.kc_access.shadow_models import KobocatSubmissionCounter
 from .models import SitewideMessage, ConfigurationFile, PerUserSetting
 
 
@@ -73,9 +74,20 @@ class UserDeleteAdmin(UserAdmin):
                 messages.ERROR
             )
 
+class UserStatisticsReport(admin.ModelAdmin):
+    def view_group_statistics(self, request, queryset):
+        #need to make sure that the number of months can be added as 1, 3, 6, 12
+        #select a month range? for year over year analysis?
+        #How do I make this information display properly in the admin interface
+        return
+
+    def view_detail_statistics(self, request, queryset):
+        return
+
 
 admin.site.register(SitewideMessage)
 admin.site.register(ConfigurationFile)
 admin.site.register(PerUserSetting)
 admin.site.unregister(User)
 admin.site.register(User, UserDeleteAdmin)
+admin.site.register(KobocatSubmissionCounter, UserStatisticsReport)
