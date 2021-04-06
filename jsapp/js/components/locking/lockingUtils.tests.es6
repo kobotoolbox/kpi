@@ -24,6 +24,11 @@ simpleTemplateLockedWithAll.content.settings[LOCK_ALL_PROP_NAME] = true;
 const simpleTemplateWithAll = clonedeep(simpleTemplate);
 simpleTemplateWithAll.content.settings[LOCK_ALL_PROP_NAME] = true;
 
+// a template with no locking profile definitions, but with asset and row having locking profile assigned
+const simpleTemplateLockedWitUndef = clonedeep(simpleTemplate);
+simpleTemplateLockedWitUndef.content.settings['kobo--locking-profile'] = 'nonexistent_lock_1';
+simpleTemplateLockedWitUndef.content.survey[2]['kobo--locking-profile'] = 'nonexistent_lock_2';
+
 describe('hasRowRestriction', () => {
   it('should be false for all restriction for rows in un-locked template', () => {
     simpleTemplate.content.survey.forEach((row) => {
@@ -258,6 +263,11 @@ describe('isAssetLocked', () => {
   it('should be true for template with lock_all', () => {
     const test = isAssetLocked(simpleTemplateWithAll.content);
     expect(test).to.equal(true);
+  });
+
+  it('should be false if rows have locking profile, but it\'s definition doesn\'t exist in asset', () => {
+    const test = isAssetLocked(simpleTemplateLockedWitUndef.content);
+    expect(test).to.equal(false);
   });
 });
 

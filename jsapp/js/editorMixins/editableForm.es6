@@ -1,7 +1,6 @@
 import clonedeep from 'lodash.clonedeep';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import autoBind from 'react-autobind';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
@@ -16,7 +15,7 @@ import {
   surveyToValidJson,
   unnullifyTranslations,
   assign,
-  koboMatrixParser
+  koboMatrixParser,
 } from '../utils';
 import {
   ASSET_TYPES,
@@ -818,7 +817,10 @@ export default assign({
     let assetTypeLabel = getFormBuilderAssetType(this.state.asset_type, this.state.desiredAssetType)?.label;
 
     // Case 1: there is no asset yet (creting a new) or asset is not locked
-    if (!this.state.asset || !isAssetLocked(this.state.asset.content)) {
+    if (
+      !this.state.asset ||
+      !isAssetLocked(this.state.asset.content)
+    ) {
       return assetTypeLabel;
     // Case 2: asset is locked fully or partially
     } else {
@@ -829,9 +831,9 @@ export default assign({
       return (
         <span className='locked-asset-type-label'>
           <i className='k-icon k-icon-lock'/>
-          
+
           {lockedLabel}
-          
+
           { stores.serverEnvironment &&
             stores.serverEnvironment.state.support_url &&
             <a

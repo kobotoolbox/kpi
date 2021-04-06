@@ -37,3 +37,11 @@ Things to actually do:
 7. [ ] AssetsTable alternative type icon for `isAssetLocked`
 8. [ ] new row settings tab "Locked Functions" with cans cants lists
 9. test Josh locking branch
+
+Tests:
+- locking blocks
+  1. upload XLS file with locking features
+  2. it becomes a block not template
+  3. see what happens in Form Builder
+  4. see what happens if you "Add from Library" it to a template (does it retain it's locking profile?)
+
