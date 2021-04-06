@@ -56,6 +56,8 @@ const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without 
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
+const LOCKING_SUPPORT_URL = 'TODO';
+
 /**
  * This is a component that displays Form Builder's header and aside. It is also
  * responsible for rendering the survey editor app (all our coffee code). See
@@ -832,10 +834,21 @@ export default assign({
         lockedLabel = t('Fully locked ##type##').replace('##type##', assetTypeLabel);
       }
       return (
-        <span>
+        <span className='locked-asset-type-label'>
           <i className='k-icon k-icon-lock'/>
+          
           {lockedLabel}
-          <i className='k-icon k-icon-help'/>
+          
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.support_url &&
+            <a
+              href={stores.serverEnvironment.state.support_url + LOCKING_SUPPORT_URL}
+              target='_blank'
+              data-tip={t('Read more about Locking')}
+            >
+              <i className='k-icon k-icon-help'/>
+            </a>
+          }
         </span>
       );
     }

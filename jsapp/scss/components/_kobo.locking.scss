@@ -46,3 +46,24 @@
     color: $kobo-teal-pale;
   }
 }
+
+.locked-asset-type-label {
+  line-height: 20px;
+
+  > .k-icon {
+    display: inline-block;
+    vertical-align: -3px;
+    font-size: 16px;
+  }
+
+  a {
+    margin-left: 4px;
+    display: inline-block;
+    vertical-align: -5px;
+
+    .k-icon {
+      display: block;
+      font-size: 20px;
+    }
+  }
+}

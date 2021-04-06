@@ -36,3 +36,4 @@ Things to actually do:
   - [ ] disable replacing form button (outside form builder)
 7. [ ] AssetsTable alternative type icon for `isAssetLocked`
 8. [ ] new row settings tab "Locked Functions" with cans cants lists
+9. test Josh locking branch
