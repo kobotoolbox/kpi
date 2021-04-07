@@ -25,6 +25,34 @@ export const LOCKING_RESTRICTIONS = Object.freeze({
   translation_manage: {name: 'translation_manage', label: t('Manage translations')},
 });
 
+export const QUESTION_RESTRICTIONS = [
+  LOCKING_RESTRICTIONS.choice_add,
+  LOCKING_RESTRICTIONS.choice_delete,
+  LOCKING_RESTRICTIONS.choice_edit,
+  LOCKING_RESTRICTIONS.choice_order_edit,
+  LOCKING_RESTRICTIONS.question_delete,
+  LOCKING_RESTRICTIONS.question_label_edit,
+  LOCKING_RESTRICTIONS.question_settings_edit,
+  LOCKING_RESTRICTIONS.question_skip_logic_edit,
+  LOCKING_RESTRICTIONS.question_validation_edit,
+];
+export const GROUP_RESTRICTIONS = [
+  LOCKING_RESTRICTIONS.group_delete,
+  LOCKING_RESTRICTIONS.group_label_edit,
+  LOCKING_RESTRICTIONS.group_question_add,
+  LOCKING_RESTRICTIONS.group_question_delete,
+  LOCKING_RESTRICTIONS.group_question_order_edit,
+  LOCKING_RESTRICTIONS.group_settings_edit,
+  LOCKING_RESTRICTIONS.group_skip_logic_edit,
+];
+export const FORM_RESTRICTIONS = [
+  LOCKING_RESTRICTIONS.form_replace,
+  LOCKING_RESTRICTIONS.group_add,
+  LOCKING_RESTRICTIONS.question_add,
+  LOCKING_RESTRICTIONS.question_order_edit,
+  LOCKING_RESTRICTIONS.translation_manage,
+];
+
 // currently lock_all has all restrictions,
 // but we want to be flexible, so we use an array
 export const LOCK_ALL_RESTRICTION_NAMES = [

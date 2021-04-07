@@ -1,6 +1,9 @@
 import {getRowName} from 'js/assetUtils.es6';
 import {ASSET_TYPES} from 'js/constants.es6';
 import {
+  QUESTION_RESTRICTIONS,
+  GROUP_RESTRICTIONS,
+  FORM_RESTRICTIONS,
   LOCK_ALL_RESTRICTION_NAMES,
   LOCK_ALL_PROP_NAME,
   LOCKING_PROFILE_PROP_NAME,
@@ -44,16 +47,9 @@ export function hasAssetRestriction(assetContent, restrictionName) {
 
   // case 2
   // check if asset's locking profile definition has the searched restriction
-  if (
-    assetContent.settings &&
-    typeof assetContent.settings[LOCKING_PROFILE_PROP_NAME] === 'string' &&
-    assetContent.settings[LOCKING_PROFILE_PROP_NAME].length >= 1
-  ) {
-    const lockingProfile = getLockingProfile(assetContent, assetContent.settings[LOCKING_PROFILE_PROP_NAME]);
-    return (
-      lockingProfile !== null &&
-      lockingProfile.restrictions.includes(restrictionName)
-    );
+  const foundProfile = getAssetLockingProfile(assetContent);
+  if (foundProfile) {
+    return foundProfile.restrictions.includes(restrictionName);
   }
 
   // default
@@ -113,6 +109,27 @@ export function getRowLockingProfile(assetContent, rowName) {
 }
 
 /**
+ * Find locking profile of asset - you don't need to know if asset has
+ * a profile or what's it's name.
+ *
+ * @param {object} assetContent asset's object content property
+ * @returns {object|null} null for no found
+ */
+export function getAssetLockingProfile(assetContent) {
+  let found = null;
+
+  if (
+    assetContent.settings &&
+    typeof assetContent.settings[LOCKING_PROFILE_PROP_NAME] === 'string' &&
+    assetContent.settings[LOCKING_PROFILE_PROP_NAME].length >= 1
+  ) {
+    return getLockingProfile(assetContent, assetContent.settings[LOCKING_PROFILE_PROP_NAME]);
+  }
+
+  return found;
+}
+
+/**
  * Checks if row has any locking applied, i.e. row has `locking_profile` set and
  * this locking profile has a definition in the asset content settings. As it is
  * actually possible for row to have a locking profile name that the asset
@@ -137,11 +154,10 @@ export function isRowLocked(assetContent, rowName) {
 }
 
 /**
- * Checks if anything in the asset is locked, i.e. asset has `lock_all` or
- * `locking_profile` is being set for it or any row.
+ * Checks if asset is locked, i.e. asset has `lock_all` or `locking_profile`.
  *
  * @param {object} assetContent asset's object content property
- * @returns {boolean} whether form or any row has locking on it
+ * @returns {boolean} whether form has locking
  */
 export function isAssetLocked(assetContent) {
   // case 1
@@ -152,19 +168,26 @@ export function isAssetLocked(assetContent) {
 
   // case 2
   // asset has locking profile and the profile definition exist
-  if (
-    assetContent?.settings &&
-    typeof assetContent.settings[LOCKING_PROFILE_PROP_NAME] === 'string' &&
-    assetContent.settings[LOCKING_PROFILE_PROP_NAME].length >= 1 &&
-    Boolean(getLockingProfile(assetContent, assetContent.settings[LOCKING_PROFILE_PROP_NAME]))
-  ) {
+  return Boolean(getAssetLockingProfile(assetContent));
+}
+
+/**
+ * Checks if anything in the asset is locked, i.e. asset has `lock_all` or
+ * `locking_profile` is being set for it or any row.
+ * @param {object} assetContent asset's object content property
+ * @returns {boolean} whether form or any row has locking on it
+ */
+export function hasAssetAnyLocking(assetContent) {
+  // case 1
+  // asset is locked
+  if (isAssetLocked(assetContent)) {
     return true;
   }
 
-  // case 3
+  // case 2
   // at least one row has locking profile that is defined in asset
   const foundRow = assetContent?.survey.find((row) => {
-    return Boolean(getRowLockingProfile(assetContent, getRowName(row)));
+    return isRowLocked(assetContent, getRowName(row));
   });
   return Boolean(foundRow);
 }
@@ -205,3 +228,50 @@ export function isAssetLockable(assetType) {
 // export function hasAssetLockingFeatures(assetType) {
 //   return assetType === ASSET_TYPES.survey.id || assetType === ASSET_TYPES.template.id;
 // }
+
+export function getQuestionFeatures(assetContent, rowName) {
+  return _getFeatures('question', assetContent, rowName);
+}
+
+export function getGroupFeatures(assetContent, rowName) {
+  return _getFeatures('group', assetContent, rowName);
+}
+
+export function getAssetFeatures(assetContent) {
+  return _getFeatures('group', assetContent);
+}
+
+/**
+ * Returns two lists - the restrictions that apply to row/asset and the one's
+ * that don't
+ * @returns {object} two arrays of LOCKING_RESTRICTIONS: `cans` and `cants`
+ */
+function _getFeatures(featuresType, assetContent, rowOrGroupName) {
+  const outcome = {
+    cans: [],
+    cants: [],
+  };
+
+  let profile = null;
+  let sourceList = [];
+  if (featuresType === 'question') {
+    sourceList = QUESTION_RESTRICTIONS;
+    profile = getRowLockingProfile(assetContent, rowOrGroupName);
+  } else if(featuresType === 'group') {
+    sourceList = GROUP_RESTRICTIONS;
+    profile = getRowLockingProfile(assetContent, rowOrGroupName);
+  } else if (featuresType === 'form') {
+    sourceList = FORM_RESTRICTIONS;
+    profile = getAssetLockingProfile(assetContent);
+  }
+
+  sourceList.forEach((restriction) => {
+    if (profile && profile.restrictions.includes(restriction.name)) {
+      outcome.cants.push(restriction);
+    } else {
+      outcome.cans.push(restriction);
+    }
+  });
+
+  return outcome;
+}

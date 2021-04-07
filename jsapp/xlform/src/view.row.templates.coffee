@@ -14,6 +14,30 @@ module.exports = do ->
       <div class="k-tooltip"><strong>#{title}</strong><p>#{message}</p></div>
     """
 
+  lockedFeatures = (features) ->
+    cantsString = ''
+    features.cants.forEach((cant) ->
+      cantsString += "<li><i class='k-icon k-icon-close'></i>#{cant.label}</li>"
+    )
+
+    cansString = ''
+    features.cans.forEach((can) ->
+      cansString += "<li><i class='k-icon k-icon-check'></i>#{can.label}</li>"
+    )
+
+    return """
+      <section class="locked-features">
+        <ul class="locked-features__list locked-features__list--cants">
+          <label>#{t('Locked functionalities')}</label>
+          #{cantsString}
+        </ul>
+        <ul class="locked-features__list locked-features__list--cans">
+          <label>#{t('Unlocked functionalities')}</label>
+          #{cansString}
+        </ul>
+      </section>
+    """
+
   groupSettingsView = ->
     """
       <section class="card__settings  row-extras row-extras--depr">
@@ -26,10 +50,14 @@ module.exports = do ->
           <li data-card-settings-tab-id="skip-logic" class="card__settings__tabs__tab">
             #{t("Skip Logic")}
           </li>
+          <li data-card-settings-tab-id="locked-features" class="card__settings__tabs__tab locking__ui-hidden">
+            #{t("Locked Features")}
+          </li>
         </ul>
         <div class="card__settings__content">
-          <div class="js-card-settings-row-options card__settings__fields card__settings__fields--active"></div>
-          <div class="js-card-settings-skip-logic card__settings__fields"></div>
+          <ul class="js-card-settings-row-options card__settings__fields card__settings__fields--active"></ul>
+          <ul class="js-card-settings-skip-logic card__settings__fields"></ul>
+          <ul class="js-card-settings-locked-features card__settings__fields locking__ui-hidden"></ul>
         </div>
       </section>
     """
@@ -39,16 +67,24 @@ module.exports = do ->
         <i class="card__settings-close k-icon k-icon-close js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
           <li class="heading"><i class="k-icon k-icon-settings"></i> #{t("Settings")}</li>
-          <li data-card-settings-tab-id="row-options" class="card__settings__tabs__tab--active">#{t("Question Options")}</li>
-          <li data-card-settings-tab-id="skip-logic" class="">#{t("Skip Logic")}</li>
-          <li data-card-settings-tab-id="validation-criteria" class="">#{t("Validation Criteria")}</li>
+          <li data-card-settings-tab-id="row-options" class="card__settings__tabs__tab--active">
+            #{t("Question Options")}
+          </li>
+          <li data-card-settings-tab-id="skip-logic" class="card__settings__tabs__tab">
+            #{t("Skip Logic")}
+          </li>
+          <li data-card-settings-tab-id="validation-criteria" class="card__settings__tabs__tab">
+            #{t("Validation Criteria")}
+          </li>
+          <li data-card-settings-tab-id="locked-features" class="card__settings__tabs__tab locking__ui-hidden">
+            #{t("Locked Features")}
+          </li>
         </ul>
         <div class="card__settings__content">
           <ul class="js-card-settings-row-options card__settings__fields card__settings__fields--active"></ul>
-
           <ul class="js-card-settings-skip-logic card__settings__fields"></ul>
-
           <ul class="js-card-settings-validation-criteria card__settings__fields"></ul>
+          <ul class="js-card-settings-locked-features card__settings__fields locking__ui-hidden"></ul>
         </div>
       </section>
     """
@@ -350,3 +386,4 @@ module.exports = do ->
   groupSettingsView: groupSettingsView
   rowSettingsView: rowSettingsView
   iconTooltip: iconTooltip
+  lockedFeatures: lockedFeatures

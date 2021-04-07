@@ -5,6 +5,7 @@ import {ASSET_TYPES} from 'js/constants';
 import {
   isAssetLocked,
   isAssetAllLocked,
+  getAssetFeatures,
 } from 'js/components/locking/lockingUtils';
 
 /**
@@ -40,6 +41,8 @@ class FormLockedMessage extends React.Component {
   }
 
   renderSeeMore() {
+    const features = getAssetFeatures(this.props.asset.content);
+
     return (
       <React.Fragment>
         <bem.FormBuilderMessageBox__toggle onClick={this.toggleMoreInfo}>
@@ -48,36 +51,37 @@ class FormLockedMessage extends React.Component {
 
         {this.state.isOpen &&
           <bem.FormBuilderMessageBox__details>
-            a list of cans and can'ts
+            <div className='locked-features'>
+              <ul className='locked-features__list locked-features__list--cants'>
+                <label>
+                  {t('Locked functionalities')}
+                </label>
+                {features.cants.map((cant) => {
+                  return (
+                    <li key={cant.name}>
+                      <i className='k-icon k-icon-check'/>
+                      {cant.label}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
 
-            <bem.FormBuilderMessageBox__list>
-              <bem.FormBuilderMessageBox__listTitle>
-                can's
-              </bem.FormBuilderMessageBox__listTitle>
-
-              <bem.FormBuilderMessageBox__listItem>
-                can 1
-              </bem.FormBuilderMessageBox__listItem>
-              <bem.FormBuilderMessageBox__listItem>
-                can 2
-              </bem.FormBuilderMessageBox__listItem>
-              <bem.FormBuilderMessageBox__listItem>
-                can 3
-              </bem.FormBuilderMessageBox__listItem>
-            </bem.FormBuilderMessageBox__list>
-
-            <bem.FormBuilderMessageBox__list>
-              <bem.FormBuilderMessageBox__listTitle>
-                cant's
-              </bem.FormBuilderMessageBox__listTitle>
-
-              <bem.FormBuilderMessageBox__listItem>
-                cant 1
-              </bem.FormBuilderMessageBox__listItem>
-              <bem.FormBuilderMessageBox__listItem>
-                cant 2
-              </bem.FormBuilderMessageBox__listItem>
-            </bem.FormBuilderMessageBox__list>
+            <div className='locked-features'>
+              <ul className='locked-features__list locked-features__list--cans'>
+                <label>
+                  {t('Unlocked functionalities')}
+                </label>
+                {features.cans.map((can) => {
+                  return (
+                    <li key={can.name}>
+                      <i className='k-icon k-icon-check'/>
+                      {can.label}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </bem.FormBuilderMessageBox__details>
         }
       </React.Fragment>

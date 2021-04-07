@@ -35,7 +35,7 @@ import assetUtils from 'js/assetUtils';
 import FormLockedMessage from 'js/components/locking/formLockedMessage';
 import {
   hasAssetRestriction,
-  isAssetLocked,
+  hasAssetAnyLocking,
   isAssetAllLocked,
   isAssetLockable,
 } from 'js/components/locking/lockingUtils';
@@ -819,7 +819,7 @@ export default assign({
     // Case 1: there is no asset yet (creting a new) or asset is not locked
     if (
       !this.state.asset ||
-      !isAssetLocked(this.state.asset.content)
+      !hasAssetAnyLocking(this.state.asset.content)
     ) {
       return assetTypeLabel;
     // Case 2: asset is locked fully or partially

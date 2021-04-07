@@ -23,7 +23,7 @@ $s-tooltip-big-left-pos: 30%;
       color: $kobo-white;
       background-color: $kobo-darkgray;
       padding: 6px 12px;
-      top: 96%;
+      top: calc(100% + 6px);
       left: 50%;
       transform: translate(-#{$s-tooltip-big-left-pos}, 0);
       z-index: $z-tooltip;
