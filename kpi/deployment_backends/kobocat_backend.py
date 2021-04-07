@@ -26,7 +26,6 @@ from kpi.constants import (
     PERM_FROM_KC_ONLY,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
-    PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
@@ -108,7 +107,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         payload = self.__prepare_bulk_update_payload(request_data)
         instance_ids = payload.pop('submission_ids')
-        self._validate_write_partial_permissions(
+        self.validate_write_access_with_partial_perms(
             user=requesting_user,
             perm=PERM_CHANGE_SUBMISSIONS,
             instance_ids=instance_ids,
@@ -299,10 +298,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def delete_submission(self, pk: int, user: 'auth.User') -> dict:
         """
-        Deletes a submission through KoBoCAT proxy
+        Delete a submission through KoBoCAT proxy
         """
 
-        self._validate_write_partial_permissions(
+        self.validate_write_access_with_partial_perms(
             requesting_user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             instance_ids=[pk]
@@ -316,7 +315,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def delete_submissions(self, data: QueryDict, user: 'auth.User') -> dict:
         """
-        Deletes provided submissions through KoBoCAT proxy
+        Bulk delete provided submissions through KoBoCAT proxy,
+        authenticated by `user`'s API token.
 
         `data` contains the payload posted with `DELETE` request, and it should
         contain all submission ids to delete.
@@ -325,7 +325,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         """
 
-        self._validate_write_partial_permissions(
+        self.validate_write_access_with_partial_perms(
             requesting_user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             instance_ids=data['payload']['submissions_ids'],
@@ -350,7 +350,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         submission if successful
         """
 
-        self._validate_write_partial_permissions(
+        self.validate_write_access_with_partial_perms(
             user=requesting_user,
             perm=PERM_CHANGE_SUBMISSIONS,
             instance_ids=[instance_id],
@@ -764,20 +764,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'backend_response': json_response,
             })
 
-    def set_validation_status(self, submission_pk, data, user, method):
+    def set_validation_status(self,
+                              submission_pk: int,
+                              data: dict,
+                              user: 'auth.User',
+                              method: str) -> dict:
         """
-        Updates validation status from `kc` through proxy
-        If method is `DELETE`, it resets the status to `None`
-
-        Args:
-            submission_pk (int)
-            data (dict): data to update when `PATCH` is used.
-            user (User)
-            method (string): 'PATCH'|'DELETE'
-
-        Returns:
-            dict (a formatted dict to be passed to a Response object)
+        Update validation status through KoBoCAT proxy,
+        authenticated by `user`'s API token.
+        If `method` is `DELETE`, the status is reset to `None`
         """
+
+        self.validate_write_access_with_partial_perms(
+            requesting_user=user,
+            perm=PERM_VALIDATE_SUBMISSIONS,
+            instance_ids=[submission_pk],
+        )
+
         kc_request_params = {
             'method': method,
             'url': self.get_submission_validation_status_url(submission_pk)
@@ -790,23 +793,26 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validation_statuses(self, data, user, method):
+    def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
         """
-        Bulk update for validation status from `kc` through proxy
-        If method is `DELETE`, it resets statuses to `None`
+        Bulk update validation status for provided submissions through
+        KoBoCAT proxy, authenticated by `user`'s API token.
 
-        Args:
-            data (dict): data to update when `PATCH` is used.
-            user (User)
-            method (string): 'PATCH'|'DELETE'
+        `data` contains the payload posted with `PATCH` request, and it should
+        contain all submission ids to delete.
+        Example:
+             {"payload": {"submission_ids": [1,2,3]}}
 
-        Returns:
-            dict (a formatted dict to be passed to a Response object)
         """
         url = self.submission_list_url
         data = data.copy()  # Need to get a copy to update the dict
 
-        # `PATCH` KC even if kpi receives `DELETE`
+        self.validate_write_access_with_partial_perms(
+            requesting_user=user,
+            perm=PERM_VALIDATE_SUBMISSIONS,
+            instance_ids=data['payload']['submissions_ids'],
+        )
+
         kc_request = requests.Request(method='PATCH', url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
@@ -903,6 +909,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         for kc_file in kc_files.values():
             if kc_file['from_kpi']:
                 self.__delete_kc_metadata(kc_file)
+
+
 
     @property
     def timestamp(self):
@@ -1012,26 +1020,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return instance_count(xform_id_string=id_string,
                               user_id=self.asset.owner.pk,
                               )
-
-    def _validate_write_partial_permissions(self,
-                                            user: 'auth.User',
-                                            perm: str,
-                                            instance_ids: list):
-
-        if PERM_PARTIAL_SUBMISSIONS not in self.get_perms(user):
-            return
-
-        results = self.get_submissions(
-            requesting_user_id=user.pk,
-            format_type=INSTANCE_FORMAT_TYPE_JSON,
-            partial_perm=perm,
-            fields=['_id'],
-            instance_ids=instance_ids,
-        )
-        allowed_instance_ids = [r['_id'] for r in results]
-
-        if sorted(allowed_instance_ids) != sorted(instance_ids):
-            raise PermissionDenied
 
     def __delete_kc_metadata(
         self, kc_file_: dict, file_: Union[AssetFile, PairedData] = None
@@ -1149,7 +1137,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def __prepare_as_drf_response_signature(requests_response):
         """
         Prepares a dict from `Requests` response.
-        Useful to get response from `kc` and use it as a dict or pass it to
+        Useful to get response from KoBoCaT and use it as a dict or pass it to
         DRF Response
         """
 

@@ -395,8 +395,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
         json_response = deployment.set_validation_statuses(request.data,
-                                                           request.user,
-                                                           request.method)
+                                                           request.user)
 
         return Response(**json_response)
 

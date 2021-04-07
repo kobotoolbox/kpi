@@ -35,7 +35,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         responses = []
         for submission in all_submissions:
-            if submission['_id'] in instance_ids:
+            if submission[self.INSTANCE_ID_FIELDNAME] in instance_ids:
                 _uuid = uuid.uuid4()
                 submission['deprecatedID'] = submission['instanceID']
                 submission['instanceID'] = f'uuid:{_uuid}'
@@ -216,10 +216,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             "data": submission.get("_validation_status")
         }
 
-    def mock_submissions(self, submissions):
+    def mock_submissions(self, submissions: list):
         """
         Insert dummy submissions into `asset._deployment_data`
-        :param submissions: list
         """
         self.store_data({"submissions": submissions})
         self.asset.save(create_version=False)
@@ -252,7 +251,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             "has_kpi_hooks": has_active_hooks,
         })
 
-    def set_validation_statuses(self, data, user, method):
+    def set_validation_status(self, submission_pk, data, user, method):
+        pass
+
+    def set_validation_statuses(self, data, user):
         pass
 
     @property
@@ -280,9 +282,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def _submission_count(self):
         submissions = self.asset.deployment_data.get('submissions', [])
         return len(submissions)
-
-    def set_validation_status(self, submission_pk, data, user, method):
-        pass
 
     @staticmethod
     def __prepare_bulk_update_payload(request_data: dict) -> dict:
