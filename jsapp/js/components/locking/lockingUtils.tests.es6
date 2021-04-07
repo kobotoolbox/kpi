@@ -22,6 +22,7 @@ import {
 import {
   LOCKING_RESTRICTIONS,
   LOCK_ALL_PROP_NAME,
+  LOCKING_PROFILE_PROP_NAME,
 } from './lockingConstants';
 import {getRowName} from 'js/assetUtils';
 
@@ -270,6 +271,13 @@ describe('isAssetLocked', () => {
   it('should be true for template with lock_all', () => {
     const test = isAssetLocked(simpleTemplateWithAll.content);
     expect(test).to.equal(true);
+  });
+
+  it('should be false if rows have locking profiles, but asset doesn\'t', () => {
+    const simpleTemplateLockedRowsOnly = clonedeep(simpleTemplateLocked);
+    delete simpleTemplateLockedRowsOnly.content.settings[LOCKING_PROFILE_PROP_NAME];
+    const test = isAssetLocked(simpleTemplateLockedWitUndef.content);
+    expect(test).to.equal(false);
   });
 
   it('should be false if rows have locking profile, but it\'s definition doesn\'t exist in asset', () => {
