@@ -90,10 +90,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_data(self, data: dict) -> dict:
-        valid_export_settings = VALID_EXPORT_SETTINGS + [
-            EXPORT_SETTING_SOURCE,
-            EXPORT_SETTING_NAME,
-        ]
+        valid_export_settings = VALID_EXPORT_SETTINGS + [EXPORT_SETTING_SOURCE]
 
         for required in REQUIRED_EXPORT_SETTINGS:
             if required not in data:
