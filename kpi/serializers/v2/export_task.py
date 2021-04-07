@@ -12,6 +12,7 @@ from formpack.constants import (
     EXPORT_SETTING_GROUP_SEP,
     EXPORT_SETTING_HIERARCHY_IN_LABELS,
     EXPORT_SETTING_LANG,
+    EXPORT_SETTING_NAME,
     EXPORT_SETTING_MULTIPLE_SELECT,
     EXPORT_SETTING_SOURCE,
     EXPORT_SETTING_TYPE,
@@ -27,9 +28,6 @@ from kpi.fields import ReadOnlyJSONField
 from kpi.models import ExportTask, Asset, AssetExportSettings
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
-
-EXPORT_SETTINGS = 'export_settings'
-EXPORT_SETTINGS_UID = 'export_settings_uid'
 
 
 class ExportTaskSerializer(serializers.ModelSerializer):
@@ -80,7 +78,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             data_
         )
         attrs[EXPORT_SETTING_SOURCE] = self.validate_source()
-        attrs[EXPORT_SETTINGS] = self.validate_export_settings(data_)
+        attrs[EXPORT_SETTING_NAME] = self.validate_name(data_)
         attrs[EXPORT_SETTING_TYPE] = self.validate_type(data_)
 
         if EXPORT_SETTING_FIELDS in data_:
@@ -94,7 +92,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
     def validate_data(self, data: dict) -> dict:
         valid_export_settings = VALID_EXPORT_SETTINGS + [
             EXPORT_SETTING_SOURCE,
-            EXPORT_SETTINGS_UID,
+            EXPORT_SETTING_NAME,
         ]
 
         for required in REQUIRED_EXPORT_SETTINGS:
@@ -191,30 +189,18 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             request=self._get_request,
         )
 
-    def validate_export_settings(self, data: dict) -> Optional[str]:
-        uid = data.get(EXPORT_SETTINGS_UID)
+    def validate_name(self, data: dict) -> Optional[str]:
+        name = data.get(EXPORT_SETTING_NAME)
 
-        if uid is None:
+        # Allow name to be empty
+        if name is None:
             return
 
-        if not self._export_setting_exists(uid):
+        if not isinstance(name, str):
             raise serializers.ValidationError(
-                {
-                    EXPORT_SETTINGS_UID: _(
-                        'Not a valid UID for export settings '
-                        'saved to this asset.'
-                    )
-                }
+                {EXPORT_SETTING_NAME: _('The export name must be a string.')}
             )
-
-        return reverse(
-            'asset-export-settings-detail',
-            kwargs={
-                'parent_lookup_asset': self._get_asset.uid,
-                'uid': uid,
-            },
-            request=self._get_request,
-        )
+        return name
 
     def validate_type(self, data: dict) -> str:
         export_type = data[EXPORT_SETTING_TYPE]
@@ -242,10 +228,4 @@ class ExportTaskSerializer(serializers.ModelSerializer):
     @property
     def _get_request(self) -> Request:
         return self.context['request']
-
-    @staticmethod
-    def _export_setting_exists(export_settings_uid: str) -> bool:
-        return AssetExportSettings.objects.filter(
-            uid=export_settings_uid
-        ).exists()
 
