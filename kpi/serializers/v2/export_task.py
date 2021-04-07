@@ -25,7 +25,7 @@ from formpack.constants import (
 )
 
 from kpi.fields import ReadOnlyJSONField
-from kpi.models import ExportTask, Asset, AssetExportSettings
+from kpi.models import ExportTask, Asset
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
 
