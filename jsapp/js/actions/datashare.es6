@@ -27,17 +27,26 @@ dataShareActions.attachToParent.listen((assetUid, data) => {
     .done(dataShareActions.attachToParent.completed)
     .fail(dataShareActions.attachToParent.failed);
 });
+dataShareActions.attachToParent.failed.listen((response) => {
+  alertify.error(response?.responseJSON || t('Failed to attach to parent'));
+});
 
 dataShareActions.detachParent.listen((attachmentUrl) => {
   dataInterface.detachParent(attachmentUrl)
     .done(dataShareActions.detachParent.completed)
     .fail(dataShareActions.detachParent.failed);
 });
+dataShareActions.detachParent.failed.listen((response) => {
+  alertify.error(response?.responseJSON || t('Failed to detach from parent'));
+});
 
 dataShareActions.patchParent.listen((attachmentUrl, data) => {
   dataInterface.patchParent(attachmentUrl, data)
     .done(dataShareActions.patchParent.completed)
     .fail(dataShareActions.patchParent.failed)
+});
+dataShareActions.patchParent.failed.listen((response) => {
+  alertify(response?.responseJSON || t('Failed to patch parent'));
 });
 
 dataShareActions.getAttachedParents.listen((assetUid) => {
@@ -95,7 +104,7 @@ dataShareActions.updateColumnFilters.listen((uid, data) => {
     .fail(dataShareActions.updateColumnFilters.failed);
 });
 dataShareActions.updateColumnFilters.failed.listen((response) => {
-  alertify.error(response.responseJSON);
+  alertify.error(response?.responseJSON || t('Failed to update column filters'));
 });
 
 export default dataShareActions;

@@ -81,6 +81,9 @@ class ConnectProjects extends React.Component {
       actions.dataShare.updateColumnFilters.failed.listen(
         this.stopLoading
       ),
+      actions.dataShare.detachParent.failed.listen(
+        this.stopLoading
+      ),
       actions.dataShare.patchParent.completed.listen(
         this.stopLoading
       ),
@@ -224,7 +227,7 @@ class ConnectProjects extends React.Component {
   }
 
   onToggleSharingData() {
-    var data = JSON.stringify({
+    const data = JSON.stringify({
       data_sharing: {
         enabled: !this.state.isShared,
         fields: [],
@@ -254,13 +257,13 @@ class ConnectProjects extends React.Component {
   onColumnSelected(columnList) {
     this.setState({isLoading: true});
 
-    let fields = [];
+    const fields = [];
     columnList.forEach((item) => {
       if (item.checked) {
         fields.push(item.label);
       }
     })
-    var data = JSON.stringify({
+    const data = JSON.stringify({
       data_sharing: {
         enabled: this.state.isShared,
         fields: fields,
@@ -274,7 +277,7 @@ class ConnectProjects extends React.Component {
     let columnsToDisplay = this.state.columnsToDisplay;
     if (!checked) {
       columnsToDisplay = [];
-      var data = JSON.stringify({
+      const data = JSON.stringify({
         data_sharing: {
           enabled: this.state.isShared,
           fields: [],
@@ -324,7 +327,7 @@ class ConnectProjects extends React.Component {
       selectableColumns = selectableQuestions;
     }
 
-    let columnsToDisplay = [];
+    const columnsToDisplay = [];
     // Columns are unchecked by default to avoid exposing new questions if user
     // has selected `Share some questions`
     if (selectedColumns.length == 0) {
@@ -385,7 +388,7 @@ class ConnectProjects extends React.Component {
     if (this.state.sharingEnabledAssets !== null) {
       let sharingEnabledAssets = this.generateFilteredAssetList();
       const selectClassNames = ['kobo-select__wrapper'];
-      if (this.state.fieldsErrors.parent) {
+      if (this.state.fieldsErrors?.parent) {
         selectClassNames.push('kobo-select__wrapper--error');
       }
       return(
@@ -404,7 +407,7 @@ class ConnectProjects extends React.Component {
           />
 
           <label className='select-errors'>
-            {this.state.fieldsErrors.parent}
+            {this.state.fieldsErrors?.parent}
           </label>
         </div>
       );

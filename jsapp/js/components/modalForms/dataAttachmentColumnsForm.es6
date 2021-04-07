@@ -32,7 +32,7 @@ class dataAttachmentColumnsForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isVirgin: true,
+      isInitalised: false,
       isLoading: false,
       columnsToDisplay: [],
     };
@@ -50,16 +50,19 @@ class dataAttachmentColumnsForm extends React.Component {
         this.onAttachToParentCompleted
       ),
       actions.dataShare.attachToParent.failed.listen(
-        this.onAttachToParentFailed
+        this.stopLoading
       ),
       actions.dataShare.patchParent.completed.listen(
         this.onPatchParentCompleted
       ),
       actions.dataShare.patchParent.failed.listen(
-        this.onPatchParentFailed
+        this.stopLoading
       ),
       actions.resources.loadAsset.completed.listen(
         this.onLoadAssetContentCompleted
+      ),
+      actions.resources.loadAsset.failed.listen(
+        this.stopLoading
       ),
     );
     this.setModalTitle();
@@ -79,9 +82,6 @@ class dataAttachmentColumnsForm extends React.Component {
   onAttachToParentCompleted() {
     this.props.onModalClose();
   }
-  onAttachToParentFailed() {
-    this.setState({isLoading: false});
-  }
   onBulkSelect() {
     let newList = this.state.columnsToDisplay.map((item) => {
       return {label: item.label, checked: true}
@@ -96,10 +96,10 @@ class dataAttachmentColumnsForm extends React.Component {
   }
   onLoadAssetContentCompleted(response) {
     if (
-      response.data_sharing?.fields.length > 0
+      response.data_sharing?.fields?.length > 0
     ) {
       this.setState({
-        isVirgin: false,
+        isInitialised: true,
         columnsToDisplay: this.props.generateColumnFilters(
           this.props.fields,
           response.data_sharing.fields,
@@ -108,7 +108,7 @@ class dataAttachmentColumnsForm extends React.Component {
     } else {
       // empty `fields` implies all parent questions are exposed
       this.setState({
-        isVirgin: false,
+        isInitialised: true,
         columnsToDisplay: this.props.generateColumnFilters(
           this.props.fields,
           response.content.survey,
@@ -126,7 +126,7 @@ class dataAttachmentColumnsForm extends React.Component {
     });
     this.props.onModalClose();
   }
-  onPatchParentFailed() {
+  stopLoading() {
     this.setState({isLoading: false});
   }
 
@@ -139,8 +139,8 @@ class dataAttachmentColumnsForm extends React.Component {
     this.setState({isLoading: true});
     this.props.triggerParentLoading();
 
-    let fields = [];
-    var data = '';
+    const fields = [];
+    let data = '';
 
     this.state.columnsToDisplay.map((item) => {
       if (item.checked) {
@@ -193,7 +193,7 @@ class dataAttachmentColumnsForm extends React.Component {
           </div>
         </div>
 
-        {this.state.isVirgin &&
+        {!this.state.isInitialised &&
           renderLoading(t('Loading imported questions'))
         }
 
