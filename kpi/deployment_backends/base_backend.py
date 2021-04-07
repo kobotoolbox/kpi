@@ -1,16 +1,19 @@
 # coding: utf-8
+
 import json
 from typing import Union, Iterator
 
 from bson import json_util
 from django.db.models.query import QuerySet
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 
 from kpi.constants import (
     INSTANCE_FORMAT_TYPE_XML,
     INSTANCE_FORMAT_TYPE_JSON,
+    PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset_file import AssetFile
@@ -330,6 +333,33 @@ class BaseDeploymentBackend:
             params['limit'] = limit
 
         return params
+
+    def validate_write_access_with_partial_perms(self,
+                                                 user: 'auth.User',
+                                                 perm: str,
+                                                 instance_ids: list):
+        """
+        Validate whether `user` is allowed to perform write actions on
+        submissions with the permission `perm`.
+        It raises a `PermissionDenied` error if they cannot.
+
+        No validation is made whether `user` is granted with other permissions
+        than 'partial_submission' permission.
+        """
+        if PERM_PARTIAL_SUBMISSIONS not in self.get_perms(user):
+            return
+
+        results = self.get_submissions(
+            requesting_user_id=user.pk,
+            format_type=INSTANCE_FORMAT_TYPE_JSON,
+            partial_perm=perm,
+            fields=[self.INSTANCE_ID_FIELDNAME],
+            instance_ids=instance_ids,
+        )
+        allowed_instance_ids = [r[self.INSTANCE_ID_FIELDNAME] for r in results]
+
+        if sorted(allowed_instance_ids) != sorted(instance_ids):
+            raise PermissionDenied
 
     @property
     def version(self):

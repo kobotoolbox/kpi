@@ -37,7 +37,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         responses = []
         for submission in all_submissions:
-            if submission['_id'] in instance_ids:
+            if submission[self.INSTANCE_ID_FIELDNAME] in instance_ids:
                 _uuid = uuid.uuid4()
                 submission['deprecatedID'] = submission['instanceID']
                 submission['instanceID'] = f'uuid:{_uuid}'
@@ -212,10 +212,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'data': submission.get('_validation_status')
         }
 
-    def mock_submissions(self, submissions):
+    def mock_submissions(self, submissions: list):
         """
         Insert dummy submissions into `asset._deployment_data`
-        :param submissions: list
         """
         self.store_data({"submissions": submissions})
         self.asset.save(create_version=False)
