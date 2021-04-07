@@ -67,3 +67,41 @@
     }
   }
 }
+
+.locked-features {
+  display: flex;
+  flex-direction: row;
+  align-content: flex-start;
+  justify-content: space-around;
+  font-weight: normal;
+  padding: 15px 15%;
+
+  .locked-features__list {
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    li {
+      margin-top: 5px;
+    }
+
+    .k-icon {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+
+    &.locked-features__list--cans {
+      .k-icon {
+        color: $kobo-green;
+      }
+    }
+    &.locked-features__list--cants {
+      .k-icon {
+        color: $kobo-red;
+      }
+    }
+  }
+}

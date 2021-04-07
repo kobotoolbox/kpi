@@ -18,6 +18,8 @@ getRowLockingProfile = require('js/components/locking/lockingUtils').getRowLocki
 isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
 isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
 isAssetAllLocked = require('js/components/locking/lockingUtils').isAssetAllLocked
+getQuestionFeatures = require('js/components/locking/lockingUtils').getQuestionFeatures
+getGroupFeatures = require('js/components/locking/lockingUtils').getGroupFeatures
 LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
 $icons = require './view.icons'
@@ -229,10 +231,23 @@ module.exports = do ->
     ###
     applyLocking: ->
       if (isRowLocked(@ngScope.rawSurvey, @getRowName()))
+        # build Locked Features settings tab
+        if (isRowLocked(@ngScope.rawSurvey, @getRowName()))
+          @$('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+          $lockedFeaturesContent = @$('.js-card-settings-locked-features');
+          $lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+          lockedFeatures = $($viewTemplates.row.lockedFeatures(
+            getGroupFeatures(@ngScope.rawSurvey, @getRowName())
+          ))
+          $lockedFeaturesContent.html(lockedFeatures)
+
+        # add icon with tooltip
         $groupIcon = @$header.find('.js-group-icon')
         $groupIcon.find('.k-icon').addClass('k-icon-lock-alt')
-        # add tooltip
+
         if not $groupIcon.hasClass('k-tooltip__parent')
+          $groupIcon.addClass('k-tooltip__parent')
+
           isAllLocked = isAssetAllLocked(@ngScope.rawSurvey)
 
           profileName = t('Locked')
@@ -243,10 +258,8 @@ module.exports = do ->
           if !isAllLocked
             tooltipMsg = t('partially locked group')
 
-          $groupIcon.addClass('k-tooltip__parent')
           iconTooltip = $($viewTemplates.row.iconTooltip(profileName, tooltipMsg))
           $groupIcon.append(iconTooltip)
-
 
       # hide group delete button
       if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name))
@@ -305,6 +318,9 @@ module.exports = do ->
       @model.on 'remove', (row) =>
         if row.constructor.key == 'group' && !@hasNestedGroups()
           @$('.xlf-dv-appearance').eq(0).show()
+
+      @applyLocking()
+
       return @
 
   class RowView extends BaseRowView
@@ -355,6 +371,8 @@ module.exports = do ->
           acceptedFiles: @model.getAcceptedFiles()
         }).render().insertInDOM(@)
 
+      @applyLocking()
+
       return @
 
     ###
@@ -364,76 +382,86 @@ module.exports = do ->
     # nodes are created.
     ###
     applyLocking: () ->
-      isAllLocked = isAssetAllLocked(@ngScope.rawSurvey)
+      if (isRowLocked(@ngScope.rawSurvey, @getRowName()))
+        isAllLocked = isAssetAllLocked(@ngScope.rawSurvey)
 
-      # set visual styles for given locking profile
-      profileDef = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())
-      if isAllLocked
-        @$el.addClass('locking__level-all')
-      else if profileDef and profileDef.index is 0
-        @$el.addClass('locking__level-1')
-      else if profileDef and profileDef.index is 1
-        @$el.addClass('locking__level-2')
-      else if profileDef and profileDef.index >= 2
-        @$el.addClass('locking__level-3-plus')
+        # set visual styles for given locking profile
+        profileDef = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())
+        if (isAllLocked)
+          @$el.addClass('locking__level-all')
+        else if (profileDef and profileDef.index is 0)
+          @$el.addClass('locking__level-1')
+        else if (profileDef and profileDef.index is 1)
+          @$el.addClass('locking__level-2')
+        else if (profileDef and profileDef.index >= 2)
+          @$el.addClass('locking__level-3-plus')
 
-      # change row type icon to locked version
-      iconDef = $icons.get(@getRawType())
-      if (iconDef and isRowLocked(@ngScope.rawSurvey, @getRowName()))
-        $indicatorIcon = @$('.card__indicator__icon')
-        $indicatorIcon.find('.card__header-icon').removeClass(iconDef.get("iconClassName"))
-        $indicatorIcon.find('.card__header-icon').addClass(iconDef.get("iconClassNameLocked"))
+        # build Locked Features settings tab
+        @$('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        $lockedFeaturesContent = @$('.js-card-settings-locked-features');
+        $lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        lockedFeatures = $($viewTemplates.row.lockedFeatures(
+          getQuestionFeatures(@ngScope.rawSurvey, @getRowName())
+        ))
+        $lockedFeaturesContent.html(lockedFeatures)
 
-        # add tooltip
-        if not $indicatorIcon.hasClass('k-tooltip__parent')
-          profileName = t('Locked')
-          if !isAllLocked
-            profileName = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())?.name
+        # change row type icon to locked version
+        iconDef = $icons.get(@getRawType())
+        if (iconDef)
+          $indicatorIcon = @$('.card__indicator__icon')
+          $indicatorIcon.find('.card__header-icon').removeClass(iconDef.get("iconClassName"))
+          $indicatorIcon.find('.card__header-icon').addClass(iconDef.get("iconClassNameLocked"))
 
-          tooltipMsg = t('fully locked question')
-          if !isAllLocked
-            tooltipMsg = t('partially locked question')
+          # add tooltip
+          if not $indicatorIcon.hasClass('k-tooltip__parent')
+            profileName = t('Locked')
+            if !isAllLocked
+              profileName = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())?.name
 
-          $indicatorIcon.addClass('k-tooltip__parent')
-          iconTooltip = $($viewTemplates.row.iconTooltip(profileName, tooltipMsg))
-          $indicatorIcon.append(iconTooltip)
+            tooltipMsg = t('fully locked question')
+            if !isAllLocked
+              tooltipMsg = t('partially locked question')
 
-      # disable adding new question options
-      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_add.name))
-        @$('.js-card-add-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+            $indicatorIcon.addClass('k-tooltip__parent')
+            iconTooltip = $($viewTemplates.row.iconTooltip(profileName, tooltipMsg))
+            $indicatorIcon.append(iconTooltip)
 
-      # disable removing question options
-      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_delete.name))
-        @$('.js-remove-option').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        # disable adding new question options
+        if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_add.name))
+          @$('.js-card-add-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
-      # disable changing question options labels and names
-      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_edit.name))
-        @$('.js-option-label-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
-        @$('.js-option-name-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        # disable removing question options
+        if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_delete.name))
+          @$('.js-remove-option').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
-      # hide delete question button
-      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
-        @$('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        # disable changing question options labels and names
+        if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.choice_edit.name))
+          @$('.js-option-label-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$('.js-option-name-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
-      # disable editing question label and hint
-      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
-        if @$label
-          @$label.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
-        if @$hint
-          @$hint.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        # hide delete question button
+        if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
+          @$('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
-      # disable all UI from "Settings" tab of question settings and Params View (if applicable)
-      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_settings_edit.name))
-        @$('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
-        @$('.js-params-view').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        # disable editing question label and hint
+        if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
+          if @$label
+            @$label.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          if @$hint
+            @$hint.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
-      # disable all UI from "Skip Logic" tab of question settings
-      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_skip_logic_edit.name))
-        @$('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        # disable all UI from "Settings" tab of question settings and Params View (if applicable)
+        if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_settings_edit.name))
+          @$('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$('.js-params-view').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
-      # disable all UI from "Validation Criteria" tab of question settings
-      if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_validation_edit.name))
-        @$('.js-card-settings-validation-criteria').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        # disable all UI from "Skip Logic" tab of question settings
+        if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_skip_logic_edit.name))
+          @$('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+        # disable all UI from "Validation Criteria" tab of question settings
+        if (@isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.question_validation_edit.name))
+          @$('.js-card-settings-validation-criteria').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       return
 

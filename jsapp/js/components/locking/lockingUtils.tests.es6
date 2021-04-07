@@ -8,9 +8,16 @@ import {
   hasAssetRestriction,
   getLockingProfile,
   getRowLockingProfile,
+  getAssetLockingProfile,
   isRowLocked,
   isAssetLocked,
+  hasAssetAnyLocking,
   isAssetAllLocked,
+  isAssetLockable,
+  hasAssetLockingFeatures,
+  getQuestionFeatures,
+  getGroupFeatures,
+  getAssetFeatures,
 } from './lockingUtils';
 import {
   LOCKING_RESTRICTIONS,
