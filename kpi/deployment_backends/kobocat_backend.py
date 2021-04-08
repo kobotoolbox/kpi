@@ -125,6 +125,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Make a POST or PATCH request and return parsed JSON. Keyword arguments,
         e.g. `data` and `files`, are passed through to `requests.request()`.
+
+        `kwargs` contains arguments to be passed to KoBoCAT request, but it can
+        also contain `expect_formid` which bypasses presence of 'formid'
+        property in KoBoCAT response.
         """
 
         expected_status_codes = {
@@ -141,7 +145,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'This backend does not implement the {} method'.format(method)
             )
 
-        sync_media_files = kwargs.pop('sync_media_files', False)
+        expect_formid = kwargs.pop('expect_formid', True)
 
         # Make the request to KC
         try:
@@ -168,11 +172,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 detail=str(e), response=response)
 
         # Check for failure
-        if (response.status_code != expected_status_code
-                or ('type' in json_response and
-                    json_response['type'] == 'alert-error')
-                or (
-                    'formid' not in json_response and sync_media_files is False)
+        if (
+            response.status_code != expected_status_code
+            or json_response.get('type') == 'alert-error'
+            or not expect_formid and 'formid' not in json_response
         ):
             if 'text' in json_response:
                 # KC API refused us for a specified reason, likely invalid
@@ -974,7 +977,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # Delete file in KC
             self._kobocat_request('DELETE',
                                   url=kc_file_['url'],
-                                  sync_media_files=True)
+                                  expect_formid=False)
 
             if file_ is None:
                 return
@@ -1015,7 +1018,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
             self._kobocat_request('POST',
                                   url=metadata_url,
-                                  sync_media_files=True,
+                                  _kobocat_request=False,
                                   **kwargs)
 
         # Process deleted files in case two entries contain the same file but
