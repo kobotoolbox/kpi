@@ -235,9 +235,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         else:
             # Parse the provided identifier, which is expected to follow the
             # format http://kobocat_server/username/forms/id_string
-            server, parsed_identifier = self.__get_server_from_identifier(
-                identifier)
-            path_head, path_tail = posixpath.split(parsed_identifier.path)
+            kc_server, kc_path = self.__parse_identifier(identifier)
+            path_head, path_tail = posixpath.split(kc_path)
             id_string = path_tail
             path_head, path_tail = posixpath.split(path_head)
             if path_tail != 'forms':
@@ -251,7 +250,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             if path_head != '/':
                 raise Exception('The identifier is not properly formatted.')
 
-        url = self.external_to_internal_url('{}/api/v1/forms'.format(server))
+        url = self.external_to_internal_url('{}/api/v1/forms'.format(kc_server))
         xls_io = self.asset.to_xls_io(
             versioned=True, append={
                 'settings': {
@@ -883,15 +882,18 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                                                       **kwargs)
         return MongoHelper.get_count(self.mongo_userform_id, **params)
 
-    def __get_server_from_identifier(self, identifier):
+    def __parse_identifier(self, identifier: str) -> tuple:
+        """
+        Return a tuple of the KoBoCAT server and its path
+        """
         parsed_identifier = urlparse(identifier)
         server = '{}://{}'.format(
             parsed_identifier.scheme, parsed_identifier.netloc)
-        return server, parsed_identifier
+        return server, parsed_identifier.path
 
     def __get_submissions_in_json(self, **params):
         """
-        Retrieves instances directly from Mongo.
+        Retrieve instances directly from Mongo.
 
         :param params: dict. Filter params
         :return: generator<JSON>
@@ -959,11 +961,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def sync_media_files(self):
         identifier = self.identifier
-        server, parsed_identifier = self.__get_server_from_identifier(
-            identifier
-        )
+        kc_server, kc_path = self.__parse_identifier(identifier)
         metadata_url = self.external_to_internal_url(
-            '{}/api/v1/metadata'.format(server)
+            '{}/api/v1/metadata'.format(kc_server)
         )
 
         def _delete_kc_file(kc_file_: dict, file_: AssetFile = None):
