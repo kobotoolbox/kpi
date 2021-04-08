@@ -17,7 +17,6 @@ import {
   formatTime,
   notify
 } from 'utils';
-import {hasAssetLockedTranslationsEditing} from 'js/components/locking/lockingUtils';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
@@ -464,7 +463,7 @@ export class FormLanding extends React.Component {
             {t('Create template')}
           </bem.PopoverMenu__link>
 
-          {userCanEdit && this.state.content.survey.length > 0 && hasAssetLockedTranslationsEditing(this.state) &&
+          {userCanEdit && this.state.content.survey.length > 0 &&
             <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
               <i className='k-icon-language'/>
               {t('Manage Translations')}
@@ -504,7 +503,7 @@ export class FormLanding extends React.Component {
           }
         </bem.FormView__cell>
 
-        {canEdit && hasAssetLockedTranslationsEditing(this.state) &&
+        {canEdit &&
           <bem.FormView__cell>
             <bem.FormView__link
               data-tip={t('Manage Translations')}

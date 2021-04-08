@@ -5,7 +5,7 @@ import {ASSET_TYPES} from 'js/constants';
 import {
   isAssetLocked,
   isAssetAllLocked,
-  getAssetFeatures,
+  getFormFeatures,
 } from 'js/components/locking/lockingUtils';
 
 /**
@@ -41,7 +41,7 @@ class FormLockedMessage extends React.Component {
   }
 
   renderSeeMore() {
-    const features = getAssetFeatures(this.props.asset.content);
+    const features = getFormFeatures(this.props.asset.content);
 
     return (
       <React.Fragment>
