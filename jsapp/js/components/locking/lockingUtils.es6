@@ -1,7 +1,6 @@
 import {getRowName} from 'js/assetUtils.es6';
 import {ASSET_TYPES} from 'js/constants.es6';
 import {
-  LOCKING_RESTRICTIONS,
   QUESTION_RESTRICTIONS,
   GROUP_RESTRICTIONS,
   FORM_RESTRICTIONS,
@@ -218,53 +217,66 @@ export function isAssetLockable(assetType) {
   return assetType === ASSET_TYPES.survey.id;
 }
 
-// TODO: see if we will use it for hiding locking features UI for blocks and questions
-//
-// /**
-//  * Useful to check if given asset should have the locking UI elements displayed
-//  *
-//  * @param {string} assetType one of ASSET_TYPES
-//  * @returns {boolean} whether the asset has locking features
-//  */
-// export function hasAssetLockingFeatures(assetType) {
-//   return assetType === ASSET_TYPES.survey.id || assetType === ASSET_TYPES.template.id;
-// }
-
+/**
+ * @param {object} assetContent
+ * @param {string} rowName
+ * @returns {object|null}
+ */
 export function getQuestionFeatures(assetContent, rowName) {
-  return _getFeatures('question', assetContent, rowName);
+  // if question does not exist then return null
+  const foundRow = assetContent.survey.find((row) => {
+    return getRowName(row) === rowName;
+  });
+  if (!foundRow) {
+    return null;
+  }
+
+  return _getFeatures(
+    QUESTION_RESTRICTIONS,
+    getRowLockingProfile(assetContent, rowName)
+  );
 }
 
+/**
+ * @param {object} assetContent
+ * @param {string} rowName
+ * @returns {object}
+ */
 export function getGroupFeatures(assetContent, rowName) {
-  return _getFeatures('group', assetContent, rowName);
+  // if question does not exist then return null
+  const foundRow = assetContent.survey.find((row) => {
+    return getRowName(row) === rowName;
+  });
+  if (!foundRow) {
+    return null;
+  }
+
+  return _getFeatures(
+    GROUP_RESTRICTIONS,
+    getRowLockingProfile(assetContent, rowName)
+  );
 }
 
-export function getAssetFeatures(assetContent) {
-  return _getFeatures('group', assetContent);
+/**
+ * @param {object} assetContent
+ * @returns {object}
+ */
+export function getFormFeatures(assetContent) {
+  return _getFeatures(FORM_RESTRICTIONS, getAssetLockingProfile(assetContent));
 }
 
 /**
  * Returns two lists - the restrictions that apply to row/asset and the one's
  * that don't
+ * @param {object[]} sourceList
+ * @param {object} profile
  * @returns {object} two arrays of LOCKING_RESTRICTIONS: `cans` and `cants`
  */
-function _getFeatures(featuresType, assetContent, rowOrGroupName) {
+function _getFeatures(sourceList, profile) {
   const outcome = {
     cans: [],
     cants: [],
   };
-
-  let profile = null;
-  let sourceList = [];
-  if (featuresType === 'question') {
-    sourceList = QUESTION_RESTRICTIONS;
-    profile = getRowLockingProfile(assetContent, rowOrGroupName);
-  } else if(featuresType === 'group') {
-    sourceList = GROUP_RESTRICTIONS;
-    profile = getRowLockingProfile(assetContent, rowOrGroupName);
-  } else if (featuresType === 'form') {
-    sourceList = FORM_RESTRICTIONS;
-    profile = getAssetLockingProfile(assetContent);
-  }
 
   sourceList.forEach((restriction) => {
     if (profile && profile.restrictions.includes(restriction.name)) {
@@ -275,18 +287,4 @@ function _getFeatures(featuresType, assetContent, rowOrGroupName) {
   });
 
   return outcome;
-}
-
-/**
- * NOTE: this one uses `asset`, not `assetContent`
- * A helper function that is here just for DRY code
- * @returns {boolean}
- */
-export function hasAssetLockedTranslationsEditing(asset) {
-  if (!asset.content) {
-    console.warn('asset has no content');
-    return false;
-  } else {
-    return asset.content && hasAssetRestriction(asset.content, LOCKING_RESTRICTIONS.translation_manage.name);
-  }
 }
