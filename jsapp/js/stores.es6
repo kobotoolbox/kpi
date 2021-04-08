@@ -16,8 +16,6 @@
 
 import Reflux from 'reflux';
 import {Cookies} from 'react-cookie';
-import clonedeep from 'lodash.clonedeep';
-import dkobo_xlform from '../xlform/src/_xlform.init';
 import {parsed, parseTags} from './assetParserUtils';
 import {actions} from './actions';
 import {
@@ -267,25 +265,6 @@ stores.assetContent = Reflux.createStore({
   },
 });
 
-stores.surveyCompanion = Reflux.createStore({
-  init () {
-    this.listenTo(actions.survey.addExternalItemAtPosition, this.addExternalItemAtPosition);
-  },
-  addExternalItemAtPosition ({position, survey, uid, groupId}) {
-    // `survey` is what's currently open in the form builder
-    // `uid` identifies the library item being added to `survey`
-    stores.allAssets.whenLoaded(uid, function(asset){
-      // `asset` is the library item being added to `survey`
-      // be careful not to mutate it, becuase it's kept in a store and not
-      // re-fetched from the server each time it's loaded
-      let assetCopy = clonedeep(asset);
-      // `loadDict()` will mutate its first argument; see `inputParser.parse()`
-      let _s = dkobo_xlform.model.Survey.loadDict(assetCopy.content, survey)
-      survey.insertSurvey(_s, position, groupId);
-    });
-  }
-})
-
 stores.allAssets = Reflux.createStore({
   init() {
     this.data = [];
@@ -298,6 +277,7 @@ stores.allAssets = Reflux.createStore({
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted);
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted);
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
+    this.listenTo(actions.permissions.removeAssetPermission.completed, this.onDeletePermissionCompleted);
   },
   whenLoaded (uid, cb) {
     if (typeof uid !== 'string' || typeof cb !== 'function') {
@@ -341,6 +321,13 @@ stores.allAssets = Reflux.createStore({
         });
         this.trigger(this.data);
       }, 500);
+    }
+  },
+  onDeletePermissionCompleted (assetUid, isNonOwner) {
+    // When non owner self removes all his asset permissions, it's as if the
+    // asset was deleted for them
+    if (isNonOwner) {
+      this.onDeleteAssetCompleted({uid: assetUid});
     }
   },
   registerAsset (asset) {

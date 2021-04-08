@@ -19,9 +19,14 @@ export const ROOT_URL = (() => {
 export const ANON_USERNAME = 'AnonymousUser';
 
 /**
- * A hardcoded list of permissions codenames.
- * All of them are really defined on backend, but we need it here to be able to
- * build UI for handling them.
+ * BAD CODE™ A hardcoded list of permissions codenames.
+ *
+ * All of them are really defined on backend, and we get them through the
+ * permissions config endpoint, but as we need these names to reference them in
+ * the code to build the UI it's a necessary evil.
+ *
+ * NOTE: to know what these permissions permit see `kpi/permissions.py` file,
+ * where you have to match the classes with endpoints and their HTTP methods.
  */
 export const PERMISSIONS_CODENAMES = {};
 new Set([
