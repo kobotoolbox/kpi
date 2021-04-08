@@ -29,14 +29,14 @@ class FormLockedMessage extends React.Component {
     const isAllLocked = isAssetAllLocked(this.props.asset.content);
     if (this.props.asset.asset_type === ASSET_TYPES.template.id) {
       if (isAllLocked) {
-        return 'TODO fully locked tempalte msg';
+        return t('This is a fully locked template. Hover the icons or go to question settings to see specific restrictions.');
       } else {
-        return 'TODO partially locked tempalte msg';
+        return t('This is a partially locked template. Hover the icons or go to question settings to see specific restrictions. Expand this notification to see form level restrictions.');
       }
     } else if (isAllLocked) {
-      return 'TODO fully locked form msg';
+      return t('This form was created using a fully locked template. Hover the icons or go to question settings to see specific restrictions.');
     } else {
-      return 'TODO partially locked form msg';
+      return t('This form was created using a partially locked template. Hover the icons or go to question settings to see specific restrictions. Expand this notification to see form level restrictions.');
     }
   }
 
@@ -47,6 +47,8 @@ class FormLockedMessage extends React.Component {
       <React.Fragment>
         <bem.FormBuilderMessageBox__toggle onClick={this.toggleMoreInfo}>
           {t('see more')}
+          {this.state.isOpen && <i className='k-icon k-icon-up'/>}
+          {!this.state.isOpen && <i className='k-icon k-icon-down'/>}
         </bem.FormBuilderMessageBox__toggle>
 
         {this.state.isOpen &&
