@@ -10,6 +10,8 @@ import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
 import {getLangString, notify} from 'utils';
+import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
+import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 
@@ -240,6 +242,12 @@ export class TranslationSettings extends React.Component {
       }}
     );
   }
+  isManagingTranslationsLocked() {
+    return (
+      this.state.asset?.content &&
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.translation_manage.name)
+    );
+  }
   renderEmptyMessage() {
     return (
       <bem.FormModal m='translation-settings'>
@@ -251,7 +259,7 @@ export class TranslationSettings extends React.Component {
       </bem.FormModal>
     );
   }
-  renderUndefinedDefaultSettings(){
+  renderUndefinedDefaultSettings() {
     return (
       <bem.FormModal m='translation-settings'>
         <bem.FormModal__item>
@@ -413,6 +421,17 @@ export class TranslationSettings extends React.Component {
       this.state.translations === null
     ) {
       return (<LoadingSpinner/>);
+    }
+
+    if (this.isManagingTranslationsLocked()) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i className='k-icon k-icon-alert'/>
+            {t("Managing translations is not available due to form's Locking Profile restrictions.")}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
     }
 
     let translations = this.state.translations;

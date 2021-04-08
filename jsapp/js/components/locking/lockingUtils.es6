@@ -1,6 +1,7 @@
 import {getRowName} from 'js/assetUtils.es6';
 import {ASSET_TYPES} from 'js/constants.es6';
 import {
+  LOCKING_RESTRICTIONS,
   QUESTION_RESTRICTIONS,
   GROUP_RESTRICTIONS,
   FORM_RESTRICTIONS,
@@ -274,4 +275,18 @@ function _getFeatures(featuresType, assetContent, rowOrGroupName) {
   });
 
   return outcome;
+}
+
+/**
+ * NOTE: this one uses `asset`, not `assetContent`
+ * A helper function that is here just for DRY code
+ * @returns {boolean}
+ */
+export function hasAssetLockedTranslationsEditing(asset) {
+  if (!asset.content) {
+    console.warn('asset has no content');
+    return false;
+  } else {
+    return asset.content && hasAssetRestriction(asset.content, LOCKING_RESTRICTIONS.translation_manage.name);
+  }
 }

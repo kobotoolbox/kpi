@@ -18,17 +18,18 @@ import mixins from 'js/mixins';
 import TemplatesList from 'js/components/templatesList';
 import {actions} from 'js/actions';
 import {dataInterface} from 'js/dataInterface';
-import {removeInvalidChars} from 'js/assetUtils';
 import {
   validFileTypes,
   isAValidUrl,
-  escapeHtml
+  escapeHtml,
 } from 'utils';
 import {
   NAME_MAX_LENGTH,
   PROJECT_SETTINGS_CONTEXTS,
   ROUTES,
 } from 'js/constants';
+import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
+import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
 
@@ -157,6 +158,14 @@ class ProjectSettings extends React.Component {
 
   getFilenameFromURI(url) {
     return decodeURIComponent(new URL(url).pathname.split('/').pop().split('.')[0]);
+  }
+
+  isReplacingFormLocked() {
+    return (
+      this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
+      this.props.formAsset?.content &&
+      hasAssetRestriction(this.props.formAsset.content, LOCKING_RESTRICTIONS.form_repace.name)
+    );
   }
 
   /*
@@ -952,6 +961,17 @@ class ProjectSettings extends React.Component {
   render() {
     if (!this.state.isSessionLoaded || !this.state.currentStep) {
       return (<LoadingSpinner/>);
+    }
+
+    if (!this.isReplacingFormLocked()) {
+      return (
+        <bem.Loading>
+          <bem.Loading__inner>
+            <i className='k-icon k-icon-alert'/>
+            {t("Form replacing is not available due to form's Locking Profile restrictions.")}
+          </bem.Loading__inner>
+        </bem.Loading>
+      );
     }
 
     switch (this.state.currentStep) {
