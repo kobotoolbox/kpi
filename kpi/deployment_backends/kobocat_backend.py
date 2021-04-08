@@ -364,7 +364,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         json_response = self._kobocat_request('PATCH', url, data=payload)
         assert json_response['downloadable'] == bool(active)
-        self.store_data({
+
+        self.save_to_db({
             'active': json_response['downloadable'],
             'backend_response': json_response,
         })

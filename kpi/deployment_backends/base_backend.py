@@ -5,13 +5,14 @@ from typing import Union
 
 from bson import json_util
 from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
 from kpi.exceptions import AbstractMethodError
-from kpi.utils.jsonbfield_helper import ReplaceValue
+from kpi.utils.jsonbfield_helper import ReplaceValues
 
 
 class BaseDeploymentBackend:
@@ -201,7 +202,7 @@ class BaseDeploymentBackend:
 
     @property
     def backend(self):
-        return self.get_data.get('backend', None)
+        return self.get_data('backend', None)
 
     @property
     def identifier(self):
@@ -244,7 +245,7 @@ class BaseDeploymentBackend:
                 https://docs.mongodb.com/manual/reference/operator/query/
 
         Returns:
-            (dict|str|`None`): Depending of `format_type`, it can return:
+            (dict|str|`None`): Depending on `format_type`, it can return:
                 - Mongo JSON representation as a dict
                 - Instance's XML as string
                 - `None` if doesn't exist
@@ -260,20 +261,28 @@ class BaseDeploymentBackend:
         return None
 
     def set_status(self, status):
+        self.save_to_db({'status': status})
+
+    def save_to_db(self, updates: dict):
+        """
+        Persist values from deployment data into the DB.
+        `updates` is a dictionary of properties to update.
+        E.g: `{"active": True, "status": "not-synced"}`
+        """
         # Avoid circular imports
         # use `self.asset.__class__` instead of `from kpi.models import Asset`
-        with transaction.atomic:
+        now = timezone.now()
+        with transaction.atomic():
             self.asset.__class__.objects.select_for_update() \
                 .filter(id=self.asset.pk).update(
-                _deployment_data=ReplaceValue(
+                _deployment_data=ReplaceValues(
                     '_deployment_data',
-                    key_name='status',
-                    new_value=status,
-                )
+                    updates=updates,
+                ),
+                date_modified=now,
             )
-        self.store_data({
-            'status': status,
-        })
+        self.store_data(updates)
+        self.asset.date_modified = now
 
     @property
     def status(self):

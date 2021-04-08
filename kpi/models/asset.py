@@ -59,6 +59,7 @@ from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import BadPermissionsException
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
+from kpi.tasks import sync_media_files
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.asset_translation_utils import (
     compare_translations,
@@ -977,20 +978,6 @@ class Asset(ObjectPermissionMixin,
         self._populate_report_styles()
 
         _create_version = kwargs.pop('create_version', True)
-
-        # Race condition may occur when deploying because asset's files
-        # synchronization is delegated to Celery and happens in the background.
-        # `tasks.sync_media_files()` is calling `asset.deployment.set_status()`
-        # internally which modifies asset too.
-        # See `BaseDeploymentBackend.set_status()`
-        refresh_status = kwargs.pop('refresh_status', False)
-        if refresh_status and self.has_deployment:
-            # We could use `refresh_from_db(fields=['_deployment_data'])`, but
-            # it would override all keys.
-            saved_status = Asset.objects.values_list(
-                '_deployment_data__status', flat=True).get(id=self.pk)
-            self.deployment.store_data({'status': saved_status})
-
         super().save(*args, **kwargs)
 
         # Update languages for parent and previous parent.
