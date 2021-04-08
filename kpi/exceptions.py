@@ -3,6 +3,20 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions
 
 
+class AbstractMethodError(NotImplementedError):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__('This method should be implemented in subclasses',
+                         *args, **kwargs)
+
+
+class AbstractPropertyError(NotImplementedError):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__('This property should be implemented in subclasses',
+                         *args, **kwargs)
+
+
 class BadPermissionsException(Exception):
     pass
 

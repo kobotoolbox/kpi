@@ -10,6 +10,7 @@ from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
+from kpi.exceptions import AbstractMethodError
 from kpi.utils.jsonbfield_helper import ReplaceValue
 
 
@@ -196,7 +197,7 @@ class BaseDeploymentBackend:
         return params
 
     def calculated_submission_count(self, requesting_user_id, **kwargs):
-        raise NotImplementedError('This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     @property
     def backend(self):
