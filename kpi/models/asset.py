@@ -492,8 +492,9 @@ class Asset(ObjectPermissionMixin,
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = JSONBField(default=dict)
 
-    # _deployment_data should be accessed through the `deployment` property
-    # provided by `DeployableMixin`
+    # `_deployment_data` must **NOT** be touched directly by anything except
+    # the `deployment` property provided by `DeployableMixin`.
+    # ToDo Move the field to another table with one-to-one relationship
     _deployment_data = JSONBField(default=dict)
 
     objects = AssetManager()
@@ -741,10 +742,6 @@ class Asset(ObjectPermissionMixin,
         )
 
     @property
-    def deployment_data(self):
-        return self._deployment_data
-
-    @property
     def deployed_versions(self):
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
@@ -987,16 +984,17 @@ class Asset(ObjectPermissionMixin,
         # internally which modifies asset too.
         # See `BaseDeploymentBackend.set_status()`
         refresh_status = kwargs.pop('refresh_status', False)
-        if refresh_status:
-            deployment_data = self._deployment_data.copy()
-            self.refresh_from_db(fields=['_deployment_data'])
-            deployment_data['status'] = self._deployment_data.get('status')
-            self._deployment_data = deployment_data
+        if refresh_status and self.has_deployment:
+            # We could use `refresh_from_db(fields=['_deployment_data'])`, but
+            # it would override all keys.
+            saved_status = Asset.objects.values_list(
+                '_deployment_data__status', flat=True).get(id=self.pk)
+            self.deployment.store_data({'status': saved_status})
 
         super().save(*args, **kwargs)
 
         # Update languages for parent and previous parent.
-        # e.g. if an survey has been moved from one collection to another,
+        # e.g. if a survey has been moved from one collection to another,
         # we want both collections to be updated.
         if self.parent is not None and update_parent_languages:
             if self.parent_id != self.__previous_parent_id and \
@@ -1015,7 +1013,7 @@ class Asset(ObjectPermissionMixin,
                 self.parent.update_languages([self])
             else:
                 # Otherwise, because we cannot know which languages are from
-                # this object, update will be perform with all parent's
+                # this object, update will be performed with all parent's
                 # children.
                 self.parent.update_languages()
 

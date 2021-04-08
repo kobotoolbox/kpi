@@ -17,9 +17,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     """
     Only used for unit testing and interface testing.
 
-    defines the interface for a deployment backend.
-
-    # TODO. Stop using protected property `_deployment_data`.
+    Defines the interface for a deployment backend.
     """
 
     def bulk_assign_mapped_perms(self):
@@ -67,7 +65,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         # This doesn't really need to be implemented.
         # We keep it to stay close to `KobocatDeploymentBackend`
         view_name = 'submission-list'
-        namespace = self.asset.deployment_data.get('namespace', None)
+        namespace = self.get_data('namespace', None)
         if namespace is not None:
             view_name = '{}:{}'.format(namespace, view_name)
         return reverse(view_name, kwargs={"parent_lookup_asset": self.asset.uid})
@@ -122,7 +120,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return {}
 
     def _submission_count(self):
-        submissions = self.asset.deployment_data.get('submissions', [])
+        submissions = self.get_data('submissions', [])
         return len(submissions)
 
     def _mock_submission(self, submission):
@@ -130,16 +128,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         @TODO may be useless because of mock_submissions. Remove if it's not used anymore anywhere else.
         :param submission:
         """
-        submissions = self.asset.deployment_data.get('submissions', [])
+        submissions = self.get_data('submissions', [])
         submissions.append(submission)
         self.store_data({
             'submissions': submissions,
             })
 
-    def mock_submissions(self, submissions):
+    def mock_submissions(self, submissions: list):
         """
-        Insert dummy submissions into `asset._deployment_data`
-        :param submissions: list
+        Insert dummy submissions into deployment data
         """
         self.store_data({"submissions": submissions})
         self.asset.save(create_version=False)
@@ -165,7 +162,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 - `None` if no results
         """
 
-        submissions = self.asset.deployment_data.get("submissions", [])
+        submissions = self.get_data("submissions", [])
         kwargs['instance_ids'] = instance_ids
         params = self.validate_submission_list_params(requesting_user_id,
                                                       format_type=format_type,
@@ -211,7 +208,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
-        all_submissions = self.asset._deployment_data['submissions']
+        all_submissions = self.get_data('submissions')
         submission = next(
             filter(lambda sub: sub['_id'] == instance_id, all_submissions)
         )
@@ -271,7 +268,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self, request_data: dict, requesting_user: 'auth.User'
     ) -> dict:
         payload = self.__prepare_bulk_update_payload(request_data)
-        all_submissions = copy.copy(self.asset._deployment_data['submissions'])
+        all_submissions = copy.copy(self.get_data('submissions'))
         instance_ids = payload.pop('submission_ids')
 
         responses = []
@@ -293,11 +290,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def set_has_kpi_hooks(self):
         """
-        Store results in self.asset.deployment_data
+        Store a boolean which indicates that KPI has active hooks (or not)
+        and, if it is the case, it should receive notifications when new data
+        comes in
         """
         has_active_hooks = self.asset.has_active_hooks
         self.store_data({
-            "has_kpi_hooks": has_active_hooks,
+            'has_kpi_hooks': has_active_hooks,
         })
 
     def calculated_submission_count(self, requesting_user_id, **kwargs):
