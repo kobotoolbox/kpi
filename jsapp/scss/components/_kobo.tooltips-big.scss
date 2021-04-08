@@ -1,6 +1,4 @@
 $z-tooltip-big: 2;
-// make tooltip appear off center as it is only being used near left screen edge
-$s-tooltip-big-left-pos: 30%;
 
 // This is an alternative tooltip component for displaying more complex content;
 // if possible use the other one (`data-tip` from `_kobo.tooltips.scss`)
@@ -25,12 +23,13 @@ $s-tooltip-big-left-pos: 30%;
       padding: 6px 12px;
       top: calc(100% + 6px);
       left: 50%;
-      transform: translate(-#{$s-tooltip-big-left-pos}, 0);
+      transform: translate(-50%, 0);
       z-index: $z-tooltip;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.3s;
       white-space: nowrap;
+      text-align: center;
 
       @include box-shadow;
 
@@ -52,7 +51,7 @@ $s-tooltip-big-left-pos: 30%;
         content: "";
         width: 0;
         height: 0;
-        left: $s-tooltip-big-left-pos;
+        left: 50%;
         transform: translate(-50%, 0);
         z-index: $z-tooltip;
       }

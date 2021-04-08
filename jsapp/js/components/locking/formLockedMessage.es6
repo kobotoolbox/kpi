@@ -54,35 +54,37 @@ class FormLockedMessage extends React.Component {
         {this.state.isOpen &&
           <bem.FormBuilderMessageBox__details>
             <div className='locked-features'>
-              <ul className='locked-features__list locked-features__list--cants'>
-                <label>
-                  {t('Locked functionalities')}
-                </label>
-                {features.cants.map((cant) => {
-                  return (
-                    <li key={cant.name}>
-                      <i className='k-icon k-icon-check'/>
-                      {cant.label}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+              {features.cants.length >= 1 &&
+                <ul className='locked-features__list locked-features__list--cants'>
+                  <label>
+                    {t('Locked functionalities')}
+                  </label>
+                  {features.cants.map((cant) => {
+                    return (
+                      <li key={cant.name}>
+                        <i className='k-icon k-icon-check'/>
+                        {cant.label}
+                      </li>
+                    );
+                  })}
+                </ul>
+              }
 
-            <div className='locked-features'>
-              <ul className='locked-features__list locked-features__list--cans'>
-                <label>
-                  {t('Unlocked functionalities')}
-                </label>
-                {features.cans.map((can) => {
-                  return (
-                    <li key={can.name}>
-                      <i className='k-icon k-icon-check'/>
-                      {can.label}
-                    </li>
-                  );
-                })}
-              </ul>
+              {features.cans.length >= 1 &&
+                <ul className='locked-features__list locked-features__list--cans'>
+                  <label>
+                    {t('Unlocked functionalities')}
+                  </label>
+                  {features.cans.map((can) => {
+                    return (
+                      <li key={can.name}>
+                        <i className='k-icon k-icon-check'/>
+                        {can.label}
+                      </li>
+                    );
+                  })}
+                </ul>
+              }
             </div>
           </bem.FormBuilderMessageBox__details>
         }

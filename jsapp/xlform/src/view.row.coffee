@@ -234,12 +234,12 @@ module.exports = do ->
         # build Locked Features settings tab
         if (isRowLocked(@ngScope.rawSurvey, @getRowName()))
           @$('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
-          $lockedFeaturesContent = @$('.js-card-settings-locked-features');
-          $lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+          @$lockedFeaturesContent = @$('.js-card-settings-locked-features');
+          @$lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
           lockedFeatures = $($viewTemplates.row.lockedFeatures(
             getGroupFeatures(@ngScope.rawSurvey, @getRowName())
           ))
-          $lockedFeaturesContent.html(lockedFeatures)
+          @$lockedFeaturesContent.html(lockedFeatures)
 
         # add icon with tooltip
         $groupIcon = @$header.find('.js-group-icon')
@@ -398,12 +398,12 @@ module.exports = do ->
 
         # build Locked Features settings tab
         @$('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
-        $lockedFeaturesContent = @$('.js-card-settings-locked-features');
-        $lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        @$lockedFeaturesContent = @$('.js-card-settings-locked-features');
+        @$lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
         lockedFeatures = $($viewTemplates.row.lockedFeatures(
           getQuestionFeatures(@ngScope.rawSurvey, @getRowName())
         ))
-        $lockedFeaturesContent.html(lockedFeatures)
+        @$lockedFeaturesContent.html(lockedFeatures)
 
         # change row type icon to locked version
         iconDef = $icons.get(@getRawType())
