@@ -3,6 +3,7 @@ $z-form-builder-header: 20;
 $s-form-builder-aside: 400px;
 $z-form-builder-aside: 10;
 $t-form-builder-aside-open: 200ms;
+$s-form-builder-content-width: 1024px;
 
 // FORM BUILDER MAIN LAYOUT
 
@@ -18,6 +19,12 @@ $t-form-builder-aside-open: 200ms;
   transition: margin $t-form-builder-aside-open;
   padding: 20px 40px;
   width: auto;
+
+  .form-builder-message-box {
+    max-width: $s-form-builder-content-width;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 @media screen and (min-width: 1100px) {
@@ -31,6 +38,8 @@ $t-form-builder-aside-open: 200ms;
 
 .form-wrap {
   width: 100%;
+  max-width: $s-form-builder-content-width;
+  margin: 0 auto;
 
   input,
   textarea {
