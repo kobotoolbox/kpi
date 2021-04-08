@@ -48,8 +48,8 @@ from ..exceptions import (
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
     """
-    Used to deploy a project into KC. Stores the project identifiers in the
-    "self.asset.deployment_data" JSONField.
+    Used to deploy a project into KoBoCAT. Stores the project identifiers in the
+    `self.asset._deployment_data` JSONBField (referred as "deployment data")
     """
 
     PROTECTED_XML_FIELDS = [
@@ -119,7 +119,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def backend_response(self):
-        return self.asset.deployment_data['backend_response']
+        return self.get_data('backend_response')
 
     def _kobocat_request(self, method, url, **kwargs):
         """
@@ -199,7 +199,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def xform_id_string(self):
-        return self.asset.deployment_data.get('backend_response', {}).get('id_string')
+        return self.get_data('backend_response.id_string')
 
     @property
     def xform_id(self):
@@ -211,8 +211,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def connect(self, identifier=None, active=False):
         """
-        POST initial survey content to kobocat and create a new project.
-        store results in self.asset.deployment_data.
+        `POST` initial survey content to KoBoCAT and create a new project.
+        Store results in deployment data.
         """
         # If no identifier was provided, construct one using
         # `settings.KOBOCAT_URL` and the uid of the asset
@@ -265,9 +265,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # - KC `XForm`'s `id_string` can be different than `Asset`'s `uid`, then
         #   we can't rely on it to find its related `Asset`.
         # - Removing, renaming `has_kpi_hook` will force PostgreSQL to rewrite
-        #   every records of `logger_xform`. It can be also used to filter
-        #   queries as it's faster to query a boolean than string.
-        # Don't forget to run Management Command `populate_kc_xform_kpi_asset_uid`
+        #   every record of `logger_xform`. It can be also used to filter
+        #   queries as it is faster to query a boolean than string.
         payload = {
             'downloadable': active,
             'has_kpi_hook': self.asset.has_active_hooks,
@@ -357,8 +356,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def set_active(self, active):
         """
-        PATCH active boolean of survey.
-        store results in self.asset.deployment_data
+        `PATCH` active boolean of the survey.
+        Store results in deployment data
         """
         # self.store_data is an alias for
         # self.asset._deployment_data.update(...)
@@ -374,16 +373,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'backend_response': json_response,
         })
 
-    def set_asset_uid(self, force=False):
+    def set_asset_uid(self, force: bool = False) -> bool:
         """
         Link KoBoCAT `XForm` back to its corresponding KPI `Asset` by
         populating the `kpi_asset_uid` field (use KoBoCAT proxy to PATCH XForm).
         Useful when a form is created from the legacy upload form.
-        Store results in self.asset.deployment_data
+        Store results in deployment data.
 
-        Returns:
-            bool: returns `True` only if `XForm.kpi_asset_uid` field is updated
-                  during this call, otherwise `False`.
+        It returns `True` only if `XForm.kpi_asset_uid` field is updated
+        during this call, otherwise `False`.
         """
         is_synchronized = not (
             force or
@@ -406,11 +404,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def set_has_kpi_hooks(self):
         """
-        PATCH `has_kpi_hooks` boolean of survey.
-        It lets KoBoCAT know whether it needs to ping KPI
+        `PATCH` `has_kpi_hooks` boolean of related KoBoCAT XForm.
+        It lets KoBoCAT know whether it needs to notify KPI
         each time a submission comes in.
 
-        Store results in self.asset.deployment_data
+        Store results in deployment data
         """
         has_active_hooks = self.asset.has_active_hooks
         url = self.external_to_internal_url(
@@ -549,8 +547,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return links
 
     def _submission_count(self):
-        _deployment_data = self.asset.deployment_data
-        id_string = _deployment_data['backend_response']['id_string']
+        id_string = self.backend_response['id_string']
         # avoid migrations from being created for kc_access mocked models
         # there should be a better way to do this, right?
         return instance_count(xform_id_string=id_string,
@@ -596,8 +593,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(kc_response)
 
     def _last_submission_time(self):
-        _deployment_data = self.asset.deployment_data
-        id_string = _deployment_data['backend_response']['id_string']
+        id_string = self.backend_response['id_string']
         return last_submission_time(
             xform_id_string=id_string, user_id=self.asset.owner.pk)
 
@@ -1099,7 +1095,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     @property
     def xform(self):
         if not hasattr(self, '_xform'):
-            pk = self.asset.deployment_data.get('backend_response', {}).get('formid')
+            pk = self.backend_response['formid']
             xform = ReadOnlyKobocatXForm.objects.filter(pk=pk).only(
                 'user__username', 'id_string').first()
             if not (xform.user.username == self.asset.owner.username and

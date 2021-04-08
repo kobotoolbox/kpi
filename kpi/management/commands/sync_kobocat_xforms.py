@@ -211,7 +211,7 @@ def _sync_form_content(asset, xform, changes):
     modified = False
     # First, compare hashes to see if the KC form content
     # has changed since the last deployment
-    backend_response = asset._deployment_data['backend_response']
+    backend_response = asset.deployment.get_data('backend_response', {})  # noqa
     if 'hash' in backend_response:
         if backend_response['hash'] != xform.prefixed_hash:
             asset.content = _xform_to_asset_content(xform)
@@ -241,8 +241,9 @@ def _sync_form_content(asset, xform, changes):
     if modified:
         # It's important to update `deployment_data` with the new hash from KC;
         # otherwise, we'll be re-syncing the same content forever (issue #1302)
-        asset._deployment_data[
-            'backend_response'] = _get_kc_backend_response(xform)
+        asset.deployment.store_data(
+            {'backend_response': _get_kc_backend_response(xform)}
+        )
 
     return modified
 
@@ -276,21 +277,20 @@ def _sync_form_metadata(asset, xform, changes):
 
     modified = False
     fetch_backend_response = False
-    deployment_data = asset._deployment_data
-    backend_response = deployment_data['backend_response']
+    backend_response = asset.deployment.backend_response
 
-    if (deployment_data['active'] != xform.downloadable or
+    if (asset.deployment.active != xform.downloadable or
             backend_response['downloadable'] != xform.downloadable):
-        deployment_data['active'] = xform.downloadable
+        asset.store_data({'active': xform.downloadable})
         modified = True
         fetch_backend_response = True
         changes.append('ACTIVE')
 
-    if settings.KOBOCAT_URL not in deployment_data['identifier']:
+    if settings.KOBOCAT_URL not in asset.deployment.identifier:
         # Issue #1122
-        deployment_data[
-            'identifier'] = KobocatDeploymentBackend.make_identifier(
-                user.username, xform.id_string)
+        asset.deployment.store_data({
+            'identifier': KobocatDeploymentBackend.make_identifier(
+                user.username, xform.id_string)})
         fetch_backend_response = True
         modified = True
         changes.append('IDENTIFIER')
@@ -306,7 +306,9 @@ def _sync_form_metadata(asset, xform, changes):
             changes.append('NAME')
 
     if fetch_backend_response:
-        deployment_data['backend_response'] = _get_kc_backend_response(xform)
+        asset.deployment.store_data({
+            'backend_response': _get_kc_backend_response(xform)
+        })
         modified = True
 
     affected_users = _sync_permissions(asset, xform)
@@ -498,10 +500,10 @@ class Command(BaseCommand):
             # form uuid stored in its deployment data
             xform_uuids_to_asset_pks = {}
             for existing_survey in existing_surveys:
-                dd = existing_survey._deployment_data
-                try:
-                    backend_response = dd['backend_response']
-                except KeyError:
+                backend_response = existing_survey.deployment.get_data(
+                    'backend_response'
+                )
+                if backend_response is None:
                     continue
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk

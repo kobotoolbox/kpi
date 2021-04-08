@@ -1,7 +1,10 @@
 # coding: utf-8
+import copy
 import json
+from typing import Union
 
 from bson import json_util
+from django.db import transaction
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
@@ -21,11 +24,40 @@ class BaseDeploymentBackend:
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = 0
 
+    def get_data(self,
+                 dotted_path: str = None,
+                 default=None) -> Union[None, int, str, dict]:
+        """
+        Access `self.asset._deployment_data` and return corresponding value of
+        `dotted_path` if it exists. Otherwise, it returns `default`.
+        If `dotted_path` is not provided, it returns the whole
+        dictionary.
+        """
+        if not dotted_path:
+            # We do not want to return the mutable object whose could be altered
+            # later. `self.asset._deployment_data` should never be accessed
+            # directly
+            return copy.deepcopy(self.asset._deployment_data) # noqa
+
+        value = None
+        nested_path = dotted_path.split('.')
+        nested_dict = self.asset._deployment_data  # noqa
+        for key in nested_path:
+            try:
+                value = nested_dict[key]
+            except KeyError:
+                value = None
+                break
+
+            nested_dict = value
+
+        return value if value else default
+
     def store_data(self, vals=None):
-        self.asset.deployment_data.update(vals)
+        self.asset._deployment_data.update(vals)  # noqa
 
     def delete(self):
-        self.asset.deployment_data.clear()
+        self.asset._deployment_data.clear()  # noqa
 
     def remove_from_kc_only_flag(self, *args, **kwargs):
         # TODO: This exists only to support KoBoCAT (see #1161) and should be
@@ -168,15 +200,15 @@ class BaseDeploymentBackend:
 
     @property
     def backend(self):
-        return self.asset.deployment_data.get('backend', None)
+        return self.get_data.get('backend', None)
 
     @property
     def identifier(self):
-        return self.asset.deployment_data.get('identifier', None)
+        return self.get_data('identifier', None)
 
     @property
     def active(self):
-        return self.asset.deployment_data.get('active', False)
+        return self.get_data('active', False)
 
     @property
     def version(self):
@@ -184,7 +216,7 @@ class BaseDeploymentBackend:
 
     @property
     def version_id(self):
-        return self.asset.deployment_data.get('version', None)
+        return self.get_data('version')
 
     @property
     def submission_count(self):
@@ -229,17 +261,19 @@ class BaseDeploymentBackend:
     def set_status(self, status):
         # Avoid circular imports
         # use `self.asset.__class__` instead of `from kpi.models import Asset`
-        self.asset.__class__.objects.filter(id=self.asset.pk).update(
-            _deployment_data=ReplaceValue(
-                '_deployment_data',
-                key_name='status',
-                new_value=status,
+        with transaction.atomic:
+            self.asset.__class__.objects.select_for_update() \
+                .filter(id=self.asset.pk).update(
+                _deployment_data=ReplaceValue(
+                    '_deployment_data',
+                    key_name='status',
+                    new_value=status,
+                )
             )
-        )
         self.store_data({
             'status': status,
         })
 
     @property
     def status(self):
-        return self.asset.deployment_data.get('status')
+        return self.get_data('status')
