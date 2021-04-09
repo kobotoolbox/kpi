@@ -97,31 +97,21 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
                                       ),
                 'form_id': snapshot.uid
             }
-            try:
-                # Use Enketo API to create preview instead of `preview?form=`
-                # because this way does not load external resources.
-                response = requests.post(
-                    f'{settings.ENKETO_SERVER}/'
-                    f'{settings.ENKETO_PREVIEW_ENDPOINT}',
-                    # bare tuple implies basic auth
-                    auth=(settings.ENKETO_API_TOKEN, ''),
-                    data=data
-                )
-                response.raise_for_status()
-            except requests.exceptions.RequestException as e:
-                # Don't 500 the entire asset view if Enketo is unreachable
-                logging.error(
-                    'Failed to retrieve preview link from Enketo',
-                    exc_info=True
-                )
-                return {}
 
-            try:
-                json_response = response.json()
-                preview_url = json_response.get('preview_url')
-            except ValueError:
-                return {}
+            # Use Enketo API to create preview instead of `preview?form=`,
+            # which does not load any form media files.
+            response = requests.post(
+                f'{settings.ENKETO_SERVER}/'
+                f'{settings.ENKETO_PREVIEW_ENDPOINT}',
+                # bare tuple implies basic auth
+                auth=(settings.ENKETO_API_TOKEN, ''),
+                data=data
+            )
+            response.raise_for_status()
 
+            json_response = response.json()
+            preview_url = json_response.get('preview_url')
+            
             return HttpResponseRedirect(preview_url)
         else:
             response_data = copy.copy(snapshot.details)
