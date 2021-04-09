@@ -30,12 +30,12 @@ class DeployableMixin:
             else:
                 self.deployment.redeploy(active=active)
 
-            self.save(create_version=False, adjust_content=False)
+            self._mark_latest_version_as_deployed()
             self.deployment.store_data(
                 {'status': self.deployment.STATUS_NOT_SYNCED}
             )
+            self.save(create_version=False, adjust_content=False)
             sync_media_files.delay(self.uid)
-            self._mark_latest_version_as_deployed()
 
         else:
             raise BadAssetTypeException(
