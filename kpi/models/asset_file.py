@@ -47,10 +47,6 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
         ),
     }
 
-    ALLOWED_EXTENSIONS = {
-        MAP_LAYER: ('csv', 'kml', 'kmz', 'wkt', 'geojson', 'json'),
-    }
-
     uid = KpiUidField(uid_prefix='af')
     asset = models.ForeignKey('Asset', related_name='asset_files',
                               on_delete=models.CASCADE)
