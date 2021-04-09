@@ -16,14 +16,15 @@ module.exports = do ->
 
   lockedFeatures = (features) ->
     cantsString = ''
-    features.cants.forEach((cant) ->
-      cantsString += "<li><i class='k-icon k-icon-close'></i>#{cant.label}</li>"
-    )
-
     cansString = ''
-    features.cans.forEach((can) ->
-      cansString += "<li><i class='k-icon k-icon-check'></i>#{can.label}</li>"
-    )
+
+    if features isnt null
+      features.cants.forEach((cant) ->
+        cantsString += "<li><i class='k-icon k-icon-close'></i>#{cant.label}</li>"
+      )
+      features.cans.forEach((can) ->
+        cansString += "<li><i class='k-icon k-icon-check'></i>#{can.label}</li>"
+      )
 
     return """
       <section class="locked-features">

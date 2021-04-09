@@ -233,7 +233,8 @@ export function getQuestionFeatures(assetContent, rowName) {
 
   return _getFeatures(
     QUESTION_RESTRICTIONS,
-    getRowLockingProfile(assetContent, rowName)
+    getRowLockingProfile(assetContent, rowName),
+    isAssetAllLocked(assetContent)
   );
 }
 
@@ -253,7 +254,8 @@ export function getGroupFeatures(assetContent, rowName) {
 
   return _getFeatures(
     GROUP_RESTRICTIONS,
-    getRowLockingProfile(assetContent, rowName)
+    getRowLockingProfile(assetContent, rowName),
+    isAssetAllLocked(assetContent)
   );
 }
 
@@ -262,7 +264,11 @@ export function getGroupFeatures(assetContent, rowName) {
  * @returns {object}
  */
 export function getFormFeatures(assetContent) {
-  return _getFeatures(FORM_RESTRICTIONS, getAssetLockingProfile(assetContent));
+  return _getFeatures(
+    FORM_RESTRICTIONS,
+    getAssetLockingProfile(assetContent),
+    isAssetAllLocked(assetContent)
+  );
 }
 
 /**
@@ -270,16 +276,17 @@ export function getFormFeatures(assetContent) {
  * that don't
  * @param {object[]} sourceList
  * @param {object} profile
+ * @param {boolean} isAllLocked
  * @returns {object} two arrays of LOCKING_RESTRICTIONS: `cans` and `cants`
  */
-function _getFeatures(sourceList, profile) {
+function _getFeatures(sourceList, profile, isAllLocked) {
   const outcome = {
     cans: [],
     cants: [],
   };
 
   sourceList.forEach((restriction) => {
-    if (profile && profile.restrictions.includes(restriction.name)) {
+    if (isAllLocked || (profile && profile.restrictions.includes(restriction.name))) {
       outcome.cants.push(restriction);
     } else {
       outcome.cans.push(restriction);

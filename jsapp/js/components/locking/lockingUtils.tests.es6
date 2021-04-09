@@ -394,10 +394,10 @@ describe('getQuestionFeatures', () => {
     expect(test.cans.length).to.equal(QUESTION_RESTRICTIONS.length - 1);
     expect(test.cants.length).to.equal(1);
   });
-  it('should return some cans and cants if form is fully locked', () => {
+  it('should return only cants if form is fully locked', () => {
     const test = getQuestionFeatures(simpleTemplateLockedWithAll.content, 'Best_thing_in_the_world');
-    expect(test.cans.length).to.equal(QUESTION_RESTRICTIONS.length - 1);
-    expect(test.cants.length).to.equal(1);
+    expect(test.cans.length).to.equal(0);
+    expect(test.cants.length).to.equal(QUESTION_RESTRICTIONS.length);
   });
 });
 
@@ -416,10 +416,10 @@ describe('getGroupFeatures', () => {
     expect(test.cans.length).to.equal(GROUP_RESTRICTIONS.length - 1);
     expect(test.cants.length).to.equal(1);
   });
-  it('should return some cans and cants if form is fully locked', () => {
+  it('should return only cants if form is fully locked', () => {
     const test = getGroupFeatures(simpleTemplateLockedWithAll.content, 'person');
-    expect(test.cans.length).to.equal(GROUP_RESTRICTIONS.length - 1);
-    expect(test.cants.length).to.equal(1);
+    expect(test.cans.length).to.equal(0);
+    expect(test.cants.length).to.equal(GROUP_RESTRICTIONS.length);
   });
 });
 
@@ -434,9 +434,9 @@ describe('getFormFeatures', () => {
     expect(test.cans.length).to.equal(FORM_RESTRICTIONS.length - 2);
     expect(test.cants.length).to.equal(2);
   });
-  it('should return some cans and cants if form is fully locked', () => {
+  it('should return only cants if form is fully locked', () => {
     const test = getFormFeatures(simpleTemplateLockedWithAll.content);
-    expect(test.cans.length).to.equal(FORM_RESTRICTIONS.length - 2);
-    expect(test.cants.length).to.equal(2);
+    expect(test.cans.length).to.equal(0);
+    expect(test.cants.length).to.equal(FORM_RESTRICTIONS.length);
   });
 });
