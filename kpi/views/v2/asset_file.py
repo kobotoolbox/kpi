@@ -76,8 +76,8 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         - `POST` a base64 encoded string with `base64Encoded` parameter<sup>1</sup>
         - `POST` an URL with `metadata` parameter<sup>2</sup>
 
-    <sup>1) `metadata` becomes mandatory and must contain `filename` property</sup><br>
-    <sup>2) `metadata` becomes mandatory and must contain `redirect_url` property</sup>
+    <sup>1)</sup> `metadata` becomes mandatory and must contain `filename` property<br>
+    <sup>2)</sup> `metadata` becomes mandatory and must contain `redirect_url` property
 
     **Files with `form_media` type must have unique `filename` per asset**
 
