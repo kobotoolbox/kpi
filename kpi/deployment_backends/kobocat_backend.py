@@ -119,7 +119,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     @property
     def backend_response(self):
-        return self.get_data('backend_response')
+        return self.get_data('backend_response', {})
 
     def _kobocat_request(self, method, url, **kwargs):
         """
