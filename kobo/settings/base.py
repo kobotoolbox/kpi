@@ -2,6 +2,7 @@
 import multiprocessing
 import os
 import subprocess
+from mimetypes import add_type
 from datetime import timedelta
 from urllib.parse import quote_plus
 
@@ -720,3 +721,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
 # OpenRosa setting in bytes
 OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
+
+# add some mimetype
+add_type('application/wkt', '.wkt')
+add_type('application/geojson', '.geojson')
