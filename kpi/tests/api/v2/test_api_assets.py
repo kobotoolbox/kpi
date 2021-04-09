@@ -22,7 +22,6 @@ from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import get_hash
-from kpi.utils.strings import to_str
 
 
 class AssetsListApiTests(BaseAssetTestCase):
@@ -689,9 +688,7 @@ class AssetFileTest(BaseTestCase):
 
     def get_asset_file_content(self, url):
         response = self.client.get(url)
-        streaming_content = [chunk for chunk in
-                             response.streaming_content]
-        return b''.join(streaming_content)
+        return b''.join(response.streaming_content)
 
     @property
     def asset_file_payload(self):
@@ -751,23 +748,23 @@ class AssetFileTest(BaseTestCase):
 
         # Some metadata properties are added when file is created.
         # Let's compare without them
-        responsed_metadata = dict(response_dict['metadata'])
+        response_metadata = dict(response_dict['metadata'])
 
         if not form_media:
             # `filename` is only mandatory with form media files
-            responsed_metadata.pop('filename', None)
+            response_metadata.pop('filename', None)
 
-        responsed_metadata.pop('mimetype', None)
-        responsed_metadata.pop('hash', None)
+        response_metadata.pop('mimetype', None)
+        response_metadata.pop('hash', None)
 
         self.assertEqual(
-            json.dumps(responsed_metadata),
+            json.dumps(response_metadata),
             posted_payload['metadata']
         )
         for field in 'file_type', 'description':
             self.assertEqual(response_dict[field], posted_payload[field])
 
-        # Content via the direct URL to the file
+        # Content uploaded as binary
         try:
             posted_payload['content'].seek(0)
         except KeyError:
@@ -778,7 +775,9 @@ class AssetFileTest(BaseTestCase):
                 self.get_asset_file_content(response_dict['content']),
                 expected_content
             )
+            return response_dict['uid']
 
+        # Content uploaded as base64
         try:
             base64_encoded = posted_payload['base64Encoded']
         except KeyError:
@@ -790,13 +789,17 @@ class AssetFileTest(BaseTestCase):
                 self.get_asset_file_content(response_dict['content']),
                 expected_content
             )
+            return response_dict['uid']
 
-        try:
-            assert (response_dict['metadata']['redirect_url']
-                    == posted_payload['content']['redirect_url'])
-        except KeyError:
-            pass
-
+        # Content uploaded as binary
+        metadata = json.loads(posted_payload['metadata'])
+        payload_url = metadata['redirect_url']
+        # if none of the other upload methods have been chosen,
+        # `redirect_url` should be present in the response because user
+        # must have provided a redirect url. Otherwise, a validation error
+        # should have been raised about invalid payload.
+        response_url = response_dict['metadata']['redirect_url']
+        assert response_url == payload_url and response_url != ''
         return response_dict['uid']
 
     def test_owner_can_create_file(self):
@@ -933,6 +936,18 @@ class AssetFileTest(BaseTestCase):
         )
         assert 'You cannot upload media file' in response.content.decode()
 
+    def test_create_files_with_no_methods(self):
+        payload = {
+            'file_type': AssetFile.FORM_MEDIA,
+            'description': 'An empty upload',
+        }
+        response = self.create_asset_file(
+            payload=payload,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+        content = response.content.decode()
+        assert 'No files have been submitted' in content
+
     def test_upload_form_media_bad_base64(self):
         payload = {
             'file_type': AssetFile.FORM_MEDIA,
@@ -969,7 +984,7 @@ class AssetFileTest(BaseTestCase):
         assert json_response == expected_response
 
     def test_upload_form_media_bad_mime_type(self):
-        # We are using remote URL but it goes through the same validators as
+        # We are using remote URL, but it goes through the same validators as
         # `base64Encoded` or `content`
         payload = {
             'file_type': AssetFile.FORM_MEDIA,
