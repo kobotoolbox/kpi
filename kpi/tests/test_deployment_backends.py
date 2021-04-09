@@ -98,3 +98,17 @@ class MockDeployment(TestCase):
         self.assertTrue(self.asset.has_deployment)
         self.asset.deployment.delete()
         self.assertFalse(self.asset.has_deployment)
+
+    def test_get_not_mutable_deployment_data(self):
+        deployment_data = self.asset.deployment.get_data()
+        deployment_data['identifier'] = 'mock://test'
+        # self.asset._deployment_data should have been touched
+        self.assertNotEqual(self.asset.deployment.identifier,
+                            deployment_data['identifier'])
+
+    def test_save_to_db_with_quote(self):
+        new_key = 'dummy'
+        new_value = "I'm in love with apostrophe"
+        self.asset.deployment.save_to_db({new_key: new_value})
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.deployment.get_data(new_key), new_value)
