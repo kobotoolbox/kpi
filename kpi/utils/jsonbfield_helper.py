@@ -1,7 +1,8 @@
 # coding: utf-8
 import json
 
-from django.db.models.expressions import Func
+
+from django.db.models.expressions import Func, Value
 
 
 class ReplaceValues(Func):
@@ -10,12 +11,15 @@ class ReplaceValues(Func):
     whole document.
     Avoids race conditions when document is saved in two different transactions
     at the same time. (i.e.: `Asset._deployment['status']`)
-
     https://www.postgresql.org/docs/current/functions-json.html
+
+    Notes from postgres docs:
+    > Does not operate recursively: only the top-level array or object
+    > structure is merged
     """
-    function = 'jsonb_set'
-    template = "%(expressions)s || '%(updates)s'"
-    arity = 1
+    arg_joiner = ' || '
+    template = "%(expressions)s"
+    arity = 2
 
     def __init__(
         self,
@@ -25,6 +29,6 @@ class ReplaceValues(Func):
     ):
         super().__init__(
             expression,
-            updates=json.dumps(updates),
+            Value(json.dumps(updates)),
             **extra,
         )
