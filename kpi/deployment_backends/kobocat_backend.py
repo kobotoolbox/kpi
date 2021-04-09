@@ -117,10 +117,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             string=url
         )
 
-    @property
-    def backend_response(self):
-        return self.get_data('backend_response', {})
-
     def _kobocat_request(self, method, url, **kwargs):
         """
         Make a POST or PATCH request and return parsed JSON. Keyword arguments,
