@@ -24,23 +24,29 @@ class FormListSerializer(serializers.Serializer):
     manifestUrl = serializers.SerializerMethodField('get_manifest_url')
 
     def get_description(self, obj):
-        return obj.hash
+        self.__validate_object_inheritance(obj)
+        return obj.descriptionText
 
     def get_download_url(self, obj):
+        self.__validate_object_inheritance(obj)
         request = self.context['request']
         return obj.get_download_url(request)
 
     def get_form_id(self, obj):
+        self.__validate_object_inheritance(obj)
         return obj.form_id
 
     def get_hash(self, obj):
+        self.__validate_object_inheritance(obj)
         return obj.hash
 
     def get_manifest_url(self, obj):
+        self.__validate_object_inheritance(obj)
         request = self.context['request']
         return obj.get_manifest_url(request)
 
     def get_name(self, obj):
+        self.__validate_object_inheritance(obj)
         return obj.name
 
     def __validate_object_inheritance(
@@ -52,10 +58,7 @@ class FormListSerializer(serializers.Serializer):
         rendering data
         """
         # Use private variable to test validation only once per instantiation
-        if not getattr(self, '__validated', False):
-            assert issubclass(obj.__class__, OpenRosaFormListInterface)
-            self.__validate = True
-        return self.__validate
+        assert issubclass(obj.__class__, OpenRosaFormListInterface)
 
 
 class ManifestSerializer(serializers.Serializer):
@@ -93,7 +96,4 @@ class ManifestSerializer(serializers.Serializer):
         rendering data
         """
         # Use private variable to test validation only once per instantiation
-        if not getattr(self, '__validated', False):
-            assert issubclass(obj.__class__, OpenRosaManifestInterface)
-            self.__validated = True
-        return self.__validated
+        assert issubclass(obj.__class__, OpenRosaManifestInterface)
