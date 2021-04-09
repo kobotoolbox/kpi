@@ -211,7 +211,7 @@ def _sync_form_content(asset, xform, changes):
     modified = False
     # First, compare hashes to see if the KC form content
     # has changed since the last deployment
-    backend_response = asset.deployment.get_data('backend_response', {})  # noqa
+    backend_response = asset.deployment.backend_response
     if 'hash' in backend_response:
         if backend_response['hash'] != xform.prefixed_hash:
             asset.content = _xform_to_asset_content(xform)
@@ -500,10 +500,8 @@ class Command(BaseCommand):
             # form uuid stored in its deployment data
             xform_uuids_to_asset_pks = {}
             for existing_survey in existing_surveys:
-                backend_response = existing_survey.deployment.get_data(
-                    'backend_response'
-                )
-                if backend_response is None:
+                backend_response = existing_survey.deployment.backend_response
+                if not backend_response:
                     continue
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk

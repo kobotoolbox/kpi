@@ -126,7 +126,7 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
                         asset.deployment.store_data({'version_uid': uid})
                         # `update()` saves about 7/1000s per iteration
                         _Asset.objects.filter(id=asset.id).update(
-                            _deployment_data=asset.deployment.get_data()) # noqa
+                            _deployment_data=asset.deployment.get_data())
                 except ObjectDoesNotExist as e:
                     ids_not_counted.append(version_id)
             a_ids_done += 1
