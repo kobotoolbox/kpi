@@ -218,11 +218,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
                     'configured before using KobocatDeploymentBackend'
                 )
-            server = settings.KOBOCAT_URL
+            kc_server = settings.KOBOCAT_URL
             username = self.asset.owner.username
             id_string = self.asset.uid
             identifier = '{server}/{username}/forms/{id_string}'.format(
-                server=server,
+                server=kc_server,
                 username=username,
                 id_string=id_string,
             )
