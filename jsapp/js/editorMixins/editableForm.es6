@@ -196,8 +196,8 @@ export default assign({
 
   hasMetadataAndDetails() {
     return this.app && (
-      this.state.asset_type === ASSET_TYPES.survey.id ||
-      this.state.asset_type === ASSET_TYPES.template.id ||
+      this.state.asset.asset_type === ASSET_TYPES.survey.id ||
+      this.state.asset.asset_type === ASSET_TYPES.template.id ||
       this.state.desiredAssetType === ASSET_TYPES.template.id
     );
   },
@@ -469,7 +469,7 @@ export default assign({
       var skp = new SurveyScope({
         survey: survey,
         rawSurvey: rawAssetContent,
-        assetType: getFormBuilderAssetType(this.state.asset_type, this.state.desiredAssetType),
+        assetType: getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType),
       });
       this.app = new dkobo_xlform.view.SurveyApp({
         survey: survey,
@@ -535,7 +535,7 @@ export default assign({
   isAddingQuestionsRestricted() {
     return (
       this.state.asset &&
-      isAssetLockable(this.state.asset_type) &&
+      isAssetLockable(this.state.asset.asset_type) &&
       hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.question_add.name)
     );
   },
@@ -543,7 +543,7 @@ export default assign({
   isAddingGroupsRestricted() {
     return (
       this.state.asset &&
-      isAssetLockable(this.state.asset_type) &&
+      isAssetLockable(this.state.asset.asset_type) &&
       hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.group_add.name)
     );
   },
@@ -814,7 +814,7 @@ export default assign({
   },
 
   renderAssetLabel() {
-    let assetTypeLabel = getFormBuilderAssetType(this.state.asset_type, this.state.desiredAssetType)?.label;
+    let assetTypeLabel = getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType)?.label;
 
     // Case 1: there is no asset yet (creting a new) or asset is not locked
     if (
