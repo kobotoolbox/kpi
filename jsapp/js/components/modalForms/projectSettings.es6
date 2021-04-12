@@ -105,6 +105,7 @@ class ProjectSettings extends React.Component {
       });
     });
     this.unlisteners.push(
+      actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this)),
       actions.resources.updateAsset.completed.listen(this.onUpdateAssetCompleted.bind(this)),
       actions.resources.updateAsset.failed.listen(this.onUpdateAssetFailed.bind(this)),
       actions.resources.cloneAsset.completed.listen(this.onCloneAssetCompleted.bind(this)),
@@ -160,11 +161,24 @@ class ProjectSettings extends React.Component {
     return decodeURIComponent(new URL(url).pathname.split('/').pop().split('.')[0]);
   }
 
+  isLoading() {
+    return (
+      !this.state.isSessionLoaded ||
+      !this.state.currentStep ||
+      (
+        // this checks if the modal is about existing asset
+        // that is not fully loaded yet
+        this.props.context !== PROJECT_SETTINGS_CONTEXTS.NEW &&
+        typeof this.state.formAsset?.content === 'undefined'
+      )
+    );
+  }
+
   isReplacingFormLocked() {
     return (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE &&
-      this.props.formAsset?.content &&
-      hasAssetRestriction(this.props.formAsset.content, LOCKING_RESTRICTIONS.form_repace.name)
+      this.state.formAsset.content &&
+      hasAssetRestriction(this.state.formAsset.content, LOCKING_RESTRICTIONS.form_replace.name)
     );
   }
 
@@ -362,6 +376,12 @@ class ProjectSettings extends React.Component {
   /*
    * handling asset creation
    */
+
+  onLoadAssetCompleted(response) {
+    if (this.state.formAsset.uid === response.uid) {
+      this.setState({formAsset: response});
+    }
+  }
 
   onUpdateAssetCompleted() {
     if (
@@ -959,11 +979,11 @@ class ProjectSettings extends React.Component {
   }
 
   render() {
-    if (!this.state.isSessionLoaded || !this.state.currentStep) {
+    if (this.isLoading()) {
       return (<LoadingSpinner/>);
     }
 
-    if (!this.isReplacingFormLocked()) {
+    if (this.isReplacingFormLocked()) {
       return (
         <bem.Loading>
           <bem.Loading__inner>
@@ -989,6 +1009,7 @@ class ProjectSettings extends React.Component {
 reactMixin(ProjectSettings.prototype, Reflux.ListenerMixin);
 reactMixin(ProjectSettings.prototype, mixins.permissions);
 reactMixin(ProjectSettings.prototype, mixins.droppable);
+// NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix);
 
 ProjectSettings.contextTypes = {
