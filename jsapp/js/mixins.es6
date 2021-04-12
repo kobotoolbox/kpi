@@ -230,19 +230,14 @@ mixins.dmix = {
       actions.resources.loadAsset({id: newProps.params.uid});
     }
   },
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
     const uid = this._getAssetUid();
-
-    if (this.props.randdelay && uid) {
-      window.setTimeout(() => {
-        actions.resources.loadAsset({id: uid});
-      }, Math.random() * 3000);
-    } else if (uid) {
+    if (uid) {
       actions.resources.loadAsset({id: uid});
     }
-  }
+  },
 };
 
 /*

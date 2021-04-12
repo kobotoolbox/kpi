@@ -77,12 +77,12 @@ export const MODAL_TYPES = {
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
 };
 
-export const PROJECT_SETTINGS_CONTEXTS = {
+export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
   NEW: 'newForm',
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
   BUILDER: 'formBuilderAside',
-};
+});
 
 export const update_states = {
   UNSAVED_CHANGES: -1,

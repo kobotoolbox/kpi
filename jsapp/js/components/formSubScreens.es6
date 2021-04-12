@@ -28,11 +28,7 @@ export class FormSubScreens extends React.Component {
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
-    if (this.props.randdelay && uid) {
-      window.setTimeout(()=>{
-        actions.resources.loadAsset({id: uid});
-      }, Math.random() * 3000);
-    } else if (uid) {
+    if (uid) {
       actions.resources.loadAsset({id: uid});
     }
   }
