@@ -11,6 +11,7 @@ import {actions} from 'js/actions';
 import {stores} from '../../stores';
 import {bem} from 'js/bem';
 import {renderLoading} from '../modalForms/modalHelpers';
+import {generateAutoname} from 'js/utils';
 
 import {
   MODAL_TYPES,
@@ -181,9 +182,13 @@ class ConnectProjects extends React.Component {
   onParentChange(newVal) {
     this.setState({
       newParent: newVal,
+      newFilename: generateAutoname(
+        newVal?.name,
+        0,
+        MAX_DISPLAYED_STRING_LENGTH.connect_projects
+      ),
       fieldsErrors: {},
     });
-    this.generateAutoname(newVal);
   }
 
   onConfirmAttachment(evt) {
@@ -297,18 +302,6 @@ class ConnectProjects extends React.Component {
   /*
    * Utilities
    */
-
-  // Generates a filename for the selected parent, done so by taking the first
-  // 30 characters, turning them lowercase and replacing spaces with underscores
-  generateAutoname(newParent) {
-    if (newParent) {
-      const autoname = newParent.name
-        .toLowerCase()
-        .substring(0, MAX_DISPLAYED_STRING_LENGTH.connect_projects)
-        .replace(/(\ |\.)/g, '_');
-      this.setState({newFilename: autoname});
-    }
-  }
 
   // Figure out what columns need to be 'checked' or 'unchecked' by comparing
   // `selectedColumns` - the columns that are already selected versus
