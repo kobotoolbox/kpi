@@ -210,6 +210,9 @@ mixins.dmix = {
     if (this.props.params) {
       return this.props.params.assetid || this.props.params.uid;
     } else if (this.props.formAsset) {
+      // formAsset case is being used strictly for projectSettings component to
+      // cause the componentDidMount callback to load the full asset (i.e. one
+      // that includes `content`).
       return this.props.formAsset.uid;
     } else {
       return this.props.uid;
