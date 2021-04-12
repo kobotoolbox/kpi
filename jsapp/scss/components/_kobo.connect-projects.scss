@@ -166,7 +166,7 @@
       }
     }
 
-    .no-imports {
+    .connect-projects__no-imports {
       @extend .connect-projects__import--list-item;
       font-style: italic;
       color: $kobo-midgray;

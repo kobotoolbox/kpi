@@ -16,10 +16,6 @@ import {
   MODAL_TYPES,
   MAX_DISPLAYED_STRING_LENGTH,
 } from '../../constants';
-import {
-  truncateFile,
-  truncateString,
-} from '../../utils';
 
 /*
  * Modal for connecting project data
@@ -205,17 +201,23 @@ class ConnectProjects extends React.Component {
       );
     } else {
       if (!this.state.newParent?.url) {
-        this.setState({
-          fieldsErrors: Object.assign(
-            this.state.fieldsErrors, {parent: t('No project selected')}
-          )
+        this.setState((state) => {
+          return {
+            fieldsErrors: {
+              ...state.fieldsErrors,
+              parent: t('No project selected')
+            }
+          }
         });
       }
       if (this.state.newFilename === '') {
-        this.setState({
-          fieldsErrors: Object.assign(
-            this.state.fieldsErrors, {filename: t('Field is empty')}
-          )
+        this.setState((state) => {
+          return {
+            fieldsErrors: {
+              ...state.fieldsErrors,
+              filename: t('Field is empty')
+            }
+          }
         });
       }
     }
@@ -300,8 +302,7 @@ class ConnectProjects extends React.Component {
   // 30 characters, turning them lowercase and replacing spaces with underscores
   generateAutoname(newParent) {
     if (newParent) {
-      let autoname = newParent.name;
-      autoname = autoname
+      const autoname = newParent.name
         .toLowerCase()
         .substring(0, MAX_DISPLAYED_STRING_LENGTH.connect_projects)
         .replace(/(\ |\.)/g, '_');
