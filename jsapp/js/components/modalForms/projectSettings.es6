@@ -179,13 +179,13 @@ class ProjectSettings extends React.Component {
   }
 
   onNameChange(evt) {
-    this.setState({name: removeInvalidChars(evt.target.value)});
-    this.onAnyDataChange('name', removeInvalidChars(evt.target.value));
+    this.setState({name: assetUtils.removeInvalidChars(evt.target.value)});
+    this.onAnyDataChange('name', assetUtils.removeInvalidChars(evt.target.value));
   }
 
   onDescriptionChange(evt) {
-    this.setState({description: removeInvalidChars(evt.target.value)});
-    this.onAnyDataChange('description', removeInvalidChars(evt.target.value));
+    this.setState({description: assetUtils.removeInvalidChars(evt.target.value)});
+    this.onAnyDataChange('description', assetUtils.removeInvalidChars(evt.target.value));
   }
 
   onCountryChange(val) {
