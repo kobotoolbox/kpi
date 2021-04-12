@@ -80,11 +80,14 @@ permissionsActions.assignAssetPermission.listen((assetUid, perm) => {
  * @param {string} assetUid
  * @param {string} perm - permission url
  */
-permissionsActions.removeAssetPermission.listen((assetUid, perm) => {
+permissionsActions.removeAssetPermission.listen((assetUid, perm, isNonOwner) => {
   dataInterface.removePermission(perm)
     .done(() => {
-      permissionsActions.getAssetPermissions(assetUid);
-      permissionsActions.removeAssetPermission.completed(assetUid);
+      // Avoid this call if a non-owner removed their own permissions as it will fail
+      if (!isNonOwner) {
+        permissionsActions.getAssetPermissions(assetUid);
+      }
+      permissionsActions.removeAssetPermission.completed(assetUid, isNonOwner);
     })
     .fail(() => {
       permissionsActions.getAssetPermissions(assetUid);

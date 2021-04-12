@@ -39,6 +39,8 @@ const EXCLUDED_COLUMNS = [
   '_attachments',
   '_notes',
   '_bamboo_dataset_id',
+  // '_status' is always 'submitted_via_web' unless submitted in bulk;
+  // in that case, it's 'zip'
   '_status',
   'formhub/uuid',
   '_tags',
