@@ -79,7 +79,7 @@
   },
   "scripts": {
     "build": "webpack --config webpack/prod.config.js",
-    "watch": "webpack-dev-server --config webpack/dev.server.js",
+    "watch": "npm run generate-icons && webpack-dev-server --config webpack/dev.server.js",
     "test": "webpack --config webpack/test.config.js && mocha-chrome test/tests.html",
     "lint": "eslint --ext .es6 \"jsapp/js/**/*\"",
     "show-icons": "opn jsapp/fonts/k-icons.html",
