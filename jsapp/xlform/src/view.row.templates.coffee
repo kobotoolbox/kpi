@@ -26,16 +26,23 @@ module.exports = do ->
         cansString += "<li><i class='k-icon k-icon-check'></i>#{can.label}</li>"
       )
 
+    cansHtml = ''
+    if cansString isnt ''
+      cansHtml = """
+        <ul class="locked-features__list locked-features__list--cans">
+          <label>#{t('Unlocked functionalities')}</label>
+          #{cansString}
+        </ul>
+      """
+
     return """
       <section class="locked-features">
         <ul class="locked-features__list locked-features__list--cants">
           <label>#{t('Locked functionalities')}</label>
           #{cantsString}
         </ul>
-        <ul class="locked-features__list locked-features__list--cans">
-          <label>#{t('Unlocked functionalities')}</label>
-          #{cansString}
-        </ul>
+
+        #{cansHtml}
       </section>
     """
 
