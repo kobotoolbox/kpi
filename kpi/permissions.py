@@ -171,6 +171,19 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         raise Http404
 
 
+class AssetExportSettingsPermission(AssetNestedObjectPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+        'POST': ['%(app_label)s.manage_asset'],
+    }
+
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
+    perms_map['PUT'] = perms_map['POST']
+    perms_map['PATCH'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['POST']
+
+
 class AssetEditorPermission(AssetNestedObjectPermission):
     """
     Owner, managers and editors can write.
@@ -209,6 +222,15 @@ class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
     perms_map = AssetNestedObjectPermission.perms_map.copy()
     # This change allows users with `view_asset` to permissions to
     # remove themselves from an asset that has been shared with them
+    perms_map['DELETE'] = perms_map['GET']
+
+
+class ExportTaskPermission(AssetNestedObjectPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+    }
+
+    perms_map['POST'] = perms_map['GET']
     perms_map['DELETE'] = perms_map['GET']
 
 
@@ -297,27 +319,6 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
         'PATCH': ['%(app_label)s.validate_%(model_name)s'],
         'DELETE': ['%(app_label)s.validate_%(model_name)s'],
     }
-
-
-class AssetExportSettingsPermission(AssetNestedObjectPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-        'POST': ['%(app_label)s.manage_asset'],
-    }
-
-    perms_map['OPTIONS'] = perms_map['GET']
-    perms_map['HEAD'] = perms_map['GET']
-    perms_map['PUT'] = perms_map['POST']
-    perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['POST']
-
-class ExportTaskPermission(AssetNestedObjectPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-    }
-
-    perms_map['POST'] = perms_map['GET']
-    perms_map['DELETE'] = perms_map['GET']
 
 
 class ReportPermission(IsOwnerOrReadOnly):
