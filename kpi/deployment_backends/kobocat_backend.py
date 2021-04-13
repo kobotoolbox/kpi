@@ -285,8 +285,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             self._kobocat_request('DELETE', url)
         except KobocatDeploymentException as e:
             if (
-                    hasattr(e, 'response')
-                    and e.response.status_code == status.HTTP_404_NOT_FOUND
+                hasattr(e, 'response')
+                and e.response.status_code == status.HTTP_404_NOT_FOUND
             ):
                 # The KC project is already gone!
                 pass
@@ -1093,7 +1093,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return session.send(kc_request.prepare())
 
     @staticmethod
-    def __parse_identifier(self, identifier: str) -> tuple:
+    def __parse_identifier(identifier: str) -> tuple:
         """
         Return a tuple of the KoBoCAT server and its path
         """

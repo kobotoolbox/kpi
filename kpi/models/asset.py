@@ -835,7 +835,7 @@ class Asset(ObjectPermissionMixin,
 
     def get_paired_parent(self, paired_data_uid: str) -> Union['Asset', None]:
 
-        # Validate `paired_data_uid`, i.e., must exist in `self.paired_data`  # noqa
+        # Validate `paired_data_uid`, i.e., must exist in `self.paired_data`
         parent_uid = None
         for key, values in self.paired_data.items():
             if values['paired_data_uid'] == paired_data_uid:
@@ -856,7 +856,6 @@ class Asset(ObjectPermissionMixin,
             return None
 
         # Validate `self.owner` is still allowed to see parent data
-        # ToDo : `self.owner` should have `PERM_VIEW_ASSET` on parent too
         allowed_users = parent_data_sharing.get('users', [])
         if allowed_users and self.owner.username not in allowed_users:
             return None
