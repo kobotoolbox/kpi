@@ -813,16 +813,10 @@ class ObjectPermissionMixin:
 
     def has_perms(self, user_obj: User, perms: list, all_: bool = False) -> bool:  # noqa
         """
-        Checks (at once) whether a user has several permissions on current
-        object.
-
-        Args:
-            user_obj (User): user to check
-            perms (list): List of code names (e.g. 'view_asset') to check
-            all_ (bool): Optional. If True, user must have all permissions
-
-        Returns:
-            bool
+        Returns True or False whether user `user_obj` has several
+        permissions (`perms`) on current object.
+        if `all_` is `True`, user must have all permissions, not only one of
+        them.
         """
         fn = any if not all_ else all
         return fn(perm in perms for perm in self.get_perms(user_obj))

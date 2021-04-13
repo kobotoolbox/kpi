@@ -141,13 +141,6 @@ class KpiObjectPermissionsFilter:
         Returns a queryset containing the assets that the user is allowed
         to view data.
         I.e., user needs 'view_submissions' or 'partial_submissions'.
-
-        Args:
-            request (Request)
-            queryset (QuerySet)
-
-        Returns:
-            QuerySet
         """
 
         self._return_queryset = False
@@ -244,13 +237,6 @@ class KpiObjectPermissionsFilter:
         Returns a queryset containing the children of publically discoverable
         assets based on the discoverability of the child's parent. The parent
         uid is passed in the request query string.
-
-        Args:
-            request (Request)
-            queryset (QuerySet)
-
-        Returns:
-            QuerySet
         """
 
         self._return_queryset = False
@@ -312,12 +298,6 @@ class KpiObjectPermissionsFilter:
         Returns the results of `get_parsed_parameters` utility.
         Useful in this class to detect specific parameters and to return
         according queryset
-
-        Args:
-            request (Request)
-
-        Returns:
-            dict
         """
         try:
             q = request.query_params['q']
