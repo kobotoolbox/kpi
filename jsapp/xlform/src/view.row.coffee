@@ -51,8 +51,19 @@ module.exports = do ->
     getRawType: ->
       return @model.get('type').get('typeId')
 
+    ###
+    # This needs to be safeguarded so much, as there is possibility row doesn't
+    # have a `name` or doesn't have anything (e.g. newly created row)
+    ###
     getRowName: ->
-      return @model.getValue('name') or @model.getValue('$autoname')
+      modelName = @model.get('name')
+      modelAutoname = @model.get('$autoname')
+      if modelName and modelName.get('value')
+        return modelName.get('value')
+      else if modelAutoname and modelAutoname.get('value')
+        return modelAutoname.get('value')
+      else
+        return null
 
     hasRestriction: (restrictionName) ->
       return hasRowRestriction(@ngScope.rawSurvey, @getRowName(), restrictionName)
@@ -230,16 +241,22 @@ module.exports = do ->
     # go all levels deep
     ###
     applyLocking: ->
+      rowName = @getRowName()
+
+      # no point of checking locking for nameless row
+      if rowName is null
+        return
+
       isLockable = @isLockable()
 
-      if (isRowLocked(@ngScope.rawSurvey, @getRowName()))
+      if (isRowLocked(@ngScope.rawSurvey, rowName))
         # build Locked Features settings tab
-        if (isRowLocked(@ngScope.rawSurvey, @getRowName()))
+        if (isRowLocked(@ngScope.rawSurvey, rowName))
           @$('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
           @$lockedFeaturesContent = @$('.js-card-settings-locked-features');
           @$lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
           lockedFeatures = $($viewTemplates.row.lockedFeatures(
-            getGroupFeatures(@ngScope.rawSurvey, @getRowName())
+            getGroupFeatures(@ngScope.rawSurvey, rowName)
           ))
           @$lockedFeaturesContent.html(lockedFeatures)
 
@@ -254,7 +271,7 @@ module.exports = do ->
 
           profileName = t('Locked')
           if !isAllLocked
-            profileName = getRowLockingProfile(@ngScope.rawSurvey, @getRowName())?.name
+            profileName = getRowLockingProfile(@ngScope.rawSurvey, rowName)?.name
 
           tooltipMsg = t('fully locked group')
           if !isAllLocked
@@ -385,6 +402,11 @@ module.exports = do ->
     ###
     applyLocking: () ->
       rowName = @getRowName()
+
+      # no point of checking locking for nameless row
+      if rowName is null
+        return
+
       isLockable = @isLockable()
 
       if (isRowLocked(@ngScope.rawSurvey, rowName))
