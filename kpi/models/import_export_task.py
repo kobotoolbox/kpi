@@ -335,12 +335,8 @@ class ImportTask(ImportExportTask):
             if not destination:
                 if library and len(survey_dict.get('survey')) > 1:
                     asset_type = 'block'
-                    # might be irrelevant!!
-                    survey_dict = strip_kobo_locking_profile(survey_dict)
                 elif library:
                     asset_type = 'question'
-                    # might be irrelevant!!
-                    survey_dict = strip_kobo_locking_profile(survey_dict)
                 else:
                     asset_type = 'survey'
                     survey_dict = append_kobo_locks(base64_encoded_upload, survey_dict)
