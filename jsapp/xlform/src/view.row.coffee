@@ -101,10 +101,12 @@ module.exports = do ->
 
     _renderRow: ->
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
-      @$label = @$('.js-card-label')
-      @$hint = @$('.js-card-hint')
-      @$card = @$('.card')
-      @$header = @$('.card__header')
+
+      @$card = @$el.find('> .card').eq(0)
+      @$header = @$card.find('> .card__header').eq(0)
+      @$label = @$header.find('.js-card-label').eq(0)
+      @$hint = @$header.find('.js-card-hint').eq(0)
+
       context = {warnings: []}
 
       questionType = @getRawType()
@@ -214,10 +216,10 @@ module.exports = do ->
     render: ->
       if !@already_rendered
         @$el.html $viewTemplates.row.groupView(@model)
-        @$label = @$('.js-card-label').eq(0)
-        @$rows = @$('.group__rows').eq(0)
-        @$card = @$('.card').eq(0)
-        @$header = @$('.card__header,.group__header').eq(0)
+        @$card = @$el.find('> .card').eq(0)
+        @$rows = @$card.find('> .group__rows').eq(0)
+        @$header = @$card.find('> .card__header, > .group__header').eq(0)
+        @$label = @$header.find('.js-card-label').eq(0)
 
       @model.rows.each (row)=>
         @getApp().ensureElInView(row, @, @$rows).render()
@@ -247,13 +249,14 @@ module.exports = do ->
       if rowName is null
         return
 
+      @$settings = @$card.find('> .card__settings').eq(0)
       isLockable = @isLockable()
 
       if (isRowLocked(@ngScope.rawSurvey, rowName))
         # build Locked Features settings tab
         if (isRowLocked(@ngScope.rawSurvey, rowName))
-          @$('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
-          @$lockedFeaturesContent = @$('.js-card-settings-locked-features');
+          @$settings.find('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+          @$lockedFeaturesContent = @$settings.find('.js-card-settings-locked-features');
           @$lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
           lockedFeatures = $($viewTemplates.row.lockedFeatures(
             getGroupFeatures(@ngScope.rawSurvey, rowName)
@@ -282,11 +285,11 @@ module.exports = do ->
 
       # hide group delete button
       if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name))
-        @$el.find('.js-delete-group').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        @$header.find('.js-delete-group').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
       # disable group name label
       if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_label_edit.name))
-        @$header.find('.js-card-label').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        @$label.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # hide all add and clone buttons for questions inside the group
       if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_question_add.name))
@@ -305,11 +308,11 @@ module.exports = do ->
 
       # disable all UI from "Settings" tab of group settings
       if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_settings_edit.name))
-        @$card.find('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        @$settings.find('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       # disable all UI from "Skip Logic" tab of group settings
       if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_skip_logic_edit.name))
-        @$card.find('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+        @$settings.find('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       return
 
@@ -407,6 +410,7 @@ module.exports = do ->
       if rowName is null
         return
 
+      @$settings = @$card.find('> .card__settings')
       isLockable = @isLockable()
 
       if (isRowLocked(@ngScope.rawSurvey, rowName))
@@ -424,8 +428,8 @@ module.exports = do ->
           @$el.addClass('locking__level-3-plus')
 
         # build Locked Features settings tab
-        @$('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
-        @$lockedFeaturesContent = @$('.js-card-settings-locked-features');
+        @$settings.find('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        @$lockedFeaturesContent = @$settings.find('.js-card-settings-locked-features');
         @$lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
         lockedFeatures = $($viewTemplates.row.lockedFeatures(
           getQuestionFeatures(@ngScope.rawSurvey, rowName)
@@ -435,7 +439,7 @@ module.exports = do ->
         # change row type icon to locked version
         iconDef = $icons.get(@getRawType())
         if (iconDef)
-          $indicatorIcon = @$('.card__indicator__icon')
+          $indicatorIcon = @$header.find('.card__indicator__icon')
           $indicatorIcon.find('.card__header-icon').removeClass(iconDef.get("iconClassName"))
           $indicatorIcon.find('.card__header-icon').addClass(iconDef.get("iconClassNameLocked"))
 
@@ -455,20 +459,20 @@ module.exports = do ->
 
         # disable adding new question options
         if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_add.name))
-          @$('.js-card-add-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$el.find('.js-card-add-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
         # disable removing question options
         if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_delete.name))
-          @$('.js-remove-option').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$el.find('.js-remove-option').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
         # disable changing question options labels and names
         if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_edit.name))
-          @$('.js-option-label-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
-          @$('.js-option-name-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$el.find('.js-option-label-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$el.find('.js-option-name-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
         # hide delete question button
         if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
-          @$('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+          @$header.find('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
         # disable editing question label and hint
         if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
@@ -479,16 +483,16 @@ module.exports = do ->
 
         # disable all UI from "Settings" tab of question settings and Params View (if applicable)
         if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.question_settings_edit.name))
-          @$('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
-          @$('.js-params-view').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$settings.find('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$settings.find('.js-params-view').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
         # disable all UI from "Skip Logic" tab of question settings
         if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.question_skip_logic_edit.name))
-          @$('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$settings.find('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
         # disable all UI from "Validation Criteria" tab of question settings
         if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.question_validation_edit.name))
-          @$('.js-card-settings-validation-criteria').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$settings.find('.js-card-settings-validation-criteria').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
       return
 
