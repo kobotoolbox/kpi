@@ -1,4 +1,6 @@
 # coding: utf-8
+from kpi.exceptions import AbstractMethodError, AbstractPropertyError
+
 
 class SyncBackendMediaInterface:
     """
@@ -9,39 +11,31 @@ class SyncBackendMediaInterface:
 
     @property
     def backend_data_value(self):
-        raise NotImplementedError('This property should be implemented in '
-                                  'subclasses')
+        raise AbstractPropertyError
 
     @property
     def backend_uniqid(self):
-        raise NotImplementedError('This property should be implemented in '
-                                  'subclasses')
+        raise AbstractPropertyError
 
     def delete(self, **kwargs):
-        raise NotImplementedError('This method should be implemented in '
-                                  'subclasses')
+        raise AbstractMethodError
 
     @property
     def deleted_at(self):
-        raise NotImplementedError('This property should be implemented in '
-                                  'subclasses')
+        raise AbstractPropertyError
 
     @property
     def filename(self):
-        raise NotImplementedError('This property should be implemented in '
-                                  'subclasses')
+        raise AbstractPropertyError
 
     @property
     def hash(self):
-        raise NotImplementedError('This property should be implemented in '
-                                  'subclasses')
+        raise AbstractPropertyError
 
     @property
     def is_remote_url(self):
-        raise NotImplementedError('This property should be implemented in '
-                                  'subclasses')
+        raise AbstractPropertyError
 
     @property
     def mimetype(self):
-        raise NotImplementedError('This property should be implemented in '
-                                  'subclasses')
+        raise AbstractPropertyError
