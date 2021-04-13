@@ -317,6 +317,25 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
+class ReportPermission(IsOwnerOrReadOnly):
+    def has_object_permission(self, request, view, obj):
+        # Checks if the user has the require permissions
+        # To access the submission data in reports
+        user = request.user
+        if user.is_superuser:
+            return True
+        if user.is_anonymous:
+            user = get_anonymous_user()
+        permissions = list(obj.get_perms(user))
+        required_permissions = [
+            PERM_VIEW_SUBMISSIONS,
+            PERM_PARTIAL_SUBMISSIONS,
+        ]
+        return any(
+            perm in permissions for perm in required_permissions
+        )
+
+    
 class SubmissionPermission(AssetNestedObjectPermission):
     """
     Permissions for submissions.
@@ -377,22 +396,3 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
         'PATCH': ['%(app_label)s.validate_%(model_name)s'],
         'DELETE': ['%(app_label)s.validate_%(model_name)s'],
     }
-
-
-class ReportPermission(IsOwnerOrReadOnly):
-    def has_object_permission(self, request, view, obj):
-        # Checks if the user has the require permissions
-        # To access the submission data in reports
-        user = request.user
-        if user.is_superuser:
-            return True
-        if user.is_anonymous:
-            user = get_anonymous_user()
-        permissions = list(obj.get_perms(user))
-        required_permissions = [
-            PERM_VIEW_SUBMISSIONS,
-            PERM_PARTIAL_SUBMISSIONS,
-        ]
-        return any(
-            perm in permissions for perm in required_permissions
-        )
