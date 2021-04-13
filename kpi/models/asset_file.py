@@ -45,11 +45,14 @@ class AssetFile(models.Model,
     ALLOWED_MIME_TYPES = {
         FORM_MEDIA: ('image', 'audio', 'video', 'text/csv', 'application/xml'),
         PAIRED_DATA: ('application/xml',),
-    }
-
-    ALLOWED_EXTENSIONS = {
-        MAP_LAYER: ('csv', 'kml', 'kmz', 'wkt', 'geojson', 'json'),
-        PAIRED_DATA: ('xml',),
+        MAP_LAYER: (
+            'text/csv',
+            'application/vnd.google-earth.kml+xml',
+            'application/vnd.google-earth.kmz',
+            'application/wkt',
+            'application/geojson',
+            'application/json',
+        ),
     }
 
     uid = KpiUidField(uid_prefix='af')

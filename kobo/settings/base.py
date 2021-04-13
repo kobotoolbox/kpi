@@ -2,6 +2,7 @@
 import multiprocessing
 import os
 import subprocess
+from mimetypes import add_type
 from datetime import timedelta
 from urllib.parse import quote_plus
 
@@ -731,3 +732,7 @@ HASH_BIG_FILE_SIZE_THRESHOLD = 0.5 * 1024 * 1024  # 512 kB
 # Chunk size in bytes to read per iteration when hash of a file is calculated
 # Should match KoBoCAT setting
 HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
+
+# add some mimetype
+add_type('application/wkt', '.wkt')
+add_type('application/geojson', '.geojson')
