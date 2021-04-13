@@ -1,10 +1,12 @@
 # coding: utf-8
-
+import copy
 import json
 from typing import Union, Iterator
 
 from bson import json_util
 from django.db.models.query import QuerySet
+from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
@@ -16,9 +18,11 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import AbstractMethodError
+from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
-from kpi.utils.jsonbfield_helper import ReplaceValue
+from kpi.utils.jsonbfield_helper import ReplaceValues
 
 
 class BaseDeploymentBackend:
@@ -34,48 +38,73 @@ class BaseDeploymentBackend:
 
     @property
     def active(self):
-        return self.asset.deployment_data.get('active', False)
+        return self.get_data('active', False)
 
     def connect(self, active=False):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     @property
     def backend(self):
-        return self.asset.deployment_data.get('backend', None)
+        return self.get_data('backend', None)
+
+    @property
+    def backend_response(self):
+        return self.get_data('backend_response', {})
 
     def bulk_assign_mapped_perms(self):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def bulk_update_submissions(self):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def calculated_submission_count(self, user: 'auth.User', **kwargs):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def delete(self):
-        self.asset.deployment_data.clear()
+        self.asset._deployment_data.clear()  # noqa
+
+    def get_data(self,
+                 dotted_path: str = None,
+                 default=None) -> Union[None, int, str, dict]:
+        """
+        Access `self.asset._deployment_data` and return corresponding value of
+        `dotted_path` if it exists. Otherwise, it returns `default`.
+        If `dotted_path` is not provided, it returns the whole
+        dictionary.
+        """
+        if not dotted_path:
+            # We do not want to return the mutable object whose could be altered
+            # later. `self.asset._deployment_data` should never be accessed
+            # directly
+            return copy.deepcopy(self.asset._deployment_data) # noqa
+
+        value = None
+        nested_path = dotted_path.split('.')
+        nested_dict = self.asset._deployment_data  # noqa
+        for key in nested_path:
+            try:
+                value = nested_dict[key]
+            except KeyError:
+                value = None
+                break
+
+            nested_dict = value
+
+        return value if value else default
 
     def delete_submission(self, pk: int, user: 'auth.User') -> dict:
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def duplicate_submission(
             self, user: 'auth.User', instance_id: int, **kwargs: dict
     ) -> dict:
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def get_data_download_links(self):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def get_enketo_survey_links(self):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def get_submission(self,
                        pk: int,
@@ -104,12 +133,10 @@ class BaseDeploymentBackend:
         return None
 
     def get_submission_detail_url(self, submission_pk):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def get_submission_edit_url(self, submission_pk, user, params=None):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def get_submission_validation_status_url(self, submission_pk):
         # This doesn't really need to be implemented.
@@ -124,8 +151,7 @@ class BaseDeploymentBackend:
                         format_type: str = INSTANCE_FORMAT_TYPE_JSON,
                         instance_ids: list = [],
                         **kwargs: dict) -> [Iterator[dict], Iterator[str]]:
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def get_validation_status(self, submission_pk, params, user):
         submission = self.get_submission(
@@ -139,7 +165,7 @@ class BaseDeploymentBackend:
 
     @property
     def identifier(self):
-        return self.asset.deployment_data.get('identifier', None)
+        return self.get_data('identifier', None)
 
     @property
     def last_submission_time(self):
@@ -149,50 +175,69 @@ class BaseDeploymentBackend:
     def mongo_userform_id(self):
         return None
 
-    def redeploy(self, active=None):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
-
     def set_active(self, active):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def set_has_kpi_hooks(self):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def set_status(self, status):
+
+    def redeploy(self, active=None):
+        raise AbstractMethodError
+
+    def remove_from_kc_only_flag(self, *args, **kwargs):
+        # TODO: This exists only to support KoBoCAT (see #1161) and should be
+        # removed, along with all places where it is called, once we remove
+        # KoBoCAT's ability to assign permissions (kobotoolbox/kobocat#642)
+
+        # Do nothing, without complaint, so that callers don't have to worry
+        # about whether the back end is KoBoCAT or something else
+        pass
+
+    def save_to_db(self, updates: dict):
+        """
+        Persist values from deployment data into the DB.
+        `updates` is a dictionary of properties to update.
+        E.g: `{"active": True, "status": "not-synced"}`
+        """
         # Avoid circular imports
         # use `self.asset.__class__` instead of `from kpi.models import Asset`
-        self.asset.__class__.objects.filter(id=self.asset.pk).update(
-            _deployment_data=ReplaceValue(
-                '_deployment_data',
-                key_name='status',
-                new_value=status,
+        now = timezone.now()
+        with transaction.atomic():
+            self.asset.__class__.objects.select_for_update() \
+                .filter(id=self.asset.pk).update(
+                _deployment_data=ReplaceValues(
+                    '_deployment_data',
+                    updates=updates,
+                ),
+                date_modified=now,
             )
-        )
-        self.store_data({
-            'status': status,
-        })
+        self.store_data(updates)
+        self.asset.date_modified = now
+
+    def set_asset_uid(self, **kwargs) -> bool:
+        raise AbstractMethodError
+
+    def set_status(self, status):
+        self.save_to_db({'status': status})
 
     def set_validation_status(self,
                               submission_pk: int,
                               data: dict,
                               user: 'auth.User',
                               method: str) -> dict:
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     @property
     def status(self):
-        return self.asset.deployment_data.get('status')
+        return self.get_data('status')
 
     def store_data(self, vals=None):
-        self.asset.deployment_data.update(vals)
+        self.asset._deployment_data.update(vals)  # noqa
 
     @property
     def submission_count(self):
@@ -200,19 +245,18 @@ class BaseDeploymentBackend:
 
     @property
     def submission_list_url(self):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
-        raise NotImplementedError(
-            'This method should be implemented in subclasses')
+        raise AbstractMethodError
 
     def validate_submission_list_params(
-            self,
-            user: 'auth.User',
-            format_type: str = INSTANCE_FORMAT_TYPE_JSON,
-            validate_count: bool = False,
-            **kwargs: dict) -> dict:
+        self,
+        user: 'auth.User',
+        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+        validate_count: bool = False,
+        **kwargs: dict
+    ) -> dict:
         """
         Validates parameters (`kwargs`) to be passed to Mongo.
         parameters can be:
@@ -231,15 +275,18 @@ class BaseDeploymentBackend:
         """
 
         if 'count' in kwargs:
-            raise serializers.ValidationError({
-                'count': _('This param is not implemented.'
-                           ' Use `count` property of the response instead.')
-            })
+            raise serializers.ValidationError(
+                {
+                    'count': _(
+                        'This param is not implemented. Use `count` property '
+                        'of the response instead.'
+                    )
+                }
+            )
 
         if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
             if 'sort' in kwargs:
-                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the
-                # order.
+                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order  # noqa
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
                     'sort': _('This param is not supported in `XML` format')
@@ -257,9 +304,8 @@ class BaseDeploymentBackend:
         query = kwargs.get('query', {})
         instance_ids = kwargs.get('instance_ids', [])
 
-        # I've copied these `ValidationError` messages verbatim from DRF where
-        # possible. TODO: Should this validation be in (or called directly by)
-        # the view code? Does DRF have a validator for GET params?
+        # TODO: Should this validation be in (or called directly by) the view
+        # code? Does DRF have a validator for GET params?
 
         if isinstance(query, str):
             try:
@@ -367,7 +413,7 @@ class BaseDeploymentBackend:
 
     @property
     def version_id(self):
-        return self.asset.deployment_data.get('version', None)
+        return self.get_data('version')
 
     def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
         """

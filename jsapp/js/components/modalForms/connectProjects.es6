@@ -4,8 +4,15 @@ import alertify from 'alertifyjs';
 import Select from 'react-select';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import TextBox from 'js/components/common/textBox';
-import {actions} from '../../actions';
+import {actions} from 'js/actions';
 import {bem} from 'js/bem';
+import {renderLoading} from './modalHelpers';
+import {
+  truncateFile,
+  truncateString,
+} from '../../utils';
+
+const MAX_DISPLAYED_STRING_LENGTH = 30;
 
 /*
  * Modal for connecting project data
@@ -14,7 +21,7 @@ class ConnectProjects extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isVirgin: true,
+      isInitialised: false,
       isLoading: false,
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
@@ -33,9 +40,6 @@ class ConnectProjects extends React.Component {
    */
 
   componentDidMount() {
-    this.refreshAttachmentList();
-    actions.dataShare.getSharingEnabledAssets();
-
     actions.dataShare.attachToParent.completed.listen(
       this.refreshAttachmentList
     );
@@ -54,6 +58,9 @@ class ConnectProjects extends React.Component {
     actions.dataShare.toggleDataSharing.completed.listen(
       this.onToggleDataSharingCompleted
     );
+
+    this.refreshAttachmentList();
+    actions.dataShare.getSharingEnabledAssets();
   }
 
   /*
@@ -68,7 +75,7 @@ class ConnectProjects extends React.Component {
   }
   onGetAttachedParentsCompleted(response) {
     this.setState({
-      isVirgin: false,
+      isInitialised: true,
       isLoading: false,
       attachedParents: response,
     });
@@ -76,8 +83,8 @@ class ConnectProjects extends React.Component {
   onGetSharingEnabledAssetsCompleted(response) {
     this.setState({sharingEnabledAssets: response});
   }
-  onToggleDataSharingCompleted() {
-    this.setState({isShared: !this.state.isShared});
+  onToggleDataSharingCompleted(response) {
+    this.setState({isShared: response.data_sharing.enabled});
   }
   refreshAttachmentList() {
     this.setState({
@@ -113,14 +120,14 @@ class ConnectProjects extends React.Component {
       if (!parentUrl) {
         this.setState({
           fieldsErrors: Object.assign(
-            this.state.fieldsErrors, {emptyParent: 'No project selected'}
+            this.state.fieldsErrors, {emptyParent: t('No project selected')}
           )
         });
       }
       if (filename === '') {
         this.setState({
           fieldsErrors: Object.assign(
-            this.state.fieldsErrors, {emptyFilename: 'Field is empty'}
+            this.state.fieldsErrors, {emptyFilename: t('Field is empty')}
           )
         });
       }
@@ -174,15 +181,14 @@ class ConnectProjects extends React.Component {
    * Utilities
    */
 
+  // Generates a filename for the selected parent, done so by taking the first
+  // 30 characters, turning them lowercase and replacing spaces with underscores
   generateAutoname(newParent) {
     if (newParent) {
       let autoname = newParent.name;
-      autoname = autoname.toLowerCase().substring(0, 30).replace(/(\ |\.)/g, '_');
+      autoname = autoname.toLowerCase().substring(0, MAX_DISPLAYED_STRING_LENGTH).replace(/(\ |\.)/g, '_');
       this.setState({newFilename: autoname});
     }
-  }
-  generateTruncatedDisplayName(name) {
-    return name.length > 30 ? `${name.substring(0, 30)}...` : name;
   }
   generateFilteredAssetList() {
     let attachedParentUids = [];
@@ -198,158 +204,135 @@ class ConnectProjects extends React.Component {
     );
   }
 
- /*
-  * May be useful later for replacing autoname with existing name
-  *
-  * getExteralFilename() {
-  *   let filename = '';
-  *   this.props.asset.content.survey.some((element) => {
-  *     if (element.type === XML_EXTERNAL) {
-  *       filename = element.name;
-  *     }
-  *   });
-  *   return filename;
-  * }
-  */
-
   /*
    * Rendering
    */
 
-  renderLoading(message = t('loading…')) {
+  renderSwitchLabel() {
+    let switchLabel = this.state.isShared
+      ? t('Data sharing enabled')
+      : t('Data sharing disabled');
+
     return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
+      <ToggleSwitch
+        onChange={this.toggleSharingData.bind(this)}
+        label={switchLabel}
+        checked={this.state.isShared}
+      />
     );
   }
-  renderSwitchLabel() {
-    if (this.state.isShared) {
-      return (
-        <ToggleSwitch
-          onChange={this.toggleSharingData.bind(this)}
-          label={t('Data sharing enabled')}
-          checked={this.state.isShared}
-        />
+  renderSelect() {
+    // Don't crash the page before `actions.dataShare.sharingEnabledAssets` finishes
+    if (this.state.sharingEnabledAssets !== null) {
+      let sharingEnabledAssets = this.generateFilteredAssetList();
+
+      const selectClassNames = ['kobo-select__wrapper'];
+      if (this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent) {
+        selectClassNames.push('kobo-select__wrapper--error');
+      }
+
+      return(
+        <div className='connect-projects__import-data-form'>
+          <div className={selectClassNames.join(' ')}>
+            <Select
+              placeholder={t('Select a different project to import data from')}
+              options={sharingEnabledAssets}
+              value={this.state.newParent}
+              isLoading={(!this.state.isInitialised || this.state.isLoading)}
+              getOptionLabel={option => option.name}
+              getOptionValue={option => option.url}
+              noOptionsMessage={() => {return t('No projects to connect')}}
+              onChange={this.onParentChange}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+            />
+            <label className='connect-projects__label select-errors'>
+              {this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent}
+            </label>
+          </div>
+
+          <TextBox
+            placeholder={t('Give a unique name to the import')}
+            value={this.state.newFilename}
+            onChange={this.onFilenameChange}
+            errors={this.state.fieldsErrors.emptyFilename ||
+                    this.state.fieldsErrors.filename}
+          />
+
+          <bem.KoboButton m='blue'>
+            {t('Import')}
+          </bem.KoboButton>
+        </div>
       );
     } else {
-      return (
-        <ToggleSwitch
-          onChange={this.toggleSharingData.bind(this)}
-          label={t('Data sharing disabled')}
-          checked={this.state.isShared}
-        />
-      );
+      return null;
     }
-  }
-  renderSelect(sharingEnabledAssets) {
-    const selectClassNames = ['kobo-select__wrapper'];
-    if (this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent) {
-      selectClassNames.push('kobo-select__wrapper--error');
-    }
-    return(
-      <div className={selectClassNames.join(' ')}>
-        <Select
-          placeholder={t('Select a different project to import data from')}
-          options={sharingEnabledAssets}
-          value={this.state.newParent}
-          isLoading={(this.state.isVirgin || this.state.isLoading || !sharingEnabledAssets)}
-          getOptionLabel={option => option.name}
-          getOptionValue={option => option.url}
-          noOptionsMessage={() => {return t('No projects to connect')}}
-          onChange={this.onParentChange}
-          className='kobo-select'
-          classNamePrefix='kobo-select'
-        />
-        <label className='select-errors'>
-          {this.state.fieldsErrors.emptyParent || this.state.fieldsErrors.parent}
-        </label>
-      </div>
-    );
   }
 
   render() {
-    let sharingEnabledAssets = [];
-    if (this.state.sharingEnabledAssets !== null) {
-      sharingEnabledAssets = this.generateFilteredAssetList();
-    }
-
     return (
       <bem.FormModal__form
-        className='project-settings project-settings--upload-file connect-projects'
+        className='connect-projects'
         onSubmit={this.confirmAttachment}
       >
         {/* Enable data sharing */}
         <bem.FormModal__item m='data-sharing'>
-          <div className='connect-projects-header'>
+          <div className='connect-projects__header'>
             <i className="k-icon k-icon-folder-out"/>
             <h2>{t('Share data with other project forms')}</h2>
           </div>
           <p>
             {t('Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments')}
-            <a href='#'>{t(' ' + 'here')}</a>
+            &nbsp;
+            <a href='#'>{t('here')}</a>
           </p>
           {this.renderSwitchLabel()}
         </bem.FormModal__item>
 
         {/* Attach other projects data */}
         <bem.FormModal__item m='import-data'>
-          <div className='connect-projects-header'>
+          <div className='connect-projects__header'>
             <i className="k-icon k-icon-folder-in"/>
             <h2>{t('Import other project data')}</h2>
           </div>
           <p>
             {t('Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments')}
-            <a href='#'>{t(' ' + 'here')}</a>
+            &nbsp;
+            <a href='#'>{t('here')}</a>
           </p>
-          {/* Selecting project form*/}
-          {sharingEnabledAssets &&
-            <div className='import-data-form'>
-              {this.renderSelect(sharingEnabledAssets)}
-              <TextBox
-                placeholder={t('Give a unique name to the import')}
-                value={this.state.newFilename}
-                onChange={this.onFilenameChange}
-                errors={this.state.fieldsErrors.emptyFilename ||
-                        this.state.fieldsErrors.filename}
-              />
-              <bem.KoboButton m='blue'>
-                {t('Import')}
-              </bem.KoboButton>
-            </div>
-          }
+
+          {this.renderSelect()}
 
           {/* Display attached projects */}
           <ul>
-            <label>{t('Imported')}</label>
-            {(this.state.isVirgin || this.state.isLoading) &&
-              <div className='imported-item'>
-                {this.renderLoading(t('Loading imported projects'))}
-              </div>
+            <label className='connect-projects__label'>
+              {t('Imported')}
+            </label>
+            {(!this.state.isInitialised || this.state.isLoading) &&
+              <li className='connect-projects__imported-item'>
+                {renderLoading(t('Loading imported projects'))}
+              </li>
             }
             {!this.state.isLoading && this.state.attachedParents.length == 0 &&
-              <li className='no-imports'>
+              <li className='connect-projects__no-imports'>
                 {t('No data imported')}
               </li>
             }
             {!this.state.isLoading && this.state.attachedParents.length > 0 &&
                 this.state.attachedParents.map((item, n) => {
                   return (
-                    <li key={n} className='imported-item'>
+                    <li key={n} className='connect-projects__imported-item'>
                       <i className="k-icon k-icon-check"/>
-                      <div className='imported-names'>
-                        <span className='imported-filename'>
-                          {item.filename}
+                      <div className='connect-projects__imported-names'>
+                        <span className='connect-projects__imported-filename'>
+                          {truncateFile(item.filename, MAX_DISPLAYED_STRING_LENGTH)}
                         </span>
-                        <span className='imported-parent'>
-                          {this.generateTruncatedDisplayName(item.parentName)}
+                        <span className='connect-projects__imported-parent'>
+                          {truncateString(item.parentName, MAX_DISPLAYED_STRING_LENGTH)}
                         </span>
                       </div>
                       <i
-                        className="k-icon-trash"
+                        className="k-icon k-icon-trash"
                         onClick={() => this.removeAttachment(item.attachmentUrl)}
                       />
                     </li>

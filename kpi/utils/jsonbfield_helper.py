@@ -1,34 +1,34 @@
 # coding: utf-8
-from django.db.models.expressions import Func
+import json
 
 
-class ReplaceValue(Func):
+from django.db.models.expressions import Func, Value
+
+
+class ReplaceValues(Func):
     """
-    Updates a property of a JSONBField without overwriting the whole document.
+    Updates several properties at once of a JSONBField without overwriting the
+    whole document.
     Avoids race conditions when document is saved in two different transactions
     at the same time. (i.e.: `Asset._deployment['status']`)
+    https://www.postgresql.org/docs/current/functions-json.html
 
-    Credits to https://stackoverflow.com/a/45308014/1141214
+    Notes from postgres docs:
+    > Does not operate recursively: only the top-level array or object
+    > structure is merged
     """
-    function = 'jsonb_set'
-    template = (
-        "%(function)s(%(expressions)s, '{\"%(key_name)s\"}',"
-        "'\"%(new_value)s\"', %(create_missing)s)"
-    )
-    arity = 1
+    arg_joiner = ' || '
+    template = "%(expressions)s"
+    arity = 2
 
     def __init__(
         self,
         expression: str,
-        key_name: str,
-        new_value: str,
-        create_missing: bool = True,
+        updates: dict,
         **extra,
     ):
         super().__init__(
             expression,
-            key_name=key_name,
-            new_value=new_value,
-            create_missing='true' if create_missing else 'false',
+            Value(json.dumps(updates)),
             **extra,
         )

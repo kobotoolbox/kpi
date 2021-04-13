@@ -2,7 +2,6 @@
 from django.conf import settings
 from rest_framework import serializers
 
-from kpi.tasks import sync_media_files  # Because of circular imports
 from .asset import AssetSerializer
 
 
@@ -37,12 +36,6 @@ class DeploymentSerializer(serializers.Serializer):
         # 'deployed' boolean value
         asset.deploy(backend=backend_id,
                      active=validated_data.get('active', False))
-        # `asset` must be flagged as deployed in DB first to make
-        # synchronization happens...
-        asset.save(create_version=False,
-                   adjust_content=False)
-        # ...then its media files can be synchronized
-        sync_media_files.delay(asset.uid)
         return asset.deployment
 
     def update(self, instance, validated_data):
@@ -69,13 +62,8 @@ class DeploymentSerializer(serializers.Serializer):
                 backend=deployment.backend,
                 active=validated_data.get('active', deployment.active)
             )
-            sync_media_files.delay(asset.uid)
         elif 'active' in validated_data:
             # Set the `active` flag without touching the rest of the deployment
             deployment.set_active(validated_data['active'])
-            sync_media_files.delay(asset.uid)
 
-        asset.save(create_version=False,
-                   adjust_content=False,
-                   refresh_status=True)
         return deployment

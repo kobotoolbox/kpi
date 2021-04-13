@@ -415,13 +415,13 @@ class ExportTask(ImportExportTask):
 
     COPY_FIELDS = (
         '_id',
+        '_uuid',
+        '_submission_time',
+        ValidationStatusCopyField,
         '_notes',
         '_status',
-        '_submission_time',
         '_submitted_by',
         '_tags',
-        '_uuid',
-        ValidationStatusCopyField,
     )
 
     # It's not very nice to ask our API users to submit `null` or `false`,
@@ -440,10 +440,20 @@ class ExportTask(ImportExportTask):
         ordering = ['-date_created']
 
     @property
+    def _hierarchy_in_labels(self):
+        hierarchy_in_labels = self.data.get('hierarchy_in_labels', False)
+        # v1 exports expects a string
+        if isinstance(hierarchy_in_labels, str):
+            return hierarchy_in_labels.lower() == 'true'
+        return hierarchy_in_labels
+
+    @property
     def _fields_from_all_versions(self):
-        return self.data.get(
-            'fields_from_all_versions', 'true'
-        ).lower() == 'true'
+        fields_from_versions = self.data.get('fields_from_all_versions', True)
+        # v1 exports expects a string
+        if isinstance(fields_from_versions, str):
+            return fields_from_versions.lower() == 'true'
+        return fields_from_versions
 
     def _build_export_filename(self, export, export_type):
         """
@@ -498,10 +508,8 @@ class ExportTask(ImportExportTask):
         Internal method to build formpack `Export` constructor arguments based
         on the options set in `self.data`
         """
-        hierarchy_in_labels = self.data.get(
-            'hierarchy_in_labels', ''
-        ).lower() == 'true'
         group_sep = self.data.get('group_sep', '/')
+        multiple_select = self.data.get('multiple_select', 'both')
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
         fields = self.data.get('fields', [])
@@ -516,8 +524,9 @@ class ExportTask(ImportExportTask):
         return {
             'versions': pack.versions.keys(),
             'group_sep': group_sep,
+            'multiple_select': multiple_select,
             'lang': lang,
-            'hierarchy_in_labels': hierarchy_in_labels,
+            'hierarchy_in_labels': self._hierarchy_in_labels,
             'copy_fields': self.COPY_FIELDS,
             'force_index': True,
             'tag_cols_for_header': tag_cols_for_header,
@@ -548,9 +557,6 @@ class ExportTask(ImportExportTask):
                     self.last_submission_time = timestamp
             yield submission
 
-    def _get_bool_from_data(self, field: str, compare: str = 'true') -> bool:
-        return self.data.get(field, compare).lower() == 'true'
-
     def _run_task(self, messages):
         """
         Generate the export and store the result in the `self.result`
@@ -559,7 +565,7 @@ class ExportTask(ImportExportTask):
         """
         source_url = self.data.get('source', False)
         fields = self.data.get('fields', [])
-        flatten = self._get_bool_from_data('flatten', 'true')
+        flatten = self.data.get('flatten', True)
 
         if not source_url:
             raise Exception('no source specified for the export')

@@ -21,6 +21,7 @@ from kpi.fields import (
     WritableJSONField,
 )
 from kpi.models.asset_file import AssetFile
+from kpi.utils.log import logging
 
 
 class AssetFileSerializer(serializers.ModelSerializer):
@@ -92,7 +93,6 @@ class AssetFileSerializer(serializers.ModelSerializer):
         # Common validators
         filename = metadata['filename']
         self.__validate_mime_type(filename, validated_field)
-        self.__validate_extension(filename, validated_field)
         self._validate_duplicate(filename, validated_field)
 
         # Remove `'base64Encoded'` from attributes passed to the model
@@ -107,6 +107,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
         if not isinstance(metadata, dict):
             try:
                 metadata = json.loads(metadata)
+                logging.warning('metadata is sent as stringified JSON')
             except TypeError:
                 # Let the validator returns an explicit message to user that
                 # `metadata` is required
@@ -253,38 +254,19 @@ class AssetFileSerializer(serializers.ModelSerializer):
             })
 
     # PRIVATE METHODS
-    # These methods could protected too but IMO, they should not be
+    # These methods could be protected too but IMO, they should not be
     # overridden if a class inherits from `AssetFileSerializer`
     def __format_error(self, field_name: str, message: str):
         """
-        Formats validation error to return explicit field name.
+        Format validation error to return explicit field name.
         For example, if `redirect_url` is being validated, we
-
+        want to return `metadata` field to be consistent with the payload
         """
         if field_name == 'redirect_url':
             field_name = 'metadata'
             message = f'{message}'
 
         return {field_name: message}
-
-    def __validate_extension(self, filename: str, field_name: str):
-        """
-        Validates extension of the file depending on its type
-        (`form_media` or `media_layer`)
-        """
-        try:
-            allowed_extensions = AssetFile.ALLOWED_EXTENSIONS[self.__file_type]
-        except KeyError:
-            pass
-        else:
-            basename, file_extension = os.path.splitext(filename)
-            if file_extension[1:] not in allowed_extensions:
-                extensions_csv = '`, `'.join(allowed_extensions)
-                error = self.__format_error(
-                    field_name,
-                    _('Only `{}` extensions are allowed').format(extensions_csv)
-                )
-                raise serializers.ValidationError(error)
 
     def __validate_mime_type(self, filename: str, field_name: str):
         """

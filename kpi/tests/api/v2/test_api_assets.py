@@ -13,19 +13,22 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
-    PERM_MANAGE_ASSET,
 )
 from kpi.models import Asset
 from kpi.models import AssetFile
 from kpi.models import AssetVersion
 from kpi.serializers.v2.asset import AssetListSerializer
-from kpi.tests.base_test_case import BaseAssetTestCase, BaseTestCase
+from kpi.tests.base_test_case import (
+    BaseAssetDetailTestCase,
+    BaseAssetTestCase,
+    BaseTestCase,
+)
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.hash import get_hash
 
 
-class AssetsListApiTests(BaseAssetTestCase):
+class AssetListApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -294,20 +297,7 @@ class AssetVersionApiTests(BaseTestCase):
         self.assertEqual(resp2.data['detail'], 'Not found.')
 
 
-class AssetsDetailApiTests(BaseAssetTestCase):
-    fixtures = ['test_data']
-
-    URL_NAMESPACE = ROUTER_URL_NAMESPACE
-
-    def setUp(self):
-        self.client.login(username='someuser', password='someuser')
-        url = reverse(self._get_endpoint('asset-list'))
-        data = {'content': '{}', 'asset_type': 'survey'}
-        self.r = self.client.post(url, data, format='json')
-        self.asset = Asset.objects.get(uid=self.r.data.get('uid'))
-        self.asset_url = self.r.data['url']
-        self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)
-        self.asset_uid = self.r.data['uid']
+class AssetDetailApiTests(BaseAssetDetailTestCase):
 
     def test_asset_exists(self):
         resp = self.client.get(self.asset_url, format='json')
@@ -327,22 +317,6 @@ class AssetsDetailApiTests(BaseAssetTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data.get('deployment__active'), False)
         self.assertEqual(response.data.get('has_deployment'), False)
-
-    def test_asset_deployment_data_updates(self):
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
-
-        response1 = self.client.post(deployment_url, {
-                'backend': 'mock',
-                'active': True,
-            })
-
-        self.assertEqual(response1.data.get("asset").get('deployment__active'), True)
-        self.assertEqual(response1.data.get("asset").get('has_deployment'), True)
-
-        response2 = self.client.get(self.asset_url, format='json')
-        self.assertEqual(response2.data.get('deployment__active'), True)
-        self.assertEqual(response2.data['has_deployment'], True)
 
     def test_can_clone_asset(self):
         response = self.client.post(reverse(self._get_endpoint('asset-list')),
@@ -739,7 +713,7 @@ class ObjectRelationshipsTests(BaseTestCase):
     pass
 
 
-class AssetsSettingsFieldTest(KpiTestCase):
+class AssetSettingsFieldTest(KpiTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -795,9 +769,7 @@ class AssetFileTest(BaseTestCase):
 
     def get_asset_file_content(self, url):
         response = self.client.get(url)
-        streaming_content = [chunk for chunk in
-                             response.streaming_content]
-        return b''.join(streaming_content)
+        return b''.join(response.streaming_content)
 
     @property
     def asset_file_payload(self):
@@ -857,23 +829,23 @@ class AssetFileTest(BaseTestCase):
 
         # Some metadata properties are added when file is created.
         # Let's compare without them
-        responsed_metadata = dict(response_dict['metadata'])
+        response_metadata = dict(response_dict['metadata'])
 
         if not form_media:
             # `filename` is only mandatory with form media files
-            responsed_metadata.pop('filename', None)
+            response_metadata.pop('filename', None)
 
-        responsed_metadata.pop('mimetype', None)
-        responsed_metadata.pop('hash', None)
+        response_metadata.pop('mimetype', None)
+        response_metadata.pop('hash', None)
 
         self.assertEqual(
-            json.dumps(responsed_metadata),
+            json.dumps(response_metadata),
             posted_payload['metadata']
         )
         for field in 'file_type', 'description':
             self.assertEqual(response_dict[field], posted_payload[field])
 
-        # Content via the direct URL to the file
+        # Content uploaded as binary
         try:
             posted_payload['content'].seek(0)
         except KeyError:
@@ -884,7 +856,9 @@ class AssetFileTest(BaseTestCase):
                 self.get_asset_file_content(response_dict['content']),
                 expected_content
             )
+            return response_dict['uid']
 
+        # Content uploaded as base64
         try:
             base64_encoded = posted_payload['base64Encoded']
         except KeyError:
@@ -896,13 +870,17 @@ class AssetFileTest(BaseTestCase):
                 self.get_asset_file_content(response_dict['content']),
                 expected_content
             )
+            return response_dict['uid']
 
-        try:
-            assert (response_dict['metadata']['redirect_url']
-                    == posted_payload['content']['redirect_url'])
-        except KeyError:
-            pass
-
+        # Content uploaded as binary
+        metadata = json.loads(posted_payload['metadata'])
+        payload_url = metadata['redirect_url']
+        # if none of the other upload methods have been chosen,
+        # `redirect_url` should be present in the response because user
+        # must have provided a redirect url. Otherwise, a validation error
+        # should have been raised about invalid payload.
+        response_url = response_dict['metadata']['redirect_url']
+        assert response_url == payload_url and response_url != ''
         return response_dict['uid']
 
     def test_owner_can_create_file(self):
@@ -1039,6 +1017,18 @@ class AssetFileTest(BaseTestCase):
         )
         assert 'You cannot upload media file' in response.content.decode()
 
+    def test_create_files_with_no_methods(self):
+        payload = {
+            'file_type': AssetFile.FORM_MEDIA,
+            'description': 'An empty upload',
+        }
+        response = self.create_asset_file(
+            payload=payload,
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+        content = response.content.decode()
+        assert 'No files have been submitted' in content
+
     def test_upload_form_media_bad_base64(self):
         payload = {
             'file_type': AssetFile.FORM_MEDIA,
@@ -1075,7 +1065,7 @@ class AssetFileTest(BaseTestCase):
         assert json_response == expected_response
 
     def test_upload_form_media_bad_mime_type(self):
-        # We are using remote URL but it goes through the same validators as
+        # We are using remote URL, but it goes through the same validators as
         # `base64Encoded` or `content`
         payload = {
             'file_type': AssetFile.FORM_MEDIA,
@@ -1146,3 +1136,81 @@ class AssetFileTest(BaseTestCase):
         self.assertEqual(list_response.data['count'], asset_files_count - 1)
         detail_response = self.client.get(detail_url)
         self.assertEqual(detail_response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class AssetDeploymentTest(BaseAssetDetailTestCase):
+
+    def test_asset_deployment(self):
+        deployment_url = reverse(self._get_endpoint('asset-deployment'),
+                                 kwargs={'uid': self.asset_uid})
+
+        response1 = self.client.post(deployment_url, {
+            'backend': 'mock',
+            'active': True,
+        })
+
+        self.assertEqual(response1.data['asset']['deployment__active'], True)
+        self.assertEqual(response1.data['asset']['has_deployment'], True)
+
+        response2 = self.client.get(self.asset_url, format='json')
+
+        self.assertEqual(response2.data['deployment__active'], True)
+        self.assertEqual(response2.data['has_deployment'], True)
+
+    def test_asset_redeployment(self):
+        self.test_asset_deployment()
+
+        # Update asset to redeploy it
+        data = {
+            'name': f'{self.asset.name} v2'
+        }
+        asset_response = self.client.patch(self.asset_url,
+                                           data=data,
+                                           format='json')
+        self.assertEqual(asset_response.status_code,
+                         status.HTTP_200_OK)
+        self.asset.refresh_from_db()
+        version_id = asset_response.data['version_id']
+
+        deployment_url = reverse(self._get_endpoint('asset-deployment'),
+                                 kwargs={'uid': self.asset_uid})
+
+        # We cannot `POST` to redeploy...
+        redeploy_response = self.client.post(deployment_url, {
+            'backend': 'mock',
+            'active': True,
+            'version_id': version_id,
+        })
+        self.assertEqual(redeploy_response.status_code,
+                         status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        # ... but we can with `PATCH`
+        redeploy_response = self.client.patch(deployment_url, {
+            'backend': 'mock',
+            'active': True,
+            'version_id': version_id,
+        })
+        self.assertEqual(redeploy_response.status_code,
+                         status.HTTP_200_OK)
+        # Validate version id
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset.deployment.version_id,
+                         redeploy_response.data['version_id'])
+        self.assertEqual(self.asset.deployment.version_id,
+                         version_id)
+
+    def test_archive_asset(self):
+        self.test_asset_deployment()
+
+        deployment_url = reverse(self._get_endpoint('asset-deployment'),
+                                 kwargs={'uid': self.asset_uid})
+
+        response1 = self.client.patch(deployment_url, {
+            'backend': 'mock',
+            'active': False,
+        })
+
+        self.assertEqual(response1.data['asset']['deployment__active'], False)
+
+        response2 = self.client.get(self.asset_url, format='json')
+        self.assertEqual(response2.data['deployment__active'], False)

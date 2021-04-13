@@ -1,10 +1,12 @@
 # coding: utf-8
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import BadAssetTypeException, DeploymentNotFound
+from kpi.tasks import sync_media_files
 from .backends import DEPLOYMENT_BACKENDS
 
 
 class DeployableMixin:
+
     def connect_deployment(self, **kwargs):
         if 'backend' in kwargs:
             backend = kwargs.pop('backend')
@@ -20,7 +22,6 @@ class DeployableMixin:
         """
         This method could be called `deploy_latest_version()`.
         """
-
         if self.can_be_deployed:
             if not self.has_deployment:
                 self.connect_deployment(backend=backend, active=active)
@@ -30,6 +31,11 @@ class DeployableMixin:
                 self.deployment.redeploy(active=active)
 
             self._mark_latest_version_as_deployed()
+            self.deployment.store_data(
+                {'status': self.deployment.STATUS_NOT_SYNCED}
+            )
+            self.save(create_version=False, adjust_content=False)
+            sync_media_files.delay(self.uid)
 
         else:
             raise BadAssetTypeException(
