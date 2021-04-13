@@ -171,6 +171,19 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         raise Http404
 
 
+class AssetExportSettingsPermission(AssetNestedObjectPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+        'POST': ['%(app_label)s.manage_asset'],
+    }
+
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
+    perms_map['PUT'] = perms_map['POST']
+    perms_map['PATCH'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['POST']
+
+
 class AssetEditorPermission(AssetNestedObjectPermission):
     """
     Owner, managers and editors can write.
@@ -212,6 +225,15 @@ class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
     perms_map['DELETE'] = perms_map['GET']
 
 
+class ExportTaskPermission(AssetNestedObjectPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+    }
+
+    perms_map['POST'] = perms_map['GET']
+    perms_map['DELETE'] = perms_map['GET']
+
+
 # FIXME: Name is no longer accurate.
 class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     """
@@ -237,6 +259,25 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
+class ReportPermission(IsOwnerOrReadOnly):
+    def has_object_permission(self, request, view, obj):
+        # Checks if the user has the require permissions
+        # To access the submission data in reports
+        user = request.user
+        if user.is_superuser:
+            return True
+        if user.is_anonymous:
+            user = get_anonymous_user()
+        permissions = list(obj.get_perms(user))
+        required_permissions = [
+            PERM_VIEW_SUBMISSIONS,
+            PERM_PARTIAL_SUBMISSIONS,
+        ]
+        return any(
+            perm in permissions for perm in required_permissions
+        )
+
+    
 class SubmissionPermission(AssetNestedObjectPermission):
     """
     Permissions for submissions.
@@ -278,16 +319,16 @@ class SubmissionPermission(AssetNestedObjectPermission):
         return user_permissions
 
 
-class EditSubmissionPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.change_%(model_name)s'],
-    }
-
-
 class DuplicateSubmissionPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
         'POST': ['%(app_label)s.change_%(model_name)s'],
+    }
+
+
+class EditSubmissionPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.change_%(model_name)s'],
     }
 
 
@@ -299,41 +340,4 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
     }
 
 
-class AssetExportSettingsPermission(AssetNestedObjectPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-        'POST': ['%(app_label)s.manage_asset'],
-    }
 
-    perms_map['OPTIONS'] = perms_map['GET']
-    perms_map['HEAD'] = perms_map['GET']
-    perms_map['PUT'] = perms_map['POST']
-    perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['POST']
-
-class ExportTaskPermission(AssetNestedObjectPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-    }
-
-    perms_map['POST'] = perms_map['GET']
-    perms_map['DELETE'] = perms_map['GET']
-
-
-class ReportPermission(IsOwnerOrReadOnly):
-    def has_object_permission(self, request, view, obj):
-        # Checks if the user has the require permissions
-        # To access the submission data in reports
-        user = request.user
-        if user.is_superuser:
-            return True
-        if user.is_anonymous:
-            user = get_anonymous_user()
-        permissions = list(obj.get_perms(user))
-        required_permissions = [
-            PERM_VIEW_SUBMISSIONS,
-            PERM_PARTIAL_SUBMISSIONS,
-        ]
-        return any(
-            perm in permissions for perm in required_permissions
-        )
