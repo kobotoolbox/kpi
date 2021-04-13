@@ -1,23 +1,14 @@
 # coding: utf-8
-import re
-import socket
-from datetime import timedelta
-from urllib.parse import urlparse
-
-from dateutil import parser
-from django.conf import settings
-from django.utils import timezone
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
-from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.object_permission import get_anonymous_user
-from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 
 
 # FIXME: Move to `object_permissions` module.
@@ -109,13 +100,13 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
             raise exceptions.MethodNotAllowed(method)
 
         perms = [perm % kwargs for perm in perm_list]
-        # Because `ObjectPermissionMixin.get_perms()` returns codenames only, remove the
-        # `app_label` prefix before returning
+        # Because `ObjectPermissionMixin.get_perms()` returns codenames only,
+        # remove the `app_label` prefix before returning
         return [perm.replace("{}.".format(app_label), "") for perm in perms]
 
     def has_object_permission(self, request, view, obj):
-        # Because authentication checks have already executed via has_permission,
-        # always return True.
+        # Because authentication checks has already executed via
+        # `has_permission()`, always return True.
         return True
 
 
