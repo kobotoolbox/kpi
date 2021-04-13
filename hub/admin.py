@@ -73,16 +73,15 @@ class UserDeleteAdmin(UserAdmin):
                   'interface and delete them from there.'),
                 messages.ERROR
             )
-
-class UserStatisticsReport(admin.ModelAdmin):
+            
+@admin.register(KobocatSubmissionCounter)
+class UserStatisticsAdmin(ModelAdmin):
     def view_group_statistics(self, request, queryset):
         #need to make sure that the number of months can be added as 1, 3, 6, 12
         #select a month range? for year over year analysis?
         #How do I make this information display properly in the admin interface
-        return
+        change_list_template = 'admin/user_statistics.html'
 
-    def view_detail_statistics(self, request, queryset):
-        return
 
 
 admin.site.register(SitewideMessage)
@@ -90,4 +89,4 @@ admin.site.register(ConfigurationFile)
 admin.site.register(PerUserSetting)
 admin.site.unregister(User)
 admin.site.register(User, UserDeleteAdmin)
-admin.site.register(KobocatSubmissionCounter, UserStatisticsReport)
+admin.site.register(UserStatisticsAdmin)

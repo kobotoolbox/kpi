@@ -98,6 +98,7 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
+    'kpi.deployment_backends.kc_access.ShadowModelsAppConfig'
 )
 
 MIDDLEWARE = [
