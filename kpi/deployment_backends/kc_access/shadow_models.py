@@ -4,6 +4,7 @@ from hashlib import md5
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType, ContentTypeManager
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
@@ -20,6 +21,8 @@ from django_digest.models import PartialDigest
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
 from kpi.utils.strings import hashable_str
+# import kpi.models.asset as asset
+import kpi.models.asset as asset
 
 
 def update_autofield_sequence(model):
@@ -157,6 +160,7 @@ class KobocatContentType(ShadowModel):
     """
     app_label = models.CharField(max_length=100)
     model = models.CharField(_('python model class name'), max_length=100)
+    objects = ContentTypeManager()
 
     class Meta(ShadowModel.Meta):
         db_table = 'django_content_type'
@@ -192,7 +196,7 @@ class KobocatPermission(ShadowModel):
 
 class KobocatUser(ShadowModel):
 
-    username = models.CharField(_("username"), max_length=30)
+    username = models.CharField(_("username"), max_length=30, unique=True)
     password = models.CharField(_("password"), max_length=128)
     last_login = models.DateTimeField(_("last login"), blank=True, null=True)
     is_superuser = models.BooleanField(_('superuser status'), default=False)
@@ -317,7 +321,7 @@ class KobocatUserObjectPermission(ShadowModel):
     UserObjectPermissionManager, is NOT included!
     """
     permission = models.ForeignKey(KobocatPermission, on_delete=models.CASCADE)
-    content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_pk = models.CharField(_('object ID'), max_length=255)
     content_object = KobocatGenericForeignKey(fk_field='object_pk')
     # It's okay not to use `KobocatUser` as long as PKs are synchronized
@@ -468,8 +472,12 @@ class KobocatSubmissionCounter(ShadowModel):
     count = models.IntegerField()
     timestamp = models.DateTimeField()
 
+    def __str__(self):
+        return f"{self.user.username}, {self.count}, {self.year}, {self.month}, {self.form_count}, {self.deployed_form_count}"
+
     class Meta(ShadowModel.Meta):
         db_table = "logger_submissioncounter"
+        verbose_name = "User Statistics Counter"
 
     @property
     def year(self):
@@ -483,18 +491,19 @@ class KobocatSubmissionCounter(ShadowModel):
 
     @property
     def form_count(self):
-        form_count = Asset.objects.filter(
-            owner=self.user,
+        form_count = asset.Asset.objects.filter(
+            owner=User.objects.get(username=self.user.username),
             date_created__month=self.month,
             date_created__year=self.year,
-        ).count
+        ).count()
         return form_count
 
     @property
     def deployed_form_count(self):
-        deployed_form_count = Asset.objects.filter(
-            owner=self.user,
+        deployed_form_count = asset.Asset.objects.filter(
+            owner=User.objects.get(username=self.user.username),
             date_created__month=self.month,
             date_created__year=self.year,
-            deployed=True,
-        )
+            _deployment_data__active=True
+        ).count()
+        return deployed_form_count
