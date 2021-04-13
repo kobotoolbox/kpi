@@ -127,6 +127,8 @@ function SearchContext(opts={}) {
       }
       // non-owner self permission removal only gives an assetUid string, not
       // an object; for consistency we make it an object here
+      // only runs if `isNonOwner` is true, so no need to add `assetType` to
+      // fake object
       if (!asset) {
        asset = {uid: assetOrUid};
       }
