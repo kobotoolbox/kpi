@@ -171,17 +171,13 @@ class QueryParseActions:
 
 def get_parsed_parameters(parsed_query: Q) -> dict:
     """
-    Builds a dictionary of all parameters detected in the query and their
+    Returns a dictionary of all parameters detected in the query and their
     values. Values are always returned as list even if there is only one value
     found.
     For example:
     `q=parent_uid:foo AND asset_type:survey OR asset_type:block` returns
     {'parent_uid':['foo'], 'asset_type': ['survey', 'block']}
 
-    Args:
-        parsed_query (Q): Usually the result
-    Returns:
-        dict
     """
 
     parameters = defaultdict(list)

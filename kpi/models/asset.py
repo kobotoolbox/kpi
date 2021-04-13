@@ -59,6 +59,7 @@ from kpi.fields import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
+from kpi.tasks import sync_media_files
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.asset_translation_utils import (
     compare_translations,
@@ -428,7 +429,7 @@ class XlsExportable:
                  'calculation': '\'{}\''.format(self.version_id),
                  'type': 'calculate'}
             )
-            append_settings.update({'version': self.version_id})
+            append_settings.update({'version': self.version_number_and_date})
             kwargs['append']['settings'] = append_settings
         try:
             def _add_contents_to_sheet(sheet, contents):
@@ -491,8 +492,9 @@ class Asset(ObjectPermissionMixin,
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = JSONBField(default=dict)
 
-    # _deployment_data should be accessed through the `deployment` property
-    # provided by `DeployableMixin`
+    # `_deployment_data` must **NOT** be touched directly by anything except
+    # the `deployment` property provided by `DeployableMixin`.
+    # ToDo Move the field to another table with one-to-one relationship
     _deployment_data = JSONBField(default=dict)
 
     # JSON with subset of fields and allowed users to use it
@@ -758,10 +760,6 @@ class Asset(ObjectPermissionMixin,
         )
 
     @property
-    def deployment_data(self):
-        return self._deployment_data
-
-    @property
     def deployed_versions(self):
         return self.asset_versions.filter(deployed=True).order_by(
             '-date_modified')
@@ -837,7 +835,7 @@ class Asset(ObjectPermissionMixin,
 
     def get_paired_parent(self, paired_data_uid: str) -> Union['Asset', None]:
 
-        # Validate `paired_data_uid`, i.e., must exist in `self.paired_data`  # noqa
+        # Validate `paired_data_uid`, i.e., must exist in `self.paired_data`
         parent_uid = None
         for key, values in self.paired_data.items():
             if values['paired_data_uid'] == paired_data_uid:
@@ -858,7 +856,6 @@ class Asset(ObjectPermissionMixin,
             return None
 
         # Validate `self.owner` is still allowed to see parent data
-        # ToDo : `self.owner` should have `PERM_VIEW_ASSET` on parent too
         allowed_users = parent_data_sharing.get('users', [])
         if allowed_users and self.owner.username not in allowed_users:
             return None
@@ -1051,23 +1048,10 @@ class Asset(ObjectPermissionMixin,
         self._populate_report_styles()
 
         _create_version = kwargs.pop('create_version', True)
-
-        # Race condition may occur when deploying because asset's files
-        # synchronization is delegated to Celery and happens in the background.
-        # `tasks.sync_media_files()` is calling `asset.deployment.set_status()`
-        # internally which modifies asset too.
-        # See `BaseDeploymentBackend.set_status()`
-        refresh_status = kwargs.pop('refresh_status', False)
-        if refresh_status:
-            deployment_data = self._deployment_data.copy()
-            self.refresh_from_db(fields=['_deployment_data'])
-            deployment_data['status'] = self._deployment_data.get('status')
-            self._deployment_data = deployment_data
-
         super().save(*args, **kwargs)
 
         # Update languages for parent and previous parent.
-        # e.g. if an survey has been moved from one collection to another,
+        # e.g. if a survey has been moved from one collection to another,
         # we want both collections to be updated.
         if self.parent is not None and update_parent_languages:
             if self.parent_id != self.__previous_parent_id and \
@@ -1086,7 +1070,7 @@ class Asset(ObjectPermissionMixin,
                 self.parent.update_languages([self])
             else:
                 # Otherwise, because we cannot know which languages are from
-                # this object, update will be perform with all parent's
+                # this object, update will be performed with all parent's
                 # children.
                 self.parent.update_languages()
 
@@ -1204,6 +1188,18 @@ class Asset(ObjectPermissionMixin,
         latest_version = self.latest_version
         if latest_version:
             return latest_version.uid
+
+    @property
+    def version_number_and_date(self) -> str:
+        # Returns the count of all deployed versions (plus one for the current
+        # version if it is not deployed) and the date the asset was last
+        # modified
+        count = self.deployed_versions.count()
+
+        if not self.latest_version.deployed:
+            count = count + 1
+
+        return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})

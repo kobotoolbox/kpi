@@ -2,14 +2,12 @@
 import os
 import re
 from copy import deepcopy
-from lxml import etree
 
 from django.conf import settings
 from django.db.models import Q
 from django.test import TestCase
 
 from kpi.exceptions import SearchQueryTooShortException
-from kpi.constants import ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
 from kpi.utils.query_parser import parse

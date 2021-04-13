@@ -1,23 +1,14 @@
 # coding: utf-8
-import re
-import socket
-from datetime import timedelta
-from urllib.parse import urlparse
-
-from dateutil import parser
-from django.conf import settings
-from django.utils import timezone
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
-from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.object_permission import get_anonymous_user
-from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 
 
 # FIXME: Move to `object_permissions` module.
@@ -109,13 +100,13 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
             raise exceptions.MethodNotAllowed(method)
 
         perms = [perm % kwargs for perm in perm_list]
-        # Because `ObjectPermissionMixin.get_perms()` returns codenames only, remove the
-        # `app_label` prefix before returning
+        # Because `ObjectPermissionMixin.get_perms()` returns codenames only,
+        # remove the `app_label` prefix before returning
         return [perm.replace("{}.".format(app_label), "") for perm in perms]
 
     def has_object_permission(self, request, view, obj):
-        # Because authentication checks have already executed via has_permission,
-        # always return True.
+        # Because authentication checks has already executed via
+        # `has_permission()`, always return True.
         return True
 
 
@@ -181,6 +172,19 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         # Don't reveal the existence of this object to users who do not have
         # permission to view it
         raise Http404
+
+
+class AssetExportSettingsPermission(AssetNestedObjectPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+        'POST': ['%(app_label)s.manage_asset'],
+    }
+
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
+    perms_map['PUT'] = perms_map['POST']
+    perms_map['PATCH'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['POST']
 
 
 class AssetEditorPermission(AssetNestedObjectPermission):
@@ -304,6 +308,25 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
+class ReportPermission(IsOwnerOrReadOnly):
+    def has_object_permission(self, request, view, obj):
+        # Checks if the user has the required permissions
+        # To access the submission data in reports
+        user = request.user
+        if user.is_superuser:
+            return True
+        if user.is_anonymous:
+            user = get_anonymous_user()
+        permissions = list(obj.get_perms(user))
+        required_permissions = [
+            PERM_VIEW_SUBMISSIONS,
+            PERM_PARTIAL_SUBMISSIONS,
+        ]
+        return any(
+            perm in permissions for perm in required_permissions
+        )
+
+    
 class SubmissionPermission(AssetNestedObjectPermission):
     """
     Permissions for submissions.
@@ -364,22 +387,3 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
         'PATCH': ['%(app_label)s.validate_%(model_name)s'],
         'DELETE': ['%(app_label)s.validate_%(model_name)s'],
     }
-
-
-class ReportPermission(IsOwnerOrReadOnly):
-    def has_object_permission(self, request, view, obj):
-        # Checks if the user has the required permissions
-        # To access the submission data in reports
-        user = request.user
-        if user.is_superuser:
-            return True
-        if user.is_anonymous:
-            user = get_anonymous_user()
-        permissions = list(obj.get_perms(user))
-        required_permissions = [
-            PERM_VIEW_SUBMISSIONS,
-            PERM_PARTIAL_SUBMISSIONS,
-        ]
-        return any(
-            perm in permissions for perm in required_permissions
-        )
