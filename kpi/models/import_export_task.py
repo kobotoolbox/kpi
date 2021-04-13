@@ -36,6 +36,7 @@ from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
+    ASSET_TYPE_TEMPLATE,
     PERM_CHANGE_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -344,7 +345,9 @@ class ImportTask(ImportExportTask):
                     asset_type = 'question'
                 else:
                     asset_type = 'survey'
-                    survey_dict = append_kobo_locks(base64_encoded_upload, survey_dict)
+                    _append_kobo_locking_profiles(
+                        base64_encoded_upload, survey_dict
+                    )
                 asset = Asset.objects.create(
                     owner=self.user,
                     content=survey_dict,
@@ -358,7 +361,10 @@ class ImportTask(ImportExportTask):
                     asset.name = filename
                 if asset.asset_type == ASSET_TYPE_EMPTY:
                     asset.asset_type = ASSET_TYPE_SURVEY
-                survey_dict = append_kobo_locks(base64_encoded_upload, survey_dict)
+                if asset.asset_type in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
+                    _append_kobo_locking_profiles(
+                        base64_encoded_upload, survey_dict
+                    )
                 asset.content = survey_dict
                 asset.save()
                 msg_key = 'updated'
@@ -753,12 +759,13 @@ def _b64_xls_to_dict(base64_encoded_upload):
 
     return _strip_header_keys(survey_dict)
 
-def append_kobo_locks(base64_encoded_upload, survey_dict):
+def _append_kobo_locking_profiles(
+    base64_encoded_upload: BytesIO, survey_dict: dict
+) -> None:
     decoded_str = base64.b64decode(base64_encoded_upload)
     kobo_locks = get_kobo_locking_profiles(BytesIO(decoded_str))
     if kobo_locks:
         survey_dict[KOBO_LOCK_SHEET] = kobo_locks
-    return survey_dict
 
 def _strip_header_keys(survey_dict):
     survey_dict_copy = dict(survey_dict)
