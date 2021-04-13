@@ -705,6 +705,7 @@ class Asset(ObjectPermissionMixin,
         if self.asset_type not in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
             # instead of deleting the settings, simply clear them out
             self.content['settings'] = {}
+            self._strip_kobo_locks(self.content)
 
         if _title is not None:
             self.name = _title
@@ -997,6 +998,13 @@ class Asset(ObjectPermissionMixin,
         if _create_version:
             self.create_version()
 
+    @staticmethod
+    def _strip_kobo_locks(survey_dict):
+        survey = survey_dict.get('survey')
+        for item in survey:
+            if 'kobo--locking-profile' in item:
+                item.pop('kobo--locking-profile')
+
     @property
     def snapshot(self):
         return self._snapshot(regenerate=False)
@@ -1026,6 +1034,7 @@ class Asset(ObjectPermissionMixin,
         :param version: Optional. It can be an object or its unique id
         :return dict
         """
+        print('****** i made it here to to_clone_dict')
         if not isinstance(version, AssetVersion):
             if version:
                 version = self.asset_versions.get(uid=version)
