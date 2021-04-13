@@ -711,7 +711,7 @@ class Asset(ObjectPermissionMixin,
         if self.asset_type not in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
             # instead of deleting the settings, simply clear them out
             self.content['settings'] = {}
-            self._strip_kobo_locks(self.content)
+            self._strip_kobo_locking_profile(self.content)
 
         if _title is not None:
             self.name = _title
