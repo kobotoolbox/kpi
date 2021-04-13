@@ -245,28 +245,34 @@ class AssetImportTaskTest(BaseTestCase):
         content = (
             ('survey', survey_sheet_content),
             ('choices', choices_sheet_content),
-            #('settings', settings_sheet_content),
+            ('settings', settings_sheet_content),
             ('kobo--locking-profiles', kobo_locks_sheet_content),
         )
         task_data = self._construct_xls_for_import(
             content, name='survey with library locking'
         )
+        empty_asset = self.client.post(
+            reverse('asset-list'),
+            data={'asset_type': 'empty'},
+            HTTP_ACCEPT='application/json',
+        )
+        empty_asset_data = empty_asset.json()
+        task_data['destination'] = empty_asset_data['url']
+
         post_url = reverse('importtask-list')
         response = self.client.post(post_url, task_data)
         assert response.status_code == status.HTTP_201_CREATED
         detail_response = self.client.get(response.data['url'])
 
         # Find the new collection created by the import
-        created_details = detail_response.data['messages']['created'][0]
-        assert created_details['kind'] == 'asset'
-        created_survey= Asset.objects.get(uid=created_details['uid'])
+        created_survey= Asset.objects.get(uid=empty_asset_data['uid'])
 
         # Ensure the kobo--locks are showing up correctly
         assert created_survey.name == task_data['name']
         assert expected_content_survey == self._prepare_survey_content(
             created_survey.content['survey']
         )
-        #assert expected_content_settings == created_survey.content['settings']
+        assert expected_content_settings == created_survey.content['settings']
         for profiles in expected_content_kobo_locks:
             name = profiles['name']
             expected_restrictions = profiles['restrictions']
