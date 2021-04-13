@@ -23,7 +23,10 @@ from taggit.utils import require_instance_manager
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
-from formpack.utils.kobo_locking import revert_kobo_lock_structre
+from formpack.utils.kobo_locking import (
+    revert_kobo_lock_structre,
+    strip_kobo_locking_profile,
+)
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
@@ -242,6 +245,9 @@ class FormpackXLSFormUtils:
 
     def _revert_kobo_lock_structre(self, content):
         revert_kobo_lock_structre(content)
+
+    def _strip_kobo_locking_profile(self, content):
+        strip_kobo_locking_profile(content)
 
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
@@ -998,13 +1004,6 @@ class Asset(ObjectPermissionMixin,
         if _create_version:
             self.create_version()
 
-    @staticmethod
-    def _strip_kobo_locks(survey_dict):
-        survey = survey_dict.get('survey')
-        for item in survey:
-            if 'kobo--locking-profile' in item:
-                item.pop('kobo--locking-profile')
-
     @property
     def snapshot(self):
         return self._snapshot(regenerate=False)
@@ -1034,7 +1033,6 @@ class Asset(ObjectPermissionMixin,
         :param version: Optional. It can be an object or its unique id
         :return dict
         """
-        print('****** i made it here to to_clone_dict')
         if not isinstance(version, AssetVersion):
             if version:
                 version = self.asset_versions.get(uid=version)
