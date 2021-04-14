@@ -331,7 +331,7 @@ class BaseDeploymentBackend:
         No validation is made whether `user` is granted with other permissions
         than 'partial_submission' permission.
         """
-        if PERM_PARTIAL_SUBMISSIONS not in self.get_perms(user):
+        if PERM_PARTIAL_SUBMISSIONS not in self.asset.get_perms(user):
             return
 
         results = self.get_submissions(
@@ -353,7 +353,6 @@ class BaseDeploymentBackend:
     @property
     def version_id(self):
         return self.get_data('version')
-
 
     def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
         if file_type == AssetFile.FORM_MEDIA:
