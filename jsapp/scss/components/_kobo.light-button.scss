@@ -20,7 +20,7 @@
   border-style: solid;
   white-space: nowrap; // for smaller screens
 
-  // icon inside
+  // icon inside is bigger than the button, so we need cleverness to position it
   i,
   .k-icon {
     vertical-align: top;
@@ -32,6 +32,10 @@
 
   &.kobo-light-button--icon-only,
   &.kobo-light-badge--icon-only {
+    // ideally we want a square here
+    padding-left: 4px;
+    padding-right: 4px;
+
     & i,
     & .k-icon {
       margin-right: 0;
