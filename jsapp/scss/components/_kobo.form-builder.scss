@@ -223,10 +223,6 @@ $t-form-builder-aside-open: 200ms;
           font-size: 24px;
           margin: 3px;
           vertical-align: middle;
-
-          &::before {
-            vertical-align: bottom;
-          }
         }
       }
     }
