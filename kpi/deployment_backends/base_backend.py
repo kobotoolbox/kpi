@@ -170,7 +170,6 @@ class BaseDeploymentBackend:
     def submission_count(self):
         return self._submission_count()
 
-
     def remove_from_kc_only_flag(self, *args, **kwargs):
         # TODO: This exists only to support KoBoCAT (see #1161) and should be
         # removed, along with all places where it is called, once we remove
