@@ -27,10 +27,7 @@ import formpack.constants
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import ValidationStatusCopyField
 from formpack.utils.string import ellipsize
-from formpack.utils.kobo_locking import (
-    get_kobo_locking_profiles,
-    strip_kobo_locking_profile,
-)
+from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
