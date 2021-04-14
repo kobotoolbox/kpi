@@ -19,14 +19,12 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import AbstractMethodError
-from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.jsonbfield_helper import ReplaceValues
 
 
 class BaseDeploymentBackend:
-
     INSTANCE_ID_FIELDNAME = '_id'
     STATUS_SYNCED = 'synced'
     STATUS_NOT_SYNCED = 'not-synced'
@@ -63,9 +61,9 @@ class BaseDeploymentBackend:
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
 
-    def get_data(self,
-                 dotted_path: str = None,
-                 default=None) -> Union[None, int, str, dict]:
+    def get_data(
+        self, dotted_path: str = None, default=None
+    ) -> Union[None, int, str, dict]:
         """
         Access `self.asset._deployment_data` and return corresponding value of
         `dotted_path` if it exists. Otherwise, it returns `default`.
@@ -76,7 +74,7 @@ class BaseDeploymentBackend:
             # We do not want to return the mutable object whose could be altered
             # later. `self.asset._deployment_data` should never be accessed
             # directly
-            return copy.deepcopy(self.asset._deployment_data) # noqa
+            return copy.deepcopy(self.asset._deployment_data)  # noqa
 
         value = None
         nested_path = dotted_path.split('.')
@@ -175,14 +173,6 @@ class BaseDeploymentBackend:
     def mongo_userform_id(self):
         return None
 
-    def set_active(self, active):
-        raise AbstractMethodError
-
-    def set_has_kpi_hooks(self):
-        raise AbstractMethodError
-
-    def set_status(self, status):
-
     def redeploy(self, active=None):
         raise AbstractMethodError
 
@@ -216,7 +206,13 @@ class BaseDeploymentBackend:
         self.store_data(updates)
         self.asset.date_modified = now
 
+    def set_active(self, active):
+        raise AbstractMethodError
+
     def set_asset_uid(self, **kwargs) -> bool:
+        raise AbstractMethodError
+
+    def set_has_kpi_hooks(self):
         raise AbstractMethodError
 
     def set_status(self, status):
@@ -396,7 +392,7 @@ class BaseDeploymentBackend:
             return
 
         results = self.get_submissions(
-            requesting_user_id=user.pk,
+            user=user,
             format_type=INSTANCE_FORMAT_TYPE_JSON,
             partial_perm=perm,
             fields=[self.INSTANCE_ID_FIELDNAME],
