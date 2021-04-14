@@ -36,11 +36,13 @@ export class ListSearch extends React.Component {
       <bem.Search m={[this.state.searchState]} >
         <bem.Search__icon className='k-icon k-icon-search'/>
         <ui.SearchBox ref='formlist-search' placeholder={this.props.placeholderText} onChange={this.searchChangeEvent} />
-        <bem.Search__cancel
-          className='k-icon k-icon-close'
-          m={{'active': this.state.searchState !== 'none'}}
-          onClick={this.searchClear}
-        />
+
+        {this.state.searchState !== 'none' &&
+          <bem.Search__cancel
+            className='k-icon k-icon-close'
+            onClick={this.searchClear}
+          />
+        }
       </bem.Search>
     );
   }
