@@ -16,6 +16,7 @@ from kpi.constants import (
     INSTANCE_FORMAT_TYPE_XML,
     INSTANCE_FORMAT_TYPE_JSON,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import AbstractMethodError
@@ -319,10 +320,13 @@ class BaseDeploymentBackend:
 
         return params
 
-    def validate_write_access_with_partial_perms(self,
-                                                 user: 'auth.User',
-                                                 perm: str,
-                                                 instance_ids: list):
+    def validate_write_access_with_partial_perms(
+        self,
+        user: 'auth.User',
+        perm: str,
+        instance_ids: list = [],
+        query: dict = {},
+    ):
         """
         Validate whether `user` is allowed to perform write actions on
         submissions with the permission `perm`.
@@ -334,12 +338,16 @@ class BaseDeploymentBackend:
         if PERM_PARTIAL_SUBMISSIONS not in self.asset.get_perms(user):
             return
 
+        if perm != PERM_VALIDATE_SUBMISSIONS and not instance_ids:
+            raise ValueError('`instance_ids` cannot be empty')
+
         results = self.get_submissions(
             requesting_user_id=user.pk,
             format_type=INSTANCE_FORMAT_TYPE_JSON,
             partial_perm=perm,
             fields=[self.INSTANCE_ID_FIELDNAME],
             instance_ids=instance_ids,
+            query=query,
         )
         allowed_instance_ids = [r[self.INSTANCE_ID_FIELDNAME] for r in results]
 

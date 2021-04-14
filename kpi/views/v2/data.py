@@ -12,12 +12,13 @@ from rest_framework import (
 )
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
     INSTANCE_FORMAT_TYPE_JSON,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
@@ -31,6 +32,7 @@ from kpi.permissions import (
 )
 from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
 class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
@@ -289,17 +291,21 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-
-        instance_ids = self.__get_instance_ids_from_post_data(
-            request)
-
+        kwargs = {
+            "data": request.data,
+            "context": self.get_serializer_context(),
+        }
         if request.method == 'DELETE':
-            json_response = deployment.delete_submissions(
-                instance_ids, request.data, request.user)
+            action_ = deployment.delete_submissions
+            kwargs['perm'] = PERM_DELETE_SUBMISSIONS
         elif request.method == 'PATCH':
-            json_response = deployment.bulk_update_submissions(
-                instance_ids, request.data, request.user
-            )
+            action_ = deployment.bulk_update_submissions
+            kwargs['perm'] = PERM_CHANGE_SUBMISSIONS
+
+        bulk_actions_validator = DataBulkActionsValidator(**kwargs)
+        bulk_actions_validator.is_valid(raise_exception=True)
+        json_response = action_(bulk_actions_validator.data, request.user)
+
         return Response(**json_response)
 
     def destroy(self, request, *args, **kwargs):
@@ -404,11 +410,15 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             permission_classes=[SubmissionValidationStatusPermission])
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-        instance_ids = self.__get_instance_ids_from_post_data(
-            request, perm=PERM_VALIDATE_SUBMISSIONS)
 
+        bulk_actions_validator = DataBulkActionsValidator(
+            data=request.data,
+            context=self.get_serializer_context(),
+            perm=PERM_VALIDATE_SUBMISSIONS
+        )
+        bulk_actions_validator.is_valid(raise_exception=True)
         json_response = deployment.set_validation_statuses(
-            instance_ids, request.data, request.user)
+            bulk_actions_validator.data, request.user)
 
         return Response(**json_response)
 
@@ -440,53 +450,3 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         return filters
-
-    def __get_instance_ids_from_post_data(
-        self, request: Request, perm: str = None
-    ) -> list:
-        try:
-            payload = request.data['payload']
-        except KeyError:
-            raise serializers.ValidationError({
-                'payload': _('This parameter is required')
-            })
-
-        # If `payload` is stringified, convert it to dict
-        if isinstance(payload, str):
-            try:
-                payload = json.loads(payload)
-            except ValueError:
-                raise serializers.ValidationError({
-                    'payload': _('Invalid JSON')
-                })
-
-        # Users can modify all submissions at once, only when they change the
-        # validation status. It is not allowed on delete.
-        allowed_perms_to_modify_all = [
-            PERM_VALIDATE_SUBMISSIONS,
-        ]
-        # We want to compare to `None`, i.e. `submission_ids` is not present
-        # in `POST` data
-        # ToDo I should be consistent, I use;
-        #  `pk`, `submission_pk`, `instance_id`, `instance_ids`.
-        #  let's choose one keyword and use it everywhere
-        if payload.get('submission_ids') is None:
-            if not payload.get('confirm', False):
-                raise serializers.ValidationError({
-                    'detail': _('Action was not confirmed')
-                })
-            elif perm not in allowed_perms_to_modify_all:
-                raise Exception(
-                    'Cannot make actions on all submissions at once'
-                )
-            else:
-                deployment = self._get_deployment()
-                results = deployment.get_submissions(
-                    requesting_user_id=request.user.pk,
-                    format_type=INSTANCE_FORMAT_TYPE_JSON,
-                    partial_perm=perm,
-                    fields=[deployment.INSTANCE_ID_FIELDNAME],
-                )
-                return [r[deployment.INSTANCE_ID_FIELDNAME] for r in results]
-
-        return payload['submission_ids']
