@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@9f986a45ea5c2e9595b0ab3a1323cf16e190abd7#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@562f9b605e529f0344bedca8a64b711509d1f099#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
