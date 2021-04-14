@@ -81,6 +81,19 @@ class AssetImportTaskTest(BaseTestCase):
             'name': name,
         }
 
+    def _create_asset_from_xls(self, content, name, asset_type='empty'):
+        task_data = self._construct_xls_for_import(
+            content, name=name
+        )
+        empty_asset = self.client.post(
+            reverse('asset-list'),
+            data={'asset_type': asset_type},
+            HTTP_ACCEPT='application/json',
+        )
+        empty_asset_data = empty_asset.json()
+        task_data['destination'] = empty_asset_data['url']
+        return self.client.post(reverse('importtask-list'), task_data)
+
     @responses.activate
     def test_import_asset_from_xls_url(self):
         # Host the XLS on a mock HTTP server
@@ -103,7 +116,7 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
-    def test_import_locking_xls(self):
+    def test_import_locking_xls_as_survey(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo--locking-profile'],
             ['today', 'today', '', '', '', ''],
@@ -127,29 +140,30 @@ class AssetImportTaskTest(BaseTestCase):
             ['form', 'false'],
         ]
         kobo_locks_sheet_content = [
-            ['restriction', 'core', 'flex', 'delete'],
-            ['choice_add', 'true', 'true', ''],
-            ['choice_delete', '', '', 'true'],
-            ['choice_edit', '', '', ''],
-            ['choice_order_edit', 'true', '', ''],
-            ['question_delete', 'true', 'true', 'true'],
-            ['question_label_edit', 'true', 'true', ''],
-            ['question_settings_edit', 'true', 'true', ''],
-            ['question_skip_logic_edit', 'true', 'true', ''],
-            ['question_validation_edit', 'true', 'true', ''],
-            ['group_delete', 'true', '', 'true'],
-            ['group_label_edit', '', '', ''],
-            ['group_question_add', 'true', 'true', ''],
-            ['group_question_delete', 'true', 'true', 'true'],
-            ['group_question_order_edit', 'true', 'true', ''],
-            ['group_settings_edit', 'true', 'true', ''],
-            ['group_skip_logic_edit', 'true', 'true', ''],
-            ['form_replace', 'true', '', ''],
-            ['group_add', 'true', '', ''],
-            ['question_add', 'true', '', ''],
-            ['question_order_edit', 'true', '', ''],
-            ['translations_manage', 'true', '', ''],
-            ['form_appearance', 'true', '', ''],
+            ['restriction', 'core', 'flex', 'delete', 'form'],
+            ['choice_add', 'locked', 'locked', '', ''],
+            ['choice_delete', '', '', 'locked', ''],
+            ['choice_edit', '', '', '', ''],
+            ['choice_order_edit', 'locked', '', '', ''],
+            ['question_delete', 'locked', 'locked', 'locked', ''],
+            ['question_label_edit', 'locked', 'locked', '', ''],
+            ['question_settings_edit', 'locked', 'locked', '', ''],
+            ['question_skip_logic_edit', 'locked', 'locked', '', ''],
+            ['question_validation_edit', 'locked', 'locked', '', ''],
+            ['group_delete', 'locked', '', 'locked', ''],
+            ['group_label_edit', '', '', '', ''],
+            ['group_question_add', 'locked', 'locked', '', ''],
+            ['group_question_delete', 'locked', 'locked', 'locked', ''],
+            ['group_question_order_edit', 'locked', 'locked', '', ''],
+            ['group_settings_edit', 'locked', 'locked', '', ''],
+            ['group_skip_logic_edit', 'locked', 'locked', '', ''],
+            ['group_split', 'locked', 'locked', '', ''],
+            ['form_replace', 'locked', '', '', 'locked'],
+            ['group_add', 'locked', '', '', 'locked'],
+            ['question_add', 'locked', '', '', ''],
+            ['question_order_edit', 'locked', '', '', ''],
+            ['translations_manage', 'locked', '', '', ''],
+            ['form_appearance', 'locked', '', '', ''],
         ]
 
         expected_content_survey = [
@@ -188,7 +202,7 @@ class AssetImportTaskTest(BaseTestCase):
         ]
         expected_content_settings = {
             'kobo--locking-profile': 'form',
-            'kobo--locks_all': 'false',
+            'kobo--locks_all': False,
         }
         expected_content_kobo_locks = [
             {
@@ -207,6 +221,7 @@ class AssetImportTaskTest(BaseTestCase):
                     'group_question_order_edit',
                     'group_settings_edit',
                     'group_skip_logic_edit',
+                    'group_split',
                     'form_replace',
                     'group_add',
                     'question_add',
@@ -238,35 +253,40 @@ class AssetImportTaskTest(BaseTestCase):
                     'group_question_order_edit',
                     'group_settings_edit',
                     'group_skip_logic_edit',
+                    'group_split',
                 ],
             },
+            {
+                'name': 'form',
+                'restrictions': [
+                    'form_replace',
+                    'group_add',
+                ],
+            }
         ]
 
         content = (
             ('survey', survey_sheet_content),
             ('choices', choices_sheet_content),
-            #('settings', settings_sheet_content),
+            ('settings', settings_sheet_content),
             ('kobo--locking-profiles', kobo_locks_sheet_content),
         )
-        task_data = self._construct_xls_for_import(
-            content, name='survey with library locking'
+        response = self._create_asset_from_xls(
+            content, 'survey with library locking', asset_type='survey'
         )
-        post_url = reverse('importtask-list')
-        response = self.client.post(post_url, task_data)
         assert response.status_code == status.HTTP_201_CREATED
         detail_response = self.client.get(response.data['url'])
 
-        # Find the new collection created by the import
-        created_details = detail_response.data['messages']['created'][0]
-        assert created_details['kind'] == 'asset'
-        created_survey= Asset.objects.get(uid=created_details['uid'])
+        created_survey = Asset.objects.get(
+            uid=detail_response.data['messages']['updated'][0]['uid']
+        )
+        assert created_survey.asset_type == 'survey'
 
         # Ensure the kobo--locks are showing up correctly
-        assert created_survey.name == task_data['name']
         assert expected_content_survey == self._prepare_survey_content(
             created_survey.content['survey']
         )
-        #assert expected_content_settings == created_survey.content['settings']
+        assert expected_content_settings == created_survey.content['settings']
         for profiles in expected_content_kobo_locks:
             name = profiles['name']
             expected_restrictions = profiles['restrictions']
@@ -276,6 +296,377 @@ class AssetImportTaskTest(BaseTestCase):
                 if val['name'] == name
             ][0]
             assert expected_restrictions == actual_restrictions
+
+    def test_import_locking_xls_as_survey_with_kobo_n_and_m_dash(self):
+        # n-dash in survey column name
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo–locking-profile'],
+            ['today', 'today', '', '', '', ''],
+            ['select_one gender', 'gender', "Respondent's gender?", 'yes', '', 'flex'],
+            ['integer', 'age', "Respondent's age?", 'yes', '', ''],
+            ['select_one yesno', 'confirm', 'Is your age really ${age}?', 'yes', "${age}!=''", 'delete'],
+            ['begin group', 'group_1', 'A message from our sponsors', '', '', 'core'],
+            ['note', 'note_1', 'Hi there 👋', '', '', ''],
+            ['end group', '', '', '', '', '']
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+            ['gender', 'female', 'Female'],
+            ['gender', 'male', 'Male'],
+            ['gender', 'other', 'Other'],
+            ['yesno', 'yes', 'Yes'],
+            ['yesno', 'no', 'No'],
+        ]
+        # n and m dash in settings
+        settings_sheet_content = [
+            ['kobo–locking-profile', 'kobo—locks_all'],
+            ['form', 'false'],
+        ]
+        # mess with locking syntax
+        kobo_locks_sheet_content = [
+            ['restriction', 'core', 'flex', 'delete', 'form'],
+            ['choice_add', 'LOCKED', 'Locked', '🕺', ''],
+            ['choice_delete', '', '', 'LoCkEd', ''],
+            ['choice_edit', '', '', '', ''],
+            ['choice_order_edit', 'lOcKeD', '', '🤘', ''],
+            ['question_delete', 'LOckED', 'loCKed', 'lOCkED', ''],
+            ['question_label_edit', 'locked', 'locked', '🤡', ''],
+            ['question_settings_edit', 'locked', 'locked', '', ''],
+            ['question_skip_logic_edit', 'locked', 'locked', '', ''],
+            ['question_validation_edit', 'locked', 'locked', '', ''],
+            ['group_delete', 'locked', '', 'locked', '🚧'],
+            ['group_label_edit', '', '', '', ''],
+            ['group_question_add', 'locked', 'locked', '', ''],
+            ['group_question_delete', 'locked', 'locked', 'locked', ''],
+            ['group_question_order_edit', 'locked', 'locked', '', ''],
+            ['group_settings_edit', 'locked', 'locked', '🚀', ''],
+            ['group_skip_logic_edit', 'locked', 'locked', '', ''],
+            ['group_split', 'locked', 'locked', '', ''],
+            ['form_replace', 'LOCKED', '🔪', '', 'locked'],
+            ['group_add', 'locKeD', '', '', 'locked'],
+            ['question_add', 'locKED', '', '', ''],
+            ['question_order_edit', 'LOCKed', '', '', ''],
+            ['translations_manage', 'loCkED', '', '', ''],
+            ['form_appearance', 'loCKeD', '', '', ''],
+        ]
+
+        expected_content_survey = [
+            {'name': 'today', 'type': 'today'},
+            {
+                'name': 'gender',
+                'type': 'select_one',
+                'label': ["Respondent's gender?"],
+                'required': True,
+                'kobo--locking-profile': 'flex',
+                'select_from_list_name': 'gender',
+            },
+            {
+                'name': 'age',
+                'type': 'integer',
+                'label': ["Respondent's age?"],
+                'required': True,
+            },
+            {
+                'name': 'confirm',
+                'type': 'select_one',
+                'label': ['Is your age really ${age}?'],
+                'relevant': "${age}!=''",
+                'required': True,
+                'kobo--locking-profile': 'delete',
+                'select_from_list_name': 'yesno',
+            },
+            {
+                'name': 'group_1',
+                'type': 'begin_group',
+                'label': ['A message from our sponsors'],
+                'kobo--locking-profile': 'core',
+            },
+            {'name': 'note_1', 'type': 'note', 'label': ['Hi there 👋']},
+            {'type': 'end_group'},
+        ]
+        expected_content_settings = {
+            'kobo--locking-profile': 'form',
+            'kobo--locks_all': False,
+        }
+        expected_content_kobo_locks = [
+            {
+                'name': 'core',
+                'restrictions': [
+                    'choice_add',
+                    'choice_order_edit',
+                    'question_delete',
+                    'question_label_edit',
+                    'question_settings_edit',
+                    'question_skip_logic_edit',
+                    'question_validation_edit',
+                    'group_delete',
+                    'group_question_add',
+                    'group_question_delete',
+                    'group_question_order_edit',
+                    'group_settings_edit',
+                    'group_skip_logic_edit',
+                    'group_split',
+                    'form_replace',
+                    'group_add',
+                    'question_add',
+                    'question_order_edit',
+                    'translations_manage',
+                    'form_appearance',
+                ],
+            },
+            {
+                'name': 'delete',
+                'restrictions': [
+                    'choice_delete',
+                    'question_delete',
+                    'group_delete',
+                    'group_question_delete',
+                ],
+            },
+            {
+                'name': 'flex',
+                'restrictions': [
+                    'choice_add',
+                    'question_delete',
+                    'question_label_edit',
+                    'question_settings_edit',
+                    'question_skip_logic_edit',
+                    'question_validation_edit',
+                    'group_question_add',
+                    'group_question_delete',
+                    'group_question_order_edit',
+                    'group_settings_edit',
+                    'group_skip_logic_edit',
+                    'group_split',
+                ],
+            },
+            {
+                'name': 'form',
+                'restrictions': [
+                    'form_replace',
+                    'group_add',
+                ],
+            }
+        ]
+
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+            ('settings', settings_sheet_content),
+            # m-dash as sheet name
+            ('kobo—locking-profiles', kobo_locks_sheet_content),
+        )
+        response = self._create_asset_from_xls(
+            content, 'survey with library locking', asset_type='survey'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        detail_response = self.client.get(response.data['url'])
+
+        created_survey = Asset.objects.get(
+            uid=detail_response.data['messages']['updated'][0]['uid']
+        )
+        assert created_survey.asset_type == 'survey'
+
+        # Ensure the kobo--locks are showing up correctly
+        assert expected_content_survey == self._prepare_survey_content(
+            created_survey.content['survey']
+        )
+        assert expected_content_settings == created_survey.content['settings']
+        for profiles in expected_content_kobo_locks:
+            name = profiles['name']
+            expected_restrictions = profiles['restrictions']
+            actual_restrictions = [
+                val['restrictions']
+                for val in created_survey.content['kobo--locking-profiles']
+                if val['name'] == name
+            ][0]
+            assert expected_restrictions == actual_restrictions
+
+    def test_import_locking_xls_as_block(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo--locking-profile'],
+            ['today', 'today', '', '', '', ''],
+            ['select_one gender', 'gender', "Respondent's gender?", 'yes', '', 'flex'],
+            ['integer', 'age', "Respondent's age?", 'yes', '', ''],
+            ['select_one yesno', 'confirm', 'Is your age really ${age}?', 'yes', "${age}!=''", 'delete'],
+            ['begin group', 'group_1', 'A message from our sponsors', '', '', 'core'],
+            ['note', 'note_1', 'Hi there 👋', '', '', ''],
+            ['end group', '', '', '', '', '']
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+            ['gender', 'female', 'Female'],
+            ['gender', 'male', 'Male'],
+            ['gender', 'other', 'Other'],
+            ['yesno', 'yes', 'Yes'],
+            ['yesno', 'no', 'No'],
+        ]
+        settings_sheet_content = [
+            ['kobo--locking-profile', 'kobo--locks_all'],
+            ['form', 'false'],
+        ]
+        kobo_locks_sheet_content = [
+            ['restriction', 'core', 'flex', 'delete', 'form'],
+            ['choice_add', 'locked', 'locked', '', ''],
+            ['choice_delete', '', '', 'locked', ''],
+            ['choice_edit', '', '', '', ''],
+            ['choice_order_edit', 'locked', '', '', ''],
+            ['question_delete', 'locked', 'locked', 'locked', ''],
+            ['question_label_edit', 'locked', 'locked', '', ''],
+            ['question_settings_edit', 'locked', 'locked', '', ''],
+            ['question_skip_logic_edit', 'locked', 'locked', '', ''],
+            ['question_validation_edit', 'locked', 'locked', '', ''],
+            ['group_delete', 'locked', '', 'locked', ''],
+            ['group_label_edit', '', '', '', ''],
+            ['group_question_add', 'locked', 'locked', '', ''],
+            ['group_question_delete', 'locked', 'locked', 'locked', ''],
+            ['group_question_order_edit', 'locked', 'locked', '', ''],
+            ['group_settings_edit', 'locked', 'locked', '', ''],
+            ['group_skip_logic_edit', 'locked', 'locked', '', ''],
+            ['group_split', 'locked', 'locked', '', ''],
+            ['form_replace', 'locked', '', '', 'locked'],
+            ['group_add', 'locked', '', '', 'locked'],
+            ['question_add', 'locked', '', '', ''],
+            ['question_order_edit', 'locked', '', '', ''],
+            ['translations_manage', 'locked', '', '', ''],
+            ['form_appearance', 'locked', '', '', ''],
+        ]
+
+        expected_content_survey = [
+            {'name': 'today', 'type': 'today'},
+            {
+                'name': 'gender',
+                'type': 'select_one',
+                'label': ["Respondent's gender?"],
+                'required': True,
+                'select_from_list_name': 'gender',
+            },
+            {
+                'name': 'age',
+                'type': 'integer',
+                'label': ["Respondent's age?"],
+                'required': True,
+            },
+            {
+                'name': 'confirm',
+                'type': 'select_one',
+                'label': ['Is your age really ${age}?'],
+                'relevant': "${age}!=''",
+                'required': True,
+                'select_from_list_name': 'yesno',
+            },
+            {
+                'name': 'group_1',
+                'type': 'begin_group',
+                'label': ['A message from our sponsors'],
+            },
+            {'name': 'note_1', 'type': 'note', 'label': ['Hi there 👋']},
+            {'type': 'end_group'},
+        ]
+        expected_content_settings = {}
+
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+            ('settings', settings_sheet_content),
+            ('kobo--locking-profiles', kobo_locks_sheet_content),
+        )
+        response = self._create_asset_from_xls(
+            content,
+            'block from xlsform with library locking',
+            asset_type='block',
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        detail_response = self.client.get(response.data['url'])
+
+        created_asset = Asset.objects.get(
+            uid=detail_response.data['messages']['updated'][0]['uid']
+        )
+        assert created_asset.asset_type == 'block'
+
+        assert expected_content_survey == self._prepare_survey_content(
+            created_asset.content['survey']
+        )
+        assert expected_content_settings == created_asset.content['settings']
+        assert 'kobo--locking-profiles' not in created_asset.content
+
+    def test_import_locking_xls_as_question(self):
+        survey_sheet_content = [
+            ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo--locking-profile'],
+            ['select_one gender', 'gender', "Respondent's gender?", 'yes', '', 'flex'],
+        ]
+        choices_sheet_content = [
+            ['list_name', 'name', 'label::English (en)'],
+            ['gender', 'female', 'Female'],
+            ['gender', 'male', 'Male'],
+            ['gender', 'other', 'Other'],
+        ]
+        settings_sheet_content = [
+            ['kobo--locking-profile', 'kobo--locks_all'],
+            ['form', 'false'],
+        ]
+        kobo_locks_sheet_content = [
+            ['restriction', 'core', 'flex', 'delete', 'form'],
+            ['choice_add', 'locked', 'locked', '', ''],
+            ['choice_delete', '', '', 'locked', ''],
+            ['choice_edit', '', '', '', ''],
+            ['choice_order_edit', 'locked', '', '', ''],
+            ['question_delete', 'locked', 'locked', 'locked', ''],
+            ['question_label_edit', 'locked', 'locked', '', ''],
+            ['question_settings_edit', 'locked', 'locked', '', ''],
+            ['question_skip_logic_edit', 'locked', 'locked', '', ''],
+            ['question_validation_edit', 'locked', 'locked', '', ''],
+            ['group_delete', 'locked', '', 'locked', ''],
+            ['group_label_edit', '', '', '', ''],
+            ['group_question_add', 'locked', 'locked', '', ''],
+            ['group_question_delete', 'locked', 'locked', 'locked', ''],
+            ['group_question_order_edit', 'locked', 'locked', '', ''],
+            ['group_settings_edit', 'locked', 'locked', '', ''],
+            ['group_skip_logic_edit', 'locked', 'locked', '', ''],
+            ['group_split', 'locked', 'locked', '', ''],
+            ['form_replace', 'locked', '', '', 'locked'],
+            ['group_add', 'locked', '', '', 'locked'],
+            ['question_add', 'locked', '', '', ''],
+            ['question_order_edit', 'locked', '', '', ''],
+            ['translations_manage', 'locked', '', '', ''],
+            ['form_appearance', 'locked', '', '', ''],
+        ]
+
+        expected_content_survey = [
+            {
+                'name': 'gender',
+                'type': 'select_one',
+                'label': ["Respondent's gender?"],
+                'required': True,
+                'select_from_list_name': 'gender',
+            },
+        ]
+        expected_content_settings = {}
+
+        content = (
+            ('survey', survey_sheet_content),
+            ('choices', choices_sheet_content),
+            ('settings', settings_sheet_content),
+            ('kobo--locking-profiles', kobo_locks_sheet_content),
+        )
+        response = self._create_asset_from_xls(
+            content,
+            'question from xlsform with library locking',
+            asset_type='question',
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        detail_response = self.client.get(response.data['url'])
+
+        created_asset = Asset.objects.get(
+            uid=detail_response.data['messages']['updated'][0]['uid']
+        )
+        assert created_asset.asset_type == 'question'
+
+        assert expected_content_survey == self._prepare_survey_content(
+            created_asset.content['survey']
+        )
+        assert expected_content_settings == created_asset.content['settings']
+        assert 'kobo--locking-profiles' not in created_asset.content
 
     def test_import_library_bulk_xls(self):
         library_sheet_content = [

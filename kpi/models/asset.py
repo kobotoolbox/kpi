@@ -23,7 +23,10 @@ from taggit.utils import require_instance_manager
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
-from formpack.utils.kobo_locking import revert_kobo_lock_structre
+from formpack.utils.kobo_locking import (
+    revert_kobo_lock_structre,
+    strip_kobo_locking_profile,
+)
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
@@ -242,6 +245,9 @@ class FormpackXLSFormUtils:
 
     def _revert_kobo_lock_structre(self, content):
         revert_kobo_lock_structre(content)
+
+    def _strip_kobo_locking_profile(self, content):
+        strip_kobo_locking_profile(content)
 
     def _remove_empty_expressions(self, content):
         remove_empty_expressions_in_place(content)
@@ -705,6 +711,7 @@ class Asset(ObjectPermissionMixin,
         if self.asset_type not in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
             # instead of deleting the settings, simply clear them out
             self.content['settings'] = {}
+            self._strip_kobo_locking_profile(self.content)
 
         if _title is not None:
             self.name = _title
