@@ -83,7 +83,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             assign_applicable_kc_permissions(self.asset, user, perms)
 
     def bulk_update_submissions(
-            self, request_data: dict, requesting_user: 'auth.User'
+        self, instance_ids: list, request_data: dict, requesting_user: 'auth.User'
     ) -> dict:
         """
         Allows for bulk updating of submissions proxied through KoBoCAT. A
@@ -101,8 +101,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Returns:
             dict: formatted dict to be passed to a Response object
         """
-        payload = self.__prepare_bulk_update_payload(request_data)
-        instance_ids = payload.pop('submission_ids')
+        payload = self.__prepare_bulk_update_payload(request_data.dict())
+
         self.validate_write_access_with_partial_perms(
             user=requesting_user,
             perm=PERM_CHANGE_SUBMISSIONS,
@@ -309,7 +309,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         self.validate_write_access_with_partial_perms(
-            requesting_user=user,
+            user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             instance_ids=[pk]
         )
@@ -320,7 +320,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def delete_submissions(self, data: QueryDict, user: 'auth.User') -> dict:
+    def delete_submissions(
+        self, instance_ids: list, data: QueryDict, user: 'auth.User'
+    ) -> dict:
         """
         Bulk delete provided submissions through KoBoCAT proxy,
         authenticated by `user`'s API token.
@@ -328,14 +330,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         `data` contains the payload posted with `DELETE` request, and it should
         contain all submission ids to delete.
         Example:
-             {"payload": {"submission_ids": [1,2,3]}}
+             {"payload": {"submission_ids": ["1", "2", "3"]}}
 
         """
 
         self.validate_write_access_with_partial_perms(
-            requesting_user=user,
+            user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            instance_ids=data['payload']['submissions_ids'],
+            instance_ids=instance_ids,
         )
 
         kc_url = self.submission_list_url
@@ -771,7 +773,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         self.validate_write_access_with_partial_perms(
-            requesting_user=user,
+            user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
             instance_ids=[submission_pk],
         )
@@ -781,14 +783,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'url': self.get_submission_validation_status_url(submission_pk)
         }
         if method == 'PATCH':
-            kc_request_params.update({
-                'json': data
-            })
+            kc_request_params.update({'json': data})
+
         kc_request = requests.Request(**kc_request_params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
+    def set_validation_statuses(
+        self, instance_ids: list, data: dict, user: 'auth.User'
+    ) -> dict:
         """
         Bulk update validation status for provided submissions through
         KoBoCAT proxy, authenticated by `user`'s API token.
@@ -796,18 +799,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         `data` contains the payload posted with `PATCH` request, and it should
         contain all submission ids to delete.
         Example:
-             {"payload": {"submission_ids": [1,2,3]}}
+             {"payload": {"submission_ids": ["1", "2", "3"]}}
 
         """
-        url = self.submission_list_url
-        data = data.copy()  # Need to get a copy to update the dict
-
         self.validate_write_access_with_partial_perms(
-            requesting_user=user,
+            user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
-            instance_ids=data['payload']['submissions_ids'],
+            instance_ids=instance_ids,
         )
 
+        url = self.submission_list_url
         kc_request = requests.Request(method='PATCH', url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
@@ -904,8 +905,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         for kc_file in kc_files.values():
             if kc_file['from_kpi']:
                 self.__delete_kc_metadata(kc_file)
-
-
 
     @property
     def xform(self):
@@ -1179,7 +1178,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Preparing the request payload for bulk updating of submissions
         """
-        payload = json.loads(request_data['payload'][0])
+        payload = json.loads(request_data['payload'])
+
         validated_payload = cls.__validate_bulk_update_payload(payload)
 
         # Ensuring submission ids are integer values and unique
