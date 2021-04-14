@@ -378,7 +378,7 @@ class ProjectSettings extends React.Component {
    */
 
   onLoadAssetCompleted(response) {
-    if (this.state.formAsset.uid === response.uid) {
+    if (this.state.formAsset?.uid === response.uid) {
       this.setState({formAsset: response});
     }
   }
