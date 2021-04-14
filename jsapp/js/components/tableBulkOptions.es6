@@ -206,9 +206,7 @@ class TableBulkOptions extends React.Component {
             onClick={this.onEdit}
             disabled={this.props.selectedAllPages && isSelectAllAvailable}
           >
-            <bem.TableMeta__additionalText>
-              <i className='k-icon k-icon-edit'/>
-            </bem.TableMeta__additionalText>
+            <i className='k-icon k-icon-edit table-meta__additional-text'/>
             {t('Edit')}
           </bem.KoboLightButton>
         }
@@ -218,9 +216,7 @@ class TableBulkOptions extends React.Component {
             m='red'
             onClick={this.onDelete}
           >
-            <bem.TableMeta__additionalText>
-              <i className='k-icon k-icon-trash'/>
-            </bem.TableMeta__additionalText>
+            <i className='k-icon k-icon-trash table-meta__additional-text'/>
             {t('Delete')}
           </bem.KoboLightButton>
         }
