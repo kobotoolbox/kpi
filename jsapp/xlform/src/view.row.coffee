@@ -147,17 +147,32 @@ module.exports = do ->
       @$el.attr("data-row-id", @model.cid)
       @surveyView = @options.surveyView
 
+    ###
+    # TODO: this should display a three button prompt:
+    # 1. delete group with contents -> _deleteEntireGroup()
+    # 2. split apart -> _deleteGroup()
+    # 3. cancel
+    ###
     deleteGroup: (evt)=>
+      # force delete is only used in test
       skipConfirm = $(evt.currentTarget).hasClass('js-force-delete-group')
       if skipConfirm or confirm(t("Are you sure you want to split apart this group?"))
         @_deleteGroup()
       evt.preventDefault()
+      return
 
     _deleteGroup: () =>
       @model.splitApart()
       @model._parent._parent.trigger('remove', @model)
       @surveyView.survey.trigger('change')
       @$el.detach()
+      return
+
+    _deleteEntireGroup: () =>
+      console.log('_deleteEntireGroup')
+      # TODO delete everything inside
+      # and then do _deleteGroup()
+      return
 
     render: ->
       if !@already_rendered
