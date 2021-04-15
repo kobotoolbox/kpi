@@ -17,6 +17,7 @@ export const LOCKING_RESTRICTIONS = Object.freeze({
   group_question_order_edit: {name: 'group_question_order_edit', label: t('Change question order within group')},
   group_settings_edit: {name: 'group_settings_edit', label: t('Edit group settings')},
   group_skip_logic_edit: {name: 'group_skip_logic_edit', label: t('Edit skip logic')},
+  group_split: {name: 'group_split', label: t('Split group')},
   // form related
   form_replace: {name: 'form_replace', label: t('Replace whole form')},
   group_add: {name: 'group_add', label: t('Add group')},
@@ -44,6 +45,7 @@ export const GROUP_RESTRICTIONS = [
   LOCKING_RESTRICTIONS.group_question_order_edit,
   LOCKING_RESTRICTIONS.group_settings_edit,
   LOCKING_RESTRICTIONS.group_skip_logic_edit,
+  LOCKING_RESTRICTIONS.group_split,
 ];
 export const FORM_RESTRICTIONS = [
   LOCKING_RESTRICTIONS.form_replace,
@@ -72,6 +74,7 @@ export const LOCK_ALL_RESTRICTION_NAMES = [
   LOCKING_RESTRICTIONS.group_question_order_edit.name,
   LOCKING_RESTRICTIONS.group_settings_edit.name,
   LOCKING_RESTRICTIONS.group_skip_logic_edit.name,
+  LOCKING_RESTRICTIONS.group_split.name,
   LOCKING_RESTRICTIONS.form_replace.name,
   LOCKING_RESTRICTIONS.group_add.name,
   LOCKING_RESTRICTIONS.question_add.name,

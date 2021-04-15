@@ -284,7 +284,9 @@ module.exports = do ->
           $groupIcon.append(iconTooltip)
 
       # hide group delete button
-      if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name))
+      # NOTE: current button only handles group splitting ("ungrouping")
+      # the delete entire group will be added with kpi#3132
+      if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_split.name))
         @$header.find('.js-delete-group').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
       # disable group name label
