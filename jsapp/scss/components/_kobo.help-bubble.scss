@@ -29,9 +29,9 @@ $s-help-bubble-row-spacing: 20px;
 
     .k-icon {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 40px;
+      top: 16px;
+      left: 16px;
+      font-size: 28px;
       color: $kobo-darkgray;
     }
   }
@@ -74,7 +74,8 @@ $s-help-bubble-row-spacing: 20px;
   }
 
   .k-icon {
-    font-size: 38px;
+    font-size: 28px;
+    margin: 3px;
     display: block;
   }
 }

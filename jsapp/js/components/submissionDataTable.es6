@@ -5,7 +5,7 @@ import {
   formatDate,
 } from 'utils';
 import {bem} from 'js/bem';
-import {renderTypeIcon} from 'js/assetUtils';
+import {renderQuestionTypeIcon} from 'js/assetUtils';
 import {
   DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
@@ -90,7 +90,7 @@ class SubmissionDataTable extends React.Component {
         key={`${item.name}__${itemIndex}`}
       >
         <bem.SubmissionDataTable__column m='type'>
-          {renderTypeIcon(item.type)}
+          {renderQuestionTypeIcon(item.type)}
         </bem.SubmissionDataTable__column>
 
         <bem.SubmissionDataTable__column m='label'>
@@ -290,7 +290,7 @@ class SubmissionDataTable extends React.Component {
     return (
       <bem.SubmissionDataTable__row m={['columns', 'response', 'metadata']}>
         <bem.SubmissionDataTable__column m='type'>
-          <i className='fa fa-cubes'/>
+          <i className='k-icon k-icon-qt-meta-default'/>
         </bem.SubmissionDataTable__column>
 
         <bem.SubmissionDataTable__column m='label'>
