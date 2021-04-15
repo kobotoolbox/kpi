@@ -91,8 +91,7 @@ class DrawerLink extends React.Component {
     }
   }
   render () {
-    var icon_class = (this.props['ki-icon'] == undefined ? 'fa fa-globe' : `k-icon-${this.props['ki-icon']}`);
-    var icon = (<i className={icon_class}/>);
+    var icon = (<i className={`k-icon-${this.props['k-icon']}`}/>);
     var classNames = [this.props.class, 'k-drawer__link'];
 
     var link;
@@ -133,8 +132,8 @@ class Drawer extends Reflux.Component {
     return (
       <bem.KDrawer>
         <bem.KDrawer__primaryIcons>
-          <DrawerLink label={t('Projects')} linkto={ROUTES.FORMS} ki-icon='projects' />
-          <DrawerLink label={t('Library')} linkto={ROUTES.LIBRARY} ki-icon='library' />
+          <DrawerLink label={t('Projects')} linkto={ROUTES.FORMS} k-icon='projects' />
+          <DrawerLink label={t('Library')} linkto={ROUTES.LIBRARY} k-icon='library' />
         </bem.KDrawer__primaryIcons>
 
         <bem.KDrawer__sidebar>
@@ -164,7 +163,7 @@ class Drawer extends Reflux.Component {
             stores.serverEnvironment.state.source_code_url &&
             <a href={stores.serverEnvironment.state.source_code_url}
               className='k-drawer__link' target='_blank' data-tip={t('Source')}>
-              <i className='k-icon k-icon-github' />
+              <i className='k-icon k-icon-logo-github' />
             </a>
           }
         </bem.KDrawer__secondaryIcons>
