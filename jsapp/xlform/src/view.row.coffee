@@ -467,9 +467,12 @@ module.exports = do ->
         if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_delete.name))
           @$el.find('.js-remove-option').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
-        # disable changing question options labels and names
-        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_edit.name))
+        # disable changing question options labels
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_label_edit.name))
           @$el.find('.js-option-label-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+        # disable changing question options names
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_value_edit.name))
           @$el.find('.js-option-name-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
 
         # hide delete question button

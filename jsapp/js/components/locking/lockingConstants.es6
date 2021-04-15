@@ -2,8 +2,9 @@ export const LOCKING_RESTRICTIONS = Object.freeze({
   // question related
   choice_add: {name: 'choice_add', label: t('Add choice to question')},
   choice_delete: {name: 'choice_delete', label: t('Remove choice from question')},
-  choice_edit: {name: 'choice_edit', label: t('Edit choice labels')},
+  choice_label_edit: {name: 'choice_label_edit', label: t('Edit choice labels')},
   choice_order_edit: {name: 'choice_order_edit', label: t('Change choice order')},
+  choice_value_edit: {name: 'choice_value_edit', label: t('Edit choice values')},
   question_delete: {name: 'question_delete', label: t('Delete question')},
   question_label_edit: {name: 'question_label_edit', label: t('Edit question labels')},
   question_settings_edit: {name: 'question_settings_edit', label: t('Edit question settings')},
@@ -29,8 +30,9 @@ export const LOCKING_RESTRICTIONS = Object.freeze({
 export const QUESTION_RESTRICTIONS = [
   LOCKING_RESTRICTIONS.choice_add,
   LOCKING_RESTRICTIONS.choice_delete,
-  LOCKING_RESTRICTIONS.choice_edit,
+  LOCKING_RESTRICTIONS.choice_label_edit,
   LOCKING_RESTRICTIONS.choice_order_edit,
+  LOCKING_RESTRICTIONS.choice_value_edit,
   LOCKING_RESTRICTIONS.question_delete,
   LOCKING_RESTRICTIONS.question_label_edit,
   LOCKING_RESTRICTIONS.question_settings_edit,
@@ -60,8 +62,9 @@ export const FORM_RESTRICTIONS = [
 export const LOCK_ALL_RESTRICTION_NAMES = [
   LOCKING_RESTRICTIONS.choice_add.name,
   LOCKING_RESTRICTIONS.choice_delete.name,
-  LOCKING_RESTRICTIONS.choice_edit.name,
+  LOCKING_RESTRICTIONS.choice_label_edit.name,
   LOCKING_RESTRICTIONS.choice_order_edit.name,
+  LOCKING_RESTRICTIONS.choice_value_edit.name,
   LOCKING_RESTRICTIONS.question_delete.name,
   LOCKING_RESTRICTIONS.question_label_edit.name,
   LOCKING_RESTRICTIONS.question_settings_edit.name,
