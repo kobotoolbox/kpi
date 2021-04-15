@@ -25,7 +25,6 @@
     "eslint-loader": "^3.0.0",
     "eslint-plugin-react": "^7.20.0",
     "file-loader": "^2.0.0",
-    "font-awesome": "^4.7.0",
     "fuse.js": "^6.4.3",
     "immutable": "^3.8.2",
     "jquery": "^3.5.1",
@@ -80,7 +79,7 @@
   },
   "scripts": {
     "build": "webpack --config webpack/prod.config.js",
-    "watch": "webpack-dev-server --config webpack/dev.server.js",
+    "watch": "npm run generate-icons && webpack-dev-server --config webpack/dev.server.js",
     "test": "webpack --config webpack/test.config.js && mocha-chrome test/tests.html",
     "lint": "eslint --ext .es6 \"jsapp/js/**/*\"",
     "show-icons": "opn jsapp/fonts/k-icons.html",

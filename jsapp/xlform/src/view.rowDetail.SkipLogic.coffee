@@ -60,7 +60,7 @@ module.exports = do ->
 
       @question_picker_view.render()
       if !@alreadyRendered
-        @$el.append $("""<i class="skiplogic__deletecriterion fa fa-trash-o" data-criterion-id="#{@model.cid}"></i>""")
+        @$el.append $("""<i class="skiplogic__deletecriterion k-icon k-icon-trash" data-criterion-id="#{@model.cid}"></i>""")
 
       @change_operator @operator_picker_view
       @change_response @response_value_view
