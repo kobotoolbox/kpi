@@ -28,7 +28,7 @@
     padding-top: 10px;
 
     i {
-      font-size: 24px;
+      font-size: 18px;
       cursor: pointer;
 
       &:hover {
@@ -67,11 +67,11 @@
     }
 
     i {
-      font-size: 28px;
+      font-size: 20px;
       opacity: 0.75;
       position: absolute;
-      right: 4px;
-      top: 4px;
+      right: 8px;
+      top: 9px;
       vertical-align: middle;
       cursor: pointer;
 
@@ -144,10 +144,10 @@
     }
 
     i {
-      font-size: 24px;
+      font-size: 20px;
       color: $kobo-red;
       cursor: pointer;
-      vertical-align: middle;
+      vertical-align: -5px;
     }
   }
 }
@@ -193,7 +193,7 @@
 
 .matrix-cols__options--row-foot {
   i {
-    font-size: 24px;
+    font-size: 18px;
     cursor: pointer;
 
     &:hover {
@@ -236,11 +236,11 @@
     }
 
     i {
-      font-size: 28px;
+      font-size: 20px;
       opacity: 0.75;
       position: absolute;
       right: 4px;
-      top: 4px;
+      top: 6px;
       vertical-align: middle;
       cursor: pointer;
 
@@ -254,8 +254,10 @@
     border-top: 1px solid $kobo-lightgray;
 
     i {
-      font-size: 28px;
+      font-size: 20px;
+      margin: 4px;
       opacity: 0.75;
+      display: inline-block;
       cursor: pointer;
       color: $kobo-darkgray;
 

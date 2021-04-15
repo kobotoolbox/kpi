@@ -119,25 +119,16 @@ input.row__questiontypes__new-question-name {
   font-weight: 600;
   cursor: pointer;
   color: $kobo-black;
-  i {
-    margin-right: 10px;
-    font-size: 16px;
-    &.fa.invert {
-      background-color: $kobo-black;
-      color: $kobo-white;
-      border-radius: 4px;
-      padding: 3px;
-      font-size: 1em;
-      margin-left: 2px;
-      margin-right: 13px;
-    }
+
+  .k-icon {
+    margin-right: 6px;
+    font-size: 20px;
+    vertical-align: top;
   }
+
   &:hover {
     border-color: $cardInSortBorderColor;
     color: $cardInSortBorderColor;
-    i.fa.invert {
-      background-color: $cardInSortBorderColor;
-    }
   }
 }
 
@@ -146,8 +137,4 @@ input.row__questiontypes__new-question-name {
   @include form-builder-focus();
 
   color: $cardInSortBorderColor;
-
-  i.fa.invert {
-    background-color: $cardInSortBorderColor;
-  }
 }

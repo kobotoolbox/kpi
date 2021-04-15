@@ -148,14 +148,7 @@ export class FormSubScreens extends React.Component {
     );
   }
   renderReset() {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
+    return (<ui.LoadingSpinner/>);
   }
 }
 
