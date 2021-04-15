@@ -74,13 +74,34 @@ class UserDeleteAdmin(UserAdmin):
                 messages.ERROR
             )
             
-@admin.register(KobocatSubmissionCounter)
-class UserStatisticsAdmin(ModelAdmin):
-    def view_group_statistics(self, request, queryset):
-        #need to make sure that the number of months can be added as 1, 3, 6, 12
-        #select a month range? for year over year analysis?
-        #How do I make this information display properly in the admin interface
-        change_list_template = 'admin/user_statistics.html'
+class UserStatisticsAdmin(admin.ModelAdmin):
+    change_list_template = 'user_statistics.html'
+    actions = None
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(
+            request,
+            extra_context=extra_context,
+        )
+
+        try:
+            qs = response.queryset
+        except (AttributeError, KeyError):
+            return response
+
+        response.context_data['summary'] = list(
+            qs.values(
+                'user__username',
+                'year',
+                'month',
+                'submissions_count',
+                'form_count',
+                'deployed_form_count',
+            ).order_by('-timestamp', 'user')
+        )
+
+        return response
+
 
 
 
@@ -89,4 +110,4 @@ admin.site.register(ConfigurationFile)
 admin.site.register(PerUserSetting)
 admin.site.unregister(User)
 admin.site.register(User, UserDeleteAdmin)
-admin.site.register(UserStatisticsAdmin)
+admin.site.register(KobocatSubmissionCounter, UserStatisticsAdmin)
