@@ -74,6 +74,7 @@ class UserDeleteAdmin(UserAdmin):
                 messages.ERROR
             )
             
+
 class UserStatisticsAdmin(admin.ModelAdmin):
     change_list_template = 'user_statistics.html'
     actions = None
@@ -84,25 +85,11 @@ class UserStatisticsAdmin(admin.ModelAdmin):
             extra_context=extra_context,
         )
 
-        try:
-            qs = response.queryset
-        except (AttributeError, KeyError):
-            return response
-
-        response.context_data['summary'] = list(
-            qs.values(
-                'user__username',
-                'year',
-                'month',
-                'submissions_count',
-                'form_count',
-                'deployed_form_count',
-            ).order_by('-timestamp', 'user')
-        )
+        cl = self.get_changelist_instance(request)
+        qs = cl.get_queryset(request)
+        response.context_data['summary'] = qs.order_by('-timestamp', 'user')
 
         return response
-
-
 
 
 admin.site.register(SitewideMessage)
