@@ -23,6 +23,7 @@ import {actions} from './actions';
 import {stores} from './stores';
 // importing it so it exists
 import {surveyCompanionStore} from './surveyCompanionStore';
+import {alertify} from './alertify';
 import {dataInterface} from './dataInterface';
 import {bem} from './bem';
 import ui from './ui';
