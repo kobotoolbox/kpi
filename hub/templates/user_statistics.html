@@ -45,10 +45,10 @@
         <tbody>
             {% for row in summary %}
             <tr class="{% cycle 'row1' 'row2' %}">
-                <td> {{ row.user.username }} </td>
+                <td> {{ row.username }} </td>
                 <td> {{ row.year }} </td>
                 <td> {{ row.month }} </td>
-                <td> {{ row.count }} </td>
+                <td> {{ row.submission_count }} </td>
                 <td> {{ row.form_count }} </td>
                 <td> {{ row.deployed_form_count }} </td>
             </tr>
