@@ -18,11 +18,10 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_digest.models import PartialDigest
 
+import kpi.models.asset as asset
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
 from kpi.utils.strings import hashable_str
-# import kpi.models.asset as asset
-import kpi.models.asset as asset
 
 
 def update_autofield_sequence(model):
@@ -473,11 +472,11 @@ class KobocatSubmissionCounter(ShadowModel):
     timestamp = models.DateTimeField()
 
     def __str__(self):
-        return f"{self.user.username}, {self.count}, {self.year}, {self.month}, {self.form_count}, {self.deployed_form_count}"
+        return f'{self.user.username}, {self.count}, {self.year}, {self.month}, {self.form_count}, {self.deployed_form_count}'
 
     class Meta(ShadowModel.Meta):
-        db_table = "logger_submissioncounter"
-        verbose_name = "User Statistics Counter"
+        db_table = 'logger_submissioncounter'
+        verbose_name = 'User Statistics Counter'
 
     @property
     def year(self):
@@ -492,7 +491,7 @@ class KobocatSubmissionCounter(ShadowModel):
     @property
     def form_count(self):
         form_count = asset.Asset.objects.filter(
-            owner=User.objects.get(username=self.user.username),
+            owner__username=self.user.username,
             date_created__month=self.month,
             date_created__year=self.year,
         ).count()
@@ -501,7 +500,7 @@ class KobocatSubmissionCounter(ShadowModel):
     @property
     def deployed_form_count(self):
         deployed_form_count = asset.Asset.objects.filter(
-            owner=User.objects.get(username=self.user.username),
+            owner__username=self.user.username,
             date_created__month=self.month,
             date_created__year=self.year,
             _deployment_data__active=True
