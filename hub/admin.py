@@ -1,4 +1,6 @@
 # coding: utf-8
+from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta 
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
@@ -73,10 +75,37 @@ class UserDeleteAdmin(UserAdmin):
                   'interface and delete them from there.'),
                 messages.ERROR
             )
-            
+
+
+class TimePeriodFilter(admin.SimpleListFilter):
+    title = 'Period Filters'
+    parameter_name = 'timeframe'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('1', '1 Month'),
+            ('3', '3 Months'),
+            ('6', '6 Months'),
+            ('9', '9 Months'),
+            ('12', '12 Months'),
+        )
+
+    def queryset(self, request, queryset):
+        now = datetime.now()
+        now = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        if self.value():
+            months = int(self.value())
+        else:
+            return queryset
+
+        from_date = now - relativedelta(months=months)
+
+        return queryset.filter(timestamp__gte=from_date)
 
 class UserStatisticsAdmin(admin.ModelAdmin):
     change_list_template = 'user_statistics.html'
+    list_filter = (TimePeriodFilter,)
     actions = None
 
     def changelist_view(self, request, extra_context=None):
@@ -85,11 +114,26 @@ class UserStatisticsAdmin(admin.ModelAdmin):
             extra_context=extra_context,
         )
 
+        response.context_data['summary'] = self.__get_serialized_data(request)
+        return response
+
+    def __get_serialized_data(self, request) -> list:
         cl = self.get_changelist_instance(request)
         qs = cl.get_queryset(request)
-        response.context_data['summary'] = qs.order_by('-timestamp', 'user')
 
-        return response
+        data = []
+        records = qs.order_by('-timestamp', 'user__username')
+
+        for record in records:
+            data.append({
+                'username': record.user.username,
+                'year': record.timestamp.year,
+                'month': record.timestamp.month,
+                'submission_count': record.count,
+                'form_count': record.form_count,
+                'deployed_form_count': record.deployed_form_count,
+            })
+        return data
 
 
 admin.site.register(SitewideMessage)
