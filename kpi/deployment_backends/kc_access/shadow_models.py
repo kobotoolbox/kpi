@@ -490,6 +490,7 @@ class KobocatSubmissionCounter(ShadowModel):
 
     @property
     def form_count(self):
+        # Using the asset.Asset is a workaround for a circular import issue
         form_count = asset.Asset.objects.filter(
             owner__username=self.user.username,
             date_created__month=self.month,
