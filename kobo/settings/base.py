@@ -724,4 +724,4 @@ OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # add some mimetype
 add_type('application/wkt', '.wkt')
-add_type('application/geojson', '.geojson')
+add_type('application/geo+json', '.geojson')

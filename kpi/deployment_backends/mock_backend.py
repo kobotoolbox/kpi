@@ -9,15 +9,12 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
-from kpi.exceptions import KobocatBulkUpdateSubmissionsException
 from .base_backend import BaseDeploymentBackend
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):
     """
     Only used for unit testing and interface testing.
-
-    Defines the interface for a deployment backend.
     """
 
     def bulk_assign_mapped_perms(self):

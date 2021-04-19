@@ -120,8 +120,8 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
                         _reversion_version_id=version_id).uid
                     version_uid = asset.deployment.get_data('version_uid')
                     if (
-                        version_uid is None  # noqa
-                        or version_uid != uid  # noqa
+                        version_uid is None
+                        or version_uid != uid
                     ):
                         asset.deployment.store_data({'version_uid': uid})
                         # `update()` saves about 7/1000s per iteration
