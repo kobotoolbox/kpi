@@ -791,7 +791,7 @@ class AssetFileTest(BaseTestCase):
             )
             return response_dict['uid']
 
-        # Content uploaded as binary
+        # Content uploaded as a URL
         metadata = json.loads(posted_payload['metadata'])
         payload_url = metadata['redirect_url']
         # if none of the other upload methods have been chosen,

@@ -3,7 +3,9 @@ from kpi.exceptions import AbstractMethodError, AbstractPropertyError
 
 
 class OpenRosaFormListInterface:
-
+    """
+    ToDo use ABC
+    """
     @property
     def description(self):
         raise AbstractPropertyError
@@ -28,7 +30,9 @@ class OpenRosaFormListInterface:
 
 
 class OpenRosaManifestInterface:
-
+    """
+    ToDo use ABC
+    """
     @property
     def filename(self):
         raise AbstractPropertyError
