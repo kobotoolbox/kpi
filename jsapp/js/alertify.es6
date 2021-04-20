@@ -1,36 +1,37 @@
 import alertify from 'alertifyjs';
 
-export function groupDeleteConfirm(splitCallback, deleteCallback) {
-  if (!alertify.multiConfirm) {
+/**
+ * @namespace MultiButton
+ * @param {string} label
+ * @param {function} callback
+ */
+
+/**
+ * @param {string} confirmId - needs to be unique
+ * @param {string} title
+ * @param {string} message
+ * @param {MultiButton[]} buttons
+ */
+export function multiConfirm(confirmId, title, message, buttons) {
+  if (!alertify[confirmId]) {
     // define new alertify dialog
-    alertify.dialog('multiConfirm', function() {
+    alertify.dialog(confirmId, function() {
       return {
         setup: function() {
-          const buttons = [
-            {
-              text: t('Split apart'),
+          const buttonsArray = [];
+          buttons.forEach((button, i) => {
+            buttonsArray.push({
+              text: button.label,
               className: alertify.defaults.theme.ok,
               scope: 'primary',
               element: undefined,
-            },
-            {
-              text: t('Delete entirely'),
-              className: alertify.defaults.theme.ok,
-              scope: 'primary',
-              element: undefined,
-            },
-            {
-              text: t('Cancel'),
-              className: alertify.defaults.theme.cancel,
-              scope: 'primary',
-              element: undefined,
-            },
-          ];
-
+              index: i,
+            });
+          });
           return {
-            buttons: buttons,
+            buttons: buttonsArray,
             options: {
-              title: t('Delete group'),
+              title: title,
               basic: false,
               movable: false,
               resizable: false,
@@ -41,7 +42,9 @@ export function groupDeleteConfirm(splitCallback, deleteCallback) {
           };
         },
         prepare: function() {
-          this.setContent(t('Do you want to split the group apart (and leave questions intact) or delete everything entirely?'));
+          if (message) {
+            this.setContent(message);
+          }
         },
         settings: {
           onclick: null,
@@ -53,16 +56,12 @@ export function groupDeleteConfirm(splitCallback, deleteCallback) {
     }, false, 'confirm');
   }
 
-  const dialog = alertify.multiConfirm();
+  const dialog = alertify[confirmId]();
   dialog.set({
     onclick: (closeEvent) => {
-      if (closeEvent.index === 0) {
-        splitCallback();
-      } else if (closeEvent.index === 1) {
-        deleteCallback();
+      if (buttons[closeEvent.index] && buttons[closeEvent.index].callback) {
+        buttons[closeEvent.index].callback();
       }
     },
   }).show();
 }
-
-groupDeleteConfirm(() => {console.log('split')}, () => {console.log('delete')});

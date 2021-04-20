@@ -1,27 +1,29 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-$configs = require './model.configs'
-$rowSelector = require './view.rowSelector'
-$row = require './model.row'
-$modelUtils = require './model.utils'
-$viewTemplates = require './view.templates'
-$viewUtils = require './view.utils'
-$viewChoices = require './view.choices'
-$viewParams = require './view.params'
-$viewMandatorySetting = require './view.mandatorySetting'
-$acceptedFilesView = require './view.acceptedFiles'
-$viewRowDetail = require './view.rowDetail'
+_ = require('underscore')
+Backbone = require('backbone')
+$configs = require('./model.configs')
+$rowSelector = require('./view.rowSelector')
+$row = require('./model.row')
+$modelUtils = require('./model.utils')
+$viewTemplates = require('./view.templates')
+$viewUtils = require('./view.utils')
+$viewChoices = require('./view.choices')
+$viewParams = require('./view.params')
+$viewMandatorySetting = require('./view.mandatorySetting')
+$acceptedFilesView = require('./view.acceptedFiles')
+$viewRowDetail = require('./view.rowDetail')
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
-alertify = require 'alertifyjs'
+multiConfirm = require('js/alertify').multiConfirm
+alertify = require('alertifyjs')
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
-    tagName: "li"
-    className: "survey__row  xlf-row-view xlf-row-view--depr"
-    events:
-      "drop": "drop"
+    tagName: 'li'
+    className: 'survey__row  xlf-row-view xlf-row-view--depr'
+    events: {
+      drop: 'drop'
+    }
 
-    initialize: (opts)->
+    initialize: (opts) ->
       @options = opts
       typeDetail = @model.get("type")
       @$el.attr("data-row-id", @model.cid)
@@ -149,16 +151,34 @@ module.exports = do ->
 
     ###
     # TODO: this should display a three button prompt:
-    # 1. delete group with contents -> _deleteEntireGroup()
+    # 1. delete group with contents -> _deleteGroupContent()
     # 2. split apart -> _deleteGroup()
     # 3. cancel
     ###
-    deleteGroup: (evt)=>
+    deleteGroup: (evt) =>
+      evt.preventDefault()
+
       # force delete is only used in test
       skipConfirm = $(evt.currentTarget).hasClass('js-force-delete-group')
-      if skipConfirm or confirm(t("Are you sure you want to split apart this group?"))
+      if skipConfirm
         @_deleteGroup()
-      evt.preventDefault()
+        return
+
+      multiConfirm(
+        'deleteOrSplitGroup',
+        t('Delete group'),
+        t('Do you want to split the group apart (and leave questions intact) or delete everything entirely?'),
+        [
+          {
+            label: t('Ungroup questions'),
+            callback: @_deleteGroup.bind(@)
+          },
+          {
+            label: t('Delete everything'),
+            callback: @_deleteGroupWithContent.bind(@)
+          },
+        ]
+      );
       return
 
     _deleteGroup: () =>
@@ -168,11 +188,31 @@ module.exports = do ->
       @$el.detach()
       return
 
-    _deleteEntireGroup: () =>
-      console.log('_deleteEntireGroup')
+    _deleteGroupWithContent: () =>
+      @_deleteGroupContent()
+      # @_deleteGroup() # UNCOMMENT LATER
+      return
+
+    _deleteGroupContent: () =>
+      console.log('_deleteGroupContent')
+      console.log(@findGroupRows)
       # TODO delete everything inside
       # and then do _deleteGroup()
       return
+
+    findGroupRows: () =>
+      rows = []
+      @$el.find('.survey__row').each((index, element) =>
+        $el = $(element)
+        rowId = $el.data('rowId')
+        matchingRow = false
+        findMatch = (row) ->
+          if row.cid is rowId
+            matchingRow = row
+        @survey.forEachRow(findMatch, {includeGroups: true})
+        rows.push(matchingRow)
+      )
+      return rows
 
     render: ->
       if !@already_rendered
