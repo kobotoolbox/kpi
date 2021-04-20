@@ -9,15 +9,12 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
-from kpi.exceptions import KobocatBulkUpdateSubmissionsException
 from .base_backend import BaseDeploymentBackend
 
 
 class MockDeploymentBackend(BaseDeploymentBackend):
     """
     Only used for unit testing and interface testing.
-
-    Defines the interface for a deployment backend.
     """
 
     def bulk_assign_mapped_perms(self):
@@ -48,9 +45,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_bulk_update_response(responses)
 
     def calculated_submission_count(self, requesting_user_id, **kwargs):
-        params = self.validate_submission_list_params(
-            requesting_user_id, validate_count=True, **kwargs
-        )
+        params = self.validate_submission_list_params(requesting_user_id,
+                                                      validate_count=True,
+                                                      **kwargs)
         instances = self.get_submissions(requesting_user_id, **params)
         return len(instances)
 
