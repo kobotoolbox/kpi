@@ -715,9 +715,9 @@ module.exports = do ->
       if rows.length > 0
         @survey._addGroup(__rows: rows)
         @reset()
-        true
+        return true
       else
-        false
+        return false
 
     selectedRows: ()->
       rows = []
@@ -733,7 +733,7 @@ module.exports = do ->
         @survey.forEachRow findMatch, includeGroups: true
         # matchingRow = @survey.rows.find (row)-> row.cid is rowId
         rows.push matchingRow
-      rows
+      return rows
 
     onEscapeKeydown: -> #noop. to be overridden
 
