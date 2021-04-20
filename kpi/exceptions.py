@@ -6,15 +6,17 @@ from rest_framework import exceptions
 class AbstractMethodError(NotImplementedError):
 
     def __init__(self, *args, **kwargs):
-        super().__init__('This method should be implemented in subclasses',
-                         *args, **kwargs)
+        super().__init__(
+            'This method should be implemented in subclasses', *args, **kwargs
+        )
 
 
 class AbstractPropertyError(NotImplementedError):
 
     def __init__(self, *args, **kwargs):
-        super().__init__('This property should be implemented in subclasses',
-                         *args, **kwargs)
+        super().__init__(
+            'This property should be implemented in subclasses', *args, **kwargs
+        )
 
 
 class BadPermissionsException(Exception):
@@ -31,6 +33,14 @@ class BadContentTypeException(Exception):
 
 class BadFormatException(Exception):
     pass
+
+
+class DeploymentDataException(Exception):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            'Cannot alter `_deployment_data` directly', *args, **kwargs
+        )
 
 
 class ImportAssetException(Exception):

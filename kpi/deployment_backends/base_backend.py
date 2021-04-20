@@ -4,11 +4,11 @@ import json
 from typing import Union
 
 from bson import json_util
-from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
+from shortuuid import ShortUUID
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
 from kpi.exceptions import AbstractMethodError
@@ -16,6 +16,9 @@ from kpi.utils.jsonbfield_helper import ReplaceValues
 
 
 class BaseDeploymentBackend:
+    """
+    Defines the interface for a deployment backend.
+    """
 
     INSTANCE_ID_FIELDNAME = '_id'
     STATUS_SYNCED = 'synced'
@@ -25,6 +28,7 @@ class BaseDeploymentBackend:
         self.asset = asset
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = 0
+        self.__stored_data_key = None
 
     def get_data(self,
                  dotted_path: str = None,
@@ -39,7 +43,9 @@ class BaseDeploymentBackend:
             # We do not want to return the mutable object whose could be altered
             # later. `self.asset._deployment_data` should never be accessed
             # directly
-            return copy.deepcopy(self.asset._deployment_data) # noqa
+            deployment_data_copy = copy.deepcopy(self.asset._deployment_data)  # noqa
+            deployment_data_copy.pop('_stored_data_key', None)
+            return deployment_data_copy
 
         value = None
         nested_path = dotted_path.split('.')
@@ -55,8 +61,10 @@ class BaseDeploymentBackend:
 
         return value if value else default
 
-    def store_data(self, vals=None):
-        self.asset._deployment_data.update(vals)  # noqa
+    def store_data(self, values: dict):
+        self.__stored_data_key = ShortUUID().random(24)
+        values['_stored_data_key'] = self.__stored_data_key
+        self.asset._deployment_data.update(values)  # noqa
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
@@ -202,11 +210,11 @@ class BaseDeploymentBackend:
 
     @property
     def backend(self):
-        return self.get_data('backend', None)
+        return self.get_data('backend')
 
     @property
     def identifier(self):
-        return self.get_data('identifier', None)
+        return self.get_data('identifier')
 
     @property
     def active(self):
@@ -272,18 +280,20 @@ class BaseDeploymentBackend:
         # Avoid circular imports
         # use `self.asset.__class__` instead of `from kpi.models import Asset`
         now = timezone.now()
-        with transaction.atomic():
-            self.asset.__class__.objects.select_for_update() \
-                .filter(id=self.asset.pk).update(
-                _deployment_data=ReplaceValues(
-                    '_deployment_data',
-                    updates=updates,
-                ),
-                date_modified=now,
-            )
+        self.asset.__class__.objects.filter(id=self.asset.pk).update(
+            _deployment_data=ReplaceValues(
+                '_deployment_data',
+                updates=updates,
+            ),
+            date_modified=now,
+        )
         self.store_data(updates)
         self.asset.date_modified = now
 
     @property
     def status(self):
         return self.get_data('status')
+
+    @property
+    def stored_data_key(self):
+        return self.__stored_data_key

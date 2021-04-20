@@ -302,3 +302,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                                                       **kwargs)
         instances = self.get_submissions(requesting_user_id, **params)
         return len(instances)
+
+    def sync_media_files(self):
+        pass
