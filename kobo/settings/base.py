@@ -735,4 +735,4 @@ HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
 
 # add some mimetype
 add_type('application/wkt', '.wkt')
-add_type('application/geojson', '.geojson')
+add_type('application/geo+json', '.geojson')
