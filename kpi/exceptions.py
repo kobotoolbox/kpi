@@ -19,10 +19,6 @@ class AbstractPropertyError(NotImplementedError):
         )
 
 
-class BadPermissionsException(Exception):
-    pass
-
-
 class BadAssetTypeException(Exception):
     pass
 
@@ -32,6 +28,10 @@ class BadContentTypeException(Exception):
 
 
 class BadFormatException(Exception):
+    pass
+
+
+class BadPermissionsException(Exception):
     pass
 
 
@@ -47,19 +47,23 @@ class ImportAssetException(Exception):
     pass
 
 
-class KobocatProfileException(Exception):
-    pass
-
-
 class InvalidSearchException(exceptions.APIException):
     status_code = 400
     default_detail = _('Invalid search. Please try again')
     default_code = 'invalid_search'
 
 
-class SearchQueryTooShortException(InvalidSearchException):
-    default_detail = _('Your query is too short')
-    default_code = 'query_too_short'
+class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
+    # This is message should be overridden with something more specific
+    default_detail = _('Invalid payload for bulk updating of submissions')
+    default_code = 'bulk_update_submissions_client_error'
+
+
+class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
+    status_code = 500
+    default_detail = _(
+        'An error occurred trying to bulk update the submissions.')
+    default_code = 'bulk_update_submissions_error'
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -86,16 +90,13 @@ class KobocatDuplicateSubmissionException(exceptions.APIException):
     default_code = 'submission_duplication_error'
 
 
-class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
-    status_code = 500
-    default_detail = _('An error occurred trying to bulk update the submissions.')
-    default_code = 'bulk_update_submissions_error'
+class KobocatProfileException(Exception):
+    pass
 
 
-class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
-    # This is message should be overridden with something more specific
-    default_detail = _('Invalid payload for bulk updating of submissions')
-    default_code = 'bulk_update_submissions_client_error'
+class SearchQueryTooShortException(InvalidSearchException):
+    default_detail = _('Your query is too short')
+    default_code = 'query_too_short'
 
 
 class ObjectDeploymentDoesNotExist(exceptions.APIException):
