@@ -54,12 +54,11 @@ class BaseDeploymentBackend:
             try:
                 value = nested_dict[key]
             except KeyError:
-                value = None
-                break
+                return default
 
             nested_dict = value
 
-        return value if value else default
+        return value
 
     def store_data(self, values: dict):
         self.__stored_data_key = ShortUUID().random(24)
