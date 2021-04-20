@@ -3,20 +3,14 @@ from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import BadAssetTypeException
 from kpi.tasks import sync_media_files
 from .backends import DEPLOYMENT_BACKENDS
+from .base_backend import BaseDeploymentBackend
 
 
 class DeployableMixin:
 
-    def connect_deployment(self, **kwargs):
-        if 'backend' in kwargs:
-            backend = kwargs.pop('backend')
-            try:
-                DEPLOYMENT_BACKENDS[backend](self).connect(**kwargs)
-            except KeyError as e:
-                raise KeyError(
-                    'cannot retrieve asset backend: "{}"'.format(backend))
-        else:
-            raise KeyError('connect_deployment requires an argument: backend')
+    def connect_deployment(self, backend: str, **kwargs):
+        deployment_backend = self.__get_deployment_backend(backend)
+        deployment_backend.connect(**kwargs)
 
     def deploy(self, backend=False, active=True):
         """
@@ -59,12 +53,24 @@ class DeployableMixin:
     def deployment(self):
         if not self.has_deployment:
             raise Exception('must call asset.connect_deployment first')
-        try:
-            backend = self._deployment_data['backend']
-            return DEPLOYMENT_BACKENDS[backend](self)
-        except KeyError as e:
-            raise KeyError('cannot retrieve asset backend: {}'.format(backend))
+
+        return self.__get_deployment_backend(self._deployment_data['backend'])
 
     @property
     def can_be_deployed(self):
         return self.asset_type and self.asset_type == ASSET_TYPE_SURVEY
+
+    def __get_deployment_backend(self, backend: str) -> BaseDeploymentBackend:
+        try:
+            return getattr(self, '__deployment_backend')
+        except AttributeError:
+            pass
+
+        try:
+            deployment_backend = DEPLOYMENT_BACKENDS[backend](self)
+        except KeyError as e:
+            raise KeyError('cannot retrieve asset backend: {}'.format(backend))
+
+        setattr(self, '__deployment_backend', deployment_backend)
+
+        return deployment_backend

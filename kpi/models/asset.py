@@ -6,7 +6,7 @@ from collections import OrderedDict
 from functools import reduce
 from io import BytesIO
 from operator import add
-from typing import Union
+from typing import Optional, Union
 
 import six
 import xlsxwriter
@@ -56,10 +56,12 @@ from kpi.constants import (
     SUFFIX_SUBMISSIONS_PERMS,
 )
 from kpi.deployment_backends.mixin import DeployableMixin
-from kpi.exceptions import BadPermissionsException
+from kpi.exceptions import (
+    BadPermissionsException,
+    DeploymentDataException,
+)
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
-from kpi.tasks import sync_media_files
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.asset_translation_utils import (
     compare_translations,
@@ -678,7 +680,13 @@ class Asset(ObjectPermissionMixin,
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.__previous_parent_id = self.parent_id
+        # The two fields below are needed to keep a trace of the object state
+        # before any alteration. See `__self.__copy_hidden_fields()` for details
+        # They must be set with an invalid value for their counterparts to
+        # be the comparison is accurate.
+        self.__parent_id_copy = -1
+        self.__deployment_data_copy = None
+        self.__copy_hidden_fields()
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
@@ -923,6 +931,11 @@ class Asset(ObjectPermissionMixin,
         )
         return queryset
 
+    def refresh_from_db(self, using=None, fields=None):
+        super().refresh_from_db(using=using, fields=fields)
+        # Refresh hidden fields too
+        self.__copy_hidden_fields(fields)
+
     def rename_translation(self, _from, _to):
         if not self._has_translations(self.content, 2):
             raise ValueError('no translations available')
@@ -940,16 +953,30 @@ class Asset(ObjectPermissionMixin,
         self.content = av.version_content
         self.save()
 
-    def save(self, *args, **kwargs):
-
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        update_fields=None,
+        adjust_content=True,
+        create_version=True,
+        update_parent_languages=True,
+        *args,
+        **kwargs
+    ):
         is_new = self.pk is None
-        update_parent_languages = kwargs.pop('update_parent_languages', True)
 
         if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
             # so long as all of the operations in this overridden `save()`
             # method pertain to content, bail out if it's impossible for this
             # asset to have content in the first place
-            super().save(*args, **kwargs)
+            super().save(
+                force_insert=force_insert,
+                force_update=force_update,
+                update_fields=update_fields,
+                *args,
+                **kwargs
+            )
             return
 
         if self.content is None:
@@ -957,7 +984,7 @@ class Asset(ObjectPermissionMixin,
 
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
-        if kwargs.pop('adjust_content', True):
+        if adjust_content:
             self.adjust_content_on_save()
 
         # populate summary
@@ -977,20 +1004,40 @@ class Asset(ObjectPermissionMixin,
 
         self._populate_report_styles()
 
-        _create_version = kwargs.pop('create_version', True)
-        super().save(*args, **kwargs)
+        # Ensure `_deployment_data` is not saved directly
+        try:
+            stored_data_key = self._deployment_data['_stored_data_key']
+        except KeyError:
+            if self._deployment_data != self.__deployment_data_copy:
+                raise DeploymentDataException
+        else:
+            if stored_data_key != self.deployment.stored_data_key:
+                raise DeploymentDataException
+            else:
+                self._deployment_data.pop('_stored_data_key', None)
+                self.__copy_hidden_fields()
+
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            update_fields=update_fields,
+            *args,
+            **kwargs
+        )
 
         # Update languages for parent and previous parent.
         # e.g. if a survey has been moved from one collection to another,
         # we want both collections to be updated.
         if self.parent is not None and update_parent_languages:
-            if self.parent_id != self.__previous_parent_id and \
-               self.__previous_parent_id is not None:
+            if (
+                self.parent_id != self.__parent_id_copy
+                and self.__parent_id_copy is not None
+            ):
                 try:
                     previous_parent = Asset.objects.get(
-                        pk=self.__previous_parent_id)
+                        pk=self.__parent_id_copy)
                     previous_parent.update_languages()
-                    self.__previous_parent_id = self.parent_id
+                    self.__parent_id_copy = self.parent_id
                 except Asset.DoesNotExist:
                     pass
 
@@ -1004,7 +1051,7 @@ class Asset(ObjectPermissionMixin,
                 # children.
                 self.parent.update_languages()
 
-        if _create_version:
+        if create_version:
             self.create_version()
 
     @property
@@ -1282,6 +1329,37 @@ class Asset(ObjectPermissionMixin,
 
         elif perm in self.CONTRADICTORY_PERMISSIONS.get(PERM_PARTIAL_SUBMISSIONS):
             clean_up_table()
+
+    def __copy_hidden_fields(self, fields: Optional[list] = None):
+        """
+        Save a copy of `parent_id` and `_deployment_data` for these purposes
+        `save()` respectively.
+
+        - `self.__parent_id_copy` is used to detect whether asset is linked a
+           different parent
+        - `self.__deployment_data_copy` is used to detect whether
+          `_deployment_data` has been altered directly
+        """
+
+        # When fields are deferred, Django instantiates another copy
+        # of the current Asset object to retrieve the value of the
+        # requested field. Because we need to get a copy at the very
+        # first beginning of the life of the object, this method is
+        # called in the object constructor. Thus, trying to copy
+        # deferred fields would create an infinite loop.
+        # If `fields` is provided, fields are no longer deferred and should be
+        # copied right away.
+        if (
+            fields is None and 'parent_id' not in self.get_deferred_fields()
+            or fields and 'parent_id' in fields
+        ):
+            self.__parent_id_copy = self.parent_id
+        if (
+            fields is None and '_deployment_data' not in self.get_deferred_fields()
+            or fields and '_deployment_data' in fields
+        ):
+            self.__deployment_data_copy = copy.deepcopy(
+                self._deployment_data)
 
 
 class AssetSnapshot(OpenRosaFormListInterface,

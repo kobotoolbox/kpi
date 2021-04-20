@@ -2,6 +2,7 @@
 import pytest
 from django.test import TestCase
 
+from kpi.exceptions import DeploymentDataException
 from kpi.models.asset import Asset
 from kpi.models.asset_version import AssetVersion
 
@@ -98,3 +99,35 @@ class MockDeployment(TestCase):
         self.assertTrue(self.asset.has_deployment)
         self.asset.deployment.delete()
         self.assertFalse(self.asset.has_deployment)
+
+    def test_save_data(self):
+
+        deployment_data = self.asset.deployment.get_data()
+        self.asset._deployment_data['direct_access'] = True  # noqa
+        # We should not be able to save asset when `_deployment_data` has been
+        # altered directly
+        with self.assertRaises(DeploymentDataException) as e:
+            self.asset.save()
+
+        self.asset.refresh_from_db()
+        self.assertEqual(self.asset._deployment_data, deployment_data)
+
+        # Using the deployment should work
+        self.asset.deployment.store_data({'direct_access': True})
+        self.asset.save()
+        self.asset.refresh_from_db()
+        self.assertNotEqual(self.asset._deployment_data, deployment_data)  # noqa
+        self.assertTrue(self.asset._deployment_data['direct_access'])  # noqa
+
+    def test_save_data_with_deferred_fields(self):
+        # It should work with deferred fields too
+        asset = Asset.objects.only('uid').get(id=self.asset.pk)
+        asset._deployment_data = {'overwrite_all': True}  # noqa
+        # Hidden field copy has not been set yet
+        self.assertTrue(asset._Asset__deployment_data_copy is None)  # noqa
+        # We should not be able to save asset when `_deployment_data` has been
+        # altered directly
+        with self.assertRaises(DeploymentDataException) as e:
+            asset.save()
+
+
