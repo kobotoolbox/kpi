@@ -5,17 +5,18 @@ from typing import Union, Iterator
 
 from bson import json_util
 from django.db.models.query import QuerySet
-from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
+from shortuuid import ShortUUID
 
 from kpi.constants import (
     INSTANCE_FORMAT_TYPE_XML,
     INSTANCE_FORMAT_TYPE_JSON,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import AbstractMethodError
@@ -25,6 +26,10 @@ from kpi.utils.jsonbfield_helper import ReplaceValues
 
 
 class BaseDeploymentBackend:
+    """
+    Defines the interface for a deployment backend.
+    """
+
     INSTANCE_ID_FIELDNAME = '_id'
     STATUS_SYNCED = 'synced'
     STATUS_NOT_SYNCED = 'not-synced'
@@ -33,6 +38,7 @@ class BaseDeploymentBackend:
         self.asset = asset
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = 0
+        self.__stored_data_key = None
 
     @property
     def active(self):
@@ -43,7 +49,7 @@ class BaseDeploymentBackend:
 
     @property
     def backend(self):
-        return self.get_data('backend', None)
+        return self.get_data('backend')
 
     @property
     def backend_response(self):
@@ -74,8 +80,10 @@ class BaseDeploymentBackend:
             # We do not want to return the mutable object whose could be altered
             # later. `self.asset._deployment_data` should never be accessed
             # directly
-            return copy.deepcopy(self.asset._deployment_data)  # noqa
-
+            deployment_data_copy = copy.deepcopy(self.asset._deployment_data)  # noqa
+            deployment_data_copy.pop('_stored_data_key', None)
+            return deployment_data_copy
+<
         value = None
         nested_path = dotted_path.split('.')
         nested_dict = self.asset._deployment_data  # noqa
@@ -83,12 +91,11 @@ class BaseDeploymentBackend:
             try:
                 value = nested_dict[key]
             except KeyError:
-                value = None
-                break
+                return default
 
             nested_dict = value
 
-        return value if value else default
+        return value
 
     def delete_submission(self, pk: int, user: 'auth.User') -> dict:
         raise AbstractMethodError
@@ -163,7 +170,7 @@ class BaseDeploymentBackend:
 
     @property
     def identifier(self):
-        return self.get_data('identifier', None)
+        return self.get_data('identifier')
 
     @property
     def last_submission_time(self):
@@ -194,15 +201,13 @@ class BaseDeploymentBackend:
         # Avoid circular imports
         # use `self.asset.__class__` instead of `from kpi.models import Asset`
         now = timezone.now()
-        with transaction.atomic():
-            self.asset.__class__.objects.select_for_update() \
-                .filter(id=self.asset.pk).update(
-                _deployment_data=ReplaceValues(
-                    '_deployment_data',
-                    updates=updates,
-                ),
-                date_modified=now,
-            )
+        self.asset.__class__.objects.filter(id=self.asset.pk).update(
+            _deployment_data=ReplaceValues(
+                '_deployment_data',
+                updates=updates,
+            ),
+            date_modified=now,
+        )
         self.store_data(updates)
         self.asset.date_modified = now
 
@@ -232,8 +237,14 @@ class BaseDeploymentBackend:
     def status(self):
         return self.get_data('status')
 
-    def store_data(self, vals=None):
-        self.asset._deployment_data.update(vals)  # noqa
+    def store_data(self, values: dict):
+        self.__stored_data_key = ShortUUID().random(24)
+        values['_stored_data_key'] = self.__stored_data_key
+        self.asset._deployment_data.update(values)  # noqa
+
+    @property
+    def stored_data_key(self):
+        return self.__stored_data_key
 
     @property
     def submission_count(self):
@@ -376,10 +387,13 @@ class BaseDeploymentBackend:
 
         return params
 
-    def validate_write_access_with_partial_perms(self,
-                                                 user: 'auth.User',
-                                                 perm: str,
-                                                 instance_ids: list):
+    def validate_write_access_with_partial_perms(
+        self,
+        user: 'auth.User',
+        perm: str,
+        instance_ids: list = [],
+        query: dict = {},
+    ):
         """
         Validate whether `user` is allowed to perform write actions on
         submissions with the permission `perm`.
@@ -388,8 +402,11 @@ class BaseDeploymentBackend:
         No validation is made whether `user` is granted with other permissions
         than 'partial_submission' permission.
         """
-        if PERM_PARTIAL_SUBMISSIONS not in self.get_perms(user):
+        if PERM_PARTIAL_SUBMISSIONS not in self.asset.get_perms(user):
             return
+
+        if perm != PERM_VALIDATE_SUBMISSIONS and not instance_ids:
+            raise ValueError('`instance_ids` cannot be empty')
 
         results = self.get_submissions(
             user=user,
@@ -397,6 +414,7 @@ class BaseDeploymentBackend:
             partial_perm=perm,
             fields=[self.INSTANCE_ID_FIELDNAME],
             instance_ids=instance_ids,
+            query=query,
         )
         allowed_instance_ids = [r[self.INSTANCE_ID_FIELDNAME] for r in results]
 

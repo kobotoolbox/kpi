@@ -20,7 +20,6 @@ from .base_backend import BaseDeploymentBackend
 class MockDeploymentBackend(BaseDeploymentBackend):
     """
     Only used for unit testing and interface testing.
-    Defines the interface for a deployment backend.
     """
 
     def bulk_assign_mapped_perms(self):

@@ -50,7 +50,7 @@ class AssetFile(models.Model,
             'application/vnd.google-earth.kml+xml',
             'application/vnd.google-earth.kmz',
             'application/wkt',
-            'application/geojson',
+            'application/geo+json',
             'application/json',
         ),
     }
