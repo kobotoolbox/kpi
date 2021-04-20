@@ -58,7 +58,11 @@ class FormListSerializer(serializers.Serializer):
         rendering data
         """
         # Use private variable to test validation only once per instantiation
-        assert issubclass(obj.__class__, OpenRosaFormListInterface)
+        class_ = obj.__class__
+        assert (
+            isinstance(class_, OpenRosaFormListInterface)
+            and class_ != OpenRosaFormListInterface
+        )
 
 
 class ManifestSerializer(serializers.Serializer):
@@ -96,4 +100,8 @@ class ManifestSerializer(serializers.Serializer):
         rendering data
         """
         # Use private variable to test validation only once per instantiation
-        assert issubclass(obj.__class__, OpenRosaManifestInterface)
+        class_ = obj.__class__
+        assert (
+            isinstance(class_, OpenRosaManifestInterface)
+            and class_ != OpenRosaManifestInterface
+        )
