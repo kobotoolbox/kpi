@@ -293,6 +293,11 @@ class BaseDeploymentBackend:
     def status(self):
         return self.get_data('status')
 
+    def store_data(self, values: dict):
+        self.__stored_data_key = ShortUUID().random(24)
+        values['_stored_data_key'] = self.__stored_data_key
+        self.asset._deployment_data.update(values)  # noqa
+
     @property
     def stored_data_key(self):
         return self.__stored_data_key
