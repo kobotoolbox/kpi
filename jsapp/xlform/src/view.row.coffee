@@ -195,7 +195,7 @@ module.exports = do ->
 
     _deleteGroupContent: () =>
       console.log('_deleteGroupContent')
-      console.log(@findGroupRows)
+      console.log(@findGroupRows())
       # TODO delete everything inside
       # and then do _deleteGroup()
       return
@@ -209,7 +209,7 @@ module.exports = do ->
         findMatch = (row) ->
           if row.cid is rowId
             matchingRow = row
-        @survey.forEachRow(findMatch, {includeGroups: true})
+        @surveyView.survey.forEachRow(findMatch, {includeGroups: true})
         rows.push(matchingRow)
       )
       return rows
