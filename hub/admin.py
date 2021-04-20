@@ -4,10 +4,11 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django.db.models import Sum
 from django.utils.translation import gettext as _
 
 from kpi.deployment_backends.kc_access.utils import delete_kc_users
-from kpi.deployment_backends.kc_access.shadow_models import KobocatSubmissionCounter
+from kpi.deployment_backends.kc_access.shadow_models import KobocatSubmissionCounter, KobocatUser
 from .models import SitewideMessage, ConfigurationFile, PerUserSetting
 
 
@@ -122,17 +123,28 @@ class UserStatisticsAdmin(admin.ModelAdmin):
         qs = cl.get_queryset(request)
 
         data = []
-        records = qs.order_by('-timestamp', 'user__username')
+        users = KobocatUser.objects.all().order_by('username')
 
-        for record in records:
+        for user in users:
+            user_records = qs.filter(user=user)
+            user_record = user_records.first()
+            record = user_records.aggregate(count_sum=Sum('count'))
+            form_count = 0
+            deployed_count = 0
+            
+            for row in user_records:
+                form_count = form_count + row.form_count
+                deployed_count = deployed_count + row.deployed_form_count
+
             data.append({
-                'username': record.user.username,
-                'year': record.timestamp.year,
-                'month': record.timestamp.month,
-                'submission_count': record.count,
-                'form_count': record.form_count,
-                'deployed_form_count': record.deployed_form_count,
+                'username': user.username,
+                'year': user_record.timestamp.year,
+                'month': user_record.timestamp.month,
+                'submission_count': record.get('count_sum'),
+                'form_count': form_count,
+                'deployed_form_count': deployed_count,
             })
+        
         return data
 
 
