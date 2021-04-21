@@ -39,7 +39,6 @@ module.exports = do ->
 
   class viewWidgets.EmptyView extends viewWidgets.Base
     attach_to: () -> return
-    val: () -> return
     bind_event: () -> return
     render: () -> @
     val: () -> null

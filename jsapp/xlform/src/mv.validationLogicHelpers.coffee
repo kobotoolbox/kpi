@@ -34,7 +34,8 @@ module.exports = do ->
       return presenter
 
     questions: () ->
-      [@current_question]
+      return [@current_question]
+
     _operator_type: () ->
       operator_type = super
       if !operator_type?
