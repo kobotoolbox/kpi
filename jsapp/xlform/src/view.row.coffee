@@ -202,15 +202,8 @@ module.exports = do ->
 
     findGroupRows: () =>
       rows = []
-      @$el.find('.survey__row').each((index, element) =>
-        $el = $(element)
-        rowId = $el.data('rowId')
-        matchingRow = false
-        findMatch = (row) ->
-          if row.cid is rowId
-            matchingRow = row
-        @surveyView.survey.forEachRow(findMatch, {includeGroups: true})
-        rows.push(matchingRow)
+      @model.rows.each((row) ->
+        rows.push(row)
       )
       return rows
 
