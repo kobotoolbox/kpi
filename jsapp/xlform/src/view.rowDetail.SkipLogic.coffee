@@ -137,7 +137,8 @@ module.exports = do ->
       @bind_question_picker()
       @attach_operator()
       @attach_response()
-      super
+      super(element)
+      return
 
     constructor: (@question_picker_view, @operator_picker_view, @response_value_view, @presenter) ->
       super()
@@ -262,7 +263,7 @@ module.exports = do ->
 
   class viewRowDetailSkipLogic.SkipLogicValidatingTextResponseView extends viewRowDetailSkipLogic.SkipLogicTextResponse
     render: () ->
-      super
+      super()
       @setElement('<div class="skiplogic__responseval-wrapper">' + @$el + '<div></div></div>')
       @$error_message = @$('div')
       @model.bind 'validated:invalid', @show_invalid_view
@@ -301,7 +302,7 @@ module.exports = do ->
       super 'change', handler
 
     render: () ->
-      super
+      super()
       handle_model_cid_change = () =>
         @val(@model.get 'cid')
 

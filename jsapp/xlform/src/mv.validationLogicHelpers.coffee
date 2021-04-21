@@ -37,8 +37,9 @@ module.exports = do ->
       return [@current_question]
 
     _operator_type: () ->
-      operator_type = super
-      if !operator_type?
+      operator_type = super()
+
+      if not operator_type?
         operator_type_id = @current_question.get_type().operators[0]
         operator_type = $skipLogicHelpers.operator_types[if operator_type_id == 1 then @current_question.get_type().operators[1] else operator_type_id]
       return operator_type
@@ -86,7 +87,7 @@ module.exports = do ->
     serialize: () ->
       @textarea.val()
     constructor: () ->
-      super
+      super()
       @$handCode = $("""
         <div class="card__settings__fields__field">
           <label for="#{@context.helper_factory.current_question.cid}-handcode">#{t("Validation Code:")}</label>

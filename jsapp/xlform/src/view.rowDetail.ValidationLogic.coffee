@@ -16,7 +16,7 @@ module.exports = do ->
 
   class viewRowDetailValidationLogic.ValidationLogicCriterionBuilder extends $skipLogicView.SkipLogicCriterionBuilderView
     render: () ->
-      super
+      super()
       @$el.html(@$el.html().replace 'only be displayed', 'be valid only')
 
       @
