@@ -253,7 +253,7 @@ module.exports = do ->
   class viewRowDetailSkipLogic.SkipLogicTextResponse extends $viewWidgets.TextBox
     attach_to: (target) ->
       target.find('.skiplogic__responseval').remove()
-      super
+      super(target)
 
     bind_event: (handler) ->
       @$el.on 'blur', handler
@@ -269,7 +269,8 @@ module.exports = do ->
       @model.bind 'validated:invalid', @show_invalid_view
       @model.bind 'validated:valid', @clear_invalid_view
       @$input = @$el.find('input')
-      @
+      return @
+
     show_invalid_view: (model, errors) =>
       if @$input.val()
         @$el.addClass('textbox--invalid')
@@ -293,8 +294,8 @@ module.exports = do ->
     className: 'skiplogic__responseval'
 
     attach_to: (target) ->
-      target.find('.skiplogic__responseval').remove()
       super(target)
+      target.find('.skiplogic__responseval').remove()
       # workaround for missing elements when toggling skiplogic back and forth
       target.find('.skiplogic__responseval.select2-container').show()
 
