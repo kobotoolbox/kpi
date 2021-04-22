@@ -1,3 +1,5 @@
+// NOTE: this list should match a list from:
+// https://github.com/kobotoolbox/formpack/blob/master/src/formpack/constants.py
 export const LOCKING_RESTRICTIONS = Object.freeze({
   // question related
   choice_add: {name: 'choice_add', label: t('Add choice to question')},
