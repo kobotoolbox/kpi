@@ -1,6 +1,7 @@
 # coding: utf-8
 import copy
 import re
+import time
 import uuid
 from datetime import datetime
 
@@ -11,7 +12,12 @@ from rest_framework import status
 from kpi.constants import (
     INSTANCE_FORMAT_TYPE_JSON,
     INSTANCE_FORMAT_TYPE_XML,
+    PERM_ADD_SUBMISSIONS,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
 )
+from kpi.utils.iterators import to_int
 from .base_backend import BaseDeploymentBackend
 
 
@@ -24,27 +30,42 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         pass
 
     def bulk_update_submissions(
-        self, request_data: dict, requesting_user_id: int
+        self, data: dict, requesting_user: 'auth.User'
     ) -> dict:
-        payload = self.__prepare_bulk_update_payload(request_data)
-        all_submissions = copy.copy(self.get_data('submissions'))
-        instance_ids = payload.pop('submission_ids')
+
+        self.validate_write_access_with_partial_perms(
+            user=requesting_user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            instance_ids=data['submission_ids'],
+        )
+
+        submissions = self.get_submissions(
+            requesting_user_id=requesting_user.pk,
+            format_type=INSTANCE_FORMAT_TYPE_JSON,
+            instance_ids=data['submission_ids']
+        )
+
+        instance_ids = to_int(data['submission_ids'])
 
         responses = []
-        for submission in all_submissions:
+        for submission in submissions:
             if submission[self.INSTANCE_ID_FIELDNAME] in instance_ids:
                 _uuid = uuid.uuid4()
                 submission['deprecatedID'] = submission['instanceID']
                 submission['instanceID'] = f'uuid:{_uuid}'
-                for k, v in payload['data'].items():
+                for k, v in data['data'].items():
                     submission[k] = v
+
+                # Mirror KobocatDeploymentBackend responses
                 responses.append(
                     {
                         'uuid': _uuid,
-                        'response': {},
+                        'status_code': status.HTTP_201_CREATED,
+                        'message': 'Successful submission'
                     }
                 )
 
+        self.mock_submissions(submissions)
         return self.__prepare_bulk_update_response(responses)
 
     def calculated_submission_count(self, requesting_user_id, **kwargs):
@@ -66,38 +87,91 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             }
         })
 
-    def delete_submission(self, pk, user):
+    def delete_submission(self, pk: int, user: 'auth.User') -> dict:
         """
         Deletes submission
-        :param pk: int
-        :param user: User
-        :return: JSON
         """
-        # No need to delete data, just fake it
+
+        self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_DELETE_SUBMISSIONS,
+            instance_ids=[pk],
+        )
+
+        submissions = self.get_data('submissions', [])
+        iterator = submissions.copy()
+        for idx, submission in enumerate(iterator):
+            if int(submission['_id']) == int(pk):
+                del submissions[idx]
+                self.mock_submissions(submissions)
+                return {
+                    'content_type': 'application/json',
+                    'status': status.HTTP_204_NO_CONTENT,
+                }
+
+        return {
+            'content_type': 'application/json',
+            'status': status.HTTP_404_NOT_FOUND,
+        }
+
+    def delete_submissions(self, data: dict, user: 'auth.User') -> dict:
+        """
+        Bulk delete provided submissions authenticated by `user`'s API token.
+
+        `data` should contains the submission ids posted with `DELETE` request.
+        Example:
+             {"submission_ids": [1, 2, 3]}
+
+        """
+        instance_ids = data['submissions_ids']
+
+        self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_DELETE_SUBMISSIONS,
+            instance_ids=instance_ids,
+        )
+
+        submissions = self.get_data('submissions', [])
+        iterator = submissions.copy()
+        for idx, submission in enumerate(iterator):
+            if int(submission['_id']) in instance_ids:
+                del submissions[idx]
+
+        self.mock_submissions(submissions)
+
         return {
             "content_type": "application/json",
             "status": status.HTTP_204_NO_CONTENT,
         }
 
     def duplicate_submission(
-        self, requesting_user: 'auth.User', instance_id: int, **kwargs: dict
+        self, requesting_user: 'auth.User', instance_id: int
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
+
+        self.validate_write_access_with_partial_perms(
+            user=requesting_user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            instance_ids=[instance_id],
+        )
+
         all_submissions = self.get_data('submissions')
-        submission = next(
-            filter(lambda sub: sub['_id'] == instance_id, all_submissions)
+        duplicated_submission = copy.deepcopy(
+            self.get_submission(instance_id, requesting_user)
         )
         next_id = max((sub['_id'] for sub in all_submissions)) + 1
         updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
-        updated_fields = {
+        duplicated_submission.update({
             '_id': next_id,
             'start': updated_time,
             'end': updated_time,
             'instanceID': f'uuid:{uuid.uuid4()}'
-        }
+        })
+        all_submissions.append(duplicated_submission)
+        self.mock_submissions(all_submissions)
 
-        return {**submission, **updated_fields}
+        return duplicated_submission
 
     def get_data_download_links(self):
         return {}
@@ -122,19 +196,23 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submission_edit_url(self, submission_pk, user, params=None):
+    def get_submission_edit_url(
+        self, submission_pk: int, user: 'auth.User', params: dict = None
+    ) -> dict:
         """
-        Gets edit URL of the submission in a format FE can understand
+        Gets edit URL of the submission in a format front end can understand
+        """
 
-        :param submission_pk: int
-        :param user: User
-        :param params: dict
-        :return: dict
-        """
+        self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            instance_ids=[submission_pk],
+        )
 
         return {
-            "data": {
-                "url": "http://server.mock/enketo/{}".format(submission_pk)
+            'content_type': 'application/json',
+            'data': {
+                'url': f'http://server.mock/enketo/{submission_pk}'
             }
         }
 
@@ -223,17 +301,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return submissions
 
     def get_validation_status(self, submission_pk, params, user):
-        submission = self.get_submission(submission_pk, user.id,
-                                         INSTANCE_FORMAT_TYPE_JSON)
+
+        submission = self.get_submission(submission_pk, user.id)
         return {
-            "data": submission.get("_validation_status")
+            'content_type': 'application/json',
+            'data': submission.get('_validation_status')
         }
 
     def mock_submissions(self, submissions: list):
         """
         Insert dummy submissions into deployment data
         """
-        self.store_data({"submissions": submissions})
+        self.store_data({'submissions': submissions})
         self.asset.save(create_version=False)
 
     def redeploy(self, active=None):
@@ -281,11 +360,72 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'namespace': namespace,
         })
 
-    def set_validation_status(self, submission_pk, data, user, method):
-        pass
+    def set_validation_status(self,
+                              submission_pk: int,
+                              data: dict,
+                              user: 'auth.User',
+                              method: str) -> dict:
 
-    def set_validation_statuses(self, data, user):
-        pass
+        self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_VALIDATE_SUBMISSIONS,
+            instance_ids=[submission_pk],
+        )
+
+        # use the owner to retrieve all the submissions to mock them again
+        # after the update
+        submissions = self.get_submissions(requesting_user_id=self.asset.owner)
+        validation_status = {}
+        status_code = status.HTTP_204_NO_CONTENT
+
+        if method != 'DELETE':
+            validation_status = {
+                'timestamp': int(time.time()),
+                'uid': data['validation_status.uid'],
+                'by_whom': user.username,
+            }
+            status_code = status.HTTP_200_OK
+
+        for submission in submissions:
+            if submission[self.INSTANCE_ID_FIELDNAME] == int(submission_pk):
+                submission['_validation_status'] = validation_status
+                self.mock_submissions(submissions)
+                return {
+                    'content_type': 'application/json',
+                    'status': status_code,
+                    'data': validation_status
+                }
+
+    def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
+
+        self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_VALIDATE_SUBMISSIONS,
+            instance_ids=data['submissions_ids'],
+        )
+
+        # use the owner to retrieve all the submissions to mock them again
+        # after the update
+        submissions = self.get_submissions(requesting_user_id=self.asset.owner)
+
+        for submission in submissions:
+            if submission[self.INSTANCE_ID_FIELDNAME] in data['submission_ids']:
+                submission['_validation_status'] = {
+                    'timestamp': int(time.time()),
+                    'uid': data['validation_status.uid'],
+                    'by_whom': user.username,
+                }
+
+        self.mock_submissions(submissions)
+        submissions_count = len(data['submission_ids'])
+
+        return {
+            'content_type': 'application/json',
+            'status': status.HTTP_200_OK,
+            'data': {
+                'detail': f'{submissions_count} submissions have been updated'
+            }
+        }
 
     @property
     def submission_list_url(self):
@@ -298,12 +438,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return reverse(view_name,
                        kwargs={"parent_lookup_asset": self.asset.uid})
 
-    def sync_media_files(self, *args, **kwargs):
-        pass
-
     def _mock_submission(self, submission):
         """
-        @TODO may be useless because of mock_submissions. Remove if it's not used anymore anywhere else.
+        @TODO may be useless because of mock_submissions.
+        Remove if it's not used anymore anywhere else.
         :param submission:
         """
         submissions = self.get_data('submissions', [])
@@ -315,20 +453,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def _submission_count(self):
         submissions = self.get_data('submissions', [])
         return len(submissions)
-
-    @staticmethod
-    def __prepare_bulk_update_payload(request_data: dict) -> dict:
-        # For some reason DRF puts the strings into a list so this just takes
-        # them back out again to more accurately reflect the behaviour of the
-        # non-mocked methods
-        for k, v in request_data['data'].items():
-            request_data['data'][k] = v[0]
-
-        request_data['submission_ids'] = list(
-            set(map(int, request_data['submission_ids']))
-        )
-
-        return request_data
 
     @staticmethod
     def __prepare_bulk_update_response(kc_responses: list) -> dict:
