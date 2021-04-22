@@ -48,6 +48,9 @@ class DataBulkActionsValidator(serializers.Serializer):
             if self.__perm == PERM_CHANGE_SUBMISSIONS:
                 self.__validate_updated_data(payload)
 
+        if self.__perm == PERM_VALIDATE_SUBMISSIONS:
+            self.__validate_validation_status(payload)
+
         return payload
 
     def to_representation(self, instance):
@@ -55,6 +58,9 @@ class DataBulkActionsValidator(serializers.Serializer):
             'submission_ids': instance['payload'].get('submission_ids', []),
             'query': instance['payload'].get('query', {}),
             'data': instance['payload'].get('data'),
+            'validation_status.uid': instance['payload'].get(
+                'validation_status.uid'),
+            'confirm': instance['payload'].get('confirm'),
         }
 
     def __validate_submission_ids(self, payload: dict):
@@ -79,3 +85,10 @@ class DataBulkActionsValidator(serializers.Serializer):
                 _('`data` is required')
             )
 
+    def __validate_validation_status(self, payload: dict):
+        try:
+            payload['validation_status.uid']
+        except KeyError:
+            raise serializers.ValidationError(
+                _('`validation_status.uid` is required')
+            )
