@@ -231,6 +231,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         Retrieves submissions on `format_type`.
         It can be filtered on instances ids.
 
+        TODO support Mongo Query and XML
+
         Args:
             requesting_user_id (int)
             format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
@@ -374,6 +376,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         # use the owner to retrieve all the submissions to mock them again
         # after the update
+        # FIXME Avoid looping on all submissions.
         submissions = self.get_submissions(requesting_user_id=self.asset.owner)
         validation_status = {}
         status_code = status.HTTP_204_NO_CONTENT
@@ -401,23 +404,51 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
-            instance_ids=data['submissions_ids'],
+            instance_ids=data['submission_ids'],
+            query=data['query'],
         )
+        """
+        Bulk update validation status for provided submissions.
+
+        `data` should contains either the submission ids or the query to
+        retrieve the subset of submissions chosen by then user.
+        If none of them are provided, all the submissions are selected
+        Examples:
+            {"submission_ids": [1, 2, 3]}
+            {"query":{"_validation_status.uid":"validation_status_not_approved"}
+        
+        NOTES: Mongo query is not supported yet 
+        """
 
         # use the owner to retrieve all the submissions to mock them again
         # after the update
+        # FIXME Avoid looping on all submissions.
         submissions = self.get_submissions(requesting_user_id=self.asset.owner)
 
+        user_submissions = self.get_submissions(
+            requesting_user_id=user,
+            instance_ids=data['submission_ids'],
+            query=data['query'],
+        )
+        # Retrieve user submission
+        user_submission_ids = [
+            user_submission[self.INSTANCE_ID_FIELDNAME]
+            for user_submission in user_submissions
+        ]
+
         for submission in submissions:
-            if submission[self.INSTANCE_ID_FIELDNAME] in data['submission_ids']:
-                submission['_validation_status'] = {
-                    'timestamp': int(time.time()),
-                    'uid': data['validation_status.uid'],
-                    'by_whom': user.username,
-                }
+            if submission[self.INSTANCE_ID_FIELDNAME] in user_submission_ids:
+                if not data['validation_status.uid']:
+                    submission['_validation_status'] = {}
+                else:
+                    submission['_validation_status'] = {
+                        'timestamp': int(time.time()),
+                        'uid': data['validation_status.uid'],
+                        'by_whom': user.username,
+                    }
 
         self.mock_submissions(submissions)
-        submissions_count = len(data['submission_ids'])
+        submissions_count = len(user_submission_ids)
 
         return {
             'content_type': 'application/json',

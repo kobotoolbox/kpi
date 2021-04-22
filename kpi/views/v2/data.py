@@ -410,7 +410,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             permission_classes=[SubmissionValidationStatusPermission])
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-
         bulk_actions_validator = DataBulkActionsValidator(
             data=request.data,
             context=self.get_serializer_context(),

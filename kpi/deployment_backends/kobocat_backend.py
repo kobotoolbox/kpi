@@ -95,7 +95,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Args:
             data (dict): must contain a list of `submission_ids` and at
                 least one other key:value field for updating the submissions
-            requesting_user (int)
+            requesting_user (User)
 
         Returns:
             dict: formatted dict to be passed to a Response object
@@ -803,6 +803,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             query=data['query'],
         )
 
+        # `PATCH` KC even if KPI receives `DELETE`
         url = self.submission_list_url
         kc_request = requests.Request(method='PATCH', url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
@@ -1136,7 +1137,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def __prepare_as_drf_response_signature(requests_response):
         """
         Prepares a dict from `Requests` response.
-        Useful to get response from KoBoCaT and use it as a dict or pass it to
+        Useful to get response from KoBoCAT and use it as a dict or pass it to
         DRF Response
         """
 

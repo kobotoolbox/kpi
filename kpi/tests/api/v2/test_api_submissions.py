@@ -77,7 +77,7 @@ class BaseSubmissionTestCase(BaseTestCase):
                     "timestamp": 1547839938,
                     "uid": "validation_status_approved",
                     "color": "#0000ff",
-                    "label": "On Hold"
+                    "label": "Approved"
                 },
                 "_submitted_by": "someuser"
             }
@@ -821,7 +821,7 @@ class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
         response = self.client.patch(self.validation_status_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_submission_validation_status_with_partial_perms(self):
+    def test_edit_submission_validation_status_with_partial_perms(self):
         self._log_in_as_another_user()
         partial_perms = {
             PERM_VALIDATE_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
@@ -865,34 +865,344 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         for submission in self.submissions:
             submission['_validation_status']['uid'] = 'validation_status_not_approved'  # noqa
         self.asset.deployment.mock_submissions(self.submissions)
+        self.validation_statuses_url = reverse(
+            self._get_endpoint('submission-validation-statuses'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+        )
+        self.submissions_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+        )
 
-    def test_delete_submission_validation_statuses_owner(self):
-        raise NotImplementedError
+    def test_delete_all_submission_validation_statuses_owner(self):
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+        # `confirm` must me send within payload (when all submissions are
+        # modified). Otherwise, a ValidationError is raised
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data['payload']['confirm'] = True
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(self.someuser.pk)
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            self.assertEqual(submission['_validation_status'], {})
+
+    def test_delete_some_submission_validation_statuses_owner(self):
+        submission_id = 1
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+                'submission_ids': [submission_id]
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(
+            self.someuser.pk, instance_ids=[submission_id]
+        )
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            if submission[self._id_fieldname] == submission_id:
+                self.assertEqual(submission['_validation_status'], {})
+            else:
+                self.assertNotEqual(submission['_validation_status'], {})
+
+        # TODO Test with `query` when Mockbackend support Mongo queries
 
     def test_delete_submission_validation_statuses_not_shared_other(self):
-        raise NotImplementedError
+        self._log_in_as_another_user()
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+                'confirm': True,
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_validation_statuses_other(self):
-        raise NotImplementedError
+        self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
+        self._log_in_as_another_user()
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+                'confirm': True,
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(self.anotheruser.pk)
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            self.assertEqual(submission['_validation_status'], {})
 
     def test_delete_submission_validation_statuses_anonymous(self):
-        raise NotImplementedError
+        self.client.logout()
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+                'confirm': True,
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
 
-    def test_edit_submission_validation_statuses_owner(self):
-        raise NotImplementedError
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_all_submission_validation_statuses_owner(self):
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+            }
+        }
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        # `confirm` must me send within payload (when all submissions are
+        # modified). Otherwise, a ValidationError is raised
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data['payload']['confirm'] = True
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(self.someuser.pk)
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            validation_status = submission['_validation_status']
+            self.assertEqual(validation_status['by_whom'], 'someuser')
+            self.assertEqual(
+                validation_status['uid'], data['payload']['validation_status.uid']
+            )
+
+    def test_edit_some_submission_validation_statuses_owner(self):
+        submission_id = 1
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'submission_ids': [submission_id]
+            }
+        }
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(
+            self.someuser.pk, instance_ids=[submission_id]
+        )
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            validation_status = submission['_validation_status']
+            if submission[self._id_fieldname] == submission_id:
+                self.assertEqual(validation_status['by_whom'], 'someuser')
+                self.assertEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
+            else:
+                self.assertNotEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
 
     def test_edit_submission_validation_statuses_not_shared_other(self):
-        raise NotImplementedError
+        self._log_in_as_another_user()
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'confirm': True,
+            }
+        }
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_edit_submission_validation_statuses_other(self):
-        raise NotImplementedError
+        self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
+        self._log_in_as_another_user()
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'confirm': True,
+            }
+        }
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(
+            self.anotheruser.pk)
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            validation_status = submission['_validation_status']
+            self.assertEqual(validation_status['by_whom'], 'anotheruser')
+            self.assertEqual(
+                validation_status['uid'],
+                data['payload']['validation_status.uid']
+            )
 
     def test_edit_submission_validation_statuses_anonymous(self):
-        raise NotImplementedError
+        self.client.logout()
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'confirm': True,
+            }
+        }
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_submission_validation_statuses_with_partial_perms(self):
-        raise NotImplementedError
+    def test_edit_all_submission_validation_statuses_with_partial_perms(self):
+        self._log_in_as_another_user()
+        partial_perms = {
+            PERM_VALIDATE_SUBMISSIONS: [
+                {'_submitted_by': self.someuser.username}]
+        }
+        # Allow anotheruser to validate someuser's data
+        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
+                               partial_perms=partial_perms)
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'confirm': True,
+            }
+        }
 
+        # Update all submissions anotheruser is allowed to edit
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        count = self._deployment.calculated_submission_count(
+            self.anotheruser.pk)
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Get all submissions and ensure only submissions whose another is only
+        # to edit are modified
+        self.client.logout()
+        self.client.login(username="someuser", password="someuser")
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            validation_status = submission['_validation_status']
+            if validation_status['_submitted_by'] == 'someuser':
+                self.assertEqual(validation_status['by_whom'], 'anotheruser')
+                self.assertEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
+            else:
+                self.assertNotEqual(validation_status['by_whom'], 'anotheruser')
+                self.assertNotEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
+
+    def test_edit_some_submission_validation_statuses_with_partial_perms(self):
+        self._log_in_as_another_user()
+        partial_perms = {
+            PERM_VALIDATE_SUBMISSIONS: [
+                {'_submitted_by': self.someuser.username}]
+        }
+        # Allow anotheruser to validate someuser's data
+        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
+                               partial_perms=partial_perms)
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'submission_ids': [1]
+            }
+        }
+
+        # Try first submission submitted by unknown
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Try 2nd submission submitted by someuser
+        data['payload']['submission_ids'] = [2]
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        count = self._deployment.calculated_submission_count(
+            self.anotheruser.pk, instance_ids=data['payload']['submission_ids'])
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Get all submissions and ensure only submissions whose another is only
+        # to edit are modified
+        self.client.logout()
+        self.client.login(username="someuser", password="someuser")
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            validation_status = submission['_validation_status']
+            if (
+                submission[self._id_fieldname]
+                in data['payload']['submission_ids']
+            ):
+                self.assertEqual(validation_status['by_whom'], 'anotheruser')
+                self.assertEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
+            else:
+                self.assertNotEqual(validation_status['by_whom'], 'anotheruser')
+                self.assertNotEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
 
 class SubmissionGeoJsonApiTests(BaseTestCase):
 
