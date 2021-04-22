@@ -245,7 +245,7 @@ export class TranslationSettings extends React.Component {
   isManagingTranslationsLocked() {
     return (
       this.state.asset?.content &&
-      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.translation_manage.name)
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.translations_manage.name)
     );
   }
   renderEmptyMessage() {

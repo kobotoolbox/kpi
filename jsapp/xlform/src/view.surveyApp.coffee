@@ -342,7 +342,7 @@ module.exports = do ->
 
       if (
         @isLockable() and
-        @hasRestriction(LOCKING_RESTRICTIONS.translation_manage.name)
+        @hasRestriction(LOCKING_RESTRICTIONS.translations_manage.name)
       )
         @$('.js-card-label').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
         @$('.js-card-hint').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
