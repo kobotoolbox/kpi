@@ -4,7 +4,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from django.utils.translation import gettext as _
 
 from kpi.deployment_backends.kc_access.utils import delete_kc_users
@@ -99,10 +99,11 @@ class TimePeriodFilter(admin.SimpleListFilter):
             months = int(self.value())
         else:
             return queryset
-
+        print('self.value()', self.value(), flush=True)
         from_date = now - relativedelta(months=months)
 
-        return queryset.filter(timestamp__gte=from_date)
+        #return queryset.filter(timestamp__gte=from_date)
+        return queryset
 
 class UserStatisticsAdmin(admin.ModelAdmin):
     change_list_template = 'user_statistics.html'
@@ -123,16 +124,27 @@ class UserStatisticsAdmin(admin.ModelAdmin):
         qs = cl.get_queryset(request)
 
         data = []
-        records = qs.order_by('user_username').aggregate(count_sum=Sum('count'))
+
+        from kpi.models.asset import Asset
+        records = Asset.objects.values('owner_id').annotate(form_count=Count('pk'))
+        forms_count = {record['owner_id']: record['form_count'] for record in records}
+        
+
+        records = qs.values('user_id', 'user__username').order_by('user__username').annotate(count_sum=Sum('count'))
         for record in records:
+            # form_count = Asset.objects.filter(
+            #     owner__username=self.user.username,
+            #     date_created__month=self.month,
+            #     date_created__year=self.year,
+            # ).count()
             data.append({
-                'username': record.user.username,
-                'year': record.year,
-                'month': record.month,
-                'submission_count': record.count_sum,
-                'form_count': record.form_count,
-                'deployed_form_count': record.deployed_count,
+                'username': record['user__username'],
+                'submission_count': record['count_sum'],
+                'form_count': forms_count.get(record['user_id'], 0),
+                'deployed_form_count': 0,
             })
+
+
         # records = qs.order_by('user__username')
 
         # users = KobocatUser.objects.all()
