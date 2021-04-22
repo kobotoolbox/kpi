@@ -123,27 +123,39 @@ class UserStatisticsAdmin(admin.ModelAdmin):
         qs = cl.get_queryset(request)
 
         data = []
-        users = KobocatUser.objects.all().order_by('username')
-
-        for user in users:
-            user_records = qs.filter(user=user)
-            user_record = user_records.first()
-            record = user_records.aggregate(count_sum=Sum('count'))
-            form_count = 0
-            deployed_count = 0
-            
-            for row in user_records:
-                form_count = form_count + row.form_count
-                deployed_count = deployed_count + row.deployed_form_count
-
+        records = qs.order_by('user_username').aggregate(count_sum=Sum('count'))
+        for record in records:
             data.append({
-                'username': user.username,
-                'year': user_record.timestamp.year,
-                'month': user_record.timestamp.month,
-                'submission_count': record.get('count_sum'),
-                'form_count': form_count,
-                'deployed_form_count': deployed_count,
+                'username': record.user.username,
+                'year': record.year,
+                'month': record.month,
+                'submission_count': record.count_sum,
+                'form_count': record.form_count,
+                'deployed_form_count': record.deployed_count,
             })
+        # records = qs.order_by('user__username')
+
+        # users = KobocatUser.objects.all()
+
+        # for user in users:
+        #     user_records = records.filter(user=user).order_by('-timestamp')
+        #     user_record = user_records.first()
+        #     record = user_records.aggregate(count_sum=Sum('count'))
+        #     form_count = 0
+        #     deployed_count = 0
+
+        #     for row in user_records:
+        #         form_count = form_count + row.form_count
+        #         deployed_count = deployed_count + row.deployed_form_count
+
+        #     data.append({
+        #         'username': user.username,
+        #         'year': user_record.year,
+        #         'month': user_record.month,
+        #         'submission_count': record.get('count_sum'),
+        #         'form_count': form_count,
+        #         'deployed_form_count': deployed_count,
+        #     })
         
         return data
 
