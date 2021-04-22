@@ -634,7 +634,7 @@ export default assign({
                   }]}
                   onClick={this.showAll}
                   data-tip={t('Expand / collapse questions')}>
-                <i className='k-icon-view-all-alt' />
+                <i className='k-icon-view-all' />
               </bem.FormBuilderHeader__button>
             }
 
