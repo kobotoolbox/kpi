@@ -24,6 +24,7 @@ from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.jsonbfield_helper import ReplaceValues
+from kpi.utils.iterators import compare, to_int
 
 
 class BaseDeploymentBackend:
@@ -271,8 +272,9 @@ class BaseDeploymentBackend:
 
         # This error should not be returned as `ValidationError` to user.
         # We want to return a 500.
+
+        partial_perm = kwargs.pop('partial_perm', PERM_VIEW_SUBMISSIONS)
         try:
-            partial_perm = kwargs.pop('partial_perm', PERM_VIEW_SUBMISSIONS)
             permission_filters = self.asset.get_filters_for_partial_perm(
                 requesting_user_id, perm=partial_perm)
         except ValueError:
@@ -360,7 +362,9 @@ class BaseDeploymentBackend:
         )
         allowed_instance_ids = [r[self.INSTANCE_ID_FIELDNAME] for r in results]
 
-        if sorted(allowed_instance_ids) != sorted(instance_ids):
+        if not compare(
+            sorted(allowed_instance_ids), sorted(to_int(instance_ids))
+        ):
             raise PermissionDenied
 
     @property
