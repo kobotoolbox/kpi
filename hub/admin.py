@@ -68,9 +68,9 @@ class UserDeleteAdmin(UserAdmin):
             # Maybe it still makes sense because KPI user is deleted.
             self.message_user(
                 request,
-                'Could not delete user in KoBoCAT database. They may own '
-                'projects and/or submissions. Log into KoBoCAT admin '
-                'interface and delete them from there.',
+                _('Could not delete user in KoBoCAT database. They may own '
+                  'projects and/or submissions. Log into KoBoCAT admin '
+                  'interface and delete them from there.'),
                 messages.ERROR
             )
 

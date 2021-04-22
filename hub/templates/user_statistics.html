@@ -17,16 +17,6 @@
                 </th>
                 <th>
                     <div class="text">
-                        <a href="#">Year</a>
-                    </div>
-                </th>
-                <th>
-                    <div class="text">
-                        <a href="#">Month</a>
-                    </div>
-                </th>
-                <th>
-                    <div class="text">
                         <a href="#">Submissions Count</a>
                     </div>
                 </th>
@@ -46,8 +36,6 @@
             {% for row in summary %}
             <tr class="{% cycle 'row1' 'row2' %}">
                 <td> {{ row.username }} </td>
-                <td> {{ row.year }} </td>
-                <td> {{ row.month }} </td>
                 <td> {{ row.submission_count }} </td>
                 <td> {{ row.form_count }} </td>
                 <td> {{ row.deployed_form_count }} </td>

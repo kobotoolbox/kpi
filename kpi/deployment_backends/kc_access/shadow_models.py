@@ -239,6 +239,9 @@ class KobocatUser(ShadowModel):
         # necessary if the user's password has changed, but we do it always
         KobocatDigestPartial.sync(kc_auth_user)
 
+        # Blablabal - Change this comment
+        KobocatSubmissionCounter.sync(kc_auth_user)
+
 
 class KobocatGenericForeignKey(GenericForeignKey):
 
@@ -466,10 +469,11 @@ def safe_kc_read(func):
                                    'tables: {}'.format(e.message))
     return _wrapper
 
+
 class KobocatSubmissionCounter(ShadowModel):
     user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
-    count = models.IntegerField()
-    timestamp = models.DateTimeField()
+    count = models.IntegerField(default=0)
+    timestamp = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f'{self.user.username}, {self.count}, {self.year}, {self.month}, {self.form_count}, {self.deployed_form_count}'
@@ -507,3 +511,7 @@ class KobocatSubmissionCounter(ShadowModel):
             _deployment_data__active=True
         ).count()
         return deployed_form_count
+
+    @classmethod
+    def sync(cls, user):
+        cls.objects.create(user_id=user.pk)
