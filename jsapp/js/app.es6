@@ -21,8 +21,8 @@ import {
 import moment from 'moment';
 import {actions} from './actions';
 import {stores} from './stores';
-// importing it so it exists
-import {surveyCompanionStore} from './surveyCompanionStore';
+import {surveyCompanionStore} from './surveyCompanionStore'; // importing it so it exists
+import {alertify} from './alertify'; // importing it so it exists
 import {dataInterface} from './dataInterface';
 import {bem} from './bem';
 import ui from './ui';

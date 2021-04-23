@@ -1,18 +1,17 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-$configs = require './model.configs'
-$rowSelector = require './view.rowSelector'
-$row = require './model.row'
-$modelUtils = require './model.utils'
-$viewTemplates = require './view.templates'
-$viewUtils = require './view.utils'
-$viewChoices = require './view.choices'
-$viewParams = require './view.params'
-$viewMandatorySetting = require './view.mandatorySetting'
-$acceptedFilesView = require './view.acceptedFiles'
-$viewRowDetail = require './view.rowDetail'
+_ = require('underscore')
+Backbone = require('backbone')
+$configs = require('./model.configs')
+$rowSelector = require('./view.rowSelector')
+$row = require('./model.row')
+$modelUtils = require('./model.utils')
+$viewTemplates = require('./view.templates')
+$viewUtils = require('./view.utils')
+$viewChoices = require('./view.choices')
+$viewParams = require('./view.params')
+$viewMandatorySetting = require('./view.mandatorySetting')
+$acceptedFilesView = require('./view.acceptedFiles')
+$viewRowDetail = require('./view.rowDetail')
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
-alertify = require 'alertifyjs'
 hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
 getRowLockingProfile = require('js/components/locking/lockingUtils').getRowLockingProfile
 isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
@@ -22,16 +21,19 @@ getQuestionFeatures = require('js/components/locking/lockingUtils').getQuestionF
 getGroupFeatures = require('js/components/locking/lockingUtils').getGroupFeatures
 LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
 LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
-$icons = require './view.icons'
+$icons = require('./view.icons')
+multiConfirm = require('js/alertify').multiConfirm
+alertify = require('alertifyjs')
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
-    tagName: "li"
-    className: "survey__row  xlf-row-view xlf-row-view--depr"
-    events:
-      "drop": "drop"
+    tagName: 'li'
+    className: 'survey__row  xlf-row-view xlf-row-view--depr'
+    events: {
+      drop: 'drop'
+    }
 
-    initialize: (opts)->
+    initialize: (opts) ->
       @options = opts
       typeDetail = @model.get("type")
       @$el.attr("data-row-id", @model.cid)
@@ -201,17 +203,51 @@ module.exports = do ->
 
       return
 
-    deleteGroup: (evt)=>
-      skipConfirm = $(evt.currentTarget).hasClass('js-force-delete-group')
-      if skipConfirm or confirm(t("Are you sure you want to split apart this group?"))
-        @_deleteGroup()
+    deleteGroup: (evt) =>
       evt.preventDefault()
+
+      # force delete is only used in test
+      skipConfirm = $(evt.currentTarget).hasClass('js-force-delete-group')
+      if skipConfirm
+        @_deleteGroup()
+        return
+
+      multiConfirm(
+        'deleteOrSplitGroup',
+        t('Delete group'),
+        t('Do you want to split the group apart (and leave questions intact) or delete everything entirely?'),
+        [
+          {
+            label: t('Ungroup questions'),
+            icon: 'k-icon-group-split'
+            color: 'blue',
+            callback: @_deleteGroup.bind(@),
+          },
+          {
+            label: t('Delete everything'),
+            icon: 'k-icon-trash',
+            color: 'red',
+            callback: @_deleteGroupWithContent.bind(@),
+          },
+        ]
+      )
+      return
 
     _deleteGroup: () =>
       @model.splitApart()
       @model._parent._parent.trigger('remove', @model)
       @surveyView.survey.trigger('change')
       @$el.detach()
+      return
+
+    _deleteGroupWithContent: () =>
+      # delete all group rows
+      @model.rows.reset()
+      # and the group itself
+      @_deleteGroup()
+
+      @surveyView.survey.trigger('change')
+      return
 
     render: ->
       if !@already_rendered

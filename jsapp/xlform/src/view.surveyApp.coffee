@@ -698,11 +698,13 @@ module.exports = do ->
         rowEl.slideUp 175, "swing", ()=>
           rowEl.remove()
           @survey.rows.remove matchingRow
+          # remove group if after deleting row the group is empty
           if parent.constructor.kls == "Group" && parent.rows.length == 0
             parent_view = @__rowViews.get(parent.cid)
             if !parent_view
               Raven?.captureException("parent view is not defined", matchingRow.get('name').get('value'))
             parent_view._deleteGroup()
+      return
 
     groupSelectedRows: ->
       rows = @selectedRows()
@@ -713,9 +715,9 @@ module.exports = do ->
       if rows.length > 0
         @survey._addGroup(__rows: rows)
         @reset()
-        true
+        return true
       else
-        false
+        return false
 
     selectedRows: ()->
       rows = []
@@ -731,7 +733,7 @@ module.exports = do ->
         @survey.forEachRow findMatch, includeGroups: true
         # matchingRow = @survey.rows.find (row)-> row.cid is rowId
         rows.push matchingRow
-      rows
+      return rows
 
     onEscapeKeydown: -> #noop. to be overridden
 
