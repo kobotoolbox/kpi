@@ -149,12 +149,6 @@ module.exports = do ->
       @$el.attr("data-row-id", @model.cid)
       @surveyView = @options.surveyView
 
-    ###
-    # TODO: this should display a three button prompt:
-    # 1. delete group with contents -> _deleteGroupContent()
-    # 2. split apart -> _deleteGroup()
-    # 3. cancel
-    ###
     deleteGroup: (evt) =>
       evt.preventDefault()
 
@@ -178,7 +172,7 @@ module.exports = do ->
             callback: @_deleteGroupWithContent.bind(@)
           },
         ]
-      );
+      )
       return
 
     _deleteGroup: () =>
@@ -189,23 +183,13 @@ module.exports = do ->
       return
 
     _deleteGroupWithContent: () =>
-      @_deleteGroupContent()
-      # @_deleteGroup() # UNCOMMENT LATER
-      return
+      # delete all group rows
+      @model.rows.reset()
+      # and the group itself
+      @_deleteGroup()
 
-    _deleteGroupContent: () =>
-      console.log('_deleteGroupContent')
-      console.log(@findGroupRows())
-      # TODO delete everything inside
-      # and then do _deleteGroup()
+      @surveyView.survey.trigger('change')
       return
-
-    findGroupRows: () =>
-      rows = []
-      @model.rows.each((row) ->
-        rows.push(row)
-      )
-      return rows
 
     render: ->
       if !@already_rendered
