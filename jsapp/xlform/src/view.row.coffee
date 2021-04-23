@@ -165,11 +165,15 @@ module.exports = do ->
         [
           {
             label: t('Ungroup questions'),
-            callback: @_deleteGroup.bind(@)
+            icon: 'k-icon-group-split'
+            color: 'blue',
+            callback: @_deleteGroup.bind(@),
           },
           {
             label: t('Delete everything'),
-            callback: @_deleteGroupWithContent.bind(@)
+            icon: 'k-icon-trash',
+            color: 'red',
+            callback: @_deleteGroupWithContent.bind(@),
           },
         ]
       )
