@@ -1,5 +1,5 @@
 import alertify from 'alertifyjs';
-import {KEY_CODES} from 'js/constants';
+import { KEY_CODES } from 'js/constants';
 
 /**
  * @namespace MultiButton
@@ -23,45 +23,50 @@ export function multiConfirm(confirmId, title, message, buttons) {
   // calls.
   if (!alertify[confirmId]) {
     // define new alertify dialog
-    alertify.dialog(confirmId, function() {
-      return {
-        setup: function() {
-          const buttonsArray = [];
-          buttons.forEach((button, i) => {
-            buttonsArray.push({
-              text: button.label,
-              className: alertify.defaults.theme.ok,
-              scope: 'primary',
-              element: undefined,
-              index: i,
+    alertify.dialog(
+      confirmId,
+      function() {
+        return {
+          setup: function() {
+            const buttonsArray = [];
+            buttons.forEach((button, i) => {
+              buttonsArray.push({
+                text: button.label,
+                className: alertify.defaults.theme.ok,
+                scope: 'primary',
+                element: undefined,
+                index: i,
+              });
             });
-          });
-          return {
-            buttons: buttonsArray,
-            options: {
-              title: title,
-              basic: false,
-              movable: false,
-              resizable: false,
-              closable: true,
-              maximizable: false,
-              pinnable: false,
-            },
-          };
-        },
-        prepare: function() {
-          if (message) {
-            this.setContent(message);
-          }
-        },
-        settings: {
-          onclick: null,
-        },
-        callback: function(closeEvent) {
-          this.settings.onclick(closeEvent);
-        },
-      };
-    }, false, 'confirm');
+            return {
+              buttons: buttonsArray,
+              options: {
+                title: title,
+                basic: false,
+                movable: false,
+                resizable: false,
+                closable: true,
+                maximizable: false,
+                pinnable: false,
+              },
+            };
+          },
+          prepare: function() {
+            if (message) {
+              this.setContent(message);
+            }
+          },
+          settings: {
+            onclick: null,
+          },
+          callback: function(closeEvent) {
+            this.settings.onclick(closeEvent);
+          },
+        };
+      },
+      false,
+      'confirm'
+    );
   }
 
   const dialog = alertify[confirmId]();
@@ -73,15 +78,21 @@ export function multiConfirm(confirmId, title, message, buttons) {
     }
   };
 
-  dialog.set({
-    onclick: (closeEvent) => {
-      // button click operates on the button array indexes to know which
-      // callback needs to be triggered
-      if (buttons[closeEvent.index] && buttons[closeEvent.index].callback) {
-        buttons[closeEvent.index].callback();
-      }
-    },
-    onshow: () => {$(document).on('keyup', killMe);},
-    onclose: () => {$(document).off('keyup', killMe);},
-  }).show();
+  dialog
+    .set({
+      onclick: (closeEvent) => {
+        // button click operates on the button array indexes to know which
+        // callback needs to be triggered
+        if (buttons[closeEvent.index] && buttons[closeEvent.index].callback) {
+          buttons[closeEvent.index].callback();
+        }
+      },
+      onshow: () => {
+        $(document).on('keyup', killMe);
+      },
+      onclose: () => {
+        $(document).off('keyup', killMe);
+      },
+    })
+    .show();
 }
