@@ -137,7 +137,8 @@ module.exports = do ->
       @bind_question_picker()
       @attach_operator()
       @attach_response()
-      super
+      super(element)
+      return
 
     constructor: (@question_picker_view, @operator_picker_view, @response_value_view, @presenter) ->
       super()
@@ -252,7 +253,7 @@ module.exports = do ->
   class viewRowDetailSkipLogic.SkipLogicTextResponse extends $viewWidgets.TextBox
     attach_to: (target) ->
       target.find('.skiplogic__responseval').remove()
-      super
+      super(target)
 
     bind_event: (handler) ->
       @$el.on 'blur', handler
@@ -262,13 +263,14 @@ module.exports = do ->
 
   class viewRowDetailSkipLogic.SkipLogicValidatingTextResponseView extends viewRowDetailSkipLogic.SkipLogicTextResponse
     render: () ->
-      super
+      super()
       @setElement('<div class="skiplogic__responseval-wrapper">' + @$el + '<div></div></div>')
       @$error_message = @$('div')
       @model.bind 'validated:invalid', @show_invalid_view
       @model.bind 'validated:valid', @clear_invalid_view
       @$input = @$el.find('input')
-      @
+      return @
+
     show_invalid_view: (model, errors) =>
       if @$input.val()
         @$el.addClass('textbox--invalid')
@@ -292,8 +294,8 @@ module.exports = do ->
     className: 'skiplogic__responseval'
 
     attach_to: (target) ->
-      target.find('.skiplogic__responseval').remove()
       super(target)
+      target.find('.skiplogic__responseval').remove()
       # workaround for missing elements when toggling skiplogic back and forth
       target.find('.skiplogic__responseval.select2-container').show()
 
@@ -301,7 +303,7 @@ module.exports = do ->
       super 'change', handler
 
     render: () ->
-      super
+      super()
       handle_model_cid_change = () =>
         @val(@model.get 'cid')
 
