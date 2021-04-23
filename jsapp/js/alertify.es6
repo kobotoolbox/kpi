@@ -6,6 +6,7 @@ import { KEY_CODES } from 'js/constants';
  * @param {string} label
  * @param {string} [color] "blue" or "red", if not given button will be gray
  * @param {string} [icon] one of k-icons
+ * @param {boolean} [isDisabled]
  * @param {function} callback
  */
 
@@ -42,16 +43,24 @@ export function multiConfirm(confirmId, title, message, buttons) {
                 `;
               }
 
-              let buttonColor = alertify.defaults.theme.input;
+              let buttonClass = alertify.defaults.theme.input;
               if (button.color === 'blue') {
-                buttonColor = alertify.defaults.theme.ok;
+                buttonClass = alertify.defaults.theme.ok;
               } else if (button.color === 'red') {
-                buttonColor = alertify.defaults.theme.cancel;
+                buttonClass = alertify.defaults.theme.cancel;
+              }
+
+              if (button.isDisabled) {
+                // disabled button is always gray
+                buttonClass = [
+                  alertify.defaults.theme.input,
+                  'ajs-button-disabled',
+                ].join(' ');
               }
 
               buttonsArray.push({
                 text: buttonLabel,
-                className: buttonColor,
+                className: buttonClass,
                 scope: 'primary',
                 element: undefined,
                 index: i,
