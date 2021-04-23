@@ -221,12 +221,14 @@ module.exports = do ->
             label: t('Ungroup questions'),
             icon: 'k-icon-group-split'
             color: 'blue',
+            isDisabled: @isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_split.name)
             callback: @_deleteGroup.bind(@),
           },
           {
             label: t('Delete everything'),
             icon: 'k-icon-trash',
             color: 'red',
+            isDisabled: @isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name)
             callback: @_deleteGroupWithContent.bind(@),
           },
         ]
@@ -319,10 +321,12 @@ module.exports = do ->
           iconTooltip = $($viewTemplates.row.iconTooltip(profileName, tooltipMsg))
           $groupIcon.append(iconTooltip)
 
-      # hide group delete button
-      # NOTE: current button only handles group splitting ("ungrouping")
-      # the delete entire group will be added with kpi#3132
-      if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_split.name))
+      # hide group delete button only if both splitting and deleteing is locked
+      if (
+        isLockable and
+        @hasRestriction(LOCKING_RESTRICTIONS.group_split.name) and
+        @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name)
+      )
         @$header.find('.js-delete-group').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
       # disable group name label
