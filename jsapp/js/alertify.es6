@@ -20,7 +20,7 @@ import { KEY_CODES } from 'js/constants';
  * @param {MultiButton[]} buttons
  */
 export function multiConfirm(confirmId, title, message, buttons) {
-  // `confirmId` needs to be uniqe, as alertify requires the custom dialog to be
+  // `confirmId` needs to be unique, as alertify requires the custom dialog to be
   // defined before it is being invoked.
   // We check if it haven't been already defined to avoid errors and unnecessary
   // calls.
