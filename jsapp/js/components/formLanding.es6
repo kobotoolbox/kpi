@@ -429,7 +429,7 @@ export class FormLanding extends React.Component {
         <ui.PopoverMenu
           type='formLanding-menu'
           triggerLabel={<i className='k-icon-more' />}
-          triggerTip={t('More Actions')}
+          triggerTip={t('More actions')}
         >
           {downloads.map((dl) => {
             return (
@@ -466,7 +466,7 @@ export class FormLanding extends React.Component {
           {userCanEdit && this.state.content.survey.length > 0 &&
             <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
               <i className='k-icon-language'/>
-              {t('Manage Translations')}
+              {t('Manage translations')}
             </bem.PopoverMenu__link>
           }
           { /* temporarily disabled
@@ -506,7 +506,7 @@ export class FormLanding extends React.Component {
         {canEdit &&
           <bem.FormView__cell>
             <bem.FormView__link
-              data-tip={t('Manage Translations')}
+              data-tip={t('Manage translations')}
               onClick={this.showLanguagesModal}>
               <i className='k-icon-language' />
             </bem.FormView__link>

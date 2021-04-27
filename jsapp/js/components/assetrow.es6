@@ -306,7 +306,7 @@ class AssetRow extends React.Component {
             <ui.PopoverMenu
               type='assetrow-menu'
               triggerLabel={<i className='k-icon-more' />}
-              triggerTip={t('More Actions')}
+              triggerTip={t('More actions')}
               clearPopover={this.state.clearPopover}
               popoverSetVisible={this.popoverSetVisible}
             >
@@ -345,7 +345,7 @@ class AssetRow extends React.Component {
                   data-asset-uid={this.props.uid}
                 >
                   <i className='k-icon-language' />
-                  {t('Manage Translations')}
+                  {t('Manage translations')}
                 </bem.PopoverMenu__link>
               }
               { /* temporarily disabled
@@ -428,7 +428,7 @@ class AssetRow extends React.Component {
                   data-action={'removeSharing'}
                 >
                   <i className='k-icon-trash' />
-                  {t('Remove Shared Form')}
+                  {t('Remove shared form')}
                 </bem.PopoverMenu__link>
               }
             </ui.PopoverMenu>
