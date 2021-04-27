@@ -711,7 +711,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         # Update someuser's submissions
-        # ToDo retrieve someuser's submission ids dynamically
+        # TODO retrieve someuser's submission ids dynamically
         self.updated_submission_data['submission_ids'] = [2]
         response = self.client.patch(
             self.submission_url, data=self.submitted_payload, format='json'
@@ -1134,7 +1134,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submissions_url)
         for submission in response.data['results']:
             validation_status = submission['_validation_status']
-            if validation_status['_submitted_by'] == 'someuser':
+            if submission['_submitted_by'] == 'someuser':
                 self.assertEqual(validation_status['by_whom'], 'anotheruser')
                 self.assertEqual(
                     validation_status['uid'],
@@ -1203,6 +1203,9 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
                     validation_status['uid'],
                     data['payload']['validation_status.uid']
                 )
+
+        # TODO Test with `query` when Mockbackend support Mongo queries
+
 
 class SubmissionGeoJsonApiTests(BaseTestCase):
 

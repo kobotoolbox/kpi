@@ -33,23 +33,27 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self, data: dict, requesting_user: 'auth.User'
     ) -> dict:
 
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=requesting_user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            instance_ids=data['submission_ids'],
+            submission_ids=data['submission_ids'],
+            query=data['query'],
         )
+
+        if not submission_ids:
+            submission_ids = data['submission_ids']
 
         submissions = self.get_submissions(
             requesting_user_id=requesting_user.pk,
             format_type=INSTANCE_FORMAT_TYPE_JSON,
-            instance_ids=data['submission_ids']
+            instance_ids=submission_ids
         )
 
-        instance_ids = to_int(data['submission_ids'])
+        submission_ids = to_int(submission_ids)
 
         responses = []
         for submission in submissions:
-            if submission[self.INSTANCE_ID_FIELDNAME] in instance_ids:
+            if submission[self.INSTANCE_ID_FIELDNAME] in submission_ids:
                 _uuid = uuid.uuid4()
                 submission['deprecatedID'] = submission['instanceID']
                 submission['instanceID'] = f'uuid:{_uuid}'
@@ -89,19 +93,19 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def delete_submission(self, pk: int, user: 'auth.User') -> dict:
         """
-        Deletes submission
+        Delete a submission
         """
 
         self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            instance_ids=[pk],
+            submission_ids=[pk],
         )
 
         submissions = self.get_data('submissions', [])
         iterator = submissions.copy()
         for idx, submission in enumerate(iterator):
-            if int(submission['_id']) == int(pk):
+            if int(submission[self.INSTANCE_ID_FIELDNAME]) == int(pk):
                 del submissions[idx]
                 self.mock_submissions(submissions)
                 return {
@@ -123,18 +127,20 @@ class MockDeploymentBackend(BaseDeploymentBackend):
              {"submission_ids": [1, 2, 3]}
 
         """
-        instance_ids = data['submissions_ids']
-
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            instance_ids=instance_ids,
+            submission_ids=submission_ids,
+            query=data['query'],
         )
+
+        if not submission_ids:
+            submission_ids = data['submission_ids']
 
         submissions = self.get_data('submissions', [])
         iterator = submissions.copy()
         for idx, submission in enumerate(iterator):
-            if int(submission['_id']) in instance_ids:
+            if int(submission[self.INSTANCE_ID_FIELDNAME]) in submission_ids:
                 del submissions[idx]
 
         self.mock_submissions(submissions)
@@ -153,14 +159,17 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.validate_write_access_with_partial_perms(
             user=requesting_user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            instance_ids=[instance_id],
+            submission_ids=[instance_id],
         )
 
         all_submissions = self.get_data('submissions')
         duplicated_submission = copy.deepcopy(
             self.get_submission(instance_id, requesting_user)
         )
-        next_id = max((sub['_id'] for sub in all_submissions)) + 1
+        next_id = (
+            max((sub[self.INSTANCE_ID_FIELDNAME] for sub in all_submissions))
+            + 1
+        )
         updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
         duplicated_submission.update({
             '_id': next_id,
@@ -206,7 +215,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            instance_ids=[submission_pk],
+            submission_ids=[submission_pk],
         )
 
         return {
@@ -371,7 +380,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
-            instance_ids=[submission_pk],
+            submission_ids=[submission_pk],
         )
 
         # use the owner to retrieve all the submissions to mock them again
@@ -400,13 +409,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 }
 
     def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
-
-        self.validate_write_access_with_partial_perms(
-            user=user,
-            perm=PERM_VALIDATE_SUBMISSIONS,
-            instance_ids=data['submission_ids'],
-            query=data['query'],
-        )
         """
         Bulk update validation status for provided submissions.
 
@@ -420,14 +422,28 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         NOTES: Mongo query is not supported yet 
         """
 
+        submission_ids = self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_VALIDATE_SUBMISSIONS,
+            submission_ids=data['submission_ids'],
+            query=data['query'],
+        )
+
         # use the owner to retrieve all the submissions to mock them again
         # after the update
         # FIXME Avoid looping on all submissions.
         submissions = self.get_submissions(requesting_user_id=self.asset.owner)
 
+        if not submission_ids:
+            submission_ids = data['submission_ids']
+        else:
+            # Reset query because submission ids are provided from partial
+            # perms validation
+            data['query'] = {}
+
         user_submissions = self.get_submissions(
             requesting_user_id=user,
-            instance_ids=data['submission_ids'],
+            instance_ids=submission_ids,
             query=data['query'],
         )
         # Retrieve user submission

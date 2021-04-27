@@ -100,16 +100,27 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Returns:
             dict: formatted dict to be passed to a Response object
         """
-        self.validate_write_access_with_partial_perms(
+
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=requesting_user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            instance_ids=data['submission_ids'],
+            submission_ids=data['submission_ids'],
+            query=data['query'],
         )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            data.pop('query', None)
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
+        else:
+            submission_ids = data['submission_ids']
 
         submissions = list(self.get_submissions(
             requesting_user_id=requesting_user.pk,
             format_type=INSTANCE_FORMAT_TYPE_XML,
-            instance_ids=data['submission_ids']
+            instance_ids=submission_ids
         ))
 
         validated_submissions = self.__validate_bulk_update_submissions(
@@ -307,11 +318,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Delete a submission through KoBoCAT proxy
         """
 
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            instance_ids=[pk]
+            submission_ids=[pk]
         )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
 
         kc_url = self.get_submission_detail_url(pk)
         kc_request = requests.Request(method='DELETE', url=kc_url)
@@ -329,11 +346,21 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
              {"submission_ids": [1, 2, 3]}
 
         """
-        self.validate_write_access_with_partial_perms(
+
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            instance_ids=data['submission_ids'],
+            submission_ids=data['submission_ids'],
+            query=data['query'],
         )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            data.pop('query', None)
+            data['submission_ids'] = submission_ids
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
 
         kc_url = self.submission_list_url
         kc_request = requests.Request(method='DELETE', url=kc_url, data=data)
@@ -355,20 +382,26 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         """
 
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=requesting_user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            instance_ids=[instance_id],
+            submission_ids=[instance_id],
         )
 
-        submissions = self.get_submissions(
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
+
+        submission = self.get_submission(
+            instance_id,
             requesting_user_id=requesting_user.pk,
             format_type=INSTANCE_FORMAT_TYPE_XML,
-            instance_ids=[instance_id]
         )
 
         # parse XML string to ET object
-        xml_parsed = ET.fromstring(next(submissions))
+        xml_parsed = ET.fromstring(submission)
 
         # attempt to update XML fields for duplicate submission. Note that
         # `start` and `end` are not guaranteed to be included in the XML object
@@ -767,11 +800,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         If `method` is `DELETE`, the status is reset to `None`
         """
 
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
-            instance_ids=[submission_pk],
+            submission_ids=[submission_pk],
         )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
 
         kc_request_params = {
             'method': method,
@@ -796,12 +835,20 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             {"submission_ids": [1, 2, 3]}
             {"query":{"_validation_status.uid":"validation_status_not_approved"}
         """
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
-            instance_ids=data['submission_ids'],
+            submission_ids=data['submission_ids'],
             query=data['query'],
         )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            data.pop('query', None)
+            data['submission_ids'] = submission_ids
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
 
         # `PATCH` KC even if KPI receives `DELETE`
         url = self.submission_list_url

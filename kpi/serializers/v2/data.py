@@ -15,10 +15,6 @@ class DataBulkActionsValidator(serializers.Serializer):
 
     payload = WritableJSONField()
 
-    ALLOWED_PERM_TO_MODIFY_ALL = [
-        PERM_VALIDATE_SUBMISSIONS,
-    ]
-
     def __init__(self, instance=None, data=empty, **kwargs):
         self.__perm = kwargs.pop('perm', None)
         super().__init__(instance=instance, data=data, **kwargs)
@@ -27,22 +23,7 @@ class DataBulkActionsValidator(serializers.Serializer):
         try:
             payload['submission_ids']
         except KeyError:
-            if self.__perm not in self.ALLOWED_PERM_TO_MODIFY_ALL:
-                raise serializers.ValidationError(
-                    _('`submission_ids` is required')
-                )
-
-            # If `query` is not provided, it means that all submissions should
-            # be altered. In that case, `confirm=True` should be passed among
-            # the parameters to validate the action
-            try:
-                payload['query']
-            except KeyError:
-                if not payload.get('confirm', False):
-                    raise serializers.ValidationError(
-                        _('Confirmation is required')
-                    )
-
+            self.__validate_query(payload)
         else:
             self.__validate_submission_ids(payload)
             if self.__perm == PERM_CHANGE_SUBMISSIONS:
@@ -62,6 +43,30 @@ class DataBulkActionsValidator(serializers.Serializer):
                 'validation_status.uid'),
             'confirm': instance['payload'].get('confirm'),
         }
+
+    def __validate_query(self, payload: dict):
+
+        view = self.context.get('view')
+        asset = view.asset
+
+        # If `query` is not provided, it means that all submissions should
+        # be altered. In that case, `confirm=True` should be passed among
+        # the parameters to validate the action
+        try:
+            payload['query']
+        except KeyError:
+            if not payload.get('confirm', False):
+                raise serializers.ValidationError(
+                    _('Confirmation is required')
+                )
+        else:
+            pass
+            # Forbidden querying with ids
+            # for field in payload['query'].keys():
+            #     if field == asset.deployment.INSTANCE_ID_FIELDNAME:
+            #         raise serializers.ValidationError(
+            #             _('Use `submission_ids` to pass a list of ids')
+            #         )
 
     def __validate_submission_ids(self, payload: dict):
         try:

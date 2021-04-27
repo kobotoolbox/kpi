@@ -335,37 +335,81 @@ class BaseDeploymentBackend:
         self,
         user: 'auth.User',
         perm: str,
-        instance_ids: list = [],
+        submission_ids: list = [],
         query: dict = {},
-    ):
+    ) -> list:
         """
         Validate whether `user` is allowed to perform write actions on
         submissions with the permission `perm`.
         It raises a `PermissionDenied` error if they cannot.
 
-        No validation is made whether `user` is granted with other permissions
+        Return a list of valid submission ids to pass to back end
+
+        No validations are made whether `user` is granted with other permissions
         than 'partial_submission' permission.
         """
         if PERM_PARTIAL_SUBMISSIONS not in self.asset.get_perms(user):
             return
 
-        if perm != PERM_VALIDATE_SUBMISSIONS and not instance_ids:
-            raise ValueError('`instance_ids` cannot be empty')
+        allowed_submission_ids = []
 
-        results = self.get_submissions(
+        if not submission_ids:
+            # if no submission ids are provided, the back end must rebuild the
+            # query to retrieve the related submissions. Unfortunately, the
+            # current back end (KoBoCAT) does not support row level permissions.
+            # Thus, we need to fetch all the submissions the user is allowed to
+            # see in order to to compare the requested subset of submissions to
+            # all
+            all_submissions = self.get_submissions(
+                requesting_user_id=user.pk,
+                partial_perm=perm,
+                fields=[self.INSTANCE_ID_FIELDNAME],
+            )
+            allowed_submission_ids = [
+                r[self.INSTANCE_ID_FIELDNAME] for r in all_submissions
+            ]
+
+            # User should see at least one submission to be allowed to do
+            # something
+            if not allowed_submission_ids:
+                raise PermissionDenied
+
+            # if `query` is not provided, the action is performed on all
+            # submissions. There are no needs to go further.
+            if not query:
+                return allowed_submission_ids
+
+        submissions = self.get_submissions(
             requesting_user_id=user.pk,
-            format_type=INSTANCE_FORMAT_TYPE_JSON,
             partial_perm=perm,
             fields=[self.INSTANCE_ID_FIELDNAME],
-            instance_ids=instance_ids,
+            instance_ids=submission_ids,
             query=query,
         )
-        allowed_instance_ids = [r[self.INSTANCE_ID_FIELDNAME] for r in results]
 
-        if not compare(
-            sorted(allowed_instance_ids), sorted(to_int(instance_ids))
-        ):
+        requested_submission_ids = [
+            r[self.INSTANCE_ID_FIELDNAME] for r in submissions
+        ]
+
+        if not requested_submission_ids:
             raise PermissionDenied
+
+        if (
+            allowed_submission_ids
+            and set(requested_submission_ids).issubset(allowed_submission_ids)
+            or compare(
+                sorted(requested_submission_ids), sorted(to_int(submission_ids))
+            )
+        ):
+            # Users may try to access submissions they are not allowed to with
+            # a query (e.g.: `{"query": {"_id": {"$in": [1, 2, ...]}`. AFAIK,
+            # there is no way to know if the query is 100% legit, expect running
+            # the same query with the owner and compare the results. To avoid an
+            # extra query, we return only the allowed submission ids that the
+            # back end should work with.
+            return requested_submission_ids
+
+        raise PermissionDenied
 
     @property
     def version(self):
