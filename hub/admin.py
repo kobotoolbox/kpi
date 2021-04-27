@@ -104,10 +104,10 @@ class TimePeriodFilter(admin.SimpleListFilter):
         if not self.value():
             return queryset
 
-        # add one so that it includes the current
+        # minus one so that it includes the current
         # month when retrieving data and not pull
         # the data from an extra month earlier
-        months = int(self.value()) + 1
+        months = int(self.value()) - 1
         today = date.today()
         first_day_month = today.replace(day=1)
         from_date = first_day_month - relativedelta(months=months)
