@@ -341,10 +341,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Bulk delete provided submissions through KoBoCAT proxy,
         authenticated by `user`'s API token.
 
-        `data` should contains the submission ids posted with `DELETE` request.
+        `data` should contains the submission ids or the query to get the subset
+        of submissions to delete
         Example:
              {"submission_ids": [1, 2, 3]}
-
+             or
+             {"query": {"Question": "response"}
         """
 
         submission_ids = self.validate_write_access_with_partial_perms(

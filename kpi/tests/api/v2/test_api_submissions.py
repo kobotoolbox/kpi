@@ -97,6 +97,113 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.client.login(username="anotheruser", password="anotheruser")
 
 
+class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
+
+    # TODO, Add tests with ids and query
+
+    def setUp(self):
+        super().setUp()
+        self.submissions_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+        )
+        self.submission_bulk_url = reverse(
+            self._get_endpoint('submission-bulk'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+            },
+        )
+
+    def test_delete_submissions_owner(self):
+        data = {'payload': {'confirm': True}}
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submissions_url, {'format': 'json'})
+        # FIXME get submission count for user from Mockbackend
+        self.assertEqual(response.data['count'], 0)
+
+    def test_delete_submissions_anonymous(self):
+        self.client.logout()
+        data = {'payload': {'confirm': True}}
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_submissions_not_shared_other(self):
+        self._log_in_as_another_user()
+        data = {'payload': {'confirm': True}}
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_submissions_shared_other(self):
+        self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
+        self._log_in_as_another_user()
+        data = {'payload': {'confirm': True}}
+
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submissions_url, {'format': 'json'})
+        # FIXME get submission count for user from Mockbackend
+        self.assertEqual(response.data['count'], 0)
+
+    def test_delete_submissions_with_partial_perms(self):
+        self._log_in_as_another_user()
+        partial_perms = {
+            PERM_DELETE_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
+        }
+
+        # Allow anotheruser to delete someuser's data
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+
+        # Get number of submissions anotheruser is allowed to see
+        response = self.client.get(self.submissions_url, {'format': 'json'})
+        another_submissions_count = response.data['count']
+
+        # Try first submission submitted by unknown
+        # TODO get submissions submitted by unknown dynamically
+        data = {
+            'payload': {
+                'submission_ids': [1]
+            }
+        }
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Try second submission submitted by someuser
+        # TODO get submissions submitted by someuser dynamically
+        data = {
+            'payload': {
+                'submission_ids': [2]
+            }
+        }
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submissions_url, {'format': 'json'})
+        # FIXME get submission count for user from Mockbackend
+        self.assertEqual(response.data['count'], 0)
+
+        # Ensure another only deleted their submissions
+        self.login_as_other_user('someuser', 'someuser')
+        response = self.client.get(self.submissions_url, {'format': 'json'})
+        for submission in response.data['results']:
+            self.assertNotEqual(submission['_submitted_by'], 'someuser')
+
+
 class SubmissionApiTests(BaseSubmissionTestCase):
 
     def test_cannot_create_submission(self):

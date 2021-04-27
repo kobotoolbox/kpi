@@ -104,9 +104,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         submissions = self.get_data('submissions', [])
         iterator = submissions.copy()
-        for idx, submission in enumerate(iterator):
+        for submission in iterator:
             if int(submission[self.INSTANCE_ID_FIELDNAME]) == int(pk):
-                del submissions[idx]
+                submissions.remove(submission)
                 self.mock_submissions(submissions)
                 return {
                     'content_type': 'application/json',
@@ -122,32 +122,48 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
         Bulk delete provided submissions authenticated by `user`'s API token.
 
-        `data` should contains the submission ids posted with `DELETE` request.
+        `data` should contains the submission ids or the query to get the subset
+        of submissions to delete
         Example:
              {"submission_ids": [1, 2, 3]}
-
+             or
+             {"query": {"Question": "response"}
         """
         submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            submission_ids=submission_ids,
+            submission_ids=data['submission_ids'],
             query=data['query'],
         )
 
         if not submission_ids:
             submission_ids = data['submission_ids']
+        else:
+            data['query'] = {}
 
-        submissions = self.get_data('submissions', [])
+        submissions = self.get_submissions(user,
+                                           instance_ids=submission_ids,
+                                           query=data['query'])
+
+        if not submissions:
+            return {
+                'content_type': 'application/json',
+                'status': status.HTTP_404_NOT_FOUND,
+            }
+
         iterator = submissions.copy()
-        for idx, submission in enumerate(iterator):
-            if int(submission[self.INSTANCE_ID_FIELDNAME]) in submission_ids:
-                del submissions[idx]
+        for submission in iterator:
+            if (
+                data.get('confirm')
+                or int(submission[self.INSTANCE_ID_FIELDNAME]) in submission_ids
+            ):
+                submissions.remove(submission)
 
         self.mock_submissions(submissions)
 
         return {
-            "content_type": "application/json",
-            "status": status.HTTP_204_NO_CONTENT,
+            'content_type': 'application/json',
+            'status': status.HTTP_204_NO_CONTENT,
         }
 
     def duplicate_submission(

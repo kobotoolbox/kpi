@@ -292,8 +292,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def bulk(self, request, *args, **kwargs):
         deployment = self._get_deployment()
         kwargs = {
-            "data": request.data,
-            "context": self.get_serializer_context(),
+            'data': request.data,
+            'context': self.get_serializer_context(),
         }
         if request.method == 'DELETE':
             action_ = deployment.delete_submissions
