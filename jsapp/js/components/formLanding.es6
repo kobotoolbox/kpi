@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
+import assetUtils from 'js/assetUtils';
 import {bem} from '../bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
@@ -468,10 +469,14 @@ export class FormLanding extends React.Component {
             </bem.PopoverMenu__link>
           }
 
-          <bem.PopoverMenu__link onClick={this.nonOwnerSelfRemoval}>
-            <i className='k-icon-trash'/>
-            {t('Remove shared project')}
-          </bem.PopoverMenu__link>
+          {!assetUtils.isSelfOwned(this.state) &&
+            <bem.PopoverMenu__link
+              onClick={this.nonOwnerSelfRemoval}
+            >
+              <i className='k-icon-trash'/>
+              {t('Remove shared project')}
+            </bem.PopoverMenu__link>
+          }
 
           <bem.PopoverMenu__link onClick={this.saveCloneAs}>
             <i className='k-icon-clone'/>
