@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link } from 'react-router';
 import {bem} from '../bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
@@ -12,11 +11,18 @@ import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
 import CopyToClipboard from 'react-copy-to-clipboard';
-import {MODAL_TYPES} from '../constants';
+import {
+  MODAL_TYPES,
+  ROUTES,
+} from '../constants';
 import {
   formatTime,
   notify
 } from 'utils';
+import {
+  Link,
+  hashHistory,
+} from 'react-router';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
@@ -388,6 +394,19 @@ export class FormLanding extends React.Component {
   setCollectMethod(evt) {
     this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
   }
+  goToProjectsList() {
+    hashHistory.push(ROUTES.FORMS);
+  }
+  nonOwnerSelfRemoval(evt) {
+    evt.preventDefault();
+    // Listen for permission removal here to avoid manage_asset user removal
+    // from triggering redirect
+    this.listenTo(
+      actions.permissions.removeAssetPermission.completed,
+      this.goToProjectsList
+    );
+    this.removeSharing(evt);
+  }
   renderButtons (userCanEdit) {
     var downloads = [];
     if (this.state.downloads) {
@@ -448,6 +467,11 @@ export class FormLanding extends React.Component {
               {t('Share this project')}
             </bem.PopoverMenu__link>
           }
+
+          <bem.PopoverMenu__link onClick={this.nonOwnerSelfRemoval}>
+            <i className='k-icon-trash'/>
+            {t('Remove shared project')}
+          </bem.PopoverMenu__link>
 
           <bem.PopoverMenu__link onClick={this.saveCloneAs}>
             <i className='k-icon-clone'/>

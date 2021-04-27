@@ -242,7 +242,11 @@ mixins.dmix = {
     } else if (uid) {
       actions.resources.loadAsset({id: uid});
     }
-  }
+  },
+  removeSharing: function(evt) {
+    evt.preventDefault();
+    mixins.clickAssets.click.asset.removeSharing(this.props.params.uid);
+  },
 };
 
 /*
