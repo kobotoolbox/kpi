@@ -1,6 +1,6 @@
 # coding: utf-8
 from datetime import date, datetime
-from dateutil.relativedelta import relativedelta 
+from dateutil.relativedelta import relativedelta
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
@@ -92,11 +92,6 @@ class TimePeriodFilter(admin.SimpleListFilter):
         self.__model = model
 
     def lookups(self, request, model_admin):
-        # I think values should number of months - 1
-        # Let's say we are April 22, 3 months should be
-        # Feb, March, April.
-        # In that case, calculation on line 114 is wrong because it will retrieve
-        # data from January
         return (
             ('1', '1 Month'),
             ('3', '3 Months'),
@@ -109,7 +104,10 @@ class TimePeriodFilter(admin.SimpleListFilter):
         if not self.value():
             return queryset
 
-        months = int(self.value())
+        # add one so that it includes the current
+        # month when retrieving data and not pull
+        # the data from an extra month earlier
+        months = int(self.value()) + 1
         today = date.today()
         first_day_month = today.replace(day=1)
         from_date = first_day_month - relativedelta(months=months)
@@ -142,7 +140,7 @@ class UserStatisticsAdmin(admin.ModelAdmin):
 
         data = []
 
-        # Use the same filter than this model to filter assets
+        # Filter the assets for the counter
         asset_filter = TimePeriodFilter(
             request, request.GET.dict(), Asset, self.__class__
         )
@@ -156,6 +154,16 @@ class UserStatisticsAdmin(admin.ModelAdmin):
             record['owner_id']: record['form_count'] for record in records
         }
 
+        # Filter the asset_queryset for active deployements
+        asset_queryset.filter(_deployment_data__active=True)
+        records = asset_filter.queryset(request, asset_queryset).annotate(
+            deployment_count=Count('pk')
+        )
+        deployment_count = {
+            record['owner_id']: record['deployment_count']
+            for record in records
+        }
+
         # Get records from SubmissionCounter
         records = (
             qs.values('user_id', 'user__username')
@@ -167,34 +175,11 @@ class UserStatisticsAdmin(admin.ModelAdmin):
                 'username': record['user__username'],
                 'submission_count': record['count_sum'],
                 'form_count': forms_count.get(record['user_id'], 0),
-                'deployed_form_count': 0,
+                'deployed_form_count': deployment_count.get(
+                    record['user_id'], 0
+                ),
             })
 
-
-        # records = qs.order_by('user__username')
-
-        # users = KobocatUser.objects.all()
-
-        # for user in users:
-        #     user_records = records.filter(user=user).order_by('-timestamp')
-        #     user_record = user_records.first()
-        #     record = user_records.aggregate(count_sum=Sum('count'))
-        #     form_count = 0
-        #     deployed_count = 0
-
-        #     for row in user_records:
-        #         form_count = form_count + row.form_count
-        #         deployed_count = deployed_count + row.deployed_form_count
-
-        #     data.append({
-        #         'username': user.username,
-        #         'year': user_record.year,
-        #         'month': user_record.month,
-        #         'submission_count': record.get('count_sum'),
-        #         'form_count': form_count,
-        #         'deployed_form_count': deployed_count,
-        #     })
-        
         return data
 
 
