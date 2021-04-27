@@ -646,8 +646,6 @@ module.exports = do ->
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")
       null_top_row.toggleClass("survey-editor__null-top-row--hidden", !isEmpty)
 
-      @activateSortable() # TODO remove dev temp
-
       if (
         @features.multipleQuestions and
         not (
