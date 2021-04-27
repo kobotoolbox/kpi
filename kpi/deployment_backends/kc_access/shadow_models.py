@@ -475,44 +475,14 @@ class KobocatSubmissionCounter(ShadowModel):
     count = models.IntegerField(default=0)
     timestamp = models.DateTimeField(default=timezone.now)
 
-    def __str__(self):
-        return f'{self.user.username}, {self.count}, {self.year}, ' \
-               f'{self.month}, {self.form_count}, {self.deployed_form_count}'
-
     class Meta(ShadowModel.Meta):
         db_table = 'logger_submissioncounter'
         verbose_name = 'User Statistics Counter'
 
-    # @property
-    # def year(self):
-    #     year = self.timestamp.year
-    #     return year
-    #
-    # @property
-    # def month(self):
-    #     month = self.timestamp.month
-    #     return month
-
-    # @property
-    # def form_count(self):
-    #     # Using the asset.Asset is a workaround for a circular import issue
-    #     form_count = asset.Asset.objects.filter(
-    #         owner__username=self.user.username,
-    #         date_created__month=self.month,
-    #         date_created__year=self.year,
-    #     ).count()
-    #     return form_count
-    #
-    # @property
-    # def deployed_form_count(self):
-    #     deployed_form_count = asset.Asset.objects.filter(
-    #         owner__username=self.user.username,
-    #         date_created__month=self.month,
-    #         date_created__year=self.year,
-    #         _deployment_data__active=True
-    #     ).count()
-    #     return deployed_form_count
-
     @classmethod
     def sync(cls, user):
+        """
+        Creates rows when the user is created so that the Admin UI doesn't freak out
+        because it's looking for a row that doesn't exist
+        """
         cls.objects.create(user_id=user.pk)
