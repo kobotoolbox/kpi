@@ -287,7 +287,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                                                           request.user)
         elif request.method == 'PATCH':
             json_response = deployment.bulk_update_submissions(
-                dict(request.data), request.user.id
+                dict(request.data), request.user
             )
         return Response(**json_response)
 
@@ -367,7 +367,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         deployment = self._get_deployment()
         duplicate_response = deployment.duplicate_submission(
-            requesting_user_id=request.user.id, instance_id=positive_int(pk)
+            requesting_user=request.user, instance_id=positive_int(pk)
         )
         return Response(duplicate_response, status=status.HTTP_201_CREATED)
 
