@@ -50,6 +50,7 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.asset.save()
 
         v_uid = self.asset.latest_deployed_version.uid
+        # TODO tests with more submissions
         self.submissions = [
             {
                 "__version__": v_uid,
