@@ -101,16 +101,26 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Returns:
             dict: formatted dict to be passed to a Response object
         """
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            instance_ids=data['submission_ids'],
+            submission_ids=data['submission_ids'],
+            query=data['query'],
         )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            data.pop('query', None)
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
+        else:
+            submission_ids = data['submission_ids']
 
         submissions = list(self.get_submissions(
             user=user,
             format_type=INSTANCE_FORMAT_TYPE_XML,
-            instance_ids=data['submission_ids']
+            instance_ids=submission_ids
         ))
 
         validated_submissions = self.__validate_bulk_update_submissions(
@@ -310,11 +320,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         It returns a dictionary which can used as Response object arguments
         """
 
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            instance_ids=[pk]
+            submission_ids=[pk]
         )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
 
         kc_url = self.get_submission_detail_url(pk)
         kc_request = requests.Request(method='DELETE', url=kc_url)
@@ -333,11 +349,21 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         It returns a dictionary which can used as Response object arguments
         """
-        self.validate_write_access_with_partial_perms(
+
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            instance_ids=data['submission_ids'],
+            submission_ids=data['submission_ids'],
+            query=data['query'],
         )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            data.pop('query', None)
+            data['submission_ids'] = submission_ids
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
 
         kc_url = self.submission_list_url
         kc_request = requests.Request(method='DELETE', url=kc_url, data=data)
@@ -357,11 +383,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         """
 
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            instance_ids=[instance_id],
+            submission_ids=[instance_id],
         )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
 
         submission = self.get_submission(
             instance_id,
@@ -518,11 +550,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submissions(self,
-                        user: 'auth.User',
-                        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
-                        instance_ids: list = [],
-                        **kwargs: dict) -> Generator[dict, None, None]:
+    def get_submissions(
+        self,
+        user: 'auth.User',
+        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+        instance_ids: list = [],
+        **kwargs: dict
+    ) -> Union[Generator[dict, None, None], list]:
         """
         Retrieves submissions which `user` is allowed to access
         The format `format_type` can be either:
@@ -763,11 +797,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         It returns a dictionary which can used as Response object arguments
         """
 
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
-            instance_ids=[submission_pk],
+            submission_ids=[submission_pk],
         )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
 
         kc_request_params = {
             'method': method,
@@ -792,13 +832,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             {"submission_ids": [1, 2, 3]}
             {"query":{"_validation_status.uid":"validation_status_not_approved"}
         """
-        self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
-            instance_ids=data['submission_ids'],
+            submission_ids=data['submission_ids'],
             query=data['query'],
         )
 
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            data.pop('query', None)
+            data['submission_ids'] = submission_ids
+            # TODO add one-time valid token
+            raise NotImplementedError('Back end does not support this request')
+
+        # `PATCH` KC even if KPI receives `DELETE`
         url = self.submission_list_url
         kc_request = requests.Request(method='PATCH', url=url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
@@ -1132,7 +1181,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def __prepare_as_drf_response_signature(requests_response):
         """
         Prepares a dict from `Requests` response.
-        Useful to get response from KoBoCaT and use it as a dict or pass it to
+        Useful to get response from KoBoCAT and use it as a dict or pass it to
         DRF Response
         """
 

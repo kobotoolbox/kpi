@@ -299,11 +299,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             action_ = deployment.delete_submissions
             kwargs['perm'] = PERM_DELETE_SUBMISSIONS
         elif request.method == 'PATCH':
-<<<<<<< HEAD
-            json_response = deployment.bulk_update_submissions(
-                dict(request.data), request.user
-            )
-=======
             action_ = deployment.bulk_update_submissions
             kwargs['perm'] = PERM_CHANGE_SUBMISSIONS
 
@@ -311,7 +306,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         bulk_actions_validator.is_valid(raise_exception=True)
         json_response = action_(bulk_actions_validator.data, request.user)
 
->>>>>>> 3115-allowed-write-actions-with-partial-perm
         return Response(**json_response)
 
     def destroy(self, request, *args, **kwargs):
@@ -418,7 +412,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             permission_classes=[SubmissionValidationStatusPermission])
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-
         bulk_actions_validator = DataBulkActionsValidator(
             data=request.data,
             context=self.get_serializer_context(),

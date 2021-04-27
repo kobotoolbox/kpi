@@ -371,6 +371,7 @@ class SubmissionPermission(AssetNestedObjectPermission):
 class DuplicateSubmissionPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
+        # FIXME, the permission should be `add_submissions`.
         'POST': ['%(app_label)s.change_%(model_name)s'],
     }
 
