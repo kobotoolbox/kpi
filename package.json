@@ -91,5 +91,6 @@
   "author": "alex.dorey@kobotoolbox.org, esmail.fadae@kobotoolbox.org, john.milner@kobotoolbox.org",
   "license": "AGPL-3.0",
   "bugs": "https://github.com/kobotoolbox/kpi/issues",
-  "homepage": "https://github.com/kobotoolbox/kpi"
+  "homepage": "https://github.com/kobotoolbox/kpi",
+  "dependencies": {}
 }

@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>cascading_select_test</h:title>
+    <model>
+      <itext>
+        <translation default="true()" lang="default">
+          <text id="static_instance-lga-1">
+            <value>LGA 2</value>
+          </text>
+          <text id="static_instance-lga-7">
+            <value>LGA 2</value>
+          </text>
+          <text id="static_instance-zone-0">
+            <value>Zone 1</value>
+          </text>
+          <text id="static_instance-lga-0">
+            <value>LGA 1</value>
+          </text>
+          <text id="static_instance-zone-1">
+            <value>Zone 2</value>
+          </text>
+          <text id="static_instance-lga-3">
+            <value>LGA 4</value>
+          </text>
+          <text id="static_instance-state-0">
+            <value>State 1</value>
+          </text>
+          <text id="static_instance-state-1">
+            <value>State 2</value>
+          </text>
+          <text id="static_instance-state-2">
+            <value>State 3</value>
+          </text>
+          <text id="static_instance-state-3">
+            <value>State 4</value>
+          </text>
+          <text id="static_instance-lga-5">
+            <value>LGA 6</value>
+          </text>
+          <text id="static_instance-lga-4">
+            <value>LGA 5</value>
+          </text>
+          <text id="static_instance-lga-2">
+            <value>LGA 3</value>
+          </text>
+          <text id="static_instance-lga-6">
+            <value>LGA 1</value>
+          </text>
+        </translation>
+      </itext>
+      <instance>
+        <cascading_select_test id="cascading_select_test">
+          <mylga_zone/>
+          <mylga_state/>
+          <mylga/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </cascading_select_test>
+      </instance>
+      <instance id="state">
+        <root>
+          <item>
+            <itextId>static_instance-state-0</itextId>
+            <name>state_1</name>
+            <zone>zone_1</zone>
+          </item>
+          <item>
+            <itextId>static_instance-state-1</itextId>
+            <name>state_2</name>
+            <zone>zone_1</zone>
+          </item>
+          <item>
+            <itextId>static_instance-state-2</itextId>
+            <name>state_3</name>
+            <zone>zone_2</zone>
+          </item>
+          <item>
+            <itextId>static_instance-state-3</itextId>
+            <name>state_4</name>
+            <zone>zone_2</zone>
+          </item>
+        </root>
+      </instance>
+      <instance id="lga">
+        <root>
+          <item>
+            <itextId>static_instance-lga-0</itextId>
+            <state>state_1</state>
+            <name>lga_1</name>
+            <zone>zone_1</zone>
+          </item>
+          <item>
+            <itextId>static_instance-lga-1</itextId>
+            <state>state_1</state>
+            <name>lga_2</name>
+            <zone>zone_1</zone>
+          </item>
+          <item>
+            <itextId>static_instance-lga-2</itextId>
+            <state>state_2</state>
+            <name>lga_3</name>
+            <zone>zone_1</zone>
+          </item>
+          <item>
+            <itextId>static_instance-lga-3</itextId>
+            <state>state_2</state>
+            <name>lga_4</name>
+            <zone>zone_1</zone>
+          </item>
+          <item>
+            <itextId>static_instance-lga-4</itextId>
+            <state>state_3</state>
+            <name>lga_5</name>
+            <zone>zone_2</zone>
+          </item>
+          <item>
+            <itextId>static_instance-lga-5</itextId>
+            <state>state_3</state>
+            <name>lga_6</name>
+            <zone>zone_2</zone>
+          </item>
+          <item>
+            <itextId>static_instance-lga-6</itextId>
+            <state>state_4</state>
+            <name>lga_1</name>
+            <zone>zone_2</zone>
+          </item>
+          <item>
+            <itextId>static_instance-lga-7</itextId>
+            <state>state_4</state>
+            <name>lga_2</name>
+            <zone>zone_2</zone>
+          </item>
+        </root>
+      </instance>
+      <instance id="zone">
+        <root>
+          <item>
+            <itextId>static_instance-zone-0</itextId>
+            <name>zone_1</name>
+          </item>
+          <item>
+            <itextId>static_instance-zone-1</itextId>
+            <name>zone_2</name>
+          </item>
+        </root>
+      </instance>
+      <bind nodeset="/cascading_select_test/mylga_zone" type="select1"/>
+      <bind nodeset="/cascading_select_test/mylga_state" type="select1"/>
+      <bind nodeset="/cascading_select_test/mylga" type="select1"/>
+      <bind jr:preload="uid" nodeset="/cascading_select_test/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select1 ref="/cascading_select_test/mylga_zone">
+      <label>Choose your zone:</label>
+      <itemset nodeset="instance('zone')/root/item">
+        <value ref="name"/>
+        <label ref="jr:itext(itextId)"/>
+      </itemset>
+    </select1>
+    <select1 ref="/cascading_select_test/mylga_state">
+      <label>Choose your state:</label>
+      <itemset nodeset="instance('state')/root/item[zone= /cascading_select_test/mylga_zone ]">
+        <value ref="name"/>
+        <label ref="jr:itext(itextId)"/>
+      </itemset>
+    </select1>
+    <select1 ref="/cascading_select_test/mylga">
+      <label>Choose your lga:</label>
+      <itemset nodeset="instance('lga')/root/item[zone= /cascading_select_test/mylga_zone  and state= /cascading_select_test/mylga_state ]">
+        <value ref="name"/>
+        <label ref="jr:itext(itextId)"/>
+      </itemset>
+    </select1>
+  </h:body>
+</h:html>

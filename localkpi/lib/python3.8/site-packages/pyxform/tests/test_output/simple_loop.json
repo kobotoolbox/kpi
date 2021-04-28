@@ -1,0 +1,57 @@
+{
+    "type": "survey",
+    "name": "simple_loop",
+    "title": "simple_loop",
+    "id_string": "simple_loop",
+    "sms_keyword": "simple_loop",
+    "default_language": "default",
+    "children": [
+        {
+            "type": "loop",
+            "label": {
+                "English": "My Table"
+            },
+            "name": "my_table",
+            "children": [
+                {
+                    "type": "integer",
+                    "label": {
+                        "English": "How many are there in this group?"
+                    },
+                    "name": "count"
+                }
+            ],
+            "columns": [
+                {
+                    "label": {
+                        "English": "Column 1"
+                    },
+                    "name": "col1"
+                },
+                {
+                    "label": {
+                        "English": "Column 2"
+                    },
+                    "name": "col2"
+                }
+            ]
+        },
+        {
+            "name": "meta",
+            "type": "group",
+            "control": {
+                "bodyless": true
+            },
+            "children": [
+                {
+                    "name": "instanceID",
+                    "bind": {
+                        "readonly": "true()",
+                        "jr:preload": "uid"
+                    },
+                    "type": "calculate"
+                }
+            ]
+        }
+    ]
+}

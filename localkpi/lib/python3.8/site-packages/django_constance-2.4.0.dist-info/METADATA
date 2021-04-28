@@ -1,0 +1,58 @@
+Metadata-Version: 2.1
+Name: django-constance
+Version: 2.4.0
+Summary: Django live settings with pluggable backends, including Redis.
+Home-page: http://github.com/jazzband/django-constance
+Author: Jannis Leidel
+Author-email: jannis@leidel.info
+License: BSD
+Keywords: django,libraries,settings,redis
+Platform: any
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Framework :: Django :: 1.11
+Classifier: Framework :: Django :: 2.1
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Programming Language :: Python :: Implementation :: PyPy
+Classifier: Topic :: Utilities
+Provides-Extra: database
+Requires-Dist: django-picklefield ; extra == 'database'
+Provides-Extra: redis
+Requires-Dist: redis ; extra == 'redis'
+
+Constance - Dynamic Django settings
+===================================
+
+.. image:: https://secure.travis-ci.org/jazzband/django-constance.svg
+    :alt: Build Status
+    :target: http://travis-ci.org/jazzband/django-constance
+
+.. image:: https://jazzband.co/static/img/badge.svg
+   :alt: Jazzband
+   :target: https://jazzband.co/
+
+A Django app for storing dynamic settings in pluggable backends (Redis and
+Django model backend built in) with an integration with the Django admin app.
+
+For more information see the documentation at:
+
+https://django-constance.readthedocs.io/
+
+If you have questions or have trouble using the app please file a bug report
+at:
+
+https://github.com/jazzband/django-constance/issues
+
+

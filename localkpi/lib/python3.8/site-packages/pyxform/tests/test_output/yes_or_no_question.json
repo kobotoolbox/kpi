@@ -1,0 +1,49 @@
+{
+    "type": "survey",
+    "name": "yes_or_no_question",
+    "title": "yes_or_no_question",
+    "id_string": "yes_or_no_question",
+    "sms_keyword": "yes_or_no_question",
+    "default_language": "default",
+    "children": [
+        {
+            "type": "select one",
+            "label": {
+                "english": "have you had a good day today?"
+            },
+            "name": "good_day",
+            "parameters": {},
+            "choices": [
+                {
+                    "label": {
+                        "english": "yes"
+                    },
+                    "name": "yes"
+                },
+                {
+                    "label": {
+                        "english": "no"
+                    },
+                    "name": "no"
+                }
+            ]
+        },
+        {
+            "name": "meta",
+            "type": "group",
+            "control": {
+                "bodyless": true
+            },
+            "children": [
+                {
+                    "name": "instanceID",
+                    "bind": {
+                        "readonly": "true()",
+                        "jr:preload": "uid"
+                    },
+                    "type": "calculate"
+                }
+            ]
+        }
+    ]
+}

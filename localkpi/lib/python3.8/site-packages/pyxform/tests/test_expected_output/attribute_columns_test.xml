@@ -1,0 +1,958 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>Spec test</h:title>
+    <model>
+      <submission action="https://example-odk-aggregate.appspot.com/submission" base64RsaPublicKey="MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo93+Dgn3iDleC9XMTDH7ez1MOm/BOt287DgkldNkdvrtdC4oUegx3N8Say9tq47k2EOzeLYkezVnKdtserx+g/+R6pDIOS66bwbH+HoslDEUaZRZ47EipSGC1JhtOp/nQGQCsdVc5q/fPvw8d2rLLi+PQUZPBOiBxUo9h/CFc41hl/quUELmylSdL4O06OAP8OCEDA+tl0C2Ik+uCYMDJLD4m7YVbkV7jJXjtILj+GW+noLriFMRsgg7WKQe2j9fw5+v46nzhokOnDnHh+yGwQMfs/B0jfFAgXllLNjIPlXQf2UVzuxEax6wLCyqUXMIjCPSNfnzDRgFB4Qw3QbJCwIDAQAB" method="form-data-post"/>
+      <itext>
+        <translation default="true()" lang="default">
+          <text id="/attribute_columns_test/everything/video_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-2-test/a:label">
+            <value form="image">jr://images/a.jpg</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/table_list_question:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_chars_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/a_decimal:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/audio_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/launch:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/uri_deviceid_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/number_label:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/address:hint">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/attribute_columns_test/everything/_1:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/start_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/text_image_audio_video_test:label">
+            <value form="image">jr://images/img_test.jpg</value>
+            <value form="audio">jr://audio/audio_test.wav</value>
+            <value form="video">jr://video/test.mov</value>
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/deviceid_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/date_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test/no:label">
+            <value>No</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-test/a:label">
+            <value form="image">jr://images/a.jpg</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/phonenumber_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/text_image_audio_video_test:hint">
+            <value>The goal of this test is to try out all the different media types in many languages to see if there are any bugs inserting media.</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/image_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/end_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-test/b:label">
+            <value form="image">jr://images/b.jpg</value>
+          </text>
+          <text id="/attribute_columns_test/skip_to_end/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/reserved_name_for_field_list_labels_25/no:label">
+            <value>No</value>
+          </text>
+          <text id="/attribute_columns_test/everything/address:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_test/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/attribute_columns_test/everything/a_integer:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/calculate_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/required_text:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/geopoint_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test:jr:constraintMsg">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/skip_to_end:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/table_list_question/no:label">
+            <value>No</value>
+          </text>
+          <text id="/attribute_columns_test/everything/invalid_variable:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/time_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/datetime_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_chars_test/no:label">
+            <value>No</value>
+          </text>
+          <text id="/attribute_columns_test/everything/simserial_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/note_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/my_name:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test/no:label">
+            <value>No</value>
+          </text>
+          <text id="/attribute_columns_test/everything/acknowledge_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/table_list_question/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_chars_test/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-2-test/b:label">
+            <value form="image">jr://images/b.jpg</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/reserved_name_for_field_list_labels_25/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/attribute_columns_test/skip_to_end/no:label">
+            <value>No</value>
+          </text>
+          <text id="/attribute_columns_test/everything/email_note:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/number_label:hint">
+            <value>a note</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test/no:label">
+            <value>No</value>
+          </text>
+          <text id="/attribute_columns_test/everything/display_image_test:label">
+            <value form="image">jr://images/img_test.jpg</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_test/no:label">
+            <value>No</value>
+          </text>
+          <text id="/attribute_columns_test/everything/FALSE:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/today_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-2-test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/barcode_test:label">
+            <value>-</value>
+          </text>
+        </translation>
+        <translation lang="chinese">
+          <text id="/attribute_columns_test/everything/video_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/number_label:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/table_list_question:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_chars_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/a_decimal:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/audio_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/launch:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/uri_deviceid_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-2-test/a:label">
+            <value form="image">jr://images/-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/address:hint">
+            <value>ni hao</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/attribute_columns_test/everything/_1:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/start_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/reserved_name_for_field_list_labels_25/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/text_image_audio_video_test:label">
+            <value form="image">jr://images/-</value>
+            <value form="audio">jr://audio/chinese_audio.wav</value>
+            <value form="video">jr://video/-</value>
+            <value>您好</value>
+          </text>
+          <text id="/attribute_columns_test/everything/deviceid_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/date_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-test/a:label">
+            <value form="image">jr://images/-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/phonenumber_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/text_image_audio_video_test:hint">
+            <value>ni hao</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/image_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/end_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-test/b:label">
+            <value form="image">jr://images/-</value>
+          </text>
+          <text id="/attribute_columns_test/skip_to_end/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/reserved_name_for_field_list_labels_25/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_test/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/attribute_columns_test/everything/a_integer:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/calculate_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/display_image_test:label">
+            <value form="image">jr://images/-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/geopoint_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test:jr:constraintMsg">
+            <value>對不起 <output value=" /attribute_columns_test/everything/my_name "/>，你可以不選擇"是"和"否"。</value>
+          </text>
+          <text id="/attribute_columns_test/skip_to_end:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/table_list_question/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/attribute_columns_test/everything/invalid_variable:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/time_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/datetime_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_chars_test/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/attribute_columns_test/everything/simserial_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/note_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/my_name:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/address:label">
+            <value>您好</value>
+          </text>
+          <text id="/attribute_columns_test/everything/acknowledge_test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/table_list_question/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_chars_test/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-2-test/b:label">
+            <value form="image">jr://images/-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/attribute_columns_test/skip_to_end/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/attribute_columns_test/everything/email_note:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/number_label:hint">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/required_text:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_test/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/attribute_columns_test/everything/FALSE:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/today_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-2-test:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/barcode_test:label">
+            <value>-</value>
+          </text>
+        </translation>
+        <translation lang="english">
+          <text id="/attribute_columns_test/everything/video_test:label">
+            <value>video_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/number_label:label">
+            <value>1</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/table_list_question:label">
+            <value>table list question</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_chars_test:label">
+            <value>autocomplete_chars_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/a_decimal:label">
+            <value>constrained decimal</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/reserved_name_for_field_list_labels_25/no:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/launch:label">
+            <value>This launches a fictional application to get an integer result.</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test:label">
+            <value>repeat_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test:label">
+            <value>select multiple test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_test/no:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/uri_deviceid_test_output:label">
+            <value>deviceid_test_output: <output value=" /attribute_columns_test/everything/uri_deviceid "/></value></text>
+          <text id="/attribute_columns_test/everything/_1:label">
+            <value>numerical name test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-test:label">
+            <value>compact-test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/start_test_output:label">
+            <value>start test output: <output value=" /attribute_columns_test/everything/start "/></value></text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/reserved_name_for_field_list_labels_25/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test:label">
+            <value>label-test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/text_image_audio_video_test:label">
+            <value form="image">jr://images/img_test_2.jpg</value>
+            <value form="audio">jr://audio/-</value>
+            <value form="video">jr://video/-</value>
+            <value>text_image_audio_video_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/deviceid_test_output:label">
+            <value>deviceid_test_output: <output value=" /attribute_columns_test/everything/deviceid "/></value></text>
+          <text id="/attribute_columns_test/everything/date_test:label">
+            <value>date_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test/no:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-test/a:label">
+            <value form="image">jr://images/-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_test:label">
+            <value>autocomplete_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/phonenumber_test_output:label">
+            <value>phonenumber_test_output: <output value=" /attribute_columns_test/everything/phonenumber "/></value></text>
+          <text id="/attribute_columns_test/everything/text_image_audio_video_test:hint">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/skip_to_end/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/image_test:label">
+            <value>image_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/datetime_test:label">
+            <value>datetime_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-test/b:label">
+            <value form="image">jr://images/-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/today_test_output:label">
+            <value>today_test_output: <output value=" /attribute_columns_test/everything/today "/></value></text>
+          <text id="/attribute_columns_test/everything/autocomplete_chars_test/no:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/audio_test:label">
+            <value>audio_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-2-test/a:label">
+            <value form="image">jr://images/-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test/no:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_test/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/a_integer:label">
+            <value>a integer</value>
+          </text>
+          <text id="/attribute_columns_test/everything/calculate_test_output:label">
+            <value><output value=" /attribute_columns_test/everything/calculate_test "/></value>
+          </text>
+          <text id="/attribute_columns_test/everything/display_image_test:label">
+            <value form="image">jr://images/-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group:label">
+            <value>labeled select group test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/geopoint_test:label">
+            <value>geopoint_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test:jr:constraintMsg">
+            <value>Sorry <output value=" /attribute_columns_test/everything/my_name "/>, you can't select yes and no.</value>
+          </text>
+          <text id="/attribute_columns_test/skip_to_end:label">
+            <value>Skip to end</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/table_list_question/no:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/invalid_variable:label">
+            <value>Your name is <output value=" /attribute_columns_test/everything/my_name "/></value></text>
+          <text id="/attribute_columns_test/everything/time_test:label">
+            <value>time_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/simserial_test_output:label">
+            <value>simserial_test_output: <output value=" /attribute_columns_test/everything/simserial "/></value></text>
+          <text id="/attribute_columns_test/everything/note_test:label">
+            <value>note_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/my_name:label">
+            <value>Enter your name</value>
+          </text>
+          <text id="/attribute_columns_test/everything/address:label">
+            <value>Enter an address</value>
+          </text>
+          <text id="/attribute_columns_test/everything/end_test_output:label">
+            <value>end test output: <output value=" /attribute_columns_test/everything/end "/></value></text>
+          <text id="/attribute_columns_test/everything/acknowledge_test:label">
+            <value>acknowledge_test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/address:hint">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/autocomplete_chars_test/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/name/table_list_question/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-2-test/b:label">
+            <value form="image">jr://images/-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/skip_to_end/no:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/email_note:label">
+            <value>You entered an email address</value>
+          </text>
+          <text id="/attribute_columns_test/everything/number_label:hint">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test/no:label">
+            <value>-</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/group_test/required_text:label">
+            <value>required_text</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test:label">
+            <value>list-nolabel-test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/FALSE:label">
+            <value>boolean name test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/repeat_test/compact-2-test:label">
+            <value>compact-2-test</value>
+          </text>
+          <text id="/attribute_columns_test/everything/barcode_test:label">
+            <value>barcode_test</value>
+          </text>
+        </translation>
+      </itext>
+      <instance>
+        <attribute_columns_test id="Spec test">
+          <skip_to_end testAttribute="test"/>
+          <everything testAttribute="test">
+            <my_name/>
+            <invalid_variable/>
+            <address testAttribute=" /attribute_columns_test/everything/my_name "/>
+            <email_note/>
+            <number_label/>
+            <text_image_audio_video_test/>
+            <display_image_test/>
+            <autocomplete_test/>
+            <autocomplete_chars_test/>
+            <a_integer/>
+            <a_decimal/>
+            <repeat_test_count/>
+            <repeat_test jr:template="" testAttribute="test">
+              <group_test>
+                <required_text/>
+                <select_multiple_test/>
+              </group_test>
+              <labeled_select_group>
+                <label-test/>
+                <list-nolabel-test/>
+              </labeled_select_group>
+              <name>
+                <reserved_name_for_field_list_labels_25/>
+                <table_list_question/>
+              </name>
+              <compact-test/>
+              <compact-2-test/>
+            </repeat_test>
+            <acknowledge_test testAttribute="test"/>
+            <date_test testAttribute="test"/>
+            <time_test testAttribute="test"/>
+            <datetime_test testAttribute="test"/>
+            <geopoint_test testAttribute="test"/>
+            <barcode_test testAttribute="test"/>
+            <image_test testAttribute="test"/>
+            <audio_test testAttribute="test"/>
+            <video_test testAttribute="test"/>
+            <note_test/>
+            <calculate_test testAttribute="test"/>
+            <calculate_test_output/>
+            <start/>
+            <start_test_output/>
+            <end/>
+            <end_test_output/>
+            <today/>
+            <today_test_output/>
+            <deviceid testAttribute="test"/>
+            <deviceid_test_output/>
+            <uri_deviceid/>
+            <uri_deviceid_test_output/>
+            <simserial/>
+            <simserial_test_output/>
+            <phonenumber/>
+            <phonenumber_test_output/>
+            <_1/>
+            <FALSE/>
+          </everything>
+          <launch/>
+          <meta>
+            <instanceID/>
+            <instanceName/>
+          </meta>
+        </attribute_columns_test>
+      </instance>
+      <bind nodeset="/attribute_columns_test/skip_to_end" saveIncomplete="true()" type="select1"/>
+      <bind nodeset="/attribute_columns_test/everything" relevant="not(selected( /attribute_columns_test/skip_to_end , 'yes'))"/>
+      <bind nodeset="/attribute_columns_test/everything/my_name" type="string"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/invalid_variable" readonly="true()" type="string"/>
+      <bind bindAttribute=" /attribute_columns_test/everything/my_name " nodeset="/attribute_columns_test/everything/address" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/email_note" readonly="true()" relevant="regex( /attribute_columns_test/everything/address , '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}')" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/number_label" readonly="true()" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/text_image_audio_video_test" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/display_image_test" readonly="true()" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/autocomplete_test" type="select1"/>
+      <bind nodeset="/attribute_columns_test/everything/autocomplete_chars_test" type="select1"/>
+      <bind nodeset="/attribute_columns_test/everything/a_integer" type="int"/>
+      <bind constraint=". &lt;=  /attribute_columns_test/everything/a_integer " nodeset="/attribute_columns_test/everything/a_decimal" type="decimal"/>
+      <bind calculate="2" nodeset="/attribute_columns_test/everything/repeat_test_count" readonly="true()" type="string"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/repeat_test"/>
+      <bind jr:requiredMsg="Custom required message." nodeset="/attribute_columns_test/everything/repeat_test/group_test/required_text" required="true()" type="string"/>
+      <bind constraint="not(selected(., 'yes') and selected (., 'no'))" jr:constraintMsg="jr:itext('/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test:jr:constraintMsg')" nodeset="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test" required="false()" type="select"/>
+      <bind nodeset="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test" type="select1"/>
+      <bind nodeset="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test" required="true()" type="select1"/>
+      <bind nodeset="/attribute_columns_test/everything/repeat_test/name/reserved_name_for_field_list_labels_25" type="select1"/>
+      <bind nodeset="/attribute_columns_test/everything/repeat_test/name/table_list_question" type="select1"/>
+      <bind nodeset="/attribute_columns_test/everything/repeat_test/compact-test" type="select1"/>
+      <bind nodeset="/attribute_columns_test/everything/repeat_test/compact-2-test" type="select1"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/acknowledge_test" type="string"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/date_test" type="date"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/time_test" type="time"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/datetime_test" type="dateTime"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/geopoint_test" type="geopoint"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/barcode_test" type="barcode"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/image_test" type="binary"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/audio_test" type="binary"/>
+      <bind bindAttribute="test" nodeset="/attribute_columns_test/everything/video_test" type="binary"/>
+      <bind nodeset="/attribute_columns_test/everything/note_test" readonly="true()" type="string"/>
+      <bind bindAttribute="test" calculate="2+2" nodeset="/attribute_columns_test/everything/calculate_test" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/calculate_test_output" readonly="true()" type="string"/>
+      <bind jr:preload="timestamp" jr:preloadParams="start" nodeset="/attribute_columns_test/everything/start" type="dateTime"/>
+      <bind nodeset="/attribute_columns_test/everything/start_test_output" readonly="true()" type="string"/>
+      <bind jr:preload="timestamp" jr:preloadParams="end" nodeset="/attribute_columns_test/everything/end" type="dateTime"/>
+      <bind nodeset="/attribute_columns_test/everything/end_test_output" readonly="true()" type="string"/>
+      <bind jr:preload="date" jr:preloadParams="today" nodeset="/attribute_columns_test/everything/today" type="date"/>
+      <bind nodeset="/attribute_columns_test/everything/today_test_output" readonly="true()" type="string"/>
+      <bind bindAttribute="test" jr:preload="property" jr:preloadParams="deviceid" nodeset="/attribute_columns_test/everything/deviceid" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/deviceid_test_output" readonly="true()" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="uri:deviceid" nodeset="/attribute_columns_test/everything/uri_deviceid" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/uri_deviceid_test_output" readonly="true()" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="simserial" nodeset="/attribute_columns_test/everything/simserial" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/simserial_test_output" readonly="true()" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="phonenumber" nodeset="/attribute_columns_test/everything/phonenumber" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/phonenumber_test_output" readonly="true()" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/_1" type="string"/>
+      <bind nodeset="/attribute_columns_test/everything/FALSE" type="string"/>
+      <bind jr:noAppErrorString="Sorry, app does not exist." nodeset="/attribute_columns_test/launch" type="int"/>
+      <bind jr:preload="uid" nodeset="/attribute_columns_test/meta/instanceID" readonly="true()" type="string"/>
+      <bind calculate=" /attribute_columns_test/everything/my_name " nodeset="/attribute_columns_test/meta/instanceName" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select1 bodyAttribute="42" ref="/attribute_columns_test/skip_to_end">
+      <label ref="jr:itext('/attribute_columns_test/skip_to_end:label')"/>
+      <item>
+        <label ref="jr:itext('/attribute_columns_test/skip_to_end/yes:label')"/>
+        <value>yes</value>
+      </item>
+      <item>
+        <label ref="jr:itext('/attribute_columns_test/skip_to_end/no:label')"/>
+        <value>no</value>
+      </item>
+    </select1>
+    <group bodyAttribute2="test" ref="/attribute_columns_test/everything">
+      <input ref="/attribute_columns_test/everything/my_name" rows="12">
+        <label ref="jr:itext('/attribute_columns_test/everything/my_name:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/invalid_variable">
+        <label ref="jr:itext('/attribute_columns_test/everything/invalid_variable:label')"/>
+        <hint>Try replacing my_name with a invalid variable</hint>
+      </input>
+      <input bodyAttribute=" /attribute_columns_test/everything/my_name " ref="/attribute_columns_test/everything/address">
+        <label ref="jr:itext('/attribute_columns_test/everything/address:label')"/>
+        <hint ref="jr:itext('/attribute_columns_test/everything/address:hint')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/email_note">
+        <label ref="jr:itext('/attribute_columns_test/everything/email_note:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/number_label">
+        <label ref="jr:itext('/attribute_columns_test/everything/number_label:label')"/>
+        <hint ref="jr:itext('/attribute_columns_test/everything/number_label:hint')"/>
+      </input>
+      <input autoplay="audio" ref="/attribute_columns_test/everything/text_image_audio_video_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/text_image_audio_video_test:label')"/>
+        <hint ref="jr:itext('/attribute_columns_test/everything/text_image_audio_video_test:hint')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/display_image_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/display_image_test:label')"/>
+      </input>
+      <select1 appearance="autocomplete" ref="/attribute_columns_test/everything/autocomplete_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/autocomplete_test:label')"/>
+        <item>
+          <label ref="jr:itext('/attribute_columns_test/everything/autocomplete_test/yes:label')"/>
+          <value>yes</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/attribute_columns_test/everything/autocomplete_test/no:label')"/>
+          <value>no</value>
+        </item>
+      </select1>
+      <select1 appearance="autocomplete_chars" ref="/attribute_columns_test/everything/autocomplete_chars_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/autocomplete_chars_test:label')"/>
+        <item>
+          <label ref="jr:itext('/attribute_columns_test/everything/autocomplete_chars_test/yes:label')"/>
+          <value>yes</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/attribute_columns_test/everything/autocomplete_chars_test/no:label')"/>
+          <value>no</value>
+        </item>
+      </select1>
+      <input ref="/attribute_columns_test/everything/a_integer">
+        <label ref="jr:itext('/attribute_columns_test/everything/a_integer:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/a_decimal">
+        <label ref="jr:itext('/attribute_columns_test/everything/a_decimal:label')"/>
+      </input>
+      <group ref="/attribute_columns_test/everything/repeat_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/repeat_test:label')"/>
+        <repeat bodyAttribute="test" bodyAttribute2="test" jr:count=" /attribute_columns_test/everything/repeat_test_count " nodeset="/attribute_columns_test/everything/repeat_test">
+          <group appearance="field-list" ref="/attribute_columns_test/everything/repeat_test/group_test">
+            <input ref="/attribute_columns_test/everything/repeat_test/group_test/required_text">
+              <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/group_test/required_text:label')"/>
+            </input>
+            <select appearance="minimal" ref="/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test">
+              <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test:label')"/>
+              <item>
+                <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test/yes:label')"/>
+                <value>yes</value>
+              </item>
+              <item>
+                <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/group_test/select_multiple_test/no:label')"/>
+                <value>no</value>
+              </item>
+            </select>
+          </group>
+          <group appearance="field-list" ref="/attribute_columns_test/everything/repeat_test/labeled_select_group">
+            <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/labeled_select_group:label')"/>
+            <select1 appearance="label" ref="/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test">
+              <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test:label')"/>
+              <item>
+                <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test/yes:label')"/>
+                <value>yes</value>
+              </item>
+              <item>
+                <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/labeled_select_group/label-test/no:label')"/>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 appearance="list-nolabel" ref="/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test">
+              <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test:label')"/>
+              <item>
+                <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test/yes:label')"/>
+                <value>yes</value>
+              </item>
+              <item>
+                <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/labeled_select_group/list-nolabel-test/no:label')"/>
+                <value>no</value>
+              </item>
+            </select1>
+          </group>
+          <group appearance="field-list" ref="/attribute_columns_test/everything/repeat_test/name">
+            <select1 appearance="label" ref="/attribute_columns_test/everything/repeat_test/name/reserved_name_for_field_list_labels_25">
+              <label></label>
+              <item>
+                <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/name/reserved_name_for_field_list_labels_25/yes:label')"/>
+                <value>yes</value>
+              </item>
+              <item>
+                <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/name/reserved_name_for_field_list_labels_25/no:label')"/>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 appearance="list-nolabel" ref="/attribute_columns_test/everything/repeat_test/name/table_list_question">
+              <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/name/table_list_question:label')"/>
+              <hint>hint</hint>
+              <item>
+                <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/name/table_list_question/yes:label')"/>
+                <value>yes</value>
+              </item>
+              <item>
+                <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/name/table_list_question/no:label')"/>
+                <value>no</value>
+              </item>
+            </select1>
+          </group>
+          <select1 appearance="compact" ref="/attribute_columns_test/everything/repeat_test/compact-test">
+            <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/compact-test:label')"/>
+            <item>
+              <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/compact-test/a:label')"/>
+              <value>a</value>
+            </item>
+            <item>
+              <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/compact-test/b:label')"/>
+              <value>b</value>
+            </item>
+          </select1>
+          <select1 appearance="compact-2" ref="/attribute_columns_test/everything/repeat_test/compact-2-test">
+            <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/compact-2-test:label')"/>
+            <item>
+              <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/compact-2-test/a:label')"/>
+              <value>a</value>
+            </item>
+            <item>
+              <label ref="jr:itext('/attribute_columns_test/everything/repeat_test/compact-2-test/b:label')"/>
+              <value>b</value>
+            </item>
+          </select1>
+        </repeat>
+      </group>
+      <trigger bodyAttribute="test" bodyAttribute2="test" ref="/attribute_columns_test/everything/acknowledge_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/acknowledge_test:label')"/>
+      </trigger>
+      <input bodyAttribute="test" bodyAttribute2="test" ref="/attribute_columns_test/everything/date_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/date_test:label')"/>
+      </input>
+      <input bodyAttribute="test" bodyAttribute2="test" ref="/attribute_columns_test/everything/time_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/time_test:label')"/>
+      </input>
+      <input bodyAttribute="test" bodyAttribute2="test" ref="/attribute_columns_test/everything/datetime_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/datetime_test:label')"/>
+      </input>
+      <input bodyAttribute="test" bodyAttribute2="test" ref="/attribute_columns_test/everything/geopoint_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/geopoint_test:label')"/>
+      </input>
+      <input bodyAttribute="test" bodyAttribute2="test" ref="/attribute_columns_test/everything/barcode_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/barcode_test:label')"/>
+      </input>
+      <upload bodyAttribute="test" bodyAttribute2="test" mediatype="image/*" ref="/attribute_columns_test/everything/image_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/image_test:label')"/>
+      </upload>
+      <upload bodyAttribute="test" bodyAttribute2="test" mediatype="audio/*" ref="/attribute_columns_test/everything/audio_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/audio_test:label')"/>
+      </upload>
+      <upload bodyAttribute="test" bodyAttribute2="test" mediatype="video/*" ref="/attribute_columns_test/everything/video_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/video_test:label')"/>
+      </upload>
+      <input ref="/attribute_columns_test/everything/note_test">
+        <label ref="jr:itext('/attribute_columns_test/everything/note_test:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/calculate_test_output">
+        <label ref="jr:itext('/attribute_columns_test/everything/calculate_test_output:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/start_test_output">
+        <label ref="jr:itext('/attribute_columns_test/everything/start_test_output:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/end_test_output">
+        <label ref="jr:itext('/attribute_columns_test/everything/end_test_output:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/today_test_output">
+        <label ref="jr:itext('/attribute_columns_test/everything/today_test_output:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/deviceid_test_output">
+        <label ref="jr:itext('/attribute_columns_test/everything/deviceid_test_output:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/uri_deviceid_test_output">
+        <label ref="jr:itext('/attribute_columns_test/everything/uri_deviceid_test_output:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/simserial_test_output">
+        <label ref="jr:itext('/attribute_columns_test/everything/simserial_test_output:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/phonenumber_test_output">
+        <label ref="jr:itext('/attribute_columns_test/everything/phonenumber_test_output:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/_1">
+        <label ref="jr:itext('/attribute_columns_test/everything/_1:label')"/>
+      </input>
+      <input ref="/attribute_columns_test/everything/FALSE">
+        <label ref="jr:itext('/attribute_columns_test/everything/FALSE:label')"/>
+      </input>
+    </group>
+    <input appearance="ex:org.thirdparty.app.ActivityName" ref="/attribute_columns_test/launch">
+      <label ref="jr:itext('/attribute_columns_test/launch:label')"/>
+    </input>
+  </h:body>
+</h:html>

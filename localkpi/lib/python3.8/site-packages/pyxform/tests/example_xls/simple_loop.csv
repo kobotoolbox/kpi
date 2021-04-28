@@ -1,0 +1,10 @@
+"survey",,,
+,"type","name","label:English"
+,"begin loop over my_columns","my_table","My Table"
+,"integer","count","How many are there in this group?"
+,"end loop",,
+,,,
+"choices",,,
+,"list name","name","label:English"
+,"my_columns","col1","Column 1"
+,"my_columns","col2","Column 2"

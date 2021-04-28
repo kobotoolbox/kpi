@@ -246,6 +246,14 @@ bem.FormSidebar__labelText = bem.FormSidebar.__('label-text');
 bem.FormSidebar__labelCount = bem.FormSidebar.__('label-count');
 bem.FormSidebar__grouping = bem.FormSidebar.__('grouping');
 
+bem.UsersSidebar = BEM('form-sidebar');
+bem.UsersSidebar__item = bem.UsersSidebar.__('item', '<a>');
+bem.UsersSidebar__itemText = bem.UsersSidebar.__('item-text');
+bem.UsersSidebar__label = bem.UsersSidebar.__('label', '<a>');
+bem.UsersSidebar__labelText = bem.UsersSidebar.__('label-text');
+bem.UsersSidebar__labelCount = bem.UsersSidebar.__('label-count');
+bem.UsersSidebar__grouping = bem.UsersSidebar.__('grouping');
+
 bem.KDrawer = BEM('k-drawer');
 bem.KDrawer__primaryIcons = bem.KDrawer.__('primary-icons', 'nav');
 bem.KDrawer__secondaryIcons = bem.KDrawer.__('secondary-icons', 'nav');

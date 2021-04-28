@@ -33,6 +33,7 @@ import {
 } from './components/formEditors';
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
+import UsersRoute from 'js/components/users/usersRoute'
 import AssetRoute from 'js/components/library/assetRoute';
 import Reports from './components/reports';
 import FormLanding from './components/formLanding';
@@ -268,6 +269,11 @@ export var routes = (
       <Route path={ROUTES.LIBRARY_ITEM_JSON} component={FormJson}/>
       <Route path={ROUTES.LIBRARY_ITEM_XFORM} component={FormXform}/>
       <IndexRedirect to={ROUTES.MY_LIBRARY}/>
+    </Route>
+
+    <Route path={ROUTES.USERMANAGEMENT}>
+      <Route path={ROUTES.USERS} component={UsersRoute}/>
+      <IndexRedirect to={ROUTES.USERS}/>
     </Route>
 
     <IndexRedirect to={ROUTES.FORMS} />

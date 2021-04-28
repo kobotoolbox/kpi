@@ -1,0 +1,30 @@
+Metadata-Version: 2.1
+Name: django-oauth-toolkit
+Version: 1.2.0
+Summary: OAuth2 Provider for Django
+Home-page: https://github.com/jazzband/django-oauth-toolkit
+Author: Federico Frenguelli, Massimiliano Pippi
+Author-email: synasius@gmail.com
+License: UNKNOWN
+Download-URL: https://github.com/jazzband/django-oauth-toolkit/tarball/master
+Keywords: django,oauth,oauth2,oauthlib
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Framework :: Django :: 2.0
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Internet :: WWW/HTTP
+Requires-Dist: django (>=2.0)
+Requires-Dist: oauthlib (>=2.0.3)
+Requires-Dist: requests (>=2.13.0)
+
+UNKNOWN
+
+

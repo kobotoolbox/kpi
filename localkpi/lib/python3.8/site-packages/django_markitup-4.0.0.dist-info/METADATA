@@ -1,0 +1,605 @@
+Metadata-Version: 2.1
+Name: django-markitup
+Version: 4.0.0
+Summary: Markup handling for Django using the MarkItUp! universal markup editor
+Home-page: https://github.com/CTPUG/django-markitup
+Author: Carl Meyer
+Author-email: carl@oddbird.net
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Framework :: Django
+
+===============
+django-markitup
+===============
+
+.. image:: https://img.shields.io/pypi/v/django-markitup.svg
+    :target: https://pypi.python.org/pypi/django-markitup/
+    :alt: Latest PyPI version
+
+.. image:: https://img.shields.io/pypi/dm/django-markitup.svg
+    :target: https://pypi.python.org/pypi/django-markitup/
+    :alt: Number of PyPI downloads
+
+.. image:: https://img.shields.io/pypi/pyversions/django-markitup.svg
+    :target: https://pypi.python.org/pypi/django-markitup/
+    :alt: Supported Python versions
+
+.. image:: https://travis-ci.org/CTPUG/django-markitup.svg
+    :target: https://travis-ci.org/CTPUG/django-markitup
+
+A Django reusable application for end-to-end markup handling. Includes:
+
+* Easy integration of the `MarkItUp!`_ markup editor widget (by Jay
+  Salvat) in Django projects, with server-side support for MarkItUp!'s
+  AJAX preview. Plug in MarkItUp! via form widget or template tags.
+
+* ``MarkupField``, a ``TextField`` that automatically renders and
+  stores both its raw and rendered values in the database, on the
+  assumption that disk space is cheaper than CPU cycles in a web
+  application.
+
+.. _MarkItUp!: http://markitup.jaysalvat.com/
+
+
+Installation
+============
+
+Install from PyPI::
+
+    pip install django-markitup
+
+To use ``django-markitup`` in your Django project:
+
+    1. Add ``'markitup'`` to your ``INSTALLED_APPS`` setting.
+
+    2. Make the contents of the ``markitup/static/markitup`` directory
+       available at ``STATIC_URL/markitup``; the simplest way is via
+       `django.contrib.staticfiles`_.
+
+    3. Set `the MARKITUP_FILTER setting`_.
+
+    4. If you want to use AJAX-based preview, add
+          ``url(r'^markitup/', include('markitup.urls'))`` in your root URLconf.
+
+.. _django.contrib.staticfiles: https://docs.djangoproject.com/en/dev/howto/static-files/
+
+
+Dependencies
+------------
+
+``django-markitup`` 4.x requires `Django`_ 1.11 or later and Python 3.5+.
+
+``django-markitup`` 3.x requires `Django`_ 1.8 or later and Python 2.7+ or 3.4+.
+
+``django-markitup`` 2.x requires `Django`_ 1.4 or later and Python 2.6+ or 3.3+.
+
+``django-markitup`` 1.x requires `Django`_ 1.3 or later and Python 2.5 or later.
+
+`MarkItUp!`_ is not an external dependency; it is bundled with
+``django-markitup``.
+
+.. _Django: http://www.djangoproject.com/
+
+Using the MarkItUp! widget
+==========================
+
+The MarkItUp! widget lives at ``markitup.widgets.MarkItUpWidget``, and
+can be used like any other Django custom widget.
+
+To assign it to a form field::
+
+    from markitup.widgets import MarkItUpWidget
+
+    class MyForm(forms.Form):
+        content = forms.CharField(widget=MarkItUpWidget())
+
+When this form is displayed on your site, you must include the form media
+somewhere on the page using ``{{ form.media }}``, or the MarkItUpWidget will
+have no effect. By default ``{{ form.media }}`` also includes the jQuery
+library based on your `JQUERY_URL`_ setting. To prevent including jQuery, set
+the `JQUERY_URL`_ setting to ``None``.
+
+MarkItUpWidget accepts three optional keyword arguments:
+``markitup_set`` and ``markitup_skin`` (see `Choosing a MarkItUp!
+button set and skin`_) and ``auto_preview`` (to override the value of
+the `MARKITUP_AUTO_PREVIEW`_ setting).
+
+To use the widget in the Django admin::
+
+    from markitup.widgets import AdminMarkItUpWidget
+
+    class MyModelForm(forms.ModelForm):
+        content = forms.CharField(widget=AdminMarkItUpWidget())
+        # ...
+
+    class MyModelAdmin(admin.ModelAdmin):
+        form = MyModelForm
+        # ...
+
+You can also use the formfield_overrides attribute of the ModelAdmin, which
+is simpler but only allows setting the widget per field type (so it isn't
+possible to use the MarkItUpWidget on one TextField in a model and not
+another)::
+
+    from markitup.widgets import AdminMarkItUpWidget
+
+    class MyModelAdmin(admin.ModelAdmin):
+        formfield_overrides = {models.TextField: {'widget': AdminMarkItUpWidget}}
+
+If you use `MarkupField`_ in your model, it is rendered in the admin
+  with an ``AdminMarkItUpWidget`` by default.
+
+Using MarkItUp! via templatetags
+================================
+
+In some cases it may be inconvenient to use ``MarkItUpWidget`` (for
+instance, if the form in question is defined in third-party code). For
+these cases, django-markitup provides template tags to achieve the
+same effect purely in templates.
+
+First, load the django-markitup template tag library::
+
+    {% load markitup_tags %}
+
+Then include the MarkItUp! CSS and Javascript in the <head> of your page::
+
+    {% markitup_media %}
+
+By default the ``markitup_media`` tag also includes jQuery, based on the value
+of your `JQUERY_URL`_ setting, with a fallback to the version hosted at Google
+Ajax APIs. To suppress the inclusion of jQuery (if you are already including it
+yourself), set the `JQUERY_URL`_ setting to ``None``.
+
+If you prefer to link CSS and Javascript from different locations, the
+``markitup_media`` tag can be replaced with two separate tags,
+``markitup_css`` and ``markitup_js``. ``markitup_js`` accepts a
+parameter to suppress jQuery inclusion, just like
+``markitup_media``.
+
+Last, use the ``markitup_editor`` template tag to apply the MarkItUp!
+editor to a textarea in your page. It accepts one argument, the HTML
+id of the textarea. If you are rendering the textarea in the usual way
+via a Django form object, that id value is available as
+``form.fieldname.auto_id``::
+
+    {{ form.fieldname }}
+
+    {% markitup_editor form.fieldname.auto_id %}
+
+You can use ``markitup_editor`` on as many different textareas as you
+like.
+
+``markitup_editor`` accepts an optional second parameter, which can be
+either ``"auto_preview"`` or ``"no_auto_preview"`` to override the
+value of the `MARKITUP_AUTO_PREVIEW`_ setting.
+
+The actual HTML included by these templatetags is defined by the
+contents of the templates ``markitup/include_css.html``,
+``markitup/include_js.html``, and ``markitup/editor.html``. You can
+override these templates in your project and customize them however
+you wish.
+
+MarkupField
+===========
+
+You can apply the MarkItUp! editor control to any textarea using the
+above techniques, and handle the markup on the server side however you
+prefer.
+
+For a seamless markup-handling solution, django-markitup also provides
+a ``MarkupField`` model field that automatically renders and stores
+both its raw and rendered values in the database, using the value of
+`the MARKITUP_FILTER setting`_ to parse the markup into HTML.
+
+A ``MarkupField`` is easy to add to any model definition::
+
+    from django.db import models
+    from markitup.fields import MarkupField
+
+    class Article(models.Model):
+        title = models.CharField(max_length=100)
+        body = MarkupField()
+
+``MarkupField`` automatically creates an extra non-editable field
+``_body_rendered`` to store the rendered markup. This field doesn't
+need to be accessed directly; see below.
+
+Accessing a MarkupField on a model
+----------------------------------
+
+When accessing an attribute of a model that was declared as a
+``MarkupField``, a ``Markup`` object is returned.  The ``Markup``
+object has two attributes:
+
+``raw``:
+    The unrendered markup.
+``rendered``:
+    The rendered HTML version of ``raw`` (read-only).
+
+This object also has a ``__unicode__`` method that calls
+``django.utils.safestring.mark_safe`` on ``rendered``, allowing
+``MarkupField`` attributes to appear in templates as rendered HTML
+without any special template tag or having to access ``rendered``
+directly.
+
+Assuming the ``Article`` model above::
+
+    >>> a = Article.objects.all()[0]
+    >>> a.body.raw
+    '*fancy*'
+    >>> a.body.rendered
+    '<p><em>fancy</em></p>'
+    >>> print(unicode(a.body))
+    <p><em>fancy</em></p>
+    >>> a.body.render_with('markitup.renderers.render_rest')
+    >>> print(unicode(a.body))
+    '<div class="document">\n<p><em>fancy</em></p>\n</div>\n'
+
+Assignment to ``a.body`` is equivalent to assignment to
+``a.body.raw``.
+
+.. note::
+    a.body.rendered is only updated when a.save() or a.body.render_with()
+    is called
+
+Editing a MarkupField in a form
+-------------------------------
+
+When editing a ``MarkupField`` model attribute in a ``ModelForm``
+(i.e. in the Django admin), you'll generally want to edit the original
+markup and not the rendered HTML.  Because the ``Markup`` object
+returns rendered HTML from its __unicode__ method, it's necessary to
+use the ``MarkupTextarea`` widget from the ``markupfield.widgets``
+module, which knows to return the raw markup instead.
+
+By default, a ``MarkupField`` uses the MarkItUp! editor control in the
+admin (via the provided ``AdminMarkItUpWidget``), but a plain
+``MarkupTextarea`` in other forms. If you wish to use the MarkItUp!
+editor with this ``MarkupField`` in your own form, you'll need to use
+the provided ``MarkItUpWidget`` rather than ``MarkupTextarea``.
+
+If you apply your own custom widget to the form field representing a
+``MarkupField``, your widget must either inherit from
+``MarkupTextarea`` or its ``render`` method must convert its ``value``
+argument to ``value.raw``.
+
+
+Choosing a MarkItUp! button set and skin
+========================================
+
+MarkItUp! allows the toolbar button-set to be customized in a
+Javascript settings file.  By default, django-markitup uses the
+"default" set (meant for HTML editing).  Django-markitup also includes
+basic "markdown" and "textile" sets (these are available from `the
+MarkItUp site <http://markitup.jaysalvat.com>`_), as well as a
+"restructuredtext" set.
+
+To use an alternate set, assign the ``MARKITUP_SET`` setting a URL path
+(absolute or relative to ``STATIC_URL``) to the set directory.  For
+instance, to use the "markdown" set included with django-markitup::
+
+    MARKITUP_SET = 'markitup/sets/markdown/'
+
+MarkItUp! skins can be specified in a similar manner.  Both "simple"
+and "markitup" skins are included, by default "simple" is used.  To
+use the "markitup" skin instead::
+
+    MARKITUP_SKIN = 'markitup/skins/markitup/'
+
+Neither of these settings has to refer to a location inside
+django-markitup's media.  You can define your own sets and skins and
+store them anywhere, as long as you set the MARKITUP_SET and
+MARKITUP_SKIN settings to the appropriate URLs.
+
+Set and skin may also be chosen on a per-widget basis by passing the
+``markitup_set`` and ``markitup_skin`` keyword arguments to
+MarkItUpWidget.
+
+
+Using AJAX preview
+==================
+
+If you've included ``markitup.urls`` in your root URLconf (as
+demonstrated above under `Installation`_), all you need to enable
+server-side AJAX preview is `the MARKITUP_FILTER setting`_.
+
+The rendered HTML content is displayed in the Ajax preview wrapped by
+an HTML page generated by the ``markitup/preview.html`` template; you
+can override this template in your project and customize the preview
+output.
+
+.. note::
+
+    Using the MarkItUpWidget or ``markitup_editor`` template tag will
+    automatically set the ``previewParserPath`` in your MarkItUp! set
+    to ``reverse('markitup_preview')``, if ``markitup.urls`` is
+    included in your URLconf.
+
+The MARKITUP_FILTER setting
+===========================
+
+The ``MARKITUP_FILTER`` setting defines how markup is transformed into
+HTML on your site. This setting is only required if you are using
+``MarkupField`` or MarkItUp! AJAX preview.
+
+``MARKITUP_FILTER`` must be a two-tuple. The first element must be a
+string, the Python dotted path to a markup filter function.  This
+function should accept markup as its first argument and return HTML.
+It may accept other keyword arguments as well.  You may parse your
+markup using any method you choose, as long as you can wrap it in a
+function that meets these criteria.
+
+The second element must be a dictionary of keyword arguments to pass
+to the filter function.  The dictionary may be empty.
+
+For example, if you have python-markdown installed, you could use it
+like this::
+
+    MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': True})
+
+Alternatively, you could use the "textile" filter provided by the
+django-markwhat library like this::
+
+    MARKITUP_FILTER = ('django_markwhat.templatetags.markup.textile', {})
+
+(The textile filter function doesn't accept keyword arguments, so the
+kwargs dictionary must be empty in this case.)
+
+``django-markitup`` provides one sample rendering function,
+``render_rest`` in the ``markitup.renderers`` module.
+
+render_markup template filter
+=============================
+
+If you have set `the MARKITUP_FILTER setting`_ and use the MarkItUp!
+AJAX preview, but don't wish to store rendered markup in the database
+with `MarkupField`_ (or are using third-party models that don't use
+`MarkupField`_), you may want a convenient way to render content in
+your templates using your MARKITUP_FILTER function. For this you can
+use the ``render_markup`` template filter::
+
+    {% load markitup_tags %}
+
+    {{ post.content|render_markup }}
+
+Other settings
+==============
+
+MARKITUP_PREVIEW_FILTER
+-----------------------
+
+This optional setting can be used to override the markup filter used
+for the Ajax preview view, if for some reason you need it to be
+different from the filter used for rendering markup in a
+``MarkupField``. It has the same format as ``MARKITUP_FILTER``; by
+default it is set equal to ``MARKITUP_FILTER``.
+
+MARKITUP_AUTO_PREVIEW
+---------------------
+
+If set to ``True``, the preview window will be activated by
+default. Defaults to ``False``.
+
+JQUERY_URL
+----------
+
+MarkItUp! requires the jQuery Javascript library.  By default, django-markitup
+links to jQuery 2.0.3 at ajax.googleapis.com (via the URL
+``//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js``).  If you
+wish to use a different version of jQuery, or host it yourself, set the
+JQUERY_URL setting.  For example::
+
+    JQUERY_URL = 'jquery.min.js'
+
+This will use the jQuery available at STATIC_URL/jquery.min.js. A relative
+``JQUERY_URL`` is relative to ``STATIC_URL``.
+
+If you include the jQuery library manually in your templates and don't want
+``django-markitup`` to include it, set ``JQUERY_URL`` to ``None``.
+CHANGES
+=======
+
+3.5.0 (2020.02.09)
+-------------------
+
+* Add support for Django 1.11 and 2.0.
+
+3.0.0 (2016.09.04)
+------------------
+
+* Drop support for Python 3.3.
+* Drop compatibility with Django < 1.8.
+
+2.3.1 (2016.02.06)
+------------------
+
+* Use protocol-less URL for externally hosted jQuery to avoid browser warnings.
+
+
+2.3.0 (2016.01.17)
+------------------
+
+* Template tags now support Django's STATICFILES_STORAGE setting.
+  Thanks Ivan Ven Osdel for report and fix.
+* Added ``render_with`` method to render a MarkupField with a different filter.
+* Dropped compatibility with Django < 1.7.
+* Compatibility with Django 1.8 and 1.9. Thanks Ivan Ven Osdel for the fixes!
+* Dropped compatibility with Python 2.6.
+* Added support for Python 3.5.
+
+
+2.2.2 (2014.09.08)
+------------------
+
+* Adapted MarkupField to work with Django 1.7 migrations. Merge of
+  BB-15. Thanks Neil Muller for report and fix.
+
+2.2.1 (2014.07.15)
+------------------
+
+* Fixed regression under Python 2 with MARKITUP_FILTER and
+  MARKITUP_PREVIEW_FILTER. Thanks Berker Peksag and Neil Muller for the report,
+  and Neil Muller for the fix.
+
+
+2.2 (2014.07.03)
+----------------
+
+* Added Python 3.3+ support. Thanks Berker Peksag.
+
+
+2.1 (2013.11.11)
+----------------
+
+* Updated default jQuery version from 1.6 to 2.0.3.
+
+* Fixed ``MARKITUP_AUTO_PREVIEW``; the "fix" in 2.0 was wrong and broke it.
+
+
+2.0 (2013.11.06)
+----------------
+
+* Fixed ``MARKITUP_AUTO_PREVIEW``; MarkItUp! now observes mousedown events, not
+  mouseup. Thanks Alexandr Shurigin.
+
+* Added support for Django 1.6.
+
+* BACKWARDS-INCOMPATIBLE: Dropped support for Python 2.5 and Django 1.3.
+
+1.1.0 (2013.04.26)
+------------------
+
+- Updated to MarkItUp! 1.1.14 and fixed compatibility with jQuery 1.9. Thanks
+  Roman Akinfold!
+
+- Fixed MarkItUpWidget with custom attrs. Thanks GeyseR.
+
+- Set previewParserPath dynamically rather than requiring it to be set in
+  ``set.js``.  Thanks Sebastian Brandt.
+
+- Fixed hidden-widget rendering of a ``MarkupField``. Thanks Aramgutang.
+
+- Prevented double application of MarkItUp! editor to an
+  element. Fixes #4. Thanks Rich Leland.
+
+- Added `__len__` to `Markup` object to facilitate length and truthiness checks
+  in templates. Fixes #16. Thanks Edmund von der Burg.
+
+1.0.0 (2011.07.11)
+------------------
+
+- Removed all compatibility shims for Django versions prior to 1.3, including
+  all support for static media at ``MEDIA_URL``, static assets under
+  ``media/``, and the ``MARKITUP_MEDIA_URL`` setting.
+
+- Updated to jquery 1.6.
+
+- Added check to avoid double _rendered fields when MarkupField is used on an
+  abstract base model class. Fixes #11. Thanks Denis Kolodin for report and
+  patch.
+
+- Added compatibility with new AJAX CSRF requirements in Django 1.2.5 and
+  1.3. Fixes #7. Thanks zw0rk for the report.
+
+- Added blank=True to MarkupField's auto-added rendered-field to avoid South
+  warnings.
+
+- Django 1.3 & staticfiles compatibility: MARKITUP_MEDIA_URL and jQuery URL
+  default to STATIC_URL rather than MEDIA_URL, if set.  Static assets now
+  available under static/ as well as media/.  Thanks Mikhail Korobov.
+
+- MarkupField.get_db_prep_value updated to take "connection" and "prepared"
+  arguments to avoid deprecation warnings under Django 1.3.  Thanks Mikhail
+  Korobov.
+
+- enforce minimum length of 3 characters for MarkItUp!-inserted h1 and h2
+  underline-style headers (works around bug in python-markdown).  Thanks
+  Daemian Mack for the report.
+
+0.6.1 (2010.07.01)
+------------------
+
+- Added markitup set for reST. Thanks Jannis Leidel.
+
+- fixed reST renderer to not strip initial headline. Thanks Jannis Leidel.
+
+- prevent mark_safe from mangling Markup objects.
+
+0.6.0 (2010.04.26)
+------------------
+
+- remove previously-deprecated markitup_head template tag
+
+- wrap jQuery usage in anonymous function, to be more robust against other
+  JS framework code on the page (including other jQuerys).  Thanks Mikhael
+  Korneev.
+
+- upgrade to MarkItUp! 1.1.7
+
+- add render_markup template filter
+
+- update to jQuery 1.4 and MarkItUp! 1.1.6
+
+- Add auto_preview option.
+
+- Ajax preview view now uses RequestContext, and additionally passes
+  ``MARKITUP_MEDIA_URL`` into the template context. (Previously,
+  ``MARKITUP_MEDIA_URL`` was passed as ``MEDIA_URL`` and
+  RequestContext was not used). Backwards-incompatible; may require
+  change to preview template.
+
+0.5.2 (2009.11.24)
+------------------
+
+- Fix setup.py so ``tests`` package is not installed.
+
+0.5.1 (2009.11.18)
+------------------
+
+- Added empty ``models.py`` file so ``markitup`` is properly registered in
+  ``INSTALLED_APPS``. Fixes issue with ``django-staticfiles`` tip not
+  finding media.
+
+0.5 (2009.11.12)
+----------------
+
+- Added ``MarkupField`` from http://github.com/carljm/django-markupfield
+  (thanks Mike Korobov)
+
+- Deprecated ``markitup_head`` template tag in favor of ``markitup_media``.
+
+- Added ``MARKITUP_MEDIA_URL`` setting to override base of relative media
+  URL paths.
+
+0.3 (2009.11.04)
+----------------
+
+- added template-tag method for applying MarkItUp! editor (inspired by
+  django-wysiwyg)
+
+0.2 (2009.03.18)
+----------------
+
+- initial release
+
+TODO
+====
+
+* add support for multiple markup choices (perhaps integration with
+  django-markup)
+
+* link to live demo?
+
+

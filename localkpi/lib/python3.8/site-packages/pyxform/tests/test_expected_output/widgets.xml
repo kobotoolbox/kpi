@@ -1,0 +1,497 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>widgets</h:title>
+    <model>
+      <itext>
+        <translation default="true()" lang="default">
+          <text id="/widgets/happy_sad_table_2/happy_sad_second_method/happy:label">
+            <value form="image">jr://images/happy.jpg</value>
+          </text>
+          <text id="/widgets/happy_sad_table/happy_sad_michael/sad:label">
+            <value form="image">jr://images/sad.jpg</value>
+          </text>
+          <text id="/widgets/happy_sad_table/reserved_name_for_field_list_labels_39/happy:label">
+            <value form="image">jr://images/happy.jpg</value>
+          </text>
+          <text id="/widgets/happy_sad_table_2/happy_sad_second_method/sad:label">
+            <value form="image">jr://images/sad.jpg</value>
+          </text>
+          <text id="/widgets/happy_sad_table_2/happy_sad_brian2/sad:label">
+            <value form="image">jr://images/sad.jpg</value>
+          </text>
+          <text id="/widgets/happy_sad_table/happy_sad_brian/happy:label">
+            <value form="image">jr://images/happy.jpg</value>
+          </text>
+          <text id="/widgets/happy_sad_table/reserved_name_for_field_list_labels_39/sad:label">
+            <value form="image">jr://images/sad.jpg</value>
+          </text>
+          <text id="/widgets/happy_sad_table_2/happy_sad_brian2/happy:label">
+            <value form="image">jr://images/happy.jpg</value>
+          </text>
+          <text id="/widgets/grid_test_audio/a:label">
+            <value form="image">jr://images/a.jpg</value>
+            <value>a</value>
+          </text>
+          <text id="/widgets/grid_test_audio/b:label">
+            <value form="image">jr://images/b.jpg</value>
+            <value>b</value>
+          </text>
+          <text id="/widgets/grid_test/b:label">
+            <value form="image">jr://images/b.jpg</value>
+            <value>b</value>
+          </text>
+          <text id="/widgets/happy_sad_table_2/happy_sad_michael2/sad:label">
+            <value form="image">jr://images/sad.jpg</value>
+          </text>
+          <text id="/widgets/grid_test/a:label">
+            <value form="image">jr://images/a.jpg</value>
+            <value>a</value>
+          </text>
+          <text id="/widgets/happy_sad_table/happy_sad_michael/happy:label">
+            <value form="image">jr://images/happy.jpg</value>
+          </text>
+          <text id="/widgets/happy_sad_table_2/happy_sad_michael2/happy:label">
+            <value form="image">jr://images/happy.jpg</value>
+          </text>
+          <text id="/widgets/happy_sad_table/happy_sad_brian/sad:label">
+            <value form="image">jr://images/sad.jpg</value>
+          </text>
+        </translation>
+      </itext>
+      <instance>
+        <widgets id="widgets">
+          <my_string/>
+          <my_int/>
+          <my_decimal>18.31</my_decimal>
+          <my_date>2010-06-15</my_date>
+          <my_time/>
+          <my_select>a c</my_select>
+          <my_select1>8</my_select1>
+          <my_trigger/>
+          <my_output/>
+          <my_geopoint/>
+          <my_barcode/>
+          <my_image/>
+          <my_audio/>
+          <my_video/>
+          <numberAsString/>
+          <locationMap/>
+          <dateTime/>
+          <spinner/>
+          <spinner_all/>
+          <selectadvance/>
+          <grid_test/>
+          <grid_test_audio/>
+          <table_list_test>
+            <table_list_test_label/>
+            <table_list_1/>
+            <table_list_2/>
+          </table_list_test>
+          <table_list_test2>
+            <generated_table_list_label_29/>
+            <reserved_name_for_field_list_labels_30/>
+            <table_list_3/>
+            <table_list_4/>
+          </table_list_test2>
+          <happy_sad_table_2>
+            <happy_sad_second_method/>
+            <happy_sad_brian2/>
+            <happy_sad_michael2/>
+          </happy_sad_table_2>
+          <happy_sad_table>
+            <generated_table_list_label_38/>
+            <reserved_name_for_field_list_labels_39/>
+            <happy_sad_brian/>
+            <happy_sad_michael/>
+          </happy_sad_table>
+          <meta>
+            <instanceID/>
+          </meta>
+        </widgets>
+      </instance>
+      <bind nodeset="/widgets/my_string" type="string"/>
+      <bind constraint=". &lt; 10" jr:constraintMsg="number must be less than 10" nodeset="/widgets/my_int" type="int"/>
+      <bind constraint=". &gt; 10.51 and . &lt; 18.39" jr:constraintMsg="number must be between 10.51 and 18.39" nodeset="/widgets/my_decimal" type="decimal"/>
+      <bind constraint=". &gt;= today()" jr:constraintMsg="only future dates allowed" nodeset="/widgets/my_date" type="date"/>
+      <bind nodeset="/widgets/my_time" type="time"/>
+      <bind constraint="not(selected(., 'c') and selected(., 'd'))" jr:constraintMsg="option c and d cannot be selected together" nodeset="/widgets/my_select" type="select"/>
+      <bind nodeset="/widgets/my_select1" type="select1"/>
+      <bind nodeset="/widgets/my_output" readonly="true()" type="string"/>
+      <bind nodeset="/widgets/my_geopoint" type="geopoint"/>
+      <bind nodeset="/widgets/my_barcode" type="barcode"/>
+      <bind nodeset="/widgets/my_image" type="binary"/>
+      <bind nodeset="/widgets/my_audio" type="binary"/>
+      <bind nodeset="/widgets/my_video" type="binary"/>
+      <bind nodeset="/widgets/numberAsString" type="string"/>
+      <bind nodeset="/widgets/locationMap" type="geopoint"/>
+      <bind nodeset="/widgets/dateTime" type="dateTime"/>
+      <bind nodeset="/widgets/spinner" type="select1"/>
+      <bind nodeset="/widgets/spinner_all" type="select"/>
+      <bind nodeset="/widgets/selectadvance" type="select1"/>
+      <bind nodeset="/widgets/grid_test" type="select1"/>
+      <bind nodeset="/widgets/grid_test_audio" type="select1"/>
+      <bind nodeset="/widgets/table_list_test/table_list_test_label" type="select1"/>
+      <bind nodeset="/widgets/table_list_test/table_list_1" type="select1"/>
+      <bind nodeset="/widgets/table_list_test/table_list_2" type="select1"/>
+      <bind nodeset="/widgets/table_list_test2/generated_table_list_label_29" readonly="true()" type="string"/>
+      <bind nodeset="/widgets/table_list_test2/reserved_name_for_field_list_labels_30" type="select1"/>
+      <bind nodeset="/widgets/table_list_test2/table_list_3" type="select1"/>
+      <bind nodeset="/widgets/table_list_test2/table_list_4" type="select1"/>
+      <bind nodeset="/widgets/happy_sad_table_2/happy_sad_second_method" type="select"/>
+      <bind nodeset="/widgets/happy_sad_table_2/happy_sad_brian2" type="select"/>
+      <bind nodeset="/widgets/happy_sad_table_2/happy_sad_michael2" type="select"/>
+      <bind nodeset="/widgets/happy_sad_table/generated_table_list_label_38" readonly="true()" type="string"/>
+      <bind nodeset="/widgets/happy_sad_table/reserved_name_for_field_list_labels_39" type="select"/>
+      <bind nodeset="/widgets/happy_sad_table/happy_sad_brian" type="select"/>
+      <bind nodeset="/widgets/happy_sad_table/happy_sad_michael" type="select"/>
+      <bind jr:preload="uid" nodeset="/widgets/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <input ref="/widgets/my_string">
+      <label>string widget</label>
+      <hint>can be short or very long</hint>
+    </input>
+    <input ref="/widgets/my_int">
+      <label>integer widget</label>
+      <hint>try entering a number &lt; 10</hint>
+    </input>
+    <input ref="/widgets/my_decimal">
+      <label>decimal widget</label>
+      <hint>only numbers &gt; 10.51 and &lt; 18.39</hint>
+    </input>
+    <input ref="/widgets/my_date">
+      <label>date widget</label>
+      <hint>only future dates allowed</hint>
+    </input>
+    <input ref="/widgets/my_time">
+      <label>time widget</label>
+      <hint>testing time</hint>
+    </input>
+    <select ref="/widgets/my_select">
+      <label>select multiple widget</label>
+      <hint>don't pick c and d together</hint>
+      <item>
+        <label>option a</label>
+        <value>a</value>
+      </item>
+      <item>
+        <label>option b</label>
+        <value>b</value>
+      </item>
+      <item>
+        <label>option c</label>
+        <value>c</value>
+      </item>
+      <item>
+        <label>option d</label>
+        <value>d</value>
+      </item>
+    </select>
+    <select1 ref="/widgets/my_select1">
+      <label>select one widget</label>
+      <hint>scroll down to see default selection</hint>
+      <item>
+        <label>option 1</label>
+        <value>1</value>
+      </item>
+      <item>
+        <label>option 2</label>
+        <value>2</value>
+      </item>
+      <item>
+        <label>option 3</label>
+        <value>3</value>
+      </item>
+      <item>
+        <label>option 4</label>
+        <value>4</value>
+      </item>
+      <item>
+        <label>option 5</label>
+        <value>5</value>
+      </item>
+      <item>
+        <label>option 6</label>
+        <value>6</value>
+      </item>
+      <item>
+        <label>option 7</label>
+        <value>7</value>
+      </item>
+      <item>
+        <label>option 8</label>
+        <value>8</value>
+      </item>
+    </select1>
+    <trigger ref="/widgets/my_trigger">
+      <label>acknowledge widget</label>
+      <hint>need to push button</hint>
+    </trigger>
+    <input ref="/widgets/my_output">
+      <label>review widget. is your email still <output value=" /widgets/my_trigger "/>?</label>
+      <hint>long hint: there is an upcoming section.</hint>
+    </input>
+    <input ref="/widgets/my_geopoint">
+      <label>geopoint widget</label>
+      <hint>this will get gps location</hint>
+    </input>
+    <input ref="/widgets/my_barcode">
+      <label>barcode widget</label>
+      <hint>scans multi-format 1d/2d barcodes</hint>
+    </input>
+    <upload mediatype="image/*" ref="/widgets/my_image">
+      <label>image widget</label>
+      <hint>this will launch the camera</hint>
+    </upload>
+    <upload mediatype="audio/*" ref="/widgets/my_audio">
+      <label>audio widget</label>
+      <hint>this will launch the audio recorder</hint>
+    </upload>
+    <upload mediatype="video/*" ref="/widgets/my_video">
+      <label>video widget</label>
+      <hint>this will launch the video recorder</hint>
+    </upload>
+    <input appearance="numbers" ref="/widgets/numberAsString">
+      <label>String field that uses only numbers (plus a couple extra)</label>
+      <hint>Takes 0-9, -, +, ., space, and comma</hint>
+    </input>
+    <input appearance="maps" ref="/widgets/locationMap">
+      <label>Geopoint with map Widget</label>
+      <hint>Note: this uses DATA and requires a connection</hint>
+    </input>
+    <input ref="/widgets/dateTime">
+      <label>Date and Time Widget</label>
+    </input>
+    <select1 appearance="minimal" ref="/widgets/spinner">
+      <label>Spinner Widget: Select 1</label>
+      <item>
+        <label>option a</label>
+        <value>a</value>
+      </item>
+      <item>
+        <label>option b</label>
+        <value>b</value>
+      </item>
+      <item>
+        <label>option c</label>
+        <value>c</value>
+      </item>
+      <item>
+        <label>option d</label>
+        <value>d</value>
+      </item>
+    </select1>
+    <select appearance="minimal" ref="/widgets/spinner_all">
+      <label>Spinner Widget: Select All</label>
+      <item>
+        <label>option a</label>
+        <value>a</value>
+      </item>
+      <item>
+        <label>option b</label>
+        <value>b</value>
+      </item>
+      <item>
+        <label>option c</label>
+        <value>c</value>
+      </item>
+      <item>
+        <label>option d</label>
+        <value>d</value>
+      </item>
+    </select>
+    <select1 appearance="quick" ref="/widgets/selectadvance">
+      <label>Select Widget - Auto Advance</label>
+      <item>
+        <label>option a</label>
+        <value>a</value>
+      </item>
+      <item>
+        <label>option b</label>
+        <value>b</value>
+      </item>
+      <item>
+        <label>option c</label>
+        <value>c</value>
+      </item>
+      <item>
+        <label>option d</label>
+        <value>d</value>
+      </item>
+    </select1>
+    <select1 appearance="compact" ref="/widgets/grid_test">
+      <label>Grid test</label>
+      <hint>make sure to put a.jpg and b.jpg in the form-media folder</hint>
+      <item>
+        <label ref="jr:itext('/widgets/grid_test/a:label')"/>
+        <value>a</value>
+      </item>
+      <item>
+        <label ref="jr:itext('/widgets/grid_test/b:label')"/>
+        <value>b</value>
+      </item>
+    </select1>
+    <select1 appearance="quickcompact" ref="/widgets/grid_test_audio">
+      <label>Grid auto-advance test</label>
+      <hint>make sure to put a.jpg and b.jpg in the form-media folder</hint>
+      <item>
+        <label ref="jr:itext('/widgets/grid_test_audio/a:label')"/>
+        <value>a</value>
+      </item>
+      <item>
+        <label ref="jr:itext('/widgets/grid_test_audio/b:label')"/>
+        <value>b</value>
+      </item>
+    </select1>
+    <group appearance="field-list" ref="/widgets/table_list_test">
+      <label>List Group</label>
+      <select1 appearance="label" ref="/widgets/table_list_test/table_list_test_label">
+        <label>Labeled Choices</label>
+        <item>
+          <label>Yes</label>
+          <value>yes</value>
+        </item>
+        <item>
+          <label>No</label>
+          <value>no</value>
+        </item>
+      </select1>
+      <select1 appearance="list-nolabel" ref="/widgets/table_list_test/table_list_1">
+        <label>Q1</label>
+        <item>
+          <label>Yes</label>
+          <value>yes</value>
+        </item>
+        <item>
+          <label>No</label>
+          <value>no</value>
+        </item>
+      </select1>
+      <select1 appearance="list-nolabel" ref="/widgets/table_list_test/table_list_2">
+        <label>Question 2</label>
+        <item>
+          <label>Yes</label>
+          <value>yes</value>
+        </item>
+        <item>
+          <label>No</label>
+          <value>no</value>
+        </item>
+      </select1>
+    </group>
+    <group appearance="field-list" ref="/widgets/table_list_test2">
+      <input ref="/widgets/table_list_test2/generated_table_list_label_29">
+        <label>(An easier to specify list group)</label>
+      </input>
+      <select1 appearance="label" ref="/widgets/table_list_test2/reserved_name_for_field_list_labels_30">
+        <label></label>
+        <item>
+          <label>Yes</label>
+          <value>yes</value>
+        </item>
+        <item>
+          <label>No</label>
+          <value>no</value>
+        </item>
+      </select1>
+      <select1 appearance="list-nolabel" ref="/widgets/table_list_test2/table_list_3">
+        <label>Q1</label>
+        <item>
+          <label>Yes</label>
+          <value>yes</value>
+        </item>
+        <item>
+          <label>No</label>
+          <value>no</value>
+        </item>
+      </select1>
+      <select1 appearance="list-nolabel" ref="/widgets/table_list_test2/table_list_4">
+        <label>Question 2</label>
+        <item>
+          <label>Yes</label>
+          <value>yes</value>
+        </item>
+        <item>
+          <label>No</label>
+          <value>no</value>
+        </item>
+      </select1>
+    </group>
+    <group appearance="field-list" ref="/widgets/happy_sad_table_2">
+      <label>Multi List Group</label>
+      <select appearance="label" ref="/widgets/happy_sad_table_2/happy_sad_second_method">
+        <label>Multi Choice List</label>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table_2/happy_sad_second_method/happy:label')"/>
+          <value>happy</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table_2/happy_sad_second_method/sad:label')"/>
+          <value>sad</value>
+        </item>
+      </select>
+      <select appearance="list-nolabel" ref="/widgets/happy_sad_table_2/happy_sad_brian2">
+        <label>Brian</label>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table_2/happy_sad_brian2/happy:label')"/>
+          <value>happy</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table_2/happy_sad_brian2/sad:label')"/>
+          <value>sad</value>
+        </item>
+      </select>
+      <select appearance="list-nolabel" ref="/widgets/happy_sad_table_2/happy_sad_michael2">
+        <label>Michael</label>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table_2/happy_sad_michael2/happy:label')"/>
+          <value>happy</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table_2/happy_sad_michael2/sad:label')"/>
+          <value>sad</value>
+        </item>
+      </select>
+    </group>
+    <group appearance="field-list" ref="/widgets/happy_sad_table">
+      <input ref="/widgets/happy_sad_table/generated_table_list_label_38">
+        <label>(An easier to specify multi list group)</label>
+      </input>
+      <select appearance="label" ref="/widgets/happy_sad_table/reserved_name_for_field_list_labels_39">
+        <label></label>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table/reserved_name_for_field_list_labels_39/happy:label')"/>
+          <value>happy</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table/reserved_name_for_field_list_labels_39/sad:label')"/>
+          <value>sad</value>
+        </item>
+      </select>
+      <select appearance="list-nolabel" ref="/widgets/happy_sad_table/happy_sad_brian">
+        <label>Brian</label>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table/happy_sad_brian/happy:label')"/>
+          <value>happy</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table/happy_sad_brian/sad:label')"/>
+          <value>sad</value>
+        </item>
+      </select>
+      <select appearance="list-nolabel" ref="/widgets/happy_sad_table/happy_sad_michael">
+        <label>Michael</label>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table/happy_sad_michael/happy:label')"/>
+          <value>happy</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/widgets/happy_sad_table/happy_sad_michael/sad:label')"/>
+          <value>sad</value>
+        </item>
+      </select>
+    </group>
+  </h:body>
+</h:html>

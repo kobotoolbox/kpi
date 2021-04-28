@@ -1,0 +1,40 @@
+"survey",,,,,,,,,,
+,"type","name","label","hint","bind:constraint","bind:jr:constraintMsg","default","bind:readonly","bind:relevant","control:appearance"
+,"string","my_string","string widget","can be short or very long",,,,,,
+,"int","my_int","integer widget","try entering a number < 10",". < 10","number must be less than 10",,,,
+,"decimal","my_decimal","decimal widget","only numbers > 10.51 and < 18.39",". > 10.51 and . < 18.39","number must be between 10.51 and 18.39",18.31,,,
+,"date","my_date","date widget","only future dates allowed",". >= today()","only future dates allowed","2010-06-15",,,
+,"time","my_time","time widget","testing time",,,,,,
+,"select all that apply from list","my_select","select multiple widget","don't pick c and d together","not(selected(., 'c') and selected(., 'd'))","option c and d cannot be selected together","a c",,,
+,"select one from list2","my_select1","select one widget","scroll down to see default selection",,,8,,,
+,"trigger","my_trigger","acknowledge widget","need to push button",,,,,,
+,"string","my_output","review widget. is your email still ${my_trigger}?","long hint: there is an upcoming section.",,,,"true()",,
+,"geopoint","my_geopoint","geopoint widget","this will get gps location",,,,,,
+,"barcode","my_barcode","barcode widget","scans multi-format 1d/2d barcodes",,,,,,
+,"image","my_image","image widget","this will launch the camera",,,,,,
+,"audio","my_audio","audio widget","this will launch the audio recorder",,,,,,
+,"video","my_video","video widget","this will launch the video recorder",,,,,,
+,"string","numberAsString","String field that uses only numbers (plus a couple extra)","Takes 0-9, -, +, ., space, and comma",,,,,,"numbers"
+,"geopoint","locationMap","Geopoint with map Widget","Note: this uses DATA and requires a connection",,,,,,"maps"
+,"dateTime","dateTime","Date and Time Widget",,,,,,,
+,"select one from list","spinner","Spinner Widget: Select 1",,,,,,,"minimal"
+,"select all that apply from list","spinner_all","Spinner Widget: Select All",,,,,,,"minimal"
+,"select one from list","selectadvance","Select Widget - Auto Advance",,,,,,,"quick"
+,"select one from list","autocomplete","Select Widget - Auto Complete",,,,,,,"autocomplete"
+"choices",,,,,,,,,,
+,"list name","name","label",,,,,,,
+,"list","a","option a",,,,,,,
+,"list","b","option b",,,,,,,
+,"list","c","option c",,,,,,,
+,"list","d","option d",,,,,,,
+,"list2",1,"option 1",,,,,,,
+,"list2",2,"option 2",,,,,,,
+,"list2",3,"option 3",,,,,,,
+,"list2",4,"option 4",,,,,,,
+,"list2",5,"option 5",,,,,,,
+,"list2",6,"option 6",,,,,,,
+,"list2",7,"option 7",,,,,,,
+,"list2",8,"option 8",,,,,,,
+"settings",,,,,,,,,,
+,"add_none_option",,,,,,,,,
+,FALSE,,,,,,,,,

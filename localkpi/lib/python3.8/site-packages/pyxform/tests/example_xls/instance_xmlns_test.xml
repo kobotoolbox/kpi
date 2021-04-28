@@ -1,0 +1,30 @@
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>foo</h:title>
+    <model>
+      <instance>
+        <instance_xmlns_test id="instance_xmlns_test" xmlns="1234">
+          <yes_or_no/>
+            <meta>
+                <instanceID/>
+            </meta>
+        </instance_xmlns_test>
+      </instance>
+      <bind nodeset="/instance_xmlns_test/yes_or_no" type="select1"/>
+      <bind jr:preload="uid" nodeset="/instance_xmlns_test/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select1 ref="/instance_xmlns_test/yes_or_no">
+      <label>Yes or No?</label>
+      <item>
+        <label>Yes</label>
+        <value>yes</value>
+      </item>
+      <item>
+        <label>No</label>
+        <value>no</value>
+      </item>
+    </select1>
+  </h:body>
+</h:html>

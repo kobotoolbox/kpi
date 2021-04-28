@@ -1,0 +1,4 @@
+[console_scripts]
+pyxform_validator_update = pyxform.validators.updater:main_cli
+xls2xform = pyxform.xls2xform:main_cli
+

@@ -1,0 +1,3355 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:odk="http://www.opendatakit.org/xforms" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>cascades_old</h:title>
+    <model>
+      <itext>
+        <translation default="true()" lang="default">
+          <text id="static_instance-name_list-0">
+            <value>Name 1</value>
+          </text>
+          <text id="static_instance-name_list-1">
+            <value>Name 2</value>
+          </text>
+          <text id="static_instance-name_list-2">
+            <value>Name 3</value>
+          </text>
+          <text id="static_instance-name_list-3">
+            <value>Other</value>
+          </text>
+          <text id="static_instance-yes_no_list-0">
+            <value>Yes</value>
+          </text>
+          <text id="static_instance-yes_no_list-1">
+            <value>No</value>
+          </text>
+          <text id="static_instance-gender_list-0">
+            <value>Male</value>
+          </text>
+          <text id="static_instance-gender_list-1">
+            <value>Female</value>
+          </text>
+          <text id="static_instance-phase-0">
+            <value>A</value>
+          </text>
+          <text id="static_instance-phase-1">
+            <value>A1</value>
+          </text>
+          <text id="static_instance-phase-2">
+            <value>B</value>
+          </text>
+          <text id="static_instance-phase-3">
+            <value>C</value>
+          </text>
+          <text id="static_instance-district-0">
+            <value>Berea_A</value>
+          </text>
+          <text id="static_instance-district-1">
+            <value>Botha Bothe_A</value>
+          </text>
+          <text id="static_instance-district-2">
+            <value>Leribe_A</value>
+          </text>
+          <text id="static_instance-district-3">
+            <value>Mafeteng_A</value>
+          </text>
+          <text id="static_instance-district-4">
+            <value>Maseru_A</value>
+          </text>
+          <text id="static_instance-district-5">
+            <value>Mohale's Hoek_A</value>
+          </text>
+          <text id="static_instance-district-6">
+            <value>Qacha's Nek_A</value>
+          </text>
+          <text id="static_instance-district-7">
+            <value>Quthing_A</value>
+          </text>
+          <text id="static_instance-district-8">
+            <value>Thaba-Tseka_A</value>
+          </text>
+          <text id="static_instance-district-9">
+            <value>Mokhotlong_A1</value>
+          </text>
+          <text id="static_instance-district-10">
+            <value>Qacha's Nek_A1</value>
+          </text>
+          <text id="static_instance-district-11">
+            <value>Thaba-Tseka_A1</value>
+          </text>
+          <text id="static_instance-district-12">
+            <value>Berea_B</value>
+          </text>
+          <text id="static_instance-district-13">
+            <value>Botha Bothe_B</value>
+          </text>
+          <text id="static_instance-district-14">
+            <value>Leribe_B</value>
+          </text>
+          <text id="static_instance-district-15">
+            <value>Mafeteng_B</value>
+          </text>
+          <text id="static_instance-district-16">
+            <value>Maseru_B</value>
+          </text>
+          <text id="static_instance-district-17">
+            <value>Mohale's Hoek_B</value>
+          </text>
+          <text id="static_instance-district-18">
+            <value>Mokhotlong_B</value>
+          </text>
+          <text id="static_instance-district-19">
+            <value>Qacha's Nek_B</value>
+          </text>
+          <text id="static_instance-district-20">
+            <value>Quthing_B</value>
+          </text>
+          <text id="static_instance-district-21">
+            <value>Thaba-Tseka_B</value>
+          </text>
+          <text id="static_instance-district-22">
+            <value>Berea_C</value>
+          </text>
+          <text id="static_instance-district-23">
+            <value>Botha Bothe_C</value>
+          </text>
+          <text id="static_instance-district-24">
+            <value>Leribe_C</value>
+          </text>
+          <text id="static_instance-district-25">
+            <value>Mafeteng_C</value>
+          </text>
+          <text id="static_instance-district-26">
+            <value>Maseru_C</value>
+          </text>
+          <text id="static_instance-district-27">
+            <value>Maseru _C</value>
+          </text>
+          <text id="static_instance-district-28">
+            <value>Mohale's Hoek_C</value>
+          </text>
+          <text id="static_instance-district-29">
+            <value>Mokhotlong_C</value>
+          </text>
+          <text id="static_instance-district-30">
+            <value>Qacha's Nek_C</value>
+          </text>
+          <text id="static_instance-district-31">
+            <value>Quthing_C</value>
+          </text>
+          <text id="static_instance-district-32">
+            <value>Thaba-Tseka_C</value>
+          </text>
+          <text id="static_instance-site-0">
+            <value>Ha Koone (BR-329)</value>
+          </text>
+          <text id="static_instance-site-1">
+            <value>Ha Makebe (BR-011)</value>
+          </text>
+          <text id="static_instance-site-2">
+            <value>Ha Mohatlane (BR-113)</value>
+          </text>
+          <text id="static_instance-site-3">
+            <value>Ha Motloang (BR-103)</value>
+          </text>
+          <text id="static_instance-site-4">
+            <value>Ha Ntlama (BR-048)</value>
+          </text>
+          <text id="static_instance-site-5">
+            <value>Ha Polaki/Matheneng (BR-141/2)</value>
+          </text>
+          <text id="static_instance-site-6">
+            <value>Lekhalong (BR-400)</value>
+          </text>
+          <text id="static_instance-site-7">
+            <value>Lifotholeng (BR-070)</value>
+          </text>
+          <text id="static_instance-site-8">
+            <value>Ha Lemphane (BB-195)</value>
+          </text>
+          <text id="static_instance-site-9">
+            <value>Kepile (BB-209)</value>
+          </text>
+          <text id="static_instance-site-10">
+            <value>Liteleng (Ha moluoane) (BB-248)</value>
+          </text>
+          <text id="static_instance-site-11">
+            <value>Luma (BB-235)</value>
+          </text>
+          <text id="static_instance-site-12">
+            <value>Motete (BB-146)</value>
+          </text>
+          <text id="static_instance-site-13">
+            <value>Patuoe/Moepanyane (BB-201)</value>
+          </text>
+          <text id="static_instance-site-14">
+            <value>Pokojoe-Khoaba (BB-095)</value>
+          </text>
+          <text id="static_instance-site-15">
+            <value>Solane (BB-094)</value>
+          </text>
+          <text id="static_instance-site-16">
+            <value>Ha Mahlomola (LR-337)</value>
+          </text>
+          <text id="static_instance-site-17">
+            <value>Ha Matoli (LR-152)</value>
+          </text>
+          <text id="static_instance-site-18">
+            <value>Ha Rantuba (LR-044)</value>
+          </text>
+          <text id="static_instance-site-19">
+            <value>Ha Senyenyane (LR-423)</value>
+          </text>
+          <text id="static_instance-site-20">
+            <value>Ha Tsae (LR-256)</value>
+          </text>
+          <text id="static_instance-site-21">
+            <value>Mapheaneng (LR-334)</value>
+          </text>
+          <text id="static_instance-site-22">
+            <value>Phahameng (LR-061)</value>
+          </text>
+          <text id="static_instance-site-23">
+            <value>Phelandaba (LR-164)</value>
+          </text>
+          <text id="static_instance-site-24">
+            <value>Ha Lepolesa (MF-098)</value>
+          </text>
+          <text id="static_instance-site-25">
+            <value>Ha Mathabang(Lifajaneng) (MF-472)</value>
+          </text>
+          <text id="static_instance-site-26">
+            <value>Ha Ranteme (MF-039)</value>
+          </text>
+          <text id="static_instance-site-27">
+            <value>Ha Tjale (MF-583)</value>
+          </text>
+          <text id="static_instance-site-28">
+            <value>Maieaneng (MF-009)</value>
+          </text>
+          <text id="static_instance-site-29">
+            <value>Makokotoaneng (MF-564)</value>
+          </text>
+          <text id="static_instance-site-30">
+            <value>Mathebe (MF-083)</value>
+          </text>
+          <text id="static_instance-site-31">
+            <value>Salae (MF-529)</value>
+          </text>
+          <text id="static_instance-site-32">
+            <value>Ha Leutsoa (MS-133)</value>
+          </text>
+          <text id="static_instance-site-33">
+            <value>Ha Moruthoane (MS-191)</value>
+          </text>
+          <text id="static_instance-site-34">
+            <value>Ha Phallang (MS-488)</value>
+          </text>
+          <text id="static_instance-site-35">
+            <value>Joala Boholo (MS-155)</value>
+          </text>
+          <text id="static_instance-site-36">
+            <value>Mahlabatheng (MS-258)</value>
+          </text>
+          <text id="static_instance-site-37">
+            <value>Nazareth (MS-077)</value>
+          </text>
+          <text id="static_instance-site-38">
+            <value>Polateng (MS-489)</value>
+          </text>
+          <text id="static_instance-site-39">
+            <value>Setibing (MS-581)</value>
+          </text>
+          <text id="static_instance-site-40">
+            <value>Ha Makhabane (MH-186)</value>
+          </text>
+          <text id="static_instance-site-41">
+            <value>Ha Mokotane (MH-223)</value>
+          </text>
+          <text id="static_instance-site-42">
+            <value>Ha Monyake (MH-089)</value>
+          </text>
+          <text id="static_instance-site-43">
+            <value>Ha Phatalla (MH-097)</value>
+          </text>
+          <text id="static_instance-site-44">
+            <value>Ha Tumo (MH-384)</value>
+          </text>
+          <text id="static_instance-site-45">
+            <value>Mataoeng (MH-219)</value>
+          </text>
+          <text id="static_instance-site-46">
+            <value>Phatlalla (MH-097)</value>
+          </text>
+          <text id="static_instance-site-47">
+            <value>Rakoloi (MH-149)</value>
+          </text>
+          <text id="static_instance-site-48">
+            <value>Raporong (MH-088)</value>
+          </text>
+          <text id="static_instance-site-49">
+            <value>Ha Ralengoele (QN-068)</value>
+          </text>
+          <text id="static_instance-site-50">
+            <value>Ha Ramokakatela (QN-048)</value>
+          </text>
+          <text id="static_instance-site-51">
+            <value>Ha-Isaac (QN-059)</value>
+          </text>
+          <text id="static_instance-site-52">
+            <value>Mosenekeng (QN-064)</value>
+          </text>
+          <text id="static_instance-site-53">
+            <value>Sekoti (QN-069)</value>
+          </text>
+          <text id="static_instance-site-54">
+            <value>Filoane (QT-358)</value>
+          </text>
+          <text id="static_instance-site-55">
+            <value>Kelebone (QT-034)</value>
+          </text>
+          <text id="static_instance-site-56">
+            <value>Matebeleng (QT-078)</value>
+          </text>
+          <text id="static_instance-site-57">
+            <value>Mofetoli (QT-366)</value>
+          </text>
+          <text id="static_instance-site-58">
+            <value>Mots'oane (QT-075)</value>
+          </text>
+          <text id="static_instance-site-59">
+            <value>Nosi (QT-355)</value>
+          </text>
+          <text id="static_instance-site-60">
+            <value>Seputeng (QT-354)</value>
+          </text>
+          <text id="static_instance-site-61">
+            <value>Swatsi (QT-238)</value>
+          </text>
+          <text id="static_instance-site-62">
+            <value>Lihlabaneng Ha Morapeli (TT-170)</value>
+          </text>
+          <text id="static_instance-site-63">
+            <value>Mohlakeng (TT-011)</value>
+          </text>
+          <text id="static_instance-site-64">
+            <value>Motsitseng (TT-160)</value>
+          </text>
+          <text id="static_instance-site-65">
+            <value>Bokhina Pere (MK-304)</value>
+          </text>
+          <text id="static_instance-site-66">
+            <value>Ha Ralit'sepe (MK-393)</value>
+          </text>
+          <text id="static_instance-site-67">
+            <value>Ha Senepi (MK-404)</value>
+          </text>
+          <text id="static_instance-site-68">
+            <value>Makorong (MK-232)</value>
+          </text>
+          <text id="static_instance-site-69">
+            <value>Mpakatheng (MK-265)</value>
+          </text>
+          <text id="static_instance-site-70">
+            <value>Sekhutlong (MK-356)</value>
+          </text>
+          <text id="static_instance-site-71">
+            <value>Sepatleng (MK-343)</value>
+          </text>
+          <text id="static_instance-site-72">
+            <value>Tseko (MK-154)</value>
+          </text>
+          <text id="static_instance-site-73">
+            <value>Ha Isaac (QT-059)</value>
+          </text>
+          <text id="static_instance-site-74">
+            <value>Ha Katela (QN-219)</value>
+          </text>
+          <text id="static_instance-site-75">
+            <value>Ha-Makhoa (QN-073)</value>
+          </text>
+          <text id="static_instance-site-76">
+            <value>Maphotong (QN-216)</value>
+          </text>
+          <text id="static_instance-site-77">
+            <value>Ha Laka (TT-009)</value>
+          </text>
+          <text id="static_instance-site-78">
+            <value>Ha Sekhohola (TT-138)</value>
+          </text>
+          <text id="static_instance-site-79">
+            <value>Mantsonyane (TT-051)</value>
+          </text>
+          <text id="static_instance-site-80">
+            <value>Ha Labane (TT-363)</value>
+          </text>
+          <text id="static_instance-site-81">
+            <value>Maholi-a Llang (TT-210)</value>
+          </text>
+          <text id="static_instance-site-82">
+            <value>Boranta (BR-327)</value>
+          </text>
+          <text id="static_instance-site-83">
+            <value>Letsoela (BR-008)</value>
+          </text>
+          <text id="static_instance-site-84">
+            <value>Maholong (BR-328)</value>
+          </text>
+          <text id="static_instance-site-85">
+            <value>Masaleng Ha Janki (BR-238)</value>
+          </text>
+          <text id="static_instance-site-86">
+            <value>Mokhachane (BR-330)</value>
+          </text>
+          <text id="static_instance-site-87">
+            <value>Mokomahatsi (BR-210)</value>
+          </text>
+          <text id="static_instance-site-88">
+            <value>Nokong (BR-060)</value>
+          </text>
+          <text id="static_instance-site-89">
+            <value>Qalaheng/Mafotholeng (BR-45/84)</value>
+          </text>
+          <text id="static_instance-site-90">
+            <value>Tsenoli (BR-001)</value>
+          </text>
+          <text id="static_instance-site-91">
+            <value>Ha Lesia (BB-258)</value>
+          </text>
+          <text id="static_instance-site-92">
+            <value>Ha Lishobana (BB-217)</value>
+          </text>
+          <text id="static_instance-site-93">
+            <value>Ha Rampai (BB-045)</value>
+          </text>
+          <text id="static_instance-site-94">
+            <value>Ha-Rakotoane (BB-185)</value>
+          </text>
+          <text id="static_instance-site-95">
+            <value>Hlakacha (BB-029)</value>
+          </text>
+          <text id="static_instance-site-96">
+            <value>Khutlo-sea-ja (BB-188)</value>
+          </text>
+          <text id="static_instance-site-97">
+            <value>Lekanyane (BB-212)</value>
+          </text>
+          <text id="static_instance-site-98">
+            <value>Maphepheng (BB-147)</value>
+          </text>
+          <text id="static_instance-site-99">
+            <value>Setenong (BB-246)</value>
+          </text>
+          <text id="static_instance-site-100">
+            <value>Ha Makhaketsa (LR-045)</value>
+          </text>
+          <text id="static_instance-site-101">
+            <value>Ha Manamolela (LR-429)</value>
+          </text>
+          <text id="static_instance-site-102">
+            <value>Ha Matala (LR-124)</value>
+          </text>
+          <text id="static_instance-site-103">
+            <value>Ha Mukemane (LR-507)</value>
+          </text>
+          <text id="static_instance-site-104">
+            <value>Ha Ramapepe (LR-183)</value>
+          </text>
+          <text id="static_instance-site-105">
+            <value>Ha Tsepe (LR-269)</value>
+          </text>
+          <text id="static_instance-site-106">
+            <value>Rankhelepe (LR-210)</value>
+          </text>
+          <text id="static_instance-site-107">
+            <value>Thaba-Phatsoa (LR-049)</value>
+          </text>
+          <text id="static_instance-site-108">
+            <value>Tiping (LR-428)</value>
+          </text>
+          <text id="static_instance-site-109">
+            <value>Ha Joele (MF-419)</value>
+          </text>
+          <text id="static_instance-site-110">
+            <value>Ha Mashapha (MF-676)</value>
+          </text>
+          <text id="static_instance-site-111">
+            <value>Ha- Ralintoane (MF-698)</value>
+          </text>
+          <text id="static_instance-site-112">
+            <value>Ha Ramatima (MF-107)</value>
+          </text>
+          <text id="static_instance-site-113">
+            <value>Ha Seoli (MF-816)</value>
+          </text>
+          <text id="static_instance-site-114">
+            <value>Ha-Hlehlisi (MF-319)</value>
+          </text>
+          <text id="static_instance-site-115">
+            <value>Khalimane/Lijoetsa (MF-415)</value>
+          </text>
+          <text id="static_instance-site-116">
+            <value>Lithipeng/Mosuoane (MF-651)</value>
+          </text>
+          <text id="static_instance-site-117">
+            <value>Molleloa/Ha Patsa (MF-393)</value>
+          </text>
+          <text id="static_instance-site-118">
+            <value>Ha Mashenephe (MS-414)</value>
+          </text>
+          <text id="static_instance-site-119">
+            <value>Ha Sechache (MS-497)</value>
+          </text>
+          <text id="static_instance-site-120">
+            <value>Mokotleng (MS-462)</value>
+          </text>
+          <text id="static_instance-site-121">
+            <value>Mphephee/Moeaneng (MS-521)</value>
+          </text>
+          <text id="static_instance-site-122">
+            <value>Ramakhaleng (MS-474)</value>
+          </text>
+          <text id="static_instance-site-123">
+            <value>Rothe (MS-001)</value>
+          </text>
+          <text id="static_instance-site-124">
+            <value>Tlokotsane (MS-490)</value>
+          </text>
+          <text id="static_instance-site-125">
+            <value>Tsutsulupa (MS-516)</value>
+          </text>
+          <text id="static_instance-site-126">
+            <value>Keleke/Moleko (MS-465)</value>
+          </text>
+          <text id="static_instance-site-127">
+            <value>Ha Boroko (MH-009)</value>
+          </text>
+          <text id="static_instance-site-128">
+            <value>Ha Hamo/Moko (MH-142)</value>
+          </text>
+          <text id="static_instance-site-129">
+            <value>Ha Mokhatla (MH-158)</value>
+          </text>
+          <text id="static_instance-site-130">
+            <value>Ha Nthamaha (MH-478)</value>
+          </text>
+          <text id="static_instance-site-131">
+            <value>Ha Ranti (MH-538)</value>
+          </text>
+          <text id="static_instance-site-132">
+            <value>Lecheche (MH-557)</value>
+          </text>
+          <text id="static_instance-site-133">
+            <value>Matsoareng (MH-073)</value>
+          </text>
+          <text id="static_instance-site-134">
+            <value>Moru Motso (MH-507)</value>
+          </text>
+          <text id="static_instance-site-135">
+            <value>Pontseng (MH-027)</value>
+          </text>
+          <text id="static_instance-site-136">
+            <value>Draaihoek (MK-384)</value>
+          </text>
+          <text id="static_instance-site-137">
+            <value>Ha Tlenyane (MK-212)</value>
+          </text>
+          <text id="static_instance-site-138">
+            <value>Khohlong (MK-312)</value>
+          </text>
+          <text id="static_instance-site-139">
+            <value>Liotloaneng (MK-379)</value>
+          </text>
+          <text id="static_instance-site-140">
+            <value>Mabuleng (MK-269)</value>
+          </text>
+          <text id="static_instance-site-141">
+            <value>Maheneng (MK-342)</value>
+          </text>
+          <text id="static_instance-site-142">
+            <value>Matebeleng (MK-334)</value>
+          </text>
+          <text id="static_instance-site-143">
+            <value>Matlong (MK-387)</value>
+          </text>
+          <text id="static_instance-site-144">
+            <value>Mosenekeng (MK-341)</value>
+          </text>
+          <text id="static_instance-site-145">
+            <value>Ha Lehata (QN-088)</value>
+          </text>
+          <text id="static_instance-site-146">
+            <value>Ha Molomo (QN-206)</value>
+          </text>
+          <text id="static_instance-site-147">
+            <value>Ha Ranqhongoana (QN-007)</value>
+          </text>
+          <text id="static_instance-site-148">
+            <value>Ha Seholoholo (QN-055)</value>
+          </text>
+          <text id="static_instance-site-149">
+            <value>Liboteng (QN-096)</value>
+          </text>
+          <text id="static_instance-site-150">
+            <value>Mankoe (QN-091)</value>
+          </text>
+          <text id="static_instance-site-151">
+            <value>Qenehellong (QN-070)</value>
+          </text>
+          <text id="static_instance-site-152">
+            <value>Sekiring (QN-094)</value>
+          </text>
+          <text id="static_instance-site-153">
+            <value>Tsolo (QN-104)</value>
+          </text>
+          <text id="static_instance-site-154">
+            <value>Mamokeli (QT-337)</value>
+          </text>
+          <text id="static_instance-site-155">
+            <value>Marakabei (QT-398)</value>
+          </text>
+          <text id="static_instance-site-156">
+            <value>Masuoaneng (QT-392)</value>
+          </text>
+          <text id="static_instance-site-157">
+            <value>Mats'ela-Habeli (QT-246)</value>
+          </text>
+          <text id="static_instance-site-158">
+            <value>Ngoae &amp; Sekokoaneng (QT-067)</value>
+          </text>
+          <text id="static_instance-site-159">
+            <value>Nkoto-Silase (QT-334)</value>
+          </text>
+          <text id="static_instance-site-160">
+            <value>Photha-Photha (QT-401)</value>
+          </text>
+          <text id="static_instance-site-161">
+            <value>Raseeng (QT-076)</value>
+          </text>
+          <text id="static_instance-site-162">
+            <value>Thaba-Chitja (QT-292)</value>
+          </text>
+          <text id="static_instance-site-163">
+            <value>Ha Long (TT-298)</value>
+          </text>
+          <text id="static_instance-site-164">
+            <value>Ha Moriana (TT-297)</value>
+          </text>
+          <text id="static_instance-site-165">
+            <value>Ha Motake (TT-303)</value>
+          </text>
+          <text id="static_instance-site-166">
+            <value>Ha Nkune (TT-212)</value>
+          </text>
+          <text id="static_instance-site-167">
+            <value>Ha Poko (TT-225)</value>
+          </text>
+          <text id="static_instance-site-168">
+            <value>Ha Ratau (TT-165)</value>
+          </text>
+          <text id="static_instance-site-169">
+            <value>Ha Sekhaupane (TT-344)</value>
+          </text>
+          <text id="static_instance-site-170">
+            <value>Masakoane (TT-304)</value>
+          </text>
+          <text id="static_instance-site-171">
+            <value>Tholanyane (TT-299)</value>
+          </text>
+          <text id="static_instance-site-172">
+            <value>Ha Matjotjo  (BR-175)</value>
+          </text>
+          <text id="static_instance-site-173">
+            <value>Ha Mokhati  (BR-025)</value>
+          </text>
+          <text id="static_instance-site-174">
+            <value>Ha Phalatsane (BR-075)</value>
+          </text>
+          <text id="static_instance-site-175">
+            <value>Ha Phoofolo  (BR-090)</value>
+          </text>
+          <text id="static_instance-site-176">
+            <value>Ha Telukhunoana (BR-166)</value>
+          </text>
+          <text id="static_instance-site-177">
+            <value>Ha Tumo  (BR-043)</value>
+          </text>
+          <text id="static_instance-site-178">
+            <value>Kolojane  (BR-036)</value>
+          </text>
+          <text id="static_instance-site-179">
+            <value>Mokhethoaneng  (BR-16)</value>
+          </text>
+          <text id="static_instance-site-180">
+            <value>Community (BB-136)</value>
+          </text>
+          <text id="static_instance-site-181">
+            <value>Ha 'Masekh'ou (BB-130)</value>
+          </text>
+          <text id="static_instance-site-182">
+            <value>Kopanong (BB-250)</value>
+          </text>
+          <text id="static_instance-site-183">
+            <value>Mantlakala (BB-221)</value>
+          </text>
+          <text id="static_instance-site-184">
+            <value>Masianokeng (BB-259)</value>
+          </text>
+          <text id="static_instance-site-185">
+            <value>Motabola (BB-214)</value>
+          </text>
+          <text id="static_instance-site-186">
+            <value>Mphale (BB-156)</value>
+          </text>
+          <text id="static_instance-site-187">
+            <value>Thoteng (BB-251)</value>
+          </text>
+          <text id="static_instance-site-188">
+            <value>Ha Leaooa (LR-299)</value>
+          </text>
+          <text id="static_instance-site-189">
+            <value>Ha Ralikuku (LR-240)</value>
+          </text>
+          <text id="static_instance-site-190">
+            <value>Ha Tente (LR-258)</value>
+          </text>
+          <text id="static_instance-site-191">
+            <value>Ha Tobolela (LR-257)</value>
+          </text>
+          <text id="static_instance-site-192">
+            <value>Maqasane (LR-128)</value>
+          </text>
+          <text id="static_instance-site-193">
+            <value>Metolong (LR-227)</value>
+          </text>
+          <text id="static_instance-site-194">
+            <value>Nkoeng (LR-361)</value>
+          </text>
+          <text id="static_instance-site-195">
+            <value>Tale (LR-223)</value>
+          </text>
+          <text id="static_instance-site-196">
+            <value>Ha Likupa (MF-008)</value>
+          </text>
+          <text id="static_instance-site-197">
+            <value>Ha Manehella (MF-669)</value>
+          </text>
+          <text id="static_instance-site-198">
+            <value>Ha Sebeli-Lehananeng (MF-054)</value>
+          </text>
+          <text id="static_instance-site-199">
+            <value>Ha Tebelo (MF- 679)</value>
+          </text>
+          <text id="static_instance-site-200">
+            <value>Khasapane (MF-219)</value>
+          </text>
+          <text id="static_instance-site-201">
+            <value>Lihlookong (MF-221)</value>
+          </text>
+          <text id="static_instance-site-202">
+            <value>Sekiring (MF-292)</value>
+          </text>
+          <text id="static_instance-site-203">
+            <value>T'soeute (MF-750)</value>
+          </text>
+          <text id="static_instance-site-204">
+            <value>Ha Lekhafola (MS-215/426)</value>
+          </text>
+          <text id="static_instance-site-205">
+            <value>Ha Nkoankoa (MS-447)</value>
+          </text>
+          <text id="static_instance-site-206">
+            <value>Ha Pita (MS-025)</value>
+          </text>
+          <text id="static_instance-site-207">
+            <value>Ha Salemone Morainyane (MS-475)</value>
+          </text>
+          <text id="static_instance-site-208">
+            <value>Ha Sofonia (MS-021)</value>
+          </text>
+          <text id="static_instance-site-209">
+            <value>Khubetsoana &amp; Sekoting (MS-508)</value>
+          </text>
+          <text id="static_instance-site-210">
+            <value>Kubake Moreneng (MS-422)</value>
+          </text>
+          <text id="static_instance-site-211">
+            <value>Machekoaneng (MS-104)</value>
+          </text>
+          <text id="static_instance-site-212">
+            <value>Ha Bereng Matsoho (MH-115)</value>
+          </text>
+          <text id="static_instance-site-213">
+            <value>Ha Mohohlo (MH-404)</value>
+          </text>
+          <text id="static_instance-site-214">
+            <value>Ha Nkau (MH-293)</value>
+          </text>
+          <text id="static_instance-site-215">
+            <value>Ha Raboroko (MH-156)</value>
+          </text>
+          <text id="static_instance-site-216">
+            <value>Ha Senekane (MH-321)</value>
+          </text>
+          <text id="static_instance-site-217">
+            <value>Malahleha (MH-036)</value>
+          </text>
+          <text id="static_instance-site-218">
+            <value>Maluke (MH-473)</value>
+          </text>
+          <text id="static_instance-site-219">
+            <value>Setotoma (MH-110)</value>
+          </text>
+          <text id="static_instance-site-220">
+            <value>Bloodberg (MK-048)</value>
+          </text>
+          <text id="static_instance-site-221">
+            <value>Ha Masasane (MK-381)</value>
+          </text>
+          <text id="static_instance-site-222">
+            <value>Ha Nthimolane (MK-382)</value>
+          </text>
+          <text id="static_instance-site-223">
+            <value>Limapong (MK-268)</value>
+          </text>
+          <text id="static_instance-site-224">
+            <value>Lithoteng (MK-131)</value>
+          </text>
+          <text id="static_instance-site-225">
+            <value>Moteetee (MK-037)</value>
+          </text>
+          <text id="static_instance-site-226">
+            <value>T'sila-nt'so (MK-233)</value>
+          </text>
+          <text id="static_instance-site-227">
+            <value>Tsoenene (MK-002)</value>
+          </text>
+          <text id="static_instance-site-228">
+            <value>Ha Nkofo (QN-120)</value>
+          </text>
+          <text id="static_instance-site-229">
+            <value>Ha Sephelane (QN-154)</value>
+          </text>
+          <text id="static_instance-site-230">
+            <value>Ha Tamose (QN-051)</value>
+          </text>
+          <text id="static_instance-site-231">
+            <value>Ha T'sita (QN-009)</value>
+          </text>
+          <text id="static_instance-site-232">
+            <value>Khubetsoana (QN-101)</value>
+          </text>
+          <text id="static_instance-site-233">
+            <value>Lepapaneng (QN-121)</value>
+          </text>
+          <text id="static_instance-site-234">
+            <value>Rasekoele (QN-100)</value>
+          </text>
+          <text id="static_instance-site-235">
+            <value>Sefaha (QN-003)</value>
+          </text>
+          <text id="static_instance-site-236">
+            <value>Mohale (QT-196)</value>
+          </text>
+          <text id="static_instance-site-237">
+            <value>Mokokoane (QT-273)</value>
+          </text>
+          <text id="static_instance-site-238">
+            <value>Mpharane (QT-287)</value>
+          </text>
+          <text id="static_instance-site-239">
+            <value>Paballong (QT-117)</value>
+          </text>
+          <text id="static_instance-site-240">
+            <value>Rat'sit'so (QT-074)</value>
+          </text>
+          <text id="static_instance-site-241">
+            <value>Sekakeng (QT-335)</value>
+          </text>
+          <text id="static_instance-site-242">
+            <value>Sello (QT-283)</value>
+          </text>
+          <text id="static_instance-site-243">
+            <value>Thoteng (QT-034)</value>
+          </text>
+          <text id="static_instance-site-244">
+            <value>Ha Chooko (TT-312)</value>
+          </text>
+          <text id="static_instance-site-245">
+            <value>Ha Ntsokoane (TT-301)</value>
+          </text>
+          <text id="static_instance-site-246">
+            <value>Ha Ts'oeu-Khala  (TT-049)</value>
+          </text>
+          <text id="static_instance-site-247">
+            <value>Makhuleng  (TT-239)</value>
+          </text>
+          <text id="static_instance-site-248">
+            <value>Makunyapane  (TT-083)</value>
+          </text>
+          <text id="static_instance-site-249">
+            <value>Matsaile Manganeng (TT-411)</value>
+          </text>
+          <text id="static_instance-site-250">
+            <value>Matsaile Moreneng (TT-038)</value>
+          </text>
+          <text id="static_instance-site-251">
+            <value>Moeling  (TT-268)</value>
+          </text>
+        </translation>
+      </itext>
+      <instance>
+        <cascades_old id="cascades_old">
+          <start/>
+          <end/>
+          <today/>
+          <deviceid/>
+          <subscriberid/>
+          <simserial/>
+          <phonenumber/>
+          <sectionA>
+            <q1_surveyor1/>
+            <q2_surveyor2/>
+            <q3_datetime/>
+            <q4_gps_location/>
+          </sectionA>
+          <sectionB>
+            <q5_construction_site_phase/>
+            <q5_construction_site_district/>
+            <q5_construction_site/>
+            <q6_construction_site_summary1/>
+            <q7_construction_site_summary2/>
+          </sectionB>
+          <sectionC>
+            <sectionC1>
+              <q10_wm_trained_aftercare/>
+              <q11_households_water_access/>
+              <q12_system_functional/>
+              <q13_male_hh_latrines/>
+              <q14_female_hh_latrines/>
+              <q15_child_hh_latrines/>
+            </sectionC1>
+            <sectionC2>
+              <q16_vwhc_meeting/>
+              <q17_vwhc_collect_tariffs/>
+              <q18_vwhc_reports/>
+              <q19_conflicts_community/>
+              <q20_yes_conflict_description/>
+              <q21_yes_problem_resolved/>
+              <q22_gender_chair/>
+              <q23_gender_treasurer/>
+              <q24_gender_secretary/>
+            </sectionC2>
+            <sectionC3>
+              <note_hygiene/>
+              <villager jr:template="">
+                <q25_faeces_mouth/>
+                <q26_prevent_faeces_mouth/>
+                <q27_handwashing/>
+                <q28_handwashing_facilities/>
+                <q29_water_storage/>
+                <q30_diseases/>
+                <q31_child_faeces_disposal/>
+                <q32_latrine_hygiene/>
+              </villager>
+            </sectionC3>
+            <sectionC4>
+              <sectionC4_note/>
+              <household jr:template="">
+                <q33_hh_latrine_usage/>
+                <q34_latrine_screen_vent/>
+                <q35_latrine_seat_cover/>
+                <q36_latrine_door/>
+                <q37_latrine_flies/>
+                <q38_latrine_odour/>
+                <q39_latrine_cleaned/>
+                <q40_latrine_handwash/>
+                <q41_latrine_soap/>
+              </household>
+            </sectionC4>
+            <sectionC5>
+              <sectionC5_note/>
+              <q42_wm_layout_system/>
+              <q43_wm_components_system/>
+              <q44_wm_pipes_fittings/>
+              <q45_wm_hygiene/>
+              <q46_wm_report_breakdowns/>
+              <q47_wm_number_breakdowns/>
+              <q48_wm_preventive_maintenance/>
+              <q49_wm_pump_operation/>
+              <q50_wm_minor_repairs/>
+              <q51_wm_repair_supplies/>
+            </sectionC5>
+            <sectionC6>
+              <q52_add_comments/>
+            </sectionC6>
+          </sectionC>
+          <meta>
+            <instanceID/>
+          </meta>
+        </cascades_old>
+      </instance>
+      <instance id="name_list">
+        <root>
+          <item>
+            <itextId>static_instance-name_list-0</itextId>
+            <name>name1</name>
+          </item>
+          <item>
+            <itextId>static_instance-name_list-1</itextId>
+            <name>name2</name>
+          </item>
+          <item>
+            <itextId>static_instance-name_list-2</itextId>
+            <name>name3</name>
+          </item>
+          <item>
+            <itextId>static_instance-name_list-3</itextId>
+            <name>othername</name>
+          </item>
+        </root>
+      </instance>
+      <instance id="yes_no_list">
+        <root>
+          <item>
+            <itextId>static_instance-yes_no_list-0</itextId>
+            <name>yes</name>
+          </item>
+          <item>
+            <itextId>static_instance-yes_no_list-1</itextId>
+            <name>no</name>
+          </item>
+        </root>
+      </instance>
+      <instance id="gender_list">
+        <root>
+          <item>
+            <itextId>static_instance-gender_list-0</itextId>
+            <name>male</name>
+          </item>
+          <item>
+            <itextId>static_instance-gender_list-1</itextId>
+            <name>female</name>
+          </item>
+        </root>
+      </instance>
+      <instance id="phase">
+        <root>
+          <item>
+            <itextId>static_instance-phase-0</itextId>
+            <name>a</name>
+          </item>
+          <item>
+            <itextId>static_instance-phase-1</itextId>
+            <name>a1</name>
+          </item>
+          <item>
+            <itextId>static_instance-phase-2</itextId>
+            <name>b</name>
+          </item>
+          <item>
+            <itextId>static_instance-phase-3</itextId>
+            <name>c</name>
+          </item>
+        </root>
+      </instance>
+      <instance id="district">
+        <root>
+          <item>
+            <itextId>static_instance-district-0</itextId>
+            <name>berea_a</name>
+            <phase>a</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-1</itextId>
+            <name>botha_bothe_a</name>
+            <phase>a</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-2</itextId>
+            <name>leribe_a</name>
+            <phase>a</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-3</itextId>
+            <name>mafeteng_a</name>
+            <phase>a</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-4</itextId>
+            <name>maseru_a</name>
+            <phase>a</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-5</itextId>
+            <name>mohale_s_hoek_a</name>
+            <phase>a</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-6</itextId>
+            <name>qacha_s_nek_a</name>
+            <phase>a</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-7</itextId>
+            <name>quthing_a</name>
+            <phase>a</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-8</itextId>
+            <name>thaba_tseka_a</name>
+            <phase>a</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-9</itextId>
+            <name>mokhotlong_a1</name>
+            <phase>a1</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-10</itextId>
+            <name>qacha_s_nek_a1</name>
+            <phase>a1</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-11</itextId>
+            <name>thaba_tseka_a1</name>
+            <phase>a1</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-12</itextId>
+            <name>berea_b</name>
+            <phase>b</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-13</itextId>
+            <name>botha_bothe_b</name>
+            <phase>b</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-14</itextId>
+            <name>leribe_b</name>
+            <phase>b</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-15</itextId>
+            <name>mafeteng_b</name>
+            <phase>b</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-16</itextId>
+            <name>maseru_b</name>
+            <phase>b</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-17</itextId>
+            <name>mohale_s_hoek_b</name>
+            <phase>b</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-18</itextId>
+            <name>mokhotlong_b</name>
+            <phase>b</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-19</itextId>
+            <name>qacha_s_nek_b</name>
+            <phase>b</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-20</itextId>
+            <name>quthing_b</name>
+            <phase>b</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-21</itextId>
+            <name>thaba_tseka_b</name>
+            <phase>b</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-22</itextId>
+            <name>berea_c</name>
+            <phase>c</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-23</itextId>
+            <name>botha_bothe_c</name>
+            <phase>c</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-24</itextId>
+            <name>leribe_c</name>
+            <phase>c</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-25</itextId>
+            <name>mafeteng_c</name>
+            <phase>c</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-26</itextId>
+            <name>maseru_c</name>
+            <phase>c</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-27</itextId>
+            <name>maseru__c</name>
+            <phase>c</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-28</itextId>
+            <name>mohale_s_hoek_c</name>
+            <phase>c</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-29</itextId>
+            <name>mokhotlong_c</name>
+            <phase>c</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-30</itextId>
+            <name>qacha_s_nek_c</name>
+            <phase>c</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-31</itextId>
+            <name>quthing_c</name>
+            <phase>c</phase>
+          </item>
+          <item>
+            <itextId>static_instance-district-32</itextId>
+            <name>thaba_tseka_c</name>
+            <phase>c</phase>
+          </item>
+        </root>
+      </instance>
+      <instance id="site">
+        <root>
+          <item>
+            <itextId>static_instance-site-0</itextId>
+            <name>ha_koone_br_329_</name>
+            <phase>a</phase>
+            <district>berea_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-1</itextId>
+            <name>ha_makebe_br_011_</name>
+            <phase>a</phase>
+            <district>berea_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-2</itextId>
+            <name>ha_mohatlane_br_113_</name>
+            <phase>a</phase>
+            <district>berea_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-3</itextId>
+            <name>ha_motloang_br_103_</name>
+            <phase>a</phase>
+            <district>berea_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-4</itextId>
+            <name>ha_ntlama_br_048_</name>
+            <phase>a</phase>
+            <district>berea_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-5</itextId>
+            <name>ha_polaki_matheneng_br_141_2_</name>
+            <phase>a</phase>
+            <district>berea_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-6</itextId>
+            <name>lekhalong_br_400_</name>
+            <phase>a</phase>
+            <district>berea_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-7</itextId>
+            <name>lifotholeng_br_070_</name>
+            <phase>a</phase>
+            <district>berea_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-8</itextId>
+            <name>ha_lemphane_bb_195_</name>
+            <phase>a</phase>
+            <district>botha_bothe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-9</itextId>
+            <name>kepile_bb_209_</name>
+            <phase>a</phase>
+            <district>botha_bothe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-10</itextId>
+            <name>liteleng_ha_moluoane_bb_248_</name>
+            <phase>a</phase>
+            <district>botha_bothe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-11</itextId>
+            <name>luma_bb_235_</name>
+            <phase>a</phase>
+            <district>botha_bothe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-12</itextId>
+            <name>motete_bb_146_</name>
+            <phase>a</phase>
+            <district>botha_bothe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-13</itextId>
+            <name>patuoe_moepanyane_bb_201_</name>
+            <phase>a</phase>
+            <district>botha_bothe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-14</itextId>
+            <name>pokojoe_khoaba_bb_095_</name>
+            <phase>a</phase>
+            <district>botha_bothe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-15</itextId>
+            <name>solane_bb_094_</name>
+            <phase>a</phase>
+            <district>botha_bothe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-16</itextId>
+            <name>ha_mahlomola_lr_337_</name>
+            <phase>a</phase>
+            <district>leribe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-17</itextId>
+            <name>ha_matoli_lr_152_</name>
+            <phase>a</phase>
+            <district>leribe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-18</itextId>
+            <name>ha_rantuba_lr_044_</name>
+            <phase>a</phase>
+            <district>leribe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-19</itextId>
+            <name>ha_senyenyane_lr_423_</name>
+            <phase>a</phase>
+            <district>leribe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-20</itextId>
+            <name>ha_tsae_lr_256_</name>
+            <phase>a</phase>
+            <district>leribe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-21</itextId>
+            <name>mapheaneng_lr_334_</name>
+            <phase>a</phase>
+            <district>leribe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-22</itextId>
+            <name>phahameng_lr_061_</name>
+            <phase>a</phase>
+            <district>leribe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-23</itextId>
+            <name>phelandaba_lr_164_</name>
+            <phase>a</phase>
+            <district>leribe_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-24</itextId>
+            <name>ha_lepolesa_mf_098_</name>
+            <phase>a</phase>
+            <district>mafeteng_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-25</itextId>
+            <name>ha_mathabang_lifajaneng_mf_472_</name>
+            <phase>a</phase>
+            <district>mafeteng_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-26</itextId>
+            <name>ha_ranteme_mf_039_</name>
+            <phase>a</phase>
+            <district>mafeteng_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-27</itextId>
+            <name>ha_tjale_mf_583_</name>
+            <phase>a</phase>
+            <district>mafeteng_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-28</itextId>
+            <name>maieaneng_mf_009_</name>
+            <phase>a</phase>
+            <district>mafeteng_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-29</itextId>
+            <name>makokotoaneng_mf_564_</name>
+            <phase>a</phase>
+            <district>mafeteng_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-30</itextId>
+            <name>mathebe_mf_083_</name>
+            <phase>a</phase>
+            <district>mafeteng_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-31</itextId>
+            <name>salae_mf_529_</name>
+            <phase>a</phase>
+            <district>mafeteng_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-32</itextId>
+            <name>ha_leutsoa_ms_133_</name>
+            <phase>a</phase>
+            <district>maseru_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-33</itextId>
+            <name>ha_moruthoane_ms_191_</name>
+            <phase>a</phase>
+            <district>maseru_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-34</itextId>
+            <name>ha_phallang_ms_488_</name>
+            <phase>a</phase>
+            <district>maseru_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-35</itextId>
+            <name>joala_boholo_ms_155_</name>
+            <phase>a</phase>
+            <district>maseru_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-36</itextId>
+            <name>mahlabatheng_ms_258_</name>
+            <phase>a</phase>
+            <district>maseru_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-37</itextId>
+            <name>nazareth_ms_077_</name>
+            <phase>a</phase>
+            <district>maseru_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-38</itextId>
+            <name>polateng_ms_489_</name>
+            <phase>a</phase>
+            <district>maseru_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-39</itextId>
+            <name>setibing_ms_581_</name>
+            <phase>a</phase>
+            <district>maseru_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-40</itextId>
+            <name>ha_makhabane_mh_186_</name>
+            <phase>a</phase>
+            <district>mohale_s_hoek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-41</itextId>
+            <name>ha_mokotane_mh_223_</name>
+            <phase>a</phase>
+            <district>mohale_s_hoek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-42</itextId>
+            <name>ha_monyake_mh_089_</name>
+            <phase>a</phase>
+            <district>mohale_s_hoek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-43</itextId>
+            <name>ha_phatalla_mh_097_</name>
+            <phase>a</phase>
+            <district>mohale_s_hoek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-44</itextId>
+            <name>ha_tumo_mh_384_</name>
+            <phase>a</phase>
+            <district>mohale_s_hoek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-45</itextId>
+            <name>mataoeng_mh_219_</name>
+            <phase>a</phase>
+            <district>mohale_s_hoek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-46</itextId>
+            <name>phatlalla_mh_097_</name>
+            <phase>a</phase>
+            <district>mohale_s_hoek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-47</itextId>
+            <name>rakoloi_mh_149_</name>
+            <phase>a</phase>
+            <district>mohale_s_hoek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-48</itextId>
+            <name>raporong_mh_088_</name>
+            <phase>a</phase>
+            <district>mohale_s_hoek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-49</itextId>
+            <name>ha_ralengoele_qn_068_</name>
+            <phase>a</phase>
+            <district>qacha_s_nek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-50</itextId>
+            <name>ha_ramokakatela_qn_048_</name>
+            <phase>a</phase>
+            <district>qacha_s_nek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-51</itextId>
+            <name>ha_isaac_qn_059_</name>
+            <phase>a</phase>
+            <district>qacha_s_nek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-52</itextId>
+            <name>mosenekeng_qn_064_</name>
+            <phase>a</phase>
+            <district>qacha_s_nek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-53</itextId>
+            <name>sekoti_qn_069_</name>
+            <phase>a</phase>
+            <district>qacha_s_nek_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-54</itextId>
+            <name>filoane_qt_358_</name>
+            <phase>a</phase>
+            <district>quthing_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-55</itextId>
+            <name>kelebone_qt_034_</name>
+            <phase>a</phase>
+            <district>quthing_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-56</itextId>
+            <name>matebeleng_qt_078_</name>
+            <phase>a</phase>
+            <district>quthing_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-57</itextId>
+            <name>mofetoli_qt_366_</name>
+            <phase>a</phase>
+            <district>quthing_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-58</itextId>
+            <name>mots_oane_qt_075_</name>
+            <phase>a</phase>
+            <district>quthing_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-59</itextId>
+            <name>nosi_qt_355_</name>
+            <phase>a</phase>
+            <district>quthing_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-60</itextId>
+            <name>seputeng_qt_354_</name>
+            <phase>a</phase>
+            <district>quthing_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-61</itextId>
+            <name>swatsi_qt_238_</name>
+            <phase>a</phase>
+            <district>quthing_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-62</itextId>
+            <name>lihlabaneng_ha_morapeli_tt_170_</name>
+            <phase>a</phase>
+            <district>thaba_tseka_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-63</itextId>
+            <name>mohlakeng_tt_011_</name>
+            <phase>a</phase>
+            <district>thaba_tseka_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-64</itextId>
+            <name>motsitseng_tt_160_</name>
+            <phase>a</phase>
+            <district>thaba_tseka_a</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-65</itextId>
+            <name>bokhina_pere_mk_304_</name>
+            <phase>a1</phase>
+            <district>mokhotlong_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-66</itextId>
+            <name>ha_ralit_sepe_mk_393_</name>
+            <phase>a1</phase>
+            <district>mokhotlong_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-67</itextId>
+            <name>ha_senepi_mk_404_</name>
+            <phase>a1</phase>
+            <district>mokhotlong_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-68</itextId>
+            <name>makorong_mk_232_</name>
+            <phase>a1</phase>
+            <district>mokhotlong_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-69</itextId>
+            <name>mpakatheng_mk_265_</name>
+            <phase>a1</phase>
+            <district>mokhotlong_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-70</itextId>
+            <name>sekhutlong_mk_356_</name>
+            <phase>a1</phase>
+            <district>mokhotlong_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-71</itextId>
+            <name>sepatleng_mk_343_</name>
+            <phase>a1</phase>
+            <district>mokhotlong_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-72</itextId>
+            <name>tseko_mk_154_</name>
+            <phase>a1</phase>
+            <district>mokhotlong_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-73</itextId>
+            <name>ha_isaac_qt_059_</name>
+            <phase>a1</phase>
+            <district>qacha_s_nek_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-74</itextId>
+            <name>ha_katela_qn_219_</name>
+            <phase>a1</phase>
+            <district>qacha_s_nek_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-75</itextId>
+            <name>ha_makhoa_qn_073_</name>
+            <phase>a1</phase>
+            <district>qacha_s_nek_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-76</itextId>
+            <name>maphotong_qn_216_</name>
+            <phase>a1</phase>
+            <district>qacha_s_nek_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-77</itextId>
+            <name>ha_laka_tt_009_</name>
+            <phase>a1</phase>
+            <district>thaba_tseka_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-78</itextId>
+            <name>ha_sekhohola_tt_138_</name>
+            <phase>a1</phase>
+            <district>thaba_tseka_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-79</itextId>
+            <name>mantsonyane_tt_051_</name>
+            <phase>a1</phase>
+            <district>thaba_tseka_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-80</itextId>
+            <name>ha_labane_tt_363_</name>
+            <phase>a1</phase>
+            <district>thaba_tseka_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-81</itextId>
+            <name>maholi_a_llang_tt_210_</name>
+            <phase>a1</phase>
+            <district>thaba_tseka_a1</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-82</itextId>
+            <name>boranta_br_327_</name>
+            <phase>b</phase>
+            <district>berea_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-83</itextId>
+            <name>letsoela_br_008_</name>
+            <phase>b</phase>
+            <district>berea_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-84</itextId>
+            <name>maholong_br_328_</name>
+            <phase>b</phase>
+            <district>berea_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-85</itextId>
+            <name>masaleng_ha_janki_br_238_</name>
+            <phase>b</phase>
+            <district>berea_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-86</itextId>
+            <name>mokhachane_br_330_</name>
+            <phase>b</phase>
+            <district>berea_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-87</itextId>
+            <name>mokomahatsi_br_210_</name>
+            <phase>b</phase>
+            <district>berea_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-88</itextId>
+            <name>nokong_br_060_</name>
+            <phase>b</phase>
+            <district>berea_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-89</itextId>
+            <name>qalaheng_mafotholeng_br_45_84_</name>
+            <phase>b</phase>
+            <district>berea_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-90</itextId>
+            <name>tsenoli_br_001_</name>
+            <phase>b</phase>
+            <district>berea_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-91</itextId>
+            <name>ha_lesia_bb_258_</name>
+            <phase>b</phase>
+            <district>botha_bothe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-92</itextId>
+            <name>ha_lishobana_bb_217_</name>
+            <phase>b</phase>
+            <district>botha_bothe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-93</itextId>
+            <name>ha_rampai_bb_045_</name>
+            <phase>b</phase>
+            <district>botha_bothe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-94</itextId>
+            <name>ha_rakotoane_bb_185_</name>
+            <phase>b</phase>
+            <district>botha_bothe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-95</itextId>
+            <name>hlakacha_bb_029_</name>
+            <phase>b</phase>
+            <district>botha_bothe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-96</itextId>
+            <name>khutlo_sea_ja_bb_188_</name>
+            <phase>b</phase>
+            <district>botha_bothe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-97</itextId>
+            <name>lekanyane_bb_212_</name>
+            <phase>b</phase>
+            <district>botha_bothe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-98</itextId>
+            <name>maphepheng_bb_147_</name>
+            <phase>b</phase>
+            <district>botha_bothe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-99</itextId>
+            <name>setenong_bb_246_</name>
+            <phase>b</phase>
+            <district>botha_bothe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-100</itextId>
+            <name>ha_makhaketsa_lr_045_</name>
+            <phase>b</phase>
+            <district>leribe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-101</itextId>
+            <name>ha_manamolela_lr_429_</name>
+            <phase>b</phase>
+            <district>leribe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-102</itextId>
+            <name>ha_matala_lr_124_</name>
+            <phase>b</phase>
+            <district>leribe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-103</itextId>
+            <name>ha_mukemane_lr_507_</name>
+            <phase>b</phase>
+            <district>leribe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-104</itextId>
+            <name>ha_ramapepe_lr_183_</name>
+            <phase>b</phase>
+            <district>leribe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-105</itextId>
+            <name>ha_tsepe_lr_269_</name>
+            <phase>b</phase>
+            <district>leribe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-106</itextId>
+            <name>rankhelepe_lr_210_</name>
+            <phase>b</phase>
+            <district>leribe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-107</itextId>
+            <name>thaba_phatsoa_lr_049_</name>
+            <phase>b</phase>
+            <district>leribe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-108</itextId>
+            <name>tiping_lr_428_</name>
+            <phase>b</phase>
+            <district>leribe_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-109</itextId>
+            <name>ha_joele_mf_419_</name>
+            <phase>b</phase>
+            <district>mafeteng_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-110</itextId>
+            <name>ha_mashapha_mf_676_</name>
+            <phase>b</phase>
+            <district>mafeteng_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-111</itextId>
+            <name>ha_ralintoane_mf_698_</name>
+            <phase>b</phase>
+            <district>mafeteng_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-112</itextId>
+            <name>ha_ramatima_mf_107_</name>
+            <phase>b</phase>
+            <district>mafeteng_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-113</itextId>
+            <name>ha_seoli_mf_816_</name>
+            <phase>b</phase>
+            <district>mafeteng_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-114</itextId>
+            <name>ha_hlehlisi_mf_319_</name>
+            <phase>b</phase>
+            <district>mafeteng_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-115</itextId>
+            <name>khalimane_lijoetsa_mf_415_</name>
+            <phase>b</phase>
+            <district>mafeteng_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-116</itextId>
+            <name>lithipeng_mosuoane_mf_651_</name>
+            <phase>b</phase>
+            <district>mafeteng_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-117</itextId>
+            <name>molleloa_ha_patsa_mf_393_</name>
+            <phase>b</phase>
+            <district>mafeteng_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-118</itextId>
+            <name>ha_mashenephe_ms_414_</name>
+            <phase>b</phase>
+            <district>maseru_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-119</itextId>
+            <name>ha_sechache_ms_497_</name>
+            <phase>b</phase>
+            <district>maseru_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-120</itextId>
+            <name>mokotleng_ms_462_</name>
+            <phase>b</phase>
+            <district>maseru_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-121</itextId>
+            <name>mphephee_moeaneng_ms_521_</name>
+            <phase>b</phase>
+            <district>maseru_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-122</itextId>
+            <name>ramakhaleng_ms_474_</name>
+            <phase>b</phase>
+            <district>maseru_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-123</itextId>
+            <name>rothe_ms_001_</name>
+            <phase>b</phase>
+            <district>maseru_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-124</itextId>
+            <name>tlokotsane_ms_490_</name>
+            <phase>b</phase>
+            <district>maseru_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-125</itextId>
+            <name>tsutsulupa_ms_516_</name>
+            <phase>b</phase>
+            <district>maseru_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-126</itextId>
+            <name>keleke_moleko_ms_465_</name>
+            <phase>b</phase>
+            <district>maseru_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-127</itextId>
+            <name>ha_boroko_mh_009_</name>
+            <phase>b</phase>
+            <district>mohale_s_hoek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-128</itextId>
+            <name>ha_hamo_moko_mh_142_</name>
+            <phase>b</phase>
+            <district>mohale_s_hoek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-129</itextId>
+            <name>ha_mokhatla_mh_158_</name>
+            <phase>b</phase>
+            <district>mohale_s_hoek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-130</itextId>
+            <name>ha_nthamaha_mh_478_</name>
+            <phase>b</phase>
+            <district>mohale_s_hoek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-131</itextId>
+            <name>ha_ranti_mh_538_</name>
+            <phase>b</phase>
+            <district>mohale_s_hoek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-132</itextId>
+            <name>lecheche_mh_557_</name>
+            <phase>b</phase>
+            <district>mohale_s_hoek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-133</itextId>
+            <name>matsoareng_mh_073_</name>
+            <phase>b</phase>
+            <district>mohale_s_hoek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-134</itextId>
+            <name>moru_motso_mh_507_</name>
+            <phase>b</phase>
+            <district>mohale_s_hoek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-135</itextId>
+            <name>pontseng_mh_027_</name>
+            <phase>b</phase>
+            <district>mohale_s_hoek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-136</itextId>
+            <name>draaihoek_mk_384_</name>
+            <phase>b</phase>
+            <district>mokhotlong_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-137</itextId>
+            <name>ha_tlenyane_mk_212_</name>
+            <phase>b</phase>
+            <district>mokhotlong_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-138</itextId>
+            <name>khohlong_mk_312_</name>
+            <phase>b</phase>
+            <district>mokhotlong_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-139</itextId>
+            <name>liotloaneng_mk_379_</name>
+            <phase>b</phase>
+            <district>mokhotlong_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-140</itextId>
+            <name>mabuleng_mk_269_</name>
+            <phase>b</phase>
+            <district>mokhotlong_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-141</itextId>
+            <name>maheneng_mk_342_</name>
+            <phase>b</phase>
+            <district>mokhotlong_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-142</itextId>
+            <name>matebeleng_mk_334_</name>
+            <phase>b</phase>
+            <district>mokhotlong_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-143</itextId>
+            <name>matlong_mk_387_</name>
+            <phase>b</phase>
+            <district>mokhotlong_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-144</itextId>
+            <name>mosenekeng_mk_341_</name>
+            <phase>b</phase>
+            <district>mokhotlong_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-145</itextId>
+            <name>ha_lehata_qn_088_</name>
+            <phase>b</phase>
+            <district>qacha_s_nek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-146</itextId>
+            <name>ha_molomo_qn_206_</name>
+            <phase>b</phase>
+            <district>qacha_s_nek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-147</itextId>
+            <name>ha_ranqhongoana_qn_007_</name>
+            <phase>b</phase>
+            <district>qacha_s_nek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-148</itextId>
+            <name>ha_seholoholo_qn_055_</name>
+            <phase>b</phase>
+            <district>qacha_s_nek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-149</itextId>
+            <name>liboteng_qn_096_</name>
+            <phase>b</phase>
+            <district>qacha_s_nek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-150</itextId>
+            <name>mankoe_qn_091_</name>
+            <phase>b</phase>
+            <district>qacha_s_nek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-151</itextId>
+            <name>qenehellong_qn_070_</name>
+            <phase>b</phase>
+            <district>qacha_s_nek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-152</itextId>
+            <name>sekiring_qn_094_</name>
+            <phase>b</phase>
+            <district>qacha_s_nek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-153</itextId>
+            <name>tsolo_qn_104_</name>
+            <phase>b</phase>
+            <district>qacha_s_nek_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-154</itextId>
+            <name>mamokeli_qt_337_</name>
+            <phase>b</phase>
+            <district>quthing_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-155</itextId>
+            <name>marakabei_qt_398_</name>
+            <phase>b</phase>
+            <district>quthing_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-156</itextId>
+            <name>masuoaneng_qt_392_</name>
+            <phase>b</phase>
+            <district>quthing_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-157</itextId>
+            <name>mats_ela_habeli_qt_246_</name>
+            <phase>b</phase>
+            <district>quthing_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-158</itextId>
+            <name>ngoae_sekokoaneng_qt_067_</name>
+            <phase>b</phase>
+            <district>quthing_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-159</itextId>
+            <name>nkoto_silase_qt_334_</name>
+            <phase>b</phase>
+            <district>quthing_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-160</itextId>
+            <name>photha_photha_qt_401_</name>
+            <phase>b</phase>
+            <district>quthing_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-161</itextId>
+            <name>raseeng_qt_076_</name>
+            <phase>b</phase>
+            <district>quthing_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-162</itextId>
+            <name>thaba_chitja_qt_292_</name>
+            <phase>b</phase>
+            <district>quthing_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-163</itextId>
+            <name>ha_long_tt_298_</name>
+            <phase>b</phase>
+            <district>thaba_tseka_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-164</itextId>
+            <name>ha_moriana_tt_297_</name>
+            <phase>b</phase>
+            <district>thaba_tseka_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-165</itextId>
+            <name>ha_motake_tt_303_</name>
+            <phase>b</phase>
+            <district>thaba_tseka_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-166</itextId>
+            <name>ha_nkune_tt_212_</name>
+            <phase>b</phase>
+            <district>thaba_tseka_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-167</itextId>
+            <name>ha_poko_tt_225_</name>
+            <phase>b</phase>
+            <district>thaba_tseka_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-168</itextId>
+            <name>ha_ratau_tt_165_</name>
+            <phase>b</phase>
+            <district>thaba_tseka_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-169</itextId>
+            <name>ha_sekhaupane_tt_344_</name>
+            <phase>b</phase>
+            <district>thaba_tseka_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-170</itextId>
+            <name>masakoane_tt_304_</name>
+            <phase>b</phase>
+            <district>thaba_tseka_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-171</itextId>
+            <name>tholanyane_tt_299_</name>
+            <phase>b</phase>
+            <district>thaba_tseka_b</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-172</itextId>
+            <name>ha_matjotjo_br_175_</name>
+            <phase>c</phase>
+            <district>berea_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-173</itextId>
+            <name>ha_mokhati_br_025_</name>
+            <phase>c</phase>
+            <district>berea_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-174</itextId>
+            <name>ha_phalatsane_br_075_</name>
+            <phase>c</phase>
+            <district>berea_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-175</itextId>
+            <name>ha_phoofolo_br_090_</name>
+            <phase>c</phase>
+            <district>berea_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-176</itextId>
+            <name>ha_telukhunoana_br_166_</name>
+            <phase>c</phase>
+            <district>berea_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-177</itextId>
+            <name>ha_tumo_br_043_</name>
+            <phase>c</phase>
+            <district>berea_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-178</itextId>
+            <name>kolojane_br_036_</name>
+            <phase>c</phase>
+            <district>berea_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-179</itextId>
+            <name>mokhethoaneng_br_16_</name>
+            <phase>c</phase>
+            <district>berea_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-180</itextId>
+            <name>community_bb_136_</name>
+            <phase>c</phase>
+            <district>botha_bothe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-181</itextId>
+            <name>ha_masekh_ou_bb_130_</name>
+            <phase>c</phase>
+            <district>botha_bothe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-182</itextId>
+            <name>kopanong_bb_250_</name>
+            <phase>c</phase>
+            <district>botha_bothe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-183</itextId>
+            <name>mantlakala_bb_221_</name>
+            <phase>c</phase>
+            <district>botha_bothe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-184</itextId>
+            <name>masianokeng_bb_259_</name>
+            <phase>c</phase>
+            <district>botha_bothe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-185</itextId>
+            <name>motabola_bb_214_</name>
+            <phase>c</phase>
+            <district>botha_bothe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-186</itextId>
+            <name>mphale_bb_156_</name>
+            <phase>c</phase>
+            <district>botha_bothe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-187</itextId>
+            <name>thoteng_bb_251_</name>
+            <phase>c</phase>
+            <district>botha_bothe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-188</itextId>
+            <name>ha_leaooa_lr_299_</name>
+            <phase>c</phase>
+            <district>leribe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-189</itextId>
+            <name>ha_ralikuku_lr_240_</name>
+            <phase>c</phase>
+            <district>leribe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-190</itextId>
+            <name>ha_tente_lr_258_</name>
+            <phase>c</phase>
+            <district>leribe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-191</itextId>
+            <name>ha_tobolela_lr_257_</name>
+            <phase>c</phase>
+            <district>leribe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-192</itextId>
+            <name>maqasane_lr_128_</name>
+            <phase>c</phase>
+            <district>leribe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-193</itextId>
+            <name>metolong_lr_227_</name>
+            <phase>c</phase>
+            <district>leribe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-194</itextId>
+            <name>nkoeng_lr_361_</name>
+            <phase>c</phase>
+            <district>leribe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-195</itextId>
+            <name>tale_lr_223_</name>
+            <phase>c</phase>
+            <district>leribe_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-196</itextId>
+            <name>ha_likupa_mf_008_</name>
+            <phase>c</phase>
+            <district>mafeteng_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-197</itextId>
+            <name>ha_manehella_mf_669_</name>
+            <phase>c</phase>
+            <district>mafeteng_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-198</itextId>
+            <name>ha_sebeli_lehananeng_mf_054_</name>
+            <phase>c</phase>
+            <district>mafeteng_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-199</itextId>
+            <name>ha_tebelo_mf_679_</name>
+            <phase>c</phase>
+            <district>mafeteng_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-200</itextId>
+            <name>khasapane_mf_219_</name>
+            <phase>c</phase>
+            <district>mafeteng_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-201</itextId>
+            <name>lihlookong_mf_221_</name>
+            <phase>c</phase>
+            <district>mafeteng_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-202</itextId>
+            <name>sekiring_mf_292_</name>
+            <phase>c</phase>
+            <district>mafeteng_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-203</itextId>
+            <name>t_soeute_mf_750_</name>
+            <phase>c</phase>
+            <district>mafeteng_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-204</itextId>
+            <name>ha_lekhafola_ms_215_426_</name>
+            <phase>c</phase>
+            <district>maseru_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-205</itextId>
+            <name>ha_nkoankoa_ms_447_</name>
+            <phase>c</phase>
+            <district>maseru_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-206</itextId>
+            <name>ha_pita_ms_025_</name>
+            <phase>c</phase>
+            <district>maseru_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-207</itextId>
+            <name>ha_salemone_morainyane_ms_475_</name>
+            <phase>c</phase>
+            <district>maseru_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-208</itextId>
+            <name>ha_sofonia_ms_021_</name>
+            <phase>c</phase>
+            <district>maseru_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-209</itextId>
+            <name>khubetsoana_sekoting_ms_508_</name>
+            <phase>c</phase>
+            <district>maseru_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-210</itextId>
+            <name>kubake_moreneng_ms_422_</name>
+            <phase>c</phase>
+            <district>maseru__c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-211</itextId>
+            <name>machekoaneng_ms_104_</name>
+            <phase>c</phase>
+            <district>maseru__c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-212</itextId>
+            <name>ha_bereng_matsoho_mh_115_</name>
+            <phase>c</phase>
+            <district>mohale_s_hoek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-213</itextId>
+            <name>ha_mohohlo_mh_404_</name>
+            <phase>c</phase>
+            <district>mohale_s_hoek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-214</itextId>
+            <name>ha_nkau_mh_293_</name>
+            <phase>c</phase>
+            <district>mohale_s_hoek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-215</itextId>
+            <name>ha_raboroko_mh_156_</name>
+            <phase>c</phase>
+            <district>mohale_s_hoek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-216</itextId>
+            <name>ha_senekane_mh_321_</name>
+            <phase>c</phase>
+            <district>mohale_s_hoek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-217</itextId>
+            <name>malahleha_mh_036_</name>
+            <phase>c</phase>
+            <district>mohale_s_hoek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-218</itextId>
+            <name>maluke_mh_473_</name>
+            <phase>c</phase>
+            <district>mohale_s_hoek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-219</itextId>
+            <name>setotoma_mh_110_</name>
+            <phase>c</phase>
+            <district>mohale_s_hoek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-220</itextId>
+            <name>bloodberg_mk_048_</name>
+            <phase>c</phase>
+            <district>mokhotlong_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-221</itextId>
+            <name>ha_masasane_mk_381_</name>
+            <phase>c</phase>
+            <district>mokhotlong_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-222</itextId>
+            <name>ha_nthimolane_mk_382_</name>
+            <phase>c</phase>
+            <district>mokhotlong_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-223</itextId>
+            <name>limapong_mk_268_</name>
+            <phase>c</phase>
+            <district>mokhotlong_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-224</itextId>
+            <name>lithoteng_mk_131_</name>
+            <phase>c</phase>
+            <district>mokhotlong_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-225</itextId>
+            <name>moteetee_mk_037_</name>
+            <phase>c</phase>
+            <district>mokhotlong_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-226</itextId>
+            <name>t_sila_nt_so_mk_233_</name>
+            <phase>c</phase>
+            <district>mokhotlong_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-227</itextId>
+            <name>tsoenene_mk_002_</name>
+            <phase>c</phase>
+            <district>mokhotlong_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-228</itextId>
+            <name>ha_nkofo_qn_120_</name>
+            <phase>c</phase>
+            <district>qacha_s_nek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-229</itextId>
+            <name>ha_sephelane_qn_154_</name>
+            <phase>c</phase>
+            <district>qacha_s_nek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-230</itextId>
+            <name>ha_tamose_qn_051_</name>
+            <phase>c</phase>
+            <district>qacha_s_nek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-231</itextId>
+            <name>ha_t_sita_qn_009_</name>
+            <phase>c</phase>
+            <district>qacha_s_nek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-232</itextId>
+            <name>khubetsoana_qn_101_</name>
+            <phase>c</phase>
+            <district>qacha_s_nek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-233</itextId>
+            <name>lepapaneng_qn_121_</name>
+            <phase>c</phase>
+            <district>qacha_s_nek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-234</itextId>
+            <name>rasekoele_qn_100_</name>
+            <phase>c</phase>
+            <district>qacha_s_nek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-235</itextId>
+            <name>sefaha_qn_003_</name>
+            <phase>c</phase>
+            <district>qacha_s_nek_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-236</itextId>
+            <name>mohale_qt_196_</name>
+            <phase>c</phase>
+            <district>quthing_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-237</itextId>
+            <name>mokokoane_qt_273_</name>
+            <phase>c</phase>
+            <district>quthing_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-238</itextId>
+            <name>mpharane_qt_287_</name>
+            <phase>c</phase>
+            <district>quthing_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-239</itextId>
+            <name>paballong_qt_117_</name>
+            <phase>c</phase>
+            <district>quthing_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-240</itextId>
+            <name>rat_sit_so_qt_074_</name>
+            <phase>c</phase>
+            <district>quthing_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-241</itextId>
+            <name>sekakeng_qt_335_</name>
+            <phase>c</phase>
+            <district>quthing_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-242</itextId>
+            <name>sello_qt_283_</name>
+            <phase>c</phase>
+            <district>quthing_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-243</itextId>
+            <name>thoteng_qt_034_</name>
+            <phase>c</phase>
+            <district>quthing_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-244</itextId>
+            <name>ha_chooko_tt_312_</name>
+            <phase>c</phase>
+            <district>thaba_tseka_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-245</itextId>
+            <name>ha_ntsokoane_tt_301_</name>
+            <phase>c</phase>
+            <district>thaba_tseka_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-246</itextId>
+            <name>ha_ts_oeu_khala_tt_049_</name>
+            <phase>c</phase>
+            <district>thaba_tseka_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-247</itextId>
+            <name>makhuleng_tt_239_</name>
+            <phase>c</phase>
+            <district>thaba_tseka_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-248</itextId>
+            <name>makunyapane_tt_083_</name>
+            <phase>c</phase>
+            <district>thaba_tseka_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-249</itextId>
+            <name>matsaile_manganeng_tt_411_</name>
+            <phase>c</phase>
+            <district>thaba_tseka_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-250</itextId>
+            <name>matsaile_moreneng_tt_038_</name>
+            <phase>c</phase>
+            <district>thaba_tseka_c</district>
+          </item>
+          <item>
+            <itextId>static_instance-site-251</itextId>
+            <name>moeling_tt_268_</name>
+            <phase>c</phase>
+            <district>thaba_tseka_c</district>
+          </item>
+        </root>
+      </instance>
+      <bind jr:preload="timestamp" jr:preloadParams="start" nodeset="/cascades_old/start" type="dateTime"/>
+      <bind jr:preload="timestamp" jr:preloadParams="end" nodeset="/cascades_old/end" type="dateTime"/>
+      <bind jr:preload="date" jr:preloadParams="today" nodeset="/cascades_old/today" type="date"/>
+      <bind jr:preload="property" jr:preloadParams="deviceid" nodeset="/cascades_old/deviceid" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="subscriberid" nodeset="/cascades_old/subscriberid" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="deviceid" nodeset="/cascades_old/simserial" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="phonenumber" nodeset="/cascades_old/phonenumber" type="string"/>
+      <bind nodeset="/cascades_old/sectionA/q1_surveyor1" type="select1"/>
+      <bind nodeset="/cascades_old/sectionA/q2_surveyor2" relevant=" /cascades_old/sectionA/q1_surveyor1  = 'othername'" required="true()" type="string"/>
+      <bind nodeset="/cascades_old/sectionA/q3_datetime" required="true()" type="dateTime"/>
+      <bind nodeset="/cascades_old/sectionA/q4_gps_location" required="false()" type="geopoint"/>
+      <bind nodeset="/cascades_old/sectionB/q5_construction_site_phase" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionB/q5_construction_site_district" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionB/q5_construction_site" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionB/q6_construction_site_summary1" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionB/q7_construction_site_summary2" relevant=" /cascades_old/sectionB/q6_construction_site_summary1 ='no'" required="true()" type="string"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC1/q10_wm_trained_aftercare" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC1/q11_households_water_access" required="true()" type="int"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC1/q12_system_functional" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC1/q13_male_hh_latrines" required="true()" type="int"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC1/q14_female_hh_latrines" required="true()" type="int"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC1/q15_child_hh_latrines" required="true()" type="int"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC2/q16_vwhc_meeting" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC2/q17_vwhc_collect_tariffs" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC2/q18_vwhc_reports" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC2/q19_conflicts_community" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC2/q20_yes_conflict_description" relevant=" /cascades_old/sectionC/sectionC2/q19_conflicts_community ='yes'" required="true()" type="string"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC2/q21_yes_problem_resolved" relevant=" /cascades_old/sectionC/sectionC2/q19_conflicts_community ='yes'" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC2/q22_gender_chair" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC2/q23_gender_treasurer" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC2/q24_gender_secretary" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC3/note_hygiene" readonly="true()" required="false()" type="string"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC3/villager/q25_faeces_mouth" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC3/villager/q26_prevent_faeces_mouth" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC3/villager/q27_handwashing" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC3/villager/q28_handwashing_facilities" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC3/villager/q29_water_storage" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC3/villager/q30_diseases" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC3/villager/q31_child_faeces_disposal" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC3/villager/q32_latrine_hygiene" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC4/sectionC4_note" readonly="true()" required="false()" type="string"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC4/household/q33_hh_latrine_usage" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC4/household/q34_latrine_screen_vent" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC4/household/q35_latrine_seat_cover" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC4/household/q36_latrine_door" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC4/household/q37_latrine_flies" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC4/household/q38_latrine_odour" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC4/household/q39_latrine_cleaned" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC4/household/q40_latrine_handwash" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC4/household/q41_latrine_soap" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/sectionC5_note" readonly="true()" required="false()" type="string"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/q42_wm_layout_system" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/q43_wm_components_system" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/q44_wm_pipes_fittings" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/q45_wm_hygiene" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/q46_wm_report_breakdowns" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/q47_wm_number_breakdowns" required="true()" type="int"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/q48_wm_preventive_maintenance" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/q49_wm_pump_operation" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/q50_wm_minor_repairs" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC5/q51_wm_repair_supplies" required="true()" type="select1"/>
+      <bind nodeset="/cascades_old/sectionC/sectionC6/q52_add_comments" required="false()" type="string"/>
+      <bind jr:preload="uid" nodeset="/cascades_old/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <group ref="/cascades_old/sectionA">
+      <label>Section A - Survey Information</label>
+      <select1 ref="/cascades_old/sectionA/q1_surveyor1">
+        <label>Q01. Name of the surveyor</label>
+        <item>
+          <label>Name 1</label>
+          <value>name1</value>
+        </item>
+        <item>
+          <label>Name 2</label>
+          <value>name2</value>
+        </item>
+        <item>
+          <label>Name 3</label>
+          <value>name3</value>
+        </item>
+        <item>
+          <label>Other</label>
+          <value>othername</value>
+        </item>
+      </select1>
+      <input ref="/cascades_old/sectionA/q2_surveyor2">
+        <label>Q02. If other, enter your name here:</label>
+      </input>
+      <input ref="/cascades_old/sectionA/q3_datetime">
+        <label>Q03. Enter the current date and time:</label>
+      </input>
+      <input ref="/cascades_old/sectionA/q4_gps_location">
+        <label>Q04. Record GPS location:</label>
+        <hint>Make sure the precision is less than 25 meters</hint>
+      </input>
+    </group>
+    <group ref="/cascades_old/sectionB">
+      <label>Section B - Site Information</label>
+      <select1 ref="/cascades_old/sectionB/q5_construction_site_phase">
+        <label>Q05. Phase</label>
+        <itemset nodeset="instance('phase')/root/item">
+          <value ref="name"/>
+          <label ref="jr:itext(itextId)"/>
+        </itemset>
+      </select1>
+      <select1 ref="/cascades_old/sectionB/q5_construction_site_district">
+        <label>Q06. District</label>
+        <itemset nodeset="instance('district')/root/item[phase= /cascades_old/sectionB/q5_construction_site_phase ]">
+          <value ref="name"/>
+          <label ref="jr:itext(itextId)"/>
+        </itemset>
+      </select1>
+      <select1 ref="/cascades_old/sectionB/q5_construction_site">
+        <label>Q07. Site</label>
+        <itemset nodeset="instance('site')/root/item[phase= /cascades_old/sectionB/q5_construction_site_phase  and district= /cascades_old/sectionB/q5_construction_site_district ]">
+          <value ref="name"/>
+          <label ref="jr:itext(itextId)"/>
+        </itemset>
+      </select1>
+      <select1 ref="/cascades_old/sectionB/q6_construction_site_summary1">
+        <label> You selected the <output value=" /cascades_old/sectionB/q5_construction_site "/> site, in <output value=" /cascades_old/sectionB/q5_construction_site_district "/> district, phase <output value=" /cascades_old/sectionB/q5_construction_site_phase "/> - is that correct? </label>
+        <item>
+          <label>Yes</label>
+          <value>yes</value>
+        </item>
+        <item>
+          <label>No</label>
+          <value>no</value>
+        </item>
+      </select1>
+      <input ref="/cascades_old/sectionB/q7_construction_site_summary2">
+        <label>If no, please enter the correct phase, district and site name below:</label>
+        <hint>Please use the following format (phase, district, site name)</hint>
+      </input>
+    </group>
+    <group ref="/cascades_old/sectionC">
+      <label>Section C - End of construction survey of site</label>
+      <group ref="/cascades_old/sectionC/sectionC1">
+        <label>End-construction AMP reporting</label>
+        <select1 ref="/cascades_old/sectionC/sectionC1/q10_wm_trained_aftercare">
+          <label>Q10. Have the water minders been trained in aftercare?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <input ref="/cascades_old/sectionC/sectionC1/q11_households_water_access">
+          <label>Q11. How many households have access to water supply?</label>
+        </input>
+        <select1 ref="/cascades_old/sectionC/sectionC1/q12_system_functional">
+          <label>Q12. Is the water supply currently functional?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <input ref="/cascades_old/sectionC/sectionC1/q13_male_hh_latrines">
+          <label>Q13. How many male-headed households now have improved access to latrines?</label>
+        </input>
+        <input ref="/cascades_old/sectionC/sectionC1/q14_female_hh_latrines">
+          <label>Q14. How many female-headed households now have improved access to latrines?</label>
+        </input>
+        <input ref="/cascades_old/sectionC/sectionC1/q15_child_hh_latrines">
+          <label>Q15. How many child-headed households now have improved access to latrines?</label>
+        </input>
+      </group>
+      <group ref="/cascades_old/sectionC/sectionC2">
+        <label>Village Water Health Committee</label>
+        <select1 ref="/cascades_old/sectionC/sectionC2/q16_vwhc_meeting">
+          <label>Q16. Has the VWHC met in the past month?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC2/q17_vwhc_collect_tariffs">
+          <label>Q17. Does the VWHC collect tariffs for water supply for Operation and Maintenance and repairs?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC2/q18_vwhc_reports">
+          <label>Q18. Are the VWHC reports/books being kept up-to-date?</label>
+          <hint>Please ask to see them, review them</hint>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC2/q19_conflicts_community">
+          <label>Q19. Have there been any conflicts related to water or sanitation in the community?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <input ref="/cascades_old/sectionC/sectionC2/q20_yes_conflict_description">
+          <label>Q20. If yes, describe the problem:</label>
+        </input>
+        <select1 ref="/cascades_old/sectionC/sectionC2/q21_yes_problem_resolved">
+          <label>Q21. If yes, did the VWHC help resolve the problems?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC2/q22_gender_chair">
+          <label>Q22. Which gender occupied the chair position?</label>
+          <item>
+            <label>Male</label>
+            <value>male</value>
+          </item>
+          <item>
+            <label>Female</label>
+            <value>female</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC2/q23_gender_treasurer">
+          <label>Q23. Which gender occupied the treasurer position?</label>
+          <item>
+            <label>Male</label>
+            <value>male</value>
+          </item>
+          <item>
+            <label>Female</label>
+            <value>female</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC2/q24_gender_secretary">
+          <label>Q24. Which gender occupied the secretary position?</label>
+          <item>
+            <label>Male</label>
+            <value>male</value>
+          </item>
+          <item>
+            <label>Female</label>
+            <value>female</value>
+          </item>
+        </select1>
+      </group>
+      <group ref="/cascades_old/sectionC/sectionC3">
+        <label>Hygiene</label>
+        <input ref="/cascades_old/sectionC/sectionC3/note_hygiene">
+          <label>In this section, please select three community members at random and ask them the following questions. When you are done entering the responses for one community member, you will be asked if you want to add results for an extra one. Say yes until you have all three sets of answers.</label>
+        </input>
+        <group ref="/cascades_old/sectionC/sectionC3/villager">
+          <label>Community member / Villager</label>
+          <repeat nodeset="/cascades_old/sectionC/sectionC3/villager">
+            <select1 ref="/cascades_old/sectionC/sectionC3/villager/q25_faeces_mouth">
+              <label>Q25. What ways can faeces get into the mouth?</label>
+              <hint>If village can give 2 good responses enter YES. Possible answers include: fingers, flies, fluids, fields, food.</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC3/villager/q26_prevent_faeces_mouth">
+              <label>Q26. How can we prevent faeces from reaching the mouth?</label>
+              <hint>If village can give 2 correct responses, say YES. Possible answers include: hand-washing, cover food/water, use VIP latrines, boil water.</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC3/villager/q27_handwashing">
+              <label>Q27. When is hand-washing critical?</label>
+              <hint>If village can give 2 correct responses, say YES. Possible answers include: after using the latrine, after changing/cleaning a child, before preparing/eating food</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC3/villager/q28_handwashing_facilities">
+              <label>Q28. Are the hand washing facilities close to the latrines and with soap?</label>
+              <hint>Important: ask to see it</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC3/villager/q29_water_storage">
+              <label>Q29. Is the water properly stored and protected at the household level?</label>
+              <hint>Important: ask to see it</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC3/villager/q30_diseases">
+              <label>Q30. What sicknesses can you get from unclean water?</label>
+              <hint>If village can give 1 correct responses, say YES. Possible answers include: typhoid, diarrhea, stomach problems</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC3/villager/q31_child_faeces_disposal">
+              <label>Q31. Where do you dispose of your child's faeces?</label>
+              <hint>Correct answer: in the latrine</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC3/villager/q32_latrine_hygiene">
+              <label>Q32. How do you keep your latrine hygienic?</label>
+              <hint>Correct answer: the latrine should be cleaned regularly.</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+          </repeat>
+        </group>
+      </group>
+      <group ref="/cascades_old/sectionC/sectionC4">
+        <label>Latrines</label>
+        <input ref="/cascades_old/sectionC/sectionC4/sectionC4_note">
+          <label>In this section, please select three households with a latrine at random and ask them the following questions. When you are done entered the responses for one household, you will be asked if you want to add results for an extra one. Say yes until you have all three sets of responses</label>
+        </input>
+        <group ref="/cascades_old/sectionC/sectionC4/household">
+          <label>Household / Latrine Owner</label>
+          <repeat nodeset="/cascades_old/sectionC/sectionC4/household">
+            <select1 ref="/cascades_old/sectionC/sectionC4/household/q33_hh_latrine_usage">
+              <label>Q33. Do all the people in this household regularly use the latrine?</label>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC4/household/q34_latrine_screen_vent">
+              <label>Q34. Is there a fly screen on the vent pipe?</label>
+              <hint>Important: ask to see it</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC4/household/q35_latrine_seat_cover">
+              <label>Q35. Is the seat cover present in the VIP?</label>
+              <hint>Important: ask to see it</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC4/household/q36_latrine_door">
+              <label>Q36. Is the VIP door intact?</label>
+              <hint>Important: ask to see it</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC4/household/q37_latrine_flies">
+              <label>Q37. Are there any flies in the VIP?</label>
+              <hint>Important: ask to see it</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC4/household/q38_latrine_odour">
+              <label>Q38. Is there odour in the VIP?</label>
+              <hint>Important: ask to see it</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC4/household/q39_latrine_cleaned">
+              <label>Q39. Has the latrine been cleaned recently? (is there no visible faecal matter and/or waste)</label>
+              <hint>Important: ask to see it</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC4/household/q40_latrine_handwash">
+              <label>Q40. Is there a hand washing facility close to the latrine?</label>
+              <hint>Important: ask to see it</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+            <select1 ref="/cascades_old/sectionC/sectionC4/household/q41_latrine_soap">
+              <label>Q41. Is there a soap at the hand washing facility?</label>
+              <hint>Important: ask to see it</hint>
+              <item>
+                <label>Yes</label>
+                <value>yes</value>
+              </item>
+              <item>
+                <label>No</label>
+                <value>no</value>
+              </item>
+            </select1>
+          </repeat>
+        </group>
+      </group>
+      <group ref="/cascades_old/sectionC/sectionC5">
+        <label>Water minders</label>
+        <input ref="/cascades_old/sectionC/sectionC5/sectionC5_note">
+          <label>In this section, talk to at least one water minder that has been trained for this system and answer the following questions.</label>
+        </input>
+        <select1 ref="/cascades_old/sectionC/sectionC5/q42_wm_layout_system">
+          <label>Q42. Is the Water Minder (WM) familiar with the layout of the system?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC5/q43_wm_components_system">
+          <label>Q43. Does the WM understand what are the functions of the system components?</label>
+          <hint>Important: ask him to draw the system layout</hint>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC5/q44_wm_pipes_fittings">
+          <label>Q44. Does the WM know all the pipes and fittings used, their sizes and how to arrange and connect fittings correctly?</label>
+          <hint>Important: ask him to show you an example with spares he has</hint>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC5/q45_wm_hygiene">
+          <label>Q45. Does the WM know how to keep the tap stands and system equipment clean and hygienic?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC5/q46_wm_report_breakdowns">
+          <label>Q46. Does the WM know how and to whom to report breakdowns?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <input ref="/cascades_old/sectionC/sectionC5/q47_wm_number_breakdowns">
+          <label>Q47. How many breakdowns have been reported so far?</label>
+        </input>
+        <select1 ref="/cascades_old/sectionC/sectionC5/q48_wm_preventive_maintenance">
+          <label>Q48. Does the WM know how to carryout preventative maintenance?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC5/q49_wm_pump_operation">
+          <label>Q49. Does the WM know how the pumping equipment works (if the system uses a pump) and how to operate it?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC5/q50_wm_minor_repairs">
+          <label>Q50. Does the WM know how to carryout minor repairs?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 ref="/cascades_old/sectionC/sectionC5/q51_wm_repair_supplies">
+          <label>Q51. Does the WM have basic repair and equipment supplies?</label>
+          <item>
+            <label>Yes</label>
+            <value>yes</value>
+          </item>
+          <item>
+            <label>No</label>
+            <value>no</value>
+          </item>
+        </select1>
+      </group>
+      <group ref="/cascades_old/sectionC/sectionC6">
+        <label>Additional comments</label>
+        <input ref="/cascades_old/sectionC/sectionC6/q52_add_comments">
+          <label>Q52. Do you have any additional comments you would like to enter?</label>
+        </input>
+      </group>
+    </group>
+  </h:body>
+</h:html>

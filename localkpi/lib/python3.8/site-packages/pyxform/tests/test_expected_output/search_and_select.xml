@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>search_and_select</h:title>
+    <model>
+      <instance>
+        <search_and_select id="search_and_select">
+          <fruit/>
+          <note_fruit/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </search_and_select>
+      </instance>
+      <bind nodeset="/search_and_select/fruit" type="select1"/>
+      <bind nodeset="/search_and_select/note_fruit" readonly="true()" type="string"/>
+      <bind jr:preload="uid" nodeset="/search_and_select/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select1 appearance="search('fruits')" ref="/search_and_select/fruit">
+      <label>Choose a fruit</label>
+      <item>
+        <label>name</label>
+        <value>name_key</value>
+      </item>
+    </select1>
+    <input ref="/search_and_select/note_fruit">
+      <label>The fruit <output value=" /search_and_select/fruit "/> pulled from csv</label>
+    </input>
+  </h:body>
+</h:html>

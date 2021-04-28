@@ -1,0 +1,25 @@
+Metadata-Version: 2.1
+Name: django-reversion
+Version: 3.0.1
+Summary: An extension to the Django web framework that provides version control for model instances.
+Home-page: http://github.com/etianen/django-reversion
+Author: Dave Hall
+Author-email: dave@etianen.com
+License: BSD
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Web Environment
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Framework :: Django
+Requires-Dist: django (>=1.11)
+
+UNKNOWN
+
+

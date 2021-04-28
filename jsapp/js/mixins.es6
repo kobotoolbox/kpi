@@ -752,6 +752,9 @@ mixins.contextRouter = {
   isLibrary() {
     return this.context.router.isActive(ROUTES.LIBRARY);
   },
+  isUserManagement() {
+    return this.context.router.isActive(ROUTES.USERMANAGEMENT);
+  },
   isMyLibrary() {
     return this.context.router.isActive(ROUTES.MY_LIBRARY);
   },

@@ -396,6 +396,8 @@ export const ROUTES = Object.freeze({
   NEW_LIBRARY_CHILD: '/library/asset/:uid/new',
   LIBRARY_ITEM_JSON: '/library/asset/:uid/json',
   LIBRARY_ITEM_XFORM: '/library/asset/:uid/xform',
+  USERMANAGEMENT: '/users',
+  USERS: '/users/summary',
   FORMS: '/forms',
   FORM: '/forms/:uid',
   FORM_JSON: '/forms/:uid/json',

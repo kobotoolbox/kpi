@@ -1,0 +1,63 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: django-taggit\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-22 03:32-0700\n"
+"PO-Revision-Date: 2014-04-23 08:05+0900\n"
+"Last-Translator: Tatsuo Ikeda <jp.ne.co.jp@gmail.com>\n"
+"Language-Team: \n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.6.4\n"
+
+#: apps.py:7
+msgid "Taggit"
+msgstr ""
+
+#: forms.py:23
+msgid "Please provide a comma-separated list of tags."
+msgstr "複数タグはカンマ区切りのリストを入れてください。"
+
+#: managers.py:396 models.py:77
+msgid "Tags"
+msgstr "タグ一覧"
+
+#: managers.py:397
+msgid "A comma-separated list of tags."
+msgstr "複数タグはカンマ区切りのリスト。"
+
+#: models.py:16
+msgid "Name"
+msgstr "名称"
+
+#: models.py:17
+msgid "Slug"
+msgstr "スラッグ"
+
+#: models.py:76
+msgid "Tag"
+msgstr "タグ"
+
+#: models.py:83
+#, python-format
+msgid "%(object)s tagged with %(tag)s"
+msgstr "%(object)s tagged with %(tag)s"
+
+#: models.py:128
+msgid "Content type"
+msgstr "コンテンツタイプ"
+
+#: models.py:158 models.py:165
+msgid "Object id"
+msgstr "オブジェクト ID"
+
+#: models.py:173
+msgid "Tagged Item"
+msgstr "タグ付け済みのアイテム"
+
+#: models.py:174
+msgid "Tagged Items"
+msgstr "タグ付け済みのアイテム一覧"

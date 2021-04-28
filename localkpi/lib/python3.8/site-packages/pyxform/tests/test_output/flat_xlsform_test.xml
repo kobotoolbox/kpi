@@ -1,0 +1,906 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:odk="http://www.opendatakit.org/xforms" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>Flat test</h:title>
+    <model>
+      <submission action="https://example-odk-aggregate.appspot.com/submission" base64RsaPublicKey="MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAo93+Dgn3iDleC9XMTDH7ez1MOm/BOt287DgkldNkdvrtdC4oUegx3N8Say9tq47k2EOzeLYkezVnKdtserx+g/+R6pDIOS66bwbH+HoslDEUaZRZ47EipSGC1JhtOp/nQGQCsdVc5q/fPvw8d2rLLi+PQUZPBOiBxUo9h/CFc41hl/quUELmylSdL4O06OAP8OCEDA+tl0C2Ik+uCYMDJLD4m7YVbkV7jJXjtILj+GW+noLriFMRsgg7WKQe2j9fw5+v46nzhokOnDnHh+yGwQMfs/B0jfFAgXllLNjIPlXQf2UVzuxEax6wLCyqUXMIjCPSNfnzDRgFB4Qw3QbJCwIDAQAB" method="post"/>
+      <itext>
+        <translation lang="english">
+          <text id="/flat_xlsform_test/skip_to_end:label">
+            <value>Skip to end</value>
+          </text>
+          <text id="/flat_xlsform_test/email_note:label">
+            <value>You entered an email address</value>
+          </text>
+          <text id="/flat_xlsform_test/number_label:label">
+            <value>1</value>
+          </text>
+          <text id="/flat_xlsform_test/my_name:label">
+            <value>Enter your name</value>
+          </text>
+          <text id="/flat_xlsform_test/invalid_variable:label">
+            <value> Your name is <output value=" /flat_xlsform_test/my_name "/> </value></text>
+          <text id="/flat_xlsform_test/address:label">
+            <value>Enter an address</value>
+          </text>
+          <text id="/flat_xlsform_test/text_image_audio_video_test:label">
+            <value>text_image_audio_video_test</value>
+            <value form="image">jr://images/img_test_2.jpg</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_test:label">
+            <value>autocomplete_test</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_chars_test:label">
+            <value>autocomplete_chars_test</value>
+          </text>
+          <text id="/flat_xlsform_test/a_integer:label">
+            <value>a integer</value>
+          </text>
+          <text id="/flat_xlsform_test/a_decimal:label">
+            <value>constrained decimal</value>
+          </text>
+          <text id="/flat_xlsform_test/required_text:label">
+            <value>required_text</value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test:jr:constraintMsg">
+            <value> Sorry <output value=" /flat_xlsform_test/my_name "/>, you can't select yes and no. </value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test:label">
+            <value>select multiple test</value>
+          </text>
+          <text id="/flat_xlsform_test:label">
+            <value>labeled select group test</value>
+          </text>
+          <text id="/flat_xlsform_test/label-test:label">
+            <value>label-test</value>
+          </text>
+          <text id="/flat_xlsform_test/list-nolabel-test:label">
+            <value>list-nolabel-test</value>
+          </text>
+          <text id="/flat_xlsform_test/table_list_question:label">
+            <value>table list question</value>
+          </text>
+          <text id="/flat_xlsform_test/compact-test:label">
+            <value>compact-test</value>
+          </text>
+          <text id="/flat_xlsform_test/compact-2-test:label">
+            <value>compact-2-test</value>
+          </text>
+          <text id="/flat_xlsform_test/acknowledge_test:label">
+            <value>acknowledge_test</value>
+          </text>
+          <text id="/flat_xlsform_test/date_test:label">
+            <value>date_test</value>
+          </text>
+          <text id="/flat_xlsform_test/time_test:label">
+            <value>time_test</value>
+          </text>
+          <text id="/flat_xlsform_test/datetime_test:label">
+            <value>datetime_test</value>
+          </text>
+          <text id="/flat_xlsform_test/geopoint_test:label">
+            <value>geopoint_test</value>
+          </text>
+          <text id="/flat_xlsform_test/barcode_test:label">
+            <value>barcode_test</value>
+          </text>
+          <text id="/flat_xlsform_test/image_test:label">
+            <value>image_test</value>
+          </text>
+          <text id="/flat_xlsform_test/audio_test:label">
+            <value>audio_test</value>
+          </text>
+          <text id="/flat_xlsform_test/video_test:label">
+            <value>video_test</value>
+          </text>
+          <text id="/flat_xlsform_test/note_test:label">
+            <value>note_test</value>
+          </text>
+          <text id="/flat_xlsform_test/calculate_test_output:label">
+            <value><output value=" /flat_xlsform_test/calculate_test "/></value>
+          </text>
+          <text id="/flat_xlsform_test/start_test_output:label">
+            <value> start test output: <output value=" /flat_xlsform_test/start "/> </value></text>
+          <text id="/flat_xlsform_test/end_test_output:label">
+            <value> end test output: <output value=" /flat_xlsform_test/end "/> </value></text>
+          <text id="/flat_xlsform_test/today_test_output:label">
+            <value> today_test_output: <output value=" /flat_xlsform_test/today "/> </value></text>
+          <text id="/flat_xlsform_test/deviceid_test_output:label">
+            <value> deviceid_test_output: <output value=" /flat_xlsform_test/deviceid "/> </value></text>
+          <text id="/flat_xlsform_test/uri_deviceid_test_output:label">
+            <value> deviceid_test_output: <output value=" /flat_xlsform_test/uri_deviceid "/> </value></text>
+          <text id="/flat_xlsform_test/simserial_test_output:label">
+            <value> simserial_test_output: <output value=" /flat_xlsform_test/simserial "/> </value></text>
+          <text id="/flat_xlsform_test/phonenumber_test_output:label">
+            <value> phonenumber_test_output: <output value=" /flat_xlsform_test/phonenumber "/> </value></text>
+          <text id="/flat_xlsform_test/_1:label">
+            <value>numerical name test</value>
+          </text>
+          <text id="/flat_xlsform_test/FALSE:label">
+            <value>boolean name test</value>
+          </text>
+          <text id="/flat_xlsform_test/launch:label">
+            <value>This launches a fictional application to get an integer result.</value>
+          </text>
+          <text id="/flat_xlsform_test/skip_to_end/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/skip_to_end/no:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/number_label:hint">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/address:hint">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/text_image_audio_video_test:hint">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_test/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_test/no:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_chars_test/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_chars_test/no:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test/no:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/label-test/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/label-test/no:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/list-nolabel-test/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/list-nolabel-test/no:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/reserved_name_for_field_list_labels_25/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/reserved_name_for_field_list_labels_25/no:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/table_list_question/yes:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/table_list_question/no:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/display_image_test:label"/>
+          <text id="/flat_xlsform_test/compact-test/a:label"/>
+          <text id="/flat_xlsform_test/compact-test/b:label"/>
+          <text id="/flat_xlsform_test/compact-2-test/a:label"/>
+          <text id="/flat_xlsform_test/compact-2-test/b:label"/>
+        </translation>
+        <translation lang="chinese">
+          <text id="/flat_xlsform_test/skip_to_end/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/flat_xlsform_test/skip_to_end/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/flat_xlsform_test/number_label:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/number_label:hint">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/address:label">
+            <value>您好</value>
+          </text>
+          <text id="/flat_xlsform_test/address:hint">
+            <value>ni hao</value>
+          </text>
+          <text id="/flat_xlsform_test/text_image_audio_video_test:label">
+            <value>您好</value>
+            <value form="audio">jr://audio/chinese_audio.wav</value>
+          </text>
+          <text id="/flat_xlsform_test/text_image_audio_video_test:hint">
+            <value>ni hao</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_test/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_test/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_chars_test/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_chars_test/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test:jr:constraintMsg">
+            <value> 對不起 <output value=" /flat_xlsform_test/my_name "/>，你可以不選擇&quot;是&quot;和&quot;否&quot;。 </value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/flat_xlsform_test/label-test/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/flat_xlsform_test/label-test/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/flat_xlsform_test/list-nolabel-test/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/flat_xlsform_test/list-nolabel-test/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/flat_xlsform_test/reserved_name_for_field_list_labels_25/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/flat_xlsform_test/reserved_name_for_field_list_labels_25/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/flat_xlsform_test/table_list_question/yes:label">
+            <value>是</value>
+          </text>
+          <text id="/flat_xlsform_test/table_list_question/no:label">
+            <value>没有</value>
+          </text>
+          <text id="/flat_xlsform_test/skip_to_end:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/email_note:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/my_name:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/invalid_variable:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_chars_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/a_integer:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/a_decimal:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/required_text:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/label-test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/list-nolabel-test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/table_list_question:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/compact-test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/compact-2-test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/acknowledge_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/date_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/time_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/datetime_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/geopoint_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/barcode_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/image_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/audio_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/video_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/note_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/calculate_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/start_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/end_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/today_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/deviceid_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/uri_deviceid_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/simserial_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/phonenumber_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/_1:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/FALSE:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/launch:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/display_image_test:label"/>
+          <text id="/flat_xlsform_test/compact-test/a:label"/>
+          <text id="/flat_xlsform_test/compact-test/b:label"/>
+          <text id="/flat_xlsform_test/compact-2-test/a:label"/>
+          <text id="/flat_xlsform_test/compact-2-test/b:label"/>
+        </translation>
+        <translation default="true()" lang="default">
+          <text id="/flat_xlsform_test/skip_to_end/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/flat_xlsform_test/skip_to_end/no:label">
+            <value>No</value>
+          </text>
+          <text id="/flat_xlsform_test/number_label:hint">
+            <value>a note</value>
+          </text>
+          <text id="/flat_xlsform_test/text_image_audio_video_test:hint">
+            <value>The goal of this test is to try out all the different media types in many languages to see if there are any bugs inserting media.</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_test/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_test/no:label">
+            <value>No</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_chars_test/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_chars_test/no:label">
+            <value>No</value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test/no:label">
+            <value>No</value>
+          </text>
+          <text id="/flat_xlsform_test/label-test/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/flat_xlsform_test/label-test/no:label">
+            <value>No</value>
+          </text>
+          <text id="/flat_xlsform_test/list-nolabel-test/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/flat_xlsform_test/list-nolabel-test/no:label">
+            <value>No</value>
+          </text>
+          <text id="/flat_xlsform_test/reserved_name_for_field_list_labels_25/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/flat_xlsform_test/reserved_name_for_field_list_labels_25/no:label">
+            <value>No</value>
+          </text>
+          <text id="/flat_xlsform_test/table_list_question/yes:label">
+            <value>Yes</value>
+          </text>
+          <text id="/flat_xlsform_test/table_list_question/no:label">
+            <value>No</value>
+          </text>
+          <text id="/flat_xlsform_test/text_image_audio_video_test:label">
+            <value form="video">jr://video/test.mov</value>
+            <value form="image">jr://images/img_test.jpg</value>
+            <value form="audio">jr://audio/audio_test.wav</value>
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/display_image_test:label">
+            <value form="image">jr://images/img_test.jpg</value>
+          </text>
+          <text id="/flat_xlsform_test/compact-test/a:label">
+            <value form="image">jr://images/a.jpg</value>
+          </text>
+          <text id="/flat_xlsform_test/compact-test/b:label">
+            <value form="image">jr://images/b.jpg</value>
+          </text>
+          <text id="/flat_xlsform_test/compact-2-test/a:label">
+            <value form="image">jr://images/a.jpg</value>
+          </text>
+          <text id="/flat_xlsform_test/compact-2-test/b:label">
+            <value form="image">jr://images/b.jpg</value>
+          </text>
+          <text id="/flat_xlsform_test/skip_to_end:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/email_note:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/number_label:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/my_name:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/invalid_variable:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/address:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/autocomplete_chars_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/a_integer:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/a_decimal:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/required_text:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test:jr:constraintMsg">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/select_multiple_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/label-test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/list-nolabel-test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/table_list_question:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/compact-test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/compact-2-test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/acknowledge_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/date_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/time_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/datetime_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/geopoint_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/barcode_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/image_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/audio_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/video_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/note_test:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/calculate_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/start_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/end_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/today_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/deviceid_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/uri_deviceid_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/simserial_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/phonenumber_test_output:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/_1:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/FALSE:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/launch:label">
+            <value>-</value>
+          </text>
+          <text id="/flat_xlsform_test/address:hint">
+            <value>-</value>
+          </text>
+        </translation>
+      </itext>
+      <instance>
+        <flat_xlsform_test id="Flat test">
+          <skip_to_end/>
+          <email_note/>
+          <number_label/>
+          <my_name/>
+          <invalid_variable/>
+          <address/>
+          <text_image_audio_video_test/>
+          <display_image_test/>
+          <autocomplete_test/>
+          <autocomplete_chars_test/>
+          <a_integer/>
+          <a_decimal/>
+          <required_text/>
+          <select_multiple_test/>
+          <label-test/>
+          <list-nolabel-test/>
+          <reserved_name_for_field_list_labels_25/>
+          <table_list_question/>
+          <compact-test/>
+          <compact-2-test/>
+          <acknowledge_test/>
+          <date_test/>
+          <time_test/>
+          <datetime_test/>
+          <geopoint_test/>
+          <barcode_test/>
+          <image_test/>
+          <audio_test/>
+          <video_test/>
+          <note_test/>
+          <calculate_test/>
+          <calculate_test_output/>
+          <start/>
+          <start_test_output/>
+          <end/>
+          <end_test_output/>
+          <today/>
+          <today_test_output/>
+          <deviceid/>
+          <deviceid_test_output/>
+          <uri_deviceid/>
+          <uri_deviceid_test_output/>
+          <simserial/>
+          <simserial_test_output/>
+          <phonenumber/>
+          <phonenumber_test_output/>
+          <_1/>
+          <FALSE/>
+          <launch/>
+          <meta>
+            <instanceID/>
+            <instanceName/>
+          </meta>
+        </flat_xlsform_test>
+      </instance>
+      <bind nodeset="/flat_xlsform_test/skip_to_end" type="select1"/>
+      <bind nodeset="/flat_xlsform_test/email_note" readonly="true()" relevant="regex( /flat_xlsform_test/address , '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}')" type="string"/>
+      <bind nodeset="/flat_xlsform_test/number_label" readonly="true()" type="string"/>
+      <bind nodeset="/flat_xlsform_test/my_name" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/invalid_variable" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/address" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/text_image_audio_video_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/display_image_test" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/autocomplete_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="select1"/>
+      <bind nodeset="/flat_xlsform_test/autocomplete_chars_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="select1"/>
+      <bind nodeset="/flat_xlsform_test/a_integer" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="int"/>
+      <bind constraint=". &lt;=  /flat_xlsform_test/a_integer " nodeset="/flat_xlsform_test/a_decimal" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="decimal"/>
+      <bind jr:requiredMsg="Custom required message." nodeset="/flat_xlsform_test/required_text" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" required="true()" type="string"/>
+      <bind constraint="not(selected(., 'yes') and selected (., 'no'))" jr:constraintMsg="jr:itext('/flat_xlsform_test/select_multiple_test:jr:constraintMsg')" nodeset="/flat_xlsform_test/select_multiple_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" required="false()" type="select"/>
+      <bind nodeset="/flat_xlsform_test/label-test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="select1"/>
+      <bind nodeset="/flat_xlsform_test/list-nolabel-test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" required="true()" type="select1"/>
+      <bind nodeset="/flat_xlsform_test/reserved_name_for_field_list_labels_25" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="select1"/>
+      <bind nodeset="/flat_xlsform_test/table_list_question" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="select1"/>
+      <bind nodeset="/flat_xlsform_test/compact-test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="select1"/>
+      <bind nodeset="/flat_xlsform_test/compact-2-test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="select1"/>
+      <bind nodeset="/flat_xlsform_test/acknowledge_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/date_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="date"/>
+      <bind nodeset="/flat_xlsform_test/time_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="time"/>
+      <bind nodeset="/flat_xlsform_test/datetime_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="dateTime"/>
+      <bind nodeset="/flat_xlsform_test/geopoint_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="geopoint"/>
+      <bind nodeset="/flat_xlsform_test/barcode_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="barcode"/>
+      <bind nodeset="/flat_xlsform_test/image_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="binary"/>
+      <bind nodeset="/flat_xlsform_test/audio_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="binary"/>
+      <bind nodeset="/flat_xlsform_test/video_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="binary"/>
+      <bind nodeset="/flat_xlsform_test/note_test" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind calculate="2+2" nodeset="/flat_xlsform_test/calculate_test" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/calculate_test_output" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind jr:preload="timestamp" jr:preloadParams="start" nodeset="/flat_xlsform_test/start" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="dateTime"/>
+      <bind nodeset="/flat_xlsform_test/start_test_output" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind jr:preload="timestamp" jr:preloadParams="end" nodeset="/flat_xlsform_test/end" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="dateTime"/>
+      <bind nodeset="/flat_xlsform_test/end_test_output" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind jr:preload="date" jr:preloadParams="today" nodeset="/flat_xlsform_test/today" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="date"/>
+      <bind nodeset="/flat_xlsform_test/today_test_output" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="deviceid" nodeset="/flat_xlsform_test/deviceid" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/deviceid_test_output" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="uri:deviceid" nodeset="/flat_xlsform_test/uri_deviceid" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/uri_deviceid_test_output" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="simserial" nodeset="/flat_xlsform_test/simserial" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/simserial_test_output" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind jr:preload="property" jr:preloadParams="phonenumber" nodeset="/flat_xlsform_test/phonenumber" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/phonenumber_test_output" readonly="true()" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/_1" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind nodeset="/flat_xlsform_test/FALSE" relevant="not(selected( /flat_xlsform_test/skip_to_end , 'yes'))" type="string"/>
+      <bind jr:noAppErrorString="Sorry, app does not exist." nodeset="/flat_xlsform_test/launch" type="int"/>
+      <bind jr:preload="uid" nodeset="/flat_xlsform_test/meta/instanceID" readonly="true()" type="string"/>
+      <bind calculate=" /flat_xlsform_test/my_name " nodeset="/flat_xlsform_test/meta/instanceName" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select1 ref="/flat_xlsform_test/skip_to_end">
+      <label ref="jr:itext('/flat_xlsform_test/skip_to_end:label')"/>
+      <item>
+        <label ref="jr:itext('/flat_xlsform_test/skip_to_end/yes:label')"/>
+        <value>yes</value>
+      </item>
+      <item>
+        <label ref="jr:itext('/flat_xlsform_test/skip_to_end/no:label')"/>
+        <value>no</value>
+      </item>
+    </select1>
+    <input ref="/flat_xlsform_test/email_note">
+      <label ref="jr:itext('/flat_xlsform_test/email_note:label')"/>
+    </input>
+    <input ref="/flat_xlsform_test/number_label">
+      <label ref="jr:itext('/flat_xlsform_test/number_label:label')"/>
+      <hint ref="jr:itext('/flat_xlsform_test/number_label:hint')"/>
+    </input>
+    <group>
+      <input ref="/flat_xlsform_test/my_name" rows="12">
+        <label ref="jr:itext('/flat_xlsform_test/my_name:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/invalid_variable">
+        <label ref="jr:itext('/flat_xlsform_test/invalid_variable:label')"/>
+        <hint>Try replacing my_name with a invalid variable</hint>
+      </input>
+      <input ref="/flat_xlsform_test/address">
+        <label ref="jr:itext('/flat_xlsform_test/address:label')"/>
+        <hint ref="jr:itext('/flat_xlsform_test/address:hint')"/>
+      </input>
+      <input autoplay="audio" ref="/flat_xlsform_test/text_image_audio_video_test">
+        <label ref="jr:itext('/flat_xlsform_test/text_image_audio_video_test:label')"/>
+        <hint ref="jr:itext('/flat_xlsform_test/text_image_audio_video_test:hint')"/>
+      </input>
+      <input ref="/flat_xlsform_test/display_image_test">
+        <label ref="jr:itext('/flat_xlsform_test/display_image_test:label')"/>
+      </input>
+      <select1 appearance="autocomplete" ref="/flat_xlsform_test/autocomplete_test">
+        <label ref="jr:itext('/flat_xlsform_test/autocomplete_test:label')"/>
+        <item>
+          <label ref="jr:itext('/flat_xlsform_test/autocomplete_test/yes:label')"/>
+          <value>yes</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/flat_xlsform_test/autocomplete_test/no:label')"/>
+          <value>no</value>
+        </item>
+      </select1>
+      <select1 appearance="autocomplete_chars" ref="/flat_xlsform_test/autocomplete_chars_test">
+        <label ref="jr:itext('/flat_xlsform_test/autocomplete_chars_test:label')"/>
+        <item>
+          <label ref="jr:itext('/flat_xlsform_test/autocomplete_chars_test/yes:label')"/>
+          <value>yes</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/flat_xlsform_test/autocomplete_chars_test/no:label')"/>
+          <value>no</value>
+        </item>
+      </select1>
+      <input ref="/flat_xlsform_test/a_integer">
+        <label ref="jr:itext('/flat_xlsform_test/a_integer:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/a_decimal">
+        <label ref="jr:itext('/flat_xlsform_test/a_decimal:label')"/>
+      </input>
+      <group appearance="field-list">
+        <input ref="/flat_xlsform_test/required_text">
+          <label ref="jr:itext('/flat_xlsform_test/required_text:label')"/>
+        </input>
+        <select appearance="minimal" ref="/flat_xlsform_test/select_multiple_test">
+          <label ref="jr:itext('/flat_xlsform_test/select_multiple_test:label')"/>
+          <item>
+            <label ref="jr:itext('/flat_xlsform_test/select_multiple_test/yes:label')"/>
+            <value>yes</value>
+          </item>
+          <item>
+            <label ref="jr:itext('/flat_xlsform_test/select_multiple_test/no:label')"/>
+            <value>no</value>
+          </item>
+        </select>
+      </group>
+      <group appearance="field-list">
+        <label ref="jr:itext('/flat_xlsform_test:label')"/>
+        <select1 appearance="label" ref="/flat_xlsform_test/label-test">
+          <label ref="jr:itext('/flat_xlsform_test/label-test:label')"/>
+          <item>
+            <label ref="jr:itext('/flat_xlsform_test/label-test/yes:label')"/>
+            <value>yes</value>
+          </item>
+          <item>
+            <label ref="jr:itext('/flat_xlsform_test/label-test/no:label')"/>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 appearance="list-nolabel" ref="/flat_xlsform_test/list-nolabel-test">
+          <label ref="jr:itext('/flat_xlsform_test/list-nolabel-test:label')"/>
+          <item>
+            <label ref="jr:itext('/flat_xlsform_test/list-nolabel-test/yes:label')"/>
+            <value>yes</value>
+          </item>
+          <item>
+            <label ref="jr:itext('/flat_xlsform_test/list-nolabel-test/no:label')"/>
+            <value>no</value>
+          </item>
+        </select1>
+      </group>
+      <group appearance="field-list">
+        <select1 appearance="label" ref="/flat_xlsform_test/reserved_name_for_field_list_labels_25">
+          <label> </label>
+          <item>
+            <label ref="jr:itext('/flat_xlsform_test/reserved_name_for_field_list_labels_25/yes:label')"/>
+            <value>yes</value>
+          </item>
+          <item>
+            <label ref="jr:itext('/flat_xlsform_test/reserved_name_for_field_list_labels_25/no:label')"/>
+            <value>no</value>
+          </item>
+        </select1>
+        <select1 appearance="list-nolabel" ref="/flat_xlsform_test/table_list_question">
+          <label ref="jr:itext('/flat_xlsform_test/table_list_question:label')"/>
+          <hint>hint</hint>
+          <item>
+            <label ref="jr:itext('/flat_xlsform_test/table_list_question/yes:label')"/>
+            <value>yes</value>
+          </item>
+          <item>
+            <label ref="jr:itext('/flat_xlsform_test/table_list_question/no:label')"/>
+            <value>no</value>
+          </item>
+        </select1>
+      </group>
+      <select1 appearance="compact" ref="/flat_xlsform_test/compact-test">
+        <label ref="jr:itext('/flat_xlsform_test/compact-test:label')"/>
+        <item>
+          <label ref="jr:itext('/flat_xlsform_test/compact-test/a:label')"/>
+          <value>a</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/flat_xlsform_test/compact-test/b:label')"/>
+          <value>b</value>
+        </item>
+      </select1>
+      <select1 appearance="compact-2" ref="/flat_xlsform_test/compact-2-test">
+        <label ref="jr:itext('/flat_xlsform_test/compact-2-test:label')"/>
+        <item>
+          <label ref="jr:itext('/flat_xlsform_test/compact-2-test/a:label')"/>
+          <value>a</value>
+        </item>
+        <item>
+          <label ref="jr:itext('/flat_xlsform_test/compact-2-test/b:label')"/>
+          <value>b</value>
+        </item>
+      </select1>
+      <trigger ref="/flat_xlsform_test/acknowledge_test">
+        <label ref="jr:itext('/flat_xlsform_test/acknowledge_test:label')"/>
+      </trigger>
+      <input ref="/flat_xlsform_test/date_test">
+        <label ref="jr:itext('/flat_xlsform_test/date_test:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/time_test">
+        <label ref="jr:itext('/flat_xlsform_test/time_test:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/datetime_test">
+        <label ref="jr:itext('/flat_xlsform_test/datetime_test:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/geopoint_test">
+        <label ref="jr:itext('/flat_xlsform_test/geopoint_test:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/barcode_test">
+        <label ref="jr:itext('/flat_xlsform_test/barcode_test:label')"/>
+      </input>
+      <upload mediatype="image/*" ref="/flat_xlsform_test/image_test">
+        <label ref="jr:itext('/flat_xlsform_test/image_test:label')"/>
+      </upload>
+      <upload mediatype="audio/*" ref="/flat_xlsform_test/audio_test">
+        <label ref="jr:itext('/flat_xlsform_test/audio_test:label')"/>
+      </upload>
+      <upload mediatype="video/*" ref="/flat_xlsform_test/video_test">
+        <label ref="jr:itext('/flat_xlsform_test/video_test:label')"/>
+      </upload>
+      <input ref="/flat_xlsform_test/note_test">
+        <label ref="jr:itext('/flat_xlsform_test/note_test:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/calculate_test_output">
+        <label ref="jr:itext('/flat_xlsform_test/calculate_test_output:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/start_test_output">
+        <label ref="jr:itext('/flat_xlsform_test/start_test_output:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/end_test_output">
+        <label ref="jr:itext('/flat_xlsform_test/end_test_output:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/today_test_output">
+        <label ref="jr:itext('/flat_xlsform_test/today_test_output:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/deviceid_test_output">
+        <label ref="jr:itext('/flat_xlsform_test/deviceid_test_output:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/uri_deviceid_test_output">
+        <label ref="jr:itext('/flat_xlsform_test/uri_deviceid_test_output:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/simserial_test_output">
+        <label ref="jr:itext('/flat_xlsform_test/simserial_test_output:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/phonenumber_test_output">
+        <label ref="jr:itext('/flat_xlsform_test/phonenumber_test_output:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/_1">
+        <label ref="jr:itext('/flat_xlsform_test/_1:label')"/>
+      </input>
+      <input ref="/flat_xlsform_test/FALSE">
+        <label ref="jr:itext('/flat_xlsform_test/FALSE:label')"/>
+      </input>
+    </group>
+    <input appearance="ex:org.thirdparty.app.ActivityName" ref="/flat_xlsform_test/launch">
+      <label ref="jr:itext('/flat_xlsform_test/launch:label')"/>
+    </input>
+  </h:body>
+</h:html>

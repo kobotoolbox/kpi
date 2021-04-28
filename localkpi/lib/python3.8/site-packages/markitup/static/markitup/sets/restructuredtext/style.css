@@ -1,0 +1,53 @@
+/* -------------------------------------------------------------------
+// ReST!
+// ------------------------------------------------------------------*/
+.ReST .markItUpButton1 a {
+	background-image:url(images/h1.png); 
+}
+.ReST .markItUpButton2 a {
+	background-image:url(images/h2.png); 
+}
+.ReST .markItUpButton3 a {
+	background-image:url(images/h3.png); 
+}
+.ReST .markItUpButton4 a {
+	background-image:url(images/h4.png); 
+}
+.ReST .markItUpButton5 a {
+	background-image:url(images/h5.png); 
+}
+.ReST .markItUpButton6 a {
+	background-image:url(images/h6.png); 
+}
+
+.ReST .markItUpButton7 a {
+	background-image:url(images/bold.png);
+}
+.ReST .markItUpButton8 a {
+	background-image:url(images/italic.png);
+}
+
+.ReST .markItUpButton9 a {
+	background-image:url(images/list-bullet.png);
+}
+.ReST .markItUpButton10 a {
+	background-image:url(images/list-numeric.png);
+}
+
+.ReST .markItUpButton11 a {
+	background-image:url(images/picture.png); 
+}
+.ReST .markItUpButton12 a {
+	background-image:url(images/link.png);
+}
+
+.ReST .markItUpButton13 a	{
+	background-image:url(images/quotes.png);
+}
+.ReST .markItUpButton14 a	{
+	background-image:url(images/code.png);
+}
+
+.ReST .preview a {
+	background-image:url(images/preview.png);
+}

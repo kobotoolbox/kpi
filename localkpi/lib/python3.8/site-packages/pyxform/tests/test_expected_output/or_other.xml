@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>or_other</h:title>
+    <model>
+      <itext>
+        <translation default="true()" lang="default">
+          <text id="static_instance-colors-4">
+            <value>apricot</value>
+          </text>
+          <text id="static_instance-colors-2">
+            <value>blue</value>
+          </text>
+          <text id="static_instance-colors-3">
+            <value>mauve</value>
+          </text>
+          <text id="static_instance-colors-0">
+            <value>red</value>
+          </text>
+          <text id="static_instance-colors-1">
+            <value>green</value>
+          </text>
+        </translation>
+      </itext>
+      <instance>
+        <or_other id="or_other">
+          <fav_color/>
+          <fav_color_other/>
+          <fav_pastel/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </or_other>
+      </instance>
+      <instance id="colors">
+        <root>
+          <item>
+            <itextId>static_instance-colors-0</itextId>
+            <pastel>no</pastel>
+            <name>red</name>
+          </item>
+          <item>
+            <itextId>static_instance-colors-1</itextId>
+            <pastel>no</pastel>
+            <name>green</name>
+          </item>
+          <item>
+            <itextId>static_instance-colors-2</itextId>
+            <pastel>no</pastel>
+            <name>blue</name>
+          </item>
+          <item>
+            <itextId>static_instance-colors-3</itextId>
+            <pastel>yes</pastel>
+            <name>mauve</name>
+          </item>
+          <item>
+            <itextId>static_instance-colors-4</itextId>
+            <pastel>yes</pastel>
+            <name>apricot</name>
+          </item>
+        </root>
+      </instance>
+      <bind nodeset="/or_other/fav_color" type="select1"/>
+      <bind nodeset="/or_other/fav_color_other" relevant="selected(../fav_color, 'other')" type="string"/>
+      <bind nodeset="/or_other/fav_pastel" type="select1"/>
+      <bind jr:preload="uid" nodeset="/or_other/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select1 ref="/or_other/fav_color">
+      <label>What is your favorite color?</label>
+      <item>
+        <label>red</label>
+        <value>red</value>
+      </item>
+      <item>
+        <label>green</label>
+        <value>green</value>
+      </item>
+      <item>
+        <label>blue</label>
+        <value>blue</value>
+      </item>
+      <item>
+        <label>mauve</label>
+        <value>mauve</value>
+      </item>
+      <item>
+        <label>apricot</label>
+        <value>apricot</value>
+      </item>
+      <item>
+        <label>Other</label>
+        <value>other</value>
+      </item>
+    </select1>
+    <input ref="/or_other/fav_color_other">
+      <label>Specify other.</label>
+    </input>
+    <select1 ref="/or_other/fav_pastel">
+      <label>What is your favorite pastel?</label>
+      <itemset nodeset="instance('colors')/root/item[pastel=yes]">
+        <value ref="name"/>
+        <label ref="jr:itext(itextId)"/>
+      </itemset>
+    </select1>
+  </h:body>
+</h:html>

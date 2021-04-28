@@ -1,0 +1,67 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-22 03:32-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: apps.py:7
+msgid "Taggit"
+msgstr ""
+
+#: forms.py:23
+msgid "Please provide a comma-separated list of tags."
+msgstr ""
+
+#: managers.py:396 models.py:77
+msgid "Tags"
+msgstr ""
+
+#: managers.py:397
+msgid "A comma-separated list of tags."
+msgstr ""
+
+#: models.py:16
+msgid "Name"
+msgstr ""
+
+#: models.py:17
+msgid "Slug"
+msgstr ""
+
+#: models.py:76
+msgid "Tag"
+msgstr ""
+
+#: models.py:83
+#, python-format
+msgid "%(object)s tagged with %(tag)s"
+msgstr ""
+
+#: models.py:128
+msgid "Content type"
+msgstr ""
+
+#: models.py:158 models.py:165
+msgid "Object id"
+msgstr ""
+
+#: models.py:173
+msgid "Tagged Item"
+msgstr ""
+
+#: models.py:174
+msgid "Tagged Items"
+msgstr ""

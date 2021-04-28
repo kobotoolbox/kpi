@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:odk="http://www.opendatakit.org/xforms" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>old_cascades</h:title>
+    <model>
+      <itext>
+        <translation default="true()" lang="default">
+          <text id="static_instance-states-0">
+            <value>texas</value>
+          </text>
+          <text id="static_instance-states-1">
+            <value>washington</value>
+          </text>
+          <text id="static_instance-counties-0">
+            <value>king</value>
+          </text>
+          <text id="static_instance-counties-1">
+            <value>cameron</value>
+          </text>
+          <text id="static_instance-counties-2">
+            <value>king</value>
+          </text>
+          <text id="static_instance-counties-3">
+            <value>pierce</value>
+          </text>
+          <text id="static_instance-cities-0">
+            <value>dumont</value>
+          </text>
+          <text id="static_instance-cities-1">
+            <value>finney</value>
+          </text>
+          <text id="static_instance-cities-2">
+            <value>brownsville</value>
+          </text>
+          <text id="static_instance-cities-3">
+            <value>harlingen</value>
+          </text>
+          <text id="static_instance-cities-4">
+            <value>seattle</value>
+          </text>
+          <text id="static_instance-cities-5">
+            <value>redmond</value>
+          </text>
+          <text id="static_instance-cities-6">
+            <value>tacoma</value>
+          </text>
+          <text id="static_instance-cities-7">
+            <value>puyallup</value>
+          </text>
+        </translation>
+      </itext>
+      <instance>
+        <old_cascades id="old_cascades">
+          <state_states/>
+          <state_counties/>
+          <state/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </old_cascades>
+      </instance>
+      <instance id="states">
+        <root>
+          <item>
+            <itextId>static_instance-states-0</itextId>
+            <name>texas</name>
+          </item>
+          <item>
+            <itextId>static_instance-states-1</itextId>
+            <name>washington</name>
+          </item>
+        </root>
+      </instance>
+      <instance id="counties">
+        <root>
+          <item>
+            <itextId>static_instance-counties-0</itextId>
+            <name>king</name>
+            <states>texas</states>
+          </item>
+          <item>
+            <itextId>static_instance-counties-1</itextId>
+            <name>cameron</name>
+            <states>texas</states>
+          </item>
+          <item>
+            <itextId>static_instance-counties-2</itextId>
+            <name>king</name>
+            <states>washington</states>
+          </item>
+          <item>
+            <itextId>static_instance-counties-3</itextId>
+            <name>pierce</name>
+            <states>washington</states>
+          </item>
+        </root>
+      </instance>
+      <instance id="cities">
+        <root>
+          <item>
+            <itextId>static_instance-cities-0</itextId>
+            <name>dumont</name>
+            <states>texas</states>
+            <counties>king</counties>
+          </item>
+          <item>
+            <itextId>static_instance-cities-1</itextId>
+            <name>finney</name>
+            <states>texas</states>
+            <counties>king</counties>
+          </item>
+          <item>
+            <itextId>static_instance-cities-2</itextId>
+            <name>brownsville</name>
+            <states>texas</states>
+            <counties>cameron</counties>
+          </item>
+          <item>
+            <itextId>static_instance-cities-3</itextId>
+            <name>harlingen</name>
+            <states>texas</states>
+            <counties>cameron</counties>
+          </item>
+          <item>
+            <itextId>static_instance-cities-4</itextId>
+            <name>seattle</name>
+            <states>washington</states>
+            <counties>king</counties>
+          </item>
+          <item>
+            <itextId>static_instance-cities-5</itextId>
+            <name>redmond</name>
+            <states>washington</states>
+            <counties>king</counties>
+          </item>
+          <item>
+            <itextId>static_instance-cities-6</itextId>
+            <name>tacoma</name>
+            <states>washington</states>
+            <counties>pierce</counties>
+          </item>
+          <item>
+            <itextId>static_instance-cities-7</itextId>
+            <name>puyallup</name>
+            <states>washington</states>
+            <counties>pierce</counties>
+          </item>
+        </root>
+      </instance>
+      <bind nodeset="/old_cascades/state_states" type="select1"/>
+      <bind nodeset="/old_cascades/state_counties" type="select1"/>
+      <bind nodeset="/old_cascades/state" type="select1"/>
+      <bind jr:preload="uid" nodeset="/old_cascades/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select1 ref="/old_cascades/state_states">
+      <label>State:</label>
+      <itemset nodeset="instance('states')/root/item">
+        <value ref="name"/>
+        <label ref="jr:itext(itextId)"/>
+      </itemset>
+    </select1>
+    <select1 ref="/old_cascades/state_counties">
+      <label>County:</label>
+      <itemset nodeset="instance('counties')/root/item[states= /old_cascades/state_states ]">
+        <value ref="name"/>
+        <label ref="jr:itext(itextId)"/>
+      </itemset>
+    </select1>
+    <select1 ref="/old_cascades/state">
+      <label>City:</label>
+      <itemset nodeset="instance('cities')/root/item[states= /old_cascades/state_states  and counties= /old_cascades/state_counties ]">
+        <value ref="name"/>
+        <label ref="jr:itext(itextId)"/>
+      </itemset>
+    </select1>
+  </h:body>
+</h:html>

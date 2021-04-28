@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>cascading select test</h:title>
+    <model>
+      <instance>
+        <select_one_external id="cascading_select_test">
+          <state/>
+          <county/>
+          <city/>
+          <meta>
+            <instanceID/>
+          </meta>
+        </select_one_external>
+      </instance>
+      <bind nodeset="/select_one_external/state" type="select1"/>
+      <bind nodeset="/select_one_external/county" type="string"/>
+      <bind nodeset="/select_one_external/city" type="string"/>
+      <bind jr:preload="uid" nodeset="/select_one_external/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <select1 ref="/select_one_external/state">
+      <label>state</label>
+      <item>
+        <label>Texas</label>
+        <value>texas</value>
+      </item>
+      <item>
+        <label>Washington</label>
+        <value>washington</value>
+      </item>
+    </select1>
+    <input query="instance('counties')/root/item[state= /select_one_external/state ]" ref="/select_one_external/county">
+      <label>county</label>
+    </input>
+    <input query="instance('cities')/root/item[state= /select_one_external/state  and county= /select_one_external/county ]" ref="/select_one_external/city">
+      <label>city</label>
+    </input>
+  </h:body>
+</h:html>

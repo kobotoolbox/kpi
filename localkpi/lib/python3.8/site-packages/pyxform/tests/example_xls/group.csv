@@ -1,0 +1,7 @@
+"survey",,,
+,"type","name","label:English"
+,"text","family_name","What's your family name?"
+,"begin group","father","Father"
+,"phone number","phone_number","What's your father's phone number?"
+,"integer","age","How old is your father?"
+,"end group",,

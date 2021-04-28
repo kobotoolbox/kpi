@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<h:html xmlns="http://www.w3.org/2002/xforms" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:jr="http://openrosa.org/javarosa" xmlns:odk="http://www.opendatakit.org/xforms" xmlns:orx="http://openrosa.org/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <h:head>
+    <h:title>Default TIme Demo</h:title>
+    <model>
+      <instance>
+        <default_time_demo id="default_time_demo">
+          <start_time>09:30:00</start_time>
+          <meta>
+            <instanceID/>
+          </meta>
+        </default_time_demo>
+      </instance>
+      <bind nodeset="/default_time_demo/start_time" type="time"/>
+      <bind jr:preload="uid" nodeset="/default_time_demo/meta/instanceID" readonly="true()" type="string"/>
+    </model>
+  </h:head>
+  <h:body>
+    <input ref="/default_time_demo/start_time">
+      <label>Start time</label>
+    </input>
+  </h:body>
+</h:html>
