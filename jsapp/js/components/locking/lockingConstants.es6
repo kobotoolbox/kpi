@@ -22,6 +22,7 @@ export const LOCKING_RESTRICTIONS = Object.freeze({
   group_skip_logic_edit: {name: 'group_skip_logic_edit', label: t('Edit skip logic')},
   group_split: {name: 'group_split', label: t('Split group')},
   // form related
+  form_appearance: {name: 'form_appearance', label: t('Change form appearance')},
   form_replace: {name: 'form_replace', label: t('Replace whole form')},
   group_add: {name: 'group_add', label: t('Add group')},
   question_add: {name: 'question_add', label: t('Add question')},
@@ -52,6 +53,7 @@ export const GROUP_RESTRICTIONS = [
   LOCKING_RESTRICTIONS.group_split,
 ];
 export const FORM_RESTRICTIONS = [
+  LOCKING_RESTRICTIONS.form_appearance,
   LOCKING_RESTRICTIONS.form_replace,
   LOCKING_RESTRICTIONS.group_add,
   LOCKING_RESTRICTIONS.question_add,
@@ -80,6 +82,7 @@ export const LOCK_ALL_RESTRICTION_NAMES = [
   LOCKING_RESTRICTIONS.group_settings_edit.name,
   LOCKING_RESTRICTIONS.group_skip_logic_edit.name,
   LOCKING_RESTRICTIONS.group_split.name,
+  LOCKING_RESTRICTIONS.form_appearance.name,
   LOCKING_RESTRICTIONS.form_replace.name,
   LOCKING_RESTRICTIONS.group_add.name,
   LOCKING_RESTRICTIONS.question_add.name,
