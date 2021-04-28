@@ -1,4 +1,5 @@
 # coding: utf-8
+import abc
 import copy
 import json
 from typing import Union, Iterator
@@ -26,12 +27,12 @@ from kpi.utils.jsonbfield_helper import ReplaceValues
 from kpi.utils.iterators import compare, to_int
 
 
-class BaseDeploymentBackend:
+class BaseDeploymentBackend(abc.ABC):
     """
     Defines the interface for a deployment backend.
     """
 
-    INSTANCE_ID_FIELDNAME = '_id'
+    SUBMISSION_ID_FIELDNAME = '_id'
     STATUS_SYNCED = 'synced'
     STATUS_NOT_SYNCED = 'not-synced'
 
@@ -45,9 +46,6 @@ class BaseDeploymentBackend:
     def active(self):
         return self.get_data('active', False)
 
-    def connect(self, active=False):
-        raise AbstractMethodError
-
     @property
     def backend(self):
         return self.get_data('backend')
@@ -56,14 +54,23 @@ class BaseDeploymentBackend:
     def backend_response(self):
         return self.get_data('backend_response', {})
 
+    @abc.abstractmethod
     def bulk_assign_mapped_perms(self):
-        raise AbstractMethodError
+        pass
 
-    def bulk_update_submissions(self):
-        raise AbstractMethodError
+    @abc.abstractmethod
+    def bulk_update_submissions(
+        self, data: dict, user: 'auth.User'
+    ) -> dict:
+        pass
 
+    @abc.abstractmethod
     def calculated_submission_count(self, user: 'auth.User', **kwargs):
-        raise AbstractMethodError
+        pass
+
+    @abc.abstractmethod
+    def connect(self, active=False):
+        pass
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
@@ -98,22 +105,26 @@ class BaseDeploymentBackend:
 
         return value
 
-    def delete_submission(self, pk: int, user: 'auth.User') -> dict:
-        raise AbstractMethodError
+    @abc.abstractmethod
+    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+        pass
 
+    @abc.abstractmethod
     def duplicate_submission(
-            self, user: 'auth.User', instance_id: int, **kwargs: dict
+        self,  submission_id: int, user: 'auth.User', **kwargs
     ) -> dict:
-        raise AbstractMethodError
+        pass
 
+    @abc.abstractmethod
     def get_data_download_links(self):
-        raise AbstractMethodError
+        pass
 
+    @abc.abstractmethod
     def get_enketo_survey_links(self):
-        raise AbstractMethodError
+        pass
 
     def get_submission(self,
-                       pk: int,
+                       submission_id: int,
                        user: 'auth.User',
                        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
                        **kwargs: dict) -> Union[dict, str, None]:
@@ -129,34 +140,44 @@ class BaseDeploymentBackend:
         result.
         """
 
-        submissions = list(self.get_submissions(user,
-                                                format_type, [int(pk)],
-                                                **kwargs))
+        submissions = list(
+            self.get_submissions(
+                user, format_type, [int(submission_id)], **kwargs
+            )
+        )
         try:
             return submissions[0]
         except IndexError:
             pass
         return None
 
-    def get_submission_detail_url(self, submission_pk):
-        raise AbstractMethodError
+    @abc.abstractmethod
+    def get_submission_detail_url(self, submission_id: int) -> str:
+        pass
 
-    def get_submission_edit_url(self, submission_pk, user, params=None):
-        raise AbstractMethodError
+    @abc.abstractmethod
+    def get_submission_edit_url(
+        self, submission_id: int, user: 'auth.User', params: dict = None
+    ) -> dict:
+        """
+        Return a formatted dict to be passed to a Response object
+        """
+        pass
 
-    def get_submission_validation_status_url(self, submission_pk):
-        # This doesn't really need to be implemented.
-        # We keep it to stay close to `KobocatDeploymentBackend`
+    def get_submission_validation_status_url(self, submission_id: int) -> str:
+        # This does not really need to be implemented.
+        # We keep it to stay close to `KobocatDeploymentBackend` for unit tests
         url = '{detail_url}validation_status/'.format(
-            detail_url=self.get_submission_detail_url(submission_pk)
+            detail_url=self.get_submission_detail_url(submission_id)
         )
         return url
 
+    @abc.abstractmethod
     def get_submissions(self,
                         user: 'auth.User',
                         format_type: str = INSTANCE_FORMAT_TYPE_JSON,
-                        instance_ids: list = [],
-                        **kwargs: dict) -> [Iterator[dict], Iterator[str]]:
+                        submission_ids: list = [],
+                        **kwargs: dict) -> Union[Iterator[dict], Iterator[str]]:
         """
         Retrieves submissions whose `user` is allowed to access
         The format `format_type` can be either:
@@ -166,17 +187,14 @@ class BaseDeploymentBackend:
         Results can be filtered on instance ids. Moreover filters can be
         passed through `kwargs` to narrow down results in the back end
         """
-        raise AbstractMethodError
+        pass
 
-    def get_validation_status(self, submission_pk, params, user):
-        submission = self.get_submission(
-            submission_pk,
-            user=user,
-            format_type=INSTANCE_FORMAT_TYPE_JSON,
-        )
-        return {
-            "data": submission.get("_validation_status")
-        }
+    @abc.abstractmethod
+    def get_validation_status(self, submission_id, user, params) -> dict:
+        """
+        Return a formatted dict to be passed to a Response object
+        """
+        pass
 
     @property
     def identifier(self):
@@ -190,8 +208,9 @@ class BaseDeploymentBackend:
     def mongo_userform_id(self):
         return None
 
-    def redeploy(self, active=None):
-        raise AbstractMethodError
+    @abc.abstractmethod
+    def redeploy(self, active: bool = None):
+        pass
 
     def remove_from_kc_only_flag(self, *args, **kwargs):
         # TODO: This exists only to support KoBoCAT (see #1161) and should be
@@ -221,27 +240,32 @@ class BaseDeploymentBackend:
         self.store_data(updates)
         self.asset.date_modified = now
 
-    def set_active(self, active):
-        raise AbstractMethodError
+    @abc.abstractmethod
+    def set_active(self, active: bool):
+        pass
 
+    @abc.abstractmethod
     def set_asset_uid(self, **kwargs) -> bool:
-        raise AbstractMethodError
+        pass
 
+    @abc.abstractmethod
     def set_has_kpi_hooks(self):
-        raise AbstractMethodError
+        pass
 
     def set_status(self, status):
         self.save_to_db({'status': status})
 
+    @abc.abstractmethod
     def set_validation_status(self,
-                              submission_pk: int,
+                              submission_id: int,
                               data: dict,
                               user: 'auth.User',
                               method: str) -> dict:
-        raise AbstractMethodError
+        pass
 
+    @abc.abstractmethod
     def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
-        raise AbstractMethodError
+        pass
 
     @property
     def status(self):
@@ -261,18 +285,20 @@ class BaseDeploymentBackend:
         return self._submission_count()
 
     @property
+    @abc.abstractmethod
     def submission_list_url(self):
-        raise AbstractMethodError
+        pass
 
+    @abc.abstractmethod
     def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
-        raise AbstractMethodError
+        pass
 
     def validate_submission_list_params(
         self,
         user: 'auth.User',
         format_type: str = INSTANCE_FORMAT_TYPE_JSON,
         validate_count: bool = False,
-        **kwargs: dict
+        **kwargs
     ) -> dict:
         """
         Validates parameters (`kwargs`) to be passed to Mongo.
@@ -282,7 +308,7 @@ class BaseDeploymentBackend:
             - sort
             - fields
             - query
-            - instance_ids
+            - submission_ids
         If `validate_count` is True,`start`, `limit`, `fields` and `sort` are
         ignored.
 
@@ -319,7 +345,7 @@ class BaseDeploymentBackend:
         sort = kwargs.get('sort', {})
         fields = kwargs.get('fields', [])
         query = kwargs.get('query', {})
-        instance_ids = kwargs.get('instance_ids', [])
+        submission_ids = kwargs.get('submission_ids', [])
 
         # TODO: Should this validation be in (or called directly by) the view
         # code? Does DRF have a validator for GET params?
@@ -332,14 +358,13 @@ class BaseDeploymentBackend:
                     {'query': _('Value must be valid JSON.')}
                 )
 
-        if not isinstance(instance_ids, list):
+        if not isinstance(submission_ids, list):
             raise serializers.ValidationError(
-                {'instance_ids': _('Value must be a list.')}
+                {'submission_ids': _('Value must be a list.')}
             )
 
         # This error should not be returned as `ValidationError` to user.
         # We want to return a 500.
-
         partial_perm = kwargs.pop('partial_perm', PERM_VIEW_SUBMISSIONS)
         try:
             permission_filters = self.asset.get_filters_for_partial_perm(
@@ -350,7 +375,7 @@ class BaseDeploymentBackend:
         if validate_count:
             return {
                 'query': query,
-                'instance_ids': instance_ids,
+                'submission_ids': submission_ids,
                 'permission_filters': permission_filters
             }
 
@@ -389,7 +414,7 @@ class BaseDeploymentBackend:
             'start': start,
             'fields': fields,
             'sort': sort,
-            'instance_ids': instance_ids,
+            'submission_ids': submission_ids,
             'permission_filters': permission_filters
         }
 
@@ -428,12 +453,12 @@ class BaseDeploymentBackend:
             # see in order to to compare the requested subset of submissions to
             # all
             all_submissions = self.get_submissions(
-                requesting_user_id=user.pk,
+                user=user,
                 partial_perm=perm,
-                fields=[self.INSTANCE_ID_FIELDNAME],
+                fields=[self.SUBMISSION_ID_FIELDNAME],
             )
             allowed_submission_ids = [
-                r[self.INSTANCE_ID_FIELDNAME] for r in all_submissions
+                r[self.SUBMISSION_ID_FIELDNAME] for r in all_submissions
             ]
 
             # User should see at least one submission to be allowed to do
@@ -449,13 +474,13 @@ class BaseDeploymentBackend:
         submissions = self.get_submissions(
             user=user,
             partial_perm=perm,
-            fields=[self.INSTANCE_ID_FIELDNAME],
-            instance_ids=submission_ids,
+            fields=[self.SUBMISSION_ID_FIELDNAME],
+            submission_ids=submission_ids,
             query=query,
         )
 
         requested_submission_ids = [
-            r[self.INSTANCE_ID_FIELDNAME] for r in submissions
+            r[self.SUBMISSION_ID_FIELDNAME] for r in submissions
         ]
 
         if not requested_submission_ids:

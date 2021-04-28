@@ -87,7 +87,7 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_url = self.asset.deployment.submission_list_url
         self._deployment = self.asset.deployment
-        self._id_fieldname = self.asset.deployment.INSTANCE_ID_FIELDNAME
+        self._id_fieldname = self.asset.deployment.SUBMISSION_ID_FIELDNAME
 
     def _log_in_as_another_user(self):
         """
@@ -399,7 +399,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_retrieve_submission_owner(self):
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
 
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -409,7 +409,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -418,7 +418,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, submission)
@@ -450,7 +450,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_delete_submission_owner(self):
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
 
         response = self.client.delete(url,
                                       content_type="application/json",
@@ -464,7 +464,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.client.logout()
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
 
         response = self.client.delete(url,
                                       content_type="application/json",
@@ -475,7 +475,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
 
         response = self.client.delete(url,
                                       content_type="application/json",
@@ -487,7 +487,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
@@ -649,7 +649,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submissions[0].get(
-                    self.asset.deployment.INSTANCE_ID_FIELDNAME
+                    self.asset.deployment.SUBMISSION_ID_FIELDNAME
                 ),
             },
         )
@@ -1000,7 +1000,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
                                       data=data,
                                       format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        count = self._deployment.calculated_submission_count(self.someuser.pk)
+        count = self._deployment.calculated_submission_count(self.someuser)
         expected_response = {'detail': f'{count} submissions have been updated'}
         self.assertEqual(response.data, expected_response)
 
@@ -1022,7 +1022,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
                                       format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         count = self._deployment.calculated_submission_count(
-            self.someuser.pk, instance_ids=[submission_id]
+            self.someuser, submission_ids=[submission_id]
         )
         expected_response = {'detail': f'{count} submissions have been updated'}
         self.assertEqual(response.data, expected_response)
@@ -1065,7 +1065,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
                                       format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        count = self._deployment.calculated_submission_count(self.anotheruser.pk)
+        count = self._deployment.calculated_submission_count(self.anotheruser)
         expected_response = {'detail': f'{count} submissions have been updated'}
         self.assertEqual(response.data, expected_response)
 
@@ -1106,7 +1106,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
                                      data=data,
                                      format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        count = self._deployment.calculated_submission_count(self.someuser.pk)
+        count = self._deployment.calculated_submission_count(self.someuser)
         expected_response = {'detail': f'{count} submissions have been updated'}
         self.assertEqual(response.data, expected_response)
 
@@ -1132,7 +1132,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
                                      format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         count = self._deployment.calculated_submission_count(
-            self.someuser.pk, instance_ids=[submission_id]
+            self.someuser, submission_ids=[submission_id]
         )
         expected_response = {'detail': f'{count} submissions have been updated'}
         self.assertEqual(response.data, expected_response)
@@ -1181,7 +1181,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         count = self._deployment.calculated_submission_count(
-            self.anotheruser.pk)
+            self.anotheruser)
         expected_response = {'detail': f'{count} submissions have been updated'}
         self.assertEqual(response.data, expected_response)
 
@@ -1231,7 +1231,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         count = self._deployment.calculated_submission_count(
-            self.anotheruser.pk)
+            self.anotheruser)
         expected_response = {'detail': f'{count} submissions have been updated'}
         self.assertEqual(response.data, expected_response)
 
@@ -1285,7 +1285,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         count = self._deployment.calculated_submission_count(
-            self.anotheruser.pk, instance_ids=data['payload']['submission_ids'])
+            self.anotheruser, submission_ids=data['payload']['submission_ids'])
         expected_response = {'detail': f'{count} submissions have been updated'}
         self.assertEqual(response.data, expected_response)
 

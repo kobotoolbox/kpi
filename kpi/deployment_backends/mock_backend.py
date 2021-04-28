@@ -17,6 +17,8 @@ from kpi.constants import (
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
 )
+from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
+from kpi.models.asset_file import AssetFile
 from kpi.utils.iterators import to_int
 from .base_backend import BaseDeploymentBackend
 
@@ -46,14 +48,14 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         submissions = self.get_submissions(
             user=user,
             format_type=INSTANCE_FORMAT_TYPE_JSON,
-            instance_ids=submission_ids
+            submission_ids=submission_ids
         )
 
         submission_ids = to_int(submission_ids)
 
         responses = []
         for submission in submissions:
-            if submission[self.INSTANCE_ID_FIELDNAME] in submission_ids:
+            if submission[self.SUBMISSION_ID_FIELDNAME] in submission_ids:
                 _uuid = uuid.uuid4()
                 submission['deprecatedID'] = submission['instanceID']
                 submission['instanceID'] = f'uuid:{_uuid}'
@@ -72,7 +74,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.mock_submissions(submissions)
         return self.__prepare_bulk_update_response(responses)
 
-    def calculated_submission_count(self, user, **kwargs) -> int:
+    def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
         params = self.validate_submission_list_params(user,
                                                       validate_count=True,
                                                       **kwargs)
@@ -91,7 +93,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             }
         })
 
-    def delete_submission(self, pk: int, user: 'auth.User') -> dict:
+    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
         """
         Delete a submission
         """
@@ -99,13 +101,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            submission_ids=[pk],
+            submission_ids=[submission_id],
         )
 
         submissions = self.get_data('submissions', [])
         iterator = submissions.copy()
         for submission in iterator:
-            if int(submission[self.INSTANCE_ID_FIELDNAME]) == int(pk):
+            if int(submission[self.SUBMISSION_ID_FIELDNAME]) == int(
+                submission_id
+            ):
                 submissions.remove(submission)
                 self.mock_submissions(submissions)
                 return {
@@ -142,7 +146,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             data['query'] = {}
 
         submissions = self.get_submissions(user,
-                                           instance_ids=submission_ids,
+                                           submission_ids=submission_ids,
                                            query=data['query'])
 
         if not submissions:
@@ -155,7 +159,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         for submission in iterator:
             if (
                 data.get('confirm')
-                or int(submission[self.INSTANCE_ID_FIELDNAME]) in submission_ids
+                or int(submission[self.SUBMISSION_ID_FIELDNAME]) in submission_ids
             ):
                 submissions.remove(submission)
 
@@ -167,7 +171,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def duplicate_submission(
-        self, user: 'auth.User', instance_id: int
+        self, submission_id: int, user: 'auth.User'
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
@@ -175,15 +179,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            submission_ids=[instance_id],
+            submission_ids=[submission_id],
         )
 
         all_submissions = self.get_data('submissions')
         duplicated_submission = copy.deepcopy(
-            self.get_submission(instance_id, user=user)
+            self.get_submission(submission_id, user=user)
         )
         next_id = (
-            max((sub[self.INSTANCE_ID_FIELDNAME] for sub in all_submissions))
+            max((sub[self.SUBMISSION_ID_FIELDNAME] for sub in all_submissions))
             + 1
         )
         updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
@@ -212,12 +216,12 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
         }
 
-    def get_submission_detail_url(self, submission_pk):
+    def get_submission_detail_url(self, submission_id: int) -> str:
         # This doesn't really need to be implemented.
         # We keep it to stay close to `KobocatDeploymentBackend`
         url = '{list_url}{pk}/'.format(
             list_url=self.submission_list_url,
-            pk=submission_pk
+            pk=submission_id
         )
         return url
 
@@ -241,19 +245,17 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             }
         }
 
-    def get_submission_validation_status_url(self, submission_pk):
-        # This doesn't really need to be implemented.
-        # We keep it to stay close to `KobocatDeploymentBackend`
+    def get_submission_validation_status_url(self, submission_id: int) -> str:
         url = '{detail_url}validation_status/'.format(
-            detail_url=self.get_submission_detail_url(submission_pk)
+            detail_url=self.get_submission_detail_url(submission_id)
         )
         return url
 
     def get_submissions(self,
                         user: 'auth.User',
                         format_type: str = INSTANCE_FORMAT_TYPE_JSON,
-                        instance_ids: list = [],
-                        **kwargs: dict) -> list:
+                        submission_ids: list = [],
+                        **kwargs) -> list:
         """
         Retrieves submissions whose `user` is allowed to access
         The format `format_type` can be either:
@@ -265,21 +267,21 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         TODO support Mongo Query and XML
         """
 
-        submissions = self.get_data("submissions", [])
-        kwargs['instance_ids'] = instance_ids
+        submissions = self.get_data('submissions', [])
+        kwargs['submission_ids'] = submission_ids
         params = self.validate_submission_list_params(user,
                                                       format_type=format_type,
                                                       **kwargs)
         permission_filters = params['permission_filters']
 
-        if len(instance_ids) > 0:
+        if len(submission_ids) > 0:
             if format_type == INSTANCE_FORMAT_TYPE_XML:
-                instance_ids = [str(instance_id) for instance_id in
-                                instance_ids]
+                submission_ids = [str(submission_id) for submission_id in
+                                  submission_ids]
                 # ugly way to find matches, but it avoids to load each xml in memory  # noqa
-                pattern = r'<{id_field}>({instance_ids})<\/{id_field}>'.format(
-                    instance_ids='|'.join(instance_ids),
-                    id_field=self.INSTANCE_ID_FIELDNAME
+                pattern = r'<{id_field}>({submission_ids})<\/{id_field}>'.format(
+                    submission_ids='|'.join(submission_ids),
+                    id_field=self.SUBMISSION_ID_FIELDNAME
                 )
                 submissions = [
                     submission
@@ -287,16 +289,16 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     if re.search(pattern, submission)
                 ]
             else:
-                instance_ids = [
-                    int(instance_id)
-                    for instance_id in instance_ids
+                submission_ids = [
+                    int(submission_id)
+                    for submission_id in submission_ids
                 ]
 
                 submissions = [
                     submission
                     for submission in submissions
-                    if submission.get(self.INSTANCE_ID_FIELDNAME)
-                    in instance_ids
+                    if submission.get(self.SUBMISSION_ID_FIELDNAME)
+                    in submission_ids
                 ]
 
         if permission_filters:
@@ -320,9 +322,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         return submissions
 
-    def get_validation_status(self, submission_pk, params, user):
+    def get_validation_status(
+        self, submission_id, user: 'auth.User', params: dict
+    ) -> dict:
 
-        submission = self.get_submission(submission_pk, user.id)
+        submission = self.get_submission(submission_id, user)
         return {
             'content_type': 'application/json',
             'data': submission.get('_validation_status')
@@ -335,7 +339,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({'submissions': submissions})
         self.asset.save(create_version=False)
 
-    def redeploy(self, active=None):
+    def redeploy(self, active: bool = None):
         """
         Replace (overwrite) the deployment, keeping the same identifier, and
         optionally changing whether the deployment is active
@@ -350,7 +354,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         self.set_asset_uid()
 
-    def set_active(self, active):
+    def set_active(self, active: bool):
         self.save_to_db({
             'active': bool(active),
         })
@@ -381,15 +385,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         })
 
     def set_validation_status(self,
-                              submission_pk: int,
-                              data: dict,
+                              submission_id: int,
                               user: 'auth.User',
+                              data: dict,
                               method: str) -> dict:
 
         self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
-            submission_ids=[submission_pk],
+            submission_ids=[submission_id],
         )
 
         # use the owner to retrieve all the submissions to mock them again
@@ -408,7 +412,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             status_code = status.HTTP_200_OK
 
         for submission in submissions:
-            if submission[self.INSTANCE_ID_FIELDNAME] == int(submission_pk):
+            if submission[self.SUBMISSION_ID_FIELDNAME] == int(submission_id):
                 submission['_validation_status'] = validation_status
                 self.mock_submissions(submissions)
                 return {
@@ -417,7 +421,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     'data': validation_status
                 }
 
-    def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
+    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
         """
         Bulk update validation status for provided submissions.
 
@@ -452,17 +456,17 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         user_submissions = self.get_submissions(
             user=user,
-            instance_ids=submission_ids,
+            submission_ids=submission_ids,
             query=data['query'],
         )
         # Retrieve user submission
         user_submission_ids = [
-            user_submission[self.INSTANCE_ID_FIELDNAME]
+            user_submission[self.SUBMISSION_ID_FIELDNAME]
             for user_submission in user_submissions
         ]
 
         for submission in submissions:
-            if submission[self.INSTANCE_ID_FIELDNAME] in user_submission_ids:
+            if submission[self.SUBMISSION_ID_FIELDNAME] in user_submission_ids:
                 if not data['validation_status.uid']:
                     submission['_validation_status'] = {}
                 else:
@@ -493,6 +497,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             view_name = '{}:{}'.format(namespace, view_name)
         return reverse(view_name,
                        kwargs={'parent_lookup_asset': self.asset.uid})
+
+    def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
+        queryset = self._get_metadata_queryset(file_type=file_type)
+        for obj in queryset:
+            assert issubclass(obj.__class__, SyncBackendMediaInterface)
 
     def _submission_count(self):
         submissions = self.get_data('submissions', [])

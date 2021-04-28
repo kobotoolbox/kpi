@@ -46,9 +46,6 @@ class DataBulkActionsValidator(serializers.Serializer):
 
     def __validate_query(self, payload: dict):
 
-        view = self.context.get('view')
-        asset = view.asset
-
         # If `query` is not provided, it means that all submissions should
         # be altered. In that case, `confirm=True` should be passed among
         # the parameters to validate the action
@@ -59,14 +56,6 @@ class DataBulkActionsValidator(serializers.Serializer):
                 raise serializers.ValidationError(
                     _('Confirmation is required')
                 )
-        else:
-            pass
-            # Forbidden querying with ids
-            # for field in payload['query'].keys():
-            #     if field == asset.deployment.INSTANCE_ID_FIELDNAME:
-            #         raise serializers.ValidationError(
-            #             _('Use `submission_ids` to pass a list of ids')
-            #         )
 
     def __validate_submission_ids(self, payload: dict):
         try:

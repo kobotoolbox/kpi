@@ -386,7 +386,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         deployment = self._get_deployment()
         duplicate_response = deployment.duplicate_submission(
-            user=request.user, instance_id=positive_int(pk)
+            submission_id=positive_int(pk), user=request.user
         )
         return Response(duplicate_response, status=status.HTTP_201_CREATED)
 
@@ -396,14 +396,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         if request.method == 'GET':
-            json_response = deployment.get_validation_status(pk,
-                                                             request.GET,
-                                                             request.user)
+            json_response = deployment.get_validation_status(
+                submission_id=pk, user=request.user, params=request.GET.dict()
+            )
         else:
-            json_response = deployment.set_validation_status(pk,
-                                                             request.data,
-                                                             request.user,
-                                                             request.method)
+            json_response = deployment.set_validation_status(
+                submission_id=pk,
+                user=request.user,
+                data=request.data,
+                method=request.method,
+            )
 
         return Response(**json_response)
 
@@ -419,7 +421,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         )
         bulk_actions_validator.is_valid(raise_exception=True)
         json_response = deployment.set_validation_statuses(
-            bulk_actions_validator.data, request.user)
+            request.user, bulk_actions_validator.data)
 
         return Response(**json_response)
 
