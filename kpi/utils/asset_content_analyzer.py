@@ -58,7 +58,7 @@ class AssetContentAnalyzer:
 
         columns = [k for k in keys.keys() if not k.startswith('$')]
 
-        # Display whether the survey or template is full locked or has any
+        # Display whether the survey or template is fully locked or has any
         # locks: if `kobo--lock_all` is `True` in the "settings" then the asset
         # is both fully locked (both `lock_all` and `lock_any` are `True`). if
         # a value for `kobo--locking-profile` is present in the "settings" or
