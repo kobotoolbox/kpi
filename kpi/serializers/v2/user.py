@@ -15,8 +15,14 @@ from kpi.models.object_permission import ObjectPermission
 from .asset import AssetUrlListSerializer
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+from kpi.models.hub_extra_user_detail import HubExtrauserdetail
+import json
 
+class UserDetailSerializer(serializers.ModelSerializer):
+    user_details = serializers.JSONField(binary=True)
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    user_details = serializers.SerializerMethodField()
     url = HyperlinkedIdentityField(
         lookup_field='username', view_name='user-detail')
     assets = PaginatedApiField(
@@ -25,12 +31,17 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
     date_joined = serializers.SerializerMethodField()
     public_collection_subscribers_count = serializers.SerializerMethodField()
     public_collections_count = serializers.SerializerMethodField()
+    
 
     class Meta:
         model = User
         fields = ('url',
                   'username',
+                  'first_name',
+                  'last_name',
+                  'is_active',
                   'assets',
+                  'user_details',
                   'date_joined',
                   'public_collection_subscribers_count',
                   'public_collections_count',
@@ -63,3 +74,10 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             user_id=settings.ANONYMOUS_USER_ID,
             permission__codename=PERM_DISCOVER_ASSET).values_list('asset_id',
                                                                   flat=True)
+    
+    def get_user_details(self, user):
+        try:
+            return HubExtrauserdetail.objects.filter(user_id=user.id) \
+            .values('data')[0]["data"]
+        except IndexError:
+            return None
