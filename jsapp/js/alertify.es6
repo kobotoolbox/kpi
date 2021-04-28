@@ -20,7 +20,7 @@ import { KEY_CODES } from 'js/constants';
  * @param {MultiButton[]} buttons
  */
 export function multiConfirm(confirmId, title, message, buttons) {
-  // `confirmId` needs to be uniqe, as alertify requires the custom dialog to be
+  // `confirmId` needs to be unique, as alertify requires the custom dialog to be
   // defined before it is being invoked.
   // We check if it haven't been already defined to avoid errors and unnecessary
   // calls.
@@ -85,7 +85,7 @@ export function multiConfirm(confirmId, title, message, buttons) {
             }
           },
           settings: {
-            onclick: null,
+            onclick: Function.prototype,
           },
           callback: function(closeEvent) {
             this.settings.onclick(closeEvent);
@@ -106,21 +106,21 @@ export function multiConfirm(confirmId, title, message, buttons) {
     }
   };
 
-  dialog
-    .set({
-      onclick: (closeEvent) => {
-        // button click operates on the button array indexes to know which
-        // callback needs to be triggered
-        if (buttons[closeEvent.index] && buttons[closeEvent.index].callback) {
-          buttons[closeEvent.index].callback();
-        }
-      },
-      onshow: () => {
-        $(document).on('keyup', killMe);
-      },
-      onclose: () => {
-        $(document).off('keyup', killMe);
-      },
-    })
-    .show();
+  dialog.set({
+    onclick: function(closeEvent) {
+      // button click operates on the button array indexes to know which
+      // callback needs to be triggered
+      if (buttons[closeEvent.index] && buttons[closeEvent.index].callback) {
+        buttons[closeEvent.index].callback();
+      }
+    },
+    onshow: function() {
+      $(document).on('keyup', killMe);
+    },
+    onclose: function() {
+      $(document).off('keyup', killMe);
+    },
+  });
+
+  dialog.show();
 }
