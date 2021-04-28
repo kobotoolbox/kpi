@@ -136,7 +136,7 @@ class AssetImportTaskTest(BaseTestCase):
             ['yesno', 'no', 'No'],
         ]
         settings_sheet_content = [
-            ['kobo--locking-profile', 'kobo--locks_all'],
+            ['kobo--locking-profile', 'kobo--lock_all'],
             ['form', 'false'],
         ]
         kobo_locks_sheet_content = [
@@ -163,8 +163,9 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locked', '', '', 'locked'],
             ['question_add', 'locked', '', '', ''],
             ['question_order_edit', 'locked', '', '', ''],
-            ['translations_manage', 'locked', '', '', ''],
+            ['translations_add', 'locked', '', '', ''],
             ['form_appearance', 'locked', '', '', ''],
+            ['form_meta_edit', '', '', '', ''],
         ]
 
         expected_content_survey = [
@@ -203,7 +204,7 @@ class AssetImportTaskTest(BaseTestCase):
         ]
         expected_content_settings = {
             'kobo--locking-profile': 'form',
-            'kobo--locks_all': False,
+            'kobo--lock_all': False,
         }
         expected_content_kobo_locks = [
             {
@@ -227,7 +228,7 @@ class AssetImportTaskTest(BaseTestCase):
                     'group_add',
                     'question_add',
                     'question_order_edit',
-                    'translations_manage',
+                    'translations_add',
                     'form_appearance',
                 ],
             },
@@ -283,6 +284,9 @@ class AssetImportTaskTest(BaseTestCase):
         )
         assert created_survey.asset_type == 'survey'
 
+        assert not created_survey.summary['lock_all']
+        assert created_survey.summary['lock_any']
+
         # Ensure the kobo--locks are showing up correctly
         assert expected_content_survey == self._prepare_survey_content(
             created_survey.content['survey']
@@ -320,8 +324,8 @@ class AssetImportTaskTest(BaseTestCase):
         ]
         # n and m dash in settings
         settings_sheet_content = [
-            ['kobo–locking-profile', 'kobo—locks_all'],
-            ['form', 'false'],
+            ['kobo–locking-profile', 'kobo—lock_all'],
+            ['form', 'true'],
         ]
         # mess with locking syntax
         kobo_locks_sheet_content = [
@@ -348,8 +352,9 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locKeD', '', '', 'locked'],
             ['question_add', 'locKED', '', '', ''],
             ['question_order_edit', 'LOCKed', '', '', ''],
-            ['translations_manage', 'loCkED', '', '', ''],
+            ['translations_add', 'loCkED', '', '', ''],
             ['form_appearance', 'loCKeD', '', '', ''],
+            ['form_meta_edit', '', '', '', ''],
         ]
 
         expected_content_survey = [
@@ -388,7 +393,7 @@ class AssetImportTaskTest(BaseTestCase):
         ]
         expected_content_settings = {
             'kobo--locking-profile': 'form',
-            'kobo--locks_all': False,
+            'kobo--lock_all': True,
         }
         expected_content_kobo_locks = [
             {
@@ -412,7 +417,7 @@ class AssetImportTaskTest(BaseTestCase):
                     'group_add',
                     'question_add',
                     'question_order_edit',
-                    'translations_manage',
+                    'translations_add',
                     'form_appearance',
                 ],
             },
@@ -469,6 +474,9 @@ class AssetImportTaskTest(BaseTestCase):
         )
         assert created_survey.asset_type == 'survey'
 
+        assert created_survey.summary['lock_all']
+        assert created_survey.summary['lock_any']
+
         # Ensure the kobo--locks are showing up correctly
         assert expected_content_survey == self._prepare_survey_content(
             created_survey.content['survey']
@@ -504,7 +512,7 @@ class AssetImportTaskTest(BaseTestCase):
             ['yesno', 'no', 'No'],
         ]
         settings_sheet_content = [
-            ['kobo--locking-profile', 'kobo--locks_all'],
+            ['kobo--locking-profile', 'kobo--lock_all'],
             ['form', 'false'],
         ]
         kobo_locks_sheet_content = [
@@ -531,8 +539,9 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locked', '', '', 'locked'],
             ['question_add', 'locked', '', '', ''],
             ['question_order_edit', 'locked', '', '', ''],
-            ['translations_manage', 'locked', '', '', ''],
+            ['translations_add', 'locked', '', '', ''],
             ['form_appearance', 'locked', '', '', ''],
+            ['form_meta_edit', '', '', '', ''],
         ]
 
         expected_content_survey = [
@@ -587,6 +596,9 @@ class AssetImportTaskTest(BaseTestCase):
         )
         assert created_asset.asset_type == 'block'
 
+        assert not created_asset.summary['lock_all']
+        assert not created_asset.summary['lock_any']
+
         assert expected_content_survey == self._prepare_survey_content(
             created_asset.content['survey']
         )
@@ -605,7 +617,7 @@ class AssetImportTaskTest(BaseTestCase):
             ['gender', 'other', 'Other'],
         ]
         settings_sheet_content = [
-            ['kobo--locking-profile', 'kobo--locks_all'],
+            ['kobo--locking-profile', 'kobo--lock_all'],
             ['form', 'false'],
         ]
         kobo_locks_sheet_content = [
@@ -632,8 +644,9 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locked', '', '', 'locked'],
             ['question_add', 'locked', '', '', ''],
             ['question_order_edit', 'locked', '', '', ''],
-            ['translations_manage', 'locked', '', '', ''],
+            ['translations_add', 'locked', '', '', ''],
             ['form_appearance', 'locked', '', '', ''],
+            ['form_meta_edit', '', '', '', ''],
         ]
 
         expected_content_survey = [
@@ -665,6 +678,9 @@ class AssetImportTaskTest(BaseTestCase):
             uid=detail_response.data['messages']['updated'][0]['uid']
         )
         assert created_asset.asset_type == 'question'
+
+        assert not created_asset.summary['lock_all']
+        assert not created_asset.summary['lock_any']
 
         assert expected_content_survey == self._prepare_survey_content(
             created_asset.content['survey']
