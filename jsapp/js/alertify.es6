@@ -114,20 +114,5 @@ export function multiConfirm(confirmId, title, message, buttons) {
     },
   });
 
-  // This needs to be done here not during buttons creation as it would stay
-  // disabled for all further dialogs.
-  buttons.forEach((button, index) => {
-    if (button.isDisabled) {
-      const buttonEl = dialog.elements.buttons.primary.children[index];
-      if (buttonEl) {
-        buttonEl.classList.remove(alertify.defaults.theme.ok);
-        buttonEl.classList.remove(alertify.defaults.theme.cancel);
-        // disabled button is always gray
-        buttonEl.classList.add(alertify.defaults.theme.input);
-        buttonEl.classList.add('ajs-button-disabled');
-      }
-    }
-  });
-
   dialog.show();
 }
