@@ -52,6 +52,7 @@ export function multiConfirm(confirmId, title, message, buttons) {
               buttonsArray.push({
                 text: buttonLabel,
                 className: buttonColor,
+                // primary is needed to not change for disabling below to work
                 scope: 'primary',
                 element: undefined,
                 index: i,
@@ -111,6 +112,21 @@ export function multiConfirm(confirmId, title, message, buttons) {
     onclose: function() {
       $(document).off('keyup', killMe);
     },
+  });
+
+  // This needs to be done here not during buttons creation as it would stay
+  // disabled for all further dialogs.
+  buttons.forEach((button, index) => {
+    if (button.isDisabled) {
+      const buttonEl = dialog.elements.buttons.primary.children[index];
+      if (buttonEl) {
+        buttonEl.classList.remove(alertify.defaults.theme.ok);
+        buttonEl.classList.remove(alertify.defaults.theme.cancel);
+        // disabled button is always gray
+        buttonEl.classList.add(alertify.defaults.theme.input);
+        buttonEl.classList.add('ajs-button-disabled');
+      }
+    }
   });
 
   dialog.show();
