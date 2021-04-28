@@ -6,9 +6,10 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
 from kpi.tasks import sync_kobocat_xforms
-from kpi.models.authorized_application import ApplicationTokenAuthentication
+from kpi.models.authorized_application import ApplicationTokenAuthentication, TokenAuthentication
 from kpi.serializers.v2.user import UserSerializer
 
+from rest_framework.permissions import IsAuthenticated
 
 class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     """
@@ -22,10 +23,17 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.authentication_classes += [ApplicationTokenAuthentication]
+        self.authentication_classes += [ApplicationTokenAuthentication, TokenAuthentication]
+        # Only authenticated users can use the system
+        self.permission_classes += [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
-        raise exceptions.PermissionDenied()
+        if not request.user.is_superuser:
+            raise exceptions.PermissionDenied()
+        
+        queryset = User.objects.all()
+        serializer = UserSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
 
     @action(detail=True, methods=['GET'],
             renderer_classes=[renderers.JSONRenderer],
