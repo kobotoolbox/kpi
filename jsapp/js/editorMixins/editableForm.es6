@@ -556,6 +556,14 @@ export default assign({
     );
   },
 
+  isChangingAppearanceRestricted() {
+    return (
+      this.state.asset &&
+      isAssetLockable(this.state.asset.asset_type) &&
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.form_appearance.name)
+    );
+  },
+
   // rendering methods
 
   renderFormBuilderHeader () {
@@ -753,6 +761,7 @@ export default assign({
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
                 menuPlacement='bottom'
+                isDisabled={this.isChangingAppearanceRestricted()}
               />
             </bem.FormBuilderAside__row>
 
