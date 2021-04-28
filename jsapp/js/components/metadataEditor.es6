@@ -13,13 +13,14 @@ const AUDIT_SUPPORT_URL = 'audit_logging.html';
 
 /**
  * @prop {object} survey
+ * @prop {boolean} isDisabled whether everything is disabled
  * @prop {function} onChange
  */
 export default class MetadataEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      metaProperties: []
+      metaProperties: [],
     };
     autoBind(this);
   }
@@ -29,9 +30,7 @@ export default class MetadataEditor extends React.Component {
   }
 
   rebuildState() {
-    const newState = {
-      metaProperties: []
-    };
+    const newState = {metaProperties: []};
     Object.keys(META_QUESTION_TYPES).forEach((metaType) => {
       const detail = this.getSurveyDetail(metaType);
       if (detail) {
@@ -127,6 +126,7 @@ export default class MetadataEditor extends React.Component {
                   key={`meta-${metaProp.name}`}
                   label={metaProp.label}
                   checked={metaProp.value}
+                  disabled={this.props.isDisabled}
                   onChange={this.onCheckboxChange.bind(this, metaProp.name)}
                 />
               );
@@ -141,6 +141,7 @@ export default class MetadataEditor extends React.Component {
                   key={`meta-${metaProp.name}`}
                   label={metaProp.label}
                   checked={metaProp.value}
+                  disabled={this.props.isDisabled}
                   onChange={this.onCheckboxChange.bind(this, metaProp.name)}
                 />
               );
@@ -153,6 +154,7 @@ export default class MetadataEditor extends React.Component {
             <TextBox
               label={this.renderAuditInputLabel()}
               value={this.getAuditParameters()}
+              disabled={this.props.isDisabled}
               onChange={this.onAuditParametersChange}
             />
           </bem.FormBuilderMeta__row>
