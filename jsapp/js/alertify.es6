@@ -61,6 +61,7 @@ export function multiConfirm(confirmId, title, message, buttons) {
               buttonsArray.push({
                 text: buttonLabel,
                 className: buttonClass,
+                // primary is needed to not change for disabling below to work
                 scope: 'primary',
                 element: undefined,
                 index: i,
