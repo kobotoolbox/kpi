@@ -177,7 +177,7 @@ class TestCloning(KpiTestCase):
                         'group_add',
                         'question_add',
                         'question_order_edit',
-                        'translations_manage',
+                        'translations_add',
                         'form_appearance',
                     ],
                 },
