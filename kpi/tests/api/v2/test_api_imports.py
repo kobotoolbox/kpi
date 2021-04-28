@@ -163,8 +163,9 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locked', '', '', 'locked'],
             ['question_add', 'locked', '', '', ''],
             ['question_order_edit', 'locked', '', '', ''],
-            ['translations_manage', 'locked', '', '', ''],
+            ['translations_add', 'locked', '', '', ''],
             ['form_appearance', 'locked', '', '', ''],
+            ['form_meta_edit', '', '', '', ''],
         ]
 
         expected_content_survey = [
@@ -227,7 +228,7 @@ class AssetImportTaskTest(BaseTestCase):
                     'group_add',
                     'question_add',
                     'question_order_edit',
-                    'translations_manage',
+                    'translations_add',
                     'form_appearance',
                 ],
             },
@@ -350,8 +351,9 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locKeD', '', '', 'locked'],
             ['question_add', 'locKED', '', '', ''],
             ['question_order_edit', 'LOCKed', '', '', ''],
-            ['translations_manage', 'loCkED', '', '', ''],
+            ['translations_add', 'loCkED', '', '', ''],
             ['form_appearance', 'loCKeD', '', '', ''],
+            ['form_meta_edit', '', '', '', ''],
         ]
 
         expected_content_survey = [
@@ -414,7 +416,7 @@ class AssetImportTaskTest(BaseTestCase):
                     'group_add',
                     'question_add',
                     'question_order_edit',
-                    'translations_manage',
+                    'translations_add',
                     'form_appearance',
                 ],
             },
@@ -535,8 +537,9 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locked', '', '', 'locked'],
             ['question_add', 'locked', '', '', ''],
             ['question_order_edit', 'locked', '', '', ''],
-            ['translations_manage', 'locked', '', '', ''],
+            ['translations_add', 'locked', '', '', ''],
             ['form_appearance', 'locked', '', '', ''],
+            ['form_meta_edit', '', '', '', ''],
         ]
 
         expected_content_survey = [
@@ -638,8 +641,9 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locked', '', '', 'locked'],
             ['question_add', 'locked', '', '', ''],
             ['question_order_edit', 'locked', '', '', ''],
-            ['translations_manage', 'locked', '', '', ''],
+            ['translations_add', 'locked', '', '', ''],
             ['form_appearance', 'locked', '', '', ''],
+            ['form_meta_edit', '', '', '', ''],
         ]
 
         expected_content_survey = [
