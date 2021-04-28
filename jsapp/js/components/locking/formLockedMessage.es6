@@ -62,7 +62,7 @@ class FormLockedMessage extends React.Component {
                   {features.cants.map((cant) => {
                     return (
                       <li key={cant.name}>
-                        <i className='k-icon k-icon-check'/>
+                        <i className='k-icon k-icon-cancel'/>
                         {cant.label}
                       </li>
                     );
