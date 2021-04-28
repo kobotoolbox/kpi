@@ -283,6 +283,8 @@ class AssetImportTaskTest(BaseTestCase):
         )
         assert created_survey.asset_type == 'survey'
 
+        assert created_survey.summary['locked']
+
         # Ensure the kobo--locks are showing up correctly
         assert expected_content_survey == self._prepare_survey_content(
             created_survey.content['survey']
@@ -469,6 +471,8 @@ class AssetImportTaskTest(BaseTestCase):
         )
         assert created_survey.asset_type == 'survey'
 
+        assert created_survey.summary['locked']
+
         # Ensure the kobo--locks are showing up correctly
         assert expected_content_survey == self._prepare_survey_content(
             created_survey.content['survey']
@@ -587,6 +591,8 @@ class AssetImportTaskTest(BaseTestCase):
         )
         assert created_asset.asset_type == 'block'
 
+        assert not created_asset.summary['locked']
+
         assert expected_content_survey == self._prepare_survey_content(
             created_asset.content['survey']
         )
@@ -665,6 +671,8 @@ class AssetImportTaskTest(BaseTestCase):
             uid=detail_response.data['messages']['updated'][0]['uid']
         )
         assert created_asset.asset_type == 'question'
+
+        assert not created_asset.summary['locked']
 
         assert expected_content_survey == self._prepare_survey_content(
             created_asset.content['survey']
