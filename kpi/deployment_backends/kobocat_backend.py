@@ -15,7 +15,6 @@ import pytz
 import requests
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.http import QueryDict
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.authtoken.models import Token

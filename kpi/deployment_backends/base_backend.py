@@ -17,10 +17,8 @@ from kpi.constants import (
     INSTANCE_FORMAT_TYPE_XML,
     INSTANCE_FORMAT_TYPE_JSON,
     PERM_PARTIAL_SUBMISSIONS,
-    PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import AbstractMethodError
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.jsonbfield_helper import ReplaceValues

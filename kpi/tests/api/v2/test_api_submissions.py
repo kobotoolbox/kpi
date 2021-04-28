@@ -11,7 +11,6 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import (
-    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
