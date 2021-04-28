@@ -260,7 +260,8 @@ class ProjectSettings extends React.Component {
     return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
   }
 
-  archiveProject() {
+  archiveProject(evt) {
+    evt.preventDefault();
     this.archiveAsset(this.state.formAsset.uid, this.onArchiveProjectStarted.bind(this));
   }
 
@@ -268,7 +269,8 @@ class ProjectSettings extends React.Component {
     this.setState({isAwaitingArchiveCompleted: true});
   }
 
-  unarchiveProject() {
+  unarchiveProject(evt) {
+    evt.preventDefault();
     this.unarchiveAsset(this.state.formAsset.uid, this.onUnarchiveProjectStarted.bind(this));
   }
 
