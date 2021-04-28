@@ -95,12 +95,12 @@ describe('hasRowRestriction', () => {
       Best_thing_in_the_world: [
         'question_delete',
         'group_delete',
-        'translations_manage',
+        'translations_add',
       ],
       person: [
         'question_delete',
         'group_delete',
-        'translations_manage',
+        'translations_add',
       ],
       Your_name: [],
       Your_age: [
@@ -194,7 +194,7 @@ describe('getLockingProfile', () => {
       restrictions: [
         'question_delete',
         'group_delete',
-        'translations_manage',
+        'translations_add',
       ],
     });
   });
