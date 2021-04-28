@@ -12,7 +12,7 @@ class HookLogSerializer(serializers.ModelSerializer):
         fields = (
             'url',
             'uid',
-            'instance_id',
+            'submission_id',
             'tries',
             'status',
             'status_str',
@@ -23,7 +23,7 @@ class HookLogSerializer(serializers.ModelSerializer):
 
         read_only_fields = (
             'uid',
-            'instance_id',
+            'submission_id',
             'tries',
             'status',
             'status_str',

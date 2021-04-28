@@ -22,7 +22,7 @@ class HookUtils:
         success = False
         for hook_id in hooks_ids:
             if not HookLog.objects.filter(
-                instance_id=submission_id, hook_id=hook_id
+                submission_id=submission_id, hook_id=hook_id
             ).exists():
                 success = True
                 service_definition_task.delay(hook_id, submission_id)

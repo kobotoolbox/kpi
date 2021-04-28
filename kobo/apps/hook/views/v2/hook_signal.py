@@ -32,7 +32,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     > **Expected payload**
     >
     >        {
-    >           "instance_id": {integer}
+    >           "submission_id": {integer}
     >        }
 
     """
@@ -48,10 +48,10 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         try:
             submission_id = positive_int(
-                request.data.get('instance_id'), strict=True)
+                request.data.get('submission_id'), strict=True)
         except ValueError:
             raise serializers.ValidationError(
-                {'instance_id': _('A positive integer is required.')})
+                {'submission_id': _('A positive integer is required.')})
 
         # Check if instance really belongs to Asset.
         try:

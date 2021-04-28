@@ -166,12 +166,12 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         """
         fields = {
             'hook': self._hook,
-            'instance_id': self._submission_id
+            'submission_id': self._submission_id
         }
         try:
             # Try to load the log with a multiple field FK because
             # we don't know the log `uid` in this context, but we do know
-            # its `hook` FK and its `instance_id`
+            # its `hook` FK and its `submission_id`
             log = HookLog.objects.get(**fields)
         except HookLog.DoesNotExist:
             log = HookLog(**fields)

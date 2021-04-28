@@ -64,7 +64,7 @@ class ApiHookTestCase(HookTestCase):
         hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
 
         submissions = self.asset.deployment.get_submissions(self.asset.owner)
-        data = {"instance_id": submissions[0].get(
+        data = {'submission_id': submissions[0].get(
             self.asset.deployment.SUBMISSION_ID_FIELDNAME)}
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
@@ -83,7 +83,7 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
-        data = {'instance_id': 4}  # Instance doesn't belong to `self.asset`
+        data = {'submission_id': 4}  # Instance doesn't belong to `self.asset`
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
