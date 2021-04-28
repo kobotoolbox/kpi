@@ -556,6 +556,14 @@ export default assign({
     );
   },
 
+  isChangingMetaQuestionsRestricted() {
+    return (
+      this.state.asset &&
+      isAssetLockable(this.state.asset.asset_type) &&
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.form_meta_edit.name)
+    );
+  },
+
   // rendering methods
 
   renderFormBuilderHeader () {
@@ -766,6 +774,7 @@ export default assign({
                 <MetadataEditor
                   survey={this.app.survey}
                   onChange={this.onMetadataEditorChange}
+                  isDisabled={this.isChangingMetaQuestionsRestricted()}
                   {...this.state}
                 />
               </bem.FormBuilderAside__row>
