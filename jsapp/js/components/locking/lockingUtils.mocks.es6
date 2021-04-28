@@ -255,7 +255,7 @@ export const simpleTemplateLocked = {
         restrictions: [
           'question_delete',
           'group_delete',
-          'translations_manage',
+          'translations_add',
         ],
       },
     ],

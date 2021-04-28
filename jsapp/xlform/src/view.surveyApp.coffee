@@ -340,14 +340,6 @@ module.exports = do ->
         # clone buttons
         @$('.js-clone-question').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
 
-      if (
-        @isLockable() and
-        @hasRestriction(LOCKING_RESTRICTIONS.translations_manage.name)
-      )
-        @$('.js-card-label').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
-        @$('.js-card-hint').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
-        @$('.js-translatable-text-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
-
       return
 
     _render_addSubViews: ->

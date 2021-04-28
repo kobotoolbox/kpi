@@ -30,7 +30,7 @@ export class TranslationSettings extends React.Component {
       translations: translations,
       showAddLanguageForm: false,
       isUpdatingDefaultLanguage: false,
-      renameLanguageIndex: -1
+      renameLanguageIndex: -1,
     };
     autoBind(this);
   }
@@ -56,12 +56,12 @@ export class TranslationSettings extends React.Component {
       translations: asset.content.translations || [],
       showAddLanguageForm: false,
       isUpdatingDefaultLanguage: false,
-      renameLanguageIndex: -1
+      renameLanguageIndex: -1,
     });
 
     stores.pageState.showModal({
       type: MODAL_TYPES.FORM_LANGUAGES,
-      asset: asset
+      asset: asset,
     });
   }
   onAssetsChange(assetsList) {
@@ -74,25 +74,17 @@ export class TranslationSettings extends React.Component {
     this.onAssetChange(assetsList[uid]);
   }
   showAddLanguageForm() {
-    this.setState({
-      showAddLanguageForm: true
-    });
+    this.setState({showAddLanguageForm: true});
   }
   hideAddLanguageForm() {
-    this.setState({
-      showAddLanguageForm: false
-    });
+    this.setState({showAddLanguageForm: false});
   }
   toggleRenameLanguageForm(evt) {
     const index = parseInt(evt.currentTarget.dataset.index);
     if (this.state.renameLanguageIndex === index) {
-      this.setState({
-        renameLanguageIndex: -1
-      });
+      this.setState({renameLanguageIndex: -1});
     } else {
-      this.setState({
-        renameLanguageIndex: index
-      });
+      this.setState({renameLanguageIndex: index});
     }
   }
   launchTranslationTableModal(evt) {
@@ -123,7 +115,10 @@ export class TranslationSettings extends React.Component {
     this.updateAsset(content);
   }
   canAddLanguages() {
-    return !(this.state.translations.length === 1 && this.state.translations[0] === null);
+    return (
+      !this.isAddingTranslationsLocked() &&
+      !(this.state.translations.length === 1 && this.state.translations[0] === null)
+    );
   }
   getAllLanguages() {
     return this.state.translations;
@@ -142,7 +137,7 @@ export class TranslationSettings extends React.Component {
           this.updateAsset(content);
           dialog.destroy();
         },
-        oncancel: () => {dialog.destroy();}
+        oncancel: () => {dialog.destroy();},
       };
       dialog.set(opts).show();
     } else {
@@ -227,7 +222,7 @@ export class TranslationSettings extends React.Component {
         this.updateAsset(content);
         dialog.destroy();
       },
-      oncancel: () => {dialog.destroy();}
+      oncancel: () => {dialog.destroy();},
     };
     dialog.set(opts).show();
   }
@@ -242,10 +237,10 @@ export class TranslationSettings extends React.Component {
       }}
     );
   }
-  isManagingTranslationsLocked() {
+  isAddingTranslationsLocked() {
     return (
       this.state.asset?.content &&
-      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.translations_manage.name)
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.translations_add.name)
     );
   }
   renderEmptyMessage() {
@@ -300,7 +295,7 @@ export class TranslationSettings extends React.Component {
           <bem.FormView__cell m='label'>
             {t('Current languages')}
           </bem.FormView__cell>
-          {translations[0] == null &&
+          {translations[0] === null &&
             <bem.FormView__cell m={['warning', 'translation-modal-warning']}>
               <i className='k-icon-alert' />
               <p>{t('You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.')}</p>
@@ -423,21 +418,10 @@ export class TranslationSettings extends React.Component {
       return (<LoadingSpinner/>);
     }
 
-    if (this.isManagingTranslationsLocked()) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i className='k-icon k-icon-alert'/>
-            {t("Managing translations is not available due to form's Locking Profile restrictions.")}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
-    }
-
     let translations = this.state.translations;
     if (translations.length === 0) {
       return this.renderEmptyMessage();
-    } else if (translations.length == 1 && translations[0] === null) {
+    } else if (translations.length === 1 && translations[0] === null) {
       // use this modal if there are only unnamed translations
       return this.renderUndefinedDefaultSettings();
     } else {
