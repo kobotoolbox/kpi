@@ -109,10 +109,25 @@ function SearchContext(opts={}) {
     },
     rebuildCategorizedList(sourceResults, listName) {
       const catList = this.state[listName];
-      const defaultResults = this.state.defaultQueryResultsList;
+      // If the last asset is removed, the list will not rebuild and
+      // the store keeps the asset appended with `deleted: true` to avoid being
+      // shown to user
       if (catList && sourceResults && sourceResults.length !== 0) {
         const updateObj = {};
         updateObj[listName] = splitResultsToCategorized(sourceResults);
+        this.update(updateObj);
+        // HACK FIX: when self removing permissions from unowned asset, or
+        // deleting a draft, the `deleted: true` attribute is missing from the
+        // leftover removed asset
+      } else if (catList && sourceResults && sourceResults.length === 0) {
+        let updateObj = catList;
+        for (const item in updateObj) {
+          // This fix is only relevant to removing the last asset so
+          // we can indiscriminately pick the only asset in store lists
+          if (updateObj[item].length > 0) {
+            updateObj[item][0].deleted = "true";
+          }
+        }
         this.update(updateObj);
       }
     },
