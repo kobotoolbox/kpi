@@ -56,7 +56,7 @@ const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without 
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
-const LOCKING_SUPPORT_URL = 'TODO';
+const LOCKING_SUPPORT_URL = 'library_locking.html';
 
 /**
  * This is a component that displays Form Builder's header and aside. It is also
