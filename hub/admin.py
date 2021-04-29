@@ -125,6 +125,14 @@ class UserStatisticsAdmin(admin.ModelAdmin):
     list_filter = (TimePeriodFilter,)
     actions = None
 
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(
+            request,
+            extra_context=extra_context,
+        )
+        response.context_data['summary'] = self.__get_serialized_data(request)
+        return response
+
     def __get_serialized_data(self, request) -> list:
         cl = self.get_changelist_instance(request)
         qs = cl.get_queryset(request)
@@ -163,7 +171,6 @@ class UserStatisticsAdmin(admin.ModelAdmin):
         )
         for record in records:
             data.append({
-                'pk': record['user_id'],
                 'username': record['user__username'],
                 'submission_count': record['count_sum'],
                 'form_count': forms_count.get(record['user_id'], 0),
