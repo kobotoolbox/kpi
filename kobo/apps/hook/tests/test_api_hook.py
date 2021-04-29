@@ -64,8 +64,7 @@ class ApiHookTestCase(HookTestCase):
         hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
 
         submissions = self.asset.deployment.get_submissions(self.asset.owner)
-        data = {'submission_id': submissions[0].get(
-            self.asset.deployment.SUBMISSION_ID_FIELDNAME)}
+        data = {'submission_id': submissions[0]['_id']}
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
@@ -240,7 +239,7 @@ class ApiHookTestCase(HookTestCase):
 
         ServiceDefinition = hook.get_service_definition()
         submissions = self.asset.deployment.get_submissions(self.asset.owner)
-        submission_id = submissions[0].get(self.asset.deployment.SUBMISSION_ID_FIELDNAME)
+        submission_id = submissions[0]['_id']
         service_definition = ServiceDefinition(hook, submission_id)
 
         def request_callback(request):

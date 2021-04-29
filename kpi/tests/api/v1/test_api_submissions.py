@@ -73,8 +73,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
 
     def test_delete_submission_owner(self):
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
+        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
 
         response = self.client.delete(url,
                                       content_type="application/json",
@@ -88,8 +87,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
         submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
+        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")

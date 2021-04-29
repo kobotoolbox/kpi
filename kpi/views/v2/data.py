@@ -310,7 +310,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     def destroy(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-        pk = kwargs.get('pk')
+        # Coerce to int because back end only finds matches with same type
+        submission_id = positive_int(pk)
         json_response = deployment.delete_submission(pk, user=request.user)
         return Response(**json_response)
 
@@ -385,8 +386,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         Creates a duplicate of the submission with a given `pk`
         """
         deployment = self._get_deployment()
+        # Coerce to int because back end only finds matches with same type
+        submission_id = positive_int(pk)
         duplicate_response = deployment.duplicate_submission(
-            submission_id=positive_int(pk), user=request.user
+            submission_id=submission_id, user=request.user
         )
         return Response(duplicate_response, status=status.HTTP_201_CREATED)
 
@@ -395,13 +398,17 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             permission_classes=[SubmissionValidationStatusPermission])
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
+        # Coerce to int because back end only finds matches with same type
+        submission_id = positive_int(pk)
         if request.method == 'GET':
             json_response = deployment.get_validation_status(
-                submission_id=pk, user=request.user, params=request.GET.dict()
+                submission_id=submission_id,
+                user=request.user,
+                params=request.GET.dict(),
             )
         else:
             json_response = deployment.set_validation_status(
-                submission_id=pk,
+                submission_id=submission_id,
                 user=request.user,
                 data=request.data,
                 method=request.method,

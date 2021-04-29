@@ -30,7 +30,6 @@ class BaseDeploymentBackend(abc.ABC):
     Defines the interface for a deployment backend.
     """
 
-    SUBMISSION_ID_FIELDNAME = '_id'
     STATUS_SYNCED = 'synced'
     STATUS_NOT_SYNCED = 'not-synced'
 
@@ -453,11 +452,9 @@ class BaseDeploymentBackend(abc.ABC):
             all_submissions = self.get_submissions(
                 user=user,
                 partial_perm=perm,
-                fields=[self.SUBMISSION_ID_FIELDNAME],
+                fields=['_id'],
             )
-            allowed_submission_ids = [
-                r[self.SUBMISSION_ID_FIELDNAME] for r in all_submissions
-            ]
+            allowed_submission_ids = [r['_id'] for r in all_submissions]
 
             # User should see at least one submission to be allowed to do
             # something
@@ -472,13 +469,13 @@ class BaseDeploymentBackend(abc.ABC):
         submissions = self.get_submissions(
             user=user,
             partial_perm=perm,
-            fields=[self.SUBMISSION_ID_FIELDNAME],
+            fields=['_id'],
             submission_ids=submission_ids,
             query=query,
         )
 
         requested_submission_ids = [
-            r[self.SUBMISSION_ID_FIELDNAME] for r in submissions
+            r['_id'] for r in submissions
         ]
 
         if not requested_submission_ids:
