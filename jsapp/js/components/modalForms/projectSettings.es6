@@ -246,7 +246,9 @@ class ProjectSettings extends React.Component {
     });
   }
 
-  deleteProject() {
+  deleteProject(evt) {
+    evt.preventDefault();
+
     this.deleteAsset(
       this.state.formAsset.uid,
       this.state.formAsset.name,
