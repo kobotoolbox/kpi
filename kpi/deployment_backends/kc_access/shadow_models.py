@@ -18,7 +18,6 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_digest.models import PartialDigest
 
-import kpi.models.asset as asset
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
 from kpi.utils.strings import hashable_str
