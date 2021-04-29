@@ -125,7 +125,7 @@ function SearchContext(opts={}) {
           // This fix is only relevant to removing the last asset so
           // we can indiscriminately pick the only asset in store lists
           if (updateObj[item].length > 0) {
-            updateObj[item][0].deleted = "true";
+            updateObj[item][0].deleted = 'true';
           }
         }
         this.update(updateObj);
