@@ -112,7 +112,7 @@ class LibraryUploadForm extends React.Component {
               >
                 <i className='k-icon-xls-file' />
                 {this.state.currentFile &&
-                  this.state.currentFile.pathname
+                  this.state.currentFile.name
                 }
                 {!this.state.currentFile &&
                   t(' Drag and drop the XLSForm file here or click to browse')
