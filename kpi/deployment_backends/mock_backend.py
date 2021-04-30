@@ -299,7 +299,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         settings.MONGO_DB.instances.drop()
         for idx, submission in enumerate(submissions):
             submission[MongoHelper.USERFORM_ID] = self.mongo_userform_id
-            # Some data already provide `_id`. Use it if it presents.
+            # Some data already provide `_id`. Use it if it is present.
             # There could be conflicts if some submissions come with an id
             # or others do not.
             # MockMongo will raise a DuplicateKey error
