@@ -72,6 +72,7 @@ div.skiplogic__responseval {
   background-color: transparent;
   opacity: 0.8;
   cursor: pointer;
+  font-size: 18px;
 
   &:hover {
     opacity: 1;
@@ -89,19 +90,20 @@ div.skiplogic__responseval {
   background: none;
   border: medium none;
   color: $kobo-red;
-  font-size: 15px;
+  font-size: 21px;
   position: absolute;
-  right: -22px;
+  right: -21px;
   text-align: center;
   top: 18px;
   width: 18px;
+  padding: 0;
   cursor: pointer;
 }
 
 .skiplogic__main {
   position: relative;
 
-  .mdl-button {
+  .kobo-button {
     width: 100%;
 
     &:not(:first-child) {
@@ -114,7 +116,7 @@ div.skiplogic__responseval {
   margin: 0;
   margin-top: 10px;
   height: 36px;
-  width: 180px;
+  min-width: 180px;
   display: inline-block;
 }
 

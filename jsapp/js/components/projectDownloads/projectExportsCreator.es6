@@ -148,26 +148,33 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   getExportFormatOptions() {
-    if (this.props.asset.summary?.languages.length >= 2) {
-      const options = [];
-      // all defined languages should go first
-      // and they replace `_default` option
+    const options = [];
+
+    // Step 1: add all defined languages as options (both named and unnamed)
+    if (this.props.asset.summary?.languages.length >= 1) {
       this.props.asset.summary.languages.forEach((language, index) => {
-        options.push({
-          value: language,
-          label: language,
-          langIndex: index, // needed for later
-        });
+        // unnamed language gives the `_default` option
+        if (language === null) {
+          options.push(EXPORT_FORMATS._default);
+        } else {
+          options.push({
+            value: language,
+            label: language,
+            langIndex: index, // needed for later
+          });
+        }
       });
-      options.push(EXPORT_FORMATS._xml);
-      return options;
-    } else {
-      return [
-        // `_default` should be first
-        EXPORT_FORMATS._default,
-        EXPORT_FORMATS._xml,
-      ];
     }
+
+    // Step 2: if for some reason nothing was added yet, add `_default`
+    if (options.length === 0) {
+      options.push(EXPORT_FORMATS._default);
+    }
+
+    // Step 3: `_xml` is always available and always last
+    options.push(EXPORT_FORMATS._xml);
+
+    return options;
   }
 
   /**
@@ -271,10 +278,10 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   onAnyInputChange(statePropName, newValue) {
+    this.clearSelectedDefinedExport();
     const newStateObj = {};
     newStateObj[statePropName] = newValue;
     this.setState(newStateObj);
-    this.clearSelectedDefinedExport();
   }
 
   onSelectedExportTypeChange(newValue) {
@@ -283,6 +290,7 @@ export default class ProjectExportsCreator extends React.Component {
   }
 
   onSelectedRowsChange(newRowsArray) {
+    this.clearSelectedDefinedExport();
     const newSelectedRows = new Set();
     newRowsArray.forEach((item) => {
       if (item.checked) {
@@ -294,11 +302,13 @@ export default class ProjectExportsCreator extends React.Component {
 
   selectAllRows(evt) {
     evt.preventDefault();
+    this.clearSelectedDefinedExport();
     this.setState({selectedRows: new Set(this.getAllSelectableRows())});
   }
 
   clearSelectedRows(evt) {
     evt.preventDefault();
+    this.clearSelectedDefinedExport();
     this.setState({selectedRows: new Set()});
   }
 
@@ -321,6 +331,13 @@ export default class ProjectExportsCreator extends React.Component {
       selectedExportFormat = this.getContextualDefaultExportFormat();
     }
 
+    // Select custom export toggle if not all rows are selected
+    // but only if at least one is selected
+    const customSelectionEnabled = (
+      data.export_settings.fields.length !== 0 &&
+      this.state.selectableRowsCount !== data.export_settings.fields.length
+    );
+
     const newStateObj = {
       selectedExportType: EXPORT_TYPES[data.export_settings.type],
       selectedExportFormat: selectedExportFormat,
@@ -331,8 +348,7 @@ export default class ProjectExportsCreator extends React.Component {
       // check whether a custom name was given
       isSaveCustomExportEnabled: typeof data.name === 'string' && data.name.length >= 1,
       customExportName: data.name,
-      // Select custom export toggle if not all rows are selected
-      isCustomSelectionEnabled: this.state.selectableRowsCount !== data.export_settings.fields.length,
+      isCustomSelectionEnabled: customSelectionEnabled,
       isFlattenGeoJsonEnabled: data.export_settings.flatten,
       selectedRows: new Set(data.export_settings.fields),
     };
@@ -379,7 +395,8 @@ export default class ProjectExportsCreator extends React.Component {
       payload.name = this.state.customExportName || this.generateExportName();
     }
 
-    // unless custom selection is enabled, we send empty fields (it means "all fields" for backend)
+    // unless custom selection is enabled, we send empty fields (it means "all
+    // fields" for backend); otherwise we send the selected rows
     if (this.state.isCustomSelectionEnabled) {
       payload.export_settings.fields = Array.from(this.state.selectedRows);
     }
@@ -586,16 +603,28 @@ export default class ProjectExportsCreator extends React.Component {
                 this,
                 'isCustomSelectionEnabled'
               )}
-              label={t('Select which questions to be exported')}
+              label={t('Select questions to be exported')}
             />
 
-            <bem.ProjectDownloads__textButton onClick={this.selectAllRows}>
+            <bem.ProjectDownloads__textButton
+              disabled={(
+                !this.state.isCustomSelectionEnabled ||
+                this.state.selectedRows.size === this.state.selectableRowsCount
+              )}
+              onClick={this.selectAllRows}
+            >
               {t('Select all')}
             </bem.ProjectDownloads__textButton>
 
             <span className='project-downloads__vr'/>
 
-            <bem.ProjectDownloads__textButton onClick={this.clearSelectedRows}>
+            <bem.ProjectDownloads__textButton
+              disabled={(
+                !this.state.isCustomSelectionEnabled ||
+                this.state.selectedRows.size === 0
+              )}
+              onClick={this.clearSelectedRows}
+            >
               {t('Deselect all')}
             </bem.ProjectDownloads__textButton>
           </bem.ProjectDownloads__columnRow>
@@ -749,6 +778,7 @@ export default class ProjectExportsCreator extends React.Component {
             m='blue'
             type='submit'
             onClick={this.onSubmit}
+            disabled={this.state.selectedRows.size === 0}
           >
             {t('Export')}
           </bem.KoboButton>

@@ -8,7 +8,7 @@ module.exports = do ->
   addIconToRow = (typeDef, group) =>
     iconDetails.push({
       label: typeDef.label,
-      faClass: typeDef.faIcon.replace("fa-", ""),
+      iconClassName: "k-icon k-icon-#{typeDef.icon}",
       grouping: group,
       id: typeDef.id
     })
@@ -50,7 +50,7 @@ module.exports = do ->
 
   class QtypeIcon extends Backbone.Model
     defaults:
-      faClass: "question-circle"
+      iconClassname: "k-icon"
 
   class QtypeIconCollection extends Backbone.Collection
     model: QtypeIcon

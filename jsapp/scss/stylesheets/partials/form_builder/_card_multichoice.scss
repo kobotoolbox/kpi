@@ -19,17 +19,6 @@
 // Overrides
 // ==========================================================================
 
-// multi-choice expanded
-.right-and-down-caret {
-  @extend .fa, .fa-fw, .fa-caret-right;
-}
-
-.card--expandedchoices {
-  .right-and-down-caret {
-    @extend .fa-caret-down;
-  }
-}
-
 .card--selectquestion {
   .row__multioptions {
     display: none;
@@ -137,12 +126,12 @@
     }
   }
 
-  i.fa-trash-o {
+  .k-icon.k-icon-trash {
     position: absolute;
     left: -20px;
     top: 8px;
     color: $kobo-red;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
   }
 }

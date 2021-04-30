@@ -5,7 +5,6 @@
 
 @import "./fonts/roboto";
 @import "../fonts/k-icons";
-@import "~font-awesome/scss/font-awesome";
 @import "~select2/select2.css";
 @import "~react-table/react-table.css";
 @import "~alertifyjs/build/css/alertify.css";
@@ -20,6 +19,7 @@
 @import "./components/kobo.text-button";
 @import "./components/kobo.checkbox-and-radio";
 @import "./components/kobo.toggle-switch";
+@import "./components/kobo.multi-checkbox";
 @import "./components/kobo.modal";
 @import "./components/kobo.tooltips";
 @import "./components/kobo.navigation";

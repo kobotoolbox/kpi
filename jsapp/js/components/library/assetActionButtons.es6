@@ -250,7 +250,7 @@ class AssetActionButtons extends React.Component {
 
         {userCanEdit && assetType === ASSET_TYPES.survey.id &&
           <bem.PopoverMenu__link onClick={this.cloneAsTemplate}>
-            <i className='k-icon k-icon-template-new'/>
+            <i className='k-icon k-icon-template'/>
             {t('Create template')}
           </bem.PopoverMenu__link>
         }

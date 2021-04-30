@@ -6,7 +6,7 @@ import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import {formatTime} from 'js/utils';
 import {getLanguageIndex} from 'js/assetUtils';
-import {renderLoading} from 'js/components/modalForms/modalHelpers.es6';
+import {LoadingSpinner} from 'js/ui';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {
   EXPORT_TYPES,
@@ -219,7 +219,7 @@ export default class ProjectExportsList extends React.Component {
             <span className='animate-processing'>{t('Processing…')}</span>
           }
 
-          {mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
+          {mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) &&
             <bem.KoboLightButton
               m={['red', 'icon-only']}
               onClick={this.deleteExport.bind(this, exportData.uid)}
@@ -237,7 +237,7 @@ export default class ProjectExportsList extends React.Component {
       return (
         <bem.FormView__row>
           <bem.FormView__cell>
-            {renderLoading()}
+            <LoadingSpinner/>
           </bem.FormView__cell>
         </bem.FormView__row>
       );

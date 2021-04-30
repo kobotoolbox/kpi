@@ -8,7 +8,6 @@ import {
   getScrollbarWidth
 } from 'utils';
 import AssetsTableRow from './assetsTableRow';
-import {renderLoading} from 'js/components/modalForms/modalHelpers';
 import {
   ASSETS_TABLE_CONTEXTS,
   ORDER_DIRECTIONS,
@@ -360,7 +359,7 @@ export default class AssetsTable extends React.Component {
 
         <bem.AssetsTable__body ref={this.bodyRef}>
           {this.props.isLoading &&
-            renderLoading()
+            <ui.LoadingSpinner/>
           }
 
           {!this.props.isLoading && this.props.assets.length === 0 &&

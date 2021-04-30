@@ -32,7 +32,6 @@ import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 import assetUtils from 'js/assetUtils';
-import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -557,7 +556,7 @@ export default assign({
             tabIndex='0'
             onClick={this.safeNavigateToList}
           >
-            <i className='k-icon-kobo' />
+            <i className='k-icon k-icon-kobo' />
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'name'} >
@@ -616,7 +615,7 @@ export default assign({
                   }]}
                   onClick={this.showAll}
                   data-tip={t('Expand / collapse questions')}>
-                <i className='k-icon-view-all-alt' />
+                <i className='k-icon-view-all' />
               </bem.FormBuilderHeader__button>
             }
 
@@ -795,7 +794,7 @@ export default assign({
       );
     }
 
-    return renderLoading();
+    return (<ui.LoadingSpinner/>);
   },
 
   render() {
@@ -804,7 +803,7 @@ export default assign({
     if (!this.state.isNewAsset && !this.state.asset) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          {renderLoading()}
+          <ui.LoadingSpinner/>
         </DocumentTitle>
       );
     }

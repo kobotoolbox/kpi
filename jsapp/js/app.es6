@@ -21,6 +21,7 @@ import {
 import moment from 'moment';
 import {actions} from './actions';
 import {stores} from './stores';
+import {surveyCompanionStore} from './surveyCompanionStore'; // importing it so it exists
 import {dataInterface} from './dataInterface';
 import {bem} from './bem';
 import ui from './ui';
@@ -87,14 +88,7 @@ class App extends React.Component {
   }
   render() {
     if (!this.state.isConfigReady) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<ui.LoadingSpinner/>);
     }
 
     var assetid = this.props.params.assetid || this.props.params.uid || null;

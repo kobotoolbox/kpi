@@ -91,6 +91,10 @@ $submission-data-table-space: 12px;
 
   &.submission-data-table__column--type {
     width: 15%;
+
+    .k-icon {
+      font-size: 20px;
+    }
   }
 
   &.submission-data-table__column--label {

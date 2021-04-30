@@ -250,6 +250,14 @@ export var dataInterface;
         method: 'DELETE',
       });
     },
+    patchParent(attachmentUrl, data) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'PATCH',
+        data: data,
+        contentType: 'application/json'
+      });
+    },
     getAttachedParents(assetUid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
@@ -262,7 +270,7 @@ export var dataInterface;
         method: 'GET',
       });
     },
-    toggleDataSharing(assetUid, data) {
+    patchDataSharing(assetUid, data) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
         method: 'PATCH',
