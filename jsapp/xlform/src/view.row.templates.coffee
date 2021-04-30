@@ -4,7 +4,7 @@ module.exports = do ->
   expandingSpacerHtml = """
       <div class="survey__row__spacer  row clearfix expanding-spacer-between-rows expanding-spacer-between-rows--depr">
         <div tabIndex="0" class="js-expand-row-selector btn btn--addrow btn--block  btn-xs  btn-default"
-            ><i class="fa fa-plus"></i></div>
+            ><i class="k-icon k-icon-plus"></i></div>
         <div class="line">&nbsp;</div>
       </div>
   """
@@ -12,9 +12,9 @@ module.exports = do ->
   groupSettingsView = ->
     """
       <section class="card__settings  row-extras row-extras--depr">
-        <i class="card__settings-close fa fa-times js-toggle-card-settings"></i>
+        <i class="card__settings-close k-icon k-icon-close js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
-          <li class="heading"><i class="fa fa-cog"></i> #{t("Settings")}</li>
+          <li class="heading"><i class="k-icon k-icon-settings"></i> #{t("Settings")}</li>
           <li data-card-settings-tab-id="all" class="card__settings__tabs__tab--active">#{t("All group settings")}</li>
           <li data-card-settings-tab-id="skip-logic" class="">#{t("Skip Logic")}</li>
         </ul>
@@ -28,9 +28,9 @@ module.exports = do ->
   rowSettingsView = ()->
     """
       <section class="card__settings  row-extras row-extras--depr">
-        <i class="card__settings-close fa fa-times js-toggle-card-settings"></i>
+        <i class="card__settings-close k-icon k-icon-close js-toggle-card-settings"></i>
         <ul class="card__settings__tabs">
-          <li class="heading"><i class="fa fa-cog"></i> #{t("Settings")}</li>
+          <li class="heading"><i class="k-icon k-icon-settings"></i> #{t("Settings")}</li>
           <li data-card-settings-tab-id="question-options" class="card__settings__tabs__tab--active">#{t("Question Options")}</li>
           <li data-card-settings-tab-id="skip-logic" class="">#{t("Skip Logic")}</li>
           <li data-card-settings-tab-id="validation-criteria" class="">#{t("Validation Criteria")}</li>
@@ -57,19 +57,19 @@ module.exports = do ->
         <div class="card__header">
           <div class="card__header--shade"><span></span></div>
           <div class="card__indicator">
-            <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon"></i></div>
+            <div class="noop card__indicator__icon"><i class="card__header-icon"></i></div>
           </div>
           <div class="card__text">
             <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
             <input type="text" placeholder="#{t("Question hint")}" class="card__header-hint js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
-            <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
-            <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="fa fa-trash-o"></i></span>
+            <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="k-icon k-icon-settings"></i></span>
+            <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="k-icon k-icon-trash"></i></span>
       """
       if surveyView.features.multipleQuestions
-        template += """<span class="card__buttons__button card__buttons__button--copy card__buttons__button--blue js-clone-question" data-button-name="duplicate"><i class="fa fa-copy"></i></span>
-                  <span class="card__buttons__button card__buttons__button--add card__buttons__button--gray-green js-add-to-question-library" data-button-name="add-to-library"><i class="fa fa-folder-o"><i class="fa fa-plus"></i></i></span>"""
+        template += """<span class="card__buttons__button card__buttons__button--copy card__buttons__button--blue js-clone-question" data-button-name="duplicate"><i class="k-icon k-icon-clone"></i></span>
+                  <span class="card__buttons__button card__buttons__button--add card__buttons__button--green js-add-to-question-library" data-button-name="add-to-library"><i class="k-icon k-icon-folder-plus"></i></i></span>"""
 
       return template + """
           </div>
@@ -82,11 +82,11 @@ module.exports = do ->
     """
     <div class="survey__row__item survey__row__item--group group card js-select-row">
       <header class="group__header">
-        <i class="group__caret js-toggle-group-expansion fa fa-fw fa-caret-down"></i>
+        <i class="group__caret js-toggle-group-expansion k-icon k-icon-caret-down"></i>
         <input type="text" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
         <div class="group__header__buttons">
-          <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="fa fa-cog"></i></span>
-          <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="fa fa-trash-o"></i></span>
+          <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="k-icon k-icon-settings"></i></span>
+          <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="k-icon k-icon-trash"></i></span>
         </div>
       </header>
       <ul class="group__rows">
@@ -101,14 +101,14 @@ module.exports = do ->
         <div class="card__header">
           <div class="card__header--shade"><span></span></div>
           <div class="card__indicator">
-            <div class="noop card__indicator__icon"><i class="fa fa-fw card__header-icon fa-table"></i></div>
+            <div class="noop card__indicator__icon"><i class="card__header-icon k-icon k-icon-matrix"></i></div>
           </div>
           <div class="card__text">
             <input type="text" placeholder="#{t("Question label is required")}" class="card__header-title js-card-label js-cancel-select-row js-cancel-sort">
           </div>
           <div class="card__buttons">
-            <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="fa fa-cog"></i></span>
-            <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="fa fa-trash-o"></i></span>
+            <span class="card__buttons__button card__buttons__button--settings card__buttons__button--gray js-toggle-card-settings" data-button-name="settings"><i class="k-icon k-icon-settings"></i></span>
+            <span class="card__buttons__button card__buttons__button--delete card__buttons__button--red js-delete-row" data-button-name="delete"><i class="k-icon k-icon-trash"></i></span>
           </div>
         </div>
         <p class="kobomatrix-warning">#{t("Note: The Matrix question type only works in Enketo web forms using the 'grid' style.")}</p>
@@ -319,7 +319,7 @@ module.exports = do ->
 
   expandChoiceList = ()->
     """
-    <span class="card__buttons__multioptions js-toggle-row-multioptions js-cancel-select-row"><i class='right-and-down-caret' /></span>
+    <span class="card__buttons__multioptions js-toggle-row-multioptions js-cancel-select-row"><i class='k-icon k-icon-caret-down' /></span>
     """
 
   rowErrorView = (atts)->

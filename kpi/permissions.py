@@ -299,7 +299,7 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
     }
 
 
-class AssetExportSettingsPermission(AssetNestedObjectPermission):
+class AssetExportSettingsPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_submissions'],
         'POST': ['%(app_label)s.manage_asset'],
@@ -311,7 +311,7 @@ class AssetExportSettingsPermission(AssetNestedObjectPermission):
     perms_map['PATCH'] = perms_map['POST']
     perms_map['DELETE'] = perms_map['POST']
 
-class ExportTaskPermission(AssetNestedObjectPermission):
+class ExportTaskPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_submissions'],
     }

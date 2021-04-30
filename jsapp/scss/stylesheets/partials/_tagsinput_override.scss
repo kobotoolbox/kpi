@@ -48,9 +48,8 @@ div.tagsinput span.tag a {
 }
 
 div.tagsinput span.tag a:before {
-  content: "\f00d";
+  content: "x";
   opacity: 0.6;
-  font-family: 'FontAwesome';
   font-size: 12px;
   color: $kobo-white;
 }
