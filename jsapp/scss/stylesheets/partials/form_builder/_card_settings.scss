@@ -48,10 +48,12 @@
   font-weight: 600;
   margin-bottom: 3px;
 
-  //== i.fa
-  .fa {
+  .k-icon {
     color: $kobo-darkgray;
     margin-right: 5px;
+    font-size: 21px;
+    display: inline-block;
+    vertical-align: -6px;
   }
 }
 
@@ -111,17 +113,23 @@
 }
 
 .card__settings-close {
-  background: C5CACF;
+  background: $kobo-midgray;
   position: absolute;
   right: 6px;
   top: 6px;
   color: $kobo-white;
   padding: 3px;
   border-radius: 3px;
+  font-size: 18px;
+  line-height: 18px;
   cursor: pointer;
 
   &:hover {
     background: $linkColor;
+  }
+
+  &:active {
+    transform: translateY(1px);
   }
 }
 

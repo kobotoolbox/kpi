@@ -9,6 +9,7 @@ import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import assetUtils from 'js/assetUtils';
 import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
@@ -623,7 +624,7 @@ class ProjectSettings extends React.Component {
   renderChooseTemplateButton() {
     return (
       <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-        <i className='k-icon-template-new' />
+        <i className='k-icon-template' />
         {t('Use a template')}
       </button>
     );
@@ -710,8 +711,8 @@ class ProjectSettings extends React.Component {
           </Dropzone>
         }
         {this.state.isUploadFilePending &&
-          <div className='dropzone-settings'>
-            {this.renderLoading(t('Uploading file…'))}
+          <div className='dropzone'>
+            <LoadingSpinner message={t('Uploading file…')}/>
           </div>
         }
 
@@ -948,20 +949,9 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
   render() {
     if (!this.state.isSessionLoaded || !this.state.currentStep) {
-      return this.renderLoading();
+      return (<LoadingSpinner/>);
     }
 
     switch (this.state.currentStep) {
