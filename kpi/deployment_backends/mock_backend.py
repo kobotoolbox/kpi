@@ -299,7 +299,12 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         settings.MONGO_DB.instances.drop()
         for idx, submission in enumerate(submissions):
             submission[MongoHelper.USERFORM_ID] = self.mongo_userform_id
-            submission['_id'] = idx + 1
+            # Some data already provide `_id`. Use it if it presents.
+            # There could be conflicts if some submissions come with an id
+            # or others do not.
+            # MockMongo will raise a DuplicateKey error
+            if '_id' not in submission:
+                submission['_id'] = idx + 1
             settings.MONGO_DB.instances.insert_one(submission)
 
     @property
@@ -395,7 +400,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             {"submission_ids": [1, 2, 3]}
             {"query":{"_validation_status.uid":"validation_status_not_approved"}
         
-        NOTES: Mongo query is not supported yet 
         """
 
         submission_ids = self.validate_write_access_with_partial_perms(

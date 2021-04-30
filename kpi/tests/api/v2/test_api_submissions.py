@@ -258,21 +258,18 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.data.get('count'), len(self.submissions))
 
     def test_list_submissions_owner_with_params(self):
-        """
-        The mock backend doesn't support all of these parameters, but we can at
-        least check that they pass through
-        `BaseDeploymentBackend.validate_submission_list_params()` without error
-        """
         response = self.client.get(
             self.submission_list_url, {
                 'format': 'json',
                 'start': 1,
-                'limit': 1,
-                'sort': '{"dummy": -1}',
-                'fields': '{"dummy": 1}',
-                'query': '{"dummy": "make me a match"}',
+                'limit': 5,
+                'sort': '{"q1": -1}',
+                'fields': '["q1", "_submitted_by"]',
+                'query': '{"_submitted_by": {"$in": ["", "someuser", "another"]}}',
             }
         )
+        # ToDo add more assertions
+        self.assertEqual(len(response.data['results']), 5)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_submissions_limit(self):

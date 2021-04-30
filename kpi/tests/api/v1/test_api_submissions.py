@@ -71,6 +71,21 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), limit)
 
+    def test_list_submissions_owner_with_params(self):
+        response = self.client.get(
+            self.submission_list_url, {
+                'format': 'json',
+                'start': 1,
+                'limit': 5,
+                'sort': '{"q1": -1}',
+                'fields': '["q1", "_submitted_by"]',
+                'query': '{"_submitted_by": {"$in": ["", "someuser", "another"]}}',
+            }
+        )
+        # ToDo add more assertions
+        self.assertEqual(len(response.data), 5)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_delete_submission_owner(self):
         submission = self.get_random_submission(self.asset.owner)
         url = self.asset.deployment.get_submission_detail_url(
