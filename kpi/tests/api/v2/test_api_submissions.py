@@ -248,45 +248,37 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_list_submissions_asset_publicly_shared_and_shared_with_user(self):
         """
         Running through behaviour described in issue kpi/#2870 where an asset
-        that has been publicly shared and then explicity shared with a user, the
-        user has lower permissions than an anonymous user and is therefore
+        that has been publicly shared and then explicitly shared with a user,
+        the user has lower permissions than an anonymous user and is therefore
         unable to view submission data.
         """
 
         self._log_in_as_another_user()
         anonymous_user = get_anonymous_user()
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == False
-        assert PERM_VIEW_ASSET not in self.asset.get_perms(self.anotheruser)
-        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == False
-        assert PERM_CHANGE_ASSET not in self.asset.get_perms(self.anotheruser)
+        assert not self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
+        assert not self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET)
 
+        # Grant anotheruser to change everything on the asset, but no
+        # permissions on submissions.
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_ASSET)
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET)
+        assert not self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
-        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
-        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == True
-        assert PERM_CHANGE_ASSET in self.asset.get_perms(self.anotheruser)
-
-        assert (
-            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-            == False
-        )
-        assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(
-            self.anotheruser
-        )
+        response = self.client.get(self.asset.deployment.submission_list_url,
+                                   {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
-        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
+        response = self.client.get(self.asset.deployment.submission_list_url,
+                                   {"format": "json"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        assert (
-            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
-        )
-        assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
-
-        # resetting permssions of asset
+        # resetting permissions of asset
         self.asset.remove_perm(self.anotheruser, PERM_VIEW_ASSET)
         self.asset.remove_perm(self.anotheruser, PERM_CHANGE_ASSET)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
