@@ -69,6 +69,8 @@ decorator==4.4.1
     # via
     #   ipython
     #   traitlets
+deepmerge==0.3.0
+    # via -r dependencies/pip/dev_requirements.in
 defusedxml==0.6.0
     # via djangorestframework-xml
 dicttoxml==1.7.4

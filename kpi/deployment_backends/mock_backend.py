@@ -1,11 +1,11 @@
 # coding: utf-8
 import copy
-import re
 import time
 import uuid
 from datetime import datetime
 
 import pytz
+from deepmerge import always_merger
 from dicttoxml import dicttoxml
 from django.conf import settings
 from django.urls import reverse
@@ -270,15 +270,17 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             for submission in submissions
         ]
 
-        if format_type == INSTANCE_FORMAT_TYPE_XML:
-            return [
-                dicttoxml(
-                    submission, attr_type=False, custom_root=self.asset.uid
-                ).decode()
-                for submission in submissions
-            ]
+        if format_type != INSTANCE_FORMAT_TYPE_XML:
+            return submissions
 
-        return submissions
+        return [
+            dicttoxml(
+                self.__prepare_xml(submission),
+                attr_type=False,
+                custom_root=self.asset.uid,
+            ).decode()
+            for submission in submissions
+        ]
 
     def get_validation_status(
         self, submission_id, user: 'auth.User', params: dict
@@ -459,10 +461,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         for obj in queryset:
             assert issubclass(obj.__class__, SyncBackendMediaInterface)
 
-    def _submission_count(self):
-        submissions = self.get_data('submissions', [])
-        return len(submissions)
-
     @staticmethod
     def __prepare_bulk_update_response(kc_responses: list) -> dict:
         total_update_attempts = len(kc_responses)
@@ -476,3 +474,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 'results': kc_responses,
             },
         }
+
+    @staticmethod
+    def __prepare_xml(submission: dict) -> dict:
+        submission_copy = copy.deepcopy(submission)
+
+        for k, v in submission_copy.items():
+            if '/' not in k:
+                continue
+            value = v
+            for key in reversed(k.strip('/').split('/')):
+                value = {key: value}
+            always_merger.merge(submission, value)
+            del submission[k]
+
+        return submission

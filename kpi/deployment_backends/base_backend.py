@@ -279,7 +279,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @property
     def submission_count(self):
-        return self._submission_count()
+        return self.calculated_submission_count(self.asset.owner)
 
     @property
     @abc.abstractmethod

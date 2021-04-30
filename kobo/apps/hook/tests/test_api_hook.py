@@ -232,7 +232,7 @@ class ApiHookTestCase(HookTestCase):
     @responses.activate
     def test_payload_template(self):
 
-        payload_template ='{{"fields": {}}}'.format(SUBMISSION_PLACEHOLDER)
+        payload_template = '{{"fields": {}}}'.format(SUBMISSION_PLACEHOLDER)
         hook = self._create_hook(name='Dummy hook with payload_template',
                                  endpoint='http://payload-template.dummy.local/',
                                  payload_template=payload_template)
@@ -295,14 +295,14 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(response.data, expected_response)
 
         # Test with XML type
-        self.asset_xml = self.create_asset(
+        self.asset = self.create_asset(
             'asset_for_tests_with_xml',
             content=json.dumps(self.asset.content),
             format='json')
-        self.asset_xml.deploy(backend='mock', active=True)
-        self.asset_xml.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
 
-        payload_template ='{{"fields": {}}}'.format(SUBMISSION_PLACEHOLDER)
+        payload_template = '{{"fields": {}}}'.format(SUBMISSION_PLACEHOLDER)
         response = self._create_hook(payload_template=payload_template, 
                                      format_type=Hook.XML,
                                      return_response_only=True)
