@@ -459,11 +459,21 @@ $t-form-builder-aside-open: 200ms;
 }
 
 .survey-editor {
-  .ui-sortable-placeholder.lib-list__item {
-    border: 1px dashed $kobo-midgray;
+  .ui-sortable-placeholder {
+    border: 2px dashed $kobo-blue;
     visibility: visible !important;
     min-height: 80px;
     padding: 0;
+  }
+
+  // Semi-hack: lib-list__item already have margins, non-library placeholder
+  // doesn't. lib-list__item should also be transparent--for formbuilder revamp
+  // all placeholders should be the same
+  .placeholder {
+    margin: 5px 0;
+  }
+  .lib-list__item {
+    background: transparent;
   }
 }
 
