@@ -697,7 +697,6 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
     def test_duplicate_submission_with_partial_perms(self):
         self._log_in_as_another_user()
 
-        # FIXME, the permission should be `add_submissions`.
         partial_perms = {
             PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
         }
