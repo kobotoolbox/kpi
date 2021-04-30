@@ -44,8 +44,7 @@ bem.ServiceRow__actionButton = bem.ServiceRow.__('action-button', '<button>');
 bem.ServiceRow__linkOverlay = bem.ServiceRow.__('link-overlay', '<a>');
 bem.ServiceRowButton = BEM('service-row-button', '<button>');
 
-bem.FormBuilder = BEM('formBuilder');
-bem.FormBuilder__row = bem.FormBuilder.__('row');
+bem.FormBuilder = BEM('form-builder');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 
 bem.FormBuilderMeta = bem('form-builder-meta');
@@ -58,7 +57,7 @@ bem.FormBuilderAside__content = bem.FormBuilderAside.__('content');
 bem.FormBuilderAside__header = bem.FormBuilderAside.__('header', '<h2>');
 bem.FormBuilderAside__row = bem.FormBuilderAside.__('row', '<section>');
 
-bem.FormBuilderHeader = BEM('formBuilder-header');
+bem.FormBuilderHeader = BEM('form-builder-header');
 bem.FormBuilderHeader__row = bem.FormBuilderHeader.__('row');
 bem.FormBuilderHeader__cell = bem.FormBuilderHeader.__('cell');
 bem.FormBuilderHeader__item = bem.FormBuilderHeader.__('item', '<span>');
@@ -101,7 +100,7 @@ bem.SubmissionDataTable__value = bem.SubmissionDataTable.__('value');
 
 bem.TableMeta = bem('table-meta');
 bem.TableMeta__counter = bem.TableMeta.__('counter');
-bem.TableMeta__additionalText = bem.TableMeta.__('additional-text'); // generally text not needed on smaller screens
+bem.TableMeta__additionalText = bem.TableMeta.__('additional-text', 'span'); // generally text not needed on smaller screens
 bem.TableMeta__bulkOptions = bem.TableMeta.__('bulk-options');
 
 bem.CollectionsWrapper = bem('collections-wrapper');
@@ -128,8 +127,6 @@ bem.AssetItems = BEM('asset-items', '<ul>');
 
 bem.AssetListSorts = BEM('asset-list-sorts', '<div>');
 bem.AssetListSorts__item = bem.AssetListSorts.__('item');
-
-bem.Message = BEM('message');
 
 bem.FormView = BEM('form-view');
 // used in header.es6

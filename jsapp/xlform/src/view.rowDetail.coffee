@@ -150,11 +150,11 @@ module.exports = do ->
     insertInDOM: (rowView)->
       typeStr = @model.get("typeId")
       if !(@model._parent.constructor.kls is "Group")
-        faClass = $icons.get(typeStr)?.get("faClass")
-        if !faClass
+        iconClassName = $icons.get(typeStr)?.get("iconClassName")
+        if !iconClassName
           console?.error("could not find icon for type: #{typeStr}")
-          faClass = "fighter-jet"
-        rowView.$el.find(".card__header-icon").addClass("fa-#{faClass}")
+          iconClassName = "k-icon k-icon-alert"
+        rowView.$el.find(".card__header-icon").addClass(iconClassName)
 
 
   viewRowDetail.DetailViewMixins.label =

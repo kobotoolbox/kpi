@@ -9,6 +9,7 @@ import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import {notify, launchPrinting} from 'utils';
 import {stores} from 'js/stores';
 import {
@@ -240,14 +241,7 @@ class Submission extends React.Component {
 
   render() {
     if (this.state.loading) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<LoadingSpinner/>);
     }
 
     if (this.state.error) {
