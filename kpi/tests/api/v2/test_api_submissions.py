@@ -569,6 +569,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
             response.data['count'], anotheruser_submission_count - 1
         )
 
+
 class SubmissionEditApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
