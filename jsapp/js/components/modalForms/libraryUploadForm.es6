@@ -31,7 +31,7 @@ class LibraryUploadForm extends React.Component {
       isSessionLoaded: !!stores.session.currentAccount,
       isPending: false,
       // default is block
-      desiredType: DESIRED_TYPES[0].value,
+      desiredType: DESIRED_TYPES[0],
     };
 
     autoBind(this);
@@ -48,8 +48,8 @@ class LibraryUploadForm extends React.Component {
     this.dropFiles(files, rejectedFiles, evt);
   }
 
-  onDesiredTypeChange(evt) {
-    this.setState({desiredType: evt.value});
+  onDesiredTypeChange(newValue) {
+    this.setState({desiredType: newValue});
   }
 
   render() {
@@ -65,17 +65,19 @@ class LibraryUploadForm extends React.Component {
 
         {!this.state.isPending &&
           <React.Fragment>
-            <Dropzone
-              onDrop={this.onFileDrop.bind(this)}
-              multiple={false}
-              className='dropzone'
-              activeClassName='dropzone-active'
-              rejectClassName='dropzone-reject'
-              accept={validFileTypes()}
-            >
-              <i className='k-icon-xls-file' />
-              {t(' Drag and drop the XLSForm file here or click to browse')}
-            </Dropzone>
+            <bem.FormModal__item>
+              <Dropzone
+                onDrop={this.onFileDrop.bind(this)}
+                multiple={false}
+                className='dropzone'
+                activeClassName='dropzone-active'
+                rejectClassName='dropzone-reject'
+                accept={validFileTypes()}
+              >
+                <i className='k-icon-xls-file' />
+                {t(' Drag and drop the XLSForm file here or click to browse')}
+              </Dropzone>
+            </bem.FormModal__item>
 
             <bem.FormModal__item>
               <label htmlFor='desired-type'>

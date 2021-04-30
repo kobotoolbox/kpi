@@ -79,6 +79,7 @@ $z-modal-x: 10;
   // we use margin for bottom to make it stack with modal__footer
   padding: 30px 30px 0;
   margin-bottom: 30px;
+  overflow: hidden; // needed for modal__subheader to not cause h-scroll
 
   // in some cases adding custom footer requires it to be inside modal__body and
   // then padding is not needed (it is partially needed when in .modal--large)
