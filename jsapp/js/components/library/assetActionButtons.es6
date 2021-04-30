@@ -21,7 +21,8 @@ import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {
   ASSET_TYPES,
-  ACCESS_TYPES
+  ACCESS_TYPES,
+  ROUTES,
 } from 'js/constants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from './ownedCollectionsStore';
@@ -125,10 +126,10 @@ class AssetActionButtons extends React.Component {
    */
   onDeleteComplete(assetUid) {
     if (this.isLibrarySingle() && this.currentAssetID() === assetUid) {
-      hashHistory.push('/library');
+      hashHistory.push(ROUTES.LIBRARY);
     }
     if (this.isFormSingle() && this.currentAssetID() === assetUid) {
-      hashHistory.push('/forms');
+      hashHistory.push(ROUTES.FORMS);
     }
   }
 
@@ -180,10 +181,11 @@ class AssetActionButtons extends React.Component {
     const parentArr = this.props.asset.parent.split('/');
     const parentAssetUid = parentArr[parentArr.length - 2];
     hashHistory.push(`/library/asset/${parentAssetUid}`);
+    hashHistory.push(ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid));
   }
 
   getFormBuilderLink() {
-    let link = `#/library/asset/${this.props.asset.uid}/edit`;
+    let link = '#' + ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', this.props.asset.uid);
 
     // when editing a child from within a collection page
     // make sure the "Return to list" button goes back to collection
@@ -193,7 +195,8 @@ class AssetActionButtons extends React.Component {
       this.props.asset.parent !== null &&
       this.props.asset.parent.includes(currentAssetUid)
     ) {
-      link += `?back=/library/asset/${currentAssetUid}`;
+      const backPath = ROUTES.LIBRARY_ITEM.replace(':uid', currentAssetUid);
+      link += `?back=${backPath}`;
     }
 
     return link;
@@ -339,16 +342,20 @@ class AssetActionButtons extends React.Component {
     );
   }
 
-  renderSubButton(isUserSubscribed) {
+  renderSubButton() {
     const isSelfOwned = assetUtils.isSelfOwned(this.props.asset);
     const isPublic = assetUtils.isAssetPublic(this.props.asset.permissions);
+    const isUserSubscribed = (
+      this.props.asset.access_types &&
+      this.props.asset.access_types.includes(ACCESS_TYPES.subscribed)
+    );
 
     if (
       !isSelfOwned &&
       isPublic &&
       this.props.asset.asset_type === ASSET_TYPES.collection.id
     ) {
-      const modifiers = isUserSubscribed ? ['unsubscribe'] : ['subscribe'];
+      const modifiers = isUserSubscribed ? ['off'] : ['on'];
       const fn = isUserSubscribed ? this.unsubscribeFromCollection.bind(this) : this.subscribeToCollection.bind(this);
       if (this.state.isSubscribePending) {
         modifiers.push('pending');
@@ -357,7 +364,7 @@ class AssetActionButtons extends React.Component {
       let title = t('Pending…');
       if (!this.state.isSubscribePending) {
         if (isUserSubscribed) {
-          icon = (<i className='k-icon k-icon-unsubscribe'/>);
+          icon = (<i className='k-icon k-icon-close'/>);
           title = t('Unsubscribe');
         } else {
           icon = (<i className='k-icon k-icon-subscribe'/>);
@@ -391,17 +398,13 @@ class AssetActionButtons extends React.Component {
       assetType === ASSET_TYPES.template.id ||
       assetType === ASSET_TYPES.collection.id
     );
-    const isUserSubscribed = (
-      this.props.asset.access_types &&
-      this.props.asset.access_types.includes(ACCESS_TYPES.subscribed)
-    );
 
     return (
       <bem.AssetActionButtons
         onMouseLeave={this.onMouseLeave}
         onMouseEnter={this.onMouseEnter}
       >
-        {this.renderSubButton(isUserSubscribed)}
+        {this.renderSubButton()}
 
         {userCanEdit && assetType !== ASSET_TYPES.collection.id &&
           <bem.AssetActionButtons__iconButton

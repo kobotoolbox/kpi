@@ -6,9 +6,10 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import Select from 'react-select';
 import Dropzone from 'react-dropzone';
-import TextBox from 'js/components/textBox';
-import Checkbox from 'js/components/checkbox';
+import TextBox from 'js/components/common/textBox';
+import Checkbox from 'js/components/common/checkbox';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import assetUtils from 'js/assetUtils';
 import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
@@ -25,7 +26,8 @@ import {
 } from 'utils';
 import {
   NAME_MAX_LENGTH,
-  PROJECT_SETTINGS_CONTEXTS
+  PROJECT_SETTINGS_CONTEXTS,
+  ROUTES,
 } from 'js/constants';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
@@ -305,12 +307,12 @@ class ProjectSettings extends React.Component {
       throw new Error('Unknown uid!');
     }
 
-    hashHistory.push(`/forms/${targetUid}/landing`);
+    hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', targetUid));
   }
 
   goToProjectsList() {
     stores.pageState.hideModal();
-    hashHistory.push('/forms');
+    hashHistory.push(ROUTES.FORMS);
   }
 
   /*
@@ -403,14 +405,7 @@ class ProjectSettings extends React.Component {
         resolve(this.state.formAsset);
       } else {
         dataInterface.createResource({
-          name: 'Untitled',
-          asset_type: 'survey',
-          settings: JSON.stringify({
-            description: '',
-            sector: null,
-            country: null,
-            'share-metadata': false
-          })
+          asset_type: 'empty',
         }).done((asset) => {
           resolve(asset);
         }).fail(function(r){
@@ -499,12 +494,7 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  // TODO: allow serializers to take care of file names to
-                  // remove this bandaid fix for "Untitled" filenames
                   var assetName = finalAsset.name;
-                  if (assetName === 'Untitled') {
-                    assetName = this.getFilenameFromURI(importUrl);
-                  }
                   this.setState({
                     formAsset: finalAsset,
                     name: assetName,
@@ -562,12 +552,7 @@ class ProjectSettings extends React.Component {
                   // when replacing, we omit PROJECT_DETAILS step
                   this.goToFormLanding();
                 } else {
-                  // TODO: allow serializers to take care of file names to
-                  // remove this bandaid fix for "Untitled" filenames
                   var assetName = finalAsset.name;
-                  if (assetName === 'Untitled') {
-                    assetName = files[0].name.split('.xlsx')[0];
-                  }
                   this.setState({
                     formAsset: finalAsset,
                     name: assetName,
@@ -727,7 +712,7 @@ class ProjectSettings extends React.Component {
         }
         {this.state.isUploadFilePending &&
           <div className='dropzone'>
-            {this.renderLoading(t('Uploading file…'))}
+            <LoadingSpinner message={t('Uploading file…')}/>
           </div>
         }
 
@@ -964,20 +949,9 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  renderLoading(message = t('loading…')) {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {message}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
   render() {
     if (!this.state.isSessionLoaded || !this.state.currentStep) {
-      return this.renderLoading();
+      return (<LoadingSpinner/>);
     }
 
     switch (this.state.currentStep) {

@@ -17,6 +17,7 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
+import exportsActions from './actions/exportsActions';
 import {
   notify,
   replaceSupportEmail,
@@ -30,6 +31,7 @@ export const actions = {
   help: helpActions,
   library: libraryActions,
   submissions: submissionsActions,
+  exports: exportsActions,
 };
 
 actions.navigation = Reflux.createActions([
@@ -115,9 +117,12 @@ permissionsActions.copyPermissionsFrom.completed.listen((sourceUid, targetUid) =
 permissionsActions.setAssetPublic.completed.listen((uid) => {
   actions.resources.loadAsset({id: uid});
 });
-permissionsActions.removeAssetPermission.completed.listen((uid) => {
-  // needed to update publicShareSettings after disabling link sharing
-  actions.resources.loadAsset({id: uid});
+permissionsActions.removeAssetPermission.completed.listen((uid, isNonOwner) => {
+  // Avoid this call if a non-owner removed their own permissions as it will fail
+  if (!isNonOwner) {
+    // needed to update publicShareSettings after disabling link sharing
+    actions.resources.loadAsset({id: uid});
+  }
 });
 
 actions.misc.getUser.listen((userUrl) => {

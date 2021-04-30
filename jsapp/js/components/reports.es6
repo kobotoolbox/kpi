@@ -4,8 +4,8 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import _ from 'underscore';
 import {dataInterface} from '../dataInterface';
-import Checkbox from './checkbox';
-import Radio from './radio';
+import Checkbox from 'js/components/common/checkbox';
+import Radio from 'js/components/common/radio';
 import {actions} from '../actions';
 import {bem} from '../bem';
 import {stores} from '../stores';
@@ -1046,10 +1046,7 @@ class Reports extends React.Component {
                 </code>
               </bem.Loading__inner>
             :
-              <bem.Loading__inner>
-                <i />
-                {t('loading...')}
-              </bem.Loading__inner>
+              <ui.LoadingSpinner/>
             }
           </bem.Loading>
       );
@@ -1089,10 +1086,7 @@ class Reports extends React.Component {
               </code>
             </bem.Loading__inner>
           :
-            <bem.Loading__inner>
-              <i />
-              {t('loading...')}
-            </bem.Loading__inner>
+            <ui.LoadingSpinner/>
           }
         </bem.Loading>
       );

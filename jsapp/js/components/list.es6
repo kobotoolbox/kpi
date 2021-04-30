@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Select from 'react-select';
-import Checkbox from './checkbox';
+import Checkbox from 'js/components/common/checkbox';
 import ui from '../ui';
 import {bem} from '../bem';
 import {actions} from '../actions';
@@ -34,9 +34,15 @@ export class ListSearch extends React.Component {
   render () {
     return (
       <bem.Search m={[this.state.searchState]} >
-        <bem.Search__icon />
+        <bem.Search__icon className='k-icon k-icon-search'/>
         <ui.SearchBox ref='formlist-search' placeholder={this.props.placeholderText} onChange={this.searchChangeEvent} />
-        <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
+
+        {this.state.searchState !== 'none' &&
+          <bem.Search__cancel
+            className='k-icon k-icon-close'
+            onClick={this.searchClear}
+          />
+        }
       </bem.Search>
     );
   }
@@ -99,7 +105,6 @@ export class ListTagFilter extends React.Component {
   render () {
     return (
       <bem.tagSelect>
-        <i className='fa fa-search' />
         <Select
           name='tags'
           isMulti

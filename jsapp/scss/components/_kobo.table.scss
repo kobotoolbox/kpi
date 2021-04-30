@@ -89,7 +89,7 @@
 
       .rt-th:hover,
       .rt-td:hover {
-        background: rgba($kobo-teal, 0.1);
+        background: $kobo-teal-light;
       }
 
       .rt-th.-sort-desc,
@@ -150,7 +150,8 @@
         }
 
         i {
-          font-size: 32px;
+          font-size: 24px;
+          margin: 0 3px;
           vertical-align: middle;
         }
       }
@@ -197,7 +198,7 @@
     }
 
     &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
-      background: rgba($kobo-teal, 0.1);
+      background: $kobo-teal-light;
     }
 
     &.has-frozen-column {
@@ -224,7 +225,7 @@
       }
 
       &.-striped .rt-tr:hover .frozen {
-        background: rgba($kobo-teal, 0.1);
+        background: $kobo-teal-light;
       }
 
       .rt-th.frozen {

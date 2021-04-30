@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import ui from 'js/ui';
-import Checkbox from 'js/components/checkbox';
+import Checkbox from 'js/components/common/checkbox';
 
 /**
  * @prop visibleRowsCount

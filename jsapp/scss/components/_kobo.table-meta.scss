@@ -29,10 +29,6 @@
     white-space: nowrap;
   }
 
-  .table-meta__additional-text {
-    display: inline;
-  }
-
   @media screen and (max-width: 1100px) {
     .table-meta__additional-text {
       display: none;
@@ -71,8 +67,10 @@
 
   > .popover-menu--table-bulk-checkbox {
     .popover-menu__toggle::after {
-      content: "\F107";
-      font-family: "FontAwesome";
+      content: "\25BC";
+      font-size: 8px;
+      display: inline-block;
+      vertical-align: 1px;
       padding: 0 10px 0 30px;
     }
 

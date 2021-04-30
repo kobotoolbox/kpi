@@ -303,7 +303,7 @@ export var dataInterface;
       return $.getJSON(`${ROOT_URL}/api/v2/assets/${id}/content/`);
     },
     getImportDetails ({uid}) {
-      return $.getJSON(`${ROOT_URL}/imports/${uid}/`);
+      return $.getJSON(`${ROOT_URL}/api/v2/imports/${uid}/`);
     },
     getAsset (params={}) {
       if (params.url) {
@@ -313,36 +313,79 @@ export var dataInterface;
         return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/?limit=${DEFAULT_PAGE_SIZE}`);
       }
     },
-    /**
-     * @param {object} data
-     * @param {string} [data.source]
-     * @param {string} [data.type]
-     * @param {boolean} [data.fields_from_all_versions]
-     * @param {string} [data.lang]
-     * @param {boolean} [data.hierarchy_in_labels]
-     * @param {string} [data.group_sep]
-     */
-    createExport (data) {
+
+    getAssetExports(assetUid) {
       return $ajax({
-        url: `${ROOT_URL}/exports/`,
-        method: 'POST',
-        data: data
-      });
-    },
-    getAssetExports (uid) {
-      return $ajax({
-        url: `${ROOT_URL}/exports/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
         data: {
-          q: `source:${uid}`
-        }
+          ordering: '-date_created',
+          // TODO: handle pagination of this in future, for now we get "all"
+          limit: 9999,
+        },
       });
     },
-    deleteAssetExport (euid) {
+
+    createAssetExport(assetUid, data) {
       return $ajax({
-        url: `${ROOT_URL}/exports/${euid}/`,
-        method: 'DELETE'
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
+        method: 'POST',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json',
       });
     },
+
+    getAssetExport(assetUid, exportUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${exportUid}/`,
+        method: 'GET',
+      });
+    },
+
+    deleteAssetExport(assetUid, exportUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${exportUid}/`,
+        method: 'DELETE',
+      });
+    },
+
+    getExportSettings(assetUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
+        // TODO: handle pagination of this in future, for now we get "all"
+        data: {limit: 9999},
+      });
+    },
+
+    getExportSetting(assetUid, settingUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+      });
+    },
+
+    updateExportSetting(assetUid, settingUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+        method: 'PATCH',
+        data: data,
+      });
+    },
+
+    createExportSetting(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
+        method: 'POST',
+        data: data,
+      });
+    },
+
+    deleteExportSetting(assetUid, settingUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+        method: 'DELETE',
+      });
+    },
+
     getAssetXformView (uid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/xform/`,
@@ -368,7 +411,7 @@ export var dataInterface;
       };
 
       if (params.searchPhrase) {
-        searchData.q += ` AND "${params.searchPhrase}"`;
+        searchData.q += ` AND (${params.searchPhrase})`;
       }
 
       if (params.filterProperty && params.filterValue) {
@@ -381,6 +424,10 @@ export var dataInterface;
 
       if (params.metadata === true) {
         searchData.metadata = 'on';
+      }
+
+      if (params.collectionsFirst === true) {
+        searchData.collections_first = 'true';
       }
 
       if (params.status) {
@@ -402,7 +449,7 @@ export var dataInterface;
       };
 
       if (params.searchPhrase) {
-        searchData.q += ` AND "${params.searchPhrase}"`;
+        searchData.q += ` AND (${params.searchPhrase})`;
       }
 
       if (params.filterProperty && params.filterValue) {
@@ -538,7 +585,7 @@ export var dataInterface;
       });
       return $ajax({
         method: 'POST',
-        url: `${ROOT_URL}/imports/`,
+        url: `${ROOT_URL}/api/v2/imports/`,
         data: formData,
         processData: false,
         contentType: false

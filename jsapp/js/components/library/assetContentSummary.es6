@@ -1,22 +1,28 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import {getFlatQuestionsList} from 'js/assetUtils';
+import {
+  getFlatQuestionsList,
+  renderQuestionTypeIcon,
+} from 'js/assetUtils';
 import {QUESTION_TYPES} from 'js/constants';
 
 const DISPLAY_LIMIT = 8;
+
+/**
+ * AKA "Quick Look" component
+ */
 
 class AssetContentSummary extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      isExpanded: false
+      isExpanded: false,
     };
     autoBind(this);
   }
 
   renderQuestion(question, itemIndex) {
-    const typeDef = QUESTION_TYPES[question.type];
     const modifiers = ['columns', 'padding-small'];
     if (itemIndex !== 0) {
       modifiers.push('bordertop');
@@ -24,8 +30,7 @@ class AssetContentSummary extends React.Component {
     return (
       <bem.FormView__cell m={modifiers} key={itemIndex}>
         <bem.FormView__cell m='column-icon'>
-          {/* fix icon for date time */}
-          <i className={['fa', 'fa-lg', typeDef.faIcon].join(' ')}/>
+          {renderQuestionTypeIcon(question.type)}
         </bem.FormView__cell>
 
         <bem.FormView__cell m={['column-1', 'asset-content-summary-name']}>
@@ -57,6 +62,7 @@ class AssetContentSummary extends React.Component {
       return null;
     }
 
+    // TODO add a language selection to display localized questions labels
     let items = getFlatQuestionsList(this.props.asset.content.survey);
     const isExpandable = items.length > DISPLAY_LIMIT;
 
@@ -73,18 +79,20 @@ class AssetContentSummary extends React.Component {
     }
 
     return (
-      <bem.FormView__cell m='box'>
-        {items.map(this.renderQuestion)}
+      <React.Fragment>
+        <bem.FormView__cell m={['box', 'bordered']}>
+          {items.map(this.renderQuestion)}
+        </bem.FormView__cell>
 
         {isExpandable &&
-          <bem.FormView__cell m={['bordertop', 'toggle-details']}>
+          <bem.FormView__cell m={['toggle-details']}>
             <button onClick={this.toggleExpanded}>
               {this.state.isExpanded ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}
               {this.state.isExpanded ? t('Show less') : t('Show more')}
             </button>
           </bem.FormView__cell>
         }
-      </bem.FormView__cell>
+      </React.Fragment>
     );
   }
 }

@@ -1,6 +1,7 @@
 // Variable declarations here to make them available to all stylesheets
 
 @import "colors";
+@import "variables";
 
 // Colors
 // ==========================================================================
@@ -29,7 +30,6 @@ $buttonBorderRadius: 5px;
 @import "stylesheets/partials/tagsinput_override";
 
 @import "stylesheets/partials/base";
-@import "stylesheets/partials/icons";
 @import "stylesheets/partials/buttons";
 @import "stylesheets/partials/misc";
 

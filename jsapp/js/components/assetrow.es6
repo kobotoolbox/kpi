@@ -12,7 +12,7 @@ import {
   KEY_CODES,
   ASSET_TYPES
 } from 'js/constants';
-import TagInput from '../components/tagInput';
+import TagInput from 'js/components/tagInput';
 import {formatTime} from 'utils';
 
 class AssetRow extends React.Component {
@@ -420,6 +420,15 @@ class AssetRow extends React.Component {
                 >
                   <i className='k-icon-trash' />
                   {t('Delete')}
+                </bem.PopoverMenu__link>
+              }
+              {!isSelfOwned &&
+                <bem.PopoverMenu__link
+                  m={'removeSharing'}
+                  data-action={'removeSharing'}
+                >
+                  <i className='k-icon-trash' />
+                  {t('Remove Shared Form')}
                 </bem.PopoverMenu__link>
               }
             </ui.PopoverMenu>

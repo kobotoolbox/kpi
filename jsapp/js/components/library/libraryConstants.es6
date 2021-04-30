@@ -1,3 +1,18 @@
+export const ROOT_BREADCRUMBS = Object.freeze({
+  PROJECTS: {
+    label: t('Projects'),
+    href: '#/forms',
+  },
+  MY_LIBRARY: {
+    label: t('My Library'),
+    href: '#/library/my-library',
+  },
+  PUBLIC_COLLECTIONS: {
+    label: t('Public Collections'),
+    href: '#/library/public-collections',
+  },
+});
+
 export const ASSETS_TABLE_CONTEXTS = {};
 new Set([
   'MY_LIBRARY',
@@ -42,6 +57,14 @@ export const ASSETS_TABLE_COLUMNS = Object.freeze({
     orderBy: 'name',
     defaultValue: ORDER_DIRECTIONS.ascending,
   },
+  'items-count': {
+    label: t('Items'),
+    id: 'items-count',
+    // TODO: currently it is not possible to order by summary.row_count and children.count at the same time
+    // so we disable this column
+    orderBy: null,
+    defaultValue: null,
+  },
   owner: {
     label: t('Owner'),
     id: 'owner',
@@ -61,25 +84,11 @@ export const ASSETS_TABLE_COLUMNS = Object.freeze({
     filterByPath: ['summary', 'languages'],
     filterByMetadataName: 'languages',
   },
-  organization: {
-    label: t('Organization'),
-    id: 'organization',
-    filterBy: 'settings__organization',
-    filterByPath: ['settings', 'organization'],
-    filterByMetadataName: 'organizations',
-  },
   'primary-sector': {
     label: t('Primary Sector'),
     id: 'primary-sector',
     filterBy: 'settings__sector__value',
     filterByPath: ['settings', 'sector'],
     filterByMetadataName: 'sectors',
-  },
-  country: {
-    label: t('Country'),
-    id: 'country',
-    filterBy: 'settings__country__value',
-    filterByPath: ['settings', 'country'],
-    filterByMetadataName: 'countries',
   },
 });

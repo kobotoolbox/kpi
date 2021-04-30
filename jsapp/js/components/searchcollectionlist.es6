@@ -8,6 +8,7 @@ import mixins from '../mixins';
 import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
 import {bem} from '../bem';
+import {LoadingSpinner} from 'js/ui';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
@@ -220,14 +221,7 @@ class SearchCollectionList extends Reflux.Component {
               (() => {
                 if (s.searchResultsDisplayed) {
                   if (s.searchState === 'loading') {
-                    return (
-                      <bem.Loading>
-                        <bem.Loading__inner>
-                          <i />
-                          {t('loading...')}
-                        </bem.Loading__inner>
-                      </bem.Loading>
-                    );
+                    return (<LoadingSpinner/>);
                   } else if (s.searchState === 'done') {
                     if (s.searchResultsCount === 0) {
                       return (
@@ -245,14 +239,7 @@ class SearchCollectionList extends Reflux.Component {
                   }
                 } else {
                   if (s.defaultQueryState === 'loading') {
-                    return (
-                      <bem.Loading>
-                        <bem.Loading__inner>
-                          <i />
-                          {t('loading...')}
-                        </bem.Loading__inner>
-                      </bem.Loading>
-                    );
+                    return (<LoadingSpinner/>);
                   } else if (s.defaultQueryState === 'done') {
                     if (s.defaultQueryCount < 1) {
                       if (s.defaultQueryFor.assetType === COMMON_QUERIES.s) {

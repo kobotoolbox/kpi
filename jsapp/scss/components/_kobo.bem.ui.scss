@@ -47,7 +47,7 @@ $mdl-layout-width: 1440px;
   flex-direction: column;
 
   > .asset-view__content,
-  > .formBuilder {
+  > .form-builder {
     @extend .mdl-cell, .mdl-cell--12-col;
 
     flex-flow: column;
@@ -58,7 +58,7 @@ $mdl-layout-width: 1440px;
     height: 100%;
   }
 
-  > .formBuilder {
+  > .form-builder {
     height: 100%;
   }
 }
@@ -87,18 +87,6 @@ $mdl-layout-width: 1440px;
   opacity: .75;
 }
 
-.message--error {
-  text-decoration: uppercase;
-}
-
-.message--loading {
-  text-align: center;
-
-  > i:first-child {
-    @extend .fa, .fa-fw, .fa-circle-o-notch, .k-spin;
-  }
-}
-
 // Loading messages
 .loading {
   display: table;
@@ -109,11 +97,10 @@ $mdl-layout-width: 1440px;
   opacity: 0.8;
 
   i:first-child {
-    @extend .fa, .k-spin, .fa-circle-o-notch;
-
     margin-right: 12px;
     vertical-align: middle;
-    font-size: 24px;
+    font-size: 28px;
+    display: inline-block;
   }
 
   &__inner {
@@ -170,8 +157,8 @@ $mdl-layout-width: 1440px;
   }
 
   i {
-    margin: 0px;
-    font-size: 36px;
+    margin: 3px;
+    font-size: 26px;
   }
 }
 
@@ -347,30 +334,16 @@ $mdl-layout-width: 1440px;
     }
 
     &::after {
-      content: "\F107";
-      font-family: "FontAwesome";
+      content: "\25BC";
+      font-size: 8px;
       margin-left: 3px;
+      display: inline-block;
+      vertical-align: 1px;
     }
   }
 
   .popover-menu__content {
     line-height: 20px;
-  }
-}
-
-.popover-menu--question-language {
-  .popover-menu__toggle {
-    @extend .mdl-button;
-
-    text-transform: uppercase;
-    padding-left: 0px;
-
-    &::after {
-      content: "\f107";
-      font-family: "FontAwesome";
-      font-size: 18px;
-      margin-left: 5px;
-    }
   }
 }
 
@@ -382,10 +355,11 @@ $mdl-layout-width: 1440px;
     padding-left: 0px;
 
     &::after {
-      content: "\f107";
-      font-family: "FontAwesome";
-      font-size: 18px;
+      content: "\25BC";
+      font-size: 10px;
       margin-left: 5px;
+      display: inline-block;
+      vertical-align: 1px;
     }
   }
 
@@ -419,10 +393,9 @@ $mdl-layout-width: 1440px;
     &::after {
       position: absolute;
       right: 10px;
-      top: 8px;
-      content: "\f0d7";
-      font-family: "FontAwesome";
-      font-size: 16px;
+      top: 9px;
+      content: "\25BC";
+      font-size: 10px;
     }
   }
 
@@ -603,10 +576,19 @@ span.svg-icon {
   }
 }
 
-// faster spinning icons, based on fa-spin
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// spinning with easing
 .k-spin {
-  -webkit-animation: fa-spin 1.2s infinite linear;
-  animation: fa-spin 1.2s infinite linear;
+  transform-origin: center;
+  animation: spinner 1.2s infinite ease-in-out;
 }
 
 // Scrollbar overrides
@@ -645,7 +627,7 @@ span.svg-icon {
   font-size: 18px;
 
   i {
-    font-size: 64px;
+    font-size: 46px;
     display: block;
     margin: 0 auto;
     margin-bottom: 10px;

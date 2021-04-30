@@ -1,20 +1,25 @@
+// TODO: This file is too big and it lost it's original purpose.
+// It was supposed to be a general form view layout (AKA "the content"), but
+// over time it accumulated many small unique modifiers.
+//
+// Best things to do here:
+// 1. For sure don't add anything new, unless it really makes sense to be part
+//    of the Form View. It is really tempting to add new modifier when writing
+//    JSX `<FormView__cell m='new-modifier'>`, but try not to do this.
+// 2. Try to split out logical parts of it that are unique to only single place
+//    in app. You can easily leave them as form-view__… for now.
+// 3. Add comments describing what you're adding.
+// 4. We should migrate form-view layout to flex box to avoid all those calc()
+//    and to make it context independent.
+
+////////////////////////////////////////////////////////////////////////////////
+// Main parts
+////////////////////////////////////////////////////////////////////////////////
+
 // form landing takes .form-view__toptabs into account
 .page-wrapper__content--form-landing {
   .form-view {
     height: calc(100% - 48px);
-  }
-
-  .form-view__sidetabs {
-    max-height: calc(100% - 48px);
-
-    & + .form-view,
-    & + .report-view,
-    & + .loading {
-      width: calc(100% - 170px);
-      height: calc(100% - 48px);
-      overflow: auto;
-      overflow-x: hidden;
-    }
   }
 }
 
@@ -22,7 +27,7 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: $kobo-white;
+  background: $kobo-whitegray;
 
   &.form-view--fullscreen {
     position: fixed;
@@ -41,6 +46,7 @@
   }
 }
 
+// The additional side menu tabs on the left
 .form-view__sidetabs {
   width: 170px;
   height: 100%;
@@ -52,6 +58,7 @@
   border-right: 1px solid $kobo-lightgray;
 
   & + .form-view,
+  & + .report-view,
   & + .loading {
     width: calc(100% - 170px);
     height: calc(100% - 48px);
@@ -109,10 +116,11 @@
       }
     }
 
-    i {
-      font-size: 36px;
-      vertical-align: -13px;
-      margin-right: 4px;
+    .k-icon {
+      font-size: 26px;
+      vertical-align: -7px;
+      line-height: 36px;
+      margin: 0 9px 0 5px;
     }
 
     span {
@@ -121,6 +129,7 @@
   }
 }
 
+// The main tabs on top
 .form-view__toptabs {
   background: $kobo-white;
   border-bottom: 1px solid $kobo-lightgray;
@@ -174,10 +183,6 @@
     margin: 0;
   }
 
-  &.historyHidden .form-view__cell--box {
-    border: none;
-  }
-
   &.historyHidden .form-view__cell--history-label,
   &.historyHidden .form-view__cell--history-table {
     max-height: 0;
@@ -210,13 +215,33 @@
 
 .form-view__cell {
   &.form-view__cell--box {
+    background-color: $kobo-white;
+  }
+
+  &.form-view__cell--bordered {
     border: 1px solid $kobo-lightgray;
+  }
+
+  &.form-view__cell--page-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 30px 0 15px;
+  }
+
+  &.form-view__cell--page-subtitle {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 30px 0 15px;
   }
 
   &.form-view__cell--columns {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    &.form-view__cell--columns-right {
+      justify-content: flex-end;
+    }
 
     &.form-view__cell--columns-top {
       align-items: flex-start;
@@ -239,6 +264,34 @@
     width: 30px;
     margin-right: 10px;
     text-align: center;
+    color: $kobo-darkgray;
+
+    .k-icon {
+      font-size: 24px;
+      display: block;
+    }
+  }
+
+  &.form-view__cell--toggle-details button {
+    cursor: pointer;
+    color: $kobo-blue;
+    background: transparent;
+    border: 0;
+    padding: 5px;
+    text-align: center;
+
+    &:hover {
+      color: $kobo-blue-dark;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    .k-icon {
+      font-size: 18px;
+      vertical-align: -5px;
+    }
   }
 
   &.form-view__cell--asset-content-summary-name {
@@ -311,7 +364,7 @@
 
     &:first-child {
       .k-icon {
-        margin-left: -10px;
+        margin-left: -7px;
       }
     }
   }
@@ -322,9 +375,10 @@
     line-height: 32px;
 
     .k-icon {
-      font-size: 32px;
+      font-size: 24px;
+      margin: 0 3px;
       vertical-align: top;
-      color: inherit;
+      color: $kobo-teal;
     }
   }
 
@@ -383,33 +437,6 @@
     border-radius: 2px;
   }
 
-  &.form-view__cell--toggle-details {
-    button {
-      cursor: pointer;
-      color: $kobo-blue;
-      background: transparent;
-      text-transform: uppercase;
-      border: 0;
-      width: 100%;
-      text-align: center;
-      font-size: 12px;
-      padding: 8px 0 0;
-
-      &:hover {
-        color: $kobo-blue-dark;
-      }
-
-      &:active {
-        transform: translateY(1px);
-      }
-
-      .k-icon {
-        font-size: 24px;
-        vertical-align: -8px;
-      }
-    }
-  }
-
   &.form-view__cell--warning {
     background-color: $kobo-orange-light;
     color: $kobo-orange-dark;
@@ -418,10 +445,6 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-
-    .form-view__row & {
-      margin: 15px 20px 10px;
-    }
 
     i {
       color: $kobo-orange;
@@ -457,7 +480,7 @@
 
 // buttons in forms
 .form-view__link {
-  font-size: 36px;
+  font-size: 26px;
   line-height: 18px;
   padding: 0 5px;
   color: $kobo-darkgray;
@@ -486,24 +509,6 @@
 
   100% {
     background-color: lighten($kobo-blue, 40%);
-  }
-}
-
-@keyframes processing {
-  0% {
-    opacity: 1;
-  }
-
-  25% {
-    opacity: 0.6;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 1;
   }
 }
 
@@ -565,9 +570,7 @@
       animation: recent 5s 1;
     }
 
-    .animate-processing {
-      animation: processing 1.5s infinite;
-    }
+
   }
 
   .form-view__group--deployments {
@@ -712,10 +715,10 @@
       padding: 5px;
     }
 
-    i {
-      margin: 0 6px;
-      font-size: 18px;
+    .k-icon.k-icon-more-vertical {
+      font-size: 20px;
       display: inline-block;
+      vertical-align: top;
     }
   }
 
@@ -746,10 +749,9 @@
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
     width: 50px;
-    padding-top: 0;
 
     a.form-view__tab {
-      padding: 3px;
+      padding-right: 3px;
       padding-left: 1px;
       font-size: 10px;
       line-height: 1.5em;
@@ -768,7 +770,6 @@
 
     a.form-view__tab {
       font-size: 12px;
-      padding: 8px 14px;
     }
 
     a.form-view__link {
@@ -781,10 +782,11 @@
     overflow-x: hidden;
   }
 
-  .form-view {
+  .form-view__toptabs + .form-view {
     height: calc(100% - 39px);
-    overflow-x: hidden;
+  }
 
+  .form-view {
     a.form-view__link {
       font-size: 32px;
       padding: 0 3px;
@@ -844,4 +846,8 @@
   .modal__footer .footer-back-button {
     float: left;
   }
+}
+
+.form-view--library-asset {
+  background: $kobo-white;
 }

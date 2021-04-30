@@ -195,6 +195,16 @@ class CollectionsTests(BaseTestCase):
             response.data['results'][0]['uid'], public_collection.uid
         )
 
+        # Logged in as another user, retrieve all children of
+        # `public_collection`. Should have 1
+        query_string = f'parent__uid:{public_collection.uid}'
+        url = f'{list_url}?q={query_string}'
+        response = self.client.get(url)
+        self.assertTrue(response.data.get('count') == 1)
+        self.assertEqual(
+            response.data['results'][0]['uid'], public_collection_asset.uid
+        )
+
         # Logged in as another user, retrieve explicitly-shared collections.
         query_string = 'asset_type:collection'
         url = f'{list_url}?q={query_string}'

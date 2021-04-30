@@ -98,23 +98,17 @@
     .search__icon,
     .search__cancel {
       position: absolute;
-      top: 11px;
+      top: 9px;
       color: $kobo-white;
-
-      &::before {
-        font-size: 18px;
-      }
+      font-size: 24px;
     }
 
     .search__icon {
-      @extend .fa, .fa-search;
-
       left: 12px;
     }
 
     .search__cancel {
-      @extend .fa, .fa-close;
-
+      cursor: pointer;
       right: 12px;
     }
   }
@@ -174,8 +168,9 @@
       display: block;
 
       i {
-        font-size: 32px;
-        vertical-align: middle;
+        font-size: 24px;
+        margin: 3px;
+        vertical-align: -6px;
       }
 
       span {
@@ -242,10 +237,11 @@
       padding: 0px;
       color: $kobo-white;
 
-      i {
-        line-height: 1.5em;
-        display: inline-block;
-        font-size: 24px;
+      .k-icon.k-icon-menu {
+        font-size: 32px;
+        line-height: 32px;
+        display: block;
+        margin: 3px;
       }
     }
 
@@ -374,6 +370,7 @@
   border-radius: 32px;
   display: inline-block;
   vertical-align: middle;
+  line-height: 20px;
   font-size: 16px;
   color: $kobo-white;
 }
@@ -383,6 +380,7 @@
     width: 48px;
     padding: 10px;
     border-radius: 48px;
+    line-height: 28px;
     font-size: 24px;
   }
 }

@@ -44,8 +44,7 @@ bem.ServiceRow__actionButton = bem.ServiceRow.__('action-button', '<button>');
 bem.ServiceRow__linkOverlay = bem.ServiceRow.__('link-overlay', '<a>');
 bem.ServiceRowButton = BEM('service-row-button', '<button>');
 
-bem.FormBuilder = BEM('formBuilder');
-bem.FormBuilder__row = bem.FormBuilder.__('row');
+bem.FormBuilder = BEM('form-builder');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 
 bem.FormBuilderMeta = bem('form-builder-meta');
@@ -58,7 +57,7 @@ bem.FormBuilderAside__content = bem.FormBuilderAside.__('content');
 bem.FormBuilderAside__header = bem.FormBuilderAside.__('header', '<h2>');
 bem.FormBuilderAside__row = bem.FormBuilderAside.__('row', '<section>');
 
-bem.FormBuilderHeader = BEM('formBuilder-header');
+bem.FormBuilderHeader = BEM('form-builder-header');
 bem.FormBuilderHeader__row = bem.FormBuilderHeader.__('row');
 bem.FormBuilderHeader__cell = bem.FormBuilderHeader.__('cell');
 bem.FormBuilderHeader__item = bem.FormBuilderHeader.__('item', '<span>');
@@ -101,7 +100,7 @@ bem.SubmissionDataTable__value = bem.SubmissionDataTable.__('value');
 
 bem.TableMeta = bem('table-meta');
 bem.TableMeta__counter = bem.TableMeta.__('counter');
-bem.TableMeta__additionalText = bem.TableMeta.__('additional-text'); // generally text not needed on smaller screens
+bem.TableMeta__additionalText = bem.TableMeta.__('additional-text', 'span'); // generally text not needed on smaller screens
 bem.TableMeta__bulkOptions = bem.TableMeta.__('bulk-options');
 
 bem.CollectionsWrapper = bem('collections-wrapper');
@@ -128,8 +127,6 @@ bem.AssetItems = BEM('asset-items', '<ul>');
 
 bem.AssetListSorts = BEM('asset-list-sorts', '<div>');
 bem.AssetListSorts__item = bem.AssetListSorts.__('item');
-
-bem.Message = BEM('message');
 
 bem.FormView = BEM('form-view');
 // used in header.es6
@@ -303,6 +300,15 @@ bem.Checkbox__wrapper = bem.Checkbox.__('wrapper', '<label>');
 bem.Checkbox__input = bem.Checkbox.__('input', '<input>');
 bem.Checkbox__label = bem.Checkbox.__('label', '<span>');
 
+bem.MultiCheckbox = BEM('multi-checkbox', 'ul');
+bem.MultiCheckbox__item = bem.MultiCheckbox.__('item', '<li>');
+
+bem.ToggleSwitch = BEM('toggle-switch');
+bem.ToggleSwitch__wrapper = bem.ToggleSwitch.__('wrapper', '<label>');
+bem.ToggleSwitch__input = bem.ToggleSwitch.__('input', '<input>');
+bem.ToggleSwitch__slider = bem.ToggleSwitch.__('slider', '<span>');
+bem.ToggleSwitch__label = bem.ToggleSwitch.__('label', '<span>');
+
 bem.Radio = BEM('radio');
 bem.Radio__row = bem.Radio.__('row', '<label>');
 bem.Radio__input = bem.Radio.__('input', '<input>');
@@ -315,9 +321,31 @@ bem.PasswordStrength__indicator = bem.PasswordStrength.__('indicator');
 bem.PasswordStrength__messages = bem.PasswordStrength.__('messages', '<ul>');
 bem.PasswordStrength__message = bem.PasswordStrength.__('message', '<li>');
 
+bem.Breadcrumbs = BEM('breadcrumbs');
+bem.Breadcrumbs__crumb = bem.Breadcrumbs.__('crumb', '<a>');
+bem.Breadcrumbs__divider = bem.Breadcrumbs.__('divider', '<i>');
+
+bem.AssetInfoBox = BEM('asset-info-box');
+bem.AssetInfoBox__column = bem.AssetInfoBox.__('column');
+bem.AssetInfoBox__cell = bem.AssetInfoBox.__('cell');
+bem.AssetInfoBox__toggle = bem.AssetInfoBox.__('toggle', '<button>');
+
 bem.PrintOnly = BEM('print-only');
 
 bem.GitRev = BEM('git-rev');
 bem.GitRev__item = bem.GitRev.__('item', '<div>');
+
+bem.ProjectDownloads = BEM('project-downloads');
+bem.ProjectDownloads__advancedView = bem.ProjectDownloads.__('advanced-view', 'section');
+bem.ProjectDownloads__column = bem.ProjectDownloads.__('column');
+bem.ProjectDownloads__columnRow = bem.ProjectDownloads.__('column-row');
+bem.ProjectDownloads__title = bem.ProjectDownloads.__('title', 'span');
+bem.ProjectDownloads__textButton = bem.ProjectDownloads.__('text-button', 'button');
+bem.ProjectDownloads__selectorRow = bem.ProjectDownloads.__('selector-row');
+bem.ProjectDownloads__legacyIframeWrapper = bem.ProjectDownloads.__('legacy-iframe-wrapper');
+bem.ProjectDownloads__submitRow = bem.ProjectDownloads.__('submit-row', 'footer');
+bem.ProjectDownloads__definedExportsSelector = bem.ProjectDownloads.__('defined-exports-selector');
+bem.ProjectDownloads__deleteSettingsButton = bem.ProjectDownloads.__('delete-settings-button', 'button');
+bem.ProjectDownloads__exportsCreator = bem.ProjectDownloads.__('exports-creator');
 
 bem.create = BEM;

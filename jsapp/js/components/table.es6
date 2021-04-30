@@ -5,7 +5,7 @@ import reactMixin from 'react-mixin';
 import _ from 'underscore';
 import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from '../dataInterface';
-import Checkbox from './checkbox';
+import Checkbox from 'js/components/common/checkbox';
 import {actions} from '../actions';
 import {bem} from '../bem';
 import ui from '../ui';
@@ -39,6 +39,8 @@ const EXCLUDED_COLUMNS = [
   '_attachments',
   '_notes',
   '_bamboo_dataset_id',
+  // '_status' is always 'submitted_via_web' unless submitted in bulk;
+  // in that case, it's 'zip'
   '_status',
   'formhub/uuid',
   '_tags',
@@ -270,7 +272,11 @@ export class DataTable extends React.Component {
     }
 
     var columns = [];
-    if (this.userCan('validate_submissions', this.props.asset) || this.userCan('delete_submissions', this.props.asset)) {
+    if (
+      this.userCan('validate_submissions', this.props.asset) ||
+      this.userCan('delete_submissions', this.props.asset) ||
+      this.userCan('change_submissions', this.props.asset)
+    ) {
       columns.push({
         Header: () => {
           return (
@@ -556,7 +562,7 @@ export class DataTable extends React.Component {
             {choices.filter(c => c.list_name === col.question.select_from_list_name).map((item, n) => {
               let displayLabel = t('Unlabelled');
               if (item.label) {
-                displayLabel = item.label[0];
+                displayLabel = item.label[translationIndex];
               } else if (item.name) {
                 displayLabel = item.name;
               } else if (item.$autoname) {
@@ -983,12 +989,7 @@ export class DataTable extends React.Component {
           loading={loading}
           previousText={t('Prev')}
           nextText={t('Next')}
-          loadingText={
-            <span>
-              <i className='fa k-spin fa-circle-o-notch' />
-              {t('Loading...')}
-            </span>
-          }
+          loadingText={<ui.LoadingSpinner/>}
           noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}
           ofText={t('of')}

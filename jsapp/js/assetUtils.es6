@@ -6,6 +6,7 @@ import {
   ASSET_TYPES,
   MODAL_TYPES,
   QUESTION_TYPES,
+  META_QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
   SCORE_ROW_TYPE,
@@ -55,6 +56,25 @@ export function getOrganizationDisplayString(asset) {
   } else {
     return '-';
   }
+}
+
+/**
+ * @param {Object} asset - BE asset data
+ * @param {string} langString - language string (the de facto "id")
+ * @returns {number|null} the index of language or null if not found
+ */
+export function getLanguageIndex(asset, langString) {
+  let foundIndex = null;
+
+  if (asset.summary?.languages?.length >= 1) {
+    asset.summary.languages.forEach((language, index) => {
+      if (language === langString) {
+        foundIndex = index;
+      }
+    });
+  }
+
+  return foundIndex;
 }
 
 /**
@@ -129,11 +149,15 @@ export function getAssetDisplayName(asset) {
 
 /**
  * @param {Object} question - Part of BE asset data
+ * @param {number} [translationIndex] - defaults to first (default) language
  * @returns {string} usable name of the question when possible, "Unlabelled" otherwise.
  */
-export function getQuestionDisplayName(question) {
-  if (question.label) {
-    return question.label[0];
+export function getQuestionDisplayName(question, translationIndex = 0) {
+  if (question.label && Array.isArray(question.label)) {
+    return question.label[translationIndex];
+  } else if (question.label && !Array.isArray(question.label)) {
+    // in rare cases the label could be a string
+    return question.label;
   } else if (question.name) {
     return question.name;
   } else if (question.$autoname) {
@@ -164,11 +188,10 @@ export function isLibraryAsset(assetType) {
 export function getAssetIcon(asset) {
   if (asset.asset_type === ASSET_TYPES.template.id) {
     return 'k-icon-template';
-  } else if (
-    asset.asset_type === ASSET_TYPES.question.id ||
-    asset.asset_type === ASSET_TYPES.block.id
-  ) {
-    return 'k-icon-question-block';
+  } else if (asset.asset_type === ASSET_TYPES.question.id) {
+    return 'k-icon-question';
+  } else if (asset.asset_type === ASSET_TYPES.block.id) {
+    return 'k-icon-block';
   } else if (asset.asset_type === ASSET_TYPES.survey.id) {
     if (asset.has_deployment) {
       return 'k-icon-deploy';
@@ -253,9 +276,10 @@ export function replaceForm(asset) {
  * NOTE: this works based on a fact that all questions have unique names
  * @param {Array<object>} survey - from asset's `content.survey`
  * @param {boolean} [includeGroups] wheter to put groups into output
+ * @param {boolean} [includeMeta] - whether to include meta question types (false on default)
  * @returns {object} a pair of quesion names and their full paths
  */
-export function getSurveyFlatPaths(survey, includeGroups = false) {
+export function getSurveyFlatPaths(survey, includeGroups = false, includeMeta = false) {
   const output = {};
   const openedGroups = [];
 
@@ -271,7 +295,8 @@ export function getSurveyFlatPaths(survey, includeGroups = false) {
     } else if (
       QUESTION_TYPES[row.type] ||
       row.type === SCORE_ROW_TYPE ||
-      row.type === RANK_LEVEL_TYPE
+      row.type === RANK_LEVEL_TYPE ||
+      (includeMeta && META_QUESTION_TYPES[row.type])
     ) {
       let groupsPath = '';
       if (openedGroups.length >= 1) {
@@ -374,7 +399,7 @@ function getRowLabelAtIndex(row, index) {
  * @param {string} type - one of QUESTION_TYPES
  * @returns {Node}
  */
-export function renderTypeIcon(type, additionalClassNames = []) {
+export function renderQuestionTypeIcon(type) {
   let typeDef;
   if (type === SCORE_ROW_TYPE) {
     typeDef = QUESTION_TYPES.score;
@@ -385,26 +410,29 @@ export function renderTypeIcon(type, additionalClassNames = []) {
   }
 
   if (typeDef) {
-    const classNames = additionalClassNames;
-    classNames.push('fa');
-    classNames.push(typeDef.faIcon);
-    return (<i className={classNames.join(' ')} title={type}/>);
+    return (<i className={`k-icon k-icon-${typeDef.icon}`} title={type}/>);
   } else {
     return <small><code>{type}</code></small>;
   }
 }
 
 /**
+ * Use this to get a nice parsed list of survey questions (optionally with meta
+ * questions included). Useful when you need to render form questions to users.
+ *
  * @param {Object} survey
- * @returns {Array<object>} a question object
+ * @param {number} [translationIndex] - defaults to first (default) language
+ * @param {boolean} [includeMeta] - whether to include meta question types (false on default)
+ * @returns {Array<object>} a list of parsed questions
  */
-export function getFlatQuestionsList(survey) {
+export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta = false) {
+  const flatPaths = getSurveyFlatPaths(survey, false, true);
   const output = [];
   const openedGroups = [];
   let openedRepeatGroupsCount = 0;
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
-      openedGroups.push(getQuestionDisplayName(row));
+      openedGroups.push(getQuestionDisplayName(row, translationIndex));
     }
     if (row.type === 'end_group' || row.type === 'end_repeat') {
       openedGroups.pop();
@@ -416,12 +444,17 @@ export function getFlatQuestionsList(survey) {
       openedRepeatGroupsCount--;
     }
 
-    if (QUESTION_TYPES[row.type]) {
+    if (
+      QUESTION_TYPES[row.type] ||
+      (includeMeta && META_QUESTION_TYPES[row.type])
+    ) {
+      const rowName = getRowName(row);
       output.push({
         type: row.type,
-        name: getRowName(row),
-        isRequired: row.required,
-        label: getQuestionDisplayName(row),
+        name: rowName,
+        isRequired: Boolean(row.required),
+        label: getQuestionDisplayName(row, translationIndex),
+        path: flatPaths[rowName],
         parents: openedGroups.slice(0),
         hasRepatParent: openedRepeatGroupsCount >= 1,
       });
@@ -517,6 +550,7 @@ export default {
   getAssetOwnerDisplayName,
   getCountryDisplayString,
   getFlatQuestionsList,
+  getLanguageIndex,
   getLanguagesDisplayString,
   getOrganizationDisplayString,
   getQuestionDisplayName,
@@ -530,7 +564,7 @@ export default {
   isRowSpecialLabelHolder,
   isSelfOwned,
   modifyDetails,
-  renderTypeIcon,
+  renderQuestionTypeIcon,
   replaceForm,
   share,
   removeInvalidChars,

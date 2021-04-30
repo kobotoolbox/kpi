@@ -7,6 +7,7 @@ import mixins from 'js/mixins';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import {buildUserUrl} from 'utils';
 import {
   ASSET_TYPES,
@@ -98,20 +99,9 @@ class SharingForm extends React.Component {
     }
   }
 
-  renderLoadingMessage() {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
   render() {
     if (!this.state.permissions) {
-      return this.renderLoadingMessage();
+      return (<LoadingSpinner/>);
     }
 
     let uid = this.state.asset.uid,

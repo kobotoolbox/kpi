@@ -12,7 +12,8 @@ import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
 import DataTable from './table';
-import ProjectDownloads from './projectDownloads';
+import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
+import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
@@ -131,7 +132,10 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled');
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <ProjectDownloads asset={this.state} />
+        <bem.FormView className='project-downloads'>
+          <ProjectExportsCreator asset={this.state} />
+          <ProjectExportsList asset={this.state} />
+        </bem.FormView>
       </DocumentTitle>
     );
   }
@@ -144,14 +148,7 @@ export class FormSubScreens extends React.Component {
     );
   }
   renderReset() {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
+    return (<ui.LoadingSpinner/>);
   }
 }
 

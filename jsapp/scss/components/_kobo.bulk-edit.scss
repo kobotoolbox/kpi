@@ -1,0 +1,44 @@
+.simple-table.simple-table--bulk-edit-list {
+  // first row with filters
+  .simple-table__header .text-box {
+    display: inline-block;
+    max-width: 160px;
+  }
+
+  // first column with icons
+  .simple-table__cell:nth-child(1) {
+    text-align: center;
+  }
+
+  // blue dot in response column
+  .simple-table__body .simple-table__cell:nth-child(3) {
+    position: relative;
+
+    .blue-response-dot {
+      position: absolute;
+      top: calc(50% - 3px);
+      left: -3px;
+    }
+  }
+
+  .simple-table__row--bulk-edit-row-disabled {
+    opacity: 0.5;
+
+    // hide action buttons
+    .simple-table__cell:nth-child(4) {
+      visibility: hidden;
+    }
+  }
+}
+
+.simple-table.simple-table--bulk-edit-list,
+.simple-table.simple-table--bulk-edit-responses {
+  // last column with actions
+  .simple-table__cell:last-child {
+    text-align: right;
+  }
+}
+
+.simple-table.simple-table--bulk-edit-responses {
+  margin-top: 20px;
+}

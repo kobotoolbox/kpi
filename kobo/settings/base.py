@@ -280,6 +280,13 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/' + os.environ.get('KPI_MEDIA_URL', 'media').strip('/') + '/'
 
+# `PUBLIC_MEDIA_PATH` sets the `upload_to` attribute of explicitly-public
+# `FileField`s, e.g. in `ConfigurationFile`. The corresponding location on the
+# file system (usually `MEDIA_ROOT + PUBLIC_MEDIA_PATH`) should be exposed to
+# everyone via NGINX. For more information, see
+# https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.FileField.upload_to
+PUBLIC_MEDIA_PATH = '__public/'
+
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 KPI_PREFIX = os.environ.get('KPI_PREFIX', 'False')
@@ -454,6 +461,7 @@ if 'KOBOCAT_URL' in os.environ:
         }
 
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 
 ''' Django Registration configuration '''
