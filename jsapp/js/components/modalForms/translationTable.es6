@@ -4,6 +4,7 @@ import TextareaAutosize from 'react-autosize-textarea';
 import LanguageForm from 'js/components/modalForms/languageForm';
 import alertify from 'alertifyjs';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import {MODAL_TYPES} from 'js/constants';
@@ -246,12 +247,7 @@ export class TranslationTable extends React.Component {
             previousText={t('Prev')}
             nextText={t('Next')}
             minRows={1}
-            loadingText={
-              <span>
-                <i className='fa k-spin fa-circle-o-notch' />
-                {t('Loading...')}
-              </span>
-            }
+            loadingText={<LoadingSpinner/>}
           />
         </div>
 

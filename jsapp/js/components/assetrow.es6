@@ -407,7 +407,7 @@ class AssetRow extends React.Component {
                   data-asset-type={this.props.kind}
                   data-asset-name={assetName}
                 >
-                  <i className='k-icon-template-new' />
+                  <i className='k-icon-template' />
                   {t('Create template')}
                 </bem.PopoverMenu__link>
               }
@@ -420,6 +420,15 @@ class AssetRow extends React.Component {
                 >
                   <i className='k-icon-trash' />
                   {t('Delete')}
+                </bem.PopoverMenu__link>
+              }
+              {!isSelfOwned &&
+                <bem.PopoverMenu__link
+                  m={'removeSharing'}
+                  data-action={'removeSharing'}
+                >
+                  <i className='k-icon-trash' />
+                  {t('Remove Shared Form')}
                 </bem.PopoverMenu__link>
               }
             </ui.PopoverMenu>

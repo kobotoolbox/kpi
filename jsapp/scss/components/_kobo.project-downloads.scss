@@ -102,6 +102,11 @@
       transform: translateY(1px);
     }
 
+    &[disabled] {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
     .k-icon {
       vertical-align: middle;
       margin-left: 3px;
@@ -190,12 +195,12 @@
       display: inline-block;
       vertical-align: middle;
       background: transparent;
-      font-size: 32px;
+      font-size: 24px;
 
       // positioning
       position: absolute;
       left: 100%;
-      margin-left: 5px;
+      margin-left: 8px;
       bottom: 0;
       height: 38px;
       line-height: 38px;

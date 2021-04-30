@@ -70,6 +70,7 @@ function SearchContext(opts={}) {
       this.listenTo(actions.resources.cloneAsset.completed, this.setAsset);
       this.listenTo(actions.resources.setDeploymentActive.completed, this.setAsset);
       this.listenTo(actions.resources.deleteAsset.completed, this.removeAsset);
+      this.listenTo(actions.permissions.removeAssetPermission.completed, this.removeAsset);
     },
     // add/update asset in all search store lists
     setAsset(asset) {
@@ -117,9 +118,27 @@ function SearchContext(opts={}) {
       }
     },
     // remove asset from all search store lists
-    removeAsset(asset) {
-      // only update things if given asset matches the current context types
-      if (this.state.defaultQueryFilterParams?.assetType.includes(asset.assetType)) {
+    removeAsset(assetOrUid, isNonOwner) {
+      let asset;
+      if (typeof assetOrUid === 'object') {
+        asset = assetOrUid;
+      } else {
+        asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+      }
+      // non-owner self permission removal only gives an assetUid string, not
+      // an object; for consistency we make it an object here
+      // only runs if `isNonOwner` is true, so no need to add `assetType` to
+      // fake object
+      if (!asset) {
+       asset = {uid: assetOrUid};
+      }
+
+      // only update things if given asset matches the current context types or
+      // a non-owner removed their own permissions
+      if (
+        isNonOwner ||
+        this.state.defaultQueryFilterParams?.assetType.includes(asset.assetType)
+      ) {
         this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
         this.removeAssetFromList(asset.uid, 'searchResultsList');
         this.rebuildCategorizedList(
