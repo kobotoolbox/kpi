@@ -1,39 +1,36 @@
 _ = require 'underscore'
 
 module.exports = do ->
-  aliases_dict =
+  aliases_dict = {
     group: [
-        "begin group"
-        "end group"
-        "begin_group"
-        "end_group"
-      ],
+      "begin group"
+      "end group"
+      "begin_group"
+      "end_group"
+    ],
     repeat: [
-        "begin repeat"
-        "end repeat"
-        "begin_repeat"
-        "end_repeat"
-      ]
+      "begin repeat"
+      "end repeat"
+      "begin_repeat"
+      "end_repeat"
+    ]
     kobomatrix: [
-        "begin_kobomatrix"
-        "end_kobomatrix"
-      ]
+      "begin_kobomatrix"
+      "end_kobomatrix"
+    ]
     score: [
-        "begin score",
-        "end score",
-        "begin_score",
-        "end_score",
-      ]
+      "begin score",
+      "end score",
+      "begin_score",
+      "end_score",
+    ]
     rank: [
-        "begin_rank",
-        "end_rank",
-        "begin rank",
-        "end rank",
-      ]
-    kobomatrix: [
-        "begin_kobomatrix",
-        "end_kobomatrix",
-      ]
+      "begin_rank",
+      "end_rank",
+      "begin rank",
+      "end rank",
+    ]
+  }
 
   aliases = (name)-> aliases_dict[name] or [name]
 

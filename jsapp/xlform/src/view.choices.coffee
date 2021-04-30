@@ -85,7 +85,7 @@ module.exports = do ->
       "click .js-remove-option": "remove"
     initialize: (@options)->
     render: ->
-      @t = $("<i class=\"fa fa-trash-o js-remove-option\">")
+      @t = $("<i class=\"k-icon k-icon-trash js-remove-option\">")
       @pw = $("<div class=\"editable-wrapper js-cancel-select-row\">")
       @p = $("<input placeholder=\"#{t("This option has no name")}\" class=\"js-cancel-select-row option-view-input\">")
       @c = $("<code><label>#{t("XML value:")}</label> <input type=\"text\" class=\"js-cancel-select-row\"></input></code>")

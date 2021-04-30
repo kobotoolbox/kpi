@@ -148,20 +148,13 @@ export class FormSubScreens extends React.Component {
   }
   renderRecords() {
     return (
-      <bem.FormView>
+      <bem.FormView className='connect-projects'>
         <ConnectProjects asset={this.state}/>
       </bem.FormView>
     );
   }
   renderReset() {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
+    return (<ui.LoadingSpinner/>);
   }
 
   renderUpload() {

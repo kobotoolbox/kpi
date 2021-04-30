@@ -37,6 +37,7 @@ import LibraryNewItemForm from './modalForms/libraryNewItemForm';
 import LibraryUploadForm from './modalForms/libraryUploadForm';
 import EncryptForm from './modalForms/encryptForm.es6';
 import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
+import DataAttachmentColumnsForm from './modalForms/dataAttachmentColumnsForm.es6';
 import ProjectSettings from './modalForms/projectSettings';
 import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
@@ -153,6 +154,10 @@ class Modal extends React.Component {
         this.setState({
           modalClass: 'modal--large modal--large-shorter'
         });
+        break;
+
+      case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
+        // title is set by DataAttachmentColumnsForm
         break;
 
       default:
@@ -303,12 +308,7 @@ class Modal extends React.Component {
               </div>
             }
             { this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && !this.state.enketopreviewlink &&
-              <bem.Loading>
-                <bem.Loading__inner>
-                  <i />
-                  {t('loading...')}
-                </bem.Loading__inner>
-              </bem.Loading>
+              <ui.LoadingSpinner/>
             }
             { this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.error &&
               <div>
@@ -317,12 +317,7 @@ class Modal extends React.Component {
             }
             { this.props.params.type === MODAL_TYPES.UPLOADING_XLS &&
               <div>
-                <bem.Loading>
-                  <bem.Loading__inner>
-                    <i />
-                    <bem.Loading__msg>{this.state.message}</bem.Loading__msg>
-                  </bem.Loading__inner>
-                </bem.Loading>
+                <ui.LoadingSpinner message={this.state.message}/>
               </div>
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && this.state.sid &&
@@ -337,7 +332,7 @@ class Modal extends React.Component {
               <div>
                 <bem.Loading>
                   <bem.Loading__inner>
-                    <i />
+                    <i className='k-spin k-icon k-icon-spinner'/>
                   </bem.Loading__inner>
                 </bem.Loading>
               </div>
@@ -378,6 +373,13 @@ class Modal extends React.Component {
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
                 asset={this.props.params.asset}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS &&
+              <DataAttachmentColumnsForm
+                onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
                 {...this.props.params}
               />
             }

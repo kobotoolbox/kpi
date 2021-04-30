@@ -7,6 +7,7 @@ import Select from 'react-select';
 import PropTypes from 'prop-types';
 import TextBox from 'js/components/common/textBox';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
@@ -14,7 +15,6 @@ import {hashHistory} from 'react-router';
 import {notify} from 'utils';
 import assetUtils from 'js/assetUtils';
 import {
-  renderLoading,
   renderBackButton
 } from './modalHelpers';
 import {ASSET_TYPES} from 'js/constants';
@@ -198,7 +198,7 @@ export class LibraryAssetForm extends React.Component {
 
   render() {
     if (!this.state.isSessionLoaded) {
-      return renderLoading();
+      return (<LoadingSpinner/>);
     }
 
     const SECTORS = stores.session.environment.available_sectors;
