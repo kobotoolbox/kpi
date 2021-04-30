@@ -427,7 +427,6 @@ mixins.droppable = {
       reader.onload = (e) => {
         let params = assign({
           name: file.name,
-          asset_type: file.desiredType,
           base64Encoded: e.target.result,
           lastModified: file.lastModified,
           totalFiles: files.length,

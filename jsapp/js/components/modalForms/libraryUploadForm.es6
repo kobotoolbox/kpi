@@ -32,6 +32,7 @@ class LibraryUploadForm extends React.Component {
       isPending: false,
       // default is block
       desiredType: DESIRED_TYPES[0],
+      currentFile: null,
     };
 
     autoBind(this);
@@ -43,23 +44,32 @@ class LibraryUploadForm extends React.Component {
     });
   }
 
-  onFileDrop(files, rejectedFiles, evt) {
-    // TODO:
-    // 1. add button for submitting the file
-    // 2. when file is uploaded, do nothing, let user submit the form
-    // 3. if modal opened and file was passed, make it being selected
-    console.log('onFileDrop', files, rejectedFiles, evt);
-    // append desiredType to the asset
+  isSubmitEnabled() {
+    return (
+      !this.state.isPending &&
+      this.state.currentFile !== null
+    );
+  }
+
+  onFileDrop(files) {
     if (files[0]) {
-      files[0].desiredType = this.state.desiredType.value;
+      this.setState({currentFile: files[0]});
     }
-    this.setState({isPending: true});
-    // 4. make the rejection better - isPending: false
-    this.dropFiles(files, rejectedFiles, evt);
   }
 
   onDesiredTypeChange(newValue) {
     this.setState({desiredType: newValue});
+  }
+
+  onSubmit(evt) {
+    evt.preventDefault();
+    this.setState({isPending: true});
+    this.dropFiles(
+      [this.state.currentFile],
+      [],
+      evt,
+      {desiredType: this.state.desiredType.value}
+    );
   }
 
   render() {
@@ -101,7 +111,12 @@ class LibraryUploadForm extends React.Component {
                 accept={validFileTypes()}
               >
                 <i className='k-icon-xls-file' />
-                {t(' Drag and drop the XLSForm file here or click to browse')}
+                {this.state.currentFile &&
+                  this.state.currentFile.pathname
+                }
+                {!this.state.currentFile &&
+                  t(' Drag and drop the XLSForm file here or click to browse')
+                }
               </Dropzone>
             </bem.FormModal__item>
           </React.Fragment>
@@ -114,6 +129,16 @@ class LibraryUploadForm extends React.Component {
 
         <bem.Modal__footer>
           {renderBackButton(this.state.isPending)}
+
+          <bem.KoboButton
+            m='blue'
+            type='submit'
+            onClick={this.onSubmit}
+            disabled={!this.isSubmitEnabled()}
+            className='mdl-js-button'
+          >
+            {t('Upload')}
+          </bem.KoboButton>
         </bem.Modal__footer>
       </bem.FormModal__form>
     );
