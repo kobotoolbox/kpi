@@ -9,6 +9,7 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {bem} from '../bem';
+import {LoadingSpinner} from 'js/ui';
 import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
 import {formatTime} from 'utils';
@@ -51,14 +52,7 @@ class TemplatesList extends React.Component {
 
   render() {
     if (this.state.isLoading) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<LoadingSpinner/>);
     } else if (this.state.templatesCount === 0) {
       return (
         <bem.FormView__cell>

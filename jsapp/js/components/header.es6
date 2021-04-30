@@ -245,7 +245,7 @@ class MainHeader extends Reflux.Component {
         <bem.MainHeader className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
             <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
-              <i className='fa fa-bars' />
+              <i className='k-icon k-icon-menu' />
             </bem.Button>
             <span className='mdl-layout-title'>
               <a href='/'>

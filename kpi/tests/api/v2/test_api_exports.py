@@ -2,9 +2,14 @@
 import json
 from collections import defaultdict
 
+from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kpi.constants import (
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.models import Asset, ExportTask
 from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.base_test_case import BaseTestCase
@@ -82,13 +87,32 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             self._create_export_task(_type=_type)
 
         self.client.logout()
-        self.client.login(username='anotheruser', passwork='anotheruser')
+        self.client.login(username='anotheruser', password='anotheruser')
         list_url = reverse(
             self._get_endpoint('asset-export-list'),
             kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
         )
         response = self.client.get(list_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_export_task_list_partial_permissions(self):
+        self.client.logout()
+        self.client.login(username='anotheruser', password='anotheruser')
+        partial_perms = {
+            PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'someuser'}]
+        }
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+        )
+        response = self.client.get(list_url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(anotheruser, PERM_PARTIAL_SUBMISSIONS,
+                               partial_perms=partial_perms)
+        response = self.client.get(list_url)
+        assert response.status_code == status.HTTP_200_OK
 
     def test_export_task_list_filtered(self):
         for _type in ['csv', 'csv', 'xls']:

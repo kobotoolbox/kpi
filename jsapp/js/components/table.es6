@@ -39,6 +39,8 @@ const EXCLUDED_COLUMNS = [
   '_attachments',
   '_notes',
   '_bamboo_dataset_id',
+  // '_status' is always 'submitted_via_web' unless submitted in bulk;
+  // in that case, it's 'zip'
   '_status',
   'formhub/uuid',
   '_tags',
@@ -987,12 +989,7 @@ export class DataTable extends React.Component {
           loading={loading}
           previousText={t('Prev')}
           nextText={t('Next')}
-          loadingText={
-            <span>
-              <i className='fa k-spin fa-circle-o-notch' />
-              {t('Loading...')}
-            </span>
-          }
+          loadingText={<ui.LoadingSpinner/>}
           noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}
           ofText={t('of')}

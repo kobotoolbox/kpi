@@ -27,7 +27,7 @@
 
 .alertify.ajs-closable .ajs-commands button.ajs-close {
   background: transparent;
-  font-size: 32px;
+  font-size: 24px;
   color: $kobo-darkgray;
 
   &:hover {
@@ -79,6 +79,12 @@
 
   button {
     @extend .kobo-button;
+
+    // HACK FIX: due to alertify buttons click bindings not bubbling, clicking
+    // on this (custom button content) `span` causes the callback not to be fired
+    > span {
+      pointer-events: none;
+    }
 
     &.ajs-ok {
       @extend .kobo-button--blue;
