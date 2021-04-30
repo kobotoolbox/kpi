@@ -200,7 +200,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return self.__prepare_bulk_update_response(kc_responses)
 
-    def calculated_submission_count(self, user: 'auth.User', **kwargs):
+    def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
         params = self.validate_submission_list_params(user,
                                                       validate_count=True,
                                                       **kwargs)

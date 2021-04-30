@@ -356,6 +356,7 @@ class BaseDeploymentBackend(abc.ABC):
                 )
 
         if not isinstance(submission_ids, list):
+
             raise serializers.ValidationError(
                 {'submission_ids': _('Value must be a list.')}
             )

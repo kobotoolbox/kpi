@@ -80,8 +80,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         params = self.validate_submission_list_params(user,
                                                       validate_count=True,
                                                       **kwargs)
-        instances = self.get_submissions(user=user, **params)
-        return len(instances)
+        return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     def connect(self, active=False):
         self.store_data({
@@ -177,15 +176,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             self.get_submission(submission_id, user=user)
         )
         updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        next_id = max([
+            s['_id']
+            for s in self.get_submissions(self.asset.owner, fields=['_id'])
+        ]) + 1
         duplicated_submission.update({
-
+            '_id': next_id,
             'start': updated_time,
             'end': updated_time,
             'instanceID': f'uuid:{uuid.uuid4()}'
         })
 
-        result = settings.MONGO_DB.instances.insert_one(duplicated_submission)
-        duplicated_submission['_id'] = result['insertedId']
+        settings.MONGO_DB.instances.insert_one(duplicated_submission)
         return duplicated_submission
 
     def get_data_download_links(self):
@@ -250,7 +252,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         Results can be filtered on instance ids and/or MongoDB filters can be
         passed through `kwargs`
-        TODO support Mongo Query and XML
         """
 
         kwargs['submission_ids'] = submission_ids
@@ -264,15 +265,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = total_count
 
-        submissions = list(
+        submissions = [
             MongoHelper.to_readable_dict(submission)
             for submission in submissions
-        )
+        ]
 
-        # TODO add Support for XML
-        #xml_ = dicttoxml(
-        #    submission, attr_type=False, custom_root=self.asset.uid
-        #).decode()
+        if format_type == INSTANCE_FORMAT_TYPE_XML:
+            return [
+                dicttoxml(
+                    submission, attr_type=False, custom_root=self.asset.uid
+                ).decode()
+                for submission in submissions
+            ]
 
         return submissions
 
@@ -357,7 +361,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             submission_ids=[submission_id],
         )
 
-        submission = self.get_submission(submission_id, user=self.asset.owner)
         validation_status = {}
         status_code = status.HTTP_204_NO_CONTENT
 
@@ -369,8 +372,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             }
             status_code = status.HTTP_200_OK
 
-        settings.MONGO_DB.replace_one({'_id': submission_id}, submission)
-
+        settings.MONGO_DB.instances.update_one(
+            {'_id': submission_id},
+            {'$set': {'_validation_status': validation_status}},
+        )
         return {
             'content_type': 'application/json',
             'status': status_code,
@@ -398,11 +403,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             query=data['query'],
         )
 
-        # use the owner to retrieve all the submissions to mock them again
-        # after the update
-        # FIXME Avoid looping on all submissions.
-        submissions = self.get_submissions(user=self.asset.owner)
-
         if not submission_ids:
             submission_ids = data['submission_ids']
         else:
@@ -410,33 +410,30 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             # perms validation
             data['query'] = {}
 
-        user_submissions = self.get_submissions(
+        submissions = self.get_submissions(
             user=user,
             submission_ids=submission_ids,
             query=data['query'],
+            fields=['_id'],
         )
-        # Retrieve user submission
-        user_submission_ids = [
-            user_submission['_id']
-            for user_submission in user_submissions
-        ]
+
+        submissions_count = 0
 
         for submission in submissions:
-            submission_id = submission['_id']
-            if submission_id in user_submission_ids:
-                if not data['validation_status.uid']:
-                    submission['_validation_status'] = {}
-                else:
-                    submission['_validation_status'] = {
-                        'timestamp': int(time.time()),
-                        'uid': data['validation_status.uid'],
-                        'by_whom': user.username,
-                    }
-                settings.MONGO_DB.replace_one(
-                    {'_id': submission_id}, submission
-                )
+            if not data['validation_status.uid']:
+                validation_status = {}
+            else:
+                validation_status = {
+                    'timestamp': int(time.time()),
+                    'uid': data['validation_status.uid'],
+                    'by_whom': user.username,
+                }
+            settings.MONGO_DB.instances.update_one(
+                {'_id': submission['_id']},
+                {'$set': {'_validation_status': validation_status}},
+            )
 
-        submissions_count = len(user_submission_ids)
+            submissions_count += 1
 
         return {
             'content_type': 'application/json',

@@ -308,11 +308,13 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         return Response(**json_response)
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         # Coerce to int because back end only finds matches with same type
         submission_id = positive_int(pk)
-        json_response = deployment.delete_submission(pk, user=request.user)
+        json_response = deployment.delete_submission(
+            submission_id, user=request.user
+        )
         return Response(**json_response)
 
     @action(detail=True, methods=['GET'],
@@ -320,8 +322,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             permission_classes=[EditSubmissionPermission])
     def edit(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
+        submission_id = positive_int(pk)
         json_response = deployment.get_submission_edit_url(
-            pk, user=request.user, params=request.GET
+            submission_id, user=request.user, params=request.GET
         )
         return Response(**json_response)
 
