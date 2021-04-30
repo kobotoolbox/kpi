@@ -6,7 +6,7 @@ from collections import OrderedDict
 from functools import reduce
 from io import BytesIO
 from operator import add
-from typing import Union
+from typing import Optional, Union
 
 import six
 import xlsxwriter
@@ -17,6 +17,7 @@ from django.db import models
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.reverse import reverse
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
@@ -51,8 +52,17 @@ from kpi.constants import (
     SUFFIX_SUBMISSIONS_PERMS,
 )
 from kpi.deployment_backends.mixin import DeployableMixin
-from kpi.exceptions import BadPermissionsException
-from kpi.fields import KpiUidField, LazyDefaultJSONBField
+from kpi.exceptions import (
+    BadPermissionsException,
+    DeploymentDataException,
+    PairedParentException,
+)
+from kpi.fields import (
+    KpiUidField,
+    LazyDefaultJSONBField,
+)
+from kpi.models.asset_file import AssetFile
+from kpi.interfaces.open_rosa import OpenRosaFormListInterface
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.asset_translation_utils import (
     compare_translations,
@@ -66,6 +76,7 @@ from kpi.utils.asset_translation_utils import (
 )
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
+from kpi.utils.hash import get_hash
 from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
                                        replace_with_autofields,
                                        remove_empty_expressions_in_place)
@@ -484,9 +495,32 @@ class Asset(ObjectPermissionMixin,
     tags = TaggableManager(manager=KpiTaggableManager)
     settings = JSONBField(default=dict)
 
-    # _deployment_data should be accessed through the `deployment` property
-    # provided by `DeployableMixin`
+    # `_deployment_data` must **NOT** be touched directly by anything except
+    # the `deployment` property provided by `DeployableMixin`.
+    # ToDo Move the field to another table with one-to-one relationship
     _deployment_data = JSONBField(default=dict)
+
+    # JSON with subset of fields and allowed users to use it
+    # {
+    #   'enable': True,
+    #   'fields': []  # shares all when empty
+    # }
+    data_sharing = LazyDefaultJSONBField(default=dict)
+    # JSON with parent assets information
+    # {
+    #   <parent_uid>: {
+    #       'fields': []  # includes all fields shared with parent when empty
+    #       'paired_data_uid': 'pdxxxxxxx'  # auto-generated read-only
+    #       'filename: 'xxxxx.xml'
+    #   },
+    #   ...
+    #   <parent_uid>: {
+    #       'fields': []
+    #       'paired_data_uid': 'pdxxxxxxx'
+    #       'filename: 'xxxxx.xml'
+    #   }
+    # }
+    paired_data = LazyDefaultJSONBField(default=dict)
 
     objects = AssetManager()
 
@@ -665,7 +699,13 @@ class Asset(ObjectPermissionMixin,
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.__previous_parent_id = self.parent_id
+        # The two fields below are needed to keep a trace of the object state
+        # before any alteration. See `__self.__copy_hidden_fields()` for details
+        # They must be set with an invalid value for their counterparts to
+        # be the comparison is accurate.
+        self.__parent_id_copy = -1
+        self.__deployment_data_copy = None
+        self.__copy_hidden_fields()
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
@@ -745,21 +785,31 @@ class Asset(ObjectPermissionMixin,
         return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
                                        user_id=settings.ANONYMOUS_USER_ID).exists()
 
-    def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
+    def get_filters_for_partial_perm(
+        self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
+    ) -> Union[list, None]:
         """
         Returns the list of filters for a specific permission `perm`
         and this specific asset.
-        :param user_id:
-        :param perm: see `constants.*_SUBMISSIONS`
-        :return:
+
+        `perm` can only one of the submission permissions.
         """
-        if not perm.endswith(SUFFIX_SUBMISSIONS_PERMS) or perm == PERM_PARTIAL_SUBMISSIONS:
+        if (
+            not perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
+            or perm == PERM_PARTIAL_SUBMISSIONS
+        ):
             raise BadPermissionsException(_('Only partial permissions for '
                                             'submissions are supported'))
 
         perms = self.get_partial_perms(user_id, with_filters=True)
         if perms:
-            return perms.get(perm)
+            try:
+                return perms[perm]
+            except KeyError:
+                # User has some partial permissions but not the good one.
+                # Return a false condition to avoid showing any results.
+                return [{'_id': -1}]
+
         return None
 
     def get_label_for_permission(
@@ -801,6 +851,40 @@ class Asset(ObjectPermissionMixin,
             str(asset_type_label)
         )
         return label
+
+    def get_paired_parent(self, paired_data_uid: str) -> Union['Asset', None]:
+
+        # Validate `paired_data_uid`, i.e., must exist in `self.paired_data`
+        parent_uid = None
+        for key, values in self.paired_data.items():
+            if values['paired_data_uid'] == paired_data_uid:
+                parent_uid = key
+                break
+
+        if not parent_uid:
+            return None
+
+        try:
+            parent_asset = Asset.objects.get(uid=parent_uid)
+        except Asset.DoesNotExist:
+            return None
+
+        # Data sharing must be enabled on the parent
+        parent_data_sharing = parent_asset.data_sharing
+        if not parent_data_sharing.get('enabled'):
+            return None
+
+        # Validate `self.owner` is still allowed to see parent data
+        allowed_users = parent_data_sharing.get('users', [])
+        if allowed_users and self.owner.username not in allowed_users:
+            return None
+
+        if not parent_asset.has_deployment:
+            return None
+
+        self.__parent_paired_asset = parent_asset
+
+        return parent_asset
 
     def get_partial_perms(
         self, user_id: int, with_filters: bool = False
@@ -878,6 +962,25 @@ class Asset(ObjectPermissionMixin,
         except IndexError:
             return None
 
+    @property
+    def paired_data_fields(self):
+        try:
+            parent_asset = self.__parent_paired_asset
+        except AttributeError:
+            raise PairedParentException
+
+        parent_fields = parent_asset.data_sharing['fields']
+        asset_fields = self.paired_data[parent_asset.uid]['fields']
+
+        if parent_fields and asset_fields:
+            return list(set(parent_fields).intersection(set(asset_fields)))
+
+        if not asset_fields:
+            return parent_fields
+
+        if not parent_fields:
+            return asset_fields
+
     @staticmethod
     def optimize_queryset_for_list(queryset):
         """ Used by serializers to improve performance when listing assets """
@@ -909,6 +1012,11 @@ class Asset(ObjectPermissionMixin,
         )
         return queryset
 
+    def refresh_from_db(self, using=None, fields=None):
+        super().refresh_from_db(using=using, fields=fields)
+        # Refresh hidden fields too
+        self.__copy_hidden_fields(fields)
+
     def rename_translation(self, _from, _to):
         if not self._has_translations(self.content, 2):
             raise ValueError('no translations available')
@@ -926,16 +1034,30 @@ class Asset(ObjectPermissionMixin,
         self.content = av.version_content
         self.save()
 
-    def save(self, *args, **kwargs):
-
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        update_fields=None,
+        adjust_content=True,
+        create_version=True,
+        update_parent_languages=True,
+        *args,
+        **kwargs
+    ):
         is_new = self.pk is None
-        update_parent_languages = kwargs.pop('update_parent_languages', True)
 
         if self.asset_type not in ASSET_TYPES_WITH_CONTENT:
             # so long as all of the operations in this overridden `save()`
             # method pertain to content, bail out if it's impossible for this
             # asset to have content in the first place
-            super().save(*args, **kwargs)
+            super().save(
+                force_insert=force_insert,
+                force_update=force_update,
+                update_fields=update_fields,
+                *args,
+                **kwargs
+            )
             return
 
         if self.content is None:
@@ -943,7 +1065,7 @@ class Asset(ObjectPermissionMixin,
 
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
-        if kwargs.pop('adjust_content', True):
+        if adjust_content:
             self.adjust_content_on_save()
 
         # populate summary
@@ -963,20 +1085,40 @@ class Asset(ObjectPermissionMixin,
 
         self._populate_report_styles()
 
-        _create_version = kwargs.pop('create_version', True)
-        super().save(*args, **kwargs)
+        # Ensure `_deployment_data` is not saved directly
+        try:
+            stored_data_key = self._deployment_data['_stored_data_key']
+        except KeyError:
+            if self._deployment_data != self.__deployment_data_copy:
+                raise DeploymentDataException
+        else:
+            if stored_data_key != self.deployment.stored_data_key:
+                raise DeploymentDataException
+            else:
+                self._deployment_data.pop('_stored_data_key', None)
+                self.__copy_hidden_fields()
+
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            update_fields=update_fields,
+            *args,
+            **kwargs
+        )
 
         # Update languages for parent and previous parent.
-        # e.g. if an survey has been moved from one collection to another,
+        # e.g. if a survey has been moved from one collection to another,
         # we want both collections to be updated.
         if self.parent is not None and update_parent_languages:
-            if self.parent_id != self.__previous_parent_id and \
-               self.__previous_parent_id is not None:
+            if (
+                self.parent_id != self.__parent_id_copy
+                and self.__parent_id_copy is not None
+            ):
                 try:
                     previous_parent = Asset.objects.get(
-                        pk=self.__previous_parent_id)
+                        pk=self.__parent_id_copy)
                     previous_parent.update_languages()
-                    self.__previous_parent_id = self.parent_id
+                    self.__parent_id_copy = self.parent_id
                 except Asset.DoesNotExist:
                     pass
 
@@ -986,10 +1128,14 @@ class Asset(ObjectPermissionMixin,
                 self.parent.update_languages([self])
             else:
                 # Otherwise, because we cannot know which languages are from
-                # this object, update will be perform with all parent's children.
+                # this object, update will be performed with all parent's
+                # children.
                 self.parent.update_languages()
 
-        if _create_version:
+        if self.has_deployment:
+            self.deployment.sync_media_files(AssetFile.PAIRED_DATA)
+
+        if create_version:
             self.create_version()
 
     @property
@@ -1268,8 +1414,42 @@ class Asset(ObjectPermissionMixin,
         elif perm in self.CONTRADICTORY_PERMISSIONS.get(PERM_PARTIAL_SUBMISSIONS):
             clean_up_table()
 
+    def __copy_hidden_fields(self, fields: Optional[list] = None):
+        """
+        Save a copy of `parent_id` and `_deployment_data` for these purposes
+        `save()` respectively.
 
-class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
+        - `self.__parent_id_copy` is used to detect whether asset is linked a
+           different parent
+        - `self.__deployment_data_copy` is used to detect whether
+          `_deployment_data` has been altered directly
+        """
+
+        # When fields are deferred, Django instantiates another copy
+        # of the current Asset object to retrieve the value of the
+        # requested field. Because we need to get a copy at the very
+        # first beginning of the life of the object, this method is
+        # called in the object constructor. Thus, trying to copy
+        # deferred fields would create an infinite loop.
+        # If `fields` is provided, fields are no longer deferred and should be
+        # copied right away.
+        if (
+            fields is None and 'parent_id' not in self.get_deferred_fields()
+            or fields and 'parent_id' in fields
+        ):
+            self.__parent_id_copy = self.parent_id
+        if (
+            fields is None and '_deployment_data' not in self.get_deferred_fields()
+            or fields and '_deployment_data' in fields
+        ):
+            self.__deployment_data_copy = copy.deepcopy(
+                self._deployment_data)
+
+
+class AssetSnapshot(OpenRosaFormListInterface,
+                    models.Model,
+                    XlsExportable,
+                    FormpackXLSFormUtils):
     """
     This model serves as a cache of the XML that was exported by the installed
     version of pyxform.
@@ -1296,6 +1476,56 @@ class AssetSnapshot(models.Model, XlsExportable, FormpackXLSFormUtils):
     @property
     def content(self):
         return self.source
+
+    @property
+    def description(self):
+        """
+        Implements `OpenRosaFormListInterface.description`
+        """
+        return self.asset.settings.get('description', '')
+
+    @property
+    def form_id(self):
+        """
+        Implements `OpenRosaFormListInterface.form_id()`
+        """
+        return self.uid
+
+    def get_download_url(self, request):
+        """
+        Implements `OpenRosaFormListInterface.get_download_url()`
+        """
+        return reverse(
+            viewname='assetsnapshot-detail',
+            format='xml',
+            kwargs={'uid': self.uid},
+            request=request
+        )
+
+    def get_manifest_url(self, request):
+        """
+        Implements `OpenRosaFormListInterface.get_manifest_url()`
+        """
+        return reverse(
+            viewname='assetsnapshot-manifest',
+            format='xml',
+            kwargs={'uid': self.uid},
+            request=request
+        )
+
+    @property
+    def hash(self):
+        """
+        Implements `OpenRosaFormListInterface.hash()`
+        """
+        return f'md5:{get_hash(self.xml)}'
+
+    @property
+    def name(self):
+        """
+        Implements `OpenRosaFormListInterface.name()`
+        """
+        return self.asset.name
 
     def save(self, *args, **kwargs):
         if self.asset is not None:

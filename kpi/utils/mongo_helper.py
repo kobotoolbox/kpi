@@ -49,13 +49,10 @@ class MongoHelper:
         return key
 
     @classmethod
-    def encode(cls, key):
+    def encode(cls, key: str) -> str:
         """
         Replace characters not allowed in Mongo keys with their base64-encoded
         representations
-
-        :param key: string
-        :return: string
         """
         for pattern, repl in cls.ENCODING_SUBSTITUTIONS:
             key = re.sub(pattern, repl, key)
@@ -63,15 +60,20 @@ class MongoHelper:
 
     @classmethod
     def get_count(
-            cls, mongo_userform_id, hide_deleted=True, query=None, instance_ids=None,
-            permission_filters=None):
+        cls,
+        mongo_userform_id,
+        hide_deleted=True,
+        query=None,
+        submission_ids=None,
+        permission_filters=None,
+    ):
 
         _, total_count = cls._get_cursor_and_count(
             mongo_userform_id,
             hide_deleted=hide_deleted,
             fields={'_id': 1},
             query=query,
-            instance_ids=instance_ids,
+            submission_ids=submission_ids,
             permission_filters=permission_filters)
 
         return total_count
@@ -79,7 +81,7 @@ class MongoHelper:
     @classmethod
     def get_instances(
             cls, mongo_userform_id, hide_deleted=True, start=None, limit=None,
-            sort=None, fields=None, query=None, instance_ids=None,
+            sort=None, fields=None, query=None, submission_ids=None,
             permission_filters=None
     ):
         cursor, total_count = cls._get_cursor_and_count(
@@ -87,7 +89,7 @@ class MongoHelper:
             hide_deleted=hide_deleted,
             fields=fields,
             query=query,
-            instance_ids=instance_ids,
+            submission_ids=submission_ids,
             permission_filters=permission_filters)
 
         cursor.skip(start)
@@ -106,24 +108,20 @@ class MongoHelper:
         return cursor, total_count
 
     @classmethod
-    def is_attribute_invalid(cls, key):
+    def is_attribute_invalid(cls, key: str) -> str:
         """
         Checks if an attribute can't be passed to Mongo as is.
-        :param key:
-        :return:
         """
-        return key not in cls.KEY_WHITELIST and\
-               (key.startswith('$') or key.count('.') > 0)
+        return key not in cls.KEY_WHITELIST and (
+            key.startswith('$') or key.count('.') > 0
+        )
 
     @classmethod
-    def to_readable_dict(cls, d):
+    def to_readable_dict(cls, d: dict) -> dict:
         """
         Updates encoded attributes of a dict with human-readable attributes.
         For example:
         { "myLg==attribute": True } => { "my.attribute": True }
-
-        :param d: dict
-        :return: dict
         """
 
         for key, value in list(d.items()):
@@ -253,12 +251,12 @@ class MongoHelper:
 
     @classmethod
     def _get_cursor_and_count(cls, mongo_userform_id, hide_deleted=True,
-                              fields=None, query=None, instance_ids=None,
+                              fields=None, query=None, submission_ids=None,
                               permission_filters=None):
 
-        if len(instance_ids) > 0:
+        if len(submission_ids) > 0:
             query.update({
-                '_id': {'$in': instance_ids}
+                '_id': {'$in': submission_ids}
             })
 
         query.update({cls.USERFORM_ID: mongo_userform_id})

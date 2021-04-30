@@ -4,7 +4,6 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
-
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
@@ -13,11 +12,11 @@ from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.data import DataViewSet
 from kpi.views.v2.export_task import ExportTaskViewSet
-from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
-
+from kpi.views.v2.import_task import ImportTaskViewSet
+from kpi.views.v2.paired_data import PairedDataViewset
 from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.user import UserViewSet
-from kpi.views.v2.import_task import ImportTaskViewSet
+from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
 
 
 URL_NAMESPACE = 'api_v2'
@@ -64,6 +63,12 @@ asset_routes.register(r'exports',
 asset_routes.register(r'hook-signal',
                       HookSignalViewSet,
                       basename='hook-signal',
+                      parents_query_lookups=['asset'],
+                      )
+
+asset_routes.register(r'paired-data',
+                      PairedDataViewset,
+                      basename='paired-data',
                       parents_query_lookups=['asset'],
                       )
 

@@ -61,7 +61,7 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
             serialized = json.dumps((
                 version.deployed_content,
                 version.name,
-                version._deployment_data,
+                version._deployment_data,  # noqa
                 version.version_content,
                 version.deployed
             ), sort_keys=True)

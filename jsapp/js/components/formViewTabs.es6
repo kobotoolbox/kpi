@@ -94,34 +94,93 @@ class FormViewTabs extends Reflux.Component {
   renderFormSideTabs() {
     var sideTabs = [];
 
-    if (this.state.asset && this.state.asset.has_deployment && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
+    if (
+      this.state.asset &&
+      this.state.asset.has_deployment &&
+      this.isActiveRoute(ROUTES.FORM_DATA.replace(':uid', this.state.assetid))
+    ) {
       sideTabs = [
-        {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report`},
-        {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.assetid}/data/table`},
-        {label: t('Gallery'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/data/gallery`},
-        {label: t('Downloads'), icon: 'k-icon-download', path: `/forms/${this.state.assetid}/data/downloads`},
-        {label: t('Map'), icon: 'k-icon-map-view', path: `/forms/${this.state.assetid}/data/map`},
+        {
+          label: t("Reports"),
+          icon: "k-icon-report",
+          path: ROUTES.FORM_REPORT.replace(':uid', this.state.assetid),
+        },
+        {
+          label: t("Table"),
+          icon: "k-icon-table",
+          path: ROUTES.FORM_TABLE.replace(':uid', this.state.assetid),
+        },
+        {
+          label: t("Gallery"),
+          icon: "k-icon-photo-gallery",
+          path: ROUTES.FORM_GALLERY.replace(':uid', this.state.assetid),
+        },
+        {
+          label: t("Downloads"),
+          icon: "k-icon-download",
+          path: ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.assetid),
+        },
+        {
+          label: t("Map"),
+          icon: "k-icon-map-view",
+          path: ROUTES.FORM_MAP.replace(':uid', this.state.assetid),
+        },
       ];
     }
 
-    if (this.state.asset && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
+    if (
+      this.state.asset &&
+      this.isActiveRoute(ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid))
+    ) {
       sideTabs = [];
 
-      sideTabs.push({label: t('General'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings`});
+      sideTabs.push({
+        label: t("General"),
+        icon: "k-icon-settings",
+        path: ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid),
+      });
 
-      //TODO:Remove owner only access to settings/media after we remove KC iframe: https://github.com/kobotoolbox/kpi/issues/2647#issuecomment-624301693
-      if (this.state.asset.deployment__active && assetUtils.isSelfOwned(this.state.asset)) {
-        sideTabs.push({label: t('Media'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/settings/media`});
+      if (
+        mixins.permissions.userCan(
+          PERMISSIONS_CODENAMES.change_asset,
+          this.state.asset
+        )
+      ) {
+        sideTabs.push({
+          label: t("Media"),
+          icon: "k-icon-photo-gallery",
+          path: ROUTES.FORM_MEDIA.replace(':uid', this.state.assetid),
+        });
       }
 
-      sideTabs.push({label: t('Sharing'), icon: 'k-icon-user-share', path: `/forms/${this.state.assetid}/settings/sharing`});
+      sideTabs.push({
+        label: t("Sharing"),
+        icon: "k-icon-user-share",
+        path: ROUTES.FORM_SHARING.replace(':uid', this.state.assetid),
+      });
+
+      sideTabs.push({
+        label: t("Connect Projects"),
+        icon: "k-icon-attach",
+        path: ROUTES.FORM_RECORDS.replace(':uid', this.state.assetid),
+      });
 
       if (
         this.state.asset.deployment__active &&
-        mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.state.asset) &&
-        mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.state.asset)
+        mixins.permissions.userCan(
+          PERMISSIONS_CODENAMES.view_submissions,
+          this.state.asset
+        ) &&
+        mixins.permissions.userCan(
+          PERMISSIONS_CODENAMES.change_asset,
+          this.state.asset
+        )
       ) {
-        sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
+        sideTabs.push({
+          label: t("REST Services"),
+          icon: "k-icon-data-sync",
+          path: ROUTES.FORM_REST.replace(':uid', this.state.assetid),
+        });
       }
     }
 
@@ -138,7 +197,9 @@ class FormViewTabs extends Reflux.Component {
               data-path={item.path}
               onClick={this.triggerRefresh}>
                 <i className={`k-icon ${item.icon}`} />
-                {item.label}
+                <label className='form-view__tab-label'>
+                  {item.label}
+                </label>
             </Link>
           )}
         </bem.FormView__sidetabs>

@@ -12,7 +12,7 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
-// imporitng whole constants, as we override ROOT_URL in tests
+// importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
@@ -225,6 +225,10 @@ export function redirectTo(href) {
 // works universally for v1 and v2 urls
 export function getUsernameFromUrl(userUrl) {
   return userUrl.match(/\/users\/(.*)\//)[1];
+}
+
+export function getAssetUIDFromUrl(userUrl) {
+  return userUrl.match(/.*\/([^/]+)\//)[1];
 }
 
 export function buildUserUrl(username) {
@@ -580,4 +584,69 @@ export function toTitleCase(str) {
 
 export function launchPrinting() {
   window.print();
+}
+
+/**
+ * Trunactes strings to specified length
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateString(str, length, type='') {
+  let truncatedString = str;
+  const HALFWAY = Math.trunc(length / 2);
+
+  if (length < truncatedString.length) {
+    let truncatedStringFront = truncatedString.substring(0, HALFWAY);
+    let truncatedStringBack = truncatedString.slice(
+      truncatedString.length - HALFWAY
+    );
+    truncatedString = truncatedStringFront + '…' + truncatedStringBack;
+  }
+
+  return truncatedString;
+}
+
+/**
+ * Removes protocol then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateUrl(str, length) {
+  let truncatedString = str.replace('https://', '').replace('http://', '');
+
+  return truncateString(truncatedString, length);
+}
+
+/**
+ * Removes file extension then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateFile(str, length) {
+  // Remove file extension with simple regex that truncates everything past
+  // the last occurance of `.` inclusively
+  let truncatedString = str.replace(/\.[^/.]+$/, '');
+
+  return truncateString(truncatedString, length);
+}
+
+/**
+ * Generates a simple lowercase, underscored version of a string. Useful for
+ * quick filename generation
+ *
+ * @param {string} str
+ * @param {number} [startIndex=0]
+ * @param {number} [endIndex=str.length]
+ */
+export function generateAutoname(str, startIndex=0, endIndex=str.length) {
+  return str
+  .toLowerCase()
+  .substring(startIndex, endIndex)
+  .replace(/(\ |\.)/g, "_");
 }

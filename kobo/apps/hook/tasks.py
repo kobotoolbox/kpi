@@ -15,7 +15,7 @@ from .models import Hook, HookLog
 
 
 @shared_task(bind=True)
-def service_definition_task(self, hook_id, instance_id):
+def service_definition_task(self, hook_id, submission_id):
     """
     Tries to send data to the endpoint of the hook
     It retries n times (n = `constance.config.HOOK_MAX_RETRIES`)
@@ -27,13 +27,13 @@ def service_definition_task(self, hook_id, instance_id):
 
     :param self: Celery.Task.
     :param hook_id: int. Hook PK
-    :param instance_id: int. Instance PK
+    :param submission_id: int. Instance PK
     """
     hook = Hook.objects.get(id=hook_id)
     # Use camelcase (even if it's not PEP-8 compliant)
     # because variable represents the class, not the instance.
     ServiceDefinition = hook.get_service_definition()
-    service_definition = ServiceDefinition(hook, instance_id)
+    service_definition = ServiceDefinition(hook, submission_id)
     if not service_definition.send():
         # Countdown is in seconds
         countdown = HookLog.get_remaining_seconds(self.request.retries)
@@ -138,7 +138,7 @@ def failures_reports():
             variables = {
                 'username': record.get('username'),
                 'assets': record.get('assets'),
-                'kpi_base_url': settings.KPI_URL
+                'kpi_base_url': settings.KOBOFORM_URL
             }
             # Localize templates
             translation.activate(record.get("language"))

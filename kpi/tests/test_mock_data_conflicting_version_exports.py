@@ -30,7 +30,7 @@ class ConflictingVersionsMockDataExports(TestCase):
         # To avoid cluttering the fixture, assign permissions here
         self.asset.assign_perm(self.user, PERM_VIEW_SUBMISSIONS)
         self.submissions = self.asset.deployment.get_submissions(
-            self.asset.owner.id)
+            self.asset.owner)
         self.submission_id_field = '_id'
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,

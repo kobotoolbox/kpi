@@ -88,7 +88,9 @@ module.exports = do ->
           questionType: questionType
         }).render().insertInDOMAfter(@$header)
 
-      if questionType is 'calculate' or questionType is 'hidden'
+      if questionType is 'calculate' or
+         questionType is 'hidden' or
+         questionType is 'xml-external'
         @$hint.hide()
 
       if 'getList' of @model and (cl = @model.getList())
@@ -100,8 +102,13 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
       for [key, val] in @model.attributesArray() when key in ['label', 'hint', 'type']
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
-        if key == 'label' and @model.get('type').get('value') == 'calculate'
-          view.model = @model.get('calculation')
+        if key == 'label' and
+           (@model.get('type').get('value') == 'calculate' or
+            @model.get('type').get('value') == 'xml-external')
+          if @model.get('type').get('value') == 'calculate'
+            view.model = @model.get('calculation')
+          else if @model.get('type').get('value') == 'xml-external'
+            view.model = @model.get('name')
           @model.finalize()
           val.set('value', '')
         view.render().insertInDOM(@)

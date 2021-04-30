@@ -6,3 +6,5 @@ pytest-django
 pytest-env
 pytest
 mock
+mongomock
+deepmerge

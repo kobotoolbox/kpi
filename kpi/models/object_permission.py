@@ -1,6 +1,5 @@
 # coding: utf-8
 import copy
-import re
 from collections import defaultdict
 from typing import Union
 
@@ -8,7 +7,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.shortcuts import _get_queryset
 from django_request_cache import cache_for_request
@@ -750,7 +749,7 @@ class ObjectPermissionMixin:
         """
         Returns the list of partial permissions related to the user.
 
-        Should implemented on classes that inherit from this mixin
+        Should be implemented on classes that inherit from this mixin
         """
         return []
 
@@ -759,7 +758,7 @@ class ObjectPermissionMixin:
         Returns the list of (Mongo) filters for a specific permission `perm`
         and this specific object.
 
-        Should implemented on classes that inherit from this mixin
+        Should be implemented on classes that inherit from this mixin
         """
         return None
 
@@ -783,7 +782,7 @@ class ObjectPermissionMixin:
             user_ids = {x[0] for x in user_perm_ids}
             return User.objects.filter(pk__in=user_ids)
 
-    def has_perm(self, user_obj: models.Model, perm: str) -> bool:
+    def has_perm(self, user_obj: User, perm: str) -> bool:
         """
         Does `user_obj` have perm on this object? (True/False)
         """
@@ -811,6 +810,16 @@ class ObjectPermissionMixin:
             if fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
                 return False
         return result
+
+    def has_perms(self, user_obj: User, perms: list, all_: bool = False) -> bool:  # noqa
+        """
+        Returns True or False whether user `user_obj` has several
+        permissions (`perms`) on current object.
+        if `all_` is `True`, user must have all permissions, not only one of
+        them.
+        """
+        fn = any if not all_ else all
+        return fn(perm in perms for perm in self.get_perms(user_obj))
 
     @transaction.atomic
     def remove_perm(self, user_obj, perm, defer_recalc=False, skip_kc=False):

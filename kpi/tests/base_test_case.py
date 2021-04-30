@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from kpi.models import Asset
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
 class BaseTestCase(APITestCase):
@@ -21,9 +22,9 @@ class BaseTestCase(APITestCase):
                 if self.URL_NAMESPACE else endpoint
         return endpoint
 
-    @staticmethod
-    def absolute_reverse(*args, **kwargs):
-        return 'http://testserver/' + reverse(*args, **kwargs).lstrip('/')
+    def login_as_other_user(self, username, password):
+        self.client.logout()
+        self.client.login(username=username, password=password)
 
 
 class BaseAssetTestCase(BaseTestCase):
@@ -43,3 +44,20 @@ class BaseAssetTestCase(BaseTestCase):
         sa = Asset.objects.order_by('date_created').last()
         self.assertEqual(sa.content, self.EMPTY_SURVEY)
         return response
+
+
+class BaseAssetDetailTestCase(BaseAssetTestCase):
+
+    fixtures = ['test_data']
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    def setUp(self):
+        self.client.login(username='someuser', password='someuser')
+        url = reverse(self._get_endpoint('asset-list'))
+        data = {'content': '{}', 'asset_type': 'survey'}
+        self.r = self.client.post(url, data, format='json')
+        self.asset = Asset.objects.get(uid=self.r.data.get('uid'))
+        self.asset_url = self.r.data['url']
+        self.assertEqual(self.r.status_code, status.HTTP_201_CREATED)
+        self.asset_uid = self.r.data['uid']

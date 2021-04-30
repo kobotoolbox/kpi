@@ -75,6 +75,7 @@ export const MODAL_TYPES = {
   ASSET_TAGS: 'asset-tags',
   ENCRYPT_FORM: 'encrypt-form',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
+  DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = {
@@ -148,6 +149,17 @@ export const ASSET_TYPES = {
     label: t('collection'),
   },
 };
+
+export const ASSET_FILE_TYPES = {
+  map_layer: {
+    id: 'map_layer',
+    label: t('map layer'),
+  },
+  form_media: {
+    id: 'form_media',
+    label: t('form media'),
+  },
+}
 
 export const QUESTION_TYPES = Object.freeze({
   acknowledge: {label: t('Acknowledge'), icon: 'qt-acknowledge', id: 'acknowledge'},
@@ -319,10 +331,16 @@ export const ROUTES = Object.freeze({
   FORM_SETTINGS: '/forms/:uid/settings',
   FORM_MEDIA: '/forms/:uid/settings/media',
   FORM_SHARING: '/forms/:uid/settings/sharing',
+  FORM_RECORDS: '/forms/:uid/settings/records',
   FORM_REST: '/forms/:uid/settings/rest',
   FORM_REST_HOOK: '/forms/:uid/settings/rest/:hookUid',
   FORM_KOBOCAT: '/forms/:uid/settings/kobocat',
   FORM_RESET: '/forms/:uid/reset',
+});
+
+export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
+  form_media: 50,
+  connect_projects: 30,
 });
 
 const constants = {
@@ -338,6 +356,7 @@ const constants = {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   ASSET_TYPES,
+  ASSET_FILE_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
@@ -353,6 +372,7 @@ const constants = {
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
+  MAX_DISPLAYED_STRING_LENGTH,
 };
 
 export default constants;
