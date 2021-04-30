@@ -125,7 +125,7 @@ $z-modal-x: 10;
 
   i {
     display: block;
-    font-size: 32px;
+    font-size: 24px;
   }
 
   &:hover {opacity: 0.7;}
@@ -147,8 +147,8 @@ $z-modal-x: 10;
   color: $kobo-darkgray;
 
   i {
-    margin: 2px 10px 10px 0;
-    font-size: 32px;
+    margin: 5px 10px 10px 3px;
+    font-size: 24px;
     float: left;
   }
 }
@@ -269,6 +269,15 @@ $z-modal-x: 10;
     .checkbox__label {
       white-space: nowrap;
     }
+
+    .mdl-button--icon {
+      padding-left: 6px;
+      padding-right: 6px;
+
+      &:not(:first-child) {
+        margin-left: 10px;
+      }
+    }
   }
 
   .submission-duplicate__actions {
@@ -305,8 +314,8 @@ $z-modal-x: 10;
 
     i {
       color: $kobo-orange;
-      font-size: 40px;
-      margin-right: 10px;
+      font-size: 28px;
+      margin-right: 13px;
       vertical-align: middle;
       display: inline-block;
     }
@@ -335,9 +344,9 @@ $z-modal-x: 10;
       font-weight: 600;
     }
 
-    i:before {
+    .k-icon {
       color: $kobo-blue-light;
-      font-size: 20px;
+      font-size: 24px;
     }
   }
 
@@ -429,8 +438,8 @@ $z-modal-x: 10;
 
       i {
         display: block;
-        margin: 0 auto;
-        font-size: 48px;
+        margin: 3px auto;
+        font-size: 34px;
         color: currentColor;
       }
 
@@ -446,6 +455,35 @@ $z-modal-x: 10;
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
       }
     }
+  }
+  .dropzone {
+    background: $kobo-whitegray;
+    padding: 30px;
+    border: 2px dashed $kobo-lightgray;
+    cursor: pointer;
+    border-radius: 6px;
+    text-align: center;
+
+    i {
+      display: block;
+      margin: 5px auto;
+      font-size: 52px;
+      opacity: 0.5;
+    }
+
+    .loading {
+      font-size: inherit;
+    }
+
+    .loading i {
+      font-size: 36px;
+      margin-top: 20px;
+      margin-bottom: 16px;
+    }
+
+    &:hover {border-color: $kobo-blue;}
+    &.dropzone-active {border-color: $kobo-blue;}
+    &.dropzone-reject {border-color: $kobo-red;}
   }
 }
 
@@ -485,7 +523,7 @@ $z-modal-x: 10;
     &:hover {color: $kobo-red;}
 
     .k-icon {
-      font-size: 1.5em;
+      font-size: 1.2em;
       vertical-align: middle;
     }
   }
@@ -550,7 +588,8 @@ $z-modal-x: 10;
       top: 6px;
 
       i {
-        font-size: 24px;
+        font-size: 18px;
+        margin: 3px;
       }
     }
   }
@@ -603,7 +642,8 @@ $z-modal-x: 10;
       top: 6px;
 
       i {
-        font-size: 24px;
+        font-size: 18px;
+        margin: 3px;
       }
     }
   }

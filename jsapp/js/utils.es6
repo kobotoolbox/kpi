@@ -635,3 +635,18 @@ export function truncateFile(str, length) {
 
   return truncateString(truncatedString, length);
 }
+
+/**
+ * Generates a simple lowercase, underscored version of a string. Useful for
+ * quick filename generation
+ *
+ * @param {string} str
+ * @param {number} [startIndex=0]
+ * @param {number} [endIndex=str.length]
+ */
+export function generateAutoname(str, startIndex=0, endIndex=str.length) {
+  return str
+  .toLowerCase()
+  .substring(startIndex, endIndex)
+  .replace(/(\ |\.)/g, "_");
+}

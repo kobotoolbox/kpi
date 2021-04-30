@@ -8,6 +8,7 @@ import {
   truncateString,
   truncateUrl,
   truncateFile,
+  generateAutoname,
 } from 'utils';
 
 describe('utils', () => {
@@ -115,6 +116,38 @@ describe('utils', () => {
       chai
         .expect(truncateFile(testString, testLength))
         .to.equal("http:…tring");
+    });
+  });
+
+  describe("generateAutoname", () => {
+    it("should use default values if only string is specified", () => {
+      const testString = "veryShortString";
+      chai.expect(generateAutoname(testString)).to.equal("veryshortstring");
+    });
+
+    it("should create a proper substring", () => {
+      const testString = "veryShortString";
+      const INDEX_FIRST_WORD = 4;
+      const INDEX_LAST_WORD = 9;
+      chai
+        .expect(generateAutoname(testString, INDEX_FIRST_WORD, INDEX_LAST_WORD))
+        .to.equal("short");
+    });
+
+    it("should change all spaces to underscores", () => {
+      const testString = "i am   a very long na   me with  weird s      paces";
+      chai
+        .expect(generateAutoname(testString))
+        .to.equal("i_am___a_very_long_na___me_with__weird_s______paces");
+    });
+
+    it("should create a proper substring and change all spaces to underscores", () => {
+      const testString = "i am   a very long na   me with  weird s      paces";
+      const INDEX_FIRST_WORD = 4;
+      const INDEX_LAST_WORD = 21;
+      chai
+        .expect(generateAutoname(testString, INDEX_FIRST_WORD, INDEX_LAST_WORD))
+        .to.equal("___a_very_long_na");
     });
   });
 });

@@ -819,14 +819,14 @@ export class FormMap extends React.Component {
               })}
             </div>
             <div className='maplist-legend' onClick={this.toggleLegend}>
-              <i className={classNames('fa', this.state.showExpandedLegend ? 'fa-angle-down' : 'fa-angle-up')} /> {t('Legend')}
+              <i className={classNames('k-icon', this.state.showExpandedLegend ? 'k-icon-down' : 'k-icon-up')} /> {t('Legend')}
             </div>
           </bem.FormView__mapList>
         }
         {!this.state.markers && !this.state.heatmap &&
           <bem.Loading>
             <bem.Loading__inner>
-              <i />
+              <i className='k-spin k-icon k-icon-spinner'/>
             </bem.Loading__inner>
           </bem.Loading>
         }

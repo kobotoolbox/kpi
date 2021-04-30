@@ -121,9 +121,12 @@ permissionsActions.copyPermissionsFrom.completed.listen((sourceUid, targetUid) =
 permissionsActions.setAssetPublic.completed.listen((uid) => {
   actions.resources.loadAsset({id: uid});
 });
-permissionsActions.removeAssetPermission.completed.listen((uid) => {
-  // needed to update publicShareSettings after disabling link sharing
-  actions.resources.loadAsset({id: uid});
+permissionsActions.removeAssetPermission.completed.listen((uid, isNonOwner) => {
+  // Avoid this call if a non-owner removed their own permissions as it will fail
+  if (!isNonOwner) {
+    // needed to update publicShareSettings after disabling link sharing
+    actions.resources.loadAsset({id: uid});
+  }
 });
 
 actions.misc.getUser.listen((userUrl) => {
