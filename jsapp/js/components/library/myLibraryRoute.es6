@@ -64,6 +64,14 @@ class MyLibraryRoute extends React.Component {
     myLibraryStore.setCurrentPage(pageNumber);
   }
 
+  onFileDrop(files, rejectedFiles, evt) {
+    console.log('onFileDrop', files, rejectedFiles, evt);
+    // TODO if only one file dropped then
+    // 1. display modal instead of using mixing function
+    // 2. pass file to modal
+    this.dropFiles(files, rejectedFiles, evt);
+  }
+
   render() {
     let contextualEmptyMessage = t('Your search returned no results.');
 
@@ -81,7 +89,7 @@ class MyLibraryRoute extends React.Component {
     return (
       <DocumentTitle title={`${t('My Library')} | KoboToolbox`}>
         <Dropzone
-          onDrop={this.dropFiles}
+          onDrop={this.onFileDrop}
           disableClick
           multiple
           className='dropzone'

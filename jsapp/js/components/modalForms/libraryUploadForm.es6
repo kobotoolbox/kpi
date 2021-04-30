@@ -44,7 +44,17 @@ class LibraryUploadForm extends React.Component {
   }
 
   onFileDrop(files, rejectedFiles, evt) {
+    // TODO:
+    // 1. add button for submitting the file
+    // 2. when file is uploaded, do nothing, let user submit the form
+    // 3. if modal opened and file was passed, make it being selected
+    console.log('onFileDrop', files, rejectedFiles, evt);
+    // append desiredType to the asset
+    if (files[0]) {
+      files[0].desiredType = this.state.desiredType.value;
+    }
     this.setState({isPending: true});
+    // 4. make the rejection better - isPending: false
     this.dropFiles(files, rejectedFiles, evt);
   }
 
@@ -66,22 +76,8 @@ class LibraryUploadForm extends React.Component {
         {!this.state.isPending &&
           <React.Fragment>
             <bem.FormModal__item>
-              <Dropzone
-                onDrop={this.onFileDrop.bind(this)}
-                multiple={false}
-                className='dropzone'
-                activeClassName='dropzone-active'
-                rejectClassName='dropzone-reject'
-                accept={validFileTypes()}
-              >
-                <i className='k-icon-xls-file' />
-                {t(' Drag and drop the XLSForm file here or click to browse')}
-              </Dropzone>
-            </bem.FormModal__item>
-
-            <bem.FormModal__item>
               <label htmlFor='desired-type'>
-                {t('Desired type')}
+                {t('Choose desired type')}
               </label>
 
               <Select
@@ -93,6 +89,20 @@ class LibraryUploadForm extends React.Component {
                 classNamePrefix='kobo-select'
                 menuPlacement='auto'
               />
+            </bem.FormModal__item>
+
+            <bem.FormModal__item>
+              <Dropzone
+                onDrop={this.onFileDrop.bind(this)}
+                multiple={false}
+                className='dropzone'
+                activeClassName='dropzone-active'
+                rejectClassName='dropzone-reject'
+                accept={validFileTypes()}
+              >
+                <i className='k-icon-xls-file' />
+                {t(' Drag and drop the XLSForm file here or click to browse')}
+              </Dropzone>
             </bem.FormModal__item>
           </React.Fragment>
         }
@@ -112,8 +122,6 @@ class LibraryUploadForm extends React.Component {
 
 reactMixin(LibraryUploadForm.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryUploadForm.prototype, mixins.droppable);
-LibraryUploadForm.contextTypes = {
-  router: PropTypes.object
-};
+LibraryUploadForm.contextTypes = {router: PropTypes.object};
 
 export default LibraryUploadForm;
