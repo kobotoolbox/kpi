@@ -225,7 +225,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return url
 
     def get_submission_edit_url(
-        self, submission_pk: int, user: 'auth.User', params: dict = None
+        self, submission_id: int, user: 'auth.User', params: dict = None
     ) -> dict:
         """
         Gets edit URL of the submission in a format front end can understand
@@ -234,13 +234,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            submission_ids=[submission_pk],
+            submission_ids=[submission_id],
         )
 
         return {
             'content_type': 'application/json',
             'data': {
-                'url': f'http://server.mock/enketo/{submission_pk}'
+                'url': f'http://server.mock/enketo/{submission_id}'
             }
         }
 

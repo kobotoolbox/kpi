@@ -120,7 +120,6 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
                                       format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submissions_url, {'format': 'json'})
-        # FIXME get submission count for user from Mockbackend
         self.assertEqual(response.data['count'], 0)
 
     def test_delete_submissions_anonymous(self):
@@ -149,7 +148,6 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
                                       format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submissions_url, {'format': 'json'})
-        # FIXME get submission count for user from Mockbackend
         self.assertEqual(response.data['count'], 0)
 
     def test_delete_submissions_with_partial_perms(self):
@@ -193,7 +191,6 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
                                       format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submissions_url, {'format': 'json'})
-        # FIXME get submission count for user from Mockbackend
         self.assertEqual(response.data['count'], 0)
 
         # Ensure another only deleted their submissions
@@ -540,7 +537,6 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                                       HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submission_url, {'format': 'json'})
-        # FIXME get submission count for user from Mockbackend
         self.assertEqual(response.data['count'], 0)
 
 
@@ -696,7 +692,6 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
     def test_duplicate_submission_with_partial_perms(self):
         self._log_in_as_another_user()
 
-        # FIXME, the permission should be `add_submissions`.
         partial_perms = {
             PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
         }
