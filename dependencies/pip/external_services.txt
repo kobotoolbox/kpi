@@ -52,6 +52,8 @@ cryptography==2.8
     # via pyopenssl
 cssselect==1.1.0
     # via pyquery
+deepmerge==0.3.0
+    # via -r dependencies/pip/requirements.in
 defusedxml==0.6.0
     # via djangorestframework-xml
 dicttoxml==1.7.4

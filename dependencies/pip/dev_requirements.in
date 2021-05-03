@@ -7,4 +7,3 @@ pytest-env
 pytest
 mock
 mongomock
-deepmerge
