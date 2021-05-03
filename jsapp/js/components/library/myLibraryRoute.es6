@@ -7,9 +7,11 @@ import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
 import mixins from 'js/mixins';
 import {bem} from 'js/bem';
+import {stores} from 'js/stores';
 import {validFileTypes} from 'utils';
 import myLibraryStore from './myLibraryStore';
 import AssetsTable from './assetsTable';
+import {MODAL_TYPES} from 'js/constants';
 import {
   ROOT_BREADCRUMBS,
   ASSETS_TABLE_CONTEXTS,
@@ -64,12 +66,19 @@ class MyLibraryRoute extends React.Component {
     myLibraryStore.setCurrentPage(pageNumber);
   }
 
+  /**
+   * If only one file was passed, then open a modal for selecting the type.
+   * Otherwise just start uploading all files.
+   */
   onFileDrop(files, rejectedFiles, evt) {
-    console.log('onFileDrop', files, rejectedFiles, evt);
-    // TODO if only one file dropped then
-    // 1. display modal instead of using mixing function
-    // 2. pass file to modal
-    this.dropFiles(files, rejectedFiles, evt);
+    if (files.length === 1) {
+      stores.pageState.switchModal({
+        type: MODAL_TYPES.LIBRARY_UPLOAD,
+        file: files[0],
+      });
+    } else {
+      this.dropFiles(files, rejectedFiles, evt);
+    }
   }
 
   render() {

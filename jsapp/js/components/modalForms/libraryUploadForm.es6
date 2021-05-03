@@ -24,6 +24,10 @@ const DESIRED_TYPES = [
   },
 ];
 
+/**
+ * @prop {function} onSetModalTitle
+ * @prop {file} [file] optional preloaded file
+ */
 class LibraryUploadForm extends React.Component {
   constructor(props) {
     super(props);
@@ -32,7 +36,7 @@ class LibraryUploadForm extends React.Component {
       isPending: false,
       // default is block
       desiredType: DESIRED_TYPES[0],
-      currentFile: null,
+      currentFile: this.props.file || null,
     };
 
     autoBind(this);
@@ -68,7 +72,7 @@ class LibraryUploadForm extends React.Component {
       [this.state.currentFile],
       [],
       evt,
-      {desiredType: this.state.desiredType.value}
+      {desired_type: this.state.desiredType.value}
     );
   }
 
