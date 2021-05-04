@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
-import {renderLoading} from '../modalForms/modalHelpers';
+import {LoadingSpinner} from 'js/ui';
 
 /**
  * Attributes from parent needed to generate `columnsToDisplay`
@@ -194,7 +194,7 @@ class dataAttachmentColumnsForm extends React.Component {
         </div>
 
         {!this.state.isInitialised &&
-          renderLoading(t('Loading imported questions'))
+          <LoadingSpinner message={t('Loading imported questions')} />
         }
 
         <MultiCheckbox
@@ -204,7 +204,7 @@ class dataAttachmentColumnsForm extends React.Component {
         />
 
         {this.state.isLoading &&
-          renderLoading(t('Updating imported questions'))
+          <LoadingSpinner message={t('Loading imported questions')} />
         }
 
         <footer className='modal__footer'>
