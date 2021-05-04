@@ -111,16 +111,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
         if submission_ids:
+            partial_perms = True
             data.pop('query', None)
-            # TODO add one-time valid token
-            raise NotImplementedError('Back end does not support this request')
         else:
+            partial_perms = False
             submission_ids = data['submission_ids']
 
         submissions = list(self.get_submissions(
             user=user,
             format_type=INSTANCE_FORMAT_TYPE_XML,
-            submission_ids=submission_ids
+            submission_ids=submission_ids,
+            query=data['query'],
         ))
 
         validated_submissions = self.__validate_bulk_update_submissions(
@@ -185,8 +186,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
             # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission # noqa
+            headers = {}
+            if partial_perms:
+                headers.update(
+                    KobocatOneTimeAuthRequest.get_token(user, 'POST')
+                )
+
             kc_request = requests.Request(
-                method='POST', url=self.submission_url, files=files
+                method='POST',
+                url=self.submission_url,
+                files=files,
+                headers=headers,
             )
             kc_response = self.__kobocat_proxy_request(
                 kc_request, user=self.asset.owner
@@ -330,7 +340,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Otherwise, they have have full access.
         headers = {}
         if submission_ids:
-            headers.update(KobocatOneTimeAuthRequest.get_token())
+            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'POST'))
 
         kc_url = self.get_submission_detail_url(pk)
         kc_request = requests.Request(
@@ -362,14 +372,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
+        headers = {}
         if submission_ids:
             data.pop('query', None)
             data['submission_ids'] = submission_ids
-            # TODO add one-time valid token
-            raise NotImplementedError('Back end does not support this request')
+            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'DELETE'))
 
         kc_url = self.submission_list_url
-        kc_request = requests.Request(method='DELETE', url=kc_url, json=data)
+        kc_request = requests.Request(
+            method='DELETE', url=kc_url, json=data, headers=headers
+        )
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
@@ -396,9 +408,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
+        headers = {}
         if submission_ids:
-            # TODO add one-time valid token
-            raise NotImplementedError('Back end does not support this request')
+            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'POST'))
 
         submission = self.get_submission(
             submission_id,
@@ -427,7 +439,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
         files = {'xml_submission_file': file_tuple}
         kc_request = requests.Request(
-            method='POST', url=self.submission_url, files=files
+            method='POST', url=self.submission_url, files=files, headers=headers
         )
         kc_response = self.__kobocat_proxy_request(
             kc_request, user=self.asset.owner
@@ -814,9 +826,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Otherwise, they have have full access.
         headers = {}
         if submission_ids:
-            headers.update(
-                KobocatOneTimeAuthRequest.get_token(user=user, method='PATCH')
-            )
+            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'PATCH'))
 
         kc_request_params = {
             'method': method,
@@ -826,8 +836,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if method == 'PATCH':
             kc_request_params.update({'json': data})
-
-        print('kc_request_params', kc_request_params, flush=True)
 
         kc_request = requests.Request(**kc_request_params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
@@ -858,9 +866,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if submission_ids:
             data.pop('query', None)
             data['submission_ids'] = submission_ids
-            headers.update(
-                KobocatOneTimeAuthRequest.get_token(user=user, method='PATCH')
-            )
+            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'PATCH'))
 
         # `PATCH` KC even if KPI receives `DELETE`
         url = self.submission_list_url
