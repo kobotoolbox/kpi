@@ -140,6 +140,10 @@ $z-modal-x: 10;
   color: $kobo-blue;
 }
 
+// NOTE: Subheader element is weirdly positioned because it is inside a padded
+// containter but has to appear as if it was outside of it.
+// Unfortunately we can't rely on `overflow: hidden` being there, so negative
+// margins hack isn't good enough. Other hacks are no good too.
 .modal__subheader {
   background: $kobo-whitegray;
   padding: 20px 30px;
