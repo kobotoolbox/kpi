@@ -90,22 +90,6 @@ class LibraryUploadForm extends React.Component {
         {!this.state.isPending &&
           <React.Fragment>
             <bem.FormModal__item>
-              <label htmlFor='desired-type'>
-                {t('Choose desired type')}
-              </label>
-
-              <Select
-                id='desired-type'
-                value={this.state.desiredType}
-                onChange={this.onDesiredTypeChange}
-                options={DESIRED_TYPES}
-                className='kobo-select'
-                classNamePrefix='kobo-select'
-                menuPlacement='auto'
-              />
-            </bem.FormModal__item>
-
-            <bem.FormModal__item>
               <Dropzone
                 onDrop={this.onFileDrop.bind(this)}
                 multiple={false}
@@ -122,6 +106,22 @@ class LibraryUploadForm extends React.Component {
                   t(' Drag and drop the XLSForm file here or click to browse')
                 }
               </Dropzone>
+            </bem.FormModal__item>
+
+            <bem.FormModal__item>
+              <label htmlFor='desired-type'>
+                {t('Choose desired type')}
+              </label>
+
+              <Select
+                id='desired-type'
+                value={this.state.desiredType}
+                onChange={this.onDesiredTypeChange}
+                options={DESIRED_TYPES}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+              />
             </bem.FormModal__item>
           </React.Fragment>
         }
