@@ -247,7 +247,7 @@ class FormMedia extends React.Component {
                 this.state.isUploadFilePending ||
                 this.state.isUploadURLPending) &&
                 <li className='form-media__list--default-item form-media__list--item'>
-                  <LoadingSpinner message={t('loading media')}/>
+                  <LoadingSpinner message={t('Loading media')}/>
                 </li>
             }
 
