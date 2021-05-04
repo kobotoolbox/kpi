@@ -6,7 +6,8 @@ import ToggleSwitch from 'js/components/common/toggleSwitch';
 import TextBox from 'js/components/common/textBox';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import {renderLoading} from './modalHelpers';
+import {LoadingSpinner} from 'js/ui';
+
 import {
   truncateFile,
   truncateString,
@@ -310,7 +311,7 @@ class ConnectProjects extends React.Component {
             </label>
             {(!this.state.isInitialised || this.state.isLoading) &&
               <li className='connect-projects__imported-item'>
-                {renderLoading(t('Loading imported projects'))}
+                <LoadingSpinner message={t('Loading imported projects')} />
               </li>
             }
             {!this.state.isLoading && this.state.attachedParents.length == 0 &&
