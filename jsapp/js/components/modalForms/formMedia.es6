@@ -5,7 +5,7 @@ import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
 import {actions} from '../../actions';
 import {bem} from 'js/bem';
-import {renderLoading} from 'js/components/modalForms/modalHelpers';
+import {LoadingSpinner} from 'js/ui';
 
 import {
   ASSET_FILE_TYPES,
@@ -215,7 +215,7 @@ class FormMedia extends React.Component {
 
           {this.state.isUploadFilePending &&
             <div className='dropzone-settings'>
-              {renderLoading(t('Uploading file…'))}
+              <LoadingSpinner message={t('Uploading file…')}/>
             </div>
           }
 
@@ -247,7 +247,7 @@ class FormMedia extends React.Component {
                 this.state.isUploadFilePending ||
                 this.state.isUploadURLPending) &&
                 <li className='form-media__list--default-item form-media__list--item'>
-                  {renderLoading(t('loading media'))}
+                  <LoadingSpinner message={t('loading media')}/>
                 </li>
             }
 
