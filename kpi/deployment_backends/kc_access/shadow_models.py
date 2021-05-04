@@ -171,6 +171,7 @@ class KobocatOneTimeAuthRequest(ShadowModel):
     One time authenticated request
     """
     HEADER = 'X-KOBOCAT-OTAR-TOKEN'
+    DEFAULT_TTL = 60
 
     user = models.ForeignKey(
         'KobocatUser',
@@ -181,6 +182,7 @@ class KobocatOneTimeAuthRequest(ShadowModel):
     date_created = models.DateTimeField(default=timezone.now)
     ttl = models.IntegerField(default=60)
     method = models.CharField(max_length=6)
+    used = models.BooleanField(default=False)
 
     class Meta(ShadowModel.Meta):
         db_table = 'logger_onetimeauthrequest'
