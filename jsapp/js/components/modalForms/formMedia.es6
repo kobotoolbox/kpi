@@ -147,9 +147,9 @@ class FormMedia extends React.Component {
    */
 
   renderButton() {
-    const buttonClassNames = ['formBuilder-header__button', 'formBuilder-header__button--save'];
+    const buttonClassNames = ['form-builder-header__button', 'form-builder-header__button--save'];
     if (this.state.isUploadURLPending) {
-      buttonClassNames.push('formBuilder-header__button--savepending');
+      buttonClassNames.push('form-builder-header__button--savepending');
     }
     return (
       <button
@@ -177,12 +177,12 @@ class FormMedia extends React.Component {
   }
 
   renderIcon(item) {
-    const iconClassNames = ['form-media__file-type', 'fa'];
+    const iconClassNames = ['form-media__file-type', 'k-icon'];
     // Check if current item is uploaded via URL. `redirect_url` is the indicator
     if (item.metadata.redirect_url) {
-      iconClassNames.push('fa-link');
+      iconClassNames.push('k-icon-link');
     } else {
-      iconClassNames.push('fa-file');
+      iconClassNames.push('k-icon-media-files');
     }
 
     return (
@@ -199,10 +199,10 @@ class FormMedia extends React.Component {
                 onDrop={this.onFileDrop.bind(this)}
                 className='dropzone-settings'
             >
-              {this.state.fieldsErrors.base64Encoded &&
+              {this.state.fieldsErrors?.base64Encoded &&
                 <bem.FormView__cell m='error'>
                   <i className='k-icon-alert' />
-                  <p>{this.state.fieldsErrors.base64Encoded}</p>
+                  <p>{this.state.fieldsErrors?.base64Encoded}</p>
                 </bem.FormView__cell>
               }
               <i className='k-icon-upload' />
@@ -256,10 +256,12 @@ class FormMedia extends React.Component {
                   <li key={n} className="form-media__list--item">
                     {this.renderIcon(item)}
                     {this.renderFileName(item)}
-                    <i
-                      className="k-icon-trash"
+                    <bem.KoboLightButton
+                      m={['red', 'icon-only']}
                       onClick={() => this.onDeleteMedia(item.url)}
-                    />
+                    >
+                      <i className='k-icon k-icon-trash'/>
+                    </bem.KoboLightButton>
                   </li>
                 );
             })}
