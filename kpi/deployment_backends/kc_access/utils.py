@@ -30,7 +30,7 @@ def _trigger_kc_profile_creation(user):
     Get the user's profile via the KC API, causing KC to create a KC
     UserProfile if none exists already
     """
-    url = settings.KOBOCAT_URL + '/api/v1/user'
+    url = settings.KOBOCAT_INTERNAL_URL + '/api/v1/user'
     token, _ = Token.objects.get_or_create(user=user)
     response = requests.get(
         url, headers={'Authorization': 'Token ' + token.key})
