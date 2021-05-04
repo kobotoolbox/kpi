@@ -10,8 +10,8 @@ import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {actions} from 'js/actions';
 import {stores} from '../../stores';
 import {bem} from 'js/bem';
-import {renderLoading} from '../modalForms/modalHelpers';
 import {generateAutoname} from 'js/utils';
+import {LoadingSpinner} from 'js/ui';
 
 import {
   MODAL_TYPES,
@@ -432,7 +432,7 @@ class ConnectProjects extends React.Component {
               <span>
                 {t('Select any questions you want to share in the right side table')}
                 {this.state.isLoading &&
-                  renderLoading(t('Updating shared questions'))
+                  <LoadingSpinner message={t('Updating shared questions')}/>
                 }
               </span>
 
@@ -487,7 +487,7 @@ class ConnectProjects extends React.Component {
 
           {(!this.state.isInitialised || this.state.isLoading) &&
             <div className='connect-projects__import--list-item'>
-              {renderLoading(t('Loading imported projects'))}
+              <LoadingSpinner message={t('Loading imported projects')}/>
             </div>
           }
 
