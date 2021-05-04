@@ -219,6 +219,7 @@ class ImportTask(ImportExportTask):
                 filename=filename,
                 messages=messages,
                 library=self.data.get('library', False),
+                desired_type=self.data.get('desired_type', None),
                 destination=dest_item,
                 has_necessary_perm=has_necessary_perm,
             )
