@@ -15,6 +15,7 @@ from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
+from kpi.fields import KpiUidField
 from kpi.utils.hash import get_hash
 
 
@@ -163,6 +164,32 @@ class KobocatContentType(ShadowModel):
         # complete with whitespace. That requires access to the Python model
         # class, though
         return self.model
+
+
+class KobocatOneTimeAuthRequest(ShadowModel):
+    """
+    One time authenticated request
+    """
+    HEADER = 'X-KOBOCAT-OTAR-TOKEN'
+
+    user = models.ForeignKey(
+        'KobocatUser',
+        related_name='authenticated_requests',
+        on_delete=models.CASCADE,
+    )
+    token = KpiUidField(uid_prefix='', length=50)
+    date_created = models.DateTimeField(default=timezone.now)
+    ttl = models.IntegerField(default=60)
+    method = models.CharField(max_length=6)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'logger_onetimeauthrequest'
+
+    @classmethod
+    def get_token(cls, user: 'auth.User', method: str):
+        kc_user = KobocatUser.objects.get(id=user.pk)
+        auth_request = cls.objects.create(user=kc_user, method=method)
+        return {cls.HEADER: auth_request.token}
 
 
 class KobocatPermission(ShadowModel):

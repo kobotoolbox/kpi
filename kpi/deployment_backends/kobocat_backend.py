@@ -35,6 +35,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
+    KobocatOneTimeAuthRequest,
     ReadOnlyKobocatInstance,
     ReadOnlyKobocatXForm,
 )
@@ -327,12 +328,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
+        headers = {}
         if submission_ids:
-            # TODO add one-time valid token
-            raise NotImplementedError('Back end does not support this request')
+            headers.update(KobocatOneTimeAuthRequest.get_token())
 
         kc_url = self.get_submission_detail_url(pk)
-        kc_request = requests.Request(method='DELETE', url=kc_url)
+        kc_request = requests.Request(
+            method='DELETE', url=kc_url, headers=headers
+        )
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
@@ -809,16 +812,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
+        headers = {}
         if submission_ids:
-            # TODO add one-time valid token
-            raise NotImplementedError('Back end does not support this request')
+            headers.update(
+                KobocatOneTimeAuthRequest.get_token(user=user, method='PATCH')
+            )
 
         kc_request_params = {
             'method': method,
-            'url': self.get_submission_validation_status_url(submission_id)
+            'url': self.get_submission_validation_status_url(submission_id),
+            'headers': headers
         }
+
         if method == 'PATCH':
             kc_request_params.update({'json': data})
+
+        print('kc_request_params', kc_request_params, flush=True)
 
         kc_request = requests.Request(**kc_request_params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
@@ -845,15 +854,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
+        headers = {}
         if submission_ids:
             data.pop('query', None)
             data['submission_ids'] = submission_ids
-            # TODO add one-time valid token
-            raise NotImplementedError('Back end does not support this request')
+            headers.update(
+                KobocatOneTimeAuthRequest.get_token(user=user, method='PATCH')
+            )
 
         # `PATCH` KC even if KPI receives `DELETE`
         url = self.submission_list_url
-        kc_request = requests.Request(method='PATCH', url=url, json=data)
+        kc_request = requests.Request(
+            method='PATCH', url=url, headers=headers, json=data
+        )
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 

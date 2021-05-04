@@ -184,9 +184,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             '_id': next_id,
             'start': updated_time,
             'end': updated_time,
-            'instanceID': f'uuid:{uuid.uuid4()}'
+            'meta/instanceID': f'uuid:{uuid.uuid4()}'
         })
-
+        
         settings.MONGO_DB.instances.insert_one(duplicated_submission)
         return duplicated_submission
 
