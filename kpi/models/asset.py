@@ -2,7 +2,7 @@
 # 😬
 import copy
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from functools import reduce
 from io import BytesIO
 from operator import add
@@ -81,6 +81,7 @@ from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
                                        replace_with_autofields,
                                        remove_empty_expressions_in_place)
 from kpi.utils.log import logging
+from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.random_id import random_id
 from kpi.utils.sluggify import sluggify_label
 from kpi.utils.standardize_content import (needs_standardization,
@@ -1321,14 +1322,22 @@ class Asset(ObjectPermissionMixin,
                                                     source=self.content)
         return snapshot
 
-    def _update_partial_permissions(self, user_id, perm, remove=False,
-                                    partial_perms=None):
+    def _update_partial_permissions(
+        self,
+        user_id: int,
+        perm: str,
+        remove: bool = False,
+        partial_perms: Optional[dict] = None,
+    ):
         """
-        Updates partial permissions relation table according to `perm`.
+        Update partial permissions relation table according to `perm`.
 
-        If `perm` == `PERM_PARTIAL_SUBMISSIONS`, then
-        If `partial_perms` is not `None`, it should be a dict with filters mapped to
-        their corresponding permission.
+        When `perm` equals `PERM_PARTIAL_SUBMISSIONS`, it adds all implied
+        permissions too. Otherwise, it is a contradictory permission, it remove
+        any partial submissions.
+
+        When assigning new (partial) permissions, `partial_perms` should be a
+        dict with filters mapped to their corresponding permission.
         Each filter is used to narrow down results when querying Mongo.
         e.g.:
         ```
@@ -1344,10 +1353,6 @@ class Asset(ObjectPermissionMixin,
             }
         ```
 
-        Even if we can only restrict an user to view another's submissions so far,
-        this code wants to be future-proof and supports other permissions such as:
-            - `change_submissions`
-            - `validate_submissions`
         `partial_perms` could be passed as:
         ```
             {
@@ -1358,18 +1363,12 @@ class Asset(ObjectPermissionMixin,
                             'anotheruser'
                         ]
                     }
-                }]
+                }],
                 'validate_submissions': [{
                     '_submitted_by': 'someuser'
                 }],
             }
         ```
-
-        :param user_id: int.
-        :param perm: str. see Asset.ASSIGNABLE_PERMISSIONS
-        :param remove: boolean. Default is false.
-        :param partial_perms: dict. Default is None.
-        :return:
         """
 
         def clean_up_table():
@@ -1393,18 +1392,122 @@ class Asset(ObjectPermissionMixin,
                     _("Can not assign '{}' permission. "
                       "Partial permissions are missing.".format(perm)))
 
-            new_partial_perms = {}
+            new_partial_perms = defaultdict(list)
+            in_op = MongoHelper.IN_OPERATOR
+
             for partial_perm, filters in partial_perms.items():
-                implied_perms = [implied_perm
-                                 for implied_perm in
-                                 self.get_implied_perms(partial_perm)
-                                 if implied_perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
-                                 ]
-                implied_perms.append(partial_perm)
+
+                if partial_perm not in new_partial_perms:
+                    new_partial_perms[partial_perm] = filters
+
+                implied_perms = [
+                    implied_perm
+                    for implied_perm in self.get_implied_perms(partial_perm)
+                    if implied_perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
+                ]
+
                 for implied_perm in implied_perms:
-                    if implied_perm not in new_partial_perms:
-                        new_partial_perms[implied_perm] = []
-                    new_partial_perms[implied_perm] += filters
+
+                    if (
+                        implied_perm not in new_partial_perms
+                        and implied_perm in partial_perms
+                    ):
+                        new_partial_perms[implied_perm] = partial_perms[implied_perm]  # noqa
+
+                    new_partial_perm = new_partial_perms[implied_perm]
+                    # Trivial case, i.e.: permissions are built with front end.
+                    # All permissions have only one filter and the same filter
+                    # Example:
+                    # ```
+                    # partial_perms = {
+                    #   'view_submissions' : [
+                    #       {'_submitted_by': {'$in': ['johndoe']}
+                    #   ],
+                    #   'delete_submissions':  [
+                    #       {'_submitted_by': {'$in': ['quidam']}
+                    #   ]
+                    # }
+                    # ```
+                    # should give
+                    # ```
+                    # new_partial_perms = {
+                    #   'view_submissions' : [
+                    #       {'_submitted_by': {'$in': ['johndoe', 'quidam']}
+                    #   ],
+                    #   'delete_submissions':  [
+                    #       {'_submitted_by': {'$in': ['quidam']}
+                    #   ]
+                    # }
+                    if (
+                        len(filters) == 1
+                        and len(new_partial_perm) == 1
+                        and isinstance(new_partial_perm, list)
+                    ):
+                        current_filters = new_partial_perms[implied_perm][0]
+                        filter_ = filters[0]
+                        # Front end only supports `_submitted_by`, but if users
+                        # use the API, it could be something else.
+                        filter_key = list(filter_)[0]
+                        try:
+                            new_value = filter_[filter_key][in_op]
+                            current_values = current_filters[filter_key][in_op]
+                        except (KeyError, TypeError):
+                            pass
+                        else:
+                            new_partial_perm[0][filter_key][in_op] = list(
+                                set(current_values + new_value)
+                            )
+                            continue
+
+                    # As said earlier, front end only supports `'_submitted_by'`
+                    # filter, but many different and more complex filters could
+                    # be used.
+                    # If we reach these lines, it means conditions cannot be
+                    # merged, so we concatenate then with an `OR` operator.
+                    # Example:
+                    # ```
+                    # partial_perms = {
+                    #   'view_submissions' : [{'_submitted_by': 'johndoe'}],
+                    #   'delete_submissions':  [
+                    #       {'_submission_date': {'$lte': '2021-01-01'},
+                    #       {'_submission_date': {'$gte': '2020-01-01'}
+                    #   ]
+                    # }
+                    # ```
+                    # should give
+                    # ```
+                    # new_partial_perms = {
+                    #   'view_submissions' : [
+                    #           [{'_submitted_by': 'johndoe'}],
+                    #           [
+                    #               {'_submission_date': {'$lte': '2021-01-01'},
+                    #               {'_submission_date': {'$gte': '2020-01-01'}
+                    #           ]
+                    #   },
+                    #   'delete_submissions':  [
+                    #       {'_submission_date': {'$lte': '2021-01-01'},
+                    #       {'_submission_date': {'$gte': '2020-01-01'}
+                    #   ]
+                    # }
+
+                    # To avoid more complexity (and different syntax than
+                    # trivial case), we delegate to MongoHelper the task to join
+                    # lists with the `$or` operator.
+                    try:
+                        new_partial_perm = new_partial_perms[implied_perm][0]
+                    except IndexError:
+                        # If we get an IndexError, implied permission does not
+                        # belong to current assignment. Let's copy the filters
+                        #
+                        new_partial_perms[implied_perm] = filters
+                    else:
+                        if not isinstance(new_partial_perm, list):
+                            new_partial_perms[implied_perm] = [
+                                filters,
+                                new_partial_perms[implied_perm]
+                            ]
+                        else:
+                            new_partial_perms[implied_perm].append(filters)
 
             AssetUserPartialPermission.objects.update_or_create(
                 asset_id=self.pk,
