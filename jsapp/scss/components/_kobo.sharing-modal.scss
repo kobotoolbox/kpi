@@ -42,8 +42,13 @@ $s-gray-row-spacing: 10px;
     min-height: 20px;
     margin-bottom: 10px;
 
+    &:active {
+      transform: translateY(1px);
+    }
+
     .k-icon {
-      font-size: 20px;
+      font-size: 14px;
+      margin: 0 3px;
       vertical-align: middle;
 
       &::before {

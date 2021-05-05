@@ -75,7 +75,8 @@ $assets-table-hover-bg: $kobo-teal-light;
     min-height: 32px;
 
     .k-icon {
-      font-size: 32px;
+      font-size: 24px;
+      margin: 0 3px;
       float: right;
     }
   }
@@ -131,7 +132,8 @@ $assets-table-hover-bg: $kobo-teal-light;
   }
 
   .k-icon {
-    font-size: 20px;
+    font-size: 14px;
+    margin: 0 3px;
     display: inline-block;
     vertical-align: middle;
   }
@@ -162,10 +164,10 @@ $z-assets-table-row-header: 30;
     }
 
     .assets-table-row__column--icon-status {
-      padding: 13px 0 0 0;
+      padding: 16px 0 0 0;
 
       .k-icon {
-        font-size: 32px;
+        font-size: 24px;
       }
     }
   }
@@ -189,10 +191,10 @@ $z-assets-table-row-header: 30;
         background-color: $kobo-teal;
         position: absolute;
         z-index: 0;
-        top: 0;
-        left: -5px;
-        right: -5px;
-        height: 100%;
+        top: -3px;
+        left: -8px;
+        right: -8px;
+        height: calc(100% + 6px);
         border-radius: 6px;
       }
     }
@@ -227,14 +229,15 @@ $z-assets-table-row-header: 30;
     }
 
     .k-icon {
-      font-size: 20px;
+      font-size: 14px;
       // to take up space when empty
-      min-width: 20px;
-      width: 20px;
+      min-width: 14px;
+      width: 14px;
+      margin-left: 3px;
       display: inline-block;
 
       &.k-icon-filter-arrows {
-        font-size: 12px;
+        font-size: 9px;
         margin-left: 0px !important;
       }
     }
@@ -251,7 +254,7 @@ $z-assets-table-row-header: 30;
         }
 
         .k-icon {
-          margin: -5px;
+          margin: -2px;
         }
       }
 
@@ -264,7 +267,7 @@ $z-assets-table-row-header: 30;
         left: -10px;
 
         .k-icon {
-          margin: -2px;
+          margin: 1px;
         }
       }
     }
