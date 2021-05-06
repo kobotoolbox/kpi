@@ -693,6 +693,19 @@
   }
 }
 
+.form-view__cell--collect-header {
+  .collect-link-missing {
+    color: $kobo-orange-dark;
+    display: block;
+    line-height: 24px;
+
+    .k-icon {
+      vertical-align: top;
+      font-size: 24px;
+    }
+  }
+}
+
 .form-view__cell--collect-meta {
   pre {
     display: block;
