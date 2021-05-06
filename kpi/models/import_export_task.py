@@ -342,6 +342,8 @@ class ImportTask(ImportExportTask):
                     asset_type = 'question'
                 else:
                     asset_type = 'survey'
+
+                if asset_type in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
                     _append_kobo_locking_profiles(
                         base64_encoded_upload, survey_dict
                     )
