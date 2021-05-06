@@ -421,15 +421,15 @@ mixins.droppable = {
     });
   },
 
-  dropFiles (files, rejectedFiles, evt, pms = {}) {
+  dropFiles(files, rejectedFiles, evt, pms = {}) {
     files.map((file) => {
       var reader = new FileReader();
       reader.onload = (e) => {
         let params = assign({
-          base64Encoded: e.target.result,
           name: file.name,
+          base64Encoded: e.target.result,
           lastModified: file.lastModified,
-          totalFiles: files.length
+          totalFiles: files.length,
         }, pms);
 
         this._forEachDroppedFile(params);
@@ -447,7 +447,7 @@ mixins.droppable = {
         break;
       }
     }
-  }
+  },
 };
 
 mixins.clickAssets = {

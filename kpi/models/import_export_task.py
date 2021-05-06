@@ -222,6 +222,7 @@ class ImportTask(ImportExportTask):
                 filename=filename,
                 messages=messages,
                 library=self.data.get('library', False),
+                desired_type=self.data.get('desired_type', None),
                 destination=dest_item,
                 has_necessary_perm=has_necessary_perm,
             )
@@ -293,6 +294,7 @@ class ImportTask(ImportExportTask):
 
     def _parse_b64_upload(self, base64_encoded_upload, messages, **kwargs):
         filename = kwargs.get('filename', False)
+        desired_type = kwargs.get('desired_type')
         # don't try to splitext() on None, False, etc.
         if filename:
             filename = splitext(filename)[0]
@@ -330,13 +332,18 @@ class ImportTask(ImportExportTask):
                 'owner__username': self.user.username,
             })
         elif 'survey' in survey_dict_keys:
+
             if not destination:
-                if library and len(survey_dict.get('survey')) > 1:
+                if desired_type:
+                    asset_type = desired_type
+                elif library and len(survey_dict.get('survey')) > 1:
                     asset_type = 'block'
                 elif library:
                     asset_type = 'question'
                 else:
                     asset_type = 'survey'
+
+                if asset_type in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
                     _append_kobo_locking_profiles(
                         base64_encoded_upload, survey_dict
                     )
