@@ -325,6 +325,46 @@ export const ROUTES = Object.freeze({
   FORM_RESET: '/forms/:uid/reset',
 });
 
+export const COLLECTION_METHODS = Object.freeze({
+  offline_url: {
+    id: 'offline_url',
+    label: t('Online-Offline (multiple submission)'),
+    desc: t('This allows online and offline submissions and is the best option for collecting data in the field. '),
+  },
+  url: {
+    id: 'url',
+    label: t('Online-Only (multiple submissions)'),
+    desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records.'),
+  },
+  single_url: {
+    id: 'single_url',
+    label: t('Online-Only (single submission)'),
+    desc: t('This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.'),
+  },
+  single_once_url: {
+    id: 'single_once_url',
+    label: t('Online-only (once per respondent)'),
+    desc: t('This allows your web form to only be submitted once per user, using basic protection to prevent the same user (on the same browser & device) from submitting more than once.'),
+  },
+  iframe_url: {
+    id: 'iframe_url',
+    label: t('Embeddable web form code'),
+    desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins. '),
+  },
+  preview_url: {
+    id: 'preview_url',
+    label: t('View only'),
+    desc: t('Use this version for testing, getting feedback. Does not allow submitting data. '),
+  },
+  android: {
+    id: 'android',
+    label: t('Android application'),
+    desc: t('Use this option to collect data in the field with your Android device.'),
+    url: 'https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en',
+  },
+});
+
+// NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
