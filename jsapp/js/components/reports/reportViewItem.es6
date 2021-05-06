@@ -3,138 +3,42 @@ import autoBind from 'react-autobind';
 import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
-import {bem} from '../bem';
-import {REPORT_STYLES} from 'js/constants';
+import {bem} from 'js/bem';
+import {
+  REPORT_STYLES,
+  REPORT_COLOR_SETS,
+} from './reportsConstants';
+import ReportTable from './reportTable';
 
-class ReportTable extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  formatNumber(x) {
-    if (isNaN(x))
-      return x;
-    return x.toFixed(2);
-  }
-  render () {
-    let th = [''], rows = [];
-    if (this.props.type === 'numerical') {
-      th = [t('Mean'), t('Median'), t('Mode'), t('Standard deviation')];
-      if (this.props.rows)
-        th.unshift('');
-      if (this.props.values)
-        var v = this.props.values
-      return (
-        <table>
-          <thead>
-            <tr>
-              {th.map((t,i)=>{
-                return (<th key={i}>{t}</th>);
-              })}
-            </tr>
-          </thead>
-          {this.props.values &&
-            <tbody>
-              <tr>
-                <td>{this.formatNumber(v.mean) || t('N/A')}</td>
-                <td>{this.formatNumber(v.median) || t('N/A')}</td>
-                <td>{this.formatNumber(v.mode) || t('N/A')}</td>
-                <td>{this.formatNumber(v.stdev) || t('N/A')}</td>
-              </tr>
-            </tbody>
-          }
-          {this.props.rows &&
-            <tbody>
-              {this.props.rows.map((r)=>{
-                return (
-                    <tr key={r[0]}>
-                      <td>{r[0]}</td>
-                      <td>{this.formatNumber(r[1].mean) || t('N/A')}</td>
-                      <td>{this.formatNumber(r[1].median) || t('N/A')}</td>
-                      <td>{this.formatNumber(r[1].mode) || t('N/A')}</td>
-                      <td>{this.formatNumber(r[1].stdev) || t('N/A')}</td>
-                    </tr>
-                  );
-              })}
-            </tbody>
-          }
-        </table>
-      );
-    }
-    if (this.props.type === 'regular') {
-      th = [t('Value'), t('Frequency'), t('Percentage')];
-      rows = this.props.rows;
-    } else {
-      // prepare table data for disaggregated rows
-      if (this.props.rows.length > 0) {
-        let rowsB = this.props.rows;
-        if (this.props.responseLabels) {
-          th = th.concat(this.props.responseLabels);
-        } else {
-          if (rowsB[0] && rowsB[0][1] && rowsB[0][1].responses)
-            th = th.concat(rowsB[0][1].responses);
-        }
-        rowsB.map((row, i)=> {
-          var rowitem = row[2] ? [row[2]] : [row[0]];
-          rowitem = rowitem.concat(row[1].percentages);
-          rows.push(rowitem);
-        });
-      }
-    }
-
-    if (rows.length === 0) {
-      return false;
-    }
-
-    return (
-        <table>
-          <thead>
-            <tr>
-              {th.map((t,i)=>{
-                return (<th key={i}>{t}</th>);
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row)=>{
-              return (
-                  <tr key={row[0]}>
-                    {row.map((r,i)=>{
-                      return (<td key={i}>{r}</td>);
-                    })}
-                  </tr>
-                );
-            })}
-          </tbody>
-        </table>
-      )
-  }
-};
-
-class ReportViewItem extends React.Component {
+export default class ReportViewItem extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      reportTable: false
+      reportTable: false,
     };
     this.itemChart = false;
     autoBind(this);
   }
-  componentDidMount () {
+
+  componentDidMount() {
     this.prepareTable(this.props.data);
     if (this.props.data.show_graph) {
       this.loadChart();
     }
   }
+
   componentWillReceiveProps(nextProps) {
     this.prepareTable(nextProps.data);
   }
-  componentDidUpdate (prevProps) {
+
+  componentDidUpdate() {
     // refreshes a chart right after render()
     // TODO: ideally this shouldn't refresh a chart if it hasn't changed
     if (this.props.data.show_graph) {
       this.loadChart();
     }
   }
+
   loadChart() {
     var canvas = ReactDOM.findDOMNode(this.refs.canvas);
     var opts = this.buildChartOptions();
@@ -146,6 +50,7 @@ class ReportViewItem extends React.Component {
       this.itemChart = new Chart(canvas, opts);
     }
   }
+
   prepareTable(d) {
     var reportTable = [];
     if (d.percentages && d.responses && d.frequencies) {
@@ -156,15 +61,18 @@ class ReportViewItem extends React.Component {
         );
     }
 
-    if (d.mean)
+    if (d.mean) {
       reportTable = false;
+    }
 
     this.setState({reportTable: reportTable});
   }
+
   truncateLabel(label, length = 25) {
     return label.length > length ? label.substring(0,length - 3) + '...' : label;
   }
-  buildChartOptions () {
+
+  buildChartOptions() {
     var data = this.props.data;
     var chartType = this.props.style.report_type || 'bar';
     let _this = this;
@@ -191,19 +99,19 @@ class ReportViewItem extends React.Component {
     }
 
     if (chartType === REPORT_STYLES.donut.value) {
-      chartType = 'pie';
+      chartType = REPORT_STYLES.donut.chartJsType;
     }
 
     if (chartType === REPORT_STYLES.area.value) {
-      chartType = 'line';
+      chartType = REPORT_STYLES.area.chartJsType;
     }
 
     if (chartType === REPORT_STYLES.horizontal.value) {
-      chartType = 'horizontalBar';
+      chartType = REPORT_STYLES.horizontal.chartJsType;
     }
 
     if (chartType === REPORT_STYLES.vertical.value || chartType === 'bar_chart') {
-      chartType = 'bar';
+      chartType = REPORT_STYLES.vertical.chartJsType;
     }
 
     var datasets = [];
@@ -259,22 +167,22 @@ class ReportViewItem extends React.Component {
       type: chartType,
       data: {
           labels: data.responseLabels || data.responses,
-          datasets: datasets
+          datasets: datasets,
       },
       options: {
         // events: [''],
         legend: {
-          display: showLegend
+          display: showLegend,
         },
         animation: {
-          duration: 500
+          duration: 500,
         },
         scales: {
           xAxes: [{
             ticks: {
-              autoSkip:false,
+              autoSkip: false,
               beginAtZero: true,
-              max: maxPercentage
+              max: maxPercentage,
             },
             barPercentage: barPercentage,
             // gridLines: {
@@ -283,17 +191,17 @@ class ReportViewItem extends React.Component {
           }],
           yAxes: [{
             ticks: {
-              autoSkip:false,
+              autoSkip: false,
               beginAtZero: true,
-              max: maxPercentage
+              max: maxPercentage,
             },
             barPercentage: barPercentage,
             // gridLines: {
             //   display: chartType == 'horizontalBar' ? false : true
             // }
-          }]
+          }],
         },
-      }
+      },
     };
 
     if (chartType === 'pie') {
@@ -313,17 +221,9 @@ class ReportViewItem extends React.Component {
 
     return opts;
   }
-  buildChartColors () {
-    var colors = this.props.style.report_colors || [
-      'rgba(52, 106, 200, 0.8)',
-      'rgba(252, 74, 124, 0.8)',
-      'rgba(250, 213, 99, 0.8)',
-      'rgba(113, 230, 33, 0.8)',
-      'rgba(78, 203, 255, 0.8)',
-      'rgba(253, 190, 76, 0.8)',
-      'rgba(77, 124, 244, 0.8)',
-      'rgba(33, 231, 184, 0.8)'
-    ];
+
+  buildChartColors() {
+    var colors = this.props.style.report_colors || REPORT_COLOR_SETS[0].colors;
 
     var c1 = colors.slice(0).map((c,i)=>{
       c = c.replace('1)', '0.75)');
@@ -339,7 +239,8 @@ class ReportViewItem extends React.Component {
 
     return colors;
   }
-  render () {
+
+  render() {
     let p = this.props,
       d = p.data,
       r = p.row,
@@ -380,10 +281,13 @@ class ReportViewItem extends React.Component {
             </span>
           </bem.ReportView__headingMeta>
           {d.show_graph &&
-            <bem.Button m='icon' className='report-button__question-settings'
-                  onClick={this.props.triggerQuestionSettings}
-                  data-question={name}
-                  data-tip={t('Override Graph Style')}>
+            <bem.Button
+              m='icon'
+              className='report-button__question-settings'
+              onClick={this.props.triggerQuestionSettings}
+              data-question={name}
+              data-tip={t('Override Graph Style')}
+            >
               <i className='k-icon-more' data-question={name} />
             </bem.Button>
           }
@@ -409,8 +313,6 @@ class ReportViewItem extends React.Component {
           }
         </bem.ReportView__itemContent>
       </div>
-      );
+    );
   }
-};
-
-export default ReportViewItem;
+}

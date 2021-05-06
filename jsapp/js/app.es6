@@ -35,7 +35,7 @@ import {
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
-import Reports from './components/reports';
+import Reports from './components/reports/reports';
 import FormLanding from './components/formLanding';
 import FormSummary from './components/formSummary';
 import FormSubScreens from './components/formSubScreens';
