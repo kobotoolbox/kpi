@@ -24,13 +24,16 @@ from rest_framework import exceptions
 from werkzeug.http import parse_options_header
 
 import formpack.constants
+from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import ValidationStatusCopyField
 from formpack.utils.string import ellipsize
+from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
+    ASSET_TYPE_TEMPLATE,
     PERM_CHANGE_ASSET,
     PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -339,6 +342,9 @@ class ImportTask(ImportExportTask):
                     asset_type = 'question'
                 else:
                     asset_type = 'survey'
+                    _append_kobo_locking_profiles(
+                        base64_encoded_upload, survey_dict
+                    )
                 asset = Asset.objects.create(
                     owner=self.user,
                     content=survey_dict,
@@ -351,7 +357,11 @@ class ImportTask(ImportExportTask):
                 if not asset.name:
                     asset.name = filename
                 if asset.asset_type == ASSET_TYPE_EMPTY:
-                    asset.asset_type = ASSET_TYPE_SURVEY 
+                    asset.asset_type = ASSET_TYPE_SURVEY
+                if asset.asset_type in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
+                    _append_kobo_locking_profiles(
+                        base64_encoded_upload, survey_dict
+                    )
                 asset.content = survey_dict
                 asset.save()
                 msg_key = 'updated'
@@ -743,8 +753,16 @@ def _b64_xls_to_dict(base64_encoded_upload):
     else:
         survey_dict = xls2json_backends.xls_to_dict(xls_with_renamed_sheet)
         survey_dict['library'] = survey_dict.pop('survey')
+
     return _strip_header_keys(survey_dict)
 
+def _append_kobo_locking_profiles(
+    base64_encoded_upload: BytesIO, survey_dict: dict
+) -> None:
+    decoded_str = base64.b64decode(base64_encoded_upload)
+    kobo_locks = get_kobo_locking_profiles(BytesIO(decoded_str))
+    if kobo_locks:
+        survey_dict[KOBO_LOCK_SHEET] = kobo_locks
 
 def _strip_header_keys(survey_dict):
     survey_dict_copy = dict(survey_dict)
