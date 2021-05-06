@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 import {bem} from 'js/bem';
-import {QUESTION_TYPES} from 'js/constans';
+import {QUESTION_TYPES} from 'js/constants';
 import ReportViewItem from './reportViewItem';
 
 export default class ReportContents extends React.Component {
