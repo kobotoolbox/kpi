@@ -402,11 +402,18 @@ export class FormLanding extends React.Component {
     evt.preventDefault();
     // Listen for permission removal here to avoid manage_asset user removal
     // from triggering redirect
-    this.listenTo(
+    this.nonOwnerSelfRemovalListener = this.listenTo(
       actions.permissions.removeAssetPermission.completed,
-      this.goToProjectsList
+      this.nonOwnerSelfRemovalCompleted
     );
     this.removeSharing(evt);
+  }
+  nonOwnerSelfRemovalCompleted() {
+    // Remove listener after self removal
+    if (this.nonOwnerSelfRemovalListener) {
+      this.stopListeningTo(actions.permissions.removeAssetPermission.completed);
+    }
+    this.goToProjectsList();
   }
   renderButtons (userCanEdit) {
     var downloads = [];
