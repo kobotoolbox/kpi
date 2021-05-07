@@ -43,72 +43,98 @@ export default class ReportContents extends React.Component {
     var reportData = this.props.reportData;
 
     for (var i = reportData.length - 1; i > -1; i--) {
-      let _qn = reportData[i].name;
-      let _type = reportData[i].row.type || null;
-      var _defSpec = undefined;
+      const currentReport = reportData[i];
+      const reportRowName = currentReport.name;
+      const reportRowType = currentReport.row.type || null;
+      let _defSpec = null;
 
       if (customReport) {
-        if (customReport.specified && customReport.specified[_qn]) {
-          _defSpec = customReport.specified[_qn];
+        if (customReport.specified && customReport.specified[reportRowName]) {
+          _defSpec = customReport.specified[reportRowName];
         }
       } else {
-        _defSpec = defaultRS.specified[_qn];
+        _defSpec = defaultRS.specified[reportRowName];
       }
 
       if (_defSpec && Object.keys(_defSpec).length) {
-        reportData[i].style = _defSpec;
+        currentReport.style = _defSpec;
       } else if (customReport && customReport.reportStyle) {
-        reportData[i].style = customReport.reportStyle;
+        currentReport.style = customReport.reportStyle;
       } else {
-        reportData[i].style = defaultRS.default;
+        currentReport.style = defaultRS.default;
       }
 
       if (
-        (_type === QUESTION_TYPES.select_one.id || _type === QUESTION_TYPES.select_multiple.id) &&
+        (
+          reportRowType === QUESTION_TYPES.select_one.id ||
+          reportRowType === QUESTION_TYPES.select_multiple.id
+        ) &&
         asset.content.choices
       ) {
-        let question = asset.content.survey.find((z) => {return z.name === _qn || z.$autoname === _qn;});
-        let resps = reportData[i].data.responses;
+        const reportRow = asset.content.survey.find((row) => {
+          return row.name === reportRowName || row.$autoname === reportRowName;
+        });
+        let reportResponses = currentReport.data.responses;
         let choice;
-        if (resps) {
-          reportData[i].data.responseLabels = [];
-          for (var j = resps.length - 1; j >= 0; j--) {
-            choice = asset.content.choices.find((o) => {
+
+        if (reportResponses) {
+          // clear labels first
+          currentReport.data.responseLabels = [];
+          // loop responses backward
+          for (let j = reportResponses.length - 1; j >= 0; j--) {
+            const response = reportResponses[j];
+
+            // NOTE: responses we get from backend are actually labels in
+            // default language, so we can't be 100% sure which answer was
+            // chosen. We try to find it by the label.
+            choice = asset.content.choices.find((item) => {
               return (
-                question &&
-                o.list_name === question.select_from_list_name &&
-                (o.name === resps[j] || o.$autoname == resps[j])
+                reportRow &&
+                item.list_name === reportRow.select_from_list_name &&
+                (item.label === response || item.label[0] === response)
               );
             });
+
+            // if choice was found and has a label in desired language we
+            // display it - otherwise we display the raw response (which is
+            // aleady a label, not name value)
             if (choice && choice.label && choice.label[tnslIndex]) {
-              reportData[i].data.responseLabels.unshift(choice.label[tnslIndex]);
+              currentReport.data.responseLabels.unshift(choice.label[tnslIndex]);
             } else {
-              reportData[i].data.responseLabels.unshift(resps[j]);
+              currentReport.data.responseLabels.unshift(response);
             }
           }
         } else {
-          const vals = reportData[i].data.values;
+          const vals = currentReport.data.values;
           if (vals && vals[0] && vals[0][1] && vals[0][1].responses) {
             var respValues = vals[0][1].responses;
-            reportData[i].data.responseLabels = [];
-            let qGB = asset.content.survey.find((z) => {return z.name === groupBy || z.$autoname === groupBy});
-            respValues.forEach(function(r, ind){
-              choice = asset.content.choices.find((o) => {
+            currentReport.data.responseLabels = [];
+            let qGB = asset.content.survey.find((z) => {
+              return z.name === groupBy || z.$autoname === groupBy;
+            });
+
+            respValues.forEach((response, ind) => {
+              choice = asset.content.choices.find((item) => {
                 return (
                   qGB &&
-                  o.list_name === qGB.select_from_list_name &&
-                  (o.name === r || o.$autoname === r)
+                  item.list_name === qGB.select_from_list_name &&
+                  (item.name === response || item.$autoname === response)
                 );
               });
-              reportData[i].data.responseLabels[ind] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : r;
+
+              if (choice && choice.label && choice.label[tnslIndex]) {
+                currentReport.data.responseLabels[ind] = choice.label[tnslIndex];
+              } else {
+                currentReport.data.responseLabels[ind] = response;
+              }
             });
 
             // TODO: use a better way to store translated labels per row
             for (var vD = vals.length - 1; vD >= 0; vD--) {
               choice = asset.content.choices.find((o) => {
                 return (
-                  question &&
-                  o.list_name === question.select_from_list_name &&
+                  reportRow &&
+                  o.list_name === reportRow.select_from_list_name &&
                   (o.name === vals[vD][0] || o.$autoname === vals[vD][0])
                 );
               });
