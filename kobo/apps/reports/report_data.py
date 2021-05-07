@@ -52,6 +52,7 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         raise Exception('Cannot build formpack without any schemas')
 
     # FormPack() expects the versions to be ordered from oldest to newest
+    print("****** schemas", str(schemas), flush=True)
     pack = FormPack(versions=reversed(schemas), title=asset.name, id_string=asset.uid)
 
     # Find the AssetVersion UID for each deprecated reversion ID

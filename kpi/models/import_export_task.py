@@ -24,7 +24,7 @@ from rest_framework import exceptions
 from werkzeug.http import parse_options_header
 
 import formpack.constants
-from formpack.schema.fields import ValidationStatusCopyField
+from formpack.schema.fields import ValidationStatusCopyField, SubmissionTimeCopyField, IdCopyField
 from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
@@ -414,9 +414,9 @@ class ExportTask(ImportExportTask):
     result = PrivateFileField(upload_to=export_upload_to, max_length=380)
 
     COPY_FIELDS = (
-        '_id',
+        IdCopyField,
         '_uuid',
-        '_submission_time',
+        SubmissionTimeCopyField,
         ValidationStatusCopyField,
         '_notes',
         # '_status' is always 'submitted_via_web' unless the submission was
