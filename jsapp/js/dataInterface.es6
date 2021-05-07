@@ -544,7 +544,9 @@ export var dataInterface;
         url: `${ROOT_URL}/tags/`,
         method: 'GET',
         data: assign({
-          limit: 9999,
+          // If this number is too big (e.g. 9999) it causes a deadly timeout
+          // whenever Form Builder displays the aside Library search
+          limit: 100,
         }, data),
       });
     },
