@@ -55,7 +55,7 @@ CLONE_COMPATIBLE_TYPES = {
 
 ASSET_TYPE_ARG_NAME = "asset_type"
 
-SHADOW_MODEL_APP_LABEL = "shadow_model"
+SHADOW_MODEL_APP_LABEL = "user_statistics"
 
 # List of nested attributes which bypass 'dots' encoding
 NESTED_MONGO_RESERVED_ATTRIBUTES = [
