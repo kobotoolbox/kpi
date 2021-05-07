@@ -238,7 +238,8 @@ class KobocatUser(ShadowModel):
         # necessary if the user's password has changed, but we do it always
         KobocatDigestPartial.sync(kc_auth_user)
 
-        # Blablabal - Change this comment
+        # Add the user to the table to prevent the errors in the admin page
+        # and to ensure the user has a counter started for reporting
         KobocatSubmissionCounter.sync(kc_auth_user)
 
 
@@ -408,6 +409,24 @@ class KobocatUserProfile(ShadowModel):
     metadata = JSONBField(default=dict, blank=True)
 
 
+class KobocatSubmissionCounter(ShadowModel):
+    user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
+    count = models.IntegerField(default=0)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'logger_submissioncounter'
+        verbose_name = 'User Statistics Counter'
+
+    @classmethod
+    def sync(cls, user):
+        """
+        Creates rows when the user is created so that the Admin UI doesn't freak out
+        because it's looking for a row that doesn't exist
+        """
+        cls.objects.create(user_id=user.pk)
+
+
 class KobocatToken(ShadowModel):
 
     key = models.CharField(_("Key"), max_length=40, primary_key=True)
@@ -468,20 +487,3 @@ def safe_kc_read(func):
                                    'tables: {}'.format(e.message))
     return _wrapper
 
-
-class KobocatSubmissionCounter(ShadowModel):
-    user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
-    count = models.IntegerField(default=0)
-    timestamp = models.DateTimeField(default=timezone.now)
-
-    class Meta(ShadowModel.Meta):
-        db_table = 'logger_submissioncounter'
-        verbose_name = 'User Statistics Counter'
-
-    @classmethod
-    def sync(cls, user):
-        """
-        Creates rows when the user is created so that the Admin UI doesn't freak out
-        because it's looking for a row that doesn't exist
-        """
-        cls.objects.create(user_id=user.pk)
