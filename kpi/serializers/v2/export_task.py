@@ -1,4 +1,6 @@
 # coding: utf-8
+from typing import Optional
+
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.request import Request
@@ -10,6 +12,7 @@ from formpack.constants import (
     EXPORT_SETTING_GROUP_SEP,
     EXPORT_SETTING_HIERARCHY_IN_LABELS,
     EXPORT_SETTING_LANG,
+    EXPORT_SETTING_NAME,
     EXPORT_SETTING_MULTIPLE_SELECT,
     EXPORT_SETTING_SOURCE,
     EXPORT_SETTING_TYPE,
@@ -75,6 +78,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             data_
         )
         attrs[EXPORT_SETTING_SOURCE] = self.validate_source()
+        attrs[EXPORT_SETTING_NAME] = self.validate_name(data_)
         attrs[EXPORT_SETTING_TYPE] = self.validate_type(data_)
 
         if EXPORT_SETTING_FIELDS in data_:
@@ -181,6 +185,19 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             kwargs={'uid': self._get_asset.uid},
             request=self._get_request,
         )
+
+    def validate_name(self, data: dict) -> Optional[str]:
+        name = data.get(EXPORT_SETTING_NAME)
+
+        # Allow name to be empty
+        if name is None:
+            return
+
+        if not isinstance(name, str):
+            raise serializers.ValidationError(
+                {EXPORT_SETTING_NAME: _('The export name must be a string.')}
+            )
+        return name
 
     def validate_type(self, data: dict) -> str:
         export_type = data[EXPORT_SETTING_TYPE]
