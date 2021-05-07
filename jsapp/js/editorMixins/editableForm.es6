@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import autoBind from 'react-autobind';
+import cloneDeep from 'lodash.clonedeep';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
@@ -57,7 +57,13 @@ export default assign({
 
     if (!this.state.isNewAsset) {
       let uid = this.props.params.assetid || this.props.params.uid;
-      stores.allAssets.whenLoaded(uid, (asset) => {
+      stores.allAssets.whenLoaded(uid, (originalAsset) => {
+        // Store asset object is mutable and there is no way to predict all the
+        // bugs that come from this fact. Form Builder code is already changing
+        // the content of the object, so we want to cut all the bugs at the
+        // very start of the process.
+        const asset = cloneDeep(originalAsset);
+
         this.setState({asset: asset});
 
         // HACK switch to setState callback after updating to React 16+
