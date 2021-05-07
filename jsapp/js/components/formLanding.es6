@@ -406,7 +406,7 @@ export class FormLanding extends React.Component {
       actions.permissions.removeAssetPermission.completed,
       this.nonOwnerSelfRemovalCompleted
     );
-    this.removeSharing(evt);
+    this.removeSharing();
   }
   nonOwnerSelfRemovalCompleted() {
     // Remove listener after self removal
