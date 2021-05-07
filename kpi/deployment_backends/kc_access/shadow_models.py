@@ -323,7 +323,7 @@ class KobocatUserObjectPermission(ShadowModel):
     UserObjectPermissionManager, is NOT included!
     """
     permission = models.ForeignKey(KobocatPermission, on_delete=models.CASCADE)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
     object_pk = models.CharField(_('object ID'), max_length=255)
     content_object = KobocatGenericForeignKey(fk_field='object_pk')
     # It's okay not to use `KobocatUser` as long as PKs are synchronized
