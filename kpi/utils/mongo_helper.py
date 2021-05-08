@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
+from kobo.settings.base import CELERY_TASK_TIME_LIMIT
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
 
@@ -292,15 +293,9 @@ class MongoHelper:
             # Retrieve all fields except `cls.USERFORM_ID`
             fields_to_select = {cls.USERFORM_ID: 0}
 
-        # fields_to_select['$maxTimeMS'] = 60000 =>     pymongo.errors.OperationFailure: Projection cannot have a mix of inclusion and exclusion.
-        # cannot append the maxTimeMS to the fields_to_select
-
-
-        # maxTimeMS needs to be a part of the fields_to_select dict
-        # The query works when it is formatted like the example below
-        #         cursor = settings.MONGO_DB.instances.find({}, {'$maxTimeMs': 1})
-        cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
-        # max_time_ms doesn't work in the fields to select because of the errors that it gives
+        cursor = settings.MONGO_DB.instances.find(
+            query, projection=fields_to_select, max_time_ms=CELERY_TASK_TIME_LIMIT*1000
+        )
         return cursor, cursor.count()
 
     @classmethod
