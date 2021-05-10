@@ -216,7 +216,7 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertTrue('parent' in response.data)
         self.assertTrue(isinstance(response.data['parent'][0], ErrorDetail))
 
-    def test_create_by_child_manager(self):
+    def test_create_by_child_editor(self):
         self.toggle_parent_sharing(enabled=True)
         self.parent_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
 
@@ -230,15 +230,15 @@ class PairedDataListApiTests(BasePairedDataTestCase):
                                     login_password='quidam')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-        # Allow quidam to edit anotheruser's form and try again.
+        # Allow quidam to view anotheruser's form and try again.
         # It should still fail (access should be forbidden)
-        self.child_asset.assign_perm(self.quidam, PERM_CHANGE_ASSET)
+        self.child_asset.assign_perm(self.quidam, PERM_VIEW_ASSET)
         response = self.paired_data(login_username='quidam',
                                     login_password='quidam')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Let's give 'manage_asset' to user quidam.
-        self.child_asset.assign_perm(self.quidam, PERM_MANAGE_ASSET)
+        # Let's give 'change_asset' to user quidam.
+        self.child_asset.assign_perm(self.quidam, PERM_CHANGE_ASSET)
         response = self.paired_data(login_username='quidam',
                                     login_password='quidam')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
