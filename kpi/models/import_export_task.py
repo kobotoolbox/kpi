@@ -24,7 +24,7 @@ from rest_framework import exceptions
 from werkzeug.http import parse_options_header
 
 import formpack.constants
-from formpack.schema.fields import ValidationStatusCopyField, SubmissionTimeCopyField, IdCopyField
+from formpack.schema.fields import ValidationStatusCopyField, SubmissionTimeCopyField, IdCopyField, NotesCopyField, TagsCopyField
 from formpack.utils.string import ellipsize
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
@@ -418,13 +418,13 @@ class ExportTask(ImportExportTask):
         '_uuid',
         SubmissionTimeCopyField,
         ValidationStatusCopyField,
-        '_notes',
+        NotesCopyField,
         # '_status' is always 'submitted_via_web' unless the submission was
         # made via KoBoCAT's bulk-submission-form; in that case, it's 'zip':
         # https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/logger/import_tools.py#L67
         '_status',
         '_submitted_by',
-        '_tags',
+        TagsCopyField,
     )
 
     # It's not very nice to ask our API users to submit `null` or `false`,
