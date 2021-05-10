@@ -18,8 +18,23 @@ class MongoHelper:
     and KoBoCAT's ParseInstance class to query mongo.
     """
 
-    KEY_WHITELIST = ['$or', '$and', '$exists', '$in', '$gt', '$gte',
-                     '$lt', '$lte', '$regex', '$options', '$all']
+    OR_OPERATOR = '$or'
+    AND_OPERATOR = '$and'
+    IN_OPERATOR = '$in'
+
+    KEY_WHITELIST = [
+        OR_OPERATOR,
+        AND_OPERATOR,
+        IN_OPERATOR,
+        '$exists',
+        '$gt',
+        '$gte',
+        '$lt',
+        '$lte',
+        '$regex',
+        '$options',
+        '$all',
+    ]
 
     ENCODING_SUBSTITUTIONS = [
         (re.compile(r'^\$'), base64_encodestring('$').strip()),
@@ -246,8 +261,10 @@ class MongoHelper:
         :param key:
         :return:
         """
-        return key not in \
-               cls.KEY_WHITELIST and (key.startswith('$') or key.count('.') > 0)
+        return (
+            key not in cls.KEY_WHITELIST
+            and (key.startswith('$') or key.count('.') > 0)
+        )
 
     @classmethod
     def _get_cursor_and_count(cls, mongo_userform_id, hide_deleted=True,
@@ -256,26 +273,39 @@ class MongoHelper:
 
         if len(submission_ids) > 0:
             query.update({
-                '_id': {'$in': submission_ids}
+                '_id': {cls.IN_OPERATOR: submission_ids}
             })
 
         query.update({cls.USERFORM_ID: mongo_userform_id})
 
         # Narrow down query
         if permission_filters is not None:
-            permission_filters_query = {'$or': []}
-            for permission_filter in permission_filters:
-                permission_filters_query['$or'].append(permission_filter)
+            if len(permission_filters) == 1:
+                permission_filters_query = permission_filters[0]
+            else:
+                permission_filters_query = {cls.OR_OPERATOR: []}
+                for idx, permission_filter in enumerate(permission_filters):
+                    if isinstance(permission_filter, list):
+                        permission_filters_query[cls.OR_OPERATOR].append(
+                            {cls.OR_OPERATOR: permission_filter}
+                        )
+                    else:
+                        permission_filters_query[cls.OR_OPERATOR].append(
+                            permission_filter
+                        )
 
-            query = {'$and': [query, permission_filters_query]}
+            query = {cls.AND_OPERATOR: [query, permission_filters_query]}
 
-        if hide_deleted:
-            # display only active elements
-            deleted_at_query = {
-                '$or': [{'_deleted_at': {'$exists': False}},
-                        {'_deleted_at': None}]}
-            # join existing query with deleted_at_query on an $and
-            query = {'$and': [query, deleted_at_query]}
+        # if hide_deleted:
+        #     # display only active elements
+        #     deleted_at_query = {
+        #         cls.OR_OPERATOR: [
+        #             {'_deleted_at': {'$exists': False}},
+        #             {'_deleted_at': None}
+        #         ]
+        #     }
+        #     # join existing query with deleted_at_query on an $and
+        #     query = {cls.AND_OPERATOR: [query, deleted_at_query]}
 
         query = cls.to_safe_dict(query, reading=True)
 
