@@ -106,7 +106,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     * `uid` - is the unique identifier of a specific asset
     * `id` - is the unique identifier of a specific submission
 
-    **It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submissions` endpoint**
+    **It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
 
     Retrieves a specific submission
     <pre class="prettyprint">
@@ -144,7 +144,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     Update current submission
 
-    _It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submissions` endpoint. 
+    _It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.
     Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
 
     <pre class="prettyprint">
