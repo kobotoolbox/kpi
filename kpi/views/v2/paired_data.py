@@ -13,8 +13,8 @@ from kpi.constants import INSTANCE_FORMAT_TYPE_XML
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset, AssetFile, PairedData
 from kpi.permissions import (
-    AssetNestedObjectPermission,
-    PairedDataPermission,
+    AssetEditorPermission,
+    XMLExternalDataPermission,
 )
 from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.renderers import SubmissionXMLRenderer
@@ -172,12 +172,12 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         SubmissionXMLRenderer,
     )
     lookup_field = 'paired_data_uid'
-    permission_classes = (AssetNestedObjectPermission,)
+    permission_classes = (AssetEditorPermission,)
     serializer_class = PairedDataSerializer
 
     @action(detail=True,
             methods=['GET'],
-            permission_classes=[PairedDataPermission],
+            permission_classes=[XMLExternalDataPermission],
             renderer_classes=[SubmissionXMLRenderer],
             filter_backends=[],
             )

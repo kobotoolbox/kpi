@@ -266,39 +266,6 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     perms_map['HEAD'] = perms_map['GET']
 
 
-class PairedDataPermission(permissions.BasePermission):
-
-    def has_permission(self, request, view):
-        """
-        We cannot rely on Django permissions because the form clients
-        (i.e. Enketo, Collect) need to get access even if user is
-        not authenticated
-        """
-        return True
-
-    def has_object_permission(self, request, view, obj):
-        """
-        The responsibility for securing data behove to the owner of the
-        asset `obj` by requiring authentication on their form.
-        Otherwise, the paired parent data may be exposed to anyone
-        """
-        # Check whether `asset` owner's account requires authentication:
-        try:
-            require_auth = obj.asset.owner.extra_details.data['require_auth']
-        except KeyError:
-            require_auth = False
-
-        # If authentication is required, `request.user` should have
-        # 'add_submission' permission on `obj`
-        if (
-            require_auth
-            and not obj.asset.has_perm(request.user, PERM_ADD_SUBMISSIONS)
-        ):
-            raise Http404
-
-        return True
-
-
 class PostMappedToChangePermission(IsOwnerOrReadOnly):
     """
     Maps POST requests to the change_model permission instead of DRF's default
@@ -387,3 +354,36 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
         'PATCH': ['%(app_label)s.validate_%(model_name)s'],
         'DELETE': ['%(app_label)s.validate_%(model_name)s'],
     }
+
+
+class XMLExternalDataPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        """
+        We cannot rely on Django permissions because the form clients
+        (i.e. Enketo, Collect) need to get access even if user is
+        not authenticated
+        """
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        """
+        The responsibility for securing data behove to the owner of the
+        asset `obj` by requiring authentication on their form.
+        Otherwise, the paired parent data may be exposed to anyone
+        """
+        # Check whether `asset` owner's account requires authentication:
+        try:
+            require_auth = obj.asset.owner.extra_details.data['require_auth']
+        except KeyError:
+            require_auth = False
+
+        # If authentication is required, `request.user` should have
+        # 'add_submission' permission on `obj`
+        if (
+            require_auth
+            and not obj.asset.has_perm(request.user, PERM_ADD_SUBMISSIONS)
+        ):
+            raise Http404
+
+        return True
