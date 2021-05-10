@@ -169,7 +169,7 @@ export const QUESTION_TYPES = Object.freeze({
   date: {label: t('Date'), icon: 'qt-date', id: 'date'},
   datetime: {label: t('Date & time'), icon: 'qt-date-time', id: 'datetime'},
   decimal: {label: t('Decimal'), icon: 'qt-decimal', id: 'decimal'},
-  xml_external: {label: t('External XML'), icon: 'qt-external-xml', id: 'external-xml'},
+  'external-xml': {label: t('External XML'), icon: 'qt-external-xml', id: 'external-xml'},
   file: {label: t('File'), icon: 'qt-file', id: 'file'},
   geopoint: {label: t('Point'), icon: 'qt-point', id: 'geopoint'},
   geoshape: {label: t('Area'), icon: 'qt-area', id: 'geoshape'},
