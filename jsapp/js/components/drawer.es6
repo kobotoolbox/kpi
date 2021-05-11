@@ -54,10 +54,14 @@ class FormSidebar extends Reflux.Component {
       type: MODAL_TYPES.NEW_FORM
     });
   }
-  render () {
+  render() {
     return (
       <React.Fragment>
-        <bem.KoboButton onClick={this.newFormModal} m={['blue', 'fullwidth']}>
+        <bem.KoboButton
+          m={['blue', 'fullwidth']}
+          disabled={!stores.session.isLoggedIn}
+          onClick={this.newFormModal}
+        >
           {t('new')}
         </bem.KoboButton>
         <SidebarFormsList/>
