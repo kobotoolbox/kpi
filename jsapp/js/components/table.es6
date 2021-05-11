@@ -377,7 +377,7 @@ export class DataTable extends React.Component {
         </select>,
       Cell: row => (
         <Select
-          isDisabled={!this.userCan('validate_submissions', this.props.asset)}
+          isDisabled={!(this.userCan('validate_submissions', this.props.asset) || this.userCanPartially('validate_submissions', this.props.asset))}
           isClearable={false}
           value={this.getValidationStatusOption(row.original)}
           options={VALIDATION_STATUSES_LIST}

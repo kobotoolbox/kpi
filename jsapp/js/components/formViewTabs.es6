@@ -52,7 +52,7 @@ class FormViewTabs extends Reflux.Component {
 
     return (
       <bem.FormView__toptabs>
-        { a.deployment__identifier != undefined && a.has_deployment && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
+        { a.deployment__identifier != undefined && a.has_deployment && (this.userCan('view_submissions', a) || this.userCanPartially('view_submissions', a)) &&
           <Link
             to={ROUTES.FORM_SUMMARY.replace(':uid', this.state.assetid)}
             className='form-view__tab'
@@ -66,7 +66,7 @@ class FormViewTabs extends Reflux.Component {
           activeClassName='active'>
           {t('Form')}
         </Link>
-        { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
+        { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && (this.userCan('view_submissions', a) || this.userCanPartially('view_submissions', a)) &&
           <Link
             to={ROUTES.FORM_DATA.replace(':uid', this.state.assetid)}
             className='form-view__tab'
