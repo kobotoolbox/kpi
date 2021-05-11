@@ -7,14 +7,22 @@ import {bem} from 'js/bem';
 import {LoadingSpinner} from 'js/ui';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
-import {MODAL_TYPES} from 'js/constants';
 import {getLangString} from 'utils';
+import {hasRowRestriction} from "../locking/lockingUtils.es6";
+import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
+import {
+  MODAL_TYPES,
+  QUESTION_TYPES,
+  GROUP_TYPES_BEGIN,
+} from "js/constants";
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
   UNSAVED: t('* Save Changes'),
   PENDING: t('Saving…')
 };
+
+const CHOICE_TYPE = 'choice_type';
 
 export class TranslationTable extends React.Component {
   constructor(props){
@@ -33,6 +41,10 @@ export class TranslationTable extends React.Component {
 
     // add each translatable property for survey items to translation table
     survey.forEach((row) => {
+      let isLabelLocked = false;
+      if (row?.label) {
+        isLabelLocked = this.isLabelLocked(row.type, row.name);
+      }
       translated.forEach((property) => {
         if (row[property] && row[property][0]) {
           this.state.tableData.push({
@@ -40,7 +52,8 @@ export class TranslationTable extends React.Component {
             value: row[property][langIndex],
             name: row.name || row.$autoname,
             itemProp: property,
-            contentProp: 'survey'
+            contentProp: 'survey',
+            isLabelLocked: isLabelLocked,
           });
         }
       });
@@ -49,6 +62,7 @@ export class TranslationTable extends React.Component {
     // add choice options to translation table
     if (choices && choices.length) {
       choices.forEach((choice) => {
+        let isLabelLocked = this.isLabelLocked(CHOICE_TYPE, choice.name);
         if (choice.label && choice.label[0]) {
           this.state.tableData.push({
             original: choice.label[0],
@@ -56,7 +70,8 @@ export class TranslationTable extends React.Component {
             name: choice.name || choice.$autovalue,
             listName: choice.list_name,
             itemProp: 'label',
-            contentProp: 'choices'
+            contentProp: 'choices',
+            isLabelLocked: isLabelLocked,
           });
         }
       });
@@ -99,6 +114,7 @@ export class TranslationTable extends React.Component {
                 this.markFormUnsaved();
               }}
               value={this.state.tableData[cellInfo.index].value || ''}
+              disabled={cellInfo.original.isLabelLocked}
             />
           );
         }
@@ -218,6 +234,36 @@ export class TranslationTable extends React.Component {
 
   getAllLanguages() {
     return this.props.asset.content.translations;
+  }
+
+  // Compare current row type agaisnt those with lockable labels and return if
+  // the relevant label restriction applies
+  isLabelLocked(rowType, rowName) {
+    if (rowType === GROUP_TYPES_BEGIN.begin_group) {
+      return hasRowRestriction(
+        this.props.asset.content,
+        rowName,
+        LOCKING_RESTRICTIONS.group_label_edit.name
+      );
+    } else if (rowType === CHOICE_TYPE) {
+      return hasRowRestriction(
+        this.props.asset.content,
+        rowName,
+        LOCKING_RESTRICTIONS.choice_label_edit.name
+      );
+    } else {
+      for (const type in QUESTION_TYPES) {
+        if (rowType === type) {
+          return hasRowRestriction(
+            this.props.asset.content,
+            rowName,
+            LOCKING_RESTRICTIONS.question_label_edit.name
+          );
+        } else {
+          return false;
+        }
+      }
+    }
   }
 
   render () {
