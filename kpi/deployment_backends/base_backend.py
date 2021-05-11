@@ -123,21 +123,21 @@ class BaseDeploymentBackend:
                 sort = json.loads(sort, object_hook=json_util.object_hook)
             except ValueError:
                 raise serializers.ValidationError(
-                    {'sort': 'Value must be valid JSON.'}
+                    {'sort': _('Value must be valid JSON.')}
                 )
 
         try:
             start = positive_int(start)
         except ValueError:
             raise serializers.ValidationError(
-                {'start': 'A positive integer is required.'}
+                {'start': _('A positive integer is required.')}
             )
         try:
             if limit is not None:
                 limit = positive_int(limit, strict=True)
         except ValueError:
             raise serializers.ValidationError(
-                {'limit': 'A positive integer is required.'}
+                {'limit': _('A positive integer is required.')}
             )
 
         if isinstance(fields, str):
@@ -145,7 +145,7 @@ class BaseDeploymentBackend:
                 fields = json.loads(fields, object_hook=json_util.object_hook)
             except ValueError:
                 raise serializers.ValidationError(
-                    {'fields': 'Value must be valid JSON.'}
+                    {'fields': _('Value must be valid JSON.')}
                 )
 
         params = {

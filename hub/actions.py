@@ -9,7 +9,6 @@ from django.contrib.admin.utils import NestedObjects
 from django.db import router, transaction
 from django.template.response import TemplateResponse
 from django.utils.encoding import force_text
-from django.utils.translation import ugettext_lazy, ugettext as _
 
 from kpi.deployment_backends.kc_access.shadow_models import ShadowModel
 
