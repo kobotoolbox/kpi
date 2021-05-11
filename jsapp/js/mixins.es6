@@ -744,7 +744,25 @@ mixins.clickAssets = {
 };
 
 mixins.permissions = {
-  userCan (permName, asset) {
+  doesPermMatch(perm, permName, partialPermName = null) {
+    if (perm.permission !== permConfig.getPermissionByCodename(permName).url) {
+      return false;
+    }
+
+    if (permName !== 'partial_submissions') {
+      return true;
+    }
+
+    if (!partialPermName) {
+      return false;
+    }
+
+    return perm.partial_permissions.some((partial_perm) => {
+        return partial_perm.url === permConfig.getPermissionByCodename(partialPermName).url;
+      }
+    );
+  },
+  userCan(permName, asset, partialPermName = null) {
     if (!asset.permissions) {
       return false;
     }
@@ -772,9 +790,12 @@ mixins.permissions = {
     return asset.permissions.some((perm) => {
       return (
         perm.user === buildUserUrl(currentUsername) &&
-        perm.permission === permConfig.getPermissionByCodename(permName).url
+        this.doesPermMatch(perm, permName, partialPermName)
       );
     });
+  },
+  userCanPartially(permName, asset) {
+    return this.userCan('partial_submissions', asset, permName);
   }
 };
 

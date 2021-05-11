@@ -275,7 +275,10 @@ export class DataTable extends React.Component {
     if (
       this.userCan('validate_submissions', this.props.asset) ||
       this.userCan('delete_submissions', this.props.asset) ||
-      this.userCan('change_submissions', this.props.asset)
+      this.userCan('change_submissions', this.props.asset) ||
+      this.userCanPartially('validate_submissions', this.props.asset) ||
+      this.userCanPartially('delete_submissions', this.props.asset) ||
+      this.userCanPartially('change_submissions', this.props.asset)
     ) {
       columns.push({
         Header: () => {
@@ -310,7 +313,10 @@ export class DataTable extends React.Component {
       });
     }
 
-    let userCanSeeEditIcon = this.props.asset.deployment__active && this.userCan('change_submissions', this.props.asset);
+    let userCanSeeEditIcon = (
+      this.props.asset.deployment__active &&
+      this.userCan('change_submissions', this.props.asset) ||
+      this.userCanPartially('change_submissions', this.props.asset));
 
     columns.push({
       Header: '',
