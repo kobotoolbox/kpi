@@ -116,18 +116,16 @@ class MainHeader extends Reflux.Component {
   }
 
   renderLoginButton() {
-    if (!stores.session.currentAccount) {
-      return (
+    return (
+      <bem.LoginBox>
         <a
           href={'/accounts/login'}
           className='kobo-button kobo-button--blue'
         >
           {t('Login')}
         </a>
-      );
-    }
-
-    return null;
+      </bem.LoginBox>
+    );
   }
 
   renderAccountNavMenu() {
@@ -242,6 +240,8 @@ class MainHeader extends Reflux.Component {
   }
 
   render() {
+    const isLoggedIn = stores.session.isLoggedIn;
+
     let userCanEditAsset = false;
     if (this.state.asset) {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
@@ -268,12 +268,12 @@ class MainHeader extends Reflux.Component {
                 <bem.Header__logo />
               </a>
             </span>
-            { this.isFormList() &&
+            { isLoggedIn && this.isFormList() &&
               <div className='mdl-layout__header-searchers'>
                 <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
-            { (this.isMyLibrary() || this.isPublicCollections()) &&
+            { isLoggedIn && (this.isMyLibrary() || this.isPublicCollections()) &&
               <div className='mdl-layout__header-searchers'>
                 <SearchBox
                   placeholder={librarySearchBoxPlaceholder}
@@ -281,7 +281,7 @@ class MainHeader extends Reflux.Component {
                 />
               </div>
             }
-            { !this.isLibrary() && this.state.asset && this.isFormSingle() &&
+            { isLoggedIn && !this.isLibrary() && this.state.asset && this.isFormSingle() &&
               <React.Fragment>
                 <bem.MainHeader__icon className={iconClassName} />
 
@@ -298,7 +298,7 @@ class MainHeader extends Reflux.Component {
               </React.Fragment>
             }
             {this.renderAccountNavMenu()}
-            {this.renderLoginButton()}
+            { !isLoggedIn && this.renderLoginButton()}
           </div>
           {this.renderGitRevInfo()}
         </bem.MainHeader>
