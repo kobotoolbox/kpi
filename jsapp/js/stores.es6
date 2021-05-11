@@ -210,11 +210,6 @@ stores.session = Reflux.createStore({
     actions.auth.verifyLogin();
     actions.auth.getEnvironment();
   },
-  getInitialState() {
-    return {
-      isLoggedIn: false,
-    };
-  },
   triggerEnv(environment) {
     const nestedArrToChoiceObjs = (i) => {
       return {
@@ -242,6 +237,7 @@ stores.session = Reflux.createStore({
     this.trigger({environment: environment});
   },
   triggerLoggedIn(acct) {
+    this.isLoggedIn = true;
     this.currentAccount = acct;
     this.trigger({
       isLoggedIn: true,
