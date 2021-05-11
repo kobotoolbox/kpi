@@ -7,6 +7,8 @@ import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
 import mixins from 'js/mixins';
 import {bem} from 'js/bem';
+import {stores} from 'js/stores';
+import {NotLoggedInMessage} from 'js/ui';
 import {validFileTypes} from 'utils';
 import myLibraryStore from './myLibraryStore';
 import AssetsTable from './assetsTable';
@@ -34,7 +36,7 @@ class MyLibraryRoute extends React.Component {
       filterColumnId: myLibraryStore.data.filterColumnId,
       filterValue: myLibraryStore.data.filterValue,
       currentPage: myLibraryStore.data.currentPage,
-      totalPages: myLibraryStore.data.totalPages
+      totalPages: myLibraryStore.data.totalPages,
     };
   }
 
@@ -65,6 +67,10 @@ class MyLibraryRoute extends React.Component {
   }
 
   render() {
+    if (!stores.session.isLoggedIn) {
+      return (<NotLoggedInMessage/>);
+    }
+
     let contextualEmptyMessage = t('Your search returned no results.');
 
     if (myLibraryStore.data.totalUserAssets === 0) {
@@ -121,7 +127,7 @@ class MyLibraryRoute extends React.Component {
 }
 
 MyLibraryRoute.contextTypes = {
-  router: PropTypes.object
+  router: PropTypes.object,
 };
 
 reactMixin(MyLibraryRoute.prototype, mixins.droppable);

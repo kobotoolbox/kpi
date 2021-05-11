@@ -8,7 +8,10 @@ import mixins from '../mixins';
 import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
 import {bem} from '../bem';
-import {LoadingSpinner} from 'js/ui';
+import {
+  LoadingSpinner,
+  NotLoggedInMessage,
+} from 'js/ui';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
@@ -188,6 +191,10 @@ class SearchCollectionList extends Reflux.Component {
   }
 
   render() {
+    if (!stores.session.isLoggedIn) {
+      return (<NotLoggedInMessage/>);
+    }
+
     var s = this.state;
     var docTitle = '';
     let display;
