@@ -201,10 +201,10 @@ stores.session = Reflux.createStore({
   init() {
     this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
-    this.listenTo(actions.auth.verifyLogin.anonymous, (data)=>{
+    this.listenTo(actions.auth.verifyLogin.anonymous, (data) => {
       log('login confirmed anonymous', data.message);
     });
-    this.listenTo(actions.auth.verifyLogin.failed, (xhr)=> {
+    this.listenTo(actions.auth.verifyLogin.failed, (xhr) => {
       log('login not verified', xhr.status, xhr.statusText);
     });
     actions.auth.verifyLogin();
@@ -213,7 +213,6 @@ stores.session = Reflux.createStore({
   getInitialState() {
     return {
       isLoggedIn: false,
-      sessionIsLoggedIn: false
     };
   },
   triggerEnv(environment) {
@@ -246,11 +245,9 @@ stores.session = Reflux.createStore({
     this.currentAccount = acct;
     this.trigger({
       isLoggedIn: true,
-      sessionIsLoggedIn: true,
-      sessionAccount: acct,
-      currentAccount: acct
+      currentAccount: acct,
     });
-  }
+  },
 });
 
 stores.assetContent = Reflux.createStore({
