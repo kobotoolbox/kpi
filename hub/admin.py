@@ -2,7 +2,6 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from django.utils.translation import gettext as _
 
 from kpi.deployment_backends.kc_access.utils import delete_kc_users
 from kpi.models.asset import Asset

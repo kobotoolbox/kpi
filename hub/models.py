@@ -8,7 +8,6 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext_lazy as _
 from markitup.fields import MarkupField
 
 from kpi.models.object_permission import get_anonymous_user

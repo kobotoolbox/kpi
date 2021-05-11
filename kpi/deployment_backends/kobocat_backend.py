@@ -1008,27 +1008,27 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         if not 'submission_ids' in payload:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail='`submission_ids` must be included in the payload'
+                detail=_('`submission_ids` must be included in the payload')
             )
 
         if not isinstance(payload['submission_ids'], list):
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail='`submission_ids` must be an array'
+                detail=_('`submission_ids` must be an array')
             )
 
         if len(payload['submission_ids']) == 0:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail='`submission_ids` must contain at least one value'
+                detail=_('`submission_ids` must contain at least one value')
             )
 
         if not 'data' in payload:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail='`data` must be included in the payload'
+                detail=_('`data` must be included in the payload')
             )
 
         if len(payload['data']) == 0:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail='Payload must contain data to update the submissions'
+                detail=_('Payload must contain data to update the submissions')
             )
 
         return payload
@@ -1048,7 +1048,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         except ValueError as e:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail='`submission_ids` must only contain integer values'
+                detail=_('`submission_ids` must only contain integer values')
             )
 
         # Sanitizing the payload of potentially destructive keys
@@ -1065,7 +1065,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def __validate_bulk_update_submissions(submissions: list) -> list:
         if len(submissions) == 0:
             raise KobocatBulkUpdateSubmissionsClientException(
-                detail='No submissions match the given `submission_ids`'
+                detail=_('No submissions match the given `submission_ids`')
             )
         return submissions
 
@@ -1096,7 +1096,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                         response['response'].content
                     ).find(OPEN_ROSA_XML_MESSAGE).text
             except ET.ParseError:
-                message = 'Something went wrong'
+                message = _('Something went wrong')
 
             results.append(
                 {
