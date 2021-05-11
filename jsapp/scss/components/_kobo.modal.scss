@@ -566,7 +566,6 @@ $z-modal-x: 10;
     &:hover .form-view__cell--translation-name .form-view__icon-button {
       opacity: 1;
       visibility: visible;
-      color: red;
 
       // Hide the on hover button completely if disabled
       &:disabled {
@@ -719,6 +718,12 @@ $z-modal-x: 10;
           color: $kobo-black;
           &:focus {
             background: $kobo-white;
+          }
+          // If the sibling spans more lines than its translation, the
+          // .translation background color takes over the rest of the space.
+          // This looks ugly, so we change text color to indicate locking instead
+          &:disabled {
+            color: $kobo-midgray;
           }
         }
       }
