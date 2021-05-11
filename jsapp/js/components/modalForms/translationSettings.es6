@@ -318,7 +318,10 @@ export class TranslationSettings extends React.Component {
                       <bem.FormView__iconButton
                         data-index={i}
                         onClick={this.changeDefaultLanguage}
-                        disabled={this.state.isUpdatingDefaultLanguage}
+                        disabled={
+                          this.state.isUpdatingDefaultLanguage ||
+                          !this.canAddLanguages()
+                        }
                         data-tip={t('Make default')}
                       >
                         <i className='k-icon-language-default' />
@@ -330,7 +333,10 @@ export class TranslationSettings extends React.Component {
                     <bem.FormView__iconButton
                       data-index={i}
                       onClick={this.toggleRenameLanguageForm}
-                      disabled={this.state.isUpdatingDefaultLanguage}
+                      disabled={
+                        this.state.isUpdatingDefaultLanguage ||
+                        !this.canAddLanguages()
+                      }
                       data-tip={t('Edit language')}
                       className='right-tooltip'
                     >
@@ -346,7 +352,10 @@ export class TranslationSettings extends React.Component {
                       data-index={i}
                       data-string={this.state.translations[i]}
                       onClick={this.launchTranslationTableModal}
-                      disabled={this.state.isUpdatingDefaultLanguage}
+                      disabled={
+                        this.state.isUpdatingDefaultLanguage ||
+                        !this.canAddLanguages()
+                      }
                       data-tip={t('Update translations')}
                       className='right-tooltip'
                     >
@@ -357,7 +366,10 @@ export class TranslationSettings extends React.Component {
                       <bem.FormView__iconButton
                         data-index={i}
                         onClick={this.deleteLanguage}
-                        disabled={this.state.isUpdatingDefaultLanguage}
+                        disabled={
+                          this.state.isUpdatingDefaultLanguage ||
+                          !this.canAddLanguages()
+                        }
                         data-tip={t('Delete language')}
                         className='right-tooltip'
                       >

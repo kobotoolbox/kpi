@@ -539,6 +539,10 @@ $z-modal-x: 10;
     min-width: 500px;
   }
 
+  .form-view__cell--label {
+    padding-bottom: 10px;
+  }
+
   .form-view__cell--translation-note {
     padding-bottom: 20px;
 
@@ -562,6 +566,19 @@ $z-modal-x: 10;
     &:hover .form-view__cell--translation-name .form-view__icon-button {
       opacity: 1;
       visibility: visible;
+      color: red;
+
+      // Hide the on hover button completely if disabled
+      &:disabled {
+        opacity: 0;
+        visibility: hidden;
+      }
+    }
+
+    .form-view__icon-button.right-tooltip {
+      &:disabled {
+        color: $kobo-lightgray;
+      }
     }
   }
 
@@ -601,10 +618,6 @@ $z-modal-x: 10;
 
   .form-view__cell--add-language-form {
     margin-top: 20px;
-
-    .form-view__cell--label {
-      padding-bottom: 10px;
-    }
   }
 
   .form-view__form--add-language-fields {
