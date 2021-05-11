@@ -245,7 +245,7 @@ class UserAssetPermsEditor extends React.Component {
    */
   onPartialUsersChange(prop, users) {
     const newState = this.state;
-    newState[prop] = users.split(USERNAMES_SEPARATOR);
+    newState[prop] = users.split(USERNAMES_SEPARATOR).map((user) => user.trim());
     this.setState(newState);
   }
 
