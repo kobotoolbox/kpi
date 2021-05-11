@@ -122,7 +122,7 @@ class MainHeader extends Reflux.Component {
           href={'/accounts/login'}
           className='kobo-button kobo-button--blue'
         >
-          {t('Login')}
+          {t('Log In')}
         </a>
       </bem.LoginBox>
     );
@@ -281,7 +281,7 @@ class MainHeader extends Reflux.Component {
                 />
               </div>
             }
-            { isLoggedIn && !this.isLibrary() && this.state.asset && this.isFormSingle() &&
+            { !this.isLibrary() && this.state.asset && this.isFormSingle() &&
               <React.Fragment>
                 <bem.MainHeader__icon className={iconClassName} />
 

@@ -38,8 +38,11 @@
   }
 
   .login-box {
-    flex: 1;
     text-align: right;
+  }
+
+  .mdl-layout-title + .login-box {
+    flex: 1;
   }
 
   .account-box {
