@@ -315,8 +315,10 @@ export class DataTable extends React.Component {
 
     let userCanSeeEditIcon = (
       this.props.asset.deployment__active &&
-      this.userCan('change_submissions', this.props.asset) ||
-      this.userCanPartially('change_submissions', this.props.asset));
+      (
+        this.userCan('change_submissions', this.props.asset) ||
+        this.userCanPartially('change_submissions', this.props.asset)
+      ));
 
     columns.push({
       Header: '',
