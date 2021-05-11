@@ -114,6 +114,22 @@ class MainHeader extends Reflux.Component {
       </bem.AccountBox__menuLI>
     );
   }
+
+  renderLoginButton() {
+    if (!stores.session.currentAccount) {
+      return (
+        <a
+          href={'/accounts/login'}
+          className='kobo-button kobo-button--blue'
+        >
+          {t('Login')}
+        </a>
+      );
+    }
+
+    return null;
+  }
+
   renderAccountNavMenu() {
     let shouldDisplayUrls = false;
     if (
@@ -199,7 +215,7 @@ class MainHeader extends Reflux.Component {
               </bem.AccountBox__menu>
           </ui.PopoverMenu>
         </bem.AccountBox>
-        );
+      );
     }
 
     return null;
@@ -282,6 +298,7 @@ class MainHeader extends Reflux.Component {
               </React.Fragment>
             }
             {this.renderAccountNavMenu()}
+            {this.renderLoginButton()}
           </div>
           {this.renderGitRevInfo()}
         </bem.MainHeader>
