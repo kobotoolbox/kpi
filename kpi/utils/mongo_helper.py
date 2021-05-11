@@ -294,8 +294,9 @@ class MongoHelper:
             fields_to_select = {cls.USERFORM_ID: 0}
 
         cursor = settings.MONGO_DB.instances.find(
-            query, projection=fields_to_select, max_time_ms=CELERY_TASK_TIME_LIMIT*1000
-        )
+            query,
+            projection=fields_to_select
+        ).max_time_ms(1)
         return cursor, cursor.count()
 
     @classmethod
