@@ -44,44 +44,70 @@ class FormViewTabs extends Reflux.Component {
       evt.preventDefault();
     }
   }
-  renderTopTabs () {
-    if (this.state.asset === undefined)
-      return false;
 
-    let a = this.state.asset;
+  isDataTabEnabled() {
+    console.log({
+      dep_id: this.state.asset.deployment__identifier,
+      has_dep: this.state.asset.has_deployment,
+      count: this.state.asset.deployment__submission_count,
+      can_view: this.userCan('view_submissions', this.state.asset),
+      can_part: this.userCan('partial_submissions', this.state.asset),
+    });
+    return (
+      this.state.asset.deployment__identifier != undefined &&
+      this.state.asset.has_deployment &&
+      this.state.asset.deployment__submission_count > 0 &&
+      (
+        this.userCan('view_submissions', this.state.asset) ||
+        this.userCan('partial_submissions', this.state.asset)
+      )
+    );
+  }
+
+  renderTopTabs() {
+    if (this.state.asset === undefined) {
+      return false;
+    }
+
+    let dataTabClassNames = 'form-view__tab';
+    if (!this.isDataTabEnabled()) {
+      dataTabClassNames += ' form-view__tab--disabled';
+    }
 
     return (
       <bem.FormView__toptabs>
-        { a.deployment__identifier != undefined && a.has_deployment && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
-          <Link
-            to={ROUTES.FORM_SUMMARY.replace(':uid', this.state.assetid)}
-            className='form-view__tab'
-            activeClassName='active'>
-            {t('Summary')}
-          </Link>
-        }
+        <Link
+          to={ROUTES.FORM_SUMMARY.replace(':uid', this.state.assetid)}
+          className='form-view__tab'
+          activeClassName='active'
+        >
+          {t('Summary')}
+        </Link>
+
         <Link
           to={ROUTES.FORM_LANDING.replace(':uid', this.state.assetid)}
           className='form-view__tab'
           activeClassName='active'>
           {t('Form')}
         </Link>
-        { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
-          <Link
-            to={ROUTES.FORM_DATA.replace(':uid', this.state.assetid)}
-            className='form-view__tab'
-            activeClassName='active'>
-            {t('Data')}
-          </Link>
-        }
-        {this.userCan('change_asset', a) &&
-          <Link
-            to={ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid)}
-            className='form-view__tab'
-            activeClassName='active'>
-            {t('Settings')}
-          </Link>
-        }
+
+        <Link
+          to={ROUTES.FORM_DATA.replace(':uid', this.state.assetid)}
+          className={dataTabClassNames}
+          activeClassName='active'
+        >
+          {t('Data')}
+        </Link>
+
+        <Link
+          to={ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid)}
+          className='form-view__tab'
+          activeClassName='active'
+          disabled={!this.userCan('change_asset', this.state.asset)}
+        >
+          {t('Settings')}
+        </Link>
+
         <Link
           to={ROUTES.FORMS}
           className='form-view__link form-view__link--close'>

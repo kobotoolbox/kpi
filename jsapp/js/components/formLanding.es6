@@ -185,6 +185,7 @@ export class FormLanding extends React.Component {
     const versionsToDisplay = this.state.deployed_versions.results.concat(
       this.state.nextPagesVersions
     );
+    const isLoggedIn = stores.session.isLoggedIn;
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
@@ -198,7 +199,9 @@ export class FormLanding extends React.Component {
             <bem.FormView__group m={['items', 'headings']}>
               <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
               <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
-              <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
+              {isLoggedIn &&
+                <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>
+              }
             </bem.FormView__group>
             {versionsToDisplay.map((item, n) => {
               if (dvcount - n > 0) {
@@ -215,14 +218,19 @@ export class FormLanding extends React.Component {
                     <bem.FormView__label m='date'>
                       {formatTime(item.date_deployed)}
                     </bem.FormView__label>
-                    <bem.FormView__label m='clone' className='right-tooltip'>
-                        <bem.FormView__link m='clone'
-                            data-version-id={item.uid}
-                            data-tip={t('Clone this version as a new project')}
-                            onClick={this.saveCloneAs}>
+
+                    {isLoggedIn &&
+                      <bem.FormView__label m='clone' className='right-tooltip'>
+                        <bem.FormView__link
+                          m='clone'
+                          data-version-id={item.uid}
+                          data-tip={t('Clone this version as a new project')}
+                          onClick={this.saveCloneAs}
+                        >
                           <i className='k-icon-clone' />
                         </bem.FormView__link>
-                    </bem.FormView__label>
+                      </bem.FormView__label>
+                    }
                   </bem.FormView__group>
                 );
               }
@@ -415,11 +423,13 @@ export class FormLanding extends React.Component {
     }
     this.goToProjectsList();
   }
-  renderButtons (userCanEdit) {
+  renderButtons(userCanEdit) {
     var downloads = [];
     if (this.state.downloads) {
       downloads = this.state.downloads;
     }
+
+    const isLoggedIn = stores.session.isLoggedIn;
 
     return (
       <React.Fragment>
@@ -476,7 +486,7 @@ export class FormLanding extends React.Component {
             </bem.PopoverMenu__link>
           }
 
-          {!assetUtils.isSelfOwned(this.state) &&
+          {isLoggedIn && !assetUtils.isSelfOwned(this.state) &&
             <bem.PopoverMenu__link
               onClick={this.nonOwnerSelfRemoval}
             >
@@ -485,19 +495,23 @@ export class FormLanding extends React.Component {
             </bem.PopoverMenu__link>
           }
 
-          <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-            <i className='k-icon-clone'/>
-            {t('Clone this project')}
-          </bem.PopoverMenu__link>
+          {isLoggedIn &&
+            <bem.PopoverMenu__link onClick={this.saveCloneAs}>
+              <i className='k-icon-clone'/>
+              {t('Clone this project')}
+            </bem.PopoverMenu__link>
+          }
 
-          <bem.PopoverMenu__link
-            onClick={this.cloneAsTemplate}
-            data-asset-uid={this.state.uid}
-            data-asset-name={this.state.name}
-          >
-            <i className='k-icon-template'/>
-            {t('Create template')}
-          </bem.PopoverMenu__link>
+          {isLoggedIn &&
+            <bem.PopoverMenu__link
+              onClick={this.cloneAsTemplate}
+              data-asset-uid={this.state.uid}
+              data-asset-name={this.state.name}
+            >
+              <i className='k-icon-template'/>
+              {t('Create template')}
+            </bem.PopoverMenu__link>
+          }
 
           {userCanEdit && this.state.content.survey.length > 0 &&
             <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
