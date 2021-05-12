@@ -148,13 +148,14 @@ class Drawer extends Reflux.Component {
         </bem.KDrawer__sidebar>
 
         <bem.KDrawer__secondaryIcons>
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
             <IntercomHelpBubble/>
           }
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
             <SupportHelpBubble/>
           }
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
+            stores.session.currentAccount.projects_url &&
             <a href={stores.session.currentAccount.projects_url}
               className='k-drawer__link'
               target='_blank'

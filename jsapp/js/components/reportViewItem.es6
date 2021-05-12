@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
 import {bem} from '../bem';
+import {stores} from 'js/stores';
 import {REPORT_STYLES} from 'js/constants';
 
 class ReportTable extends React.Component {
@@ -379,11 +380,15 @@ class ReportViewItem extends React.Component {
               }
             </span>
           </bem.ReportView__headingMeta>
-          {d.show_graph &&
-            <bem.Button m='icon' className='report-button__question-settings'
-                  onClick={this.props.triggerQuestionSettings}
-                  data-question={name}
-                  data-tip={t('Override Graph Style')}>
+          { d.show_graph &&
+            stores.session.isLoggedIn &&
+            <bem.Button
+              m='icon'
+              className='report-button__question-settings'
+              onClick={this.props.triggerQuestionSettings}
+              data-question={name}
+              data-tip={t('Override Graph Style')}
+            >
               <i className='k-icon-more' data-question={name} />
             </bem.Button>
           }

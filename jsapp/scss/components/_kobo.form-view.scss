@@ -116,6 +116,11 @@
       }
     }
 
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
     .k-icon {
       font-size: 26px;
       vertical-align: -7px;

@@ -23,6 +23,7 @@ import {
   notify,
   assign,
 } from 'utils';
+import {ANON_USERNAME} from 'js/constants';
 
 const cookies = new Cookies();
 
@@ -198,6 +199,10 @@ stores.asset = Reflux.createStore({
 });
 
 stores.session = Reflux.createStore({
+  // start up with "fake" current account
+  currentAccount: {
+    username: ANON_USERNAME,
+  },
   init() {
     this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);

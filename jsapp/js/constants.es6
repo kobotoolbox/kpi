@@ -310,7 +310,6 @@ export const ROUTES = Object.freeze({
   FORM_LANDING: '/forms/:uid/landing',
   FORM_DATA: '/forms/:uid/data',
   FORM_REPORT: '/forms/:uid/data/report',
-  FORM_REPORT_OLD: '/forms/:uid/data/report-legacy',
   FORM_TABLE: '/forms/:uid/data/table',
   FORM_DOWNLOADS: '/forms/:uid/data/downloads',
   FORM_GALLERY: '/forms/:uid/data/gallery',

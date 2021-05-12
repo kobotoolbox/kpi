@@ -151,7 +151,7 @@ class MainHeader extends Reflux.Component {
     if (stores.session.environment) {
       langs = stores.session.environment.interface_languages;
     }
-    if (stores.session.currentAccount) {
+    if (stores.session.isLoggedIn) {
       var accountName = stores.session.currentAccount.username;
       var accountEmail = stores.session.currentAccount.email;
 
