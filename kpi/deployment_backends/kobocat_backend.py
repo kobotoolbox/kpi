@@ -112,7 +112,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Otherwise, they have have full access.
         if submission_ids:
             partial_perms = True
-            data.pop('query', None)
+            # Reset query, because all the submission ids have been already
+            # retrieve
+            data['query'] = {}
         else:
             partial_perms = False
             submission_ids = data['submission_ids']
@@ -374,6 +376,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Otherwise, they have have full access.
         headers = {}
         if submission_ids:
+            # Remove query from `data` because all the submission ids have been
+            # already retrieve
             data.pop('query', None)
             data['submission_ids'] = submission_ids
             headers.update(KobocatOneTimeAuthRequest.get_token(user, 'DELETE'))
@@ -548,9 +552,24 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Gets edit URL of the submission from KoBoCAT through proxy
         """
+
+        submission_ids = self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            submission_ids=[submission_id],
+        )
+
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        headers = {}
+        if submission_ids:
+            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'GET'))
+
         url = '{detail_url}/enketo'.format(
             detail_url=self.get_submission_detail_url(submission_id))
-        kc_request = requests.Request(method='GET', url=url, params=params)
+        kc_request = requests.Request(
+            method='GET', url=url, params=params, headers=headers
+        )
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
@@ -858,6 +877,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Otherwise, they have have full access.
         headers = {}
         if submission_ids:
+            # Remove query from `data` because all the submission ids have been
+            # already retrieve
             data.pop('query', None)
             data['submission_ids'] = submission_ids
             headers.update(KobocatOneTimeAuthRequest.get_token(user, 'PATCH'))
