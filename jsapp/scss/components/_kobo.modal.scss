@@ -694,6 +694,10 @@ $z-modal-x: 10;
     .rt-tr-group > .rt-tr {
       .rt-td {
         white-space: normal;
+
+        .disabled {
+          color: $kobo-midgray;
+        }
       }
       > .rt-th:first-child,
       > .rt-td:first-child {

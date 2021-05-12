@@ -82,7 +82,15 @@ export class TranslationTable extends React.Component {
         Header: t('Original string'),
         accessor: 'original',
         minWidth: 130,
-        Cell: (cellInfo) => {return cellInfo.original.original;}
+        Cell: (cellInfo) => {
+          // Disabling has no effect on this cell, but we do it to gray out the
+          // text to indicate that the label is locked. Useful if adding new translations
+          return (
+            <div className={cellInfo.original.isLabelLocked ? 'disabled' : ''}>
+              {cellInfo.original.original}
+            </div>
+          );
+        }
       }, {
         Header: () => {
           return (
