@@ -323,7 +323,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise
         super().delete()
 
-    def delete_submission(self, pk: int, user: 'auth.User') -> dict:
+    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
         """
         Delete a submission through KoBoCAT proxy
 
@@ -333,7 +333,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            submission_ids=[pk]
+            submission_ids=[submission_id]
         )
 
         # If `submission_ids` is not empty, user has partial permissions.
@@ -342,7 +342,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if submission_ids:
             headers.update(KobocatOneTimeAuthRequest.get_token(user, 'POST'))
 
-        kc_url = self.get_submission_detail_url(pk)
+        kc_url = self.get_submission_detail_url(submission_id)
         kc_request = requests.Request(
             method='DELETE', url=kc_url, headers=headers
         )
@@ -538,32 +538,26 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 pass
         return links
 
-    def get_submission_detail_url(self, submission_pk):
-        url = '{list_url}/{pk}'.format(
-            list_url=self.submission_list_url,
-            pk=submission_pk
-        )
+    def get_submission_detail_url(self, submission_id: int) -> str:
+        url = f'{self.submission_list_url}/{submission_id}'
         return url
 
-    def get_submission_edit_url(self, submission_pk, user, params=None):
+    def get_submission_edit_url(
+        self, submission_id: int, user: 'auth.User', params: dict = None
+    ) -> dict:
         """
-        Gets edit URL of the submission from `kc` through proxy
-
-        :param submission_pk: int
-        :param user: User
-        :param params: dict
-        :return: dict
+        Gets edit URL of the submission from KoBoCAT through proxy
         """
         url = '{detail_url}/enketo'.format(
-            detail_url=self.get_submission_detail_url(submission_pk))
+            detail_url=self.get_submission_detail_url(submission_id))
         kc_request = requests.Request(method='GET', url=url, params=params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def get_submission_validation_status_url(self, submission_pk):
+    def get_submission_validation_status_url(self, submission_id: int) -> str:
         url = '{detail_url}/validation_status'.format(
-            detail_url=self.get_submission_detail_url(submission_pk)
+            detail_url=self.get_submission_detail_url(submission_id)
         )
         return url
 
