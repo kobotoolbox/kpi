@@ -329,7 +329,7 @@ export const COLLECTION_METHODS = Object.freeze({
   offline_url: {
     id: 'offline_url',
     label: t('Online-Offline (multiple submission)'),
-    desc: t('This allows online and offline submissions and is the best option for collecting data in the field. '),
+    desc: t('This allows online and offline submissions and is the best option for collecting data in the field.'),
   },
   url: {
     id: 'url',
@@ -349,12 +349,12 @@ export const COLLECTION_METHODS = Object.freeze({
   iframe_url: {
     id: 'iframe_url',
     label: t('Embeddable web form code'),
-    desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins. '),
+    desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins.'),
   },
   preview_url: {
     id: 'preview_url',
     label: t('View only'),
-    desc: t('Use this version for testing, getting feedback. Does not allow submitting data. '),
+    desc: t('Use this version for testing, getting feedback. Does not allow submitting data.'),
   },
   android: {
     id: 'android',
