@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
+from kobo.settings.base import CELERY_TASK_TIME_LIMIT
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
 
@@ -292,7 +293,11 @@ class MongoHelper:
             # Retrieve all fields except `cls.USERFORM_ID`
             fields_to_select = {cls.USERFORM_ID: 0}
 
-        cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
+        cursor = settings.MONGO_DB.instances.find(
+            query,
+            fields_to_select,
+            max_time_ms=CELERY_TASK_TIME_LIMIT*1000
+        )
         return cursor, cursor.count()
 
     @classmethod
