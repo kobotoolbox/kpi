@@ -599,7 +599,23 @@ class Asset(ObjectPermissionMixin,
         PERM_MANAGE_ASSET: _('Manage ##asset_type_label##'),
         PERM_ADD_SUBMISSIONS: _('Add submissions'),
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
-        PERM_PARTIAL_SUBMISSIONS: _('View submissions only from specific users'),
+        PERM_PARTIAL_SUBMISSIONS: {
+            'default': _(
+                'Make partial actions only from specific users'
+            ),
+            PERM_VIEW_SUBMISSIONS: _(
+                'View submissions only from specific users'
+            ),
+            PERM_CHANGE_SUBMISSIONS: _(
+                'Edit submissions only from specific users'
+            ),
+            PERM_DELETE_SUBMISSIONS: _(
+                'Delete submissions only from specific users'
+            ),
+            PERM_VALIDATE_SUBMISSIONS: _(
+                'Validate submissions only from specific users'
+            ),
+        },
         PERM_CHANGE_SUBMISSIONS: _('Edit submissions'),
         PERM_DELETE_SUBMISSIONS: _('Delete submissions'),
         PERM_VALIDATE_SUBMISSIONS: _('Validate submissions'),
@@ -846,12 +862,24 @@ class Asset(ObjectPermissionMixin,
             # Others are just strings
             pass
 
-        label = label.replace(
-            '##asset_type_label##',
-            # Raises TypeError if not coerced explicitly
-            str(asset_type_label)
-        )
-        return label
+        # For partial permissions, label is a dict.
+        # There is no replacements to do in the nested labels, but these lines
+        # are there to support in case we need it one day
+        if isinstance(label, dict):
+            labels = copy.deepcopy(label)
+            for key_ in labels.keys():
+                labels[key_] = labels[key_].replace(
+                    '##asset_type_label##',
+                    # Raises TypeError if not coerced explicitly
+                    str(asset_type_label)
+                )
+            return labels
+        else:
+            return label.replace(
+                '##asset_type_label##',
+                # Raises TypeError if not coerced explicitly
+                str(asset_type_label)
+            )
 
     def get_paired_parent(self, paired_data_uid: str) -> Union['Asset', None]:
 

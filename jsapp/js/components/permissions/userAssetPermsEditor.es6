@@ -23,6 +23,7 @@ import {
   SUFFIX_USERS,
   SUFFIX_PARTIAL,
   PARTIAL_CHECKBOX_PAIRS,
+  PARTIAL_PERM_PAIRS,
   CHECKBOX_NAMES,
   CHECKBOX_PERM_PAIRS,
 } from './permConstants';
@@ -328,12 +329,18 @@ class UserAssetPermsEditor extends React.Component {
   }
 
   getCheckboxLabel(checkboxName) {
-    const permName = CHECKBOX_PERM_PAIRS[checkboxName];
+    let permName = CHECKBOX_PERM_PAIRS[checkboxName];
     const permDef = permConfig.getPermissionByCodename(permName);
     if (!permDef) {
       return false;
     } else {
-      return this.props.assignablePerms.get(permDef.url);
+      if (PARTIAL_PERM_PAIRS.hasOwnProperty(checkboxName)) {
+        permName = PARTIAL_PERM_PAIRS[checkboxName];
+        const nestedPartialPermissions = this.props.assignablePerms.get(permDef.url);
+        return nestedPartialPermissions[permName];
+      } else {
+        return this.props.assignablePerms.get(permDef.url);
+      }
     }
   }
 
