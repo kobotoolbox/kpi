@@ -273,7 +273,10 @@ export class FormLanding extends React.Component {
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m={['columns', 'padding', 'collect-header']}>
             <bem.FormView__cell>
-              <ui.PopoverMenu type='collectData-menu' triggerLabel={COLLECTION_METHODS[chosenMethod].label}>
+              <ui.PopoverMenu
+                type="collectData-menu"
+                triggerLabel={COLLECTION_METHODS[chosenMethod].label}
+              >
                 {deployment__links_list.map((c) => {
                   return (
                     <bem.PopoverMenu__link
@@ -361,7 +364,7 @@ export class FormLanding extends React.Component {
       return (
         <CopyToClipboard
           text={`<iframe src=${chosenMethodLink} width="800" height="600"></iframe>`}
-          onCopy={() => {notify(t('copied to clipboard'));}}
+          onCopy={() => {notify(t('Copied to clipboard'));}}
           options={{format: 'text/plain'}}
         >
           <button className='copy mdl-button mdl-button--colored'>
@@ -374,7 +377,7 @@ export class FormLanding extends React.Component {
     return (
       <React.Fragment>
         <CopyToClipboard text={chosenMethodLink}
-          onCopy={() => {notify(t('copied to clipboard'));}}
+          onCopy={() => {notify(t('Copied to clipboard'));}}
           options={{format: 'text/plain'}}
         >
           <button className='copy mdl-button mdl-button--colored'>
