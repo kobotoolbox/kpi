@@ -14,6 +14,32 @@ import {
 } from 'js/constants';
 import {assign} from 'utils';
 
+export function getFormDataTabs(assetUid, isLoggedIn) {
+  return [
+    {
+      label: t('Reports'),
+      icon: 'k-icon-report', path: ROUTES.FORM_REPORT.replace(':uid', assetUid),
+    },
+    {
+      label: t('Table'),
+      icon: 'k-icon-table', path: ROUTES.FORM_TABLE.replace(':uid', assetUid),
+    },
+    {
+      label: t('Gallery'),
+      icon: 'k-icon-photo-gallery', path: ROUTES.FORM_GALLERY.replace(':uid', assetUid),
+    },
+    {
+      label: t('Downloads'),
+      icon: 'k-icon-download', path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
+      isDisabled: !isLoggedIn,
+    },
+    {
+      label: t('Map'),
+      icon: 'k-icon-map-view', path: ROUTES.FORM_MAP.replace(':uid', assetUid),
+    },
+  ];
+}
+
 class FormViewTabs extends Reflux.Component {
   constructor(props){
     super(props);
@@ -121,13 +147,7 @@ class FormViewTabs extends Reflux.Component {
     var sideTabs = [];
 
     if (this.state.asset && this.state.asset.has_deployment && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
-      sideTabs = [
-        {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.assetid}/data/report`},
-        {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.assetid}/data/table`},
-        {label: t('Gallery'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/data/gallery`},
-        {label: t('Downloads'), icon: 'k-icon-download', path: `/forms/${this.state.assetid}/data/downloads`},
-        {label: t('Map'), icon: 'k-icon-map-view', path: `/forms/${this.state.assetid}/data/map`},
-      ];
+      sideTabs = getFormDataTabs(this.state.assetid, stores.session.isLoggedIn);
     }
 
     if (this.state.asset && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
@@ -154,18 +174,26 @@ class FormViewTabs extends Reflux.Component {
     if (sideTabs.length > 0) {
       return (
         <bem.FormView__sidetabs>
-          { sideTabs.map((item, ind) =>
-            <Link
-              to={item.path}
-              key={ind}
-              activeClassName='active'
-              onlyActiveOnIndex
-              className='form-view__tab'
-              data-path={item.path}
-              onClick={this.triggerRefresh}>
+          { sideTabs.map((item, ind) => {
+            let className = 'form-view__tab';
+            if (item.isDisabled) {
+              className += ' form-view__tab--disabled';
+            }
+            return (
+              <Link
+                to={item.path}
+                key={ind}
+                activeClassName='active'
+                onlyActiveOnIndex
+                className={className}
+                data-path={item.path}
+                onClick={this.triggerRefresh}
+              >
                 <i className={`k-icon ${item.icon}`} />
                 {item.label}
-            </Link>
+              </Link>
+            );
+          }
           )}
         </bem.FormView__sidetabs>
       );
