@@ -207,10 +207,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def get_submission_detail_url(self, submission_id: int) -> str:
         # This doesn't really need to be implemented.
         # We keep it to stay close to `KobocatDeploymentBackend`
-        url = '{list_url}{pk}/'.format(
-            list_url=self.submission_list_url,
-            pk=submission_id
-        )
+        url = f'{self.submission_list_url}/{submission_id}'
         return url
 
     def get_submission_edit_url(
