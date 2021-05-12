@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link } from 'react-router';
+import assetUtils from 'js/assetUtils';
 import {bem} from '../bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
@@ -15,11 +15,16 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import {
   MODAL_TYPES,
   COLLECTION_METHODS,
-} from 'js/constants';
+  ROUTES,
+} from '../constants';
 import {
   formatTime,
   notify
 } from 'utils';
+import {
+  Link,
+  hashHistory,
+} from 'react-router';
 
 const DVCOUNT_LIMIT_MINIMUM = 20;
 
@@ -389,6 +394,26 @@ export class FormLanding extends React.Component {
   setCollectMethod(evt) {
     this.setState({selectedCollectMethod: evt.currentTarget.dataset.method});
   }
+  goToProjectsList() {
+    hashHistory.push(ROUTES.FORMS);
+  }
+  nonOwnerSelfRemoval(evt) {
+    evt.preventDefault();
+    // Listen for permission removal here to avoid manage_asset user removal
+    // from triggering redirect
+    this.nonOwnerSelfRemovalListener = this.listenTo(
+      actions.permissions.removeAssetPermission.completed,
+      this.nonOwnerSelfRemovalCompleted
+    );
+    this.removeSharing();
+  }
+  nonOwnerSelfRemovalCompleted() {
+    // Remove listener after self removal
+    if (this.nonOwnerSelfRemovalListener) {
+      this.stopListeningTo(actions.permissions.removeAssetPermission.completed);
+    }
+    this.goToProjectsList();
+  }
   renderButtons (userCanEdit) {
     var downloads = [];
     if (this.state.downloads) {
@@ -430,7 +455,7 @@ export class FormLanding extends React.Component {
         <ui.PopoverMenu
           type='formLanding-menu'
           triggerLabel={<i className='k-icon-more' />}
-          triggerTip={t('More Actions')}
+          triggerTip={t('More actions')}
         >
           {downloads.map((dl) => {
             return (
@@ -447,6 +472,15 @@ export class FormLanding extends React.Component {
             <bem.PopoverMenu__link onClick={this.showSharingModal}>
               <i className='k-icon-user-share'/>
               {t('Share this project')}
+            </bem.PopoverMenu__link>
+          }
+
+          {!assetUtils.isSelfOwned(this.state) &&
+            <bem.PopoverMenu__link
+              onClick={this.nonOwnerSelfRemoval}
+            >
+              <i className='k-icon-trash'/>
+              {t('Remove shared project')}
             </bem.PopoverMenu__link>
           }
 
@@ -467,7 +501,7 @@ export class FormLanding extends React.Component {
           {userCanEdit && this.state.content.survey.length > 0 &&
             <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
               <i className='k-icon-language'/>
-              {t('Manage Translations')}
+              {t('Manage translations')}
             </bem.PopoverMenu__link>
           }
           { /* temporarily disabled
@@ -507,7 +541,7 @@ export class FormLanding extends React.Component {
         {canEdit &&
           <bem.FormView__cell>
             <bem.FormView__link
-              data-tip={t('Manage Translations')}
+              data-tip={t('Manage translations')}
               onClick={this.showLanguagesModal}>
               <i className='k-icon-language' />
             </bem.FormView__link>
