@@ -84,7 +84,10 @@ export class TranslationTable extends React.Component {
         minWidth: 130,
         Cell: (cellInfo) => {
           // Disabling has no effect on this cell, but we do it to gray out the
-          // text to indicate that the label is locked. Useful if adding new translations
+          // text to indicate that the label is locked
+          // TODO: Figure out what to do for the case of adding a new language
+          //       when there are locked labels. These labels should be unlocked
+          //       for the newly added languages and their translations only.
           return (
             <div className={cellInfo.original.isLabelLocked ? 'disabled' : ''}>
               {cellInfo.original.original}
