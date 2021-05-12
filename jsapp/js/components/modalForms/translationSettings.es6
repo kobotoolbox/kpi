@@ -11,7 +11,10 @@ import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
 import {getLangString, notify} from 'utils';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
-import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
+import {
+  hasAssetRestriction,
+  isAssetLocked,
+} from 'js/components/locking/lockingUtils';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 
@@ -123,6 +126,11 @@ export class TranslationSettings extends React.Component {
       !this.isAddingTranslationsLocked() &&
       !(this.state.translations.length === 1 && this.state.translations[0] === null)
     );
+  }
+  // We don't have a restriction for changing language names, but it makes sense
+  // to disable it if the template has any locking at all
+  canEditLanguages() {
+    return this.state.asset?.content && isAssetLocked(this.state.asset.content);
   }
   getAllLanguages() {
     return this.state.translations;
@@ -322,7 +330,10 @@ export class TranslationSettings extends React.Component {
                       <bem.FormView__iconButton
                         data-index={i}
                         onClick={this.changeDefaultLanguage}
-                        disabled={this.state.isUpdatingDefaultLanguage}
+                        disabled={
+                          this.state.isUpdatingDefaultLanguage ||
+                          this.canEditLanguages()
+                        }
                         data-tip={t('Make default')}
                       >
                         <i className='k-icon-language-default' />
@@ -334,7 +345,10 @@ export class TranslationSettings extends React.Component {
                     <bem.FormView__iconButton
                       data-index={i}
                       onClick={this.toggleRenameLanguageForm}
-                      disabled={this.state.isUpdatingDefaultLanguage}
+                      disabled={
+                        this.state.isUpdatingDefaultLanguage ||
+                        this.canEditLanguages()
+                      }
                       data-tip={t('Edit language')}
                       className='right-tooltip'
                     >
@@ -361,7 +375,10 @@ export class TranslationSettings extends React.Component {
                       <bem.FormView__iconButton
                         data-index={i}
                         onClick={this.deleteLanguage}
-                        disabled={this.state.isUpdatingDefaultLanguage}
+                        disabled={
+                          this.state.isUpdatingDefaultLanguage ||
+                          this.canEditLanguages()
+                        }
                         data-tip={t('Delete language')}
                         className='right-tooltip'
                       >
