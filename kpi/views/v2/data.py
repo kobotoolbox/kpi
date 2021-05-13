@@ -3,6 +3,7 @@ from django.conf import settings
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import (
+    exceptions,
     renderers,
     serializers,
     status,
@@ -13,7 +14,11 @@ from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
+from kpi.constants import (
+    INSTANCE_FORMAT_TYPE_JSON,
+    PERM_ADD_SUBMISSIONS,
+    PERM_CHANGE_SUBMISSIONS,
+)
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
@@ -365,6 +370,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         Creates a duplicate of the submission with a given `pk`
         """
+        # User needs both `change_submissions` and `add_submissions`
+        # permissions in order to create a duplicate
+        if not all(
+            perm in self.asset.get_perms(request.user)
+            for perm in [PERM_ADD_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS]
+        ):
+            raise exceptions.PermissionDenied(
+                detail=_(
+                    'User needs both `add_submissions` and '
+                    '`change_submissions` permissions to duplicate a submission.'
+                )
+            )
         deployment = self._get_deployment()
         duplicate_response = deployment.duplicate_submission(
             requesting_user=request.user, instance_id=positive_int(pk)

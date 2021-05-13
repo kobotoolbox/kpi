@@ -667,7 +667,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         self, requesting_user: 'auth.User', instance_id: int
     ) -> dict:
         """
-        Dupicates a single submission proxied through kobocat. The submission
+        Duplicates a single submission proxied through kobocat. The submission
         with the given `instance_id` is duplicated and the `start`, `end` and
         `instanceID` parameters of the submission are reset before being posted
         to kobocat.
@@ -864,8 +864,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             kc_request = requests.Request(
                 method='POST', url=self.submission_url, files=files
             )
+            # `asset.owner` permissions needed for kobocat to allow the request
             kc_response = self.__kobocat_proxy_request(
-                kc_request, user=requesting_user
+                kc_request, user=self.asset.owner
             )
 
             kc_responses.append(
