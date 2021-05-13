@@ -132,7 +132,12 @@ class Drawer extends Reflux.Component {
       stores.serverEnvironment,
     ];
   }
-  render () {
+  render() {
+    // no sidebar for not logged in users
+    if (!stores.session.isLoggedIn) {
+      return null;
+    }
+
     return (
       <bem.KDrawer>
         <bem.KDrawer__primaryIcons>

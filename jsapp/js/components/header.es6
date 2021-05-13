@@ -260,9 +260,11 @@ class MainHeader extends Reflux.Component {
     return (
         <bem.MainHeader className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
-            <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
-              <i className='k-icon k-icon-menu' />
-            </bem.Button>
+            {stores.session.isLoggedIn &&
+              <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
+                <i className='k-icon k-icon-menu' />
+              </bem.Button>
+            }
             <span className='mdl-layout-title'>
               <a href='/'>
                 <bem.Header__logo />
