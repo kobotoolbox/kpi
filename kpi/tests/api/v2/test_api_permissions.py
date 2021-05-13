@@ -693,7 +693,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         )
         self.asset = Asset.objects.create(owner=self.someuser)
 
-    def test_anon_only_sees_owner_permissions(self):
+    def test_anon_only_sees_owner_and_anon_permissions(self):
         self.asset.assign_perm(self.anon, PERM_VIEW_ASSET)
         self.assertTrue(self.anon.has_perm(PERM_VIEW_ASSET, self.asset))
 
@@ -701,12 +701,16 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        owner_url = self.absolute_reverse(
-            self._get_endpoint('user-detail'),
-            kwargs={'username': self.asset.owner.username},
-        )
+        user_urls = []
+        for username in [self.asset.owner.username, self.anon.username]:
+            user_urls.append(
+                self.absolute_reverse(
+                    self._get_endpoint('user-detail'),
+                    kwargs={'username': username},
+                )
+            )
         self.assertSetEqual(
-            set((a['user'] for a in response.data)), set((owner_url,))
+            set((a['user'] for a in response.data)), set(user_urls)
         )
 
     def test_user_sees_relevant_permissions_on_assigned_objects(self):
