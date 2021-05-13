@@ -307,6 +307,11 @@ export class DataTable extends React.Component {
             <Checkbox
               checked={this.state.selectedRows[row.original._id] ? true : false}
               onChange={this.bulkUpdateChange.bind(this, row.original._id)}
+              disabled={!(
+                (this.isSubmissionWritable('change_submissions', this.props.asset, row.original))
+                || (this.isSubmissionWritable('delete_submissions', this.props.asset, row.original))
+                || (this.isSubmissionWritable('validate_submissions', this.props.asset, row.original))
+              )}
             />
           </div>
         )
@@ -336,7 +341,7 @@ export class DataTable extends React.Component {
             <i className='k-icon k-icon-view'/>
           </span>
 
-          {userCanSeeEditIcon &&
+          {userCanSeeEditIcon && (this.isSubmissionWritable('change_submissions', this.props.asset, row.original)) &&
             <span
               onClick={this.launchEditSubmission.bind(this)}
               data-sid={row.original._id}
@@ -377,7 +382,7 @@ export class DataTable extends React.Component {
         </select>,
       Cell: row => (
         <Select
-          isDisabled={!(this.userCan('validate_submissions', this.props.asset) || this.userCanPartially('validate_submissions', this.props.asset))}
+          isDisabled={!(this.isSubmissionWritable('validate_submissions', this.props.asset, row.original))}
           isClearable={false}
           value={this.getValidationStatusOption(row.original)}
           options={VALIDATION_STATUSES_LIST}
@@ -835,7 +840,7 @@ export class DataTable extends React.Component {
   }
   bulkUpdateChange(sid, isChecked) {
     let selectedRows = this.state.selectedRows;
-
+    console.log('bulkupdate', this);
     if (isChecked) {
       selectedRows[sid] = true;
     } else {
@@ -849,6 +854,9 @@ export class DataTable extends React.Component {
   }
   bulkSelectAllRows(isChecked) {
     let s = this.state.selectedRows;
+
+    console.log('selectedRows', s);
+
     this.state.tableData.forEach(function(r) {
       if (isChecked) {
         s[r._id] = true;

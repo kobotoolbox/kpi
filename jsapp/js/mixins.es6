@@ -757,10 +757,55 @@ mixins.permissions = {
       return false;
     }
 
-    return perm.partial_permissions.some((partial_perm) => {
-        return partial_perm.url === permConfig.getPermissionByCodename(partialPermName).url;
+    return perm.partial_permissions.some((partialPerm) => {
+      return partialPerm.url === permConfig.getPermissionByCodename(partialPermName).url;
+    });
+  },
+  isSubmissionWritable(permName, asset, submission) {
+    /**
+     * This implementation does not use the back end to detect if `submission`
+     * is writable or not. So far, the front end only supports filters like:
+     *    `_submitted_by: {'$in': []}`
+     * Let's search for `submissions._submitted_by` value among these `$in`
+     * lists.
+     *
+     * @type {boolean|*}
+     */
+      // ToDo optimize this to avoid calling `userCan()` and `userCanPartially()`
+      //  repeatedly in the table view
+      // ToDo Support multiple permissions at once
+    const userCan = this.userCan(permName, asset);
+    const userCanPartially = this.userCanPartially(permName, asset);
+
+    if (userCan) {
+      return true;
+    }
+
+    if (!userCanPartially) {
+      return false;
+    }
+
+    const currentUsername = stores.session.currentAccount.username;
+    const partialPerms = asset.permissions.find((perm) => {
+      return (
+        perm.user === buildUserUrl(currentUsername) &&
+        this.doesPermMatch(perm, 'partial_submissions', permName)
+      );
+    });
+
+    const partialPerm = partialPerms.partial_permissions.find((nestedPerm) => {
+      return nestedPerm.url === permConfig.getPermissionByCodename(permName).url;
+    });
+
+    const submittedBy = submission._submitted_by;
+    let allowedUsers = [];
+
+    partialPerm.filters.forEach((filter) => {
+      if (filter._submitted_by) {
+        allowedUsers = allowedUsers.concat(filter._submitted_by.$in);
       }
-    );
+    });
+    return allowedUsers.indexOf(submittedBy) > -1;
   },
   userCan(permName, asset, partialPermName = null) {
     if (!asset.permissions) {
