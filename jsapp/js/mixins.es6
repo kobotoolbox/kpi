@@ -241,6 +241,9 @@ mixins.dmix = {
       actions.resources.loadAsset({id: uid});
     }
   },
+  removeSharing: function() {
+    mixins.clickAssets.click.asset.removeSharing(this.props.params.uid);
+  },
 };
 
 /*
