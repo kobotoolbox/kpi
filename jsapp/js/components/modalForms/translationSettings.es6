@@ -11,10 +11,7 @@ import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
 import {getLangString, notify} from 'utils';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
-import {
-  hasAssetRestriction,
-  isAssetLocked,
-} from 'js/components/locking/lockingUtils';
+import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 
