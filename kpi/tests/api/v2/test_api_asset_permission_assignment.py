@@ -229,21 +229,26 @@ class ApiAssetPermissionListTestCase(BaseApiAssetPermissionTestCase):
 
         self.assertEqual(expected_perms, obj_perms)
 
-    def test_anonymous_get_only_owner_s_assignments(self):
+    def test_anonymous_get_only_owner_and_anonymous_assignments(self):
 
         self.client.logout()
         permission_list_response = self.client.get(
             self.get_asset_perm_assignment_list_url(self.asset), format='json'
         )
         self.assertEqual(permission_list_response.status_code, status.HTTP_200_OK)
-        admin_perms = self.asset.get_perms(self.admin)
+        admin = self.admin
+        admin_perms = self.asset.get_perms(admin)
+        anon = get_anonymous_user()
+        anon_perms = self.asset.get_perms(anon)
+        assignable_perms = self.asset.get_assignable_permissions()
         results = permission_list_response.data
 
         # Get admin permissions.
         expected_perms = []
-        for admin_perm in admin_perms:
-            if admin_perm in self.asset.get_assignable_permissions():
-                expected_perms.append((self.admin.username, admin_perm))
+        for user, perms in [(anon, anon_perms), (admin, admin_perms)]:
+            for perm in perms:
+                if perm in assignable_perms:
+                    expected_perms.append((user.username, perm))
 
         expected_perms = sorted(expected_perms, key=lambda element: (element[0],
                                                                      element[1]))
