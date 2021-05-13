@@ -3,10 +3,12 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.postgres.fields import JSONField as JSONBField
+from django.core.signing import Signer
 from django.db import (
     ProgrammingError,
     connections,
     models,
+    IntegrityError,
     router,
 )
 from django.utils import timezone
@@ -186,11 +188,41 @@ class KobocatOneTimeAuthRequest(ShadowModel):
 
     class Meta(ShadowModel.Meta):
         db_table = 'logger_onetimeauthrequest'
+        unique_together = ('token', 'used')
 
     @classmethod
-    def get_token(cls, user: 'auth.User', method: str):
+    def create_token(
+        cls,
+        user: 'auth.User',
+        method: str = 'POST',
+        ttl: int = DEFAULT_TTL,
+        url: str = None,
+    ) -> 'KobocatOneTimeAuthRequest':
+        """
+        Create and return an instance of KobocatOneTimeAuthRequest.
+
+        If `url` is specified, it generates the token based on the URL instead
+        of auto-generating it.
+        It's useful for Enketo Express to be granted when POSTing data to
+        KoBoCAT from one specific url (e.g.: edit a submission).
+        """
+        token = None
         kc_user = KobocatUser.objects.get(id=user.pk)
-        auth_request = cls.objects.create(user=kc_user, method=method)
+        if url is not None:
+            # `Signer()` returns 'url:encoded-string'.
+            # E.g: https://ee.kt.org/edit:a123bc'
+            # We only want the last part
+            parts = Signer().sign(url).split(':')
+            token = parts[-1]
+
+        auth_request, created = cls.objects.get_or_create(
+            user=kc_user, token=token, ttl=ttl, method=method
+        )
+        return auth_request
+
+    @classmethod
+    def get_header(cls, user: 'auth.User', method: str) -> dict:
+        auth_request = cls.create_token(user, method)
         return {cls.HEADER: auth_request.token}
 
 

@@ -191,7 +191,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             headers = {}
             if partial_perms:
                 headers.update(
-                    KobocatOneTimeAuthRequest.get_token(user, 'POST')
+                    KobocatOneTimeAuthRequest.get_header(user, 'POST')
                 )
 
             kc_request = requests.Request(
@@ -342,7 +342,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Otherwise, they have have full access.
         headers = {}
         if submission_ids:
-            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'POST'))
+            headers.update(KobocatOneTimeAuthRequest.get_header(user, 'POST'))
 
         kc_url = self.get_submission_detail_url(submission_id)
         kc_request = requests.Request(
@@ -380,7 +380,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # already retrieve
             data.pop('query', None)
             data['submission_ids'] = submission_ids
-            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'DELETE'))
+            headers.update(KobocatOneTimeAuthRequest.get_header(user, 'DELETE'))
 
         kc_url = self.submission_list_url
         kc_request = requests.Request(
@@ -414,7 +414,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Otherwise, they have have full access.
         headers = {}
         if submission_ids:
-            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'POST'))
+            headers.update(KobocatOneTimeAuthRequest.get_header(user, 'POST'))
 
         submission = self.get_submission(
             submission_id,
@@ -562,8 +562,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
         headers = {}
+        use_partial_perms = False
         if submission_ids:
-            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'GET'))
+            use_partial_perms = True
+            headers.update(KobocatOneTimeAuthRequest.get_header(user, 'GET'))
 
         url = '{detail_url}/enketo'.format(
             detail_url=self.get_submission_detail_url(submission_id))
@@ -571,6 +573,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             method='GET', url=url, params=params, headers=headers
         )
         kc_response = self.__kobocat_proxy_request(kc_request, user)
+
+        # if `headers` is not empty, user has partial permissions. We need to
+        # allow Enketo Express to communicate with KoBoCAT when data is
+        # submitted. We whitelist the URL through KobocatOneTimeAuthRequest
+        # to make KoBoCAT accept the edited submission from this user
+        if use_partial_perms and kc_response.status_code == status.HTTP_200_OK:
+            json_response = kc_response.json()
+            try:
+                url = json_response['url']
+            except KeyError:
+                pass
+            else:
+                # Give the token a longer life in case the edit takes longer
+                # than `KobocatOneTimeAuthRequest.DEFAULT_TTL`.
+                KobocatOneTimeAuthRequest.create_token(
+                    user=user, url=url, ttl=300
+                )
 
         return self.__prepare_as_drf_response_signature(kc_response)
 
@@ -839,7 +858,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Otherwise, they have have full access.
         headers = {}
         if submission_ids:
-            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'PATCH'))
+            headers.update(KobocatOneTimeAuthRequest.get_header(user, 'PATCH'))
 
         kc_request_params = {
             'method': method,
@@ -881,7 +900,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # already retrieve
             data.pop('query', None)
             data['submission_ids'] = submission_ids
-            headers.update(KobocatOneTimeAuthRequest.get_token(user, 'PATCH'))
+            headers.update(KobocatOneTimeAuthRequest.get_header(user, 'PATCH'))
 
         # `PATCH` KC even if KPI receives `DELETE`
         url = self.submission_list_url
