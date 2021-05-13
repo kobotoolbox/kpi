@@ -72,13 +72,6 @@ class FormViewTabs extends Reflux.Component {
   }
 
   isDataTabEnabled() {
-    console.log({
-      dep_id: this.state.asset.deployment__identifier,
-      has_dep: this.state.asset.has_deployment,
-      count: this.state.asset.deployment__submission_count,
-      can_view: this.userCan('view_submissions', this.state.asset),
-      can_part: this.userCan('partial_submissions', this.state.asset),
-    });
     return (
       this.state.asset.deployment__identifier != undefined &&
       this.state.asset.has_deployment &&
@@ -100,11 +93,24 @@ class FormViewTabs extends Reflux.Component {
       dataTabClassNames += ' form-view__tab--disabled';
     }
 
+    let summaryTabClassNames = 'form-view__tab';
+    if (!stores.session.isLoggedIn) {
+      summaryTabClassNames += ' form-view__tab--disabled';
+    }
+
+    let settingsTabClassNames = 'form-view__tab';
+    if (
+      !stores.session.isLoggedIn ||
+      !this.userCan('change_asset', this.state.asset)
+    ) {
+      settingsTabClassNames += ' form-view__tab--disabled';
+    }
+
     return (
       <bem.FormView__toptabs>
         <Link
           to={ROUTES.FORM_SUMMARY.replace(':uid', this.state.assetid)}
-          className='form-view__tab'
+          className={summaryTabClassNames}
           activeClassName='active'
         >
           {t('Summary')}
@@ -127,19 +133,19 @@ class FormViewTabs extends Reflux.Component {
 
         <Link
           to={ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid)}
-          className='form-view__tab'
+          className={settingsTabClassNames}
           activeClassName='active'
-          disabled={!this.userCan('change_asset', this.state.asset)}
         >
           {t('Settings')}
         </Link>
 
-        <Link
-          to={ROUTES.FORMS}
-          className='form-view__link form-view__link--close'>
-          <i className='k-icon-close' />
-        </Link>
-
+        {stores.session.isLoggedIn &&
+          <Link
+            to={ROUTES.FORMS}
+            className='form-view__link form-view__link--close'>
+            <i className='k-icon-close' />
+          </Link>
+        }
       </bem.FormView__toptabs>
     );
   }
