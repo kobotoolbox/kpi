@@ -123,11 +123,6 @@ export class TranslationSettings extends React.Component {
       !(this.state.translations.length === 1 && this.state.translations[0] === null)
     );
   }
-  // We don't have a restriction for changing language names, but it makes sense
-  // to disable it if the template has any locking at all
-  canEditLanguages() {
-    return this.state.asset?.content && isAssetLocked(this.state.asset.content);
-  }
   getAllLanguages() {
     return this.state.translations;
   }
@@ -326,10 +321,7 @@ export class TranslationSettings extends React.Component {
                       <bem.FormView__iconButton
                         data-index={i}
                         onClick={this.changeDefaultLanguage}
-                        disabled={
-                          this.state.isUpdatingDefaultLanguage ||
-                          this.canEditLanguages()
-                        }
+                        disabled={this.state.isUpdatingDefaultLanguage}
                         data-tip={t('Make default')}
                       >
                         <i className='k-icon-language-default' />
@@ -341,10 +333,7 @@ export class TranslationSettings extends React.Component {
                     <bem.FormView__iconButton
                       data-index={i}
                       onClick={this.toggleRenameLanguageForm}
-                      disabled={
-                        this.state.isUpdatingDefaultLanguage ||
-                        this.canEditLanguages()
-                      }
+                      disabled={this.state.isUpdatingDefaultLanguage}
                       data-tip={t('Edit language')}
                       className='right-tooltip'
                     >
@@ -371,10 +360,7 @@ export class TranslationSettings extends React.Component {
                       <bem.FormView__iconButton
                         data-index={i}
                         onClick={this.deleteLanguage}
-                        disabled={
-                          this.state.isUpdatingDefaultLanguage ||
-                          this.canEditLanguages()
-                        }
+                        disabled={this.state.isUpdatingDefaultLanguage}
                         data-tip={t('Delete language')}
                         className='right-tooltip'
                       >

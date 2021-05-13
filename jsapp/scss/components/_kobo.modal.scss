@@ -566,18 +566,6 @@ $z-modal-x: 10;
     &:hover .form-view__cell--translation-name .form-view__icon-button {
       opacity: 1;
       visibility: visible;
-
-      // Hide the on hover button completely if disabled
-      &:disabled {
-        opacity: 0;
-        visibility: hidden;
-      }
-    }
-
-    .form-view__icon-button.right-tooltip {
-      &:disabled {
-        color: $kobo-lightgray;
-      }
     }
   }
 
