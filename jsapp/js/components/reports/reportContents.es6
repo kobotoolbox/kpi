@@ -9,11 +9,13 @@ export default class ReportContents extends React.Component {
     super(props);
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps) {
     // to improve UI performance, don't refresh report while a modal window is visible
-    if (nextProps.parentState.showReportGraphSettings
-        || nextProps.parentState.showCustomReportModal
-        || nextProps.parentState.currentQuestionGraph) {
+    if (
+      nextProps.parentState.showReportGraphSettings ||
+      nextProps.parentState.showCustomReportModal ||
+      nextProps.parentState.currentQuestionGraph
+    ) {
       return false;
     } else {
       return true;
@@ -45,7 +47,7 @@ export default class ReportContents extends React.Component {
     for (var i = reportData.length - 1; i > -1; i--) {
       let _qn = reportData[i].name;
       let _type = reportData[i].row.type || null;
-      var _defSpec = undefined;
+      let _defSpec;
 
       if (customReport) {
         if (customReport.specified && customReport.specified[_qn]) {
@@ -64,10 +66,15 @@ export default class ReportContents extends React.Component {
       }
 
       if (
-        (_type === QUESTION_TYPES.select_one.id || _type === QUESTION_TYPES.select_multiple.id) &&
-        asset.content.choices
+        asset.content.choices &&
+        (
+          _type === QUESTION_TYPES.select_one.id ||
+          _type === QUESTION_TYPES.select_multiple.id
+        )
       ) {
-        let question = asset.content.survey.find((z) => {return z.name === _qn || z.$autoname === _qn;});
+        let question = asset.content.survey.find((z) => {
+          return z.name === _qn || z.$autoname === _qn;
+        });
         let resps = reportData[i].data.responses;
         let choice;
         if (resps) {
@@ -77,7 +84,7 @@ export default class ReportContents extends React.Component {
               return (
                 question &&
                 o.list_name === question.select_from_list_name &&
-                (o.name === resps[j] || o.$autoname == resps[j])
+                (o.name === resps[j] || o.$autoname === resps[j])
               );
             });
             if (choice && choice.label && choice.label[tnslIndex]) {
@@ -91,7 +98,9 @@ export default class ReportContents extends React.Component {
           if (vals && vals[0] && vals[0][1] && vals[0][1].responses) {
             var respValues = vals[0][1].responses;
             reportData[i].data.responseLabels = [];
-            let qGB = asset.content.survey.find((z) => {return z.name === groupBy || z.$autoname === groupBy});
+            let qGB = asset.content.survey.find((z) => {
+              return z.name === groupBy || z.$autoname === groupBy;
+            });
             respValues.forEach(function(r, ind){
               choice = asset.content.choices.find((o) => {
                 return (
@@ -100,7 +109,11 @@ export default class ReportContents extends React.Component {
                   (o.name === r || o.$autoname === r)
                 );
               });
-              reportData[i].data.responseLabels[ind] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : r;
+              if (choice?.label && choice.label[tnslIndex]) {
+                reportData[i].data.responseLabels[ind] = choice.label[tnslIndex];
+              } else {
+                reportData[i].data.responseLabels[ind] = r;
+              }
             });
 
             // TODO: use a better way to store translated labels per row
@@ -112,7 +125,11 @@ export default class ReportContents extends React.Component {
                   (o.name === vals[vD][0] || o.$autoname === vals[vD][0])
                 );
               });
-              vals[vD][2] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : vals[vD][0];
+              if (choice && choice.label && choice.label[tnslIndex]) {
+                vals[vD][2] = choice.label[tnslIndex];
+              } else {
+                vals[vD][2] = vals[vD][0];
+              }
             }
           }
         }
@@ -122,7 +139,7 @@ export default class ReportContents extends React.Component {
     return (
       <div>
         {
-          reportData.map((rowContent, i) =>{
+          reportData.map((rowContent, i) => {
             let label = t('Unlabeled');
             if (_.isArray(rowContent.row.label)) {
               label = rowContent.row.label[tnslIndex];

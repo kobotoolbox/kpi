@@ -4,7 +4,7 @@ import Radio from 'js/components/common/radio';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import ui from 'js/ui';
-import { assign } from 'utils';
+import {assign} from 'utils';
 import ChartTypePicker from './chartTypePicker';
 import ChartColorsPicker from './chartColorsPicker';
 
@@ -17,8 +17,12 @@ export default class ReportStyleSettings extends React.Component {
       reportStyle: props.parentState.reportStyles.default,
     };
 
-    if (props.parentState.currentCustomReport && props.parentState.currentCustomReport.reportStyle) {
-      this.state.reportStyle = props.parentState.currentCustomReport.reportStyle;
+    if (
+      props.parentState.currentCustomReport &&
+      props.parentState.currentCustomReport.reportStyle
+    ) {
+      this.state.reportStyle =
+        props.parentState.currentCustomReport.reportStyle;
     }
   }
 
@@ -36,7 +40,7 @@ export default class ReportStyleSettings extends React.Component {
   }
 
   reportSizeChange(params) {
-    if (params.id == 'width') {
+    if (params.id === 'width') {
       let styles = this.state.reportStyle;
       styles.graphWidth = params.value;
       this.setState({reportStyle: styles});
@@ -60,7 +64,9 @@ export default class ReportStyleSettings extends React.Component {
     let assetUid = this.props.parentState.asset.uid;
     if (currentCustomReport) {
       let report_custom = this.props.parentState.asset.report_custom;
-      report_custom[currentCustomReport.crid].reportStyle = this.state.reportStyle;
+      report_custom[
+        currentCustomReport.crid
+      ].reportStyle = this.state.reportStyle;
       actions.reports.setCustom(assetUid, report_custom);
     } else {
       let sett_ = this.props.parentState.reportStyles;
@@ -84,11 +90,14 @@ export default class ReportStyleSettings extends React.Component {
       if (
         rows.hasOwnProperty(key) &&
         rows[key].hasOwnProperty('type') &&
-        rows[key].type == 'select_one'
+        rows[key].type === 'select_one'
       ) {
         const row = rows[key];
         const val = row.name || row.$autoname;
-        const label = translations ? row.label[reportStyle.translationIndex] : row.label;
+        let label = row.label;
+        if (translations) {
+          label = row.label[reportStyle.translationIndex];
+        }
         groupByOptions.push({
           value: val,
           label: label,
@@ -113,10 +122,17 @@ export default class ReportStyleSettings extends React.Component {
       });
     }
 
-    var modalTabs = tabs.map(function(tab, i) {
+    var modalTabs = tabs.map(function (tab, i) {
+      let tabClassNames = [
+        'mdl-button',
+        'mdl-button--tab',
+      ];
+      if (this.state.activeModalTab === i) {
+        tabClassNames.push('active');
+      }
       return (
         <button
-          className={`mdl-button mdl-button--tab ${this.state.activeModalTab === i ? 'active' : ''}`}
+          className={tabClassNames}
           onClick={this.toggleTab}
           data-index={i}
           key={i}
@@ -128,47 +144,47 @@ export default class ReportStyleSettings extends React.Component {
 
     return (
       <bem.GraphSettings>
-        <ui.Modal.Tabs>
-          {modalTabs}
-        </ui.Modal.Tabs>
+        <ui.Modal.Tabs>{modalTabs}</ui.Modal.Tabs>
         <ui.Modal.Body>
           <div className='tabs-content'>
-            {tabs[this.state.activeModalTab] === t('Chart Type') &&
+            {tabs[this.state.activeModalTab] === t('Chart Type') && (
               <div id='graph-type'>
                 <ChartTypePicker
                   defaultStyle={reportStyle}
                   onChange={this.reportStyleChange}
                 />
               </div>
-            }
-            {tabs[this.state.activeModalTab] === t('Colors') &&
+            )}
+            {tabs[this.state.activeModalTab] === t('Colors') && (
               <div id='graph-colors'>
                 <ChartColorsPicker
                   defaultStyle={reportStyle}
                   onChange={this.reportStyleChange}
                 />
               </div>
-            }
-            {tabs[this.state.activeModalTab] === t('Group By') && groupByOptions.length > 1 &&
-              <div className='graph-tab__groupby' id='graph-labels'>
-                <Radio
-                  name='reports-groupby'
-                  options={groupByOptions}
-                  onChange={this.onGroupByChange}
-                  selected={reportStyle.groupDataBy}
-                />
-              </div>
-            }
-            {tabs[this.state.activeModalTab] === t('Translation') && selectedTranslationOptions.length > 1 &&
-              <div className='graph-tab__translation' id='graph-labels'>
-                <Radio
-                  name='reports-selected-translation'
-                  options={selectedTranslationOptions}
-                  onChange={this.translationIndexChange}
-                  selected={reportStyle.translationIndex}
-                />
-              </div>
-            }
+            )}
+            {tabs[this.state.activeModalTab] === t('Group By') &&
+              groupByOptions.length > 1 && (
+                <div className='graph-tab__groupby' id='graph-labels'>
+                  <Radio
+                    name='reports-groupby'
+                    options={groupByOptions}
+                    onChange={this.onGroupByChange}
+                    selected={reportStyle.groupDataBy}
+                  />
+                </div>
+              )}
+            {tabs[this.state.activeModalTab] === t('Translation') &&
+              selectedTranslationOptions.length > 1 && (
+                <div className='graph-tab__translation' id='graph-labels'>
+                  <Radio
+                    name='reports-selected-translation'
+                    options={selectedTranslationOptions}
+                    onChange={this.translationIndexChange}
+                    selected={reportStyle.translationIndex}
+                  />
+                </div>
+              )}
           </div>
           <ui.Modal.Footer>
             <bem.KoboButton m='blue' onClick={this.saveReportStyles}>

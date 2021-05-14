@@ -49,14 +49,14 @@ export default class CustomReportForm extends React.Component {
 
   render() {
     const crid = this.state.customReport.crid;
-    var questionList = this.props.reportData.map(function(q, i){
+    var questionList = this.props.reportData.map(function (q, i) {
       return (
         <div className='graph-settings__question' key={i}>
-            <Checkbox
-              checked={this.state.customReport.questions.includes(q.name)}
-              onChange={this.customReportQuestionChange.bind(this, q.name)}
-              label={q.row.label ? q.row.label[0] : t('Unlabeled') }
-            />
+          <Checkbox
+            checked={this.state.customReport.questions.includes(q.name)}
+            onChange={this.customReportQuestionChange.bind(this, q.name)}
+            label={q.row.label ? q.row.label[0] : t('Unlabeled')}
+          />
         </div>
       );
     }, this);
@@ -75,16 +75,14 @@ export default class CustomReportForm extends React.Component {
 
         <strong>{t('Include the following questions:')}</strong>
 
-        <div className='custom-report--questions'>
-          {questionList}
-        </div>
+        <div className='custom-report--questions'>{questionList}</div>
 
         <bem.Modal__footer>
-          {this.props.asset.report_custom[crid] &&
+          {this.props.asset.report_custom[crid] && (
             <bem.KoboButton m='red' onClick={this.deleteCustomReport}>
               {t('Delete')}
             </bem.KoboButton>
-          }
+          )}
           <bem.KoboButton m='blue' onClick={this.saveCustomReport}>
             {t('Save')}
           </bem.KoboButton>

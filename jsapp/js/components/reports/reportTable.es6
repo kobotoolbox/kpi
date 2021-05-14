@@ -13,7 +13,9 @@ export default class ReportTable extends React.Component {
   }
 
   render() {
-    let th = [''], rows = [];
+    let th = [''];
+    let rows = [];
+
     if (this.props.type === 'numerical') {
       th = [t('Mean'), t('Median'), t('Mode'), t('Standard deviation')];
       if (this.props.rows) {
@@ -26,12 +28,12 @@ export default class ReportTable extends React.Component {
         <table>
           <thead>
             <tr>
-              {th.map((t, i) =>{
-                return (<th key={i}>{t}</th>);
+              {th.map((t, i) => {
+                return <th key={i}>{t}</th>;
               })}
             </tr>
           </thead>
-          {this.props.values &&
+          {this.props.values && (
             <tbody>
               <tr>
                 <td>{this.formatNumber(v.mean) || t('N/A')}</td>
@@ -40,29 +42,29 @@ export default class ReportTable extends React.Component {
                 <td>{this.formatNumber(v.stdev) || t('N/A')}</td>
               </tr>
             </tbody>
-          }
-          {this.props.rows &&
+          )}
+          {this.props.rows && (
             <tbody>
               {this.props.rows.map((r) => {
                 return (
-                    <tr key={r[0]}>
-                      <td>{r[0]}</td>
-                      <td>{this.formatNumber(r[1].mean) || t('N/A')}</td>
-                      <td>{this.formatNumber(r[1].median) || t('N/A')}</td>
-                      <td>{this.formatNumber(r[1].mode) || t('N/A')}</td>
-                      <td>{this.formatNumber(r[1].stdev) || t('N/A')}</td>
-                    </tr>
-                  );
+                  <tr key={r[0]}>
+                    <td>{r[0]}</td>
+                    <td>{this.formatNumber(r[1].mean) || t('N/A')}</td>
+                    <td>{this.formatNumber(r[1].median) || t('N/A')}</td>
+                    <td>{this.formatNumber(r[1].mode) || t('N/A')}</td>
+                    <td>{this.formatNumber(r[1].stdev) || t('N/A')}</td>
+                  </tr>
+                );
               })}
             </tbody>
-          }
+          )}
         </table>
       );
     }
     if (this.props.type === 'regular') {
       th = [t('Value'), t('Frequency'), t('Percentage')];
       rows = this.props.rows;
-    // prepare table data for disaggregated rows
+      // prepare table data for disaggregated rows
     } else if (this.props.rows.length > 0) {
       let rowsB = this.props.rows;
       if (this.props.responseLabels) {
@@ -86,17 +88,17 @@ export default class ReportTable extends React.Component {
       <table>
         <thead>
           <tr>
-            {th.map((t, i) =>{
-              return (<th key={i}>{t}</th>);
+            {th.map((t, i) => {
+              return <th key={i}>{t}</th>;
             })}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row)=>{
+          {rows.map((row) => {
             return (
               <tr key={row[0]}>
-                {row.map((r, i) =>{
-                  return (<td key={i}>{r}</td>);
+                {row.map((r, i) => {
+                  return <td key={i}>{r}</td>;
                 })}
               </tr>
             );
