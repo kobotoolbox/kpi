@@ -533,11 +533,12 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_duplicate_submission_by_anotheruser_shared_change_not_allowed(self):
+    def test_duplicate_submission_by_anotheruser_shared_as_editor_allowed(self):
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.post(self.submission_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_201_CREATED
+        self._check_duplicate(response)
 
     def test_duplicate_submission_by_anotheruser_shared_add_not_allowed(self):
         for perm in [PERM_VIEW_SUBMISSIONS, PERM_ADD_SUBMISSIONS]:
@@ -545,15 +546,6 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
-
-    def test_duplicate_submission_by_anotheruser_shared_add_and_change_allowed(self):
-        # user needs both `add_submissions` and `change_submissions` permissions
-        for perm in [PERM_CHANGE_SUBMISSIONS, PERM_ADD_SUBMISSIONS]:
-            self.asset.assign_perm(self.anotheruser, perm)
-        self._log_in_as_another_user()
-        response = self.client.post(self.submission_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_201_CREATED
-        self._check_duplicate(response)
 
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
