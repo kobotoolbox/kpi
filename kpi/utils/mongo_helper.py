@@ -296,7 +296,7 @@ class MongoHelper:
         cursor = settings.MONGO_DB.instances.find(
             query,
             fields_to_select,
-            max_time_ms=CELERY_TASK_TIME_LIMIT*1000
+            max_time_ms=MONGO_DB_MAX_TIME_MS
         )
         return cursor, cursor.count()
 
