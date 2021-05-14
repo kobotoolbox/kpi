@@ -93,7 +93,7 @@ class BaseSubmissionTestCase(BaseTestCase):
                 '__version__': v_uid,
                 'q1': ''.join(random.choice(letters) for l in range(10)),
                 'q2': ''.join(random.choice(letters) for l in range(10)),
-                'instanceID': f'uuid:{uuid.uuid4()}',
+                'meta/instanceID': f'uuid:{uuid.uuid4()}',
                 '_validation_status': {
                     'by_whom': 'someuser',
                     'timestamp': int(time.time()),
@@ -680,8 +680,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         expected_next_id = max((sub['_id'] for sub in self.submissions)) + 1
         assert submission['_id'] != duplicate_submission['_id']
         assert duplicate_submission['_id'] == expected_next_id
-
-        assert submission['instanceID'] != duplicate_submission['instanceID']
+        assert submission['meta/instanceID'] != duplicate_submission['meta/instanceID']
         assert submission['start'] != duplicate_submission['start']
         assert submission['end'] != duplicate_submission['end']
 

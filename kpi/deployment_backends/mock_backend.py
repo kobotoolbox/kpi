@@ -59,8 +59,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         for submission in submissions:
             if submission['_id'] in submission_ids:
                 _uuid = uuid.uuid4()
-                submission['deprecatedID'] = submission['instanceID']
-                submission['instanceID'] = f'uuid:{_uuid}'
+                submission['meta/deprecatedID'] = submission['meta/instanceID']
+                submission['meta/instanceID'] = f'uuid:{_uuid}'
                 for k, v in data['data'].items():
                     submission[k] = v
 
