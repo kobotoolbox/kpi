@@ -189,7 +189,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 method='POST', url=self.submission_url, files=files
             )
             kc_response = self.__kobocat_proxy_request(
-                kc_request, user=self.asset.owner
+                kc_request, user=requesting_user
             )
 
             kc_responses.append(
@@ -371,7 +371,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(kc_response)
 
     def duplicate_submission(
-            self, requesting_user: 'auth.User', instance_id: int
+        self, requesting_user: 'auth.User', instance_id: int
     ) -> dict:
         """
         Duplicates a single submission proxied through KoBoCAT. The submission
