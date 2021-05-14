@@ -451,7 +451,6 @@ class Submission extends React.Component {
               }
 
               {this.userCan('change_submissions', this.props.asset) &&
-                      this.userCan('add_submissions', this.props.asset) &&
                 <a
                   onClick={this.duplicateSubmission.bind(this)}
                   className='kobo-button kobo-button--blue submission-duplicate__button'
