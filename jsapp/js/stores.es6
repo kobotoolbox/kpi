@@ -313,6 +313,11 @@ stores.allAssets = Reflux.createStore({
   },
   onDeleteAssetCompleted (asset) {
     if (this.byUid[asset.uid]) {
+      // We append `deleted: true` to the asset after the asset is removed in
+      // the backend because the asset still exists in the frontend,
+      // specifically in the search store's lists.
+      // We do this so that the deleted asset doesn't show up in the asset list
+      // during the same search store instance
       this.byUid[asset.uid].deleted = 'true';
       this.trigger(this.data);
       window.setTimeout(()=> {

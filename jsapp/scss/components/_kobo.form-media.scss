@@ -61,23 +61,24 @@
       padding-bottom: 12px;
       border-bottom: 1px solid $kobo-lightgray;
       margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
 
-      i.k-icon-trash {
-        right: 10px;
-        position: absolute;
-        top:-5px;
-        color: $kobo-red;
-        font-size: 36px;
-        float: right;
-        cursor: pointer;
+      // TODO: Find a better way to implement button size without editing parent
+      button.kobo-light-button {
+        padding-bottom: 25px;
+
+        i.k-icon-trash {
+          font-size: 24px;
+        }
       }
 
       i.form-media__file-type {
         position: absolute;
         left: -5px;
-        top: 4px;
+        top: 2px;
         color: grey;
-        font-size: 18px;
+        font-size: 24px;
       }
 
       a {
@@ -104,4 +105,3 @@
     width: auto;
   }
 }
-
