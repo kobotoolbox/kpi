@@ -14,10 +14,15 @@ export default class ChartColorsPicker extends React.Component {
   }
 
   defaultReportColorsChange(evt) {
-    this.props.onChange(
-      { default: true },
-      { report_colors: REPORT_COLOR_SETS[evt.currentTarget.value].colors || REPORT_COLOR_SETS[0].colors },
-    );
+    let newColors = REPORT_COLOR_SETS[0].colors;
+    if (
+      REPORT_COLOR_SETS[evt.currentTarget.value] &&
+      REPORT_COLOR_SETS[evt.currentTarget.value].colors
+    ) {
+      newColors = REPORT_COLOR_SETS[evt.currentTarget.value].colors;
+    }
+
+    this.props.onChange({default: true}, {report_colors: newColors});
   }
 
   defaultValue(set, index) {
@@ -25,11 +30,14 @@ export default class ChartColorsPicker extends React.Component {
       return true;
     }
 
-    return JSON.stringify(this.props.defaultStyle.report_colors) === JSON.stringify(set.colors);
+    return (
+      JSON.stringify(this.props.defaultStyle.report_colors) ===
+      JSON.stringify(set.colors)
+    );
   }
 
   render() {
-    var radioButtons = REPORT_COLOR_SETS.map(function(set, index){
+    var radioButtons = REPORT_COLOR_SETS.map(function (set, index) {
       return (
         <bem.GraphSettings__radio key={index}>
           <input
@@ -41,22 +49,16 @@ export default class ChartColorsPicker extends React.Component {
             id={'type-' + set.label}
           />
           <label htmlFor={'type-' + set.label}>
-          {
-            REPORT_COLOR_SETS[index].colors.map(function(color, i){
-              return (
-                <div style={{backgroundColor: color}} key={i} />
-              );
-            }, this)
-          }
+            {REPORT_COLOR_SETS[index].colors.map(function (color, i) {
+              return <div style={{backgroundColor: color}} key={i} />;
+            }, this)}
           </label>
         </bem.GraphSettings__radio>
       );
     }, this);
 
     return (
-      <bem.GraphSettings__colors>
-        {radioButtons}
-      </bem.GraphSettings__colors>
+      <bem.GraphSettings__colors>{radioButtons}</bem.GraphSettings__colors>
     );
   }
 }
