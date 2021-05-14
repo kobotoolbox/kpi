@@ -54,6 +54,7 @@
     "no-useless-escape": 1,
     "no-useless-rename": 1,
     "no-whitespace-before-property": 1,
+    "one-var": ["warn", "never"],
     "quotes": ["warn", "single", {"avoidEscape": true}],
     "react/jsx-boolean-value": 2,
     "react/jsx-no-undef": 2,
