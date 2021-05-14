@@ -456,7 +456,7 @@ class AssetActionButtons extends React.Component {
           </bem.AssetActionButtons__iconButton>
         }
 
-        {userCanEdit && assetType === ASSET_TYPES.template.id &&
+        {assetType === ASSET_TYPES.template.id &&
           <bem.AssetActionButtons__iconButton
             onClick={this.cloneAsSurvey}
             data-tip={t('Create project')}
