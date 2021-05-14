@@ -201,7 +201,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 headers=headers,
             )
             kc_response = self.__kobocat_proxy_request(
-                kc_request, user=requesting_user
+                kc_request, user=user
             )
 
             kc_responses.append(
