@@ -262,10 +262,7 @@ class EditSubmissionPermission(SubmissionPermission):
 class DuplicateSubmissionPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
-        'POST': [
-            '%(app_label)s.add_%(model_name)s',
-            '%(app_label)s.change_%(model_name)s',
-        ],
+        'POST': ['%(app_label)s.change_%(model_name)s'],
     }
 
 
