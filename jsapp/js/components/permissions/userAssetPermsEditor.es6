@@ -293,7 +293,7 @@ class UserAssetPermsEditor extends React.Component {
   }
 
   /**
-   * Mulitple checkboxes have `partial_submissions`, so this function returns
+   * Multiple checkboxes have `partial_submissions`, so this function returns
    * an array of items
    */
   getPermissionCheckboxPairs(permCodename) {

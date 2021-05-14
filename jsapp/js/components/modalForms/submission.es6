@@ -454,11 +454,8 @@ class Submission extends React.Component {
               }
 
               {(
-                (this.userCan('add_submissions', this.props.asset) && this.userCan('change_submissions', this.props.asset)) ||
-                (
-                  this.isSubmissionWritable('add_submissions', this.props.asset, this.state.submission) &&
-                  this.isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)
-                )
+                this.userCan('change_submissions', this.props.asset) ||
+                this.isSubmissionWritable('change_submissions', this.props.asset, this.state.submission)
               ) &&
                 <a
                   onClick={this.duplicateSubmission.bind(this)}
