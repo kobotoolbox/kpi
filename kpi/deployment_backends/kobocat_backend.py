@@ -427,7 +427,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             method='POST', url=self.submission_url, files=files
         )
         kc_response = self.__kobocat_proxy_request(
-            kc_request, user=requesting_user
+            kc_request, user=user
         )
 
         if kc_response.status_code == status.HTTP_201_CREATED:
