@@ -77,7 +77,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             assign_applicable_kc_permissions(self.asset, user, perms)
 
     def bulk_update_submissions(
-            self, request_data: dict, requesting_user_id: int
+        self, request_data: dict, requesting_user: 'auth.User'
     ) -> dict:
         """
         Allows for bulk updating of submissions proxied through kobocat. A
@@ -90,7 +90,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Args:
             request_data (dict): must contain a list of `submission_ids` and at
                 least one other key:value field for updating the submissions
-            requesting_user_id (int)
+            requesting_user ('auth.User')
 
         Returns:
             dict: formatted dict to be passed to a Response object
@@ -98,7 +98,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         payload = self.__prepare_bulk_update_payload(request_data)
         kwargs = {'instance_ids': payload.pop('submission_ids')}
         params = self.validate_submission_list_params(
-            requesting_user_id, format_type=INSTANCE_FORMAT_TYPE_XML,
+            requesting_user.id, format_type=INSTANCE_FORMAT_TYPE_XML,
             **kwargs
         )
         submissions = list(self.__get_submissions_in_xml(**params))
@@ -168,7 +168,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 method='POST', url=self.submission_url, files=files
             )
             kc_response = self.__kobocat_proxy_request(
-                kc_request, user=self.asset.owner
+                kc_request, user=requesting_user
             )
 
             kc_responses.append(
@@ -319,7 +319,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return self.__prepare_as_drf_response_signature(kc_response)
 
     def duplicate_submission(
-            self, requesting_user_id: int, instance_id: int
+        self, requesting_user: 'auth.User', instance_id: int
     ) -> dict:
         """
         Duplicates a single submission proxied through KoBoCAT. The submission
@@ -327,14 +327,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         `instanceID` parameters of the submission are reset before being posted
         to KoBoCAT.
         Args:
-            requesting_user_id (int)
+            requesting_user (auth.User)
             instance_id (int)
         Returns:
             dict: message response from KoBoCAT and uuid of created submission
             if successful
         """
         params = self.validate_submission_list_params(
-            requesting_user_id,
+            requesting_user.id,
             format_type=INSTANCE_FORMAT_TYPE_XML,
             instance_ids=[instance_id],
         )
@@ -369,7 +369,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if kc_response.status_code == status.HTTP_201_CREATED:
             return next(
-                self.get_submissions(requesting_user_id, query={'_uuid': _uuid})
+                self.get_submissions(requesting_user.id, query={'_uuid': _uuid})
             )
         else:
             raise KobocatDuplicateSubmissionException
