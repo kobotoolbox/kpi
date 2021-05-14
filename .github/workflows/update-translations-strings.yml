@@ -1,0 +1,51 @@
+
+name: Update Translations
+
+on:
+  pull_request:
+#   Github actions does not support an `on merge` type action
+#   So I substituted with pull_quests.closed
+    types: [ closed ]
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+           
+      - name: Change Directories
+        run: cd kpi/
+             
+      - name: Install KPI requirements
+        run: sudo pip install -r dependencies/pip/requirements.txt
+        
+      - name: Install NPM packages
+        run: npm install
+
+      - name: Install webpack
+        run: npm install webpack
+
+      - name: Run NPM build
+        run: npm run copy-fonts && npm run build
+
+      - name: Compile Frontend Strings
+        run: node ./scripts/generate_icons.js 
+
+      - name: Install translate-toolkit
+        run: sudo apt install translate-toolkit
+        
+      - name: Install Transifex
+        run: sudo pip3 install transifex-client
+           
+      - name: Run make translation po file
+        run: sudo ./manage.py makemessages --locale en
+
+      - name: Run json2po
+        run: sudo json2po jsapp/compiled/extracted-strings.json locale/en/LC_MESSAGES/djangojs.po
+      
+      - name: Run Transifex
+        run: tx push -s
+        env: 
+          TX_TOKEN: ${{ secrets.TRANSIFEX_API }}
