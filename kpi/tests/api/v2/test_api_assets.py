@@ -552,7 +552,14 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
              'url': 'http://testserver/api/v2/permissions/view_asset/'},
             {'label': 'View submissions',
              'url': 'http://testserver/api/v2/permissions/view_submissions/'},
-            {'label': 'View submissions only from specific users',
+            {'label':
+                {
+                    'default': 'Make partial actions only from specific users',
+                    'view_submissions': 'View submissions only from specific users',
+                    'change_submissions': 'Edit submissions only from specific users',
+                    'delete_submissions': 'Delete submissions only from specific users',
+                    'validate_submissions': 'Validate submissions only from specific users'
+                },
              'url': 'http://testserver/api/v2/permissions/partial_submissions/'},
         ]
 
