@@ -171,6 +171,27 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         response = self.client.post(list_url, data=data)
         assert response.status_code == status.HTTP_201_CREATED
 
+    def test_export_task_create_with_name(self):
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+        )
+        data = {
+            'type': 'csv',
+            'lang': '_default',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'false',
+            'fields_from_all_versions': 'false',
+            'multiple_select': 'both',
+            'name': 'Lorem Ipsum'
+        }
+        response = self.client.post(list_url, data=data)
+        assert response.status_code == status.HTTP_201_CREATED
+
+        res_data = response.json()
+        assert res_data['data']['name'] == data['name']
+
     def test_export_task_detail(self):
         export_task = self._create_export_task()
 
