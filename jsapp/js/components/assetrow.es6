@@ -203,7 +203,7 @@ class AssetRow extends React.Component {
             { this.props.asset_type == ASSET_TYPES.survey.id &&
               <bem.AssetRow__cell
                 m={'submission-count'}
-                key={'submisson-count'}
+                key={'submission-count'}
                 className='mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone'
               >
                 {
