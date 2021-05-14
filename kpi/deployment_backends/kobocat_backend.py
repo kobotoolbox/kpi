@@ -188,7 +188,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 method='POST', url=self.submission_url, files=files
             )
             kc_response = self.__kobocat_proxy_request(
-                kc_request, user=self.asset.owner
+                kc_request, user=requesting_user
             )
 
             kc_responses.append(
