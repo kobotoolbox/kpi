@@ -260,8 +260,6 @@ class EditSubmissionPermission(SubmissionPermission):
 
 
 class DuplicateSubmissionPermission(SubmissionPermission):
-    # POST permissions are handled in the viewset to account for needing both
-    # `change_submissions` and `add_submissions` permissions
     perms_map = {
         'GET': ['%(app_label)s.view_%(model_name)s'],
         'POST': [
