@@ -342,7 +342,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Otherwise, they have have full access.
         headers = {}
         if submission_ids:
-            headers.update(KobocatOneTimeAuthRequest.get_header(user, 'POST'))
+            headers.update(KobocatOneTimeAuthRequest.get_header(user, 'DELETE'))
 
         kc_url = self.get_submission_detail_url(submission_id)
         kc_request = requests.Request(
