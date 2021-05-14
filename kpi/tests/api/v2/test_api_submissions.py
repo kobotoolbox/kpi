@@ -14,6 +14,7 @@ from rest_framework import status
 
 from kpi.constants import (
     PERM_CHANGE_ASSET,
+    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -739,6 +740,10 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
             self.anotheruser,
             PERM_PARTIAL_SUBMISSIONS,
             partial_perms=partial_perms,
+        )
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_ADD_SUBMISSIONS,
         )
 
         # Try first submission submitted by unknown
