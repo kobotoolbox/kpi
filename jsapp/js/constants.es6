@@ -278,15 +278,6 @@ export const DEPLOYMENT_CATEGORIES = Object.freeze({
   Archived: {id: 'Archived', label: t('Archived')},
 });
 
-export const REPORT_STYLES = Object.freeze({
-  vertical: {value: 'vertical', label: t('Vertical')},
-  donut: {value: 'donut', label: t('Donut')},
-  area: {value: 'area', label: t('Area')},
-  horizontal: {value: 'horizontal', label: t('Horizontal')},
-  pie: {value: 'pie', label: t('Pie')},
-  line: {value: 'line', label: t('Line')},
-});
-
 export const QUERY_LIMIT_DEFAULT = 5000;
 
 export const ROUTES = Object.freeze({
@@ -389,7 +380,6 @@ const constants = {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
-  REPORT_STYLES,
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
