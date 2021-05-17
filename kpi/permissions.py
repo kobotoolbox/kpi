@@ -3,7 +3,6 @@ from django.http import Http404
 from rest_framework import exceptions, permissions
 
 from kpi.models.asset import Asset
-from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.object_permission import get_anonymous_user
 from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 
@@ -253,14 +252,10 @@ class SubmissionPermission(AssetNestedObjectPermission):
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
 
-    def _get_user_permissions(self, asset, user):
+    def _get_user_permissions(self, asset: Asset, user: 'auth.User') -> list:
         """
         Overrides parent method to include partial permissions (which are
         specific to submissions)
-
-        :param asset: Asset
-        :param user: auth.User
-        :return: list
         """
         user_permissions = super()._get_user_permissions(
             asset, user)
@@ -289,6 +284,15 @@ class DuplicateSubmissionPermission(SubmissionPermission):
         'GET': ['%(app_label)s.view_%(model_name)s'],
         'POST': ['%(app_label)s.change_%(model_name)s'],
     }
+
+
+class ExportTaskPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+    }
+
+    perms_map['POST'] = perms_map['GET']
+    perms_map['DELETE'] = perms_map['GET']
 
 
 class SubmissionValidationStatusPermission(SubmissionPermission):
