@@ -85,3 +85,13 @@ Object.keys(PARTIAL_CHECKBOX_PAIRS).forEach((checkboxName) => {
   PERM_CHECKBOX_PAIRS[CHECKBOX_PERM_PAIRS[checkboxName]] = checkboxName;
 });
 Object.freeze(PERM_CHECKBOX_PAIRS);
+
+/**
+ * This is a map to handle exceptions for partial submissions which imply
+ * a regular permission
+ */
+export const PARTIAL_IMPLIED_CHECKBOX_PAIRS = {};
+PARTIAL_IMPLIED_CHECKBOX_PAIRS[CHECKBOX_NAMES.submissionsEditPartial] = [
+  CHECKBOX_NAMES.submissionsAdd,
+];
+Object.freeze(PARTIAL_IMPLIED_CHECKBOX_PAIRS);

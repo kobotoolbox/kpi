@@ -25,7 +25,7 @@ import {
   PARTIAL_CHECKBOX_PAIRS,
   PARTIAL_PERM_PAIRS,
   CHECKBOX_NAMES,
-  CHECKBOX_PERM_PAIRS,
+  CHECKBOX_PERM_PAIRS, PARTIAL_IMPLIED_CHECKBOX_PAIRS,
 } from './permConstants';
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma');
@@ -169,13 +169,16 @@ class UserAssetPermsEditor extends React.Component {
     }
 
     const permissionPair = CHECKBOX_PERM_PAIRS[checkboxName];
-    const impliedPerms = this.getImpliedPermissions(permissionPair);
+    const impliedPerms = this.getImpliedPermissions(permissionPair, checkboxName);
     const contradictoryPerms = this.getContradictoryPermissions(permissionPair);
 
     // all implied will be checked and disabled
     impliedPerms.forEach((permUrl) => {
       const impliedPermDef = permConfig.getPermission(permUrl);
-      const impliedCheckboxes = this.getPermissionCheckboxPairs(impliedPermDef.codename);
+      let impliedCheckboxes = this.getPermissionCheckboxPairs(impliedPermDef.codename);
+      if (PARTIAL_IMPLIED_CHECKBOX_PAIRS.hasOwnProperty(checkboxName)) {
+        impliedCheckboxes = impliedCheckboxes.concat(PARTIAL_IMPLIED_CHECKBOX_PAIRS[checkboxName]);
+      }
       impliedCheckboxes.forEach((impliedCheckbox) => {
         stateObj[impliedCheckbox] = true;
         stateObj[impliedCheckbox + SUFFIX_DISABLED] = true;
