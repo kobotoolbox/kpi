@@ -1355,7 +1355,7 @@ class Asset(ObjectPermissionMixin,
 
     def _update_partial_permissions(
         self,
-        user_id: int,
+        user: 'auth.User',
         perm: str,
         remove: bool = False,
         partial_perms: Optional[dict] = None,
@@ -1406,7 +1406,7 @@ class Asset(ObjectPermissionMixin,
             # Because of the unique constraint, there should be only
             # one record that matches this query.
             # We don't look for record existence to avoid extra query.
-            self.asset_partial_permissions.filter(user_id=user_id).delete()
+            self.asset_partial_permissions.filter(user_id=user.pk).delete()
 
         if perm == PERM_PARTIAL_SUBMISSIONS:
 
@@ -1414,7 +1414,7 @@ class Asset(ObjectPermissionMixin,
                 clean_up_table()
                 return
 
-            if user_id == self.owner.pk:
+            if user.pk == self.owner.pk:
                 raise BadPermissionsException(
                     _("Can not assign '{}' permission to owner".format(perm)))
 
@@ -1542,8 +1542,18 @@ class Asset(ObjectPermissionMixin,
 
             AssetUserPartialPermission.objects.update_or_create(
                 asset_id=self.pk,
-                user_id=user_id,
+                user_id=user.pk,
                 defaults={'permissions': new_partial_perms})
+
+            # There are no real partial permissions for 'add_submissions' but
+            # 'change_submissions' implies it. So if 'add_submissions' is in the
+            # partial permissions list, it must be assigned to the user to the
+            # user as well to let them perform edit actions on their subset of
+            # data. Otherwise, KC will reject some actions.
+            if PERM_ADD_SUBMISSIONS in new_partial_perms:
+                self.assign_perm(
+                    user_obj=user, perm=PERM_ADD_SUBMISSIONS, defer_recalc=True
+                )
 
         elif perm in self.CONTRADICTORY_PERMISSIONS.get(PERM_PARTIAL_SUBMISSIONS):
             clean_up_table()
