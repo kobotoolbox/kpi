@@ -241,15 +241,6 @@ class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
     perms_map['DELETE'] = perms_map['GET']
 
 
-class ExportTaskPermission(AssetNestedObjectPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-    }
-
-    perms_map['POST'] = perms_map['GET']
-    perms_map['DELETE'] = perms_map['GET']
-
-
 # FIXME: Name is no longer accurate.
 class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     """
@@ -310,14 +301,10 @@ class SubmissionPermission(AssetNestedObjectPermission):
         'DELETE': ['%(app_label)s.delete_%(model_name)s'],
     }
 
-    def _get_user_permissions(self, asset, user):
+    def _get_user_permissions(self, asset: Asset, user: 'auth.User') -> list:
         """
         Overrides parent method to include partial permissions (which are
         specific to submissions)
-
-        :param asset: Asset
-        :param user: auth.User
-        :return: list
         """
         user_permissions = super()._get_user_permissions(
             asset, user)
@@ -346,6 +333,15 @@ class EditSubmissionPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.change_%(model_name)s'],
     }
+
+
+class ExportTaskPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+    }
+
+    perms_map['POST'] = perms_map['GET']
+    perms_map['DELETE'] = perms_map['GET']
 
 
 class SubmissionValidationStatusPermission(SubmissionPermission):
