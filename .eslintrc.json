@@ -14,7 +14,7 @@
   },
   "extends": "eslint:recommended",
   "rules": {
-    "arrow-body-style": [1, "always"],
+    "arrow-body-style": [1, "as-needed", {"requireReturnForObjectLiteral": true}],
     "arrow-parens": [1, "always"],
     "arrow-spacing": 1,
     "block-spacing": [1, "never"],
