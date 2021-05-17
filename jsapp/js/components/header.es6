@@ -18,6 +18,7 @@ import {
 import {getAssetIcon} from 'js/assetUtils';
 import {
   COMMON_QUERIES,
+  PATHS,
   ROUTES,
 } from 'js/constants';
 import {searches} from '../searches';
@@ -105,6 +106,17 @@ class MainHeader extends Reflux.Component {
       });
     }
   }
+
+  getLoginUrl() {
+    let url = PATHS.LOGIN;
+    const currentLoc = hashHistory.getCurrentLocation();
+    if (currentLoc?.pathname) {
+      // add redirection after logging in to current page
+      url += `?next=/#${currentLoc.pathname}`;
+    }
+    return url;
+  }
+
   renderLangItem(lang) {
     return (
       <bem.AccountBox__menuLI key={lang.value}>
@@ -119,7 +131,7 @@ class MainHeader extends Reflux.Component {
     return (
       <bem.LoginBox>
         <a
-          href={'/accounts/login'}
+          href={this.getLoginUrl()}
           className='kobo-button kobo-button--blue'
         >
           {t('Log In')}

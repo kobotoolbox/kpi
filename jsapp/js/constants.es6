@@ -289,6 +289,12 @@ export const REPORT_STYLES = Object.freeze({
 
 export const QUERY_LIMIT_DEFAULT = 5000;
 
+// List of server routes
+export const PATHS = Object.freeze({
+  LOGIN: '/accounts/login',
+});
+
+// List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ACCOUNT_SETTINGS: '/account-settings',
   CHANGE_PASSWORD: '/change-password',
@@ -349,6 +355,7 @@ const constants = {
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
   REPORT_STYLES,
+  PATHS,
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
