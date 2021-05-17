@@ -111,8 +111,9 @@ class MainHeader extends Reflux.Component {
     let url = PATHS.LOGIN;
     const currentLoc = hashHistory.getCurrentLocation();
     if (currentLoc?.pathname) {
+      const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
       // add redirection after logging in to current page
-      url += `?next=/#${currentLoc.pathname}`;
+      url += `?next=${nextUrl}`;
     }
     return url;
   }
