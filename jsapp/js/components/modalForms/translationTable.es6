@@ -89,7 +89,7 @@ export class TranslationTable extends React.Component {
           //       when there are locked labels. These labels should be unlocked
           //       for the newly added languages and their translations only.
           return (
-            <div className={cellInfo.original.isLabelLocked ? 'disabled' : ''}>
+            <div className={cellInfo.original.isLabelLocked ? 'rt-td--disabled' : ''}>
               {cellInfo.original.original}
             </div>
           );
@@ -263,16 +263,14 @@ export class TranslationTable extends React.Component {
         LOCKING_RESTRICTIONS.choice_label_edit.name
       );
     } else {
-      for (const type in QUESTION_TYPES) {
-        if (rowType === type) {
-          return hasRowRestriction(
-            this.props.asset.content,
-            rowName,
-            LOCKING_RESTRICTIONS.question_label_edit.name
-          );
-        } else {
-          return false;
-        }
+      if (Object.keys(QUESTION_TYPES).includes(rowType)) {
+        return hasRowRestriction(
+          this.props.asset.content,
+          rowName,
+          LOCKING_RESTRICTIONS.question_label_edit.name
+        );
+      } else {
+        return false;
       }
     }
   }
