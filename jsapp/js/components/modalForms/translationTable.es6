@@ -8,36 +8,37 @@ import {LoadingSpinner} from 'js/ui';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import {getLangString} from 'utils';
-import {hasRowRestriction} from "../locking/lockingUtils.es6";
+import {hasRowRestriction} from '../locking/lockingUtils.es6';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {
   MODAL_TYPES,
   QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
-} from "js/constants";
+} from 'js/constants';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
   UNSAVED: t('* Save Changes'),
-  PENDING: t('Saving…')
+  PENDING: t('Saving…'),
 };
 
 const CHOICE_TYPE = 'choice_type';
 
 export class TranslationTable extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
     this.state = {
       saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
       isSaveChangesButtonPending: false,
       tableData: [],
       showLanguageForm: false,
-      langString: props.langString
+      langString: props.langString,
     };
     stores.translations.setTranslationTableUnsaved(false);
     const {translated, survey, choices, translations} = props.asset.content;
     const langIndex = props.langIndex;
-    const editableColTitle = (langIndex == 0) ? t('updated text') : t('translation');
+    const editableColTitle =
+      langIndex == 0 ? t('updated text') : t('translation');
 
     // add each translatable property for survey items to translation table
     survey.forEach((row) => {
@@ -89,29 +90,30 @@ export class TranslationTable extends React.Component {
           //       when there are locked labels. These labels should be unlocked
           //       for the newly added languages and their translations only.
           return (
-            <div className={cellInfo.original.isLabelLocked ? 'rt-td--disabled' : ''}>
+            <div
+              className={
+                cellInfo.original.isLabelLocked ? 'rt-td--disabled' : ''
+              }
+            >
               {cellInfo.original.original}
             </div>
           );
-        }
-      }, {
+        },
+      },
+      {
         Header: () => {
           return (
             <React.Fragment>
               <bem.FormView__iconButton
                 onClick={this.toggleRenameLanguageForm.bind(this)}
                 className='right-tooltip form-view__icon-button-edit'
-                >
-                  {this.state.showLanguageForm &&
-                    <i className='k-icon-close' />
-                  }
-                  {!this.state.showLanguageForm &&
-                    <i className='k-icon-edit' />
-                  }
+              >
+                {this.state.showLanguageForm && <i className='k-icon-close' />}
+                {!this.state.showLanguageForm && <i className='k-icon-edit' />}
               </bem.FormView__iconButton>
               {`${translations[langIndex]} ${editableColTitle}`}
             </React.Fragment>
-          )
+          );
         },
         accessor: 'translation',
         className: 'translation',
@@ -121,22 +123,22 @@ export class TranslationTable extends React.Component {
               onChange={(e) => {
                 const data = [...this.state.tableData];
                 data[cellInfo.index].value = e.target.value;
-                this.setState({ data });
+                this.setState({data});
                 this.markFormUnsaved();
               }}
               value={this.state.tableData[cellInfo.index].value || ''}
               disabled={cellInfo.original.isLabelLocked}
             />
           );
-        }
-      }
+        },
+      },
     ];
   }
 
   markFormUnsaved() {
     this.setState({
       saveChangesButtonText: SAVE_BUTTON_TEXT.UNSAVED,
-      isSaveChangesButtonPending: false
+      isSaveChangesButtonPending: false,
     });
     stores.translations.setTranslationTableUnsaved(true);
   }
@@ -144,7 +146,7 @@ export class TranslationTable extends React.Component {
   markFormPending() {
     this.setState({
       saveChangesButtonText: SAVE_BUTTON_TEXT.PENDING,
-      isSaveChangesButtonPending: true
+      isSaveChangesButtonPending: true,
     });
     stores.translations.setTranslationTableUnsaved(true);
   }
@@ -152,27 +154,28 @@ export class TranslationTable extends React.Component {
   markFormIdle() {
     this.setState({
       saveChangesButtonText: SAVE_BUTTON_TEXT.DEFAULT,
-      isSaveChangesButtonPending: false
+      isSaveChangesButtonPending: false,
     });
     stores.translations.setTranslationTableUnsaved(false);
   }
 
   toggleRenameLanguageForm(evt) {
     evt.stopPropagation();
-    this.setState({showLanguageForm : !this.state.showLanguageForm})
+    this.setState({showLanguageForm: !this.state.showLanguageForm});
   }
 
   saveChanges() {
     let content = this.props.asset.content,
-        rows = this.state.tableData,
-        langIndex = this.props.langIndex;
+      rows = this.state.tableData,
+      langIndex = this.props.langIndex;
     for (var i = 0, len = rows.length; i < len; i++) {
       let item = content[rows[i].contentProp].find((o) => {
         return (
-          o.name === rows[i].name ||
-          o.$autoname === rows[i].name ||
-          o.$autovalue === rows[i].name
-        ) && o.list_name === rows[i].listName;
+          (o.name === rows[i].name ||
+            o.$autoname === rows[i].name ||
+            o.$autovalue === rows[i].name) &&
+          o.list_name === rows[i].listName
+        );
       });
       let itemProp = rows[i].itemProp;
 
@@ -185,11 +188,11 @@ export class TranslationTable extends React.Component {
     actions.resources.updateAsset(
       this.props.asset.uid,
       {
-        content: JSON.stringify(content)
+        content: JSON.stringify(content),
       },
       {
         onComplete: this.markFormIdle.bind(this),
-        onFailed: this.markFormUnsaved.bind(this)
+        onFailed: this.markFormUnsaved.bind(this),
       }
     );
   }
@@ -202,7 +205,7 @@ export class TranslationTable extends React.Component {
         message: t('You will lose all unsaved changes.'),
         labels: {ok: t('Confirm'), cancel: t('Cancel')},
         onok: this.showManageLanguagesModal.bind(this),
-        oncancel: dialog.destroy
+        oncancel: dialog.destroy,
       };
       dialog.set(opts).show();
     } else {
@@ -213,16 +216,16 @@ export class TranslationTable extends React.Component {
   showManageLanguagesModal() {
     stores.pageState.switchModal({
       type: MODAL_TYPES.FORM_LANGUAGES,
-      asset: this.props.asset
+      asset: this.props.asset,
     });
   }
 
   onLanguageChange(lang, index) {
     let content = this.props.asset.content,
-        langString = getLangString(lang);
+      langString = getLangString(lang);
 
     content.translations[index] = langString;
-    this.setState({ langString: langString });
+    this.setState({langString: langString});
 
     if (index === 0) {
       content.settings.default_language = langString;
@@ -236,10 +239,12 @@ export class TranslationTable extends React.Component {
       this.props.asset.uid,
       {content: JSON.stringify(content)},
       // reload asset on failure
-      {onFailed: () => {
-        actions.resources.loadAsset({id: this.props.asset.uid});
-        alertify.error('failed to update translations');
-      }}
+      {
+        onFailed: () => {
+          actions.resources.loadAsset({id: this.props.asset.uid});
+          alertify.error('failed to update translations');
+        },
+      }
     );
   }
 
@@ -275,10 +280,10 @@ export class TranslationTable extends React.Component {
     }
   }
 
-  render () {
+  render() {
     return (
       <bem.FormModal m='translation-table'>
-        {this.state.showLanguageForm &&
+        {this.state.showLanguageForm && (
           <bem.FormModal>
             <bem.FormModal__item>
               <bem.FormView__cell m='update-language-form'>
@@ -292,7 +297,7 @@ export class TranslationTable extends React.Component {
               </bem.FormView__cell>
             </bem.FormModal__item>
           </bem.FormModal>
-        }
+        )}
         <div className='translation-table-container'>
           <ReactTable
             data={this.state.tableData}
@@ -302,15 +307,12 @@ export class TranslationTable extends React.Component {
             previousText={t('Prev')}
             nextText={t('Next')}
             minRows={1}
-            loadingText={<LoadingSpinner/>}
+            loadingText={<LoadingSpinner />}
           />
         </div>
 
         <bem.Modal__footer>
-          <bem.KoboButton
-            m='whitegray'
-            onClick={this.onBack.bind(this)}
-          >
+          <bem.KoboButton m='whitegray' onClick={this.onBack.bind(this)}>
             {t('Back')}
           </bem.KoboButton>
 
