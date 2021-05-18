@@ -29,7 +29,7 @@ import {
   getSurveyFlatPaths,
   getQuestionOrChoiceDisplayName,
 } from 'js/assetUtils';
-import {getRepeatGroupAnswers} from 'js/submissionUtils';
+import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from './tableBulkOptions';
 import TableBulkCheckbox from './tableBulkCheckbox';
 
