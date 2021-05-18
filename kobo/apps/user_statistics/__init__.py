@@ -2,7 +2,8 @@
 from django.apps import AppConfig
 
 
-class ShadowModelsAppConfig(AppConfig):
-    name = 'kpi.deployment_backends.kc_access'
+class UserStatisticsAppConfig(AppConfig):
+
+    name = 'kobo.apps.user_statistics'
     verbose_name = 'User Statistics'
     label = 'user_statistics'

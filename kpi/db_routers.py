@@ -9,16 +9,17 @@ class DefaultDatabaseRouter:
         Reads go to `kc` when `model` is a ShadowModel
         """
         if model._meta.app_label == SHADOW_MODEL_APP_LABEL:
-            return "kobocat"
-        return "default"
+            return 'kobocat'
+        return 'default'
 
     def db_for_write(self, model, **hints):
         """
         Writes go to `kc` when `model` is a ShadowModel
         """
         if model._meta.app_label == SHADOW_MODEL_APP_LABEL:
-            return "kobocat"
-        return "default"
+            return 'kobocat'
+
+        return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
         """
