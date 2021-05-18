@@ -98,6 +98,7 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
+    'kobo.apps.user_statistics',
 )
 
 MIDDLEWARE = [

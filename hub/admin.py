@@ -2,9 +2,17 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django.db.models import Count, Sum
 from django.utils.translation import gettext as _
 
+from kobo.static_lists import COUNTRIES
+from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.utils import delete_kc_users
+from kpi.deployment_backends.kc_access.shadow_models import (
+    ReadOnlyKobocatInstance,
+    ReadOnlyKobocatXForm,
+)
+from kpi.models.asset import Asset
 from .models import SitewideMessage, ConfigurationFile, PerUserSetting
 
 
@@ -73,9 +81,82 @@ class UserDeleteAdmin(UserAdmin):
                 messages.ERROR
             )
 
+# class StartDateFilter(admin.SimpleListFilter):
+#     title = 'Date Range Filter'
+#     parameter_name = 'Start Date'
+
+#     def __init__(self, request, params, model, model_admin):
+#         super().__init__(request, params, model, model_admin)
+#         self.__model = model
+
+#     def lookups(self, request, model_admin):
+#         return (
+
+#         )
+
+class CountryFilter(admin.SimpleListFilter):
+    title = 'Country Filter'
+    parameter_name = 'Country'
+
+    def __init__(self, request, params, model, model_admin):
+        super().__init__(request, params, model, model_admin)
+        self.__model = model
+
+    def lookups(self, request, model_admin):
+        return COUNTRIES
+
+    def queryset(self, request, queryset):
+        if not self.value():
+            return queryset
+
+        return queryset
+
+class SubmissionsByCountry(admin.ModelAdmin):
+    change_list_template = 'submissions_by_country.html'
+    # list_filter = (CountryFilter)
+    actions = None
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(
+            request,
+            extra_context=extra_context,
+        )
+        response.context_data['summary'] = self.__get_serialized_data(request)
+        return response
+
+
+    def __get_serialized_data(self, request) -> list:
+        cl = self.get_changelist_instance(request)
+        qs = cl.get_queryset(request)
+
+        data = []
+
+        asset_filter = CountryFilter(
+            request, request.GET.dict(), Asset, self.__class__
+        )
+
+        for country in COUNTRIES:
+            name = country[1]
+            assets = Asset.objects.filter(
+                asset_type=ASSET_TYPE_SURVEY,
+                settings__country__label=str(name),
+            )
+            count = 0
+
+            for asset in assets:
+                form = ReadOnlyKobocatXForm.objects.get(id_string=asset.uid)
+                count += ReadOnlyKobocatInstance.objects.filter(xform=form).count()
+
+            data.append({
+                'country': name,
+                'count': count,
+            })
+
+        return data
 
 admin.site.register(SitewideMessage)
 admin.site.register(ConfigurationFile)
 admin.site.register(PerUserSetting)
 admin.site.unregister(User)
 admin.site.register(User, UserDeleteAdmin)
+admin.site.register(Asset, SubmissionsByCountry)
