@@ -4,7 +4,7 @@ from hashlib import md5
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType, ContentTypeManager
+from django.contrib.contenttypes.models import ContentTypeManager
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
@@ -84,73 +84,6 @@ class ShadowModel(models.Model):
             app_label=app_label, model=model_name)
 
 
-class ReadOnlyModel(ShadowModel):
-
-    class Meta(ShadowModel.Meta):
-        abstract = True
-
-    def save(self, *args, **kwargs):
-        raise ReadOnlyModelError('Cannot save read-only-model')
-
-    def delete(self, *args, **kwargs):
-        raise ReadOnlyModelError('Cannot delete read-only-model')
-
-
-class ReadOnlyKobocatXForm(ReadOnlyModel):
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'logger_xform'
-        verbose_name = 'xform'
-        verbose_name_plural = 'xforms'
-
-    XFORM_TITLE_LENGTH = 255
-    xls = models.FileField(null=True)
-    xml = models.TextField()
-    user = models.ForeignKey(User, related_name='xforms', null=True,
-                             on_delete=models.CASCADE)
-    shared = models.BooleanField(default=False)
-    shared_data = models.BooleanField(default=False)
-    downloadable = models.BooleanField(default=True)
-    id_string = models.SlugField()
-    title = models.CharField(max_length=XFORM_TITLE_LENGTH)
-    date_created = models.DateTimeField()
-    date_modified = models.DateTimeField()
-    uuid = models.CharField(max_length=32, default='')
-    last_submission_time = models.DateTimeField(blank=True, null=True)
-    num_of_submissions = models.IntegerField(default=0)
-
-    @property
-    def hash(self):
-        return '%s' % md5(hashable_str(self.xml)).hexdigest()
-
-    @property
-    def prefixed_hash(self):
-        """
-        Matches what's returned by the KC API
-        """
-
-        return "md5:%s" % self.hash
-
-
-class ReadOnlyKobocatInstance(ReadOnlyModel):
-
-    class Meta(ReadOnlyModel.Meta):
-        db_table = 'logger_instance'
-        verbose_name = 'instance'
-        verbose_name_plural = 'instances'
-
-    xml = models.TextField()
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
-    xform = models.ForeignKey(ReadOnlyKobocatXForm, related_name='instances',
-                              on_delete=models.CASCADE)
-    date_created = models.DateTimeField()
-    date_modified = models.DateTimeField()
-    deleted_at = models.DateTimeField(null=True, default=None)
-    status = models.CharField(max_length=20,
-                              default='submitted_via_web')
-    uuid = models.CharField(max_length=249, default='')
-
-
 class KobocatContentType(ShadowModel):
     """
     Minimal representation of Django 1.8's
@@ -169,6 +102,99 @@ class KobocatContentType(ShadowModel):
         # complete with whitespace. That requires access to the Python model
         # class, though
         return self.model
+
+
+class KobocatDigestPartial(ShadowModel):
+
+    user = models.ForeignKey('KobocatUser', on_delete=models.CASCADE)
+    login = models.CharField(max_length=128, db_index=True)
+    partial_digest = models.CharField(max_length=100)
+    confirmed = models.BooleanField(default=True)
+
+    class Meta(ShadowModel.Meta):
+        db_table = "django_digest_partialdigest"
+
+    @classmethod
+    def sync(cls, user):
+        """
+        Mimics the behavior of `django_digest.models._store_partial_digests()`,
+        but updates `KobocatDigestPartial` in the KoBoCAT database instead of
+        `PartialDigest` in the KPI database
+        """
+        cls.objects.filter(user=user).delete()
+        # Query for `user_id` since user PKs are synchronized
+        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
+            cls.objects.create(
+                user=user,
+                login=partial_digest.login,
+                confirmed=partial_digest.confirmed,
+                partial_digest=partial_digest.partial_digest,
+            )
+
+
+class KobocatGenericForeignKey(GenericForeignKey):
+
+    def get_content_type(self, obj=None, id=None, using=None):
+        if obj is not None:
+            return KobocatContentType.objects.db_manager(obj._state.db).get_for_model(
+                obj, for_concrete_model=self.for_concrete_model)
+        elif id is not None:
+            return KobocatContentType.objects.db_manager(using).get_for_id(id)
+        else:
+            # This should never happen. I love comments like this, don't you?
+            raise Exception("Impossible arguments to GFK.get_content_type!")
+
+    def get_forward_related_filter(self, obj):
+        """See corresponding method on RelatedField"""
+        return {
+            self.fk_field: obj.pk,
+            self.ct_field: KobocatContentType.objects.get_for_model(obj).pk,
+        }
+
+    def _check_content_type_field(self):
+        try:
+            field = self.model._meta.get_field(self.ct_field)
+        except FieldDoesNotExist:
+            return [
+                checks.Error(
+                    "The GenericForeignKey content type references the "
+                    "nonexistent field '%s.%s'." % (
+                        self.model._meta.object_name, self.ct_field
+                    ),
+                    obj=self,
+                    id='contenttypes.E002',
+                )
+            ]
+        else:
+            if not isinstance(field, models.ForeignKey):
+                return [
+                    checks.Error(
+                        "'%s.%s' is not a ForeignKey." % (
+                            self.model._meta.object_name, self.ct_field
+                        ),
+                        hint=(
+                            "GenericForeignKeys must use a ForeignKey to "
+                            "'contenttypes.ContentType' as the 'content_type' field."
+                        ),
+                        obj=self,
+                        id='contenttypes.E003',
+                    )
+                ]
+            elif field.remote_field.model != KobocatContentType:
+                return [
+                    checks.Error(
+                        "'%s.%s' is not a ForeignKey to 'contenttypes.ContentType'."
+                        % (self.model._meta.object_name, self.ct_field),
+                        hint=(
+                            "GenericForeignKeys must use a ForeignKey to "
+                            "'contenttypes.ContentType' as the 'content_type' field."
+                        ),
+                        obj=self,
+                        id='contenttypes.E004',
+                    )
+                ]
+            else:
+                return []
 
 
 class KobocatPermission(ShadowModel):
@@ -190,6 +216,24 @@ class KobocatPermission(ShadowModel):
             str(self.content_type.app_label),
             str(self.content_type),
             str(self.name))
+
+
+class KobocatSubmissionCounter(ShadowModel):
+    user = models.ForeignKey('KobocatUser', on_delete=models.CASCADE)
+    count = models.IntegerField(default=0)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'logger_submissioncounter'
+        verbose_name = 'User Statistic'
+
+    @classmethod
+    def sync(cls, user):
+        """
+        Creates rows when the user is created so that the Admin UI doesn't freak
+        out because it's looking for a row that doesn't exist
+        """
+        cls.objects.create(user_id=user.pk)
 
 
 class KobocatUser(ShadowModel):
@@ -409,24 +453,6 @@ class KobocatUserProfile(ShadowModel):
     metadata = JSONBField(default=dict, blank=True)
 
 
-class KobocatSubmissionCounter(ShadowModel):
-    user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
-    count = models.IntegerField(default=0)
-    timestamp = models.DateTimeField(default=timezone.now)
-
-    class Meta(ShadowModel.Meta):
-        db_table = 'logger_submissioncounter'
-        verbose_name = 'User Statistics Counter'
-
-    @classmethod
-    def sync(cls, user):
-        """
-        Creates rows when the user is created so that the Admin UI doesn't freak out
-        because it's looking for a row that doesn't exist
-        """
-        cls.objects.create(user_id=user.pk)
-
-
 class KobocatToken(ShadowModel):
 
     key = models.CharField(_("Key"), max_length=40, primary_key=True)
@@ -450,32 +476,71 @@ class KobocatToken(ShadowModel):
         kc_auth_token.save()
 
 
-class KobocatDigestPartial(ShadowModel):
-
-    user = models.ForeignKey(KobocatUser, on_delete=models.CASCADE)
-    login = models.CharField(max_length=128, db_index=True)
-    partial_digest = models.CharField(max_length=100)
-    confirmed = models.BooleanField(default=True)
+class ReadOnlyModel(ShadowModel):
 
     class Meta(ShadowModel.Meta):
-        db_table = "django_digest_partialdigest"
+        abstract = True
 
-    @classmethod
-    def sync(cls, user):
+    def save(self, *args, **kwargs):
+        raise ReadOnlyModelError('Cannot save read-only-model')
+
+    def delete(self, *args, **kwargs):
+        raise ReadOnlyModelError('Cannot delete read-only-model')
+
+
+class ReadOnlyKobocatXForm(ReadOnlyModel):
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_xform'
+        verbose_name = 'xform'
+        verbose_name_plural = 'xforms'
+
+    XFORM_TITLE_LENGTH = 255
+    xls = models.FileField(null=True)
+    xml = models.TextField()
+    user = models.ForeignKey(User, related_name='xforms', null=True,
+                             on_delete=models.CASCADE)
+    shared = models.BooleanField(default=False)
+    shared_data = models.BooleanField(default=False)
+    downloadable = models.BooleanField(default=True)
+    id_string = models.SlugField()
+    title = models.CharField(max_length=XFORM_TITLE_LENGTH)
+    date_created = models.DateTimeField()
+    date_modified = models.DateTimeField()
+    uuid = models.CharField(max_length=32, default='')
+    last_submission_time = models.DateTimeField(blank=True, null=True)
+    num_of_submissions = models.IntegerField(default=0)
+
+    @property
+    def hash(self):
+        return '%s' % md5(hashable_str(self.xml)).hexdigest()
+
+    @property
+    def prefixed_hash(self):
         """
-        Mimics the behavior of `django_digest.models._store_partial_digests()`,
-        but updates `KobocatDigestPartial` in the KoBoCAT database instead of
-        `PartialDigest` in the KPI database
+        Matches what's returned by the KC API
         """
-        cls.objects.filter(user=user).delete()
-        # Query for `user_id` since user PKs are synchronized
-        for partial_digest in PartialDigest.objects.filter(user_id=user.pk):
-            cls.objects.create(
-                user=user,
-                login=partial_digest.login,
-                confirmed=partial_digest.confirmed,
-                partial_digest=partial_digest.partial_digest,
-            )
+
+        return "md5:%s" % self.hash
+
+
+class ReadOnlyKobocatInstance(ReadOnlyModel):
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_instance'
+        verbose_name = 'instance'
+        verbose_name_plural = 'instances'
+
+    xml = models.TextField()
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    xform = models.ForeignKey(ReadOnlyKobocatXForm, related_name='instances',
+                              on_delete=models.CASCADE)
+    date_created = models.DateTimeField()
+    date_modified = models.DateTimeField()
+    deleted_at = models.DateTimeField(null=True, default=None)
+    status = models.CharField(max_length=20,
+                              default='submitted_via_web')
+    uuid = models.CharField(max_length=249, default='')
 
 
 def safe_kc_read(func):
