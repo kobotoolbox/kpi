@@ -62,8 +62,8 @@ class BaseDeploymentBackend:
 
         if 'count' in kwargs:
             raise serializers.ValidationError({
-                'count': 'This param is not implemented. Use `count` property '
-                           'of the response instead.'
+                'count': _('This param is not implemented. Use `count` property '
+                           'of the response instead.')
             })
 
         if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
@@ -71,12 +71,12 @@ class BaseDeploymentBackend:
                 # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order.
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
-                    'sort': 'This param is not supported in `XML` format'
+                    'sort': _('This param is not supported in `XML` format')
                 })
 
             if 'fields' in kwargs:
                 raise serializers.ValidationError({
-                    'fields': 'This is not supported in `XML` format'
+                    'fields': _('This is not supported in `XML` format')
                 })
 
         start = kwargs.get('start', 0)
@@ -95,12 +95,12 @@ class BaseDeploymentBackend:
                 query = json.loads(query, object_hook=json_util.object_hook)
             except ValueError:
                 raise serializers.ValidationError(
-                    {'query': 'Value must be valid JSON.'}
+                    {'query': _('Value must be valid JSON.')}
                 )
 
         if not isinstance(instance_ids, list):
             raise serializers.ValidationError(
-                {'instance_ids': 'Value must be a list.'}
+                {'instance_ids': _('Value must be a list.')}
             )
 
         # This error should not be returned as `ValidationError` to user.
