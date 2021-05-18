@@ -101,6 +101,7 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'kobo.apps.usage_statistics.UsageStatisticsAppConfig',
+    'kobo.apps.user_statistics',
 )
 
 MIDDLEWARE = [
