@@ -41,7 +41,7 @@ import ProjectSettings from './modalForms/projectSettings';
 import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
 import SubmissionModal from 'js/components/submissions/submissionModal';
-import TableColumnFilter from './modalForms/tableColumnFilter';
+import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
 import TranslationSettings from './modalForms/translationSettings';
 import TranslationTable from './modalForms/translationTable';
 
