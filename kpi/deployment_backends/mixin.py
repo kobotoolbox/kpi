@@ -60,6 +60,9 @@ class DeployableMixin:
     def can_be_deployed(self):
         return self.asset_type and self.asset_type == ASSET_TYPE_SURVEY
 
+    def set_deployment(self, deployment: BaseDeploymentBackend):
+        setattr(self, '__deployment_backend', deployment)
+
     def __get_deployment_backend(self, backend: str) -> BaseDeploymentBackend:
         try:
             return getattr(self, '__deployment_backend')
