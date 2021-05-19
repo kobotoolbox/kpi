@@ -53,6 +53,7 @@ def _sync_media_files(
     *args,
     **kwargs
 ) -> dict:
+
     assets = Asset.objects.filter(_deployment_data__isnull=False)
     assets_all_count = assets.count()
 
@@ -180,8 +181,6 @@ class Command(BaseCommand):
                 'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
                 'configured before using this command'
             )
-        asset_uid = options.get('asset_uid')
-        username = options.get('username')
         quiet = options.get('quiet')
         verbosity = options.get('verbosity')
 
