@@ -21,15 +21,21 @@ URL_MEDIA_LIST = '{kc_url}/api/v1/metadata?data_type=media&format=json'
 URL_MEDIA_CONTENT = '{kc_url}/{username}/forms/{asset_uid}/formid-media/{media_id}'
 
 
-def _get_asset_metadata(token):
+def _get_asset_metadata(token: str) -> Optional[dict]:
     url = URL_MEDIA_LIST.format(kc_url=settings.KOBOCAT_INTERNAL_URL)
     response = requests.get(
         url=url, headers={'Authorization': f'Token {token}'}
     )
-    return response.json()
+    if response.status_code == status.HTTP_200_OK:
+        return response.json()
 
 
-def _get_media_file_content(token, username, asset_uid, media_id):
+def _get_media_file_content(
+    token: str,
+    username: str,
+    asset_uid: str,
+    media_id: str,
+) -> bytes:
     url = URL_MEDIA_CONTENT.format(
         kc_url=settings.KOBOCAT_INTERNAL_URL,
         username=username,
@@ -42,17 +48,23 @@ def _get_media_file_content(token, username, asset_uid, media_id):
     return response.content
 
 
-def _sync_media_files(asset_uid: Optional[str]):
-    if asset_uid is not None:
-        assets = Asset.objects.filter(
-            uid=asset_uid,
-            _deployment_data__isnull=False,
-        )
-    else:
-        assets = Asset.objects.filter(_deployment_data__isnull=False)
+def _sync_media_files(
+    asset_uid: Optional[str],
+    username: Optional[str],
+    verbosity: int,
+    *args,
+    **kwargs
+) -> dict:
+    assets = Asset.objects.filter(_deployment_data__isnull=False)
+    assets_all_count = assets.count()
 
-    successes = []
-    failures = []
+    if username is not None:
+        assets = assets.filter(owner__username=username)
+    if assets and asset_uid is not None:
+        assets = assets.filter(uid=asset_uid)
+
+    assets_selected_count = assets.count()
+
     sync_stats_all = []
     for asset in assets:
         sync_stats = {}
@@ -70,6 +82,10 @@ def _sync_media_files(asset_uid: Optional[str]):
         ).count()
 
         media_files = _get_asset_metadata(token)
+        if media_files is None:
+            continue
+
+        synced_files = []
         for media_file in media_files:
             media_filename = media_file['data_value']
             media_id = media_file['id']
@@ -101,7 +117,12 @@ def _sync_media_files(asset_uid: Optional[str]):
                 file_type=AssetFile.FORM_MEDIA,
                 description='default',
             )
-            successes.append(af.uid)
+            synced_files.append(
+                {
+                    'data_value': media_filename,
+                    'id': media_id,
+                }
+            )
 
         kpi_after = AssetFile.objects.filter(
             asset=asset,
@@ -110,20 +131,23 @@ def _sync_media_files(asset_uid: Optional[str]):
         ).count()
         sync_stats = {
             'asset_uid': asset.uid,
-            'kobocat': len(
+            'xformid': asset_xform_id,
+            'asset_owner__username': asset.owner.username,
+            'kobocat_form_media': len(
                 [m for m in media_files if m['xform'] == asset_xform_id]
             ),
-            'kpi_before': kpi_before,
-            'kpi_after': kpi_after,
-            'difference': kpi_after - kpi_before,
+            'kpi_form_media_pre_sync': kpi_before,
+            'kpi_form_media_post_sync': kpi_after,
+            'kpi_form_media_difference': kpi_after - kpi_before,
         }
+        if verbosity == 3:
+            sync_stats['synced_files'] = synced_files
         sync_stats_all.append(sync_stats)
 
     return {
-        'assets': assets.count(),
-        'successes': len(successes),
-        'failures': len(failures),
-        'stats': sync_stats_all,
+        'assets_all_count': assets_all_count,
+        'assets_selected_count': assets_selected_count,
+        'sync_stats': sync_stats_all,
     }
 
 
@@ -136,6 +160,13 @@ class Command(BaseCommand):
             dest='asset_uid',
             default=None,
             help="Sync only a specific asset's form-media"
+        )
+        parser.add_argument(
+            '--username',
+            action='store',
+            dest='username',
+            default=None,
+            help="Sync only a specific user's form-media for assets that they own"
         )
         parser.add_argument(
             '--quiet',
@@ -152,9 +183,13 @@ class Command(BaseCommand):
                 'configured before using this command'
             )
         asset_uid = options.get('asset_uid')
+        username = options.get('username')
         quiet = options.get('quiet')
+        verbosity = options.get('verbosity')
 
-        stats = _sync_media_files(asset_uid=asset_uid)
+        stats = _sync_media_files(**options)
 
         if not quiet:
-            print(json.dumps(stats, indent=2))
+            if verbosity < 2:
+                del stats['sync_stats']
+            print(json.dumps(stats, indent=4))
