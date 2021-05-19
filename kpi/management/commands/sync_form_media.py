@@ -4,16 +4,14 @@ import requests
 from typing import Optional
 
 from django.conf import settings
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
 from django.core.exceptions import ImproperlyConfigured
-from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from kpi.deployment_backends.kc_access.shadow_models import ReadOnlyKobocatXForm
 from kpi.models import Asset, AssetFile
 
 
