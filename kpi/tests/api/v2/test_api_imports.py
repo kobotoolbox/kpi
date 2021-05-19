@@ -163,7 +163,7 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locked', '', '', 'locked'],
             ['question_add', 'locked', '', '', ''],
             ['question_order_edit', 'locked', '', '', ''],
-            ['translations_add', 'locked', '', '', ''],
+            ['language_edit', 'locked', '', '', ''],
             ['form_appearance', 'locked', '', '', ''],
             ['form_meta_edit', '', '', '', ''],
         ]
@@ -228,7 +228,7 @@ class AssetImportTaskTest(BaseTestCase):
                     'group_add',
                     'question_add',
                     'question_order_edit',
-                    'translations_add',
+                    'language_edit',
                     'form_appearance',
                 ],
             },
@@ -352,7 +352,7 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locKeD', '', '', 'locked'],
             ['question_add', 'locKED', '', '', ''],
             ['question_order_edit', 'LOCKed', '', '', ''],
-            ['translations_add', 'loCkED', '', '', ''],
+            ['language_edit', 'loCkED', '', '', ''],
             ['form_appearance', 'loCKeD', '', '', ''],
             ['form_meta_edit', '', '', '', ''],
         ]
@@ -417,7 +417,7 @@ class AssetImportTaskTest(BaseTestCase):
                     'group_add',
                     'question_add',
                     'question_order_edit',
-                    'translations_add',
+                    'language_edit',
                     'form_appearance',
                 ],
             },
@@ -539,7 +539,7 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locked', '', '', 'locked'],
             ['question_add', 'locked', '', '', ''],
             ['question_order_edit', 'locked', '', '', ''],
-            ['translations_add', 'locked', '', '', ''],
+            ['language_edit', 'locked', '', '', ''],
             ['form_appearance', 'locked', '', '', ''],
             ['form_meta_edit', '', '', '', ''],
         ]
@@ -644,7 +644,7 @@ class AssetImportTaskTest(BaseTestCase):
             ['group_add', 'locked', '', '', 'locked'],
             ['question_add', 'locked', '', '', ''],
             ['question_order_edit', 'locked', '', '', ''],
-            ['translations_add', 'locked', '', '', ''],
+            ['language_edit', 'locked', '', '', ''],
             ['form_appearance', 'locked', '', '', ''],
             ['form_meta_edit', '', '', '', ''],
         ]
