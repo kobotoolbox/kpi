@@ -21,13 +21,17 @@ def export_in_background(export_task_uid):
 
 @shared_task
 def sync_kobocat_xforms(
-    username=None, quiet=True, populate_xform_kpi_asset_uid=False
+    username=None,
+    quiet=True,
+    populate_xform_kpi_asset_uid=False,
+    sync_form_media=False,
 ):
     call_command(
         'sync_kobocat_xforms',
         username=username,
         quiet=quiet,
         populate_xform_kpi_asset_uid=populate_xform_kpi_asset_uid,
+        sync_form_media=sync_form_media,
     )
 
     
