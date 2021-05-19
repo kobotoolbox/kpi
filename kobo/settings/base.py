@@ -99,7 +99,7 @@ INSTALLED_APPS = (
     'markdownx',
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
-    'kobo.apps.user_statistics.UserStatisticsAppConfig',
+    'kobo.apps.usage_statistics.UsageStatisticsAppConfig',
 )
 
 MIDDLEWARE = [

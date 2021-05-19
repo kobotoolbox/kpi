@@ -64,7 +64,8 @@ class ShadowModel(models.Model):
         #   Reloading models is not advised as it can lead to inconsistencies,
         #   most notably with related models
         # ```
-        # Maybe because `SHADOW_MODEL_APP_LABEL` is not declared in `INSTALLED_APP`
+        # Maybe because `SHADOW_MODEL_APP_LABEL` is not declared in
+        # `INSTALLED_APP`
         # It's just used for `DefaultDatabaseRouter` conditions.
         app_label = SHADOW_MODEL_APP_LABEL
 
@@ -219,11 +220,12 @@ class KobocatPermission(ShadowModel):
 
 
 class KobocatSubmissionCounter(ShadowModel):
-    user = models.ForeignKey('KobocatUser', on_delete=models.CASCADE)
+    user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
     count = models.IntegerField(default=0)
     timestamp = models.DateTimeField(default=timezone.now)
 
     class Meta(ShadowModel.Meta):
+        app_label = 'usage_statistics'
         db_table = 'logger_submissioncounter'
         verbose_name = 'User Statistic'
 
