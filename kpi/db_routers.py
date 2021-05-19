@@ -6,7 +6,7 @@ class DefaultDatabaseRouter:
 
     def db_for_read(self, model, **hints):
         """
-        Reads go to `kc` when `model` is a ShadowModel
+        Reads go to KoBoCAT database when `model` is a ShadowModel
         """
         if model._meta.app_label in SHADOW_MODEL_APP_LABELS:
             return 'kobocat'
@@ -14,7 +14,7 @@ class DefaultDatabaseRouter:
 
     def db_for_write(self, model, **hints):
         """
-        Writes go to `kc` when `model` is a ShadowModel
+        Writes go to KoBoCAT database when `model` is a ShadowModel
         """
         if model._meta.app_label in SHADOW_MODEL_APP_LABELS:
             return 'kobocat'
