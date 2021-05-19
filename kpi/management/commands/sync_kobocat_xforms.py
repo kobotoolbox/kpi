@@ -500,9 +500,9 @@ class Command(BaseCommand):
             # form uuid stored in its deployment data
             xform_uuids_to_asset_pks = {}
             for existing_survey in existing_surveys:
-                backend_response = existing_survey.deployment.backend_response
-                if not backend_response:
+                if not existing_survey.has_deployment:
                     continue
+                backend_response = existing_survey.deployment.backend_response
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk
 
