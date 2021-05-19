@@ -747,52 +747,73 @@ mixins.clickAssets = {
 };
 
 mixins.permissions = {
-  doesPermMatch(perm, permName, partialPermName = null) {
+  /**
+   * For `.find`-ing the permissions
+   *
+   * @param {Object} perm
+   * @param {string} permName
+   * @param {string} [partialPermName]
+   *
+   * @returns {boolean}
+   */
+  _doesPermMatch(perm, permName, partialPermName = null) {
+    // Case 1: permissions don't match, stop looking
     if (perm.permission !== permConfig.getPermissionByCodename(permName).url) {
       return false;
     }
 
-    if (permName !== 'partial_submissions') {
+    // Case 2: permissions match, and we're not looking for partial one
+    if (permName !== PERMISSIONS_CODENAMES.partial_submissions) {
       return true;
     }
 
+    // Case 3a: we are looking for partial permission, but the name was no given
     if (!partialPermName) {
       return false;
     }
 
+    // Case 3b: we are looking for partial permission, check if there are some that match
     return perm.partial_permissions.some((partialPerm) => {
       return partialPerm.url === permConfig.getPermissionByCodename(partialPermName).url;
     });
   },
+
+  /**
+   * This implementation does not use the back end to detect if `submission`
+   * is writable or not. So far, the front end only supports filters like:
+   *    `_submitted_by: {'$in': []}`
+   * Let's search for `submissions._submitted_by` value among these `$in`
+   * lists.
+   *
+   * @param {string} permName - permission to check if user can do at least partially
+   * @param {Object} asset
+   * @param {Object} submission
+   *
+   * @returns {boolean}
+   */
   isSubmissionWritable(permName, asset, submission) {
-    /**
-     * This implementation does not use the back end to detect if `submission`
-     * is writable or not. So far, the front end only supports filters like:
-     *    `_submitted_by: {'$in': []}`
-     * Let's search for `submissions._submitted_by` value among these `$in`
-     * lists.
-     *
-     * @type {boolean|*}
-     */
-      // ToDo optimize this to avoid calling `userCan()` and `userCanPartially()`
-      //  repeatedly in the table view
-      // ToDo Support multiple permissions at once
+    // TODO optimize this to avoid calling `userCan()` and `userCanPartially()`
+    // repeatedly in the table view
+    // TODO Support multiple permissions at once
     const userCan = this.userCan(permName, asset);
     const userCanPartially = this.userCanPartially(permName, asset);
 
+    // Case 1: User has full permission
     if (userCan) {
       return true;
     }
 
+    // Case 2: User has neither full nor partial permission
     if (!userCanPartially) {
       return false;
     }
 
+    // Case 3: User has only partial permission, and things are complicated
     const currentUsername = stores.session.currentAccount.username;
     const partialPerms = asset.permissions.find((perm) => {
       return (
         perm.user === buildUserUrl(currentUsername) &&
-        this.doesPermMatch(perm, 'partial_submissions', permName)
+        this._doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
       );
     });
 
@@ -808,8 +829,14 @@ mixins.permissions = {
         allowedUsers = allowedUsers.concat(filter._submitted_by.$in);
       }
     });
-    return allowedUsers.indexOf(submittedBy) > -1;
+    return allowedUsers.includes(submittedBy);
   },
+
+  /**
+   * @param {string} permName
+   * @param {Object} asset
+   * @param {string} [partialPermName]
+   */
   userCan(permName, asset, partialPermName = null) {
     if (!asset.permissions) {
       return false;
@@ -838,13 +865,18 @@ mixins.permissions = {
     return asset.permissions.some((perm) => {
       return (
         perm.user === buildUserUrl(currentUsername) &&
-        this.doesPermMatch(perm, permName, partialPermName)
+        this._doesPermMatch(perm, permName, partialPermName)
       );
     });
   },
+
+  /**
+   * @param {string} permName
+   * @param {Object} asset
+   */
   userCanPartially(permName, asset) {
-    return this.userCan('partial_submissions', asset, permName);
-  }
+    return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
+  },
 };
 
 mixins.contextRouter = {
