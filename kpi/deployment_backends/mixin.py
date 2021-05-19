@@ -8,6 +8,10 @@ from .base_backend import BaseDeploymentBackend
 
 class DeployableMixin:
 
+    @property
+    def can_be_deployed(self):
+        return self.asset_type and self.asset_type == ASSET_TYPE_SURVEY
+
     def connect_deployment(self, backend: str, **kwargs):
         deployment_backend = self.__get_deployment_backend(backend)
         deployment_backend.connect(**kwargs)
@@ -37,18 +41,6 @@ class DeployableMixin:
                 f'{self.asset_type}'
             )
 
-    def _mark_latest_version_as_deployed(self):
-        """ `sync_kobocat_xforms` calls this, since it manipulates
-        `_deployment_data` directly. Everything else should probably call
-        `deploy()` above """
-        latest_version = self.latest_version
-        latest_version.deployed = True
-        latest_version.save()
-
-    @property
-    def has_deployment(self):
-        return 'backend' in self._deployment_data
-
     @property
     def deployment(self):
         if not self.has_deployment:
@@ -57,11 +49,19 @@ class DeployableMixin:
         return self.__get_deployment_backend(self._deployment_data['backend'])
 
     @property
-    def can_be_deployed(self):
-        return self.asset_type and self.asset_type == ASSET_TYPE_SURVEY
+    def has_deployment(self):
+        return 'backend' in self._deployment_data
 
     def set_deployment(self, deployment: BaseDeploymentBackend):
         setattr(self, '__deployment_backend', deployment)
+
+    def _mark_latest_version_as_deployed(self):
+        """ `sync_kobocat_xforms` calls this, since it manipulates
+        `_deployment_data` directly. Everything else should probably call
+        `deploy()` above """
+        latest_version = self.latest_version
+        latest_version.deployed = True
+        latest_version.save()
 
     def __get_deployment_backend(self, backend: str) -> BaseDeploymentBackend:
         try:
