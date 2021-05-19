@@ -141,13 +141,17 @@ def _sync_media_files(
         }
         if verbosity == 3:
             sync_stats['synced_files'] = synced_files
-        sync_stats_all.append(sync_stats)
+        if verbosity > 1:
+            sync_stats_all.append(sync_stats)
 
-    return {
+    stats_out = {
         'assets_all_count': assets_all_count,
         'assets_selected_count': assets_selected_count,
-        'sync_stats': sync_stats_all,
     }
+    if verbosity > 1:
+        stats_out['sync_stats'] = sync_stats_all,
+
+    return stats_out
 
 
 class Command(BaseCommand):
@@ -187,6 +191,4 @@ class Command(BaseCommand):
         stats = _sync_media_files(**options)
 
         if not quiet:
-            if verbosity < 2:
-                del stats['sync_stats']
             print(json.dumps(stats, indent=4))
