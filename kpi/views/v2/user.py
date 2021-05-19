@@ -73,7 +73,8 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
         task = sync_kobocat_xforms.delay(
             username=username,
             quiet=True,
-            populate_xform_kpi_asset_uid=True
+            populate_xform_kpi_asset_uid=True,
+            sync_form_media=True
         )
 
         return Response(
