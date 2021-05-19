@@ -995,8 +995,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except ValueError as e:
             if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
                 prepared_drf_response['data'] = {
-                    'detail':
+                    'detail': _(
                         'KoBoCAT returned an unexpected response: {}'.format(str(e))
+                    )
                 }
 
         return prepared_drf_response
