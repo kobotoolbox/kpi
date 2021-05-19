@@ -75,17 +75,16 @@ def _sync_media_files(asset_uid: Optional[str]):
             media_id = media_file['id']
             media_xform_id = media_file['xform']
 
-            # Ensure that we send the form-media to correct asset
-            if media_xform_id != asset_xform_id:
-                continue
-
+            # Ensure that we send the form-media to correct asset and
             # don't create duplicates
-            if AssetFile.objects.filter(
-                asset=asset,
-                date_deleted__isnull=True,
-                metadata__filename=media_filename,
-            ).exists():
-                failures.append(media_filename)
+            if (
+                media_xform_id != asset_xform_id
+                or AssetFile.objects.filter(
+                    asset=asset,
+                    date_deleted__isnull=True,
+                    metadata__filename=media_filename,
+                ).exists()
+            ):
                 continue
 
             media_content = _get_media_file_content(
@@ -120,7 +119,12 @@ def _sync_media_files(asset_uid: Optional[str]):
         }
         sync_stats_all.append(sync_stats)
 
-    return successes, failures, sync_stats_all
+    return {
+        'assets': assets.count(),
+        'successes': len(successes),
+        'failures': len(failures),
+        'stats': sync_stats_all,
+    }
 
 
 class Command(BaseCommand):
@@ -150,16 +154,7 @@ class Command(BaseCommand):
         asset_uid = options.get('asset_uid')
         quiet = options.get('quiet')
 
-        success, fail, stats = _sync_media_files(asset_uid=asset_uid)
+        stats = _sync_media_files(asset_uid=asset_uid)
 
         if not quiet:
-            print(
-                json.dumps(
-                    {
-                        'Successes': len(success),
-                        'Failures': len(fail),
-                        'Stats': stats,
-                    },
-                    indent=2,
-                )
-            )
+            print(json.dumps(stats, indent=2))
