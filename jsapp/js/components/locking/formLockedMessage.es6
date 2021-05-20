@@ -29,14 +29,18 @@ class FormLockedMessage extends React.Component {
     const isAllLocked = isAssetAllLocked(this.props.asset.content);
     if (this.props.asset.asset_type === ASSET_TYPES.template.id) {
       if (isAllLocked) {
-        return t('This is a fully locked template. Hover over the icons or go to question settings to see specific restrictions.');
+        // fully locked template
+        return t('This is a fully locked template. Go to question settings to see specific restrictions.');
       } else {
-        return t('This is a partially locked template. Hover over the icons or go to question settings to see specific restrictions. Expand this notification to see form level restrictions.');
+        // partially locked template
+        return t('This is a partially locked template. Go to question settings to see specific restrictions. Expand this notification to see form level restrictions.');
       }
     } else if (isAllLocked) {
-      return t('This form was created using a fully locked template. Hover over the icons or go to question settings to see specific restrictions.');
+      // fully locked form
+      return t('This form was created using a fully locked template. This means no edits were permitted by the template creator.');
     } else {
-      return t('This form was created using a partially locked template. Hover over the icons or go to question settings to see specific restrictions. Expand this notification to see form level restrictions.');
+      // partially locked form
+      return t('This form was created using a partially locked template. Go to question settings to see specific restrictions. Expand this notification to see form level restrictions.');
     }
   }
 
