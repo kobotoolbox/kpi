@@ -1,5 +1,10 @@
-// NOTE: this list should match a list from:
-// https://github.com/kobotoolbox/formpack/blob/master/src/formpack/constants.py
+/**
+ * When adding or changing restrictions, plase make sure to update all the
+ * arrays of restrictions below.
+ *
+ * NOTE: this list should match a list from:
+ * https://github.com/kobotoolbox/formpack/blob/master/src/formpack/constants.py
+ */
 export const LOCKING_RESTRICTIONS = Object.freeze({
   // question related
   choice_add: {name: 'choice_add', label: t('Add choice to question')},
@@ -31,6 +36,7 @@ export const LOCKING_RESTRICTIONS = Object.freeze({
   translations_add: {name: 'translations_add', label: t('Manage translations')},
 });
 
+// all restrictions for questions and choices
 export const QUESTION_RESTRICTIONS = [
   LOCKING_RESTRICTIONS.choice_add,
   LOCKING_RESTRICTIONS.choice_delete,
@@ -43,6 +49,8 @@ export const QUESTION_RESTRICTIONS = [
   LOCKING_RESTRICTIONS.question_skip_logic_edit,
   LOCKING_RESTRICTIONS.question_validation_edit,
 ];
+
+// all restrictions for groups
 export const GROUP_RESTRICTIONS = [
   LOCKING_RESTRICTIONS.group_delete,
   LOCKING_RESTRICTIONS.group_label_edit,
@@ -53,6 +61,8 @@ export const GROUP_RESTRICTIONS = [
   LOCKING_RESTRICTIONS.group_skip_logic_edit,
   LOCKING_RESTRICTIONS.group_split,
 ];
+
+// all restrictions for form
 export const FORM_RESTRICTIONS = [
   LOCKING_RESTRICTIONS.form_appearance,
   LOCKING_RESTRICTIONS.form_meta_edit,

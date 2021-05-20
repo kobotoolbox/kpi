@@ -55,7 +55,6 @@ $formbuilder-group-bg: $kobo-whitegray;
     right: 0;
     width: $s-fb-row-buttons-width;
     height: 100%;
-    cursor: pointer;
 }
 
 .group__header__buttons__button {
@@ -65,6 +64,7 @@ $formbuilder-group-bg: $kobo-whitegray;
     line-height: 22px;
     width: 26px;
     text-align: center;
+    cursor: pointer;
 
     &.group__header__buttons__button--gray {
         color: $kobo-darkgray;
