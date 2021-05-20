@@ -1093,11 +1093,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         results = []
         for response in kc_responses:
             try:
-                message = _(
-                    ET.fromstring(response['response'].content)
-                    .find(OPEN_ROSA_XML_MESSAGE)
-                    .text
-                )
+                message = ET.fromstring(
+                        response['response'].content
+                    ).find(OPEN_ROSA_XML_MESSAGE).text
             except ET.ParseError:
                 message = _('Something went wrong')
 
