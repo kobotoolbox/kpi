@@ -194,6 +194,7 @@ export function hasAssetAnyLocking(assetContent) {
 
 /**
  * Checks if asset has `lock_all`, i.e. everything locked
+ * NOTE: if every restriction is locked, but `lock_all` is not set, this will be false
  *
  * @param {object} assetContent asset's object content property
  * @returns {boolean}

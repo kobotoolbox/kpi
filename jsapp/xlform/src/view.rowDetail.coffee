@@ -26,10 +26,6 @@ module.exports = do ->
       _.extend(@, viewRowDetail.DetailViewMixins[@model.key] || viewRowDetail.DetailViewMixins.default)
       @$el.addClass(@extraClass)
 
-      # identify details that are possibly translatable (useful for locking)
-      if @model.key.includes("::") or @model.key in ['label', 'hint', 'guidance_hint']
-        @$el.addClass('js-translatable-text-input')
-
       return
 
     render: ()->
