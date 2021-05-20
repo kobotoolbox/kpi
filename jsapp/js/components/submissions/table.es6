@@ -804,7 +804,7 @@ export class DataTable extends React.Component {
       },
     });
   }
-  showTableColumsOptionsModal() {
+  showTableColumnsOptionsModal() {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_COLUMNS,
       asset: this.props.asset,
@@ -988,7 +988,7 @@ export class DataTable extends React.Component {
 
             <bem.Button
               m='icon' className='report-button__expand right-tooltip'
-              onClick={this.showTableColumsOptionsModal}
+              onClick={this.showTableColumnsOptionsModal}
               data-tip={t('Display options')}
             >
               <i className='k-icon-settings' />
