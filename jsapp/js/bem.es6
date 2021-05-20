@@ -50,9 +50,6 @@ bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 bem.FormBuilderMessageBox = BEM('form-builder-message-box');
 bem.FormBuilderMessageBox__toggle = bem.FormBuilderMessageBox.__('toggle', 'button');
 bem.FormBuilderMessageBox__details = bem.FormBuilderMessageBox.__('details', 'section');
-bem.FormBuilderMessageBox__list = bem.FormBuilderMessageBox.__('list', 'ul');
-bem.FormBuilderMessageBox__listTitle = bem.FormBuilderMessageBox.__('list-title', 'label');
-bem.FormBuilderMessageBox__listItem = bem.FormBuilderMessageBox.__('list-item', 'li');
 
 bem.FormBuilderMeta = bem('form-builder-meta');
 bem.FormBuilderMeta__columns = bem.FormBuilderMeta.__('columns');

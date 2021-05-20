@@ -149,6 +149,22 @@ export const ASSET_TYPES = {
   },
 };
 
+
+/**
+ * When adding new question type please remember to update those places:
+ * 1. Add question type here
+ * 2. Add new SVG icon to jsapp/svg-icons
+ * 3. Add icon to row view.icons.coffee
+ * 4. If it's non-regular type, you might need to update:
+ *   - isRowSpecialLabelHolder in assetUtils.es6
+ *   - renderQuestionTypeIcon in assetUtils.es6
+ * 5. If question doesn't hold data, update:
+ *   - getDisplayData in bulkEditSubmissionsForm.es6
+ *   - getDisplayedColumns in table.es6
+ * 6. Update renderResponseData in submissionDataTable.es6
+ * 7. Update getSubmissionDisplayData in submissionUtils.es6
+ * 8. If it's media type update renderAttachment in submissionDataTable.es6
+ */
 export const QUESTION_TYPES = Object.freeze({
   acknowledge: {label: t('Acknowledge'), icon: 'qt-acknowledge', id: 'acknowledge'},
   audio: {label: t('Audio'), icon: 'qt-audio', id: 'audio'},
