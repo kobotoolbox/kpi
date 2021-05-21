@@ -8,13 +8,16 @@ import {LoadingSpinner} from 'js/ui';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import {getLangString} from 'utils';
-import {hasRowRestriction} from '../locking/lockingUtils.es6';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {
   MODAL_TYPES,
   QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
 } from 'js/constants';
+import {
+  hasRowRestriction,
+  hasAssetRestriction,
+} from '../locking/lockingUtils.es6';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
@@ -106,6 +109,7 @@ export class TranslationTable extends React.Component {
             <React.Fragment>
               <bem.FormView__iconButton
                 onClick={this.toggleRenameLanguageForm.bind(this)}
+                disabled={!this.canEditLanguages()}
                 className='right-tooltip form-view__icon-button-edit'
               >
                 {this.state.showLanguageForm && <i className='k-icon-close' />}
@@ -278,6 +282,16 @@ export class TranslationTable extends React.Component {
         return false;
       }
     }
+  }
+
+  canEditLanguages() {
+    return (
+      this.props.asset?.content &&
+      !hasAssetRestriction(
+        this.props.asset.content,
+        LOCKING_RESTRICTIONS.language_edit.name
+      )
+    );
   }
 
   render() {
