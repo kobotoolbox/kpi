@@ -114,11 +114,13 @@ export class TranslationSettings extends React.Component {
 
     this.updateAsset(content);
   }
+  // Check if the default `null` language has been replaced yet
   canAddLanguages() {
-    return (
-      !this.isAddingTranslationsLocked() &&
-      !(this.state.translations.length === 1 && this.state.translations[0] === null)
-    );
+    return !(this.state.translations.length === 1 && this.state.translations[0] === null);
+  }
+  // `language_edit` restriction implies canAddLanguages but restricts it
+  canEditLanguages() {
+    return !this.isEditingLanguagesLocked() && this.canAddLanguages();
   }
   getAllLanguages() {
     return this.state.translations;
@@ -237,10 +239,10 @@ export class TranslationSettings extends React.Component {
       }}
     );
   }
-  isAddingTranslationsLocked() {
+  isEditingLanguagesLocked() {
     return (
       this.state.asset?.content &&
-      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.translations_add.name)
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.language_edit.name)
     );
   }
   renderEmptyMessage() {
@@ -318,7 +320,7 @@ export class TranslationSettings extends React.Component {
                       <bem.FormView__iconButton
                         data-index={i}
                         onClick={this.changeDefaultLanguage}
-                        disabled={this.state.isUpdatingDefaultLanguage}
+                        disabled={this.state.isUpdatingDefaultLanguage || !this.canEditLanguages()}
                         data-tip={t('Make default')}
                       >
                         <i className='k-icon-language-default' />
@@ -330,7 +332,7 @@ export class TranslationSettings extends React.Component {
                     <bem.FormView__iconButton
                       data-index={i}
                       onClick={this.toggleRenameLanguageForm}
-                      disabled={this.state.isUpdatingDefaultLanguage}
+                      disabled={this.state.isUpdatingDefaultLanguage || !this.canEditLanguages()}
                       data-tip={t('Edit language')}
                       className='right-tooltip'
                     >
@@ -357,7 +359,7 @@ export class TranslationSettings extends React.Component {
                       <bem.FormView__iconButton
                         data-index={i}
                         onClick={this.deleteLanguage}
-                        disabled={this.state.isUpdatingDefaultLanguage}
+                        disabled={this.state.isUpdatingDefaultLanguage || !this.canEditLanguages()}
                         data-tip={t('Delete language')}
                         className='right-tooltip'
                       >
@@ -385,7 +387,7 @@ export class TranslationSettings extends React.Component {
               <bem.KoboButton
                 m='blue'
                 onClick={this.showAddLanguageForm}
-                disabled={!this.canAddLanguages()}
+                disabled={!this.canAddLanguages() || !this.canEditLanguages()}
               >
                 {t('Add language')}
               </bem.KoboButton>

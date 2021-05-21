@@ -33,7 +33,7 @@ export const LOCKING_RESTRICTIONS = Object.freeze({
   group_add: {name: 'group_add', label: t('Add group')},
   question_add: {name: 'question_add', label: t('Add question')},
   question_order_edit: {name: 'question_order_edit', label: t('Change question order')},
-  translations_add: {name: 'translations_add', label: t('Manage translations')},
+  language_edit: {name: 'language_edit', label: t('Manage translations')},
 });
 
 // all restrictions for questions and choices
@@ -70,7 +70,7 @@ export const FORM_RESTRICTIONS = [
   LOCKING_RESTRICTIONS.group_add,
   LOCKING_RESTRICTIONS.question_add,
   LOCKING_RESTRICTIONS.question_order_edit,
-  LOCKING_RESTRICTIONS.translations_add,
+  LOCKING_RESTRICTIONS.language_edit,
 ];
 
 // currently lock_all has all restrictions,
@@ -100,7 +100,7 @@ export const LOCK_ALL_RESTRICTION_NAMES = [
   LOCKING_RESTRICTIONS.group_add.name,
   LOCKING_RESTRICTIONS.question_add.name,
   LOCKING_RESTRICTIONS.question_order_edit.name,
-  LOCKING_RESTRICTIONS.translations_add.name,
+  LOCKING_RESTRICTIONS.language_edit.name,
 ];
 
 export const LOCK_ALL_PROP_NAME = 'kobo--lock_all';
