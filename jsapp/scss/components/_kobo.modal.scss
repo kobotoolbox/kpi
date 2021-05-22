@@ -569,8 +569,7 @@ $z-modal-x: 10;
 
       // Hide the on hover button completely if disabled
       &:disabled {
-        opacity: 0;
-        visibility: hidden;
+        display: none;
       }
     }
 

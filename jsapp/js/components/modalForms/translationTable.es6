@@ -112,8 +112,8 @@ export class TranslationTable extends React.Component {
                 disabled={!this.canEditLanguages()}
                 className='right-tooltip form-view__icon-button-edit'
               >
-                {this.state.showLanguageForm && <i className='k-icon-close' />}
-                {!this.state.showLanguageForm && <i className='k-icon-edit' />}
+                {this.state.showLanguageForm && <i className='k-icon k-icon-close' />}
+                {!this.state.showLanguageForm && <i className='k-icon k-icon-edit' />}
               </bem.FormView__iconButton>
               {`${translations[langIndex]} ${editableColTitle}`}
             </React.Fragment>

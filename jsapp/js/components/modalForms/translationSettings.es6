@@ -148,9 +148,7 @@ export class TranslationSettings extends React.Component {
           this.updateAsset(content);
           dialog.destroy();
         },
-        oncancel: () => {
-          dialog.destroy();
-        },
+        oncancel: dialog.destroy,
       };
       dialog.set(opts).show();
     } else {
@@ -158,10 +156,10 @@ export class TranslationSettings extends React.Component {
     }
   }
   prepareTranslations(content) {
-    let translated = content.translated,
-      translationsLength = content.translations.length,
-      survey = content.survey,
-      choices = content.choices;
+    let translated = content.translated;
+    let translationsLength = content.translations.length;
+    let survey = content.survey;
+    let choices = content.choices;
 
     // append null values to translations for each survey row
     for (let i = 0, len = survey.length; i < len; i++) {
@@ -185,10 +183,10 @@ export class TranslationSettings extends React.Component {
     return content;
   }
   deleteTranslations(content, langIndex) {
-    let translated = content.translated,
-      translationsLength = content.translations.length,
-      survey = content.survey,
-      choices = content.choices;
+    let translated = content.translated;
+    let translationsLength = content.translations.length;
+    let survey = content.survey;
+    let choices = content.choices;
 
     for (let i = 0, len = survey.length; i < len; i++) {
       let row = survey[i];
@@ -237,9 +235,7 @@ export class TranslationSettings extends React.Component {
         this.updateAsset(content);
         dialog.destroy();
       },
-      oncancel: () => {
-        dialog.destroy();
-      },
+      oncancel: dialog.destroy,
     };
     dialog.set(opts).show();
   }
@@ -339,7 +335,7 @@ export class TranslationSettings extends React.Component {
           </bem.FormView__cell>
           {translations[0] === null && (
             <bem.FormView__cell m={['warning', 'translation-modal-warning']}>
-              <i className='k-icon-alert' />
+              <i className='k-icon k-icon-alert' />
               <p>
                 {t(
                   'You have named translations in your form but the default translation is unnamed. Please specifiy a default translation or make an existing one default.'
@@ -370,7 +366,7 @@ export class TranslationSettings extends React.Component {
                         }
                         data-tip={t('Make default')}
                       >
-                        <i className='k-icon-language-default' />
+                        <i className='k-icon k-icon-language-default' />
                       </bem.FormView__iconButton>
                     )}
                   </bem.FormView__cell>
@@ -387,10 +383,10 @@ export class TranslationSettings extends React.Component {
                       className='right-tooltip'
                     >
                       {this.state.renameLanguageIndex === i && (
-                        <i className='k-icon-close' />
+                        <i className='k-icon k-icon-close' />
                       )}
                       {this.state.renameLanguageIndex !== i && (
-                        <i className='k-icon-edit' />
+                        <i className='k-icon k-icon-edit' />
                       )}
                     </bem.FormView__iconButton>
 
@@ -402,7 +398,7 @@ export class TranslationSettings extends React.Component {
                       data-tip={t('Update translations')}
                       className='right-tooltip'
                     >
-                      <i className='k-icon-language-settings' />
+                      <i className='k-icon k-icon-language-settings' />
                     </bem.FormView__iconButton>
 
                     {i !== 0 && (
@@ -416,7 +412,7 @@ export class TranslationSettings extends React.Component {
                         data-tip={t('Delete language')}
                         className='right-tooltip'
                       >
-                        <i className='k-icon-trash' />
+                        <i className='k-icon k-icon-trash' />
                       </bem.FormView__iconButton>
                     )}
                   </bem.FormView__cell>
@@ -449,7 +445,7 @@ export class TranslationSettings extends React.Component {
           {this.state.showAddLanguageForm && (
             <bem.FormView__cell m='add-language-form'>
               <bem.FormView__link m='close' onClick={this.hideAddLanguageForm}>
-                <i className='k-icon-close' />
+                <i className='k-icon k-icon-close' />
               </bem.FormView__link>
               <bem.FormView__cell m='label'>
                 {t('Add a new language')}
