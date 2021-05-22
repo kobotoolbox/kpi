@@ -40,6 +40,7 @@ export class TranslationTable extends React.Component {
     const langIndex = props.langIndex;
     const editableColTitle =
       langIndex == 0 ? t('updated text') : t('translation');
+    const lockedChoiceLists = [];
 
     // add each translatable property for survey items to translation table
     survey.forEach((row) => {
@@ -47,6 +48,14 @@ export class TranslationTable extends React.Component {
       if (row?.label) {
         isLabelLocked = this.isRowLabelLocked(row.type, row.name);
       }
+
+      // choices don't know what questions use them so we keep track of the
+      // choice lists here to know if a question that uses them has
+      // `choice_label_edit` enabled
+      if (this.isChoiceLabelLocked(row.name) && row.select_from_list_name) {
+        lockedChoiceLists.push(row.select_from_list_name);
+      }
+
       translated.forEach((property) => {
         if (row[property] && row[property][0]) {
           this.state.tableData.push({
@@ -64,8 +73,7 @@ export class TranslationTable extends React.Component {
     // add choice options to translation table
     if (choices && choices.length) {
       choices.forEach((choice) => {
-        let isLabelLocked = this.isChoiceLabelLocked(choice.name);
-        console.dir(choice);
+        let isLabelLocked = lockedChoiceLists.includes(choice.list_name);
         if (choice.label && choice.label[0]) {
           this.state.tableData.push({
             original: choice.label[0],
