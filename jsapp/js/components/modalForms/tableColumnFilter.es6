@@ -13,7 +13,10 @@ import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import {notify} from 'utils';
-import {SUBMISSION_LINKS_ID} from 'js/components/table';
+import {
+  SUBMISSION_LINKS_ID,
+  SUBMISSION_CHECKBOX_ID,
+} from 'js/components/table';
 
 export class TableColumnFilter extends React.Component {
   constructor(props){
@@ -122,7 +125,7 @@ export class TableColumnFilter extends React.Component {
       translationIndex: this.state.translationIndex
     }
     let colsArray = this.props.columns.reduce((acc, col) => {
-      if (col.id && col.id !== SUBMISSION_LINKS_ID && col.id !== '__SubmissionCheckbox') {
+      if (col.id && col.id !== SUBMISSION_LINKS_ID && col.id !== SUBMISSION_CHECKBOX_ID) {
         let qParentGroup = [];
         if (col.id.includes('/')) {
           qParentGroup = col.id.split('/');
