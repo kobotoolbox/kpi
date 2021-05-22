@@ -35,6 +35,7 @@ import TableBulkCheckbox from './tableBulkCheckbox';
 
 const NOT_ASSIGNED = 'validation_status_not_assigned';
 
+// Columns that will be ALWAYS excluded from the view
 const EXCLUDED_COLUMNS = [
   '_xform_id_string',
   '_attachments',
@@ -52,6 +53,7 @@ const EXCLUDED_COLUMNS = [
 ];
 
 export const SUBMISSION_LINKS_ID = '__SubmissionLinks';
+export const SUBMISSION_CHECKBOX_ID = '__SubmissionCheckbox';
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -293,8 +295,8 @@ export class DataTable extends React.Component {
         ),
         accessor: 'sub-checkbox',
         index: '__0',
-        id: '__SubmissionCheckbox',
-        minWidth: 50,
+        id: SUBMISSION_CHECKBOX_ID,
+        width: 50,
         filterable: false,
         sortable: false,
         resizable: false,
@@ -318,9 +320,10 @@ export class DataTable extends React.Component {
       accessor: 'sub-link',
       index: '__1',
       id: SUBMISSION_LINKS_ID,
-      minWidth: userCanSeeEditIcon ? 75 : 45,
+      width: userCanSeeEditIcon ? 75 : 45,
       filterable: false,
       sortable: false,
+      resizable: false,
       className: 'rt-link',
       Cell: (row) => (
         <div>
@@ -609,19 +612,9 @@ export class DataTable extends React.Component {
       }
 
       selectedColumns = columns.filter((el) => {
-        // always include edit/preview links column
-        if (el.id === SUBMISSION_LINKS_ID) {
+        // always include checkbox column
+        if (el.id == SUBMISSION_CHECKBOX_ID)
           return true;
-        }
-
-        // include multi-select checkboxes if validation status is visible
-        // TODO: update this when enabling bulk deleting submissions
-        if (
-          el.id === '__SubmissionCheckbox' &&
-          selCos.includes('_validation_status.uid')
-        ) {
-          return true;
-        }
 
         return selCos.includes(el.id) !== false;
       });
@@ -662,7 +655,7 @@ export class DataTable extends React.Component {
   }
   getColumnLabel(key, q, qParentG, stateOverrides = false) {
     switch(key) {
-      case '__SubmissionCheckbox':
+      case SUBMISSION_CHECKBOX_ID:
         return (
           <span className='column-header-title'>
             {t('Multi-select checkboxes column')}

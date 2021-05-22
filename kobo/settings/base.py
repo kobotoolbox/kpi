@@ -700,6 +700,8 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
+MONGO_DB_MAX_TIME_MS = CELERY_TASK_TIME_LIMIT * 60 * 1000
+
 SESSION_ENGINE = "redis_sessions.session"
 SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
 
