@@ -16,8 +16,12 @@ export class TranslationSettings extends React.Component {
   constructor(props){
     super(props);
 
-    let translations = null;
-    if (props.asset && props.asset.content) {
+    let translations = [];
+    if (
+      props.asset &&
+      props.asset.content &&
+      props.asset.content.translations
+    ) {
       translations = props.asset.content.translations;
     }
 
