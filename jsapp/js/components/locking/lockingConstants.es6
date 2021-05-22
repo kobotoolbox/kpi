@@ -33,7 +33,7 @@ export const LOCKING_RESTRICTIONS = Object.freeze({
   group_add: {name: 'group_add', label: t('Add group')},
   question_add: {name: 'question_add', label: t('Add question')},
   question_order_edit: {name: 'question_order_edit', label: t('Change question order')},
-  language_edit: {name: 'language_edit', label: t('Manage translations')},
+  language_edit: {name: 'language_edit', label: t('Change languages')},
 });
 
 // all restrictions for questions and choices
