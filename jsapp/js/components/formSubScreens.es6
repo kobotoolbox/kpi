@@ -11,7 +11,7 @@ import assetUtils from 'js/assetUtils';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
-import DataTable from './table';
+import DataTable from 'js/components/submissions/table';
 import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
 import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
