@@ -25,8 +25,6 @@ const SAVE_BUTTON_TEXT = {
   PENDING: t('Saving…'),
 };
 
-const CHOICE_TYPE = 'choice_type';
-
 export class TranslationTable extends React.Component {
   constructor(props) {
     super(props);
@@ -47,7 +45,7 @@ export class TranslationTable extends React.Component {
     survey.forEach((row) => {
       let isLabelLocked = false;
       if (row?.label) {
-        isLabelLocked = this.isLabelLocked(row.type, row.name);
+        isLabelLocked = this.isRowLabelLocked(row.type, row.name);
       }
       translated.forEach((property) => {
         if (row[property] && row[property][0]) {
@@ -66,7 +64,8 @@ export class TranslationTable extends React.Component {
     // add choice options to translation table
     if (choices && choices.length) {
       choices.forEach((choice) => {
-        let isLabelLocked = this.isLabelLocked(CHOICE_TYPE, choice.name);
+        let isLabelLocked = this.isChoiceLabelLocked(choice.name);
+        console.dir(choice);
         if (choice.label && choice.label[0]) {
           this.state.tableData.push({
             original: choice.label[0],
@@ -258,18 +257,12 @@ export class TranslationTable extends React.Component {
 
   // Compare current row type agaisnt those with lockable labels and return if
   // the relevant label restriction applies
-  isLabelLocked(rowType, rowName) {
+  isRowLabelLocked(rowType, rowName) {
     if (rowType === GROUP_TYPES_BEGIN.begin_group) {
       return hasRowRestriction(
         this.props.asset.content,
         rowName,
         LOCKING_RESTRICTIONS.group_label_edit.name
-      );
-    } else if (rowType === CHOICE_TYPE) {
-      return hasRowRestriction(
-        this.props.asset.content,
-        rowName,
-        LOCKING_RESTRICTIONS.choice_label_edit.name
       );
     } else {
       if (Object.keys(QUESTION_TYPES).includes(rowType)) {
@@ -282,6 +275,14 @@ export class TranslationTable extends React.Component {
         return false;
       }
     }
+  }
+
+  isChoiceLabelLocked(rowName) {
+    return hasRowRestriction(
+      this.props.asset.content,
+      rowName,
+      LOCKING_RESTRICTIONS.choice_label_edit.name
+    );
   }
 
   canEditLanguages() {
