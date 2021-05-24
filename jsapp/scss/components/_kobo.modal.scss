@@ -558,6 +558,9 @@ $z-modal-x: 10;
     padding: 6px 0px;
 
     .form-view__cell--translation-name .form-view__icon-button {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
       opacity: 0;
       visibility: hidden;
       transition: 250ms;
