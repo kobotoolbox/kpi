@@ -45,6 +45,7 @@ module.exports = do ->
   addIconToRow(constants.QUESTION_TYPES.hidden, "r6")
   addIconToRow(constants.QUESTION_TYPES.file, "r6")
   addIconToRow(constants.QUESTION_TYPES.range, "r6")
+  addIconToRow(constants.QUESTION_TYPES['background-audio'], "r6")
 
   class QtypeIcon extends Backbone.Model
     defaults:

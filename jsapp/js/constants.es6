@@ -153,6 +153,7 @@ export const QUESTION_TYPES = Object.freeze({
   acknowledge: {label: t('Acknowledge'), icon: 'qt-acknowledge', id: 'acknowledge'},
   audio: {label: t('Audio'), icon: 'qt-audio', id: 'audio'},
   barcode: {label: t('Barcode / QR Code'), icon: 'qt-barcode', id: 'barcode'},
+  'background-audio': {label: t('Background audio'), icon: 'qt-audio', id: 'background-audio'},
   calculate: {label: t('Calculate'), icon: 'qt-calculate', id: 'calculate'},
   date: {label: t('Date'), icon: 'qt-date', id: 'date'},
   datetime: {label: t('Date & time'), icon: 'qt-date-time', id: 'datetime'},

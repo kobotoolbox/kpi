@@ -159,6 +159,9 @@ module.exports = do ->
     acknowledge:
       label:
         value: "Acknowledge"
+    'background-audio':
+      label:
+        value: "Background audio"
 
   configs.paramTypes = {
     number: 'number',
@@ -244,6 +247,7 @@ module.exports = do ->
       ["kobomatrix", "Advanced Matrix"],
       ["rank__level", "Rank Level"],
       ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true]
+      ["background-audio", "Background audio"],
     ]
 
     class Type
