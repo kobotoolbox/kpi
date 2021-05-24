@@ -217,7 +217,7 @@ pytz==2019.3
     #   celery
     #   django
     #   django-timezone-field
-pyxform==0.15.1
+pyxform==1.5.1
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack
