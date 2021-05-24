@@ -40,8 +40,8 @@ import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
 import ProjectSettings from './modalForms/projectSettings';
 import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
-import Submission from './modalForms/submission';
-import TableColumnFilter from './modalForms/tableColumnFilter';
+import SubmissionModal from 'js/components/submissions/submissionModal';
+import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
 import TranslationSettings from './modalForms/translationSettings';
 import TranslationTable from './modalForms/translationTable';
 
@@ -317,12 +317,14 @@ class Modal extends React.Component {
               </div>
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && this.state.sid &&
-              <Submission sid={this.state.sid}
-                          asset={this.props.params.asset}
-                          ids={this.props.params.ids}
-                          isDuplicated={this.props.params.isDuplicated}
-                          duplicatedSubmission={this.props.params.duplicatedSubmission}
-                          tableInfo={this.props.params.tableInfo || false} />
+              <SubmissionModal
+                sid={this.state.sid}
+                asset={this.props.params.asset}
+                ids={this.props.params.ids}
+                isDuplicated={this.props.params.isDuplicated}
+                duplicatedSubmission={this.props.params.duplicatedSubmission}
+                tableInfo={this.props.params.tableInfo || false}
+              />
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && !this.state.sid &&
               <div>

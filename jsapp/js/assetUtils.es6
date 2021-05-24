@@ -148,20 +148,20 @@ export function getAssetDisplayName(asset) {
 }
 
 /**
- * @param {Object} question - Part of BE asset data
+ * @param {Object} questionOrChoice - Part of BE asset data
  * @param {number} [translationIndex] - defaults to first (default) language
- * @returns {string} usable name of the question when possible, "Unlabelled" otherwise.
+ * @returns {string} usable name of the question or choice when possible, "Unlabelled" otherwise.
  */
-export function getQuestionDisplayName(question, translationIndex = 0) {
-  if (question.label && Array.isArray(question.label)) {
-    return question.label[translationIndex];
-  } else if (question.label && !Array.isArray(question.label)) {
+export function getQuestionOrChoiceDisplayName(questionOrChoice, translationIndex = 0) {
+  if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
+    return questionOrChoice.label[translationIndex];
+  } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
     // in rare cases the label could be a string
-    return question.label;
-  } else if (question.name) {
-    return question.name;
-  } else if (question.$autoname) {
-    return question.$autoname;
+    return questionOrChoice.label;
+  } else if (questionOrChoice.name) {
+    return questionOrChoice.name;
+  } else if (questionOrChoice.$autoname) {
+    return questionOrChoice.$autoname;
   } else {
     t('Unlabelled');
   }
@@ -443,7 +443,7 @@ export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta =
   let openedRepeatGroupsCount = 0;
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
-      openedGroups.push(getQuestionDisplayName(row, translationIndex));
+      openedGroups.push(getQuestionOrChoiceDisplayName(row, translationIndex));
     }
     if (row.type === 'end_group' || row.type === 'end_repeat') {
       openedGroups.pop();
@@ -464,7 +464,7 @@ export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta =
         type: row.type,
         name: rowName,
         isRequired: Boolean(row.required),
-        label: getQuestionDisplayName(row, translationIndex),
+        label: getQuestionOrChoiceDisplayName(row, translationIndex),
         path: flatPaths[rowName],
         parents: openedGroups.slice(0),
         hasRepatParent: openedRepeatGroupsCount >= 1,
@@ -564,7 +564,7 @@ export default {
   getLanguageIndex,
   getLanguagesDisplayString,
   getOrganizationDisplayString,
-  getQuestionDisplayName,
+  getQuestionOrChoiceDisplayName,
   getRowName,
   getSectorDisplayString,
   getSurveyFlatPaths,
