@@ -21,8 +21,7 @@ import {
 import moment from 'moment';
 import {actions} from './actions';
 import {stores} from './stores';
-// importing it so it exists
-import {surveyCompanionStore} from './surveyCompanionStore';
+import {surveyCompanionStore} from './surveyCompanionStore'; // importing it so it exists
 import {dataInterface} from './dataInterface';
 import {bem} from './bem';
 import ui from './ui';
@@ -36,7 +35,7 @@ import {
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
-import Reports from './components/reports';
+import Reports from './components/reports/reports';
 import FormLanding from './components/formLanding';
 import FormSummary from './components/formSummary';
 import FormSubScreens from './components/formSubScreens';

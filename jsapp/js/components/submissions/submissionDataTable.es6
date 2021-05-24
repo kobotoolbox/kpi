@@ -9,7 +9,7 @@ import {renderQuestionTypeIcon} from 'js/assetUtils';
 import {
   DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
-} from 'js/submissionUtils';
+} from 'js/components/submissions/submissionUtils';
 import {
   META_QUESTION_TYPES,
   QUESTION_TYPES,

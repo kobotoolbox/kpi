@@ -207,7 +207,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return submissions
 
     def duplicate_submission(
-        self, requesting_user_id: int, instance_id: int, **kwargs: dict
+        self, requesting_user: 'auth.User', instance_id: int, **kwargs: dict
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
@@ -268,7 +268,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         }
 
     def bulk_update_submissions(
-        self, request_data: dict, requesting_user_id: int
+        self, request_data: dict, requesting_user: 'auth.User'
     ) -> dict:
         payload = self.__prepare_bulk_update_payload(request_data)
         all_submissions = copy.copy(self.asset._deployment_data['submissions'])
