@@ -1,24 +1,25 @@
 # coding: utf-8
-from .constants import SHADOW_MODEL_APP_LABEL
+from .constants import SHADOW_MODEL_APP_LABELS
 
 
 class DefaultDatabaseRouter:
 
     def db_for_read(self, model, **hints):
         """
-        Reads go to `kc` when `model` is a ShadowModel
+        Reads go to KoBoCAT database when `model` is a ShadowModel
         """
-        if model._meta.app_label == SHADOW_MODEL_APP_LABEL:
-            return "kobocat"
-        return "default"
+        if model._meta.app_label in SHADOW_MODEL_APP_LABELS:
+            return 'kobocat'
+        return 'default'
 
     def db_for_write(self, model, **hints):
         """
-        Writes go to `kc` when `model` is a ShadowModel
+        Writes go to KoBoCAT database when `model` is a ShadowModel
         """
-        if model._meta.app_label == SHADOW_MODEL_APP_LABEL:
-            return "kobocat"
-        return "default"
+        if model._meta.app_label in SHADOW_MODEL_APP_LABELS:
+            return 'kobocat'
+
+        return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
         """
@@ -30,7 +31,7 @@ class DefaultDatabaseRouter:
         """
         All default models end up in this pool.
         """
-        if app_label == SHADOW_MODEL_APP_LABEL:
+        if app_label in SHADOW_MODEL_APP_LABELS:
             return False
         return True
 
