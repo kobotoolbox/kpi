@@ -5,6 +5,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import LanguageForm from 'js/components/modalForms/languageForm';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
@@ -16,8 +17,12 @@ export class TranslationSettings extends React.Component {
   constructor(props){
     super(props);
 
-    let translations = null;
-    if (props.asset && props.asset.content) {
+    let translations = [];
+    if (
+      props.asset &&
+      props.asset.content &&
+      props.asset.content.translations
+    ) {
       translations = props.asset.content.translations;
     }
 
@@ -250,16 +255,6 @@ export class TranslationSettings extends React.Component {
       </bem.FormModal>
     );
   }
-  renderLoadingMessage() {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
   renderUndefinedDefaultSettings(){
     return (
       <bem.FormModal m='translation-settings'>
@@ -421,7 +416,7 @@ export class TranslationSettings extends React.Component {
       !this.state.asset.content ||
       this.state.translations === null
     ) {
-      return this.renderLoadingMessage();
+      return (<LoadingSpinner/>);
     }
 
     let translations = this.state.translations;

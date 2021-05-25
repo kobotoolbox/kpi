@@ -11,7 +11,7 @@ import assetUtils from 'js/assetUtils';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
-import DataTable from './table';
+import DataTable from 'js/components/submissions/table';
 import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
 import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
@@ -148,14 +148,7 @@ export class FormSubScreens extends React.Component {
     );
   }
   renderReset() {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
+    return (<ui.LoadingSpinner/>);
   }
 }
 

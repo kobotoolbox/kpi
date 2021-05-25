@@ -148,20 +148,20 @@ export function getAssetDisplayName(asset) {
 }
 
 /**
- * @param {Object} question - Part of BE asset data
+ * @param {Object} questionOrChoice - Part of BE asset data
  * @param {number} [translationIndex] - defaults to first (default) language
- * @returns {string} usable name of the question when possible, "Unlabelled" otherwise.
+ * @returns {string} usable name of the question or choice when possible, "Unlabelled" otherwise.
  */
-export function getQuestionDisplayName(question, translationIndex = 0) {
-  if (question.label && Array.isArray(question.label)) {
-    return question.label[translationIndex];
-  } else if (question.label && !Array.isArray(question.label)) {
+export function getQuestionOrChoiceDisplayName(questionOrChoice, translationIndex = 0) {
+  if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
+    return questionOrChoice.label[translationIndex];
+  } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
     // in rare cases the label could be a string
-    return question.label;
-  } else if (question.name) {
-    return question.name;
-  } else if (question.$autoname) {
-    return question.$autoname;
+    return questionOrChoice.label;
+  } else if (questionOrChoice.name) {
+    return questionOrChoice.name;
+  } else if (questionOrChoice.$autoname) {
+    return questionOrChoice.$autoname;
   } else {
     t('Unlabelled');
   }
@@ -187,11 +187,11 @@ export function isLibraryAsset(assetType) {
  */
 export function getAssetIcon(asset) {
   if (asset.asset_type === ASSET_TYPES.template.id) {
-    return 'k-icon-template-new';
+    return 'k-icon-template';
   } else if (asset.asset_type === ASSET_TYPES.question.id) {
-    return 'k-icon-question-new';
+    return 'k-icon-question';
   } else if (asset.asset_type === ASSET_TYPES.block.id) {
-    return 'k-icon-block-new';
+    return 'k-icon-block';
   } else if (asset.asset_type === ASSET_TYPES.survey.id) {
     if (asset.has_deployment) {
       return 'k-icon-deploy';
@@ -399,7 +399,7 @@ function getRowLabelAtIndex(row, index) {
  * @param {string} type - one of QUESTION_TYPES
  * @returns {Node}
  */
-export function renderTypeIcon(type, additionalClassNames = []) {
+export function renderQuestionTypeIcon(type) {
   let typeDef;
   if (type === SCORE_ROW_TYPE) {
     typeDef = QUESTION_TYPES.score;
@@ -410,10 +410,7 @@ export function renderTypeIcon(type, additionalClassNames = []) {
   }
 
   if (typeDef) {
-    const classNames = additionalClassNames;
-    classNames.push('fa');
-    classNames.push(typeDef.faIcon);
-    return (<i className={classNames.join(' ')} title={type}/>);
+    return (<i className={`k-icon k-icon-${typeDef.icon}`} title={type}/>);
   } else {
     return <small><code>{type}</code></small>;
   }
@@ -435,7 +432,7 @@ export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta =
   let openedRepeatGroupsCount = 0;
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
-      openedGroups.push(getQuestionDisplayName(row, translationIndex));
+      openedGroups.push(getQuestionOrChoiceDisplayName(row, translationIndex));
     }
     if (row.type === 'end_group' || row.type === 'end_repeat') {
       openedGroups.pop();
@@ -456,7 +453,7 @@ export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta =
         type: row.type,
         name: rowName,
         isRequired: Boolean(row.required),
-        label: getQuestionDisplayName(row, translationIndex),
+        label: getQuestionOrChoiceDisplayName(row, translationIndex),
         path: flatPaths[rowName],
         parents: openedGroups.slice(0),
         hasRepatParent: openedRepeatGroupsCount >= 1,
@@ -556,7 +553,7 @@ export default {
   getLanguageIndex,
   getLanguagesDisplayString,
   getOrganizationDisplayString,
-  getQuestionDisplayName,
+  getQuestionOrChoiceDisplayName,
   getRowName,
   getSectorDisplayString,
   getSurveyFlatPaths,
@@ -567,7 +564,7 @@ export default {
   isRowSpecialLabelHolder,
   isSelfOwned,
   modifyDetails,
-  renderTypeIcon,
+  renderQuestionTypeIcon,
   replaceForm,
   share,
   removeInvalidChars,

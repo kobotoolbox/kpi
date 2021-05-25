@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@4ed46deca6ab4322c6de3e74a253d3e4855416b8#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@a809b1d85b3805361c7870017c2a847b6378f966#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -252,7 +252,7 @@ pytz==2019.3
     #   celery
     #   django
     #   django-timezone-field
-pyxform==0.15.1
+pyxform==1.5.1
     # via
     #   -r dependencies/pip/requirements.in
     #   formpack

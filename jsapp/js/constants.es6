@@ -150,126 +150,31 @@ export const ASSET_TYPES = {
 };
 
 export const QUESTION_TYPES = Object.freeze({
-  select_one: {
-    label: t('Select One'),
-    faIcon: 'fa-dot-circle-o',
-    id: 'select_one',
-  },
-  select_multiple: {
-    label: t('Select Many'),
-    faIcon: 'fa-list-ul',
-    id: 'select_multiple',
-  },
-  text: {
-    label: t('Text'),
-    faIcon: 'fa-lato-text',
-    id: 'text',
-  },
-  integer: {
-    label: t('Number'),
-    faIcon: 'fa-lato-integer',
-    id: 'integer',
-  },
-  decimal: {
-    label: t('Decimal'),
-    faIcon: 'fa-lato-decimal',
-    id: 'decimal',
-  },
-  date: {
-    label: t('Date'),
-    faIcon: 'fa-calendar',
-    id: 'date',
-  },
-  time: {
-    label: t('Time'),
-    faIcon: 'fa-clock-o',
-    id: 'time',
-  },
-  datetime: {
-    label: t('Date & time'),
-    faIcon: 'fa-calendar clock-over',
-    id: 'datetime',
-  },
-  geopoint: {
-    label: t('Point'),
-    faIcon: 'fa-map-marker',
-    id: 'geopoint',
-  },
-  image: {
-    label: t('Photo'),
-    faIcon: 'fa-picture-o',
-    id: 'image',
-  },
-  audio: {
-    label: t('Audio'),
-    faIcon: 'fa-volume-up',
-    id: 'audio',
-  },
-  video: {
-    label: t('Video'),
-    faIcon: 'fa-video-camera',
-    id: 'video',
-  },
-  geotrace: {
-    label: t('Line'),
-    faIcon: 'fa-share-alt',
-    id: 'geotrace',
-  },
-  note: {
-    label: t('Note'),
-    faIcon: 'fa-bars',
-    id: 'note',
-  },
-  barcode: {
-    label: t('Barcode / QR Code'),
-    faIcon: 'fa-qrcode',
-    id: 'barcode',
-  },
-  acknowledge: {
-    label: t('Acknowledge'),
-    faIcon: 'fa-check-square-o',
-    id: 'acknowledge',
-  },
-  geoshape: {
-    label: t('Area'),
-    faIcon: 'fa-square',
-    id: 'geoshape',
-  },
-  score: {
-    label: t('Rating'),
-    faIcon: 'fa-server',
-    id: 'score',
-  },
-  kobomatrix: {
-    label: t('Question Matrix'),
-    faIcon: 'fa-table',
-    id: 'kobomatrix',
-  },
-  rank: {
-    label: t('Ranking'),
-    faIcon: 'fa-sort-amount-desc',
-    id: 'rank',
-  },
-  calculate: {
-    label: t('Calculate'),
-    faIcon: 'fa-lato-calculate',
-    id: 'calculate',
-  },
-  hidden: {
-    label: t('Hidden'),
-    faIcon: 'fa-eye-slash',
-    id: 'hidden',
-  },
-  file: {
-    label: t('File'),
-    faIcon: 'fa-file',
-    id: 'file',
-  },
-  range: {
-    label: t('Range'),
-    faIcon: 'fa-lato-range',
-    id: 'range',
-  },
+  acknowledge: {label: t('Acknowledge'), icon: 'qt-acknowledge', id: 'acknowledge'},
+  audio: {label: t('Audio'), icon: 'qt-audio', id: 'audio'},
+  barcode: {label: t('Barcode / QR Code'), icon: 'qt-barcode', id: 'barcode'},
+  calculate: {label: t('Calculate'), icon: 'qt-calculate', id: 'calculate'},
+  date: {label: t('Date'), icon: 'qt-date', id: 'date'},
+  datetime: {label: t('Date & time'), icon: 'qt-date-time', id: 'datetime'},
+  decimal: {label: t('Decimal'), icon: 'qt-decimal', id: 'decimal'},
+  'external-xml': {label: t('External XML'), icon: 'qt-external-xml', id: 'external-xml'},
+  file: {label: t('File'), icon: 'qt-file', id: 'file'},
+  geopoint: {label: t('Point'), icon: 'qt-point', id: 'geopoint'},
+  geoshape: {label: t('Area'), icon: 'qt-area', id: 'geoshape'},
+  geotrace: {label: t('Line'), icon: 'qt-line', id: 'geotrace'},
+  hidden: {label: t('Hidden'), icon: 'qt-hidden', id: 'hidden'},
+  image: {label: t('Photo'), icon: 'qt-photo', id: 'image'},
+  integer: {label: t('Number'), icon: 'qt-number', id: 'integer'},
+  kobomatrix: {label: t('Question Matrix'), icon: 'qt-question-matrix', id: 'kobomatrix'},
+  note: {label: t('Note'), icon: 'qt-note', id: 'note'},
+  range: {label: t('Range'), icon: 'qt-range', id: 'range'},
+  rank: {label: t('Ranking'), icon: 'qt-ranking', id: 'rank'},
+  score: {label: t('Rating'), icon: 'qt-rating', id: 'score'},
+  select_multiple: {label: t('Select Many'), icon: 'qt-select-many', id: 'select_multiple'},
+  select_one: {label: t('Select One'), icon: 'qt-select-one', id: 'select_one'},
+  text: {label: t('Text'), icon: 'qt-text', id: 'text'},
+  time: {label: t('Time'), icon: 'qt-time', id: 'time'},
+  video: {label: t('Video'), icon: 'qt-video', id: 'video'},
 });
 
 export const META_QUESTION_TYPES = {};
@@ -373,15 +278,6 @@ export const DEPLOYMENT_CATEGORIES = Object.freeze({
   Archived: {id: 'Archived', label: t('Archived')},
 });
 
-export const REPORT_STYLES = Object.freeze({
-  vertical: {value: 'vertical', label: t('Vertical')},
-  donut: {value: 'donut', label: t('Donut')},
-  area: {value: 'area', label: t('Area')},
-  horizontal: {value: 'horizontal', label: t('Horizontal')},
-  pie: {value: 'pie', label: t('Pie')},
-  line: {value: 'line', label: t('Line')},
-});
-
 export const QUERY_LIMIT_DEFAULT = 5000;
 
 export const ROUTES = Object.freeze({
@@ -420,6 +316,46 @@ export const ROUTES = Object.freeze({
   FORM_RESET: '/forms/:uid/reset',
 });
 
+export const COLLECTION_METHODS = Object.freeze({
+  offline_url: {
+    id: 'offline_url',
+    label: t('Online-Offline (multiple submission)'),
+    desc: t('This allows online and offline submissions and is the best option for collecting data in the field.'),
+  },
+  url: {
+    id: 'url',
+    label: t('Online-Only (multiple submissions)'),
+    desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records.'),
+  },
+  single_url: {
+    id: 'single_url',
+    label: t('Online-Only (single submission)'),
+    desc: t('This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.'),
+  },
+  single_once_url: {
+    id: 'single_once_url',
+    label: t('Online-only (once per respondent)'),
+    desc: t('This allows your web form to only be submitted once per user, using basic protection to prevent the same user (on the same browser & device) from submitting more than once.'),
+  },
+  iframe_url: {
+    id: 'iframe_url',
+    label: t('Embeddable web form code'),
+    desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins.'),
+  },
+  preview_url: {
+    id: 'preview_url',
+    label: t('View only'),
+    desc: t('Use this version for testing, getting feedback. Does not allow submitting data.'),
+  },
+  android: {
+    id: 'android',
+    label: t('Android application'),
+    desc: t('Use this option to collect data in the field with your Android device.'),
+    url: 'https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en',
+  },
+});
+
+// NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -444,7 +380,6 @@ const constants = {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
-  REPORT_STYLES,
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,

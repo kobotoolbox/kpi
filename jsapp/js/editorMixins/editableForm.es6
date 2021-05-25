@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import autoBind from 'react-autobind';
+import cloneDeep from 'lodash.clonedeep';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
@@ -32,7 +32,6 @@ import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 import assetUtils from 'js/assetUtils';
-import {renderLoading} from 'js/components/modalForms/modalHelpers';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -57,7 +56,13 @@ export default assign({
 
     if (!this.state.isNewAsset) {
       let uid = this.props.params.assetid || this.props.params.uid;
-      stores.allAssets.whenLoaded(uid, (asset) => {
+      stores.allAssets.whenLoaded(uid, (originalAsset) => {
+        // Store asset object is mutable and there is no way to predict all the
+        // bugs that come from this fact. Form Builder code is already changing
+        // the content of the object, so we want to cut all the bugs at the
+        // very start of the process.
+        const asset = cloneDeep(originalAsset);
+
         this.setState({asset: asset});
 
         // HACK switch to setState callback after updating to React 16+
@@ -557,7 +562,7 @@ export default assign({
             tabIndex='0'
             onClick={this.safeNavigateToList}
           >
-            <i className='k-icon-kobo' />
+            <i className='k-icon k-icon-kobo' />
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m={'name'} >
@@ -616,7 +621,7 @@ export default assign({
                   }]}
                   onClick={this.showAll}
                   data-tip={t('Expand / collapse questions')}>
-                <i className='k-icon-view-all-alt' />
+                <i className='k-icon-view-all' />
               </bem.FormBuilderHeader__button>
             }
 
@@ -795,7 +800,7 @@ export default assign({
       );
     }
 
-    return renderLoading();
+    return (<ui.LoadingSpinner/>);
   },
 
   render() {
@@ -804,7 +809,7 @@ export default assign({
     if (!this.state.isNewAsset && !this.state.asset) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          {renderLoading()}
+          <ui.LoadingSpinner/>
         </DocumentTitle>
       );
     }

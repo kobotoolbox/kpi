@@ -5,12 +5,10 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Dropzone from 'react-dropzone';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
-import {
-  renderLoading,
-  renderBackButton
-} from './modalHelpers';
+import {renderBackButton} from './modalHelpers';
 import {validFileTypes} from 'utils';
 
 class LibraryUploadForm extends React.Component {
@@ -37,7 +35,7 @@ class LibraryUploadForm extends React.Component {
 
   render() {
     if (!this.state.isSessionLoaded) {
-      return renderLoading();
+      return (<LoadingSpinner/>);
     }
 
     return (
@@ -61,7 +59,7 @@ class LibraryUploadForm extends React.Component {
         }
         {this.state.isPending &&
           <div className='dropzone'>
-            {renderLoading(t('Uploading file…'))}
+            <LoadingSpinner message={t('Uploading file…')}/>
           </div>
         }
 
