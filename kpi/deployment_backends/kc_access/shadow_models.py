@@ -303,13 +303,8 @@ class KobocatUserObjectPermission(ShadowModel):
     """
     permission = models.ForeignKey(KobocatPermission, on_delete=models.CASCADE)
     content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
-<<<<<<< HEAD
-    object_pk = models.CharField(_('object ID'), max_length=255)
-    content_object = KobocatGenericForeignKey(fk_field='object_pk')
-=======
     object_pk = models.CharField('object ID', max_length=255)
-    content_object = GenericForeignKey(fk_field='object_pk')
->>>>>>> beta
+    content_object = KobocatGenericForeignKey(fk_field='object_pk')
     # It's okay not to use `KobocatUser` as long as PKs are synchronized
     user = models.ForeignKey(
         getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
