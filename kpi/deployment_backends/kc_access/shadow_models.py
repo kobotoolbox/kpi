@@ -4,7 +4,6 @@ from hashlib import md5
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentTypeManager
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
@@ -91,7 +90,6 @@ class KobocatContentType(ShadowModel):
     """
     app_label = models.CharField(max_length=100)
     model = models.CharField(_('python model class name'), max_length=100)
-    objects = ContentTypeManager()
 
     class Meta(ShadowModel.Meta):
         db_table = 'django_content_type'
