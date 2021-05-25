@@ -27,8 +27,8 @@ import {
   matrixRepeatSurveyChoices,
   matrixRepeatSurveySubmission,
   matrixRepeatSurveyDisplayData,
-} from 'js/submissionUtils.mocks';
-import {getSubmissionDisplayData} from 'js/submissionUtils';
+} from './submissionUtils.mocks';
+import {getSubmissionDisplayData} from './submissionUtils';
 
 describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a survey with a group', () => {
