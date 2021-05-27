@@ -31,7 +31,7 @@ class ConnectProjects extends React.Component {
       isLoading: false,
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
-      isSharingSomeQuestions: props.asset.data_sharing?.fields?.length || false,
+      isSharingSomeQuestions: Boolean(props.asset.data_sharing?.fields?.length) || false,
       attachedParents: [],
       sharingEnabledAssets: null,
       newParent: null,
