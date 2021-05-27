@@ -203,9 +203,9 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
         // score and rank don't have list name on them and they need to use
         // the one of their parent
         if (row.type === SCORE_ROW_TYPE || row.type === RANK_LEVEL_TYPE) {
-          const parentGroupRow = survey.find((row) => {
-            return getRowName(row) === parentGroup.name;
-          });
+          const parentGroupRow = survey.find((row) =>
+            getRowName(row) === parentGroup.name
+          );
           rowListName = getRowListName(parentGroupRow);
         }
 
@@ -265,9 +265,9 @@ function populateMatrixData(
    */
   Object.keys(flatPaths).forEach((questionName) => {
     if (flatPaths[questionName].startsWith(`${matrixGroupPath}/`)) {
-      const questionSurveyObj = survey.find((row) => {
-        return getRowName(row) === questionName;
-      });
+      const questionSurveyObj = survey.find((row) =>
+        getRowName(row) === questionName
+      );
 
       /*
        * NOTE: Submission data for a Matrix question is kept in an unusal

@@ -368,7 +368,7 @@ class BaseDeploymentBackend(abc.ABC):
             permission_filters = self.asset.get_filters_for_partial_perm(
                 user.pk, perm=partial_perm)
         except ValueError:
-            raise ValueError(_('Invalid `user_id` param'))
+            raise ValueError('Invalid `user_id` param')
 
         if validate_count:
             return {

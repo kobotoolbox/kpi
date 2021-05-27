@@ -1250,7 +1250,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         results = []
         for response in kc_responses:
             try:
-                message = _(
+                message = (
                     ET.fromstring(response['response'].content)
                     .find(OPEN_ROSA_XML_MESSAGE)
                     .text
