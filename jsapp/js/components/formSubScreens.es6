@@ -12,7 +12,7 @@ import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
 import ConnectProjects from './modalForms/connectProjects';
 import FormMedia from './modalForms/formMedia';
-import DataTable from './table';
+import DataTable from 'js/components/submissions/table';
 import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
 import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';

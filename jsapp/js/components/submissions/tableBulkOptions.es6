@@ -110,7 +110,8 @@ class TableBulkOptions extends React.Component {
       data.submission_ids = Object.keys(this.props.selectedRows);
       selectedCount = data.submission_ids.length;
     }
-    let msg, onshow;
+    let msg;
+    let onshow;
     msg = t('You are about to permanently delete ##count## data entries.').replace('##count##', selectedCount);
     msg += `${renderCheckbox('dt1', t('All selected data associated with this form will be deleted.'))}`;
     msg += `${renderCheckbox('dt2', t('I understand that if I delete the selected entries I will not be able to recover them.'))}`;
@@ -123,10 +124,10 @@ class TableBulkOptions extends React.Component {
 
       ok_button.disabled = true;
 
-      $els.each(function() {$(this).prop('checked', false);});
-      $els.change(function() {
+      $els.each(function () {$(this).prop('checked', false);});
+      $els.change(function () {
         ok_button.disabled = false;
-        $els.each(function() {
+        $els.each(function () {
           if (!$(this).prop('checked')) {
             ok_button.disabled = true;
           }
@@ -194,8 +195,8 @@ class TableBulkOptions extends React.Component {
                   >
                     {t('Set status: ##status##').replace('##status##', item.label)}
                   </bem.PopoverMenu__link>
-                );
-              })
+                )
+              )
             }
           </ui.PopoverMenu>
         }
