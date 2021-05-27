@@ -25,7 +25,8 @@ import {
   PARTIAL_CHECKBOX_PAIRS,
   PARTIAL_PERM_PAIRS,
   CHECKBOX_NAMES,
-  CHECKBOX_PERM_PAIRS, PARTIAL_IMPLIED_CHECKBOX_PAIRS,
+  CHECKBOX_PERM_PAIRS,
+  PARTIAL_IMPLIED_CHECKBOX_PAIRS,
 } from './permConstants';
 
 const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma');
@@ -336,14 +337,12 @@ class UserAssetPermsEditor extends React.Component {
     const permDef = permConfig.getPermissionByCodename(permName);
     if (!permDef) {
       return false;
+    } else if (PARTIAL_PERM_PAIRS.hasOwnProperty(checkboxName)) {
+      permName = PARTIAL_PERM_PAIRS[checkboxName];
+      const nestedPartialPermissions = this.props.assignablePerms.get(permDef.url);
+      return nestedPartialPermissions[permName];
     } else {
-      if (PARTIAL_PERM_PAIRS.hasOwnProperty(checkboxName)) {
-        permName = PARTIAL_PERM_PAIRS[checkboxName];
-        const nestedPartialPermissions = this.props.assignablePerms.get(permDef.url);
-        return nestedPartialPermissions[permName];
-      } else {
-        return this.props.assignablePerms.get(permDef.url);
-      }
+      return this.props.assignablePerms.get(permDef.url);
     }
   }
 

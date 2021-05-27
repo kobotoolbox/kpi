@@ -311,9 +311,9 @@ export class DataTable extends React.Component {
               checked={this.state.selectedRows[row.original._id] ? true : false}
               onChange={this.bulkUpdateChange.bind(this, row.original._id)}
               disabled={!(
-                (this.isSubmissionWritable('change_submissions', this.props.asset, row.original))
-                || (this.isSubmissionWritable('delete_submissions', this.props.asset, row.original))
-                || (this.isSubmissionWritable('validate_submissions', this.props.asset, row.original))
+                (this.isSubmissionWritable('change_submissions', this.props.asset, row.original)) ||
+                (this.isSubmissionWritable('delete_submissions', this.props.asset, row.original)) ||
+                (this.isSubmissionWritable('validate_submissions', this.props.asset, row.original))
               )}
             />
           </div>
@@ -326,7 +326,8 @@ export class DataTable extends React.Component {
       (
         this.userCan('change_submissions', this.props.asset) ||
         this.userCanPartially('change_submissions', this.props.asset)
-      ));
+      )
+    );
 
     columns.push({
       Header: '',

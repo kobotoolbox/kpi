@@ -314,7 +314,10 @@ class SubmissionModal extends React.Component {
               <div className='switch--validation-status'>
                 <label>{t('Validation status:')}</label>
                 <Select
-                  isDisabled={!(this.userCan('validate_submissions', this.props.asset) || this.isSubmissionWritable('validate_submissions', this.props.asset, this.state.submission))}
+                  isDisabled={!(
+                    this.userCan('validate_submissions', this.props.asset) ||
+                    this.isSubmissionWritable('validate_submissions', this.props.asset, this.state.submission)
+                  )}
                   isClearable={false}
                   value={s._validation_status && s._validation_status.uid ? s._validation_status : false}
                   options={VALIDATION_STATUSES_LIST}
@@ -369,7 +372,10 @@ class SubmissionModal extends React.Component {
               <div className='switch--validation-status'>
                 <label>{t('Validation status:')}</label>
                 <Select
-                  isDisabled={!(this.userCan('validate_submissions', this.props.asset) || this.isSubmissionWritable('validate_submissions', this.props.asset, this.state.submission))}
+                  isDisabled={!(
+                    this.userCan('validate_submissions', this.props.asset) ||
+                    this.isSubmissionWritable('validate_submissions', this.props.asset, this.state.submission)
+                  )}
                   isClearable={false}
                   value={s._validation_status && s._validation_status.uid ? s._validation_status : false}
                   options={VALIDATION_STATUSES_LIST}

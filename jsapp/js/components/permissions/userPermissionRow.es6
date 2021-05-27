@@ -82,7 +82,7 @@ class UserPermissionRow extends React.Component {
           if (perm.partial_permissions) {
             perm.partial_permissions.forEach((partial) => {
               partial.filters.forEach((filter) => {
-                if (filter._submitted_by)  {
+                if (filter._submitted_by) {
                   permUsers = permUsers.concat(filter._submitted_by.$in);
                 }
               });
