@@ -146,6 +146,7 @@ module.exports = do ->
       @_shrunk = !!opts.shrunk
       @$el.attr("data-row-id", @model.cid)
       @surveyView = @options.surveyView
+      @ngScope = opts.ngScope
 
     deleteGroup: (evt)=>
       skipConfirm = $(evt.currentTarget).hasClass('js-force-delete-group')
@@ -202,6 +203,10 @@ module.exports = do ->
         if row.constructor.key == 'group' && !@hasNestedGroups()
           @$('.xlf-dv-appearance').eq(0).show()
       @
+
+    add_group_to_library: (evt) =>
+      evt.stopPropagation()
+      @ngScope?.add_row_to_question_library @model, @model.getSurvey()._initialParams
 
   class RowView extends BaseRowView
     _expandedRender: ->

@@ -87,6 +87,7 @@ module.exports = do ->
         <div class="group__header__buttons">
           <span class="group__header__buttons__button group__header__buttons__button--settings js-toggle-card-settings"><i class="fa fa-cog"></i></span>
           <span class="group__header__buttons__button group__header__buttons__button--delete js-delete-group"><i class="fa fa-trash-o"></i></span>
+          <span class="group__header__buttons__button group__header__buttons__button--add-group-to-library js-add-group-to-library" data-button-name="add-group-to-library"><i class="fa fa-folder-o"><i class="fa fa-plus"></i></i></span>
         </div>
       </header>
       <ul class="group__rows">
