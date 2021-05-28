@@ -8,16 +8,39 @@
 /*
   Group 1: Blueish grays
 
-  WARNING: All text should either be $kobo-black/$kobo-darkgray for light backgrounds
-  or $kobo-white/$kobo-whitegray for dark backgrounds.
+  NOTE: please make sure to keep the hue and saturation consistent in all grays
 */
 
+// (accessible) our black, very very rare, only use if necessary for contrast
+$kobo-gray-14: hsl(225, 16%, 14%);
+// (accessible) active text, important text, text on background, top navigation
+// background
+$kobo-gray-24: hsl(225, 16%, 24%);
+// (accessible) default text, inactive text, options text, buttons text,
+// tabs text, notifications background, hover for popups and dropdowns
+$kobo-gray-40: hsl(225, 16%, 40%);
+// (readable) clickable icons on hover
+$kobo-gray-55: hsl(225, 16%, 55%);
+// icons default (clickable), arrows and indicators default
+$kobo-gray-65: hsl(225, 16%, 65%);
+// inactive icons, some decorative icons
+$kobo-gray-85: hsl(225, 16%, 85%);
+// scroll bars, table lines, dividers, background of clickable icons on hover
+// when also in a highlighted table row
+$kobo-gray-92: hsl(225, 16%, 92%);
+// default light background, icons on hover, sidebar menu, table headings, …
+$kobo-gray-96: hsl(225, 16%, 96%);
+// table row highlight on hover
+$kobo-gray-98: hsl(225, 16%, 98%);
+// white background
+$kobo-white: hsl(225, 16%, 100%);
+
+// ultimately these colors should go away, please use the list above
 $kobo-black: hsl(230, 12%, 20%); // base text color
-$kobo-darkgray: hsl(230, 12%, 40%);
-$kobo-midgray: hsl(230, 12%, 75%); // mostly used for darker borders
+$kobo-midgray: hsl(230, 12%, 75%); // most cases should become $kobo-gray-65
 $kobo-lightgray: hsl(230, 12%, 90%); // mostly used for lighter borders
 $kobo-whitegray: hsl(230, 12%, 95%);
-$kobo-white: hsl(0, 0%, 100%);
+$kobo-darkgray: $kobo-gray-40;
 
 /*
   Group 2: Accent colors

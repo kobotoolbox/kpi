@@ -960,7 +960,7 @@ export class DataTable extends React.Component {
 
     const { tableData, columns, selectedColumns, defaultPageSize, loading, pageSize, resultsTotal } = this.state;
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
-    let tableClasses = this.state.frozenColumn ? '-striped -highlight has-frozen-column' : '-striped -highlight';
+    let tableClasses = this.state.frozenColumn ? '-highlight has-frozen-column' : '-highlight';
 
     const formViewModifiers = ['table'];
     if (this.state.isFullscreen) {
