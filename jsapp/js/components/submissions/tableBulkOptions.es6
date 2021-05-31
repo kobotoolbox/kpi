@@ -195,8 +195,8 @@ class TableBulkOptions extends React.Component {
                   >
                     {t('Set status: ##status##').replace('##status##', item.label)}
                   </bem.PopoverMenu__link>
-                )
-              )
+                );
+              })
             }
           </ui.PopoverMenu>
         }
