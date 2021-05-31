@@ -148,7 +148,7 @@ $mdl-layout-width: 1440px;
   margin: 0;
   padding: 0;
   cursor: pointer;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   display: inline-block;
   vertical-align: middle;
 
@@ -211,7 +211,7 @@ $mdl-layout-width: 1440px;
   display: block;
   padding: 6px 16px 6px 10px;
   position: relative;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -229,8 +229,8 @@ $mdl-layout-width: 1440px;
   }
 
   &:hover {
-    background-color: $kobo-whitegray;
-    color: $kobo-black;
+    background-color: $kobo-gray-96;
+    color: $kobo-gray-24;
   }
 
   &.active {
@@ -238,7 +238,7 @@ $mdl-layout-width: 1440px;
   }
 
   &.divider {
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
   }
 }
 
@@ -253,12 +253,12 @@ $mdl-layout-width: 1440px;
   max-height: 120px;
   overflow: auto;
   overflow-x: hidden;
-  background-color: $kobo-whitegray;
-  border-bottom: 1px solid $kobo-lightgray;
+  background-color: $kobo-gray-96;
+  border-bottom: 1px solid $kobo-gray-92;
 }
 
 .popover-menu__item--move-coll-item {
-  background-color: $kobo-whitegray;
+  background-color: $kobo-gray-96;
   position: relative;
   text-align: left;
   padding: 3px 8px 3px 5px;
@@ -274,15 +274,15 @@ $mdl-layout-width: 1440px;
   &.popover-menu__item--move-coll-item-parent {
     pointer-events: none;
     font-weight: 700;
-    color: $kobo-black;
+    color: $kobo-gray-24;
   }
 }
 
 .popover-menu__heading {
   padding: 8px 15px;
-  color: $kobo-darkgray;
-  border-top: 1px solid $kobo-lightgray;
-  background-color: $kobo-whitegray;
+  color: $kobo-gray-40;
+  border-top: 1px solid $kobo-gray-92;
+  background-color: $kobo-gray-96;
   margin: 0px;
 }
 
@@ -380,14 +380,14 @@ $mdl-layout-width: 1440px;
   .popover-menu__toggle {
     padding: 8px 12px;
     padding-right: 90px;
-    color: $kobo-darkgray;
-    background: $kobo-whitegray;
+    color: $kobo-gray-40;
+    background: $kobo-gray-96;
     position: relative;
 
     @include box-shadow;
 
     &:hover {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &::after {
@@ -413,7 +413,7 @@ $mdl-layout-width: 1440px;
       max-width: 100%;
       white-space: normal;
       padding: 12px;
-      border-bottom: 1px solid $kobo-lightgray;
+      border-bottom: 1px solid $kobo-gray-92;
       border-left: 2px solid transparent;
 
       &:last-child {
@@ -422,7 +422,7 @@ $mdl-layout-width: 1440px;
 
       .collect-data-label {
         font-weight: 600;
-        color: $kobo-black;
+        color: $kobo-gray-24;
       }
 
       .collect-data-desc {
@@ -491,7 +491,7 @@ iframe {
   label {
     font-weight: normal;
     font-size: 12px;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 
     &.long {
       padding-top: 5px;
@@ -521,7 +521,7 @@ iframe {
     padding: 4px 10px;
     font-size: 15px;
     border: 1px solid transparent;
-    border-bottom-color: $kobo-lightgray;
+    border-bottom-color: $kobo-gray-92;
     transition: border-color 0.3s;
 
     &:focus {
@@ -547,7 +547,7 @@ iframe {
   .form-modal__item {
     select {
       max-width: 90%;
-      background: $kobo-midgray;
+      background: $kobo-gray-65;
     }
   }
 }
@@ -558,7 +558,7 @@ iframe {
   padding: 6px 0px;
   font-size: 15px;
   border: 1px solid transparent;
-  border-bottom-color: $kobo-lightgray;
+  border-bottom-color: $kobo-gray-92;
   transition: border-color 0.3s;
 
   &:focus {
@@ -602,13 +602,13 @@ span.svg-icon {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: $kobo-midgray;
+  background-color: $kobo-gray-65;
   background-color: transparent;
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: $kobo-midgray;
+  background-color: $kobo-gray-65;
   outline: none;
   border-radius: 6px;
 }

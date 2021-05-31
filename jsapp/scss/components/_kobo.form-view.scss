@@ -27,7 +27,7 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: $kobo-whitegray;
+  background: $kobo-gray-96;
 
   &.form-view--fullscreen {
     position: fixed;
@@ -55,7 +55,7 @@
   overflow-y: auto;
   float: left;
   background: $kobo-white;
-  border-right: 1px solid $kobo-lightgray;
+  border-right: 1px solid $kobo-gray-92;
 
   & + .form-view,
   & + .report-view,
@@ -89,7 +89,7 @@
     font-size: 14px;
     cursor: pointer;
     position: relative;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     font-weight: normal;
     letter-spacing: -0.01em;
     display: block;
@@ -97,7 +97,7 @@
 
     &:hover,
     &.active {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.active {
@@ -132,7 +132,7 @@
 // The main tabs on top
 .form-view__toptabs {
   background: $kobo-white;
-  border-bottom: 1px solid $kobo-lightgray;
+  border-bottom: 1px solid $kobo-gray-92;
   text-align: center;
   height: 48px;
   position: relative;
@@ -151,12 +151,12 @@
     font-size: 15px;
     cursor: pointer;
     position: relative;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     font-weight: normal;
 
     &:hover,
     &.active {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.active {
@@ -219,7 +219,7 @@
   }
 
   &.form-view__cell--bordered {
-    border: 1px solid $kobo-lightgray;
+    border: 1px solid $kobo-gray-92;
   }
 
   &.form-view__cell--page-title {
@@ -264,7 +264,7 @@
     width: 30px;
     margin-right: 10px;
     text-align: center;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 
     .k-icon {
       font-size: 24px;
@@ -299,7 +299,7 @@
   }
 
   &.form-view__cell--bordertop {
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
   }
 
   &.form-view__cell--padding {
@@ -313,12 +313,12 @@
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
     font-size: 14px;
-    color: $kobo-black;
+    color: $kobo-gray-24;
     font-weight: 500;
 
     span {
       display: block;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       font-size: 12px;
     }
 
@@ -413,7 +413,7 @@
   }
 
   &.form-view__cell--thin-label {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     opacity: 0.6;
     font-size: 12px;
     line-height: 18px;
@@ -483,7 +483,7 @@
   font-size: 26px;
   line-height: 18px;
   padding: 0 5px;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   cursor: pointer;
   vertical-align: middle;
   display: inline-block;
@@ -494,7 +494,7 @@
 
   &--disabled,
   &--disabled:hover {
-    color: $kobo-midgray;
+    color: $kobo-gray-65;
   }
 }
 
@@ -524,7 +524,7 @@
 
   &.form-view__group--items {
     padding: 0;
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
     display: flex;
     align-items: center;
 
@@ -711,8 +711,8 @@
     display: block;
     margin: 10px 0;
     padding: 10px;
-    border: 1px solid $kobo-lightgray;
-    background: $kobo-whitegray;
+    border: 1px solid $kobo-gray-92;
+    background: $kobo-gray-96;
     font-size: 13px;
     white-space: normal;
   }
@@ -737,8 +737,8 @@
 
   code {
     padding: 4px;
-    border: 1px solid $kobo-lightgray;
-    background: $kobo-whitegray;
+    border: 1px solid $kobo-gray-92;
+    background: $kobo-gray-96;
     margin-left: 5px;
     margin-right: 5px;
   }
