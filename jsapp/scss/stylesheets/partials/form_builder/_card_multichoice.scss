@@ -34,7 +34,7 @@
 .option-placeholder {
   height: 32px;
   margin-bottom: 10px;
-  border: 2px solid $kobo-midgray;
+  border: 2px solid $kobo-gray-65;
   border-radius: 4px;
   margin-right: 25px;
   margin-left: 5px;
@@ -87,7 +87,7 @@
     font-weight: 600;
     font-size: 11px;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    background-color: $kobo-lightgray;
+    background-color: $kobo-gray-92;
     padding: 2px;
     margin: 2px;
     width: 25%;
@@ -100,7 +100,7 @@
       display: inline-block;
       width: 40%;
       padding-left: 4px;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
     }
 
     span {
@@ -109,7 +109,7 @@
       float: right;
       width: 60%;
       padding-right: 4px;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       overflow-wrap: break-word;
       cursor: text;
     }
