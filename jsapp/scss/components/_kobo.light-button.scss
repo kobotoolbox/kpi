@@ -44,9 +44,9 @@
 }
 
 .kobo-light-badge {
-  color: $kobo-black;
-  background-color: $kobo-lightgray;
-  border-color: $kobo-lightgray;
+  color: $kobo-gray-24;
+  background-color: $kobo-gray-92;
+  border-color: $kobo-gray-92;
   white-space: nowrap;
   padding-left: 8px;
   padding-right: 8px;
@@ -54,7 +54,7 @@
 
 .kobo-light-button {
   cursor: pointer;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   background-color: transparent;
   border-color: currentColor;
 
@@ -65,8 +65,8 @@
 
   &:hover {
     color: $kobo-white;
-    background-color: $kobo-darkgray;
-    border-color: $kobo-darkgray;
+    background-color: $kobo-gray-40;
+    border-color: $kobo-gray-40;
   }
 
   &:active {
