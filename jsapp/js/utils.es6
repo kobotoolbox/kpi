@@ -635,3 +635,21 @@ export function truncateFile(str, length) {
 
   return truncateString(truncatedString, length);
 }
+
+/**
+ * Generates a simple lowercase, underscored version of a string. Useful for
+ * quick filename generation
+ *
+ * Inspired by the way backend handles generating autonames for translations:
+ * https://github.com/kobotoolbox/kpi/blob/27220c2e65b47a7f150c5bef64db97226987f8fc/kpi/utils/autoname.py#L132-L138
+ *
+ * @param {string} str
+ * @param {number} [startIndex=0]
+ * @param {number} [endIndex=str.length]
+ */
+export function generateAutoname(str, startIndex=0, endIndex=str.length) {
+  return str
+  .toLowerCase()
+  .substring(startIndex, endIndex)
+  .replace(/(\ |\.)/g, "_");
+}

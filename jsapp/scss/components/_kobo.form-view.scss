@@ -880,6 +880,68 @@
   }
 }
 
+.form-modal__form.form-modal__form--data-attachment-columns {
+   color: $kobo-gray-50;
+
+  .bulk-options {
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+
+    .bulk-options__description {
+      font-weight: bold;
+    }
+
+    .bulk-options__buttons {
+      span {
+        margin: 12px;
+      }
+
+      a {
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .multi-checkbox {
+    margin-top: 12px;
+    height: 200px;
+  }
+
+  .loading {
+    margin-top: 12px;
+  }
+
+  .modal__footer {
+    text-align: center;
+
+    button {
+      padding-left: 64px;
+      padding-right: 64px;
+    }
+  }
+
+}
+
+// Compensate for when sidebar(s) messes up modal a bit
+@media
+  (min-width: 770px) and (max-width: 1020px),
+  (max-width: 560px) {
+    .bulk-options {
+      display: block !important;
+
+      .bulk-options__buttons {
+        margin-top: 6px;
+        text-align: center;
+      }
+    }
+
+    .multi-checkbox {
+      overflow-x: scroll !important;
+    }
+}
+
 .form-view--library-asset {
   background: $kobo-white;
 }

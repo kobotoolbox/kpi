@@ -75,6 +75,7 @@ export const MODAL_TYPES = {
   ASSET_TAGS: 'asset-tags',
   ENCRYPT_FORM: 'encrypt-form',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
+  DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = {
@@ -328,6 +329,11 @@ export const ROUTES = Object.freeze({
   FORM_RESET: '/forms/:uid/reset',
 });
 
+export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
+  form_media: 50,
+  connect_projects: 30,
+});
+
 export const COLLECTION_METHODS = Object.freeze({
   offline_url: {
     id: 'offline_url',
@@ -396,6 +402,7 @@ const constants = {
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
+  MAX_DISPLAYED_STRING_LENGTH,
 };
 
 export default constants;
