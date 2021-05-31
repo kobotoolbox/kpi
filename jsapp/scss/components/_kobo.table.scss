@@ -250,9 +250,9 @@ $data-table-border: 1px solid $kobo-gray-92;
     margin-bottom: 20px;
 
     &--advanced-table-options {
-      border: 1px solid $kobo-lightgray;
+      border: 1px solid $kobo-gray-92;
       padding: 20px;
-      background: $kobo-whitegray;
+      background: $kobo-gray-96;
 
       .form-view__cell--note {
         padding-bottom: 20px;
@@ -275,7 +275,7 @@ $data-table-border: 1px solid $kobo-gray-92;
   ul {
     max-height: 160px;
     overflow: auto;
-    border: 1px solid $kobo-lightgray;
+    border: 1px solid $kobo-gray-92;
     padding: 10px;
     background: $kobo-white;
 
