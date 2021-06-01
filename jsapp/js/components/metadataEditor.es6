@@ -3,9 +3,7 @@ import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import {assign} from 'utils';
-import {
-  META_QUESTION_TYPES,
-} from 'js/constants';
+import {META_QUESTION_TYPES} from 'js/constants';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 
@@ -19,7 +17,7 @@ export default class MetadataEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      metaProperties: []
+      metaProperties: [],
     };
     autoBind(this);
   }
@@ -30,7 +28,7 @@ export default class MetadataEditor extends React.Component {
 
   rebuildState() {
     const newState = {
-      metaProperties: []
+      metaProperties: [],
     };
     Object.keys(META_QUESTION_TYPES).forEach((metaType) => {
       const detail = this.getSurveyDetail(metaType);
@@ -84,15 +82,17 @@ export default class MetadataEditor extends React.Component {
       <React.Fragment>
         {t('Audit settings')}
 
-        { stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url &&
-          <bem.TextBox__labelLink
-            href={stores.serverEnvironment.state.support_url + AUDIT_SUPPORT_URL}
-            target='_blank'
-          >
-            <i className='k-icon k-icon-help'/>
-          </bem.TextBox__labelLink>
-        }
+        {stores.serverEnvironment &&
+          stores.serverEnvironment.state.support_url && (
+            <bem.TextBox__labelLink
+              href={
+                stores.serverEnvironment.state.support_url + AUDIT_SUPPORT_URL
+              }
+              target='_blank'
+            >
+              <i className='k-icon k-icon-help' />
+            </bem.TextBox__labelLink>
+          )}
       </React.Fragment>
     );
   }
@@ -148,7 +148,7 @@ export default class MetadataEditor extends React.Component {
           </bem.FormBuilderMeta__column>
         </bem.FormBuilderMeta__columns>
 
-        {this.isAuditEnabled() &&
+        {this.isAuditEnabled() && (
           <bem.FormBuilderMeta__row>
             <TextBox
               label={this.renderAuditInputLabel()}
@@ -156,8 +156,7 @@ export default class MetadataEditor extends React.Component {
               onChange={this.onAuditParametersChange}
             />
           </bem.FormBuilderMeta__row>
-        }
-
+        )}
       </bem.FormBuilderMeta>
     );
   }
