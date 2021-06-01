@@ -835,9 +835,11 @@ export default assign({
 
               <bem.FormBuilder__contents>
                 {surveyHasBackgroundAudio &&
-                  <i className='k-icon k-icon-form-overview'/>
+                  <bem.FormBuilderMessageBox>
+                    <i className='k-icon k-icon-form-overview'/>
 
-                  <p>{t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This functionality only works in KoboCollect.')}</p>
+                    <p>{t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This functionality only works in KoboCollect.')}</p>
+                  </bem.FormBuilderMessageBox>
                 }
 
                 <div ref='form-wrap' className='form-wrap'>
