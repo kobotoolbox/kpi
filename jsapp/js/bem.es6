@@ -47,6 +47,10 @@ bem.ServiceRowButton = BEM('service-row-button', '<button>');
 bem.FormBuilder = BEM('form-builder');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 
+bem.FormBuilderMessageBox = BEM('form-builder-message-box');
+bem.FormBuilderMessageBox__toggle = bem.FormBuilderMessageBox.__('toggle', 'button');
+bem.FormBuilderMessageBox__details = bem.FormBuilderMessageBox.__('details', 'section');
+
 bem.FormBuilderMeta = bem('form-builder-meta');
 bem.FormBuilderMeta__columns = bem.FormBuilderMeta.__('columns');
 bem.FormBuilderMeta__column = bem.FormBuilderMeta.__('column');
