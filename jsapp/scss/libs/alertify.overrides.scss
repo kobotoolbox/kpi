@@ -8,7 +8,7 @@
 }
 
 .alertify .ajs-dialog {
-  box-shadow: 2px 2px 15px 2px rgba($kobo-black, 0.15);
+  box-shadow: 2px 2px 15px 2px rgba($kobo-gray-24, 0.15);
 }
 
 .alertify .ajs-header {
@@ -28,10 +28,10 @@
 .alertify.ajs-closable .ajs-commands button.ajs-close {
   background: transparent;
   font-size: 24px;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
 
   &:hover {
-    color: $kobo-black;
+    color: $kobo-gray-24;
   }
 }
 
@@ -130,7 +130,7 @@
   .ajs-message.ajs-error,
   .ajs-message.ajs-success,
   .ajs-message.ajs-warning {
-    background: $kobo-black;
+    background: $kobo-gray-24;
     color: $kobo-white;
     padding: 17px 24px;
     padding-right: 44px;
@@ -175,7 +175,7 @@
     margin-top: 20px;
     padding-top: 20px;
     padding-bottom: 20px;
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
     font-weight: bold;
   }
 }

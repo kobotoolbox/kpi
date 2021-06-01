@@ -34,7 +34,7 @@
   .checkbox__label {
     // it's 28px plus whitespace between inline-blocks
     max-width: calc(100% - 32px);
-    color: $kobo-black;
+    color: $kobo-gray-24;
     font-size: 14px;
   }
 
@@ -80,12 +80,12 @@
     appearance: none;
     position: relative;
     margin: 0;
-    border: 1px solid $kobo-darkgray;
+    border: 1px solid $kobo-gray-40;
     width: 20px;
     height: 20px;
     outline: 0;
     background-color: transparent;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     cursor: pointer;
 
     &::after {
