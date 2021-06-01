@@ -11,6 +11,7 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
+import ToggleBackgroundAudio from 'js/components/toggleBackgroundAudio';
 import {
   surveyToValidJson,
   unnullifyTranslations,
@@ -517,6 +518,17 @@ export default assign({
     this.safeNavigateToRoute(targetRoute);
   },
 
+  surveyHasBackgroundAudio() {
+    return (
+      this.state?.asset?.content?.survey
+        .some((item) => item.type === QUESTION_TYPES['background-audio'].id)
+    );
+  },
+
+  onToggleBackgroundAudio() {
+    this.onSurveyChange();
+  },
+
   // rendering methods
 
   renderFormBuilderHeader () {
@@ -770,6 +782,21 @@ export default assign({
             }
           </bem.FormBuilderAside__content>
         }
+
+        {/*TODO doesn't show?*/}
+        <bem.FormBuilderAside__row>
+          <bem.FormBuilderAside__header>
+            {t('Background audio')}
+          </bem.FormBuilderAside__header>
+
+          <ToggleBackgroundAudio
+            survey={this.state.asset.survey}
+            onChange={this.onToggleBackgroundAudio}
+            surveyHasBackgroundAudio={this.surveyHasBackgroundAudio}
+            {...this.state}
+          />
+        </bem.FormBuilderAside__row>
+
         { this.state.asideLibrarySearchVisible &&
           <bem.FormBuilderAside__content>
             <bem.FormBuilderAside__row>
@@ -822,8 +849,6 @@ export default assign({
       this.userCan('change_asset', this.state.asset)
     );
 
-    let surveyHasBackgroundAudio = this.state?.asset?.content?.survey.some(item => item.type === QUESTION_TYPES['background-audio'].id)
-
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <ui.Panel m={['transparent', 'fixed']}>
@@ -833,7 +858,7 @@ export default assign({
             <bem.FormBuilder>
             {this.renderFormBuilderHeader()}
               <bem.FormBuilder__contents>
-                {surveyHasBackgroundAudio &&
+                {this.surveyHasBackgroundAudio() &&
                   <bem.FormBuilderMessageBox m='warning'>
                     <i className='k-icon k-icon-form-overview'/>
 
