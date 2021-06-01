@@ -52,12 +52,14 @@ module.exports = do ->
         @$el.height(@$el.height())
 
       @already_rendered = true
-
-      if @model instanceof $row.RowError
-        @_renderError()
-      else
-        @_renderRow()
-      @is_expanded = @$card?.hasClass('card--expandedchoices')
+      # Even though background-audio is a question type, we don't display it in
+      # the question list, instead we show a banner handled in `editableForm`
+      if !(@model.get('type').get('typeId') is 'background-audio')
+        if @model instanceof $row.RowError
+          @_renderError()
+        else
+          @_renderRow()
+        @is_expanded = @$card?.hasClass('card--expandedchoices')
 
       if fixScroll
         @$el.attr('style', '')

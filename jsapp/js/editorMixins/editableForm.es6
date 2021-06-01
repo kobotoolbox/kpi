@@ -24,6 +24,7 @@ import {
   update_states,
   NAME_MAX_LENGTH,
   ROUTES,
+  QUESTION_TYPES,
 } from 'js/constants';
 import ui from '../ui';
 import {bem} from '../bem';
@@ -821,6 +822,8 @@ export default assign({
       this.userCan('change_asset', this.state.asset)
     );
 
+    let surveyHasBackgroundAudio = this.state?.asset?.content?.survey.some(item => item.type === QUESTION_TYPES['background-audio'].id)
+
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <ui.Panel m={['transparent', 'fixed']}>
@@ -831,6 +834,12 @@ export default assign({
             {this.renderFormBuilderHeader()}
 
               <bem.FormBuilder__contents>
+                {surveyHasBackgroundAudio &&
+                  <i className='k-icon k-icon-form-overview'/>
+
+                  <p>{t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This functionality only works in KoboCollect.')}</p>
+                }
+
                 <div ref='form-wrap' className='form-wrap'>
                   {!this.state.surveyAppRendered &&
                     this.renderNotLoadedMessage()
