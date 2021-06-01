@@ -37,6 +37,8 @@ $t-form-builder-aside-open: 200ms;
 
 .form-wrap {
   width: 100%;
+  max-width: $s-form-builder-content-width;
+  margin: 0 auto;
 
   input,
   textarea {
