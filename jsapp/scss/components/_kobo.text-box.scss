@@ -14,7 +14,7 @@ label.text-box {
 
   &.text-box--on-white input.text-box__input,
   &.text-box--on-white textarea.text-box__input {
-    border-color: $kobo-lightgray;
+    border-color: $kobo-gray-92;
 
     &:focus {
       border-color: $kobo-blue;
@@ -43,7 +43,7 @@ label.text-box {
     color: inherit;
     background-color: transparent;
     border: 1px solid transparent;
-    border-bottom-color: $kobo-lightgray;
+    border-bottom-color: $kobo-gray-92;
     transition: border-color 0.3s;
 
     &:focus {
@@ -52,16 +52,16 @@ label.text-box {
     }
 
     &:disabled {
-      color: $kobo-midgray;
+      color: $kobo-gray-65;
       pointer-events: none;
 
       &::placeholder {
-        color: $kobo-midgray;
+        color: $kobo-gray-65;
       }
     }
 
     &::placeholder {
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
     }
   }
 }
