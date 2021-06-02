@@ -711,12 +711,8 @@ mixins.clickAssets = {
 };
 
 mixins.permissions = {
-  userCan (permName, asset) {
+  userCan(permName, asset) {
     if (!asset.permissions) {
-      return false;
-    }
-
-    if (!stores.session.currentAccount) {
       return false;
     }
 
@@ -742,7 +738,7 @@ mixins.permissions = {
         perm.permission === permConfig.getPermissionByCodename(permName).url
       );
     });
-  }
+  },
 };
 
 mixins.contextRouter = {

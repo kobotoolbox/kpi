@@ -35,7 +35,7 @@ const ownedCollectionsStore = Reflux.createStore({
     if (
       !this.isInitialised &&
       isOnLibraryRoute() &&
-      stores.session.currentAccount !== undefined &&
+      stores.session.isLoggedIn &&
       !this.data.isFetchingData
     ) {
       this.fetchData();

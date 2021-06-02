@@ -248,8 +248,10 @@ function SearchContext(opts={}) {
     }
   };
 
-  const assetsHash = function (assets) {
-    if (assets.length < 1) return false;
+  const assetsHash = function(assets) {
+    if (assets.length < 1) {
+      return false;
+    }
 
     let assetVersionIds = assets.map((asset) => {
       return asset.version_id;
@@ -258,7 +260,7 @@ function SearchContext(opts={}) {
     assetVersionIds.sort();
 
     return SparkMD5.hash(assetVersionIds.join(''));
-  }
+  };
 
   search.listen(function(_opts={}){
     /*
@@ -407,7 +409,9 @@ function SearchContext(opts={}) {
       } else {
         searchStore.update({defaultQueryState: 'done'});
 
-        dataInterface.assetsHash()
+        // avoid unauthenticated backend calls
+        if (stores.session.isLoggedIn) {
+          dataInterface.assetsHash()
           .done((data) => {
             if (data.hash && data.hash !== assetsHash(searchStore.state.defaultQueryResultsList)) {
               // if hashes don't match launch new search request
@@ -417,6 +421,7 @@ function SearchContext(opts={}) {
           .fail(() => {
             this.searchDefault();
           });
+        }
       }
     },
     searchDefault: function () {
