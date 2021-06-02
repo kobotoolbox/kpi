@@ -459,15 +459,19 @@
     }
   }
 
-  &.form-view__cell--warning, &.form-view__cell--error {
-    @extend .form-view__cell--warning;
+  &.form-view__cell--error {
     background-color: $kobo-red-light;
     color: $kobo-red-dark;
     border: 1px solid $kobo-red;
-    padding: 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     i {
       color: $kobo-red;
-      margin: 0px;
+      font-size: 32px;
+      margin-right: 5px;
+      // If used in a dropzone, need to overwrite left margin
+      margin-left: 0px;
     }
   }
 
