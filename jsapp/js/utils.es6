@@ -595,12 +595,12 @@ export function launchPrinting() {
  */
 export function truncateString(str, length, type='') {
   let truncatedString = str;
-  const HALFWAY = Math.trunc(length / 2);
+  const halfway = Math.trunc(length / 2);
 
   if (length < truncatedString.length) {
-    let truncatedStringFront = truncatedString.substring(0, HALFWAY);
+    let truncatedStringFront = truncatedString.substring(0, halfway);
     let truncatedStringBack = truncatedString.slice(
-      truncatedString.length - HALFWAY
+      truncatedString.length - halfway
     );
     truncatedString = truncatedStringFront + '…' + truncatedStringBack;
   }
