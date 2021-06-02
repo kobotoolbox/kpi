@@ -57,7 +57,11 @@ class FormListSerializer(serializers.Serializer):
         It helps to catch upstream missing properties and methods when
         rendering data
         """
-        assert issubclass(obj.__class__, OpenRosaFormListInterface)
+        class_ = obj.__class__
+        assert (
+            issubclass(class_, OpenRosaFormListInterface)
+            and class_ != OpenRosaFormListInterface
+        )
 
 
 class ManifestSerializer(serializers.Serializer):
@@ -94,4 +98,8 @@ class ManifestSerializer(serializers.Serializer):
         It helps to catch upstream missing properties and methods when 
         rendering data
         """
-        assert issubclass(obj.__class__, OpenRosaManifestInterface)
+        class_ = obj.__class__
+        assert (
+            issubclass(class_, OpenRosaManifestInterface)
+            and class_ != OpenRosaManifestInterface
+        )
