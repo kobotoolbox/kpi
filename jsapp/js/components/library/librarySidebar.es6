@@ -58,6 +58,7 @@ class LibrarySidebar extends Reflux.Component {
       <React.Fragment>
         <bem.KoboButton
           m={['blue', 'fullwidth']}
+          disabled={!stores.session.isLoggedIn}
           onClick={this.showLibraryNewModal}
         >
           {t('new')}
