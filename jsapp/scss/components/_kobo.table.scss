@@ -52,6 +52,13 @@ $data-table-border: 1px solid $kobo-gray-92;
 
     .column-header-title {
       font-weight: 600;
+
+      .k-icon {
+        font-size: 20px;
+        color: $kobo-gray-55;
+        vertical-align: top;
+        margin-right: 3px;
+      }
     }
 
     // the first header row
@@ -61,6 +68,10 @@ $data-table-border: 1px solid $kobo-gray-92;
 
       .table-bulk-checkbox-header {
         overflow: visible;
+
+        .table-bulk-checkbox {
+          margin-top: 5px;
+        }
       }
     }
 
@@ -104,8 +115,6 @@ $data-table-border: 1px solid $kobo-gray-92;
     .rt-resizable-header-content {
       overflow: visible;
       text-overflow: inherit;
-      line-height: 1.2;
-      padding: 5px 0;
 
       .column-header-title,
       .column-header-hxl-tags {
@@ -116,7 +125,7 @@ $data-table-border: 1px solid $kobo-gray-92;
       }
 
       .column-header-hxl-tags {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
       }
     }
   }
@@ -129,7 +138,7 @@ $data-table-border: 1px solid $kobo-gray-92;
   .rt-th, .rt-td {
     padding: 5px;
     border-right: $data-table-border;
-    line-height: 22px;
+    line-height: 42px - (2 * 5px);
     height: 42px;
   }
 
@@ -199,14 +208,14 @@ $data-table-border: 1px solid $kobo-gray-92;
   }
 
   .-loading {
-    background: $kobo-whitegray;
+    background: $kobo-gray-96;
 
     .-loading-inner {
       display: block;
       text-align: center;
       font-size: 18px;
       opacity: 0.8;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
 
       i {
         margin-right: 12px;
@@ -225,7 +234,7 @@ $data-table-border: 1px solid $kobo-gray-92;
       order: -1;
       position: relative;
       left: 0;
-      background: $kobo-whitegray;
+      background: $kobo-gray-96;
       height: 36px;
       transition: left 0.2s;
       margin-right: 6px;

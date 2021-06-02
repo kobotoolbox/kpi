@@ -397,7 +397,7 @@ function getRowLabelAtIndex(row, index) {
 
 /**
  * @param {string} type - one of QUESTION_TYPES
- * @returns {Node}
+ * @returns {Node|null}
  */
 export function renderQuestionTypeIcon(type) {
   let typeDef;
@@ -412,7 +412,7 @@ export function renderQuestionTypeIcon(type) {
   if (typeDef) {
     return (<i className={`k-icon k-icon-${typeDef.icon}`} title={type}/>);
   } else {
-    return <small><code>{type}</code></small>;
+    return null;
   }
 }
 

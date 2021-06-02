@@ -26,6 +26,7 @@ import {
 } from 'js/constants';
 import {formatTimeDate} from 'utils';
 import {
+  renderQuestionTypeIcon,
   getSurveyFlatPaths,
   getQuestionOrChoiceDisplayName,
 } from 'js/assetUtils';
@@ -50,6 +51,33 @@ const EXCLUDED_COLUMNS = [
   'meta/instanceID',
   'meta/deprecatedID',
   '_validation_status',
+];
+
+// A list of columns that contains a numerical-ish values, i.e. the ones that
+// should have monospaced font
+const NUMERICAL_TYPES = [
+  QUESTION_TYPES.barcode.id,
+  QUESTION_TYPES.date.id,
+  QUESTION_TYPES.datetime.id,
+  QUESTION_TYPES.decimal.id,
+  QUESTION_TYPES.geopoint.id,
+  QUESTION_TYPES.geoshape.id,
+  QUESTION_TYPES.geotrace.id,
+  QUESTION_TYPES.integer.id,
+  QUESTION_TYPES.score.id,
+  QUESTION_TYPES.time.id,
+];
+const NUMERICAL_COLUMNS = [
+  META_QUESTION_TYPES.start,
+  META_QUESTION_TYPES.end,
+  META_QUESTION_TYPES.today,
+  META_QUESTION_TYPES.simserial,
+  META_QUESTION_TYPES.subscriberid,
+  META_QUESTION_TYPES.deviceid,
+  META_QUESTION_TYPES.phonenumber,
+  ADDITIONAL_SUBMISSION_PROPS._id,
+  ADDITIONAL_SUBMISSION_PROPS._uuid,
+  ADDITIONAL_SUBMISSION_PROPS._submission_time,
 ];
 
 export const SUBMISSION_LINKS_ID = '__SubmissionLinks';
@@ -457,13 +485,23 @@ export class DataTable extends React.Component {
       ) {
         columnClassName += 'rt-numerical-value';
       }
+
+
+      let columnIcon = null;
+      if (q && q.type) {
+        columnIcon = renderQuestionTypeIcon(q.type);
+      }
+
       columns.push({
         Header: () => {
           const columnName = _this.getColumnLabel(key, q, qParentG);
           const columnHXLTags = _this.getColumnHXLTags(key);
           return (
             <React.Fragment>
-              <span className='column-header-title' title={columnName}>{columnName}</span>
+              <span className='column-header-title' title={columnName}>
+                {columnIcon}
+                {columnName}
+              </span>
               {columnHXLTags &&
                 <span className='column-header-hxl-tags' title={columnHXLTags}>{columnHXLTags}</span>
               }
