@@ -3,7 +3,6 @@ from django.http import Http404
 from rest_framework import exceptions, permissions
 
 from kpi.models.asset import Asset
-from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.object_permission import get_anonymous_user
 from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 
@@ -171,6 +170,19 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         raise Http404
 
 
+class AssetExportSettingsPermission(AssetNestedObjectPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+        'POST': ['%(app_label)s.manage_asset'],
+    }
+
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
+    perms_map['PUT'] = perms_map['POST']
+    perms_map['PATCH'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['POST']
+
+
 class AssetEditorPermission(AssetNestedObjectPermission):
     """
     Owner, managers and editors can write.
@@ -237,89 +249,6 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
 
 
-class SubmissionPermission(AssetNestedObjectPermission):
-    """
-    Permissions for submissions.
-    """
-
-    MODEL_NAME = "submissions"  # Hard-code `model_name` to match permissions
-
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': ['%(app_label)s.view_%(model_name)s'],
-        'HEAD': ['%(app_label)s.view_%(model_name)s'],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-    def _get_user_permissions(self, asset, user):
-        """
-        Overrides parent method to include partial permissions (which are
-        specific to submissions)
-
-        :param asset: Asset
-        :param user: auth.User
-        :return: list
-        """
-        user_permissions = super()._get_user_permissions(
-            asset, user)
-
-        if PERM_PARTIAL_SUBMISSIONS in user_permissions:
-            # Merge partial permissions with permissions to find out if there
-            # is a match within required permissions.
-            # Restricted users will be narrowed down in MongoDB query.
-            partial_perms = asset.get_partial_perms(user.id)
-            if partial_perms:
-                user_permissions = list(set(
-                    user_permissions + partial_perms
-                ))
-
-        return user_permissions
-
-
-class EditSubmissionPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.change_%(model_name)s'],
-    }
-
-
-class DuplicateSubmissionPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'POST': ['%(app_label)s.change_%(model_name)s'],
-    }
-
-
-class SubmissionValidationStatusPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'PATCH': ['%(app_label)s.validate_%(model_name)s'],
-        'DELETE': ['%(app_label)s.validate_%(model_name)s'],
-    }
-
-
-class AssetExportSettingsPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-        'POST': ['%(app_label)s.manage_asset'],
-    }
-
-    perms_map['OPTIONS'] = perms_map['GET']
-    perms_map['HEAD'] = perms_map['GET']
-    perms_map['PUT'] = perms_map['POST']
-    perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['POST']
-
-class ExportTaskPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-    }
-
-    perms_map['POST'] = perms_map['GET']
-    perms_map['DELETE'] = perms_map['GET']
-
-
 class ReportPermission(IsOwnerOrReadOnly):
     def has_object_permission(self, request, view, obj):
         # Checks if the user has the require permissions
@@ -337,3 +266,70 @@ class ReportPermission(IsOwnerOrReadOnly):
         return any(
             perm in permissions for perm in required_permissions
         )
+
+    
+class SubmissionPermission(AssetNestedObjectPermission):
+    """
+    Permissions for submissions.
+    """
+
+    MODEL_NAME = "submissions"  # Hard-code `model_name` to match permissions
+
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'OPTIONS': ['%(app_label)s.view_%(model_name)s'],
+        'HEAD': ['%(app_label)s.view_%(model_name)s'],
+        'POST': ['%(app_label)s.add_%(model_name)s'],
+        'PATCH': ['%(app_label)s.change_%(model_name)s'],
+        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
+    }
+
+    def _get_user_permissions(self, asset: Asset, user: 'auth.User') -> list:
+        """
+        Overrides parent method to include partial permissions (which are
+        specific to submissions)
+        """
+        user_permissions = super()._get_user_permissions(
+            asset, user)
+
+        if PERM_PARTIAL_SUBMISSIONS in user_permissions:
+            # Merge partial permissions with permissions to find out if there
+            # is a match within required permissions.
+            # Restricted users will be narrowed down in MongoDB query.
+            partial_perms = asset.get_partial_perms(user.id)
+            if partial_perms:
+                user_permissions = list(set(
+                    user_permissions + partial_perms
+                ))
+
+        return user_permissions
+
+
+class DuplicateSubmissionPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'POST': ['%(app_label)s.change_%(model_name)s'],
+    }
+
+
+class EditSubmissionPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.change_%(model_name)s'],
+    }
+
+
+class ExportTaskPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+    }
+
+    perms_map['POST'] = perms_map['GET']
+    perms_map['DELETE'] = perms_map['GET']
+
+
+class SubmissionValidationStatusPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'PATCH': ['%(app_label)s.validate_%(model_name)s'],
+        'DELETE': ['%(app_label)s.validate_%(model_name)s'],
+    }
