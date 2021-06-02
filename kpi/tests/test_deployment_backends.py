@@ -102,14 +102,22 @@ class MockDeployment(TestCase):
 
     def test_get_not_mutable_deployment_data(self):
         deployment_data = self.asset.deployment.get_data()
+        original_identifier = deployment_data['identifier']
         deployment_data['identifier'] = 'mock://test'
         # self.asset._deployment_data should have been touched
-        self.assertNotEqual(self.asset.deployment.identifier,
-                            deployment_data['identifier'])
+
+        # Check that original identifier still the same
+        self.assertEqual(self.asset.deployment.identifier,
+                         original_identifier)
+
+        # Check that identifier has not been altered in deployment data
+        other_deployment_data = self.asset.deployment.get_data()
+        self.assertEqual(other_deployment_data['identifier'],
+                         original_identifier)
 
     def test_save_to_db_with_quote(self):
         new_key = 'dummy'
-        new_value = "I'm in love with apostrophe"
+        new_value = "I'm in love with Apostrophe"
         self.asset.deployment.save_to_db({new_key: new_value})
         self.asset.refresh_from_db()
         self.assertEqual(self.asset.deployment.get_data(new_key), new_value)
