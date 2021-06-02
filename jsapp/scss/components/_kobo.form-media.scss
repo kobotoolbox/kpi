@@ -20,12 +20,11 @@
     display: block;
     text-align: center;
 
-    .form-media__upload-url--label {
-      margin: 12px 0 12px 0;
+    .form-media__upload-url-label {
+      margin: 12px 0;
     }
 
-    .form-media__upload-url--form {
-
+    .form-media__upload-url-form {
       label.text-box {
         padding-top: 7px;
         min-width: 70%;
@@ -40,7 +39,7 @@
   }
 
   .form-media__list {
-    .form-media__list--label {
+    .form-media__list-label {
       margin-top: 32px;
       color: black;
       font-weight: 500;
@@ -51,11 +50,11 @@
       padding-bottom: 16px;
     }
 
-    .form-media__list--default-item {
+    .form-media__list-default-item {
       padding-left: 10px;
     }
 
-    .form-media__list--item {
+    .form-media__list-item {
       font-size: 16px;
       position: relative;
       padding-bottom: 12px;
