@@ -268,6 +268,7 @@ def _sync_form_metadata(asset, xform, changes):
             'version': asset.version_id
         })
         changes.append('CREATE METADATA')
+        asset.set_deployment(kc_deployment)
         # `_sync_permissions()` will save `asset` if it has no `pk`
         affected_users = _sync_permissions(asset, xform)
         if affected_users:
@@ -281,7 +282,7 @@ def _sync_form_metadata(asset, xform, changes):
 
     if (asset.deployment.active != xform.downloadable or
             backend_response['downloadable'] != xform.downloadable):
-        asset.store_data({'active': xform.downloadable})
+        asset.deployment.store_data({'active': xform.downloadable})
         modified = True
         fetch_backend_response = True
         changes.append('ACTIVE')
@@ -500,9 +501,9 @@ class Command(BaseCommand):
             # form uuid stored in its deployment data
             xform_uuids_to_asset_pks = {}
             for existing_survey in existing_surveys:
-                backend_response = existing_survey.deployment.backend_response
-                if not backend_response:
+                if not existing_survey.has_deployment:
                     continue
+                backend_response = existing_survey.deployment.backend_response
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk
 

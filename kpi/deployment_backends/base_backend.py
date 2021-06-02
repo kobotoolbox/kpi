@@ -30,6 +30,10 @@ class BaseDeploymentBackend:
         self.current_submissions_count = 0
         self.__stored_data_key = None
 
+    @property
+    def backend_response(self):
+        return self.get_data('backend_response', {})
+
     def get_data(self,
                  dotted_path: str = None,
                  default=None) -> Union[None, int, str, dict]:
@@ -267,6 +271,9 @@ class BaseDeploymentBackend:
             pass
         return None
 
+    def set_asset_uid(self, **kwargs) -> bool:
+        raise AbstractMethodError
+
     def set_status(self, status):
         self.save_to_db({'status': status})
 
@@ -296,3 +303,6 @@ class BaseDeploymentBackend:
     @property
     def stored_data_key(self):
         return self.__stored_data_key
+
+    def sync_media_files(self):
+        raise AbstractMethodError

@@ -22,10 +22,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def connect(self, active=False):
         self.store_data({
-                'backend': 'mock',
-                'identifier': 'mock://%s' % self.asset.uid,
-                'active': active,
-            })
+            'backend': 'mock',
+            'identifier': 'mock://%s' % self.asset.uid,
+            'active': active,
+            'backend_response': {
+                'downloadable': active,
+                'has_kpi_hook': self.asset.has_active_hooks,
+                'kpi_asset_uid': self.asset.uid
+            }
+        })
 
     def redeploy(self, active=None):
         """
@@ -34,10 +39,25 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
         if active is None:
             active = self.active
-        self.set_active(active)
+
+        self.store_data({
+            'active': active,
+            'version': self.asset.version_id,
+        })
+
+        self.set_asset_uid()
+
+    def set_asset_uid(self, **kwargs) -> bool:
+        backend_response = self.backend_response
+        backend_response.update({
+            'kpi_asset_uid': self.asset.uid,
+        })
+        self.store_data({
+            'backend_response': backend_response
+        })
 
     def set_active(self, active):
-        self.store_data({
+        self.save_to_db({
             'active': bool(active),
         })
 
@@ -295,6 +315,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self.store_data({
             'has_kpi_hooks': has_active_hooks,
         })
+
+    def sync_media_files(self):
+        pass
 
     def calculated_submission_count(self, requesting_user_id, **kwargs):
         params = self.validate_submission_list_params(requesting_user_id,
