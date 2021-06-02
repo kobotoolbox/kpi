@@ -171,7 +171,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if (
             response.status_code != expected_status_code
             or json_response.get('type') == 'alert-error'
-            or expect_formid and 'formid' not in json_response
+            or (expect_formid and 'formid' not in json_response)
         ):
             if 'text' in json_response:
                 # KC API refused us for a specified reason, likely invalid
