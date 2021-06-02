@@ -431,7 +431,7 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
     XFORM_TITLE_LENGTH = 255
     xls = models.FileField(null=True)
     xml = models.TextField()
-    user = models.ForeignKey(User, related_name='xforms', null=True,
+    user = models.ForeignKey('KobocatUser', related_name='xforms', null=True,
                              on_delete=models.CASCADE)
     shared = models.BooleanField(default=False)
     shared_data = models.BooleanField(default=False)

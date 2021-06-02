@@ -507,7 +507,8 @@ class Command(BaseCommand):
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk
 
-            xforms = user.xforms.all()
+            # ReadOnlyKobocatXForm has a foreign key on KobocatUser, not on User
+            xforms = ReadOnlyKobocatXForm.objects.filter(user_id=user.pk).all()
             for xform in xforms:
                 try:
                     with transaction.atomic():
