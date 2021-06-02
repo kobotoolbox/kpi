@@ -459,7 +459,7 @@
     }
   }
 
-  &.form-view__cell--error {
+  &.form-view__cell--warning, &.form-view__cell--error {
     @extend .form-view__cell--warning;
     background-color: $kobo-red-light;
     color: $kobo-red-dark;
