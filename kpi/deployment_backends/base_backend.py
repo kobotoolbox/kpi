@@ -31,8 +31,22 @@ class BaseDeploymentBackend:
         self.__stored_data_key = None
 
     @property
+    def active(self):
+        return self.get_data('active', False)
+
+    @property
+    def backend(self):
+        return self.get_data('backend')
+
+    @property
     def backend_response(self):
         return self.get_data('backend_response', {})
+
+    def calculated_submission_count(self, requesting_user_id, **kwargs):
+        raise AbstractMethodError
+
+    def delete(self):
+        self.asset._deployment_data.clear()  # noqa
 
     def get_data(self,
                  dotted_path: str = None,
@@ -64,13 +78,45 @@ class BaseDeploymentBackend:
 
         return value
 
-    def store_data(self, values: dict):
-        self.__stored_data_key = ShortUUID().random(24)
-        values['_stored_data_key'] = self.__stored_data_key
-        self.asset._deployment_data.update(values)  # noqa
+    def get_submission(self, pk, requesting_user_id,
+                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
+        """
+        Returns submission if `pk` exists otherwise `None`
 
-    def delete(self):
-        self.asset._deployment_data.clear()  # noqa
+        Args:
+            pk (int): Submission's primary key
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending on `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instance's XML as string
+                - `None` if doesn't exist
+        """
+
+        submissions = list(self.get_submissions(requesting_user_id,
+                                                format_type, [int(pk)],
+                                                **kwargs))
+        try:
+            return submissions[0]
+        except IndexError:
+            pass
+        return None
+
+    @property
+    def identifier(self):
+        return self.get_data('identifier')
+
+    @property
+    def last_submission_time(self):
+        return self._last_submission_time()
+
+    @property
+    def mongo_userform_id(self):
+        return None
 
     def remove_from_kc_only_flag(self, *args, **kwargs):
         # TODO: This exists only to support KoBoCAT (see #1161) and should be
@@ -81,11 +127,58 @@ class BaseDeploymentBackend:
         # about whether the back end is KoBoCAT or something else
         pass
 
-    def validate_submission_list_params(self,
-                                        requesting_user_id,
-                                        format_type=INSTANCE_FORMAT_TYPE_JSON,
-                                        validate_count=False,
-                                        **kwargs):
+    def save_to_db(self, updates: dict):
+        """
+        Persist values from deployment data into the DB.
+        `updates` is a dictionary of properties to update.
+        E.g: `{"active": True, "status": "not-synced"}`
+        """
+        # Avoid circular imports
+        # use `self.asset.__class__` instead of `from kpi.models import Asset`
+        now = timezone.now()
+        self.asset.__class__.objects.filter(id=self.asset.pk).update(
+            _deployment_data=ReplaceValues(
+                '_deployment_data',
+                updates=updates,
+            ),
+            date_modified=now,
+        )
+        self.store_data(updates)
+        self.asset.date_modified = now
+
+    def set_asset_uid(self, **kwargs) -> bool:
+        raise AbstractMethodError
+
+    def set_status(self, status):
+        self.save_to_db({'status': status})
+
+    @property
+    def status(self):
+        return self.get_data('status')
+
+    def store_data(self, values: dict):
+        self.__stored_data_key = ShortUUID().random(24)
+        values['_stored_data_key'] = self.__stored_data_key
+        self.asset._deployment_data.update(values)  # noqa
+
+    @property
+    def stored_data_key(self):
+        return self.__stored_data_key
+
+    @property
+    def submission_count(self):
+        return self._submission_count()
+
+    def sync_media_files(self):
+        raise AbstractMethodError
+
+    def validate_submission_list_params(
+        self,
+        requesting_user_id,
+        format_type=INSTANCE_FORMAT_TYPE_JSON,
+        validate_count=False,
+        **kwargs
+    ):
         """
         Ensure types of query and each param.
 
@@ -107,14 +200,18 @@ class BaseDeploymentBackend:
         """
 
         if 'count' in kwargs:
-            raise serializers.ValidationError({
-                'count': _('This param is not implemented. Use `count` property '
-                           'of the response instead.')
-            })
+            raise serializers.ValidationError(
+                {
+                    'count': _(
+                        'This param is not implemented. Use `count` property '
+                        'of the response instead.'
+                    )
+                }
+            )
 
         if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
             if 'sort' in kwargs:
-                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order.
+                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order  # noqa
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
                     'sort': _('This param is not supported in `XML` format')
@@ -208,21 +305,6 @@ class BaseDeploymentBackend:
 
         return params
 
-    def calculated_submission_count(self, requesting_user_id, **kwargs):
-        raise AbstractMethodError
-
-    @property
-    def backend(self):
-        return self.get_data('backend')
-
-    @property
-    def identifier(self):
-        return self.get_data('identifier')
-
-    @property
-    def active(self):
-        return self.get_data('active', False)
-
     @property
     def version(self):
         raise NotImplementedError('Use `asset.deployment.version_id`')
@@ -231,78 +313,5 @@ class BaseDeploymentBackend:
     def version_id(self):
         return self.get_data('version')
 
-    @property
-    def submission_count(self):
-        return self._submission_count()
 
-    @property
-    def last_submission_time(self):
-        return self._last_submission_time()
 
-    @property
-    def mongo_userform_id(self):
-        return None
-
-    def get_submission(self, pk, requesting_user_id,
-                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
-        """
-        Returns submission if `pk` exists otherwise `None`
-
-        Args:
-            pk (int): Submission's primary key
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
-
-        Returns:
-            (dict|str|`None`): Depending on `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instance's XML as string
-                - `None` if doesn't exist
-        """
-
-        submissions = list(self.get_submissions(requesting_user_id,
-                                                format_type, [int(pk)],
-                                                **kwargs))
-        try:
-            return submissions[0]
-        except IndexError:
-            pass
-        return None
-
-    def set_asset_uid(self, **kwargs) -> bool:
-        raise AbstractMethodError
-
-    def set_status(self, status):
-        self.save_to_db({'status': status})
-
-    def save_to_db(self, updates: dict):
-        """
-        Persist values from deployment data into the DB.
-        `updates` is a dictionary of properties to update.
-        E.g: `{"active": True, "status": "not-synced"}`
-        """
-        # Avoid circular imports
-        # use `self.asset.__class__` instead of `from kpi.models import Asset`
-        now = timezone.now()
-        self.asset.__class__.objects.filter(id=self.asset.pk).update(
-            _deployment_data=ReplaceValues(
-                '_deployment_data',
-                updates=updates,
-            ),
-            date_modified=now,
-        )
-        self.store_data(updates)
-        self.asset.date_modified = now
-
-    @property
-    def status(self):
-        return self.get_data('status')
-
-    @property
-    def stored_data_key(self):
-        return self.__stored_data_key
-
-    def sync_media_files(self):
-        raise AbstractMethodError
