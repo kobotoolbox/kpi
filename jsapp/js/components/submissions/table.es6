@@ -450,6 +450,13 @@ export class DataTable extends React.Component {
           });
       }
 
+      let columnClassName = '';
+      if (
+        (q && NUMERICAL_TYPES.includes(q.type)) ||
+        NUMERICAL_COLUMNS.includes(key)
+      ) {
+        columnClassName += 'rt-numerical-value';
+      }
       columns.push({
         Header: () => {
           const columnName = _this.getColumnLabel(key, q, qParentG);
@@ -468,6 +475,7 @@ export class DataTable extends React.Component {
         index: index,
         question: q,
         filterable: false,
+        className: columnClassName,
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
             if (

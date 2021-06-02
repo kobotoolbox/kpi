@@ -103,7 +103,7 @@ $submission-data-table-space: 12px;
 
   &.submission-data-table__column--data {
     flex: 1;
-    font-family: monospace;
+    font-family: $font_mono;
   }
 }
 
@@ -113,11 +113,11 @@ $submission-data-table-space: 12px;
   font-size: 0.8em;
   line-height: 1;
   color: $kobo-gray-40;
-  font-family: monospace;
+  font-family: $font_mono;
 }
 
 .submission-data-table__value {
   color: $kobo-gray-24;
   display: inline-block;
-  font-family: monospace;
+  font-family: $font_mono;
 }

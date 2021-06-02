@@ -133,6 +133,10 @@ $data-table-border: 1px solid $kobo-gray-92;
     height: 42px;
   }
 
+  .rt-td.rt-numerical-value {
+    font-family: $font_mono;
+  }
+
   .rt-td.rt-status {
     line-height: inherit;
     overflow: visible;
