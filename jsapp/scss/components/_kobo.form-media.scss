@@ -41,7 +41,7 @@
   .form-media__list {
     .form-media__list-label {
       margin-top: 32px;
-      color: black;
+      color: $kobo-gray-24;
       font-weight: 500;
       font-size: 22px;
       display: block;
@@ -76,7 +76,7 @@
         position: absolute;
         left: -5px;
         top: 2px;
-        color: grey;
+        color: $kobo-gray-24;
         font-size: 24px;
       }
 
@@ -84,7 +84,7 @@
         font-weight: 400;
         padding: 5px;
         margin-left: 25px;
-        font-size: 18;
+        font-size: 18px;
         display: inline-block;
         min-width: 10px;
         vertical-align: top;
