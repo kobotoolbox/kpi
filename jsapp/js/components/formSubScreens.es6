@@ -7,10 +7,10 @@ import {actions} from '../actions';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import mixins from '../mixins';
-import assetUtils from 'js/assetUtils';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
+import FormMedia from './modalForms/formMedia';
 import DataTable from 'js/components/submissions/table';
 import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
 import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
@@ -52,11 +52,6 @@ export class FormSubScreens extends React.Component {
       return (<ui.AccessDeniedMessage/>);
     }
 
-    //TODO:Remove owner only access to settings/media after we remove KC iframe: https://github.com/kobotoolbox/kpi/issues/2647#issuecomment-624301693
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/media` && !assetUtils.isSelfOwned(this.state)) {
-      return (<ui.AccessDeniedMessage/>);
-    }
-
     var iframeUrl = '';
     var report__base = '';
     var deployment__identifier = '';
@@ -87,8 +82,7 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/settings`:
           return this.renderSettingsEditor();
         case `/forms/${this.state.uid}/settings/media`:
-          iframeUrl = deployment__identifier+'/form_settings';
-          break;
+          return this.renderUpload();
         case `/forms/${this.state.uid}/settings/sharing`:
           return this.renderSharing();
         case `/forms/${this.state.uid}/settings/rest`:
@@ -149,6 +143,12 @@ export class FormSubScreens extends React.Component {
   }
   renderReset() {
     return (<ui.LoadingSpinner/>);
+  }
+
+  renderUpload() {
+    return (
+      <FormMedia asset={this.state}/>
+    );
   }
 }
 

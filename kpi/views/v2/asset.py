@@ -1,6 +1,7 @@
 # coding: utf-8
 import copy
 import json
+
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
 from hashlib import md5
@@ -11,7 +12,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
@@ -22,7 +22,7 @@ from kpi.constants import (
     CLONE_ARG_NAME,
     CLONE_COMPATIBLE_TYPES,
     CLONE_FROM_VERSION_ID_ARG_NAME,
-    PERM_FROM_KC_ONLY
+    PERM_FROM_KC_ONLY,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
 from kpi.exceptions import BadAssetTypeException
@@ -46,6 +46,7 @@ from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
     XlsRenderer
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
+from kpi.utils.hash import get_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.strings import hashable_str
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
@@ -345,8 +346,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 return Response(dict(serializer.data))
         elif request.method == 'POST':
             if not asset.can_be_deployed:
-                raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                    asset.asset_type))
+                raise BadAssetTypeException(
+                    'Only surveys may be deployed, but this asset is a '
+                    f'{asset.asset_type}'
+                )
             else:
                 if asset.has_deployment:
                     raise exceptions.MethodNotAllowed(
@@ -365,8 +368,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         elif request.method == 'PATCH':
             if not asset.can_be_deployed:
-                raise BadAssetTypeException("Only surveys may be deployed, but this asset is a {}".format(
-                    asset.asset_type))
+                raise BadAssetTypeException(
+                    'Only surveys may be deployed, '
+                    f'but this asset is a {asset.asset_type}'
+                )
             else:
                 if not asset.has_deployment:
                     raise exceptions.MethodNotAllowed(
@@ -619,21 +624,25 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if user.is_anonymous:
             raise exceptions.NotAuthenticated()
         else:
-            accessible_assets = get_objects_for_user(
-                user, "view_asset", Asset).filter(asset_type=ASSET_TYPE_SURVEY) \
+            accessible_assets = (
+                get_objects_for_user(user, 'view_asset', Asset)
+                .filter(asset_type=ASSET_TYPE_SURVEY)
                 .order_by("uid")
+            )
 
-            assets_version_ids = [asset.version_id for asset in accessible_assets if asset.version_id is not None]
+            assets_version_ids = [asset.version_id
+                                  for asset in accessible_assets
+                                  if asset.version_id is not None]
             # Sort alphabetically
             assets_version_ids.sort()
 
             if len(assets_version_ids) > 0:
-                hash = md5(hashable_str("".join(assets_version_ids))).hexdigest()
+                hash_ = get_hash(''.join(assets_version_ids))
             else:
-                hash = ""
+                hash_ = ''
 
             return Response({
-                "hash": hash
+                'hash': hash_
             })
 
     @action(detail=False, methods=['GET'],
@@ -642,11 +651,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         metadata = self.get_metadata(queryset)
         return Response(metadata)
-
-    def perform_destroy(self, instance):
-        if hasattr(instance, 'has_deployment') and instance.has_deployment:
-            instance.deployment.delete()
-        return super().perform_destroy(instance)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -704,10 +708,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response('<!doctype html>\n'
                         '<html><body><code><pre>' + md_table.strip())
 
-    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
-    def xls(self, request, *args, **kwargs):
-        return self.table_view(self, request, *args, **kwargs)
-
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
         asset = self.get_object()
@@ -721,6 +721,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if export.xml != '':
             response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
         return Response(response_data, template_name='highlighted_xform.html')
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def xls(self, request, *args, **kwargs):
+        return self.table_view(self, request, *args, **kwargs)
 
     def _get_clone_serializer(self, current_asset=None):
         """

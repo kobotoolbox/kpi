@@ -4,7 +4,6 @@ import copy
 import re
 from collections import defaultdict
 
-from django.apps import apps
 from taggit.models import Tag, TaggedItem
 
 '''
@@ -31,8 +30,8 @@ def _load_library_content(structure):
     library_sheet = content.get('library', [])
     del content['library']
 
-    tag_name_to_pk = {} # Both a cache and a record of what to index later
-    created_asset_pks = [] # A list of what to index at the end of the import
+    tag_name_to_pk = {}  # Both a cache and a record of what to index later
+    created_asset_pks = []  # A list of what to index at the end of the import
 
     grouped = defaultdict(list)
     for row in library_sheet:

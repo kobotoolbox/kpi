@@ -1,0 +1,106 @@
+.form-media {
+  padding: 40px;
+  background-color: $kobo-white;
+
+  .form-media__label {
+    font-weight: 400;
+    font-size: 18px;
+    text-align: center;
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 5px;
+    color: $kobo-gray-92;
+  }
+
+  .form-media__upload-url {
+    font-size: 18px;
+    width: 90%;
+    margin: auto;
+    margin-top: 12px;
+    display: block;
+    text-align: center;
+
+    .form-media__upload-url-label {
+      margin: 12px 0;
+    }
+
+    .form-media__upload-url-form {
+      label.text-box {
+        padding-top: 7px;
+        min-width: 70%;
+        display: inline-table;
+      }
+
+      button {
+        margin-left: 24px;
+        min-width: 20%;
+      }
+    }
+  }
+
+  .form-media__list {
+    .form-media__list-label {
+      margin-top: 32px;
+      color: $kobo-gray-24;
+      font-weight: 500;
+      font-size: 22px;
+      display: block;
+      margin-bottom: 11px;
+      border-bottom: 1px solid $kobo-gray-92;
+      padding-bottom: 16px;
+    }
+
+    .form-media__list-default-item {
+      padding-left: 10px;
+    }
+
+    .form-media__list-item {
+      font-size: 16px;
+      position: relative;
+      padding-bottom: 12px;
+      border-bottom: 1px solid $kobo-gray-92;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+
+      // TODO: Find a better way to implement button size without editing parent
+      button.kobo-light-button {
+        padding-bottom: 25px;
+
+        i.k-icon-trash {
+          font-size: 24px;
+        }
+      }
+
+      i.form-media__file-type {
+        position: absolute;
+        left: -5px;
+        top: 2px;
+        color: $kobo-gray-24;
+        font-size: 24px;
+      }
+
+      a {
+        font-weight: 400;
+        padding: 5px;
+        margin-left: 25px;
+        font-size: 18px;
+        display: inline-block;
+        min-width: 10px;
+        vertical-align: top;
+        height: auto;
+        position: relative;
+        min-height: 18px;
+        max-width: 70%;
+        overflow-x: hidden;
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .media-settings--upload-file {
+    width: auto;
+  }
+}

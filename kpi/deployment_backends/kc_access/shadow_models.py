@@ -1,6 +1,4 @@
 # coding: utf-8
-from hashlib import md5
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -14,12 +12,11 @@ from django.db import (
     router,
 )
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
 from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
-from kpi.utils.strings import hashable_str
+from kpi.utils.hash import get_hash
 
 
 def update_autofield_sequence(model):
@@ -446,7 +443,7 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
 
     @property
     def hash(self):
-        return '%s' % md5(hashable_str(self.xml)).hexdigest()
+        return get_hash(self.xml)
 
     @property
     def prefixed_hash(self):
@@ -484,4 +481,3 @@ def safe_kc_read(func):
             raise ProgrammingError('kc_access error accessing kobocat '
                                    'tables: {}'.format(e.message))
     return _wrapper
-
