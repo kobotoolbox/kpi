@@ -77,7 +77,7 @@ class ShadowModel(models.Model):
             app_label=app_label, model=model_name)
 
 
-class ReadOnlyModel(ShadowModel):
+class ReadOnlyShadowModel(ShadowModel):
 
     read_only = True
 
@@ -87,7 +87,7 @@ class ReadOnlyModel(ShadowModel):
 
 class KobocatXForm(ShadowModel):
 
-    class Meta(ReadOnlyModel.Meta):
+    class Meta(ShadowModel.Meta):
         db_table = 'logger_xform'
         verbose_name = 'xform'
         verbose_name_plural = 'xforms'
@@ -121,9 +121,9 @@ class KobocatXForm(ShadowModel):
         return "md5:%s" % self.hash
 
 
-class ReadOnlyKobocatInstance(ReadOnlyModel):
+class ReadOnlyKobocatInstance(ReadOnlyShadowModel):
 
-    class Meta(ReadOnlyModel.Meta):
+    class Meta(ReadOnlyShadowModel.Meta):
         db_table = 'logger_instance'
         verbose_name = 'instance'
         verbose_name_plural = 'instances'
