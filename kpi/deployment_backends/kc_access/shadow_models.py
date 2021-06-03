@@ -44,10 +44,6 @@ def update_autofield_sequence(model):
         cursor.execute(query)
 
 
-class ReadOnlyModelError(ValueError):
-    pass
-
-
 class ShadowModel(models.Model):
     """
     Allows identification of writeable and read-only shadow models
@@ -83,17 +79,13 @@ class ShadowModel(models.Model):
 
 class ReadOnlyModel(ShadowModel):
 
+    read_only = True
+
     class Meta(ShadowModel.Meta):
         abstract = True
 
-    def save(self, *args, **kwargs):
-        raise ReadOnlyModelError('Cannot save read-only-model')
 
-    def delete(self, *args, **kwargs):
-        raise ReadOnlyModelError('Cannot delete read-only-model')
-
-
-class ReadOnlyKobocatXForm(ReadOnlyModel):
+class ReadOnlyKobocatXForm(ShadowModel):
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_xform'
