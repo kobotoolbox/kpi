@@ -64,7 +64,7 @@ class ShadowModel(models.Model):
     @staticmethod
     def get_content_type_for_model(model):
         model_name_mapping = {
-            'readonlykobocatxform': ('logger', 'xform'),
+            'kobocatxform': ('logger', 'xform'),
             'readonlykobocatinstance': ('logger', 'instance'),
             'kobocatuserprofile': ('main', 'userprofile'),
             'kobocatuserobjectpermission': ('guardian', 'userobjectpermission'),
@@ -85,7 +85,7 @@ class ReadOnlyModel(ShadowModel):
         abstract = True
 
 
-class ReadOnlyKobocatXForm(ShadowModel):
+class KobocatXForm(ShadowModel):
 
     class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_xform'
@@ -130,7 +130,7 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     xml = models.TextField()
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
-    xform = models.ForeignKey(ReadOnlyKobocatXForm, related_name='instances',
+    xform = models.ForeignKey(KobocatXForm, related_name='instances',
                               on_delete=models.CASCADE)
     date_created = models.DateTimeField()
     date_modified = models.DateTimeField()
