@@ -1,4 +1,5 @@
 from django.contrib import admin, messages
+from django.contrib.admin import DateFieldListFilter
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.db.models import Count, Sum
@@ -12,20 +13,37 @@ from kpi.deployment_backends.kc_access.shadow_models import (
 from kpi.models.asset import Asset
 
 # class StartDateFilter(admin.SimpleListFilter):
-#     title = 'Date Range Filter'
-#     parameter_name = 'Start Date'
+#     title = 'Start Date'
+#     parameter_name = 'start_date'
 
 #     def __init__(self, request, params, model, model_admin):
 #         super().__init__(request, params, model, model_admin)
 #         self.__model = model
 
 #     def lookups(self, request, model_admin):
-#         return (
+#         return
 
-#         )
+#     def queryset(self, request, queryset):
+#         return queryset
+
+
+# class EndDateFilter(admin.SimpleListFilter):
+#     title = 'End Date'
+#     parameter_name = 'end_date'
+
+#     def __init__(self, request, params, model, model_admin):
+#         super().__init__(request, params, model, model_admin)
+#         self.model = model
+
+#     def lookups(self, request, model_admin):
+#         return
+
+#     def queryset(self, request, queryset):
+#         return queryset
+
 
 class CountryFilter(admin.SimpleListFilter):
-    title = 'Country Filter'
+    title = 'Country'
     parameter_name = 'Country'
 
     def __init__(self, request, params, model, model_admin):
@@ -39,11 +57,13 @@ class CountryFilter(admin.SimpleListFilter):
         if not self.value():
             return queryset
 
-        return queryset
+        country = self.value()
+        return queryset.filter(settings__country__value=country)
+
 
 class SubmissionsByCountry(admin.ModelAdmin):
     change_list_template = 'submissions_by_country.html'
-    # list_filter = (CountryFilter)
+    list_filter = (('date_created', DateFieldListFilter), CountryFilter)
     actions = None
 
     def changelist_view(self, request, extra_context=None):
@@ -67,22 +87,24 @@ class SubmissionsByCountry(admin.ModelAdmin):
 
         for country in COUNTRIES:
             name = country[1]
-            assets = Asset.objects.filter(
+            assets = qs.filter(
                 asset_type=ASSET_TYPE_SURVEY,
                 settings__country__label=str(name),
             )
             count = 0
+            
+            if assets.count() is not 0:
 
-            for asset in assets:
-                form = ReadOnlyKobocatXForm.objects.get(id_string=asset.uid)
-                count += ReadOnlyKobocatInstance.objects.filter(xform=form).count()
+                for asset in assets:
+                    form = ReadOnlyKobocatXForm.objects.get(id_string=asset.uid)
+                    count += ReadOnlyKobocatInstance.objects.filter(xform=form).count()
 
-            data.append({
-                'country': name,
-                'count': count,
-            })
+                data.append({
+                    'country': name,
+                    'count': count,
+                })
 
         return data
 
 
-admin.site.register(ReadOnlyKobocatInstance, SubmissionsByCountry)
+admin.site.register(Asset, SubmissionsByCountry)

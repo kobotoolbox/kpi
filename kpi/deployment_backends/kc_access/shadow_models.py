@@ -5,6 +5,8 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.postgres.fields import JSONField as JSONBField
+from django.core import checks
+from django.core.exceptions import FieldDoesNotExist
 from django.db import (
     ProgrammingError,
     connections,
@@ -61,8 +63,8 @@ class ShadowModel(models.Model):
         #   Reloading models is not advised as it can lead to inconsistencies,
         #   most notably with related models
         # ```
-        # Maybe because `SHADOW_MODEL_APP_LABEL` is not declared in `INSTALLED_APP`
-        # It's just used for `DefaultDatabaseRouter` conditions.
+        # Maybe because `SHADOW_MODEL_APP_LABEL` is not declared in
+        # `INSTALLED_APP`
         app_label = SHADOW_MODEL_APP_LABEL
 
     @staticmethod
@@ -235,6 +237,71 @@ class KobocatUser(ShadowModel):
         KobocatDigestPartial.sync(kc_auth_user)
 
 
+class KobocatGenericForeignKey(GenericForeignKey):
+
+    def get_content_type(self, obj=None, id=None, using=None):
+        if obj is not None:
+            return KobocatContentType.objects.db_manager(obj._state.db).get_for_model(
+                obj, for_concrete_model=self.for_concrete_model)
+        elif id is not None:
+            return KobocatContentType.objects.db_manager(using).get_for_id(id)
+        else:
+            # This should never happen. I love comments like this, don't you?
+            raise Exception("Impossible arguments to GFK.get_content_type!")
+
+    def get_forward_related_filter(self, obj):
+        """See corresponding method on RelatedField"""
+        return {
+            self.fk_field: obj.pk,
+            self.ct_field: KobocatContentType.objects.get_for_model(obj).pk,
+        }
+
+    def _check_content_type_field(self):
+        try:
+            field = self.model._meta.get_field(self.ct_field)
+        except FieldDoesNotExist:
+            return [
+                checks.Error(
+                    "The GenericForeignKey content type references the "
+                    "nonexistent field '%s.%s'." % (
+                        self.model._meta.object_name, self.ct_field
+                    ),
+                    obj=self,
+                    id='contenttypes.E002',
+                )
+            ]
+        else:
+            if not isinstance(field, models.ForeignKey):
+                return [
+                    checks.Error(
+                        "'%s.%s' is not a ForeignKey." % (
+                            self.model._meta.object_name, self.ct_field
+                        ),
+                        hint=(
+                            "GenericForeignKeys must use a ForeignKey to "
+                            "'contenttypes.ContentType' as the 'content_type' field."
+                        ),
+                        obj=self,
+                        id='contenttypes.E003',
+                    )
+                ]
+            elif field.remote_field.model != KobocatContentType:
+                return [
+                    checks.Error(
+                        "'%s.%s' is not a ForeignKey to 'contenttypes.ContentType'."
+                        % (self.model._meta.object_name, self.ct_field),
+                        hint=(
+                            "GenericForeignKeys must use a ForeignKey to "
+                            "'contenttypes.ContentType' as the 'content_type' field."
+                        ),
+                        obj=self,
+                        id='contenttypes.E004',
+                    )
+                ]
+            else:
+                return []
+
+
 class KobocatUserObjectPermission(ShadowModel):
     """
     For the _sole purpose_ of letting us manipulate KoBoCAT
@@ -252,7 +319,7 @@ class KobocatUserObjectPermission(ShadowModel):
     permission = models.ForeignKey(KobocatPermission, on_delete=models.CASCADE)
     content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
     object_pk = models.CharField(_('object ID'), max_length=255)
-    content_object = GenericForeignKey(fk_field='object_pk')
+    content_object = KobocatGenericForeignKey(fk_field='object_pk')
     # It's okay not to use `KobocatUser` as long as PKs are synchronized
     user = models.ForeignKey(
         getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
