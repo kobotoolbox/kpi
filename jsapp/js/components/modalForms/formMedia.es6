@@ -147,7 +147,8 @@ class FormMedia extends React.Component {
     }
   }
 
-  onDeleteMedia(url) {
+  onDeleteMedia(evt, url) {
+    evt.preventDefault();
     actions.media.deleteMedia(this.props.asset.uid, url);
   }
 
@@ -292,10 +293,12 @@ class FormMedia extends React.Component {
               {this.state.uploadedAssets.map((item, n) => (
                 <bem.FormMediaListItem key={n}>
                   {this.renderIcon(item)}
+
                   {this.renderFileName(item)}
+
                   <bem.KoboLightButton
                     m={['red', 'icon-only']}
-                    onClick={this.onDeleteMedia(item.url)}
+                    onClick={(evt) => this.onDeleteMedia(evt, item.url)}
                   >
                     <i className='k-icon k-icon-trash' />
                   </bem.KoboLightButton>
