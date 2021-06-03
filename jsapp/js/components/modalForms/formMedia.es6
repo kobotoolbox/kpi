@@ -115,11 +115,11 @@ class FormMedia extends React.Component {
         var base64File = await this.toBase64(file);
 
         this.uploadMedia({
-	        description: DEFAULT_MEDIA_DESCRIPTION,
+          description: DEFAULT_MEDIA_DESCRIPTION,
           file_type: ASSET_FILE_TYPES.form_media.id,
           metadata: JSON.stringify({filename: file.name}),
-	        base64Encoded: base64File
-	      });
+          base64Encoded: base64File
+        });
       });
     }
   }
