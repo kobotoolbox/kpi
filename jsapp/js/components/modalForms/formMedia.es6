@@ -7,7 +7,6 @@ import {ASSET_FILE_TYPES} from 'js/constants';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {LoadingSpinner} from 'js/ui';
-
 import {
   truncateString,
   truncateUrl,
@@ -32,7 +31,7 @@ class FormMedia extends React.Component {
       isInitialised: false,
       // to show loading icon while uploading any file
       isUploadFilePending: false,
-      isUploadURLPending: false
+      isUploadURLPending: false,
     };
 
     autoBind(this);
@@ -66,7 +65,7 @@ class FormMedia extends React.Component {
     this.setState({
       fieldsErrors: response.responseJSON,
       isUploadFilePending: false,
-      isUploadURLPending: false
+      isUploadURLPending: false,
     });
   }
 
@@ -118,7 +117,7 @@ class FormMedia extends React.Component {
           description: DEFAULT_MEDIA_DESCRIPTION,
           file_type: ASSET_FILE_TYPES.form_media.id,
           metadata: JSON.stringify({filename: file.name}),
-          base64Encoded: base64File
+          base64Encoded: base64File,
         });
       });
     }
@@ -136,7 +135,7 @@ class FormMedia extends React.Component {
     } else {
       this.setState({
         isUploadURLPending: true,
-        inputURL: ''
+        inputURL: '',
       });
 
       this.uploadMedia({
@@ -156,15 +155,15 @@ class FormMedia extends React.Component {
    */
 
   renderButton() {
-    const buttonClassNames = ['form-builder-header__button', 'form-builder-header__button--save'];
+    const buttonClassNames = [
+      'form-builder-header__button',
+      'form-builder-header__button--save',
+    ];
     if (this.state.isUploadURLPending) {
       buttonClassNames.push('form-builder-header__button--savepending');
     }
     return (
-      <button
-        className={buttonClassNames.join(' ')}
-        onClick={this.onSubmitURL}
-      >
+      <button className={buttonClassNames.join(' ')} onClick={this.onSubmitURL}>
         {/* Icon gets populated via CSS like formbuilder, see: kpi#3133*/}
         <i />
         {t('ADD')}
@@ -172,7 +171,7 @@ class FormMedia extends React.Component {
     );
   }
 
-  renderFileName(item){
+  renderFileName(item) {
     // Check if current item is uploaded via URL. `redirect_url` is the indicator
     var fileName = item.metadata.filename;
     if (item.metadata.redirect_url) {
@@ -182,7 +181,9 @@ class FormMedia extends React.Component {
     }
 
     return (
-      <a href={item?.content} target='_blank'>{fileName}</a>
+      <a href={item?.content} target='_blank'>
+        {fileName}
+      </a>
     );
   }
 
@@ -195,39 +196,37 @@ class FormMedia extends React.Component {
       iconClassNames.push('k-icon-media-files');
     }
 
-    return (
-      <i className={iconClassNames.join(' ')}/>
-    );
+    return <i className={iconClassNames.join(' ')} />;
   }
 
   render() {
     return (
       <bem.FormView m='form-media' className='form-media'>
-	    <div className='form-media__upload'>
-          {!this.state.isUploadFilePending &&
+        <div className='form-media__upload'>
+          {!this.state.isUploadFilePending && (
             <Dropzone
               onDrop={this.onFileDrop.bind(this)}
               className='dropzone-settings'
             >
-              {this.state.fieldsErrors?.base64Encoded &&
+              {this.state.fieldsErrors?.base64Encoded && (
                 <bem.FormView__cell m='error'>
                   <i className='k-icon-alert' />
                   <p>{this.state.fieldsErrors?.base64Encoded}</p>
                 </bem.FormView__cell>
-              }
+              )}
               <i className='k-icon-upload' />
               {t('Drag and drop files here')}
               <div className='form-media__desc'>
                 {t('or')} <a>{t('click here to browse')}</a>
               </div>
             </Dropzone>
-          }
+          )}
 
-          {this.state.isUploadFilePending &&
+          {this.state.isUploadFilePending && (
             <div className='dropzone-settings'>
-              <LoadingSpinner message={t('Uploading file…')}/>
+              <LoadingSpinner message={t('Uploading file…')} />
             </div>
-          }
+          )}
 
           <div className='form-media__upload-url'>
             <label className='form-media__upload-url-label'>
@@ -252,36 +251,33 @@ class FormMedia extends React.Component {
           </label>
 
           <ul>
-            {
-              (!this.state.isInitialised ||
-                this.state.isUploadFilePending ||
-                this.state.isUploadURLPending) &&
-                <li className='form-media__list-default-item form-media__list-item'>
-                  <LoadingSpinner message={t('loading media')}/>
-                </li>
-            }
+            {(!this.state.isInitialised ||
+              this.state.isUploadFilePending ||
+              this.state.isUploadURLPending) && (
+              <li className='form-media__list-default-item form-media__list-item'>
+                <LoadingSpinner message={t('loading media')} />
+              </li>
+            )}
 
-            {this.state.uploadedAssets.map((item, n) => {
-                return (
-                  <li key={n} className="form-media__list-item">
-                    {this.renderIcon(item)}
-                    {this.renderFileName(item)}
-                    <bem.KoboLightButton
-                      m={['red', 'icon-only']}
-                      onClick={this.onDeleteMedia(item.url)}
-                    >
-                      <i className='k-icon k-icon-trash'/>
-                    </bem.KoboLightButton>
-                  </li>
-                );
-            })}
+            {this.state.uploadedAssets.map((item, n) => (
+              <li key={n} className='form-media__list-item'>
+                {this.renderIcon(item)}
+                {this.renderFileName(item)}
+                <bem.KoboLightButton
+                  m={['red', 'icon-only']}
+                  onClick={this.onDeleteMedia(item.url)}
+                >
+                  <i className='k-icon k-icon-trash' />
+                </bem.KoboLightButton>
+              </li>
+            ))}
 
             {this.state.isInitialised &&
-              this.state.uploadedAssets.length == 0 &&
+              this.state.uploadedAssets.length == 0 && (
                 <li className='form-media__default-item form-media__list-item'>
-                    {t('No files uploaded yet')}
+                  {t('No files uploaded yet')}
                 </li>
-            }
+              )}
           </ul>
         </div>
       </bem.FormView>
