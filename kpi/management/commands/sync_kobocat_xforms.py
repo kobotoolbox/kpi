@@ -23,7 +23,7 @@ from kpi.utils.log import logging
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatPermission,
     KobocatUserObjectPermission,
-    ReadOnlyKobocatXForm,
+    KobocatXForm,
     ShadowModel,
 )
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
@@ -40,7 +40,7 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.items()}
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
     content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
-XFORM_CT = ShadowModel.get_content_type_for_model(ReadOnlyKobocatXForm)
+XFORM_CT = ShadowModel.get_content_type_for_model(KobocatXForm)
 ANONYMOUS_USER = get_anonymous_user()
 # Replace codenames with Permission PKs, remembering the codenames
 permission_map_copy = dict(PERMISSIONS_MAP)
@@ -477,9 +477,9 @@ class Command(BaseCommand):
         username = options.get('username')
         populate_xform_kpi_asset_uid = options.get('populate_xform_kpi_asset_uid')
         users = User.objects.all()
-        # Do a basic query just to make sure the ReadOnlyKobocatXForm model is
+        # Do a basic query just to make sure the KobocatXForm model is
         # loaded
-        if not ReadOnlyKobocatXForm.objects.exists():
+        if not KobocatXForm.objects.exists():
             return
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?
@@ -507,8 +507,8 @@ class Command(BaseCommand):
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk
 
-            # ReadOnlyKobocatXForm has a foreign key on KobocatUser, not on User
-            xforms = ReadOnlyKobocatXForm.objects.filter(user_id=user.pk).all()
+            # KobocatXForm has a foreign key on KobocatUser, not on User
+            xforms = KobocatXForm.objects.filter(user_id=user.pk).all()
             for xform in xforms:
                 try:
                     with transaction.atomic():
