@@ -8,6 +8,8 @@ label.text-box {
     color: $kobo-red;
 
     input.text-box__input {
+      // Don't type red if there is an error
+      color: $kobo-gray-40;
       border-bottom-color: $kobo-red;
     }
   }
@@ -38,12 +40,12 @@ label.text-box {
 
   input.text-box__input {
     width: 100%;
-    padding: 4px 10px;
-    font-size: 15px;
+    padding: 5px 0px;
+    font-size: 14px;
     color: inherit;
     background-color: transparent;
     border: 1px solid transparent;
-    border-bottom-color: $kobo-gray-92;
+    border-bottom-color: $kobo-gray-85;
     transition: border-color 0.3s;
 
     &:focus {

@@ -160,14 +160,19 @@ class FormMedia extends React.Component {
       'form-builder-header__button',
       'form-builder-header__button--save',
     ];
+
     if (this.state.isUploadURLPending) {
       buttonClassNames.push('form-builder-header__button--savepending');
     }
+
     return (
-      <button className={buttonClassNames.join(' ')} onClick={this.onSubmitURL}>
-        {/* Icon gets populated via CSS like formbuilder, see: kpi#3133*/}
+      <button className={buttonClassNames.join(' ')}
+        onClick={this.onSubmitURL}
+        disabled={!this.state.inputURL}
+      >
+        {/* Icon gets populated via CSS like formbuilder, see: kpi#3133 */}
         <i />
-        {t('ADD')}
+        {t('Add')}
       </button>
     );
   }
@@ -262,7 +267,7 @@ class FormMedia extends React.Component {
 
         <div className='form-media__list'>
           <label className='form-media__label form-media__list-label'>
-            {t('File(s) uploaded to this project')}
+            {t('Attached files')}
           </label>
 
           <ul>
