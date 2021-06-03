@@ -14,6 +14,7 @@ import {
 
 const MAX_ITEM_LENGTH = 50;
 const DEFAULT_MEDIA_DESCRIPTION = 'default';
+const MEDIA_SUPPORT_URL = 'https://support.kobotoolbox.org/media.html';
 
 /**
  * @prop {object} asset
@@ -203,6 +204,20 @@ class FormMedia extends React.Component {
     return (
       <bem.FormView m='form-media' className='form-media'>
         <div className='form-media__upload'>
+          <div className='form-media__upload-title'>
+            <label className='form-media__label form-media__upload-title-label'>
+              {t('Attach files')}
+            </label>
+
+            <a className='form-media__upload-title-help'
+              target='_blank'
+              href={MEDIA_SUPPORT_URL}
+              data-tip={t('Learn more about form media')}
+            >
+              <i className='k-icon k-icon-help'/>
+            </a>
+          </div>
+
           {!this.state.isUploadFilePending && (
             <Dropzone
               onDrop={this.onFileDrop.bind(this)}
@@ -246,7 +261,7 @@ class FormMedia extends React.Component {
         </div>
 
         <div className='form-media__list'>
-          <label className='form-media__list-label'>
+          <label className='form-media__label form-media__list-label'>
             {t('File(s) uploaded to this project')}
           </label>
 
