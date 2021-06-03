@@ -13,8 +13,9 @@
   }
 
   .form-media__upload-url {
+    color: $kobo-gray-40;
     font-size: 18px;
-    width: 90%;
+    font-weight: 500;
     margin: auto;
     margin-top: 12px;
     display: block;
@@ -27,12 +28,12 @@
     .form-media__upload-url-form {
       label.text-box {
         padding-top: 7px;
-        min-width: 70%;
+        min-width: 77%;
         display: inline-table;
       }
 
       button {
-        margin-left: 24px;
+        margin-left: 3%;
         min-width: 20%;
       }
     }
