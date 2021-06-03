@@ -1,6 +1,4 @@
 # coding: utf-8
-from hashlib import md5
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -14,12 +12,11 @@ from django.db import (
     router,
 )
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
 from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
-from kpi.utils.strings import hashable_str
+from kpi.utils.hash import get_hash
 
 
 def update_autofield_sequence(model):
@@ -46,10 +43,6 @@ def update_autofield_sequence(model):
         cursor.execute(query)
 
 
-class ReadOnlyModelError(ValueError):
-    pass
-
-
 class ShadowModel(models.Model):
     """
     Allows identification of writeable and read-only shadow models
@@ -65,12 +58,13 @@ class ShadowModel(models.Model):
         # ```
         # Maybe because `SHADOW_MODEL_APP_LABEL` is not declared in
         # `INSTALLED_APP`
+        # It's just used for `DefaultDatabaseRouter` conditions.
         app_label = SHADOW_MODEL_APP_LABEL
 
     @staticmethod
     def get_content_type_for_model(model):
         model_name_mapping = {
-            'readonlykobocatxform': ('logger', 'xform'),
+            'kobocatxform': ('logger', 'xform'),
             'readonlykobocatinstance': ('logger', 'instance'),
             'kobocatuserprofile': ('main', 'userprofile'),
             'kobocatuserobjectpermission': ('guardian', 'userobjectpermission'),
@@ -89,7 +83,7 @@ class KobocatContentType(ShadowModel):
     contrib.contenttypes.models.ContentType
     """
     app_label = models.CharField(max_length=100)
-    model = models.CharField(_('python model class name'), max_length=100)
+    model = models.CharField('python model class name', max_length=100)
 
     class Meta(ShadowModel.Meta):
         db_table = 'django_content_type'
@@ -199,9 +193,9 @@ class KobocatPermission(ShadowModel):
     """
     Minimal representation of Django 1.8's contrib.auth.models.Permission
     """
-    name = models.CharField(_('name'), max_length=255)
+    name = models.CharField('name', max_length=255)
     content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
-    codename = models.CharField(_('codename'), max_length=100)
+    codename = models.CharField('codename', max_length=100)
 
     class Meta(ShadowModel.Meta):
         db_table = 'auth_permission'
@@ -217,11 +211,12 @@ class KobocatPermission(ShadowModel):
 
 
 class KobocatSubmissionCounter(ShadowModel):
-    user = models.ForeignKey('KobocatUser', on_delete=models.CASCADE)
+    user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
     count = models.IntegerField(default=0)
     timestamp = models.DateTimeField(default=timezone.now)
 
     class Meta(ShadowModel.Meta):
+        app_label = 'usage_statistics'
         db_table = 'logger_submissioncounter'
         verbose_name = 'User Statistic'
 
@@ -236,19 +231,19 @@ class KobocatSubmissionCounter(ShadowModel):
 
 class KobocatUser(ShadowModel):
 
-    username = models.CharField(_("username"), max_length=30, unique=True)
-    password = models.CharField(_("password"), max_length=128)
-    last_login = models.DateTimeField(_("last login"), blank=True, null=True)
-    is_superuser = models.BooleanField(_('superuser status'), default=False)
-    first_name = models.CharField(_('first name'), max_length=30, blank=True)
-    last_name = models.CharField(_('last name'), max_length=150, blank=True)
-    email = models.EmailField(_('email address'), blank=True)
-    is_staff = models.BooleanField(_('staff status'), default=False)
-    is_active = models.BooleanField(_('active'), default=True)
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    username = models.CharField('username', max_length=30, unique=True)
+    password = models.CharField('password', max_length=128)
+    last_login = models.DateTimeField('last login', blank=True, null=True)
+    is_superuser = models.BooleanField('superuser status', default=False)
+    first_name = models.CharField('first name', max_length=30, blank=True)
+    last_name = models.CharField('last name', max_length=150, blank=True)
+    email = models.EmailField('email address', blank=True)
+    is_staff = models.BooleanField('staff status', default=False)
+    is_active = models.BooleanField('active', default=True)
+    date_joined = models.DateTimeField('date joined', default=timezone.now)
 
     class Meta(ShadowModel.Meta):
-        db_table = "auth_user"
+        db_table = 'auth_user'
 
     @classmethod
     def sync(cls, auth_user):
@@ -290,18 +285,16 @@ class KobocatUserObjectPermission(ShadowModel):
     For the _sole purpose_ of letting us manipulate KoBoCAT
     permissions, this comprises the following django-guardian classes
     all condensed into one:
-
       * UserObjectPermission
       * UserObjectPermissionBase
       * BaseGenericObjectPermission
       * BaseObjectPermission
-
     CAVEAT LECTOR: The django-guardian custom manager,
     UserObjectPermissionManager, is NOT included!
     """
     permission = models.ForeignKey(KobocatPermission, on_delete=models.CASCADE)
     content_type = models.ForeignKey(KobocatContentType, on_delete=models.CASCADE)
-    object_pk = models.CharField(_('object ID'), max_length=255)
+    object_pk = models.CharField('object ID', max_length=255)
     content_object = KobocatGenericForeignKey(fk_field='object_pk')
     # It's okay not to use `KobocatUser` as long as PKs are synchronized
     user = models.ForeignKey(
@@ -374,9 +367,7 @@ class KobocatUserProfile(ShadowModel):
     description = models.CharField(max_length=255, blank=True)
     require_auth = models.BooleanField(
         default=False,
-        verbose_name=_(
-            "Require authentication to see forms and submit data"
-        )
+        verbose_name="Require authentication to see forms and submit data"
     )
     address = models.CharField(max_length=255, blank=True)
     phonenumber = models.CharField(max_length=30, blank=True)
@@ -388,11 +379,11 @@ class KobocatUserProfile(ShadowModel):
 
 class KobocatToken(ShadowModel):
 
-    key = models.CharField(_("Key"), max_length=40, primary_key=True)
+    key = models.CharField("Key", max_length=40, primary_key=True)
     user = models.OneToOneField(KobocatUser,
                                 related_name='auth_token',
-                                on_delete=models.CASCADE, verbose_name=_("User"))
-    created = models.DateTimeField(_("Created"), auto_now_add=True)
+                                on_delete=models.CASCADE, verbose_name="User")
+    created = models.DateTimeField("Created", auto_now_add=True)
 
     class Meta(ShadowModel.Meta):
         db_table = "authtoken_token"
@@ -401,7 +392,7 @@ class KobocatToken(ShadowModel):
     def sync(cls, auth_token):
         try:
             # Token use a One-to-One relationship on User.
-            # Thus, we can retrieve tokens from users' id. 
+            # Thus, we can retrieve tokens from users' id.
             kc_auth_token = cls.objects.get(user_id=auth_token.user_id)
         except KobocatToken.DoesNotExist:
             kc_auth_token = cls(pk=auth_token.pk, user_id=auth_token.user_id)
@@ -409,21 +400,9 @@ class KobocatToken(ShadowModel):
         kc_auth_token.save()
 
 
-class ReadOnlyModel(ShadowModel):
+class KobocatXForm(ShadowModel):
 
     class Meta(ShadowModel.Meta):
-        abstract = True
-
-    def save(self, *args, **kwargs):
-        raise ReadOnlyModelError('Cannot save read-only-model')
-
-    def delete(self, *args, **kwargs):
-        raise ReadOnlyModelError('Cannot delete read-only-model')
-
-
-class ReadOnlyKobocatXForm(ReadOnlyModel):
-
-    class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_xform'
         verbose_name = 'xform'
         verbose_name_plural = 'xforms'
@@ -431,7 +410,7 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
     XFORM_TITLE_LENGTH = 255
     xls = models.FileField(null=True)
     xml = models.TextField()
-    user = models.ForeignKey('KobocatUser', related_name='xforms', null=True,
+    user = models.ForeignKey(KobocatUser, related_name='xforms', null=True,
                              on_delete=models.CASCADE)
     shared = models.BooleanField(default=False)
     shared_data = models.BooleanField(default=False)
@@ -446,7 +425,7 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
 
     @property
     def hash(self):
-        return '%s' % md5(hashable_str(self.xml)).hexdigest()
+        return get_hash(self.xml)
 
     @property
     def prefixed_hash(self):
@@ -455,6 +434,14 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
         """
 
         return "md5:%s" % self.hash
+
+
+class ReadOnlyModel(ShadowModel):
+
+    read_only = True
+
+    class Meta(ShadowModel.Meta):
+        abstract = True
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):
@@ -466,7 +453,7 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     xml = models.TextField()
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
-    xform = models.ForeignKey(ReadOnlyKobocatXForm, related_name='instances',
+    xform = models.ForeignKey(KobocatXForm, related_name='instances',
                               on_delete=models.CASCADE)
     date_created = models.DateTimeField()
     date_modified = models.DateTimeField()
@@ -484,4 +471,3 @@ def safe_kc_read(func):
             raise ProgrammingError('kc_access error accessing kobocat '
                                    'tables: {}'.format(e.message))
     return _wrapper
-
