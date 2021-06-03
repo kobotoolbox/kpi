@@ -18,7 +18,7 @@ class DefaultDatabaseRouter:
         Writes go to `kc` when `model` is a ShadowModel
         """
         if getattr(model, 'read_only', False):
-            raise ReadOnlyModelError('This model is read only')
+            raise ReadOnlyModelError
 
         if model._meta.app_label == SHADOW_MODEL_APP_LABEL:
             return "kobocat"

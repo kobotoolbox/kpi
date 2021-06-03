@@ -34,7 +34,9 @@ class InvalidSearchException(exceptions.APIException):
 
 
 class ReadOnlyModelError(Exception):
-    pass
+
+    def __init__(self, msg='This model is read only', *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
 
 
 class SearchQueryTooShortException(InvalidSearchException):
