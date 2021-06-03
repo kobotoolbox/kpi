@@ -66,11 +66,36 @@ $data-table-border: 1px solid $kobo-gray-92;
       box-shadow: none;
       overflow-x: visible;
 
-      .table-bulk-checkbox-header {
+      .table-submission-actions-header {
         overflow: visible;
+        position: relative;
+
+        .table-header-results {
+          line-height: 21px;
+          text-align: left;
+        }
 
         .table-bulk-checkbox {
-          margin-top: 5px;
+          z-index: 1;
+          position: absolute;
+          top: 100%;
+          left: 0;
+
+          .popover-menu {
+            margin-top: 10px;
+
+            .popover-menu__toggle::after {
+              content: "\25BC";
+              font-size: 16px;
+              display: inline-block;
+              vertical-align: 1px;
+              padding: 0 5px 0 35px;
+            }
+
+            .popover-menu__content {
+              left: 5px;
+            }
+          }
         }
       }
     }
@@ -165,13 +190,31 @@ $data-table-border: 1px solid $kobo-gray-92;
     }
   }
 
-  .rt-link {
+  .rt-sub-actions {
     overflow: visible;
+  }
+
+  .table-submission-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+
+    .checkbox {
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+
+    .checkbox__input {
+      display: block;
+    }
 
     .table-link {
       cursor: pointer;
-      display: inline-block;
       min-height: 28px;
+      background: transparent;
+      border: 0;
+      padding: 0;
 
       &:hover {
         color: $kobo-blue;

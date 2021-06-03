@@ -80,8 +80,7 @@ const NUMERICAL_COLUMNS = [
   ADDITIONAL_SUBMISSION_PROPS._submission_time,
 ];
 
-export const SUBMISSION_LINKS_ID = '__SubmissionLinks';
-export const SUBMISSION_CHECKBOX_ID = '__SubmissionCheckbox';
+export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -272,6 +271,125 @@ export class DataTable extends React.Component {
     return output;
   }
 
+  /**
+   * @param {number} maxPageRes
+   */
+  _getColumnSubmissionActions(maxPageRes) {
+    let userCanSeeEditIcon = (
+      this.props.asset.deployment__active &&
+      this.userCan('change_submissions', this.props.asset)
+    );
+
+    if (
+      this.userCan('validate_submissions', this.props.asset) ||
+      this.userCan('delete_submissions', this.props.asset) ||
+      this.userCan('change_submissions', this.props.asset)
+    ) {
+      const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
+      const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
+
+      return {
+        Header: () => (
+          <div>
+            <div className='table-header-results'>
+              {res1} - {res2}
+              <br/>
+              <strong>{this.state.resultsTotal} {t('results')}</strong>
+            </div>
+
+            <TableBulkCheckbox
+              visibleRowsCount={maxPageRes}
+              selectedRowsCount={Object.keys(this.state.selectedRows).length}
+              totalRowsCount={this.state.resultsTotal}
+              onSelectAllPages={this.bulkSelectAll}
+              onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
+              onClearSelection={this.bulkClearSelection}
+            />
+          </div>
+        ),
+        accessor: 'sub-actions',
+        index: '__0',
+        id: SUBMISSION_ACTIONS_ID,
+        // each icon is 30px plus there is also 10px for cell padding
+        width: userCanSeeEditIcon ? 100 : 80,
+        filterable: false,
+        sortable: false,
+        resizable: false,
+        headerClassName: 'table-submission-actions-header',
+        className: 'rt-sub-actions',
+        Cell: (row) => (
+          <div className='table-submission-actions'>
+            <Checkbox
+              checked={this.state.selectedRows[row.original._id] ? true : false}
+              onChange={this.bulkUpdateChange.bind(this, row.original._id)}
+            />
+
+            <button
+              onClick={this.launchSubmissionModal}
+              data-sid={row.original._id}
+              className='table-link'
+              data-tip={t('Open')}
+            >
+              <i className='k-icon k-icon-view'/>
+            </button>
+
+            {userCanSeeEditIcon &&
+              <button
+                onClick={this.launchEditSubmission.bind(this)}
+                data-sid={row.original._id}
+                className='table-link'
+                data-tip={t('Edit')}
+              >
+                <i className='k-icon k-icon-edit'/>
+              </button>
+            }
+          </div>
+        ),
+      };
+    }
+  }
+
+  _getColumnValidation() {
+    return {
+      Header: () => (
+        <span className='column-header-title'>
+          {t('Validation status')}
+        </span>
+      ),
+      accessor: '_validation_status.uid',
+      index: '__2',
+      id: '_validation_status.uid',
+      minWidth: 130,
+      className: 'rt-status',
+      Filter: ({ filter, onChange }) =>
+        <select
+          onChange={(event) => onChange(event.target.value)}
+          style={{ width: '100%' }}
+          value={filter ? filter.value : ''}>
+          <option value=''>{t('Show All')}</option>
+          {VALIDATION_STATUSES_LIST.map((item, n) =>
+            <option value={(item.value === null) ? NOT_ASSIGNED : item.value} key={n}>{item.label}</option>
+          )}
+        </select>,
+      Cell: (row) => (
+        <Select
+          isDisabled={!this.userCan('validate_submissions', this.props.asset)}
+          isClearable={false}
+          value={this.getValidationStatusOption(row.original)}
+          options={VALIDATION_STATUSES_LIST}
+          onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
+          className='kobo-select'
+          classNamePrefix='kobo-select'
+          menuPlacement='auto'
+        />
+      ),
+    };
+  }
+
+  /**
+   * Prepares data for react table
+   * @param {object} data
+   */
   _prepColumns(data) {
     const displayedColumns = this.getDisplayedColumns(data);
 
@@ -304,110 +422,11 @@ export class DataTable extends React.Component {
       showLabels = translationIndex > -1 ? true : false;
     }
 
-    var columns = [];
-    if (
-      this.userCan('validate_submissions', this.props.asset) ||
-      this.userCan('delete_submissions', this.props.asset) ||
-      this.userCan('change_submissions', this.props.asset)
-    ) {
-      columns.push({
-        Header: () => (
-          <TableBulkCheckbox
-            visibleRowsCount={maxPageRes}
-            selectedRowsCount={Object.keys(this.state.selectedRows).length}
-            totalRowsCount={this.state.resultsTotal}
-            onSelectAllPages={this.bulkSelectAll}
-            onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
-            onClearSelection={this.bulkClearSelection}
-          />
-        ),
-        accessor: 'sub-checkbox',
-        index: '__0',
-        id: SUBMISSION_CHECKBOX_ID,
-        width: 50,
-        filterable: false,
-        sortable: false,
-        resizable: false,
-        headerClassName: 'table-bulk-checkbox-header',
-        className: 'rt-checkbox',
-        Cell: (row) => (
-          <div className='table-bulk-checkbox'>
-            <Checkbox
-              checked={this.state.selectedRows[row.original._id] ? true : false}
-              onChange={this.bulkUpdateChange.bind(this, row.original._id)}
-            />
-          </div>
-        ),
-      });
-    }
-
-    let userCanSeeEditIcon = this.props.asset.deployment__active && this.userCan('change_submissions', this.props.asset);
-
-    columns.push({
-      Header: '',
-      accessor: 'sub-link',
-      index: '__1',
-      id: SUBMISSION_LINKS_ID,
-      width: userCanSeeEditIcon ? 75 : 45,
-      filterable: false,
-      sortable: false,
-      resizable: false,
-      className: 'rt-link',
-      Cell: (row) => (
-        <div>
-          <span onClick={this.launchSubmissionModal} data-sid={row.original._id}
-                className='table-link' data-tip={t('Open')}>
-            <i className='k-icon k-icon-view'/>
-          </span>
-
-          {userCanSeeEditIcon &&
-            <span
-              onClick={this.launchEditSubmission.bind(this)}
-              data-sid={row.original._id}
-              className='table-link'
-              data-tip={t('Edit')}
-            >
-              <i className='k-icon k-icon-edit'/>
-            </span>
-          }
-        </div>
-      ),
-    });
-
-    columns.push({
-      Header: () => (
-        <span className='column-header-title'>
-          {t('Validation status')}
-        </span>
-      ),
-      accessor: '_validation_status.uid',
-      index: '__2',
-      id: '_validation_status.uid',
-      minWidth: 130,
-      className: 'rt-status',
-      Filter: ({ filter, onChange }) =>
-        <select
-          onChange={(event) => onChange(event.target.value)}
-          style={{ width: '100%' }}
-          value={filter ? filter.value : ''}>
-          <option value=''>Show All</option>
-          {VALIDATION_STATUSES_LIST.map((item, n) =>
-            <option value={(item.value === null) ? NOT_ASSIGNED : item.value} key={n}>{item.label}</option>
-          )}
-        </select>,
-      Cell: (row) => (
-        <Select
-          isDisabled={!this.userCan('validate_submissions', this.props.asset)}
-          isClearable={false}
-          value={this.getValidationStatusOption(row.original)}
-          options={VALIDATION_STATUSES_LIST}
-          onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
-          className='kobo-select'
-          classNamePrefix='kobo-select'
-          menuPlacement='auto'
-        />
-      ),
-    });
+    // define the columns array
+    const columns = [
+      this._getColumnSubmissionActions(maxPageRes),
+      this._getColumnValidation(),
+    ];
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
@@ -659,7 +678,7 @@ export class DataTable extends React.Component {
 
       selectedColumns = columns.filter((el) => {
         // always include checkbox column
-        if (el.id == SUBMISSION_CHECKBOX_ID)
+        if (el.id == SUBMISSION_ACTIONS_ID)
           return true;
 
         return selCos.includes(el.id) !== false;
@@ -701,7 +720,7 @@ export class DataTable extends React.Component {
   }
   getColumnLabel(key, q, qParentG, stateOverrides = false) {
     switch(key) {
-      case SUBMISSION_CHECKBOX_ID:
+      case SUBMISSION_ACTIONS_ID:
         return (
           <span className='column-header-title'>
             {t('Multi-select checkboxes column')}
@@ -953,16 +972,8 @@ export class DataTable extends React.Component {
       return false;
     }
 
-    const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
-    const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
-
     return (
       <bem.TableMeta>
-        <bem.TableMeta__counter>
-          {res1} - {res2} {t('of')} {' '} {this.state.resultsTotal}
-          <bem.TableMeta__additionalText>{' '}{t('results')}</bem.TableMeta__additionalText>
-        </bem.TableMeta__counter>
-
         <TableBulkOptions
           asset={this.props.asset}
           data={this.state.tableData}
