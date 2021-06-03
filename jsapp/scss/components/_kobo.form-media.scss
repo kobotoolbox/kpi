@@ -34,7 +34,7 @@
     font-size: 18px;
     font-weight: 500;
     margin: auto;
-    margin-top: 24px;
+    margin-top: 36px;
     display: block;
     text-align: center;
 
@@ -77,10 +77,11 @@
   }
 
   .form-media__list {
+    margin-top: 64px;
+
     .form-media__list-label {
-      padding-bottom: 16px;
-      margin-top: 32px;
       margin-bottom: 11px;
+      padding-bottom: 16px;
       border-bottom: 1px solid $kobo-gray-92;
     }
 
