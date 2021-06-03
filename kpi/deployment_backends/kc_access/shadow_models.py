@@ -1,3 +1,4 @@
+
 # coding: utf-8
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -392,7 +393,7 @@ class KobocatToken(ShadowModel):
     def sync(cls, auth_token):
         try:
             # Token use a One-to-One relationship on User.
-            # Thus, we can retrieve tokens from users' id.
+            # Thus, we can retrieve tokens from users' id. 
             kc_auth_token = cls.objects.get(user_id=auth_token.user_id)
         except KobocatToken.DoesNotExist:
             kc_auth_token = cls(pk=auth_token.pk, user_id=auth_token.user_id)
