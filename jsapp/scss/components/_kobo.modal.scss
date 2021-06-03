@@ -738,7 +738,8 @@ $z-modal-x: 10;
   font-weight: 500;
   color: $kobo-gray-40;
 
-  .form-media__desc {
+  // Optional description
+  .dropzone-description {
     padding-top: 6px;
     font-size: 14px;
 

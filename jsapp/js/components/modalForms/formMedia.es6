@@ -207,99 +207,103 @@ class FormMedia extends React.Component {
 
   render() {
     return (
-      <bem.FormView m='form-media' className='form-media'>
-        <div className='form-media__upload'>
-          <div className='form-media__upload-title'>
-            <label className='form-media__label form-media__upload-title-label'>
+      <bem.FormView m='form-media'>
+        <bem.FormMedia>
+          <bem.FormMedia__title>
+            <bem.FormMedia__label>
               {t('Attach files')}
-            </label>
+            </bem.FormMedia__label>
 
-            <a className='form-media__upload-title-help'
+            <a className='title-help'
               target='_blank'
               href={MEDIA_SUPPORT_URL}
               data-tip={t('Learn more about form media')}
             >
               <i className='k-icon k-icon-help'/>
             </a>
-          </div>
+          </bem.FormMedia__title>
 
-          {!this.state.isUploadFilePending && (
-            <Dropzone
-              onDrop={this.onFileDrop.bind(this)}
-              className='dropzone-settings'
-            >
-              {this.state.fieldsErrors?.base64Encoded && (
-                <bem.FormView__cell m='error'>
-                  <i className='k-icon-alert' />
-                  <p>{this.state.fieldsErrors?.base64Encoded}</p>
-                </bem.FormView__cell>
-              )}
-              <i className='k-icon-upload' />
-              {t('Drag and drop files here')}
-              <div className='form-media__desc'>
-                {t('or')} <a>{t('click here to browse')}</a>
-              </div>
-            </Dropzone>
-          )}
-
-          {this.state.isUploadFilePending && (
-            <div className='dropzone-settings'>
-              <LoadingSpinner message={t('Uploading file…')} />
-            </div>
-          )}
-
-          <div className='form-media__upload-url'>
-            <label className='form-media__upload-url-label'>
-              {t('You can also add files using a URL')}
-            </label>
-            <div className='form-media__upload-url-form'>
-              <TextBox
-                type='url'
-                placeholder={t('Paste URL here')}
-                errors={this.state.fieldsErrors?.metadata}
-                value={this.state.inputURL}
-                onChange={this.onInputURLChange}
-              />
-              {this.renderButton()}
-            </div>
-          </div>
-        </div>
-
-        <div className='form-media__list'>
-          <label className='form-media__label form-media__list-label'>
-            {t('Attached files')}
-          </label>
-
-          <ul>
-            {(!this.state.isInitialised ||
-              this.state.isUploadFilePending ||
-              this.state.isUploadURLPending) && (
-              <li className='form-media__list-default-item form-media__list-item'>
-                <LoadingSpinner message={t('loading media')} />
-              </li>
+          <bem.FormMedia__upload>
+            {!this.state.isUploadFilePending && (
+              <Dropzone
+                onDrop={this.onFileDrop.bind(this)}
+                className='dropzone-settings'
+              >
+                {this.state.fieldsErrors?.base64Encoded && (
+                  <bem.FormView__cell m='error'>
+                    <i className='k-icon k-icon-alert' />
+                    <p>{this.state.fieldsErrors?.base64Encoded}</p>
+                  </bem.FormView__cell>
+                )}
+                <i className='k-icon k-icon-upload' />
+                {t('Drag and drop files here')}
+                <div className='dropzone-description'>
+                  {t('or')} <a>{t('click here to browse')}</a>
+                </div>
+              </Dropzone>
             )}
 
-            {this.state.uploadedAssets.map((item, n) => (
-              <li key={n} className='form-media__list-item'>
-                {this.renderIcon(item)}
-                {this.renderFileName(item)}
-                <bem.KoboLightButton
-                  m={['red', 'icon-only']}
-                  onClick={this.onDeleteMedia(item.url)}
-                >
-                  <i className='k-icon k-icon-trash' />
-                </bem.KoboLightButton>
-              </li>
-            ))}
+            {this.state.isUploadFilePending && (
+              <div className='dropzone-settings'>
+                <LoadingSpinner message={t('Uploading file…')} />
+              </div>
+            )}
 
-            {this.state.isInitialised &&
-              this.state.uploadedAssets.length == 0 && (
-                <li className='form-media__default-item form-media__list-item'>
-                  {t('No files uploaded yet')}
-                </li>
+            <bem.FormMediaUploadUrl>
+              <bem.FormMediaUploadUrl__label>
+                {t('You can also add files using a URL')}
+              </bem.FormMediaUploadUrl__label>
+
+              <bem.FormMediaUploadUrl__form>
+                <TextBox
+                  type='url'
+                  placeholder={t('Paste URL here')}
+                  errors={this.state.fieldsErrors?.metadata}
+                  value={this.state.inputURL}
+                  onChange={this.onInputURLChange}
+                />
+
+                {this.renderButton()}
+              </bem.FormMediaUploadUrl__form>
+            </bem.FormMediaUploadUrl>
+          </bem.FormMedia__upload>
+
+          <bem.FormMedia__list>
+            <bem.FormMedia__label>
+              {t('Attached files')}
+            </bem.FormMedia__label>
+
+            <ul>
+              {(!this.state.isInitialised ||
+                this.state.isUploadFilePending ||
+                this.state.isUploadURLPending) && (
+                <bem.FormMediaListItem>
+                  <LoadingSpinner message={t('loading media')} />
+                </bem.FormMediaListItem>
               )}
-          </ul>
-        </div>
+
+              {this.state.isInitialised &&
+                !this.state.uploadedAssets.length && (
+                  <bem.FormMediaListItem>
+                    {t('No files uploaded yet')}
+                  </bem.FormMediaListItem>
+                )}
+
+              {this.state.uploadedAssets.map((item, n) => (
+                <bem.FormMediaListItem key={n}>
+                  {this.renderIcon(item)}
+                  {this.renderFileName(item)}
+                  <bem.KoboLightButton
+                    m={['red', 'icon-only']}
+                    onClick={this.onDeleteMedia(item.url)}
+                  >
+                    <i className='k-icon k-icon-trash' />
+                  </bem.KoboLightButton>
+                </bem.FormMediaListItem>
+              ))}
+            </ul>
+          </bem.FormMedia__list>
+        </bem.FormMedia>
       </bem.FormView>
     );
   }

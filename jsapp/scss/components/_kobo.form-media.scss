@@ -1,25 +1,21 @@
+.form-view--form-media {
+  background-color: $kobo-white;
+}
+
 .form-media {
   padding: 30px 40px;
-  background-color: $kobo-white;
 
-  .form-media__label {
-    color: $kobo-gray-24;
-    font-weight: 500;
-    font-size: 22px;
-    display: block;
-  }
-
-  .form-media__upload-title {
+  .form-media__title {
     display: inline-block;
     position: relative;
     margin-bottom: 24px;
 
-    .form-media__upload-title-label {
+    label.form-media__label {
       float: left;
       padding-right: 12px;
     }
 
-    a.form-media__upload-title-help {
+    a.title-help {
       position: absolute;
       top: -2px;
       font-size: 24px;
@@ -29,49 +25,51 @@
     }
   }
 
-  .form-media__upload-url {
-    color: $kobo-gray-40;
-    font-size: 18px;
-    font-weight: 500;
-    margin: auto;
-    margin-top: 36px;
-    display: block;
-    text-align: center;
+  .form-media__upload {
+    .form-media-upload-url {
+      color: $kobo-gray-40;
+      font-size: 18px;
+      font-weight: 500;
+      margin: auto;
+      margin-top: 36px;
+      display: block;
+      text-align: center;
 
-    .form-media__upload-url-label {
-      margin: 12px 0;
-    }
-
-    .form-media__upload-url-form {
-      .text-box__error {
-        padding-top: 6px;
-        font-size: 14px;
+      .form-media-upload-url__label {
+        margin: 12px 0;
       }
 
-      // Semi-hack: re-used formbuilder button but make it look like
-      // KoboLightButton here
-      .form-builder-header__button {
-        background: $kobo-white;
-        box-shadow: none;
-        color: $kobo-blue;
-        border: 1px solid;
-
-        &:hover {
-          color: $kobo-white;
-          background-color: $kobo-blue;
-          border-color: $kobo-blue;
+      .form-media-upload-url__form {
+        .text-box__error {
+          padding-top: 6px;
+          font-size: 14px;
         }
-      }
 
-      label.text-box {
-        padding-top: 7px;
-        min-width: 77%;
-        display: inline-table;
-      }
+        // Semi-hack: re-used formbuilder button but make it look like
+        // KoboLightButton here
+        .form-builder-header__button {
+          background: $kobo-white;
+          box-shadow: none;
+          color: $kobo-blue;
+          border: 1px solid;
 
-      button {
-        margin-left: 3%;
-        min-width: 20%;
+          &:hover {
+            color: $kobo-white;
+            background-color: $kobo-blue;
+            border-color: $kobo-blue;
+          }
+        }
+
+        label.text-box {
+          padding-top: 7px;
+          min-width: 77%;
+          display: inline-table;
+        }
+
+        button {
+          margin-left: 3%;
+          min-width: 20%;
+        }
       }
     }
   }
@@ -79,17 +77,13 @@
   .form-media__list {
     margin-top: 64px;
 
-    .form-media__list-label {
+    label.form-media__label {
       margin-bottom: 11px;
       padding-bottom: 16px;
       border-bottom: 1px solid $kobo-gray-92;
     }
 
-    .form-media__list-default-item {
-      padding-left: 10px;
-    }
-
-    .form-media__list-item {
+    .form-media-list-item {
       font-size: 16px;
       position: relative;
       padding-bottom: 12px;
@@ -131,6 +125,13 @@
         cursor: pointer;
       }
     }
+  }
+
+  .form-media__label {
+    color: $kobo-gray-24;
+    font-weight: 500;
+    font-size: 22px;
+    display: block;
   }
 }
 
