@@ -13,7 +13,7 @@ def generate_user_report(output_filename):
     from kpi.deployment_backends.kc_access.shadow_models import (
         KobocatUser,
         KobocatUserProfile,
-        ReadOnlyKobocatXForm,
+        KobocatXForm,
     )
     from hub.models import ExtraUserDetail
 
@@ -66,7 +66,7 @@ def generate_user_report(output_filename):
         else:
             row_.append('')
 
-        row_.append(ReadOnlyKobocatXForm.objects.filter(user=u).count())
+        row_.append(KobocatXForm.objects.filter(user=u).count())
 
         if profile:
             row_.append(profile.num_of_submissions)
