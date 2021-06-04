@@ -73,6 +73,7 @@ bem.FormMedia__title = bem.FormMedia.__('title');
 bem.FormMedia__upload = bem.FormMedia.__('upload');
 bem.FormMedia__list = bem.FormMedia.__('list');
 bem.FormMedia__label = bem.FormMedia.__('label', '<label>');
+bem.FormMedia__listItem = bem.FormMedia.__('list-item', '<li>');
 
 bem.FormMediaUploadUrl = BEM('form-media-upload-url');
 bem.FormMediaUploadUrl__label = bem.FormMediaUploadUrl.__('label', '<label>');
