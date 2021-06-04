@@ -9,7 +9,7 @@
     display: block;
     margin-top: 20px;
     margin-bottom: 5px;
-    color: $kobo-lightgray;
+    color: $kobo-gray-92;
   }
 
   .form-media__upload-url {
@@ -20,12 +20,11 @@
     display: block;
     text-align: center;
 
-    .form-media__upload-url--label {
-      margin: 12px 0 12px 0;
+    .form-media__upload-url-label {
+      margin: 12px 0;
     }
 
-    .form-media__upload-url--form {
-
+    .form-media__upload-url-form {
       label.text-box {
         padding-top: 7px;
         min-width: 70%;
@@ -40,26 +39,26 @@
   }
 
   .form-media__list {
-    .form-media__list--label {
+    .form-media__list-label {
       margin-top: 32px;
-      color: black;
+      color: $kobo-gray-24;
       font-weight: 500;
       font-size: 22px;
       display: block;
       margin-bottom: 11px;
-      border-bottom: 1px solid $kobo-lightgray;
+      border-bottom: 1px solid $kobo-gray-92;
       padding-bottom: 16px;
     }
 
-    .form-media__list--default-item {
+    .form-media__list-default-item {
       padding-left: 10px;
     }
 
-    .form-media__list--item {
+    .form-media__list-item {
       font-size: 16px;
       position: relative;
       padding-bottom: 12px;
-      border-bottom: 1px solid $kobo-lightgray;
+      border-bottom: 1px solid $kobo-gray-92;
       margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
@@ -77,7 +76,7 @@
         position: absolute;
         left: -5px;
         top: 2px;
-        color: grey;
+        color: $kobo-gray-24;
         font-size: 24px;
       }
 
@@ -85,7 +84,7 @@
         font-weight: 400;
         padding: 5px;
         margin-left: 25px;
-        font-size: 18;
+        font-size: 18px;
         display: inline-block;
         min-width: 10px;
         vertical-align: top;
