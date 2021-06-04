@@ -7,6 +7,7 @@ import {ASSET_FILE_TYPES} from 'js/constants';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {LoadingSpinner} from 'js/ui';
+import {stores} from 'js/stores';
 import {
   truncateString,
   truncateUrl,
@@ -14,7 +15,7 @@ import {
 
 const MAX_ITEM_LENGTH = 50;
 const DEFAULT_MEDIA_DESCRIPTION = 'default';
-const MEDIA_SUPPORT_URL = 'https://support.kobotoolbox.org/media.html';
+const MEDIA_SUPPORT_URL = 'media.html';
 
 /**
  * @prop {object} asset
@@ -167,7 +168,8 @@ class FormMedia extends React.Component {
     }
 
     return (
-      <button className={buttonClassNames.join(' ')}
+      <button
+        className={buttonClassNames.join(' ')}
         onClick={this.onSubmitURL}
         disabled={!this.state.inputURL}
       >
@@ -215,13 +217,20 @@ class FormMedia extends React.Component {
               {t('Attach files')}
             </bem.FormMedia__label>
 
-            <a className='title-help'
-              target='_blank'
-              href={MEDIA_SUPPORT_URL}
-              data-tip={t('Learn more about form media')}
-            >
-              <i className='k-icon k-icon-help'/>
-            </a>
+            {stores.serverEnvironment &&
+              stores.serverEnvironment.state.support_url && (
+                <a
+                  className='title-help'
+                  target='_blank'
+                  href={
+                    stores.serverEnvironment.state.support_url +
+                    MEDIA_SUPPORT_URL
+                  }
+                  data-tip={t('Learn more about form media')}
+                >
+                  <i className='k-icon k-icon-help' />
+                </a>
+              )}
           </bem.FormMedia__title>
 
           <bem.FormMedia__upload>
@@ -278,20 +287,20 @@ class FormMedia extends React.Component {
               {(!this.state.isInitialised ||
                 this.state.isUploadFilePending ||
                 this.state.isUploadURLPending) && (
-                <bem.FormMediaListItem>
+                <bem.FormMedia__listItem>
                   <LoadingSpinner message={t('loading media')} />
-                </bem.FormMediaListItem>
+                </bem.FormMedia__listItem>
               )}
 
               {this.state.isInitialised &&
                 !this.state.uploadedAssets.length && (
-                  <bem.FormMediaListItem>
+                  <bem.FormMedia__listItem>
                     {t('No files uploaded yet')}
-                  </bem.FormMediaListItem>
+                  </bem.FormMedia__listItem>
                 )}
 
               {this.state.uploadedAssets.map((item, n) => (
-                <bem.FormMediaListItem key={n}>
+                <bem.FormMedia__listItem key={n}>
                   {this.renderIcon(item)}
 
                   {this.renderFileName(item)}
@@ -302,7 +311,7 @@ class FormMedia extends React.Component {
                   >
                     <i className='k-icon k-icon-trash' />
                   </bem.KoboLightButton>
-                </bem.FormMediaListItem>
+                </bem.FormMedia__listItem>
               ))}
             </ul>
           </bem.FormMedia__list>
