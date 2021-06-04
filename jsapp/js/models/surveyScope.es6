@@ -56,10 +56,9 @@ class SurveyScope {
         notify(t('question has been added to the library'));
       });
     } else { // add group as block to library
-      var groupSurveyObj = [];
-      var groupChoices = [];
-      var groupSettings = [{}];
-      
+      let contents = [];
+      let choices = [];
+
       var groupKuid = row.toJSON2().$kuid;
       if (!_.isEmpty(surveyObj)) {
         var startGroupIndexFound = _.findIndex(surveyObj, function(content) {
@@ -69,31 +68,22 @@ class SurveyScope {
           var endGroupIndexFound = _.findIndex(surveyObj, function(content) {
             return content["$kuid"] == "/" + groupKuid;
           })
-          groupSurveyObj = surveyObj.slice(startGroupIndexFound, endGroupIndexFound + 1);
+          contents = surveyObj.slice(startGroupIndexFound, endGroupIndexFound + 1);
         }
       }
 
-      if (groupSurveyObj.length > 0) {
-        var selectSurveyContents = surveyObj.filter(content => ['select_one', 'select_multiple'].indexOf(content.type) > -1);
+      if (contents.length > 0) {
+        var contents_kuids = _.pluck(contents, '$kuid');
+        var selectSurveyContents = unnullifiedContent.survey.filter(content => ['select_one', 'select_multiple'].indexOf(content.type) > -1 && contents_kuids.indexOf(content["$kuid"]) > -1);
         if (selectSurveyContents.length > 0) {
           var selectListNames = _.pluck(selectSurveyContents, 'select_from_list_name');
-          groupChoices = unnullifiedContent.choices.filter(choice => selectListNames.indexOf(choice.list_name) > -1);;
-        }
-        
-      }
-
-      if (!_.isEmpty(settingsObj[0])) {
-        var settings = settingsObj[0];
-        for (var setting in ['style', 'version', 'form_id']) {
-          if (_.has(settings, setting)) {
-            groupSettings[0][setting] = settings[setting];
-          }
+          choices = unnullifiedContent.choices.filter(choice => selectListNames.indexOf(choice.list_name) > -1);
         }
       }
 
       content = JSON.stringify({
-        survey: groupSurveyObj,
-        choices: groupChoices,
+        survey: contents,
+        choices: choices,
         settings: settingsObj
       });
 
