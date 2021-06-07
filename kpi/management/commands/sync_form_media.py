@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 import requests
+import sys
 from typing import Optional
 
 from django.conf import settings
@@ -16,11 +17,24 @@ from kpi.models import Asset, AssetFile
 
 
 URL_MEDIA_LIST = '{kc_url}/api/v1/metadata?data_type=media&format=json'
+URL_MEDIA_DETAIL = '{kc_url}/api/v1/metadata/{metadata_id}?format=json'
 URL_MEDIA_CONTENT = '{kc_url}/{username}/forms/{xform_id_string}/formid-media/{media_id}'
 
 
-def _make_authenticated_request(url: str, token: str):
-    return requests.get(url=url, headers={'Authorization': f'Token {token}'})
+def _make_authenticated_request(
+    url: str,
+    token: str,
+    method: str = 'GET',
+    data: dict = {},
+):
+    return requests.request(
+        method=method,
+        url=url,
+        headers={
+            'Authorization': f'Token {token}',
+        },
+        data=data,
+    )
 
 
 def _get_asset_metadata(token: str) -> Optional[dict]:
@@ -44,6 +58,31 @@ def _get_media_file_content(
     )
     response = _make_authenticated_request(url, token)
     return response.content
+
+
+def _update_asset_metadata(
+    token: str,
+    metadata_id: int,
+    data_value: str,
+) -> bool:
+    '''
+    Set `from_kpi` to `True` on kc metadata object
+    '''
+    url = URL_MEDIA_DETAIL.format(
+        kc_url=settings.KOBOCAT_INTERNAL_URL,
+        metadata_id=metadata_id,
+    )
+    data = {
+        'from_kpi': True,
+        'data_value': data_value,
+    }
+    response = _make_authenticated_request(
+        url,
+        token,
+        method='PATCH',
+        data=data,
+    )
+    return response.status_code == status.HTTP_200_OK
 
 
 def _sync_media_files(
@@ -117,11 +156,18 @@ def _sync_media_files(
                 description='default',
             )
 
+            from_kpi_is_true = _update_asset_metadata(
+                token=token,
+                metadata_id=media_id,
+                data_value=media_filename,
+            )
+
             if not quiet and verbosity == 3:
                 synced_files.append(
                     {
                         'data_value': media_filename,
                         'id': media_id,
+                        'from_kpi_is_true': from_kpi_is_true,
                     }
                 )
 
@@ -198,4 +244,5 @@ class Command(BaseCommand):
 
         stats = _sync_media_files(**options)
         if not options['quiet']:
-            print(json.dumps(stats, indent=4))
+            sys.stdout.write(json.dumps(stats, indent=4))
+            sys.stdout.flush()
