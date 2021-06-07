@@ -712,6 +712,20 @@ export default assign({
       <bem.FormBuilderAside m={isAsideVisible ? 'visible' : null}>
         { this.state.asideLayoutSettingsVisible &&
           <bem.FormBuilderAside__content>
+            {/* TODO: This option should be always available */}
+            <bem.FormBuilderAside__row>
+              <bem.FormBuilderAside__header>
+                {t('Background audio')}
+              </bem.FormBuilderAside__header>
+
+              <ToggleBackgroundAudio
+                survey={this.state.asset.survey}
+                onChange={this.onToggleBackgroundAudio}
+                surveyHasBackgroundAudio={this.surveyHasBackgroundAudio}
+                {...this.state}
+              />
+            </bem.FormBuilderAside__row>
+
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>
                 {t('Form style')}
@@ -782,20 +796,6 @@ export default assign({
             }
           </bem.FormBuilderAside__content>
         }
-
-        {/*TODO doesn't show?*/}
-        <bem.FormBuilderAside__row>
-          <bem.FormBuilderAside__header>
-            {t('Background audio')}
-          </bem.FormBuilderAside__header>
-
-          <ToggleBackgroundAudio
-            survey={this.state.asset.survey}
-            onChange={this.onToggleBackgroundAudio}
-            surveyHasBackgroundAudio={this.surveyHasBackgroundAudio}
-            {...this.state}
-          />
-        </bem.FormBuilderAside__row>
 
         { this.state.asideLibrarySearchVisible &&
           <bem.FormBuilderAside__content>
