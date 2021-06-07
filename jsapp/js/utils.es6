@@ -12,7 +12,7 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
-// imporitng whole constants, as we override ROOT_URL in tests
+// importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
@@ -580,4 +580,54 @@ export function toTitleCase(str) {
 
 export function launchPrinting() {
   window.print();
+}
+
+/**
+ * Trunactes strings to specified length
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateString(str, length, type='') {
+  let truncatedString = str;
+  const halfway = Math.trunc(length / 2);
+
+  if (length < truncatedString.length) {
+    let truncatedStringFront = truncatedString.substring(0, halfway);
+    let truncatedStringBack = truncatedString.slice(
+      truncatedString.length - halfway
+    );
+    truncatedString = truncatedStringFront + '…' + truncatedStringBack;
+  }
+
+  return truncatedString;
+}
+
+/**
+ * Removes protocol then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateUrl(str, length) {
+  let truncatedString = str.replace('https://', '').replace('http://', '');
+
+  return truncateString(truncatedString, length);
+}
+
+/**
+ * Removes file extension then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateFile(str, length) {
+  // Remove file extension with simple regex that truncates everything past
+  // the last occurance of `.` inclusively
+  let truncatedString = str.replace(/\.[^/.]+$/, '');
+
+  return truncateString(truncatedString, length);
 }
