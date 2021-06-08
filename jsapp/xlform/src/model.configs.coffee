@@ -61,6 +61,11 @@ module.exports = do ->
       label: "audit"
       description: "Records the behavior of enumerators as they navigate through a form"
       default: false
+    bg_aud:
+      name: "background-audio"
+      label: "background audio"
+      description: "record bg audio"
+      default: false
 
   do ->
     class SurveyDetailSchemaItem extends Backbone.Model
@@ -159,9 +164,6 @@ module.exports = do ->
     acknowledge:
       label:
         value: "Acknowledge"
-    'background-audio':
-      label:
-        value: "Background audio"
 
   configs.paramTypes = {
     number: 'number',
@@ -247,7 +249,6 @@ module.exports = do ->
       ["kobomatrix", "Advanced Matrix"],
       ["rank__level", "Rank Level"],
       ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true]
-      ["background-audio", "Background audio"],
     ]
 
     class Type
