@@ -29,7 +29,7 @@ class SyncBackendMediaInterface:
         raise AbstractPropertyError
 
     @property
-    def hash(self):
+    def md5_hash(self):
         raise AbstractPropertyError
 
     @property

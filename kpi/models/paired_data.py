@@ -166,11 +166,11 @@ class PairedData(OpenRosaManifestInterface,
         return parent_asset
 
     @property
-    def hash(self):
+    def md5_hash(self):
         """
         Implements:
-         - `OpenRosaManifestInterface.hash()`
-         - `SyncBackendMediaInterface.hash()`
+         - `OpenRosaManifestInterface.md5_hash()`
+         - `SyncBackendMediaInterface.md5_hash()`
         """
         return self.__hash
 

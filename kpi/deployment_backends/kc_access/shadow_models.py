@@ -426,7 +426,7 @@ class KobocatXForm(ShadowModel):
     num_of_submissions = models.IntegerField(default=0)
 
     @property
-    def hash(self):
+    def md5_hash(self):
         return get_hash(self.xml)
 
     @property
@@ -435,7 +435,7 @@ class KobocatXForm(ShadowModel):
         Matches what's returned by the KC API
         """
 
-        return "md5:%s" % self.hash
+        return "md5:%s" % self.md5_hash
 
 
 class ReadOnlyModel(ShadowModel):

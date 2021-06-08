@@ -21,7 +21,7 @@ class OpenRosaFormListInterface:
         raise AbstractMethodError
 
     @property
-    def hash(self):
+    def md5_hash(self):
         raise AbstractPropertyError
 
     @property
@@ -41,5 +41,5 @@ class OpenRosaManifestInterface:
         raise AbstractMethodError
 
     @property
-    def hash(self):
+    def md5_hash(self):
         raise AbstractPropertyError

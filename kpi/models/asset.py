@@ -1507,9 +1507,9 @@ class AssetSnapshot(OpenRosaFormListInterface,
         )
 
     @property
-    def hash(self):
+    def md5_hash(self):
         """
-        Implements `OpenRosaFormListInterface.hash()`
+        Implements `OpenRosaFormListInterface.md5_hash()`
         """
         return f'md5:{get_hash(self.xml)}'
 

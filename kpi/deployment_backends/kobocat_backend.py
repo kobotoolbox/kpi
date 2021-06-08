@@ -838,7 +838,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 kc_file = kc_files[uniq]
                 if obj.deleted_at is None:
                     # If md5 differs, we need to re-upload it.
-                    if obj.hash != kc_file['md5']:
+                    if obj.md5_hash != kc_file['md5']:
                         self.__delete_kc_metadata(kc_file)
                         self.__save_kc_metadata(obj)
                 elif kc_file['from_kpi']:
@@ -1242,7 +1242,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'from_kpi': True,
                 'data_filename': file_.filename,
                 'data_file_type': file_.mimetype,
-                'file_hash': file_.hash,
+                'file_hash': file_.md5_hash,
             }
         }
 

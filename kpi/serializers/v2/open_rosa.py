@@ -38,7 +38,7 @@ class FormListSerializer(serializers.Serializer):
 
     def get_hash(self, obj):
         self.__validate_object_inheritance(obj)
-        return obj.hash
+        return obj.md5_hash
 
     def get_manifest_url(self, obj):
         self.__validate_object_inheritance(obj)
@@ -88,7 +88,7 @@ class ManifestSerializer(serializers.Serializer):
 
     def get_hash(self, obj):
         self.__validate_object_inheritance(obj)
-        return obj.hash
+        return obj.md5_hash
 
     def __validate_object_inheritance(
         self, obj: OpenRosaManifestInterface
