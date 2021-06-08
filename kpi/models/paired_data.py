@@ -21,6 +21,8 @@ from kpi.utils.hash import get_hash
 class PairedData(OpenRosaManifestInterface,
                  SyncBackendMediaInterface):
 
+    BACKEND_DATA_TYPE = 'paired_data'
+
     def __init__(
         self,
         parent_uid: str,
@@ -54,6 +56,13 @@ class PairedData(OpenRosaManifestInterface,
         Implements `SyncBackendMediaInterface.backend_data_value()`
         """
         return self.backend_uniqid
+
+    @property
+    def backend_data_type(self):
+        """
+        Implements `SyncBackendMediaInterface.backend_data_type()`
+        """
+        return self.BACKEND_DATA_TYPE
 
     @property
     def backend_uniqid(self):

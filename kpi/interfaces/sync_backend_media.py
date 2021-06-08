@@ -9,8 +9,15 @@ class SyncBackendMediaInterface:
 
     """
 
+    # Type of file sent to back end during synchronization
+    BACKEND_DATA_TYPE = None
+
     @property
     def backend_data_value(self):
+        raise AbstractPropertyError
+
+    @property
+    def backend_data_type(self):
         raise AbstractPropertyError
 
     @property
@@ -39,3 +46,5 @@ class SyncBackendMediaInterface:
     @property
     def mimetype(self):
         raise AbstractPropertyError
+
+

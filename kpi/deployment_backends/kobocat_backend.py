@@ -60,6 +60,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         'meta',
     ]
 
+    SYNCED_DATA_FILE_TYPES = {
+        AssetFile.FORM_MEDIA: AssetFile.BACKEND_DATA_TYPE,
+        AssetFile.PAIRED_DATA: PairedData.BACKEND_DATA_TYPE,
+    }
+
     def bulk_assign_mapped_perms(self):
         """
         Bulk assign all `kc` permissions related to `kpi` permissions.
@@ -549,13 +554,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             string=url
         )
 
-    def is_paired_data(self, value: str) -> bool:
-        pattern = (
-            rf'{settings.KOBOFORM_URL}/api/v2/assets/'
-            rf'{self.asset.uid}/paired-data/pd[^\/]+/external\.xml$'
-        )
-        return re.match(pattern, value)
-
     @staticmethod
     def make_identifier(username, id_string):
         """
@@ -801,14 +799,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Build a list of KoBoCAT metadata to compare with KPI
         for metadata in response.get('metadata', []):
-            is_paired_data = self.is_paired_data(metadata['data_value'])
-            if (
-                metadata['data_type'] == 'media'
-                and (
-                    file_type == AssetFile.FORM_MEDIA and not is_paired_data
-                    or file_type == AssetFile.PAIRED_DATA and is_paired_data
-                )
-            ):
+            if metadata['data_type'] == self.SYNCED_DATA_FILE_TYPES[file_type]:
                 kc_files[metadata['data_value']] = {
                     'url': metadata['url'],
                     'md5': metadata['file_hash'],
@@ -1238,7 +1229,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'data': {
                 'data_value': file_.backend_data_value,
                 'xform': self.xform_id,
-                'data_type': 'media',
+                'data_type': file_.backend_data_type,
                 'from_kpi': True,
                 'data_filename': file_.filename,
                 'data_file_type': file_.mimetype,

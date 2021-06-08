@@ -36,6 +36,8 @@ class AssetFile(models.Model,
     FORM_MEDIA = 'form_media'
     PAIRED_DATA = 'paired_data'
 
+    BACKEND_DATA_TYPE = 'media'
+
     TYPE_CHOICES = (
         (MAP_LAYER, MAP_LAYER),
         (FORM_MEDIA, FORM_MEDIA),
@@ -80,6 +82,13 @@ class AssetFile(models.Model,
             if self.is_remote_url
             else self.filename
         )
+
+    @property
+    def backend_data_type(self):
+        """
+        Implements `SyncBackendMediaInterface.backend_data_type()`
+        """
+        return self.BACKEND_DATA_TYPE
 
     @property
     def backend_uniqid(self):
