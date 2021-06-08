@@ -43,6 +43,8 @@ const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without 
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
+const RECORDING_SUPPORT_URL = 'recording-interviews.html';
+
 /**
  * This is a component that displays Form Builder's header and aside. It is also
  * responsible for rendering the survey editor app (all our coffee code). See
@@ -691,6 +693,33 @@ export default assign({
     );
   },
 
+  renderBackgroundAudioWarning() {
+    return (
+      <bem.FormBuilderMessageBox m='warning'>
+        <span data-tip={t('background recording')}>
+          <i className='k-icon k-icon-form-overview'/>
+        </span>
+
+        <p>{t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This functionality only works in KoboCollect.')}</p>
+
+        { stores.serverEnvironment &&
+          stores.serverEnvironment.state.support_url &&
+          <bem.TextBox__labelLink
+            // TODO update support article to include background-audio
+            href={
+              stores.serverEnvironment.state.support_url +
+              RECORDING_SUPPORT_URL
+            }
+            target='_blank'
+            data-tip={t('help')}
+          >
+            <i className='k-icon k-icon-help' />
+          </bem.TextBox__labelLink>
+        }
+      </bem.FormBuilderMessageBox>
+    );
+  },
+
   renderAside() {
     let {
       styleValue,
@@ -840,18 +869,7 @@ export default assign({
 
               <bem.FormBuilder__contents>
                 {this.hasBackgroundAudio() &&
-                  <bem.FormBuilderMessageBox m='warning'>
-                    <i className='k-icon k-icon-form-overview'/>
-
-                    <p>{t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This functionality only works in KoboCollect.')}</p>
-
-                    <a
-                      herf='#'
-                      data-tip={t('Learn more about background audio')}
-                    >
-                      <i className='k-icon k-icon-help'/>
-                    </a>
-                  </bem.FormBuilderMessageBox>
+                  this.renderBackgroundAudioWarning()
                 }
 
                 <div ref='form-wrap' className='form-wrap'>

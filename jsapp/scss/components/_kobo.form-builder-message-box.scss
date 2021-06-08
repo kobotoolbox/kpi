@@ -25,6 +25,10 @@ $message-box-icon-size: 28px;
     padding: 0 5px;
   }
 
+  span {
+    cursor: default;
+  }
+
   .form-builder-message-box__toggle {
     margin: 0;
     padding: 0;

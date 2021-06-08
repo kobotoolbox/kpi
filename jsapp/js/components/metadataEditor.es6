@@ -12,6 +12,8 @@ import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 
 const AUDIT_SUPPORT_URL = 'audit_logging.html';
+const RECORDING_SUPPORT_URL = 'recording-interviews.html';
+
 const AUDIO_QUALITY_OPTIONS = [
   {value: 'quality=low', label: 'Low'},
   {value: 'quality=normal', label: 'Normal'},
@@ -131,8 +133,8 @@ export default class MetadataEditor extends React.Component {
         { stores.serverEnvironment &&
           stores.serverEnvironment.state.support_url &&
           <bem.TextBox__labelLink
-            // TODO change this to the right page after it's written
-            href={stores.serverEnvironment.state.support_url + AUDIT_SUPPORT_URL}
+            // TODO update support article to include background-audio
+            href={stores.serverEnvironment.state.support_url + RECORDING_SUPPORT_URL}
             target='_blank'
           >
             <i className='k-icon k-icon-help'/>
@@ -197,20 +199,27 @@ export default class MetadataEditor extends React.Component {
           </bem.FormBuilderMeta__column>
         </bem.FormBuilderMeta__columns>
 
-        <bem.FormBuilderMeta__row>
+        <bem.FormBuilderMeta__row m='background-audio'>
           <bem.FormBuilderAside__header>
             {this.renderBackgroundAudioLabel()}
           </bem.FormBuilderAside__header>
 
-          <ToggleSwitch
-            checked={backgroundAudioProp.value}
-            onChange={this.onCheckboxChange.bind(this, backgroundAudioProp.name)}
-            label={
-              backgroundAudioProp.value
-                ? t('This survey will be recorded')
-                : t('Enable audio recording in the background')
-            }
-          />
+          <bem.FormModal__item>
+            <label className='long'>
+              {t('This functionality is only available for KoboCollect')}
+            </label>
+
+            <ToggleSwitch
+              checked={backgroundAudioProp.value}
+              onChange={this.onCheckboxChange.bind(this, backgroundAudioProp.name)}
+              label={
+                backgroundAudioProp.value
+                  ? t('This survey will be recorded')
+                  : t('Enable audio recording in the background')
+              }
+            />
+          </bem.FormModal__item>
+
         </bem.FormBuilderMeta__row>
 
         {this.isAuditEnabled() &&
@@ -225,13 +234,19 @@ export default class MetadataEditor extends React.Component {
 
         {this.isBackgroundAudioEnabled() &&
           <bem.FormBuilderMeta__row>
-            <Select
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              defaultValue={ODK_DEFAULT_AUDIO_QUALITY}
-              options={AUDIO_QUALITY_OPTIONS}
-              onChange={this.onBackgroundAudioParametersChange}
-            />
+            <bem.FormModal__item>
+              <label>
+                {t('Audio quality')}
+              </label>
+
+              <Select
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                defaultValue={ODK_DEFAULT_AUDIO_QUALITY}
+                options={AUDIO_QUALITY_OPTIONS}
+                onChange={this.onBackgroundAudioParametersChange}
+              />
+            </bem.FormModal__item>
           </bem.FormBuilderMeta__row>
         }
 
