@@ -79,8 +79,6 @@ bem.FormMediaUploadUrl = BEM('form-media-upload-url');
 bem.FormMediaUploadUrl__label = bem.FormMediaUploadUrl.__('label', '<label>');
 bem.FormMediaUploadUrl__form = bem.FormMediaUploadUrl.__('form');
 
-bem.FormMediaListItem = BEM('form-media-list-item', '<li>');
-
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
 bem.Search__cancel = bem.Search.__('cancel', '<i>');
