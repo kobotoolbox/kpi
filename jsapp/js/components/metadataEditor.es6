@@ -2,6 +2,8 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
+import ToggleSwitch from 'js/components/common/toggleSwitch';
+import Select from 'react-select';
 import {assign} from 'utils';
 import {
   META_QUESTION_TYPES,
@@ -10,6 +12,12 @@ import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 
 const AUDIT_SUPPORT_URL = 'audit_logging.html';
+const AUDIO_QUALITY_OPTIONS = [
+  {value: 'quality=low', label: 'Low'},
+  {value: 'quality=normal', label: 'Normal'},
+  {value: 'quality=voice-only', label: 'Voice only'},
+];
+const ODK_DEFAULT_AUDIO_QUALITY = AUDIO_QUALITY_OPTIONS[2];
 
 /**
  * @prop {object} survey
@@ -74,6 +82,24 @@ export default class MetadataEditor extends React.Component {
     return metaProp.value === true;
   }
 
+  onBackgroundAudioParametersChange(newVal) {
+    this.getSurveyDetail(META_QUESTION_TYPES['background-audio']).set(
+      'parameters',
+      newVal.value
+    );
+    this.rebuildState();
+    if (typeof this.props.onChange === 'function') {
+      this.props.onChange();
+    }
+  }
+
+  isBackgroundAudioEnabled() {
+    const metaProp = this.getMetaProperty(
+      META_QUESTION_TYPES['background-audio']
+    );
+    return metaProp.value === true;
+  }
+
   getAuditParameters() {
     const metaProp = this.getMetaProperty(META_QUESTION_TYPES.audit);
     return metaProp.parameters;
@@ -87,6 +113,25 @@ export default class MetadataEditor extends React.Component {
         { stores.serverEnvironment &&
           stores.serverEnvironment.state.support_url &&
           <bem.TextBox__labelLink
+            href={stores.serverEnvironment.state.support_url + AUDIT_SUPPORT_URL}
+            target='_blank'
+          >
+            <i className='k-icon k-icon-help'/>
+          </bem.TextBox__labelLink>
+        }
+      </React.Fragment>
+    );
+  }
+
+  renderBackgroundAudioLabel() {
+    return (
+      <React.Fragment>
+        {t('Background audio')}
+
+        { stores.serverEnvironment &&
+          stores.serverEnvironment.state.support_url &&
+          <bem.TextBox__labelLink
+            // TODO change this to the right page after it's written
             href={stores.serverEnvironment.state.support_url + AUDIT_SUPPORT_URL}
             target='_blank'
           >
@@ -115,6 +160,10 @@ export default class MetadataEditor extends React.Component {
       META_QUESTION_TYPES.subscriberid,
       META_QUESTION_TYPES.phonenumber,
     ];
+
+    let backgroundAudioProp = this.getMetaProperty(
+      META_QUESTION_TYPES['background-audio']
+    );
 
     return (
       <bem.FormBuilderMeta>
@@ -148,12 +197,40 @@ export default class MetadataEditor extends React.Component {
           </bem.FormBuilderMeta__column>
         </bem.FormBuilderMeta__columns>
 
+        <bem.FormBuilderMeta__row>
+          <bem.FormBuilderAside__header>
+            {this.renderBackgroundAudioLabel()}
+          </bem.FormBuilderAside__header>
+
+          <ToggleSwitch
+            checked={backgroundAudioProp.value}
+            onChange={this.onCheckboxChange.bind(this, backgroundAudioProp.name)}
+            label={
+              backgroundAudioProp.value
+                ? t('This survey will be recorded')
+                : t('Enable audio recording in the background')
+            }
+          />
+        </bem.FormBuilderMeta__row>
+
         {this.isAuditEnabled() &&
           <bem.FormBuilderMeta__row>
             <TextBox
               label={this.renderAuditInputLabel()}
               value={this.getAuditParameters()}
               onChange={this.onAuditParametersChange}
+            />
+          </bem.FormBuilderMeta__row>
+        }
+
+        {this.isBackgroundAudioEnabled() &&
+          <bem.FormBuilderMeta__row>
+            <Select
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              defaultValue={ODK_DEFAULT_AUDIO_QUALITY}
+              options={AUDIO_QUALITY_OPTIONS}
+              onChange={this.onBackgroundAudioParametersChange}
             />
           </bem.FormBuilderMeta__row>
         }

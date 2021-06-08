@@ -11,7 +11,6 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import ToggleBackgroundAudio from 'js/components/toggleBackgroundAudio';
 import {
   surveyToValidJson,
   unnullifyTranslations,
@@ -25,7 +24,7 @@ import {
   update_states,
   NAME_MAX_LENGTH,
   ROUTES,
-  QUESTION_TYPES,
+  META_QUESTION_TYPES,
 } from 'js/constants';
 import ui from '../ui';
 import {bem} from '../bem';
@@ -518,15 +517,10 @@ export default assign({
     this.safeNavigateToRoute(targetRoute);
   },
 
-  surveyHasBackgroundAudio() {
-    return (
-      this.state?.asset?.content?.survey
-        .some((item) => item.type === QUESTION_TYPES['background-audio'].id)
-    );
-  },
-
-  onToggleBackgroundAudio() {
-    this.onSurveyChange();
+  hasBackgroundAudio() {
+    return this.app?.survey?.surveyDetails.filter(
+      (sd) => sd.attributes.name === META_QUESTION_TYPES['background-audio']
+    )[0].attributes.value;
   },
 
   // rendering methods
@@ -712,20 +706,6 @@ export default assign({
       <bem.FormBuilderAside m={isAsideVisible ? 'visible' : null}>
         { this.state.asideLayoutSettingsVisible &&
           <bem.FormBuilderAside__content>
-            {/* TODO: This option should be always available */}
-            <bem.FormBuilderAside__row>
-              <bem.FormBuilderAside__header>
-                {t('Background audio')}
-              </bem.FormBuilderAside__header>
-
-              <ToggleBackgroundAudio
-                survey={this.state.asset.survey}
-                onChange={this.onToggleBackgroundAudio}
-                surveyHasBackgroundAudio={this.surveyHasBackgroundAudio}
-                {...this.state}
-              />
-            </bem.FormBuilderAside__row>
-
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>
                 {t('Form style')}
@@ -857,8 +837,9 @@ export default assign({
           {userCanEditForm &&
             <bem.FormBuilder>
             {this.renderFormBuilderHeader()}
+
               <bem.FormBuilder__contents>
-                {this.surveyHasBackgroundAudio() &&
+                {this.hasBackgroundAudio() &&
                   <bem.FormBuilderMessageBox m='warning'>
                     <i className='k-icon k-icon-form-overview'/>
 
