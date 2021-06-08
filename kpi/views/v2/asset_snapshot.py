@@ -1,6 +1,7 @@
 # coding: utf-8
 import copy
 
+import requests
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from rest_framework import renderers
@@ -10,13 +11,20 @@ from rest_framework.reverse import reverse
 
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
-from kpi.models import AssetSnapshot
-from kpi.renderers import XMLRenderer
+from kpi.models import AssetSnapshot, AssetFile
+from kpi.renderers import (
+    OpenRosaFormListRenderer,
+    OpenRosaManifestRenderer,
+    XMLRenderer,
+)
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
+from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
+from kpi.utils.log import logging
 from kpi.views.no_update_model import NoUpdateModelViewSet
+from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
 
-class AssetSnapshotViewSet(NoUpdateModelViewSet):
+class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
 
     """
     <span class='label label-danger'>TODO Documentation for this endpoint</span>
@@ -48,6 +56,67 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             return owned_snapshots | RelatedAssetPermissionsFilter(
                 ).filter_queryset(self.request, queryset, view=self)
 
+    @action(detail=True,
+            renderer_classes=[OpenRosaFormListRenderer],
+            url_path='formList')
+    def form_list(self, request, *args, **kwargs):
+        """
+        This route is used by enketo when it fetches external resources.
+        It let us specify manifests for preview
+        """
+        snapshot = self.get_object()
+        context = {'request': request}
+        serializer = FormListSerializer([snapshot], many=True, context=context)
+
+        return Response(serializer.data, headers=self.get_headers())
+
+    @action(detail=True, renderer_classes=[OpenRosaManifestRenderer])
+    def manifest(self, request, *args, **kwargs):
+        """
+        This route is used by enketo when it fetches external resources.
+        It returns form media files location in order to display them within
+        enketo preview
+        """
+        snapshot = self.get_object()
+        asset = snapshot.asset
+        files = asset.asset_files.filter(file_type=AssetFile.FORM_MEDIA,
+                                         date_deleted__isnull=True)
+        context = {'request': request}
+        serializer = ManifestSerializer(files, many=True, context=context)
+
+        return Response(serializer.data, headers=self.get_headers())
+
+    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
+    def preview(self, request, *args, **kwargs):
+        snapshot = self.get_object()
+        if snapshot.details.get('status') == 'success':
+            data = {
+                'server_url': reverse(viewname='assetsnapshot-detail',
+                                      kwargs={'uid': snapshot.uid},
+                                      request=request
+                                      ),
+                'form_id': snapshot.uid
+            }
+
+            # Use Enketo API to create preview instead of `preview?form=`,
+            # which does not load any form media files.
+            response = requests.post(
+                f'{settings.ENKETO_SERVER}/'
+                f'{settings.ENKETO_PREVIEW_ENDPOINT}',
+                # bare tuple implies basic auth
+                auth=(settings.ENKETO_API_TOKEN, ''),
+                data=data
+            )
+            response.raise_for_status()
+
+            json_response = response.json()
+            preview_url = json_response.get('preview_url')
+            
+            return HttpResponseRedirect(preview_url)
+        else:
+            response_data = copy.copy(snapshot.details)
+            return Response(response_data, template_name='preview_error.html')
+
     @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
     def xform(self, request, *args, **kwargs):
         """
@@ -64,22 +133,3 @@ class AssetSnapshotViewSet(NoUpdateModelViewSet):
             response_data['highlighted_xform'] = highlight_xform(snapshot.xml,
                                                                  **options)
         return Response(response_data, template_name='highlighted_xform.html')
-
-    @action(detail=True, renderer_classes=[renderers.TemplateHTMLRenderer])
-    def preview(self, request, *args, **kwargs):
-        snapshot = self.get_object()
-        if snapshot.details.get('status') == 'success':
-            preview_url = "{}{}?form={}".format(
-                              settings.ENKETO_SERVER,
-                              settings.ENKETO_PREVIEW_URI,
-                              reverse(viewname='assetsnapshot-detail',
-                                      format='xml',
-                                      kwargs={'uid': snapshot.uid},
-                                      request=request
-                                      ),
-                            )
-
-            return HttpResponseRedirect(preview_url)
-        else:
-            response_data = copy.copy(snapshot.details)
-            return Response(response_data, template_name='preview_error.html')

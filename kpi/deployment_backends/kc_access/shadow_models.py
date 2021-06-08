@@ -1,6 +1,4 @@
 # coding: utf-8
-from hashlib import md5
-
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -14,12 +12,11 @@ from django.db import (
     router,
 )
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
 from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
-from kpi.utils.strings import hashable_str
+from kpi.utils.hash import get_hash
 
 
 def update_autofield_sequence(model):
@@ -46,10 +43,6 @@ def update_autofield_sequence(model):
         cursor.execute(query)
 
 
-class ReadOnlyModelError(ValueError):
-    pass
-
-
 class ShadowModel(models.Model):
     """
     Allows identification of writeable and read-only shadow models
@@ -71,7 +64,7 @@ class ShadowModel(models.Model):
     @staticmethod
     def get_content_type_for_model(model):
         model_name_mapping = {
-            'readonlykobocatxform': ('logger', 'xform'),
+            'kobocatxform': ('logger', 'xform'),
             'readonlykobocatinstance': ('logger', 'instance'),
             'kobocatuserprofile': ('main', 'userprofile'),
             'kobocatuserobjectpermission': ('guardian', 'userobjectpermission'),
@@ -409,21 +402,9 @@ class KobocatToken(ShadowModel):
         kc_auth_token.save()
 
 
-class ReadOnlyModel(ShadowModel):
+class KobocatXForm(ShadowModel):
 
     class Meta(ShadowModel.Meta):
-        abstract = True
-
-    def save(self, *args, **kwargs):
-        raise ReadOnlyModelError('Cannot save read-only-model')
-
-    def delete(self, *args, **kwargs):
-        raise ReadOnlyModelError('Cannot delete read-only-model')
-
-
-class ReadOnlyKobocatXForm(ReadOnlyModel):
-
-    class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_xform'
         verbose_name = 'xform'
         verbose_name_plural = 'xforms'
@@ -431,7 +412,7 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
     XFORM_TITLE_LENGTH = 255
     xls = models.FileField(null=True)
     xml = models.TextField()
-    user = models.ForeignKey(User, related_name='xforms', null=True,
+    user = models.ForeignKey(KobocatUser, related_name='xforms', null=True,
                              on_delete=models.CASCADE)
     shared = models.BooleanField(default=False)
     shared_data = models.BooleanField(default=False)
@@ -446,7 +427,7 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
 
     @property
     def hash(self):
-        return '%s' % md5(hashable_str(self.xml)).hexdigest()
+        return get_hash(self.xml)
 
     @property
     def prefixed_hash(self):
@@ -455,6 +436,14 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
         """
 
         return "md5:%s" % self.hash
+
+
+class ReadOnlyModel(ShadowModel):
+
+    read_only = True
+
+    class Meta(ShadowModel.Meta):
+        abstract = True
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):
@@ -466,7 +455,7 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     xml = models.TextField()
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
-    xform = models.ForeignKey(ReadOnlyKobocatXForm, related_name='instances',
+    xform = models.ForeignKey(KobocatXForm, related_name='instances',
                               on_delete=models.CASCADE)
     date_created = models.DateTimeField()
     date_modified = models.DateTimeField()
@@ -484,4 +473,3 @@ def safe_kc_read(func):
             raise ProgrammingError('kc_access error accessing kobocat '
                                    'tables: {}'.format(e.message))
     return _wrapper
-

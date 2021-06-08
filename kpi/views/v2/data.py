@@ -268,7 +268,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         renderers.JSONRenderer,
                         SubmissionGeoJsonRenderer,
-                        SubmissionXMLRenderer
+                        SubmissionXMLRenderer,
                         )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
