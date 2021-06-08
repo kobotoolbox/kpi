@@ -727,17 +727,31 @@ $z-modal-x: 10;
 
 // Extension of `dropzone` used in settings modals
 .dropzone-settings {
-  background: $kobo-gray-96;
-  padding: 30px;
-  border: 2px dashed $kobo-gray-92;
+  background: $kobo-white;
+  padding: 40px;
+  border: 6px dashed;
+  border-color: $kobo-gray-92;
   cursor: pointer;
   border-radius: 6px;
   text-align: center;
+  font-size: 18px;
+  font-weight: 500;
+  color: $kobo-gray-40;
+
+  // Optional description
+  .dropzone-description {
+    padding-top: 6px;
+    font-size: 14px;
+
+    a {
+      text-decoration: underline;
+    }
+  }
 
   i {
     display: block;
     margin: 0 auto;
-    font-size: 72px;
+    font-size: 32px;
     opacity: 0.5;
   }
 
@@ -766,7 +780,6 @@ $z-modal-x: 10;
 @media screen and (max-width: 1175px) {
   .form-media__upload-url {
     width: 100%;
-    padding-left: 5%;
   }
 }
 
