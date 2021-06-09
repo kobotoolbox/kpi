@@ -661,7 +661,8 @@ export class DataTable extends React.Component {
             value={filter ? filter.value : undefined}
             debounceTimeout={750}
             onChange={(event) => onChange(event.target.value)}
-            style={{ width: '100%' }}
+            className='table-filter-input'
+            placeholder={t('Search')}
           />;
       }
 
@@ -1062,8 +1063,18 @@ export class DataTable extends React.Component {
           manual
           onFetchData={this.fetchData}
           loading={loading}
-          previousText={t('Prev')}
-          nextText={t('Next')}
+          previousText={(
+            <React.Fragment>
+              <i className='k-icon k-icon-caret-left'/>
+              {t('Prev')}
+            </React.Fragment>
+          )}
+          nextText={(
+            <React.Fragment>
+              {t('Next')}
+              <i className='k-icon k-icon-caret-right'/>
+            </React.Fragment>
+          )}
           loadingText={<ui.LoadingSpinner/>}
           noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}

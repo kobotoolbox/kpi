@@ -27,10 +27,14 @@
     height: 28px;
     min-height: 28px;
     cursor: pointer;
-  }
 
-  .kobo-select__value-container {
-    padding: 0;
+    .kobo-select__value-container {
+      padding: 0;
+
+      .kobo-select__option-badge {
+        font-weight: 400;
+      }
+    }
   }
 
   // used together with kobo-select__option-badge
