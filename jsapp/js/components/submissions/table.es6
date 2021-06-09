@@ -444,7 +444,7 @@ export class DataTable extends React.Component {
         q = survey.find((o) => o.name === key || o.$autoname === key);
       }
 
-      if (q && q.type === 'begin_repeat') {
+      if (q && q.type === GROUP_TYPES_BEGIN.begin_repeat) {
         return false;
       }
 
@@ -453,38 +453,38 @@ export class DataTable extends React.Component {
 
       // place meta question columns at the very end
       switch(key) {
-        case 'username':
+        case META_QUESTION_TYPES.username:
             index = 'z1';
             break;
-        case 'simserial':
+        case META_QUESTION_TYPES.simserial:
             index = 'z2';
             break;
-        case 'subscriberid':
+        case META_QUESTION_TYPES.subscriberid:
             index = 'z3';
             break;
-        case 'deviceid':
+        case META_QUESTION_TYPES.deviceid:
             index = 'z4';
             break;
-        case 'phonenumber':
+        case META_QUESTION_TYPES.phonenumber:
             index = 'z5';
             break;
-        case 'today':
+        case META_QUESTION_TYPES.today:
             index = 'z6';
             break;
         case '__version__':
         case '_version_':
             index = 'z7';
             break;
-        case '_id':
+        case ADDITIONAL_SUBMISSION_PROPS._id:
             index = 'z8';
             break;
-        case '_uuid':
+        case ADDITIONAL_SUBMISSION_PROPS._uuid:
             index = 'z9';
             break;
-        case '_submission_time':
+        case ADDITIONAL_SUBMISSION_PROPS._submission_time:
             index = 'z91';
             break;
-        case '_submitted_by':
+        case ADDITIONAL_SUBMISSION_PROPS._submitted_by:
             index = 'z92';
             break;
         default:
