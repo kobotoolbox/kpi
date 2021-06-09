@@ -362,7 +362,6 @@ export class DataTable extends React.Component {
       className: 'rt-status',
       headerClassName: 'rt-status',
       Filter: ({ filter, onChange }) => {
-        console.log(filter);
         const currentOption = VALIDATION_STATUSES_LIST.find((item) => item.value === filter?.value);
         return (
           <ValidationStatusDropdown
