@@ -27,7 +27,7 @@ def _make_authenticated_request(
     token: str,
     method: str = 'GET',
     data: dict = {},
-):
+) -> requests.models.Response:
     return requests.request(
         method=method,
         url=url,
@@ -117,8 +117,7 @@ def _sync_media_files(
 
         # for logging stats
         if not quiet:
-            kpi_before = AssetFile.objects.filter(
-                asset=asset,
+            kpi_before = asset.asset_files.filter(
                 file_type=AssetFile.FORM_MEDIA,
                 date_deleted__isnull=True,
             ).count()
@@ -142,22 +141,39 @@ def _sync_media_files(
                 'id': media_id,
                 'from_kpi_is_true': False,
                 'synced_file': False,
+                'renamed_existing_kpi_file': False,
             }
 
             # Already being handled by kpi
             if media_from_kpi:
                 continue
 
-            # Ensure that we don't create duplicates of files or urls
-            q_asset_files = Q(asset=asset, date_deleted__isnull=True)
-            q_file = Q(
+            # Ensure that we don't create duplicates of files or urls. We do
+            # want to set `from_kpi` to `True` on the kc object if the same
+            # file exists in both places
+            asset_files = asset.asset_files.filter(date_deleted__isnull=True)
+            q_filename_and_hash = Q(
                 metadata__filename=media_filename,
                 metadata__hash=media_file_hash,
             )
+            q_filename_not_hash = Q(metadata__filename=media_filename) & ~Q(
+                metadata__hash=media_file_hash
+            )
             q_url = Q(metadata__redirect_url=media_filename)
-            q = Q(q_asset_files & (q_file | q_url))
-            if AssetFile.objects.filter(q).exists():
+            if asset_files.filter(
+                Q(q_filename_and_hash | q_url)
+            ).exists():
                 only_set_from_kpi = True
+
+            # If there is the same filename on kc and kpi but different hashes
+            # then rename the current kpi file and copy over the file from kc
+            _af_q = asset_files.filter(q_filename_not_hash)
+            if _af_q.exists():
+                _af = _af_q.get()
+                _af_filename = _af.metadata['filename']
+                _af.metadata['filename'] = f'copy-of-{_af_filename}'
+                _af.save()
+                sync_data.update({'renamed_existing_kpi_file': True})
 
             sync_data.update(
                 {
@@ -177,8 +193,7 @@ def _sync_media_files(
             if media_data_file is None:
                 # Handle linked media files
                 file_name_from_url = media_filename.split('/')[-1]
-                af = AssetFile.objects.create(
-                    asset=asset,
+                af = asset.asset_files.create(
                     user=user,
                     file_type=AssetFile.FORM_MEDIA,
                     description='default',
@@ -195,8 +210,7 @@ def _sync_media_files(
                     media_id=media_id,
                 )
 
-                af = AssetFile.objects.create(
-                    asset=asset,
+                af = asset.asset_files.create(
                     user=user,
                     content=ContentFile(media_content, name=media_filename),
                     file_type=AssetFile.FORM_MEDIA,
@@ -209,8 +223,7 @@ def _sync_media_files(
                 synced_files.append(sync_data)
 
         if not quiet:
-            kpi_after = AssetFile.objects.filter(
-                asset=asset,
+            kpi_after = asset.asset_files.filter(
                 file_type=AssetFile.FORM_MEDIA,
                 date_deleted__isnull=True,
             ).count()
