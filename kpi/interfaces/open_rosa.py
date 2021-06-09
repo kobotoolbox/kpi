@@ -1,45 +1,56 @@
 # coding: utf-8
-from kpi.exceptions import AbstractMethodError, AbstractPropertyError
+from abc import ABCMeta, abstractmethod
 
 
-class OpenRosaFormListInterface:
+class OpenRosaFormListInterface(metaclass=ABCMeta):
     """
-    ToDo use ABC
+    This interface defines required properties and methods of objects expected
+    by `kpi.serializers.v2.open_rosa.FormListSerializer`
     """
     @property
+    @abstractmethod
     def description(self):
-        raise AbstractPropertyError
+        pass
 
     @property
+    @abstractmethod
     def form_id(self):
-        raise AbstractPropertyError
+        pass
 
+    @abstractmethod
     def get_download_url(self, request):
-        raise AbstractMethodError
+        pass
 
+    @abstractmethod
     def get_manifest_url(self, request):
-        raise AbstractMethodError
+        pass
 
     @property
+    @abstractmethod
     def md5_hash(self):
-        raise AbstractPropertyError
+        pass
 
     @property
+    @abstractmethod
     def name(self):
-        raise AbstractPropertyError
+        pass
 
 
-class OpenRosaManifestInterface:
+class OpenRosaManifestInterface(metaclass=ABCMeta):
     """
-    ToDo use ABC
+    This interface defines required properties and methods of objects expected
+    by `kpi.serializers.v2.open_rosa.ManifestSerializer`
     """
     @property
+    @abstractmethod
     def filename(self):
-        raise AbstractPropertyError
+        pass
 
+    @abstractmethod
     def get_download_url(self, request):
-        raise AbstractMethodError
+        pass
 
     @property
+    @abstractmethod
     def md5_hash(self):
-        raise AbstractPropertyError
+        pass
