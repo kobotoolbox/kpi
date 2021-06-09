@@ -364,7 +364,7 @@ export class DataTable extends React.Component {
       accessor: '_validation_status.uid',
       index: '__2',
       id: '_validation_status.uid',
-      minWidth: 130,
+      width: 130,
       className: 'rt-status',
       headerClassName: 'rt-status',
       Filter: ({ filter, onChange }) => {
@@ -682,8 +682,9 @@ export class DataTable extends React.Component {
 
       selectedColumns = columns.filter((el) => {
         // always include checkbox column
-        if (el.id == SUBMISSION_ACTIONS_ID)
+        if (el.id === SUBMISSION_ACTIONS_ID) {
           return true;
+        }
 
         return selCos.includes(el.id) !== false;
       });
