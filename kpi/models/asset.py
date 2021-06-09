@@ -65,7 +65,7 @@ from kpi.fields import (
     LazyDefaultJSONBField,
 )
 from kpi.models.asset_file import AssetFile
-from kpi.models.utils import DjangoModelABCMetaclass
+from kpi.utils.models import DjangoModelABCMetaclass
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.asset_translation_utils import (
@@ -1392,12 +1392,37 @@ class Asset(ObjectPermissionMixin,
                 self._deployment_data)
 
 
+class AbstractFormList(
+    OpenRosaFormListInterface, metaclass=DjangoModelABCMetaclass
+):
+    """
+    The only purpose of this class is to make `./manage.py migrate` pass.
+    Unfortunately, `AssetSnapshot` cannot inherit directly from `OpenRosaFormListInterface`,
+    i.e.,
+    ```
+        AssetSnapshot(
+            models.Model,
+            OpenRosaFormListInterface,
+            metaclass=DjangoModelABCMetaclass,
+        )
+    ```
+    because Django calls internally `type('model_name', model.__bases__, ...)`
+    ignoring the specified meta class of the model. This makes a meta class
+    conflict between the "base" classes which use meta classes too, e.g.,
+    `django.db.models.base.ModelBase` and `abc.ABC`
+
+    > TypeError: metaclass conflict: the metaclass of a derived class must be
+    > a (non-strict) subclass of the metaclasses of all its bases
+
+    """
+    pass
+
+
 class AssetSnapshot(
     models.Model,
-    OpenRosaFormListInterface,
+    AbstractFormList,
     XlsExportable,
     FormpackXLSFormUtils,
-    metaclass=DjangoModelABCMetaclass,
 ):
     """
     This model serves as a cache of the XML that was exported by the installed
