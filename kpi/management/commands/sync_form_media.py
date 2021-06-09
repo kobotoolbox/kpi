@@ -164,7 +164,7 @@ def _sync_media_files(
                 metadata__hash=media_file_hash
             )
             q_url = Q(metadata__redirect_url=media_filename)
-            if asset_files.filter(Q(q_filename_and_hash | q_url)).exists():
+            if asset_files.filter(q_filename_and_hash | q_url).exists():
                 only_set_from_kpi = True
 
             # If there is the same filename on kc and kpi but different hashes
@@ -194,14 +194,14 @@ def _sync_media_files(
 
             if media_data_file is None:
                 # Handle linked media files
-                file_name_from_url = media_filename.split('/')[-1]
+                filename_from_url = media_filename.split('/')[-1]
                 af = asset.asset_files.create(
                     user=user,
                     file_type=AssetFile.FORM_MEDIA,
                     description='default',
                     metadata={
                         'redirect_url': media_filename,
-                        'filename': file_name_from_url,
+                        'filename': filename_from_url,
                     },
                 )
             else:
