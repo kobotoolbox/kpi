@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
+from django.db.models import Q
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -16,7 +17,7 @@ from rest_framework.authtoken.models import Token
 from kpi.models import Asset, AssetFile
 
 
-URL_MEDIA_LIST = '{kc_url}/api/v1/metadata?data_type=media&format=json'
+URL_MEDIA_LIST = '{kc_url}/api/v1/metadata?data_type=media&xform={formid}&format=json'
 URL_MEDIA_DETAIL = '{kc_url}/api/v1/metadata/{metadata_id}?format=json'
 URL_MEDIA_CONTENT = '{kc_url}/{username}/forms/{xform_id_string}/formid-media/{media_id}'
 
@@ -37,8 +38,11 @@ def _make_authenticated_request(
     )
 
 
-def _get_asset_metadata(token: str) -> Optional[dict]:
-    url = URL_MEDIA_LIST.format(kc_url=settings.KOBOCAT_INTERNAL_URL)
+def _get_asset_metadata(token: str, formid: int) -> Optional[dict]:
+    url = URL_MEDIA_LIST.format(
+        kc_url=settings.KOBOCAT_INTERNAL_URL,
+        formid=formid,
+    )
     response = _make_authenticated_request(url, token)
     if response.status_code == status.HTTP_200_OK:
         return response.json()
@@ -119,7 +123,7 @@ def _sync_media_files(
                 date_deleted__isnull=True,
             ).count()
 
-        media_files = _get_asset_metadata(token)
+        media_files = _get_asset_metadata(token, formid=asset_xform_id)
         if media_files is None:
             continue
 
@@ -129,22 +133,45 @@ def _sync_media_files(
             media_id = media_file['id']
             media_xform_id = media_file['xform']
             media_data_file = media_file['data_file']
+            media_file_hash = media_file['file_hash']
+            media_from_kpi = media_file['from_kpi']
+            only_set_from_kpi = False
 
-            # Ensure that we send the form-media to correct asset and
-            # don't create duplicates
-            if (
-                media_xform_id != asset_xform_id
-                or AssetFile.objects.filter(
-                    asset=asset,
-                    date_deleted__isnull=True,
-                    metadata__filename=media_filename,
-                ).exists()
-                or AssetFile.objects.filter(
-                    asset=asset,
-                    date_deleted__isnull=True,
-                    metadata__redirect_url=media_filename,
-                ).exists()
-            ):
+            sync_data = {
+                'data_value': media_filename,
+                'id': media_id,
+                'from_kpi_is_true': False,
+                'synced_file': False,
+            }
+
+            # Already being handled by kpi
+            if media_from_kpi:
+                continue
+
+            # Ensure that we don't create duplicates of files or urls
+            q_asset_files = Q(asset=asset, date_deleted__isnull=True)
+            q_file = Q(
+                metadata__filename=media_filename,
+                metadata__hash=media_file_hash,
+            )
+            q_url = Q(metadata__redirect_url=media_filename)
+            q = Q(q_asset_files & (q_file | q_url))
+            if AssetFile.objects.filter(q).exists():
+                only_set_from_kpi = True
+
+            sync_data.update(
+                {
+                    'from_kpi_is_true': _update_asset_metadata(
+                        token=token,
+                        metadata_id=media_id,
+                        data_value=media_filename,
+                    )
+                }
+            )
+
+            if only_set_from_kpi:
+                if not quiet and verbosity == 3:
+                    synced_files.append(sync_data)
                 continue
 
             if media_data_file is None:
@@ -176,20 +203,10 @@ def _sync_media_files(
                     description='default',
                 )
 
-            from_kpi_is_true = _update_asset_metadata(
-                token=token,
-                metadata_id=media_id,
-                data_value=media_filename,
-            )
+            sync_data.update({'synced_file': True})
 
             if not quiet and verbosity == 3:
-                synced_files.append(
-                    {
-                        'data_value': media_filename,
-                        'id': media_id,
-                        'from_kpi_is_true': from_kpi_is_true,
-                    }
-                )
+                synced_files.append(sync_data)
 
         if not quiet:
             kpi_after = AssetFile.objects.filter(
@@ -264,5 +281,5 @@ class Command(BaseCommand):
 
         stats = _sync_media_files(**options)
         if not options['quiet']:
-            sys.stdout.write(json.dumps(stats, indent=4))
+            sys.stdout.write(json.dumps(stats, indent=4) + '\n')
             sys.stdout.flush()
