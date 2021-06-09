@@ -12,11 +12,12 @@ import ui from 'js/ui';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import ReactTable from 'react-table';
-import Select from 'react-select';
+import ValidationStatusDropdown from './validationStatusDropdown';
 import {DebounceInput} from 'react-debounce-input';
 import {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
+  VALIDATION_STATUS_NOT_ASSIGNED,
   MODAL_TYPES,
   QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
@@ -33,8 +34,6 @@ import {
 import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from './tableBulkOptions';
 import TableBulkCheckbox from './tableBulkCheckbox';
-
-const NOT_ASSIGNED = 'validation_status_not_assigned';
 
 // Columns that will be ALWAYS excluded from the view
 const EXCLUDED_COLUMNS = [
@@ -125,7 +124,7 @@ export class DataTable extends React.Component {
         if (f.id === '_id') {
           filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
         } else if (f.id === '_validation_status.uid') {
-          if (f.value === NOT_ASSIGNED) {
+          if (f.value === VALIDATION_STATUS_NOT_ASSIGNED) {
             filterQuery += `"${f.id}":null`;
           } else {
             filterQuery += `"${f.id}":"${f.value}"`;
@@ -361,26 +360,25 @@ export class DataTable extends React.Component {
       id: '_validation_status.uid',
       minWidth: 130,
       className: 'rt-status',
-      Filter: ({ filter, onChange }) =>
-        <select
-          onChange={(event) => onChange(event.target.value)}
-          style={{ width: '100%' }}
-          value={filter ? filter.value : ''}>
-          <option value=''>{t('Show All')}</option>
-          {VALIDATION_STATUSES_LIST.map((item, n) =>
-            <option value={(item.value === null) ? NOT_ASSIGNED : item.value} key={n}>{item.label}</option>
-          )}
-        </select>,
+      headerClassName: 'rt-status',
+      Filter: ({ filter, onChange }) => {
+        console.log(filter);
+        const currentOption = VALIDATION_STATUSES_LIST.find((item) => item.value === filter?.value);
+        return (
+          <ValidationStatusDropdown
+            onChange={(selectedOption) => {
+              onChange(selectedOption.value);
+            }}
+            currentValue={currentOption}
+            isShowAllVisible
+          />
+        );
+      },
       Cell: (row) => (
-        <Select
-          isDisabled={!this.userCan('validate_submissions', this.props.asset)}
-          isClearable={false}
-          value={this.getValidationStatusOption(row.original)}
-          options={VALIDATION_STATUSES_LIST}
+        <ValidationStatusDropdown
           onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
-          className='kobo-select'
-          classNamePrefix='kobo-select'
-          menuPlacement='auto'
+          currentValue={this.getValidationStatusOption(row.original)}
+          isDisabled={!this.userCan('validate_submissions', this.props.asset)}
         />
       ),
     };

@@ -14,6 +14,10 @@ bem.KoboLightButton = BEM('kobo-light-button', '<button>');
 bem.KoboTextButton = BEM('kobo-text-button', '<button>');
 bem.KoboLightBadge = BEM('kobo-light-badge', '<span>');
 
+bem.KoboSelect = BEM('kobo-select');
+bem.KoboSelect__optionWrapper = bem.KoboSelect.__('option-wrapper');
+bem.KoboSelect__optionBadge = bem.KoboSelect.__('option-badge');
+
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 

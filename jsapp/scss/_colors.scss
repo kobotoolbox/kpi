@@ -60,9 +60,13 @@ $kobo-blue: hsl(206, 90%, 55%);
 $kobo-blue-dark: hsl(206, 90%, 45%);
 $kobo-blue-light: hsl(206, 90%, 60%);
 $kobo-blue-pale: hsl(206, 90%, 80%);
-$kobo-teal: hsl(185, 70%, 45%);
+
+$kobo-teal: hsl(187, 70%, 45%);
 // the row hover color
-$kobo-teal-light: hsl(185, 70%, 95%);
+$kobo-teal-light: hsl(187, 70%, 95%);
+$kobo-teal-pale: hsl(187, 52%, 88%);
+$kobo-teal-pale-dark: hsl(187, 58%, 33%);
+
 
 // positive colors
 $kobo-green: hsl(149, 65%, 45%);
@@ -73,8 +77,12 @@ $kobo-green-light: hsl(149, 65%, 90%);
 $kobo-red: hsl(352, 77%, 60%);
 $kobo-red-dark: hsl(352, 70%, 40%);
 $kobo-red-light: hsl(352, 70%, 90%);
+$kobo-red-pale: hsl(352, 100%, 92%);
+$kobo-red-pale-dark: hsl(352, 30%, 44%);
 
 // warning colors
 $kobo-orange: hsl(30, 80%, 50%);
 $kobo-orange-dark: hsl(30, 80%, 40%);
 $kobo-orange-light: hsl(30, 80%, 95%);
+$kobo-orange-pale: hsl(30, 100%, 89%);
+$kobo-orange-pale-dark: hsl(30, 20%, 35%);

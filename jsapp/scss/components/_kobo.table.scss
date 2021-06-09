@@ -102,6 +102,7 @@ $data-table-border: 1px solid $kobo-gray-92;
 
     // the second header row
     &.-filters {
+      overflow-x: visible;
       // we want both header rows to look like one merged
       border-bottom: $data-table-border;
       border-bottom-width: 2px;
@@ -161,7 +162,7 @@ $data-table-border: 1px solid $kobo-gray-92;
   }
 
   .rt-th, .rt-td {
-    padding: 5px;
+    padding: 5px 8px;
     border-right: $data-table-border;
     line-height: 42px - (2 * 5px);
     height: 42px;
@@ -169,6 +170,11 @@ $data-table-border: 1px solid $kobo-gray-92;
 
   .rt-td.rt-numerical-value {
     font-family: $font_mono;
+  }
+
+  .rt-thead.-filters .rt-th.rt-status {
+    line-height: inherit;
+    overflow: visible;
   }
 
   .rt-td.rt-status {

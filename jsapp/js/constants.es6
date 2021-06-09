@@ -100,6 +100,8 @@ export const AVAILABLE_FORM_STYLES = [
   {value: 'theme-grid pages', label: t('Grid theme + Multiple pages + headings in ALL CAPS')},
 ];
 
+export const VALIDATION_STATUS_NOT_ASSIGNED = 'validation_status_not_assigned';
+
 export const VALIDATION_STATUSES = {
   no_status: {
     value: null,
@@ -107,7 +109,7 @@ export const VALIDATION_STATUSES = {
   },
   validation_status_not_approved: {
     value: 'validation_status_not_approved',
-    label: t('Not Approved'),
+    label: t('Not approved'),
   },
   validation_status_approved: {
     value: 'validation_status_approved',
@@ -115,7 +117,7 @@ export const VALIDATION_STATUSES = {
   },
   validation_status_on_hold: {
     value: 'validation_status_on_hold',
-    label: t('On Hold'),
+    label: t('On hold'),
   },
 };
 

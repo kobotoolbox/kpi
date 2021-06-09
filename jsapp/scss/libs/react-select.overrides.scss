@@ -41,13 +41,13 @@
   .kobo-select__control {
     box-shadow: none;
     border: none;
-    border-width: 0;
-    border-bottom-width: 1px;
-    border-style: solid;
-    border-color: $kobo-gray-92;
-    border-radius: 0;
+    border-radius: 3px;
+    color: $kobo-gray-40;
     background-color: $kobo-white;
-    transition: border-color 250ms;
+    min-height: 24px;
+    font-size: 12px;
+    padding: 0 8px;
+    box-sizing: border-box;
     cursor: pointer;
 
     &:hover {
@@ -76,6 +76,7 @@
 
   .kobo-select__menu {
     @include box-shadow;
+    border-radius: 4px;
     // getting select menus to appear over checkboxes
     z-index: 2;
     margin-top: 0;
@@ -103,6 +104,120 @@
     // is-focused needs to go after is-selected
     &.kobo-select__option--is-focused {
       background-color: $kobo-gray-96;
+    }
+  }
+}
+
+// A custom react-select for validation status
+.kobo-select.kobo-select--validation {
+  .kobo-select__menu {
+    left: -10px;
+    width: calc(100% + 20px);
+  }
+
+  .kobo-select__menu-list {
+    padding: 10px 0;
+    text-align: left;
+  }
+
+  .kobo-select__value-container {
+    padding: 0;
+  }
+
+  // used together with kobo-select__option-badge
+  .kobo-select__option-wrapper {
+    padding: 4px 10px;
+    position: relative;
+
+    &:hover {
+      background-color: $kobo-gray-96;
+    }
+  }
+
+  .kobo-select__indicator {
+    margin-left: 5px;
+  }
+
+  .kobo-select__indicator,
+  .kobo-select__option-badge .kobo-select__option {
+    padding: 0;
+
+    // used to make the clickable area take the whole space
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: transparent;
+    }
+  }
+
+  // custom option badge, mostly for validation status select
+  .kobo-select__option-badge {
+    font-weight: 500;
+    line-height: 1;
+    font-size: 12px;
+    height: 24px;
+    padding: 4px 8px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    display: inline-block;
+    vertical-align: top;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    // this is some dummy input that causes the caret indicator to be weirdly
+    // positioned when ellipsis overflow kicks in
+    & + [class*="dummyInput-DummyInput"] {
+      visibility: hidden;
+      position: absolute;
+    }
+
+    // reset the styles of single value
+    .kobo-select__single-value {
+      display: inline;
+      position: static;
+      margin: 0;
+      color: inherit;
+      overflow: visible;
+      text-overflow: initial;
+      white-space: initial;
+      transform: none;
+      top: auto;
+    }
+
+    .kobo-select__option.kobo-select__option--is-focused,
+    .kobo-select__option.kobo-select__option--is-selected {
+      background-color: transparent;
+      color: inherit;
+      font-weight: inherit;
+    }
+
+    // when selected add colored border for those options
+    &.kobo-select__option-badge--validation_status_not_approved,
+    &.kobo-select__option-badge--validation_status_approved,
+    &.kobo-select__option-badge--validation_status_on_hold {
+      &.kobo-select__option-badge--selected {
+        border-color: currentColor;
+      }
+    }
+
+    &.kobo-select__option-badge--validation_status_not_approved {
+      background-color: $kobo-red-pale;
+      color: $kobo-red-pale-dark;
+    }
+
+    &.kobo-select__option-badge--validation_status_approved {
+      background-color: $kobo-teal-pale;
+      color: $kobo-teal-pale-dark;
+    }
+
+    &.kobo-select__option-badge--validation_status_on_hold {
+      background-color: $kobo-orange-pale;
+      color: $kobo-orange-pale-dark;
     }
   }
 }

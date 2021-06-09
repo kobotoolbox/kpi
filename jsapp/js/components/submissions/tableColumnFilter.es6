@@ -128,11 +128,6 @@ export class TableColumnFilter extends React.Component {
       return acc;
     }, []);
 
-    colsArray.unshift({
-      value: SUBMISSION_LINKS_ID,
-      label: t('Submission links'),
-    });
-
     return colsArray;
   }
   getDisplayedLabelOptions() {
