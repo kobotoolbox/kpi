@@ -286,6 +286,14 @@ export class DataTable extends React.Component {
       const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
       const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
 
+      // To accommodate the checkbox and icon buttons.
+      let columnWidth = 100;
+      if (this.state.resultsTotal >= 100000) {
+        // Whenever there are more results we need a bit more space for
+        // the "X results" text.
+        columnWidth += 20;
+      }
+
       return {
         Header: () => (
           <div>
@@ -308,8 +316,7 @@ export class DataTable extends React.Component {
         accessor: 'sub-actions',
         index: '__0',
         id: SUBMISSION_ACTIONS_ID,
-        // each icon is 30px plus there is also 10px for cell padding
-        width: userCanSeeEditIcon ? 100 : 80,
+        width: columnWidth,
         filterable: false,
         sortable: false,
         resizable: false,
