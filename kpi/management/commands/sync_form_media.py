@@ -128,6 +128,7 @@ def _sync_media_files(
             media_filename = media_file['data_value']
             media_id = media_file['id']
             media_xform_id = media_file['xform']
+            media_data_file = media_file['data_file']
 
             # Ensure that we send the form-media to correct asset and
             # don't create duplicates
@@ -138,23 +139,42 @@ def _sync_media_files(
                     date_deleted__isnull=True,
                     metadata__filename=media_filename,
                 ).exists()
+                or AssetFile.objects.filter(
+                    asset=asset,
+                    date_deleted__isnull=True,
+                    metadata__redirect_url=media_filename,
+                ).exists()
             ):
                 continue
 
-            media_content = _get_media_file_content(
-                token=token,
-                username=user.username,
-                xform_id_string=asset.deployment.xform_id_string,
-                media_id=media_id,
-            )
+            if media_data_file is None:
+                # Handle linked media files
+                file_name_from_url = media_filename.split('/')[-1]
+                af = AssetFile.objects.create(
+                    asset=asset,
+                    user=user,
+                    file_type=AssetFile.FORM_MEDIA,
+                    description='default',
+                    metadata={
+                        'redirect_url': media_filename,
+                        'filename': file_name_from_url,
+                    },
+                )
+            else:
+                media_content = _get_media_file_content(
+                    token=token,
+                    username=user.username,
+                    xform_id_string=asset.deployment.xform_id_string,
+                    media_id=media_id,
+                )
 
-            af = AssetFile.objects.create(
-                asset=asset,
-                user=user,
-                content=ContentFile(media_content, name=media_filename),
-                file_type=AssetFile.FORM_MEDIA,
-                description='default',
-            )
+                af = AssetFile.objects.create(
+                    asset=asset,
+                    user=user,
+                    content=ContentFile(media_content, name=media_filename),
+                    file_type=AssetFile.FORM_MEDIA,
+                    description='default',
+                )
 
             from_kpi_is_true = _update_asset_metadata(
                 token=token,
