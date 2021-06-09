@@ -397,10 +397,14 @@ export class DataTable extends React.Component {
         return false;
       }
 
+      // Set ordering of question columns. Meta questions can be prepended or
+      // appended relative to survey questions with an index prefix
+
       // sets location of columns for questions not in current survey version
+      // `y` makes puts this case in front of known meta types
       var index = 'y_' + key;
 
-      // place meta question columns at the very end
+      // place meta question columns at the very end with `z` prefix
       switch(key) {
         case 'username':
             index = 'z1';
@@ -435,6 +439,10 @@ export class DataTable extends React.Component {
             break;
         case '_submitted_by':
             index = 'z92';
+            break;
+        // set index for `background-audio` to the front of the columns
+        case 'background-audio':
+            index = '_1';
             break;
         default:
           // set index for questions in current version of survey (including questions in groups)
@@ -473,8 +481,8 @@ export class DataTable extends React.Component {
             if (
               q.type === QUESTION_TYPES.image.id ||
               q.type === QUESTION_TYPES.audio.id ||
-              q.type === QUESTION_TYPES.['background-audio'].id ||
-              q.type === QUESTION_TYPES.video.id
+              q.type === QUESTION_TYPES.video.id ||
+              q.type === META_QUESTION_TYPES['background-audio']
             ) {
               var mediaURL = this.getMediaDownloadLink(row, row.value);
               return <a href={mediaURL} target='_blank'>{row.value}</a>;
@@ -553,6 +561,7 @@ export class DataTable extends React.Component {
       META_QUESTION_TYPES.deviceid,
       META_QUESTION_TYPES.phonenumber,
       META_QUESTION_TYPES.today,
+      META_QUESTION_TYPES['background-audio'],
     ];
     const textFilterQuestionIds = [
       '__version__',
