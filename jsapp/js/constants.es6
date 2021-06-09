@@ -100,8 +100,6 @@ export const AVAILABLE_FORM_STYLES = [
   {value: 'theme-grid pages', label: t('Grid theme + Multiple pages + headings in ALL CAPS')},
 ];
 
-export const VALIDATION_STATUS_NOT_ASSIGNED = 'validation_status_not_assigned';
-
 export const VALIDATION_STATUSES = {
   no_status: {
     value: null,

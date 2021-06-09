@@ -12,12 +12,11 @@ import ui from 'js/ui';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import ReactTable from 'react-table';
-import ValidationStatusDropdown from './validationStatusDropdown';
+import ValidationStatusDropdown, { SHOW_ALL_OPTION } from './validationStatusDropdown';
 import {DebounceInput} from 'react-debounce-input';
 import {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
-  VALIDATION_STATUS_NOT_ASSIGNED,
   MODAL_TYPES,
   QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
@@ -124,7 +123,7 @@ export class DataTable extends React.Component {
         if (f.id === '_id') {
           filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
         } else if (f.id === '_validation_status.uid') {
-          if (f.value === VALIDATION_STATUS_NOT_ASSIGNED) {
+          if (f.value === VALIDATION_STATUSES.no_status.value) {
             filterQuery += `"${f.id}":null`;
           } else {
             filterQuery += `"${f.id}":"${f.value}"`;
@@ -362,14 +361,15 @@ export class DataTable extends React.Component {
       className: 'rt-status',
       headerClassName: 'rt-status',
       Filter: ({ filter, onChange }) => {
-        const currentOption = VALIDATION_STATUSES_LIST.find((item) => item.value === filter?.value);
+        let currentOption = VALIDATION_STATUSES_LIST.find((item) => item.value === filter?.value);
+        if (!currentOption) {
+          currentOption = SHOW_ALL_OPTION;
+        }
         return (
           <ValidationStatusDropdown
-            onChange={(selectedOption) => {
-              onChange(selectedOption.value);
-            }}
+            onChange={(selectedOption) => {onChange(selectedOption.value);}}
             currentValue={currentOption}
-            isShowAllVisible
+            isForHeaderFilter
           />
         );
       },

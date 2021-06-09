@@ -1,17 +1,19 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import Select, { components } from 'react-select';
-import {
-  VALIDATION_STATUSES_LIST,
-  VALIDATION_STATUS_NOT_ASSIGNED,
-} from 'js/constants';
+import Select, {components} from 'react-select';
+import {VALIDATION_STATUSES_LIST} from 'js/constants';
+
+export const SHOW_ALL_OPTION = Object.freeze({
+  value: '',
+  label: t('Show All'),
+});
 
 /**
  * @prop onChange
  * @prop isDisabled
  * @prop currentValue
- * @prop isShowAllVisible
+ * @prop isForHeaderFilter - for gray background, includes additional option
  */
 class ValidationStatusDropdown extends React.Component {
   constructor(props){
@@ -23,9 +25,6 @@ class ValidationStatusDropdown extends React.Component {
     // for rendering options as colorful badges
     const CustomOption = (props) => {
       const badgeModifiers = [props.value];
-      if (props.value === null) {
-        badgeModifiers.push(VALIDATION_STATUS_NOT_ASSIGNED);
-      }
       if (props.isSelected) {
         badgeModifiers.push('selected');
       }
@@ -48,9 +47,6 @@ class ValidationStatusDropdown extends React.Component {
       }
 
       const badgeModifiers = [value];
-      if (value === null) {
-        badgeModifiers.push(VALIDATION_STATUS_NOT_ASSIGNED);
-      }
 
       return (
         <bem.KoboSelect__optionBadge m={badgeModifiers}>
@@ -68,11 +64,17 @@ class ValidationStatusDropdown extends React.Component {
 
     // clone the array
     const optionsArray = [...VALIDATION_STATUSES_LIST];
-    if (this.props.isShowAllVisible) {
-      optionsArray.unshift({
-        value: '',
-        label: t('Show All'),
-      });
+    if (this.props.isForHeaderFilter) {
+      optionsArray.unshift(SHOW_ALL_OPTION);
+    }
+
+    const selectClassNames = [
+      'kobo-select',
+      'kobo-select--validation',
+    ];
+
+    if (this.props.isForHeaderFilter) {
+      selectClassNames.push('kobo-select--for-nonwhite-background');
     }
 
     return (
@@ -88,7 +90,7 @@ class ValidationStatusDropdown extends React.Component {
         value={this.props.currentValue}
         options={optionsArray}
         onChange={this.props.onChange}
-        className='kobo-select kobo-select--validation'
+        className={selectClassNames.join(' ')}
         classNamePrefix='kobo-select'
         menuPlacement='auto'
       />

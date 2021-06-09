@@ -178,25 +178,12 @@ $data-table-border: 1px solid $kobo-gray-92;
   }
 
   .rt-td.rt-status {
-    line-height: inherit;
+    // needed for dropdown
     overflow: visible;
-
-    .kobo-select__control {
-      background: transparent;
-      height: 30px;
-      min-height: 30px;
-      border: none;
-      border-radius: 0px;
-      box-shadow: none;
-      cursor: pointer;
-
-      &:hover {
-        box-shadow: none;
-      }
-    }
   }
 
   .rt-sub-actions {
+    // needed for tooltips
     overflow: visible;
   }
 
@@ -237,23 +224,58 @@ $data-table-border: 1px solid $kobo-gray-92;
   .-pagination {
     box-shadow: none;
     border-top: none;
+    padding: 0;
 
     .-center {
       flex: 2;
     }
 
     .-btn {
-      @extend .mdl-button, .mdl-button--colored;
+      color: $kobo-blue;
+      font-size: 12px;
+      line-height: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: transparent;
 
       &:hover {
+        color: $kobo-blue-dark;
         background: transparent;
       }
+
+      &:active {
+        transform: translateY(1px);
+      }
+    }
+
+    .-pageJump {
+      margin-left: 10px;
+      margin-right: 10px;
+
+      input {
+        appearance: none;
+      }
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    input,
+    select {
+      border: 1px solid $kobo-gray-92;
+      background: $kobo-white;
+      height: 32px;
+      padding: 5px 7px;
+      font-size: 14px;
+      border-radius: 6px;
+      font-weight: 700;
     }
   }
 
   .pagination-bottom {
     margin-top: 5px;
-    margin-bottom: 5px;
+    margin-bottom: 20px;
   }
 
   .-loading {
