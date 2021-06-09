@@ -1,11 +1,6 @@
 # coding: utf-8
 from rest_framework import serializers
 
-from kpi.interfaces.open_rosa import (
-    OpenRosaFormListInterface,
-    OpenRosaManifestInterface,
-)
-
 
 class FormListSerializer(serializers.Serializer):
     """
