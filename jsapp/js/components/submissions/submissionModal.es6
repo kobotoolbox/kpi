@@ -320,6 +320,7 @@ class SubmissionModal extends React.Component {
                   className='kobo-select'
                   classNamePrefix='kobo-select'
                   menuPlacement='auto'
+                  isSearchable={false}
                 />
               </div>
             </bem.FormModal__group>
@@ -375,6 +376,7 @@ class SubmissionModal extends React.Component {
                   className='kobo-select'
                   classNamePrefix='kobo-select'
                   menuPlacement='auto'
+                  isSearchable={false}
                 />
               </div>
             </bem.FormModal__group>

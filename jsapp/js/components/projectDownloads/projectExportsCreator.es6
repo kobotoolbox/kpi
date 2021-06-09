@@ -534,6 +534,7 @@ export default class ProjectExportsCreator extends React.Component {
               classNamePrefix='kobo-select'
               menuPlacement='auto'
               placeholder={t('Select…')}
+              isSearchable={false}
             />
           </label>
 
@@ -671,6 +672,7 @@ export default class ProjectExportsCreator extends React.Component {
           className='kobo-select'
           classNamePrefix='kobo-select'
           menuPlacement='auto'
+          isSearchable={false}
         />
       </label>
     );
@@ -722,6 +724,7 @@ export default class ProjectExportsCreator extends React.Component {
               className='kobo-select'
               classNamePrefix='kobo-select'
               menuPlacement='auto'
+              isSearchable={false}
             />
           </label>
         </bem.ProjectDownloads__selectorRow>

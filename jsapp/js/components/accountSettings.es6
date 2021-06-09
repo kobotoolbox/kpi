@@ -357,6 +357,7 @@ export default class AccountSettings extends React.Component {
                     value={this.state.gender}
                     options={this.state.genderChoices}
                     onChange={this.genderChange}
+                    isSearchable={false}
                     className='kobo-select'
                     classNamePrefix='kobo-select'
                     menuPlacement='auto'
