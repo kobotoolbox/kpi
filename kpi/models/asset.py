@@ -65,6 +65,7 @@ from kpi.fields import (
     LazyDefaultJSONBField,
 )
 from kpi.models.asset_file import AssetFile
+from kpi.models.utils import DjangoModelABCMetaclass
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.asset_translation_utils import (
@@ -1391,10 +1392,13 @@ class Asset(ObjectPermissionMixin,
                 self._deployment_data)
 
 
-class AssetSnapshot(OpenRosaFormListInterface,
-                    models.Model,
-                    XlsExportable,
-                    FormpackXLSFormUtils):
+class AssetSnapshot(
+    models.Model,
+    OpenRosaFormListInterface,
+    XlsExportable,
+    FormpackXLSFormUtils,
+    metaclass=DjangoModelABCMetaclass,
+):
     """
     This model serves as a cache of the XML that was exported by the installed
     version of pyxform.

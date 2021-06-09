@@ -13,6 +13,7 @@ from kpi.interfaces import (
     OpenRosaManifestInterface,
     SyncBackendMediaInterface,
 )
+from kpi.models.utils import DjangoModelABCMetaclass
 from kpi.utils.hash import get_hash
 
 
@@ -27,9 +28,12 @@ def upload_to(self, filename):
     return AssetFile.get_path(self.asset, self.file_type, filename)
 
 
-class AssetFile(models.Model,
-                OpenRosaManifestInterface,
-                SyncBackendMediaInterface):
+class AssetFile(
+    models.Model,
+    SyncBackendMediaInterface,
+    OpenRosaManifestInterface,
+    metaclass=DjangoModelABCMetaclass,
+):
 
     # More to come!
     MAP_LAYER = 'map_layer'
