@@ -30,8 +30,8 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
+    KobocatXForm,
     ReadOnlyKobocatInstance,
-    ReadOnlyKobocatXForm,
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -920,7 +920,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def xform(self):
         if not hasattr(self, '_xform'):
             pk = self.backend_response['formid']
-            xform = ReadOnlyKobocatXForm.objects.filter(pk=pk).only(
+            xform = KobocatXForm.objects.filter(pk=pk).only(
                 'user__username', 'id_string').first()
             if not (xform.user.username == self.asset.owner.username and
                     xform.id_string == self.xform_id_string):
@@ -999,7 +999,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if (
             response.status_code != expected_status_code
             or json_response.get('type') == 'alert-error'
-            or expect_formid and 'formid' not in json_response
+            or (expect_formid and 'formid' not in json_response)
         ):
             if 'text' in json_response:
                 # KC API refused us for a specified reason, likely invalid
@@ -1215,11 +1215,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         results = []
         for response in kc_responses:
             try:
-                message = _(
-                    ET.fromstring(response['response'].content)
-                        .find(OPEN_ROSA_XML_MESSAGE)
-                        .text
-                )
+                message = ET.fromstring(
+                        response['response'].content
+                    ).find(OPEN_ROSA_XML_MESSAGE).text
             except ET.ParseError:
                 message = _('Something went wrong')
 

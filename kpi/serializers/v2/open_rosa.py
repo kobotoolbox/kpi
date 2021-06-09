@@ -57,10 +57,9 @@ class FormListSerializer(serializers.Serializer):
         It helps to catch upstream missing properties and methods when
         rendering data
         """
-        # Use private variable to test validation only once per instantiation
         class_ = obj.__class__
         assert (
-            isinstance(class_, OpenRosaFormListInterface)
+            issubclass(class_, OpenRosaFormListInterface)
             and class_ != OpenRosaFormListInterface
         )
 
@@ -99,9 +98,8 @@ class ManifestSerializer(serializers.Serializer):
         It helps to catch upstream missing properties and methods when 
         rendering data
         """
-        # Use private variable to test validation only once per instantiation
         class_ = obj.__class__
         assert (
-            isinstance(class_, OpenRosaManifestInterface)
+            issubclass(class_, OpenRosaManifestInterface)
             and class_ != OpenRosaManifestInterface
         )

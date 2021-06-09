@@ -8,19 +8,19 @@
   align-items: center;
 
   &.breadcrumbs--gray-wrapper {
-    background: $kobo-whitegray;
+    background: $kobo-gray-96;
     padding: #{($s-breadcrumbs-height - 40px) * 0.5} 20px;
     height: $s-breadcrumbs-height;
   }
 
   .breadcrumbs__crumb,
   .breadcrumbs__divider {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 
   .breadcrumbs__crumb {
     &:last-of-type {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
   }
 

@@ -2,13 +2,13 @@
 // Groups
 // ==========================================================================
 
-$formbuilder-group-bg: $kobo-whitegray;
+$formbuilder-group-bg: $kobo-gray-96;
 
 .group {
     padding: 4px 10px;
     margin-bottom: 15px;
     background-color: $formbuilder-group-bg;
-    border: 1px solid $kobo-midgray;
+    border: 1px solid $kobo-gray-65;
     font-size: 13px;
 
     // make space for the .btn--addrow on the left
@@ -22,7 +22,7 @@ $formbuilder-group-bg: $kobo-whitegray;
 }
 
 .group__header {
-    border-bottom: 1px solid $kobo-midgray;
+    border-bottom: 1px solid $kobo-gray-65;
     position: relative;
     margin: -4px -10px 0;
     padding: 12px;
@@ -70,14 +70,14 @@ $formbuilder-group-bg: $kobo-whitegray;
     text-align: center;
 
     &.group__header__buttons__button--gray {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
     }
     &.group__header__buttons__button--red {
         color: $kobo-red;
     }
     &.group__header__buttons__button--activated {
-        color: $kobo-darkgray;
-        background-color: $kobo-lightgray;
+        color: $kobo-gray-40;
+        background-color: $kobo-gray-92;
     }
 
     .k-icon {
@@ -120,7 +120,7 @@ $formbuilder-group-bg: $kobo-whitegray;
             margin:-4px 0px 0px;
         }
         .group__header__buttons__button--settings {
-            background: $kobo-lightgray;
+            background: $kobo-gray-92;
         }
     }
 
@@ -130,7 +130,7 @@ $formbuilder-group-bg: $kobo-whitegray;
 // when inside .group--shrunk, .group__rows is smaller, .survey__rows are hidden
 .group__caret {
     cursor: pointer;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 
     &.k-icon {
       font-size: 18px;

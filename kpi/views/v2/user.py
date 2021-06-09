@@ -32,8 +32,10 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             url_path=r'migrate(?:/(?P<task_id>[\d\w\-]+))?')
     def migrate(self, request, task_id: str = None, **kwargs):
         """
-        A really basic endpoint what allows super users to migration projects
-        from KoBoCAT.
+        A temporary endpoint that allows superusers to migrate other users'
+        projects, and users to migrate their own projects, from Kobocat to KPI.
+        This is required while users transition from the legacy interface to
+        the new.
 
         1. Call this endpoint with `?username=<username>`
         2. Fetch url provided to check the state of the Celery task.
@@ -47,7 +49,12 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
 
         """
 
-        if not request.user.is_superuser:
+        request_user = request.user
+        migrate_user = kwargs.get('username')
+        if request_user.is_anonymous or (
+            not request_user.is_superuser
+            and request_user.username != migrate_user
+        ):
             raise exceptions.PermissionDenied()
 
         if task_id:
