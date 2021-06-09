@@ -17,9 +17,13 @@ from rest_framework.authtoken.models import Token
 from kpi.models import Asset, AssetFile
 
 
-URL_MEDIA_LIST = '{kc_url}/api/v1/metadata?data_type=media&xform={formid}&format=json'
+URL_MEDIA_LIST = (
+    '{kc_url}/api/v1/metadata?data_type=media&xform={formid}&format=json'
+)
 URL_MEDIA_DETAIL = '{kc_url}/api/v1/metadata/{metadata_id}?format=json'
-URL_MEDIA_CONTENT = '{kc_url}/{username}/forms/{xform_id_string}/formid-media/{media_id}'
+URL_MEDIA_CONTENT = (
+    '{kc_url}/{username}/forms/{xform_id_string}/formid-media/{media_id}'
+)
 
 
 def _make_authenticated_request(
@@ -69,9 +73,9 @@ def _update_asset_metadata(
     metadata_id: int,
     data_value: str,
 ) -> bool:
-    '''
+    """
     Set `from_kpi` to `True` on kc metadata object
-    '''
+    """
     url = URL_MEDIA_DETAIL.format(
         kc_url=settings.KOBOCAT_INTERNAL_URL,
         metadata_id=metadata_id,
@@ -160,9 +164,7 @@ def _sync_media_files(
                 metadata__hash=media_file_hash
             )
             q_url = Q(metadata__redirect_url=media_filename)
-            if asset_files.filter(
-                Q(q_filename_and_hash | q_url)
-            ).exists():
+            if asset_files.filter(Q(q_filename_and_hash | q_url)).exists():
                 only_set_from_kpi = True
 
             # If there is the same filename on kc and kpi but different hashes
