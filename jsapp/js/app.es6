@@ -289,7 +289,7 @@ export var routes = (
           <Route path={ROUTES.FORM_GALLERY} component={FormSubScreens} />
           <Route path={ROUTES.FORM_MAP} component={FormSubScreens} />
           <Route path={ROUTES.FORM_MAP_BY} component={FormSubScreens} />
-          <IndexRedirect to={ROUTES.FORM_REPORT} />
+          <IndexRedirect to={ROUTES.FORM_TABLE} />
         </Route>
 
         <Route path={ROUTES.FORM_SETTINGS}>
