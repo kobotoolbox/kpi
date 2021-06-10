@@ -25,7 +25,7 @@ class FormListSerializer(serializers.Serializer):
 
     def get_description(self, obj):
         self.__validate_object_inheritance(obj)
-        return obj.descriptionText
+        return obj.description
 
     def get_download_url(self, obj):
         self.__validate_object_inheritance(obj)
