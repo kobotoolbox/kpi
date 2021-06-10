@@ -237,7 +237,7 @@ class FormMedia extends React.Component {
             {!this.state.isUploadFilePending && (
               <Dropzone
                 onDrop={this.onFileDrop.bind(this)}
-                className='dropzone-settings dropzone-form-media'
+                className='dropzone-settings kobo-dropzone--form-media'
               >
                 {this.state.fieldsErrors?.base64Encoded && (
                   <bem.FormView__cell m='error'>
@@ -254,7 +254,7 @@ class FormMedia extends React.Component {
             )}
 
             {this.state.isUploadFilePending && (
-              <div className='dropzone-settings dropzone-form-media'>
+              <div className='dropzone-settings kobo-dropzone--form-media'>
                 <LoadingSpinner message={t('Uploading file…')} />
               </div>
             )}
