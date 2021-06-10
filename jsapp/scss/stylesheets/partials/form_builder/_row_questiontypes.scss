@@ -51,7 +51,7 @@
   position: absolute;
   top: -3px;
   right: 1px;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   background: transparent;
   border: 0 none;
   font-family: $font;
@@ -62,7 +62,7 @@
   cursor: pointer;
 
   &:hover {
-    color: $kobo-black;
+    color: $kobo-gray-24;
   }
 }
 
@@ -118,7 +118,7 @@ input.row__questiontypes__new-question-name {
   font-family: $font;
   font-weight: 600;
   cursor: pointer;
-  color: $kobo-black;
+  color: $kobo-gray-24;
 
   .k-icon {
     margin-right: 6px;

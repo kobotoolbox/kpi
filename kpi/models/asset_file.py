@@ -13,6 +13,7 @@ from kpi.interfaces import (
     OpenRosaManifestInterface,
     SyncBackendMediaInterface,
 )
+from kpi.utils.models import DjangoModelABCMetaclass
 from kpi.utils.hash import get_hash
 
 
@@ -27,14 +28,43 @@ def upload_to(self, filename):
     return AssetFile.get_path(self.asset, self.file_type, filename)
 
 
-class AssetFile(models.Model,
-                OpenRosaManifestInterface,
-                SyncBackendMediaInterface):
+class AbstractFormMedia(
+    SyncBackendMediaInterface,
+    OpenRosaManifestInterface,
+    metaclass=DjangoModelABCMetaclass,
+):
+    """
+    The only purpose of this class is to make `./manage.py migrate` pass.
+    Unfortunately, `AbstractFormMedia` cannot inherit directly from
+    `SyncBackendMediaInterface` and `OpenRosaManifestInterface`
+    i.e.,
+    ```
+        AssetFile(
+            models.Model,
+            OpenRosaManifestInterface,
+            SyncBackendMediaInterface,
+            metaclass=DjangoModelABCMetaclass,
+        )
+    ```
+    because Django calls internally `type('model_name', model.__bases__, ...)`
+    ignoring the specified meta class of the model. This makes a meta class
+    conflict between the "base" classes which use meta classes too, e.g.,
+    `django.db.models.base.ModelBase` and `abc.ABC`
 
+    > TypeError: metaclass conflict: the metaclass of a derived class must be
+    > a (non-strict) subclass of the metaclasses of all its bases
+
+    """
+    pass
+
+
+class AssetFile(models.Model, AbstractFormMedia):
     # More to come!
     MAP_LAYER = 'map_layer'
     FORM_MEDIA = 'form_media'
     PAIRED_DATA = 'paired_data'
+
+    BACKEND_DATA_TYPE = 'media'
 
     TYPE_CHOICES = (
         (MAP_LAYER, MAP_LAYER),
@@ -80,6 +110,13 @@ class AssetFile(models.Model,
             if self.is_remote_url
             else self.filename
         )
+
+    @property
+    def backend_data_type(self):
+        """
+        Implements `SyncBackendMediaInterface.backend_data_type()`
+        """
+        return self.BACKEND_DATA_TYPE
 
     @property
     def backend_uniqid(self):
@@ -145,11 +182,11 @@ class AssetFile(models.Model,
         )
 
     @property
-    def hash(self):
+    def md5_hash(self):
         """
         Implements:
-         - `OpenRosaManifestInterface.hash()`
-         - `SyncBackendMediaInterface.hash()`
+         - `OpenRosaManifestInterface.md5_hash()`
+         - `SyncBackendMediaInterface.md5_hash()`
         """
         if hasattr(self, '__hash'):
             return self.__hash

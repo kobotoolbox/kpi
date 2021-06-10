@@ -15,7 +15,7 @@ from pyxform.xls2json_backends import csv_to_dict
 
 from kpi.models import Asset
 from kpi.constants import ASSET_TYPE_COLLECTION
-from kpi.model_utils import _set_auto_field_update
+from kpi.utils.models import _set_auto_field_update
 
 
 def _csv_to_dict(content):

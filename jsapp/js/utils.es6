@@ -595,12 +595,12 @@ export function launchPrinting() {
  */
 export function truncateString(str, length, type='') {
   let truncatedString = str;
-  const HALFWAY = Math.trunc(length / 2);
+  const halfway = Math.trunc(length / 2);
 
   if (length < truncatedString.length) {
-    let truncatedStringFront = truncatedString.substring(0, HALFWAY);
+    let truncatedStringFront = truncatedString.substring(0, halfway);
     let truncatedStringBack = truncatedString.slice(
-      truncatedString.length - HALFWAY
+      truncatedString.length - halfway
     );
     truncatedString = truncatedStringFront + '…' + truncatedStringBack;
   }
@@ -639,6 +639,9 @@ export function truncateFile(str, length) {
 /**
  * Generates a simple lowercase, underscored version of a string. Useful for
  * quick filename generation
+ *
+ * Inspired by the way backend handles generating autonames for translations:
+ * https://github.com/kobotoolbox/kpi/blob/27220c2e65b47a7f150c5bef64db97226987f8fc/kpi/utils/autoname.py#L132-L138
  *
  * @param {string} str
  * @param {number} [startIndex=0]

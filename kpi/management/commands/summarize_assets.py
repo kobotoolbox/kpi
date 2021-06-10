@@ -2,7 +2,7 @@
 from django.core.management.base import BaseCommand
 
 from kpi.models import Asset
-from kpi.model_utils import _set_auto_field_update
+from kpi.utils.models import _set_auto_field_update
 
 
 class Command(BaseCommand):
