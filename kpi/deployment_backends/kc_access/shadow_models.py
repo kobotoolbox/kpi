@@ -44,10 +44,6 @@ def update_autofield_sequence(model):
         cursor.execute(query)
 
 
-class ReadOnlyModelError(ValueError):
-    pass
-
-
 class ShadowModel(models.Model):
     """
     Allows identification of writeable and read-only shadow models
@@ -68,7 +64,7 @@ class ShadowModel(models.Model):
     @staticmethod
     def get_content_type_for_model(model):
         model_name_mapping = {
-            'readonlykobocatxform': ('logger', 'xform'),
+            'kobocatxform': ('logger', 'xform'),
             'readonlykobocatinstance': ('logger', 'instance'),
             'kobocatuserprofile': ('main', 'userprofile'),
             'kobocatuserobjectpermission': ('guardian', 'userobjectpermission'),
@@ -81,21 +77,17 @@ class ShadowModel(models.Model):
             app_label=app_label, model=model_name)
 
 
-class ReadOnlyModel(ShadowModel):
+class ReadOnlyShadowModel(ShadowModel):
+
+    read_only = True
 
     class Meta(ShadowModel.Meta):
         abstract = True
 
-    def save(self, *args, **kwargs):
-        raise ReadOnlyModelError('Cannot save read-only-model')
 
-    def delete(self, *args, **kwargs):
-        raise ReadOnlyModelError('Cannot delete read-only-model')
+class KobocatXForm(ShadowModel):
 
-
-class ReadOnlyKobocatXForm(ReadOnlyModel):
-
-    class Meta(ReadOnlyModel.Meta):
+    class Meta(ShadowModel.Meta):
         db_table = 'logger_xform'
         verbose_name = 'xform'
         verbose_name_plural = 'xforms'
@@ -103,7 +95,7 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
     XFORM_TITLE_LENGTH = 255
     xls = models.FileField(null=True)
     xml = models.TextField()
-    user = models.ForeignKey(User, related_name='xforms', null=True,
+    user = models.ForeignKey('KobocatUser', related_name='xforms', null=True,
                              on_delete=models.CASCADE)
     shared = models.BooleanField(default=False)
     shared_data = models.BooleanField(default=False)
@@ -129,16 +121,16 @@ class ReadOnlyKobocatXForm(ReadOnlyModel):
         return "md5:%s" % self.hash
 
 
-class ReadOnlyKobocatInstance(ReadOnlyModel):
+class ReadOnlyKobocatInstance(ReadOnlyShadowModel):
 
-    class Meta(ReadOnlyModel.Meta):
+    class Meta(ReadOnlyShadowModel.Meta):
         db_table = 'logger_instance'
         verbose_name = 'instance'
         verbose_name_plural = 'instances'
 
     xml = models.TextField()
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
-    xform = models.ForeignKey(ReadOnlyKobocatXForm, related_name='instances',
+    xform = models.ForeignKey(KobocatXForm, related_name='instances',
                               on_delete=models.CASCADE)
     date_created = models.DateTimeField()
     date_modified = models.DateTimeField()

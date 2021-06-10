@@ -33,6 +33,12 @@ class InvalidSearchException(exceptions.APIException):
     default_code = 'invalid_search'
 
 
+class ReadOnlyModelError(Exception):
+
+    def __init__(self, msg='This model is read only', *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
+
+
 class SearchQueryTooShortException(InvalidSearchException):
     default_detail = _('Your query is too short')
     default_code = 'query_too_short'
