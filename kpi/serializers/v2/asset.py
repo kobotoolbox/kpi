@@ -32,7 +32,8 @@ from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.object_permission import (
     get_anonymous_user,
-    ObjectPermissionHelper,
+    get_user_permission_assignments,
+    get_user_permission_assignments_queryset,
 )
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
@@ -380,8 +381,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         context = self.context
         request = self.context.get('request')
 
-        queryset = ObjectPermissionHelper. \
-            get_user_permission_assignments_queryset(obj, request.user)
+        queryset = get_user_permission_assignments_queryset(obj, request.user)
         # Need to pass `asset` and `asset_uid` to context of
         # AssetPermissionAssignmentSerializer serializer to avoid extra queries
         # to DB within the serializer to retrieve the asset object.
@@ -660,10 +660,9 @@ class AssetListSerializer(AssetSerializer):
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
-        user_assignments = ObjectPermissionHelper. \
-            get_user_permission_assignments(asset,
-                                            request.user,
-                                            asset_permission_assignments)
+        user_assignments = get_user_permission_assignments(
+            asset, request.user, asset_permission_assignments
+        )
         return AssetPermissionAssignmentSerializer(user_assignments,
                                                    many=True, read_only=True,
                                                    context=context).data

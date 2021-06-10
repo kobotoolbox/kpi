@@ -670,7 +670,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
           to which they have been assigned any permission
 
     See also
-        kpi.utils.object_permission_helper.ObjectPermissionHelper.get_user_permission_assignments_queryset
+        kpi.utils.object_permission.get_user_permission_assignments_queryset
     """
 
     # TODO: does this duplicate stuff in
