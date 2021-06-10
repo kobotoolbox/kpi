@@ -111,13 +111,15 @@ def _sync_media_files(
 
     sync_stats_all = []
     assets_selected_count = 0
+    assets_modified_count = 0
     for asset in assets.iterator(chunk_size=chunks):
-        sync_stats = {}
         if not asset.has_deployment:
             continue
+
         asset_xform_id = asset.deployment.backend_response['formid']
         user = asset.owner
         token = Token.objects.get(user=user)
+        sync_stats = {}
 
         # for logging stats
         if not quiet:
@@ -187,6 +189,8 @@ def _sync_media_files(
                 }
             )
 
+            assets_modified_count += 1
+
             if only_set_from_kpi:
                 if not quiet and verbosity == 3:
                     synced_files.append(sync_data)
@@ -231,6 +235,7 @@ def _sync_media_files(
             ).count()
             sync_stats = {
                 'asset_uid': asset.uid,
+                'asset_name': asset.name,
                 'xform_id_string': asset.deployment.xform_id_string,
                 'xformid': asset_xform_id,
                 'asset_owner__username': asset.owner.username,
@@ -250,6 +255,7 @@ def _sync_media_files(
 
     stats_out = {
         'assets_selected_count': assets_selected_count,
+        'assets_modified_count': assets_modified_count,
     }
     if not quiet and sync_stats_all and verbosity > 1:
         stats_out['sync_stats'] = sync_stats_all
