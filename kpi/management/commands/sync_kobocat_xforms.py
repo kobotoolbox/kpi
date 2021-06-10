@@ -23,13 +23,13 @@ from kpi.utils.log import logging
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatPermission,
     KobocatUserObjectPermission,
-    ReadOnlyKobocatXForm,
+    KobocatXForm,
     ShadowModel,
 )
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models import Asset, ObjectPermission
 from kpi.models.object_permission import get_anonymous_user
-from kpi.model_utils import _set_auto_field_update
+from kpi.utils.models import _set_auto_field_update
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
 
@@ -40,7 +40,7 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.items()}
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
     content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
-XFORM_CT = ShadowModel.get_content_type_for_model(ReadOnlyKobocatXForm)
+XFORM_CT = ShadowModel.get_content_type_for_model(KobocatXForm)
 ANONYMOUS_USER = get_anonymous_user()
 # Replace codenames with Permission PKs, remembering the codenames
 permission_map_copy = dict(PERMISSIONS_MAP)
@@ -452,13 +452,22 @@ class Command(BaseCommand):
             default=False,
             help='Do not output status messages'
         )
-
         parser.add_argument(
             '--populate-xform-kpi-asset-uid',
             action='store_true',
             dest='populate_xform_kpi_asset_uid',
             default=False,
             help='Populate XForm `kpi_asset_uid` field')
+        parser.add_argument(
+            '--sync-kobocat-form-media',
+            action='store_true',
+            dest='sync_kobocat_form_media',
+            default=True,
+            help='Sync kobocat form-media to kpi')
+        parser.add_argument(
+            '--no-sync-kobocat-form-media',
+            action='store_false',
+            dest='sync_kobocat_form_media')
 
     def _print_str(self, string):
         if not self._quiet:
@@ -476,10 +485,11 @@ class Command(BaseCommand):
         self._quiet = options.get('quiet')
         username = options.get('username')
         populate_xform_kpi_asset_uid = options.get('populate_xform_kpi_asset_uid')
+        sync_kobocat_form_media = options.get('sync_kobocat_form_media')
         users = User.objects.all()
-        # Do a basic query just to make sure the ReadOnlyKobocatXForm model is
+        # Do a basic query just to make sure the KobocatXForm model is
         # loaded
-        if not ReadOnlyKobocatXForm.objects.exists():
+        if not KobocatXForm.objects.exists():
             return
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?
@@ -507,7 +517,8 @@ class Command(BaseCommand):
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk
 
-            xforms = user.xforms.all()
+            # KobocatXForm has a foreign key on KobocatUser, not on User
+            xforms = KobocatXForm.objects.filter(user_id=user.pk).all()
             for xform in xforms:
                 try:
                     with transaction.atomic():
@@ -572,3 +583,6 @@ class Command(BaseCommand):
 
         if populate_xform_kpi_asset_uid:
             call_command('populate_kc_xform_kpi_asset_uid', username=username)
+
+        if username and sync_kobocat_form_media:
+            call_command('sync_kobocat_form_media', username=username, quiet=True)

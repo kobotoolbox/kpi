@@ -1,5 +1,6 @@
 # coding: utf-8
 from .constants import SHADOW_MODEL_APP_LABELS
+from .exceptions import ReadOnlyModelError
 
 
 class DefaultDatabaseRouter:
@@ -16,6 +17,10 @@ class DefaultDatabaseRouter:
         """
         Writes go to KoBoCAT database when `model` is a ShadowModel
         """
+
+        if getattr(model, 'read_only', False):
+            raise ReadOnlyModelError
+
         if model._meta.app_label in SHADOW_MODEL_APP_LABELS:
             return 'kobocat'
 

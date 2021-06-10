@@ -14,7 +14,7 @@
 
 .form-view__row--summary-description {
   .form-view__cell--description:not(:first-child) {
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
   }
 }
 
@@ -83,7 +83,7 @@
   display: flex;
 
   .form-view__cell {
-    border: 1px solid $kobo-lightgray;
+    border: 1px solid $kobo-gray-92;
     padding: 20px;
     flex: 2;
     margin-right: 10px;
@@ -105,8 +105,8 @@
   a {
     display: block;
     padding: 6px 10px;
-    color: $kobo-darkgray;
-    border-bottom: 1px solid $kobo-lightgray;
+    color: $kobo-gray-40;
+    border-bottom: 1px solid $kobo-gray-92;
     position: relative;
 
     &:last-child {
@@ -114,7 +114,7 @@
     }
 
     &:hover {
-      color: $kobo-black;
+      color: $kobo-gray-24;
       background: $kobo-teal-light;
     }
 
@@ -152,7 +152,7 @@
 
   a.team-sharing-button {
     cursor: pointer;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     position: absolute;
     right: 0px;
     top: -6px;
@@ -177,7 +177,7 @@
     justify-content: center;
     align-items: center;
     display: flex;
-    border: 1px solid $kobo-lightgray;
+    border: 1px solid $kobo-gray-92;
 
     span {
       font-size: 16px;

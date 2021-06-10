@@ -36,7 +36,7 @@ $assets-table-hover-bg: $kobo-teal-light;
 }
 
 .assets-table__header .assets-table-row .assets-table-row__column {
-  color: $kobo-black;
+  color: $kobo-gray-24;
 }
 
 .assets-table__header,
@@ -51,7 +51,7 @@ $assets-table-hover-bg: $kobo-teal-light;
 
 .assets-table__scrollbar-padding {
   // for taking the same space as scrollbar, width is being set in JS code
-  background-color: $kobo-whitegray;
+  background-color: $kobo-gray-96;
   align-self: stretch;
 }
 
@@ -61,8 +61,8 @@ $assets-table-hover-bg: $kobo-teal-light;
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  color: $kobo-darkgray;
-  background-color: $kobo-whitegray;
+  color: $kobo-gray-40;
+  background-color: $kobo-gray-96;
   height: 40px;
 
   .mdl-button {
@@ -205,7 +205,7 @@ $z-assets-table-row-header: 30;
   }
 
   &:first-of-type:hover .assets-table-row__column {
-    border-top-color: $kobo-lightgray;
+    border-top-color: $kobo-gray-92;
   }
 
   // columns get very narrow
@@ -221,11 +221,11 @@ $z-assets-table-row-header: 30;
     white-space: nowrap;
     height: 40px;
     line-height: 20px;
-    background-color: $kobo-whitegray;
+    background-color: $kobo-gray-96;
     padding: 10px;
 
     &:hover {
-      background-color: $kobo-lightgray;
+      background-color: $kobo-gray-92;
     }
 
     .k-icon {
@@ -296,9 +296,9 @@ $z-assets-table-row-header: 30;
   }
 
   .assets-table-row__column {
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
     padding: 20px 10px;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 
     &[disabled] {
       pointer-events: none;
@@ -311,7 +311,7 @@ $z-assets-table-row-header: 30;
 
     &.assets-table-row__column--name {
       flex: 1;
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.assets-table-row__column--owner {
@@ -365,7 +365,7 @@ $z-assets-table-row-header: 30;
   font-size: 12px;
   line-height: 1;
   color: currentColor;
-  background: $kobo-lightgray;
+  background: $kobo-gray-92;
   border-radius: 2px;
 
   &.assets-table-row__tag--gray-circle {
