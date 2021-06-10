@@ -129,34 +129,18 @@
 
       .connect-projects__import--options {
         position: relative;
-        i {
+        button {
           position: absolute;
           right: 0;
-          font-weight: bold;
-          cursor: pointer;
-          border: 1px solid;
-          border-radius: 10%;
+          padding-bottom: 25px;
+
+          i.k-icon {
+            font-size: 24px;
+          }
         }
 
-        i:not(:first-child) {
+        button:not(:first-child) {
           margin-right: 45px;
-        }
-
-        i.k-icon-trash {
-          color: $kobo-red;
-          &:hover {
-            color: $kobo-white;
-            background-color: $kobo-red;
-            border-color: $kobo-red;
-          }
-        }
-        i.k-icon-settings {
-          color: $kobo-blue;
-          &:hover {
-            color: $kobo-white;
-            background-color: $kobo-blue;
-            border-color: $kobo-blue;
-          }
         }
       }
     }

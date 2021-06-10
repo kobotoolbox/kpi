@@ -8,7 +8,10 @@ import {actions} from '../actions';
 import mixins from '../mixins';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
-import { QUERY_LIMIT_DEFAULT } from 'js/constants';
+import {
+  QUERY_LIMIT_DEFAULT,
+  ASSET_FILE_TYPES,
+} from 'js/constants';
 import { dataInterface } from '../dataInterface';
 
 // see kobo.map.marker-colors.scss for styling details of each set
@@ -127,7 +130,7 @@ class MapSettings extends React.Component {
   }
 
   componentDidMount() {
-    actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
+    actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id);
     this.listenTo(actions.resources.getAssetFiles.completed, this.updateFileList);
   }
 

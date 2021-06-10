@@ -17,7 +17,7 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
-import formMediaActions from './actions/media';
+import formMediaActions from './actions/mediaActions';
 import exportsActions from './actions/exportsActions';
 import dataShareActions from './actions/dataShare';
 import {

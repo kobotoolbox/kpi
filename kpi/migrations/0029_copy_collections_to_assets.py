@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import migrations, models
 
 import kpi.fields.kpi_uid
-from kpi.model_utils import disable_auto_field_update
+from kpi.utils.models import disable_auto_field_update
 
 
 def migrate_collections_to_assets(apps, schema_editor):

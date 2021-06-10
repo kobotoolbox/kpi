@@ -101,15 +101,16 @@ class FormViewTabs extends Reflux.Component {
     ) {
       sideTabs = [
         {
-          label: t("Reports"),
-          icon: "k-icon-report",
-          path: ROUTES.FORM_REPORT.replace(':uid', this.state.assetid),
-        },
-        {
           label: t("Table"),
           icon: "k-icon-table",
           path: ROUTES.FORM_TABLE.replace(':uid', this.state.assetid),
         },
+        {
+          label: t("Reports"),
+          icon: "k-icon-report",
+          path: ROUTES.FORM_REPORT.replace(':uid', this.state.assetid),
+        },
+
         {
           label: t("Gallery"),
           icon: "k-icon-photo-gallery",

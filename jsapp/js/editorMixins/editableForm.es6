@@ -737,6 +737,7 @@ export default assign({
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
                 menuPlacement='bottom'
+                isSearchable={false}
               />
             </bem.FormBuilderAside__row>
 

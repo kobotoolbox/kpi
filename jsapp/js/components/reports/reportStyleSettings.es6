@@ -132,7 +132,7 @@ export default class ReportStyleSettings extends React.Component {
       }
       return (
         <button
-          className={tabClassNames}
+          className={tabClassNames.join(' ')}
           onClick={this.toggleTab}
           data-index={i}
           key={i}
