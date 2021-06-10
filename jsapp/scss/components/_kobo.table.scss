@@ -1,4 +1,7 @@
+// These are custom styles for Table View table.
+
 $data-table-border: 1px solid $kobo-gray-92;
+$data-table-row-height: 42px;
 
 .form-view--table {
   padding: 0px 15px;
@@ -173,11 +176,15 @@ $data-table-border: 1px solid $kobo-gray-92;
     justify-content: stretch;
   }
 
+  .rt-tr-group {
+    max-height: $data-table-row-height;
+  }
+
   .rt-th, .rt-td {
     padding: 5px 8px;
     border-right: $data-table-border;
-    line-height: 42px - (2 * 5px);
-    height: 42px;
+    line-height: $data-table-row-height - (2 * 5px);
+    height: $data-table-row-height;
   }
 
   .rt-td.rt-numerical-value {
