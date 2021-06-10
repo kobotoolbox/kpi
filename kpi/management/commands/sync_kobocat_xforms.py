@@ -452,13 +452,22 @@ class Command(BaseCommand):
             default=False,
             help='Do not output status messages'
         )
-
         parser.add_argument(
             '--populate-xform-kpi-asset-uid',
             action='store_true',
             dest='populate_xform_kpi_asset_uid',
             default=False,
             help='Populate XForm `kpi_asset_uid` field')
+        parser.add_argument(
+            '--sync-kobocat-form-media',
+            action='store_true',
+            dest='sync_kobocat_form_media',
+            default=True,
+            help='Sync kobocat form-media to kpi')
+        parser.add_argument(
+            '--no-sync-kobocat-form-media',
+            action='store_false',
+            dest='sync_kobocat_form_media')
 
     def _print_str(self, string):
         if not self._quiet:
@@ -476,6 +485,7 @@ class Command(BaseCommand):
         self._quiet = options.get('quiet')
         username = options.get('username')
         populate_xform_kpi_asset_uid = options.get('populate_xform_kpi_asset_uid')
+        sync_kobocat_form_media = options.get('sync_kobocat_form_media')
         users = User.objects.all()
         # Do a basic query just to make sure the KobocatXForm model is
         # loaded
@@ -573,3 +583,6 @@ class Command(BaseCommand):
 
         if populate_xform_kpi_asset_uid:
             call_command('populate_kc_xform_kpi_asset_uid', username=username)
+
+        if username and sync_kobocat_form_media:
+            call_command('sync_kobocat_form_media', username=username, quiet=True)
