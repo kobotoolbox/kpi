@@ -199,6 +199,7 @@ new Set([
   'deviceid',
   'phonenumber',
   'audit',
+  'background-audio',
 ]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
 Object.freeze(META_QUESTION_TYPES);
 
