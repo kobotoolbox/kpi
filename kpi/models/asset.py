@@ -54,8 +54,8 @@ from kpi.fields import (
     LazyDefaultJSONBField,
 )
 from kpi.mixins import (
-    FormpackXLSFormUtils,
-    XlsExportable,
+    FormpackXLSFormUtilsMixin,
+    XlsExportableMixin,
 )
 
 from kpi.models.asset_file import AssetFile
@@ -129,8 +129,8 @@ class KpiTaggableManager(_TaggableManager):
 
 class Asset(ObjectPermissionMixin,
             DeployableMixin,
-            XlsExportable,
-            FormpackXLSFormUtils,
+            XlsExportableMixin,
+            FormpackXLSFormUtilsMixin,
             models.Model):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)

@@ -9,11 +9,11 @@ import six
 import xlsxwriter
 
 
-class XlsExportable:
+class XlsExportableMixin:
     def ordered_xlsform_content(self,
                                 kobo_specific_types=False,
                                 append=None):
-        # currently, this method depends on "FormpackXLSFormUtils"
+        # currently, this method depends on "FormpackXLSFormUtilsMixin"
         content = copy.deepcopy(self.content)
         if append:
             self._append(content, **append)

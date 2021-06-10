@@ -3,7 +3,7 @@ from django.db import models, migrations
 import jsonfield.fields
 from django.conf import settings
 
-from ..models.asset import XlsExportable
+from ..models.asset import XlsExportableMixin
 
 class Migration(migrations.Migration):
 
@@ -29,6 +29,6 @@ class Migration(migrations.Migration):
             ],
             options={
             },
-            bases=(models.Model, XlsExportable),
+            bases=(models.Model, XlsExportableMixin),
         ),
     ]

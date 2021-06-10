@@ -46,7 +46,7 @@ FLATTEN_OPTS = {
 }
 
 
-class FormpackXLSFormUtils:
+class FormpackXLSFormUtilsMixin:
     def _standardize(self, content):
         if needs_standardization(content):
             standardize_content_in_place(content)

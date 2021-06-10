@@ -11,8 +11,8 @@ from formpack import FormPack
 from kpi.fields import KpiUidField
 from kpi.interfaces.open_rosa import OpenRosaFormListInterface
 from kpi.mixins import (
-    FormpackXLSFormUtils,
-    XlsExportable,
+    FormpackXLSFormUtilsMixin,
+    XlsExportableMixin,
 )
 from kpi.utils.hash import get_hash
 from kpi.utils.log import logging
@@ -48,8 +48,8 @@ class AbstractFormList(
 class AssetSnapshot(
     models.Model,
     AbstractFormList,
-    XlsExportable,
-    FormpackXLSFormUtils,
+    XlsExportableMixin,
+    FormpackXLSFormUtilsMixin,
 ):
     """
     This model serves as a cache of the XML that was exported by the installed
