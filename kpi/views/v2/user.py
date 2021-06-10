@@ -74,7 +74,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
             username=username,
             quiet=True,
             populate_xform_kpi_asset_uid=True,
-            sync_form_media=True
+            sync_kobocat_form_media=True
         )
 
         return Response(
