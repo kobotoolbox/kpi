@@ -12,11 +12,11 @@
     // override padding for first and last item so it looks like the menu has
     // more space to breathe
     > *:first-child {
-      padding-top: 10px;
+      margin-top: 10px;
     }
 
     > *:last-child {
-      padding-bottom: 10px;
+      margin-bottom: 10px;
     }
   }
 
