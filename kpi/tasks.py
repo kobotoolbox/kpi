@@ -24,17 +24,17 @@ def sync_kobocat_xforms(
     username=None,
     quiet=True,
     populate_xform_kpi_asset_uid=False,
-    sync_form_media=False,
+    sync_kobocat_form_media=False,
 ):
     call_command(
         'sync_kobocat_xforms',
         username=username,
         quiet=quiet,
         populate_xform_kpi_asset_uid=populate_xform_kpi_asset_uid,
-        sync_form_media=sync_form_media,
+        sync_kobocat_form_media=sync_kobocat_form_media,
     )
 
-    
+
 @shared_task
 def sync_media_files(asset_uid):
     from kpi.models.asset import Asset  # avoid circular imports
