@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from taggit.models import Tag
 
 from kpi.models import Asset, TagUid
-from kpi.models.object_permission import get_anonymous_user
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class TagSerializer(serializers.ModelSerializer):

@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.db import models, migrations
 import jsonfield.fields
-from kpi.models import ObjectPermissionMixin
+from kpi.mixins import ObjectPermissionMixin
 from django.conf import settings
 import taggit.managers
 

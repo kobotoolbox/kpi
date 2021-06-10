@@ -16,7 +16,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
 )
 from kpi.models import Asset
-from kpi.models.object_permission import get_all_objects_for_user
+from kpi.utils.object_permission import get_all_objects_for_user
 
 # move this into a fixture file?
 # note: this is not a very robust example of a cascading select

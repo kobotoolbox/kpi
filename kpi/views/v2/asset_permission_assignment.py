@@ -21,7 +21,7 @@ from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
 )
-from kpi.utils.object_permission_helper import ObjectPermissionHelper
+from kpi.utils.object_permission import ObjectPermissionHelper
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 

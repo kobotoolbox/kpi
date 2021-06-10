@@ -19,8 +19,8 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import BadPermissionsException
+from kpi.utils.object_permission import get_all_objects_for_user
 from ..models.asset import Asset
-from ..models.object_permission import get_all_objects_for_user
 
 
 class BasePermissionsTestCase(TestCase):

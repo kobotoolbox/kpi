@@ -23,7 +23,6 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.fields import (
     PaginatedApiField,
     RelativePrefixHyperlinkedRelatedField,
@@ -31,10 +30,10 @@ from kpi.fields import (
 )
 from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.models.asset import UserAssetSubscription
-from kpi.models.object_permission import get_anonymous_user
-
-from kpi.utils.object_permission_helper import ObjectPermissionHelper
-
+from kpi.utils.object_permission import (
+    get_anonymous_user,
+    ObjectPermissionHelper,
+)
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer

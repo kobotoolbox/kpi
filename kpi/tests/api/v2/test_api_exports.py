@@ -11,10 +11,10 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset, ExportTask
-from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.test_mock_data_exports import MockDataExportsBase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):

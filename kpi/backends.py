@@ -3,7 +3,7 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
 
-from .models.object_permission import get_anonymous_user, perm_parse
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class ObjectPermissionBackend(ModelBackend):

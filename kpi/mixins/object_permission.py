@@ -18,6 +18,11 @@ from kpi.deployment_backends.kc_access.utils import (
     remove_applicable_kc_permissions,
     assign_applicable_kc_permissions
 )
+from kpi.models.object_permission import ObjectPermission
+from kpi.utils.object_permission import (
+    get_anonymous_user,
+    perm_parse,
+)
 
 
 class ObjectPermissionMixin:

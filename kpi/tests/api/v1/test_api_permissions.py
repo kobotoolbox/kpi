@@ -1,15 +1,14 @@
 # coding: utf-8
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import User
 from django.urls import reverse
-from django.utils import timezone
 from rest_framework import status
 
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, ObjectPermission
-from kpi.models.object_permission import get_anonymous_user
 # importing module instead of the class, avoid running the tests twice
 from kpi.tests.api.v2 import test_api_permissions
 from kpi.tests.kpi_test_case import KpiTestCase
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class ApiAnonymousPermissionsTestCase(test_api_permissions.ApiAnonymousPermissionsTestCase):

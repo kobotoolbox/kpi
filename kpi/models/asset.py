@@ -55,16 +55,16 @@ from kpi.fields import (
 )
 from kpi.mixins import (
     FormpackXLSFormUtilsMixin,
+    ObjectPermissionMixin,
     XlsExportableMixin,
 )
-
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
+from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
 from .asset_user_partial_permission import AssetUserPartialPermission
 from .asset_version import AssetVersion
-from .object_permission import ObjectPermissionMixin, get_cached_code_names
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
