@@ -31,7 +31,7 @@ class ConnectProjects extends React.Component {
       isLoading: false,
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
-      isSharingSomeQuestions: props.asset.data_sharing?.fields?.length || false,
+      isSharingSomeQuestions: Boolean(props.asset.data_sharing?.fields?.length) || false,
       attachedParents: [],
       sharingEnabledAssets: null,
       newParent: null,
@@ -514,13 +514,15 @@ class ConnectProjects extends React.Component {
                   </div>
 
                   <div className='connect-projects__import--options'>
-                    <i
-                      className="k-icon k-icon-trash"
+                    <bem.KoboLightButton
+                      m={['red', 'icon-only']}
                       onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
-                    />
+                    >
+                      <i className='k-icon k-icon-trash'/>
+                    </bem.KoboLightButton>
 
-                    <i
-                      className="k-icon k-icon-settings"
+                    <bem.KoboLightButton
+                      m={['blue', 'icon-only']}
                       onClick={() => this.showColumnFilterModal(
                         this.props.asset,
                         {
@@ -532,7 +534,9 @@ class ConnectProjects extends React.Component {
                         item.childFields,
                         item.attachmentUrl,
                       )}
-                    />
+                    >
+                      <i className='k-icon k-icon-settings'/>
+                    </bem.KoboLightButton>
                   </div>
                 </li>
               );

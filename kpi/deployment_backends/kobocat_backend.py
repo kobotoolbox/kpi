@@ -35,8 +35,8 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
+    KobocatXForm,
     ReadOnlyKobocatInstance,
-    ReadOnlyKobocatXForm,
 )
 from .kc_access.utils import (
     assign_applicable_kc_permissions,
@@ -62,6 +62,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         'formhub',
         'meta',
     ]
+
+    SYNCED_DATA_FILE_TYPES = {
+        AssetFile.FORM_MEDIA: AssetFile.BACKEND_DATA_TYPE,
+        AssetFile.PAIRED_DATA: PairedData.BACKEND_DATA_TYPE,
+    }
 
     def bulk_assign_mapped_perms(self):
         """
@@ -600,13 +605,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             string=url
         )
 
-    def is_paired_data(self, value: str) -> bool:
-        pattern = (
-            rf'{settings.KOBOFORM_URL}/api/v2/assets/'
-            rf'{self.asset.uid}/paired-data/pd[^\/]+/external\.xml$'
-        )
-        return re.match(pattern, value)
-
     @staticmethod
     def make_identifier(username, id_string):
         """
@@ -874,14 +872,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Build a list of KoBoCAT metadata to compare with KPI
         for metadata in response.get('metadata', []):
-            is_paired_data = self.is_paired_data(metadata['data_value'])
-            if (
-                metadata['data_type'] == 'media'
-                and (
-                    file_type == AssetFile.FORM_MEDIA and not is_paired_data
-                    or file_type == AssetFile.PAIRED_DATA and is_paired_data
-                )
-            ):
+            if metadata['data_type'] == self.SYNCED_DATA_FILE_TYPES[file_type]:
                 kc_files[metadata['data_value']] = {
                     'url': metadata['url'],
                     'md5': metadata['file_hash'],
@@ -911,7 +902,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 kc_file = kc_files[uniq]
                 if obj.deleted_at is None:
                     # If md5 differs, we need to re-upload it.
-                    if obj.hash != kc_file['md5']:
+                    if obj.md5_hash != kc_file['md5']:
                         self.__delete_kc_metadata(kc_file)
                         self.__save_kc_metadata(obj)
                 elif kc_file['from_kpi']:
@@ -948,7 +939,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def xform(self):
         if not hasattr(self, '_xform'):
             pk = self.backend_response['formid']
-            xform = ReadOnlyKobocatXForm.objects.filter(pk=pk).only(
+            xform = KobocatXForm.objects.filter(pk=pk).only(
                 'user__username', 'id_string').first()
             if not (xform.user.username == self.asset.owner.username and
                     xform.id_string == self.xform_id_string):
@@ -1027,7 +1018,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if (
             response.status_code != expected_status_code
             or json_response.get('type') == 'alert-error'
-            or expect_formid and 'formid' not in json_response
+            or (expect_formid and 'formid' not in json_response)
         ):
             if 'text' in json_response:
                 # KC API refused us for a specified reason, likely invalid
@@ -1298,11 +1289,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             'data': {
                 'data_value': file_.backend_data_value,
                 'xform': self.xform_id,
-                'data_type': 'media',
+                'data_type': file_.backend_data_type,
                 'from_kpi': True,
                 'data_filename': file_.filename,
                 'data_file_type': file_.mimetype,
-                'file_hash': file_.hash,
+                'file_hash': file_.md5_hash,
             }
         }
 
