@@ -443,7 +443,7 @@ export class DataTable extends React.Component {
         case '_submitted_by':
             index = 'z92';
             break;
-        // set index for `background-audio` to the front of the columns
+        // set index for `background-audio` to the front of every column with `_`
         case 'background-audio':
             index = '_1';
             break;
@@ -796,7 +796,7 @@ export class DataTable extends React.Component {
           this.state.tableData,
           false,
           null,
-          backgroundAudioUrl
+          backgroundAudioUrl,
         );
       } else {
         this.submissionModalProcessing(sid, this.state.tableData);
@@ -808,7 +808,7 @@ export class DataTable extends React.Component {
     tableData,
     isDuplicated = false,
     duplicatedSubmission = null,
-    backgroundAudioUrl = null
+    backgroundAudioUrl = null,
   ) {
     let ids = [];
 
