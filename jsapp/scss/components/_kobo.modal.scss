@@ -725,37 +725,6 @@ $z-modal-x: 10;
   float: right;
 }
 
-// Extension of `dropzone` used in settings modals
-.dropzone-settings {
-  background: $kobo-gray-96;
-  padding: 30px;
-  border: 2px dashed $kobo-gray-92;
-  cursor: pointer;
-  border-radius: 6px;
-  text-align: center;
-
-  i {
-    display: block;
-    margin: 0 auto;
-    font-size: 72px;
-    opacity: 0.5;
-  }
-
-  .loading {
-    font-size: inherit;
-  }
-
-  .loading i {
-    font-size: 36px;
-    margin-top: 20px;
-    margin-bottom: 16px;
-  }
-
-  &:hover {border-color: $kobo-blue;}
-  &.dropzone-active {border-color: $kobo-blue;}
-  &.dropzone-reject {border-color: $kobo-red;}
-}
-
 @media screen and (max-width: 767px) {
   .modal.modal--open {
     min-width: 90%;
@@ -766,7 +735,6 @@ $z-modal-x: 10;
 @media screen and (max-width: 1175px) {
   .form-media__upload-url {
     width: 100%;
-    padding-left: 5%;
   }
 }
 

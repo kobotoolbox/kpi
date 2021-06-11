@@ -7,6 +7,7 @@ import {ASSET_FILE_TYPES} from 'js/constants';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {LoadingSpinner} from 'js/ui';
+import {stores} from 'js/stores';
 import {
   truncateString,
   truncateUrl,
@@ -14,6 +15,7 @@ import {
 
 const MAX_ITEM_LENGTH = 50;
 const DEFAULT_MEDIA_DESCRIPTION = 'default';
+const MEDIA_SUPPORT_URL = 'media.html';
 
 /**
  * @prop {object} asset
@@ -146,7 +148,8 @@ class FormMedia extends React.Component {
     }
   }
 
-  onDeleteMedia(url) {
+  onDeleteMedia(evt, url) {
+    evt.preventDefault();
     actions.media.deleteMedia(this.props.asset.uid, url);
   }
 
@@ -159,14 +162,20 @@ class FormMedia extends React.Component {
       'form-builder-header__button',
       'form-builder-header__button--save',
     ];
+
     if (this.state.isUploadURLPending) {
       buttonClassNames.push('form-builder-header__button--savepending');
     }
+
     return (
-      <button className={buttonClassNames.join(' ')} onClick={this.onSubmitURL}>
-        {/* Icon gets populated via CSS like formbuilder, see: kpi#3133*/}
+      <button
+        className={buttonClassNames.join(' ')}
+        onClick={this.onSubmitURL}
+        disabled={!this.state.inputURL}
+      >
+        {/* Icon gets populated via CSS like formbuilder, see: kpi#3133 */}
         <i />
-        {t('ADD')}
+        {t('Add')}
       </button>
     );
   }
@@ -201,85 +210,112 @@ class FormMedia extends React.Component {
 
   render() {
     return (
-      <bem.FormView m='form-media' className='form-media'>
-        <div className='form-media__upload'>
-          {!this.state.isUploadFilePending && (
-            <Dropzone
-              onDrop={this.onFileDrop.bind(this)}
-              className='dropzone-settings'
-            >
-              {this.state.fieldsErrors?.base64Encoded && (
-                <bem.FormView__cell m='error'>
-                  <i className='k-icon-alert' />
-                  <p>{this.state.fieldsErrors?.base64Encoded}</p>
-                </bem.FormView__cell>
+      <bem.FormView m='form-media'>
+        <bem.FormMedia>
+          <bem.FormMedia__title>
+            <bem.FormMedia__label>
+              {t('Attach files')}
+            </bem.FormMedia__label>
+
+            {stores.serverEnvironment &&
+              stores.serverEnvironment.state.support_url && (
+                <a
+                  className='title-help'
+                  target='_blank'
+                  href={
+                    stores.serverEnvironment.state.support_url +
+                    MEDIA_SUPPORT_URL
+                  }
+                  data-tip={t('Learn more about form media')}
+                >
+                  <i className='k-icon k-icon-help' />
+                </a>
               )}
-              <i className='k-icon-upload' />
-              {t('Drag and drop files here')}
-              <div className='form-media__desc'>
-                {t('or')} <a>{t('click here to browse')}</a>
-              </div>
-            </Dropzone>
-          )}
+          </bem.FormMedia__title>
 
-          {this.state.isUploadFilePending && (
-            <div className='dropzone-settings'>
-              <LoadingSpinner message={t('Uploading file…')} />
-            </div>
-          )}
-
-          <div className='form-media__upload-url'>
-            <label className='form-media__upload-url-label'>
-              {t('You can also add files using a URL')}
-            </label>
-            <div className='form-media__upload-url-form'>
-              <TextBox
-                type='url'
-                placeholder={t('Paste URL here')}
-                errors={this.state.fieldsErrors?.metadata}
-                value={this.state.inputURL}
-                onChange={this.onInputURLChange}
-              />
-              {this.renderButton()}
-            </div>
-          </div>
-        </div>
-
-        <div className='form-media__list'>
-          <label className='form-media__list-label'>
-            {t('File(s) uploaded to this project')}
-          </label>
-
-          <ul>
-            {(!this.state.isInitialised ||
-              this.state.isUploadFilePending ||
-              this.state.isUploadURLPending) && (
-              <li className='form-media__list-default-item form-media__list-item'>
-                <LoadingSpinner message={t('loading media')} />
-              </li>
+          <bem.FormMedia__upload>
+            {!this.state.isUploadFilePending && (
+              <Dropzone
+                onDrop={this.onFileDrop.bind(this)}
+                className='kobo-dropzone kobo-dropzone--form-media'
+              >
+                {this.state.fieldsErrors?.base64Encoded && (
+                  <bem.FormView__cell m='error'>
+                    <i className='k-icon k-icon-alert' />
+                    <p>{this.state.fieldsErrors?.base64Encoded}</p>
+                  </bem.FormView__cell>
+                )}
+                <i className='k-icon k-icon-upload' />
+                {t('Drag and drop files here')}
+                <div className='dropzone-description'>
+                  {t('or')} <a>{t('click here to browse')}</a>
+                </div>
+              </Dropzone>
             )}
 
-            {this.state.uploadedAssets.map((item, n) => (
-              <li key={n} className='form-media__list-item'>
-                {this.renderIcon(item)}
-                {this.renderFileName(item)}
-                <bem.KoboLightButton
-                  m={['red', 'icon-only']}
-                  onClick={this.onDeleteMedia(item.url)}
-                >
-                  <i className='k-icon k-icon-trash' />
-                </bem.KoboLightButton>
-              </li>
-            ))}
+            {this.state.isUploadFilePending && (
+              <div className='kobo-dropzone kobo-dropzone--form-media'>
+                <LoadingSpinner message={t('Uploading file…')} />
+              </div>
+            )}
 
-            {this.state.isInitialised &&
-              this.state.uploadedAssets.length == 0 && (
-                <li className='form-media__default-item form-media__list-item'>
-                  {t('No files uploaded yet')}
-                </li>
+            <bem.FormMediaUploadUrl>
+              <bem.FormMediaUploadUrl__label>
+                {t('You can also add files using a URL')}
+              </bem.FormMediaUploadUrl__label>
+
+              <bem.FormMediaUploadUrl__form>
+                <TextBox
+                  type='url'
+                  placeholder={t('Paste URL here')}
+                  errors={this.state.fieldsErrors?.metadata}
+                  value={this.state.inputURL}
+                  onChange={this.onInputURLChange}
+                />
+
+                {this.renderButton()}
+              </bem.FormMediaUploadUrl__form>
+            </bem.FormMediaUploadUrl>
+          </bem.FormMedia__upload>
+
+          <bem.FormMedia__list>
+            <bem.FormMedia__label>
+              {t('Attached files')}
+            </bem.FormMedia__label>
+
+            <ul>
+              {(!this.state.isInitialised ||
+                this.state.isUploadFilePending ||
+                this.state.isUploadURLPending) && (
+                <bem.FormMedia__listItem>
+                  <LoadingSpinner message={t('loading media')} />
+                </bem.FormMedia__listItem>
               )}
-          </ul>
-        </div>
+
+              {this.state.isInitialised &&
+                !this.state.uploadedAssets.length && (
+                  <bem.FormMedia__listItem>
+                    {t('No files uploaded yet')}
+                  </bem.FormMedia__listItem>
+                )}
+
+              {this.state.uploadedAssets.map((item, n) => (
+                <bem.FormMedia__listItem key={n}>
+                  {this.renderIcon(item)}
+
+                  {this.renderFileName(item)}
+
+                  <bem.KoboLightButton
+                    m={['red', 'icon-only']}
+                    onClick={(evt) => this.onDeleteMedia(evt, item.url)}
+                  >
+                    <i className='k-icon k-icon-trash' />
+                  </bem.KoboLightButton>
+                </bem.FormMedia__listItem>
+              ))}
+            </ul>
+          </bem.FormMedia__list>
+        </bem.FormMedia>
       </bem.FormView>
     );
   }
