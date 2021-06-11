@@ -462,12 +462,8 @@ class Command(BaseCommand):
             '--sync-kobocat-form-media',
             action='store_true',
             dest='sync_kobocat_form_media',
-            default=True,
+            default=False,
             help='Sync kobocat form-media to kpi')
-        parser.add_argument(
-            '--no-sync-kobocat-form-media',
-            action='store_false',
-            dest='sync_kobocat_form_media')
 
     def _print_str(self, string):
         if not self._quiet:
