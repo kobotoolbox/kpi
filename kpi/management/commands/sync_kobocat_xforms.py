@@ -484,7 +484,6 @@ class Command(BaseCommand):
         sync_kobocat_form_media = options.get('sync_kobocat_form_media')
         verbosity = options.get('verbosity')
         users = User.objects.all()
-
         # Do a basic query just to make sure the KobocatXForm model is
         # loaded
         if not KobocatXForm.objects.exists():
