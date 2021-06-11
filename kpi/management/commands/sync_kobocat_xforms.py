@@ -482,7 +482,9 @@ class Command(BaseCommand):
         username = options.get('username')
         populate_xform_kpi_asset_uid = options.get('populate_xform_kpi_asset_uid')
         sync_kobocat_form_media = options.get('sync_kobocat_form_media')
+        verbosity = options.get('verbosity')
         users = User.objects.all()
+
         # Do a basic query just to make sure the KobocatXForm model is
         # loaded
         if not KobocatXForm.objects.exists():
@@ -578,7 +580,16 @@ class Command(BaseCommand):
         _set_auto_field_update(Asset, "date_modified", True)
 
         if populate_xform_kpi_asset_uid:
-            call_command('populate_kc_xform_kpi_asset_uid', username=username)
+            call_command(
+                'populate_kc_xform_kpi_asset_uid',
+                username=username,
+                verbosity=verbosity,
+            )
 
-        if username and sync_kobocat_form_media:
-            call_command('sync_kobocat_form_media', username=username, quiet=True)
+        if sync_kobocat_form_media:
+            call_command(
+                'sync_kobocat_form_media',
+                username=username,
+                quiet=self._quiet,
+                verbosity=verbosity,
+            )
