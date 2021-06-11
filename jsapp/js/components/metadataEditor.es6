@@ -244,11 +244,11 @@ export default class MetadataEditor extends React.Component {
               <Select
                 className='kobo-select'
                 classNamePrefix='kobo-select'
-                {/*
+                /*
                   defaultValue only displays the default value, it does not
                   append it to the JSON. If there is no quality parameter then
                   it would default to ODK_DEFAULT_AUDIO_QUALITY behind the scenes
-                */}
+                */
                 defaultValue={ODK_DEFAULT_AUDIO_QUALITY}
                 options={AUDIO_QUALITY_OPTIONS}
                 onChange={this.onBackgroundAudioParametersChange}
