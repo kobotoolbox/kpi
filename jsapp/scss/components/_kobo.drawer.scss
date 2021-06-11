@@ -102,7 +102,7 @@ $s-drawer-width: 270px;
     width: 340px;
   }
 
-  .mdl-layout__content {
+  .k-drawer + .mdl-layout__content {
     margin-left: 0;
   }
 }
