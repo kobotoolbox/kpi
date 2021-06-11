@@ -1,0 +1,13 @@
+.background-audio-player {
+  text-align: left;
+  .background-audio-player__label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: $kobo-gray-24;
+  }
+
+  .background-audio-player__audio {
+    display: block;
+  }
+}

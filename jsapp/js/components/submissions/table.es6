@@ -327,8 +327,11 @@ export class DataTable extends React.Component {
       className: 'rt-link',
       Cell: (row) => (
         <div>
-          <span onClick={this.launchSubmissionModal} data-sid={row.original._id}
-                className='table-link' data-tip={t('Open')}>
+          <span
+            onClick={() => {this.launchSubmissionModal(row)}}
+            data-sid={row.original._id}
+            className='table-link' data-tip={t('Open')}
+          >
             <i className='k-icon k-icon-view'/>
           </span>
 
@@ -775,17 +778,37 @@ export class DataTable extends React.Component {
     });
     this.requestData(instance);
   }
-  launchSubmissionModal(evt) {
-    let el = $(evt.target).closest('[data-sid]').get(0);
-    const sid = el.getAttribute('data-sid');
+  launchSubmissionModal(row) {
+    if (row && row.original) {
+      const sid = row.original._id;
+      if (
+        Object.keys(row.original).includes(
+          META_QUESTION_TYPES['background-audio']
+        )
+      ) {
+        let backgroundAudioUrl = this.getMediaDownloadLink(
+          row,
+          row.original[META_QUESTION_TYPES['background-audio']]
+        );
 
-    this.submissionModalProcessing(sid, this.state.tableData);
+        this.submissionModalProcessing(
+          sid,
+          this.state.tableData,
+          false,
+          null,
+          backgroundAudioUrl
+        );
+      } else {
+        this.submissionModalProcessing(sid, this.state.tableData);
+      }
+    }
   }
   submissionModalProcessing(
     sid,
     tableData,
     isDuplicated = false,
-    duplicatedSubmission = null
+    duplicatedSubmission = null,
+    backgroundAudioUrl = null
   ) {
     let ids = [];
 
@@ -800,6 +823,7 @@ export class DataTable extends React.Component {
       ids: ids,
       isDuplicated: isDuplicated,
       duplicatedSubmission: duplicatedSubmission,
+      backgroundAudioUrl: backgroundAudioUrl,
       tableInfo: {
         currentPage: this.state.currentPage,
         pageSize: this.state.pageSize,

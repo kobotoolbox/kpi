@@ -15,6 +15,7 @@ import {stores} from 'js/stores';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
+  META_QUESTION_TYPES,
 } from 'js/constants';
 import SubmissionDataTable from './submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
@@ -237,6 +238,12 @@ class SubmissionModal extends React.Component {
     });
   }
 
+  hasBackgroundAudio() {
+    return this.props?.asset?.content?.survey.some(
+      (question) => question.name === META_QUESTION_TYPES['background-audio']
+    );
+  }
+
   render() {
     if (this.state.loading) {
       return (<LoadingSpinner/>);
@@ -347,6 +354,23 @@ class SubmissionModal extends React.Component {
                 {t('Refresh submission')}
               </a>
             </div>
+          }
+
+          {this.hasBackgroundAudio() &&
+            <bem.FormModal__group>
+              <bem.BackgroundAudioPlayer>
+                <bem.BackgroundAudioPlayer__label>
+                  {t('Background audio recording')}
+                </bem.BackgroundAudioPlayer__label>
+
+                <bem.BackgroundAudioPlayer__audio controls>
+                  <source
+                    src={this.props?.backgroundAudioUrl}
+                    type='audio/x-m4a'
+                  />
+                </bem.BackgroundAudioPlayer__audio>
+              </bem.BackgroundAudioPlayer>
+            </bem.FormModal__group>
           }
 
           {this.props.asset.deployment__active &&
