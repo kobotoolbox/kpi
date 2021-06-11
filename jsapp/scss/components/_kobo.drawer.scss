@@ -103,7 +103,7 @@ $drawer-background: $kobo-gray-96;
     width: 340px;
   }
 
-  .mdl-layout__content {
+  .k-drawer + .mdl-layout__content {
     margin-left: 0;
   }
 }
