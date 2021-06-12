@@ -351,26 +351,8 @@ export class AccessDeniedMessage extends React.Component {
   }
 }
 
-export class NotLoggedInMessage extends React.Component {
-  render() {
-    return (
-      <bem.FormView>
-        <bem.Loading>
-          <bem.Loading__inner>
-            <h3>
-              {t('You are not logged in')}
-            </h3>
-            {t('To see your projects, please use LOGIN button on top of this page.')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      </bem.FormView>
-    );
-  }
-}
-
 var ui = {
   AccessDeniedMessage,
-  NotLoggedInMessage,
   SearchBox: SearchBox,
   Panel: Panel,
   Modal: Modal,

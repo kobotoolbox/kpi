@@ -13,6 +13,7 @@ import {dataInterface} from '../dataInterface';
 import {
   assign,
   currentLang,
+  getLoginUrl,
   stringToColor,
 } from 'utils';
 import {getAssetIcon} from 'js/assetUtils';
@@ -107,17 +108,6 @@ class MainHeader extends Reflux.Component {
     }
   }
 
-  getLoginUrl() {
-    let url = PATHS.LOGIN;
-    const currentLoc = hashHistory.getCurrentLocation();
-    if (currentLoc?.pathname) {
-      const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
-      // add redirection after logging in to current page
-      url += `?next=${nextUrl}`;
-    }
-    return url;
-  }
-
   renderLangItem(lang) {
     return (
       <bem.AccountBox__menuLI key={lang.value}>
@@ -132,7 +122,7 @@ class MainHeader extends Reflux.Component {
     return (
       <bem.LoginBox>
         <a
-          href={this.getLoginUrl()}
+          href={getLoginUrl()}
           className='kobo-button kobo-button--blue'
         >
           {t('Log In')}
