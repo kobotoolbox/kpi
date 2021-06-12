@@ -203,10 +203,12 @@ stores.session = Reflux.createStore({
   currentAccount: {
     username: ANON_USERNAME,
   },
+  isAuthStateKnown: false,
   init() {
     this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.verifyLogin.anonymous, (data) => {
+      this.isAuthStateKnown = true;
       log('login confirmed anonymous', data.message);
     });
     this.listenTo(actions.auth.verifyLogin.failed, (xhr) => {
@@ -242,6 +244,7 @@ stores.session = Reflux.createStore({
     this.trigger({environment: environment});
   },
   triggerLoggedIn(acct) {
+    this.isAuthStateKnown = true;
     this.isLoggedIn = true;
     this.currentAccount = acct;
     this.trigger({

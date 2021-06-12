@@ -554,6 +554,7 @@ export class FormLanding extends React.Component {
   render () {
     var docTitle = this.state.name || t('Untitled');
     const userCanEdit = this.userCan('change_asset', this.state);
+    const isLoggedIn = stores.session.isLoggedIn;
 
     if (this.state.uid === undefined) {
       return (<ui.LoadingSpinner/>);
@@ -588,7 +589,8 @@ export class FormLanding extends React.Component {
             this.renderHistory()
           }
           {this.state.deployed_versions.count > 0 && this.state.deployment__active &&
-            this.renderCollectData()
+            isLoggedIn &&
+              this.renderCollectData()
           }
         </bem.FormView>
       </DocumentTitle>
