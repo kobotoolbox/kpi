@@ -37,6 +37,14 @@
     display: block;
   }
 
+  .login-box {
+    text-align: right;
+  }
+
+  .mdl-layout-title + .login-box {
+    flex: 1;
+  }
+
   .account-box {
     margin-left: auto;
     position: relative;

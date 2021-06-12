@@ -334,7 +334,7 @@ class PopoverMenu extends React.Component {
   }
 };
 
-class AccessDeniedMessage extends React.Component {
+export class AccessDeniedMessage extends React.Component {
   render() {
     return (
       <bem.FormView>

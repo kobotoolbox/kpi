@@ -33,7 +33,7 @@ export default class AccountSettings extends React.Component {
   rebuildState() {
     if (
       stores.session &&
-      stores.session.currentAccount &&
+      stores.session.isLoggedIn &&
       stores.session.environment
     ) {
       this.setStateFromSession(
@@ -218,7 +218,7 @@ export default class AccountSettings extends React.Component {
   render() {
     if(
       !stores.session ||
-      !stores.session.currentAccount ||
+      !stores.session.isLoggedIn ||
       !stores.session.environment
     ) {
       return (

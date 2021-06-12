@@ -116,6 +116,11 @@
       }
     }
 
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
     i {
       font-size: 36px;
       vertical-align: -13px;
@@ -161,6 +166,11 @@
     &.active {
       font-weight: 700;
       border-bottom: 4px solid $kobo-teal;
+    }
+
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
     }
   }
 
