@@ -7,6 +7,8 @@ import Select from 'react-select';
 import {assign} from 'utils';
 import {
   META_QUESTION_TYPES,
+  SURVEY_DETAIL_ATTRIBUTES,
+  FUNCTION_TYPE,
 } from 'js/constants';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
@@ -63,17 +65,32 @@ export default class MetadataEditor extends React.Component {
   }
 
   onCheckboxChange(name, isChecked) {
-    this.getSurveyDetail(name).set('value', isChecked);
+    this.getSurveyDetail(name).set(
+      SURVEY_DETAIL_ATTRIBUTES.value.id,
+      isChecked
+    );
+    // Append parameters column with ODK_DEFAULT_AUDIO_QUALITY by default for
+    // background-audio type
+    if (isChecked && name === META_QUESTION_TYPES['background-audio']) {
+      this.getSurveyDetail(name).set(
+        SURVEY_DETAIL_ATTRIBUTES.parameters.id,
+        ODK_DEFAULT_AUDIO_QUALITY.value
+      );
+    }
+
     this.rebuildState();
-    if (typeof this.props.onChange === 'function') {
+    if (typeof this.props.onChange === FUNCTION_TYPE.function.id) {
       this.props.onChange();
     }
   }
 
   onAuditParametersChange(newVal) {
-    this.getSurveyDetail(META_QUESTION_TYPES.audit).set('parameters', newVal);
+    this.getSurveyDetail(META_QUESTION_TYPES.audit).set(
+      SURVEY_DETAIL_ATTRIBUTES.parameters.id,
+      newVal
+    );
     this.rebuildState();
-    if (typeof this.props.onChange === 'function') {
+    if (typeof this.props.onChange === FUNCTION_TYPE.function.id) {
       this.props.onChange();
     }
   }
@@ -85,11 +102,11 @@ export default class MetadataEditor extends React.Component {
 
   onBackgroundAudioParametersChange(newVal) {
     this.getSurveyDetail(META_QUESTION_TYPES['background-audio']).set(
-      'parameters',
+      SURVEY_DETAIL_ATTRIBUTES.parameters.id,
       newVal.value
     );
     this.rebuildState();
-    if (typeof this.props.onChange === 'function') {
+    if (typeof this.props.onChange === FUNCTION_TYPE.function.id) {
       this.props.onChange();
     }
   }
@@ -99,6 +116,19 @@ export default class MetadataEditor extends React.Component {
       META_QUESTION_TYPES['background-audio']
     );
     return metaProp.value === true;
+  }
+
+  getBackgroundAudioParameters() {
+    const metaProp = this.getMetaProperty(
+      META_QUESTION_TYPES['background-audio']
+    );
+    let foundParams = ODK_DEFAULT_AUDIO_QUALITY;
+    if (metaProp.parameters) {
+      foundParams = AUDIO_QUALITY_OPTIONS.find(
+        (option) => option.value === metaProp.parameters
+      );
+    }
+    return foundParams;
   }
 
   getAuditParameters() {
@@ -244,11 +274,7 @@ export default class MetadataEditor extends React.Component {
               <Select
                 className='kobo-select'
                 classNamePrefix='kobo-select'
-                /*
-                  defaultValue only displays the default value, it does not
-                  append it to the JSON. If there is no quality parameter then
-                  it would default to ODK_DEFAULT_AUDIO_QUALITY behind the scenes
-                */
+                value={this.getBackgroundAudioParameters()}
                 defaultValue={ODK_DEFAULT_AUDIO_QUALITY}
                 options={AUDIO_QUALITY_OPTIONS}
                 onChange={this.onBackgroundAudioParametersChange}
