@@ -13,7 +13,7 @@ import {
 } from 'js/constants';
 import {assign} from 'utils';
 
-export function getFormDataTabs(assetUid, isLoggedIn) {
+export function getFormDataTabs(assetUid) {
   return [
     {
       label: t('Table'),
@@ -30,7 +30,6 @@ export function getFormDataTabs(assetUid, isLoggedIn) {
     {
       label: t('Downloads'),
       icon: 'k-icon-download', path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
-      isDisabled: !isLoggedIn,
     },
     {
       label: t('Map'),
@@ -152,7 +151,7 @@ class FormViewTabs extends Reflux.Component {
     var sideTabs = [];
 
     if (this.state.asset && this.state.asset.has_deployment && this.isActiveRoute(`/forms/${this.state.assetid}/data`)) {
-      sideTabs = getFormDataTabs(this.state.assetid, stores.session.isLoggedIn);
+      sideTabs = getFormDataTabs(this.state.assetid);
     }
 
     if (this.state.asset && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {

@@ -121,15 +121,12 @@ export class FormSubScreens extends React.Component {
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <React.Fragment>
-          {!stores.session.isLoggedIn &&
-            <ui.AccessDeniedMessage/>
-          }
-          {stores.session.isLoggedIn &&
-            <bem.FormView className='project-downloads'>
+          <bem.FormView className='project-downloads'>
+            {stores.session.isLoggedIn &&
               <ProjectExportsCreator asset={this.state} />
-              <ProjectExportsList asset={this.state} />
-            </bem.FormView>
-          }
+            }
+            <ProjectExportsList asset={this.state} />
+          </bem.FormView>
         </React.Fragment>
       </DocumentTitle>
     );
