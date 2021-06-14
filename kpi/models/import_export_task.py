@@ -761,8 +761,8 @@ def _b64_xls_to_dict(base64_encoded_upload):
 def _append_kobo_locking_profiles(
     base64_encoded_upload: BytesIO, survey_dict: dict
 ) -> None:
-    decoded_str = base64.b64decode(base64_encoded_upload)
-    kobo_locks = get_kobo_locking_profiles(BytesIO(decoded_str))
+    decoded_bytes = base64.b64decode(base64_encoded_upload)
+    kobo_locks = get_kobo_locking_profiles(BytesIO(decoded_bytes))
     if kobo_locks:
         survey_dict[KOBO_LOCK_SHEET] = kobo_locks
 
