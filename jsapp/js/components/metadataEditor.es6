@@ -207,7 +207,7 @@ export default class MetadataEditor extends React.Component {
 
           <bem.FormModal__item>
             <label className='long'>
-              {t('This functionality is only available for KoboCollect')}
+              {t('This functionality is only available for Collect')}
             </label>
 
             <ToggleSwitch
