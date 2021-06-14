@@ -62,7 +62,7 @@ class ProjectSettings extends React.Component {
     const formAsset = this.props.formAsset;
 
     this.state = {
-      isSessionLoaded: !!stores.session.currentAccount,
+      isSessionLoaded: !!stores.session.isLoggedIn,
       isSubmitPending: false,
       formAsset: formAsset,
       // project details
@@ -725,7 +725,7 @@ class ProjectSettings extends React.Component {
 
   renderStepUploadFile() {
     return (
-      <bem.FormModal__form className='project-settings project-settings--upload-file'>
+      <bem.FormModal__form className='project-settings'>
         <bem.Modal__subheader>
           {t('Import an XLSForm from your computer.')}
         </bem.Modal__subheader>
@@ -734,7 +734,7 @@ class ProjectSettings extends React.Component {
           <Dropzone
             onDrop={this.onFileDrop.bind(this)}
             multiple={false}
-            className='dropzone'
+            className='kobo-dropzone'
             activeClassName='dropzone-active'
             rejectClassName='dropzone-reject'
             accept={validFileTypes()}

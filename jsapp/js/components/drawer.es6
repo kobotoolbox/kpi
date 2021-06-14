@@ -54,10 +54,14 @@ class FormSidebar extends Reflux.Component {
       type: MODAL_TYPES.NEW_FORM
     });
   }
-  render () {
+  render() {
     return (
       <React.Fragment>
-        <bem.KoboButton onClick={this.newFormModal} m={['blue', 'fullwidth']}>
+        <bem.KoboButton
+          m={['blue', 'fullwidth']}
+          disabled={!stores.session.isLoggedIn}
+          onClick={this.newFormModal}
+        >
           {t('new')}
         </bem.KoboButton>
         <SidebarFormsList/>
@@ -128,7 +132,12 @@ class Drawer extends Reflux.Component {
       stores.serverEnvironment,
     ];
   }
-  render () {
+  render() {
+    // no sidebar for not logged in users
+    if (!stores.session.isLoggedIn) {
+      return null;
+    }
+
     return (
       <bem.KDrawer>
         <bem.KDrawer__primaryIcons>
@@ -144,13 +153,14 @@ class Drawer extends Reflux.Component {
         </bem.KDrawer__sidebar>
 
         <bem.KDrawer__secondaryIcons>
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
             <IntercomHelpBubble/>
           }
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
             <SupportHelpBubble/>
           }
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
+            stores.session.currentAccount.projects_url &&
             <a href={stores.session.currentAccount.projects_url}
               className='k-drawer__link'
               target='_blank'

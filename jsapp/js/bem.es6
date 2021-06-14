@@ -68,6 +68,17 @@ bem.FormBuilderHeader__item = bem.FormBuilderHeader.__('item', '<span>');
 bem.FormBuilderHeader__button = bem.FormBuilderHeader.__('button', '<button>');
 bem.FormBuilderHeader__close = bem.FormBuilderHeader.__('close', '<button>');
 
+bem.FormMedia = BEM('form-media');
+bem.FormMedia__title = bem.FormMedia.__('title');
+bem.FormMedia__upload = bem.FormMedia.__('upload');
+bem.FormMedia__list = bem.FormMedia.__('list');
+bem.FormMedia__label = bem.FormMedia.__('label', '<label>');
+bem.FormMedia__listItem = bem.FormMedia.__('list-item', '<li>');
+
+bem.FormMediaUploadUrl = BEM('form-media-upload-url');
+bem.FormMediaUploadUrl__label = bem.FormMediaUploadUrl.__('label', '<label>');
+bem.FormMediaUploadUrl__form = bem.FormMediaUploadUrl.__('form');
+
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
 bem.Search__cancel = bem.Search.__('cancel', '<i>');
@@ -211,6 +222,8 @@ bem.PopoverMenu__moveTo = bem.PopoverMenu.__('moveTo');
 
 bem.Header = BEM('header');
 bem.Header__logo = bem.Header.__('logo', '<span>');
+
+bem.LoginBox = BEM('login-box');
 
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__name = bem.AccountBox.__('name', '<div>');

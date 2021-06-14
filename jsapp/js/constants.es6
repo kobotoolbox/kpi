@@ -149,6 +149,17 @@ export const ASSET_TYPES = {
   },
 };
 
+export const ASSET_FILE_TYPES = {
+  map_layer: {
+    id: 'map_layer',
+    label: t('map layer'),
+  },
+  form_media: {
+    id: 'form_media',
+    label: t('form media'),
+  },
+}
+
 
 /**
  * When adding new question type please remember to update those places:
@@ -204,6 +215,7 @@ new Set([
   'deviceid',
   'phonenumber',
   'audit',
+  'background-audio',
 ]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
 Object.freeze(META_QUESTION_TYPES);
 
@@ -296,6 +308,12 @@ export const DEPLOYMENT_CATEGORIES = Object.freeze({
 
 export const QUERY_LIMIT_DEFAULT = 5000;
 
+// List of server routes
+export const PATHS = Object.freeze({
+  LOGIN: '/accounts/login',
+});
+
+// List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ACCOUNT_SETTINGS: '/account-settings',
   CHANGE_PASSWORD: '/change-password',
@@ -317,7 +335,6 @@ export const ROUTES = Object.freeze({
   FORM_LANDING: '/forms/:uid/landing',
   FORM_DATA: '/forms/:uid/data',
   FORM_REPORT: '/forms/:uid/data/report',
-  FORM_REPORT_OLD: '/forms/:uid/data/report-legacy',
   FORM_TABLE: '/forms/:uid/data/table',
   FORM_DOWNLOADS: '/forms/:uid/data/downloads',
   FORM_GALLERY: '/forms/:uid/data/gallery',
@@ -371,6 +388,22 @@ export const COLLECTION_METHODS = Object.freeze({
   },
 });
 
+
+export const SURVEY_DETAIL_ATTRIBUTES = Object.freeze({
+  value: {
+    id: 'value',
+  },
+  parameters: {
+    id: 'parameters',
+  },
+});
+
+export const FUNCTION_TYPE = Object.freeze({
+  function: {
+    id: 'function',
+  },
+});
+
 // NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
@@ -385,6 +418,7 @@ const constants = {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   ASSET_TYPES,
+  ASSET_FILE_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
@@ -396,9 +430,12 @@ const constants = {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
+  PATHS,
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
+  SURVEY_DETAIL_ATTRIBUTES,
+  FUNCTION_TYPE,
 };
 
 export default constants;

@@ -25,6 +25,7 @@ import {
   update_states,
   NAME_MAX_LENGTH,
   ROUTES,
+  META_QUESTION_TYPES,
 } from 'js/constants';
 import ui from '../ui';
 import {bem} from '../bem';
@@ -56,6 +57,7 @@ const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
 
 const LOCKING_SUPPORT_URL = 'library_locking.html';
+const RECORDING_SUPPORT_URL = 'recording-interviews.html';
 
 /**
  * This is a component that displays Form Builder's header and aside. It is also
@@ -571,6 +573,12 @@ export default assign({
     );
   },
 
+  hasBackgroundAudio() {
+    return this.app?.survey?.surveyDetails.filter(
+      (sd) => sd.attributes.name === META_QUESTION_TYPES['background-audio']
+    )[0].attributes.value;
+  },
+
   // rendering methods
 
   renderFormBuilderHeader () {
@@ -715,6 +723,41 @@ export default assign({
     );
   },
 
+  renderBackgroundAudioWarning() {
+    return (
+      <bem.FormBuilderMessageBox m='warning'>
+        <span data-tip={t('background recording')}>
+          <i className='k-icon k-icon-form-overview'/>
+        </span>
+
+        <p>
+          {t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This feature is available in ')}
+          <a title="Install KoBoCollect"
+            target="_blank"
+            href='https://play.google.com/store/apps/details?id=org.koboc.collect.android'>
+            {t('Collect version 1.30 and above')}
+          </a>
+          {'.'}
+        </p>
+
+        { stores.serverEnvironment &&
+          stores.serverEnvironment.state.support_url &&
+          <bem.TextBox__labelLink
+            // TODO update support article to include background-audio
+            href={
+              stores.serverEnvironment.state.support_url +
+              RECORDING_SUPPORT_URL
+            }
+            target='_blank'
+            data-tip={t('help')}
+          >
+            <i className='k-icon k-icon-help' />
+          </bem.TextBox__labelLink>
+        }
+      </bem.FormBuilderMessageBox>
+    );
+  },
+
   renderAside() {
     let {
       styleValue,
@@ -768,7 +811,11 @@ export default assign({
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
                 menuPlacement='bottom'
+<<<<<<< HEAD
                 isDisabled={this.isChangingAppearanceRestricted()}
+=======
+                isSearchable={false}
+>>>>>>> origin/beta
               />
             </bem.FormBuilderAside__row>
 
@@ -802,6 +849,7 @@ export default assign({
             }
           </bem.FormBuilderAside__content>
         }
+
         { this.state.asideLibrarySearchVisible &&
           <bem.FormBuilderAside__content
             className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
@@ -902,8 +950,13 @@ export default assign({
             {this.renderFormBuilderHeader()}
 
               <bem.FormBuilder__contents>
+<<<<<<< HEAD
                 {this.state.asset &&
                   <FormLockedMessage asset={this.state.asset}/>
+=======
+                {this.hasBackgroundAudio() &&
+                  this.renderBackgroundAudioWarning()
+>>>>>>> origin/beta
                 }
 
                 <div ref='form-wrap' className='form-wrap'>

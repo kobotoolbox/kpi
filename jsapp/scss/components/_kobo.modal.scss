@@ -460,7 +460,6 @@ $z-modal-x: 10;
       }
     }
   }
-
   .dropzone {
     background: $kobo-gray-96;
     padding: 30px;
@@ -759,5 +758,26 @@ $z-modal-x: 10;
   .modal.modal--open {
     min-width: 90%;
     max-width: 90%;
+  }
+}
+
+@media screen and (max-width: 1175px) {
+  .form-media__upload-url {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 597px) {
+  .form-media__upload-url {
+    width: 100%;
+    padding-left: 0px;
+    label.text-box {
+      width: 100%;
+    }
+    button {
+      width: 100%;
+      margin-left: 0px !important;
+      margin-top: 12px;
+    }
   }
 }
