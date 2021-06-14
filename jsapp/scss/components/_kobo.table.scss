@@ -169,6 +169,11 @@ $data-table-row-height: 42px;
     }
   }
 
+  .rt-tbody .rt-tr-group:last-child {
+    // undo react-table removing the border
+    border-bottom: $data-table-border;
+  }
+
   .rt-tr {
     align-items: stretch;
     justify-content: stretch;

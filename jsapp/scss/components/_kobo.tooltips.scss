@@ -1,3 +1,12 @@
+/*
+KoBo Tooltips
+
+Add `data-tip` attribute to any element with tooltip text as attribute value.
+
+Additional class names:
+- `right-tooltip`
+- `left-tooltip`
+*/
 $z-tooltip: 2;
 
 // Our own, css-only tooltips
@@ -55,8 +64,7 @@ $z-tooltip: 2;
     visibility: visible;
   }
 
-  // Modify positioning for sidebar elements
-
+  // Custom tooltips position for sidebar elements
   .k-drawer {
     [data-tip]::after {
       left: 95%;
@@ -97,7 +105,6 @@ $z-tooltip: 2;
   }
 
   // Modify positioning to header tooltips
-
   .mdl-layout__header [data-tip]::after {
     left: 50px;
   }
