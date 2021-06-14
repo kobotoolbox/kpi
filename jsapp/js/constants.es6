@@ -199,6 +199,7 @@ new Set([
   'deviceid',
   'phonenumber',
   'audit',
+  'background-audio',
 ]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
 Object.freeze(META_QUESTION_TYPES);
 
@@ -371,6 +372,22 @@ export const COLLECTION_METHODS = Object.freeze({
   },
 });
 
+
+export const SURVEY_DETAIL_ATTRIBUTES = Object.freeze({
+  value: {
+    id: 'value',
+  },
+  parameters: {
+    id: 'parameters',
+  },
+});
+
+export const FUNCTION_TYPE = Object.freeze({
+  function: {
+    id: 'function',
+  },
+});
+
 // NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
@@ -401,6 +418,8 @@ const constants = {
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
+  SURVEY_DETAIL_ATTRIBUTES,
+  FUNCTION_TYPE,
 };
 
 export default constants;
