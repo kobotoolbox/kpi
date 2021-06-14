@@ -31,7 +31,7 @@ export default class MetadataEditor extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      metaProperties: []
+      metaProperties: [],
     };
     autoBind(this);
   }
@@ -42,7 +42,7 @@ export default class MetadataEditor extends React.Component {
 
   rebuildState() {
     const newState = {
-      metaProperties: []
+      metaProperties: [],
     };
     Object.keys(META_QUESTION_TYPES).forEach((metaType) => {
       const detail = this.getSurveyDetail(metaType);
@@ -54,15 +54,15 @@ export default class MetadataEditor extends React.Component {
   }
 
   getMetaProperty(metaType) {
-    return this.state.metaProperties.find((metaProp) => {
-      return metaProp.name === metaType;
-    });
+    return this.state.metaProperties.find(
+      (metaProp) => metaProp.name === metaType
+    );
   }
 
   getSurveyDetail(sdId) {
-    return this.props.survey.surveyDetails.filter((sd) => {
-      return sd.attributes.name === sdId;
-    })[0];
+    return this.props.survey.surveyDetails.filter(
+      (sd) => sd.attributes.name === sdId
+    )[0];
   }
 
   onCheckboxChange(name, isChecked) {
@@ -142,15 +142,17 @@ export default class MetadataEditor extends React.Component {
       <React.Fragment>
         {t('Audit settings')}
 
-        { stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url &&
-          <bem.TextBox__labelLink
-            href={stores.serverEnvironment.state.support_url + AUDIT_SUPPORT_URL}
-            target='_blank'
-          >
-            <i className='k-icon k-icon-help'/>
-          </bem.TextBox__labelLink>
-        }
+        {stores.serverEnvironment &&
+          stores.serverEnvironment.state.support_url && (
+            <bem.TextBox__labelLink
+              href={
+                stores.serverEnvironment.state.support_url + AUDIT_SUPPORT_URL
+              }
+              target='_blank'
+            >
+              <i className='k-icon k-icon-help' />
+            </bem.TextBox__labelLink>
+          )}
       </React.Fragment>
     );
   }
@@ -160,16 +162,19 @@ export default class MetadataEditor extends React.Component {
       <React.Fragment>
         {t('Background audio')}
 
-        { stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url &&
-          <bem.TextBox__labelLink
-            // TODO update support article to include background-audio
-            href={stores.serverEnvironment.state.support_url + RECORDING_SUPPORT_URL}
-            target='_blank'
-          >
-            <i className='k-icon k-icon-help'/>
-          </bem.TextBox__labelLink>
-        }
+        {stores.serverEnvironment &&
+          stores.serverEnvironment.state.support_url && (
+            <bem.TextBox__labelLink
+              // TODO update support article to include background-audio
+              href={
+                stores.serverEnvironment.state.support_url +
+                RECORDING_SUPPORT_URL
+              }
+              target='_blank'
+            >
+              <i className='k-icon k-icon-help' />
+            </bem.TextBox__labelLink>
+          )}
       </React.Fragment>
     );
   }
@@ -241,7 +246,10 @@ export default class MetadataEditor extends React.Component {
 
             <ToggleSwitch
               checked={backgroundAudioProp.value}
-              onChange={this.onCheckboxChange.bind(this, backgroundAudioProp.name)}
+              onChange={this.onCheckboxChange.bind(
+                this,
+                backgroundAudioProp.name
+              )}
               label={
                 backgroundAudioProp.value
                   ? t('This survey will be recorded')
@@ -249,10 +257,9 @@ export default class MetadataEditor extends React.Component {
               }
             />
           </bem.FormModal__item>
-
         </bem.FormBuilderMeta__row>
 
-        {this.isAuditEnabled() &&
+        {this.isAuditEnabled() && (
           <bem.FormBuilderMeta__row>
             <TextBox
               label={this.renderAuditInputLabel()}
@@ -260,14 +267,12 @@ export default class MetadataEditor extends React.Component {
               onChange={this.onAuditParametersChange}
             />
           </bem.FormBuilderMeta__row>
-        }
+        )}
 
-        {this.isBackgroundAudioEnabled() &&
+        {this.isBackgroundAudioEnabled() && (
           <bem.FormBuilderMeta__row>
             <bem.FormModal__item>
-              <label>
-                {t('Audio quality')}
-              </label>
+              <label>{t('Audio quality')}</label>
 
               <Select
                 className='kobo-select'
@@ -279,8 +284,7 @@ export default class MetadataEditor extends React.Component {
               />
             </bem.FormModal__item>
           </bem.FormBuilderMeta__row>
-        }
-
+        )}
       </bem.FormBuilderMeta>
     );
   }
