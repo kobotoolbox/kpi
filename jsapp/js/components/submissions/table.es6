@@ -12,7 +12,7 @@ import ui from 'js/ui';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import ReactTable from 'react-table';
-import ValidationStatusDropdown, { SHOW_ALL_OPTION } from './validationStatusDropdown';
+import ValidationStatusDropdown, { SHOW_ALL_OPTION } from 'js/components/submissions/validationStatusDropdown';
 import {DebounceInput} from 'react-debounce-input';
 import {
   VALIDATION_STATUSES,
@@ -23,6 +23,7 @@ import {
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
+  NUMERICAL_SUBMISSION_PROPS,
 } from 'js/constants';
 import {formatTimeDate} from 'utils';
 import {
@@ -49,33 +50,6 @@ const EXCLUDED_COLUMNS = [
   'meta/instanceID',
   'meta/deprecatedID',
   '_validation_status',
-];
-
-// A list of columns that contains a numerical-ish values, i.e. the ones that
-// should have monospaced font
-const NUMERICAL_TYPES = [
-  QUESTION_TYPES.barcode.id,
-  QUESTION_TYPES.date.id,
-  QUESTION_TYPES.datetime.id,
-  QUESTION_TYPES.decimal.id,
-  QUESTION_TYPES.geopoint.id,
-  QUESTION_TYPES.geoshape.id,
-  QUESTION_TYPES.geotrace.id,
-  QUESTION_TYPES.integer.id,
-  QUESTION_TYPES.score.id,
-  QUESTION_TYPES.time.id,
-];
-const NUMERICAL_COLUMNS = [
-  META_QUESTION_TYPES.start,
-  META_QUESTION_TYPES.end,
-  META_QUESTION_TYPES.today,
-  META_QUESTION_TYPES.simserial,
-  META_QUESTION_TYPES.subscriberid,
-  META_QUESTION_TYPES.deviceid,
-  META_QUESTION_TYPES.phonenumber,
-  ADDITIONAL_SUBMISSION_PROPS._id,
-  ADDITIONAL_SUBMISSION_PROPS._uuid,
-  ADDITIONAL_SUBMISSION_PROPS._submission_time,
 ];
 
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
@@ -503,12 +477,11 @@ export class DataTable extends React.Component {
 
       let columnClassName = '';
       if (
-        (q && NUMERICAL_TYPES.includes(q.type)) ||
-        NUMERICAL_COLUMNS.includes(key)
+        (q && NUMERICAL_SUBMISSION_PROPS[q.type]) ||
+        NUMERICAL_SUBMISSION_PROPS[key]
       ) {
         columnClassName += 'rt-numerical-value';
       }
-
 
       let columnIcon = null;
       if (q && q.type) {
@@ -525,7 +498,7 @@ export class DataTable extends React.Component {
                 {columnIcon}
                 {columnName}
               </span>
-              {columnHXLTags &&
+              {this.state.showHXLTags && columnHXLTags &&
                 <span className='column-header-hxl-tags' title={columnHXLTags}>{columnHXLTags}</span>
               }
             </React.Fragment>
@@ -1023,7 +996,14 @@ export class DataTable extends React.Component {
 
     const { tableData, columns, selectedColumns, defaultPageSize, loading, pageSize, resultsTotal } = this.state;
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
-    let tableClasses = this.state.frozenColumn ? '-highlight has-frozen-column' : '-highlight';
+
+    let tableClasses = ['-highlight'];
+    if (this.state.frozenColumn) {
+      tableClasses.push('has-frozen-column');
+    }
+    if (this.state.showHXLTags) {
+      tableClasses.push('has-hxl-tags-visible');
+    }
 
     const formViewModifiers = ['table'];
     if (this.state.isFullscreen) {

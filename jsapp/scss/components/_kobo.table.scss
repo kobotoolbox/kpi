@@ -83,6 +83,7 @@ $data-table-row-height: 42px;
           position: absolute;
           top: 100%;
           left: 0;
+          height: $data-table-row-height;
 
           .popover-menu {
             margin-top: 10px;
@@ -141,11 +142,6 @@ $data-table-row-height: 42px;
       align-items: center;
     }
 
-    .rt-th:hover,
-    .rt-td:hover {
-      background: transparent;
-    }
-
     .rt-th.-sort-desc,
     .rt-td.-sort-desc,
     .rt-th.-sort-asc,
@@ -163,9 +159,11 @@ $data-table-row-height: 42px;
         width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .column-header-hxl-tags {
+        font-size: 12px;
         color: $kobo-gray-40;
       }
     }
@@ -178,6 +176,8 @@ $data-table-row-height: 42px;
 
   .rt-tr-group {
     max-height: $data-table-row-height;
+    border-bottom: $data-table-border;
+    box-sizing: content-box; // to make the border be outside the cell for hover
   }
 
   .rt-th, .rt-td {
@@ -328,26 +328,26 @@ $data-table-row-height: 42px;
   }
 
   &.has-frozen-column {
-    .frozen {
+    .rt-th.frozen,
+    .rt-td.frozen {
+      z-index: 100;
       order: -1;
       position: relative;
       left: 0;
       background: $kobo-gray-96;
-      height: 36px;
-      transition: left 0.2s;
+      height: $data-table-row-height;
       margin-right: 6px;
-
-      &:not(.rt-status) {
-        z-index: 2;
-
-        &:hover {
-          z-index: 3;
-        }
-      }
+      border-right: $data-table-border;
+      border-right-width: 2px;
+      // to avoid a visual glitch when there is half a pixel space left to the
+      // frozen column and dark pixels of text below are visible
+      margin-left: -1px;
     }
+  }
 
-    .rt-th.frozen {
-      height: 34px;
+  &.has-hxl-tags-visible {
+    .rt-thead.-header .rt-th {
+      height: $data-table-row-height * 2;
     }
   }
 }
