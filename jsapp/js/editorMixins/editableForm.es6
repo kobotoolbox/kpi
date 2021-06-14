@@ -700,7 +700,15 @@ export default assign({
           <i className='k-icon k-icon-form-overview'/>
         </span>
 
-        <p>{t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This functionality only works in Collect.')}</p>
+        <p>
+          {t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This feature is available in ')}
+          <a title="Install KoBoCollect"
+            target="_blank"
+            href='https://play.google.com/store/apps/details?id=org.koboc.collect.android'>
+            {t('Collect version 1.30 and above')}
+          </a>
+          {'.'}
+        </p>
 
         { stores.serverEnvironment &&
           stores.serverEnvironment.state.support_url &&
