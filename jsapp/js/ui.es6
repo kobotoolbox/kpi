@@ -351,23 +351,6 @@ export class AccessDeniedMessage extends React.Component {
   }
 }
 
-export class NotLoggedInMessage extends React.Component {
-  render() {
-    return (
-      <bem.FormView>
-        <bem.Loading>
-          <bem.Loading__inner>
-            <h3>
-              {t('You are not logged in')}
-            </h3>
-            {t('To see your projects, please use LOGIN button on top of this page.')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      </bem.FormView>
-    );
-  }
-}
-
 /**
  * @prop {string} [message] optional message
  */
@@ -388,7 +371,6 @@ export class LoadingSpinner extends React.Component {
 
 var ui = {
   AccessDeniedMessage,
-  NotLoggedInMessage,
   LoadingSpinner,
   SearchBox: SearchBox,
   Panel: Panel,
