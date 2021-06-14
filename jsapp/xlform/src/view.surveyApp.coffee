@@ -9,6 +9,10 @@ $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
 alertify = require 'alertifyjs'
+isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
+hasAssetRestriction = require('js/components/locking/lockingUtils').hasAssetRestriction
+LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
+LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
 
 module.exports = do ->
   surveyApp = {}
@@ -81,7 +85,7 @@ module.exports = do ->
       $et.addClass('card__settings__tabs__tab--active')
 
       $et.parents('.card__settings').find(".card__settings__fields--active").removeClass('card__settings__fields--active')
-      $et.parents('.card__settings').find(".card__settings__fields--#{tabId}").addClass('card__settings__fields--active')
+      $et.parents('.card__settings').find(".js-card-settings-#{tabId}").addClass('card__settings__fields--active')
 
     surveyRowSortableStop: (evt)->
       @survey.trigger('change')
@@ -306,30 +310,9 @@ module.exports = do ->
 
     _render_html: ->
       @$el.html $viewTemplates.$$render('surveyApp', @)
-
-      ###
-      @$settings =
-        form_id: @$('.form__settings__field--form_id')
-        version: @$('.form__settings__field--version')
-        style: @$('.form__settings__field--style')
-
-      @$settings.form_id.find('input').val(@survey.settings.get('form_id'))
-      @$settings.version.find('input').val(@survey.settings.get('version'))
-
-      _style_val = @survey.settings.get('style') || ""
-
-      if @$settings.style.find('select option')
-          .filter(((i, opt)-> opt.value is _style_val)).length is 0
-        # user has specified a style other than the available styles
-        _inp = $("<input>", {type: 'text'})
-        @$settings.style.find('select').replaceWith(_inp)
-        _inp.val(_style_val)
-      else
-        @$settings.style.find('select').val(_style_val)
-      ###
-
       @formEditorEl = @$(".-form-editor")
       @settingsBox = @$(".form__settings-meta__questions")
+      return
 
     _render_attachEvents: ->
       @survey.settings.on 'validated:invalid', (model, validations) ->
@@ -338,27 +321,26 @@ module.exports = do ->
 
       $inps = {}
       _settings = @survey.settings
+      return
 
-      ###
-      if @$settings.form_id.length > 0
-        $inps.form_id = @$settings.form_id.find('input').eq(0)
-        $inps.form_id.change (evt)->
-          _val = $inps.form_id.val()
-          _sluggified = $modelUtils.sluggify(_val)
-          _settings.set('form_id', _sluggified)
-          if _sluggified isnt _val
-            $inps.form_id.val(_sluggified)
+    hasRestriction: (restrictionName) ->
+      return hasAssetRestriction(@ngScope.rawSurvey, restrictionName)
 
-      if @$settings.version.length > 0
-        $inps.version = @$settings.version.find('input').eq(0)
-        $inps.version.change (evt)->
-          _settings.set('version', $inps.version.val())
+    isLockable: ->
+      return isAssetLockable(@ngScope.assetType?.id)
 
-      if @$settings.style.length > 0
-        $inps.style = @$settings.style.find('input,select').eq(0)
-        $inps.style.change (evt)->
-          _settings.set('style', $inps.style.val())
-      ###
+    applyLocking: ->
+      # hide all ways of adding new questions
+      if (
+        @isLockable() and
+        @hasRestriction(LOCKING_RESTRICTIONS.question_add.name)
+      )
+        # "+" buttons
+        @$('.js-add-row-button').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        # clone buttons
+        @$('.js-clone-question').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+
+      return
 
     _render_addSubViews: ->
       meta_view = new $viewUtils.ViewComposer()
@@ -397,6 +379,8 @@ module.exports = do ->
         @_reset()
 
         @_render_hideConditionallyDisplayedContent()
+
+        @applyLocking()
 
       catch error
         @$el.addClass("survey-editor--error")
@@ -447,6 +431,8 @@ module.exports = do ->
         i++
 
       return i
+
+    # responsible for groups and questions sortable
     activateSortable: ->
       $el = @formEditorEl
       survey = @survey
@@ -476,6 +462,9 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          create: =>
+            @formEditorEl.addClass('js-sortable-enabled')
+            return
           receive: (evt, ui) =>
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
@@ -491,6 +480,8 @@ module.exports = do ->
             # default action is handled by surveyRowSortableStop
             return
         })
+
+      # apply sortable to all groups
       group_rows = @formEditorEl.find('.group__rows')
       group_rows.each (index) =>
         $(group_rows[index]).sortable({
@@ -505,6 +496,14 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          create: =>
+            # HACK: We dispatch this event to make all instances know that
+            # sortable is created (so in fact rendered). This allows for the
+            # groups to check themselves if they should disable it due to
+            # locking restrictions.
+            @survey.trigger('group-sortable-created', group_rows[index])
+            $(group_rows[index]).addClass('js-sortable-enabled')
+            return
           receive: (evt, ui) =>
             itemUid = ui.item.data().uid
             if @ngScope.handleItem and itemUid
@@ -639,7 +638,13 @@ module.exports = do ->
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")
       null_top_row.toggleClass("survey-editor__null-top-row--hidden", !isEmpty)
 
-      if @features.multipleQuestions
+      if (
+        @features.multipleQuestions and
+        not (
+          @isLockable() and
+          @hasRestriction(LOCKING_RESTRICTIONS.question_order_edit.name)
+        )
+      )
         @activateSortable()
 
       return

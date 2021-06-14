@@ -186,28 +186,39 @@ export function isLibraryAsset(assetType) {
  * @returns {string} k-icon CSS class name
  */
 export function getAssetIcon(asset) {
-  if (asset.asset_type === ASSET_TYPES.template.id) {
-    return 'k-icon-template';
-  } else if (asset.asset_type === ASSET_TYPES.question.id) {
-    return 'k-icon-question';
-  } else if (asset.asset_type === ASSET_TYPES.block.id) {
-    return 'k-icon-block';
-  } else if (asset.asset_type === ASSET_TYPES.survey.id) {
-    if (asset.has_deployment) {
-      return 'k-icon-deploy';
-    } else {
-      return 'k-icon-drafts';
-    }
-  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
-      return 'k-icon-folder-subscribed';
-    } else if (isAssetPublic(asset.permissions)) {
-      return 'k-icon-folder-public';
-    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
-      return 'k-icon-folder-shared';
-    } else {
-      return 'k-icon-folder';
-    }
+  switch (asset.asset_type) {
+    case ASSET_TYPES.template.id:
+      if (asset.summary?.lock_any) {
+        return 'k-icon-template-locked';
+      } else {
+        return 'k-icon-template';
+      }
+    case ASSET_TYPES.question.id:
+      return 'k-icon-question';
+    case ASSET_TYPES.block.id:
+      return 'k-icon-block';
+    case ASSET_TYPES.survey.id:
+      if (asset.summary?.lock_any) {
+        return 'k-icon-form-locked';
+      } else if (asset.has_deployment && !asset.deployment__active) {
+        return 'k-icon-form-archived';
+      } else if (asset.has_deployment) {
+        return 'k-icon-form-deployed';
+      } else {
+        return 'k-icon-form-draft';
+      }
+    case ASSET_TYPES.collection.id:
+      if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
+        return 'k-icon-folder-subscribed';
+      } else if (isAssetPublic(asset.permissions)) {
+        return 'k-icon-folder-public';
+      } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
+        return 'k-icon-folder-shared';
+      } else {
+        return 'k-icon-folder';
+      }
+    default:
+      return 'k-icon-form';
   }
 }
 
