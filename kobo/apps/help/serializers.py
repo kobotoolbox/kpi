@@ -1,5 +1,4 @@
 # coding: utf-8
-from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from .models import InAppMessage, InAppMessageUserInteractions
@@ -46,7 +45,7 @@ class InAppMessageSerializer(serializers.ModelSerializer):
                 interactions.interactions.update(data)
             except (TypeError, ValueError):
                 raise serializers.ValidationError({
-                    'interactions_field': _('Value must be a JSON object of name/value pairs.')
+                    'interactions_field': 'Value must be a JSON object of name/value pairs.'
                 })
             else:
                 interactions.save()

@@ -248,23 +248,21 @@ class FormSummary extends React.Component {
 
     return (
       <bem.FormView__cell m='data-tabs'>
-        { sideTabs.map((item, ind) => {
-          return (
-            <Link
-              to={item.path}
-              key={ind}
-              activeClassName='active'
-              onlyActiveOnIndex
-              className='form-view__tab'
-              data-path={item.path}
-              onClick={this.triggerRefresh}
-            >
-              <i className={`k-icon ${item.icon}`}/>
-              {item.label}
-              <i className='k-icon k-icon-next'/>
-            </Link>
-          );
-        })}
+        { sideTabs.map((item, ind) =>
+          <Link
+            to={item.path}
+            key={ind}
+            activeClassName='active'
+            onlyActiveOnIndex
+            className='form-view__tab'
+            data-path={item.path}
+            onClick={this.triggerRefresh}
+          >
+            <i className={`k-icon ${item.icon}`} />
+            {item.label}
+            <i className='k-icon k-icon-next' />
+          </Link>
+        )}
       </bem.FormView__cell>
     );
   }

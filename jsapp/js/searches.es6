@@ -443,7 +443,7 @@ function SearchContext(opts={}) {
       } else {
         searchStore.update({defaultQueryState: 'done'});
 
-         // avoid unauthenticated backend calls
+        // avoid unauthenticated backend calls
         if (stores.session.isLoggedIn) {
           dataInterface.assetsHash()
           .done((data) => {

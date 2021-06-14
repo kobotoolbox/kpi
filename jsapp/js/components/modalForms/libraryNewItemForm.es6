@@ -19,7 +19,7 @@ class LibraryNewItemForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isSessionLoaded: !!stores.session.isLoggedIn
+      isSessionLoaded: !!stores.session.isLoggedIn,
     };
 
     autoBind(this);

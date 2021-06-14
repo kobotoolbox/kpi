@@ -44,14 +44,14 @@
     border-width: 0;
     border-bottom-width: 1px;
     border-style: solid;
-    border-color: $kobo-lightgray;
+    border-color: $kobo-gray-92;
     border-radius: 0;
     background-color: $kobo-white;
     transition: border-color 250ms;
     cursor: pointer;
 
     &:hover {
-      border-color: $kobo-lightgray;
+      border-color: $kobo-gray-92;
     }
 
     &.kobo-select__control--is-focused {
@@ -67,7 +67,7 @@
   }
 
   .kobo-select__placeholder {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 
   .kobo-select__indicator-separator {
@@ -102,7 +102,7 @@
 
     // is-focused needs to go after is-selected
     &.kobo-select__option--is-focused {
-      background-color: $kobo-whitegray;
+      background-color: $kobo-gray-96;
     }
   }
 }

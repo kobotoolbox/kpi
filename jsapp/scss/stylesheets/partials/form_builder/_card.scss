@@ -37,7 +37,7 @@
         position: relative;
 
         &.activated {
-            color: $kobo-darkgray;
+            color: $kobo-gray-40;
         }
         .card__buttons__multioptions {
             cursor: pointer;
@@ -65,10 +65,10 @@
     }
 
     .card__header-title {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
 
         &:focus {
-            color: $kobo-black;
+            color: $kobo-gray-24;
           }
 
         // we use placeholder as error message, as empty title is not welcomed
@@ -83,7 +83,7 @@
         font-weight: 400;
 
         &::placeholder {
-            color: $kobo-darkgray;
+            color: $kobo-gray-40;
             font-style: italic;
         }
     }
@@ -102,7 +102,7 @@
             position: absolute;
             top: -0.15em;
             left: -9px;
-            color: $kobo-darkgray;
+            color: $kobo-gray-40;
             font-size: 11px;
         }
         &.card--selectquestion {
@@ -168,7 +168,7 @@ $cardIndicatorIconWidth: 21px;
     font-size: 20px;
     line-height: 20px;
     text-align: center;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 }
 
 // ==========================================================================
@@ -223,7 +223,7 @@ $cardIndicatorIconWidth: 21px;
     }
 }
 .card__header.settings .card__header--shade {
-    background: rgba($kobo-darkgray, 0.5);
+    background: rgba($kobo-gray-40, 0.5);
 }
 .card__header.delete .card__header--shade {
     background: rgba($kobo-red, 0.5);
@@ -250,7 +250,7 @@ $cardIndicatorIconWidth: 21px;
     cursor: pointer;
 
     &.card__buttons__button--gray {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
     }
 
     &.card__buttons__button--red {
@@ -266,8 +266,8 @@ $cardIndicatorIconWidth: 21px;
     }
 
     &.card__buttons__button--activated {
-        color: $kobo-darkgray;
-        background-color: $kobo-lightgray;
+        color: $kobo-gray-40;
+        background-color: $kobo-gray-92;
         opacity: 1;
     }
 

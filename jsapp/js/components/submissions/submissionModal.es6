@@ -10,30 +10,28 @@ import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {bem} from 'js/bem';
 import {LoadingSpinner} from 'js/ui';
-import {notify, launchPrinting} from 'utils';
+import {launchPrinting} from 'utils';
 import {stores} from 'js/stores';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
-  GROUP_TYPES_BEGIN,
-  GROUP_TYPES_END
 } from 'js/constants';
-import SubmissionDataTable from 'js/components/submissionDataTable';
+import SubmissionDataTable from './submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
-class Submission extends React.Component {
+class SubmissionModal extends React.Component {
   constructor(props) {
     super(props);
-    let translations = this.props.asset.content.translations,
-        translationOptions = [];
+    let translations = this.props.asset.content.translations;
+    let translationOptions = [];
 
     if (translations.length > 1) {
       translationOptions = translations.map((trns) => {
         return {
           value: trns,
-          label: trns || t('Unnamed language')
+          label: trns || t('Unnamed language'),
         };
       });
     }
@@ -56,7 +54,7 @@ class Submission extends React.Component {
       promptRefresh: false,
       translationIndex: 0,
       translationOptions: translationOptions,
-      showXMLNames: false
+      showXMLNames: false,
     };
 
     autoBind(this);
@@ -88,7 +86,7 @@ class Submission extends React.Component {
       let next = -1;
 
       if (this.props.ids && sid) {
-        const c = this.props.ids.findIndex((k) => {return k === parseInt(sid);});
+        const c = this.props.ids.findIndex((k) => k === parseInt(sid));
         let tableInfo = this.props.tableInfo || false;
         if (this.props.ids[c - 1]) {
           prev = this.props.ids[c - 1];
@@ -114,7 +112,7 @@ class Submission extends React.Component {
         submission: data,
         loading: false,
         next: next,
-        previous: prev
+        previous: prev,
       });
     }).fail((error) => {
       if (error.responseText) {
@@ -134,7 +132,7 @@ class Submission extends React.Component {
   componentWillReceiveProps(nextProps) {
     this.setState({
       sid: nextProps.sid,
-      promptRefresh: false
+      promptRefresh: false,
     });
 
     this.getSubmission(nextProps.asset.uid, nextProps.sid);
@@ -151,7 +149,7 @@ class Submission extends React.Component {
       },
       oncancel: () => {
         dialog.destroy();
-      }
+      },
     };
     dialog.set(opts).show();
   }
@@ -183,7 +181,7 @@ class Submission extends React.Component {
   triggerRefresh() {
     this.getSubmission(this.props.asset.uid, this.props.sid);
     this.setState({
-      promptRefresh: false
+      promptRefresh: false,
     });
     // Prompt table to refresh submission list
     actions.resources.refreshTableSubmissions();
@@ -196,7 +194,7 @@ class Submission extends React.Component {
       sid: sid,
       asset: this.props.asset,
       ids: this.props.ids,
-      tableInfo: this.props.tableInfo || false
+      tableInfo: this.props.tableInfo || false,
     });
   }
 
@@ -206,7 +204,7 @@ class Submission extends React.Component {
     stores.pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: false,
-      page: 'prev'
+      page: 'prev',
     });
   }
 
@@ -216,7 +214,7 @@ class Submission extends React.Component {
     stores.pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: false,
-      page: 'next'
+      page: 'next',
     });
   }
 
@@ -233,9 +231,9 @@ class Submission extends React.Component {
   }
 
   languageChange(e) {
-    let index = this.state.translationOptions.findIndex((x) => {return x === e;});
+    let index = this.state.translationOptions.findIndex((x) => x === e);
     this.setState({
-      translationIndex: index || 0
+      translationIndex: index || 0,
     });
   }
 
@@ -322,6 +320,7 @@ class Submission extends React.Component {
                   className='kobo-select'
                   classNamePrefix='kobo-select'
                   menuPlacement='auto'
+                  isSearchable={false}
                 />
               </div>
             </bem.FormModal__group>
@@ -377,6 +376,7 @@ class Submission extends React.Component {
                   className='kobo-select'
                   classNamePrefix='kobo-select'
                   menuPlacement='auto'
+                  isSearchable={false}
                 />
               </div>
             </bem.FormModal__group>
@@ -460,9 +460,12 @@ class Submission extends React.Component {
                 </a>
               }
 
-              <bem.Button m='icon' className='report-button__print'
-                      onClick={launchPrinting}
-                      data-tip={t('Print')}>
+              <bem.Button
+                m='icon'
+                className='report-button__print'
+                onClick={launchPrinting}
+                data-tip={t('Print')}
+              >
                 <i className='k-icon-print' />
               </bem.Button>
 
@@ -490,7 +493,7 @@ class Submission extends React.Component {
   }
 }
 
-reactMixin(Submission.prototype, Reflux.ListenerMixin);
-reactMixin(Submission.prototype, mixins.permissions);
+reactMixin(SubmissionModal.prototype, Reflux.ListenerMixin);
+reactMixin(SubmissionModal.prototype, mixins.permissions);
 
-export default Submission;
+export default SubmissionModal;
