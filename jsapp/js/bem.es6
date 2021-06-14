@@ -223,6 +223,8 @@ bem.PopoverMenu__moveTo = bem.PopoverMenu.__('moveTo');
 bem.Header = BEM('header');
 bem.Header__logo = bem.Header.__('logo', '<span>');
 
+bem.LoginBox = BEM('login-box');
+
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__name = bem.AccountBox.__('name', '<div>');
 bem.AccountBox__initials = bem.AccountBox.__('initials', '<span>');

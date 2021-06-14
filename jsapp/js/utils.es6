@@ -12,6 +12,7 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
+import { hashHistory } from 'react-router';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
 
@@ -218,8 +219,15 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
   return data;
 }
 
-export function redirectTo(href) {
-  window.location.href = href;
+export function getLoginUrl() {
+  let url = constants.PATHS.LOGIN;
+  const currentLoc = hashHistory.getCurrentLocation();
+  if (currentLoc?.pathname) {
+    const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
+    // add redirection after logging in to current page
+    url += `?next=${nextUrl}`;
+  }
+  return url;
 }
 
 // works universally for v1 and v2 urls

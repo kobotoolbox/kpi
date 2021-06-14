@@ -61,7 +61,7 @@ class ProjectSettings extends React.Component {
     const formAsset = this.props.formAsset;
 
     this.state = {
-      isSessionLoaded: !!stores.session.currentAccount,
+      isSessionLoaded: !!stores.session.isLoggedIn,
       isSubmitPending: false,
       formAsset: formAsset,
       // project details

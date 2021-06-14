@@ -7,7 +7,11 @@ import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
 import mixins from 'js/mixins';
 import {bem} from 'js/bem';
-import {validFileTypes} from 'utils';
+import {stores} from 'js/stores';
+import {
+  getLoginUrl,
+  validFileTypes
+} from 'utils';
 import myLibraryStore from './myLibraryStore';
 import AssetsTable from './assetsTable';
 import {
@@ -34,7 +38,7 @@ class MyLibraryRoute extends React.Component {
       filterColumnId: myLibraryStore.data.filterColumnId,
       filterValue: myLibraryStore.data.filterValue,
       currentPage: myLibraryStore.data.currentPage,
-      totalPages: myLibraryStore.data.totalPages
+      totalPages: myLibraryStore.data.totalPages,
     };
   }
 
@@ -65,6 +69,11 @@ class MyLibraryRoute extends React.Component {
   }
 
   render() {
+    if (!stores.session.isLoggedIn && stores.session.isAuthStateKnown) {
+      window.location.replace(getLoginUrl());
+      return null;
+    }
+
     let contextualEmptyMessage = t('Your search returned no results.');
 
     if (myLibraryStore.data.totalUserAssets === 0) {
@@ -121,7 +130,7 @@ class MyLibraryRoute extends React.Component {
 }
 
 MyLibraryRoute.contextTypes = {
-  router: PropTypes.object
+  router: PropTypes.object,
 };
 
 reactMixin(MyLibraryRoute.prototype, mixins.droppable);

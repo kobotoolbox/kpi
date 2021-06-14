@@ -15,7 +15,7 @@ class LibraryUploadForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isSessionLoaded: !!stores.session.currentAccount,
+      isSessionLoaded: !!stores.session.isLoggedIn,
       isPending: false
     };
 

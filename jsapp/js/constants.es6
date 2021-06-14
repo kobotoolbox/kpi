@@ -291,6 +291,12 @@ export const DEPLOYMENT_CATEGORIES = Object.freeze({
 
 export const QUERY_LIMIT_DEFAULT = 5000;
 
+// List of server routes
+export const PATHS = Object.freeze({
+  LOGIN: '/accounts/login',
+});
+
+// List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ACCOUNT_SETTINGS: '/account-settings',
   CHANGE_PASSWORD: '/change-password',
@@ -312,7 +318,6 @@ export const ROUTES = Object.freeze({
   FORM_LANDING: '/forms/:uid/landing',
   FORM_DATA: '/forms/:uid/data',
   FORM_REPORT: '/forms/:uid/data/report',
-  FORM_REPORT_OLD: '/forms/:uid/data/report-legacy',
   FORM_TABLE: '/forms/:uid/data/table',
   FORM_DOWNLOADS: '/forms/:uid/data/downloads',
   FORM_GALLERY: '/forms/:uid/data/gallery',
@@ -392,6 +397,7 @@ const constants = {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
+  PATHS,
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
