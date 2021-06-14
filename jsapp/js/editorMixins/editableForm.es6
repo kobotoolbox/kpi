@@ -700,7 +700,7 @@ export default assign({
           <i className='k-icon k-icon-form-overview'/>
         </span>
 
-        <p>{t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This functionality only works in KoboCollect.')}</p>
+        <p>{t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This functionality only works in Collect.')}</p>
 
         { stores.serverEnvironment &&
           stores.serverEnvironment.state.support_url &&
