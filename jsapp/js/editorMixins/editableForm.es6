@@ -811,11 +811,8 @@ export default assign({
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
                 menuPlacement='bottom'
-<<<<<<< HEAD
                 isDisabled={this.isChangingAppearanceRestricted()}
-=======
                 isSearchable={false}
->>>>>>> origin/beta
               />
             </bem.FormBuilderAside__row>
 
@@ -950,13 +947,11 @@ export default assign({
             {this.renderFormBuilderHeader()}
 
               <bem.FormBuilder__contents>
-<<<<<<< HEAD
                 {this.state.asset &&
                   <FormLockedMessage asset={this.state.asset}/>
-=======
+                }
                 {this.hasBackgroundAudio() &&
                   this.renderBackgroundAudioWarning()
->>>>>>> origin/beta
                 }
 
                 <div ref='form-wrap' className='form-wrap'>

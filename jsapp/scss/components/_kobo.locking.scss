@@ -15,17 +15,17 @@
   .card__settings,
   .card--selectquestion__expansion,
   .params-view__simple-wrapper {
-    background-color: $kobo-whitegray;
+    background-color: $kobo-gray-96;
   }
 
   .question__tags::after,
   .card__settings::after,
   .card--selectquestion__expansion::after {
-    border-bottom-color: $kobo-whitegray;
+    border-bottom-color: $kobo-gray-96;
   }
 
   .card__addoptions__layer {
-    background-color: rgba($kobo-whitegray, 0.5);
+    background-color: rgba($kobo-gray-96, 0.5);
   }
 }
 
