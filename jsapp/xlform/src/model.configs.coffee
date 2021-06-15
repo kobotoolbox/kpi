@@ -61,6 +61,11 @@ module.exports = do ->
       label: "audit"
       description: "Records the behavior of enumerators as they navigate through a form"
       default: false
+    bg_aud:
+      name: "background-audio"
+      label: "background audio"
+      description: "record bg audio"
+      default: false
 
   do ->
     class SurveyDetailSchemaItem extends Backbone.Model

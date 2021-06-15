@@ -9,6 +9,7 @@ $inputDeserializer = require './model.inputDeserializer'
 $inputParser = require './model.inputParser'
 $markdownTable = require './model.utils.markdownTable'
 csv = require './csv'
+LOCKING_PROFILES_PROP_NAME = require('js/components/locking/lockingConstants').LOCKING_PROFILES_PROP_NAME
 
 module.exports = do ->
   class Survey extends $surveyFragment.SurveyFragment
@@ -24,6 +25,12 @@ module.exports = do ->
 
       if (sname = @settings.get("name") or options.name)
         @set("name", sname)
+
+      ###
+      # We don't use locking profiles in any way yet, so we just store it for
+      # saving - for checking these out, coffee code is using raw survey JSON.
+      ###
+      @lockingProfiles = options[LOCKING_PROFILES_PROP_NAME]
 
       @newRowDetails = options.newRowDetails || $configs.newRowDetails
       @defaultsForType = options.defaultsForType || $configs.defaultsForType
@@ -149,6 +156,9 @@ module.exports = do ->
         obj.choices = flattened_choices
 
       obj.settings = [@settings.attributes]
+
+      if @lockingProfiles
+        obj[LOCKING_PROFILES_PROP_NAME] = @lockingProfiles
 
       if stringify
         JSON.stringify(obj, null, spaces)

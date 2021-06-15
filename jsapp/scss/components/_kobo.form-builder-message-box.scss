@@ -1,3 +1,5 @@
+$message-box-icon-size: 28px;
+
 .form-builder-message-box {
   width: 100%;
   margin: 0 auto 20px;
@@ -11,7 +13,7 @@
 
   i {
     color: $kobo-white;
-    font-size: 28px;
+    font-size: $message-box-icon-size;
     margin-right: 5px;
     vertical-align: -11px;
     display: inline-block;
@@ -21,6 +23,10 @@
     margin: 0;
     flex: 1;
     padding: 0 5px;
+  }
+
+  span {
+    cursor: default;
   }
 
   .form-builder-message-box__toggle {
@@ -49,5 +55,25 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-around;
+  }
+}
+
+.form-builder-message-box--warning {
+  background-color: $kobo-orange-light;
+  color: $kobo-orange-dark;
+
+  a {
+    width: $message-box-icon-size;
+    cursor: pointer;
+  }
+
+  i {
+    color: $kobo-orange-dark;
+  }
+
+  p {
+    margin-left: 12px;
+    margin-right: 12px;
+    font-weight: 500;
   }
 }
