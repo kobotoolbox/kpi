@@ -236,7 +236,8 @@
   }
 
   .simple-table.simple-table--project-exports {
-    .simple-table__cell {
+    // __row selector to not include __message-row
+    .simple-table__row .simple-table__cell {
       &:last-child() {
         text-align: right;
       }

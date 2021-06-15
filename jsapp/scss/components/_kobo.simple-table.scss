@@ -23,4 +23,11 @@
     padding: 10px;
     background-color: $kobo-white;
   }
+
+  .simple-table__message-row {
+    .simple-table__cell {
+      padding: 20px;
+      text-align: center;
+    }
+  }
 }

@@ -12,8 +12,7 @@ import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
 import FormMedia from './modalForms/formMedia';
 import DataTable from 'js/components/submissions/table';
-import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
-import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
+import ProjectDownloads from 'js/components/projectDownloads/projectDownloads';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
@@ -28,11 +27,7 @@ export class FormSubScreens extends React.Component {
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
-    if (this.props.randdelay && uid) {
-      window.setTimeout(()=>{
-        actions.resources.loadAsset({id: uid});
-      }, Math.random() * 3000);
-    } else if (uid) {
+    if (uid) {
       actions.resources.loadAsset({id: uid});
     }
   }
@@ -72,7 +67,7 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/data/map/${this.props.params.viewby}`:
           return <FormMap asset={this.state} viewby={this.props.params.viewby}/>;
         case `/forms/${this.state.uid}/data/downloads`:
-          return this.renderProjectDownloads();
+          return <ProjectDownloads asset={this.state}/>;
         case `/forms/${this.state.uid}/settings`:
           return this.renderSettingsEditor();
         case `/forms/${this.state.uid}/settings/media`:
@@ -114,21 +109,6 @@ export class FormSubScreens extends React.Component {
             />
           </bem.FormView>
         </DocumentTitle>
-    );
-  }
-  renderProjectDownloads() {
-    var docTitle = this.state.name || t('Untitled');
-    return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <React.Fragment>
-          <bem.FormView className='project-downloads'>
-            {stores.session.isLoggedIn &&
-              <ProjectExportsCreator asset={this.state} />
-            }
-            <ProjectExportsList asset={this.state} />
-          </bem.FormView>
-        </React.Fragment>
-      </DocumentTitle>
     );
   }
   renderSharing() {

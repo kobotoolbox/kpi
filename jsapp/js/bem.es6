@@ -281,6 +281,8 @@ bem.SimpleTable__header = bem.SimpleTable.__('header', 'thead');
 bem.SimpleTable__body = bem.SimpleTable.__('body', 'tbody');
 bem.SimpleTable__footer = bem.SimpleTable.__('footer', 'tfoot');
 bem.SimpleTable__row = bem.SimpleTable.__('row', 'tr');
+// NOTE: messageRow needs a __cell with colspan set
+bem.SimpleTable__messageRow = bem.SimpleTable.__('message-row', 'tr');
 bem.SimpleTable__cell = bem.SimpleTable.__('cell', 'td');
 
 bem.AssetsTable = BEM('assets-table');
