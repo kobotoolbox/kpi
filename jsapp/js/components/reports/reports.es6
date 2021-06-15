@@ -379,7 +379,7 @@ export default class Reports extends React.Component {
             onClick={this.editCustomReport}
             data-tip={t('Edit Report Questions')}
           >
-            <i className='k-icon-edit' />
+            <i className='k-icon k-icon-edit' />
           </bem.Button>
         )}
 
@@ -389,7 +389,7 @@ export default class Reports extends React.Component {
           onClick={this.toggleFullscreen}
           data-tip={t('Toggle fullscreen')}
         >
-          <i className='k-icon-expand' />
+          <i className='k-icon k-icon-expand' />
         </bem.Button>
 
         <bem.Button
@@ -398,7 +398,7 @@ export default class Reports extends React.Component {
           onClick={launchPrinting}
           data-tip={t('Print')}
         >
-          <i className='k-icon-print' />
+          <i className='k-icon k-icon-print' />
         </bem.Button>
 
         {this.userCan('change_asset', this.state.asset) && (
@@ -408,7 +408,7 @@ export default class Reports extends React.Component {
             onClick={this.toggleReportGraphSettings}
             data-tip={t('Configure Report Style')}
           >
-            <i className='k-icon-settings' />
+            <i className='k-icon k-icon-settings' />
           </bem.Button>
         )}
       </bem.FormView__reportButtons>
@@ -564,7 +564,7 @@ export default class Reports extends React.Component {
                   )}
 
                 <bem.FormView__cell m='warning'>
-                  <i className='k-icon-alert' />
+                  <i className='k-icon k-icon-alert' />
                   <p>
                     {t(
                       'This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. '

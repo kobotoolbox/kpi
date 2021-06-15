@@ -115,7 +115,7 @@ class SearchCollectionList extends Reflux.Component {
 
           {this.state.parentName &&
             <span>
-              <i className='k-icon-next' />
+              <i className='k-icon k-icon-next' />
               <span>{this.state.parentName}</span>
             </span>
           }
@@ -285,7 +285,7 @@ class SearchCollectionList extends Reflux.Component {
             }
             </bem.AssetList>
             <div className='dropzone-active-overlay'>
-              <i className='k-icon-upload' />
+              <i className='k-icon k-icon-upload' />
               {t('Drop files to upload')}
             </div>
           </bem.List>
