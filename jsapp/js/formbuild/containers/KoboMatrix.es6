@@ -400,7 +400,7 @@ class KoboMatrix extends React.Component {
                       <bem.MatrixCols__colattr m={'type'}>
                         {col.get('type')}
                       </bem.MatrixCols__colattr>
-                      <i className='k-icon-settings' onClick={_this.expandColumn.bind(this, colKuid)} />
+                      <i className='k-icon k-icon-settings' onClick={_this.expandColumn.bind(this, colKuid)} />
                     </bem.MatrixCols__col>
                   );
               })
@@ -467,7 +467,7 @@ class KoboMatrix extends React.Component {
                                   data-type='name' data-kuid={ch} />
                               </span>
                               <span className='matrix-options__delete'>
-                                <i className='k-icon-trash' onClick={_this.deleteRow} data-kuid={ch} />
+                                <i className='k-icon k-icon-trash' onClick={_this.deleteRow} data-kuid={ch} />
                               </span>
                             </div>
                           );
@@ -475,13 +475,13 @@ class KoboMatrix extends React.Component {
                       })
                     }
                     <div className='matrix-cols__options--row-foot'>
-                      <i className='k-icon-plus' onClick={this.newChoiceOption} data-list-name={this.getCol(expandedCol, 'select_from_list_name')}/>
+                      <i className='k-icon k-icon-plus' onClick={this.newChoiceOption} data-list-name={this.getCol(expandedCol, 'select_from_list_name')}/>
                     </div>
 
                   </div>
                 }
                 <div className='matrix-cols__delete'>
-                  <span className='matrix-cols__delete-action' onClick={_this.deleteColumn}>{t('Delete column')} <i className='k-icon-trash' /></span>
+                  <span className='matrix-cols__delete-action' onClick={_this.deleteColumn}>{t('Delete column')} <i className='k-icon k-icon-trash' /></span>
                 </div>
               </bem.MatrixCols__settings_inner>
             }
@@ -494,7 +494,7 @@ class KoboMatrix extends React.Component {
                     <bem.MatrixItems__itemrow>
                       <bem.MatrixItems__itemattr m={'label'}>
                         <label>{item.label}</label>
-                        <i className='k-icon-settings' onClick={_this.expandRow.bind(this, item.$kuid)} />
+                        <i className='k-icon k-icon-settings' onClick={_this.expandRow.bind(this, item.$kuid)} />
                       </bem.MatrixItems__itemattr>
                       {
                         cols.map(function(colKuid, nn) {
@@ -544,7 +544,7 @@ class KoboMatrix extends React.Component {
                           </label>
                           <div className='matrix-cols__delete'>
                             <span className='matrix-cols__delete-action' onClick={_this.deleteRow} data-kuid={item.$kuid}>
-                              {t('Delete row')} <i className='k-icon-trash' />
+                              {t('Delete row')} <i className='k-icon k-icon-trash' />
                             </span>
                           </div>
                         </bem.MatrixCols__settings_inner>
@@ -555,11 +555,11 @@ class KoboMatrix extends React.Component {
               })
             }
             <bem.MatrixItems__item key={'new'} m={'new'}>
-              <i className='k-icon-plus' onClick={this.newChoiceOption} data-list-name={this.state.kobomatrix_list}/>
+              <i className='k-icon k-icon-plus' onClick={this.newChoiceOption} data-list-name={this.state.kobomatrix_list}/>
             </bem.MatrixItems__item>
           </bem.MatrixItems>
           <bem.MatrixItemsNewCol>
-            <i className='k-icon-plus' onClick={this.newColumn} />
+            <i className='k-icon k-icon-plus' onClick={this.newColumn} />
           </bem.MatrixItemsNewCol>
         </bem.Matrix>
       )

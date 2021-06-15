@@ -657,7 +657,7 @@ class ProjectSettings extends React.Component {
   renderChooseTemplateButton() {
     return (
       <button onClick={this.displayStep.bind(this, this.STEPS.CHOOSE_TEMPLATE)}>
-        <i className='k-icon-template' />
+        <i className='k-icon k-icon-template' />
         {t('Use a template')}
       </button>
     );
@@ -675,7 +675,7 @@ class ProjectSettings extends React.Component {
         <bem.FormModal__item m='form-source-buttons'>
           {this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW &&
             <button onClick={this.displayStep.bind(this, this.STEPS.PROJECT_DETAILS)}>
-              <i className='k-icon-edit' />
+              <i className='k-icon k-icon-edit' />
               {t('Build from scratch')}
             </button>
           }
@@ -685,12 +685,12 @@ class ProjectSettings extends React.Component {
           }
 
           <button onClick={this.displayStep.bind(this, this.STEPS.UPLOAD_FILE)}>
-            <i className='k-icon-upload' />
+            <i className='k-icon k-icon-upload' />
             {t('Upload an XLSForm')}
           </button>
 
           <button onClick={this.displayStep.bind(this, this.STEPS.IMPORT_URL)}>
-            <i className='k-icon-link' />
+            <i className='k-icon k-icon-link' />
             {t('Import an XLSForm via URL')}
           </button>
 
@@ -739,7 +739,7 @@ class ProjectSettings extends React.Component {
             rejectClassName='dropzone-reject'
             accept={validFileTypes()}
           >
-            <i className='k-icon-xls-file' />
+            <i className='k-icon k-icon-xls-file' />
             {t(' Drag and drop the XLSForm file here or click to browse')}
           </Dropzone>
         }

@@ -333,7 +333,7 @@ class MapSettings extends React.Component {
                             data-tip={t('Delete layer')}
                             data-uid={file.uid}
                           >
-                            <i className='k-icon-trash' />
+                            <i className='k-icon k-icon-trash' />
                           </span>
                         </div>
                       );

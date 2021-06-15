@@ -699,31 +699,31 @@ export class FormMap extends React.Component {
           onClick={this.toggleFullscreen}
           data-tip={t('Toggle Fullscreen')}
           className={this.state.toggleFullscreen ? 'active': ''}>
-          <i className='k-icon-expand' />
+          <i className='k-icon k-icon-expand' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'markers'}
           onClick={this.showMarkers}
           data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active': ''}>
-          <i className='k-icon-pins' />
+          <i className='k-icon k-icon-pins' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'layers'}
           onClick={this.showLayerControls}
           data-tip={t('Toggle layers')}>
-          <i className='k-icon-layer' />
+          <i className='k-icon k-icon-layer' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
           m={'map-settings'}
           onClick={this.toggleMapSettings}
           data-tip={t('Map display settings')}>
-          <i className='k-icon-settings' />
+          <i className='k-icon k-icon-settings' />
         </bem.FormView__mapButton>
         {!viewby &&
           <bem.FormView__mapButton m={'heatmap'}
             onClick={this.showHeatmap}
             data-tip={t('Show as heatmap')}
             className={!this.state.markersVisible ? 'active': ''}>
-            <i className='k-icon-heatmap' />
+            <i className='k-icon k-icon-heatmap' />
           </bem.FormView__mapButton>
         }
 

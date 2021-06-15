@@ -98,7 +98,7 @@ class LibraryUploadForm extends React.Component {
                 rejectClassName='dropzone-reject'
                 accept={validFileTypes()}
               >
-                <i className='k-icon-xls-file' />
+                <i className='k-icon k-icon-xls-file' />
                 {this.state.currentFile &&
                   this.state.currentFile.name
                 }
