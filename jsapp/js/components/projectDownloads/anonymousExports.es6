@@ -71,6 +71,7 @@ export default class AnonymousExports extends React.Component {
 
       const defaultExportFormat = getContextualDefaultExportFormat(this.props.asset);
 
+      // TODO FIXME: this will not work for legacy formats
       actions.exports.createExport(
         this.props.asset.uid,
         {
@@ -124,7 +125,16 @@ export default class AnonymousExports extends React.Component {
     aEl.click();
   }
 
+  /**
+   * We allow only one pending download at a time, so we disable the type
+   * selector and the export button for simplicity.
+   */
   render() {
+    const buttonModifiers = ['blue'];
+    if (this.state.isPending) {
+      buttonModifiers.push('pending');
+    }
+
     return (
       <bem.FormView__cell m={['box', 'padding']}>
         <bem.ProjectDownloads__anonymousRow>
@@ -133,12 +143,15 @@ export default class AnonymousExports extends React.Component {
           </bem.ProjectDownloads__exportsSelector>
 
           <bem.KoboButton
-            m='blue'
+            m={buttonModifiers}
             type='submit'
             onClick={this.onSubmit}
             disabled={this.state.isPending}
           >
             {t('Export')}
+            {this.state.isPending &&
+              <i className='k-spin k-icon k-icon-spinner'/>
+            }
           </bem.KoboButton>
         </bem.ProjectDownloads__anonymousRow>
       </bem.FormView__cell>

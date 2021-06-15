@@ -361,9 +361,10 @@ bem.ProjectDownloads__columnRow = bem.ProjectDownloads.__('column-row');
 bem.ProjectDownloads__title = bem.ProjectDownloads.__('title', 'span');
 bem.ProjectDownloads__textButton = bem.ProjectDownloads.__('text-button', 'button');
 bem.ProjectDownloads__selectorRow = bem.ProjectDownloads.__('selector-row');
+bem.ProjectDownloads__anonymousRow = bem.ProjectDownloads.__('anonymous-row');
 bem.ProjectDownloads__legacyIframeWrapper = bem.ProjectDownloads.__('legacy-iframe-wrapper');
 bem.ProjectDownloads__submitRow = bem.ProjectDownloads.__('submit-row', 'footer');
-bem.ProjectDownloads__definedExportsSelector = bem.ProjectDownloads.__('defined-exports-selector');
+bem.ProjectDownloads__exportsSelector = bem.ProjectDownloads.__('exports-selector');
 bem.ProjectDownloads__deleteSettingsButton = bem.ProjectDownloads.__('delete-settings-button', 'button');
 bem.ProjectDownloads__exportsCreator = bem.ProjectDownloads.__('exports-creator');
 

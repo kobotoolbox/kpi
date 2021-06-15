@@ -61,7 +61,7 @@ export default class ExportTypeSelector extends React.Component {
           classNamePrefix='kobo-select'
           menuPlacement='auto'
           isSearchable={false}
-          disabled={this.props.disabled}
+          isDisabled={this.props.disabled}
         />
       </label>
     );
