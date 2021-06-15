@@ -20,6 +20,10 @@ import {
   EXPORT_FORMATS,
   EXPORT_MULTIPLE_OPTIONS,
 } from 'js/components/projectDownloads/exportsConstants';
+import {
+  getContextualDefaultExportFormat,
+  getExportFormatOptions,
+} from 'js/components/projectDownloads/exportsUtils';
 import assetUtils from 'js/assetUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
@@ -41,7 +45,7 @@ export default class ProjectExportsCreator extends React.Component {
       // selectedExportType is being handled by exportsStore to allow other
       // components to know it changed
       selectedExportType: exportsStore.getExportType(),
-      selectedExportFormat: this.getContextualDefaultExportFormat(),
+      selectedExportFormat: getContextualDefaultExportFormat(this.props.asset),
       groupSeparator: DEFAULT_EXPORT_SETTINGS.GROUP_SEPARATOR,
       selectedExportMultiple: DEFAULT_EXPORT_SETTINGS.EXPORT_MULTIPLE,
       isIncludeGroupsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_GROUPS,
@@ -88,7 +92,7 @@ export default class ProjectExportsCreator extends React.Component {
   setDefaultExportSettings() {
     exportsStore.setExportType(DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE);
     this.setState({
-      selectedExportFormat: this.getContextualDefaultExportFormat(),
+      selectedExportFormat: getContextualDefaultExportFormat(this.props.asset),
       groupSeparator: DEFAULT_EXPORT_SETTINGS.GROUP_SEPARATOR,
       selectedExportMultiple: DEFAULT_EXPORT_SETTINGS.EXPORT_MULTIPLE,
       isIncludeGroupsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_GROUPS,
@@ -146,49 +150,6 @@ export default class ProjectExportsCreator extends React.Component {
   onDeleteExportSettingCompleted() {
     this.clearSelectedDefinedExport();
     this.fetchExportSettings();
-  }
-
-  getExportFormatOptions() {
-    const options = [];
-
-    // Step 1: add all defined languages as options (both named and unnamed)
-    if (this.props.asset.summary?.languages.length >= 1) {
-      this.props.asset.summary.languages.forEach((language, index) => {
-        // unnamed language gives the `_default` option
-        if (language === null) {
-          options.push(EXPORT_FORMATS._default);
-        } else {
-          options.push({
-            value: language,
-            label: language,
-            langIndex: index, // needed for later
-          });
-        }
-      });
-    }
-
-    // Step 2: if for some reason nothing was added yet, add `_default`
-    if (options.length === 0) {
-      options.push(EXPORT_FORMATS._default);
-    }
-
-    // Step 3: `_xml` is always available and always last
-    options.push(EXPORT_FORMATS._xml);
-
-    return options;
-  }
-
-  /**
-   * @returns one of export format options, either the asset's default language
-   * or `_default` (or more precisely: the first option)
-   */
-  getContextualDefaultExportFormat() {
-    const exportFormatOptions = this.getExportFormatOptions();
-    const defaultAssetLanguage = this.props.asset.summary?.default_translation;
-    const defaultAssetLanguageOption = exportFormatOptions.find((option) =>
-      defaultAssetLanguage === option.value
-    );
-    return defaultAssetLanguageOption || exportFormatOptions[0];
   }
 
   getAllSelectableRows() {
@@ -317,14 +278,14 @@ export default class ProjectExportsCreator extends React.Component {
     // this silently sets exportsStore value to current one
     exportsStore.setExportType(EXPORT_TYPES[data.export_settings.type], false);
 
-    const exportFormatOptions = this.getExportFormatOptions();
+    const exportFormatOptions = getExportFormatOptions(this.props.asset);
     let selectedExportFormat = exportFormatOptions.find((option) =>
       option.value === data.export_settings.lang
     );
 
     // If saved export lang option doesn't exist anymore select default one
     if (!selectedExportFormat) {
-      selectedExportFormat = this.getContextualDefaultExportFormat();
+      selectedExportFormat = getContextualDefaultExportFormat(this.props.asset);
     }
 
     // Select custom export toggle if not all rows are selected
@@ -648,7 +609,7 @@ export default class ProjectExportsCreator extends React.Component {
       formClassNames.push('project-downloads__exports-creator--loading');
     }
 
-    const exportFormatOptions = this.getExportFormatOptions();
+    const exportFormatOptions = getExportFormatOptions(this.props.asset);
 
     return (
       <bem.FormView__cell m={['box', 'padding']}>
@@ -691,7 +652,7 @@ export default class ProjectExportsCreator extends React.Component {
           {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
 
           <bem.ProjectDownloads__submitRow>
-            <bem.ProjectDownloads__definedExportsSelector>
+            <bem.ProjectDownloads__exportsSelector>
               {this.state.definedExports.length >= 1 &&
                 <React.Fragment>
                   <label>
@@ -724,18 +685,18 @@ export default class ProjectExportsCreator extends React.Component {
                     }
                   </React.Fragment>
                 }
-              </bem.ProjectDownloads__definedExportsSelector>
+              </bem.ProjectDownloads__exportsSelector>
 
               <bem.KoboButton
                 m='blue'
                 type='submit'
                 onClick={this.onSubmit}
                 disabled={this.state.selectedRows.size === 0}
-                >
-                  {t('Export')}
-                </bem.KoboButton>
-              </bem.ProjectDownloads__submitRow>
-            </bem.FormView__form>
+              >
+                {t('Export')}
+              </bem.KoboButton>
+            </bem.ProjectDownloads__submitRow>
+          </bem.FormView__form>
       </bem.FormView__cell>
     );
   }

@@ -6,7 +6,7 @@ import {EXPORT_TYPES} from 'js/components/projectDownloads/exportsConstants';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 
 /**
- * @prop {object} asset
+ * @prop {boolean} [disabled]
  */
 export default class ExportTypeSelector extends React.Component {
   constructor(props){
@@ -61,6 +61,7 @@ export default class ExportTypeSelector extends React.Component {
           classNamePrefix='kobo-select'
           menuPlacement='auto'
           isSearchable={false}
+          disabled={this.props.disabled}
         />
       </label>
     );

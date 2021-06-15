@@ -12,14 +12,12 @@ import {
   EXPORT_TYPES,
   EXPORT_FORMATS,
   EXPORT_STATUSES,
+  EXPORT_REFRESH_TIME,
 } from 'js/components/projectDownloads/exportsConstants';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 
-const EXPORT_REFRESH_TIME = 4000;
-
 /**
  * @prop {object} asset
- * @prop {boolean} hideWhenEmpty - for not rendering anything if not ready or if no exports on endpoint
  */
 export default class ProjectExportsList extends React.Component {
   constructor(props) {
@@ -245,11 +243,8 @@ export default class ProjectExportsList extends React.Component {
     // don't display the component if no exports
     // or if selected a legacy type
     } else if (
-      this.props.hideWhenEmpty &&
-      (
-        this.state.rows.length === 0 ||
-        this.state.selectedExportType.isLegacy
-      )
+      this.state.rows.length === 0 ||
+      this.state.selectedExportType.isLegacy
     ) {
       return null;
     } else {

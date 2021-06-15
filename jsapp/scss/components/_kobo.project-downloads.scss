@@ -182,7 +182,7 @@
     align-content: flex-end;
     margin-top: 20px;
 
-    .project-downloads__defined-exports-selector {
+    .project-downloads__exports-selector {
       width: 33%;
       position: relative;
     }
@@ -212,6 +212,17 @@
       &:active {
         transform: translateY(1px);
       }
+    }
+  }
+
+  .project-downloads__anonymous-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    align-content: flex-end;
+
+    .project-downloads__exports-selector {
+      width: 33%;
     }
   }
 

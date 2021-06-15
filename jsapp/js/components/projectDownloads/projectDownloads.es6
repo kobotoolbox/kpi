@@ -6,7 +6,7 @@ import DocumentTitle from 'react-document-title';
 import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
 import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
 import LegacyExports from 'js/components/projectDownloads/legacyExports';
-import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
+import AnonymousExports from 'js/components/projectDownloads/anonymousExports';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 
 /**
@@ -34,30 +34,15 @@ export default class ProjectDownloads extends React.Component {
     this.setState({selectedExportType: exportsStore.getExportType()});
   }
 
-  renderLegacy() {
-    return (
-      <React.Fragment>
-        <LegacyExports asset={this.props.asset} />
-      </React.Fragment>
-    );
-  }
-
-  renderNonLegacy() {
-    if (stores.session.isLoggedIn) {
+  renderLoggedInExports() {
+    if (this.state.selectedExportType.isLegacy) {
       return (
-        <React.Fragment>
-          <ProjectExportsCreator asset={this.props.asset} />
-          <ProjectExportsList asset={this.props.asset} hideWhenEmpty/>
-        </React.Fragment>
+        <LegacyExports asset={this.props.asset} />
       );
     } else {
       return (
         <React.Fragment>
-          <bem.FormView__cell m={['box', 'padding']}>
-            <bem.ProjectDownloads__selectorRow>
-              <ExportTypeSelector/>
-            </bem.ProjectDownloads__selectorRow>
-          </bem.FormView__cell>
+          <ProjectExportsCreator asset={this.props.asset}/>
           <ProjectExportsList asset={this.props.asset}/>
         </React.Fragment>
       );
@@ -74,12 +59,12 @@ export default class ProjectDownloads extends React.Component {
               {t('Downloads')}
             </bem.FormView__cell>
 
-            {this.state.selectedExportType.isLegacy &&
-              this.renderLegacy()
+            {stores.session.isLoggedIn &&
+              this.renderLoggedInExports()
             }
 
-            {!this.state.selectedExportType.isLegacy &&
-              this.renderNonLegacy()
+            {!stores.session.isLoggedIn &&
+              <AnonymousExports asset={this.props.asset}/>
             }
           </bem.FormView__row>
         </bem.FormView>
