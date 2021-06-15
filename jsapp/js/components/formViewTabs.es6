@@ -17,24 +17,24 @@ export function getFormDataTabs(assetUid, isLoggedIn) {
   return [
     {
       label: t('Table'),
-      icon: 'k-icon-table', path: ROUTES.FORM_TABLE.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-table', path: ROUTES.FORM_TABLE.replace(':uid', assetUid),
     },
     {
       label: t('Reports'),
-      icon: 'k-icon-report', path: ROUTES.FORM_REPORT.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-report', path: ROUTES.FORM_REPORT.replace(':uid', assetUid),
     },
     {
       label: t('Gallery'),
-      icon: 'k-icon-photo-gallery', path: ROUTES.FORM_GALLERY.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-photo-gallery', path: ROUTES.FORM_GALLERY.replace(':uid', assetUid),
     },
     {
       label: t('Downloads'),
-      icon: 'k-icon-download', path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-download', path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
       isDisabled: !isLoggedIn,
     },
     {
       label: t('Map'),
-      icon: 'k-icon-map-view', path: ROUTES.FORM_MAP.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-map-view', path: ROUTES.FORM_MAP.replace(':uid', assetUid),
     },
   ];
 }
@@ -142,7 +142,7 @@ class FormViewTabs extends Reflux.Component {
           <Link
             to={ROUTES.FORMS}
             className='form-view__link form-view__link--close'>
-            <i className='k-icon-close' />
+            <i className='k-icon k-icon-close' />
           </Link>
         }
       </bem.FormView__toptabs>
@@ -158,20 +158,20 @@ class FormViewTabs extends Reflux.Component {
     if (this.state.asset && this.isActiveRoute(`/forms/${this.state.assetid}/settings`)) {
       sideTabs = [];
 
-      sideTabs.push({label: t('General'), icon: 'k-icon-settings', path: `/forms/${this.state.assetid}/settings`});
+      sideTabs.push({label: t('General'), icon: 'k-icon k-icon-settings', path: `/forms/${this.state.assetid}/settings`});
 
       if (mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.state.asset)) {
-        sideTabs.push({label: t('Media'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.assetid}/settings/media`});
+        sideTabs.push({label: t('Media'), icon: 'k-icon k-icon-photo-gallery', path: `/forms/${this.state.assetid}/settings/media`});
       }
 
-      sideTabs.push({label: t('Sharing'), icon: 'k-icon-user-share', path: `/forms/${this.state.assetid}/settings/sharing`});
+      sideTabs.push({label: t('Sharing'), icon: 'k-icon k-icon-user-share', path: `/forms/${this.state.assetid}/settings/sharing`});
 
       if (
         this.state.asset.deployment__active &&
         mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.state.asset) &&
         mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.state.asset)
       ) {
-        sideTabs.push({label: t('REST Services'), icon: 'k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
+        sideTabs.push({label: t('REST Services'), icon: 'k-icon k-icon-data-sync', path: `/forms/${this.state.assetid}/settings/rest`});
       }
     }
 
