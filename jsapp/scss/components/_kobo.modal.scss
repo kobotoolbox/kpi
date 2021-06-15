@@ -581,7 +581,7 @@ $z-modal-x: 10;
 
     .form-view__icon-button.right-tooltip {
       &:disabled {
-        color: $kobo-midgray;
+        color: $kobo-gray-65;
       }
     }
   }
@@ -701,7 +701,7 @@ $z-modal-x: 10;
         white-space: normal;
 
         .rt-td--disabled {
-          color: $kobo-midgray;
+          color: $kobo-gray-65;
         }
       }
       > .rt-th:first-child,
@@ -729,8 +729,8 @@ $z-modal-x: 10;
             background: $kobo-white;
           }
           &:disabled {
-            color: $kobo-midgray;
-            background-color: $kobo-whitegray;
+            color: $kobo-gray-65;
+            background-color: $kobo-gray-96;
           }
         }
       }

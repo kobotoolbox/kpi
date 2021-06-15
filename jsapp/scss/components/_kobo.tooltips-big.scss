@@ -19,7 +19,7 @@ $z-tooltip-big: 2;
       font-weight: normal;
       line-height: 1.35em;
       color: $kobo-white;
-      background-color: $kobo-darkgray;
+      background-color: $kobo-gray-40;
       padding: 6px 12px;
       top: calc(100% + 6px);
       left: 50%;
@@ -43,7 +43,7 @@ $z-tooltip-big: 2;
       }
 
       &::before {
-        border-bottom: 5px solid $kobo-darkgray;
+        border-bottom: 5px solid $kobo-gray-40;
         border-left: 5px solid transparent;
         border-right: 5px solid transparent;
         position: absolute;
