@@ -288,6 +288,7 @@ class Modal extends React.Component {
             { this.props.params.type === MODAL_TYPES.LIBRARY_UPLOAD &&
               <LibraryUploadForm
                 onSetModalTitle={this.setModalTitle}
+                file={this.props.params.file}
               />
             }
             { this.props.params.type === MODAL_TYPES.REPLACE_PROJECT &&

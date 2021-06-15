@@ -1,3 +1,4 @@
+import clonedeep from 'lodash.clonedeep';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import cloneDeep from 'lodash.clonedeep';
@@ -15,7 +16,7 @@ import {
   surveyToValidJson,
   unnullifyTranslations,
   assign,
-  koboMatrixParser
+  koboMatrixParser,
 } from '../utils';
 import {
   ASSET_TYPES,
@@ -24,6 +25,7 @@ import {
   update_states,
   NAME_MAX_LENGTH,
   ROUTES,
+  META_QUESTION_TYPES,
 } from 'js/constants';
 import ui from '../ui';
 import {bem} from '../bem';
@@ -32,6 +34,18 @@ import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import {dataInterface} from '../dataInterface';
 import assetUtils from 'js/assetUtils';
+import FormLockedMessage from 'js/components/locking/formLockedMessage';
+import {
+  hasAssetRestriction,
+  hasAssetAnyLocking,
+  isAssetAllLocked,
+  isAssetLockable,
+} from 'js/components/locking/lockingUtils';
+import {
+  LOCKING_RESTRICTIONS,
+  LOCKING_UI_CLASSNAMES,
+} from 'js/components/locking/lockingConstants';
+import {getFormBuilderAssetType} from 'js/components/formBuilder/formBuilderUtils';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -41,6 +55,9 @@ const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html';
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave form without saving?');
 
 const ASIDE_CACHE_NAME = 'kpi.editable-form.aside';
+
+const LOCKING_SUPPORT_URL = 'library_locking.html';
+const RECORDING_SUPPORT_URL = 'recording-interviews.html';
 
 /**
  * This is a component that displays Form Builder's header and aside. It is also
@@ -188,8 +205,8 @@ export default assign({
 
   hasMetadataAndDetails() {
     return this.app && (
-      this.state.asset_type === ASSET_TYPES.survey.id ||
-      this.state.asset_type === ASSET_TYPES.template.id ||
+      this.state.asset.asset_type === ASSET_TYPES.survey.id ||
+      this.state.asset.asset_type === ASSET_TYPES.template.id ||
       this.state.desiredAssetType === ASSET_TYPES.template.id
     );
   },
@@ -424,22 +441,28 @@ export default assign({
    * It builds `dkobo_xlform.view.SurveyApp` using asset data and then appends
    * it to `.form-wrap` node.
    */
-  launchAppForSurveyContent(survey, _state = {}) {
+  launchAppForSurveyContent(assetContent, _state = {}) {
     if (_state.name) {
       _state.savedName = _state.name;
     }
 
+    // asset content is being mutated somewhere during form builder initialisation
+    // so we need to make sure this stays untouched
+    const rawAssetContent = Object.freeze(clonedeep(assetContent));
+
     let isEmptySurvey = (
-        survey &&
-        (survey.settings && Object.keys(survey.settings).length === 0) &&
-        survey.survey.length === 0
+        assetContent &&
+        (assetContent.settings && Object.keys(assetContent.settings).length === 0) &&
+        assetContent.survey.length === 0
       );
 
+    let survey = null;
+
     try {
-      if (!survey) {
+      if (!assetContent) {
         survey = dkobo_xlform.model.Survey.create();
       } else {
-        survey = dkobo_xlform.model.Survey.loadDict(survey);
+        survey = dkobo_xlform.model.Survey.loadDict(assetContent);
         if (isEmptySurvey) {
           survey.surveyDetails.importDefaults();
         }
@@ -453,7 +476,9 @@ export default assign({
       _state.surveyAppRendered = true;
 
       var skp = new SurveyScope({
-        survey: survey
+        survey: survey,
+        rawSurvey: rawAssetContent,
+        assetType: getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType),
       });
       this.app = new dkobo_xlform.view.SurveyApp({
         survey: survey,
@@ -516,6 +541,44 @@ export default assign({
     this.safeNavigateToRoute(targetRoute);
   },
 
+  isAddingQuestionsRestricted() {
+    return (
+      this.state.asset &&
+      isAssetLockable(this.state.asset.asset_type) &&
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.question_add.name)
+    );
+  },
+
+  isAddingGroupsRestricted() {
+    return (
+      this.state.asset &&
+      isAssetLockable(this.state.asset.asset_type) &&
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.group_add.name)
+    );
+  },
+
+  isChangingAppearanceRestricted() {
+    return (
+      this.state.asset &&
+      isAssetLockable(this.state.asset.asset_type) &&
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.form_appearance.name)
+    );
+  },
+
+  isChangingMetaQuestionsRestricted() {
+    return (
+      this.state.asset &&
+      isAssetLockable(this.state.asset.asset_type) &&
+      hasAssetRestriction(this.state.asset.content, LOCKING_RESTRICTIONS.form_meta_edit.name)
+    );
+  },
+
+  hasBackgroundAudio() {
+    return this.app?.survey?.surveyDetails.filter(
+      (sd) => sd.attributes.name === META_QUESTION_TYPES['background-audio']
+    )[0].attributes.value;
+  },
+
   // rendering methods
 
   renderFormBuilderHeader () {
@@ -526,31 +589,6 @@ export default assign({
       showAllAvailable,
       saveButtonText,
     } = this.buttonStates();
-
-    let nameFieldLabel;
-    switch (this.state.asset_type) {
-      case ASSET_TYPES.template.id:
-        nameFieldLabel = ASSET_TYPES.template.label;
-        break;
-      case ASSET_TYPES.survey.id:
-        nameFieldLabel = ASSET_TYPES.survey.label;
-        break;
-      case ASSET_TYPES.block.id:
-        nameFieldLabel = ASSET_TYPES.block.label;
-        break;
-      case ASSET_TYPES.question.id:
-        nameFieldLabel = ASSET_TYPES.question.label;
-        break;
-      default:
-        nameFieldLabel = null;
-    }
-
-    if (
-      nameFieldLabel === null &&
-      this.state.desiredAssetType === ASSET_TYPES.template.id
-    ) {
-      nameFieldLabel = ASSET_TYPES.template.label;
-    }
 
     return (
       <bem.FormBuilderHeader>
@@ -567,9 +605,7 @@ export default assign({
 
           <bem.FormBuilderHeader__cell m={'name'} >
             <bem.FormModal__item>
-              {nameFieldLabel &&
-                <label>{nameFieldLabel}</label>
-              }
+              {this.renderAssetLabel()}
               <input
                 type='text'
                 maxLength={NAME_MAX_LENGTH}
@@ -629,6 +665,7 @@ export default assign({
               m={['group', {groupable: groupable}]}
               onClick={this.groupQuestions}
               disabled={!groupable}
+              className={this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
               <i className='k-icon-group' />
@@ -639,6 +676,7 @@ export default assign({
                 m={['cascading']}
                 onClick={this.toggleCascade}
                 data-tip={t('Insert cascading select')}
+                className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
               >
                 <i className='k-icon-cascading' />
               </bem.FormBuilderHeader__button>
@@ -655,6 +693,7 @@ export default assign({
             <bem.FormBuilderHeader__button
               m={['panel-toggle', this.state.asideLibrarySearchVisible ? 'active' : null]}
               onClick={this.toggleAsideLibrarySearch}
+              className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
             >
               <i className={['k-icon', this.state.asideLibrarySearchVisible ? 'k-icon-close' : 'k-icon-library' ].join(' ')} />
               <span className='panel-toggle-name'>{t('Add from Library')}</span>
@@ -681,6 +720,41 @@ export default assign({
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
       </bem.FormBuilderHeader>
+    );
+  },
+
+  renderBackgroundAudioWarning() {
+    return (
+      <bem.FormBuilderMessageBox m='warning'>
+        <span data-tip={t('background recording')}>
+          <i className='k-icon k-icon-form-overview'/>
+        </span>
+
+        <p>
+          {t('This form will automatically record audio in the background. Consider adding an acknowledgement note to inform respondents or data collectors that they will be recorded while completing this survey. This feature is available in ')}
+          <a title="Install KoBoCollect"
+            target="_blank"
+            href='https://play.google.com/store/apps/details?id=org.koboc.collect.android'>
+            {t('Collect version 1.30 and above')}
+          </a>
+          {'.'}
+        </p>
+
+        { stores.serverEnvironment &&
+          stores.serverEnvironment.state.support_url &&
+          <bem.TextBox__labelLink
+            // TODO update support article to include background-audio
+            href={
+              stores.serverEnvironment.state.support_url +
+              RECORDING_SUPPORT_URL
+            }
+            target='_blank'
+            data-tip={t('help')}
+          >
+            <i className='k-icon k-icon-help' />
+          </bem.TextBox__labelLink>
+        }
+      </bem.FormBuilderMessageBox>
     );
   },
 
@@ -737,6 +811,7 @@ export default assign({
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
                 menuPlacement='bottom'
+                isDisabled={this.isChangingAppearanceRestricted()}
                 isSearchable={false}
               />
             </bem.FormBuilderAside__row>
@@ -750,6 +825,7 @@ export default assign({
                 <MetadataEditor
                   survey={this.app.survey}
                   onChange={this.onMetadataEditorChange}
+                  isDisabled={this.isChangingMetaQuestionsRestricted()}
                   {...this.state}
                 />
               </bem.FormBuilderAside__row>
@@ -770,8 +846,11 @@ export default assign({
             }
           </bem.FormBuilderAside__content>
         }
+
         { this.state.asideLibrarySearchVisible &&
-          <bem.FormBuilderAside__content>
+          <bem.FormBuilderAside__content
+            className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+          >
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>
                 {t('Search Library')}
@@ -804,6 +883,42 @@ export default assign({
     return (<ui.LoadingSpinner/>);
   },
 
+  renderAssetLabel() {
+    let assetTypeLabel = getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType)?.label;
+
+    // Case 1: there is no asset yet (creting a new) or asset is not locked
+    if (
+      !this.state.asset ||
+      !hasAssetAnyLocking(this.state.asset.content)
+    ) {
+      return assetTypeLabel;
+    // Case 2: asset is locked fully or partially
+    } else {
+      let lockedLabel = t('Partially locked ##type##').replace('##type##', assetTypeLabel);
+      if (isAssetAllLocked(this.state.asset.content)) {
+        lockedLabel = t('Fully locked ##type##').replace('##type##', assetTypeLabel);
+      }
+      return (
+        <span className='locked-asset-type-label'>
+          <i className='k-icon k-icon-lock'/>
+
+          {lockedLabel}
+
+          { stores.serverEnvironment &&
+            stores.serverEnvironment.state.support_url &&
+            <a
+              href={stores.serverEnvironment.state.support_url + LOCKING_SUPPORT_URL}
+              target='_blank'
+              data-tip={t('Read more about Locking')}
+            >
+              <i className='k-icon k-icon-help'/>
+            </a>
+          }
+        </span>
+      );
+    }
+  },
+
   render() {
     var docTitle = this.state.name || t('Untitled');
 
@@ -832,6 +947,14 @@ export default assign({
             {this.renderFormBuilderHeader()}
 
               <bem.FormBuilder__contents>
+                {this.state.asset &&
+                  <FormLockedMessage asset={this.state.asset}/>
+                }
+
+                {this.hasBackgroundAudio() &&
+                  this.renderBackgroundAudioWarning()
+                }
+
                 <div ref='form-wrap' className='form-wrap'>
                   {!this.state.surveyAppRendered &&
                     this.renderNotLoadedMessage()

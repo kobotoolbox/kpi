@@ -12,6 +12,7 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
+import { hashHistory } from 'react-router';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
 
@@ -63,6 +64,9 @@ export function getAnonymousUserPermission(permissions) {
 }
 
 export function surveyToValidJson(survey) {
+  // HACK: This is done as a fix for https://github.com/kobotoolbox/kpi/pull/735
+  // I'm not entirely sure what this is about but definitely BAD CODE™!
+  //
   // skip logic references only preserved after initial call
   // to "survey.toFlatJSON()"
   survey.toFlatJSON();
@@ -70,6 +74,7 @@ export function surveyToValidJson(survey) {
   return JSON.stringify(survey.toFlatJSON());
 }
 
+// TODO: move nullifyTranslations and unnullifyTranslations to formBuilderUtils.es6 file
 
 /**
  * This function reverses what `nullifyTranslations` did to the form data.
@@ -218,8 +223,15 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
   return data;
 }
 
-export function redirectTo(href) {
-  window.location.href = href;
+export function getLoginUrl() {
+  let url = constants.PATHS.LOGIN;
+  const currentLoc = hashHistory.getCurrentLocation();
+  if (currentLoc?.pathname) {
+    const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
+    // add redirection after logging in to current page
+    url += `?next=${nextUrl}`;
+  }
+  return url;
 }
 
 // works universally for v1 and v2 urls

@@ -1,0 +1,108 @@
+// All custom Locking feature styles gathered in one place
+
+.locking__ui-disabled {
+  pointer-events: none !important;
+  opacity: 0.5 !important;
+}
+
+.locking__ui-hidden {
+  display: none !important;
+}
+
+.locking__level-all {
+  .card__header,
+  .question__tags,
+  .card__settings,
+  .card--selectquestion__expansion,
+  .params-view__simple-wrapper {
+    background-color: $kobo-gray-96;
+  }
+
+  .question__tags::after,
+  .card__settings::after,
+  .card--selectquestion__expansion::after {
+    border-bottom-color: $kobo-gray-96;
+  }
+
+  .card__addoptions__layer {
+    background-color: rgba($kobo-gray-96, 0.5);
+  }
+}
+
+.locking__level-1 {
+  .card__header-icon {
+    color: $kobo-blue-darker;
+  }
+}
+
+.locking__level-2 {
+  .card__header-icon {
+    color: $kobo-blue;
+  }
+}
+
+.locking__level-3-plus {
+  .card__header-icon {
+    color: $kobo-teal-pale;
+  }
+}
+
+.locked-asset-type-label {
+  line-height: 20px;
+
+  > .k-icon {
+    display: inline-block;
+    vertical-align: -3px;
+    font-size: 16px;
+  }
+
+  a {
+    margin-left: 4px;
+    display: inline-block;
+    vertical-align: -5px;
+
+    .k-icon {
+      display: block;
+      font-size: 20px;
+    }
+  }
+}
+
+.locked-features {
+  display: flex;
+  flex-direction: row;
+  align-content: flex-start;
+  justify-content: space-around;
+  font-weight: normal;
+  padding: 15px 15%;
+  width: 100%;
+
+  .locked-features__list {
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    li {
+      margin-top: 5px;
+    }
+
+    .k-icon {
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+
+    &.locked-features__list--cans {
+      .k-icon {
+        color: $kobo-green;
+      }
+    }
+    &.locked-features__list--cants {
+      .k-icon {
+        color: $kobo-red;
+      }
+    }
+  }
+}
