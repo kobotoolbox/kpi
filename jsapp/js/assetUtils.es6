@@ -183,7 +183,7 @@ export function isLibraryAsset(assetType) {
 /**
  * For getting the icon class name for given asset type.
  * @param {Object} asset - BE asset data
- * @returns {string} k-icon CSS class name
+ * @returns {string} Contians two class names: Base `k-icon` class name and respective CSS class name
  */
 export function getAssetIcon(asset) {
   switch (asset.asset_type) {
