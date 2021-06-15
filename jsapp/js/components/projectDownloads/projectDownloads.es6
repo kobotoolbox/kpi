@@ -53,9 +53,11 @@ export default class ProjectDownloads extends React.Component {
     } else {
       return (
         <React.Fragment>
-          <bem.ProjectDownloads__selectorRow>
-            <ExportTypeSelector/>
-          </bem.ProjectDownloads__selectorRow>
+          <bem.FormView__cell m={['box', 'padding']}>
+            <bem.ProjectDownloads__selectorRow>
+              <ExportTypeSelector/>
+            </bem.ProjectDownloads__selectorRow>
+          </bem.FormView__cell>
           <ProjectExportsList asset={this.props.asset}/>
         </React.Fragment>
       );
