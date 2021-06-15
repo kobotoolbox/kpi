@@ -419,6 +419,7 @@ class KoboMatrix extends React.Component {
                     className='kobo-select'
                     classNamePrefix='kobo-select'
                     menuPlacement='auto'
+                    isSearchable={false}
                   />
                 </label>
                 <label>

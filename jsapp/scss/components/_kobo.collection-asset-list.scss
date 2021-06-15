@@ -1,7 +1,7 @@
 .asset-list-sorts {
   padding: 0px 12px;
   white-space: nowrap;
-  border-bottom: 1px solid $kobo-lightgray;
+  border-bottom: 1px solid $kobo-gray-92;
   overflow: hidden;
 
   > .asset-list-sorts__item {
@@ -24,7 +24,7 @@
 }
 
 .search__summary {
-  background-color: $kobo-lightgray;
+  background-color: $kobo-gray-92;
   height: 50px;
   width: 100%;
   flex-grow: 0;
@@ -53,11 +53,11 @@
 
   span.parent {
     font-weight: normal;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 
   i {
-    font-size: 24px;
+    font-size: 18px;
   }
 }
 

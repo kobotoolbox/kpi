@@ -4,7 +4,7 @@
   border: $cardBorderStyle;
   padding: 20px;
   background: $kobo-white;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   font-weight: 600;
   font-style: italic;
   font-size: 13px;
@@ -32,6 +32,7 @@
   height: auto !important;
   font-size: 13px;
   width: 100%;
+  background: transparent;
 }
 
 code input[type="text"] {
@@ -109,5 +110,5 @@ code input[type="text"] {
 
 .survey-editor__message {
   text-align: center;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
 }

@@ -8,7 +8,7 @@
 }
 
 .alertify .ajs-dialog {
-  box-shadow: 2px 2px 15px 2px rgba($kobo-black, 0.15);
+  box-shadow: 2px 2px 15px 2px rgba($kobo-gray-24, 0.15);
 }
 
 .alertify .ajs-header {
@@ -27,11 +27,11 @@
 
 .alertify.ajs-closable .ajs-commands button.ajs-close {
   background: transparent;
-  font-size: 32px;
-  color: $kobo-darkgray;
+  font-size: 24px;
+  color: $kobo-gray-40;
 
   &:hover {
-    color: $kobo-black;
+    color: $kobo-gray-24;
   }
 }
 
@@ -80,12 +80,23 @@
   button {
     @extend .kobo-button;
 
+    // HACK FIX: due to alertify buttons click bindings not bubbling, clicking
+    // on this (custom button content) `span` causes the callback not to be fired
+    > span {
+      pointer-events: none;
+    }
+
     &.ajs-ok {
       @extend .kobo-button--blue;
     }
 
     &.ajs-cancel {
       @extend .kobo-button--red;
+    }
+
+    &.ajs-button-disabled {
+      pointer-events: none;
+      opacity: 0.5;
     }
   }
 }
@@ -119,7 +130,7 @@
   .ajs-message.ajs-error,
   .ajs-message.ajs-success,
   .ajs-message.ajs-warning {
-    background: $kobo-black;
+    background: $kobo-gray-24;
     color: $kobo-white;
     padding: 17px 24px;
     padding-right: 44px;
@@ -164,7 +175,7 @@
     margin-top: 20px;
     padding-top: 20px;
     padding-bottom: 20px;
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
     font-weight: bold;
   }
 }

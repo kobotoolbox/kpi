@@ -70,6 +70,7 @@ function SearchContext(opts={}) {
       this.listenTo(actions.resources.cloneAsset.completed, this.setAsset);
       this.listenTo(actions.resources.setDeploymentActive.completed, this.setAsset);
       this.listenTo(actions.resources.deleteAsset.completed, this.removeAsset);
+      this.listenTo(actions.permissions.removeAssetPermission.completed, this.removeAsset);
     },
     // add/update asset in all search store lists
     setAsset(asset) {
@@ -109,17 +110,50 @@ function SearchContext(opts={}) {
     },
     rebuildCategorizedList(sourceResults, listName) {
       const catList = this.state[listName];
-      const defaultResults = this.state.defaultQueryResultsList;
+      // If the last asset is removed, the list will not rebuild and
+      // the store keeps the asset appended with `deleted: true` to avoid being
+      // shown to user
       if (catList && sourceResults && sourceResults.length !== 0) {
         const updateObj = {};
         updateObj[listName] = splitResultsToCategorized(sourceResults);
         this.update(updateObj);
+        // HACK FIX: when self removing permissions from unowned asset, or
+        // deleting a draft, the `deleted: true` attribute is missing from the
+        // leftover removed asset
+      } else if (catList && sourceResults && sourceResults.length === 0) {
+        let updateObj = catList;
+        for (const item in updateObj) {
+          // This fix is only relevant to removing the last asset so
+          // we can indiscriminately pick the only asset in store lists
+          if (updateObj[item].length > 0) {
+            updateObj[item][0].deleted = 'true';
+          }
+        }
+        this.update(updateObj);
       }
     },
     // remove asset from all search store lists
-    removeAsset(asset) {
-      // only update things if given asset matches the current context types
-      if (this.state.defaultQueryFilterParams?.assetType.includes(asset.assetType)) {
+    removeAsset(assetOrUid, isNonOwner) {
+      let asset;
+      if (typeof assetOrUid === 'object') {
+        asset = assetOrUid;
+      } else {
+        asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+      }
+      // non-owner self permission removal only gives an assetUid string, not
+      // an object; for consistency we make it an object here
+      // only runs if `isNonOwner` is true, so no need to add `assetType` to
+      // fake object
+      if (!asset) {
+       asset = {uid: assetOrUid};
+      }
+
+      // only update things if given asset matches the current context types or
+      // a non-owner removed their own permissions
+      if (
+        isNonOwner ||
+        this.state.defaultQueryFilterParams?.assetType.includes(asset.assetType)
+      ) {
         this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
         this.removeAssetFromList(asset.uid, 'searchResultsList');
         this.rebuildCategorizedList(

@@ -23,7 +23,7 @@
   width: 10%;
   margin-right: 2%;
   font-weight: 600;
-  color: $kobo-black;
+  color: $kobo-gray-24;
 }
 
 .skiplogic__expressionselect--no-response-value {
@@ -43,13 +43,13 @@ input[type=text].skiplogic__responseval, select.skiplogic__responseval {
   width: 25%;
   font-weight: normal;
   display: inline-block;
-  border-bottom: 1px solid $kobo-midgray;
+  border-bottom: 1px solid $kobo-gray-65;
 }
 
 input[type=text].skiplogic__responseval {
   border-radius: 0;
   border: none;
-  border-bottom: 1px solid $kobo-midgray;
+  border-bottom: 1px solid $kobo-gray-65;
   padding: 1px;
   height: 30px;
   vertical-align: bottom;
@@ -72,6 +72,7 @@ div.skiplogic__responseval {
   background-color: transparent;
   opacity: 0.8;
   cursor: pointer;
+  font-size: 18px;
 
   &:hover {
     opacity: 1;
@@ -89,19 +90,20 @@ div.skiplogic__responseval {
   background: none;
   border: medium none;
   color: $kobo-red;
-  font-size: 15px;
+  font-size: 21px;
   position: absolute;
-  right: -22px;
+  right: -21px;
   text-align: center;
   top: 18px;
   width: 18px;
+  padding: 0;
   cursor: pointer;
 }
 
 .skiplogic__main {
   position: relative;
 
-  .mdl-button {
+  .kobo-button {
     width: 100%;
 
     &:not(:first-child) {
@@ -114,7 +116,7 @@ div.skiplogic__responseval {
   margin: 0;
   margin-top: 10px;
   height: 36px;
-  width: 180px;
+  min-width: 180px;
   display: inline-block;
 }
 
@@ -124,7 +126,7 @@ select.skiplogic__delimselect {
   background: transparent;
   border-radius: 0px !important;
   border: none;
-  border-bottom: 1px solid $kobo-midgray;
+  border-bottom: 1px solid $kobo-gray-65;
   padding: 4px 2px;
   font-size: 13px;
   font-weight: 400;
@@ -139,12 +141,12 @@ select.skiplogic__delimselect {
 
 .skiplogic__criterialist {
   .select2-container .select2-choice {
-    border-bottom: 1px solid $kobo-midgray;
+    border-bottom: 1px solid $kobo-gray-65;
   }
 
   .select2-dropdown-open.select2-drop-above .select2-choice,
   .select2-dropdown-open.select2-drop-above .select2-choices {
-    border-bottom: 1px solid $kobo-midgray;
+    border-bottom: 1px solid $kobo-gray-65;
     border-radius: 0px;
   }
 }

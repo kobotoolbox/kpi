@@ -1,7 +1,7 @@
 // drawer (sidebar)
 
 $drawer-icons-width: 58px;
-$drawer-background: $kobo-whitegray;
+$drawer-background: $kobo-gray-96;
 $s-drawer-width: 270px;
 
 .k-drawer {
@@ -12,7 +12,7 @@ $s-drawer-width: 270px;
   left: 0;
   display: flex;
   flex-direction: row;
-  border-right: 2px solid $kobo-lightgray;
+  border-right: 2px solid $kobo-gray-92;
 }
 
 // only add the margin for drawer if drawer exists (e.g. no drawer when logged out)
@@ -29,14 +29,15 @@ $s-drawer-width: 270px;
 }
 
 .k-drawer__link {
-  font-size: 42px;
+  font-size: 30px;
+  margin: 6px 0;
   text-align: center;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   padding: 0;
   border-left: 3px solid transparent;
 
   &:first-child {
-    margin-top: 20px;
+    margin-top: 26px;
   }
 
   &:hover {
@@ -62,14 +63,16 @@ $s-drawer-width: 270px;
     text-align: center;
     font-weight: normal;
     position: relative;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 
     &:hover {
       color: $kobo-teal;
     }
 
     i {
-      font-size: 38px;
+      font-size: 28px;
+      margin: 12px;
+      display: block;
     }
   }
 }

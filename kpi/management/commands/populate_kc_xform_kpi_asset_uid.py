@@ -76,10 +76,11 @@ class Command(BaseCommand):
             try:
                 if asset.deployment.set_asset_uid(force=force):
                     if verbosity >= 2:
-                        self.stdout.write('\nAsset #{}: Patching XForm'.format(asset.id))
+                        self.stdout.write(
+                            '\nAsset #{}: Patching XForm'.format(asset.id))
                     # Avoid `Asset.save()` logic. Do not touch `modified_date`
                     Asset.objects.filter(pk=asset.id).update(
-                        _deployment_data=asset._deployment_data)
+                        _deployment_data=asset.deployment.get_data())
                     cpt_patched += 1
                 else:
                     if verbosity >= 2:

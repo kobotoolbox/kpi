@@ -9,7 +9,7 @@
 }
 
 .report-view__item {
-  border: 1px solid $kobo-lightgray;
+  border: 1px solid $kobo-gray-92;
   margin: 15px 0px;
   background: $kobo-white;
 }
@@ -17,7 +17,7 @@
 .report-view__itemHeading {
   padding: 10px 24px;
   border-left: 5px solid $kobo-teal;
-  border-bottom: 1px solid $kobo-lightgray;
+  border-bottom: 1px solid $kobo-gray-92;
   position: relative;
 
   h2 {
@@ -60,7 +60,7 @@
     thead th {
       margin: 0px;
       padding: 8px;
-      background-color: $kobo-darkgray;
+      background-color: $kobo-gray-40;
       color: $kobo-white;
       text-align: right;
       font-weight: normal;
@@ -72,7 +72,7 @@
     }
 
     tbody tr td {
-      border-bottom: 1px solid $kobo-midgray;
+      border-bottom: 1px solid $kobo-gray-65;
       padding: 8px;
       text-align: right;
 
@@ -113,11 +113,6 @@
   }
 
   button {
-    i.fa {
-      font-size: 18px;
-      margin-left: 8px;
-    }
-
     &.report-button__edit,
     &.report-button__settings {
       overflow: visible;
@@ -177,7 +172,7 @@
     margin-bottom: 20px;
     display: block;
     font-weight: 400;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 }
 

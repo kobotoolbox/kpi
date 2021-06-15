@@ -6,6 +6,7 @@ which are not standardized xlsform features.
 
 Example structures: scoring, ranking
 '''
+import copy
 import re
 
 from kpi.utils.autoname import autoname_fields__depr
@@ -99,9 +100,10 @@ def to_xlsform_structure(surv,
     if move_autonames:
         replace_with_autofields(surv)
 
+    surv_= copy.deepcopy(surv)
     for kobo_custom_sheet_name in filter(_is_kobo_specific, surv.keys()):
-        del surv[kobo_custom_sheet_name]
-    return surv
+        del surv_[kobo_custom_sheet_name]
+    return surv_
 
 
 def expand_rank_and_score_in_place(surv):

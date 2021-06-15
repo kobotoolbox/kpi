@@ -29,16 +29,16 @@ $s-help-bubble-row-spacing: 20px;
 
     .k-icon {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 40px;
-      color: $kobo-darkgray;
+      top: 16px;
+      left: 16px;
+      font-size: 28px;
+      color: $kobo-gray-40;
     }
   }
 
   .help-bubble__back,
   .help-bubble__close {
-    background-color: rgba($kobo-darkgray, 0.5);
+    background-color: rgba($kobo-gray-40, 0.5);
     color: $kobo-white;
   }
 }
@@ -57,7 +57,7 @@ $s-help-bubble-row-spacing: 20px;
   width: 100%;
   display: block;
   font-weight: normal;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   // mimic .k-drawer__link
   border-left: 3px solid transparent;
 
@@ -74,7 +74,8 @@ $s-help-bubble-row-spacing: 20px;
   }
 
   .k-icon {
-    font-size: 38px;
+    font-size: 28px;
+    margin: 3px;
     display: block;
   }
 }
@@ -143,7 +144,7 @@ $s-help-bubble-row-spacing: 20px;
   border-radius: 50%;
   padding: 5px;
   background-color: rgba($kobo-white, 0.5);
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   line-height: 1;
   font-size: 1.5rem;
 
@@ -178,7 +179,7 @@ $s-help-bubble-row-spacing: 20px;
   display: block;
 
   & + & {
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
   }
 }
 
@@ -202,11 +203,11 @@ $s-help-bubble-row-spacing: 20px;
 
 .help-bubble__row.help-bubble__row--message-title {
   margin-top: 40px;
-  border-top: 1px solid $kobo-lightgray;
+  border-top: 1px solid $kobo-gray-92;
 }
 
 .help-bubble__row.help-bubble__row--header {
-  background-color: $kobo-darkgray;
+  background-color: $kobo-gray-40;
   color: $kobo-white;
   font-size: 1.25rem;
 }
@@ -214,7 +215,7 @@ $s-help-bubble-row-spacing: 20px;
 .help-bubble__row.help-bubble__row--link,
 .help-bubble__row.help-bubble__row--message-clickable {
   cursor: pointer;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
 
   &:hover {
     color: $kobo-blue;

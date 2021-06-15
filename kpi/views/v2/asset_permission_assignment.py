@@ -14,11 +14,9 @@ from kpi.constants import (
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
-from kpi.deployment_backends.kc_access.utils import \
-    remove_applicable_kc_permissions
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
-from kpi.permissions import AssetNestedObjectPermission
+from kpi.permissions import AssetPermissionAssignmentPermission
 from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
@@ -56,7 +54,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
     > Example
     >
-    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/
 
 
     **Assign a permission**
@@ -68,7 +66,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     >
     >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/ \\
     >            -H 'Content-Type: application/json' \\
-    >            -d '<payload>'  # Payload is sent as the string
+    >            -d '<payload>'  # Payload is sent as a string
 
 
     > _Payload to assign a permission_
@@ -158,7 +156,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     model = ObjectPermission
     lookup_field = "uid"
     serializer_class = AssetPermissionAssignmentSerializer
-    permission_classes = (AssetNestedObjectPermission,)
+    permission_classes = (AssetPermissionAssignmentPermission,)
     pagination_class = None
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission_helper.ObjectPermissionHelper.get_user_permission_assignments_queryset
@@ -237,9 +235,13 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         # If the user is not the owner of the asset, but trying to delete the
         # owner's permissions, raise permission denied error. However, if they
         # are the owner of the asset, they should also be prevented from
-        # deleting their own permissions, but given a more appropriate response
-        if (self.request.user.pk != self.asset.owner_id) and (
-            self.request.user.pk != user.pk
+        # deleting their own permissions, but given a more appropriate
+        # response. Only those with `manage_asset` permissions can delete all
+        # permissions from other non-owners with whom the form is shared.
+        if (
+            not request.user.has_perm(PERM_MANAGE_ASSET, self.asset)
+            and (request.user.pk != self.asset.owner_id)
+            and (request.user.pk != user.pk)
         ):
             raise exceptions.PermissionDenied()
         elif user.pk == self.asset.owner_id:

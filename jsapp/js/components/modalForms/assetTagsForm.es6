@@ -7,7 +7,7 @@ import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
-import {renderLoading} from './modalHelpers';
+import {LoadingSpinner} from 'js/ui';
 
 /**
  * @param {Object} asset - Modal asset.
@@ -74,7 +74,7 @@ export class AssetTagsForm extends React.Component {
 
   render() {
     if (!this.state.isSessionLoaded) {
-      return renderLoading();
+      return (<LoadingSpinner/>);
     }
 
     return (

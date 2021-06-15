@@ -2,13 +2,13 @@
 // Groups
 // ==========================================================================
 
-$formbuilder-group-bg: $kobo-whitegray;
+$formbuilder-group-bg: $kobo-gray-96;
 
 .group {
     padding: 4px 10px;
     margin-bottom: 15px;
     background-color: $formbuilder-group-bg;
-    border: 1px solid $kobo-midgray;
+    border: 1px solid $kobo-gray-65;
     font-size: 13px;
 
     // make space for the .btn--addrow on the left
@@ -22,15 +22,12 @@ $formbuilder-group-bg: $kobo-whitegray;
 }
 
 .group__header {
-    border-bottom: 1px solid $kobo-midgray;
+    border-bottom: 1px solid $kobo-gray-65;
     position: relative;
     margin: -4px -10px 0;
     padding: 12px;
     min-height: 50px;
-    .group__label {
-        font-size: 16px;
-        font-weight: 600;
-    }
+
     input {
         width: 94%;
         font-weight: normal;
@@ -42,7 +39,7 @@ $formbuilder-group-bg: $kobo-whitegray;
         font-weight: 600;
         padding:0px;
         height: auto;
-        vertical-align: inherit;
+        vertical-align: middle;
     }
 }
 
@@ -52,13 +49,12 @@ $formbuilder-group-bg: $kobo-whitegray;
 
 .group__header__buttons {
     border: $cardBorderStyle;
-    border-width: 0 0 0 2px;
+    border-width: 0 0 0 1px;
     position: absolute;
     top: 0px;
-    right: 2px;
-    width: 26px;
+    right: 0;
+    width: $s-fb-row-buttons-width;
     height: 100%;
-    cursor: pointer;
 }
 
 .group__header__buttons__button {
@@ -68,21 +64,23 @@ $formbuilder-group-bg: $kobo-whitegray;
     line-height: 22px;
     width: 26px;
     text-align: center;
+    cursor: pointer;
 
     &.group__header__buttons__button--gray {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
     }
     &.group__header__buttons__button--red {
         color: $kobo-red;
     }
     &.group__header__buttons__button--activated {
-        color: $kobo-darkgray;
-        background-color: $kobo-lightgray;
+        color: $kobo-gray-40;
+        background-color: $kobo-gray-92;
+    }
+
+    .k-icon {
+      font-size: 18px;
     }
 }
-
-
-
 
 // Overrides
 // --------------------------------------------------------------------------
@@ -119,18 +117,37 @@ $formbuilder-group-bg: $kobo-whitegray;
             margin:-4px 0px 0px;
         }
         .group__header__buttons__button--settings {
-            background: $kobo-lightgray;
+            background: $kobo-gray-92;
         }
     }
 
 }
 
+.group__header__icon,
+.group__header__icon .k-icon,
+.group__caret {
+  color: $kobo-gray-40;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.group__header__icon .k-icon {
+  font-size: 16px;
+}
+
+.group__caret {
+  font-size: 12px;
+  padding: 2px;
+  margin-left: -4px;
+  cursor: pointer;
+
+  &:hover {
+    color: $kobo-gray-24;
+  }
+}
+
 // when inside .group--shrunk, .group__caret is displayed differently
 // when inside .group--shrunk, .group__rows is smaller, .survey__rows are hidden
-.group__caret {
-    cursor: pointer;
-    color: $kobo-darkgray;
-}
 .group--shrunk {
     border-bottom: none;
     padding-bottom: 0px;

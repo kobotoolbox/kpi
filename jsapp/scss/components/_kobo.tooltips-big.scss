@@ -1,0 +1,65 @@
+$z-tooltip-big: 2;
+
+// This is an alternative tooltip component for displaying more complex content;
+// if possible use the other one (`data-tip` from `_kobo.tooltips.scss`)
+@media screen and (max-width: 767px) {
+  .k-tooltip {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .k-tooltip__parent {
+    position: relative;
+
+    .k-tooltip {
+      pointer-events: none;
+      position: absolute;
+      font-size: 13px;
+      font-weight: normal;
+      line-height: 1.35em;
+      color: $kobo-white;
+      background-color: $kobo-gray-40;
+      padding: 6px 12px;
+      top: calc(100% + 6px);
+      left: 50%;
+      transform: translate(-50%, 0);
+      z-index: $z-tooltip;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+      text-align: center;
+
+      @include box-shadow;
+
+      strong {
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      &::before {
+        border-bottom: 5px solid $kobo-gray-40;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        position: absolute;
+        top: -5px;
+        content: "";
+        width: 0;
+        height: 0;
+        left: 50%;
+        transform: translate(-50%, 0);
+        z-index: $z-tooltip;
+      }
+    }
+
+    &:hover > .k-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}

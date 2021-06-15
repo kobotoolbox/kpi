@@ -15,7 +15,7 @@ module.exports = do ->
       @$el = @rowView.$(".list-view")
       @ulClasses = @$("ul").prop("className")
 
-    render: ->
+    render: (isSortableDisabled) ->
       cardText = @rowView.$el.find('.card__text')
       if cardText.find('.card__buttons__multioptions.js-expand-multioptions').length is 0
         cardText.prepend $.parseHTML($viewTemplates.row.expandChoiceList())
@@ -30,21 +30,29 @@ module.exports = do ->
         @$el.removeClass("hidden")
       else
         @$el.addClass("hidden")
-      @ul.sortable({
-          axis: "y"
-          cursor: "move"
-          distance: 5
-          items: "> li"
-          placeholder: "option-placeholder"
-          opacity: 0.9
-          scroll: false
-          deactivate: =>
-            if @hasReordered
-              @reordered()
-              @model.getSurvey()?.trigger('change')
-            true
-          change: => @hasReordered = true
-        })
+
+      # sortable is usually enabled, but sometimes (e.g. locking restriction
+      # enabled) it is not
+      if not isSortableDisabled
+        @ul.sortable({
+            axis: "y"
+            cursor: "move"
+            distance: 5
+            items: "> li"
+            placeholder: "option-placeholder"
+            opacity: 0.9
+            scroll: false
+            create: =>
+              @ul.addClass('js-sortable-enabled')
+              return
+            deactivate: =>
+              if @hasReordered
+                @reordered()
+                @model.getSurvey()?.trigger('change')
+              true
+            change: => @hasReordered = true
+          })
+
       btn = $($viewTemplates.$$render('xlfListView.addOptionButton'))
       btn.click(() =>
         i = @model.options.length
@@ -85,10 +93,10 @@ module.exports = do ->
       "click .js-remove-option": "remove"
     initialize: (@options)->
     render: ->
-      @t = $("<i class=\"fa fa-trash-o js-remove-option\">")
-      @pw = $("<div class=\"editable-wrapper js-cancel-select-row\">")
+      @t = $("<i class=\"k-icon k-icon-trash js-remove-option\">")
+      @pw = $("<div class=\"editable-wrapper js-option-label-input js-cancel-select-row\">")
       @p = $("<input placeholder=\"#{t("This option has no name")}\" class=\"js-cancel-select-row option-view-input\">")
-      @c = $("<code><label>#{t("XML value:")}</label> <input type=\"text\" class=\"js-cancel-select-row\"></input></code>")
+      @c = $("<code><label>#{t("XML value:")}</label> <input type=\"text\" class=\"js-option-name-input js-cancel-select-row\"></input></code>")
       @d = $('<div>')
       if @model
         @p.val @model.get("label") || 'Empty'

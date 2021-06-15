@@ -17,7 +17,7 @@
 }
 
 .react-tagsinput-tag {
-  background-color: $kobo-darkgray;
+  background-color: $kobo-gray-40;
   color: $kobo-white;
   font-weight: 400;
   margin-bottom: 4px;
@@ -36,7 +36,8 @@
   cursor: pointer;
   color: $kobo-white !important;
   opacity: 0.6;
-  margin-left: 6px;
+  margin-left: 3px;
+  vertical-align: middle;
 
   &:hover {
     opacity: 0.9;
@@ -46,7 +47,7 @@
 .react-tagsinput-input {
   background: transparent;
   border: 0 none;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   font-family: sans-serif;
   font-size: 13px;
   font-weight: 400;

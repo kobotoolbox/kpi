@@ -7,6 +7,7 @@ from rest_framework import status
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
 from kpi.models import Asset, ObjectPermission
@@ -353,6 +354,45 @@ class ApiPermissionsTestCase(KpiTestCase):
         res = self.client.delete(url)
         assert res.status_code == status.HTTP_404_NOT_FOUND
         assert yetanotheruser.has_perm(PERM_VIEW_ASSET, new_asset)
+
+    def test_shared_asset_manage_asset_remove_another_non_owners_permissions_allowed(self):
+        """
+        Ensure that a non-owner who has an asset shared with them and has
+        `manage_asset` permissions is able to remove permissions from another
+        non-owner with that same asset shared with them.
+        """
+        yetanotheruser = User.objects.create(
+            username='yetanotheruser',
+        )
+        self.client.login(
+            username=self.someuser.username,
+            password=self.someuser_password,
+        )
+        new_asset = self.create_asset(
+            name='a new asset',
+            owner=self.someuser,
+            owner_password=self.someuser_password,
+        )
+        new_asset.assign_perm(self.anotheruser, PERM_MANAGE_ASSET)
+        perm = new_asset.assign_perm(yetanotheruser, PERM_VIEW_ASSET)
+        kwargs = {
+            'parent_lookup_asset': new_asset.uid,
+            'uid': perm.uid,
+        }
+        url = reverse(
+            'api_v2:asset-permission-assignment-detail', kwargs=kwargs
+        )
+        self.client.logout()
+        self.client.login(
+            username=self.anotheruser.username,
+            password=self.anotheruser_password,
+        )
+        assert yetanotheruser.has_perm(PERM_VIEW_ASSET, new_asset)
+
+        # `anotheruser` attempting to remove `yetanotheruser` from the asset
+        res = self.client.delete(url)
+        assert res.status_code == status.HTTP_204_NO_CONTENT
+        assert not yetanotheruser.has_perm(PERM_VIEW_ASSET, new_asset)
 
     def test_copy_permissions_between_assets(self):
         # Give "someuser" edit permissions on an asset owned by "admin"

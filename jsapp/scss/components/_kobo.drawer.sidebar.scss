@@ -3,7 +3,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
 
   &.form-sidebar--loading {
     pointer-events: none;
@@ -32,17 +32,16 @@
     color: inherit;
 
     &:hover {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.form-sidebar__label--selected {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     i {
-      font-size: 36px;
-      margin-right: -1px;
-      margin-left: -4px;
+      font-size: 26px;
+      margin: 5px 4px 5px 1px;
       display: inline-block;
     }
 
@@ -56,7 +55,7 @@
       line-height: 20px;
       min-width: 20px;
       border-radius: 20px;
-      background-color: $kobo-lightgray;
+      background-color: $kobo-gray-92;
       text-align: center;
       margin-right: 4px;
     }
@@ -77,26 +76,17 @@
     flex-direction: row;
     align-items: flex-start;
     line-height: 15px;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     font-weight: normal;
     font-size: 12px;
     padding: 5px;
 
     &:hover {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.form-sidebar__item--active {
       background: #ededee;
-    }
-
-    i {
-      font-size: 32px;
-      margin: -5px -1px -5px 0;
-    }
-
-    i + .form-sidebar__item-text {
-      margin-top: 5px;
     }
   }
 }
