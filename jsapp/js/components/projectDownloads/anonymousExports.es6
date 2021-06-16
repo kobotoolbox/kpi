@@ -71,7 +71,8 @@ export default class AnonymousExports extends React.Component {
 
       const defaultExportFormat = getContextualDefaultExportFormat(this.props.asset);
 
-      // TODO FIXME: this will not work for legacy formats
+      // NOTE: this wouldn't work for legacy formats, but luckily we don't allow
+      // choosing legacy types in this component
       actions.exports.createExport(
         this.props.asset.uid,
         {
