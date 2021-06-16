@@ -28,11 +28,7 @@ export class FormSubScreens extends React.Component {
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
-    if (this.props.randdelay && uid) {
-      window.setTimeout(()=>{
-        actions.resources.loadAsset({id: uid});
-      }, Math.random() * 3000);
-    } else if (uid) {
+    if (uid) {
       actions.resources.loadAsset({id: uid});
     }
   }
@@ -62,14 +58,8 @@ export class FormSubScreens extends React.Component {
         report__base = deployment__identifier.replace('/forms/', '/reports/');
       }
       switch(this.props.location.pathname) {
-        case `/forms/${this.state.uid}/data/report-legacy`:
-          iframeUrl = report__base+'/digest.html';
-          break;
         case `/forms/${this.state.uid}/data/table`:
           return <DataTable asset={this.state} />;
-        case `/forms/${this.state.uid}/data/table-legacy`:
-          iframeUrl = report__base+'/export.html';
-          break;
         case `/forms/${this.state.uid}/data/gallery`:
           iframeUrl = deployment__identifier+'/photos';
           break;
@@ -126,10 +116,17 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled');
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.FormView className='project-downloads'>
-          <ProjectExportsCreator asset={this.state} />
-          <ProjectExportsList asset={this.state} />
-        </bem.FormView>
+        <React.Fragment>
+          {!stores.session.isLoggedIn &&
+            <ui.AccessDeniedMessage/>
+          }
+          {stores.session.isLoggedIn &&
+            <bem.FormView className='project-downloads'>
+              <ProjectExportsCreator asset={this.state} />
+              <ProjectExportsList asset={this.state} />
+            </bem.FormView>
+          }
+        </React.Fragment>
       </DocumentTitle>
     );
   }

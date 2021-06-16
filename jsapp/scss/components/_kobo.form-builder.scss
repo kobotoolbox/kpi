@@ -38,6 +38,8 @@ $s-form-builder-content-width: 1024px;
 
 .form-wrap {
   width: 100%;
+  max-width: $s-form-builder-content-width;
+  margin: 0 auto;
 
   input,
   textarea {
@@ -165,6 +167,7 @@ $s-form-builder-content-width: 1024px;
       input {
         border-radius: 0;
         padding-left: 0;
+        font-size: 16px;
       }
     }
 

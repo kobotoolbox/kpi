@@ -31,7 +31,10 @@
 
   // for displaying after row was added
   .btn--addrow-force-show {
-    display: block !important;
+    // don't override when hidden by locking profile restriction
+    &:not(.locking__ui-hidden) {
+      display: block !important;
+    }
   }
 }
 
