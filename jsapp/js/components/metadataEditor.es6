@@ -178,25 +178,6 @@ export default class MetadataEditor extends React.Component {
     );
   }
 
-  renderBackgroundAudioLabel() {
-    return (
-      <React.Fragment>
-        {t('Background audio')}
-
-        { stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url &&
-          <bem.TextBox__labelLink
-            // TODO update support article to include background-audio
-            href={stores.serverEnvironment.state.support_url + RECORDING_SUPPORT_URL}
-            target='_blank'
-          >
-            <i className='k-icon k-icon-help'/>
-          </bem.TextBox__labelLink>
-        }
-      </React.Fragment>
-    );
-  }
-
   render() {
     if (this.state.metaProperties.length === 0) {
       return null;
