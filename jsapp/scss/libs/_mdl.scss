@@ -3,7 +3,8 @@
 
 $root-background: $kobo-white;
 
-$font: "Roboto", "Helvetica", "Arial", sans-serif !default;
+$font: "Roboto", sans-serif !default;
+$font_mono: "Roboto Mono", monospace !default;
 $layout-text-color: $kobo-gray-24 !default;
 $layout-nav-color: $kobo-white !default;
 $layout-header-bg-color: $kobo-gray-24 !default;

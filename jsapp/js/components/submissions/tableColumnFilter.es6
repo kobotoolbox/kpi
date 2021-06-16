@@ -10,10 +10,7 @@ import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {notify} from 'utils';
-import {
-  SUBMISSION_LINKS_ID,
-  SUBMISSION_CHECKBOX_ID,
-} from 'js/components/submissions/table';
+import {SUBMISSION_ACTIONS_ID} from 'js/components/submissions/table';
 
 export class TableColumnFilter extends React.Component {
   constructor(props){
@@ -117,7 +114,7 @@ export class TableColumnFilter extends React.Component {
       translationIndex: this.state.translationIndex,
     };
     let colsArray = this.props.columns.reduce((acc, col) => {
-      if (col.id && col.id !== SUBMISSION_LINKS_ID && col.id !== SUBMISSION_CHECKBOX_ID) {
+      if (col.id && col.id && col.id !== SUBMISSION_ACTIONS_ID) {
         let qParentGroup = [];
         if (col.id.includes('/')) {
           qParentGroup = col.id.split('/');
@@ -130,11 +127,6 @@ export class TableColumnFilter extends React.Component {
       }
       return acc;
     }, []);
-
-    colsArray.unshift({
-      value: SUBMISSION_LINKS_ID,
-      label: t('Submission links'),
-    });
 
     return colsArray;
   }
