@@ -122,6 +122,7 @@ class Command(BaseCommand):
             'owner',
             'parent_id',
             'name',
+            '_deployment_data',
         )
         if username is not None:
             assets = assets.filter(owner__username=username)
