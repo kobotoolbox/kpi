@@ -139,7 +139,10 @@ export default class AnonymousExports extends React.Component {
       <bem.FormView__cell m={['box', 'padding']}>
         <bem.ProjectDownloads__anonymousRow>
           <bem.ProjectDownloads__exportsSelector>
-            <ExportTypeSelector disabled={this.state.isPending}/>
+            <ExportTypeSelector
+              disabled={this.state.isPending}
+              noLegacy
+            />
           </bem.ProjectDownloads__exportsSelector>
 
           <bem.KoboButton

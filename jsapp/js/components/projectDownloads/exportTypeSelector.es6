@@ -7,6 +7,7 @@ import exportsStore from 'js/components/projectDownloads/exportsStore';
 
 /**
  * @prop {boolean} [disabled]
+ * @prop {boolean} [noLegacy] hides legacy options
  */
 export default class ExportTypeSelector extends React.Component {
   constructor(props){
@@ -35,17 +36,21 @@ export default class ExportTypeSelector extends React.Component {
   }
 
   render() {
-    // make xls topmost (as most popular), then with non-legacy and finish with legacy
+    // make xls topmost (as most popular)
     const exportTypesOptions = [
       EXPORT_TYPES.xls,
       EXPORT_TYPES.csv,
       EXPORT_TYPES.geojson,
       EXPORT_TYPES.spss_labels,
-      EXPORT_TYPES.csv_legacy,
-      EXPORT_TYPES.kml_legacy,
-      EXPORT_TYPES.xls_legacy,
-      EXPORT_TYPES.zip_legacy,
     ];
+
+    // legacy options are optional
+    if (!this.props.noLegacy) {
+      exportTypesOptions.push(EXPORT_TYPES.csv_legacy);
+      exportTypesOptions.push(EXPORT_TYPES.kml_legacy);
+      exportTypesOptions.push(EXPORT_TYPES.xls_legacy);
+      exportTypesOptions.push(EXPORT_TYPES.zip_legacy);
+    }
 
     return (
       <label>
