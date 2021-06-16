@@ -240,7 +240,7 @@ class SubmissionModal extends React.Component {
 
   hasBackgroundAudio() {
     return this.props?.asset?.content?.survey.some(
-      (question) => question.name === META_QUESTION_TYPES['background-audio']
+      (question) => question.type === META_QUESTION_TYPES['background-audio']
     );
   }
 
