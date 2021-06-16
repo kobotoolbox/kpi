@@ -166,7 +166,9 @@ class FormViewTabs extends Reflux.Component {
       sideTabs.push({label: t('Sharing'), icon: 'k-icon-user-share', path: `/forms/${this.state.assetid}/settings/sharing`});
 
       if (
-        this.state.asset.deployment__active &&
+        (this.state.asset.deployment__active ||
+          // REST services should be visible for archived forms but not drafts
+          this.state.asset.deployed_versions.count > 0) &&
         mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.state.asset) &&
         mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.state.asset)
       ) {
