@@ -950,6 +950,7 @@ export default assign({
                 {this.state.asset &&
                   <FormLockedMessage asset={this.state.asset}/>
                 }
+
                 {this.hasBackgroundAudio() &&
                   this.renderBackgroundAudioWarning()
                 }
