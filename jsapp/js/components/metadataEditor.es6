@@ -280,6 +280,7 @@ export default class MetadataEditor extends React.Component {
           <bem.FormBuilderMeta__row>
             <bem.FormModal__item>
               <label>{t('Audio quality')}</label>
+
               <Select
                 className='kobo-select'
                 classNamePrefix='kobo-select'
