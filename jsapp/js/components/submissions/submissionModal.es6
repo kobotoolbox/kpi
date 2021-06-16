@@ -363,12 +363,10 @@ class SubmissionModal extends React.Component {
                   {t('Background audio recording')}
                 </bem.BackgroundAudioPlayer__label>
 
-                <bem.BackgroundAudioPlayer__audio controls>
-                  <source
-                    src={this.props?.backgroundAudioUrl}
-                    type='audio/x-m4a'
-                  />
-                </bem.BackgroundAudioPlayer__audio>
+                <bem.BackgroundAudioPlayer__audio
+                  controls
+                  src={this.props?.backgroundAudioUrl}
+                />
               </bem.BackgroundAudioPlayer>
             </bem.FormModal__group>
           }

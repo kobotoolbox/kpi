@@ -819,17 +819,24 @@ export class DataTable extends React.Component {
     });
     this.requestData(instance);
   }
+  // TODO: if multiple background-audio's are allowed, we should return all
+  //       background-audio related names
+  getBackgroundAudioQuestionName() {
+    return this.props?.asset?.content?.survey.find(
+      (item) => item.type === META_QUESTION_TYPES['background-audio']
+    )?.name || null;
+  }
   launchSubmissionModal(row) {
     if (row && row.original) {
       const sid = row.original._id;
+      const backgroundAudioName = this.getBackgroundAudioQuestionName();
       if (
-        Object.keys(row.original).includes(
-          META_QUESTION_TYPES['background-audio']
-        )
+        backgroundAudioName &&
+        Object.keys(row.original).includes(backgroundAudioName)
       ) {
         let backgroundAudioUrl = this.getMediaDownloadLink(
           row,
-          row.original[META_QUESTION_TYPES['background-audio']]
+          row.original[backgroundAudioName]
         );
 
         this.submissionModalProcessing(
