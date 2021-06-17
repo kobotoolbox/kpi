@@ -108,7 +108,7 @@ class Modal extends React.Component {
     } else {
       return(
         <a className='modal__x' type='button' onClick={this.props.onClose}>
-          <i className='k-icon-close'/>
+          <i className='k-icon k-icon-close'/>
         </a>
       );
     }
