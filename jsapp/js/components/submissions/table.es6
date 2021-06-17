@@ -54,6 +54,13 @@ const EXCLUDED_COLUMNS = [
 
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
 
+export const TABLE_MEDIA_TYPES = [
+  QUESTION_TYPES.image.id,
+  QUESTION_TYPES.audio.id,
+  QUESTION_TYPES.video.id,
+  META_QUESTION_TYPES['background-audio'],
+];
+
 export class DataTable extends React.Component {
   constructor(props){
     super(props);
@@ -520,14 +527,10 @@ export class DataTable extends React.Component {
         className: columnClassName,
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
-            if (
-              q.type === QUESTION_TYPES.image.id ||
-              q.type === QUESTION_TYPES.audio.id ||
-              q.type === QUESTION_TYPES.video.id ||
-              q.type === META_QUESTION_TYPES['background-audio']
-            ) {
+            if (TABLE_MEDIA_TYPES.includes(q.type)) {
               var mediaURL = this.getMediaDownloadLink(row, row.value);
-              return <a href={mediaURL} target='_blank'>{row.value}</a>;
+              console.log(mediaURL);
+              return this.renderMediaCell(q.type, mediaURL);
             }
             // show proper labels for choice questions
             if (q.type === QUESTION_TYPES.select_one.id) {
@@ -1020,6 +1023,46 @@ export class DataTable extends React.Component {
         : '';
     var kc_base = `${kc_server.origin}${kc_prefix}`;
     return `${kc_base}/attachment/original?media_file=${encodeURI(foundFile)}`;
+  }
+  renderMediaCell(questionType, mediaURL) {
+    const iconClassNames = ['k-icon'];
+    let playableMedia = new Audio(mediaURL);
+    debugger
+    const playableMediaDuration = playableMedia.duration || null;
+    console.log(playableMediaDuration);
+
+    // Avoid using `if` here for extensibility
+    switch (questionType) {
+      case QUESTION_TYPES.image.id:
+        iconClassNames.push('k-icon-qt-photo');
+        break;
+      case (QUESTION_TYPES.audio.id || QUESTION_TYPES['background-audio']):
+        iconClassNames.push('k-icon-qt-audio');
+        break;
+      case QUESTION_TYPES.video.id:
+        iconClassNames.push('k-icon-qt-photo');
+        break;
+      default:
+        iconClassNames.push('k-icon-media-files');
+        break;
+    }
+
+    return (
+      <bem.MediaCell>
+        <bem.MediaCell__icon
+          className={iconClassNames}
+          onClick={() =>
+            this.launchMediaModal(questionType, mediaURL, iconClassNames)
+          }
+        />
+
+        {(playableMediaDuration !== null) &&
+          <bem.MediaCell__duration>
+            {playableMediaDuration}
+          </bem.MediaCell__duration>
+        }
+      </bem.MediaCell>
+    );
   }
   render() {
     if (this.state.error) {
