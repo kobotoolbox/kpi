@@ -12,7 +12,10 @@ import {LoadingSpinner} from 'js/ui';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
-import {validFileTypes} from 'utils';
+import {
+  getLoginUrl,
+  validFileTypes
+} from 'utils';
 import {
   ASSET_TYPES,
   COMMON_QUERIES,
@@ -188,6 +191,11 @@ class SearchCollectionList extends Reflux.Component {
   }
 
   render() {
+    if (!stores.session.isLoggedIn && stores.session.isAuthStateKnown) {
+      window.location.replace(getLoginUrl());
+      return null;
+    }
+
     var s = this.state;
     var docTitle = '';
     let display;

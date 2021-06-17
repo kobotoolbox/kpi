@@ -78,12 +78,12 @@ export const MODAL_TYPES = {
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
 };
 
-export const PROJECT_SETTINGS_CONTEXTS = {
+export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
   NEW: 'newForm',
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
   BUILDER: 'formBuilderAside',
-};
+});
 
 export const update_states = {
   UNSAVED_CHANGES: -1,
@@ -108,7 +108,7 @@ export const VALIDATION_STATUSES = {
   },
   validation_status_not_approved: {
     value: 'validation_status_not_approved',
-    label: t('Not Approved'),
+    label: t('Not approved'),
   },
   validation_status_approved: {
     value: 'validation_status_approved',
@@ -116,7 +116,7 @@ export const VALIDATION_STATUSES = {
   },
   validation_status_on_hold: {
     value: 'validation_status_on_hold',
-    label: t('On Hold'),
+    label: t('On hold'),
   },
 };
 
@@ -161,6 +161,22 @@ export const ASSET_FILE_TYPES = {
   },
 }
 
+
+/**
+ * When adding new question type please remember to update those places:
+ * 1. Add question type here
+ * 2. Add new SVG icon to jsapp/svg-icons
+ * 3. Add icon to row view.icons.coffee
+ * 4. If it's non-regular type, you might need to update:
+ *   - isRowSpecialLabelHolder in assetUtils.es6
+ *   - renderQuestionTypeIcon in assetUtils.es6
+ * 5. If question doesn't hold data, update:
+ *   - getDisplayData in bulkEditSubmissionsForm.es6
+ *   - getDisplayedColumns in table.es6
+ * 6. Update renderResponseData in submissionDataTable.es6
+ * 7. Update getSubmissionDisplayData in submissionUtils.es6
+ * 8. If it's media type update renderAttachment in submissionDataTable.es6
+ */
 export const QUESTION_TYPES = Object.freeze({
   acknowledge: {label: t('Acknowledge'), icon: 'qt-acknowledge', id: 'acknowledge'},
   audio: {label: t('Audio'), icon: 'qt-audio', id: 'audio'},
@@ -200,6 +216,7 @@ new Set([
   'deviceid',
   'phonenumber',
   'audit',
+  'background-audio',
 ]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
 Object.freeze(META_QUESTION_TYPES);
 
@@ -219,6 +236,36 @@ new Set([
   '_tags',
 ]).forEach((codename) => {ADDITIONAL_SUBMISSION_PROPS[codename] = codename;});
 Object.freeze(ADDITIONAL_SUBMISSION_PROPS);
+
+/**
+ * Submission data that has numerical values. Useful for displaying data with
+ * monospaced font. This includes QUESTION_TYPES, META_QUESTION_TYPES and
+ * ADDITIONAL_SUBMISSION_PROPS.
+ */
+export const NUMERICAL_SUBMISSION_PROPS = {};
+new Set([
+  QUESTION_TYPES.barcode.id,
+  QUESTION_TYPES.date.id,
+  QUESTION_TYPES.datetime.id,
+  QUESTION_TYPES.decimal.id,
+  QUESTION_TYPES.geopoint.id,
+  QUESTION_TYPES.geoshape.id,
+  QUESTION_TYPES.geotrace.id,
+  QUESTION_TYPES.integer.id,
+  QUESTION_TYPES.score.id,
+  QUESTION_TYPES.time.id,
+  META_QUESTION_TYPES.start,
+  META_QUESTION_TYPES.end,
+  META_QUESTION_TYPES.today,
+  META_QUESTION_TYPES.simserial,
+  META_QUESTION_TYPES.subscriberid,
+  META_QUESTION_TYPES.deviceid,
+  META_QUESTION_TYPES.phonenumber,
+  ADDITIONAL_SUBMISSION_PROPS._id,
+  ADDITIONAL_SUBMISSION_PROPS._uuid,
+  ADDITIONAL_SUBMISSION_PROPS._submission_time,
+]).forEach((codename) => {NUMERICAL_SUBMISSION_PROPS[codename] = codename;});
+Object.freeze(NUMERICAL_SUBMISSION_PROPS);
 
 export const NAME_MAX_LENGTH = 255;
 
@@ -292,6 +339,12 @@ export const DEPLOYMENT_CATEGORIES = Object.freeze({
 
 export const QUERY_LIMIT_DEFAULT = 5000;
 
+// List of server routes
+export const PATHS = Object.freeze({
+  LOGIN: '/accounts/login',
+});
+
+// List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ACCOUNT_SETTINGS: '/account-settings',
   CHANGE_PASSWORD: '/change-password',
@@ -313,7 +366,6 @@ export const ROUTES = Object.freeze({
   FORM_LANDING: '/forms/:uid/landing',
   FORM_DATA: '/forms/:uid/data',
   FORM_REPORT: '/forms/:uid/data/report',
-  FORM_REPORT_OLD: '/forms/:uid/data/report-legacy',
   FORM_TABLE: '/forms/:uid/data/table',
   FORM_DOWNLOADS: '/forms/:uid/data/downloads',
   FORM_GALLERY: '/forms/:uid/data/gallery',
@@ -373,6 +425,22 @@ export const COLLECTION_METHODS = Object.freeze({
   },
 });
 
+
+export const SURVEY_DETAIL_ATTRIBUTES = Object.freeze({
+  value: {
+    id: 'value',
+  },
+  parameters: {
+    id: 'parameters',
+  },
+});
+
+export const FUNCTION_TYPE = Object.freeze({
+  function: {
+    id: 'function',
+  },
+});
+
 // NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
@@ -399,10 +467,13 @@ const constants = {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
+  PATHS,
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
   MAX_DISPLAYED_STRING_LENGTH,
+  SURVEY_DETAIL_ATTRIBUTES,
+  FUNCTION_TYPE,
 };
 
 export default constants;
