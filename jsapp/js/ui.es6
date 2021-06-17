@@ -6,7 +6,6 @@
  */
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import _ from 'underscore';
 import {getAssetDisplayName} from 'js/assetUtils';
@@ -15,29 +14,27 @@ import {bem} from './bem';
 import {hasLongWords} from 'utils';
 import classNames from 'classnames';
 
+/**
+ * @prop {string} value
+ * @prop {string} placeholder
+ * @prop {boolean} disabled
+ * @prop {function} onKeyUp
+ * @prop {function} onChange
+ */
 class SearchBox extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
   }
-  getValue() {
-    return ReactDOM.findDOMNode(this.refs.inp).value;
-  }
-  setValue(v) {
-    ReactDOM.findDOMNode(this.refs.inp).value = v;
-  }
   render() {
-    var elemId = _.uniqueId('elem');
-    var value = this.props.value;
     return (
       <input
         type='text'
-        ref='inp'
         className='k-search__input'
-        value={value}
+        value={this.props.value}
         onKeyUp={this.props.onKeyUp}
         onChange={this.props.onChange}
-        id={elemId}
+        id={_.uniqueId('elem')}
         placeholder={this.props.placeholder}
         disabled={this.props.disabled}
       />
@@ -45,43 +42,63 @@ class SearchBox extends React.Component {
   }
 }
 
+/**
+ * @prop {string} className
+ * @prop {string} m - uiPanel BEM modifier
+ * @prop {node} children
+ */
 class Panel extends React.Component {
   constructor(props) {
     super(props);
   }
-  render () {
+  render() {
     return (
-        <bem.uiPanel className={this.props.className} m={this.props.m}>
-          <bem.uiPanel__body>
-            {this.props.children}
-          </bem.uiPanel__body>
-        </bem.uiPanel>
-      );
+      <bem.uiPanel className={this.props.className} m={this.props.m}>
+        <bem.uiPanel__body>
+          {this.props.children}
+        </bem.uiPanel__body>
+      </bem.uiPanel>
+    );
   }
-};
+}
 
-
+/**
+ * @prop {function} onClose
+ * @prop {string} title
+ * @prop {boolean} small
+ * @prop {boolean} isDuplicated
+ * @prop {string} className
+ * @prop {boolean} open
+ * @prop {boolean} large
+ * @prop {string} icon
+ * @prop {node} children
+ */
 class Modal extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
     autoBind(this);
   }
+
   componentDidMount() {
     document.addEventListener('keydown', this.escFunction);
   }
+
   componentWillUnmount() {
     document.removeEventListener('keydown', this.escFunction);
   }
-  escFunction (evt) {
+
+  escFunction(evt) {
     if (evt.keyCode === KEY_CODES.ESC || evt.key === 'Escape') {
       this.props.onClose.call(evt);
     }
   }
-  backdropClick (evt) {
+
+  backdropClick(evt) {
     if (evt.currentTarget === evt.target) {
       this.props.onClose.call(evt);
     }
   }
+
   renderTitle() {
     if (!this.props.title) {
       return null;
@@ -98,6 +115,7 @@ class Modal extends React.Component {
       );
     }
   }
+
   renderClose() {
     if (this.props.isDuplicated) {
       return(
@@ -113,6 +131,7 @@ class Modal extends React.Component {
       );
     }
   }
+
   render() {
     return (
       <bem.Modal__backdrop onClick={this.backdropClick}>
@@ -137,63 +156,51 @@ class Modal extends React.Component {
       </bem.Modal__backdrop>
     );
   }
-};
+}
 
+/**
+ * @prop {node} children
+ */
 class Footer extends React.Component {
   constructor(props) {
     super(props);
   }
   render() {
-    return (
-      <bem.Modal__footer>
-        {this.props.children}
-      </bem.Modal__footer>
-    );
+    return (<bem.Modal__footer>{this.props.children}</bem.Modal__footer>);
   }
-};
+}
 
 Modal.Footer = Footer;
 
+/**
+ * @prop {node} children
+ */
 class Body extends React.Component {
   constructor(props) {
     super(props);
   }
+
   render() {
-    return (
-      <bem.Modal__body>
-        {this.props.children}
-      </bem.Modal__body>
-    );
+    return (<bem.Modal__body>{this.props.children}</bem.Modal__body>);
   }
-};
+}
 
 Modal.Body = Body;
 
+/**
+ * @prop {node} children
+ */
 class Tabs extends React.Component {
   constructor(props) {
     super(props);
   }
-  render () {
+
+  render() {
     return <bem.Modal__tabs>{this.props.children}</bem.Modal__tabs>;
   }
-};
+}
 
 Modal.Tabs = Tabs;
-
-var BemSidebarAssetName = bem.create('sidebar-asset-name', '<span>');
-
-class SidebarAssetName extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render () {
-    return (
-        <BemSidebarAssetName m={{noname: !this.props.name}}>
-          {this.props.name || t('No name')}
-        </BemSidebarAssetName>
-      );
-  }
-}
 
 class AssetName extends React.Component {
   constructor(props) {
@@ -375,7 +382,6 @@ var ui = {
   SearchBox: SearchBox,
   Panel: Panel,
   Modal: Modal,
-  SidebarAssetName: SidebarAssetName,
   AssetName: AssetName,
   PopoverMenu: PopoverMenu
 };
