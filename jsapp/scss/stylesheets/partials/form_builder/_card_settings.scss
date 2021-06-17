@@ -97,8 +97,17 @@
 
   input[type="text"] {
     width: 85%;
-    padding: 2px;
-    font-size: 13px;
+    background: inherit;
+    border-width: 1px;
+    border-color: $kobo-gray-92;
+    border-style: solid;
+    padding: 4px 10px;
+    font-size: 15px;
+    color: inherit;
+
+    &:focus {
+      border-color: $kobo-blue;
+    }
   }
 
   .settings__input {
@@ -213,7 +222,7 @@
       }
     }
     .hxlAttrs.select2-container-multi {
-        background: $kobo-white;
+        background: inherit;
         border-left: 0px;
     }
 }
