@@ -27,7 +27,11 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: $kobo-white;
+  background: $kobo-gray-96;
+
+  &.form-view--table {
+    background: $kobo-white;
+  }
 
   &.form-view--fullscreen {
     position: fixed;

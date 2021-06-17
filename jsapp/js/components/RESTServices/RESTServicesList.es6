@@ -115,7 +115,7 @@ export default class RESTServicesList extends React.Component {
     return (
       <bem.FormView m={'form-settings'} className='rest-services rest-services--empty'>
         <bem.EmptyContent>
-          <bem.EmptyContent__icon className='k-icon-data-sync' />
+          <bem.EmptyContent__icon className='k-icon k-icon-data-sync' />
 
           <bem.EmptyContent__title>
             {t("This project doesn't have any REST Services yet!")}
@@ -181,7 +181,7 @@ export default class RESTServicesList extends React.Component {
                       data-hook-uid={hook.uid}
                       data-tip={t('Edit')}
                     >
-                      <i className='k-icon-edit' />
+                      <i className='k-icon k-icon-edit' />
                     </bem.ServiceRow__actionButton>
 
                     <bem.ServiceRow__actionButton
@@ -190,7 +190,7 @@ export default class RESTServicesList extends React.Component {
                       data-hook-uid={hook.uid}
                       data-tip={t('Delete')}
                     >
-                      <i className='k-icon-trash' />
+                      <i className='k-icon k-icon-trash' />
                     </bem.ServiceRow__actionButton>
                   </bem.ServiceRow__column>
                 </bem.ServiceRow>
