@@ -304,7 +304,7 @@ export class DataTable extends React.Component {
             />
 
             <button
-              onClick={() => {this.launchSubmissionModal(row)}}
+              onClick={this.launchSubmissionModal.bind(this, row)}
               data-sid={row.original._id}
               className='table-link'
               data-tip={t('Open')}
@@ -426,8 +426,11 @@ export class DataTable extends React.Component {
       // appended relative to survey questions with an index prefix
 
       // sets location of columns for questions not in current survey version
-      // `y` makes puts this case in front of known meta types
+      // `y` puts this case in front of known meta types
       var index = 'y_' + key;
+
+      // Get background-audio question name in case user changes it
+      const backgroundAudioName = this.getBackgroundAudioQuestionName();
 
       // place meta question columns at the very end with `z` prefix
       switch(key) {
@@ -465,8 +468,8 @@ export class DataTable extends React.Component {
         case ADDITIONAL_SUBMISSION_PROPS._submitted_by:
             index = 'z92';
             break;
-        // set index for `background-audio` to the front of every column with `_`
-        case 'background-audio':
+        // set index for `background-audio` to the very first column with `_`
+        case backgroundAudioName:
             index = '_1';
             break;
         default:
