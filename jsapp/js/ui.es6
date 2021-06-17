@@ -108,7 +108,7 @@ class Modal extends React.Component {
     } else {
       return(
         <a className='modal__x' type='button' onClick={this.props.onClose}>
-          <i className='k-icon-close'/>
+          <i className='k-icon k-icon-close'/>
         </a>
       );
     }
@@ -252,6 +252,12 @@ class PopoverMenu extends React.Component {
   componentWillUnmount() {
     this._mounted = false;
   }
+  static getDerivedStateFromProps(props, state) {
+    if (state.popoverVisible && props.clearPopover) {
+      return {popoverVisible: false};
+    }
+    return null;
+  }
   toggle(evt) {
     var isBlur = evt.type === 'blur';
 
@@ -304,13 +310,6 @@ class PopoverMenu extends React.Component {
 
     if (typeof this.props.popoverSetVisible === 'function' && !this.state.popoverVisible) {
       this.props.popoverSetVisible();
-    }
-  }
-  componentWillReceiveProps(nextProps) {
-    if (this.state.popoverVisible && nextProps.clearPopover) {
-      this.setState({
-        popoverVisible: false
-      });
     }
   }
   render () {
