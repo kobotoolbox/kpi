@@ -2,6 +2,7 @@
 import multiprocessing
 import os
 import subprocess
+from mimetypes import add_type
 from datetime import timedelta
 from urllib.parse import quote_plus
 
@@ -54,7 +55,7 @@ if os.environ.get('SESSION_COOKIE_DOMAIN'):
 SESSION_COOKIE_AGE = 604800
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = (os.environ.get('DJANGO_DEBUG', 'True') == 'True')
+DEBUG = (os.environ.get('DJANGO_DEBUG', 'False') == 'True')
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
@@ -74,7 +75,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'reversion',
-    'mptt',
     'private_storage',
     'kobo.apps.KpiConfig',
     'hub',
@@ -99,6 +99,8 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
+    'kobo.apps.shadow_model.ShadowModelAppConfig',
+    'kobo.apps.usage_statistics.UsageStatisticsAppConfig',
 )
 
 MIDDLEWARE = [
@@ -170,6 +172,10 @@ CONSTANCE_CONFIG = {
         '',
         'Blacklisted IP addresses to bypass SSRF protection\nOne per line',
     ),
+    'EXPOSE_GIT_REV': (
+        False,
+        'Display information about the running commit to non-superusers',
+    ),
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -205,8 +211,8 @@ WSGI_APPLICATION = 'kobo.wsgi.application'
 ANONYMOUS_USER_ID = -1
 # Permissions assigned to AnonymousUser are restricted to the following
 ALLOWED_ANONYMOUS_PERMISSIONS = (
-    'kpi.view_collection',
     'kpi.view_asset',
+    'kpi.discover_asset',
     'kpi.view_submissions',
 )
 
@@ -277,6 +283,13 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/' + os.environ.get('KPI_MEDIA_URL', 'media').strip('/') + '/'
 
+# `PUBLIC_MEDIA_PATH` sets the `upload_to` attribute of explicitly-public
+# `FileField`s, e.g. in `ConfigurationFile`. The corresponding location on the
+# file system (usually `MEDIA_ROOT + PUBLIC_MEDIA_PATH`) should be exposed to
+# everyone via NGINX. For more information, see
+# https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.FileField.upload_to
+PUBLIC_MEDIA_PATH = '__public/'
+
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 KPI_PREFIX = os.environ.get('KPI_PREFIX', 'False')
@@ -296,6 +309,7 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'jsapp'),
     os.path.join(BASE_DIR, 'static'),
     ('mocha', os.path.join(BASE_DIR, 'node_modules', 'mocha'),),
+    ('chai', os.path.join(BASE_DIR, 'node_modules', 'chai'),),
 )
 
 if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
@@ -345,7 +359,7 @@ TEMPLATES = [
                 'kpi.context_processors.sitewide_messages',
                 'kpi.context_processors.config',
             ],
-            'debug': os.environ.get('TEMPLATE_DEBUG', 'True') == 'True',
+            'debug': os.environ.get('TEMPLATE_DEBUG', 'False') == 'True',
         },
     },
 ]
@@ -368,12 +382,14 @@ else:
 
 ''' Enketo configuration '''
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
-ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
-ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
+ENKETO_SERVER = ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
+ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
 
+# ToDo 2020-01-23 Verify if 2 lines below are still needed?
 assert ENKETO_VERSION in ['legacy', 'express']
 ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'preview'
+
 # The number of hours to keep a kobo survey preview (generated for enketo)
 # around before purging it.
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
@@ -381,6 +397,7 @@ KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION'
 ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
+ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 
 
 ''' Celery configuration '''
@@ -450,6 +467,7 @@ if 'KOBOCAT_URL' in os.environ:
         }
 
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 
 ''' Django Registration configuration '''
@@ -643,9 +661,6 @@ for git_rev_key, git_command in (
         GIT_REV[git_rev_key] = False
 if GIT_REV['branch'] == 'HEAD':
     GIT_REV['branch'] = False
-# Only superusers will be able to see this information unless
-# EXPOSE_GIT_REV=TRUE is set in the environment
-EXPOSE_GIT_REV = os.environ.get('EXPOSE_GIT_REV', '').upper() == 'TRUE'
 
 
 '''
@@ -660,9 +675,6 @@ KOBOCAT_DEFAULT_PERMISSION_CONTENT_TYPES = [
     # Each tuple must be (app_label, model_name)
     ('main', 'userprofile'),
     ('logger', 'xform'),
-    ('api', 'project'),
-    ('api', 'team'),
-    ('api', 'organizationprofile'),
     ('logger', 'note'),
 ]
 
@@ -694,11 +706,22 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
+MONGO_DB_MAX_TIME_MS = CELERY_TASK_TIME_LIMIT * 1000
+
 SESSION_ENGINE = "redis_sessions.session"
 SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
+
+ENV = None
 
 # The maximum size in bytes that a request body may be before a SuspiciousOperation (RequestDataTooBig) is raised
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
 # The maximum size (in bytes) that an upload will be before it gets streamed to the file system
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
+
+# OpenRosa setting in bytes
+OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
+
+# add some mimetype
+add_type('application/wkt', '.wkt')
+add_type('application/geo+json', '.geojson')

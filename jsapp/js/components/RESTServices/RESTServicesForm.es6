@@ -1,17 +1,17 @@
-import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
-import TagsInput from 'react-tagsinput';
+import KoboTagsInput from 'js/components/common/koboTagsInput';
 import alertify from 'alertifyjs';
 import {bem} from '../../bem';
+import {LoadingSpinner} from 'js/ui';
 import {dataInterface} from '../../dataInterface';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
 import Select from 'react-select';
-import Checkbox from '../checkbox';
-import Radio from '../radio';
-import TextBox from '../textBox';
-import {t} from '../../utils';
+import Checkbox from 'js/components/common/checkbox';
+import Radio from 'js/components/common/radio';
+import TextBox from 'js/components/common/textBox';
+import {KEY_CODES} from 'js/constants';
 
 const EXPORT_TYPES = {
   json: {
@@ -292,11 +292,11 @@ export default class RESTServicesForm extends React.Component {
    */
 
  onCustomHeaderInputKeyPress(evt) {
-   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerName') {
+   if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerName') {
      evt.preventDefault();
      $(evt.currentTarget).parent().find('input[name="headerValue"]').focus();
    }
-   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerValue') {
+   if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerValue') {
      evt.preventDefault();
      this.addNewCustomHeaderRow();
    }
@@ -384,26 +384,18 @@ export default class RESTServicesForm extends React.Component {
    * handle fields
    */
 
-  onSubsetFieldsChange(evt) {
-    this.setState({subsetFields: evt});
+  onSubsetFieldsChange(newValue) {
+    this.setState({subsetFields: newValue.split(',')});
   }
 
   renderFieldsSelector() {
-    const inputProps = {
-      placeholder: t('Add field(s)'),
-      id: 'subset-fields-input'
-    };
-
     return (
       <bem.FormModal__item>
-        <label htmlFor='subset-fields-input'>
-          {t('Select fields subset')}
-        </label>
-
-        <TagsInput
-          value={this.state.subsetFields}
-          onChange={this.onSubsetFieldsChange.bind(this)}
-          inputProps={inputProps}
+        <KoboTagsInput
+          tags={this.state.subsetFields.join(',')}
+          onChange={this.onSubsetFieldsChange}
+          placeholder={t('Add field(s)')}
+          label={t('Select fields subset')}
         />
       </bem.FormModal__item>
     );
@@ -417,14 +409,7 @@ export default class RESTServicesForm extends React.Component {
     const isEditingExistingHook = Boolean(this.state.hookUid);
 
     if (this.state.isLoadingHook) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<LoadingSpinner/>);
     } else {
       let submissionPlaceholder = '%SUBMISSION%';
       if (stores.session.environment && stores.session.environment.submission_placeholder) {
@@ -500,6 +485,7 @@ export default class RESTServicesForm extends React.Component {
                 id='rest-service-form--security'
                 name='authLevel'
                 menuPlacement='auto'
+                isSearchable={false}
               />
             </bem.FormModal__item>
 

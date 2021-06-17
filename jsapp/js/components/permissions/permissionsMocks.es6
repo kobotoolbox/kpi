@@ -6,7 +6,7 @@
 
 // /api/v2/permissions/
 const permissions = {
-  'count': 9,
+  'count': 11,
   'next': null,
   'previous': null,
   'results': [
@@ -17,8 +17,7 @@ const permissions = {
         '/api/v2/permissions/view_asset/'
       ],
       'contradictory': [],
-      'name': '',
-      'description': 'Can submit data to asset'
+      'name': 'Can submit data to asset'
     },
     {
       'url': '/api/v2/permissions/change_asset/',
@@ -27,12 +26,24 @@ const permissions = {
         '/api/v2/permissions/view_asset/'
       ],
       'contradictory': [],
-      'name': '',
-      'description': 'Can change asset'
+      'name': 'Can change asset'
     },
     {
       'url': '/api/v2/permissions/change_submissions/',
       'codename': 'change_submissions',
+      'implied': [
+        '/api/v2/permissions/view_asset/',
+        '/api/v2/permissions/view_submissions/',
+        '/api/v2/permissions/add_submissions/'
+      ],
+      'contradictory': [
+        '/api/v2/permissions/partial_submissions/'
+      ],
+      'name': 'Can modify submitted data for asset'
+    },
+    {
+      'url': '/api/v2/permissions/delete_submissions/',
+      'codename': 'delete_submissions',
       'implied': [
         '/api/v2/permissions/view_asset/',
         '/api/v2/permissions/view_submissions/'
@@ -40,8 +51,24 @@ const permissions = {
       'contradictory': [
         '/api/v2/permissions/partial_submissions/'
       ],
-      'name': '',
-      'description': 'Can modify submitted data for asset'
+      'name': 'Can delete submitted data for asset'
+    },
+    {
+      "url": "/api/v2/permissions/manage_asset.json",
+      "codename": "manage_asset",
+      "implied": [
+        "/api/v2/permissions/delete_submissions/",
+        "/api/v2/permissions/change_submissions/",
+        "/api/v2/permissions/validate_submissions/",
+        "/api/v2/permissions/view_asset/",
+        "/api/v2/permissions/change_asset/",
+        "/api/v2/permissions/view_submissions/",
+        "/api/v2/permissions/add_submissions/"
+      ],
+      'contradictory': [
+        '/api/v2/permissions/partial_submissions/'
+      ],
+      "name": "Can manage all aspects of asset"
     },
     {
       'url': '/api/v2/permissions/partial_submissions/',
@@ -54,8 +81,7 @@ const permissions = {
         '/api/v2/permissions/change_submissions/',
         '/api/v2/permissions/validate_submissions/'
       ],
-      'name': '',
-      'description': 'Can make partial actions on submitted data for asset for specific users'
+      'name': 'Can make partial actions on submitted data for asset for specific users'
     },
     {
       'url': '/api/v2/permissions/validate_submissions/',
@@ -67,16 +93,14 @@ const permissions = {
       'contradictory': [
         '/api/v2/permissions/partial_submissions/'
       ],
-      'name': '',
-      'description': 'Can validate submitted data asset'
+      'name': 'Can validate submitted data asset'
     },
     {
       'url': '/api/v2/permissions/view_asset/',
       'codename': 'view_asset',
       'implied': [],
       'contradictory': [],
-      'name': '',
-      'description': 'Can view asset'
+      'name': 'Can view asset'
     },
     {
       'url': '/api/v2/permissions/view_submissions/',
@@ -87,26 +111,7 @@ const permissions = {
       'contradictory': [
         '/api/v2/permissions/partial_submissions/'
       ],
-      'name': '',
-      'description': 'Can view submitted data for asset'
-    },
-    {
-      'url': '/api/v2/permissions/change_collection/',
-      'codename': 'change_collection',
-      'implied': [
-        '/api/v2/permissions/view_collection/'
-      ],
-      'contradictory': [],
-      'name': '',
-      'description': 'Can change collection'
-    },
-    {
-      'url': '/api/v2/permissions/view_collection/',
-      'codename': 'view_collection',
-      'implied': [],
-      'contradictory': [],
-      'name': '',
-      'description': 'Can view collection'
+      'name': 'Can view submitted data for asset',
     }
   ]
 };
@@ -190,6 +195,11 @@ const assetWithMultipleUsers = {
       'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pQGiudmuLvN6iHEdH8dJAs/',
       'user': '/api/v2/users/kobo/',
       'permission': '/api/v2/permissions/view_submissions/'
+    },
+    {
+      'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pnld7XQ1hWYJ5sOUDl4qP/',
+      'user': '/api/v2/users/kobo/',
+      'permission': '/api/v2/permissions/delete_submissions/'
     },
     {
       'url': '/api/v2/assets/arMB2dNgwewktv954wmo9e/permission-assignments/pETvxGayAJwvPaCnt5biVD/',

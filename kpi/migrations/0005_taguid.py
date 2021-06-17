@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name='TagUid',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('uid', models.CharField(default=b'', max_length=22, blank=True)),
+                ('uid', models.CharField(default='', max_length=22, blank=True)),
                 ('tag', models.OneToOneField(to='taggit.Tag', on_delete=models.CASCADE)),
             ],
             options={

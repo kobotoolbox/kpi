@@ -1,5 +1,4 @@
 module.exports = do ->
-  _t = require('utils').t
 
   xlfRowSelector = {}
 
@@ -19,7 +18,7 @@ module.exports = do ->
   xlfRowSelector.cell = (atts) ->
       """
         <div class="questiontypelist__item" data-menu-item="#{atts.id}">
-          <i class="fa fa-fw fa-#{atts.faClass}"></i>
+          <i class="#{atts.iconClassName}"></i>
           #{atts.label}
         </div>
       """
@@ -30,7 +29,7 @@ module.exports = do ->
         #{closeRowSelectorButton}
         <form class="row__questiontypes__form" action="javascript:void(0);" >
           <input type="text" class="js-cancel-sort mdl-textfield__input" />
-          <button class="kobo-button kobo-button--green">+ #{_t("Add Question")}</button>
+          <button class="kobo-button kobo-button--green">+ #{t("Add Question")}</button>
         </form>
       </div>
     """

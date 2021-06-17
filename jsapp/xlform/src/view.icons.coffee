@@ -8,7 +8,8 @@ module.exports = do ->
   addIconToRow = (typeDef, group) =>
     iconDetails.push({
       label: typeDef.label,
-      faClass: typeDef.faIcon.replace("fa-", ""),
+      iconClassName: "k-icon k-icon-#{typeDef.icon}",
+      iconClassNameLocked: "k-icon k-icon-#{typeDef.icon}-lock",
       grouping: group,
       id: typeDef.id
     })
@@ -16,39 +17,39 @@ module.exports = do ->
 
   iconDetails = []
   # row 1
-  addIconToRow(constants.QUESTION_TYPES.get("select_one"),  "r1")
-  addIconToRow(constants.QUESTION_TYPES.get("select_multiple"), "r1")
-  addIconToRow(constants.QUESTION_TYPES.get("text"), "r1")
-  addIconToRow(constants.QUESTION_TYPES.get("integer"), "r1")
+  addIconToRow(constants.QUESTION_TYPES.select_one,  "r1")
+  addIconToRow(constants.QUESTION_TYPES.select_multiple, "r1")
+  addIconToRow(constants.QUESTION_TYPES.text, "r1")
+  addIconToRow(constants.QUESTION_TYPES.integer, "r1")
   # row 2
-  addIconToRow(constants.QUESTION_TYPES.get("decimal"), "r2")
-  addIconToRow(constants.QUESTION_TYPES.get("date"), "r2")
-  addIconToRow(constants.QUESTION_TYPES.get("time"), "r2")
-  addIconToRow(constants.QUESTION_TYPES.get("datetime"), "r2")
+  addIconToRow(constants.QUESTION_TYPES.decimal, "r2")
+  addIconToRow(constants.QUESTION_TYPES.date, "r2")
+  addIconToRow(constants.QUESTION_TYPES.time, "r2")
+  addIconToRow(constants.QUESTION_TYPES.datetime, "r2")
   # row 3
-  addIconToRow(constants.QUESTION_TYPES.get("geopoint"), "r3")
-  addIconToRow(constants.QUESTION_TYPES.get("image"), "r3")
-  addIconToRow(constants.QUESTION_TYPES.get("audio"), "r3")
-  addIconToRow(constants.QUESTION_TYPES.get("video"), "r3")
+  addIconToRow(constants.QUESTION_TYPES.geopoint, "r3")
+  addIconToRow(constants.QUESTION_TYPES.image, "r3")
+  addIconToRow(constants.QUESTION_TYPES.audio, "r3")
+  addIconToRow(constants.QUESTION_TYPES.video, "r3")
   # row 4
-  addIconToRow(constants.QUESTION_TYPES.get("geotrace"), "r4")
-  addIconToRow(constants.QUESTION_TYPES.get("note"), "r4")
-  addIconToRow(constants.QUESTION_TYPES.get("barcode"), "r4")
-  addIconToRow(constants.QUESTION_TYPES.get("acknowledge"), "r4")
+  addIconToRow(constants.QUESTION_TYPES.geotrace, "r4")
+  addIconToRow(constants.QUESTION_TYPES.note, "r4")
+  addIconToRow(constants.QUESTION_TYPES.barcode, "r4")
+  addIconToRow(constants.QUESTION_TYPES.acknowledge, "r4")
   # row 5
-  addIconToRow(constants.QUESTION_TYPES.get("geoshape"), "r5")
-  addIconToRow(constants.QUESTION_TYPES.get("score"), "r5")
-  addIconToRow(constants.QUESTION_TYPES.get("kobomatrix"), "r5")
-  addIconToRow(constants.QUESTION_TYPES.get("rank"), "r5")
+  addIconToRow(constants.QUESTION_TYPES.geoshape, "r5")
+  addIconToRow(constants.QUESTION_TYPES.score, "r5")
+  addIconToRow(constants.QUESTION_TYPES.kobomatrix, "r5")
+  addIconToRow(constants.QUESTION_TYPES.rank, "r5")
   # row 6
-  addIconToRow(constants.QUESTION_TYPES.get("calculate"), "r6")
-  addIconToRow(constants.QUESTION_TYPES.get("hidden"), "r6")
-  addIconToRow(constants.QUESTION_TYPES.get("file"), "r6")
-  addIconToRow(constants.QUESTION_TYPES.get("range"), "r6")
+  addIconToRow(constants.QUESTION_TYPES.calculate, "r6")
+  addIconToRow(constants.QUESTION_TYPES.hidden, "r6")
+  addIconToRow(constants.QUESTION_TYPES.file, "r6")
+  addIconToRow(constants.QUESTION_TYPES.range, "r6")
 
   class QtypeIcon extends Backbone.Model
     defaults:
-      faClass: "question-circle"
+      iconClassname: "k-icon"
 
   class QtypeIconCollection extends Backbone.Collection
     model: QtypeIcon

@@ -1,5 +1,4 @@
 _ = require 'underscore'
-jQuery = require 'jquery'
 Validator = require './view.utils.validator'
 
 module.exports = do ->
@@ -100,7 +99,7 @@ module.exports = do ->
         <div class='enketo-iframe-icon'></div>
         <div class="enketo-loading-message">
           <p>
-          <i class="fa fa-spin fa-spinner"></i>
+          <i class="k-spin k-icon k-icon-spinner"></i>
           <br/>
           Loading Preview
         </p>

@@ -1,8 +1,6 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
-$ = require 'jquery'
 $skipLogicParser = require './model.skipLogicParser'
-_t = require('utils').t
 
 module.exports = do ->
   skipLogicHelpers = {}
@@ -394,7 +392,7 @@ module.exports = do ->
     constructor: (@criteria, @builder, @view_factory, @context) ->
       @$parent = $('<div>')
       @textarea = @view_factory.create_textarea @criteria, 'skiplogic__handcode-edit'
-      @button = @view_factory.create_button '<i class="fa fa-trash-o"></i>', 'skiplogic-handcode__cancel'
+      @button = @view_factory.create_button '<i class="k-icon k-icon-trash"></i>', 'skiplogic-handcode__cancel'
 
   class skipLogicHelpers.SkipLogicModeSelectorHelper
     render: ($destination) ->
@@ -415,8 +413,8 @@ module.exports = do ->
     serialize: () ->
       return ''
     constructor: (view_factory, @context) ->
-      @criterion_builder_button = view_factory.create_button '<i class="fa fa-plus"></i> ' + _t("Add a condition"), 'kobo-button kobo-button--green'
-      @handcode_button = view_factory.create_button '<i>${}</i> ' + _t("Manually enter your skip logic in XLSForm code"), 'kobo-button kobo-button--blue'
+      @criterion_builder_button = view_factory.create_button '<i>+</i> ' + t("Add a condition"), 'kobo-button kobo-button--green'
+      @handcode_button = view_factory.create_button '<i>${}</i> ' + t("Manually enter your skip logic in XLSForm code"), 'kobo-button kobo-button--blue'
       ###@view = @view_factory.create_skip_logic_picker_view(context)###
     switch_editing_mode: () -> return
 
@@ -571,10 +569,10 @@ module.exports = do ->
     {
       id: 1
       type: 'existence'
-      label: _t("Was Answered")
-      negated_label: _t("Was not Answered")
-      abbreviated_label: _t("Was Answered")
-      abbreviated_negated_label: _t("Was not Answered")
+      label: t("Was Answered")
+      negated_label: t("Was not Answered")
+      abbreviated_label: t("Was Answered")
+      abbreviated_negated_label: t("Was not Answered")
       parser_name: ['ans_notnull','ans_null']
       symbol: {
         ans_notnull: '!=',
@@ -586,7 +584,7 @@ module.exports = do ->
       id: 2
       type: 'equality'
       label: ''
-      negated_label: _t("not")
+      negated_label: t("not")
       abbreviated_label: '='
       abbreviated_negated_label: '!='
       parser_name: ['resp_equals', 'resp_notequals', 'multiplechoice_selected', 'multiplechoice_notselected']
@@ -600,8 +598,8 @@ module.exports = do ->
     {
       id: 3
       type: 'equality'
-      label: _t("Greater Than")
-      negated_label: _t("Less Than")
+      label: t("Greater Than")
+      negated_label: t("Less Than")
       abbreviated_label: '>'
       abbreviated_negated_label: '<'
       parser_name: ['resp_greater', 'resp_less']
@@ -613,8 +611,8 @@ module.exports = do ->
     {
       id: 4
       type: 'equality'
-      label: _t("Greater Than or Equal to")
-      negated_label: _t("Less Than or Equal to")
+      label: t("Greater Than or Equal to")
+      negated_label: t("Less Than or Equal to")
       abbreviated_label: '>='
       abbreviated_negated_label: '<='
       parser_name: ['resp_greaterequals', 'resp_lessequals']

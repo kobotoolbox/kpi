@@ -7,7 +7,6 @@ import {PERMISSIONS_CODENAMES} from 'js/constants';
 import ui from 'js/ui';
 import RESTServicesList from './RESTServices/RESTServicesList';
 import RESTServiceLogs from './RESTServices/RESTServiceLogs';
-import {t} from '../utils';
 
 export default class RESTServices extends React.Component {
   constructor(props){
@@ -18,8 +17,8 @@ export default class RESTServices extends React.Component {
   render() {
     const docTitle = this.props.asset.name || t('Untitled');
     let hasAccess = (
-      mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('view_submissions'), this.props.asset) &&
-      mixins.permissions.userCan(PERMISSIONS_CODENAMES.get('change_asset'), this.props.asset)
+      mixins.permissions.userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) &&
+      mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset)
     );
 
     return (

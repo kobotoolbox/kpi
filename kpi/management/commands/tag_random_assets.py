@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
 from kpi.models import Asset
-from kpi.models import Collection
 
 # random words
 TAGS = ' '.join(['whale various alien cat witness before cliff damp critic have now swallow',
@@ -44,17 +43,6 @@ class Command(BaseCommand):
                 print(codename)
                 perms[codename] = Permission.objects.get(codename=codename)
             return perms[codename]
-
-        for collection in Collection.objects.all():
-            _tags = _rand_tags_list()
-            print('adding tags to collection: '+ repr(_tags))
-            for tag in _tags:
-                collection.tags.add(tag)
-            for user in _rand_users():
-                perm_code = _rand_perm()
-                perm = _pget('%s_collection' % perm_code)
-                print('assigning user permission "%s" -> %s' % (perm, user.username))
-                collection.assign_perm(user, perm)
 
         for sa in Asset.objects.all():
             _tags = _rand_tags_list()

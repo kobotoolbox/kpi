@@ -1,7 +1,5 @@
-$ = require 'jquery'
 $validationLogicParser = require './model.validationLogicParser'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
-_t = require('utils').t
 
 module.exports = do ->
   validationLogicHelpers = {}
@@ -36,10 +34,12 @@ module.exports = do ->
       return presenter
 
     questions: () ->
-      [@current_question]
+      return [@current_question]
+
     _operator_type: () ->
-      operator_type = super
-      if !operator_type?
+      operator_type = super()
+
+      if not operator_type?
         operator_type_id = @current_question.get_type().operators[0]
         operator_type = $skipLogicHelpers.operator_types[if operator_type_id == 1 then @current_question.get_type().operators[1] else operator_type_id]
       return operator_type
@@ -54,12 +54,17 @@ module.exports = do ->
         @state.button = @view_factory.create_empty()
       @render @destination
       return
-    constructor: (@model_factory, @view_factory, @helper_factory, serialized_criteria) ->
+    constructor: (model_factory, view_factory, helper_factory, serialized_criteria) ->
+      @model_factory = model_factory
+      @view_factory = view_factory
+      @helper_factory = helper_factory
+
       @state = serialize: () -> return serialized_criteria
       if @questionTypeHasNoValidationOperators()
         @use_hand_code_helper()
       else
-        super
+        super(model_factory, view_factory, helper_factory, serialized_criteria)
+
     questionTypeHasNoValidationOperators: () ->
       typeId = @helper_factory.current_question.get('type').get('typeId')
       if !typeId
@@ -70,9 +75,10 @@ module.exports = do ->
       operators.length == operators[0]
 
   class validationLogicHelpers.ValidationLogicModeSelectorHelper extends $skipLogicHelpers.SkipLogicModeSelectorHelper
-    constructor: (view_factory, @context) ->
-      super
-      @handcode_button = view_factory.create_button '<i>${}</i> ' + _t("Manually enter your validation logic in XLSForm code"), 'kobo-button kobo-button--blue'
+    constructor: (view_factory, context) ->
+      @context = context
+      super(view_factory, context)
+      @handcode_button = view_factory.create_button '<i>${}</i> ' + t("Manually enter your validation logic in XLSForm code"), 'kobo-button kobo-button--blue'
 
   class validationLogicHelpers.ValidationLogicHandCodeHelper extends $skipLogicHelpers.SkipLogicHandCodeHelper
     render: ($destination) ->
@@ -86,11 +92,11 @@ module.exports = do ->
       )
     serialize: () ->
       @textarea.val()
-    constructor: () ->
-      super
+    constructor: (criteria, builder, view_factory, context) ->
+      super(criteria, builder, view_factory, context)
       @$handCode = $("""
         <div class="card__settings__fields__field">
-          <label for="#{@context.helper_factory.current_question.cid}-handcode">#{_t("Validation Code:")}</label>
+          <label for="#{@context.helper_factory.current_question.cid}-handcode">#{t("Validation Code:")}</label>
           <span class="settings__input">
             <input type="text" name="constraint" id="#{@context.helper_factory.current_question.cid}-handcode" class="text" value="#{@criteria}">
           </span>

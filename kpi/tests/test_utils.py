@@ -4,9 +4,11 @@ from copy import deepcopy
 from django.db.models import Q
 from django.test import TestCase
 
+from kpi.exceptions import SearchQueryTooShortException
+from kpi.constants import ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
-from kpi.utils.query_parser import parse, ParseError
+from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
 
 
@@ -169,11 +171,50 @@ class UtilsTestCase(TestCase):
                 snakes:🐍🐍 AND NOT alphabet:🍲soup
             ) NOT 'in a house' NOT "with a mouse"
         '''
+
+        default_field_lookups = [
+            'field_a__icontains',
+            'field_b'
+        ]
+
         expected_q = (
             (Q(a='a') | Q(b='b') & Q(c='c')) & Q(d='d') | (
                 Q(snakes='🐍🐍') & ~Q(alphabet='🍲soup')
             )
-            & ~Q(summary__icontains='in a house')
-            & ~Q(summary__icontains='with a mouse')
+            & ~(
+                Q(field_a__icontains='in a house') |
+                Q(field_b='in a house')
+            )
+            & ~(
+                Q(field_a__icontains='with a mouse') |
+                Q(field_b='with a mouse')
+            )
         )
-        self.assertEqual(repr(expected_q), repr(parse(query_string)))
+        assert expected_q == parse(query_string, default_field_lookups)
+
+    def test_query_parser_no_specified_field(self):
+        query_string = 'foo'
+        default_field_lookups = [
+            'field_a__icontains',
+            'field_b'
+        ]
+        expected_q = (
+            Q(field_a__icontains='foo') |
+            Q(field_b='foo')
+        )
+        assert repr(expected_q) == repr(
+            parse(query_string, default_field_lookups)
+        )
+
+    def test_query_parser_default_search_too_short(self):
+        # if the search query without a field is less than a specified
+        # length of characters (currently 3), then it should
+        # throw `SearchQueryTooShortException()` from `query_parser.py`
+        default_field_lookups = [
+            'field_a__icontains',
+            'field_b'
+        ]
+        query_string = 'fo'
+        with self.assertRaises(SearchQueryTooShortException) as e:
+            parse(query_string, default_field_lookups)
+        assert 'Your query is too short' in str(e.exception)

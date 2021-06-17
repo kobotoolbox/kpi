@@ -3,8 +3,17 @@
     font-style: italic;
   }
 
+  &.asset-name--has-long-words {
+    -ms-word-break: break-all;
+     word-break: break-all;
+     -webkit-hyphens: auto;
+     -moz-hyphens: auto;
+     -ms-hyphens: auto;
+     hyphens: auto;
+  }
+
   small {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     margin-left: 5px;
     font-size: smaller;
     font-style: italic;

@@ -2,7 +2,6 @@
 from django.db import models, migrations
 import jsonfield.fields
 from kpi.models import ObjectPermissionMixin
-import mptt.fields
 from django.conf import settings
 import taggit.managers
 
@@ -21,13 +20,13 @@ class Migration(migrations.Migration):
             name='Asset',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.CharField(default=b'', max_length=255, blank=True)),
+                ('name', models.CharField(default='', max_length=255, blank=True)),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('content', jsonfield.fields.JSONField(null=True)),
-                ('asset_type', models.CharField(default=b'text', max_length=20, choices=[(b'text', b'text'), (b'survey_block', b'survey_block'), (b'choice_list', b'choice list')])),
+                ('asset_type', models.CharField(default='text', max_length=20, choices=[('text', 'text'), ('survey_block', 'survey_block'), ('choice_list', 'choice list')])),
                 ('editors_can_change_permissions', models.BooleanField(default=True)),
-                ('uid', models.CharField(default=b'', max_length=22)),
+                ('uid', models.CharField(default='', max_length=22)),
                 ('owner', models.ForeignKey(related_name='assets', to=settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)),
             ],
             options={
@@ -42,7 +41,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(max_length=255)),
                 ('editors_can_change_permissions', models.BooleanField(default=True)),
-                ('uid', models.CharField(default=b'', max_length=22)),
+                ('uid', models.CharField(default='', max_length=22)),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('lft', models.PositiveIntegerField(editable=False, db_index=True)),
@@ -51,8 +50,12 @@ class Migration(migrations.Migration):
                 ('level', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('owner', models.ForeignKey(related_name='owned_collections', to=settings.AUTH_USER_MODEL,
                                             on_delete=models.CASCADE)),
-                ('parent', mptt.fields.TreeForeignKey(related_name='children', blank=True, to='kpi.Collection',
-                                                      null=True, on_delete=models.CASCADE)),
+                # We don't include `mptt` as a dependency anymore; fudge this
+                # with a garden-variety foreign key
+                ('parent', models.ForeignKey(related_name='children', blank=True, to='kpi.Collection',
+                                             null=True, on_delete=models.CASCADE)),
+                #('parent', mptt.fields.TreeForeignKey(related_name='children', blank=True, to='kpi.Collection',
+                #                                      null=True, on_delete=models.CASCADE)),
                 ('tags', taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem',
                                                          help_text='A comma-separated list of tags.', verbose_name='Tags')),
             ],
@@ -68,10 +71,10 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('data', jsonfield.fields.JSONField()),
-                ('status', models.CharField(default=b'created', max_length=32, choices=[(b'created', b'created'),
-                                                                                        (b'processing', b'processing'),
-                                                                                        (b'complete', b'complete')])),
-                ('uid', models.CharField(default=b'', max_length=22)),
+                ('status', models.CharField(default='created', max_length=32, choices=[('created', 'created'),
+                                                                                        ('processing', 'processing'),
+                                                                                        ('complete', 'complete')])),
+                ('uid', models.CharField(default='', max_length=22)),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
@@ -83,10 +86,10 @@ class Migration(migrations.Migration):
             name='ObjectPermission',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('deny', models.BooleanField(default=False, help_text=b'Blocks inheritance of this permission when set to True')),
+                ('deny', models.BooleanField(default=False, help_text='Blocks inheritance of this permission when set to True')),
                 ('inherited', models.BooleanField(default=False)),
                 ('object_id', models.PositiveIntegerField()),
-                ('uid', models.CharField(default=b'', max_length=22)),
+                ('uid', models.CharField(default='', max_length=22)),
                 ('content_type', models.ForeignKey(to='contenttypes.ContentType', on_delete=models.CASCADE)),
                 ('permission', models.ForeignKey(to='auth.Permission', on_delete=models.CASCADE)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),

@@ -6,10 +6,9 @@ import permConfig from './permConfig';
 import {actions} from '../../actions';
 import _ from 'underscore';
 import {
-  t,
   notify,
   replaceSupportEmail
-} from 'js/utils';
+} from 'utils';
 
 const INVALID_PERMS_ERROR = t('The stored permissions are invalid. Please assign them again. If this problem persists, contact help@kobotoolbox.org');
 
@@ -39,6 +38,10 @@ class PermValidator extends React.Component {
     });
 
     let hasAllImplied = true;
+    // FIXME: `manage_asset` implies all the `*_submission` permissions, but
+    // those are assignable *only* when the asset type is 'survey'. We need to
+    // design a way to pass that nuance from the back end to the front end
+    /*
     allImplied.forEach((implied) => {
       let isFound = false;
       permissionAssignments.forEach((assignment) => {
@@ -51,6 +54,7 @@ class PermValidator extends React.Component {
         hasAllImplied = false;
       }
     });
+    */
 
     let hasAnyContradictory = false;
     allContradictory.forEach((contradictory) => {

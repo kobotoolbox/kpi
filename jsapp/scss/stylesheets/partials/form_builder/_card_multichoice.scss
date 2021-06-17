@@ -19,17 +19,6 @@
 // Overrides
 // ==========================================================================
 
-// multi-choice expanded
-.right-and-down-caret {
-  @extend .fa, .fa-fw, .fa-caret-right;
-}
-
-.card--expandedchoices {
-  .right-and-down-caret {
-    @extend .fa-caret-down;
-  }
-}
-
 .card--selectquestion {
   .row__multioptions {
     display: none;
@@ -45,7 +34,7 @@
 .option-placeholder {
   height: 32px;
   margin-bottom: 10px;
-  border: 2px solid $kobo-midgray;
+  border: 2px solid $kobo-gray-65;
   border-radius: 4px;
   margin-right: 25px;
   margin-left: 5px;
@@ -73,7 +62,10 @@
     height: auto;
     position: relative;
     min-height: 18px;
-    cursor: move;
+
+    .list-view .ui-sortable.js-sortable-enabled & {
+      cursor: move;
+    }
 
     &:focus {
       border-color: lighten($kobo-blue, 10%);
@@ -94,8 +86,8 @@
   code {
     font-weight: 600;
     font-size: 11px;
-    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-    background-color: $kobo-lightgray;
+    font-family: $font;
+    background-color: $kobo-gray-92;
     padding: 2px;
     margin: 2px;
     width: 25%;
@@ -108,7 +100,7 @@
       display: inline-block;
       width: 40%;
       padding-left: 4px;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
     }
 
     span {
@@ -117,7 +109,7 @@
       float: right;
       width: 60%;
       padding-right: 4px;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       overflow-wrap: break-word;
       cursor: text;
     }
@@ -137,12 +129,12 @@
     }
   }
 
-  i.fa-trash-o {
+  .k-icon.k-icon-trash {
     position: absolute;
     left: -20px;
     top: 8px;
     color: $kobo-red;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
   }
 }

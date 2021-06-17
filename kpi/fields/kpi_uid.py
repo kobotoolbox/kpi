@@ -31,7 +31,7 @@ class KpiUidField(models.CharField):
 
     def pre_save(self, model_instance, add):
         value = getattr(model_instance, self.attname)
-        if value == '':
+        if value == '' or value is None:
             value = self.generate_uid()
             setattr(model_instance, self.attname, value)
         return value

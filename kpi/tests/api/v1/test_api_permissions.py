@@ -4,7 +4,8 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from kpi.models import Asset, Collection, ObjectPermission
+from kpi.constants import ASSET_TYPE_COLLECTION
+from kpi.models import Asset, ObjectPermission
 from kpi.models.object_permission import get_anonymous_user
 # importing module instead of the class, avoid running the tests twice
 from kpi.tests.api.v2 import test_api_permissions
@@ -31,8 +32,8 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         * Superusers see it all (thank goodness for pagination)
         * Anonymous users see nothing
         * Regular users see everything that concerns them, namely all
-          permissions for all objects to which they have been assigned any
-          permission
+          their own permissions and all the owners' permissions for all objects
+          to which they have been assigned any permission
 
     See also `kpi.filters.KpiAssignedObjectPermissionsFilter`
     """
@@ -47,14 +48,6 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         self.anotheruser = User.objects.get(username='anotheruser')
         self.anotheruser_password = 'anotheruser'
 
-        # Find an unused, common PK for both Asset and Collection--useful for
-        # catching bugs related to content types like
-        # https://github.com/kobotoolbox/kpi/issues/2270
-        last_asset = Asset.objects.order_by('pk').last()
-        last_collection = Collection.objects.order_by('pk').last()
-        available_pk = 1 + max(last_asset.pk if last_asset else 1,
-                               last_collection.pk if last_collection else 1)
-
         def create_object_with_specific_pk(model, pk, **kwargs):
             obj = model()
             obj.pk = pk
@@ -63,17 +56,10 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
             obj.save()
             return obj
 
-        self.collection = create_object_with_specific_pk(
-            Collection,
-            available_pk,
-            owner=self.someuser,
+        self.collection = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION, owner=self.someuser
         )
-        self.asset = create_object_with_specific_pk(
-            Asset, available_pk, owner=self.someuser,
-            # perenially evil `auto_now_add` leaves the field NULL if a pk is
-            # specified, leading to `IntegrityError` unless we set it manually
-            date_created=timezone.now(),
-        )
+        self.asset = Asset.objects.create(owner=self.someuser)
 
     def test_anon_cannot_list_permissions(self):
         self.asset.assign_perm(self.anon, 'view_asset')
@@ -87,9 +73,15 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         self.asset.remove_perm(self.anon, 'view_asset')
         self.assertFalse(self.anon.has_perm('view_asset', self.asset))
 
-    def test_user_sees_all_permissions_on_assigned_objects(self):
+    def test_user_sees_relevant_permissions_on_assigned_objects(self):
+        # A user with explicitly-assigned permissions should see their
+        # own permissions and the owner's permissions, but not permissions
+        # assigned to other users
         self.asset.assign_perm(self.anotheruser, 'view_asset')
         self.assertTrue(self.anotheruser.has_perm('view_asset', self.asset))
+
+        irrelevant_user = User.objects.create(username='mindyourown')
+        self.asset.assign_perm(irrelevant_user, 'view_asset')
 
         self.client.login(username=self.anotheruser.username,
                           password=self.anotheruser_password)
@@ -99,12 +91,17 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         returned_uids = [r['uid'] for r in response.data['results']]
-        all_obj_perms = ObjectPermission.objects.filter_for_object(self.asset)
+        all_obj_perms = self.asset.permissions.all()
+        relevant_obj_perms = all_obj_perms.filter(
+            user__in=(self.asset.owner, self.anotheruser),
+            permission__codename__in=self.asset.ASSIGNABLE_PERMISSIONS_BY_TYPE[
+                self.asset.asset_type
+            ],
+        )
 
-        self.assertTrue(
-            set(returned_uids).issuperset(
-                all_obj_perms.values_list('uid', flat=True)
-            )
+        self.assertListEqual(
+            sorted(returned_uids),
+            sorted(relevant_obj_perms.values_list('uid', flat=True)),
         )
 
         self.asset.remove_perm(self.anotheruser, 'view_asset')
@@ -122,8 +119,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         returned_uids = [r['uid'] for r in response.data['results']]
-        other_obj_perms = ObjectPermission.objects.filter_for_object(
-            self.collection)
+        other_obj_perms = self.collection.permissions.all()
 
         self.assertFalse(
             set(returned_uids).intersection(

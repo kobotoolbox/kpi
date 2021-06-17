@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
@@ -8,18 +7,12 @@ import mixins from 'js/mixins';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
+import {stringToColor} from 'utils';
 import {
-  t,
-  stringToColor,
-} from 'js/utils';
-import {
-  KEY_CODES,
-  ASSET_KINDS,
-  PERMISSIONS_CODENAMES,
-  COLLECTION_PERMISSIONS
+  ASSET_TYPES,
+  PERMISSIONS_CODENAMES
 } from 'js/constants';
 import UserAssetPermsEditor from './userAssetPermsEditor';
-import UserCollectionPermsEditor from './userCollectionPermsEditor';
 import permConfig from './permConfig';
 
 class UserPermissionRow extends React.Component {
@@ -55,26 +48,15 @@ class UserPermissionRow extends React.Component {
   }
 
   /**
-   * Note: we remove "view_asset"/"view_collection" permission, as it is
-   * the most basic one, so removing it will in fact remove all permissions
+   * Note: we remove "view_asset" permission, as it is the most basic one,
+   * so removing it will in fact remove all permissions
    */
   removeAllPermissions() {
-    let actionFn;
-    let targetPermUrl;
-    if (this.props.kind === ASSET_KINDS.get('asset')) {
-      actionFn = actions.permissions.removeAssetPermission;
-      targetPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
-    } else if (this.props.kind === ASSET_KINDS.get('collection')) {
-      actionFn = actions.permissions.removeCollectionPermission;
-      targetPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_collection')).url;
-    }
-
     this.setState({isBeingDeleted: true});
-
     const userViewAssetPerm = this.props.permissions.find((perm) => {
-      return perm.permission === targetPermUrl;
+      return perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url;
     });
-    actionFn(this.props.uid, userViewAssetPerm.url);
+    actions.permissions.removeAssetPermission(this.props.uid, userViewAssetPerm.url);
   }
 
   onPermissionsEditorSubmitEnd(isSuccess) {
@@ -105,14 +87,8 @@ class UserPermissionRow extends React.Component {
           }
 
           let permName = '???';
-          // TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done
-          if (this.props.kind === ASSET_KINDS.get('asset')) {
-            if (this.props.assignablePerms.has(perm.permission)) {
-              permName = this.props.assignablePerms.get(perm.permission);
-            }
-          }
-          if (this.props.kind === ASSET_KINDS.get('collection')) {
-            permName = COLLECTION_PERMISSIONS[permConfig.getPermission(perm.permission).codename];
+          if (this.props.assignablePerms.has(perm.permission)) {
+            permName = this.props.assignablePerms.get(perm.permission);
           }
 
           // Hopefully this is friendly to translators of RTL languages
@@ -196,26 +172,14 @@ class UserPermissionRow extends React.Component {
 
         {this.state.isEditFormVisible &&
           <bem.UserRow__editor>
-            {/* TODO simplify this code when https://github.com/kobotoolbox/kpi/issues/2332 is done */}
-            {this.props.kind === ASSET_KINDS.get('asset') &&
-              <UserAssetPermsEditor
-                uid={this.props.uid}
-                username={this.props.user.name}
-                permissions={this.props.permissions}
-                assignablePerms={this.props.assignablePerms}
-                nonOwnerPerms={this.props.nonOwnerPerms}
-                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-              />
-            }
-            {this.props.kind === ASSET_KINDS.get('collection') &&
-              <UserCollectionPermsEditor
-                uid={this.props.uid}
-                username={this.props.user.name}
-                permissions={this.props.permissions}
-                onSubmitEnd={this.onPermissionsEditorSubmitEnd}
-              />
-            }
-
+            <UserAssetPermsEditor
+              uid={this.props.uid}
+              username={this.props.user.name}
+              permissions={this.props.permissions}
+              assignablePerms={this.props.assignablePerms}
+              nonOwnerPerms={this.props.nonOwnerPerms}
+              onSubmitEnd={this.onPermissionsEditorSubmitEnd}
+            />
           </bem.UserRow__editor>
         }
       </bem.UserRow>

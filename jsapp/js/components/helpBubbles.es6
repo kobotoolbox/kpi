@@ -5,7 +5,6 @@ import {bem} from '../bem';
 import {actions} from '../actions';
 import {stores} from '../stores';
 import {USE_CUSTOM_INTERCOM_LAUNCHER} from './intercomHandler';
-import {t} from '../utils';
 import {KEY_CODES} from 'js/constants';
 
 const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';

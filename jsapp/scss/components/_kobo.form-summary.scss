@@ -12,9 +12,10 @@
   }
 }
 
-.form-view__cell.form-view__cell--description {
-  border-top: 1px solid $kobo-lightgray;
-  padding: 20px;
+.form-view__row--summary-description {
+  .form-view__cell--description:not(:first-child) {
+    border-top: 1px solid $kobo-gray-92;
+  }
 }
 
 .form-view__group.form-view__group--summary-details-cols {
@@ -82,7 +83,7 @@
   display: flex;
 
   .form-view__cell {
-    background: $kobo-whitegray;
+    border: 1px solid $kobo-gray-92;
     padding: 20px;
     flex: 2;
     margin-right: 10px;
@@ -104,8 +105,8 @@
   a {
     display: block;
     padding: 6px 10px;
-    color: $kobo-darkgray;
-    border-bottom: 1px solid $kobo-lightgray;
+    color: $kobo-gray-40;
+    border-bottom: 1px solid $kobo-gray-92;
     position: relative;
 
     &:last-child {
@@ -113,22 +114,22 @@
     }
 
     &:hover {
-      color: $kobo-black;
-      background: $kobo-whitegray;
+      color: $kobo-gray-24;
+      background: $kobo-teal-light;
     }
 
-    i {
-      font-size: 32px;
-      margin-right: 6px;
+    .k-icon {
+      font-size: 24px;
+      width: 24px;
+      margin: 4px 10px 4px 4px;
+      display: inline-block;
       vertical-align: middle;
 
-      &.fa {
-        font-size: 24px;
+      &.k-icon-next {
         position: absolute;
-        right: 10px;
+        right: 4px;
         top: 50%;
-        margin-top: -12px;
-        line-height: 24px;
+        margin-top: -9px;
       }
     }
   }
@@ -151,7 +152,7 @@
 
   a.team-sharing-button {
     cursor: pointer;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     position: absolute;
     right: 0px;
     top: -6px;
@@ -176,7 +177,7 @@
     justify-content: center;
     align-items: center;
     display: flex;
-    background: $kobo-whitegray;
+    border: 1px solid $kobo-gray-92;
 
     span {
       font-size: 16px;

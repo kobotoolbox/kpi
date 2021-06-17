@@ -13,7 +13,7 @@ $z-modal-x: 10;
   z-index: $z-modal-backdrop;
   top: 0px;
   left: 0px;
-  background-color: rgba($kobo-black, 0.4) !important;
+  background-color: rgba($kobo-gray-24, 0.4) !important;
 }
 
 .modal {
@@ -40,6 +40,10 @@ $z-modal-x: 10;
     width: 80%;
     max-width: 1240px;
 
+    &.modal--large-shorter {
+      max-width: 960px;
+    }
+
     .modal__content {
       height: 100%;
       width: 100%;
@@ -63,6 +67,10 @@ $z-modal-x: 10;
         border: 1px solid white;
         width: 100%;
       }
+
+      .modal__footer {
+        margin-bottom: 30px;
+      }
     }
   }
 }
@@ -73,7 +81,7 @@ $z-modal-x: 10;
   margin-bottom: 30px;
 
   // in some cases adding custom footer requires it to be inside modal__body and
-  // then padding is not needed
+  // then padding is not needed (it is partially needed when in .modal--large)
   .modal__footer {
     padding: 0;
   }
@@ -94,6 +102,8 @@ $z-modal-x: 10;
   min-height: 70px;
   background: $kobo-blue;
   color: $kobo-white;
+  display: flex;
+  justify-content: space-between;
 }
 
 .modal__title {
@@ -104,35 +114,45 @@ $z-modal-x: 10;
 }
 
 .modal__x {
-  position: absolute;
   z-index: $z-modal-x;
-  top: 0;
-  right: 0;
   color: inherit;
   background-color: inherit;
   padding: 8px;
-  margin: 11px;
+  margin: 11px 15px 11px 11px;
   border-radius: 50%;
   font-size: 20px;
   cursor: pointer;
 
   i {
     display: block;
-    font-size: 32px;
+    font-size: 24px;
   }
 
   &:hover {opacity: 0.7;}
 }
 
+.modal__done {
+  @extend .modal__x;
+  padding: 24px;
+  margin: 0px;
+  font-size: 18px;
+  font-weight: 600;
+  color: $kobo-blue;
+}
+
+// NOTE: Subheader element is weirdly positioned because it is inside a padded
+// containter but has to appear as if it was outside of it.
+// Unfortunately we can't rely on `overflow: hidden` being there, so negative
+// margins hack isn't good enough. Other hacks are no good too.
 .modal__subheader {
-  background: $kobo-whitegray;
+  background: $kobo-gray-96;
   padding: 20px 30px;
   margin: -30px -30px 20px;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
 
   i {
-    margin: 2px 10px 10px 0;
-    font-size: 32px;
+    margin: 5px 10px 10px 3px;
+    font-size: 24px;
     float: left;
   }
 }
@@ -162,7 +182,7 @@ $z-modal-x: 10;
 .modal__hr {
   margin: 20px -30px;
   border: 0;
-  background-color: $kobo-lightgray;
+  background-color: $kobo-gray-92;
   height: 1px;
 }
 
@@ -172,7 +192,7 @@ $z-modal-x: 10;
 
 .modal.modal-submission {
   .modal__header {
-    background-color: $kobo-whitegray;
+    background-color: $kobo-gray-96;
     color: $layout-text-color;
   }
 
@@ -253,19 +273,53 @@ $z-modal-x: 10;
     .checkbox__label {
       white-space: nowrap;
     }
+
+    .mdl-button--icon {
+      padding-left: 6px;
+      padding-right: 6px;
+
+      &:not(:first-child) {
+        margin-left: 10px;
+      }
+    }
+  }
+
+  .submission-duplicate__actions {
+    @extend .submission-actions;
+    margin: auto;
+    a {
+      width: 120px;
+    }
+  }
+
+  .submission-duplicate__button {
+    margin-left: 12px;
+  }
+
+  .submission-duplicate__text {
+    max-width: 60%;
+    text-align: center;
+    margin: auto;
+    margin-bottom: 24px;
+  }
+
+  .submission-duplicate__header {
+    @extend .submission-duplicate__text;
+    margin-bottom: 12px;
+    color: $kobo-blue;
   }
 
   .submission--warning {
     margin-bottom: 30px;
     padding: 10px;
-    background: $kobo-whitegray;
+    background: $kobo-gray-96;
     text-align: center;
     line-height: 1em;
 
     i {
       color: $kobo-orange;
-      font-size: 40px;
-      margin-right: 10px;
+      font-size: 28px;
+      margin-right: 13px;
       vertical-align: middle;
       display: inline-block;
     }
@@ -279,7 +333,7 @@ $z-modal-x: 10;
 
     + .submission--warning {
       margin-top: -30px;
-      border-top: 1px solid $kobo-lightgray;
+      border-top: 1px solid $kobo-gray-92;
     }
   }
 }
@@ -294,9 +348,9 @@ $z-modal-x: 10;
       font-weight: 600;
     }
 
-    i:before {
+    .k-icon {
       color: $kobo-blue-light;
-      font-size: 20px;
+      font-size: 24px;
     }
   }
 
@@ -312,7 +366,7 @@ $z-modal-x: 10;
 .enketo-iframe-icon {
   color: $kobo-white;
   background-image: url("~/jquery-ui/themes/humanity/images/ui-icons_ffffff_256x240.png");
-  background-color: $kobo-midgray;
+  background-color: $kobo-gray-65;
   background-position: -81px -129px;
   position: absolute;
   right: 6px;
@@ -343,6 +397,10 @@ $z-modal-x: 10;
     text-align: left;
   }
 
+  .form-modal__item[disabled] {
+    pointer-events: none;
+  }
+
   // override two columns to rows
   &.project-settings--narrow {
     .form-modal__item--sector,
@@ -366,9 +424,9 @@ $z-modal-x: 10;
       display: inline-block;
       vertical-align: top;
       border: none;
-      background: $kobo-whitegray;
+      background: $kobo-gray-96;
       border-radius: 6px;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       cursor: pointer;
       margin: 0.5*$buttons-spacing;
       padding: $buttons-spacing;
@@ -384,14 +442,14 @@ $z-modal-x: 10;
 
       i {
         display: block;
-        margin: 0 auto;
-        font-size: 48px;
+        margin: 3px auto;
+        font-size: 34px;
         color: currentColor;
       }
 
       &:hover {
-        color: $kobo-black;
-        background-color: $kobo-lightgray;
+        color: $kobo-gray-24;
+        background-color: $kobo-gray-92;
       }
 
       &:active {
@@ -402,19 +460,18 @@ $z-modal-x: 10;
       }
     }
   }
-
   .dropzone {
-    background: $kobo-whitegray;
+    background: $kobo-gray-96;
     padding: 30px;
-    border: 2px dashed $kobo-lightgray;
+    border: 2px dashed $kobo-gray-92;
     cursor: pointer;
     border-radius: 6px;
     text-align: center;
 
     i {
       display: block;
-      margin: 0 auto;
-      font-size: 72px;
+      margin: 5px auto;
+      font-size: 52px;
       opacity: 0.5;
     }
 
@@ -450,7 +507,7 @@ $z-modal-x: 10;
 
     input {
       width: calc(50% - 20px);
-      background-color: rgba($kobo-black, 0.05);
+      background-color: rgba($kobo-gray-24, 0.05);
       padding-left: 5px;
       padding-right: 5px;
 
@@ -470,7 +527,7 @@ $z-modal-x: 10;
     &:hover {color: $kobo-red;}
 
     .k-icon {
-      font-size: 1.5em;
+      font-size: 1.2em;
       vertical-align: middle;
     }
   }
@@ -479,6 +536,10 @@ $z-modal-x: 10;
 .form-modal--translation-settings {
   @media (min-width: 600px) {
     min-width: 500px;
+  }
+
+  .form-view__cell--label {
+    padding-bottom: 10px;
   }
 
   .form-view__cell--translation-note {
@@ -492,8 +553,14 @@ $z-modal-x: 10;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
     padding: 6px 0px;
+
+    .form-view__cell--translation-name {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    }
 
     .form-view__cell--translation-name .form-view__icon-button {
       opacity: 0;
@@ -504,6 +571,17 @@ $z-modal-x: 10;
     &:hover .form-view__cell--translation-name .form-view__icon-button {
       opacity: 1;
       visibility: visible;
+
+      // Hide the on hover button completely if disabled
+      &:disabled {
+        display: none;
+      }
+    }
+
+    .form-view__icon-button.right-tooltip {
+      &:disabled {
+        color: $kobo-gray-65;
+      }
     }
   }
 
@@ -520,12 +598,12 @@ $z-modal-x: 10;
   .form-view__cell--add-language {
     padding-top: 20px;
     text-align: right;
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
   }
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: $kobo-whitegray;
+    background: $kobo-gray-96;
     padding: 15px;
     position: relative;
 
@@ -535,7 +613,8 @@ $z-modal-x: 10;
       top: 6px;
 
       i {
-        font-size: 24px;
+        font-size: 18px;
+        margin: 3px;
       }
     }
   }
@@ -569,12 +648,12 @@ $z-modal-x: 10;
   .translation-table-container {
     flex: 1;
     overflow-y: auto;
-    border: 1px solid $kobo-lightgray;
+    border: 1px solid $kobo-gray-92;
   }
 
   .form-view__cell--add-language-form,
   .form-view__cell--update-language-form {
-    background: $kobo-whitegray;
+    background: $kobo-gray-96;
     padding: 15px;
     position: relative;
 
@@ -584,7 +663,8 @@ $z-modal-x: 10;
       top: 6px;
 
       i {
-        font-size: 24px;
+        font-size: 18px;
+        margin: 3px;
       }
     }
   }
@@ -611,18 +691,22 @@ $z-modal-x: 10;
 
     .rt-thead.-header {
       box-shadow: none;
-      border-bottom: 2px solid $kobo-lightgray;
+      border-bottom: 2px solid $kobo-gray-92;
     }
 
     .rt-thead > .rt-tr,
     .rt-tr-group > .rt-tr {
       .rt-td {
         white-space: normal;
+
+        .rt-td--disabled {
+          color: $kobo-gray-65;
+        }
       }
       > .rt-th:first-child,
       > .rt-td:first-child {
         min-width: 30%;
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
       }
 
       > .rt-th:last-child,
@@ -630,18 +714,22 @@ $z-modal-x: 10;
         min-width: 70%;
       }
       .translation {
-        background: $kobo-green-light;
-        color: $kobo-darkgray;
-        padding: 2px;
+        padding: 0px;
+        color: $kobo-gray-40;
         textarea {
+          background: $kobo-green-light;
           display: block;
-          padding: 8px;
+          padding: 10px;
           border: none;
-          background: transparent;
           width: 100%;
-          color: $kobo-black;
+          height: 100% !important;
+          color: $kobo-gray-24;
           &:focus {
             background: $kobo-white;
+          }
+          &:disabled {
+            color: $kobo-gray-65;
+            background-color: $kobo-gray-96;
           }
         }
       }
@@ -649,9 +737,47 @@ $z-modal-x: 10;
   }
 }
 
+.form-view__cell--encrypt-key {
+  padding-bottom: 12px;
+}
+
+.encrypt-help {
+  color: $kobo-gray-40;
+  background: transparent;
+  border: 0;
+  font-size: 32px;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.remove-encryption {
+  float: right;
+}
+
 @media screen and (max-width: 767px) {
   .modal.modal--open {
     min-width: 90%;
     max-width: 90%;
+  }
+}
+
+@media screen and (max-width: 1175px) {
+  .form-media__upload-url {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 597px) {
+  .form-media__upload-url {
+    width: 100%;
+    padding-left: 0px;
+    label.text-box {
+      width: 100%;
+    }
+    button {
+      width: 100%;
+      margin-left: 0px !important;
+      margin-top: 12px;
+    }
   }
 }

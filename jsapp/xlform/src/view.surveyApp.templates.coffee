@@ -1,5 +1,4 @@
 module.exports = do ->
-  _t = require('utils').t
 
   surveyApp = (surveyApp) ->
       survey = surveyApp.survey
@@ -17,12 +16,12 @@ module.exports = do ->
           <ul class="-form-editor survey-editor__list">
             <li class="survey-editor__null-top-row empty">
               <p class="survey-editor__message well">
-                <b>#{_t("This form is currently empty.")}</b><br>
-                #{_t("You can add questions, notes, prompts, or other fields by clicking on the '+' sign below.")}
+                <b>#{t("This form is currently empty.")}</b><br>
+                #{t("You can add questions, notes, prompts, or other fields by clicking on the '+' sign below.")}
               </p>
               <div class="survey__row__spacer  expanding-spacer-between-rows expanding-spacer-between-rows--depr">
                 <div tabIndex="0" class="btn btn--block btn--addrow js-expand-row-selector">
-                  <i class="fa fa-plus"></i>
+                  <i class="k-icon k-icon-plus"></i>
                 </div>
                 <div class="line">&nbsp;</div>
               </div>

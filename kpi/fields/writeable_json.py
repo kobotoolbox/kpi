@@ -14,14 +14,20 @@ class WritableJSONField(serializers.Field):
         super().__init__(**kwargs)
 
     def to_internal_value(self, data):
+        # If data is sent to serializer as `dict`, not `str`
+        # Return as is (e.g. `data` is equals `{}`)
+        if isinstance(data, dict):
+            return data
+
         if (not data) and (not self.required):
             return None
         else:
             try:
                 return json.loads(data)
             except Exception as e:
-                raise serializers.ValidationError(
-                    'Unable to parse JSON: {}'.format(e))
+                raise serializers.ValidationError({
+                    'writable_jsonfield': 'Unable to parse JSON: {}'.format(e)
+                })
 
     def to_representation(self, value):
         return value

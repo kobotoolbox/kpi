@@ -11,14 +11,12 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
     CLONE_ARG_NAME,
-    PERM_SHARE_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
-from kpi.deployment_backends.kc_access.utils import \
-    remove_applicable_kc_permissions
 from kpi.models.asset import Asset
 from kpi.models.object_permission import ObjectPermission
-from kpi.permissions import AssetNestedObjectPermission
+from kpi.permissions import AssetPermissionAssignmentPermission
 from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
@@ -43,7 +41,6 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     **Roles' permissions:**
 
     - Owner sees all permissions
-    - Editors see all permissions
     - Viewers see owner's permissions and their permissions
     - Anonymous users see only owner's permissions
 
@@ -57,7 +54,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
     > Example
     >
-    >       curl -X GET https://[kpi]/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/
 
 
     **Assign a permission**
@@ -69,7 +66,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     >
     >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/permission-assignments/ \\
     >            -H 'Content-Type: application/json' \\
-    >            -d '<payload>'  # Payload is sent as the string
+    >            -d '<payload>'  # Payload is sent as a string
 
 
     > _Payload to assign a permission_
@@ -159,8 +156,10 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     model = ObjectPermission
     lookup_field = "uid"
     serializer_class = AssetPermissionAssignmentSerializer
-    permission_classes = (AssetNestedObjectPermission,)
+    permission_classes = (AssetPermissionAssignmentPermission,)
     pagination_class = None
+    # filter_backends = Just kidding! Look at this instead:
+    #     kpi.utils.object_permission_helper.ObjectPermissionHelper.get_user_permission_assignments_queryset
 
     @action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer],
             url_path='bulk')
@@ -178,7 +177,12 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         # one assignment fails.
         with transaction.atomic():
 
-            # First delete all assignments before assigning new ones.
+            # First, delete *all* `from_kc_only` flags
+            # TODO: Remove after kobotoolbox/kobocat#642
+            if self.asset.has_deployment:
+                self.asset.deployment.remove_from_kc_only_flag()
+
+            # Then delete all assignments before assigning new ones.
             # If something fails later, this query should rollback
             perms_to_delete = self.asset.permissions.exclude(
                 user__username=self.asset.owner.username)
@@ -188,10 +192,10 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
             for assignment in assignments:
                 context_ = dict(self.get_serializer_context())
+                context_['bulk'] = True
                 if 'partial_permissions' in assignment:
-                    context_.update({
-                        'partial_permissions': assignment['partial_permissions']
-                    })
+                    context_['partial_permissions'] = assignment['partial_permissions']
+
                 serializer = AssetBulkInsertPermissionSerializer(
                     data=assignment,
                     context=context_
@@ -211,7 +215,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         source_asset = get_object_or_404(Asset, uid=source_asset_uid)
         user = request.user
 
-        if user.has_perm(PERM_SHARE_ASSET, self.asset) and \
+        if user.has_perm(PERM_MANAGE_ASSET, self.asset) and \
                 user.has_perm(PERM_VIEW_ASSET, source_asset):
             if not self.asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
@@ -228,7 +232,19 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     def destroy(self, request, *args, **kwargs):
         object_permission = self.get_object()
         user = object_permission.user
-        if user.pk == self.asset.owner_id:
+        # If the user is not the owner of the asset, but trying to delete the
+        # owner's permissions, raise permission denied error. However, if they
+        # are the owner of the asset, they should also be prevented from
+        # deleting their own permissions, but given a more appropriate
+        # response. Only those with `manage_asset` permissions can delete all
+        # permissions from other non-owners with whom the form is shared.
+        if (
+            not request.user.has_perm(PERM_MANAGE_ASSET, self.asset)
+            and (request.user.pk != self.asset.owner_id)
+            and (request.user.pk != user.pk)
+        ):
+            raise exceptions.PermissionDenied()
+        elif user.pk == self.asset.owner_id:
             return Response({
                 'detail': _("Owner's permissions cannot be deleted")
             }, status=status.HTTP_409_CONFLICT)

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-
+import {COMMON_QUERIES} from 'js/constants';
 import {searches} from '../searches';
 import mixins from '../mixins';
 import SearchCollectionList from '../components/searchcollectionlist';
@@ -13,9 +13,9 @@ class FormsSearchableList extends React.Component {
     this.state = {
       searchContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: 'asset_type:survey',
+          assetType: COMMON_QUERIES.s,
         },
-        filterTags: 'asset_type:survey',
+        filterTags: COMMON_QUERIES.s,
       })
     };
   }
@@ -25,7 +25,6 @@ class FormsSearchableList extends React.Component {
   render () {
     return (
       <SearchCollectionList
-        showDefault
         searchContext={this.state.searchContext} />
       );
   }

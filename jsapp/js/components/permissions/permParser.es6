@@ -6,7 +6,7 @@ import {
 import {
   buildUserUrl,
   getUsernameFromUrl
-} from 'js/utils';
+} from 'utils';
 
 /**
  * @typedef {Object} BackendPerm
@@ -19,6 +19,7 @@ import {
  * @property {string} data.username - Who give permissions to.
  * @property {boolean} data.formView - Is able to view forms.
  * @property {boolean} data.formEdit - Is able to edit forms.
+ * @property {boolean} data.formManage - Is able to change form permissions (and future stuff TBD).
  * @property {boolean} data.submissionsView - Is able to view submissions.
  * @property {boolean} data.submissionsViewPartial - If true, then able to view submissions only of some users.
  * @property {string[]} data.submissionsViewPartialUsers - Users mentioned in the above line.
@@ -53,34 +54,42 @@ function parseFormData(data) {
   let parsed = [];
 
   if (data.formView) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('view_asset')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.view_asset));
   }
 
   if (data.formEdit) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('change_asset')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.change_asset));
+  }
+
+  if (data.formManage) {
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.manage_asset));
   }
 
   if (data.submissionsViewPartial) {
-    let permObj = buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('partial_submissions'));
+    let permObj = buildBackendPerm(data.username, PERMISSIONS_CODENAMES.partial_submissions);
     permObj.partial_permissions = [{
-      url: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_submissions')).url,
+      url: permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_submissions).url,
       filters: [{'_submitted_by': {'$in': data.submissionsViewPartialUsers}}]
     }];
     parsed.push(permObj);
   } else if (data.submissionsView) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('view_submissions')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.view_submissions));
   }
 
   if (data.submissionsAdd) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('add_submissions')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.add_submissions));
   }
 
   if (data.submissionsEdit) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('change_submissions')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.change_submissions));
+  }
+
+  if (data.submissionsDelete) {
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.delete_submissions));
   }
 
   if (data.submissionsValidate) {
-    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.get('validate_submissions')));
+    parsed.push(buildBackendPerm(data.username, PERMISSIONS_CODENAMES.validate_submissions));
   }
 
   parsed = removeContradictoryPerms(parsed);
@@ -149,13 +158,16 @@ function buildFormData(permissions) {
   const formData = {};
 
   permissions.forEach((perm) => {
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url) {
       formData.formView = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('change_asset')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.change_asset).url) {
       formData.formEdit = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('partial_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.manage_asset).url) {
+      formData.formManage = true;
+    }
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.partial_submissions).url) {
       formData.submissionsView = true;
       formData.submissionsViewPartial = true;
       perm.partial_permissions.forEach((partial) => {
@@ -166,16 +178,19 @@ function buildFormData(permissions) {
         });
       });
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('add_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url) {
       formData.submissionsAdd = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_submissions).url) {
       formData.submissionsView = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('change_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.change_submissions).url) {
       formData.submissionsEdit = true;
     }
-    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('validate_submissions')).url) {
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.delete_submissions).url) {
+      formData.submissionsDelete = true;
+    }
+    if (perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.validate_submissions).url) {
       formData.submissionsValidate = true;
     }
   });
@@ -186,7 +201,7 @@ function buildFormData(permissions) {
 /**
  * Builds a flat array of permissions for Backend endpoint
  *
- * @param {UserWithPerms[]} data - The one you get from parseBackendData or parseOldBackendData
+ * @param {UserWithPerms[]} data - The one you get from parseBackendData
  * @returns {BackendPerm[]} A flat list of BackendPerms
  */
 function parseUserWithPermsList(data) {
@@ -254,53 +269,6 @@ function parseBackendData(data, ownerUrl, includeAnon = false) {
 }
 
 /**
- * Groups OLD raw Backend permissions list data into array of users who have a list of permissions.
- *
- * @param {Object} data - OLD permissions array.
- * @param {string} ownerUrl - Asset owner url (used as identifier).
- *
- * @returns {UserWithPerms[]} An list of users with all their permissions.
- */
-function parseOldBackendData(data, ownerUrl) {
-  const output = [];
-
-  const groupedData = {};
-  data.forEach((item) => {
-    // anonymous user permissions are our inner way of handling public sharing
-    // so we don't want to display them
-    if (item.user__username === ANON_USERNAME) {
-      return;
-    }
-    if (!groupedData[item.user]) {
-      groupedData[item.user] = [];
-    }
-    const permDef = permConfig.getPermission(item.permission);
-    groupedData[item.user].push({
-      url: item.url,
-      permission: permDef.url
-    });
-  });
-
-  Object.keys(groupedData).forEach((userUrl) => {
-    output.push({
-      user: {
-        url: userUrl,
-        name: getUsernameFromUrl(userUrl),
-        // not all endpoints return user url in the v2 format, so as a fallback
-        // we also check plain old usernames
-        isOwner: (
-          userUrl === ownerUrl ||
-          getUsernameFromUrl(userUrl) === getUsernameFromUrl(ownerUrl)
-        )
-      },
-      permissions: groupedData[userUrl]
-    });
-  });
-
-  return sortParseBackendOutput(output);
-}
-
-/**
  * Sort by abcs but keep the owner at the top.
  *
  * @param {UserWithPerms[]} output - Possibly unsorted.
@@ -326,7 +294,6 @@ export const permParser = {
   parseFormData: parseFormData,
   buildFormData: buildFormData,
   parseBackendData: parseBackendData,
-  parseOldBackendData: parseOldBackendData,
   parseUserWithPermsList: parseUserWithPermsList,
   sortParseBackendOutput: sortParseBackendOutput // for testing purposes
 };

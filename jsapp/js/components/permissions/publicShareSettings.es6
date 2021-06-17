@@ -1,15 +1,12 @@
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import Checkbox from 'js/components/checkbox';
+import Checkbox from 'js/components/common/checkbox';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import permConfig from 'js/components/permissions/permConfig';
-import {
-  t,
-  buildUserUrl
-} from 'js/utils';
+import {buildUserUrl} from 'utils';
 import {
   ROOT_URL,
   ANON_USERNAME,
@@ -20,29 +17,17 @@ class PublicShareSettings extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
-    this.anonCanViewPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_asset')).url;
-    this.anonCanViewDataPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.get('view_submissions')).url;
+    this.anonCanViewPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url;
+    this.anonCanViewDataPermUrl = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_submissions).url;
   }
   togglePerms(permCodename) {
     var permission = this.props.publicPerms.filter((perm) => {
       return perm.permission === permConfig.getPermissionByCodename(permCodename).url;
     })[0];
-    let actionFn;
-
     if (permission) {
-      if (this.props.kind === 'collection') {
-        actionFn = actions.permissions.removeCollectionPermission;
-      } else {
-        actionFn = actions.permissions.removeAssetPermission;
-      }
-      actionFn(this.props.uid, permission.url);
+      actions.permissions.removeAssetPermission(this.props.uid, permission.url);
     } else {
-      if (this.props.kind === 'collection') {
-        actionFn = actions.permissions.assignCollectionPermission;
-      } else {
-        actionFn = actions.permissions.assignAssetPermission;
-      }
-      actionFn(
+      actions.permissions.assignAssetPermission(
         this.props.uid, {
           user: buildUserUrl(ANON_USERNAME),
           permission: permConfig.getPermissionByCodename(permCodename).url

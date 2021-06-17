@@ -3,6 +3,7 @@
 <head>
     {% load static %}
     {% load render_bundle from webpack_loader %}
+    {% include "global_t.html" %}
     {% render_bundle 'app' 'css' %}
     {% render_bundle 'app' 'js' %}
     {% render_bundle 'vendors' 'js' %}
@@ -46,6 +47,8 @@
   </div>
 {% endblock %}
 </div>
+
+{% include "global_t.html" %}
 
 {% if google_analytics_token %}
 <script>

@@ -1,13 +1,24 @@
 # coding: utf-8
+import copy
 import json
+import uuid
+from datetime import datetime
 
+import pytz
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 
-from kpi.constants import PERM_VIEW_SUBMISSIONS, \
-    PERM_PARTIAL_SUBMISSIONS, PERM_CHANGE_SUBMISSIONS
+from kpi.constants import (
+    PERM_ADD_SUBMISSIONS,
+    PERM_CHANGE_ASSET,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.models import Asset
 from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.base_test_case import BaseTestCase
@@ -44,6 +55,7 @@ class BaseSubmissionTestCase(BaseTestCase):
                 "q1": "a1",
                 "q2": "a2",
                 "_id": 1,
+                "instanceID": f'uuid:{uuid.uuid4()}',
                 "_validation_status": {
                     "by_whom": "someuser",
                     "timestamp": 1547839938,
@@ -58,6 +70,7 @@ class BaseSubmissionTestCase(BaseTestCase):
                 "q1": "a3",
                 "q2": "a4",
                 "_id": 2,
+                "instanceID": f'uuid:{uuid.uuid4()}',
                 "_validation_status": {
                     "by_whom": "someuser",
                     "timestamp": 1547839938,
@@ -233,6 +246,53 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
+    def test_list_submissions_asset_publicly_shared_and_shared_with_user(self):
+        """
+        Running through behaviour described in issue kpi/#2870 where an asset
+        that has been publicly shared and then explicity shared with a user, the
+        user has lower permissions than an anonymous user and is therefore
+        unable to view submission data.
+        """
+
+        self._log_in_as_another_user()
+        anonymous_user = get_anonymous_user()
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == False
+        assert PERM_VIEW_ASSET not in self.asset.get_perms(self.anotheruser)
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == False
+        assert PERM_CHANGE_ASSET not in self.asset.get_perms(self.anotheruser)
+
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_ASSET)
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == True
+        assert PERM_CHANGE_ASSET in self.asset.get_perms(self.anotheruser)
+
+        assert (
+            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+            == False
+        )
+        assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(
+            self.anotheruser
+        )
+
+        self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
+
+        assert (
+            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
+        )
+        assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
+
+        # resetting permssions of asset
+        self.asset.remove_perm(self.anotheruser, PERM_VIEW_ASSET)
+        self.asset.remove_perm(self.anotheruser, PERM_CHANGE_ASSET)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
+        self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
+
     def test_retrieve_submission_owner(self):
         submission = self.submissions[0]
         url = self.asset.deployment.get_submission_detail_url(submission.get(
@@ -325,11 +385,16 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Give user `change_submissions` should not give permission to delete.
-        # Only owner can delete submissions on `kpi`. `delete_submissions` is
-        # a calculated permission and thus, can not be assigned.
-        # TODO Review this test when kpi#2282 is released.
+        # `another_user` should not be able to delete with 'change_submissions'
+        # permission.
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+        response = self.client.delete(url,
+                                      content_type="application/json",
+                                      HTTP_ACCEPT="application/json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Let's assign them 'delete_submissions'. Everything should be ok then!
+        self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
@@ -377,6 +442,172 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
+
+    def setUp(self):
+        super().setUp()
+        v_uid = self.asset.latest_deployed_version.uid
+        current_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
+        # TODO: also test a submission that's missing `start` or `end`; see
+        # #3054. Right now that would be useless, though, because the
+        # MockDeploymentBackend doesn't use XML at all and won't fail if an
+        # expected field is missing
+        self.submissions = [
+            {
+                '__version__': v_uid,
+                'instanceID': f'uuid:{uuid.uuid4()}',
+                'start': current_time,
+                'end': current_time,
+                'q1': 'a1',
+                'q2': 'a2',
+                '_id': 1,
+                '_validation_status': {
+                    'by_whom': 'someuser',
+                    'timestamp': 1547839938,
+                    'uid': 'validation_status_on_hold',
+                    'color': '#0000ff',
+                    'label': 'On Hold'
+                },
+                '_submitted_by': ''
+            },
+            {
+                '__version__': v_uid,
+                'instanceID': f'uuid:{uuid.uuid4()}',
+                'start': current_time,
+                'end': current_time,
+                'q1': 'a3',
+                'q2': 'a4',
+                '_id': 2,
+                '_validation_status': {
+                    'by_whom': 'someuser',
+                    'timestamp': 1547839938,
+                    'uid': 'validation_status_approved',
+                    'color': '#0000ff',
+                    'label': 'On Hold'
+                },
+                '_submitted_by': 'someuser'
+            }
+        ]
+        self.submission_url = reverse(
+            self._get_endpoint('submission-duplicate'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submissions[0].get(
+                    self.asset.deployment.INSTANCE_ID_FIELDNAME
+                ),
+            },
+        )
+
+    def _check_duplicate(self, response):
+        submission = self.submissions[0]
+        duplicate_submission = response.data
+
+        expected_next_id = max((sub['_id'] for sub in self.submissions)) + 1
+        assert submission['_id'] != duplicate_submission['_id']
+        assert duplicate_submission['_id'] == expected_next_id
+
+        assert submission['instanceID'] != duplicate_submission['instanceID']
+        assert submission['start'] != duplicate_submission['start']
+        assert submission['end'] != duplicate_submission['end']
+
+    def test_duplicate_submission_by_owner_allowed(self):
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
+        self._check_duplicate(response)
+
+    def test_duplicate_submission_by_anotheruser_not_allowed(self):
+        self._log_in_as_another_user()
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_duplicate_submission_by_anonymous_not_allowed(self):
+        self.client.logout()
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_duplicate_submission_by_anotheruser_shared_view_only_not_allowed(self):
+        self._share_with_another_user()
+        self._log_in_as_another_user()
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_duplicate_submission_by_anotheruser_shared_as_editor_allowed(self):
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+        self._log_in_as_another_user()
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_201_CREATED
+        self._check_duplicate(response)
+
+    def test_duplicate_submission_by_anotheruser_shared_add_not_allowed(self):
+        for perm in [PERM_VIEW_SUBMISSIONS, PERM_ADD_SUBMISSIONS]:
+            self.asset.assign_perm(self.anotheruser, perm)
+        self._log_in_as_another_user()
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.submission_url = reverse(
+            self._get_endpoint('submission-bulk'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+            },
+        )
+        self.updated_submission_data = {
+            'submission_ids': ['1', '2'],
+            'data': {
+                'q1': '🕺',
+            },
+        }
+
+    def _check_bulk_update(self, response):
+        updated_submission_data = copy.copy(self.updated_submission_data)
+        submission_ids = updated_submission_data.pop('submission_ids')
+        # Check that the number of ids given matches the number of successful
+        assert len(submission_ids) == response.data['successes']
+
+    def test_bulk_update_submissions_by_owner_allowed(self):
+        response = self.client.patch(
+            self.submission_url, data=self.updated_submission_data, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
+
+    def test_bulk_update_submissions_by_anotheruser_not_allowed(self):
+        self._log_in_as_another_user()
+        response = self.client.patch(
+            self.submission_url, data=self.updated_submission_data, format='json'
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_bulk_update_submissions_by_anonymous_not_allowed(self):
+        self.client.logout()
+        response = self.client.patch(
+            self.submission_url, data=self.updated_submission_data, format='json'
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_bulk_update_submissions_by_anotheruser_shared_view_only_not_allowed(self):
+        self._share_with_another_user()
+        self._log_in_as_another_user()
+        response = self.client.patch(
+            self.submission_url, data=self.updated_submission_data, format='json'
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_bulk_update_submissions_by_anotheruser_shared_allowed(self):
+        self._share_with_another_user(view_only=False)
+        self._log_in_as_another_user()
+        response = self.client.patch(
+            self.submission_url, data=self.updated_submission_data, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
 
 
 class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
@@ -460,145 +691,75 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
         self.submission_list_url = a.deployment.submission_list_url
 
     def test_list_submissions_geojson_defaults(self):
-        response = self.client.get(self.submission_list_url,
-                                  {'format': 'geojson'})
+        response = self.client.get(
+            self.submission_list_url,
+            {'format': 'geojson'}
+        )
         expected_output = {
-            "features": [
+            'type': 'FeatureCollection',
+            'name': 'Two points and one text',
+            'features': [
                 {
-                    "geometry": {
-                        "coordinates": [10.12, 10.11, 10.13],
-                        "type": "Point"
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [10.12, 10.11, 10.13],
                     },
-                    "properties": {
-                        "_geo1_altitude": "10.13",
-                        "_geo1_latitude": "10.11",
-                        "_geo1_longitude": "10.12",
-                        "_geo1_precision": "10.14",
-                        "_geo2_altitude": "10.23",
-                        "_geo2_latitude": "10.21",
-                        "_geo2_longitude": "10.22",
-                        "_geo2_precision": "10.24",
-                        "geo1": "10.11 10.12 10.13 10.14",
-                        "geo2": "10.21 10.22 10.23 10.24",
-                        "text": "Tired"
-                    },
-                    "type": "Feature"
+                    'properties': {'text': 'Tired'},
                 },
                 {
-                    "geometry": {
-                        "coordinates": [20.12, 20.11, 20.13],
-                        "type": "Point"
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [20.12, 20.11, 20.13],
                     },
-                    "properties": {
-                        "_geo1_altitude": "20.13",
-                        "_geo1_latitude": "20.11",
-                        "_geo1_longitude": "20.12",
-                        "_geo1_precision": "20.14",
-                        "_geo2_altitude": "20.23",
-                        "_geo2_latitude": "20.21",
-                        "_geo2_longitude": "20.22",
-                        "_geo2_precision": "20.24",
-                        "geo1": "20.11 20.12 20.13 20.14",
-                        "geo2": "20.21 20.22 20.23 20.24",
-                        "text": "Relieved"
-                    },
-                    "type": "Feature"
+                    'properties': {'text': 'Relieved'},
                 },
                 {
-                    "geometry": {
-                        "coordinates": [30.12, 30.11, 30.13],
-                        "type": "Point"
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [30.12, 30.11, 30.13],
                     },
-                    "properties": {
-                        "_geo1_altitude": "30.13",
-                        "_geo1_latitude": "30.11",
-                        "_geo1_longitude": "30.12",
-                        "_geo1_precision": "30.14",
-                        "_geo2_altitude": "30.23",
-                        "_geo2_latitude": "30.21",
-                        "_geo2_longitude": "30.22",
-                        "_geo2_precision": "30.24",
-                        "geo1": "30.11 30.12 30.13 30.14",
-                        "geo2": "30.21 30.22 30.23 30.24",
-                        "text": "Excited"
-                    },
-                    "type": "Feature"
-                }
+                    'properties': {'text': 'Excited'},
+                },
             ],
-            "name": "Two points and one text",
-            "type": "FeatureCollection"
         }
-        self.assertDictEqual(expected_output, json.loads(response.content))
+        assert expected_output == json.loads(response.content)
 
     def test_list_submissions_geojson_other_geo_question(self):
         response = self.client.get(
             self.submission_list_url,
-            {'format': 'geojson', 'geo_question_name': 'geo2'}
+            {'format': 'geojson', 'geo_question_name': 'geo2'},
         )
         expected_output = {
-            "features": [
+            'name': 'Two points and one text',
+            'type': 'FeatureCollection',
+            'features': [
                 {
-                    "geometry": {
-                        "coordinates": [10.22, 10.21, 10.23],
-                        "type": "Point"
+                    'type': 'Feature',
+                    'geometry': {
+                        'coordinates': [10.22, 10.21, 10.23],
+                        'type': 'Point',
                     },
-                    "properties": {
-                        "_geo1_altitude": "10.13",
-                        "_geo1_latitude": "10.11",
-                        "_geo1_longitude": "10.12",
-                        "_geo1_precision": "10.14",
-                        "_geo2_altitude": "10.23",
-                        "_geo2_latitude": "10.21",
-                        "_geo2_longitude": "10.22",
-                        "_geo2_precision": "10.24",
-                        "geo1": "10.11 10.12 10.13 10.14",
-                        "geo2": "10.21 10.22 10.23 10.24",
-                        "text": "Tired"
-                    },
-                    "type": "Feature"
+                    'properties': {'text': 'Tired'},
                 },
                 {
-                    "geometry": {
-                        "coordinates": [20.22, 20.21, 20.23],
-                        "type": "Point"
+                    'type': 'Feature',
+                    'geometry': {
+                        'coordinates': [20.22, 20.21, 20.23],
+                        'type': 'Point',
                     },
-                    "properties": {
-                        "_geo1_altitude": "20.13",
-                        "_geo1_latitude": "20.11",
-                        "_geo1_longitude": "20.12",
-                        "_geo1_precision": "20.14",
-                        "_geo2_altitude": "20.23",
-                        "_geo2_latitude": "20.21",
-                        "_geo2_longitude": "20.22",
-                        "_geo2_precision": "20.24",
-                        "geo1": "20.11 20.12 20.13 20.14",
-                        "geo2": "20.21 20.22 20.23 20.24",
-                        "text": "Relieved"
-                    },
-                    "type": "Feature"
+                    'properties': {'text': 'Relieved'},
                 },
                 {
-                    "geometry": {
-                        "coordinates": [30.22, 30.21, 30.23],
-                        "type": "Point"
+                    'type': 'Feature',
+                    'geometry': {
+                        'coordinates': [30.22, 30.21, 30.23],
+                        'type': 'Point',
                     },
-                    "properties": {
-                        "_geo1_altitude": "30.13",
-                        "_geo1_latitude": "30.11",
-                        "_geo1_longitude": "30.12",
-                        "_geo1_precision": "30.14",
-                        "_geo2_altitude": "30.23",
-                        "_geo2_latitude": "30.21",
-                        "_geo2_longitude": "30.22",
-                        "_geo2_precision": "30.24",
-                        "geo1": "30.11 30.12 30.13 30.14",
-                        "geo2": "30.21 30.22 30.23 30.24",
-                        "text": "Excited"
-                    },
-                    "type": "Feature"
-                }
+                    'properties': {'text': 'Excited'},
+                },
             ],
-            "name": "Two points and one text",
-            "type": "FeatureCollection"
         }
-        self.assertDictEqual(expected_output, json.loads(response.content))
+        assert expected_output == json.loads(response.content)

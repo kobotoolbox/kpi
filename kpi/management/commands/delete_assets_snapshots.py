@@ -5,7 +5,7 @@ from django.db.models import Max
 from django.utils import timezone
 
 from kpi.models import AssetSnapshot
-from .delete_base_command import DeleteBaseCommand
+from kpi.management.delete_base_command import DeleteBaseCommand
 
 
 class Command(DeleteBaseCommand):

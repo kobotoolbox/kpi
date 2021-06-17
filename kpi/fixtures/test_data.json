@@ -31,21 +31,15 @@
             "password": "pbkdf2_sha256$15000$AGA044bkjSNO$jQx/SdL6ok6mFPRQhCuWtU9zNNFvRUQ7qexLZgLRiys=",
             "username": "someuser",
             "user_permissions" : [
-               ["add_collection", "kpi", "collection"],
-               ["change_collection", "kpi", "collection"],
-               ["delete_collection", "kpi", "collection"],
-               ["share_collection", "kpi", "collection"],
-               ["view_collection", "kpi", "collection"],
                ["add_asset", "kpi", "asset"],
                ["change_asset", "kpi", "asset"],
                ["delete_asset", "kpi", "asset"],
-               ["share_asset", "kpi", "asset"],
+               ["manage_asset", "kpi", "asset"],
                ["view_asset", "kpi", "asset"],
                ["add_submissions", "kpi", "asset"],
                ["change_submissions", "kpi", "asset"],
                ["validate_submissions", "kpi", "asset"],
                ["delete_submissions", "kpi", "asset"],
-               ["share_submissions", "kpi", "asset"],
                ["view_submissions", "kpi", "asset"]
             ]
         },
@@ -66,21 +60,15 @@
             "password": "pbkdf2_sha256$15000$MQp3yLvTajFx$yttM5DVFuGpK8cSJI09tC55SeaEL2geWzk9ZDVMFWRw=",
             "username": "anotheruser",
             "user_permissions" : [
-               ["add_collection", "kpi", "collection"],
-               ["change_collection", "kpi", "collection"],
-               ["delete_collection", "kpi", "collection"],
-               ["share_collection", "kpi", "collection"],
-               ["view_collection", "kpi", "collection"],
                ["add_asset", "kpi", "asset"],
                ["change_asset", "kpi", "asset"],
                ["delete_asset", "kpi", "asset"],
-               ["share_asset", "kpi", "asset"],
+               ["manage_asset", "kpi", "asset"],
                ["view_asset", "kpi", "asset"],
                ["add_submissions", "kpi", "asset"],
                ["change_submissions", "kpi", "asset"],
                ["validate_submissions", "kpi", "asset"],
                ["delete_submissions", "kpi", "asset"],
-               ["share_submissions", "kpi", "asset"],
                ["view_submissions", "kpi", "asset"]
             ]
         },
@@ -90,7 +78,7 @@
     {
         "model": "kpi.asset",
         "pk": 1,
-        "collection": 1,
+        "parent": 1,
         "fields": {
             "name": "fixture asset",
             "content": {"survey": [
@@ -106,7 +94,7 @@
     {
         "model": "kpi.asset",
         "pk": 2,
-        "collection": 2,
+        "parent": 2,
         "fields": {
             "name": "fixture asset with translations",
             "content": {"survey": [

@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
@@ -7,13 +6,11 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {bem} from '../../bem';
+import {LoadingSpinner} from 'js/ui';
 import {actions} from '../../actions';
 import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
-import {
-  t,
-  formatTime
-} from '../../utils';
+import {formatTime} from 'utils';
 import {
   HOOK_LOG_STATUSES,
   MODAL_TYPES
@@ -348,14 +345,7 @@ export default class RESTServiceLogs extends React.Component {
 
   render() {
     if (this.state.isLoadingHook || (this.state.isLoadingLogs && this.state.logs.length === 0)) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<LoadingSpinner/>);
     } else if (this.state.logs.length === 0) {
       return this.renderEmptyView();
     } else {

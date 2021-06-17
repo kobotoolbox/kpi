@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='formbuilderpreference',
             name='preferred_builder',
-            field=models.CharField(default=b'K', max_length=1, choices=[(b'K', b'kpi'), (b'D', b'dkobo')]),
+            field=models.CharField(default='K', max_length=1, choices=[('K', 'kpi'), ('D', 'dkobo')]),
         ),
         migrations.RunPython(create_extrauserdetails),
     ]

@@ -1,36 +1,184 @@
 # coding: utf-8
+import copy
 import json
+from typing import Union
 
-from bson import json_util, ObjectId
+from bson import json_util
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
+from shortuuid import ShortUUID
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
+from kpi.exceptions import AbstractMethodError
+from kpi.utils.jsonbfield_helper import ReplaceValues
 
 
 class BaseDeploymentBackend:
-
-    # TODO. Stop using protected property `_deployment_data`.
+    """
+    Defines the interface for a deployment backend.
+    """
 
     INSTANCE_ID_FIELDNAME = '_id'
+    STATUS_SYNCED = 'synced'
+    STATUS_NOT_SYNCED = 'not-synced'
 
     def __init__(self, asset):
         self.asset = asset
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = 0
+        self.__stored_data_key = None
 
-    def store_data(self, vals=None):
-        self.asset._deployment_data.update(vals)
+    @property
+    def active(self):
+        return self.get_data('active', False)
+
+    @property
+    def backend(self):
+        return self.get_data('backend')
+
+    @property
+    def backend_response(self):
+        return self.get_data('backend_response', {})
+
+    def calculated_submission_count(self, requesting_user_id, **kwargs):
+        raise AbstractMethodError
 
     def delete(self):
-        self.asset._deployment_data.clear()
+        self.asset._deployment_data.clear()  # noqa
 
-    def validate_submission_list_params(self,
-                                        requesting_user_id,
-                                        format_type=INSTANCE_FORMAT_TYPE_JSON,
-                                        validate_count=False,
-                                        **kwargs):
+    def get_data(self,
+                 dotted_path: str = None,
+                 default=None) -> Union[None, int, str, dict]:
+        """
+        Access `self.asset._deployment_data` and return corresponding value of
+        `dotted_path` if it exists. Otherwise, it returns `default`.
+        If `dotted_path` is not provided, it returns the whole
+        dictionary.
+        """
+        if not dotted_path:
+            # We do not want to return the mutable object whose could be altered
+            # later. `self.asset._deployment_data` should never be accessed
+            # directly
+            deployment_data_copy = copy.deepcopy(self.asset._deployment_data)  # noqa
+            deployment_data_copy.pop('_stored_data_key', None)
+            return deployment_data_copy
+
+        value = None
+        nested_path = dotted_path.split('.')
+        nested_dict = self.asset._deployment_data  # noqa
+        for key in nested_path:
+            try:
+                value = nested_dict[key]
+            except KeyError:
+                return default
+
+            nested_dict = value
+
+        return value
+
+    def get_submission(self, pk, requesting_user_id,
+                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
+        """
+        Returns submission if `pk` exists otherwise `None`
+
+        Args:
+            pk (int): Submission's primary key
+            requesting_user_id (int)
+            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
+            kwargs (dict): Filters to pass to MongoDB. See
+                https://docs.mongodb.com/manual/reference/operator/query/
+
+        Returns:
+            (dict|str|`None`): Depending on `format_type`, it can return:
+                - Mongo JSON representation as a dict
+                - Instance's XML as string
+                - `None` if doesn't exist
+        """
+
+        submissions = list(self.get_submissions(requesting_user_id,
+                                                format_type, [int(pk)],
+                                                **kwargs))
+        try:
+            return submissions[0]
+        except IndexError:
+            pass
+        return None
+
+    @property
+    def identifier(self):
+        return self.get_data('identifier')
+
+    @property
+    def last_submission_time(self):
+        return self._last_submission_time()
+
+    @property
+    def mongo_userform_id(self):
+        return None
+
+    def remove_from_kc_only_flag(self, *args, **kwargs):
+        # TODO: This exists only to support KoBoCAT (see #1161) and should be
+        # removed, along with all places where it is called, once we remove
+        # KoBoCAT's ability to assign permissions (kobotoolbox/kobocat#642)
+
+        # Do nothing, without complaint, so that callers don't have to worry
+        # about whether the back end is KoBoCAT or something else
+        pass
+
+    def save_to_db(self, updates: dict):
+        """
+        Persist values from deployment data into the DB.
+        `updates` is a dictionary of properties to update.
+        E.g: `{"active": True, "status": "not-synced"}`
+        """
+        # Avoid circular imports
+        # use `self.asset.__class__` instead of `from kpi.models import Asset`
+        now = timezone.now()
+        self.asset.__class__.objects.filter(id=self.asset.pk).update(
+            _deployment_data=ReplaceValues(
+                '_deployment_data',
+                updates=updates,
+            ),
+            date_modified=now,
+        )
+        self.store_data(updates)
+        self.asset.date_modified = now
+
+    def set_asset_uid(self, **kwargs) -> bool:
+        raise AbstractMethodError
+
+    def set_status(self, status):
+        self.save_to_db({'status': status})
+
+    @property
+    def status(self):
+        return self.get_data('status')
+
+    def store_data(self, values: dict):
+        self.__stored_data_key = ShortUUID().random(24)
+        values['_stored_data_key'] = self.__stored_data_key
+        self.asset._deployment_data.update(values)  # noqa
+
+    @property
+    def stored_data_key(self):
+        return self.__stored_data_key
+
+    @property
+    def submission_count(self):
+        return self._submission_count()
+
+    def sync_media_files(self):
+        raise AbstractMethodError
+
+    def validate_submission_list_params(
+        self,
+        requesting_user_id,
+        format_type=INSTANCE_FORMAT_TYPE_JSON,
+        validate_count=False,
+        **kwargs
+    ):
         """
         Ensure types of query and each param.
 
@@ -52,14 +200,18 @@ class BaseDeploymentBackend:
         """
 
         if 'count' in kwargs:
-            raise serializers.ValidationError({
-                'count': _('This param is not implemented. Use `count` property '
-                           'of the response instead.')
-            })
+            raise serializers.ValidationError(
+                {
+                    'count': _(
+                        'This param is not implemented. Use `count` property '
+                        'of the response instead.'
+                    )
+                }
+            )
 
         if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
             if 'sort' in kwargs:
-                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order.
+                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order  # noqa
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
                     'sort': _('This param is not supported in `XML` format')
@@ -100,7 +252,7 @@ class BaseDeploymentBackend:
             permission_filters = self.asset.get_filters_for_partial_perm(
                 requesting_user_id)
         except ValueError:
-            raise ValueError(_('Invalid `requesting_user_id` param'))
+            raise ValueError('Invalid `requesting_user_id` param')
 
         if validate_count:
             return {
@@ -153,65 +305,13 @@ class BaseDeploymentBackend:
 
         return params
 
-    def calculated_submission_count(self, requesting_user_id, **kwargs):
-        raise NotImplementedError('This method should be implemented in subclasses')
-
-    @property
-    def backend(self):
-        return self.asset._deployment_data.get('backend', None)
-
-    @property
-    def identifier(self):
-        return self.asset._deployment_data.get('identifier', None)
-
-    @property
-    def active(self):
-        return self.asset._deployment_data.get('active', False)
-
     @property
     def version(self):
         raise NotImplementedError('Use `asset.deployment.version_id`')
 
     @property
     def version_id(self):
-        return self.asset._deployment_data.get('version', None)
+        return self.get_data('version')
 
-    @property
-    def submission_count(self):
-        return self._submission_count()
 
-    @property
-    def last_submission_time(self):
-        return self._last_submission_time()
 
-    @property
-    def mongo_userform_id(self):
-        return None
-
-    def get_submission(self, pk, requesting_user_id,
-                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
-        """
-        Returns submission if `pk` exists otherwise `None`
-
-        Args:
-            pk (int): Submission's primary key
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
-
-        Returns:
-            (dict|str|`None`): Depending of `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instance's XML as string
-                - `None` if doesn't exist
-        """
-
-        submissions = list(self.get_submissions(requesting_user_id,
-                                                format_type, [int(pk)],
-                                                **kwargs))
-        try:
-            return submissions[0]
-        except IndexError:
-            pass
-        return None

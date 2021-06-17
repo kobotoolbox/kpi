@@ -1,0 +1,127 @@
+/*
+  This is a smaller alternative to kobo-button
+*/
+
+.kobo-light-button,
+.kobo-light-badge {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative; // needed for tooltips etc.
+  font-size: 14px;
+  font-weight: 400;
+  text-decoration: none;
+  text-align: center;
+  border-radius: 4px;
+  height: 24px;
+  line-height: 14px;
+  padding: 4px 12px;
+  margin: 0;
+  border-width: 1px;
+  border-style: solid;
+  white-space: nowrap; // for smaller screens
+
+  // icon inside is bigger than the button, so we need cleverness to position it
+  i,
+  .k-icon {
+    vertical-align: top;
+    font-size: 18px;
+    position: relative;
+    top: -2px;
+    margin-right: 3px;
+  }
+
+  &.kobo-light-button--icon-only,
+  &.kobo-light-badge--icon-only {
+    // ideally we want a square here
+    padding-left: 4px;
+    padding-right: 4px;
+
+    & i,
+    & .k-icon {
+      margin-right: 0;
+    }
+  }
+}
+
+.kobo-light-badge {
+  color: $kobo-gray-24;
+  background-color: $kobo-gray-92;
+  border-color: $kobo-gray-92;
+  white-space: nowrap;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.kobo-light-button {
+  cursor: pointer;
+  color: $kobo-gray-40;
+  background-color: transparent;
+  border-color: currentColor;
+
+  &[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  &:hover {
+    color: $kobo-white;
+    background-color: $kobo-gray-40;
+    border-color: $kobo-gray-40;
+  }
+
+  &:active {
+    // makes the shadow smaller and moves button down by small bit
+    // to make it look pressed-in
+    transform: translateY(1px);
+  }
+
+  &.kobo-light-button--blue {
+    color: $kobo-blue;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-blue;
+      border-color: $kobo-blue;
+    }
+  }
+
+  &.kobo-light-button--teal {
+    color: $kobo-teal;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-teal;
+      border-color: $kobo-teal;
+    }
+  }
+
+  &.kobo-light-button--green {
+    color: $kobo-green;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-green;
+      border-color: $kobo-green;
+    }
+  }
+
+  &.kobo-light-button--orange {
+    color: $kobo-orange;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-orange;
+      border-color: $kobo-orange;
+    }
+  }
+
+  &.kobo-light-button--red {
+    color: $kobo-red;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-red;
+      border-color: $kobo-red;
+    }
+  }
+}

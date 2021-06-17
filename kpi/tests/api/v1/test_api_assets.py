@@ -12,8 +12,8 @@ from private_storage.storage.files import PrivateFileSystemStorage
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset
-from kpi.models import Collection
 from kpi.models import ExportTask
 from kpi.serializers.v1.asset import AssetListSerializer
 # importing module instead of the class, avoid running the tests twice
@@ -24,7 +24,7 @@ from kpi.tests.kpi_test_case import KpiTestCase
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
 
-class AssetsListApiTests(test_api_assets.AssetsListApiTests):
+class AssetListApiTests(test_api_assets.AssetListApiTests):
     URL_NAMESPACE = None
 
     def test_asset_list_matches_detail(self):
@@ -49,7 +49,7 @@ class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
     URL_NAMESPACE = None
 
 
-class AssetsDetailApiTests(test_api_assets.AssetsDetailApiTests):
+class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
     URL_NAMESPACE = None
 
     @unittest.skip(reason='`assignable_permissions` property only exists in '
@@ -135,7 +135,10 @@ class ObjectRelationshipsTests(BaseTestCase):
         self.surv = Asset.objects.create(content={'survey': [{"type": "text", "name": "q1"}]},
                                          owner=self.user,
                                          asset_type='survey')
-        self.coll = Collection.objects.create(name='sample collection', owner=self.user)
+        self.coll = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION, name='sample collection',
+            owner=self.user
+        )
 
     def _count_children_by_kind(self, children, kind):
         count = 0
@@ -154,18 +157,24 @@ class ObjectRelationshipsTests(BaseTestCase):
             the asset is now listed in the collection's list of assets.
         """
         _ = self.client.get(reverse('asset-detail', args=[self.surv.uid]))
-        coll_req1 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
+        coll_req1 = self.client.get(
+            reverse("asset-detail", args=[self.coll.uid])
+        )
         self.assertEqual(self._count_children_by_kind(
             coll_req1.data['children'], self.surv.kind), 0)
 
         self.surv.parent = self.coll
         self.surv.save()
 
-        surv_req2 = self.client.get(reverse('asset-detail', args=[self.surv.uid]))
-        self.assertIn('parent', surv_req2.data)
-        self.assertIn(self.coll.uid, surv_req2.data['parent'])
+        surv_req2 = self.client.get(
+            reverse("asset-detail", args=[self.surv.uid])
+        )
+        self.assertIn("parent", surv_req2.data)
+        self.assertIn(self.coll.uid, surv_req2.data["parent"])
 
-        coll_req2 = self.client.get(reverse('collection-detail', args=[self.coll.uid]))
+        coll_req2 = self.client.get(
+            reverse("asset-detail", args=[self.coll.uid])
+        )
         self.assertEqual(self._count_children_by_kind(
             coll_req2.data['children'], self.surv.kind), 1)
         self.assertEqual(
@@ -180,10 +189,12 @@ class ObjectRelationshipsTests(BaseTestCase):
         self.assertEqual(self.surv.parent, None)
         surv_url = reverse('asset-detail', args=[self.surv.uid])
         patch_req = self.client.patch(
-            surv_url, data={'parent': reverse('collection-detail', args=[self.coll.uid])})
+            surv_url,
+            data={"parent": reverse("asset-detail", args=[self.coll.uid])},
+        )
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-        self.assertIn('/collections/%s' % (self.coll.uid), req.data['parent'])
+        self.assertIn('/assets/%s' % (self.coll.uid), req.data['parent'])
 
     def test_remove_asset_from_collection(self):
         """
@@ -196,10 +207,12 @@ class ObjectRelationshipsTests(BaseTestCase):
         self.assertEqual(self.surv.parent, None)
         surv_url = reverse('asset-detail', args=[self.surv.uid])
         patch_req = self.client.patch(
-            surv_url, data={'parent': reverse('collection-detail', args=[self.coll.uid])})
+            surv_url,
+            data={"parent": reverse("asset-detail", args=[self.coll.uid])},
+        )
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-        self.assertIn('/collections/%s' % (self.coll.uid), req.data['parent'])
+        self.assertIn('/assets/%s' % (self.coll.uid), req.data['parent'])
         # Assigned asset to collection successfully; now remove it
         patch_req = self.client.patch(surv_url, data={'parent': ''})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
@@ -217,21 +230,23 @@ class ObjectRelationshipsTests(BaseTestCase):
         self.assertEqual(self.surv.parent, None)
         surv_url = reverse('asset-detail', args=[self.surv.uid])
         patch_req = self.client.patch(surv_url, data={'parent': reverse(
-            'collection-detail', args=[self.coll.uid])})
+            'asset-detail', args=[self.coll.uid])})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-        self.assertIn('/collections/%s' % (self.coll.uid), req.data['parent'])
+        self.assertIn('/assets/%s' % (self.coll.uid), req.data['parent'])
         # Assigned asset to collection successfully; now move it to another
-        other_coll = Collection.objects.create(
-            name='another collection', owner=self.user)
+        other_coll = Asset.objects.create(
+            asset_type=ASSET_TYPE_COLLECTION, name='another collection',
+            owner=self.user
+        )
         patch_req = self.client.patch(surv_url, data={'parent': reverse(
-            'collection-detail', args=[other_coll.uid])})
+            'asset-detail', args=[other_coll.uid])})
         self.assertEqual(patch_req.status_code, status.HTTP_200_OK)
         req = self.client.get(surv_url)
-        self.assertIn('/collections/%s' % (other_coll.uid), req.data['parent'])
+        self.assertIn('/assets/%s' % (other_coll.uid), req.data['parent'])
 
 
-class AssetsSettingsFieldTest(test_api_assets.AssetsSettingsFieldTest):
+class AssetSettingsFieldTest(test_api_assets.AssetSettingsFieldTest):
     URL_NAMESPACE = None
 
 
@@ -255,7 +270,6 @@ class AssetExportTaskTest(BaseTestCase):
             'q1': '¿Qué tal?'
         }
         self.asset.deployment.mock_submissions([submission])
-        settings.CELERY_TASK_ALWAYS_EAGER = True
 
     def test_owner_can_create_export(self):
         post_url = reverse('exporttask-list')
@@ -277,8 +291,8 @@ class AssetExportTaskTest(BaseTestCase):
         result_content = result_response.getvalue().decode('utf-8')
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
         expected_content = ''.join([
-            '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_index"\r\n',
-            '"¿Qué tal?";"";"";"";"";"1"\r\n',
+            '"q1";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"_tags";"_index"\r\n',
+            '"¿Qué tal?";"";"";"";"";"";"";"";"";"1"\r\n',
         ])
 
         self.assertEqual(result_content, expected_content)
@@ -314,6 +328,31 @@ class AssetExportTaskTest(BaseTestCase):
         # Get the result file
         result_response = self.client.get(detail_response.data['result'])
         self.assertEqual(result_response.status_code, status.HTTP_200_OK)
+
+    def test_owner_can_create_and_delete_export(self):
+        detail_response = self.test_owner_can_create_export()
+        result_response = self.client.get(detail_response.data['result'])
+        file_name = str(result_response._closable_objects[0].name)
+
+        detail_url = reverse('exporttask-detail', kwargs={
+            'uid': detail_response.data['uid']
+            })
+
+        # checking if file exists before attempting to delete
+        file_exists_before_delete = ExportTask.result.field.storage.exists(
+            name=file_name
+        )
+        assert file_exists_before_delete
+
+        # deleting the export
+        delete_response = self.client.delete(detail_url)
+        assert delete_response.status_code == status.HTTP_204_NO_CONTENT
+
+        # checking if file still exists after attempting to delete it
+        file_exists_after_delete = ExportTask.result.field.storage.exists(
+            name=file_name
+        )
+        assert not file_exists_after_delete
 
 
 class AssetFileTest(test_api_assets.AssetFileTest):

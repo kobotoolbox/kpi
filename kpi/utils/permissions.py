@@ -16,14 +16,13 @@ shouldn't incur a penalty:
 
 def grant_default_model_level_perms(user):
     """
-    Gives `user` unrestricted model-level access to Collections and Assets.
+    Gives `user` unrestricted model-level access to Assets.
     Without this, actions on individual instances are immediately denied and
     object-level permissions are never considered.
     """
-    from kpi.models import Asset, Collection
+    from kpi.models import Asset
 
-    grant_all_model_level_perms(
-        user, models_or_content_types=[Collection, Asset])
+    grant_all_model_level_perms(user, models_or_content_types=[Asset])
 
 
 def grant_all_model_level_perms(

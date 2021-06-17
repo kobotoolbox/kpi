@@ -12,3 +12,8 @@ TESTING = True
 
 # Decrease prod value to speed-up tests
 SUBMISSION_LIST_LIMIT = 100
+
+ENV = 'testing'
+
+# Run all Celery tasks synchronously during testing
+CELERY_TASK_ALWAYS_EAGER = True

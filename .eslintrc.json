@@ -14,11 +14,12 @@
   },
   "extends": "eslint:recommended",
   "rules": {
-    "arrow-body-style": [1, "always"],
+    "arrow-body-style": [1, "as-needed", {"requireReturnForObjectLiteral": true}],
     "arrow-parens": [1, "always"],
     "arrow-spacing": 1,
     "block-spacing": [1, "never"],
     "brace-style": [1, "1tbs", {"allowSingleLine": true}],
+    "comma-dangle": [1, "always-multiline"],
     "comma-spacing": [1, { "before": false, "after": true }],
     "curly": 1,
     "eol-last": [1, "always"],
@@ -53,6 +54,7 @@
     "no-useless-escape": 1,
     "no-useless-rename": 1,
     "no-whitespace-before-property": 1,
+    "one-var": ["warn", "never"],
     "quotes": ["warn", "single", {"avoidEscape": true}],
     "react/jsx-boolean-value": 2,
     "react/jsx-no-undef": 2,
@@ -71,6 +73,11 @@
     "semi-spacing": [1, {"before": false, "after": true}],
     "semi-style": [1, "last"],
     "semi": 1,
+    "space-before-function-paren": [1, {
+      "anonymous": "always",
+      "named": "never",
+      "asyncArrow": "never"
+    }],
     "space-in-parens": [1, "never"],
     "space-infix-ops": 1,
     "strict": 1
@@ -88,7 +95,10 @@
     "window": false,
     "document": false,
     "Parse": false,
-    "chai": true
+    "chai": true,
+    "t": "readonly",
+    "$": "readonly",
+    "ga": "readonly"
   },
   "plugins": [
     "react"

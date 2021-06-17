@@ -16,14 +16,14 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
     filter_backends = (KpiAssignedObjectPermissionsFilter, )
 
     def perform_create(self, serializer):
-        # Make sure the requesting user has the share_ permission on
+        # Make sure the requesting user has the manage_ permission on
         # the affected object
         with transaction.atomic():
             affected_object = serializer.validated_data['content_object']
             codename = serializer.validated_data['permission'].codename
-            if not ObjectPermissionHelper.user_can_share(affected_object,
-                                                         self.request.user,
-                                                         codename):
+            if not affected_object.has_perm(
+                self.request.user, PERM_MANAGE_ASSET
+            ):
                 raise exceptions.PermissionDenied()
             serializer.save()
 
@@ -35,14 +35,14 @@ class ObjectPermissionViewSet(NoUpdateModelViewSet):
                 self.request.method,
                 detail='Cannot delete inherited permissions.'
             )
-        # Make sure the requesting user has the share_ permission on
+        # Make sure the requesting user has the manage_ permission on
         # the affected object
         with transaction.atomic():
             affected_object = instance.content_object
             codename = instance.permission.codename
-            if not ObjectPermissionHelper.user_can_share(affected_object,
-                                                         self.request.user,
-                                                         codename):
+            if not affected_object.has_perm(
+                self.request.user, PERM_MANAGE_ASSET
+            ):
                 raise exceptions.PermissionDenied()
             instance.content_object.remove_perm(
                 instance.user,

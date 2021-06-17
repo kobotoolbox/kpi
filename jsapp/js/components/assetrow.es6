@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import $ from 'jquery';
 import { Link } from 'react-router';
 import {bem} from '../bem';
+import assetUtils from 'js/assetUtils';
 import ui from '../ui';
 import {stores} from '../stores';
 import mixins from '../mixins';
@@ -12,12 +12,8 @@ import {
   KEY_CODES,
   ASSET_TYPES
 } from 'js/constants';
-import TagInput from '../components/tagInput';
-import {
-  formatTime,
-  t
-} from '../utils';
-import assetUtils from 'js/assetUtils';
+import TagInput from 'js/components/tagInput';
+import {formatTime} from 'utils';
 
 class AssetRow extends React.Component {
   constructor(props){
@@ -72,7 +68,7 @@ class AssetRow extends React.Component {
   }
 
   render () {
-    const isSelfOwned = this.userIsOwner(this.props);
+    const isSelfOwned = assetUtils.isSelfOwned(this.props);
     var _rc = this.props.summary && this.props.summary.row_count || 0;
 
     var hrefTo = `/forms/${this.props.uid}`,
@@ -92,8 +88,8 @@ class AssetRow extends React.Component {
     }
 
     if (this.isLibrary()) {
-      hrefTo = `/library/${this.props.uid}/edit`;
-      parent = this.props.parent || undefined;
+      hrefTo = `/library/asset/${this.props.uid}`;
+      parent = this.state.parent || undefined;
       ownedCollections = this.props.ownedCollections.map(function(c){
         var p = false;
         if (parent != undefined && parent.indexOf(c.uid) !== -1) {
@@ -181,7 +177,7 @@ class AssetRow extends React.Component {
                 <span>{ isSelfOwned ? ' ' : this.props.owner__username }</span>
               }
               { this.props.asset_type != ASSET_TYPES.survey.id &&
-                <span>{isSelfOwned ? t('me') : this.props.owner__username}</span>
+                <span>{assetUtils.getAssetOwnerDisplayName(this.props.owner__username)}</span>
               }
             </bem.AssetRow__cell>
 
@@ -207,7 +203,7 @@ class AssetRow extends React.Component {
             { this.props.asset_type == ASSET_TYPES.survey.id &&
               <bem.AssetRow__cell
                 m={'submission-count'}
-                key={'submisson-count'}
+                key={'submission-count'}
                 className='mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone'
               >
                 {
@@ -260,7 +256,7 @@ class AssetRow extends React.Component {
                   data-tip= {t('Share')}
                   data-disabled={false}
                   >
-                <i className='k-icon-share' />
+                <i className='k-icon-user-share' />
               </bem.AssetRow__actionIcon>
             }
 
@@ -292,7 +288,7 @@ class AssetRow extends React.Component {
               </bem.AssetRow__actionIcon>
             }
 
-            { this.props.kind === 'collection' &&
+            { this.props.asset_type === ASSET_TYPES.collection.id &&
               [/*'view',*/ 'sharing'].map((actn)=>{
                 return (
                       <bem.AssetRow__actionIcon
@@ -310,7 +306,7 @@ class AssetRow extends React.Component {
             <ui.PopoverMenu
               type='assetrow-menu'
               triggerLabel={<i className='k-icon-more' />}
-              triggerTip={t('More Actions')}
+              triggerTip={t('More actions')}
               clearPopover={this.state.clearPopover}
               popoverSetVisible={this.popoverSetVisible}
             >
@@ -349,9 +345,18 @@ class AssetRow extends React.Component {
                   data-asset-uid={this.props.uid}
                 >
                   <i className='k-icon-language' />
-                  {t('Manage Translations')}
+                  {t('Manage translations')}
                 </bem.PopoverMenu__link>
               }
+              { /* temporarily disabled
+              <bem.PopoverMenu__link
+                data-action={'encryption'}
+                data-asset-uid={this.props.uid}
+              >
+                <i className='k-icon-lock'/>
+                {t('Manage Encryption')}
+              </bem.PopoverMenu__link>
+              */ }
               {this.props.downloads.map((dl)=>{
                 return (
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
@@ -380,9 +385,6 @@ class AssetRow extends React.Component {
                           m='move-coll-item'>
                             <i className='k-icon-folder' />
                             {col.label}
-                            {col.hasParent &&
-                              <span className='has-parent'>&bull;</span>
-                            }
                         </bem.PopoverMenu__item>
                       );
                   })}
@@ -418,6 +420,15 @@ class AssetRow extends React.Component {
                 >
                   <i className='k-icon-trash' />
                   {t('Delete')}
+                </bem.PopoverMenu__link>
+              }
+              {!isSelfOwned &&
+                <bem.PopoverMenu__link
+                  m={'removeSharing'}
+                  data-action={'removeSharing'}
+                >
+                  <i className='k-icon-trash' />
+                  {t('Remove shared form')}
                 </bem.PopoverMenu__link>
               }
             </ui.PopoverMenu>

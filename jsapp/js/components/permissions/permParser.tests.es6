@@ -6,7 +6,7 @@ import constants from 'js/constants';
 describe('permParser', () => {
   beforeEach(() => {
     // bootstraping
-    permConfig.onGetConfigCompleted(endpoints.permissions);
+    permConfig.setPermissions(endpoints.permissions.results);
     constants.ROOT_URL = '';
   });
 
@@ -42,7 +42,7 @@ describe('permParser', () => {
     it('should group permissions by users properly', () => {
       // in original data there are total 9 permissions (6 of asset owner,
       // 2 of one user and 1 of another)
-      chai.expect(endpoints.assetWithMultipleUsers.results.length).to.equal(9);
+      chai.expect(endpoints.assetWithMultipleUsers.results.length).to.equal(10);
       const parsed = permParser.parseBackendData(
         endpoints.assetWithMultipleUsers.results,
         endpoints.assetWithMultipleUsers.results[0].user
@@ -51,7 +51,7 @@ describe('permParser', () => {
       // parsed data should contain data of 3 users
       chai.expect(parsed.length).to.equal(3);
       chai.expect(parsed[0].user.name).to.equal('kobo');
-      chai.expect(parsed[0].permissions.length).to.equal(6);
+      chai.expect(parsed[0].permissions.length).to.equal(7);
       chai.expect(parsed[1].user.name).to.equal('john');
       chai.expect(parsed[1].permissions.length).to.equal(2);
       chai.expect(parsed[2].user.name).to.equal('olivier');
@@ -200,6 +200,10 @@ describe('permParser', () => {
         {
           'user': '/api/v2/users/kobo/',
           'permission': '/api/v2/permissions/view_submissions/'
+        },
+        {
+          'user': '/api/v2/users/kobo/',
+          'permission': '/api/v2/permissions/delete_submissions/'
         },
         {
           'user': '/api/v2/users/john/',

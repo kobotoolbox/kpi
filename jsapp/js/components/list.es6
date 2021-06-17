@@ -4,14 +4,14 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Select from 'react-select';
-import Checkbox from './checkbox';
+import Checkbox from 'js/components/common/checkbox';
 import ui from '../ui';
 import {bem} from '../bem';
 import {actions} from '../actions';
 import {dataInterface} from '../dataInterface';
 import {searches} from '../searches';
 import {stores} from '../stores';
-import {t} from '../utils';
+import {ACCESS_TYPES} from 'js/constants';
 
 export class ListSearch extends React.Component {
   constructor(props) {
@@ -34,9 +34,15 @@ export class ListSearch extends React.Component {
   render () {
     return (
       <bem.Search m={[this.state.searchState]} >
-        <bem.Search__icon />
-        <ui.SearchBox ref='formlist-search' placeholder={t(this.props.placeholderText)} onChange={this.searchChangeEvent} />
-        <bem.Search__cancel m={{'active': this.state.searchState !== 'none'}} onClick={this.searchClear} />
+        <bem.Search__icon className='k-icon k-icon-search'/>
+        <ui.SearchBox ref='formlist-search' placeholder={this.props.placeholderText} onChange={this.searchChangeEvent} />
+
+        {this.state.searchState !== 'none' &&
+          <bem.Search__cancel
+            className='k-icon k-icon-close'
+            onClick={this.searchClear}
+          />
+        }
       </bem.Search>
     );
   }
@@ -99,7 +105,6 @@ export class ListTagFilter extends React.Component {
   render () {
     return (
       <bem.tagSelect>
-        <i className='fa fa-search' />
         <Select
           name='tags'
           isMulti
@@ -140,9 +145,12 @@ export class ListCollectionFilter extends React.Component {
     this.queryCollections();
   }
   queryCollections () {
-    dataInterface.listCollections().then((collections)=>{
+    dataInterface.getCollections().then((collections)=>{
       var availableCollections = collections.results.filter((value) => {
-        return value.access_type !== 'public';
+        return (
+          value.access_types &&
+          !value.access_types.includes(ACCESS_TYPES.public)
+        );
       });
 
       this.setState({
@@ -177,6 +185,7 @@ export class ListCollectionFilter extends React.Component {
         <Select
           name='collections'
           placeholder={t('Select Collection Name')}
+          isClearable
           isLoading={!this.state.collectionsLoaded}
           loadingMessage={() => {return t('Collections are loading...');}}
           options={this.state.availableCollections}
@@ -247,75 +256,6 @@ ListExpandToggle.defaultProps = {
 reactMixin(ListExpandToggle.prototype, searches.common);
 reactMixin(ListExpandToggle.prototype, Reflux.ListenerMixin);
 
-export class ListSearchSummary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-    autoBind(this);
-  }
-  componentDidMount () {
-    this.listenTo(this.searchStore, this.searchChanged);
-  }
-  searchChanged (state) {
-    this.setState(state);
-  }
-  render () {
-    var messages = [];
-    var modifier;
-    var s = this.state;
-
-    if (s.searchFor && s.searchFor.tags && s.searchFor.tags.length > 0) {
-      var tagString = _.pluck(s.searchFor.tags, 'label').join(', ');
-    }
-    if (s.searchState === 'loading') {
-      if (s.searchFor) {
-        if (s.searchFor.string) {
-          messages.push(t('searching for "___"').replace('___', s.searchFor.string));
-        }
-        if (tagString) {
-          messages.push(t('tagged with [___]').replace('___', tagString));
-        }
-      }
-      modifier = 'loading';
-    } else if (s.searchResultsDisplayed) {
-      if (s.searchFor) {
-        if (s.searchFor.string) {
-          messages.push(t('searched for "___"').replace('___', s.searchFor.string));
-        }
-        if (tagString) {
-          messages.push(t('tagged with [___]').replace('___', tagString));
-        }
-      }
-      messages.push(t('found ## results').replace('##', s.searchResultsCount));
-      modifier = 'done';
-    } else {
-      if (s.defaultQueryState === 'loading') {
-        modifier = 'loading';
-      } else if (s.defaultQueryState === 'done') {
-        var desc = s.defaultQueryCount === 1 ? this.props.assetDescriptor : this.props.assetDescriptorPlural;
-        messages.push(t('## ___ available').replace('##', s.defaultQueryCount).replace('___', desc));
-        modifier = 'done';
-      }
-    }
-
-    return (
-      <bem.Search__summary m={modifier}>
-        {messages.map(function(message, i){
-          return <div key={`prop-${i}`}>{message}</div>;
-        })}
-      </bem.Search__summary>
-    );
-  }
-};
-
-ListSearchSummary.defaultProps = {
-  assetDescriptor: 'item',
-  assetDescriptorPlural: 'items',
-};
-
-reactMixin(ListSearchSummary.prototype, searches.common);
-reactMixin(ListSearchSummary.prototype, Reflux.ListenerMixin);
-
 export class ListSearchDebug extends React.Component {
   constructor(props) {
     super(props);
@@ -365,7 +305,6 @@ export const list = {
   // List: List,
   ListSearch: ListSearch,
   ListSearchDebug: ListSearchDebug,
-  ListSearchSummary: ListSearchSummary,
   ListTagFilter: ListTagFilter,
   ListCollectionFilter: ListCollectionFilter,
   ListExpandToggle: ListExpandToggle,

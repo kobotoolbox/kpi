@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@d8d7a64acd69f6c6fa56638588dbe38c7a97a1e0#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@f7ba6360949fb3075a52b2b7210224ebb60734ed#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -11,6 +11,10 @@
 
 # ssrf protect
 -e git+https://github.com/kobotoolbox/ssrf-protect@9eec6c4aa37700c6e7ca90540a9407bd20acddb0#egg=ssrf_protect
+
+# Necessary to use this fork until the resolution of
+# https://github.com/jschneier/django-storages/issues/566
+-e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
 
 # Regular PyPI packages
 Django>=2.2,<2.3
@@ -37,11 +41,14 @@ django-amazon-ses
 django-webpack-loader
 django-loginas
 django-markdownx
+
+# django-markitup # Not compatible with Django 2.0+ (see above ToDo²)
+
 django-markitup
 django-mptt
+
 django-reversion<3.0.2 # Migration issue with 3.0.2
 django-taggit
-django-storages
 django-private-storage
 djangorestframework
 djangorestframework-xml
@@ -68,8 +75,10 @@ static3
 tabulate
 unicodecsv
 uWSGI
+Werkzeug
 xlrd
 xlwt
+xlutils
 XlsxWriter
 
 # These packages allow `requests` to support SNI

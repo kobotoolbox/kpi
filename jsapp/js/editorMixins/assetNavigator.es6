@@ -3,15 +3,14 @@ import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {actions} from '../actions';
 import {stores} from '../stores';
 import {bem} from '../bem';
 import {searches} from '../searches';
 import ui from '../ui';
-import mixins from '../mixins';
-
-import { t } from '../utils';
-
+import {
+  COMMON_QUERIES,
+  ASSET_TYPES
+} from '../constants';
 import {
   ListSearch,
   ListTagFilter,
@@ -95,13 +94,16 @@ class AssetNavigatorListView extends React.Component {
       window.setTimeout(()=>{
         this.activateSortable();
       }, 1);
-
       return (
         <bem.LibList m={['done', isSearch ? 'search' : 'default']} ref='liblist'>
           {list.map((item)=> {
             var modifiers = [item.asset_type];
             var summ = item.summary;
-            if (summ.row_count == undefined) {
+            // HACK FIX: (ideally `survey`s would not be searched)
+            // Library questions can only be of `question` or `block` types
+            // Reject `survey` types to not include current survey on save
+            if (summ.row_count == undefined
+              || item.asset_type === ASSET_TYPES.survey.id) {
               return false;
             }
             return (
@@ -152,7 +154,7 @@ class AssetNavigator extends Reflux.Component {
       imports: [],
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block OR asset_type:template'
+          assetType: COMMON_QUERIES.qbt
         }
       }),
       selectedTags: []

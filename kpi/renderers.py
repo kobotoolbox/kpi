@@ -1,7 +1,10 @@
 # coding: utf-8
 import json
+import re
+from io import StringIO
 
 from dicttoxml import dicttoxml
+from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -17,40 +20,63 @@ class AssetJsonRenderer(renderers.JSONRenderer):
     format = 'json'
 
 
+class OpenRosaRenderer(DRFXMLRenderer):
+
+    media_type = 'text/xml'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        """
+        Duplicate `rest_framework_xml.renderers.XMLRenderer.render()` to add
+        the `xmlns` attribute to the root node
+        """
+        if not hasattr(self, 'xmlns'):
+            raise NotImplemented('`xmlns` must be implemented!')
+
+        if data is None:
+            return ''
+
+        stream = StringIO()
+
+        xml = SimplerXMLGenerator(stream, self.charset)
+        xml.startDocument()
+        xml.startElement(
+            self.root_tag_name,
+            {'xmlns': f'http://openrosa.org/xforms/{self.xmlns}'},
+        )
+
+        self._to_xml(xml, data)
+
+        xml.endElement(self.root_tag_name)
+        xml.endDocument()
+        return stream.getvalue()
+
+
+class OpenRosaFormListRenderer(OpenRosaRenderer):
+
+    xmlns = 'xformsList'
+    item_tag_name = 'xform'
+    root_tag_name = 'xforms'
+
+
+class OpenRosaManifestRenderer(OpenRosaRenderer):
+
+    xmlns = 'xformsManifest'
+    item_tag_name = 'mediaFile'
+    root_tag_name = 'manifest'
+
+
 class SSJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
     format = 'ssjson'
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
-        # this accessing of the model might be frowned upon, but I'd prefer to avoid
-        # re-building the SS structure outside of the model for now.
-        return json.dumps(renderer_context['view'].get_object().to_ss_structure())
-
-
-class XMLRenderer(DRFXMLRenderer):
-
-    def render(self, data, accepted_media_type=None, renderer_context=None, relationship=None):
-        if hasattr(renderer_context.get("view"), "get_object"):
-            obj = renderer_context.get("view").get_object()
-            # If `relationship` is passed among arguments, retrieve `xml` from this relationship.
-            # e.g. obj is `Asset`, relationship can be `snapshot`
-            if relationship is not None and hasattr(obj, relationship):
-                return getattr(obj, relationship).xml
-            return obj.xml
-        else:
-            return super().render(data=data,
-                                  accepted_media_type=accepted_media_type,
-                                  renderer_context=renderer_context)
-
-
-class XFormRenderer(XMLRenderer):
-
-    def render(self, data, accepted_media_type=None, renderer_context=None):
-        return super().render(data=data,
-                              accepted_media_type=accepted_media_type,
-                              renderer_context=renderer_context,
-                              relationship="snapshot")
+        # this accessing of the model might be frowned upon, but
+        # I'd prefer to avoid re-building the SS structure outside of the
+        # model for now.
+        return json.dumps(
+            renderer_context['view'].get_object().to_ss_structure()
+        )
 
 
 class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
@@ -88,11 +114,16 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
                 # formpack will gracefully return an empty `features` array
                 geo_question_name = None
         return ''.join(
-            export.to_geojson(submission_stream, geo_question_name)
+            export.to_geojson(
+                submission_stream,
+                geo_question_name=geo_question_name,
+            )
         )
 
 
 class SubmissionXMLRenderer(DRFXMLRenderer):
+
+    CUSTOM_ROOT = 'root'
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
 
@@ -105,14 +136,86 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
                 if isinstance(v, ErrorDetail):
                     data[k] = str(v)
 
-            # FIXME new `v2` list endpoint enters this block
-            # Submissions are wrapped in `<item>` nodes.
-            return dicttoxml(data, attr_type=False)
+            return self._get_xml(data)
 
-        if renderer_context.get("view").action == "list":
-            return "<root>{}</root>".format("".join(data))
+        if renderer_context.get('view').action == 'list':
+            opening_node = self._node_generator(self.CUSTOM_ROOT)
+            closing_node = self._node_generator(self.CUSTOM_ROOT, closing=True)
+            data_str = ''.join(data)
+            return f'{opening_node}{data_str}{closing_node}'
         else:
             return data
+
+    @classmethod
+    def _get_xml(cls, data):
+
+        # Submissions are wrapped in `<item>` nodes.
+        results = data.pop('results', False)
+        if not results:
+            return dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
+
+        submissions_parent_node = 'results'
+
+        xml_ = dicttoxml(data, attr_type=False, custom_root=cls.CUSTOM_ROOT)
+        # Retrieve the beginning of the XML (without closing tag) in order
+        # to concatenate `results` as XML nodes too.
+        xml_2_str = xml_.decode().replace(f'</{cls.CUSTOM_ROOT}>', '')
+
+        opening_results_node = cls._node_generator(submissions_parent_node)
+        closing_results_node = cls._node_generator(submissions_parent_node,
+                                                   closing=True)
+        results_data_str = ''.join(map(cls.__cleanup_submission, results))
+        closing_root_node = cls._node_generator(cls.CUSTOM_ROOT, closing=True)
+
+        xml_2_str += f'{opening_results_node}' \
+                     f'{results_data_str}' \
+                     f'{closing_results_node}' \
+                     f'{closing_root_node}'
+
+        return xml_2_str.encode()  # Should return bytes
+
+    @staticmethod
+    def _node_generator(name, closing=False):
+        if closing:
+            return f'</{name}>'
+
+        return f'<{name}>'
+
+    @staticmethod
+    def __cleanup_submission(submission):
+        return re.sub(r'^<\?xml[^>]*>', '', submission)
+
+
+class XMLRenderer(DRFXMLRenderer):
+
+    def render(
+        self,
+        data,
+        accepted_media_type=None,
+        renderer_context=None,
+        relationship=None,
+    ):
+        if hasattr(renderer_context.get("view"), "get_object"):
+            obj = renderer_context.get("view").get_object()
+            # If `relationship` is passed among arguments, retrieve `xml`
+            # from this relationship.
+            # e.g. obj is `Asset`, relationship can be `snapshot`
+            if relationship is not None and hasattr(obj, relationship):
+                return getattr(obj, relationship).xml
+            return obj.xml
+        else:
+            return super().render(data=data,
+                                  accepted_media_type=accepted_media_type,
+                                  renderer_context=renderer_context)
+
+
+class XFormRenderer(XMLRenderer):
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return super().render(data=data,
+                              accepted_media_type=accepted_media_type,
+                              renderer_context=renderer_context,
+                              relationship="snapshot")
 
 
 class XlsRenderer(renderers.BaseRenderer):

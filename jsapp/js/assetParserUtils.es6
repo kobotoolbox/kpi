@@ -1,7 +1,4 @@
-import {
-  parsePermissions,
-  assign,
-} from './utils';
+import {assign} from 'utils';
 
 export function parseTags (asset) {
   return {
