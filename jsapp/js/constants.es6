@@ -77,12 +77,12 @@ export const MODAL_TYPES = {
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
 };
 
-export const PROJECT_SETTINGS_CONTEXTS = {
+export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
   NEW: 'newForm',
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
   BUILDER: 'formBuilderAside',
-};
+});
 
 export const update_states = {
   UNSAVED_CHANGES: -1,
@@ -107,7 +107,7 @@ export const VALIDATION_STATUSES = {
   },
   validation_status_not_approved: {
     value: 'validation_status_not_approved',
-    label: t('Not Approved'),
+    label: t('Not approved'),
   },
   validation_status_approved: {
     value: 'validation_status_approved',
@@ -115,7 +115,7 @@ export const VALIDATION_STATUSES = {
   },
   validation_status_on_hold: {
     value: 'validation_status_on_hold',
-    label: t('On Hold'),
+    label: t('On hold'),
   },
 };
 
@@ -149,6 +149,33 @@ export const ASSET_TYPES = {
   },
 };
 
+export const ASSET_FILE_TYPES = {
+  map_layer: {
+    id: 'map_layer',
+    label: t('map layer'),
+  },
+  form_media: {
+    id: 'form_media',
+    label: t('form media'),
+  },
+}
+
+
+/**
+ * When adding new question type please remember to update those places:
+ * 1. Add question type here
+ * 2. Add new SVG icon to jsapp/svg-icons
+ * 3. Add icon to row view.icons.coffee
+ * 4. If it's non-regular type, you might need to update:
+ *   - isRowSpecialLabelHolder in assetUtils.es6
+ *   - renderQuestionTypeIcon in assetUtils.es6
+ * 5. If question doesn't hold data, update:
+ *   - getDisplayData in bulkEditSubmissionsForm.es6
+ *   - getDisplayedColumns in table.es6
+ * 6. Update renderResponseData in submissionDataTable.es6
+ * 7. Update getSubmissionDisplayData in submissionUtils.es6
+ * 8. If it's media type update renderAttachment in submissionDataTable.es6
+ */
 export const QUESTION_TYPES = Object.freeze({
   acknowledge: {label: t('Acknowledge'), icon: 'qt-acknowledge', id: 'acknowledge'},
   audio: {label: t('Audio'), icon: 'qt-audio', id: 'audio'},
@@ -188,6 +215,7 @@ new Set([
   'deviceid',
   'phonenumber',
   'audit',
+  'background-audio',
 ]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
 Object.freeze(META_QUESTION_TYPES);
 
@@ -207,6 +235,36 @@ new Set([
   '_tags',
 ]).forEach((codename) => {ADDITIONAL_SUBMISSION_PROPS[codename] = codename;});
 Object.freeze(ADDITIONAL_SUBMISSION_PROPS);
+
+/**
+ * Submission data that has numerical values. Useful for displaying data with
+ * monospaced font. This includes QUESTION_TYPES, META_QUESTION_TYPES and
+ * ADDITIONAL_SUBMISSION_PROPS.
+ */
+export const NUMERICAL_SUBMISSION_PROPS = {};
+new Set([
+  QUESTION_TYPES.barcode.id,
+  QUESTION_TYPES.date.id,
+  QUESTION_TYPES.datetime.id,
+  QUESTION_TYPES.decimal.id,
+  QUESTION_TYPES.geopoint.id,
+  QUESTION_TYPES.geoshape.id,
+  QUESTION_TYPES.geotrace.id,
+  QUESTION_TYPES.integer.id,
+  QUESTION_TYPES.score.id,
+  QUESTION_TYPES.time.id,
+  META_QUESTION_TYPES.start,
+  META_QUESTION_TYPES.end,
+  META_QUESTION_TYPES.today,
+  META_QUESTION_TYPES.simserial,
+  META_QUESTION_TYPES.subscriberid,
+  META_QUESTION_TYPES.deviceid,
+  META_QUESTION_TYPES.phonenumber,
+  ADDITIONAL_SUBMISSION_PROPS._id,
+  ADDITIONAL_SUBMISSION_PROPS._uuid,
+  ADDITIONAL_SUBMISSION_PROPS._submission_time,
+]).forEach((codename) => {NUMERICAL_SUBMISSION_PROPS[codename] = codename;});
+Object.freeze(NUMERICAL_SUBMISSION_PROPS);
 
 export const NAME_MAX_LENGTH = 255;
 
@@ -278,17 +336,14 @@ export const DEPLOYMENT_CATEGORIES = Object.freeze({
   Archived: {id: 'Archived', label: t('Archived')},
 });
 
-export const REPORT_STYLES = Object.freeze({
-  vertical: {value: 'vertical', label: t('Vertical')},
-  donut: {value: 'donut', label: t('Donut')},
-  area: {value: 'area', label: t('Area')},
-  horizontal: {value: 'horizontal', label: t('Horizontal')},
-  pie: {value: 'pie', label: t('Pie')},
-  line: {value: 'line', label: t('Line')},
-});
-
 export const QUERY_LIMIT_DEFAULT = 5000;
 
+// List of server routes
+export const PATHS = Object.freeze({
+  LOGIN: '/accounts/login',
+});
+
+// List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ACCOUNT_SETTINGS: '/account-settings',
   CHANGE_PASSWORD: '/change-password',
@@ -310,7 +365,6 @@ export const ROUTES = Object.freeze({
   FORM_LANDING: '/forms/:uid/landing',
   FORM_DATA: '/forms/:uid/data',
   FORM_REPORT: '/forms/:uid/data/report',
-  FORM_REPORT_OLD: '/forms/:uid/data/report-legacy',
   FORM_TABLE: '/forms/:uid/data/table',
   FORM_DOWNLOADS: '/forms/:uid/data/downloads',
   FORM_GALLERY: '/forms/:uid/data/gallery',
@@ -325,6 +379,62 @@ export const ROUTES = Object.freeze({
   FORM_RESET: '/forms/:uid/reset',
 });
 
+export const COLLECTION_METHODS = Object.freeze({
+  offline_url: {
+    id: 'offline_url',
+    label: t('Online-Offline (multiple submission)'),
+    desc: t('This allows online and offline submissions and is the best option for collecting data in the field.'),
+  },
+  url: {
+    id: 'url',
+    label: t('Online-Only (multiple submissions)'),
+    desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records.'),
+  },
+  single_url: {
+    id: 'single_url',
+    label: t('Online-Only (single submission)'),
+    desc: t('This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.'),
+  },
+  single_once_url: {
+    id: 'single_once_url',
+    label: t('Online-only (once per respondent)'),
+    desc: t('This allows your web form to only be submitted once per user, using basic protection to prevent the same user (on the same browser & device) from submitting more than once.'),
+  },
+  iframe_url: {
+    id: 'iframe_url',
+    label: t('Embeddable web form code'),
+    desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins.'),
+  },
+  preview_url: {
+    id: 'preview_url',
+    label: t('View only'),
+    desc: t('Use this version for testing, getting feedback. Does not allow submitting data.'),
+  },
+  android: {
+    id: 'android',
+    label: t('Android application'),
+    desc: t('Use this option to collect data in the field with your Android device.'),
+    url: 'https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en',
+  },
+});
+
+
+export const SURVEY_DETAIL_ATTRIBUTES = Object.freeze({
+  value: {
+    id: 'value',
+  },
+  parameters: {
+    id: 'parameters',
+  },
+});
+
+export const FUNCTION_TYPE = Object.freeze({
+  function: {
+    id: 'function',
+  },
+});
+
+// NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -338,6 +448,7 @@ const constants = {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   ASSET_TYPES,
+  ASSET_FILE_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
@@ -349,10 +460,12 @@ const constants = {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
-  REPORT_STYLES,
+  PATHS,
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
+  SURVEY_DETAIL_ATTRIBUTES,
+  FUNCTION_TYPE,
 };
 
 export default constants;

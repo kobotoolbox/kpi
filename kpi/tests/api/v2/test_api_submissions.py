@@ -11,6 +11,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import (
+    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
@@ -532,12 +533,19 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_duplicate_submission_by_anotheruser_shared_allowed(self):
-        self._share_with_another_user(view_only=False)
+    def test_duplicate_submission_by_anotheruser_shared_as_editor_allowed(self):
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_201_CREATED
         self._check_duplicate(response)
+
+    def test_duplicate_submission_by_anotheruser_shared_add_not_allowed(self):
+        for perm in [PERM_VIEW_SUBMISSIONS, PERM_ADD_SUBMISSIONS]:
+            self.asset.assign_perm(self.anotheruser, perm)
+        self._log_in_as_another_user()
+        response = self.client.post(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):

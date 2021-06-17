@@ -37,6 +37,14 @@
     display: block;
   }
 
+  .login-box {
+    text-align: right;
+  }
+
+  .mdl-layout-title + .login-box {
+    flex: 1;
+  }
+
   .account-box {
     margin-left: auto;
     position: relative;
@@ -133,7 +141,7 @@
   }
 
   .account-box__menu-item--mini-profile {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -162,7 +170,7 @@
     padding-bottom: 15px;
 
     a {
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       cursor: pointer;
       font-weight: normal;
       display: block;
@@ -195,22 +203,22 @@
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
     padding-bottom: 5px;
 
     ul {
       background-color: $kobo-white;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       min-width: 140px;
       padding: 0;
-      border: 1px solid $kobo-lightgray;
+      border: 1px solid $kobo-gray-92;
 
       li {
         text-transform: capitalize;
         padding: 0;
 
         &:not(:last-child) {
-          border-bottom: 1px solid $kobo-lightgray;
+          border-bottom: 1px solid $kobo-gray-92;
         }
 
         a {
@@ -278,7 +286,7 @@
 .main-header {
   .main-header__icon {
     font-size: 38px;
-    color: $kobo-midgray;
+    color: $kobo-gray-65;
     vertical-align: middle;
     width: 38px;
   }
@@ -311,11 +319,11 @@
       width: 100%;
       // keep these pseudo-states separate
       &::-webkit-input-placeholder {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
       }
 
       &:-ms-input-placeholder {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
       }
 
       &:hover {
@@ -332,7 +340,7 @@
   .main-header__counter {
     font-size: 14px;
     margin-right: 20px;
-    color: $kobo-midgray;
+    color: $kobo-gray-65;
   }
 }
 
@@ -415,7 +423,7 @@
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid $kobo-lightgray;
+      border: 1px solid $kobo-gray-92;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;

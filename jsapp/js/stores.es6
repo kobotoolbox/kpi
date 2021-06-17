@@ -23,6 +23,7 @@ import {
   notify,
   assign,
 } from 'utils';
+import {ANON_USERNAME} from 'js/constants';
 
 const cookies = new Cookies();
 
@@ -198,23 +199,23 @@ stores.asset = Reflux.createStore({
 });
 
 stores.session = Reflux.createStore({
+  // start up with "fake" current account
+  currentAccount: {
+    username: ANON_USERNAME,
+  },
+  isAuthStateKnown: false,
   init() {
     this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
-    this.listenTo(actions.auth.verifyLogin.anonymous, (data)=>{
+    this.listenTo(actions.auth.verifyLogin.anonymous, (data) => {
+      this.isAuthStateKnown = true;
       log('login confirmed anonymous', data.message);
     });
-    this.listenTo(actions.auth.verifyLogin.failed, (xhr)=> {
+    this.listenTo(actions.auth.verifyLogin.failed, (xhr) => {
       log('login not verified', xhr.status, xhr.statusText);
     });
     actions.auth.verifyLogin();
     actions.auth.getEnvironment();
-  },
-  getInitialState() {
-    return {
-      isLoggedIn: false,
-      sessionIsLoggedIn: false
-    };
   },
   triggerEnv(environment) {
     const nestedArrToChoiceObjs = (i) => {
@@ -243,14 +244,14 @@ stores.session = Reflux.createStore({
     this.trigger({environment: environment});
   },
   triggerLoggedIn(acct) {
+    this.isAuthStateKnown = true;
+    this.isLoggedIn = true;
     this.currentAccount = acct;
     this.trigger({
       isLoggedIn: true,
-      sessionIsLoggedIn: true,
-      sessionAccount: acct,
-      currentAccount: acct
+      currentAccount: acct,
     });
-  }
+  },
 });
 
 stores.assetContent = Reflux.createStore({
@@ -313,6 +314,11 @@ stores.allAssets = Reflux.createStore({
   },
   onDeleteAssetCompleted (asset) {
     if (this.byUid[asset.uid]) {
+      // We append `deleted: true` to the asset after the asset is removed in
+      // the backend because the asset still exists in the frontend,
+      // specifically in the search store's lists.
+      // We do this so that the deleted asset doesn't show up in the asset list
+      // during the same search store instance
       this.byUid[asset.uid].deleted = 'true';
       this.trigger(this.data);
       window.setTimeout(()=> {

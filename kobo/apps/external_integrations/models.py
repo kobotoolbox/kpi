@@ -1,6 +1,5 @@
 # coding: utf-8
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 
 
 class CorsModel(models.Model):
@@ -11,16 +10,15 @@ class CorsModel(models.Model):
 
     cors = models.CharField(
         max_length=255,
-        verbose_name=_('allowed origin'),
-        help_text=_(
+        verbose_name='allowed origin',
+        help_text=
             'Must contain exactly the URI scheme, host, and port, e.g. '
             'https://example.com:1234. Standard ports (80 for http and 443 '
             'for https) may be omitted.'
-        )
     )
 
     def __str__(self):
         return self.cors
 
     class Meta:
-        verbose_name = _('allowed CORS origin')
+        verbose_name = 'allowed CORS origin'

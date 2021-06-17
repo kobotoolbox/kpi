@@ -17,6 +17,7 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
+import formMediaActions from './actions/mediaActions';
 import exportsActions from './actions/exportsActions';
 import {
   notify,
@@ -31,6 +32,7 @@ export const actions = {
   help: helpActions,
   library: libraryActions,
   submissions: submissionsActions,
+  media: formMediaActions,
   exports: exportsActions,
 };
 
@@ -291,9 +293,9 @@ actions.resources.setDeploymentActive.completed.listen((result) => {
   }
 });
 
-actions.resources.getAssetFiles.listen(function(assetId) {
+actions.resources.getAssetFiles.listen(function(assetId, fileType) {
   dataInterface
-    .getAssetFiles(assetId)
+    .getAssetFiles(assetId, fileType)
     .done(actions.resources.getAssetFiles.completed)
     .fail(actions.resources.getAssetFiles.failed);
 });
@@ -542,7 +544,7 @@ actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) =>
       actions.resources.loadAsset({id: uid});
     })
     .fail((response) => {
-      alertify.error(t('Failed to duplciate submisson'));
+      alertify.error(t('Failed to duplicate submission'));
       actions.resources.duplicateSubmission.failed(response);
     });
 });

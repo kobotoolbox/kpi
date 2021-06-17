@@ -11,13 +11,11 @@
     margin-bottom: 4px;
     position: relative;
 
-    &.card--movable {
-      cursor: move;
-    }
     &.card--error {
         padding: 12px 20px;
         background-color: rgba($kobo-red, 0.5);
     }
+
     .card__header {
         border: $cardBorderStyle;
         // right padding needs to make space for absolute positioned icons
@@ -25,8 +23,20 @@
         min-height: 82px; // to fit all icons in
         display: block;
         background: $kobo-white;
-        cursor: move;
         position: relative;
+
+        // don't show move cursor if not inside an enabled sortable instance
+        // HACK: `.ui-sortable-disabled` only applies to a group, so not to the
+        // root form sortable - we apply move cursor to all enabled
+        .ui-sortable.js-sortable-enabled & {
+          cursor: move;
+        }
+        // … but then we remove it from all disabled ones :)
+        // This is because root form sortable is not created when locking is on
+        // but groups sortable is always created, but disabled later
+        .ui-sortable.ui-sortable-disabled & {
+          cursor: initial !important;
+        }
     }
 
     .card__text {
@@ -37,7 +47,7 @@
         position: relative;
 
         &.activated {
-            color: $kobo-darkgray;
+            color: $kobo-gray-40;
         }
         .card__buttons__multioptions {
             cursor: pointer;
@@ -65,10 +75,10 @@
     }
 
     .card__header-title {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
 
         &:focus {
-            color: $kobo-black;
+            color: $kobo-gray-24;
           }
 
         // we use placeholder as error message, as empty title is not welcomed
@@ -83,7 +93,7 @@
         font-weight: 400;
 
         &::placeholder {
-            color: $kobo-darkgray;
+            color: $kobo-gray-40;
             font-style: italic;
         }
     }
@@ -102,7 +112,7 @@
             position: absolute;
             top: -0.15em;
             left: -9px;
-            color: $kobo-darkgray;
+            color: $kobo-gray-40;
             font-size: 11px;
         }
         &.card--selectquestion {
@@ -168,7 +178,7 @@ $cardIndicatorIconWidth: 21px;
     font-size: 20px;
     line-height: 20px;
     text-align: center;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 }
 
 // ==========================================================================
@@ -223,7 +233,7 @@ $cardIndicatorIconWidth: 21px;
     }
 }
 .card__header.settings .card__header--shade {
-    background: rgba($kobo-darkgray, 0.5);
+    background: rgba($kobo-gray-40, 0.5);
 }
 .card__header.delete .card__header--shade {
     background: rgba($kobo-red, 0.5);
@@ -250,7 +260,7 @@ $cardIndicatorIconWidth: 21px;
     cursor: pointer;
 
     &.card__buttons__button--gray {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
     }
 
     &.card__buttons__button--red {
@@ -266,8 +276,8 @@ $cardIndicatorIconWidth: 21px;
     }
 
     &.card__buttons__button--activated {
-        color: $kobo-darkgray;
-        background-color: $kobo-lightgray;
+        color: $kobo-gray-40;
+        background-color: $kobo-gray-92;
         opacity: 1;
     }
 

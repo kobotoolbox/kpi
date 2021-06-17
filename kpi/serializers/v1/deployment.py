@@ -36,8 +36,6 @@ class DeploymentSerializer(serializers.Serializer):
         # 'deployed' boolean value
         asset.deploy(backend=backend_id,
                      active=validated_data.get('active', False))
-        asset.save(create_version=False,
-                   adjust_content=False)
         return asset.deployment
 
     def update(self, instance, validated_data):
@@ -68,5 +66,4 @@ class DeploymentSerializer(serializers.Serializer):
             # Set the `active` flag without touching the rest of the deployment
             deployment.set_active(validated_data['active'])
 
-        asset.save(create_version=False, adjust_content=False)
         return deployment

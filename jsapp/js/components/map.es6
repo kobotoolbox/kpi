@@ -19,6 +19,7 @@ import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 
 import {
+  ASSET_FILE_TYPES,
   MODAL_TYPES,
   QUESTION_TYPES,
   QUERY_LIMIT_DEFAULT,
@@ -137,10 +138,12 @@ export class FormMap extends React.Component {
     this.listenTo(actions.map.setMapStyles.started, this.onSetMapStylesStarted);
     this.listenTo(actions.map.setMapStyles.completed, this.onSetMapStylesCompleted);
     this.listenTo(actions.resources.getAssetFiles.completed, this.updateOverlayList);
-    actions.resources.getAssetFiles(this.props.asset.uid);
+    actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id);
   }
   loadOverlayLayers(map) {
-    dataInterface.getAssetFiles(this.props.asset.uid).done(data => {});
+    dataInterface
+      .getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
+      .done((data) => {});
   }
   updateOverlayList(data) {
     let map = this.state.map;

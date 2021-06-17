@@ -1,4 +1,5 @@
 # coding: utf-8
+import unittest
 from django.contrib.auth.models import User, AnonymousUser
 from django.test import TestCase
 
@@ -256,7 +257,11 @@ class PermissionsTestCase(BasePermissionsTestCase):
             PERM_CHANGE_ASSET: (PERM_VIEW_ASSET,),
             PERM_ADD_SUBMISSIONS: (PERM_VIEW_ASSET,),
             PERM_VIEW_SUBMISSIONS: (PERM_VIEW_ASSET,),
-            PERM_CHANGE_SUBMISSIONS: (PERM_VIEW_ASSET, PERM_VIEW_SUBMISSIONS),
+            PERM_CHANGE_SUBMISSIONS: (
+                PERM_VIEW_ASSET,
+                PERM_VIEW_SUBMISSIONS,
+                PERM_ADD_SUBMISSIONS,
+            ),
             PERM_VALIDATE_SUBMISSIONS: (PERM_VIEW_ASSET, PERM_VIEW_SUBMISSIONS),
         }
         asset = self.admin_asset
@@ -293,6 +298,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
             PERM_VIEW_ASSET,
             PERM_VIEW_SUBMISSIONS,
             PERM_CHANGE_SUBMISSIONS,
+            PERM_ADD_SUBMISSIONS,
         ]
         self.assertListEqual(
             sorted(asset.get_perms(grantee)), sorted(expected_perms)
@@ -394,7 +400,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         )
         expected_perms = [
             # codename, deny
-            (PERM_ADD_SUBMISSIONS, True),
+            (PERM_ADD_SUBMISSIONS, False),
             (PERM_CHANGE_ASSET, True),
             (PERM_CHANGE_SUBMISSIONS, False),
             (PERM_DELETE_SUBMISSIONS, True),
@@ -473,6 +479,7 @@ class PermissionsTestCase(BasePermissionsTestCase):
         grantee = self.someuser
         asset = self.admin_asset
         submission_editor_permissions = [
+            PERM_ADD_SUBMISSIONS,
             PERM_CHANGE_SUBMISSIONS,
             PERM_VIEW_ASSET,
             PERM_VIEW_SUBMISSIONS,
@@ -715,6 +722,8 @@ class PermissionsTestCase(BasePermissionsTestCase):
         self.assertFalse(grantee.has_perm(PERM_PARTIAL_SUBMISSIONS, asset))
         self.assertTrue(asset.asset_partial_permissions.count() == 0)
 
+    @unittest.skip(reason='Skip until this branch is merged within '
+                          '`3115-allowed-write-actions-with-partial-perm`')
     def test_implied_partial_submission_permission(self):
         """
         This test is present even though we can only restrict users to view

@@ -14,6 +14,10 @@ bem.KoboLightButton = BEM('kobo-light-button', '<button>');
 bem.KoboTextButton = BEM('kobo-text-button', '<button>');
 bem.KoboLightBadge = BEM('kobo-light-badge', '<span>');
 
+bem.KoboSelect = BEM('kobo-select');
+bem.KoboSelect__optionWrapper = bem.KoboSelect.__('option-wrapper');
+bem.KoboSelect__optionBadge = bem.KoboSelect.__('option-badge');
+
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
@@ -47,6 +51,10 @@ bem.ServiceRowButton = BEM('service-row-button', '<button>');
 bem.FormBuilder = BEM('form-builder');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
 
+bem.FormBuilderMessageBox = BEM('form-builder-message-box');
+bem.FormBuilderMessageBox__toggle = bem.FormBuilderMessageBox.__('toggle', 'button');
+bem.FormBuilderMessageBox__details = bem.FormBuilderMessageBox.__('details', 'section');
+
 bem.FormBuilderMeta = bem('form-builder-meta');
 bem.FormBuilderMeta__columns = bem.FormBuilderMeta.__('columns');
 bem.FormBuilderMeta__column = bem.FormBuilderMeta.__('column');
@@ -63,6 +71,17 @@ bem.FormBuilderHeader__cell = bem.FormBuilderHeader.__('cell');
 bem.FormBuilderHeader__item = bem.FormBuilderHeader.__('item', '<span>');
 bem.FormBuilderHeader__button = bem.FormBuilderHeader.__('button', '<button>');
 bem.FormBuilderHeader__close = bem.FormBuilderHeader.__('close', '<button>');
+
+bem.FormMedia = BEM('form-media');
+bem.FormMedia__title = bem.FormMedia.__('title');
+bem.FormMedia__upload = bem.FormMedia.__('upload');
+bem.FormMedia__list = bem.FormMedia.__('list');
+bem.FormMedia__label = bem.FormMedia.__('label', '<label>');
+bem.FormMedia__listItem = bem.FormMedia.__('list-item', '<li>');
+
+bem.FormMediaUploadUrl = BEM('form-media-upload-url');
+bem.FormMediaUploadUrl__label = bem.FormMediaUploadUrl.__('label', '<label>');
+bem.FormMediaUploadUrl__form = bem.FormMediaUploadUrl.__('form');
 
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
@@ -207,6 +226,8 @@ bem.PopoverMenu__moveTo = bem.PopoverMenu.__('moveTo');
 
 bem.Header = BEM('header');
 bem.Header__logo = bem.Header.__('logo', '<span>');
+
+bem.LoginBox = BEM('login-box');
 
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__name = bem.AccountBox.__('name', '<div>');

@@ -218,4 +218,3 @@ class UtilsTestCase(TestCase):
         with self.assertRaises(SearchQueryTooShortException) as e:
             parse(query_string, default_field_lookups)
         assert 'Your query is too short' in str(e.exception)
-

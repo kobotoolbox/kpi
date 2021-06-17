@@ -31,7 +31,10 @@
 
   // for displaying after row was added
   .btn--addrow-force-show {
-    display: block !important;
+    // don't override when hidden by locking profile restriction
+    &:not(.locking__ui-hidden) {
+      display: block !important;
+    }
   }
 }
 
@@ -72,7 +75,7 @@
 }
 
 .scorecell__col {
-  border: 1px solid $kobo-midgray;
+  border: 1px solid $kobo-gray-65;
   border-width: 1px 0 0.5px 1px;
   text-align: center;
   padding: 0;
@@ -87,7 +90,7 @@
   }
 }
 
-$scorebordercolor: $kobo-midgray;
+$scorebordercolor: $kobo-gray-65;
 
 tr:first-child .scorelabel {
   border-top-width: 1px;
@@ -101,11 +104,11 @@ tr:first-child .scorelabel {
   border-left-color: $scorebordercolor;
   border-right-width: 1px;
   border-right-style: solid;
-  border-right-color: $kobo-lightgray;
+  border-right-color: $kobo-gray-92;
 }
 
 .scorelabel, .scorecell__radio {
-  border-bottom: 1px dotted $kobo-lightgray;
+  border-bottom: 1px dotted $kobo-gray-92;
   padding: 4px 6px;
 }
 
@@ -141,11 +144,11 @@ tr:last-child {
 }
 
 tr:hover .scorecell__radio {
-  background-color: $kobo-whitegray;
+  background-color: $kobo-gray-96;
 }
 
 tr .scorecell__radio:hover {
-  background-color: $kobo-whitegray;
+  background-color: $kobo-gray-96;
 }
 
 .rank__rows {
@@ -175,7 +178,7 @@ tr .scorecell__radio:hover {
 
 .rank_items__constraint_explanation {
   font-size: 10px;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   text-decoration: underline;
 }
 
@@ -191,13 +194,13 @@ tr .scorecell__radio:hover {
 
 .rank_items__item, .rank_items__level {
   border: 1px solid;
-  border-color: $kobo-midgray;
+  border-color: $kobo-gray-65;
   border-radius: 4px;
 }
 
 .rank_items__constraint_message {
   font-size: 92%;
-  color: $kobo-black;
+  color: $kobo-gray-24;
   font-style: italic;
 
   &:before {
@@ -209,7 +212,7 @@ tr .scorecell__radio:hover {
       content: '';
     }
 
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 
   div {
@@ -233,15 +236,15 @@ tr .scorecell__radio:hover {
 
 .scorecell__name {
   margin: 0 0 -1px 0;
-  background-color: $kobo-whitegray;
-  color: $kobo-darkgray;
+  background-color: $kobo-gray-96;
+  color: $kobo-gray-40;
   line-height: 15px;
   font-size: 9px;
 }
 
 .scorecell__name, .scorelabel__name {
   display: block;
-  border-bottom: 1px dotted $kobo-lightgray;
+  border-bottom: 1px dotted $kobo-gray-92;
 
   br {
     display: none;
@@ -299,11 +302,11 @@ tr .scorecell__radio:hover {
 
 .scorecell__name, .scorelabel__name, .rank_items__name {
   font-size: 90%;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
 
   &.prelim {
     font-style: italic;
-    color: $kobo-lightgray;
+    color: $kobo-gray-92;
   }
 }
 

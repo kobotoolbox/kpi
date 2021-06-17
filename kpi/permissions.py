@@ -3,7 +3,6 @@ from django.http import Http404
 from rest_framework import exceptions, permissions
 
 from kpi.models.asset import Asset
-from kpi.models.asset_user_partial_permission import AssetUserPartialPermission
 from kpi.models.object_permission import get_anonymous_user
 from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
 
@@ -110,7 +109,10 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
 class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
     """
     Permissions for nested objects of Asset.
-    Users need `*_asset` permissions to operate on these objects
+    Only owner and managers can have write access on these objects.
+    i.e.:
+        - Reads need 'view_asset' permission
+        - Writes need 'manage_asset' permission
     """
 
     perms_map = {
@@ -122,7 +124,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
     perms_map['HEAD'] = perms_map['GET']
     perms_map['PUT'] = perms_map['POST']
     perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['GET']
+    perms_map['DELETE'] = perms_map['POST']
 
     def has_permission(self, request, view):
         if not request.user:
@@ -137,7 +139,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
             user = get_anonymous_user()
 
         user_permissions = self._get_user_permissions(parent_object, user)
-        view_permissions = self.get_required_permissions("GET")
+        view_permissions = self.get_required_permissions('GET')
         can_view = set(view_permissions).issubset(user_permissions)
 
         try:
@@ -168,12 +170,39 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         raise Http404
 
 
+class AssetExportSettingsPermission(AssetNestedObjectPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+        'POST': ['%(app_label)s.manage_asset'],
+    }
+
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
+    perms_map['PUT'] = perms_map['POST']
+    perms_map['PATCH'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['POST']
+
+
+class AssetEditorPermission(AssetNestedObjectPermission):
+    """
+    Owner, managers and editors can write.
+    i.e.:
+        - Reads need 'view_asset' permission
+        - Writes need 'change_asset' permission
+    """
+    perms_map = AssetNestedObjectPermission.perms_map.copy()
+    perms_map['POST'] = ['%(app_label)s.change_asset']
+    perms_map['PUT'] = perms_map['POST']
+    perms_map['PATCH'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['POST']
+
+
 class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
     """
     Permissions for objects that are nested under Asset whose only users can
     change/edit and need to view submissions
-    Others should receive a 404 response (instead of 403) to avoid revealing existence
-    of objects.
+    Others should receive a 404 response (instead of 403) to avoid revealing
+    existence of objects.
     """
 
     required_permissions = ['%(app_label)s.change_asset',
@@ -187,6 +216,14 @@ class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
     }
 
 
+class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
+
+    perms_map = AssetNestedObjectPermission.perms_map.copy()
+    # This change allows users with `view_asset` to permissions to
+    # remove themselves from an asset that has been shared with them
+    perms_map['DELETE'] = perms_map['GET']
+
+
 # FIXME: Name is no longer accurate.
 class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     """
@@ -197,7 +234,7 @@ class IsOwnerOrReadOnly(permissions.DjangoObjectPermissions):
     # With the default of True, anonymous requests are categorically rejected.
     authenticated_users_only = False
 
-    perms_map = permissions.DjangoObjectPermissions.perms_map
+    perms_map = permissions.DjangoObjectPermissions.perms_map.copy()
     perms_map['GET'] = ['%(app_label)s.view_%(model_name)s']
     perms_map['OPTIONS'] = perms_map['GET']
     perms_map['HEAD'] = perms_map['GET']
@@ -208,91 +245,8 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
     Maps POST requests to the change_model permission instead of DRF's default
     of add_model
     """
-    perms_map = IsOwnerOrReadOnly.perms_map
+    perms_map = IsOwnerOrReadOnly.perms_map.copy()
     perms_map['POST'] = ['%(app_label)s.change_%(model_name)s']
-
-
-class SubmissionPermission(AssetNestedObjectPermission):
-    """
-    Permissions for submissions.
-    """
-
-    MODEL_NAME = "submissions"  # Hard-code `model_name` to match permissions
-
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'OPTIONS': ['%(app_label)s.view_%(model_name)s'],
-        'HEAD': ['%(app_label)s.view_%(model_name)s'],
-        'POST': ['%(app_label)s.add_%(model_name)s'],
-        'PATCH': ['%(app_label)s.change_%(model_name)s'],
-        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
-    }
-
-    def _get_user_permissions(self, asset, user):
-        """
-        Overrides parent method to include partial permissions (which are
-        specific to submissions)
-
-        :param asset: Asset
-        :param user: auth.User
-        :return: list
-        """
-        user_permissions = super()._get_user_permissions(
-            asset, user)
-
-        if PERM_PARTIAL_SUBMISSIONS in user_permissions:
-            # Merge partial permissions with permissions to find out if there
-            # is a match within required permissions.
-            # Restricted users will be narrowed down in MongoDB query.
-            partial_perms = asset.get_partial_perms(user.id)
-            if partial_perms:
-                user_permissions = list(set(
-                    user_permissions + partial_perms
-                ))
-
-        return user_permissions
-
-
-class EditSubmissionPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.change_%(model_name)s'],
-    }
-
-
-class DuplicateSubmissionPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'POST': ['%(app_label)s.change_%(model_name)s'],
-    }
-
-
-class SubmissionValidationStatusPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_%(model_name)s'],
-        'PATCH': ['%(app_label)s.validate_%(model_name)s'],
-        'DELETE': ['%(app_label)s.validate_%(model_name)s'],
-    }
-
-
-class AssetExportSettingsPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-        'POST': ['%(app_label)s.manage_asset'],
-    }
-
-    perms_map['OPTIONS'] = perms_map['GET']
-    perms_map['HEAD'] = perms_map['GET']
-    perms_map['PUT'] = perms_map['POST']
-    perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['POST']
-
-class ExportTaskPermission(SubmissionPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-    }
-
-    perms_map['POST'] = perms_map['GET']
-    perms_map['DELETE'] = perms_map['GET']
 
 
 class ReportPermission(IsOwnerOrReadOnly):
@@ -312,3 +266,70 @@ class ReportPermission(IsOwnerOrReadOnly):
         return any(
             perm in permissions for perm in required_permissions
         )
+
+    
+class SubmissionPermission(AssetNestedObjectPermission):
+    """
+    Permissions for submissions.
+    """
+
+    MODEL_NAME = "submissions"  # Hard-code `model_name` to match permissions
+
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'OPTIONS': ['%(app_label)s.view_%(model_name)s'],
+        'HEAD': ['%(app_label)s.view_%(model_name)s'],
+        'POST': ['%(app_label)s.add_%(model_name)s'],
+        'PATCH': ['%(app_label)s.change_%(model_name)s'],
+        'DELETE': ['%(app_label)s.delete_%(model_name)s'],
+    }
+
+    def _get_user_permissions(self, asset: Asset, user: 'auth.User') -> list:
+        """
+        Overrides parent method to include partial permissions (which are
+        specific to submissions)
+        """
+        user_permissions = super()._get_user_permissions(
+            asset, user)
+
+        if PERM_PARTIAL_SUBMISSIONS in user_permissions:
+            # Merge partial permissions with permissions to find out if there
+            # is a match within required permissions.
+            # Restricted users will be narrowed down in MongoDB query.
+            partial_perms = asset.get_partial_perms(user.id)
+            if partial_perms:
+                user_permissions = list(set(
+                    user_permissions + partial_perms
+                ))
+
+        return user_permissions
+
+
+class DuplicateSubmissionPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'POST': ['%(app_label)s.change_%(model_name)s'],
+    }
+
+
+class EditSubmissionPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.change_%(model_name)s'],
+    }
+
+
+class ExportTaskPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+    }
+
+    perms_map['POST'] = perms_map['GET']
+    perms_map['DELETE'] = perms_map['GET']
+
+
+class SubmissionValidationStatusPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+        'PATCH': ['%(app_label)s.validate_%(model_name)s'],
+        'DELETE': ['%(app_label)s.validate_%(model_name)s'],
+    }

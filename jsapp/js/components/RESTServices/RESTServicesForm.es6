@@ -485,6 +485,7 @@ export default class RESTServicesForm extends React.Component {
                 id='rest-service-form--security'
                 name='authLevel'
                 menuPlacement='auto'
+                isSearchable={false}
               />
             </bem.FormModal__item>
 

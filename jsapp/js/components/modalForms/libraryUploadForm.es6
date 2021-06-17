@@ -32,7 +32,7 @@ class LibraryUploadForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isSessionLoaded: !!stores.session.currentAccount,
+      isSessionLoaded: !!stores.session.isLoggedIn,
       isPending: false,
       // default is block
       desiredType: DESIRED_TYPES[0],
@@ -82,7 +82,7 @@ class LibraryUploadForm extends React.Component {
     }
 
     return (
-      <bem.FormModal__form className='project-settings project-settings--upload-file'>
+      <bem.FormModal__form className='project-settings'>
         <bem.Modal__subheader>
           {t('Import an XLSForm from your computer.')}
         </bem.Modal__subheader>

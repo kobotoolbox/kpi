@@ -110,10 +110,25 @@ function SearchContext(opts={}) {
     },
     rebuildCategorizedList(sourceResults, listName) {
       const catList = this.state[listName];
-      const defaultResults = this.state.defaultQueryResultsList;
+      // If the last asset is removed, the list will not rebuild and
+      // the store keeps the asset appended with `deleted: true` to avoid being
+      // shown to user
       if (catList && sourceResults && sourceResults.length !== 0) {
         const updateObj = {};
         updateObj[listName] = splitResultsToCategorized(sourceResults);
+        this.update(updateObj);
+        // HACK FIX: when self removing permissions from unowned asset, or
+        // deleting a draft, the `deleted: true` attribute is missing from the
+        // leftover removed asset
+      } else if (catList && sourceResults && sourceResults.length === 0) {
+        let updateObj = catList;
+        for (const item in updateObj) {
+          // This fix is only relevant to removing the last asset so
+          // we can indiscriminately pick the only asset in store lists
+          if (updateObj[item].length > 0) {
+            updateObj[item][0].deleted = 'true';
+          }
+        }
         this.update(updateObj);
       }
     },
@@ -267,8 +282,10 @@ function SearchContext(opts={}) {
     }
   };
 
-  const assetsHash = function (assets) {
-    if (assets.length < 1) return false;
+  const assetsHash = function(assets) {
+    if (assets.length < 1) {
+      return false;
+    }
 
     let assetVersionIds = assets.map((asset) => {
       return asset.version_id;
@@ -277,7 +294,7 @@ function SearchContext(opts={}) {
     assetVersionIds.sort();
 
     return SparkMD5.hash(assetVersionIds.join(''));
-  }
+  };
 
   search.listen(function(_opts={}){
     /*
@@ -426,7 +443,9 @@ function SearchContext(opts={}) {
       } else {
         searchStore.update({defaultQueryState: 'done'});
 
-        dataInterface.assetsHash()
+        // avoid unauthenticated backend calls
+        if (stores.session.isLoggedIn) {
+          dataInterface.assetsHash()
           .done((data) => {
             if (data.hash && data.hash !== assetsHash(searchStore.state.defaultQueryResultsList)) {
               // if hashes don't match launch new search request
@@ -436,6 +455,7 @@ function SearchContext(opts={}) {
           .fail(() => {
             this.searchDefault();
           });
+        }
       }
     },
     searchDefault: function () {

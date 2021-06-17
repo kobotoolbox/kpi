@@ -6,8 +6,8 @@
   .simple-table__header {
     .simple-table__row:nth-child(1) {
       .simple-table__cell {
-        background-color: $kobo-whitegray;
-        border-bottom: 2px solid $kobo-lightgray;
+        background-color: $kobo-gray-96;
+        border-bottom: 2px solid $kobo-gray-92;
         font-weight: 600;
       }
     }
@@ -15,7 +15,7 @@
 
   .simple-table__body {
     .simple-table__cell {
-      border-bottom: 1px solid $kobo-whitegray;
+      border-bottom: 1px solid $kobo-gray-96;
     }
   }
 

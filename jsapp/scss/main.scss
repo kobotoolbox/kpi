@@ -21,12 +21,15 @@
 @import "./components/kobo.toggle-switch";
 @import "./components/kobo.modal";
 @import "./components/kobo.tooltips";
+@import "./components/kobo.tooltips-big";
 @import "./components/kobo.navigation";
 @import "./components/kobo.drawer";
 @import "./components/kobo.drawer.sidebar";
 @import "./components/kobo.help-bubble";
 @import "./kobo";
 @import "./components/kobo.form-builder";
+@import "./components/kobo.form-builder-message-box";
+@import "./components/kobo.locking";
 @import "./components/kobo.collection-asset-list";
 @import "./components/kobo.asset-name";
 @import "./components/kobo.asset-row";
@@ -56,6 +59,10 @@
 @import "./components/kobo.breadcrumbs";
 @import "./components/kobo.asset-info-box";
 @import "./components/kobo.multi-checkbox";
+@import "./components/kobo.form-media";
+@import "./components/kobo.dropzone";
+
+@import "js/components/submissions/validationStatusDropdown";
 
 @import "./formbuild/kobomatrix";
 

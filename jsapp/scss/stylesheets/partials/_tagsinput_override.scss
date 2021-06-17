@@ -30,7 +30,7 @@ div.tagsinput span.tag {
 
 div.tagsinput input {
   border: none;
-  color: $kobo-black;
+  color: $kobo-gray-24;
   font-family: $font;
   font-size: 12px;
   margin: 0 5px;
@@ -56,7 +56,7 @@ div.tagsinput span.tag a:before {
 
 ul.ui-autocomplete.ui-widget-content.ui-widget {
   max-width: 680px !important;
-  border: 1px solid $kobo-lightgray;
+  border: 1px solid $kobo-gray-92;
   li {
     padding: 5px;
     background: $kobo-white;
@@ -72,7 +72,7 @@ ul.ui-autocomplete.ui-widget-content.ui-widget {
     }
     a {
       font-weight: normal;
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
   }
 }

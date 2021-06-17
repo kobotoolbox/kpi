@@ -6,6 +6,7 @@ import { KEY_CODES } from 'js/constants';
  * @param {string} label
  * @param {string} [color] "blue" or "red", if not given button will be gray
  * @param {string} [icon] one of k-icons
+ * @param {boolean} [isDisabled]
  * @param {function} callback
  */
 
@@ -42,16 +43,16 @@ export function multiConfirm(confirmId, title, message, buttons) {
                 `;
               }
 
-              let buttonColor = alertify.defaults.theme.input;
+              let buttonClass = alertify.defaults.theme.input;
               if (button.color === 'blue') {
-                buttonColor = alertify.defaults.theme.ok;
+                buttonClass = alertify.defaults.theme.ok;
               } else if (button.color === 'red') {
-                buttonColor = alertify.defaults.theme.cancel;
+                buttonClass = alertify.defaults.theme.cancel;
               }
 
               buttonsArray.push({
                 text: buttonLabel,
-                className: buttonColor,
+                className: buttonClass,
                 // primary is needed to not change for disabling below to work
                 scope: 'primary',
                 element: undefined,
@@ -112,6 +113,21 @@ export function multiConfirm(confirmId, title, message, buttons) {
     onclose: function() {
       $(document).off('keyup', killMe);
     },
+  });
+
+  // This needs to be done here not during buttons creation as it would stay
+  // disabled for all further dialogs.
+  buttons.forEach((button, index) => {
+    if (button.isDisabled) {
+      const buttonEl = dialog.elements.buttons.primary.children[index];
+      if (buttonEl) {
+        buttonEl.classList.remove(alertify.defaults.theme.ok);
+        buttonEl.classList.remove(alertify.defaults.theme.cancel);
+        // disabled button is always gray
+        buttonEl.classList.add(alertify.defaults.theme.input);
+        buttonEl.classList.add('ajs-button-disabled');
+      }
+    }
   });
 
   dialog.show();
