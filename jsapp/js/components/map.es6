@@ -558,14 +558,23 @@ export class FormMap extends React.Component {
     let index = evt.target.getAttribute('data-index');
     this.setState({langIndex: index});
   }
-  componentWillReceiveProps (nextProps) {
-    if (this.props.viewby != undefined) {
-      this.setState({markersVisible: true});
+  static getDerivedStateFromProps(props, state) {
+    const newState = {
+      previousViewby: props.viewby
+    };
+    if (props.viewby !== undefined) {
+      newState.markersVisible = true;
     }
-    if (this.props.viewby != nextProps.viewby) {
-      this.setState({filteredByMarker: false, componentRefreshed: true});
+    if (state.previousViewby !== props.viewby) {
+      newState.filteredByMarker = false;
+      newState.componentRefreshed = true;
+    }
+    return newState;
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.viewby !== this.props.viewby) {
       let map = this.refreshMap();
-      this.requestData(map, nextProps.viewby);
+      this.requestData(map, this.props.viewby);
     }
   }
   refreshMap() {
