@@ -137,23 +137,6 @@ class PopoverMenu extends React.Component {
   }
 };
 
-export class AccessDeniedMessage extends React.Component {
-  render() {
-    return (
-      <bem.FormView>
-        <bem.Loading>
-          <bem.Loading__inner>
-            <h3>
-              {t('Access Denied')}
-            </h3>
-            {t('You do not have permission to view this page.')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      </bem.FormView>
-    );
-  }
-}
-
 /**
  * @prop {string} [message] optional message
  */
@@ -173,7 +156,6 @@ export class LoadingSpinner extends React.Component {
 }
 
 var ui = {
-  AccessDeniedMessage,
   LoadingSpinner,
   SearchBox: SearchBox,
   Panel: Panel,

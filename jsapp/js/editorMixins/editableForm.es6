@@ -28,6 +28,7 @@ import {
   META_QUESTION_TYPES,
 } from 'js/constants';
 import ui from '../ui';
+import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import Modal from 'js/components/common/modal';
 import {bem} from '../bem';
 import {stores} from '../stores';
@@ -967,7 +968,7 @@ export default assign({
             }
 
             {(!userCanEditForm) &&
-              <ui.AccessDeniedMessage/>
+              <AccessDeniedMessage/>
             }
 
             {this.state.enketopreviewOverlay &&

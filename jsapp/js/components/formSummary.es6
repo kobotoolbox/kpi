@@ -9,6 +9,7 @@ import {stores} from '../stores';
 import mixins from '../mixins';
 import {bem} from '../bem';
 import ui from 'js/ui';
+import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
 import Chart from 'chart.js';
@@ -324,7 +325,7 @@ class FormSummary extends React.Component {
     }
 
     if (!permAccess) {
-      return (<ui.AccessDeniedMessage/>);
+      return (<AccessDeniedMessage/>);
     }
 
     return (
