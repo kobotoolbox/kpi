@@ -37,7 +37,7 @@ class SearchCollectionList extends Reflux.Component {
   }
   componentDidMount() {
     this.unlisteners.push(
-      this.listenTo(this.searchStore, this.searchChanged)
+      this.searchStore.listen(this.searchChanged)
     );
     this.queryCollections();
   }
