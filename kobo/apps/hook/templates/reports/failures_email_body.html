@@ -12,7 +12,7 @@
 
 {% for asset_uid, asset in assets.items %}
   {% url 'api_v2:asset-detail' uid=asset_uid as asset_url %}
-  <p>{{ i18n_asset }}: <b><a href="{{ kpi_base_url }}{{ asset_url }}">{{ asset.name }}</a></b></p>
+  <p>{{ i18n_asset }}: <b><a href="{{ kpi_base_url }}/#/forms/{{asset_uid}}/settings/rest/{{asset.hook_uid}}">{{ asset.name }}</a></b></p>
     <table>
         <tr>
           <th style="border-bottom:1px solid black;">{{ i18n_hook }}</th>

@@ -13,7 +13,7 @@
 
 {% for asset_uid, asset in assets.items %}
 {% url 'api_v2:asset-detail' uid=asset_uid as asset_url %}
-{{ i18n_asset }}: {{ asset.name }} - [{{ kpi_base_url }}{{ asset_url }}]
+{{ i18n_asset }}: {{ asset.name }} - [{{ kpi_base_url }}/#/forms/{{asset_uid}}/settings/rest/{{asset.hook_uid}}]
 
     {% with max_length=asset.max_length|add:"2" %}
     {{ i18n_hook|center:max_length }}|{{ i18n_submission|center:25 }}|{{ i18n_status_code|center:15 }}|{{ i18n_message|truncatechars:23|center:25 }}|{{ i18n_date|center:25 }}

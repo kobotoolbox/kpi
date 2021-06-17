@@ -292,7 +292,11 @@ class MongoHelper:
             # Retrieve all fields except `cls.USERFORM_ID`
             fields_to_select = {cls.USERFORM_ID: 0}
 
-        cursor = settings.MONGO_DB.instances.find(query, fields_to_select)
+        cursor = settings.MONGO_DB.instances.find(
+            query,
+            fields_to_select,
+            max_time_ms=settings.MONGO_DB_MAX_TIME_MS
+        )
         return cursor, cursor.count()
 
     @classmethod

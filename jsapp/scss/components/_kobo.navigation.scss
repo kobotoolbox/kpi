@@ -37,6 +37,14 @@
     display: block;
   }
 
+  .login-box {
+    text-align: right;
+  }
+
+  .mdl-layout-title + .login-box {
+    flex: 1;
+  }
+
   .account-box {
     margin-left: auto;
     position: relative;
@@ -55,6 +63,15 @@
 
   .mdl-layout__header-searchers {
     flex-grow: 1;
+  }
+
+  .header__link {
+    color: $kobo-white;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.8;
+    }
   }
 
   .search {
@@ -86,17 +103,21 @@
       width: 99%;
     }
 
-    .search__icon {
-      @extend .fa, .fa-search;
-
+    .search__icon,
+    .search__cancel {
       position: absolute;
-      top: 11px;
-      left: 12px;
+      top: 9px;
       color: $kobo-white;
+      font-size: 24px;
+    }
 
-      &:before {
-        font-size: 18px;
-      }
+    .search__icon {
+      left: 12px;
+    }
+
+    .search__cancel {
+      cursor: pointer;
+      right: 12px;
     }
   }
 }
@@ -120,7 +141,7 @@
   }
 
   .account-box__menu-item--mini-profile {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -149,14 +170,15 @@
     padding-bottom: 15px;
 
     a {
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       cursor: pointer;
       font-weight: normal;
       display: block;
 
       i {
-        font-size: 32px;
-        vertical-align: middle;
+        font-size: 24px;
+        margin: 3px;
+        vertical-align: -6px;
       }
 
       span {
@@ -181,22 +203,22 @@
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
     padding-bottom: 5px;
 
     ul {
       background-color: $kobo-white;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       min-width: 140px;
       padding: 0;
-      border: 1px solid $kobo-lightgray;
+      border: 1px solid $kobo-gray-92;
 
       li {
         text-transform: capitalize;
         padding: 0;
 
         &:not(:last-child) {
-          border-bottom: 1px solid $kobo-lightgray;
+          border-bottom: 1px solid $kobo-gray-92;
         }
 
         a {
@@ -223,10 +245,11 @@
       padding: 0px;
       color: $kobo-white;
 
-      i {
-        line-height: 1.5em;
-        display: inline-block;
-        font-size: 24px;
+      .k-icon.k-icon-menu {
+        font-size: 32px;
+        line-height: 32px;
+        display: block;
+        margin: 3px;
       }
     }
 
@@ -260,88 +283,73 @@
 
 // Form title + desc in header, editable
 
-.form-title {
-  vertical-align: middle;
-  margin: 0px;
-  display: flex;
-  align-items: center;
-  width: calc(100% - 300px);
-
-  > i {
+.main-header {
+  .main-header__icon {
     font-size: 38px;
+    color: $kobo-gray-65;
     vertical-align: middle;
     width: 38px;
   }
 
-  .form-title__name {
+  .main-header__title {
+    vertical-align: middle;
+    margin-right: 20px;
     flex: 1;
+    align-items: center;
     color: $kobo-white;
     font-size: 18px;
-    padding-right: 20px;
 
-    input[name='title'] {
-      color: $kobo-white;
-      font-size: 18px;
-      min-width: 100%;
-      line-height: 1.3333;
-      padding: 0 20px 0 5px;
-    }
-
-    &.form-title__name--long input[name='title'] {
+    &.main-header__title--long input {
       font-size: 14px;
     }
+
+    input {
+      background: transparent;
+      border-left: none;
+      border-right: none;
+      border-bottom: 1px solid transparent;
+      border-top: 1px solid transparent;
+      color: $kobo-white;
+      font-size: 18px;
+      margin: 0;
+      overflow: hidden;
+      padding: 3px 6px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+      // keep these pseudo-states separate
+      &::-webkit-input-placeholder {
+        color: $kobo-gray-40;
+      }
+
+      &:-ms-input-placeholder {
+        color: $kobo-gray-40;
+      }
+
+      &:hover {
+        border-bottom: 1px solid $kobo-blue;
+      }
+
+      &:focus {
+        background: rgba($kobo-white, 0.05);
+        border-bottom: 1px solid $kobo-blue;
+      }
+    }
   }
 
-  input {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 100%;
-    background: transparent;
-    padding: 3px 6px;
-    margin: 0;
-    border: none;
-    border-bottom: 1px solid transparent;
-    // keep these pseudo-states separate
-    &::-webkit-input-placeholder {
-      color: $kobo-darkgray;
-    }
-
-    &:-ms-input-placeholder {
-      color: $kobo-darkgray;
-    }
-
-    &:hover {
-      border-bottom: 1px solid $kobo-blue;
-    }
-
-    &:focus {
-      background: rgba($kobo-white, 0.05);
-      border-bottom: 1px solid $kobo-blue;
-    }
-  }
-
-  .form-title__submissions {
-    color: $kobo-white;
+  .main-header__counter {
     font-size: 14px;
-  }
-}
-
-@media screen and (max-width: 999px) {
-  .form-view__title {
-    .form-view__name {
-      width: 80%;
-    }
-
-    .form-view__subs {
-      width: 10%;
-    }
+    margin-right: 20px;
+    color: $kobo-gray-65;
   }
 }
 
 @media screen and (max-width: 767px) {
-  .form-title__submissions {
-    display: none;
+  .main-header {
+    .main-header__icon,
+    .main-header__counter {
+      display: none;
+    }
   }
 
   .mdl-layout__header {
@@ -349,20 +357,8 @@
       width: 40px;
     }
 
-    .form-title {
-      width: calc(100% - 110px);
-
-      input {
-        border-radius: 0px;
-      }
-
-      .form-title__name {
-        width: 100%;
-      }
-
-      > i {
-        display: none;
-      }
+    .main-header__title input {
+      border-radius: 0;
     }
 
     .header__logo {
@@ -382,6 +378,7 @@
   border-radius: 32px;
   display: inline-block;
   vertical-align: middle;
+  line-height: 20px;
   font-size: 16px;
   color: $kobo-white;
 }
@@ -391,6 +388,7 @@
     width: 48px;
     padding: 10px;
     border-radius: 48px;
+    line-height: 28px;
     font-size: 24px;
   }
 }
@@ -425,7 +423,7 @@
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid $kobo-lightgray;
+      border: 1px solid $kobo-gray-92;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;

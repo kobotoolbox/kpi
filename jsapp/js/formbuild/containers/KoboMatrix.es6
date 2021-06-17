@@ -6,7 +6,7 @@ import { sluggify, txtid } from '../../../xlform/src/model.utils';
 import { Map } from 'immutable';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
-import Checkbox from 'js/components/checkbox';
+import Checkbox from 'js/components/common/checkbox';
 
 const bem = bemComponents({
   Matrix: 'kobomatrix',
@@ -419,6 +419,7 @@ class KoboMatrix extends React.Component {
                     className='kobo-select'
                     classNamePrefix='kobo-select'
                     menuPlacement='auto'
+                    isSearchable={false}
                   />
                 </label>
                 <label>

@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@d8d7a64acd69f6c6fa56638588dbe38c7a97a1e0#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@f7ba6360949fb3075a52b2b7210224ebb60734ed#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -41,8 +41,12 @@ django-amazon-ses
 django-webpack-loader
 django-loginas
 django-markdownx
+
+# django-markitup # Not compatible with Django 2.0+ (see above ToDo²)
+
 django-markitup
 django-mptt
+
 django-reversion<3.0.2 # Migration issue with 3.0.2
 django-taggit
 django-private-storage
@@ -71,8 +75,10 @@ static3
 tabulate
 unicodecsv
 uWSGI
+Werkzeug
 xlrd
 xlwt
+xlutils
 XlsxWriter
 
 # These packages allow `requests` to support SNI

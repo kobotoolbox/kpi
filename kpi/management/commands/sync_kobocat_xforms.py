@@ -14,16 +14,16 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from pyxform import xls2json_backends
 from rest_framework.authtoken.models import Token
 
-from formpack.utils.xls_to_ss_structure import xls_to_dicts
 from kpi.constants import PERM_FROM_KC_ONLY
 from kpi.utils.log import logging
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatPermission,
     KobocatUserObjectPermission,
-    ReadOnlyKobocatXForm,
+    KobocatXForm,
     ShadowModel,
 )
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
@@ -40,7 +40,7 @@ PERMISSIONS_MAP = {kc: kpi for kpi, kc in Asset.KC_PERMISSIONS_MAP.items()}
 ASSET_CT = ContentType.objects.get_for_model(Asset)
 FROM_KC_ONLY_PERMISSION = Permission.objects.get(
     content_type=ASSET_CT, codename=PERM_FROM_KC_ONLY)
-XFORM_CT = ShadowModel.get_content_type_for_model(ReadOnlyKobocatXForm)
+XFORM_CT = ShadowModel.get_content_type_for_model(KobocatXForm)
 ANONYMOUS_USER = get_anonymous_user()
 # Replace codenames with Permission PKs, remembering the codenames
 permission_map_copy = dict(PERMISSIONS_MAP)
@@ -211,7 +211,7 @@ def _sync_form_content(asset, xform, changes):
     modified = False
     # First, compare hashes to see if the KC form content
     # has changed since the last deployment
-    backend_response = asset._deployment_data['backend_response']
+    backend_response = asset.deployment.backend_response
     if 'hash' in backend_response:
         if backend_response['hash'] != xform.prefixed_hash:
             asset.content = _xform_to_asset_content(xform)
@@ -241,8 +241,9 @@ def _sync_form_content(asset, xform, changes):
     if modified:
         # It's important to update `deployment_data` with the new hash from KC;
         # otherwise, we'll be re-syncing the same content forever (issue #1302)
-        asset._deployment_data[
-            'backend_response'] = _get_kc_backend_response(xform)
+        asset.deployment.store_data(
+            {'backend_response': _get_kc_backend_response(xform)}
+        )
 
     return modified
 
@@ -267,6 +268,7 @@ def _sync_form_metadata(asset, xform, changes):
             'version': asset.version_id
         })
         changes.append('CREATE METADATA')
+        asset.set_deployment(kc_deployment)
         # `_sync_permissions()` will save `asset` if it has no `pk`
         affected_users = _sync_permissions(asset, xform)
         if affected_users:
@@ -276,21 +278,20 @@ def _sync_form_metadata(asset, xform, changes):
 
     modified = False
     fetch_backend_response = False
-    deployment_data = asset._deployment_data
-    backend_response = deployment_data['backend_response']
+    backend_response = asset.deployment.backend_response
 
-    if (deployment_data['active'] != xform.downloadable or
+    if (asset.deployment.active != xform.downloadable or
             backend_response['downloadable'] != xform.downloadable):
-        deployment_data['active'] = xform.downloadable
+        asset.deployment.store_data({'active': xform.downloadable})
         modified = True
         fetch_backend_response = True
         changes.append('ACTIVE')
 
-    if settings.KOBOCAT_URL not in deployment_data['identifier']:
+    if settings.KOBOCAT_URL not in asset.deployment.identifier:
         # Issue #1122
-        deployment_data[
-            'identifier'] = KobocatDeploymentBackend.make_identifier(
-                user.username, xform.id_string)
+        asset.deployment.store_data({
+            'identifier': KobocatDeploymentBackend.make_identifier(
+                user.username, xform.id_string)})
         fetch_backend_response = True
         modified = True
         changes.append('IDENTIFIER')
@@ -306,7 +307,9 @@ def _sync_form_metadata(asset, xform, changes):
             changes.append('NAME')
 
     if fetch_backend_response:
-        deployment_data['backend_response'] = _get_kc_backend_response(xform)
+        asset.deployment.store_data({
+            'backend_response': _get_kc_backend_response(xform)
+        })
         modified = True
 
     affected_users = _sync_permissions(asset, xform)
@@ -367,8 +370,7 @@ def _sync_permissions(asset, xform):
     current_kpi_perms = defaultdict(set)
     for user, kpi_permission in ObjectPermission.objects.filter(
                 deny=False,
-                content_type=ASSET_CT,
-                object_id=asset.pk
+                asset=asset,
             ).values_list('user', 'permission'):
         current_kpi_perms[user].add(kpi_permission)
 
@@ -410,8 +412,7 @@ def _sync_permissions(asset, xform):
             ObjectPermission.objects.get_or_create(
                 user_id=user,
                 permission=FROM_KC_ONLY_PERMISSION,
-                content_type=ASSET_CT,
-                object_id=asset.pk
+                asset=asset,
             )
         for p in perms_to_assign:
             asset.assign_perm(user_obj, KPI_PKS_TO_CODENAMES[p], skip_kc=True)
@@ -426,8 +427,7 @@ def _sync_permissions(asset, xform):
             ObjectPermission.objects.filter(
                 user_id=user,
                 deny=False,
-                content_type=ASSET_CT,
-                object_id=asset.pk
+                asset=asset,
             ).delete()
         if perms_to_assign or perms_to_revoke:
             affected_usernames.append(user_obj.username)
@@ -452,13 +452,18 @@ class Command(BaseCommand):
             default=False,
             help='Do not output status messages'
         )
-
         parser.add_argument(
             '--populate-xform-kpi-asset-uid',
             action='store_true',
             dest='populate_xform_kpi_asset_uid',
             default=False,
             help='Populate XForm `kpi_asset_uid` field')
+        parser.add_argument(
+            '--sync-kobocat-form-media',
+            action='store_true',
+            dest='sync_kobocat_form_media',
+            default=False,
+            help='Sync kobocat form-media to kpi')
 
     def _print_str(self, string):
         if not self._quiet:
@@ -476,10 +481,12 @@ class Command(BaseCommand):
         self._quiet = options.get('quiet')
         username = options.get('username')
         populate_xform_kpi_asset_uid = options.get('populate_xform_kpi_asset_uid')
+        sync_kobocat_form_media = options.get('sync_kobocat_form_media')
+        verbosity = options.get('verbosity')
         users = User.objects.all()
-        # Do a basic query just to make sure the ReadOnlyKobocatXForm model is
+        # Do a basic query just to make sure the KobocatXForm model is
         # loaded
-        if not ReadOnlyKobocatXForm.objects.exists():
+        if not KobocatXForm.objects.exists():
             return
         self._print_str('%d total users' % users.count())
         # A specific user or everyone?
@@ -501,15 +508,14 @@ class Command(BaseCommand):
             # form uuid stored in its deployment data
             xform_uuids_to_asset_pks = {}
             for existing_survey in existing_surveys:
-                dd = existing_survey._deployment_data
-                try:
-                    backend_response = dd['backend_response']
-                except KeyError:
+                if not existing_survey.has_deployment:
                     continue
+                backend_response = existing_survey.deployment.backend_response
                 xform_uuids_to_asset_pks[backend_response['uuid']] = \
                     existing_survey.pk
 
-            xforms = user.xforms.all()
+            # KobocatXForm has a foreign key on KobocatUser, not on User
+            xforms = KobocatXForm.objects.filter(user_id=user.pk).all()
             for xform in xforms:
                 try:
                     with transaction.atomic():
@@ -573,4 +579,16 @@ class Command(BaseCommand):
         _set_auto_field_update(Asset, "date_modified", True)
 
         if populate_xform_kpi_asset_uid:
-            call_command('populate_kc_xform_kpi_asset_uid', username=username)
+            call_command(
+                'populate_kc_xform_kpi_asset_uid',
+                username=username,
+                verbosity=verbosity,
+            )
+
+        if sync_kobocat_form_media:
+            call_command(
+                'sync_kobocat_form_media',
+                username=username,
+                quiet=self._quiet,
+                verbosity=verbosity,
+            )

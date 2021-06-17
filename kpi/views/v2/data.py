@@ -2,16 +2,28 @@
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import renderers, serializers, viewsets
+from rest_framework import (
+    exceptions,
+    renderers,
+    serializers,
+    status,
+    viewsets,
+)
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
+from kpi.constants import (
+    INSTANCE_FORMAT_TYPE_JSON,
+    PERM_ADD_SUBMISSIONS,
+    PERM_CHANGE_SUBMISSIONS,
+)
+from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
+    DuplicateSubmissionPermission,
     EditSubmissionPermission,
     SubmissionPermission,
     SubmissionValidationStatusPermission,
@@ -99,7 +111,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     * `uid` - is the unique identifier of a specific asset
     * `id` - is the unique identifier of a specific submission
 
-    **It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submissions` endpoint**
+    **It is not allowed to create submissions with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint**
 
     Retrieves a specific submission
     <pre class="prettyprint">
@@ -137,7 +149,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
     Update current submission
 
-    _It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submissions` endpoint. 
+    _It is not possible to update a submission directly with `kpi`'s API as this is handled by `kobocat`'s `/submission` endpoint.
     Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
 
     <pre class="prettyprint">
@@ -147,6 +159,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/edit/?return_url=false
+
+
+    ### Duplicate submission
+
+    Duplicates the data of a submission
+    <pre class="prettyprint">
+    <b>POST</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/duplicate/
+    </pre>
+
+    > Example
+    >
+    >       curl -X POST https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/duplicate/
 
 
     ### Validation statuses
@@ -198,6 +222,45 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     >        }
 
 
+    ### Bulk updating of submissions
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v2/assets/<code>{uid}</code>/data/bulk/
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/bulk/
+
+    > **Payload**
+    >
+    >        {
+    >           "submission_ids": [{integer}],
+    >           "data": {
+    >               <field_to_update_1>: <value_1>,
+    >               <field_to_update_2>: <value_2>,
+    >               <field_to_update_n>: <value_n>
+    >           }
+    >        }
+
+    where `<field_to_update_n>` is a string and should be an existing XML field value of the submissions.
+    If `<field_to_update_n>` is part of a group or nested group, the field must follow the group hierarchy
+    structure, i.e.:
+
+    If the field is within a group called `group_1`, the field name is `question_1` and the new value is `new value`,
+    the payload should contain an item with the following structure:
+
+    <pre class="prettyprint">
+    "group_1/question_1": "new value"
+    </pre>
+
+    Similarly, if there are `N` nested groups, the structure will be:
+
+    <pre class="prettyprint">
+    "group_1/sub_group_1/.../sub_group_n/question_1": "new value"
+    </pre>
+
+
     ### CURRENT ENDPOINT
     """
 
@@ -205,7 +268,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     renderer_classes = (renderers.BrowsableAPIRenderer,
                         renderers.JSONRenderer,
                         SubmissionGeoJsonRenderer,
-                        SubmissionXMLRenderer
+                        SubmissionXMLRenderer,
                         )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
@@ -215,16 +278,22 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         Returns the deployment for the asset specified by the request
         """
         if not self.asset.has_deployment:
-            raise serializers.ValidationError(
-                _('The specified asset has not been deployed'))
+            raise ObjectDeploymentDoesNotExist(_('The specified asset has not been '
+                                                 'deployed'))
+
         return self.asset.deployment
 
-    @action(detail=False, methods=['DELETE'],
+    @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-        json_response = deployment.delete_submissions(request.data,
-                                                      request.user)
+        if request.method == 'DELETE':
+            json_response = deployment.delete_submissions(request.data,
+                                                          request.user)
+        elif request.method == 'PATCH':
+            json_response = deployment.bulk_update_submissions(
+                dict(request.data), request.user
+            )
         return Response(**json_response)
 
     def destroy(self, request, *args, **kwargs):
@@ -294,9 +363,22 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 raise Http404
         return Response(submission)
 
+    @action(detail=True, methods=['POST'],
+            renderer_classes=[renderers.JSONRenderer],
+            permission_classes=[DuplicateSubmissionPermission])
+    def duplicate(self, request, pk, *args, **kwargs):
+        """
+        Creates a duplicate of the submission with a given `pk`
+        """
+        deployment = self._get_deployment()
+        duplicate_response = deployment.duplicate_submission(
+            requesting_user=request.user, instance_id=positive_int(pk)
+        )
+        return Response(duplicate_response, status=status.HTTP_201_CREATED)
+
     @action(detail=True, methods=['GET', 'PATCH', 'DELETE'],
-                  renderer_classes=[renderers.JSONRenderer],
-                  permission_classes=[SubmissionValidationStatusPermission])
+            renderer_classes=[renderers.JSONRenderer],
+            permission_classes=[SubmissionValidationStatusPermission])
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         if request.method == 'GET':

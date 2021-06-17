@@ -12,7 +12,8 @@ import clonedeep from 'lodash.clonedeep';
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
-// imporitng whole constants, as we override ROOT_URL in tests
+import { hashHistory } from 'react-router';
+// importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
@@ -29,16 +30,25 @@ export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
 }
 
+/**
+ * @returns {string} something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
+ */
 export function formatTime(timeStr) {
   var _m = moment(timeStr);
   return _m.calendar(null, {sameElse: 'LL'});
 }
 
+/**
+ * @returns {string} something like "March 15, 2021 4:06 PM"
+ */
 export function formatTimeDate(timeStr) {
   var _m = moment(timeStr);
   return _m.format('LLL');
 }
 
+/**
+ * @returns {string} something like "Mar 15, 2021"
+ */
 export function formatDate(timeStr) {
   var _m = moment(timeStr);
   return _m.format('ll');
@@ -54,6 +64,9 @@ export function getAnonymousUserPermission(permissions) {
 }
 
 export function surveyToValidJson(survey) {
+  // HACK: This is done as a fix for https://github.com/kobotoolbox/kpi/pull/735
+  // I'm not entirely sure what this is about but definitely BAD CODE™!
+  //
   // skip logic references only preserved after initial call
   // to "survey.toFlatJSON()"
   survey.toFlatJSON();
@@ -61,6 +74,7 @@ export function surveyToValidJson(survey) {
   return JSON.stringify(survey.toFlatJSON());
 }
 
+// TODO: move nullifyTranslations and unnullifyTranslations to formBuilderUtils.es6 file
 
 /**
  * This function reverses what `nullifyTranslations` did to the form data.
@@ -209,8 +223,15 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
   return data;
 }
 
-export function redirectTo(href) {
-  window.location.href = href;
+export function getLoginUrl() {
+  let url = constants.PATHS.LOGIN;
+  const currentLoc = hashHistory.getCurrentLocation();
+  if (currentLoc?.pathname) {
+    const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
+    // add redirection after logging in to current page
+    url += `?next=${nextUrl}`;
+  }
+  return url;
 }
 
 // works universally for v1 and v2 urls
@@ -517,8 +538,108 @@ export function renderCheckbox(id, label, isImportant) {
     additionalClass += 'alertify-toggle-important';
   }
   return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
-};
+}
+
+/**
+ * @param {string} text
+ * @param {number} [limit] - how long the long word is
+ * @return {boolean}
+ */
+export function hasLongWords(text, limit = 25) {
+  const textArr = text.split(' ');
+  const maxLength = Math.max(...(textArr.map((el) => {return el.length;})));
+  return maxLength >= limit;
+}
+
+/**
+ * @param {Node} element
+ */
+export function hasVerticalScrollbar(element) {
+  return element.scrollHeight > element.offsetHeight;
+}
+
+/**
+ * @returns {number}
+ */
+export function getScrollbarWidth() {
+  // Creating invisible container
+  const outer = document.createElement('div');
+  outer.style.visibility = 'hidden';
+  outer.style.overflow = 'scroll'; // forcing scrollbar to appear
+  outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
+  document.body.appendChild(outer);
+
+  // Creating inner element and placing it in the container
+  const inner = document.createElement('div');
+  outer.appendChild(inner);
+
+  // Calculating difference between container's full width and the child width
+  const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+
+  // Removing temporary elements from the DOM
+  outer.parentNode.removeChild(outer);
+
+  return scrollbarWidth;
+}
+
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+export function toTitleCase(str) {
+  return str.replace(/(^|\s)\S/g, (t) => {return t.toUpperCase();});
+}
 
 export function launchPrinting() {
   window.print();
+}
+
+/**
+ * Trunactes strings to specified length
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateString(str, length, type='') {
+  let truncatedString = str;
+  const halfway = Math.trunc(length / 2);
+
+  if (length < truncatedString.length) {
+    let truncatedStringFront = truncatedString.substring(0, halfway);
+    let truncatedStringBack = truncatedString.slice(
+      truncatedString.length - halfway
+    );
+    truncatedString = truncatedStringFront + '…' + truncatedStringBack;
+  }
+
+  return truncatedString;
+}
+
+/**
+ * Removes protocol then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateUrl(str, length) {
+  let truncatedString = str.replace('https://', '').replace('http://', '');
+
+  return truncateString(truncatedString, length);
+}
+
+/**
+ * Removes file extension then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateFile(str, length) {
+  // Remove file extension with simple regex that truncates everything past
+  // the last occurance of `.` inclusively
+  let truncatedString = str.replace(/\.[^/.]+$/, '');
+
+  return truncateString(truncatedString, length);
 }

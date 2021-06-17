@@ -4,35 +4,30 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link, hashHistory } from 'react-router';
-import Select from 'react-select';
-
-import {dataInterface} from '../dataInterface';
-import {actions} from '../actions';
 import {stores} from '../stores';
 import {bem} from '../bem';
 import {searches} from '../searches';
-import ui from '../ui';
 import mixins from '../mixins';
-
-import LibrarySidebar from '../components/librarySidebar';
+import LibrarySidebar from 'js/components/library/librarySidebar';
 import {
   IntercomHelpBubble,
   SupportHelpBubble
 } from '../components/helpBubbles';
-
-import {MODAL_TYPES} from '../constants';
-
+import {
+  COMMON_QUERIES,
+  MODAL_TYPES,
+  ROUTES,
+} from '../constants';
 import {assign} from 'utils';
-
 import SidebarFormsList from '../lists/sidebarForms';
 
 const INITIAL_STATE = {
   headerFilters: 'forms',
   searchContext: searches.getSearchContext('forms', {
     filterParams: {
-      assetType: 'asset_type:survey',
+      assetType: COMMON_QUERIES.s,
     },
-    filterTags: 'asset_type:survey',
+    filterTags: COMMON_QUERIES.s,
   })
 };
 
@@ -66,14 +61,18 @@ class FormSidebar extends Reflux.Component {
       type: MODAL_TYPES.NEW_FORM
     });
   }
-  render () {
+  render() {
     return (
-      <bem.FormSidebar__wrapper>
-        <bem.KoboButton onClick={this.newFormModal} m={['blue', 'fullwidth']}>
+      <React.Fragment>
+        <bem.KoboButton
+          m={['blue', 'fullwidth']}
+          disabled={!stores.session.isLoggedIn}
+          onClick={this.newFormModal}
+        >
           {t('new')}
         </bem.KoboButton>
         <SidebarFormsList/>
-      </bem.FormSidebar__wrapper>
+      </React.Fragment>
     );
   }
   onRouteChange() {
@@ -102,8 +101,7 @@ class DrawerLink extends React.Component {
     }
   }
   render () {
-    var icon_class = (this.props['ki-icon'] == undefined ? 'fa fa-globe' : `k-icon-${this.props['ki-icon']}`);
-    var icon = (<i className={icon_class}/>);
+    var icon = (<i className={`k-icon-${this.props['k-icon']}`}/>);
     var classNames = [this.props.class, 'k-drawer__link'];
 
     var link;
@@ -134,19 +132,23 @@ class Drawer extends Reflux.Component {
   constructor(props){
     super(props);
     autoBind(this);
-    this.state = assign(stores.session, stores.pageState);
     this.stores = [
       stores.session,
       stores.pageState,
       stores.serverEnvironment,
     ];
   }
-  render () {
+  render() {
+    // no sidebar for not logged in users
+    if (!stores.session.isLoggedIn) {
+      return null;
+    }
+
     return (
       <bem.KDrawer>
         <bem.KDrawer__primaryIcons>
-          <DrawerLink label={t('Projects')} linkto='/forms' ki-icon='projects' />
-          <DrawerLink label={t('Library')} linkto='/library' ki-icon='library' />
+          <DrawerLink label={t('Projects')} linkto={ROUTES.FORMS} k-icon='projects' />
+          <DrawerLink label={t('Library')} linkto={ROUTES.LIBRARY} k-icon='library' />
         </bem.KDrawer__primaryIcons>
 
         <bem.KDrawer__sidebar>
@@ -157,13 +159,14 @@ class Drawer extends Reflux.Component {
         </bem.KDrawer__sidebar>
 
         <bem.KDrawer__secondaryIcons>
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
             <IntercomHelpBubble/>
           }
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
             <SupportHelpBubble/>
           }
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
+            stores.session.currentAccount.projects_url &&
             <a href={stores.session.currentAccount.projects_url}
               className='k-drawer__link'
               target='_blank'
@@ -176,14 +179,14 @@ class Drawer extends Reflux.Component {
             stores.serverEnvironment.state.source_code_url &&
             <a href={stores.serverEnvironment.state.source_code_url}
               className='k-drawer__link' target='_blank' data-tip={t('Source')}>
-              <i className='k-icon k-icon-github' />
+              <i className='k-icon k-icon-logo-github' />
             </a>
           }
         </bem.KDrawer__secondaryIcons>
       </bem.KDrawer>
       );
   }
-};
+}
 
 reactMixin(Drawer.prototype, searches.common);
 reactMixin(Drawer.prototype, mixins.droppable);

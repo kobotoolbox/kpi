@@ -1,5 +1,5 @@
 # coding: utf-8
-from rest_framework import serializers, exceptions
+from rest_framework import serializers
 
 
 class AuthorizedApplicationUserSerializer(serializers.BaseSerializer):
@@ -19,5 +19,5 @@ class AuthorizedApplicationUserSerializer(serializers.BaseSerializer):
             else:
                 validated_data[field_name] = value
         if len(validation_errors):
-            raise exceptions.ValidationError(validation_errors)
+            raise serializers.ValidationError(validation_errors)
         return validated_data

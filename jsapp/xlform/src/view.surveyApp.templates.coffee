@@ -21,7 +21,7 @@ module.exports = do ->
               </p>
               <div class="survey__row__spacer  expanding-spacer-between-rows expanding-spacer-between-rows--depr">
                 <div tabIndex="0" class="btn btn--block btn--addrow js-expand-row-selector">
-                  <i class="fa fa-plus"></i>
+                  <i class="k-icon k-icon-plus"></i>
                 </div>
                 <div class="line">&nbsp;</div>
               </div>

@@ -18,7 +18,12 @@ import 'leaflet.heat/dist/leaflet-heat';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 
-import {MODAL_TYPES, QUESTION_TYPES} from '../constants';
+import {
+  ASSET_FILE_TYPES,
+  MODAL_TYPES,
+  QUESTION_TYPES,
+  QUERY_LIMIT_DEFAULT,
+} from '../constants';
 
 import {
   notify,
@@ -60,7 +65,7 @@ export class FormMap extends React.Component {
     let survey = props.asset.content.survey;
     var hasGeoPoint = false;
     survey.forEach(function(s) {
-      if (s.type === QUESTION_TYPES.get('geopoint').id) {
+      if (s.type === QUESTION_TYPES.geopoint.id) {
         hasGeoPoint = true;
       }
     });
@@ -133,10 +138,12 @@ export class FormMap extends React.Component {
     this.listenTo(actions.map.setMapStyles.started, this.onSetMapStylesStarted);
     this.listenTo(actions.map.setMapStyles.completed, this.onSetMapStylesCompleted);
     this.listenTo(actions.resources.getAssetFiles.completed, this.updateOverlayList);
-    actions.resources.getAssetFiles(this.props.asset.uid);
+    actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id);
   }
   loadOverlayLayers(map) {
-    dataInterface.getAssetFiles(this.props.asset.uid).done(data => {});
+    dataInterface
+      .getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
+      .done((data) => {});
   }
   updateOverlayList(data) {
     let map = this.state.map;
@@ -250,7 +257,7 @@ export class FormMap extends React.Component {
         typeof row.label !== 'undefined' &&
         row.label !== null &&
         selectedQuestion === row.label[0] &&
-        row.type !== QUESTION_TYPES.get('geopoint').id
+        row.type !== QUESTION_TYPES.geopoint.id
       ) {
         selectedQuestion = null; //Ignore if not a geopoint question type
       }
@@ -821,14 +828,14 @@ export class FormMap extends React.Component {
               })}
             </div>
             <div className='maplist-legend' onClick={this.toggleLegend}>
-              <i className={classNames('fa', this.state.showExpandedLegend ? 'fa-angle-down' : 'fa-angle-up')} /> {t('Legend')}
+              <i className={classNames('k-icon', this.state.showExpandedLegend ? 'k-icon-down' : 'k-icon-up')} /> {t('Legend')}
             </div>
           </bem.FormView__mapList>
         }
         {!this.state.markers && !this.state.heatmap &&
           <bem.Loading>
             <bem.Loading__inner>
-              <i />
+              <i className='k-spin k-icon k-icon-spinner'/>
             </bem.Loading__inner>
           </bem.Loading>
         }
@@ -855,4 +862,3 @@ export class FormMap extends React.Component {
 reactMixin(FormMap.prototype, Reflux.ListenerMixin);
 
 export default FormMap;
-export const QUERY_LIMIT_DEFAULT = 5000;

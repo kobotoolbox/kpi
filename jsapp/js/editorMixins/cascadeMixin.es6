@@ -1,3 +1,5 @@
+// TODO: this shouldn't be a mixin (wtf)
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {bem} from '../bem';
@@ -103,7 +105,7 @@ export const cascadeMixin = {
                 <a href={stores.serverEnvironment.state.support_url + CHOICE_LIST_SUPPORT_URL}
                   target='_blank'
                   data-tip={t('Learn more about importing cascading lists from Excel')}>
-                    <i className='k-icon-help' />
+                    <i className='k-icon k-icon-help' />
                 </a>
               </div>
             }

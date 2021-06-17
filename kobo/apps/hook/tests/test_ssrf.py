@@ -36,6 +36,6 @@ class SSRFHookTestCase(HookTestCase):
         success = service_definition.send()
         self.assertFalse(success)
         hook_log = hook.logs.all()[0]
-        self.assertEquals(hook_log.status_code, KOBO_INTERNAL_ERROR_STATUS_CODE)
-        self.assertEquals(hook_log.status, HOOK_LOG_PENDING)
+        self.assertEqual(hook_log.status_code, KOBO_INTERNAL_ERROR_STATUS_CODE)
+        self.assertEqual(hook_log.status, HOOK_LOG_PENDING)
         self.assertTrue('is not allowed' in hook_log.message)

@@ -28,33 +28,43 @@ import ui from '../ui';
 import {stores} from '../stores';
 import {
   PROJECT_SETTINGS_CONTEXTS,
-  MODAL_TYPES
-} from '../constants';
+  MODAL_TYPES,
+  ASSET_TYPES
+} from 'js/constants';
+import {AssetTagsForm} from './modalForms/assetTagsForm';
+import {LibraryAssetForm} from './modalForms/libraryAssetForm';
+import LibraryNewItemForm from './modalForms/libraryNewItemForm';
+import LibraryUploadForm from './modalForms/libraryUploadForm';
 import EncryptForm from './modalForms/encryptForm.es6';
+import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
 import ProjectSettings from './modalForms/projectSettings';
-import Submission from './modalForms/submission';
-import TableColumnFilter from './modalForms/tableColumnFilter';
+import RESTServicesForm from './RESTServices/RESTServicesForm';
+import SharingForm from './permissions/sharingForm';
+import SubmissionModal from 'js/components/submissions/submissionModal';
+import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
 import TranslationSettings from './modalForms/translationSettings';
 import TranslationTable from './modalForms/translationTable';
-import SharingForm from './permissions/sharingForm';
-import RESTServicesForm from './RESTServices/RESTServicesForm';
 
 function getSubmissionTitle(props) {
-  let title = t('Submission Record');
+  let title = t('Success!');
   let p = props.params;
   let sid = parseInt(p.sid);
 
-  if (p.tableInfo) {
-    let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
-    title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
-  } else {
-    let index = p.ids.indexOf(sid);
-    if (p.ids.length === 1) {
-      title = `${t('Submission Record')}`;
+  if (!p.isDuplicated) {
+    title = t('Submission Record');
+    if (p.tableInfo) {
+      let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
+      title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
     } else {
-      title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+      let index = p.ids.indexOf(sid);
+      if (p.ids.length === 1) {
+        title = `${t('Submission Record')}`;
+      } else {
+        title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+      }
     }
   }
+
   return title;
 }
 
@@ -68,7 +78,7 @@ class Modal extends React.Component {
     };
     autoBind(this);
   }
-  componentDidMount () {
+  componentDidMount() {
     var type = this.props.params.type;
     switch(type) {
       case MODAL_TYPES.SHARING:
@@ -87,8 +97,28 @@ class Modal extends React.Component {
         // title is set by formEditors
         break;
 
+      case MODAL_TYPES.LIBRARY_NEW_ITEM:
+        this.setModalTitle(t('Create Library Item'));
+        break;
+
+      case MODAL_TYPES.LIBRARY_TEMPLATE:
+        this.setModalTitle(t('Template details'));
+        break;
+
+      case MODAL_TYPES.LIBRARY_COLLECTION:
+        this.setModalTitle(t('Collection details'));
+        break;
+
+      case MODAL_TYPES.ASSET_TAGS:
+        this.setModalTitle(t('Edit tags'));
+        break;
+
+      case MODAL_TYPES.LIBRARY_UPLOAD:
+        this.setModalTitle(t('Upload file'));
+        break;
+
       case MODAL_TYPES.ENKETO_PREVIEW:
-        var uid = this.props.params.assetid;
+        const uid = this.props.params.assetid || this.props.params.uid;
         stores.allAssets.whenLoaded(uid, function(asset){
           actions.resources.createSnapshot({
             asset: asset.url,
@@ -106,7 +136,7 @@ class Modal extends React.Component {
         this.setState({
           title: getSubmissionTitle(this.props),
           modalClass: 'modal--large modal-submission',
-          sid: this.props.params.sid
+          sid: this.props.params.sid,
         });
       break;
 
@@ -139,6 +169,13 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.ENCRYPT_FORM:
         this.setModalTitle(t('Manage Form Encryption'));
+        break;
+
+      case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
+        // title is set by BulkEditSubmissionsForm
+        this.setState({
+          modalClass: 'modal--large modal--large-shorter'
+        });
         break;
 
       default:
@@ -196,7 +233,7 @@ class Modal extends React.Component {
     };
     dialog.set(opts).show();
   }
-  onModalClose(evt) {
+  onModalClose() {
     if (
       this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
       stores.translations.state.isTranslationTableUnsaved
@@ -210,109 +247,144 @@ class Modal extends React.Component {
     }
   }
   render() {
+    const uid = this.props.params.assetid || this.props.params.uid;
+
     return (
       <ui.Modal
         open
         onClose={this.onModalClose}
         title={this.state.title}
         className={this.state.modalClass}
+        isDuplicated={this.props.params.isDuplicated}
       >
         <ui.Modal.Body>
-            { this.props.params.type == MODAL_TYPES.SHARING &&
-              <SharingForm uid={this.props.params.assetid} />
+            { this.props.params.type === MODAL_TYPES.SHARING &&
+              <SharingForm uid={uid} />
             }
-            { this.props.params.type == MODAL_TYPES.NEW_FORM &&
+            { this.props.params.type === MODAL_TYPES.NEW_FORM &&
               <ProjectSettings
                 context={PROJECT_SETTINGS_CONTEXTS.NEW}
                 onSetModalTitle={this.setModalTitle}
               />
             }
-            { this.props.params.type == MODAL_TYPES.REPLACE_PROJECT &&
+            { this.props.params.type === MODAL_TYPES.LIBRARY_NEW_ITEM &&
+              <LibraryNewItemForm
+                onSetModalTitle={this.setModalTitle}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.LIBRARY_TEMPLATE &&
+              <LibraryAssetForm
+                asset={this.props.params.asset}
+                assetType={ASSET_TYPES.template.id}
+                onSetModalTitle={this.setModalTitle}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.LIBRARY_COLLECTION &&
+              <LibraryAssetForm
+                asset={this.props.params.asset}
+                assetType={ASSET_TYPES.collection.id}
+                onSetModalTitle={this.setModalTitle}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.ASSET_TAGS &&
+              <AssetTagsForm
+                asset={this.props.params.asset}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.LIBRARY_UPLOAD &&
+              <LibraryUploadForm
+                onSetModalTitle={this.setModalTitle}
+                file={this.props.params.file}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.REPLACE_PROJECT &&
               <ProjectSettings
                 context={PROJECT_SETTINGS_CONTEXTS.REPLACE}
                 onSetModalTitle={this.setModalTitle}
                 formAsset={this.props.params.asset}
               />
             }
-            { this.props.params.type == MODAL_TYPES.ENKETO_PREVIEW && this.state.enketopreviewlink &&
+            { this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.enketopreviewlink &&
               <div className='enketo-holder'>
                 <iframe src={this.state.enketopreviewlink} />
               </div>
             }
-            { this.props.params.type == MODAL_TYPES.ENKETO_PREVIEW && !this.state.enketopreviewlink &&
-              <bem.Loading>
-                <bem.Loading__inner>
-                  <i />
-                  {t('loading...')}
-                </bem.Loading__inner>
-              </bem.Loading>
+            { this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && !this.state.enketopreviewlink &&
+              <ui.LoadingSpinner/>
             }
-            { this.props.params.type == MODAL_TYPES.ENKETO_PREVIEW && this.state.error &&
+            { this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.error &&
               <div>
                 {this.state.message}
               </div>
             }
-            { this.props.params.type == MODAL_TYPES.UPLOADING_XLS &&
+            { this.props.params.type === MODAL_TYPES.UPLOADING_XLS &&
+              <div>
+                <ui.LoadingSpinner message={this.state.message}/>
+              </div>
+            }
+            { this.props.params.type === MODAL_TYPES.SUBMISSION && this.state.sid &&
+              <SubmissionModal
+                sid={this.state.sid}
+                asset={this.props.params.asset}
+                ids={this.props.params.ids}
+                isDuplicated={this.props.params.isDuplicated}
+                duplicatedSubmission={this.props.params.duplicatedSubmission}
+                tableInfo={this.props.params.tableInfo || false}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.SUBMISSION && !this.state.sid &&
               <div>
                 <bem.Loading>
                   <bem.Loading__inner>
-                    <i />
-                    <bem.Loading__msg>{this.state.message}</bem.Loading__msg>
+                    <i className='k-spin k-icon k-icon-spinner'/>
                   </bem.Loading__inner>
                 </bem.Loading>
               </div>
             }
-            { this.props.params.type == MODAL_TYPES.SUBMISSION && this.state.sid &&
-              <Submission sid={this.state.sid}
-                          asset={this.props.params.asset}
-                          ids={this.props.params.ids}
-                          tableInfo={this.props.params.tableInfo || false} />
-            }
-            { this.props.params.type == MODAL_TYPES.SUBMISSION && !this.state.sid &&
-              <div>
-                <bem.Loading>
-                  <bem.Loading__inner>
-                    <i />
-                  </bem.Loading__inner>
-                </bem.Loading>
-              </div>
-            }
-            { this.props.params.type == MODAL_TYPES.TABLE_COLUMNS &&
+            { this.props.params.type === MODAL_TYPES.TABLE_COLUMNS &&
               <TableColumnFilter asset={this.props.params.asset}
                                  columns={this.props.params.columns}
                                  getColumnLabel={this.props.params.getColumnLabel}
                                  overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
             }
-            { this.props.params.type == MODAL_TYPES.REST_SERVICES &&
+            { this.props.params.type === MODAL_TYPES.REST_SERVICES &&
               <RESTServicesForm
                 assetUid={this.props.params.assetUid}
                 hookUid={this.props.params.hookUid}
               />
             }
-            { this.props.params.type == MODAL_TYPES.FORM_LANGUAGES &&
+            { this.props.params.type === MODAL_TYPES.FORM_LANGUAGES &&
               <TranslationSettings
                 asset={this.props.params.asset}
                 assetUid={this.props.params.assetUid}
               />
             }
-            { this.props.params.type == MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
+            { this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
               <TranslationTable
                 asset={this.props.params.asset}
                 langString={this.props.params.langString}
                 langIndex={this.props.params.langIndex}
               />
             }
-            { this.props.params.type == MODAL_TYPES.ENCRYPT_FORM &&
+            { this.props.params.type === MODAL_TYPES.ENCRYPT_FORM &&
               <EncryptForm
                 asset={this.props.params.asset}
                 assetUid={this.props.params.assetUid}
               />
             }
+            { this.props.params.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS &&
+              <BulkEditSubmissionsForm
+                onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
+                asset={this.props.params.asset}
+                {...this.props.params}
+              />
+            }
         </ui.Modal.Body>
       </ui.Modal>
-    )
+    );
   }
-};
+}
 
 reactMixin(Modal.prototype, Reflux.ListenerMixin);
 

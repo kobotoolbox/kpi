@@ -7,13 +7,15 @@ import TextareaAutosize from 'react-autosize-textarea';
 import alertify from 'alertifyjs';
 import {actions} from '../actions';
 import {bem} from '../bem';
+import {LoadingSpinner} from 'js/ui';
 import {stores} from '../stores';
 import Select from 'react-select';
-import TextBox from './textBox';
-import Checkbox from './checkbox';
+import TextBox from 'js/components/common/textBox';
+import Checkbox from 'js/components/common/checkbox';
 import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
 import {stringToColor} from 'utils';
+import {ROUTES} from 'js/constants';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 
@@ -32,7 +34,7 @@ export default class AccountSettings extends React.Component {
   rebuildState() {
     if (
       stores.session &&
-      stores.session.currentAccount &&
+      stores.session.isLoggedIn &&
       stores.session.environment
     ) {
       this.setStateFromSession(
@@ -217,18 +219,13 @@ export default class AccountSettings extends React.Component {
   render() {
     if(
       !stores.session ||
-      !stores.session.currentAccount ||
+      !stores.session.isLoggedIn ||
       !stores.session.environment
     ) {
       return (
         <bem.AccountSettings>
           <bem.AccountSettings__item>
-            <bem.Loading>
-              <bem.Loading__inner>
-                <i />
-                {t('loading...')}
-              </bem.Loading__inner>
-            </bem.Loading>
+            <LoadingSpinner/>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
       );
@@ -305,7 +302,7 @@ export default class AccountSettings extends React.Component {
 
               <bem.AccountSettings__item m='password'>
                 <a
-                  href='/#/change-password'
+                  href={`/#${ROUTES.CHANGE_PASSWORD}`}
                   className='kobo-button kobo-button--teal'
                 >
                   {t('Modify Password')}
@@ -360,6 +357,7 @@ export default class AccountSettings extends React.Component {
                     value={this.state.gender}
                     options={this.state.genderChoices}
                     onChange={this.genderChange}
+                    isSearchable={false}
                     className='kobo-select'
                     classNamePrefix='kobo-select'
                     menuPlacement='auto'
@@ -425,7 +423,7 @@ export default class AccountSettings extends React.Component {
                 <label>{t('Social')}</label>
 
                 <label>
-                  <i className='fa fa-twitter' />
+                  <i className='k-icon k-icon-logo-twitter' />
 
                   <input
                     type='text'
@@ -435,7 +433,7 @@ export default class AccountSettings extends React.Component {
                 </label>
 
                 <label>
-                  <i className='fa fa-linkedin' />
+                  <i className='k-icon k-icon-logo-linkedin' />
 
                   <input
                     type='text'
@@ -445,7 +443,7 @@ export default class AccountSettings extends React.Component {
                 </label>
 
                 <label>
-                  <i className='fa fa-instagram' />
+                  <i className='k-icon k-icon-logo-instagram' />
 
                   <input
                     type='text'

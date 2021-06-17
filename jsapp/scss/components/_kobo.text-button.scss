@@ -1,0 +1,54 @@
+/*
+  This is a text looking alternative to kobo-light-button
+*/
+
+.kobo-text-button {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative; // needed for tooltips etc.
+  font-size: 14px;
+  font-weight: 400;
+  text-decoration: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: $kobo-gray-40;
+  background: transparent;
+  text-transform: uppercase;
+
+  &[disabled] {
+    pointer-events: none;
+    opacity: 0.75;
+  }
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:active {
+    // makes the shadow smaller and moves button down by small bit
+    // to make it look pressed-in
+    transform: translateY(1px);
+  }
+
+  &.kobo-text-button--blue {
+    color: $kobo-blue;
+  }
+
+  &.kobo-text-button--teal {
+    color: $kobo-teal;
+  }
+
+  &.kobo-text-button--green {
+    color: $kobo-green;
+  }
+
+  &.kobo-text-button--orange {
+    color: $kobo-orange;
+  }
+
+  &.kobo-text-button--red {
+    color: $kobo-red;
+  }
+}

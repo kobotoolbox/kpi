@@ -5,8 +5,9 @@ import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import {actions} from '../actions';
 import {bem} from '../bem';
+import {LoadingSpinner} from 'js/ui';
 import {stores} from '../stores';
-import TextBox from './textBox';
+import TextBox from 'js/components/common/textBox';
 import {hashHistory} from 'react-router';
 import PasswordStrength from 'js/components/passwordStrength';
 import {stringToColor} from 'utils';
@@ -81,16 +82,11 @@ export default class ChangePassword extends React.Component {
   }
 
   render() {
-    if(!stores.session || !stores.session.currentAccount) {
+    if(!stores.session || !stores.session.isLoggedIn) {
       return (
         <bem.AccountSettings>
           <bem.AccountSettings__item>
-            <bem.Loading>
-              <bem.Loading__inner>
-                <i />
-                {t('loading...')}
-              </bem.Loading__inner>
-            </bem.Loading>
+            <LoadingSpinner/>
           </bem.AccountSettings__item>
         </bem.AccountSettings>
       );

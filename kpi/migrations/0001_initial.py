@@ -2,7 +2,6 @@
 from django.db import models, migrations
 import jsonfield.fields
 from kpi.models import ObjectPermissionMixin
-import mptt.fields
 from django.conf import settings
 import taggit.managers
 
@@ -51,8 +50,12 @@ class Migration(migrations.Migration):
                 ('level', models.PositiveIntegerField(editable=False, db_index=True)),
                 ('owner', models.ForeignKey(related_name='owned_collections', to=settings.AUTH_USER_MODEL,
                                             on_delete=models.CASCADE)),
-                ('parent', mptt.fields.TreeForeignKey(related_name='children', blank=True, to='kpi.Collection',
-                                                      null=True, on_delete=models.CASCADE)),
+                # We don't include `mptt` as a dependency anymore; fudge this
+                # with a garden-variety foreign key
+                ('parent', models.ForeignKey(related_name='children', blank=True, to='kpi.Collection',
+                                             null=True, on_delete=models.CASCADE)),
+                #('parent', mptt.fields.TreeForeignKey(related_name='children', blank=True, to='kpi.Collection',
+                #                                      null=True, on_delete=models.CASCADE)),
                 ('tags', taggit.managers.TaggableManager(to='taggit.Tag', through='taggit.TaggedItem',
                                                          help_text='A comma-separated list of tags.', verbose_name='Tags')),
             ],

@@ -3,25 +3,30 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
-import alertify from 'alertifyjs';
 import ui from '../ui';
 import {stores} from '../stores';
 import Reflux from 'reflux';
 import {bem} from '../bem';
 import {actions} from '../actions';
-import {removeInvalidChars} from '../assetUtils';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
   assign,
   currentLang,
+  getLoginUrl,
   stringToColor,
 } from 'utils';
+import {getAssetIcon} from 'js/assetUtils';
+import {
+  COMMON_QUERIES,
+  PATHS,
+  ROUTES,
+} from 'js/constants';
 import {searches} from '../searches';
 import {ListSearch} from '../components/list';
-import {NAME_MAX_LENGTH} from 'js/constants';
-
-let typingTimer;
+import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
+import SearchBox from 'js/components/header/searchBox';
+import myLibraryStore from 'js/components/library/myLibraryStore';
 
 class MainHeader extends Reflux.Component {
   constructor(props){
@@ -30,28 +35,32 @@ class MainHeader extends Reflux.Component {
       asset: false,
       currentLang: currentLang(),
       isLanguageSelectorVisible: false,
-      libraryFiltersContext: searches.getSearchContext('library', {
-        filterParams: {
-          assetType: 'asset_type:question OR asset_type:block OR asset_type:template',
-        },
-        filterTags: 'asset_type:question OR asset_type:block OR asset_type:template',
-      }),
       formFiltersContext: searches.getSearchContext('forms', {
         filterParams: {
-          assetType: 'asset_type:survey',
+          assetType: COMMON_QUERIES.s,
         },
-        filterTags: 'asset_type:survey',
-      })
+        filterTags: COMMON_QUERIES.s,
+      }),
     }, stores.pageState.state);
     this.stores = [
       stores.session,
-      stores.pageState
+      stores.pageState,
     ];
+    this.unlisteners = [];
     autoBind(this);
   }
+
   componentDidMount() {
-    this.listenTo(stores.asset, this.assetLoad);
+    this.unlisteners.push(
+      stores.asset.listen(this.onAssetLoad),
+      myLibraryStore.listen(this.forceRender)
+    );
   }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
+
   /*
    * NOTE: this should be updated to `getDerivedStateFromProps` but causes Error:
    * Warning: Unsafe legacy lifecycles will not be called for components using new component APIs.
@@ -61,30 +70,56 @@ class MainHeader extends Reflux.Component {
   componentWillUpdate(newProps) {
     if (this.props.assetid !== newProps.assetid) {
       this.setState({asset: false});
+      // we need new asset here, but instead of duplicating a call, we wait for
+      // action triggered by other component (route component)
     }
   }
-  assetLoad(data) {
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.assetid !== this.props.assetid && this.props.assetid !== null) {
+      actions.resources.loadAsset({id: this.props.assetid});
+    }
+  }
+
+  forceRender() {
+    this.setState(this.state);
+  }
+
+  isSearchBoxDisabled() {
+    if (this.isMyLibrary()) {
+      // disable search when user has zero assets
+      return myLibraryStore.getCurrentUserTotalAssets() === null;
+    } else {
+      return false;
+    }
+  }
+
+  onAssetLoad(data) {
     const asset = data[this.props.assetid];
     this.setState(assign({asset: asset}));
   }
-  logout () {
+
+  logout() {
     actions.auth.logout();
   }
+
   toggleLanguageSelector() {
-    this.setState({isLanguageSelectorVisible: !this.state.isLanguageSelectorVisible})
+    this.setState({isLanguageSelectorVisible: !this.state.isLanguageSelectorVisible});
   }
-  accountSettings () {
+
+  accountSettings() {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
-      hashHistory.push('account-settings');
+      hashHistory.push(ROUTES.ACCOUNT_SETTINGS);
     });
   }
-  languageChange (evt) {
+
+  languageChange(evt) {
     evt.preventDefault();
     let langCode = $(evt.target).data('key');
     if (langCode) {
       // use .always (instead of .done) here since Django 1.8 redirects the request
-      dataInterface.setLanguage({language: langCode}).always((r)=>{
+      dataInterface.setLanguage({language: langCode}).always(() => {
         if ('reload' in window.location) {
           window.location.reload();
         } else {
@@ -93,6 +128,7 @@ class MainHeader extends Reflux.Component {
       });
     }
   }
+
   renderLangItem(lang) {
     return (
       <bem.AccountBox__menuLI key={lang.value}>
@@ -102,7 +138,21 @@ class MainHeader extends Reflux.Component {
       </bem.AccountBox__menuLI>
     );
   }
-  renderAccountNavMenu () {
+
+  renderLoginButton() {
+    return (
+      <bem.LoginBox>
+        <a
+          href={getLoginUrl()}
+          className='kobo-button kobo-button--blue'
+        >
+          {t('Log In')}
+        </a>
+      </bem.LoginBox>
+    );
+  }
+
+  renderAccountNavMenu() {
     let shouldDisplayUrls = false;
     if (
       stores.session &&
@@ -125,7 +175,7 @@ class MainHeader extends Reflux.Component {
     if (stores.session.environment) {
       langs = stores.session.environment.interface_languages;
     }
-    if (stores.session.currentAccount) {
+    if (stores.session.isLoggedIn) {
       var accountName = stores.session.currentAccount.username;
       var accountEmail = stores.session.currentAccount.email;
 
@@ -187,14 +237,13 @@ class MainHeader extends Reflux.Component {
               </bem.AccountBox__menu>
           </ui.PopoverMenu>
         </bem.AccountBox>
-        );
+      );
     }
 
-    return (
-          <span>{t('n/a')}</span>
-    );
+    return null;
   }
-  renderGitRevInfo () {
+
+  renderGitRevInfo() {
     if (stores.session.currentAccount && stores.session.currentAccount.git_rev) {
       var gitRev = stores.session.currentAccount.git_rev;
       return (
@@ -211,119 +260,77 @@ class MainHeader extends Reflux.Component {
 
     return false;
   }
+
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   }
-  updateAssetTitle() {
-    if (!this.state.asset.name.trim()) {
-      alertify.error(t('Please enter a title for your project'));
-      return false;
-    } else {
-      actions.resources.updateAsset(
-        this.state.asset.uid,
-        {
-          name: this.state.asset.name,
-          settings: JSON.stringify({
-            description: this.state.asset.settings.description
-          })
-        }
-      );
-      return true;
-    }
-  }
-  assetTitleChange (e) {
-    var asset = this.state.asset;
-    if (e.target.name == 'title')
-      asset.name = removeInvalidChars(e.target.value);
-    else
-      asset.settings.description = removeInvalidChars(e.target.value);
 
-    this.setState({
-      asset: asset
-    });
+  render() {
+    const isLoggedIn = stores.session.isLoggedIn;
 
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(this.updateAssetTitle.bind(this), 1500);
-  }
-  assetTitleKeyDown(evt) {
-    if (evt.key === 'Enter') {
-      clearTimeout(typingTimer);
-      if (this.updateAssetTitle()) {
-        evt.currentTarget.blur();
-      }
-    }
-  }
-  render () {
-    var userCanEditAsset = false;
-    if (this.state.asset)
+    let userCanEditAsset = false;
+    if (this.state.asset) {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
+    }
 
-    const formTitleNameMods = [];
-    if (
-      this.state.asset &&
-      typeof this.state.asset.name === 'string' &&
-      this.state.asset.name.length > 125
-    ) {
-      formTitleNameMods.push('long');
+    let iconClassName = '';
+    if (this.state.asset) {
+      iconClassName = getAssetIcon(this.state.asset);
+    }
+
+    let librarySearchBoxPlaceholder = t('Search My Library');
+    if (this.isPublicCollections()) {
+      librarySearchBoxPlaceholder = t('Search Public Collections');
     }
 
     return (
-        <header className='mdl-layout__header'>
+        <bem.MainHeader className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
-            <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
-              <i className='fa fa-bars' />
-            </bem.Button>
+            {stores.session.isLoggedIn &&
+              <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
+                <i className='k-icon k-icon-menu' />
+              </bem.Button>
+            }
             <span className='mdl-layout-title'>
               <a href='/'>
                 <bem.Header__logo />
               </a>
             </span>
-            { this.isFormList() &&
+            { isLoggedIn && this.isFormList() &&
               <div className='mdl-layout__header-searchers'>
                 <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
-            { this.isLibrary() &&
+            { isLoggedIn && (this.isMyLibrary() || this.isPublicCollections()) &&
               <div className='mdl-layout__header-searchers'>
-                <ListSearch searchContext={this.state.libraryFiltersContext} placeholderText={t('Search Library')} />
+                <SearchBox
+                  placeholder={librarySearchBoxPlaceholder}
+                  disabled={this.isSearchBoxDisabled()}
+                />
               </div>
             }
-            { this.isFormSingle() && this.state.asset &&
-              <bem.FormTitle>
-                { this.state.asset.has_deployment ?
-                  <i className='k-icon-deploy' />
-                :
-                  <i className='k-icon-drafts' />
-                }
-                <bem.FormTitle__name m={formTitleNameMods}>
-                  <input
-                    type='text'
-                    maxLength={NAME_MAX_LENGTH}
-                    name='title'
-                    placeholder={t('Project title')}
-                    value={this.state.asset.name ? this.state.asset.name : ''}
-                    onChange={this.assetTitleChange.bind(this)}
-                    onKeyDown={this.assetTitleKeyDown}
-                    disabled={!userCanEditAsset}
-                  />
-                </bem.FormTitle__name>
-                { this.state.asset.has_deployment &&
-                  <bem.FormTitle__submissions>
+            { !this.isLibrary() && this.state.asset && this.isFormSingle() &&
+              <React.Fragment>
+                <bem.MainHeader__icon className={iconClassName} />
+
+                <HeaderTitleEditor
+                  asset={this.state.asset}
+                  isEditable={userCanEditAsset}
+                />
+
+                { this.isFormSingle() && this.state.asset.has_deployment &&
+                  <bem.MainHeader__counter>
                     {this.state.asset.deployment__submission_count} {t('submissions')}
-                  </bem.FormTitle__submissions>
+                  </bem.MainHeader__counter>
                 }
-              </bem.FormTitle>
+              </React.Fragment>
             }
             {this.renderAccountNavMenu()}
+            { !isLoggedIn && this.renderLoginButton()}
           </div>
           {this.renderGitRevInfo()}
-        </header>
+        </bem.MainHeader>
       );
-  }
-  componentDidUpdate(prevProps) {
-    if (prevProps.assetid !== this.props.assetid && this.props.assetid !== null) {
-      actions.resources.loadAsset({id: this.props.assetid});
-    }
   }
 }
 
@@ -331,8 +338,6 @@ reactMixin(MainHeader.prototype, Reflux.ListenerMixin);
 reactMixin(MainHeader.prototype, mixins.contextRouter);
 reactMixin(MainHeader.prototype, mixins.permissions);
 
-MainHeader.contextTypes = {
-  router: PropTypes.object
-};
+MainHeader.contextTypes = {router: PropTypes.object};
 
 export default MainHeader;

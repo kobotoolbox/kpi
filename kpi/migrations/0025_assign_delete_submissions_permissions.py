@@ -1,22 +1,7 @@
 import sys
 
-from django.contrib.auth.management import create_permissions
 from django.contrib.auth.models import AnonymousUser
 from django.db import migrations
-
-
-def create_new_perms(apps):
-    """
-    The new `delete_submissions` permission does not exist when running this
-    migration for the first time. Django runs migrations in a transaction and
-    new permissions are not created until after the transaction is completed.
-
-    See https://stackoverflow.com/a/40092780/1141214
-    """
-    for app_config in apps.get_app_configs():
-        app_config.models_module = True
-        create_permissions(app_config, apps=apps, verbosity=0)
-        app_config.models_module = None
 
 
 def grant_model_level_perms(apps):
@@ -117,7 +102,6 @@ def forwards_func(apps, schema_editor):
         'databases...\n'
     )
     sys.stderr.flush()
-    create_new_perms(apps)
     grant_model_level_perms(apps)
     grant_object_level_perms(apps)
 
@@ -135,6 +119,40 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterModelOptions(
+            name='asset',
+            options={
+                'default_permissions': ('add', 'change', 'delete'),
+                'ordering': ('-date_modified',),
+                'permissions': (
+                    ('view_asset', 'Can view asset'),
+                    ('share_asset', "Can change asset's sharing settings"),
+                    ('add_submissions', 'Can submit data to asset'),
+                    ('view_submissions', 'Can view submitted data for asset'),
+                    (
+                        'partial_submissions',
+                        'Can make partial actions on submitted data for asset for specific users',
+                    ),
+                    (
+                        'change_submissions',
+                        'Can modify submitted data for asset',
+                    ),
+                    (
+                        'delete_submissions',
+                        'Can delete submitted data for asset',
+                    ),
+                    (
+                        'share_submissions',
+                        "Can change sharing settings for asset's submitted data",
+                    ),
+                    (
+                        'validate_submissions',
+                        'Can validate submitted data asset',
+                    ),
+                    ('from_kc_only', 'INTERNAL USE ONLY; DO NOT ASSIGN'),
+                ),
+            },
+        ),
         migrations.RunPython(forwards_func, reverse_func),
     ]
 

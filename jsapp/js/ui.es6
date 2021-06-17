@@ -7,34 +7,43 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import _ from 'underscore';
+import {getAssetDisplayName} from 'js/assetUtils';
 import {KEY_CODES} from 'js/constants';
 import {bem} from './bem';
-import {assign} from 'utils';
+import {hasLongWords} from 'utils';
 import classNames from 'classnames';
 
 class SearchBox extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props);
     autoBind(this);
   }
-  getValue () {
+  getValue() {
     return ReactDOM.findDOMNode(this.refs.inp).value;
   }
-  setValue (v) {
+  setValue(v) {
     ReactDOM.findDOMNode(this.refs.inp).value = v;
   }
-  render () {
+  render() {
     var elemId = _.uniqueId('elem');
     var value = this.props.value;
     return (
-        <input type='text' ref='inp' className='k-search__input' value={value}
-            onKeyUp={this.props.onKeyUp} onChange={this.props.onChange} id={elemId} placeholder={this.props.placeholder}/>
-      );
+      <input
+        type='text'
+        ref='inp'
+        className='k-search__input'
+        value={value}
+        onKeyUp={this.props.onKeyUp}
+        onChange={this.props.onChange}
+        id={elemId}
+        placeholder={this.props.placeholder}
+        disabled={this.props.disabled}
+      />
+    );
   }
-};
+}
 
 class Panel extends React.Component {
   constructor(props) {
@@ -89,6 +98,21 @@ class Modal extends React.Component {
       );
     }
   }
+  renderClose() {
+    if (this.props.isDuplicated) {
+      return(
+        <a className='modal__done' type='button' onClick={this.props.onClose}>
+          {t('DONE')}
+        </a>
+      );
+    } else {
+      return(
+        <a className='modal__x' type='button' onClick={this.props.onClose}>
+          <i className='k-icon-close'/>
+        </a>
+      );
+    }
+  }
   render() {
     return (
       <bem.Modal__backdrop onClick={this.backdropClick}>
@@ -105,9 +129,7 @@ class Modal extends React.Component {
           <bem.Modal__content>
             <bem.Modal__header>
               {this.renderTitle()}
-              <a className='modal__x' type='button' onClick={this.props.onClose}>
-                <i className='k-icon-close'/>
-              </a>
+              {this.renderClose()}
             </bem.Modal__header>
             {this.props.children}
           </bem.Modal__content>
@@ -171,53 +193,56 @@ class SidebarAssetName extends React.Component {
         </BemSidebarAssetName>
       );
   }
-};
+}
 
 class AssetName extends React.Component {
   constructor(props) {
     super(props);
   }
-  render () {
-    var name = this.props.name,
-        extra = false,
-        isEmpty;
-    var summary = this.props.summary;
-    var row_count;
-    if (!name) {
-      row_count = summary.row_count;
-      // for unnamed assets, we try to display first question name
-      name = summary.labels ? summary.labels[0] : false;
-      if (!name) {
-        isEmpty = true;
-        name = t('no name');
-      }
-      if (row_count) {
-        if (row_count === 2) {
-          extra = <small>{t('and one other question')}</small>;
-        } else if (row_count > 2) {
-          extra = <small>{t('and ## other questions').replace('##', row_count - 1)}</small>;
-        }
+
+  render() {
+    const displayName = getAssetDisplayName(this.props);
+    let extra = null;
+    const classNames = ['asset-name'];
+    const summary = this.props.summary;
+
+    if (
+      !displayName.original &&
+      displayName.question &&
+      summary.row_count
+    ) {
+      if (summary.row_count === 2) {
+        extra = <small>{t('and one other question')}</small>;
+      } else if (summary.row_count > 2) {
+        extra = <small>{t('and ## other questions').replace('##', summary.row_count - 1)}</small>;
       }
     }
+
+    if (displayName.empty) {
+      // if we display empty name fallback, we style it differently
+      classNames.push('asset-name--empty');
+    }
+
+    if (hasLongWords(displayName.final)) {
+      classNames.push('asset-name--has-long-words');
+    }
+
     return (
-        <span className={isEmpty ? 'asset-name asset-name--empty' : 'asset-name'}>
-          {name}
-          {extra ?
-            extra
-          : null }
-        </span>
-      );
+      <span className={classNames.join(' ')}>
+        {displayName.final} {extra}
+      </span>
+    );
   }
-};
+}
 
 class PopoverMenu extends React.Component {
   constructor(props) {
     super(props);
-    this.state = assign({
+    this.state = {
       popoverVisible: false,
       popoverHiding: false,
       placement: 'below'
-    });
+    };
     this._mounted = false;
     autoBind(this);
   }
@@ -271,8 +296,7 @@ class PopoverMenu extends React.Component {
       });
     }
 
-    if (this.props.type == 'assetrow-menu' && !this.state.popoverVisible) {
-      this.props.popoverSetVisible();
+    if (this.props.type === 'assetrow-menu' && !this.state.popoverVisible) {
       // if popover doesn't fit above, place it below
       // 20px is a nice safety margin
       const $assetRow = $(evt.target).parents('.asset-row');
@@ -283,11 +307,21 @@ class PopoverMenu extends React.Component {
         this.setState({placement: 'below'});
       }
     }
+
+    if (typeof this.props.popoverSetVisible === 'function' && !this.state.popoverVisible) {
+      this.props.popoverSetVisible();
+    }
   }
   render () {
+    const mods = this.props.additionalModifiers || [];
+    mods.push(this.state.placement);
+    if (this.props.type) {
+      mods.push(this.props.type);
+    }
+
     return (
-      <bem.PopoverMenu m={[this.props.type, this.state.placement]}>
-        <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip} tabIndex='1'>
+      <bem.PopoverMenu m={mods}>
+        <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip} tabIndex='1' className={this.props.triggerClassName}>
           {this.props.triggerLabel}
         </bem.PopoverMenu__toggle>
         <bem.PopoverMenu__content m={[this.state.popoverHiding ? 'hiding' : '', this.state.popoverVisible ? 'visible' : 'hidden']}>
@@ -299,7 +333,7 @@ class PopoverMenu extends React.Component {
   }
 };
 
-class AccessDeniedMessage extends React.Component {
+export class AccessDeniedMessage extends React.Component {
   render() {
     return (
       <bem.FormView>
@@ -316,8 +350,27 @@ class AccessDeniedMessage extends React.Component {
   }
 }
 
+/**
+ * @prop {string} [message] optional message
+ */
+export class LoadingSpinner extends React.Component {
+  render() {
+    const message = this.props.message || t('loading…');
+
+    return (
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i className='k-spin k-icon k-icon-spinner'/>
+          {message}
+        </bem.Loading__inner>
+      </bem.Loading>
+    );
+  }
+}
+
 var ui = {
   AccessDeniedMessage,
+  LoadingSpinner,
   SearchBox: SearchBox,
   Panel: Panel,
   Modal: Modal,

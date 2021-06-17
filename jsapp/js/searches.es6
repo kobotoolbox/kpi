@@ -70,19 +70,23 @@ function SearchContext(opts={}) {
       this.listenTo(actions.resources.cloneAsset.completed, this.setAsset);
       this.listenTo(actions.resources.setDeploymentActive.completed, this.setAsset);
       this.listenTo(actions.resources.deleteAsset.completed, this.removeAsset);
+      this.listenTo(actions.permissions.removeAssetPermission.completed, this.removeAsset);
     },
     // add/update asset in all search store lists
     setAsset(asset) {
-      this.setAssetInList(asset, 'defaultQueryResultsList');
-      this.setAssetInList(asset, 'searchResultsList');
-      this.rebuildCategorizedList(
-        this.state.defaultQueryResultsList,
-        'defaultQueryCategorizedResultsLists'
-      );
-      this.rebuildCategorizedList(
-        this.state.searchResultsList,
-        'searchResultsCategorizedResultsLists'
-      );
+      // only update things if given asset matches the current context types
+      if (this.state.defaultQueryFilterParams?.assetType.includes(asset.asset_type)) {
+        this.setAssetInList(asset, 'defaultQueryResultsList');
+        this.setAssetInList(asset, 'searchResultsList');
+        this.rebuildCategorizedList(
+          this.state.defaultQueryResultsList,
+          'defaultQueryCategorizedResultsLists'
+        );
+        this.rebuildCategorizedList(
+          this.state.searchResultsList,
+          'searchResultsCategorizedResultsLists'
+        );
+      }
     },
     setAssetInList(asset, listName) {
       const list = this.state[listName];
@@ -106,25 +110,61 @@ function SearchContext(opts={}) {
     },
     rebuildCategorizedList(sourceResults, listName) {
       const catList = this.state[listName];
-      const defaultResults = this.state.defaultQueryResultsList;
+      // If the last asset is removed, the list will not rebuild and
+      // the store keeps the asset appended with `deleted: true` to avoid being
+      // shown to user
       if (catList && sourceResults && sourceResults.length !== 0) {
         const updateObj = {};
         updateObj[listName] = splitResultsToCategorized(sourceResults);
         this.update(updateObj);
+        // HACK FIX: when self removing permissions from unowned asset, or
+        // deleting a draft, the `deleted: true` attribute is missing from the
+        // leftover removed asset
+      } else if (catList && sourceResults && sourceResults.length === 0) {
+        let updateObj = catList;
+        for (const item in updateObj) {
+          // This fix is only relevant to removing the last asset so
+          // we can indiscriminately pick the only asset in store lists
+          if (updateObj[item].length > 0) {
+            updateObj[item][0].deleted = 'true';
+          }
+        }
+        this.update(updateObj);
       }
     },
     // remove asset from all search store lists
-    removeAsset(asset) {
-      this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
-      this.removeAssetFromList(asset.uid, 'searchResultsList');
-      this.rebuildCategorizedList(
-        this.state.defaultQueryResultsList,
-        'defaultQueryCategorizedResultsLists'
-      );
-      this.rebuildCategorizedList(
-        this.state.searchResultsList,
-        'searchResultsCategorizedResultsLists'
-      );
+    removeAsset(assetOrUid, isNonOwner) {
+      let asset;
+      if (typeof assetOrUid === 'object') {
+        asset = assetOrUid;
+      } else {
+        asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+      }
+      // non-owner self permission removal only gives an assetUid string, not
+      // an object; for consistency we make it an object here
+      // only runs if `isNonOwner` is true, so no need to add `assetType` to
+      // fake object
+      if (!asset) {
+       asset = {uid: assetOrUid};
+      }
+
+      // only update things if given asset matches the current context types or
+      // a non-owner removed their own permissions
+      if (
+        isNonOwner ||
+        this.state.defaultQueryFilterParams?.assetType.includes(asset.assetType)
+      ) {
+        this.removeAssetFromList(asset.uid, 'defaultQueryResultsList');
+        this.removeAssetFromList(asset.uid, 'searchResultsList');
+        this.rebuildCategorizedList(
+          this.state.defaultQueryResultsList,
+          'defaultQueryCategorizedResultsLists'
+        );
+        this.rebuildCategorizedList(
+          this.state.searchResultsList,
+          'searchResultsCategorizedResultsLists'
+        );
+      }
     },
     removeAssetFromList(assetUid, listName) {
       let list = this.state[listName];
@@ -242,8 +282,10 @@ function SearchContext(opts={}) {
     }
   };
 
-  const assetsHash = function (assets) {
-    if (assets.length < 1) return false;
+  const assetsHash = function(assets) {
+    if (assets.length < 1) {
+      return false;
+    }
 
     let assetVersionIds = assets.map((asset) => {
       return asset.version_id;
@@ -252,7 +294,7 @@ function SearchContext(opts={}) {
     assetVersionIds.sort();
 
     return SparkMD5.hash(assetVersionIds.join(''));
-  }
+  };
 
   search.listen(function(_opts={}){
     /*
@@ -329,7 +371,7 @@ function SearchContext(opts={}) {
 
   search.completed.listen(function(searchParams, data, _opts){
     data.results = data.results.map(parsed);
-    data.results.forEach(stores.allAssets.registerAssetOrCollection);
+    data.results.forEach(stores.allAssets.registerAsset);
 
     var count = data.count;
 
@@ -401,7 +443,9 @@ function SearchContext(opts={}) {
       } else {
         searchStore.update({defaultQueryState: 'done'});
 
-        dataInterface.assetsHash()
+        // avoid unauthenticated backend calls
+        if (stores.session.isLoggedIn) {
+          dataInterface.assetsHash()
           .done((data) => {
             if (data.hash && data.hash !== assetsHash(searchStore.state.defaultQueryResultsList)) {
               // if hashes don't match launch new search request
@@ -411,6 +455,7 @@ function SearchContext(opts={}) {
           .fail(() => {
             this.searchDefault();
           });
+        }
       }
     },
     searchDefault: function () {
@@ -454,9 +499,9 @@ var commonMethods = {
     });
     this.searchValue();
   },
-  searchCollectionChange (collectionUid) {
+  searchCollectionChange (assetUid) {
     this.quietUpdateStore({
-      parentUid: collectionUid
+      parentUid: assetUid
     });
     this.searchValue();
   },

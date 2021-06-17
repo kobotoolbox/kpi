@@ -110,6 +110,7 @@ def failures_reports():
                 max_length = 0
                 records[record.hook.asset.owner.id]['assets'][record.hook.asset.uid] = {
                     'name': record.hook.asset.name,
+                    'hook_uid': record.hook.uid,
                     'max_length': 0,
                     'logs': []
                 }

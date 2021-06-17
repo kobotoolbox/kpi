@@ -1,5 +1,6 @@
 # coding: utf-8
 import private_storage.urls
+from django.conf import settings
 from django.contrib.auth import logout
 from django.urls import include, re_path, path
 from django.views.i18n import JavaScriptCatalog
@@ -58,3 +59,10 @@ urlpatterns = [
     re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
             retrieve_user_report),
 ]
+
+if settings.DEBUG and settings.ENV == 'dev':
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
+

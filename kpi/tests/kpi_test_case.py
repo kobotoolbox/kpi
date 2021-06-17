@@ -6,14 +6,17 @@ Created on Apr 6, 2015
 """
 import re
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.urls import reverse
 from rest_framework import status
+
+from kpi.constants import ASSET_TYPE_COLLECTION
 
 # FIXME: Remove the following line when the permissions API is in place.
 from .base_test_case import BaseTestCase
 from .test_permissions import BasePermissionsTestCase
 from ..models.asset import Asset
-from ..models.collection import Collection
 from ..models.object_permission import ObjectPermission
 
 
@@ -40,9 +43,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
 
     def url_to_obj(self, url):
         uid = re.match(r'.+/(.+)/.*$', url).groups()[0]
-        if uid.startswith('c'):
-            klass = Collection
-        elif uid.startswith('a'):
+        if uid.startswith('a'):
             klass = Asset
         elif uid.startswith('p'):
             klass = ObjectPermission
@@ -51,13 +52,49 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         obj = klass.objects.get(uid=uid)
         return obj
 
+    def obj_to_url(self, obj):
+        # Add more types as you need them
+        if isinstance(obj, ObjectPermission):
+            return reverse(
+                self._get_endpoint('asset-permission-assignment-detail'),
+                kwargs={'parent_lookup_asset': obj.asset.uid, 'uid': obj.uid},
+            )
+        if isinstance(obj, Permission):
+            return reverse(
+                self._get_endpoint('permission-detail'),
+                kwargs={'codename': obj.codename},
+            )
+        elif isinstance(obj, get_user_model()):
+            return reverse(
+                self._get_endpoint('user-detail'),
+                kwargs={'username': obj.username},
+            )
+        raise NotImplementedError
+
+    def get_asset_perm_assignment_list_url(self, asset):
+        return reverse(
+            self._get_endpoint('asset-permission-assignment-list'),
+            kwargs={'parent_lookup_asset': asset.uid}
+        )
+
+    def get_urls_for_asset_perm_assignment_objs(self, perm_assignments, asset):
+        return [
+            self.absolute_reverse(
+                self._get_endpoint('asset-permission-assignment-detail'),
+                kwargs={'uid': uid, 'parent_lookup_asset': asset.uid},
+            )
+            for uid in perm_assignments.values_list('uid', flat=True)
+        ]
+
     def create_collection(self, name, owner=None, owner_password=None,
                           **kwargs):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
-        kwargs.update({'name': name})
-        response = self.client.post(reverse(self._get_endpoint('collection-list')), kwargs)
+        kwargs.update({'name': name, 'asset_type': ASSET_TYPE_COLLECTION})
+        response = self.client.post(
+            reverse(self._get_endpoint("asset-list")), kwargs
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         if owner and owner_password:
@@ -96,7 +133,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
-        parent_url = reverse(self._get_endpoint('collection-detail'),
+        parent_url = reverse(self._get_endpoint('asset-detail'),
                              kwargs={'uid': parent_collection.uid})
         parent_detail_response = self.client.get(parent_url)
         self.assertEqual(
@@ -115,22 +152,16 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         child_data = child_detail_response.data
         self.assertIn(parent_url, child_data['parent'])
 
-        child_field = 'children'
-        child_found = False
-        # TODO: Request next page of children if child was not found on first
-        # page
-        for child in parent_data[child_field]['results']:
-            if child['url'].endswith(child_url):
-                child_found = True
-                break
-        self.assertTrue(child_found)
+        assert parent_collection.children.count() ==\
+            parent_data['children']['count']
+
 
     def add_to_collection(self, child, parent_collection,
                           owner=None, owner_password=None):
         if owner and owner_password:
             self.login(owner.username, owner_password)
 
-        parent_url = reverse(self._get_endpoint('collection-detail'),
+        parent_url = reverse(self._get_endpoint('asset-detail'),
                              kwargs={'uid': parent_collection.uid})
 
         child_view_name = child._meta.model_name + '-detail'
@@ -148,7 +179,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         Add a permission.
 
         :param obj: Object to manipulate permissions on.
-        :type obj: :py:class:`Collection` or :py:class:`Asset`
+        :type obj: :py:class:`Asset`
         :param other_user: The user for whom permissions on `obj` will be
             manipulated.
         :type other_user: :py:class:`User`
@@ -173,11 +204,11 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
 
     def remove_perm(self, obj, owner, owner_password, other_user,
                     other_user_password, perm_name_prefix):
-        '''
+        """
         Remove a permission.
 
         :param obj: Object to manipulate permissions on.
-        :type obj: :py:class:`Collection` or :py:class:`Asset`
+        :type obj: :py:class:`Asset`
         :param owner: The owner of `obj`.
         :type owner: :py:class:`User`
         :param owner_password: The password for user 'owner'.
@@ -190,7 +221,7 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         :param perm_name_prefix: The prefix of the permission to be used (i.e.
             "view_", "change_", or "delete_").
         :type perm_name_prefix: str
-        '''
+        """
         # FIXME: Do this through the API once the interface has stabilized.
         # self._test_add_and_remove_perm(obj, perm_name_prefix, other_user)
         # jnm: _test_add_and_remove expects the permission to not have been
