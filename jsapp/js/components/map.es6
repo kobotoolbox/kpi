@@ -8,6 +8,7 @@ import {bem} from '../bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
 import ui from '../ui';
+import Modal from 'js/components/common/modal';
 import classNames from 'classnames';
 import omnivore from '@mapbox/leaflet-omnivore';
 import JSZip from 'jszip';
@@ -831,7 +832,7 @@ export class FormMap extends React.Component {
           </bem.Loading>
         }
         {this.state.showMapSettings && (
-          <ui.Modal
+          <Modal
             open
             onClose={this.toggleMapSettings}
             title={t('Map Settings')}>
@@ -841,7 +842,7 @@ export class FormMap extends React.Component {
               overrideStyles={this.overrideStyles}
               overridenStyles={this.state.overridenStyles}
             />
-          </ui.Modal>
+          </Modal>
         )}
 
         <div id='data-map' />

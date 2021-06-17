@@ -13,7 +13,7 @@ import {
   COMMON_QUERIES,
   DEPLOYMENT_CATEGORIES
 } from 'js/constants';
-import {getAssetDisplayName} from 'js/assetUtils';
+import AssetName from 'js/components/common/assetName';
 
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
@@ -67,7 +67,7 @@ class SidebarFormsList extends Reflux.Component {
         key={asset.uid}
         className={classNames.join(' ')}
       >
-        {getAssetDisplayName(asset).final}
+        <AssetName asset={asset}/>
       </Link>
     );
   }

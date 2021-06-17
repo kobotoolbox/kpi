@@ -13,6 +13,7 @@ import {
   ASSET_TYPES
 } from 'js/constants';
 import TagInput from 'js/components/tagInput';
+import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'utils';
 
 class AssetRow extends React.Component {
@@ -141,7 +142,7 @@ class AssetRow extends React.Component {
                 <i className={`row-icon row-icon--${this.props.asset_type}`}>{_rc}</i>
               }
               <bem.AssetRow__cell m='name'>
-                <ui.AssetName {...this.props} />
+                <AssetName asset={this.props} />
               </bem.AssetRow__cell>
               { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.settings.description &&
                 <bem.AssetRow__description>

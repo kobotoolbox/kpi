@@ -1,6 +1,8 @@
 /**
  * Custom modal component for displaying complex modals.
  *
+ * It uses generic Modal component underneath.
+ *
  * It allows for displaying single modal at a time, as there is only single
  * modal element with adjustable title content.
  *
@@ -25,11 +27,12 @@ import alertify from 'alertifyjs';
 import {actions} from '../actions';
 import {bem} from '../bem';
 import ui from '../ui';
+import Modal from 'js/components/common/modal';
 import {stores} from '../stores';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
-  ASSET_TYPES
+  ASSET_TYPES,
 } from 'js/constants';
 import {AssetTagsForm} from './modalForms/assetTagsForm';
 import {LibraryAssetForm} from './modalForms/libraryAssetForm';
@@ -45,17 +48,17 @@ import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
 import TranslationSettings from './modalForms/translationSettings';
 import TranslationTable from './modalForms/translationTable';
 
-class Modal extends React.Component {
+class BigModal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       enketopreviewlink: false,
       error: false,
-      modalClass: false
+      modalClass: false,
     };
     autoBind(this);
   }
-  componentDidMount () {
+  componentDidMount() {
     var type = this.props.params.type;
     switch(type) {
       case MODAL_TYPES.SHARING:
@@ -66,7 +69,7 @@ class Modal extends React.Component {
         var filename = this.props.params.filename || '';
         this.setState({
           title: t('Uploading XLS file'),
-          message: t('Uploading: ') + filename
+          message: t('Uploading: ') + filename,
         });
         break;
 
@@ -105,7 +108,7 @@ class Modal extends React.Component {
 
         this.setState({
           title: t('Form Preview'),
-          modalClass: 'modal--large'
+          modalClass: 'modal--large',
         });
         break;
 
@@ -244,14 +247,14 @@ class Modal extends React.Component {
     const uid = this.props.params.assetid || this.props.params.uid;
 
     return (
-      <ui.Modal
+      <Modal
         open
         onClose={this.onModalClose}
         title={this.state.title}
         className={this.state.modalClass}
         isDuplicated={this.props.params.isDuplicated}
       >
-        <ui.Modal.Body>
+        <Modal.Body>
             { this.props.params.type === MODAL_TYPES.SHARING &&
               <SharingForm uid={uid} />
             }
@@ -374,12 +377,12 @@ class Modal extends React.Component {
                 {...this.props.params}
               />
             }
-        </ui.Modal.Body>
-      </ui.Modal>
+        </Modal.Body>
+      </Modal>
     );
   }
 }
 
-reactMixin(Modal.prototype, Reflux.ListenerMixin);
+reactMixin(BigModal.prototype, Reflux.ListenerMixin);
 
-export default Modal;
+export default BigModal;

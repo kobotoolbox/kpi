@@ -28,6 +28,7 @@ import {
   META_QUESTION_TYPES,
 } from 'js/constants';
 import ui from '../ui';
+import Modal from 'js/components/common/modal';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
@@ -969,39 +970,39 @@ export default assign({
           }
 
           {this.state.enketopreviewOverlay &&
-            <ui.Modal
+            <Modal
               open
               large
               onClose={this.hidePreview}
               title={t('Form Preview')}
             >
-              <ui.Modal.Body>
+              <Modal.Body>
                 <div className='enketo-holder'>
                   <iframe src={this.state.enketopreviewOverlay} />
                 </div>
-              </ui.Modal.Body>
-            </ui.Modal>
+              </Modal.Body>
+            </Modal>
           }
 
           {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
-            <ui.Modal
+            <Modal
               open
               error
               onClose={this.clearPreviewError}
               title={t('Error generating preview')}
             >
-              <ui.Modal.Body>{this.state.enketopreviewError}</ui.Modal.Body>
-            </ui.Modal>
+              <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
+            </Modal>
           }
 
           {this.state.showCascadePopup &&
-            <ui.Modal
+            <Modal
               open
               onClose={this.hideCascade}
               title={t('Import Cascading Select Questions')}
             >
-              <ui.Modal.Body>{this.renderCascadePopup()}</ui.Modal.Body>
-            </ui.Modal>
+              <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
+            </Modal>
           }
         </ui.Panel>
       </DocumentTitle>

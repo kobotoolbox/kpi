@@ -42,7 +42,7 @@ import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
 import IntercomHandler from './components/intercomHandler';
 import PermValidator from './components/permissions/permValidator';
-import Modal from './components/modal';
+import BigModal from './components/bigModal';
 import AccountSettings from './components/accountSettings';
 import ChangePassword from './components/changePassword';
 import {
@@ -119,7 +119,7 @@ class App extends React.Component {
           <div className='header-stretch-bg'/>
           <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
             { this.state.pageState.modal &&
-              <Modal params={this.state.pageState.modal} />
+              <BigModal params={this.state.pageState.modal} />
             }
 
             { !this.isFormBuilder() &&
