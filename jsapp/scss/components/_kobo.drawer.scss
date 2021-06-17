@@ -2,11 +2,12 @@
 
 $drawer-icons-width: 58px;
 $drawer-background: $kobo-gray-96;
+$s-drawer-width: 270px;
 
 .k-drawer {
   height: calc(100% - #{$layout-desktop-header-height});
   top: $layout-desktop-header-height;
-  width: 270px;
+  width: $s-drawer-width;
   position: absolute;
   left: 0;
   display: flex;
@@ -14,8 +15,9 @@ $drawer-background: $kobo-gray-96;
   border-right: 2px solid $kobo-gray-92;
 }
 
-.mdl-layout__content {
-  margin-left: 270px;
+// only add the margin for drawer if drawer exists (e.g. no drawer when logged out)
+.k-drawer + .mdl-layout__content {
+  margin-left: $s-drawer-width; // for drawer
 }
 
 .k-drawer__primary-icons {
@@ -103,7 +105,7 @@ $drawer-background: $kobo-gray-96;
     width: 340px;
   }
 
-  .mdl-layout__content {
+  .k-drawer + .mdl-layout__content {
     margin-left: 0;
   }
 }

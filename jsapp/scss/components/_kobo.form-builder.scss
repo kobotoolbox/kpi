@@ -38,6 +38,8 @@ $s-form-builder-content-width: 1024px;
 
 .form-wrap {
   width: 100%;
+  max-width: $s-form-builder-content-width;
+  margin: 0 auto;
 
   input,
   textarea {
@@ -58,7 +60,7 @@ $s-form-builder-content-width: 1024px;
     padding: 12px 20px;
 
     p {
-      font-family: monospace;
+      font-family: $font_mono;
       white-space: pre;
     }
 
@@ -165,6 +167,7 @@ $s-form-builder-content-width: 1024px;
       input {
         border-radius: 0;
         padding-left: 0;
+        font-size: 16px;
       }
     }
 
@@ -408,6 +411,22 @@ $s-form-builder-content-width: 1024px;
 
   .form-builder-meta__row {
     margin-top: 10px;
+  }
+
+  .form-builder-meta__row--background-audio {
+    margin-top: 20px;
+
+    .form-builder-aside__header {
+      margin-bottom: 0;
+    }
+
+    .toggle-switch {
+      margin-top: 10px;
+    }
+
+    label {
+      font-weight: 500;
+    }
   }
 
   .form-builder-meta__column {

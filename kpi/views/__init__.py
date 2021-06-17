@@ -23,7 +23,6 @@ from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import AuthorizedApplicationUserSerializer
 
 
-@login_required
 def home(request):
     return TemplateResponse(request, "index.html")
 

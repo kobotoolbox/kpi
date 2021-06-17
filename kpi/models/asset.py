@@ -24,6 +24,10 @@ from taggit.utils import require_instance_manager
 from formpack import FormPack
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
+from formpack.utils.kobo_locking import (
+    revert_kobo_lock_structure,
+    strip_kobo_locking_profile,
+)
 from formpack.utils.spreadsheet_content import flatten_to_spreadsheet_content
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
@@ -409,6 +413,7 @@ class XlsExportable:
             self._autoname(content)
             self._populate_fields_with_autofields(content)
             self._strip_kuids(content)
+            revert_kobo_lock_structure(content)
         content = OrderedDict(content)
         self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
         return content
@@ -743,6 +748,7 @@ class Asset(ObjectPermissionMixin,
         if self.asset_type not in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
             # instead of deleting the settings, simply clear them out
             self.content['settings'] = {}
+            strip_kobo_locking_profile(self.content)
 
         if _title is not None:
             self.name = _title

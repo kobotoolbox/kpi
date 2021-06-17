@@ -31,7 +31,7 @@ export class LibraryAssetForm extends React.Component {
     super(props);
     this.unlisteners = [];
     this.state = {
-      isSessionLoaded: !!stores.session.currentAccount,
+      isSessionLoaded: !!stores.session.isLoggedIn,
       data: {
         name: '',
         organization: '',

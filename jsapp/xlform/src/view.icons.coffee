@@ -9,6 +9,7 @@ module.exports = do ->
     iconDetails.push({
       label: typeDef.label,
       iconClassName: "k-icon k-icon-#{typeDef.icon}",
+      iconClassNameLocked: "k-icon k-icon-#{typeDef.icon}-lock",
       grouping: group,
       id: typeDef.id
     })
