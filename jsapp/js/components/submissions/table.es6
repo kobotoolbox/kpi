@@ -1019,7 +1019,7 @@ export class DataTable extends React.Component {
               onClick={this.toggleFullscreen}
               data-tip={t('Toggle fullscreen')}
             >
-              <i className='k-icon-expand' />
+              <i className='k-icon k-icon-expand' />
             </bem.Button>
 
             <bem.Button
@@ -1027,7 +1027,7 @@ export class DataTable extends React.Component {
               onClick={this.showTableColumnsOptionsModal}
               data-tip={t('Display options')}
             >
-              <i className='k-icon-settings' />
+              <i className='k-icon k-icon-settings' />
             </bem.Button>
           </bem.FormView__item>
         </bem.FormView__group>

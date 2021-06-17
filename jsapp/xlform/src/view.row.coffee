@@ -219,14 +219,14 @@ module.exports = do ->
         [
           {
             label: t('Ungroup questions'),
-            icon: 'k-icon-group-split'
+            icon: 'k-icon k-icon-group-split'
             color: 'blue',
             isDisabled: @isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_split.name)
             callback: @_deleteGroup.bind(@),
           },
           {
             label: t('Delete everything'),
-            icon: 'k-icon-trash',
+            icon: 'k-icon k-icon-trash',
             color: 'red',
             isDisabled: @isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name)
             callback: @_deleteGroupWithContent.bind(@),

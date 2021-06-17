@@ -287,7 +287,7 @@ export default class ReportViewItem extends React.Component {
               data-question={name}
               data-tip={t('Override Graph Style')}
             >
-              <i className='k-icon-more' data-question={name} />
+              <i className='k-icon k-icon-more' data-question={name} />
             </bem.Button>
           )}
         </bem.ReportView__itemHeading>

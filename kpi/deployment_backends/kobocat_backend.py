@@ -1078,7 +1078,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         queryset = ReadOnlyKobocatInstance.objects.filter(
             xform_id=self.xform_id,
-            deleted_at=None
         )
 
         if len(instance_ids) > 0 or use_mongo:

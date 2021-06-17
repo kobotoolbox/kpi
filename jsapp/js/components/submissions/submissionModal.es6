@@ -421,7 +421,7 @@ class SubmissionModal extends React.Component {
                     className='mdl-button mdl-button--colored'
                   >
                     {t('Next')}
-                    <i className='k-icon-next' />
+                    <i className='k-icon k-icon-next' />
                   </a>
                 }
                 {this.state.next === -2 &&
@@ -430,7 +430,7 @@ class SubmissionModal extends React.Component {
                     className='mdl-button mdl-button--colored'
                   >
                     {t('Next')}
-                    <i className='k-icon-next' />
+                    <i className='k-icon k-icon-next' />
                   </a>
                 }
               </div>
@@ -470,7 +470,7 @@ class SubmissionModal extends React.Component {
                 onClick={launchPrinting}
                 data-tip={t('Print')}
               >
-                <i className='k-icon-print' />
+                <i className='k-icon k-icon-print' />
               </bem.Button>
 
               {this.userCan('delete_submissions', this.props.asset) &&
@@ -479,7 +479,7 @@ class SubmissionModal extends React.Component {
                   className='mdl-button mdl-button--icon mdl-button--colored mdl-button--red right-tooltip'
                   data-tip={t('Delete submission')}
                 >
-                  <i className='k-icon-trash' />
+                  <i className='k-icon k-icon-trash' />
                 </a>
               }
             </div>
