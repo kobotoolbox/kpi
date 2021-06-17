@@ -167,17 +167,19 @@ class FormJson extends React.Component {
   }
   render() {
     return (
-        <ui.Panel>
-          <bem.FormView>
-            <pre>
-            <code>
-              { this.state.assetcontent ?
-                JSON.stringify(this.state.assetcontent, null, 4)
-                : null }
-            </code>
-            </pre>
-          </bem.FormView>
-        </ui.Panel>
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.FormView>
+              <pre>
+                <code>
+                  { this.state.assetcontent ?
+                    JSON.stringify(this.state.assetcontent, null, 4)
+                    : null }
+                  </code>
+                </pre>
+              </bem.FormView>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       );
   }
 }
@@ -201,23 +203,26 @@ class FormXform extends React.Component {
   render() {
     if (!this.state.xformLoaded) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              <p>XForm is loading</p>
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
-
-        );
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.Loading>
+              <bem.Loading__inner>
+                <p>XForm is loading</p>
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
+      );
     } else {
       return (
-        <ui.Panel>
-          <bem.FormView>
-            <div className='pygment' dangerouslySetInnerHTML={this.state.xformHtml} />
-          </bem.FormView>
-        </ui.Panel>
-        );
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.FormView>
+              <div className='pygment' dangerouslySetInnerHTML={this.state.xformHtml} />
+            </bem.FormView>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
+      );
     }
   }
 }
@@ -225,25 +230,29 @@ class FormXform extends React.Component {
 class FormNotFound extends React.Component {
   render() {
     return (
-        <ui.Panel>
+      <bem.uiPanel>
+        <bem.uiPanel__body>
           <bem.Loading>
             <bem.Loading__inner>
               {t('path not found / recognized')}
             </bem.Loading__inner>
           </bem.Loading>
-        </ui.Panel>
-      );
+        </bem.uiPanel__body>
+      </bem.uiPanel>
+    );
   }
 }
 
 class SectionNotFound extends React.Component {
   render() {
     return (
-        <ui.Panel className='k404'>
+      <bem.uiPanel className='k404'>
+        <bem.uiPanel__body>
           <i />
-          <em>section not found</em>
-        </ui.Panel>
-      );
+          <em>{t('Section not found')}</em>
+        </bem.uiPanel__body>
+      </bem.uiPanel>
+    );
   }
 }
 

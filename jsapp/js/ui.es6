@@ -8,11 +8,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import _ from 'underscore';
-import {getAssetDisplayName} from 'js/assetUtils';
-import {KEY_CODES} from 'js/constants';
 import {bem} from './bem';
-import {hasLongWords} from 'utils';
-import classNames from 'classnames';
 
 /**
  * @prop {string} value
@@ -38,26 +34,6 @@ class SearchBox extends React.Component {
         placeholder={this.props.placeholder}
         disabled={this.props.disabled}
       />
-    );
-  }
-}
-
-/**
- * @prop {string} className
- * @prop {string} m - uiPanel BEM modifier
- * @prop {node} children
- */
-class Panel extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    return (
-      <bem.uiPanel className={this.props.className} m={this.props.m}>
-        <bem.uiPanel__body>
-          {this.props.children}
-        </bem.uiPanel__body>
-      </bem.uiPanel>
     );
   }
 }
