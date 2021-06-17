@@ -123,7 +123,7 @@ class FormpackXLSFormUtilsMixin:
         if len(arr) > 0:
             arr[0]['$prev'] = None
         for i in range(1, len(arr)):
-            arr[i]['$prev'] = arr[i-1]['$kuid']
+            arr[i]['$prev'] = arr[i - 1]['$kuid']
 
     def _unlink_list_items(self, content):
         arr = content['survey']
@@ -170,7 +170,7 @@ class FormpackXLSFormUtilsMixin:
             _null_index = content['translations'].index(None)
         except ValueError:
             raise ValueError('Cannot save translation name: {}'.format(
-                             new_name))
+                new_name))
         content['translations'][_null_index] = new_name
 
     def _has_translations(self, content, min_count=1):
@@ -191,23 +191,25 @@ class FormpackXLSFormUtilsMixin:
                                      _change['to'])
         elif TRANSLATION_ADDED in params:
             if None in existing_ts:
-                raise ValueError('cannot add translation if an unnamed translation exists')
+                raise ValueError(
+                    'cannot add translation if an unnamed translation exists')
             self._prepend_translation(self.content, params[TRANSLATION_ADDED])
         elif TRANSLATION_DELETED in params:
             if params[TRANSLATION_DELETED] != existing_ts[-1]:
-                raise ValueError('you can only delete the last translation of the asset')
+                raise ValueError(
+                    'you can only delete the last translation of the asset')
             self._remove_last_translation(self.content)
         else:
             for chg in [
-                        TRANSLATIONS_MULTIPLE_CHANGES,
-                        TRANSLATION_CHANGE_UNSUPPORTED,
-                        ]:
+                TRANSLATIONS_MULTIPLE_CHANGES,
+                TRANSLATION_CHANGE_UNSUPPORTED,
+            ]:
                 if chg in params:
                     raise ValueError(
                         'Unsupported change: "{}": {}'.format(
                             chg,
                             params[chg]
-                            )
+                        )
                     )
 
     def _prioritize_translation(self, content, translation_name, is_new=False):
@@ -225,12 +227,13 @@ class FormpackXLSFormUtilsMixin:
             else:  # Otherwise raise an error.
                 # Remove None from translations we want to display to users
                 valid_translations = [t for t in _translations if t is not None]
-                raise ValueError("`{translation_name}` is specified as the default language, "
-                                 "but only these translations are present in the form: `{translations}`".format(
-                                    translation_name=translation_name,
-                                    translations="`, `".join(valid_translations)
-                                    )
-                                 )
+                raise ValueError(
+                    "`{translation_name}` is specified as the default language, "
+                    "but only these translations are present in the form: `{translations}`".format(
+                        translation_name=translation_name,
+                        translations="`, `".join(valid_translations)
+                    )
+                )
 
         _tindex = -1 if is_new else _translations.index(translation_name)
         if is_new or (_tindex > 0):

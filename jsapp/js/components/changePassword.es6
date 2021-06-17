@@ -82,7 +82,7 @@ export default class ChangePassword extends React.Component {
   }
 
   render() {
-    if(!stores.session || !stores.session.currentAccount) {
+    if(!stores.session || !stores.session.isLoggedIn) {
       return (
         <bem.AccountSettings>
           <bem.AccountSettings__item>

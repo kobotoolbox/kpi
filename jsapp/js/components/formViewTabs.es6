@@ -7,12 +7,37 @@ import {bem} from '../bem';
 import {stores} from '../stores';
 import { Link, hashHistory } from 'react-router';
 import mixins from '../mixins';
-import assetUtils from 'js/assetUtils';
 import {
   PERMISSIONS_CODENAMES,
   ROUTES,
 } from 'js/constants';
 import {assign} from 'utils';
+
+export function getFormDataTabs(assetUid, isLoggedIn) {
+  return [
+    {
+      label: t('Table'),
+      icon: 'k-icon-table', path: ROUTES.FORM_TABLE.replace(':uid', assetUid),
+    },
+    {
+      label: t('Reports'),
+      icon: 'k-icon-report', path: ROUTES.FORM_REPORT.replace(':uid', assetUid),
+    },
+    {
+      label: t('Gallery'),
+      icon: 'k-icon-photo-gallery', path: ROUTES.FORM_GALLERY.replace(':uid', assetUid),
+    },
+    {
+      label: t('Downloads'),
+      icon: 'k-icon-download', path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
+      isDisabled: !isLoggedIn,
+    },
+    {
+      label: t('Map'),
+      icon: 'k-icon-map-view', path: ROUTES.FORM_MAP.replace(':uid', assetUid),
+    },
+  ];
+}
 
 class FormViewTabs extends Reflux.Component {
   constructor(props){
@@ -44,50 +69,82 @@ class FormViewTabs extends Reflux.Component {
       evt.preventDefault();
     }
   }
-  renderTopTabs () {
-    if (this.state.asset === undefined)
-      return false;
 
-    let a = this.state.asset;
+  isDataTabEnabled() {
+    return (
+      this.state.asset.deployment__identifier != undefined &&
+      this.state.asset.has_deployment &&
+      this.state.asset.deployment__submission_count > 0 &&
+      (
+        this.userCan('view_submissions', this.state.asset) ||
+        this.userCan('partial_submissions', this.state.asset)
+      )
+    );
+  }
+
+  renderTopTabs() {
+    if (this.state.asset === undefined) {
+      return false;
+    }
+
+    let dataTabClassNames = 'form-view__tab';
+    if (!this.isDataTabEnabled()) {
+      dataTabClassNames += ' form-view__tab--disabled';
+    }
+
+    let summaryTabClassNames = 'form-view__tab';
+    if (!stores.session.isLoggedIn) {
+      summaryTabClassNames += ' form-view__tab--disabled';
+    }
+
+    let settingsTabClassNames = 'form-view__tab';
+    if (
+      !stores.session.isLoggedIn ||
+      !this.userCan('change_asset', this.state.asset)
+    ) {
+      settingsTabClassNames += ' form-view__tab--disabled';
+    }
 
     return (
       <bem.FormView__toptabs>
-        { a.deployment__identifier != undefined && a.has_deployment && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
-          <Link
-            to={ROUTES.FORM_SUMMARY.replace(':uid', this.state.assetid)}
-            className='form-view__tab'
-            activeClassName='active'>
-            {t('Summary')}
-          </Link>
-        }
+        <Link
+          to={ROUTES.FORM_SUMMARY.replace(':uid', this.state.assetid)}
+          className={summaryTabClassNames}
+          activeClassName='active'
+        >
+          {t('Summary')}
+        </Link>
+
         <Link
           to={ROUTES.FORM_LANDING.replace(':uid', this.state.assetid)}
           className='form-view__tab'
           activeClassName='active'>
           {t('Form')}
         </Link>
-        { a.deployment__identifier != undefined && a.has_deployment && a.deployment__submission_count > 0 && (this.userCan('view_submissions', a) || this.userCan('partial_submissions', a)) &&
-          <Link
-            to={ROUTES.FORM_DATA.replace(':uid', this.state.assetid)}
-            className='form-view__tab'
-            activeClassName='active'>
-            {t('Data')}
-          </Link>
-        }
-        {this.userCan('change_asset', a) &&
-          <Link
-            to={ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid)}
-            className='form-view__tab'
-            activeClassName='active'>
-            {t('Settings')}
-          </Link>
-        }
+
         <Link
-          to={ROUTES.FORMS}
-          className='form-view__link form-view__link--close'>
-          <i className='k-icon-close' />
+          to={ROUTES.FORM_DATA.replace(':uid', this.state.assetid)}
+          className={dataTabClassNames}
+          activeClassName='active'
+        >
+          {t('Data')}
         </Link>
 
+        <Link
+          to={ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid)}
+          className={settingsTabClassNames}
+          activeClassName='active'
+        >
+          {t('Settings')}
+        </Link>
+
+        {stores.session.isLoggedIn &&
+          <Link
+            to={ROUTES.FORMS}
+            className='form-view__link form-view__link--close'>
+            <i className='k-icon-close' />
+          </Link>
+        }
       </bem.FormView__toptabs>
     );
   }
@@ -99,34 +156,7 @@ class FormViewTabs extends Reflux.Component {
       this.state.asset.has_deployment &&
       this.isActiveRoute(ROUTES.FORM_DATA.replace(':uid', this.state.assetid))
     ) {
-      sideTabs = [
-        {
-          label: t("Table"),
-          icon: "k-icon-table",
-          path: ROUTES.FORM_TABLE.replace(':uid', this.state.assetid),
-        },
-        {
-          label: t("Reports"),
-          icon: "k-icon-report",
-          path: ROUTES.FORM_REPORT.replace(':uid', this.state.assetid),
-        },
-
-        {
-          label: t("Gallery"),
-          icon: "k-icon-photo-gallery",
-          path: ROUTES.FORM_GALLERY.replace(':uid', this.state.assetid),
-        },
-        {
-          label: t("Downloads"),
-          icon: "k-icon-download",
-          path: ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.assetid),
-        },
-        {
-          label: t("Map"),
-          icon: "k-icon-map-view",
-          path: ROUTES.FORM_MAP.replace(':uid', this.state.assetid),
-        },
-      ];
+      sideTabs = getFormDataTabs(this.state.assetid, stores.session.isLoggedIn);
     }
 
     if (
@@ -167,7 +197,11 @@ class FormViewTabs extends Reflux.Component {
       });
 
       if (
-        this.state.asset.deployment__active &&
+        (
+          this.state.asset.deployment__active ||
+          // REST services should be visible for archived forms but not drafts
+          this.state.asset.deployed_versions.count > 0
+        ) &&
         mixins.permissions.userCan(
           PERMISSIONS_CODENAMES.view_submissions,
           this.state.asset
@@ -188,20 +222,26 @@ class FormViewTabs extends Reflux.Component {
     if (sideTabs.length > 0) {
       return (
         <bem.FormView__sidetabs>
-          { sideTabs.map((item, ind) =>
-            <Link
-              to={item.path}
-              key={ind}
-              activeClassName='active'
-              onlyActiveOnIndex
-              className='form-view__tab'
-              data-path={item.path}
-              onClick={this.triggerRefresh}>
-                <i className={`k-icon ${item.icon}`} />
-                <label className='form-view__tab-label'>
-                  {item.label}
-                </label>
-            </Link>
+          { sideTabs.map((item, ind) => {
+            let className = 'form-view__tab';
+            if (item.isDisabled) {
+              className += ' form-view__tab--disabled';
+            }
+            return (
+              <Link
+                to={item.path}
+                key={ind}
+                activeClassName='active'
+                onlyActiveOnIndex
+                className={className}
+                data-path={item.path}
+                onClick={this.triggerRefresh}
+              >
+                <i className={item.icon} />
+                {item.label}
+              </Link>
+            );
+          }
           )}
         </bem.FormView__sidetabs>
       );

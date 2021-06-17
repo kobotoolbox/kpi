@@ -8,6 +8,11 @@ from io import BytesIO
 import six
 import xlsxwriter
 
+from formpack.utils.kobo_locking import (
+    revert_kobo_lock_structure,
+    strip_kobo_locking_profile,
+)
+
 
 class XlsExportableMixin:
     def ordered_xlsform_content(self,
@@ -23,8 +28,11 @@ class XlsExportableMixin:
             self._autoname(content)
             self._populate_fields_with_autofields(content)
             self._strip_kuids(content)
+            revert_kobo_lock_structure(content)
         content = OrderedDict(content)
-        self._xlsform_structure(content, ordered=True, kobo_specific=kobo_specific_types)
+        self._xlsform_structure(
+            content, ordered=True, kobo_specific=kobo_specific_types
+        )
         return content
 
     def to_xls_io(self, versioned=False, **kwargs):
@@ -62,6 +70,7 @@ class XlsExportableMixin:
                         val = row.get(col, None)
                         if val:
                             sheet.write(ri + 1, ci, val)
+
             # The extra rows and settings should persist within this function
             # and its return value *only*. Calling deepcopy() is required to
             # achieve this isolation.
