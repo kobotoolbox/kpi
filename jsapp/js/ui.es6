@@ -252,11 +252,22 @@ class PopoverMenu extends React.Component {
   componentWillUnmount() {
     this._mounted = false;
   }
-  static getDerivedStateFromProps(props, state) {
-    if (state.popoverVisible && props.clearPopover) {
-      return {popoverVisible: false};
+  // BUG: we should use `getDerivedStateFromProps` instead of depracated
+  // `componentWillReceiveProps` but due to unnecessarily complex way of
+  // operation of PopoverMenu, using this will cause some instances to open
+  // only once.
+  // static getDerivedStateFromProps(props, state) {
+  //   if (state.popoverVisible && props.clearPopover) {
+  //     return {popoverVisible: false};
+  //   }
+  //   return null;
+  // }
+  componentWillReceiveProps(nextProps) {
+    if (this.state.popoverVisible && nextProps.clearPopover) {
+      this.setState({
+        popoverVisible: false
+      });
     }
-    return null;
   }
   toggle(evt) {
     var isBlur = evt.type === 'blur';
