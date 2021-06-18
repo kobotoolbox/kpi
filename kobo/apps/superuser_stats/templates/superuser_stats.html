@@ -1,0 +1,35 @@
+{% load i18n %}
+
+{% block content_title %}
+    <h1>Superuser Stats</h1>
+{% endblock %}
+
+{% block table_list %}
+    <table>
+      <thead>
+        <tr>
+          <th>
+            Reports
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <form method="GET" action="{{ kpi_base_url }}/superuser_stats/country_report/">
+              <label for="start_date">Start Date</label>
+              <input type="date" id="start_date" name="start_date">
+              <label for="end_date">End Date</label>
+              <input type="date" id="end_date" name="end_date">
+              <button>Submit</button>
+            </form>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="{{ kpi_base_url }}/superuser_stats/user_report/">User Report</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+{% endblock %}
