@@ -6,7 +6,7 @@ import {Link} from 'react-router';
 import Reflux from 'reflux';
 import mixins from '../mixins';
 import {bem} from '../bem';
-import ui from '../ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {searches} from '../searches';
 import {stores} from '../stores';
 import {
@@ -96,7 +96,7 @@ class SidebarFormsList extends Reflux.Component {
     }
 
     if (s.searchState === 'loading' && s.searchString === false) {
-      return (<ui.LoadingSpinner/>);
+      return (<LoadingSpinner/>);
     }
 
     return (
@@ -104,7 +104,7 @@ class SidebarFormsList extends Reflux.Component {
         {
           (() => {
             if (s.defaultQueryState === 'loading') {
-              return (<ui.LoadingSpinner/>);
+              return (<LoadingSpinner/>);
             } else if (s.defaultQueryState === 'done') {
               return Object.keys(DEPLOYMENT_CATEGORIES).map(
                 (categoryId) => {

@@ -8,7 +8,7 @@ import {dataInterface} from 'js/dataInterface';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import ui from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import ReactTable from 'react-table';
@@ -1057,7 +1057,7 @@ export class DataTable extends React.Component {
               <i className='k-icon k-icon-caret-right'/>
             </React.Fragment>
           )}
-          loadingText={<ui.LoadingSpinner/>}
+          loadingText={<LoadingSpinner/>}
           noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}
           ofText={t('of')}

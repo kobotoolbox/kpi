@@ -27,7 +27,7 @@ import {
   ROUTES,
   META_QUESTION_TYPES,
 } from 'js/constants';
-import ui from '../ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import Modal from 'js/components/common/modal';
 import {bem} from '../bem';
@@ -882,7 +882,7 @@ export default assign({
       );
     }
 
-    return (<ui.LoadingSpinner/>);
+    return (<LoadingSpinner/>);
   },
 
   renderAssetLabel() {
@@ -927,7 +927,7 @@ export default assign({
     if (!this.state.isNewAsset && !this.state.asset) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <ui.LoadingSpinner/>
+          <LoadingSpinner/>
         </DocumentTitle>
       );
     }

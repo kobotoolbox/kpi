@@ -24,29 +24,29 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
-import {actions} from '../actions';
-import {bem} from '../bem';
-import ui from '../ui';
+import {actions} from 'js/actions';
+import {bem} from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Modal from 'js/components/common/modal';
-import {stores} from '../stores';
+import {stores} from 'js/stores';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
   ASSET_TYPES,
 } from 'js/constants';
-import {AssetTagsForm} from './modalForms/assetTagsForm';
-import {LibraryAssetForm} from './modalForms/libraryAssetForm';
-import LibraryNewItemForm from './modalForms/libraryNewItemForm';
-import LibraryUploadForm from './modalForms/libraryUploadForm';
-import EncryptForm from './modalForms/encryptForm.es6';
-import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
-import ProjectSettings from './modalForms/projectSettings';
-import RESTServicesForm from './RESTServices/RESTServicesForm';
-import SharingForm from './permissions/sharingForm';
+import {AssetTagsForm} from 'js/components/modalForms/assetTagsForm';
+import {LibraryAssetForm} from 'js/components/modalForms/libraryAssetForm';
+import LibraryNewItemForm from 'js/components/modalForms/libraryNewItemForm';
+import LibraryUploadForm from 'js/components/modalForms/libraryUploadForm';
+import EncryptForm from 'js/components/modalForms/encryptForm.es6';
+import BulkEditSubmissionsForm from 'js/components/modalForms/bulkEditSubmissionsForm.es6';
+import ProjectSettings from 'js/components/modalForms/projectSettings';
+import RESTServicesForm from 'js/components/RESTServices/RESTServicesForm';
+import SharingForm from 'js/components/permissions/sharingForm';
 import SubmissionModal from 'js/components/submissions/submissionModal';
 import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
-import TranslationSettings from './modalForms/translationSettings';
-import TranslationTable from './modalForms/translationTable';
+import TranslationSettings from 'js/components/modalForms/translationSettings';
+import TranslationTable from 'js/components/modalForms/translationTable';
 
 class BigModal extends React.Component {
   constructor(props) {
@@ -307,7 +307,7 @@ class BigModal extends React.Component {
               </div>
             }
             { this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && !this.state.enketopreviewlink &&
-              <ui.LoadingSpinner/>
+              <LoadingSpinner/>
             }
             { this.props.params.type === MODAL_TYPES.ENKETO_PREVIEW && this.state.error &&
               <div>
@@ -316,7 +316,7 @@ class BigModal extends React.Component {
             }
             { this.props.params.type === MODAL_TYPES.UPLOADING_XLS &&
               <div>
-                <ui.LoadingSpinner message={this.state.message}/>
+                <LoadingSpinner message={this.state.message}/>
               </div>
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && this.state.sid &&

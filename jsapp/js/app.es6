@@ -24,7 +24,7 @@ import {stores} from './stores';
 import {surveyCompanionStore} from './surveyCompanionStore'; // importing it so it exists
 import {dataInterface} from './dataInterface';
 import {bem} from './bem';
-import ui from './ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import mixins from './mixins';
 import MainHeader from './components/header';
 import Drawer from './components/drawer';
@@ -42,7 +42,7 @@ import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
 import IntercomHandler from './components/intercomHandler';
 import PermValidator from './components/permissions/permValidator';
-import BigModal from './components/bigModal';
+import BigModal from 'js/components/bigModal/bigModal';
 import AccountSettings from './components/accountSettings';
 import ChangePassword from './components/changePassword';
 import {
@@ -88,7 +88,7 @@ class App extends React.Component {
   }
   render() {
     if (!this.state.isConfigReady) {
-      return (<ui.LoadingSpinner/>);
+      return (<LoadingSpinner/>);
     }
 
     var assetid = this.props.params.assetid || this.props.params.uid || null;

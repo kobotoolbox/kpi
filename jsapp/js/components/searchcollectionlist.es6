@@ -8,7 +8,7 @@ import mixins from '../mixins';
 import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
 import {bem} from '../bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import ui from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {bem} from 'js/bem';
 import {
   hasVerticalScrollbar,
@@ -359,7 +360,7 @@ export default class AssetsTable extends React.Component {
 
         <bem.AssetsTable__body ref={this.bodyRef}>
           {this.props.isLoading &&
-            <ui.LoadingSpinner/>
+            <LoadingSpinner/>
           }
 
           {!this.props.isLoading && this.props.assets.length === 0 &&

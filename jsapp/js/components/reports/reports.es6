@@ -7,6 +7,7 @@ import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import ui from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Modal from 'js/components/common/modal';
 import mixins from 'js/mixins';
 import DocumentTitle from 'react-document-title';
@@ -471,7 +472,7 @@ export default class Reports extends React.Component {
     } else {
       return (
         <bem.Loading>
-          <ui.LoadingSpinner />
+          <LoadingSpinner />
         </bem.Loading>
       );
     }

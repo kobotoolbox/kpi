@@ -17,7 +17,7 @@ import ProjectExportsList from 'js/components/projectDownloads/projectExportsLis
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
-import ui from '../ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 
 export class FormSubScreens extends React.Component {
@@ -140,7 +140,7 @@ export class FormSubScreens extends React.Component {
     );
   }
   renderReset() {
-    return (<ui.LoadingSpinner/>);
+    return (<LoadingSpinner/>);
   }
 
   renderUpload() {

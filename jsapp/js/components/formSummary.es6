@@ -8,7 +8,7 @@ import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import mixins from '../mixins';
 import {bem} from '../bem';
-import ui from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
@@ -321,7 +321,7 @@ class FormSummary extends React.Component {
     let permAccess = this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state);
 
     if (!this.state.permissions) {
-      return (<ui.LoadingSpinner/>);
+      return (<LoadingSpinner/>);
     }
 
     if (!permAccess) {

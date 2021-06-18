@@ -8,6 +8,7 @@ import {bem} from '../bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import ui from '../ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
@@ -572,7 +573,7 @@ export class FormLanding extends React.Component {
     const isLoggedIn = stores.session.isLoggedIn;
 
     if (this.state.uid === undefined) {
-      return (<ui.LoadingSpinner/>);
+      return (<LoadingSpinner/>);
     }
 
     return (

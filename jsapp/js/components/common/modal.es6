@@ -1,7 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {KEY_CODES} from 'js/constants';
-import {bem} from './bem';
+import {bem} from 'js/bem';
 import classNames from 'classnames';
 
 /**
