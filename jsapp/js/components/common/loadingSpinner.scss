@@ -14,7 +14,7 @@
     display: inline-block;
   }
 
-  &.loading__inner {
+  .loading__inner {
     display: table-cell;
     vertical-align: middle;
     text-align: center;
@@ -41,7 +41,7 @@
     }
   }
 
-  &.loading__msg {
+  .loading__msg {
     padding-top: 10px;
   }
 }
