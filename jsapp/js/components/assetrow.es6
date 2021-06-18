@@ -306,8 +306,11 @@ class AssetRow extends React.Component {
             }
             <ui.PopoverMenu
               type='assetrow-menu'
-              triggerLabel={<i className='k-icon k-icon-more' />}
-              triggerTip={t('More actions')}
+              triggerLabel={
+                <div data-tip={t('More actions')}>
+                  <i className='k-icon k-icon-more'/>
+                </div>
+              }
               clearPopover={this.state.clearPopover}
               popoverSetVisible={this.popoverSetVisible}
             >

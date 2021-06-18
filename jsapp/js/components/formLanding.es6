@@ -467,8 +467,11 @@ export class FormLanding extends React.Component {
 
         <ui.PopoverMenu
           type='formLanding-menu'
-          triggerLabel={<i className='k-icon k-icon-more' />}
-          triggerTip={t('More actions')}
+          triggerLabel={
+            <div data-tip={t('More actions')}>
+              <i className='k-icon k-icon-more'/>
+            </div>
+          }
         >
           {downloads.map((dl) => {
             return (

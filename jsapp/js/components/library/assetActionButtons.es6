@@ -202,6 +202,17 @@ class AssetActionButtons extends React.Component {
     return link;
   }
 
+  renderMoreActionsTrigger() {
+    return (
+      <div
+        className='right-tooltip'
+        data-tip={t('More actions')}
+      >
+        <i className='k-icon k-icon-more'/>
+      </div>
+    );
+  }
+
   renderMoreActions() {
     const assetType = this.props.asset.asset_type;
     let downloads = [];
@@ -221,9 +232,7 @@ class AssetActionButtons extends React.Component {
 
     return (
       <ui.PopoverMenu
-        triggerLabel={<i className='k-icon k-icon-more'/>}
-        triggerTip={t('More actions')}
-        triggerClassName='right-tooltip'
+        triggerLabel={this.renderMoreActionsTrigger()}
         clearPopover={this.state.shouldHidePopover}
         popoverSetVisible={this.onPopoverSetVisible}
       >

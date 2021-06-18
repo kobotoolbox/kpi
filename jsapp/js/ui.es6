@@ -1,14 +1,16 @@
-/**
- * A collection of small and generic UI components. The main idea is to not
- * invent a wheel every time, keep things DRY and consistent throughout the app.
- *
- * TODO: would be best to split those to separate files in `jsapp/js/components/generic` directory.
- */
-
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from './bem';
 
+/**
+ * @prop {function} popoverSetVisible
+ * @prop {boolean} clearPopover
+ * @prop {boolean} blurEventDisabled
+ * @prop {string} type
+ * @prop {string[]} additionalModifiers
+ * @prop {node} triggerLabel - the element that will be opening the menu, menu will be placed in relation to it
+ * @prop {node} children - content od the menu, can be anything really
+ */
 class PopoverMenu extends React.Component {
   constructor(props) {
     super(props);
@@ -60,7 +62,7 @@ class PopoverMenu extends React.Component {
           popoverHiding: true,
         });
         // if we setState and immediately hide popover then links will not register as clicked
-        window.setTimeout(() =>{
+        window.setTimeout(() => {
           if (!this._mounted) {
             return false;
           }
@@ -94,18 +96,33 @@ class PopoverMenu extends React.Component {
   }
 
   render() {
-    const mods = this.props.additionalModifiers || [];
-    mods.push(this.state.placement);
+    const wrapperMods = this.props.additionalModifiers || [];
+    wrapperMods.push(this.state.placement);
     if (this.props.type) {
-      mods.push(this.props.type);
+      wrapperMods.push(this.props.type);
+    }
+
+    const menuMods = [];
+    if (this.state.popoverHiding) {
+      menuMods.push('hiding');
+    }
+    if (this.state.popoverVisible) {
+      menuMods.push('visible');
+    } else {
+      menuMods.push('hidden');
     }
 
     return (
-      <bem.PopoverMenu m={mods}>
-        <bem.PopoverMenu__toggle onClick={this.toggle} onBlur={this.toggle} data-tip={this.props.triggerTip} tabIndex='1' className={this.props.triggerClassName}>
+      <bem.PopoverMenu m={wrapperMods}>
+        <bem.PopoverMenu__toggle
+          onClick={this.toggle}
+          onBlur={this.toggle}
+          tabIndex='1'
+        >
           {this.props.triggerLabel}
         </bem.PopoverMenu__toggle>
-        <bem.PopoverMenu__content m={[this.state.popoverHiding ? 'hiding' : '', this.state.popoverVisible ? 'visible' : 'hidden']}>
+
+        <bem.PopoverMenu__content m={menuMods}>
           {this.props.children}
         </bem.PopoverMenu__content>
       </bem.PopoverMenu>
