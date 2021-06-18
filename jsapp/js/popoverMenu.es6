@@ -3,6 +3,8 @@ import autoBind from 'react-autobind';
 import {bem} from './bem';
 
 /**
+ * NOTE: this is depracated, please try not to use it
+ *
  * @prop {function} popoverSetVisible
  * @prop {boolean} clearPopover
  * @prop {boolean} blurEventDisabled
@@ -11,7 +13,7 @@ import {bem} from './bem';
  * @prop {node} triggerLabel - the element that will be opening the menu, menu will be placed in relation to it
  * @prop {node} children - content od the menu, can be anything really
  */
-class PopoverMenu extends React.Component {
+export default class PopoverMenu extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -140,9 +142,3 @@ class PopoverMenu extends React.Component {
     );
   }
 }
-
-var ui = {
-  PopoverMenu: PopoverMenu,
-};
-
-export default ui;

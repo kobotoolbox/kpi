@@ -5,7 +5,7 @@ import autoBind from 'react-autobind';
 import { Link } from 'react-router';
 import {bem} from '../bem';
 import assetUtils from 'js/assetUtils';
-import ui from '../ui';
+import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
 import mixins from '../mixins';
 import {
@@ -304,7 +304,7 @@ class AssetRow extends React.Component {
                     );
               })
             }
-            <ui.PopoverMenu
+            <PopoverMenu
               type='assetrow-menu'
               triggerLabel={
                 <div data-tip={t('More actions')}>
@@ -435,7 +435,7 @@ class AssetRow extends React.Component {
                   {t('Remove shared form')}
                 </bem.PopoverMenu__link>
               }
-            </ui.PopoverMenu>
+            </PopoverMenu>
           </bem.AssetRow__buttons>
         </bem.AssetRow>
       );

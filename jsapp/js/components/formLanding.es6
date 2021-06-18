@@ -7,7 +7,7 @@ import assetUtils from 'js/assetUtils';
 import {bem} from '../bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
-import ui from '../ui';
+import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import mixins from '../mixins';
 import {actions} from '../actions';
@@ -281,7 +281,7 @@ export class FormLanding extends React.Component {
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m={['columns', 'padding', 'collect-header']}>
             <bem.FormView__cell>
-              <ui.PopoverMenu
+              <PopoverMenu
                 type="collectData-menu"
                 triggerLabel={COLLECTION_METHODS[chosenMethod].label}
               >
@@ -298,7 +298,7 @@ export class FormLanding extends React.Component {
                     </bem.PopoverMenu__link>
                   );
                 })}
-              </ui.PopoverMenu>
+              </PopoverMenu>
             </bem.FormView__cell>
 
             <bem.FormView__cell>
@@ -465,7 +465,7 @@ export class FormLanding extends React.Component {
           </bem.FormView__link>
         }
 
-        <ui.PopoverMenu
+        <PopoverMenu
           type='formLanding-menu'
           triggerLabel={
             <div data-tip={t('More actions')}>
@@ -530,7 +530,7 @@ export class FormLanding extends React.Component {
             {t('Manage Encryption')}
           </bem.PopoverMenu__link>
           */ }
-        </ui.PopoverMenu>
+        </PopoverMenu>
       </React.Fragment>
     );
   }

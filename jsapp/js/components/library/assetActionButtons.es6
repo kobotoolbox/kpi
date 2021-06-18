@@ -15,7 +15,7 @@ import {hashHistory} from 'react-router';
 import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import _ from 'lodash';
-import ui from 'js/ui';
+import PopoverMenu from 'js/popoverMenu';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
@@ -76,7 +76,7 @@ class AssetActionButtons extends React.Component {
 
   /**
    * Allow for some time for user to go back to the popover menu.
-   * Then force hide popover in next render cycle (ui.PopoverMenu interface
+   * Then force hide popover in next render cycle (PopoverMenu interface
    * handles it this way)
    */
   onMouseLeave() {
@@ -231,7 +231,7 @@ class AssetActionButtons extends React.Component {
     }
 
     return (
-      <ui.PopoverMenu
+      <PopoverMenu
         triggerLabel={this.renderMoreActionsTrigger()}
         clearPopover={this.state.shouldHidePopover}
         popoverSetVisible={this.onPopoverSetVisible}
@@ -347,7 +347,7 @@ class AssetActionButtons extends React.Component {
             {t('Delete')}
           </bem.PopoverMenu__link>
         }
-      </ui.PopoverMenu>
+      </PopoverMenu>
     );
   }
 

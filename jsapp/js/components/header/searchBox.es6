@@ -3,7 +3,6 @@ import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import ui from 'js/ui';
 import {bem} from 'js/bem';
 import {searchBoxStore} from './searchBoxStore';
 import {KEY_CODES} from 'js/constants';

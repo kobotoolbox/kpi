@@ -6,7 +6,7 @@ import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
-import ui from 'js/ui';
+import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Modal from 'js/components/common/modal';
 import mixins from 'js/mixins';
@@ -336,7 +336,7 @@ export default class Reports extends React.Component {
 
     return (
       <bem.FormView__reportButtons>
-        <ui.PopoverMenu type='custom-reports' triggerLabel={menuLabel}>
+        <PopoverMenu type='custom-reports' triggerLabel={menuLabel}>
           <bem.PopoverMenu__link
             key='default'
             data-name=''
@@ -372,7 +372,7 @@ export default class Reports extends React.Component {
               {t('Create New Report')}
             </bem.PopoverMenu__link>
           )}
-        </ui.PopoverMenu>
+        </PopoverMenu>
 
         {this.state.currentCustomReport && (
           <bem.Button
