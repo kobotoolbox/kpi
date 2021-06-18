@@ -15,22 +15,26 @@ class PopoverMenu extends React.Component {
     this.state = {
       popoverVisible: false,
       popoverHiding: false,
-      placement: 'below'
+      placement: 'below',
     };
     this._mounted = false;
     autoBind(this);
   }
+
   componentDidMount() {
     this._mounted = true;
   }
+
   componentWillUnmount() {
     this._mounted = false;
   }
+
   toggle(evt) {
     var isBlur = evt.type === 'blur';
 
-    if (isBlur && this.props.blurEventDisabled)
+    if (isBlur && this.props.blurEventDisabled) {
       return false;
+    }
 
     if (
       isBlur &&
@@ -46,16 +50,17 @@ class PopoverMenu extends React.Component {
 
     if (this.state.popoverVisible || isBlur) {
         this.setState({
-          popoverHiding: true
+          popoverHiding: true,
         });
         // if we setState and immediately hide popover then links will not register as clicked
-        window.setTimeout(()=>{
-          if (!this._mounted)
+        window.setTimeout(() =>{
+          if (!this._mounted) {
             return false;
+          }
 
           this.setState({
             popoverVisible: false,
-            popoverHiding: false
+            popoverHiding: false,
           });
         }, 200);
     } else {
@@ -80,6 +85,7 @@ class PopoverMenu extends React.Component {
       this.props.popoverSetVisible();
     }
   }
+
   componentWillReceiveProps(nextProps) {
     if (this.state.popoverVisible && nextProps.clearPopover) {
       this.setState({
@@ -87,7 +93,8 @@ class PopoverMenu extends React.Component {
       });
     }
   }
-  render () {
+
+  render() {
     const mods = this.props.additionalModifiers || [];
     mods.push(this.state.placement);
     if (this.props.type) {
@@ -106,12 +113,10 @@ class PopoverMenu extends React.Component {
 
     );
   }
-};
-
-
+}
 
 var ui = {
-  PopoverMenu: PopoverMenu
+  PopoverMenu: PopoverMenu,
 };
 
 export default ui;

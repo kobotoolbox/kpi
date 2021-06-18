@@ -4,7 +4,7 @@ import {bem} from 'js/bem';
 
 /**
  * A generic dropdown component that accepts any content inside. If you need a
- * selector dropdown, please look elsewhere.
+ * selector dropdown, please look at `react-select`.
  *
  * @prop {boolean} opened
  * @prop {function} onClose
