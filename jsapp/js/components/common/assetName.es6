@@ -14,10 +14,10 @@ export default class AssetName extends React.Component {
   }
 
   render() {
-    const displayName = getAssetDisplayName(this.props);
+    const displayName = getAssetDisplayName(this.props.asset);
     let extra = null;
     const classNames = ['asset-name'];
-    const summary = this.props.summary;
+    const summary = this.props.asset.summary;
 
     if (
       !displayName.original &&
