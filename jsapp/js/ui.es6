@@ -7,36 +7,7 @@
 
 import React from 'react';
 import autoBind from 'react-autobind';
-import _ from 'underscore';
 import {bem} from './bem';
-
-/**
- * @prop {string} value
- * @prop {string} placeholder
- * @prop {boolean} disabled
- * @prop {function} onKeyUp
- * @prop {function} onChange
- */
-class SearchBox extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
-  render() {
-    return (
-      <input
-        type='text'
-        className='k-search__input'
-        value={this.props.value}
-        onKeyUp={this.props.onKeyUp}
-        onChange={this.props.onChange}
-        id={_.uniqueId('elem')}
-        placeholder={this.props.placeholder}
-        disabled={this.props.disabled}
-      />
-    );
-  }
-}
 
 class PopoverMenu extends React.Component {
   constructor(props) {
@@ -140,7 +111,6 @@ class PopoverMenu extends React.Component {
 
 
 var ui = {
-  SearchBox: SearchBox,
   PopoverMenu: PopoverMenu
 };
 
