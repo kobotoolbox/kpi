@@ -28,7 +28,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
 )
 from kpi.deployment_backends.kobocat_backend import KobocatDeploymentBackend
 from kpi.models import Asset, ObjectPermission
-from kpi.models.object_permission import get_anonymous_user
+from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.models import _set_auto_field_update
 
 TIMESTAMP_DIFFERENCE_TOLERANCE = datetime.timedelta(seconds=30)
@@ -462,12 +462,8 @@ class Command(BaseCommand):
             '--sync-kobocat-form-media',
             action='store_true',
             dest='sync_kobocat_form_media',
-            default=True,
+            default=False,
             help='Sync kobocat form-media to kpi')
-        parser.add_argument(
-            '--no-sync-kobocat-form-media',
-            action='store_false',
-            dest='sync_kobocat_form_media')
 
     def _print_str(self, string):
         if not self._quiet:
@@ -486,6 +482,7 @@ class Command(BaseCommand):
         username = options.get('username')
         populate_xform_kpi_asset_uid = options.get('populate_xform_kpi_asset_uid')
         sync_kobocat_form_media = options.get('sync_kobocat_form_media')
+        verbosity = options.get('verbosity')
         users = User.objects.all()
         # Do a basic query just to make sure the KobocatXForm model is
         # loaded
@@ -582,7 +579,16 @@ class Command(BaseCommand):
         _set_auto_field_update(Asset, "date_modified", True)
 
         if populate_xform_kpi_asset_uid:
-            call_command('populate_kc_xform_kpi_asset_uid', username=username)
+            call_command(
+                'populate_kc_xform_kpi_asset_uid',
+                username=username,
+                verbosity=verbosity,
+            )
 
-        if username and sync_kobocat_form_media:
-            call_command('sync_kobocat_form_media', username=username, quiet=True)
+        if sync_kobocat_form_media:
+            call_command(
+                'sync_kobocat_form_media',
+                username=username,
+                quiet=self._quiet,
+                verbosity=verbosity,
+            )

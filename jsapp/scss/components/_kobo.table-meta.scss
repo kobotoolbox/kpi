@@ -19,7 +19,7 @@
   }
 
   .table-meta__bulk-options {
-    > * {
+    > *:not(:first-child) {
       margin-left: 10px;
     }
   }
@@ -62,20 +62,6 @@
     .checkbox__wrapper {
       padding: 0;
       display: block;
-    }
-  }
-
-  > .popover-menu--table-bulk-checkbox {
-    .popover-menu__toggle::after {
-      content: "\25BC";
-      font-size: 8px;
-      display: inline-block;
-      vertical-align: 1px;
-      padding: 0 10px 0 30px;
-    }
-
-    .popover-menu__content {
-      left: 5px;
     }
   }
 }
