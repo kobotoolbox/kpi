@@ -1,6 +1,7 @@
 # coding: utf-8
 import copy
 from collections import defaultdict
+from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser, Permission
