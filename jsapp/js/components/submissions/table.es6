@@ -494,10 +494,7 @@ export class DataTable extends React.Component {
       }
 
       let columnClassName = '';
-      if (
-        (q && NUMERICAL_SUBMISSION_PROPS[q.type]) ||
-        NUMERICAL_SUBMISSION_PROPS[key]
-      ) {
+      if (this.cellDisplaysNumbers(q || key)) {
         columnClassName += 'rt-numerical-value';
       }
 
@@ -532,8 +529,7 @@ export class DataTable extends React.Component {
           if (showLabels && q && q.type && row.value) {
             if (TABLE_MEDIA_TYPES.includes(q.type)) {
               var mediaURL = this.getMediaDownloadLink(row, row.value);
-              console.log(mediaURL);
-              return this.renderMediaCell(q.type, mediaURL);
+              return this.renderMediaCell(q.type, mediaURL, row.value);
             }
             // show proper labels for choice questions
             if (q.type === QUESTION_TYPES.select_one.id) {
@@ -1027,23 +1023,35 @@ export class DataTable extends React.Component {
     var kc_base = `${kc_server.origin}${kc_prefix}`;
     return `${kc_base}/attachment/original?media_file=${encodeURI(foundFile)}`;
   }
-  renderMediaCell(questionType, mediaURL) {
-    const iconClassNames = ['k-icon'];
-    let playableMedia = new Audio(mediaURL);
-    debugger
-    const playableMediaDuration = playableMedia.duration || null;
-    console.log(playableMediaDuration);
+  cellDisplaysNumbers(questionOrKey) {
+    let questionType = questionOrKey;
+    if (questionOrKey.type) {
+      questionType = questionOrKey.type;
+    }
 
-    // Avoid using `if` here for extensibility
+    return (
+      NUMERICAL_SUBMISSION_PROPS[questionType] ||
+      TABLE_MEDIA_TYPES.includes(questionType)
+    );
+  }
+  renderMediaCell(questionType, mediaURL, mediaName) {
+    const iconClassNames = ['k-icon'];
+    // TODO: figure out duration stuff, right now just show a time
+    // let playableMedia = new Audio(mediaURL);
+    const tempTime = '01:23:45';
+
+    // Different from renderQuestionTypeIcon as we need custom `title` and
+    // event handling
     switch (questionType) {
       case QUESTION_TYPES.image.id:
         iconClassNames.push('k-icon-qt-photo');
         break;
-      case (QUESTION_TYPES.audio.id || QUESTION_TYPES['background-audio']):
+      case QUESTION_TYPES.audio.id:
+      case META_QUESTION_TYPES['background-audio']:
         iconClassNames.push('k-icon-qt-audio');
         break;
       case QUESTION_TYPES.video.id:
-        iconClassNames.push('k-icon-qt-photo');
+        iconClassNames.push('k-icon-qt-video');
         break;
       default:
         iconClassNames.push('k-icon-media-files');
@@ -1054,14 +1062,15 @@ export class DataTable extends React.Component {
       <bem.MediaCell>
         <bem.MediaCell__icon
           className={iconClassNames}
+          title={mediaName}
           onClick={() =>
             this.launchMediaModal(questionType, mediaURL, iconClassNames)
           }
         />
 
-        {(playableMediaDuration !== null) &&
+        {!(questionType === QUESTION_TYPES.image.id) &&
           <bem.MediaCell__duration>
-            {playableMediaDuration}
+            {tempTime}
           </bem.MediaCell__duration>
         }
       </bem.MediaCell>
