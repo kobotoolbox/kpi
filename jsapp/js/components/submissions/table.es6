@@ -1081,7 +1081,7 @@ export class DataTable extends React.Component {
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={0}
-          className={tableClasses}
+          className={tableClasses.join(' ')}
           pages={pages}
           manual
           onFetchData={this.fetchData}
