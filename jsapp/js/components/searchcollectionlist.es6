@@ -32,11 +32,17 @@ class SearchCollectionList extends Reflux.Component {
       fixedHeadingsWidth: 'auto'
     };
     this.store = stores.selectedAsset;
+    this.unlisteners = [];
     autoBind(this);
   }
   componentDidMount() {
-    this.listenTo(this.searchStore, this.searchChanged);
+    this.unlisteners.push(
+      this.searchStore.listen(this.searchChanged)
+    );
     this.queryCollections();
+  }
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
   searchChanged(searchStoreState) {
     this.setState(searchStoreState);
@@ -115,7 +121,7 @@ class SearchCollectionList extends Reflux.Component {
 
           {this.state.parentName &&
             <span>
-              <i className='k-icon-next' />
+              <i className='k-icon k-icon-next' />
               <span>{this.state.parentName}</span>
             </span>
           }
@@ -285,7 +291,7 @@ class SearchCollectionList extends Reflux.Component {
             }
             </bem.AssetList>
             <div className='dropzone-active-overlay'>
-              <i className='k-icon-upload' />
+              <i className='k-icon k-icon-upload' />
               {t('Drop files to upload')}
             </div>
           </bem.List>
