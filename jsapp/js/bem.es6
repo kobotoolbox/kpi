@@ -14,6 +14,10 @@ bem.KoboLightButton = BEM('kobo-light-button', '<button>');
 bem.KoboTextButton = BEM('kobo-text-button', '<button>');
 bem.KoboLightBadge = BEM('kobo-light-badge', '<span>');
 
+bem.KoboSelect = BEM('kobo-select');
+bem.KoboSelect__optionWrapper = bem.KoboSelect.__('option-wrapper');
+bem.KoboSelect__optionBadge = bem.KoboSelect.__('option-badge');
+
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
@@ -222,6 +226,8 @@ bem.PopoverMenu__moveTo = bem.PopoverMenu.__('moveTo');
 
 bem.Header = BEM('header');
 bem.Header__logo = bem.Header.__('logo', '<span>');
+
+bem.LoginBox = BEM('login-box');
 
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__name = bem.AccountBox.__('name', '<div>');

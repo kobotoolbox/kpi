@@ -12,6 +12,16 @@ $viewMandatorySetting = require('./view.mandatorySetting')
 $acceptedFilesView = require('./view.acceptedFiles')
 $viewRowDetail = require('./view.rowDetail')
 renderKobomatrix = require('js/formbuild/renderInBackbone').renderKobomatrix
+hasRowRestriction = require('js/components/locking/lockingUtils').hasRowRestriction
+getRowLockingProfile = require('js/components/locking/lockingUtils').getRowLockingProfile
+isRowLocked = require('js/components/locking/lockingUtils').isRowLocked
+isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
+isAssetAllLocked = require('js/components/locking/lockingUtils').isAssetAllLocked
+getQuestionFeatures = require('js/components/locking/lockingUtils').getQuestionFeatures
+getGroupFeatures = require('js/components/locking/lockingUtils').getGroupFeatures
+LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
+LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
+$icons = require('./view.icons')
 multiConfirm = require('js/alertify').multiConfirm
 alertify = require('alertifyjs')
 
@@ -32,6 +42,7 @@ module.exports = do ->
       @model.on "detail-change", (key, value, ctxt)=>
         customEventName = $viewUtils.normalizeEventName("row-detail-change-#{key}")
         @$(".on-#{customEventName}").trigger(customEventName, key, value, ctxt)
+      return
 
     drop: (evt, index)->
       @$el.trigger("update-sort", [@model, index])
@@ -39,8 +50,28 @@ module.exports = do ->
     getApp: ->
       @surveyView.getApp()
 
-    # expandRowSelector: ->
-    #   new $rowSelector.RowSelector(el: @$el.find(".survey__row__spacer").get(0), ngScope: @ngScope, spawnedFromView: @).expand()
+    getRawType: ->
+      return @model.get('type').get('typeId')
+
+    ###
+    # This needs to be safeguarded so much, as there is possibility row doesn't
+    # have a `name` or doesn't have anything (e.g. newly created row)
+    ###
+    getRowName: ->
+      modelName = @model.get('name')
+      modelAutoname = @model.get('$autoname')
+      if modelName and modelName.get('value')
+        return modelName.get('value')
+      else if modelAutoname and modelAutoname.get('value')
+        return modelAutoname.get('value')
+      else
+        return null
+
+    hasRestriction: (restrictionName) ->
+      return hasRowRestriction(@ngScope.rawSurvey, @getRowName(), restrictionName)
+
+    isLockable: ->
+      return isAssetLockable(@ngScope.assetType?.id)
 
     render: (opts={})->
       fixScroll = opts.fixScroll
@@ -62,21 +93,25 @@ module.exports = do ->
       if fixScroll
         @$el.attr('style', '')
 
-      @
+      return @
+
     _renderError: ->
       @$el.addClass("xlf-row-view-error")
       atts = $viewUtils.cleanStringify(@model.toJSON())
       @$el.html $viewTemplates.$$render('row.rowErrorView', atts)
-      @
+      return @
+
     _renderRow: ->
       @$el.html $viewTemplates.$$render('row.xlfRowView', @surveyView)
-      @$label = @$('.js-card-label')
-      @$hint = @$('.card__header-hint')
-      @$card = @$('.card')
-      @$header = @$('.card__header')
+
+      @$card = @$el.find('> .card').eq(0)
+      @$header = @$card.find('> .card__header').eq(0)
+      @$label = @$header.find('.js-card-label').eq(0)
+      @$hint = @$header.find('.js-card-hint').eq(0)
+
       context = {warnings: []}
 
-      questionType = @model.get('type').get('typeId')
+      questionType = @getRawType()
       if (
         $configs.questionParams[questionType] and
         'getParameters' of @model and
@@ -96,25 +131,30 @@ module.exports = do ->
       if 'getList' of @model and (cl = @model.getList())
         @$card.addClass('card--selectquestion card--expandedchoices')
         @is_expanded = true
-        @listView = new $viewChoices.ListView(model: cl, rowView: @).render()
+        isSortableDisabled = (
+          @isLockable() and
+          @hasRestriction(LOCKING_RESTRICTIONS.choice_order_edit.name)
+        )
+        @listView = new $viewChoices.ListView(model: cl, rowView: @).render(isSortableDisabled)
 
       @cardSettingsWrap = @$('.card__settings').eq(0)
-      @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
+      @defaultRowDetailParent = @cardSettingsWrap.find('.js-card-settings-row-options').eq(0)
       for [key, val] in @model.attributesArray() when key in ['label', 'hint', 'type']
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
-        if key == 'label' and
-           (@model.get('type').get('value') == 'calculate' or
-            @model.get('type').get('value') == 'xml-external')
-          if @model.get('type').get('value') == 'calculate'
+        if key is 'label' and
+           (@getRawType() is 'calculate' or
+            @getRawType() is 'xml-external')
+          if @getRawType() is 'calculate'
             view.model = @model.get('calculation')
-          else if @model.get('type').get('value') == 'xml-external'
+          else if @getRawType() is 'xml-external'
             view.model = @model.get('name')
           @model.finalize()
           val.set('value', '')
         view.render().insertInDOM(@)
       if @model.getValue('required')
         @$card.addClass('card--required')
-      @
+
+      return @
 
     toggleSettings: (show)->
       if show is undefined
@@ -125,6 +165,9 @@ module.exports = do ->
         @$card.addClass('card--expanded-settings')
         @hideMultioptions?()
         @_settingsExpanded = true
+        # rerender locking (if applies to class extending BaseRowView)
+        if @applyLocking
+          @applyLocking()
       else if !show and @_settingsExpanded
         @$card.removeClass('card--expanded-settings')
         @_cleanupExpandedRender()
@@ -150,11 +193,22 @@ module.exports = do ->
 
   class GroupView extends BaseRowView
     className: "survey__row survey__row--group  xlf-row-view xlf-row-view--depr"
+
     initialize: (opts)->
       @options = opts
+      @ngScope = opts.ngScope
       @_shrunk = !!opts.shrunk
       @$el.attr("data-row-id", @model.cid)
       @surveyView = @options.surveyView
+
+      # reapply locking after changes, so e.g. added option gets all locking
+      @model.getSurvey()?.on("change", () => @applyLocking() )
+      # reapply locking after group sortable is initialized, as there is no
+      # simple way to prevent the sortable from being created, we go around it
+      # in a creative BAD CODE™ way
+      @model.getSurvey()?.on("group-sortable-created", () => @applyLocking() )
+
+      return
 
     deleteGroup: (evt) =>
       evt.preventDefault()
@@ -172,14 +226,16 @@ module.exports = do ->
         [
           {
             label: t('Ungroup questions'),
-            icon: 'k-icon-group-split'
+            icon: 'k-icon k-icon-group-split'
             color: 'blue',
+            isDisabled: @isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_split.name)
             callback: @_deleteGroup.bind(@),
           },
           {
             label: t('Delete everything'),
-            icon: 'k-icon-trash',
+            icon: 'k-icon k-icon-trash',
             color: 'red',
+            isDisabled: @isLockable() and @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name)
             callback: @_deleteGroupWithContent.bind(@),
           },
         ]
@@ -205,10 +261,10 @@ module.exports = do ->
     render: ->
       if !@already_rendered
         @$el.html $viewTemplates.row.groupView(@model)
-        @$label = @$('.js-card-label')
-        @$rows = @$('.group__rows').eq(0)
-        @$card = @$('.card')
-        @$header = @$('.card__header,.group__header').eq(0)
+        @$card = @$el.find('> .card').eq(0)
+        @$rows = @$card.find('> .group__rows').eq(0)
+        @$header = @$card.find('> .card__header, > .group__header').eq(0)
+        @$label = @$header.find('.js-card-label').eq(0)
 
       @model.rows.each (row)=>
         @getApp().ensureElInView(row, @, @$rows).render()
@@ -219,10 +275,97 @@ module.exports = do ->
         view.render().insertInDOM(@)
 
       @already_rendered = true
-      @
+
+      @applyLocking()
+
+      return @
+
+    ###
+    # Locking function for groups.
+    #
+    # Makes sure the locking restrictions are applied propery, i.e. some should
+    # be applied only to this group and not to child groups, but others should
+    # go all levels deep
+    ###
+    applyLocking: ->
+      rowName = @getRowName()
+
+      # no point of checking locking for nameless row
+      if rowName is null
+        return
+
+      @$settings = @$card.find('> .card__settings').eq(0)
+      isLockable = @isLockable()
+
+      if (isRowLocked(@ngScope.rawSurvey, rowName))
+        @$settings.find('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        @$lockedFeaturesContent = @$settings.find('.js-card-settings-locked-features')
+        @$lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        lockedFeatures = $($viewTemplates.row.lockedFeatures(
+          getGroupFeatures(@ngScope.rawSurvey, rowName)
+        ))
+        @$lockedFeaturesContent.html(lockedFeatures)
+
+        # add icon with tooltip
+        $groupIcon = @$header.find('.js-group-icon')
+        $groupIcon.find('.k-icon').addClass('k-icon-lock-alt')
+
+        if not $groupIcon.hasClass('k-tooltip__parent')
+          $groupIcon.addClass('k-tooltip__parent')
+
+          isAllLocked = isAssetAllLocked(@ngScope.rawSurvey)
+
+          profileName = t('Locked')
+          if !isAllLocked
+            profileName = getRowLockingProfile(@ngScope.rawSurvey, rowName)?.name
+
+          tooltipMsg = t('fully locked group')
+          if !isAllLocked
+            tooltipMsg = t('partially locked group')
+
+          iconTooltip = $($viewTemplates.row.iconTooltip(profileName, tooltipMsg))
+          $groupIcon.append(iconTooltip)
+
+      # hide group delete button only if both splitting and deleteing is locked
+      if (
+        isLockable and
+        @hasRestriction(LOCKING_RESTRICTIONS.group_split.name) and
+        @hasRestriction(LOCKING_RESTRICTIONS.group_delete.name)
+      )
+        @$header.find('.js-delete-group').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+
+      # disable group name label
+      if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_label_edit.name))
+        @$label.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      # hide all add and clone buttons for questions inside the group
+      if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_question_add.name))
+        @$el.find('.js-add-row-button').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        @$el.find('.js-clone-question').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+
+      # hide all child and sub-child question's delete button
+      if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_question_delete.name))
+        @$el.find('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+
+      # disable reordering all children in the group: questions and groups and
+      # their children, don't apply to question options though
+      if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_question_order_edit.name))
+        @$card.find('.group__rows.ui-sortable').sortable('disable')
+        @$card.find('.group__rows.ui-sortable').removeClass('js-sortable-enabled')
+
+      # disable all UI from "Settings" tab of group settings
+      if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_settings_edit.name))
+        @$settings.find('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      # disable all UI from "Skip Logic" tab of group settings
+      if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.group_skip_logic_edit.name))
+        @$settings.find('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      return
 
     hasNestedGroups: ->
-      _.filter(@model.rows.models, (row) -> row.constructor.key == 'group').length > 0
+      return _.filter(@model.rows.models, (row) -> row.constructor.key == 'group').length > 0
+
     _expandedRender: ->
       @$header.after($viewTemplates.row.groupSettingsView())
       @cardSettingsWrap = @$('.card__settings').eq(0)
@@ -244,13 +387,27 @@ module.exports = do ->
       @model.on 'remove', (row) =>
         if row.constructor.key == 'group' && !@hasNestedGroups()
           @$('.xlf-dv-appearance').eq(0).show()
-      @
+
+      @applyLocking()
+
+      return @
 
   class RowView extends BaseRowView
+    initialize: (opts) ->
+      super(opts)
+      # reapply locking after changes, so e.g. added option gets all locking
+      @model.getSurvey()?.on("change", () => @applyLocking() )
+      return
+
+    _renderRow: ->
+      super()
+      @applyLocking()
+      return @
+
     _expandedRender: ->
       @$header.after($viewTemplates.row.rowSettingsView())
       @cardSettingsWrap = @$('.card__settings').eq(0)
-      @defaultRowDetailParent = @cardSettingsWrap.find('.card__settings__fields--question-options').eq(0)
+      @defaultRowDetailParent = @cardSettingsWrap.find('.js-card-settings-row-options').eq(0)
 
       # don't display columns that start with a $
       hiddenFields = ['label', 'hint', 'type', 'select_from_list_name', 'kobo--matrix_list', 'parameters']
@@ -283,15 +440,122 @@ module.exports = do ->
           acceptedFiles: @model.getAcceptedFiles()
         }).render().insertInDOM(@)
 
+      @applyLocking()
+
       return @
+
+    ###
+    # Locking function for questions.
+    #
+    # This needs be run at the end of rendering, also re-run each time some new
+    # nodes are created.
+    ###
+    applyLocking: () ->
+      rowName = @getRowName()
+
+      # no point of checking locking for nameless row
+      if rowName is null
+        return
+
+      @$settings = @$card.find('> .card__settings')
+      isLockable = @isLockable()
+
+      if (isRowLocked(@ngScope.rawSurvey, rowName))
+        isAllLocked = isAssetAllLocked(@ngScope.rawSurvey)
+
+        # set visual styles for given locking profile
+        profileDef = getRowLockingProfile(@ngScope.rawSurvey, rowName)
+        if (isAllLocked)
+          @$el.addClass('locking__level-all')
+        else if (profileDef and profileDef.index is 0)
+          @$el.addClass('locking__level-1')
+        else if (profileDef and profileDef.index is 1)
+          @$el.addClass('locking__level-2')
+        else if (profileDef and profileDef.index >= 2)
+          @$el.addClass('locking__level-3-plus')
+
+        # build Locked Features settings tab
+        @$settings.find('*[data-card-settings-tab-id="locked-features"]').removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        @$lockedFeaturesContent = @$settings.find('.js-card-settings-locked-features');
+        @$lockedFeaturesContent.removeClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        lockedFeatures = $($viewTemplates.row.lockedFeatures(
+          getQuestionFeatures(@ngScope.rawSurvey, rowName)
+        ))
+        @$lockedFeaturesContent.html(lockedFeatures)
+
+        # change row type icon to locked version
+        iconDef = $icons.get(@getRawType())
+        if (iconDef)
+          $indicatorIcon = @$header.find('.card__indicator__icon')
+          $indicatorIcon.find('.card__header-icon').removeClass(iconDef.get("iconClassName"))
+          $indicatorIcon.find('.card__header-icon').addClass(iconDef.get("iconClassNameLocked"))
+
+          # add tooltip
+          if not $indicatorIcon.hasClass('k-tooltip__parent')
+            profileName = t('Locked')
+            if !isAllLocked
+              profileName = getRowLockingProfile(@ngScope.rawSurvey, rowName)?.name
+
+            tooltipMsg = t('fully locked question')
+            if !isAllLocked
+              tooltipMsg = t('partially locked question')
+
+            $indicatorIcon.addClass('k-tooltip__parent')
+            iconTooltip = $($viewTemplates.row.iconTooltip(profileName, tooltipMsg))
+            $indicatorIcon.append(iconTooltip)
+
+        # disable adding new question options
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_add.name))
+          @$el.find('.js-card-add-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+        # disable removing question options
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_delete.name))
+          @$el.find('.js-remove-option').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+        # disable changing question options labels
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_label_edit.name))
+          @$el.find('.js-option-label-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+        # disable changing question options names
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.choice_value_edit.name))
+          @$el.find('.js-option-name-input').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+        # hide delete question button
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.question_delete.name))
+          @$header.find('.js-delete-row').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+
+        # disable editing question label and hint
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.question_label_edit.name))
+          if @$label
+            @$label.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          if @$hint
+            @$hint.addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+        # disable all UI from "Settings" tab of question settings and Params View (if applicable)
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.question_settings_edit.name))
+          @$settings.find('.js-card-settings-row-options').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+          @$settings.find('.js-params-view').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+        # disable all UI from "Skip Logic" tab of question settings
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.question_skip_logic_edit.name))
+          @$settings.find('.js-card-settings-skip-logic').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+        # disable all UI from "Validation Criteria" tab of question settings
+        if (isLockable and @hasRestriction(LOCKING_RESTRICTIONS.question_validation_edit.name))
+          @$settings.find('.js-card-settings-validation-criteria').addClass(LOCKING_UI_CLASSNAMES.DISABLED)
+
+      return
 
     hideMultioptions: ->
       @$card.removeClass('card--expandedchoices')
       @is_expanded = false
+      return
+
     showMultioptions: ->
       @$card.addClass('card--expandedchoices')
       @$card.removeClass('card--expanded-settings')
       @toggleSettings(false)
+      return
 
     toggleMultioptions: ->
       if @is_expanded
@@ -303,18 +567,20 @@ module.exports = do ->
 
   class KoboMatrixView extends RowView
     className: "survey__row survey__row--kobo-matrix"
+
     _expandedRender: ->
       super()
       @$('.xlf-dv-required').hide()
       @$("li[data-card-settings-tab-id='validation-criteria']").hide()
       @$("li[data-card-settings-tab-id='skip-logic']").hide()
+
     _renderRow: ->
       @$el.html $viewTemplates.row.koboMatrixView()
       @matrix = @$('.card__kobomatrix')
       renderKobomatrix(@, @matrix)
-      @$label = @$('.js-card-label')
-      @$card = @$('.card')
-      @$header = @$('.card__header')
+      @$label = @$('.js-card-label').eq(0)
+      @$card = @$('.card').eq(0)
+      @$header = @$('.card__header').eq(0)
       context = {warnings: []}
 
       for [key, val] in @model.attributesArray() when key is 'label' or key is 'type'
@@ -324,7 +590,7 @@ module.exports = do ->
           @model.finalize()
           val.set('value', '')
         view.render().insertInDOM(@)
-      @
+      return @
 
   class RankScoreView extends RowView
     _expandedRender: ->
