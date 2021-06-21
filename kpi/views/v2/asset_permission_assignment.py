@@ -21,7 +21,10 @@ from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
 )
-from kpi.utils.object_permission_helper import ObjectPermissionHelper
+from kpi.utils.object_permission import (
+    get_user_permission_assignments_queryset,
+)
+
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
@@ -157,7 +160,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
     permission_classes = (AssetPermissionAssignmentPermission,)
     pagination_class = None
     # filter_backends = Just kidding! Look at this instead:
-    #     kpi.utils.object_permission_helper.ObjectPermissionHelper.get_user_permission_assignments_queryset
+    #     kpi.utils.object_permission.get_user_permission_assignments_queryset
 
     @action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer],
             url_path='bulk')
@@ -264,9 +267,9 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
         return context_
 
     def get_queryset(self):
-        return ObjectPermissionHelper. \
-            get_user_permission_assignments_queryset(self.asset,
-                                                     self.request.user)
+        return get_user_permission_assignments_queryset(
+            self.asset, self.request.user
+        )
 
     def perform_create(self, serializer):
         serializer.save(asset=self.asset)

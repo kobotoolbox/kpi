@@ -77,15 +77,12 @@ class MongoHelper:
     def get_count(
         cls,
         mongo_userform_id,
-        hide_deleted=True,
         query=None,
         submission_ids=None,
         permission_filters=None,
     ):
-
         _, total_count = cls._get_cursor_and_count(
             mongo_userform_id,
-            hide_deleted=hide_deleted,
             fields={'_id': 1},
             query=query,
             submission_ids=submission_ids,
@@ -95,13 +92,18 @@ class MongoHelper:
 
     @classmethod
     def get_instances(
-            cls, mongo_userform_id, hide_deleted=True, start=None, limit=None,
-            sort=None, fields=None, query=None, submission_ids=None,
-            permission_filters=None
+        cls,
+        mongo_userform_id,
+        start=None,
+        limit=None,
+        sort=None,
+        fields=None,
+        query=None,
+        submission_ids=None,
+        permission_filters=None,
     ):
         cursor, total_count = cls._get_cursor_and_count(
             mongo_userform_id,
-            hide_deleted=hide_deleted,
             fields=fields,
             query=query,
             submission_ids=submission_ids,
@@ -267,9 +269,14 @@ class MongoHelper:
         )
 
     @classmethod
-    def _get_cursor_and_count(cls, mongo_userform_id, hide_deleted=True,
-                              fields=None, query=None, submission_ids=None,
-                              permission_filters=None):
+    def _get_cursor_and_count(
+        cls,
+        mongo_userform_id,
+        fields=None,
+        query=None,
+        submission_ids=None,
+        permission_filters=None,
+    ):
 
         if len(submission_ids) > 0:
             query.update({
@@ -295,17 +302,6 @@ class MongoHelper:
                         )
 
             query = {cls.AND_OPERATOR: [query, permission_filters_query]}
-
-        # if hide_deleted:
-        #     # display only active elements
-        #     deleted_at_query = {
-        #         cls.OR_OPERATOR: [
-        #             {'_deleted_at': {'$exists': False}},
-        #             {'_deleted_at': None}
-        #         ]
-        #     }
-        #     # join existing query with deleted_at_query on an $and
-        #     query = {cls.AND_OPERATOR: [query, deleted_at_query]}
 
         query = cls.to_safe_dict(query, reading=True)
 

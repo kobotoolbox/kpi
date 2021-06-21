@@ -14,13 +14,12 @@ from django.test import TestCase
 from kobo.apps.reports import report_data
 from kpi.constants import (
     PERM_CHANGE_ASSET,
-    PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset, ExportTask
-from kpi.models.object_permission import get_anonymous_user
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class MockDataExportsBase(TestCase):

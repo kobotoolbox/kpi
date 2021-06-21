@@ -5,42 +5,44 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {bem} from '../bem';
 import {stores} from '../stores';
-import { Link, hashHistory } from 'react-router';
+import {Link, hashHistory} from 'react-router';
 import mixins from '../mixins';
-import {
-  PERMISSIONS_CODENAMES,
-  ROUTES,
-} from 'js/constants';
+import {PERMISSIONS_CODENAMES, ROUTES} from 'js/constants';
 import {assign} from 'utils';
 
 export function getFormDataTabs(assetUid, isLoggedIn) {
   return [
     {
       label: t('Table'),
-      icon: 'k-icon-table', path: ROUTES.FORM_TABLE.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-table',
+      path: ROUTES.FORM_TABLE.replace(':uid', assetUid),
     },
     {
       label: t('Reports'),
-      icon: 'k-icon-report', path: ROUTES.FORM_REPORT.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-report',
+      path: ROUTES.FORM_REPORT.replace(':uid', assetUid),
     },
     {
       label: t('Gallery'),
-      icon: 'k-icon-photo-gallery', path: ROUTES.FORM_GALLERY.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-photo-gallery',
+      path: ROUTES.FORM_GALLERY.replace(':uid', assetUid),
     },
     {
       label: t('Downloads'),
-      icon: 'k-icon-download', path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-download',
+      path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
       isDisabled: !isLoggedIn,
     },
     {
       label: t('Map'),
-      icon: 'k-icon-map-view', path: ROUTES.FORM_MAP.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-map-view',
+      path: ROUTES.FORM_MAP.replace(':uid', assetUid),
     },
   ];
 }
 
 class FormViewTabs extends Reflux.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
     this.state = {};
     autoBind(this);
@@ -53,11 +55,12 @@ class FormViewTabs extends Reflux.Component {
   assetLoad(data) {
     var assetid = this.currentAssetID();
     var asset = data[assetid];
-    this.setState(assign({
+    this.setState(
+      assign({
         asset: asset,
         assetid: assetid,
-      }
-    ));
+      })
+    );
   }
 
   triggerRefresh(evt) {
@@ -121,7 +124,8 @@ class FormViewTabs extends Reflux.Component {
         <Link
           to={ROUTES.FORM_LANDING.replace(':uid', this.state.assetid)}
           className='form-view__tab'
-          activeClassName='active'>
+          activeClassName='active'
+        >
           {t('Form')}
         </Link>
 
@@ -141,13 +145,14 @@ class FormViewTabs extends Reflux.Component {
           {t('Settings')}
         </Link>
 
-        {stores.session.isLoggedIn &&
+        {stores.session.isLoggedIn && (
           <Link
             to={ROUTES.FORMS}
-            className='form-view__link form-view__link--close'>
-            <i className='k-icon-close' />
+            className='form-view__link form-view__link--close'
+          >
+            <i className='k-icon k-icon-close' />
           </Link>
-        }
+        )}
       </bem.FormView__toptabs>
     );
   }
@@ -171,7 +176,7 @@ class FormViewTabs extends Reflux.Component {
 
       sideTabs.push({
         label: t('General'),
-        icon: 'k-icon-settings',
+        icon: 'k-icon k-icon-settings',
         path: ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid),
       });
 
@@ -183,20 +188,20 @@ class FormViewTabs extends Reflux.Component {
       ) {
         sideTabs.push({
           label: t('Media'),
-          icon: 'k-icon-photo-gallery',
+          icon: 'k-icon k-icon-photo-gallery',
           path: ROUTES.FORM_MEDIA.replace(':uid', this.state.assetid),
         });
       }
 
       sideTabs.push({
         label: t('Sharing'),
-        icon: 'k-icon-user-share',
+        icon: 'k-icon k-icon-user-share',
         path: ROUTES.FORM_SHARING.replace(':uid', this.state.assetid),
       });
 
       sideTabs.push({
         label: t('Connect Projects'),
-        icon: 'k-icon-attach',
+        icon: 'k-icon k-icon-attach',
         path: ROUTES.FORM_RECORDS.replace(':uid', this.state.assetid),
       });
 
@@ -217,7 +222,7 @@ class FormViewTabs extends Reflux.Component {
       ) {
         sideTabs.push({
           label: t('REST Services'),
-          icon: 'k-icon-data-sync',
+          icon: 'k-icon k-icon-data-sync',
           path: ROUTES.FORM_REST.replace(':uid', this.state.assetid),
         });
       }
@@ -226,7 +231,7 @@ class FormViewTabs extends Reflux.Component {
     if (sideTabs.length > 0) {
       return (
         <bem.FormView__sidetabs>
-          { sideTabs.map((item, ind) => {
+          {sideTabs.map((item, ind) => {
             let className = 'form-view__tab';
             if (item.isDisabled) {
               className += ' form-view__tab--disabled';
@@ -245,8 +250,7 @@ class FormViewTabs extends Reflux.Component {
                 {item.label}
               </Link>
             );
-          }
-          )}
+          })}
         </bem.FormView__sidetabs>
       );
     }
@@ -276,7 +280,7 @@ reactMixin(FormViewTabs.prototype, mixins.contextRouter);
 reactMixin(FormViewTabs.prototype, mixins.permissions);
 
 FormViewTabs.contextTypes = {
-  router: PropTypes.object
+  router: PropTypes.object,
 };
 
 export default FormViewTabs;
