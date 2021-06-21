@@ -14,9 +14,9 @@ from django.db.models import Exists, OuterRef, Prefetch, Q
 from django.utils.translation import ugettext_lazy as _
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
-
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
+
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.constants import (
@@ -54,17 +54,17 @@ from kpi.fields import (
     LazyDefaultJSONBField,
 )
 from kpi.mixins import (
-    FormpackXLSFormUtils,
-    XlsExportable,
+    FormpackXLSFormUtilsMixin,
+    ObjectPermissionMixin,
+    XlsExportableMixin,
 )
-
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
 from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
+from kpi.utils.object_permission import get_cached_code_names
 from kpi.utils.sluggify import sluggify_label
 from .asset_user_partial_permission import AssetUserPartialPermission
 from .asset_version import AssetVersion
-from .object_permission import ObjectPermissionMixin, get_cached_code_names
 
 
 # TODO: Would prefer this to be a mixin that didn't derive from `Manager`.
@@ -129,8 +129,8 @@ class KpiTaggableManager(_TaggableManager):
 
 class Asset(ObjectPermissionMixin,
             DeployableMixin,
-            XlsExportable,
-            FormpackXLSFormUtils,
+            XlsExportableMixin,
+            FormpackXLSFormUtilsMixin,
             models.Model):
     name = models.CharField(max_length=255, blank=True, default='')
     date_created = models.DateTimeField(auto_now_add=True)
@@ -399,6 +399,7 @@ class Asset(ObjectPermissionMixin,
         if self.asset_type not in [ASSET_TYPE_SURVEY, ASSET_TYPE_TEMPLATE]:
             # instead of deleting the settings, simply clear them out
             self.content['settings'] = {}
+            strip_kobo_locking_profile(self.content)
 
         if _title is not None:
             self.name = _title

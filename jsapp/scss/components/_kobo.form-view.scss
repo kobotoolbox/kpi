@@ -29,6 +29,10 @@
   overflow-y: auto;
   background: $kobo-gray-96;
 
+  &.form-view--table {
+    background: $kobo-white;
+  }
+
   &.form-view--fullscreen {
     position: fixed;
     z-index: $z-fullscreen;
@@ -116,6 +120,11 @@
       }
     }
 
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
     .k-icon {
       font-size: 26px;
       vertical-align: -7px;
@@ -168,6 +177,11 @@
     &.active {
       font-weight: 700;
       border-bottom: 4px solid $kobo-teal;
+    }
+
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
     }
   }
 

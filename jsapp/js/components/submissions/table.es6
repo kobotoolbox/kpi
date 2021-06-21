@@ -12,7 +12,7 @@ import ui from 'js/ui';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import ReactTable from 'react-table';
-import Select from 'react-select';
+import ValidationStatusDropdown, { SHOW_ALL_OPTION } from 'js/components/submissions/validationStatusDropdown';
 import {DebounceInput} from 'react-debounce-input';
 import {
   VALIDATION_STATUSES,
@@ -23,17 +23,17 @@ import {
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
+  NUMERICAL_SUBMISSION_PROPS,
 } from 'js/constants';
 import {formatTimeDate} from 'utils';
 import {
+  renderQuestionTypeIcon,
   getSurveyFlatPaths,
   getQuestionOrChoiceDisplayName,
 } from 'js/assetUtils';
 import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from './tableBulkOptions';
 import TableBulkCheckbox from './tableBulkCheckbox';
-
-const NOT_ASSIGNED = 'validation_status_not_assigned';
 
 // Columns that will be ALWAYS excluded from the view
 const EXCLUDED_COLUMNS = [
@@ -52,8 +52,7 @@ const EXCLUDED_COLUMNS = [
   '_validation_status',
 ];
 
-export const SUBMISSION_LINKS_ID = '__SubmissionLinks';
-export const SUBMISSION_CHECKBOX_ID = '__SubmissionCheckbox';
+export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -98,7 +97,7 @@ export class DataTable extends React.Component {
         if (f.id === '_id') {
           filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
         } else if (f.id === '_validation_status.uid') {
-          if (f.value === NOT_ASSIGNED) {
+          if (f.value === VALIDATION_STATUSES.no_status.value) {
             filterQuery += `"${f.id}":null`;
           } else {
             filterQuery += `"${f.id}":"${f.value}"`;
@@ -244,6 +243,131 @@ export class DataTable extends React.Component {
     return output;
   }
 
+  /**
+   * @param {number} maxPageRes
+   */
+  _getColumnSubmissionActions(maxPageRes) {
+    let userCanSeeEditIcon = (
+      this.props.asset.deployment__active &&
+      this.userCan('change_submissions', this.props.asset)
+    );
+
+    if (
+      this.userCan('validate_submissions', this.props.asset) ||
+      this.userCan('delete_submissions', this.props.asset) ||
+      this.userCan('change_submissions', this.props.asset)
+    ) {
+      const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
+      const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
+
+      // To accommodate the checkbox and icon buttons.
+      let columnWidth = 100;
+      if (this.state.resultsTotal >= 100000) {
+        // Whenever there are more results we need a bit more space for
+        // the "X results" text.
+        columnWidth += 20;
+      }
+
+      return {
+        Header: () => (
+          <div>
+            <div className='table-header-results'>
+              {res1} - {res2}
+              <br/>
+              <strong>{this.state.resultsTotal} {t('results')}</strong>
+            </div>
+
+            <TableBulkCheckbox
+              visibleRowsCount={maxPageRes}
+              selectedRowsCount={Object.keys(this.state.selectedRows).length}
+              totalRowsCount={this.state.resultsTotal}
+              onSelectAllPages={this.bulkSelectAll}
+              onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
+              onClearSelection={this.bulkClearSelection}
+            />
+          </div>
+        ),
+        accessor: 'sub-actions',
+        index: '__0',
+        id: SUBMISSION_ACTIONS_ID,
+        width: columnWidth,
+        filterable: false,
+        sortable: false,
+        resizable: false,
+        headerClassName: 'table-submission-actions-header',
+        className: 'rt-sub-actions',
+        Cell: (row) => (
+          <div className='table-submission-actions'>
+            <Checkbox
+              checked={this.state.selectedRows[row.original._id] ? true : false}
+              onChange={this.bulkUpdateChange.bind(this, row.original._id)}
+            />
+
+            <button
+              onClick={this.launchSubmissionModal}
+              data-sid={row.original._id}
+              className='table-link'
+              data-tip={t('Open')}
+            >
+              <i className='k-icon k-icon-view'/>
+            </button>
+
+            {userCanSeeEditIcon &&
+              <button
+                onClick={this.launchEditSubmission.bind(this)}
+                data-sid={row.original._id}
+                className='table-link'
+                data-tip={t('Edit')}
+              >
+                <i className='k-icon k-icon-edit'/>
+              </button>
+            }
+          </div>
+        ),
+      };
+    }
+  }
+
+  _getColumnValidation() {
+    return {
+      Header: () => (
+        <span className='column-header-title'>
+          {t('Validation status')}
+        </span>
+      ),
+      accessor: '_validation_status.uid',
+      index: '__2',
+      id: '_validation_status.uid',
+      width: 130,
+      className: 'rt-status',
+      headerClassName: 'rt-status',
+      Filter: ({ filter, onChange }) => {
+        let currentOption = VALIDATION_STATUSES_LIST.find((item) => item.value === filter?.value);
+        if (!currentOption) {
+          currentOption = SHOW_ALL_OPTION;
+        }
+        return (
+          <ValidationStatusDropdown
+            onChange={(selectedOption) => {onChange(selectedOption.value);}}
+            currentValue={currentOption}
+            isForHeaderFilter
+          />
+        );
+      },
+      Cell: (row) => (
+        <ValidationStatusDropdown
+          onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
+          currentValue={this.getValidationStatusOption(row.original)}
+          isDisabled={!this.userCan('validate_submissions', this.props.asset)}
+        />
+      ),
+    };
+  }
+
+  /**
+   * Prepares data for react table
+   * @param {object} data
+   */
   _prepColumns(data) {
     const displayedColumns = this.getDisplayedColumns(data);
 
@@ -276,110 +400,11 @@ export class DataTable extends React.Component {
       showLabels = translationIndex > -1 ? true : false;
     }
 
-    var columns = [];
-    if (
-      this.userCan('validate_submissions', this.props.asset) ||
-      this.userCan('delete_submissions', this.props.asset) ||
-      this.userCan('change_submissions', this.props.asset)
-    ) {
-      columns.push({
-        Header: () => (
-          <TableBulkCheckbox
-            visibleRowsCount={maxPageRes}
-            selectedRowsCount={Object.keys(this.state.selectedRows).length}
-            totalRowsCount={this.state.resultsTotal}
-            onSelectAllPages={this.bulkSelectAll}
-            onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
-            onClearSelection={this.bulkClearSelection}
-          />
-        ),
-        accessor: 'sub-checkbox',
-        index: '__0',
-        id: SUBMISSION_CHECKBOX_ID,
-        width: 50,
-        filterable: false,
-        sortable: false,
-        resizable: false,
-        headerClassName: 'table-bulk-checkbox-header',
-        className: 'rt-checkbox',
-        Cell: (row) => (
-          <div className='table-bulk-checkbox'>
-            <Checkbox
-              checked={this.state.selectedRows[row.original._id] ? true : false}
-              onChange={this.bulkUpdateChange.bind(this, row.original._id)}
-            />
-          </div>
-        ),
-      });
-    }
-
-    let userCanSeeEditIcon = this.props.asset.deployment__active && this.userCan('change_submissions', this.props.asset);
-
-    columns.push({
-      Header: '',
-      accessor: 'sub-link',
-      index: '__1',
-      id: SUBMISSION_LINKS_ID,
-      width: userCanSeeEditIcon ? 75 : 45,
-      filterable: false,
-      sortable: false,
-      resizable: false,
-      className: 'rt-link',
-      Cell: (row) => (
-        <div>
-          <span onClick={this.launchSubmissionModal} data-sid={row.original._id}
-                className='table-link' data-tip={t('Open')}>
-            <i className='k-icon k-icon-view'/>
-          </span>
-
-          {userCanSeeEditIcon &&
-            <span
-              onClick={this.launchEditSubmission.bind(this)}
-              data-sid={row.original._id}
-              className='table-link'
-              data-tip={t('Edit')}
-            >
-              <i className='k-icon k-icon-edit'/>
-            </span>
-          }
-        </div>
-      ),
-    });
-
-    columns.push({
-      Header: () => (
-        <span className='column-header-title'>
-          {t('Validation status')}
-        </span>
-      ),
-      accessor: '_validation_status.uid',
-      index: '__2',
-      id: '_validation_status.uid',
-      minWidth: 130,
-      className: 'rt-status',
-      Filter: ({ filter, onChange }) =>
-        <select
-          onChange={(event) => onChange(event.target.value)}
-          style={{ width: '100%' }}
-          value={filter ? filter.value : ''}>
-          <option value=''>Show All</option>
-          {VALIDATION_STATUSES_LIST.map((item, n) =>
-            <option value={(item.value === null) ? NOT_ASSIGNED : item.value} key={n}>{item.label}</option>
-          )}
-        </select>,
-      Cell: (row) => (
-        <Select
-          isDisabled={!this.userCan('validate_submissions', this.props.asset)}
-          isClearable={false}
-          value={this.getValidationStatusOption(row.original)}
-          options={VALIDATION_STATUSES_LIST}
-          onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
-          className='kobo-select'
-          classNamePrefix='kobo-select'
-          menuPlacement='auto'
-        />
-      ),
-    });
+    // define the columns array
+    const columns = [
+      this._getColumnSubmissionActions(maxPageRes),
+      this._getColumnValidation(),
+    ];
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
@@ -393,7 +418,7 @@ export class DataTable extends React.Component {
         q = survey.find((o) => o.name === key || o.$autoname === key);
       }
 
-      if (q && q.type === 'begin_repeat') {
+      if (q && q.type === GROUP_TYPES_BEGIN.begin_repeat) {
         return false;
       }
 
@@ -402,38 +427,38 @@ export class DataTable extends React.Component {
 
       // place meta question columns at the very end
       switch(key) {
-        case 'username':
+        case META_QUESTION_TYPES.username:
             index = 'z1';
             break;
-        case 'simserial':
+        case META_QUESTION_TYPES.simserial:
             index = 'z2';
             break;
-        case 'subscriberid':
+        case META_QUESTION_TYPES.subscriberid:
             index = 'z3';
             break;
-        case 'deviceid':
+        case META_QUESTION_TYPES.deviceid:
             index = 'z4';
             break;
-        case 'phonenumber':
+        case META_QUESTION_TYPES.phonenumber:
             index = 'z5';
             break;
-        case 'today':
+        case META_QUESTION_TYPES.today:
             index = 'z6';
             break;
         case '__version__':
         case '_version_':
             index = 'z7';
             break;
-        case '_id':
+        case ADDITIONAL_SUBMISSION_PROPS._id:
             index = 'z8';
             break;
-        case '_uuid':
+        case ADDITIONAL_SUBMISSION_PROPS._uuid:
             index = 'z9';
             break;
-        case '_submission_time':
+        case ADDITIONAL_SUBMISSION_PROPS._submission_time:
             index = 'z91';
             break;
-        case '_submitted_by':
+        case ADDITIONAL_SUBMISSION_PROPS._submitted_by:
             index = 'z92';
             break;
         default:
@@ -450,14 +475,30 @@ export class DataTable extends React.Component {
           });
       }
 
+      let columnClassName = '';
+      if (
+        (q && NUMERICAL_SUBMISSION_PROPS[q.type]) ||
+        NUMERICAL_SUBMISSION_PROPS[key]
+      ) {
+        columnClassName += 'rt-numerical-value';
+      }
+
+      let columnIcon = null;
+      if (q && q.type) {
+        columnIcon = renderQuestionTypeIcon(q.type);
+      }
+
       columns.push({
         Header: () => {
           const columnName = _this.getColumnLabel(key, q, qParentG);
           const columnHXLTags = _this.getColumnHXLTags(key);
           return (
             <React.Fragment>
-              <span className='column-header-title' title={columnName}>{columnName}</span>
-              {columnHXLTags &&
+              <span className='column-header-title' title={columnName}>
+                {columnIcon}
+                {columnName}
+              </span>
+              {this.state.showHXLTags && columnHXLTags &&
                 <span className='column-header-hxl-tags' title={columnHXLTags}>{columnHXLTags}</span>
               }
             </React.Fragment>
@@ -468,6 +509,7 @@ export class DataTable extends React.Component {
         index: index,
         question: q,
         filterable: false,
+        className: columnClassName,
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
             if (
@@ -592,7 +634,8 @@ export class DataTable extends React.Component {
             value={filter ? filter.value : undefined}
             debounceTimeout={750}
             onChange={(event) => onChange(event.target.value)}
-            style={{ width: '100%' }}
+            className='table-filter-input'
+            placeholder={t('Search')}
           />;
       }
 
@@ -613,8 +656,9 @@ export class DataTable extends React.Component {
 
       selectedColumns = columns.filter((el) => {
         // always include checkbox column
-        if (el.id == SUBMISSION_CHECKBOX_ID)
+        if (el.id === SUBMISSION_ACTIONS_ID) {
           return true;
+        }
 
         return selCos.includes(el.id) !== false;
       });
@@ -655,7 +699,7 @@ export class DataTable extends React.Component {
   }
   getColumnLabel(key, q, qParentG, stateOverrides = false) {
     switch(key) {
-      case SUBMISSION_CHECKBOX_ID:
+      case SUBMISSION_ACTIONS_ID:
         return (
           <span className='column-header-title'>
             {t('Multi-select checkboxes column')}
@@ -907,16 +951,8 @@ export class DataTable extends React.Component {
       return false;
     }
 
-    const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
-    const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
-
     return (
       <bem.TableMeta>
-        <bem.TableMeta__counter>
-          {res1} - {res2} {t('of')} {' '} {this.state.resultsTotal}
-          <bem.TableMeta__additionalText>{' '}{t('results')}</bem.TableMeta__additionalText>
-        </bem.TableMeta__counter>
-
         <TableBulkOptions
           asset={this.props.asset}
           data={this.state.tableData}
@@ -960,7 +996,14 @@ export class DataTable extends React.Component {
 
     const { tableData, columns, selectedColumns, defaultPageSize, loading, pageSize, resultsTotal } = this.state;
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
-    let tableClasses = this.state.frozenColumn ? '-striped -highlight has-frozen-column' : '-striped -highlight';
+
+    let tableClasses = ['-highlight'];
+    if (this.state.frozenColumn) {
+      tableClasses.push('has-frozen-column');
+    }
+    if (this.state.showHXLTags) {
+      tableClasses.push('has-hxl-tags-visible');
+    }
 
     const formViewModifiers = ['table'];
     if (this.state.isFullscreen) {
@@ -976,7 +1019,7 @@ export class DataTable extends React.Component {
               onClick={this.toggleFullscreen}
               data-tip={t('Toggle fullscreen')}
             >
-              <i className='k-icon-expand' />
+              <i className='k-icon k-icon-expand' />
             </bem.Button>
 
             <bem.Button
@@ -984,7 +1027,7 @@ export class DataTable extends React.Component {
               onClick={this.showTableColumnsOptionsModal}
               data-tip={t('Display options')}
             >
-              <i className='k-icon-settings' />
+              <i className='k-icon k-icon-settings' />
             </bem.Button>
           </bem.FormView__item>
         </bem.FormView__group>
@@ -1000,8 +1043,18 @@ export class DataTable extends React.Component {
           manual
           onFetchData={this.fetchData}
           loading={loading}
-          previousText={t('Prev')}
-          nextText={t('Next')}
+          previousText={(
+            <React.Fragment>
+              <i className='k-icon k-icon-caret-left'/>
+              {t('Prev')}
+            </React.Fragment>
+          )}
+          nextText={(
+            <React.Fragment>
+              {t('Next')}
+              <i className='k-icon k-icon-caret-right'/>
+            </React.Fragment>
+          )}
           loadingText={<ui.LoadingSpinner/>}
           noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}

@@ -7,6 +7,21 @@ import {bem} from 'js/bem';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
 import ReportTable from './reportTable';
 
+function getPreparedTable(data) {
+  let reportTable = [];
+  if (data.percentages && data.responses && data.frequencies) {
+    reportTable = _.zip(
+      data.responseLabels || data.responses,
+      data.frequencies,
+      data.percentages,
+    );
+  }
+  if (data.mean) {
+    reportTable = false;
+  }
+  return reportTable;
+}
+
 export default class ReportViewItem extends React.Component {
   constructor(props) {
     super(props);
@@ -16,14 +31,14 @@ export default class ReportViewItem extends React.Component {
   }
 
   componentDidMount() {
-    this.prepareTable(this.props.data);
+    this.setState({reportTable: getPreparedTable(this.props.data)});
     if (this.props.data.show_graph) {
       this.loadChart();
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.prepareTable(nextProps.data);
+  static getDerivedStateFromProps(props) {
+    return {reportTable: getPreparedTable(props.data)};
   }
 
   componentDidUpdate() {
@@ -44,23 +59,6 @@ export default class ReportViewItem extends React.Component {
     } else {
       this.itemChart = new Chart(canvas, opts);
     }
-  }
-
-  prepareTable(d) {
-    var reportTable = [];
-    if (d.percentages && d.responses && d.frequencies) {
-      reportTable = _.zip(
-        d.responseLabels || d.responses,
-        d.frequencies,
-        d.percentages
-      );
-    }
-
-    if (d.mean) {
-      reportTable = false;
-    }
-
-    this.setState({reportTable: reportTable});
   }
 
   truncateLabel(label, length = 25) {
@@ -289,7 +287,7 @@ export default class ReportViewItem extends React.Component {
               data-question={name}
               data-tip={t('Override Graph Style')}
             >
-              <i className='k-icon-more' data-question={name} />
+              <i className='k-icon k-icon-more' data-question={name} />
             </bem.Button>
           )}
         </bem.ReportView__itemHeading>

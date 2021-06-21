@@ -8,7 +8,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
-from kpi.models.object_permission import get_anonymous_user
+from kpi.utils.object_permission import get_anonymous_user
 
 
 # FIXME: Move to `object_permissions` module.
