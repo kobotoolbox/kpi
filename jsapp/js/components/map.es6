@@ -558,14 +558,23 @@ export class FormMap extends React.Component {
     let index = evt.target.getAttribute('data-index');
     this.setState({langIndex: index});
   }
-  componentWillReceiveProps (nextProps) {
-    if (this.props.viewby != undefined) {
-      this.setState({markersVisible: true});
+  static getDerivedStateFromProps(props, state) {
+    const newState = {
+      previousViewby: props.viewby
+    };
+    if (props.viewby !== undefined) {
+      newState.markersVisible = true;
     }
-    if (this.props.viewby != nextProps.viewby) {
-      this.setState({filteredByMarker: false, componentRefreshed: true});
+    if (state.previousViewby !== props.viewby) {
+      newState.filteredByMarker = false;
+      newState.componentRefreshed = true;
+    }
+    return newState;
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.viewby !== this.props.viewby) {
       let map = this.refreshMap();
-      this.requestData(map, nextProps.viewby);
+      this.requestData(map, this.props.viewby);
     }
   }
   refreshMap() {
@@ -699,31 +708,31 @@ export class FormMap extends React.Component {
           onClick={this.toggleFullscreen}
           data-tip={t('Toggle Fullscreen')}
           className={this.state.toggleFullscreen ? 'active': ''}>
-          <i className='k-icon-expand' />
+          <i className='k-icon k-icon-expand' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'markers'}
           onClick={this.showMarkers}
           data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active': ''}>
-          <i className='k-icon-pins' />
+          <i className='k-icon k-icon-pins' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'layers'}
           onClick={this.showLayerControls}
           data-tip={t('Toggle layers')}>
-          <i className='k-icon-layer' />
+          <i className='k-icon k-icon-layer' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
           m={'map-settings'}
           onClick={this.toggleMapSettings}
           data-tip={t('Map display settings')}>
-          <i className='k-icon-settings' />
+          <i className='k-icon k-icon-settings' />
         </bem.FormView__mapButton>
         {!viewby &&
           <bem.FormView__mapButton m={'heatmap'}
             onClick={this.showHeatmap}
             data-tip={t('Show as heatmap')}
             className={!this.state.markersVisible ? 'active': ''}>
-            <i className='k-icon-heatmap' />
+            <i className='k-icon k-icon-heatmap' />
           </bem.FormView__mapButton>
         }
 
