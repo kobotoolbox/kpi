@@ -360,23 +360,22 @@ class SubmissionModal extends React.Component {
             </div>
           }
 
+          <bem.FormModal__group>
           {this.hasBackgroundAudio() &&
-            <bem.FormModal__group>
-              <bem.BackgroundAudioPlayer>
-                <bem.BackgroundAudioPlayer__label>
-                  {t('Background audio recording')}
-                </bem.BackgroundAudioPlayer__label>
+            <bem.BackgroundAudioPlayer>
+              <bem.BackgroundAudioPlayer__label>
+                {t('Background audio recording')}
+              </bem.BackgroundAudioPlayer__label>
 
-                <bem.BackgroundAudioPlayer__audio
-                  controls
-                  src={this.props?.backgroundAudioUrl}
-                />
-              </bem.BackgroundAudioPlayer>
-            </bem.FormModal__group>
+              <bem.BackgroundAudioPlayer__audio
+                controls
+                src={this.props?.backgroundAudioUrl}
+              />
+            </bem.BackgroundAudioPlayer>
           }
 
           {this.props.asset.deployment__active &&
-            <bem.FormModal__group>
+            <div className='submission-modal-dropdowns'>
               {translationOptions.length > 1 &&
                 <div className='switch--label-language'>
                   <label>{t('Language:')}</label>
@@ -405,8 +404,9 @@ class SubmissionModal extends React.Component {
                   isSearchable={false}
                 />
               </div>
-            </bem.FormModal__group>
+            </div>
           }
+          </bem.FormModal__group>
 
           <bem.FormModal__group>
 
