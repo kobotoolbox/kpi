@@ -1034,6 +1034,19 @@ export class DataTable extends React.Component {
       TABLE_MEDIA_TYPES.includes(questionType)
     );
   }
+  launchMediaModal(
+    questionIcon,
+    mediaURL,
+    mediaName,
+  ) {
+    stores.pageState.showModal({
+      type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
+      questionIcon: questionIcon,
+      mediaURL: mediaURL,
+      mediaName: mediaName,
+      customModalHeader: true,
+    });
+  }
   renderMediaCell(questionType, mediaURL, mediaName) {
     const iconClassNames = ['k-icon'];
     // TODO: figure out duration stuff, right now just show a time
@@ -1064,7 +1077,7 @@ export class DataTable extends React.Component {
           className={iconClassNames}
           title={mediaName}
           onClick={() =>
-            this.launchMediaModal(questionType, mediaURL, iconClassNames)
+            this.launchMediaModal(iconClassNames, mediaURL, mediaName)
           }
         />
 

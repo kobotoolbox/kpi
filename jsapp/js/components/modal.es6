@@ -42,6 +42,7 @@ import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
 import SubmissionModal from 'js/components/submissions/submissionModal';
 import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
+import TableMediaPreview from 'js/components/submissions/tableMediaPreview';
 import TranslationSettings from './modalForms/translationSettings';
 import TranslationTable from './modalForms/translationTable';
 
@@ -178,6 +179,10 @@ class Modal extends React.Component {
         });
         break;
 
+      case MODAL_TYPES.TABLE_MEDIA_PREVIEW:
+        // Size and title will depend on its props
+        break;
+
       default:
         console.error(`Unknown modal type: "${type}"!`);
     }
@@ -256,6 +261,7 @@ class Modal extends React.Component {
         title={this.state.title}
         className={this.state.modalClass}
         isDuplicated={this.props.params.isDuplicated}
+        customModalHeader={this.props.params.customModalHeader}
       >
         <ui.Modal.Body>
             { this.props.params.type === MODAL_TYPES.SHARING &&
@@ -378,6 +384,16 @@ class Modal extends React.Component {
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
                 asset={this.props.params.asset}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.TABLE_MEDIA_PREVIEW &&
+              <TableMediaPreview
+                onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
+                questionIcon={this.props.params.questionIcon}
+                mediaURL={this.props.params.mediaUrl}
+                mediaName={this.props.params.mediaName}
                 {...this.props.params}
               />
             }

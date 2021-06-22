@@ -114,6 +114,7 @@ class Modal extends React.Component {
     }
   }
   render() {
+    console.log(this.props);
     return (
       <bem.Modal__backdrop onClick={this.backdropClick}>
         <div className={classNames(
@@ -127,10 +128,12 @@ class Modal extends React.Component {
             <i className={classNames('modal_icon', `modal_icon--${this.props.icon}`)} />
           }
           <bem.Modal__content>
-            <bem.Modal__header>
-              {this.renderTitle()}
-              {this.renderClose()}
-            </bem.Modal__header>
+            {!this.props.customModalHeader &&
+              <bem.Modal__header>
+                {this.renderTitle()}
+                {this.renderClose()}
+              </bem.Modal__header>
+            }
             {this.props.children}
           </bem.Modal__content>
         </div>

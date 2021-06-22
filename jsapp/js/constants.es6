@@ -75,6 +75,7 @@ export const MODAL_TYPES = {
   ASSET_TAGS: 'asset-tags',
   ENCRYPT_FORM: 'encrypt-form',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
+  TABLE_MEDIA_PREVIEW: 'table-media-preview',
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
