@@ -95,10 +95,6 @@ class SubmissionsByCountry(admin.ModelAdmin):
 
         data = []
 
-        asset_filter = CountryFilter(
-            request, request.GET.dict(), Asset, self.__class__
-        )
-
         for country in COUNTRIES:
             name = country[1]
             assets = qs.filter(
@@ -110,15 +106,17 @@ class SubmissionsByCountry(admin.ModelAdmin):
             if assets.count() != 0:
 
                 for asset in assets:
-                    form = KobocatXForm.objects.get(id_string=asset.uid)
+                    form = KobocatXForm.objects.get(
+                        id_string=asset.deployment.backend_response['id_string']
+                    )
                     count += ReadOnlyKobocatInstance.objects.filter(
-                        xform=form).count()
+                        xform=form
+                    ).count()
 
                 data.append({
                     'country': name,
                     'count': count,
                 })
-
         return data
 
 
