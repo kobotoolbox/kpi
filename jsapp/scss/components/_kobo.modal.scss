@@ -348,6 +348,55 @@ $z-modal-x: 10;
   }
 }
 
+.modal.modal-media-preview {
+  border-radius: 6px;
+
+  .modal__content {
+    background-color: $kobo-gray-98;
+  }
+
+  .modal__header {
+    background-color: $kobo-white;
+    min-height: 0;
+    padding: 16px;
+    background-color: $kobo-white;
+    color: $kobo-gray-24;
+
+    .modal__x {
+      padding: 0;
+      margin: 0;
+    }
+
+    .table-media-preview-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: 12px;
+
+      .table-media-preview-header__title {
+        .table-media-preview-header-label {
+          vertical-align: text-bottom;
+        }
+
+        i.k-icon {
+          color: $kobo-gray-65;
+          margin-right: 6px;
+        }
+      }
+
+      .kobo-light-button {
+        padding-right: 0px;
+        i.k-icon-download {
+          font-weight: 800;
+          margin-left: 3px;
+        }
+      }
+    }
+  }
+}
+
 .enketo-holder {
   // resets modal window paddings
   margin: -30px -30px;

@@ -1034,18 +1034,40 @@ export class DataTable extends React.Component {
       TABLE_MEDIA_TYPES.includes(questionType)
     );
   }
-  launchMediaModal(
-    questionIcon,
-    mediaURL,
-    mediaName,
-  ) {
+  launchMediaModal(questionType, questionIcon, mediaURL, mediaName) {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
-      questionIcon: questionIcon,
+      questionType: questionType,
       mediaURL: mediaURL,
       mediaName: mediaName,
-      customModalHeader: true,
+      customModalHeader: this.renderMediaModalCustomHeader(
+        questionIcon,
+        mediaURL,
+        mediaName
+      ),
     });
+  }
+  renderMediaModalCustomHeader(questionIcon, mediaURL, mediaName) {
+    return (
+      <div className='table-media-preview-header'>
+        <div className='table-media-preview-header__title'>
+          <i className={questionIcon.join(' ')}/>
+          <label className='table-media-preview-header-label'>
+            {mediaName}
+          </label>
+        </div>
+
+        {/*TODO this doesn't start a `save as` but instead opens media in tab*/}
+        <a
+          className='kobo-light-button kobo-light-button--blue'
+          href={mediaURL}
+          download=''
+        >
+          {t('download')}
+          <i className='k-icon k-icon-download'/>
+        </a>
+      </div>
+    );
   }
   renderMediaCell(questionType, mediaURL, mediaName) {
     const iconClassNames = ['k-icon'];
@@ -1077,7 +1099,7 @@ export class DataTable extends React.Component {
           className={iconClassNames}
           title={mediaName}
           onClick={() =>
-            this.launchMediaModal(iconClassNames, mediaURL, mediaName)
+            this.launchMediaModal(questionType, iconClassNames, mediaURL, mediaName)
           }
         />
 

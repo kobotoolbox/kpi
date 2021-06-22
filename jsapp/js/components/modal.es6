@@ -181,6 +181,9 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.TABLE_MEDIA_PREVIEW:
         // Size and title will depend on its props
+        this.setState({
+          modalClass: 'modal-media-preview'
+        });
         break;
 
       default:
@@ -389,11 +392,6 @@ class Modal extends React.Component {
             }
             { this.props.params.type === MODAL_TYPES.TABLE_MEDIA_PREVIEW &&
               <TableMediaPreview
-                onSetModalTitle={this.setModalTitle}
-                onModalClose={this.onModalClose}
-                questionIcon={this.props.params.questionIcon}
-                mediaURL={this.props.params.mediaUrl}
-                mediaName={this.props.params.mediaName}
                 {...this.props.params}
               />
             }

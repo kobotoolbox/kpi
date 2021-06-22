@@ -2,6 +2,11 @@ import autoBind from 'react-autobind';
 import React from 'react';
 
 import {bem} from 'js/bem';
+import {
+  QUESTION_TYPES,
+  META_QUESTION_TYPES,
+} from 'js/constants';
+
 
 class TableMediaPreview extends React.Component {
   constructor(props) {
@@ -14,27 +19,39 @@ class TableMediaPreview extends React.Component {
     autoBind(this);
   }
 
-  renderHeader() {
-    console.log(this.props.questionIcon);
-    return (
-      <header>
-        <i className={this.props.questionIcon.join(' ')}/>
-        <label>
-          {this.props.mediaName}
-        </label>
-        <bem.KoboLightButton
-          m='blue'
-        >
-          <i className='k-icon k-icon-download'/>
-          {t('download')}
-        </bem.KoboLightButton>
-      </header>
-    );
+  renderPreviewByType() {
+    switch (this.props.questionType) {
+      case QUESTION_TYPES.image.id:
+        return (
+          <img src={this.props?.mediaURL}/>
+        );
+      case QUESTION_TYPES.audio.id:
+      case META_QUESTION_TYPES['background-audio']:
+        return (
+          <label>{this.props.questionType}</label>
+        );
+      case QUESTION_TYPES.video.id:
+        return (
+          <label>{this.props.questionType}</label>
+        );
+      default:
+        return (
+          <label>
+            {t('Unsupported media type: ##QUESTION_TYPE##').replace(
+              '##QUESTION_TYPE##',
+              this.props.questionType
+            )}
+          </label>
+        );
+    }
   }
 
   render() {
+    console.log(this.props);
     return (
-      this.renderHeader()
+      <div>
+        {this.props.questionType && this.renderPreviewByType()}
+      </div>
     );
   }
 }

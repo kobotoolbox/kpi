@@ -2,6 +2,9 @@
  * A collection of small and generic UI components. The main idea is to not
  * invent a wheel every time, keep things DRY and consistent throughout the app.
  *
+ * Hack fix: if we want to use the already existing modals but want to change
+ * the contents of the header we need to add them to this component's props
+ *
  * TODO: would be best to split those to separate files in `jsapp/js/components/generic` directory.
  */
 
@@ -114,7 +117,6 @@ class Modal extends React.Component {
     }
   }
   render() {
-    console.log(this.props);
     return (
       <bem.Modal__backdrop onClick={this.backdropClick}>
         <div className={classNames(
@@ -128,12 +130,13 @@ class Modal extends React.Component {
             <i className={classNames('modal_icon', `modal_icon--${this.props.icon}`)} />
           }
           <bem.Modal__content>
-            {!this.props.customModalHeader &&
-              <bem.Modal__header>
-                {this.renderTitle()}
-                {this.renderClose()}
-              </bem.Modal__header>
-            }
+            <bem.Modal__header>
+              {!this.props.customModalHeader &&
+                this.renderTitle()
+              }
+              {this.props.customModalHeader}
+              {this.renderClose()}
+            </bem.Modal__header>
             {this.props.children}
           </bem.Modal__content>
         </div>
