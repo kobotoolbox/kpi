@@ -38,6 +38,7 @@ def generate_country_report(output_filename, start_date, end_date):
         )
         count = 0
         for kpi_form in kpi_forms:
+            # Use deployments to get the xform the right id_string
             if not kpi_form.has_deployment:
                 continue
 

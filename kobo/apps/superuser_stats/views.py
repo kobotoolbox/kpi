@@ -23,12 +23,17 @@ def country_report(request):
         date.today(),
         datetime.now().microsecond
     )
+
+    # Get the date date filters from the query and set defaults
     start_date = request.GET.get('start_date', date.today())
     tomorrow = date.today() + timedelta(days=1)
     end_date = request.GET.get('end_date', tomorrow)
+
+    # Generate the CSV file
     filename = _base_filename_to_full_filename(
         base_filename, request.user.username)
     generate_country_report.delay(filename, start_date, end_date)
+
     template_ish = (
         '<html><head><title>Hello, superuser.</title></head>'
         '<body>Your report is being generated. Once finished, it will be '
@@ -41,6 +46,7 @@ def country_report(request):
         '=2020-01-31&end_date=2021-02-28'
         '</body></html>'
     ).format(base_filename)
+
     return HttpResponse(template_ish)
 
 

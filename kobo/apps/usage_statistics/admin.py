@@ -95,12 +95,15 @@ class SubmissionsByCountry(admin.ModelAdmin):
 
         data = []
 
+        # Filter for individual countries
         for country in COUNTRIES:
             name = country[1]
             assets = qs.filter(
                 asset_type=ASSET_TYPE_SURVEY,
                 settings__country__label=str(name),
             )
+
+            # Get the count per country
             count = 0
 
             if assets.count() != 0:
