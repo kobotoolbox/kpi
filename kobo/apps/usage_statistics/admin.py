@@ -19,34 +19,6 @@ from kpi.deployment_backends.kc_access.shadow_models import (
 )
 from kpi.models.asset import Asset
 
-# class StartDateFilter(admin.SimpleListFilter):
-#     title = 'Start Date'
-#     parameter_name = 'start_date'
-
-#     def __init__(self, request, params, model, model_admin):
-#         super().__init__(request, params, model, model_admin)
-#         self.__model = model
-
-#     def lookups(self, request, model_admin):
-#         return
-
-#     def queryset(self, request, queryset):
-#         return queryset
-
-
-# class EndDateFilter(admin.SimpleListFilter):
-#     title = 'End Date'
-#     parameter_name = 'end_date'
-
-#     def __init__(self, request, params, model, model_admin):
-#         super().__init__(request, params, model, model_admin)
-#         self.model = model
-
-#     def lookups(self, request, model_admin):
-#         return
-
-#     def queryset(self, request, queryset):
-#         return queryset
 
 class TimePeriodFilter(admin.SimpleListFilter):
     title = 'Period Filters'
@@ -139,7 +111,8 @@ class SubmissionsByCountry(admin.ModelAdmin):
 
                 for asset in assets:
                     form = KobocatXForm.objects.get(id_string=asset.uid)
-                    count += ReadOnlyKobocatInstance.objects.filter(xform=form).count()
+                    count += ReadOnlyKobocatInstance.objects.filter(
+                        xform=form).count()
 
                 data.append({
                     'country': name,

@@ -7,8 +7,12 @@ from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
-from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
-from kobo.apps.usage_statistics.views import country_report, retrieve_country_report
+from kobo.apps.superuser_stats.views import (
+    user_report,
+    retrieve_user_report,
+    country_report,
+    retrieve_country_report
+)
 from kpi.forms import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests

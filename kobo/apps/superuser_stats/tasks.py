@@ -1,21 +1,81 @@
 # coding: utf-8
+import unicodecsv
+
 from celery import shared_task
 from django.conf import settings
+from django.core.files.storage import get_storage_class
+
+from kobo.static_lists import COUNTRIES
+from kpi.constants import ASSET_TYPE_SURVEY
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatUser,
+    KobocatUserProfile,
+    KobocatXForm,
+    ReadOnlyKobocatInstance,
+)
+from kpi.models.asset import Asset
+from hub.models import ExtraUserDetail
 
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
 # complain that the task is unregistered
 
 
 @shared_task
+def generate_country_report(output_filename, start_date, end_date):
+
+    def format_date(d):
+        if hasattr(d, 'strftime'):
+            return d.strftime('%F')
+        else:
+            return d
+
+    def get_row_for_country(code, label):
+        row = []
+
+        kpi_forms = Asset.objects.filter(
+            asset_type=ASSET_TYPE_SURVEY,
+            settings__country__value=code,
+        )
+        count = 0
+        for kpi_form in kpi_forms:
+            if not kpi_form.has_deployment:
+                continue
+
+            xform = KobocatXForm.objects.get(
+                id_string=kpi_form.deployment.backend_response['id_string'])
+            count += ReadOnlyKobocatInstance.objects.filter(
+                xform=xform,
+                date_created__range=(start_date, end_date),
+            ).count()
+
+        row.append(label)
+        row.append(count)
+
+        return row
+
+    CHUNK_SIZE = 1000
+    columns = [
+        'Country',
+        'Count',
+    ]
+
+    default_storage = get_storage_class()()
+    with default_storage.open(output_filename, 'wb') as output_file:
+        writer = unicodecsv.writer(output_file)
+        writer.writerow(columns)
+        c = None
+
+        for code, label in COUNTRIES:
+
+            try:
+                row = get_row_for_country(code, label)
+            except Exception as e:
+                row = ['!FAILED!', 'Country: {}'.format(c), repr(e)]
+            writer.writerow(row)
+
+
+@shared_task
 def generate_user_report(output_filename):
-    import unicodecsv
-    from django.core.files.storage import get_storage_class
-    from kpi.deployment_backends.kc_access.shadow_models import (
-        KobocatUser,
-        KobocatUserProfile,
-        KobocatXForm,
-    )
-    from hub.models import ExtraUserDetail
 
     def format_date(d):
         if hasattr(d, 'strftime'):
