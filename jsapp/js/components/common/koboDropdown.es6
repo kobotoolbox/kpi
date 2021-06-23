@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import {KEY_CODES} from 'js/constants';
+import './koboDropdown.scss';
 
 export const KOBO_DROPDOWN_THEMES = {};
 new Set([
@@ -14,20 +15,19 @@ Object.freeze(KOBO_DROPDOWN_THEMES);
 bem.KoboDropdown = bem.create('kobo-dropdown');
 bem.KoboDropdown__trigger = bem.KoboDropdown.__('trigger', 'button');
 bem.KoboDropdown__menu = bem.KoboDropdown.__('menu', 'menu');
-bem.KoboDropdown__menuButtonRow = bem.KoboDropdown.__('button-row', 'button');
+bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
 
 /**
  * A generic dropdown component that accepts any content inside. If you need a
  * selector dropdown, please look at `react-select`.
  *
  * You can use some existing content elements:
- * - bem.KoboDropdown__menuButtonRow
+ * - bem.KoboDropdown__menuButton
  *
  * @prop {string} [theme] - `light` by default - one of KOBO_DROPDOWN_THEMES
  * @prop {boolean} [isDisabled] `false` by default
  * @prop {boolean} [hideOnMenuClick] `false` by default - hides menu whenever user clicks inside it, useful for simple menu with a list of actions
  * @prop {boolean} [hideOnMenuOutsideClick] `false` by default - hides menu when user clicks outside it
- * @prop {boolean} [hideOnMenuMouseLeave] `false` by default
  * @prop {boolean} [hideOnEsc] `false` by default
  * @prop {node} triggerContent
  * @prop {function} menuContent the content of dropdown, anything's allowed
