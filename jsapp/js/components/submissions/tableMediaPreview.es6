@@ -35,7 +35,7 @@ class TableMediaPreview extends React.Component {
           <audio
             src={this.props?.mediaURL}
             controls
-            autoplay
+            autoPlay
           />
         );
       case QUESTION_TYPES.video.id:
@@ -43,7 +43,7 @@ class TableMediaPreview extends React.Component {
           <bem.TableMediaPreview__video
             src={this.props?.mediaURL}
             controls
-            autoplay
+            autoPlay
           />
         );
       default:
