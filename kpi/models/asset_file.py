@@ -36,7 +36,14 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
     )
 
     ALLOWED_MIME_TYPES = {
-        FORM_MEDIA: ('image', 'audio', 'video', 'text/csv', 'application/xml'),
+        FORM_MEDIA: (
+            'image',
+            'audio',
+            'video',
+            'text/csv',
+            'application/xml',
+            'application/zip',
+        ),
         MAP_LAYER: (
             'text/csv',
             'application/vnd.google-earth.kml+xml',
