@@ -1049,13 +1049,13 @@ export class DataTable extends React.Component {
   }
   renderMediaModalCustomHeader(questionIcon, mediaURL, mediaName) {
     return (
-      <div className='table-media-preview-header'>
-        <div className='table-media-preview-header__title'>
+      <bem.TableMediaPreviewHeader>
+        <bem.TableMediaPreviewHeader__title>
           <i className={questionIcon.join(' ')}/>
-          <label className='table-media-preview-header-label'>
+          <bem.TableMediaPreviewHeader__label>
             {mediaName}
-          </label>
-        </div>
+          </bem.TableMediaPreviewHeader__label>
+        </bem.TableMediaPreviewHeader__title>
 
         {/*TODO this doesn't start a `save as` but instead opens media in tab*/}
         <a
@@ -1066,7 +1066,7 @@ export class DataTable extends React.Component {
           {t('download')}
           <i className='k-icon k-icon-download'/>
         </a>
-      </div>
+      </bem.TableMediaPreviewHeader>
     );
   }
   renderMediaCell(questionType, mediaURL, mediaName) {

@@ -23,26 +23,27 @@ class TableMediaPreview extends React.Component {
     switch (this.props.questionType) {
       case QUESTION_TYPES.image.id:
         return (
-          <img
-            className='table-media-preview__image'
+          <bem.TableMediaPreview__image
             src={this.props?.mediaURL}
           />
         );
       case QUESTION_TYPES.audio.id:
       case META_QUESTION_TYPES['background-audio']:
         return (
+          // TODO: make our own audio player with options for here and in place
+          // of bem.BackgroundAudioPlayer
           <audio
-            className='table-media-preview__audio'
             src={this.props?.mediaURL}
             controls
+            autoplay
           />
         );
       case QUESTION_TYPES.video.id:
         return (
-          <video
-            className='table-media-preview__video'
+          <bem.TableMediaPreview__video
             src={this.props?.mediaURL}
             controls
+            autoplay
           />
         );
       default:
@@ -59,9 +60,9 @@ class TableMediaPreview extends React.Component {
 
   render() {
     return (
-      <div className='table-media-preview'>
+      <bem.TableMediaPreview>
         {this.props.questionType && this.renderPreviewByType()}
-      </div>
+      </bem.TableMediaPreview>
     );
   }
 }

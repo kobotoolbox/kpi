@@ -376,8 +376,8 @@ $z-modal-x: 10;
       margin-right: 12px;
 
       .table-media-preview-header__title {
-        .table-media-preview-header-label {
-          vertical-align: text-bottom;
+        .table-media-preview-header__label {
+          vertical-align: top;
         }
 
         i.k-icon {
@@ -396,11 +396,13 @@ $z-modal-x: 10;
     }
   }
 
-  .modal__body.table-media-preview {
-    text-align: center;
+  .modal__body {
+    .table-media-preview {
+      text-align: center;
 
-    .table-media-preview__image {
-      max-width: 1000px;
+      .table-media-preview__image {
+        max-width: 1000px;
+      }
     }
   }
 }
