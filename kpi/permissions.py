@@ -318,6 +318,12 @@ class EditSubmissionPermission(SubmissionPermission):
     }
 
 
+class ViewSubmissionPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_%(model_name)s'],
+    }
+
+
 class ExportTaskPermission(SubmissionPermission):
     perms_map = {
         'GET': ['%(app_label)s.view_submissions'],
