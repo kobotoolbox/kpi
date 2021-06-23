@@ -7,33 +7,19 @@ $z-kobo-dropdown-menu: 100;
   display: inline-block;
   position: relative;
 
-  &.kobo-dropdown--light {
-    .kobo-dropdown__menu {
-      color: $kobo-gray-40;
-      background-color: $kobo-white;
-
-      .kobo-dropdown__menu-button:hover {
-        background-color: $kobo-gray-96;
-      }
-    }
-  }
-
-  &.kobo-dropdown--dark {
-    .kobo-dropdown__menu {
-      color: $kobo-white;
-      background-color: $kobo-gray-40;
-
-      .kobo-dropdown__menu-button:hover {
-        background-color: $kobo-gray-24;
-      }
-    }
+  &.kobo-dropdown--disabled .kobo-dropdown__trigger {
+    pointer-events: none;
+    opacity: 0.5;
   }
 
   .kobo-dropdown__trigger {
-    &.kobo-dropdown__trigger--disabled {
-      pointer-events: none;
-      opacity: 0.5;
-    }
+    display: inline-block;
+    vertical-align: top;
+    appearance: none;
+    border: none;
+    margin: 0;
+    color: inherit;
+    background-color: transparent;
   }
 
   .kobo-dropdown__menu {
@@ -63,6 +49,11 @@ $z-kobo-dropdown-menu: 100;
       font-size: 12px;
       line-height: inherit;
 
+      &[disabled] {
+        pointer-events: none;
+        opacity: 0.5;
+      }
+
       .k-icon {
         color: inherit;
         font-size: 20px;
@@ -78,4 +69,66 @@ $z-kobo-dropdown-menu: 100;
       }
     }
   }
+}
+
+/*
+ * THEMES
+ */
+
+.kobo-dropdown.kobo-dropdown--light {
+  .kobo-dropdown__menu {
+    color: $kobo-gray-40;
+    background-color: $kobo-white;
+
+    .kobo-dropdown__menu-button:hover {
+      background-color: $kobo-gray-96;
+    }
+  }
+}
+
+.kobo-dropdown.kobo-dropdown--dark {
+  .kobo-dropdown__menu {
+    color: $kobo-white;
+    background-color: $kobo-gray-40;
+
+    .kobo-dropdown__menu-button:hover {
+      background-color: $kobo-gray-24;
+    }
+  }
+}
+
+/*
+ * PLACEMENTS
+ */
+
+.kobo-dropdown.kobo-dropdown--up-left .kobo-dropdown__menu {
+  bottom: 100%;
+  left: 0;
+}
+
+.kobo-dropdown.kobo-dropdown--up-center .kobo-dropdown__menu {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.kobo-dropdown.kobo-dropdown--up-right .kobo-dropdown__menu {
+  bottom: 100%;
+  right: 0;
+}
+
+.kobo-dropdown.kobo-dropdown--down-left .kobo-dropdown__menu {
+  top: 100%;
+  left: 0;
+}
+
+.kobo-dropdown.kobo-dropdown--down-center .kobo-dropdown__menu {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.kobo-dropdown.kobo-dropdown--down-right .kobo-dropdown__menu {
+  top: 100%;
+  right: 0;
 }

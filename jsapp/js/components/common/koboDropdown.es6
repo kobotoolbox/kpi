@@ -12,19 +12,34 @@ new Set([
 ]).forEach((codename) => {KOBO_DROPDOWN_THEMES[codename] = codename;});
 Object.freeze(KOBO_DROPDOWN_THEMES);
 
+export const KOBO_DROPDOWN_PLACEMENTS = {};
+new Set([
+  'up-left',
+  'up-center',
+  'up-right',
+  'down-left',
+  'down-center',
+  'down-right',
+]).forEach((codename) => {KOBO_DROPDOWN_PLACEMENTS[codename] = codename;});
+Object.freeze(KOBO_DROPDOWN_PLACEMENTS);
+
 bem.KoboDropdown = bem.create('kobo-dropdown');
 bem.KoboDropdown__trigger = bem.KoboDropdown.__('trigger', 'button');
 bem.KoboDropdown__menu = bem.KoboDropdown.__('menu', 'menu');
 bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
 
 /**
- * A generic dropdown component that accepts any content inside. If you need a
- * selector dropdown, please look at `react-select`.
+ * A generic dropdown component that accepts any content inside the menu and
+ * inside the opener.
+ *
+ * NOTE: If you need a select-type dropdown, please use `react-select`.
  *
  * You can use some existing content elements:
- * - bem.KoboDropdown__menuButton
+ * - bem.KoboDropdown__menuButton - a generic dropdown row button
+ * - bem.KoboDropdown__triggerButton - a generic dropdown row button
  *
  * @prop {string} [theme] - `light` by default - one of KOBO_DROPDOWN_THEMES
+ * @prop {string} [placement] - `down-center` by default - one of KOBO_DROPDOWN_PLACEMENTS
  * @prop {boolean} [isDisabled] `false` by default
  * @prop {boolean} [hideOnMenuClick] `false` by default - hides menu whenever user clicks inside it, useful for simple menu with a list of actions
  * @prop {boolean} [hideOnMenuOutsideClick] `false` by default - hides menu when user clicks outside it
@@ -38,25 +53,21 @@ export default class KoboDropdown extends React.Component {
     this.state = {
       isMenuVisible: false,
     };
-    this.HIDING_DELAY = 300; // ms
-    this.hidingTimeoutId = null;
     autoBind(this);
   }
 
   onTriggerClick(evt) {
-    console.log('onTriggerClick', evt);
+    evt.preventDefault();
     this.toggleMenu();
   }
 
-  onMenuClick(evt) {
-    console.log('onMenuClick', evt);
+  onMenuClick() {
     if (this.props.hideOnMenuClick) {
       this.hideMenu();
     }
   }
 
   toggleMenu() {
-    console.log('toggleMenu');
     if (this.state.isMenuVisible) {
       this.hideMenu();
     } else {
@@ -65,50 +76,28 @@ export default class KoboDropdown extends React.Component {
   }
 
   showMenu() {
-    console.log('showMenu');
     this.setState({isMenuVisible: true});
     window.addEventListener('click', this.onWindowClick);
-    this.cancelDelayedHiding();
     this.registerEscKeyListener();
     this.registerOutsideClickListener();
   }
 
   hideMenu() {
-    console.log('hideMenu');
     this.setState({isMenuVisible: false});
     window.removeEventListener('click', this.onWindowClick);
-    this.cancelDelayedHiding();
     this.cancelEscKeyListener();
     this.cancelOutsideClickListener();
   }
 
-  hideMenuWithDelay() {
-    console.log('hideMenuWithDelay');
-    this.cancelDelayedHiding();
-    this.hidingTimeoutId = window.setTimeout(
-      this.hideMenu.bind(this),
-      this.HIDING_DELAY
-    );
-  }
-
-  cancelDelayedHiding() {
-    console.log('cancelDelayedHiding');
-    window.clearTimeout(this.hidingTimeoutId);
-    this.hidingTimeoutId = null;
-  }
-
   registerEscKeyListener() {
-    console.log('registerEscKeyListener');
     document.addEventListener('keydown', this.onAnyKeyWhileOpen);
   }
 
   cancelEscKeyListener() {
-    console.log('cancelEscKeyListener');
     document.removeEventListener('keydown', this.onAnyKeyWhileOpen);
   }
 
   onAnyKeyWhileOpen(evt) {
-    console.log('onAnyKeyWhileOpen', evt);
     if (
       evt.key === 'Escape' ||
       evt.code === 'Escape' ||
@@ -120,7 +109,6 @@ export default class KoboDropdown extends React.Component {
   }
 
   registerOutsideClickListener() {
-    console.log('registerOutsideClickListener');
     window.addEventListener('click', this.checkOutsideClick);
     window.addEventListener('touch', this.checkOutsideClick);
     window.addEventListener('touchstart', this.checkOutsideClick);
@@ -128,7 +116,6 @@ export default class KoboDropdown extends React.Component {
   }
 
   cancelOutsideClickListener() {
-    console.log('cancelOutsideClickListener');
     window.removeEventListener('click', this.checkOutsideClick);
     window.removeEventListener('touch', this.checkOutsideClick);
     window.removeEventListener('touchstart', this.checkOutsideClick);
@@ -136,17 +123,15 @@ export default class KoboDropdown extends React.Component {
   }
 
   checkOutsideClick(evt) {
-    console.log('checkOutsideClick', evt);
     let isOutsideClick = true;
     const dropdownWrapperEl = ReactDOM.findDOMNode(this);
 
-    // check for older chrome versions
     let loopEl = evt.target;
-    // if we go as far as that much of parents up looking for dropdown
-    // we assume it is not a dropdown
-    let safetyCounter = 5;
+    // If we check too much parents going upward looking for dropdown then we
+    // assume it is not a dropdown.
+    let parentsLookupLimit = 6;
     while (loopEl.parentNode !== null) {
-      if (--safetyCounter === 0) {break;}
+      if (--parentsLookupLimit === 0) {break;}
       loopEl = loopEl.parentNode;
       if (
         loopEl &&
@@ -163,35 +148,51 @@ export default class KoboDropdown extends React.Component {
     }
   }
 
-  render() {
+  getWrapperModifiers() {
     const wrapperMods = [];
-    if (this.props.theme === KOBO_DROPDOWN_THEMES.dark) {
-      wrapperMods.push(KOBO_DROPDOWN_THEMES.dark);
-    } else if (
-      this.props.theme === KOBO_DROPDOWN_THEMES.light ||
-      !this.props.theme
+
+    if (
+      this.props.theme &&
+      typeof KOBO_DROPDOWN_THEMES[this.props.theme] !== 'undefined'
     ) {
+      wrapperMods.push(this.props.theme);
+    } else {
       wrapperMods.push(KOBO_DROPDOWN_THEMES.light);
     }
 
-    const triggerMods = [];
-    if (this.props.isDisabled) {
-      triggerMods.push('disabled');
+    if (
+      this.props.placement &&
+      typeof KOBO_DROPDOWN_PLACEMENTS[this.props.placement] !== 'undefined'
+    ) {
+      wrapperMods.push(this.props.placement);
+    } else {
+      wrapperMods.push(KOBO_DROPDOWN_PLACEMENTS['down-center']);
     }
 
+    // These modifiers are for styling purposes only, i.e. they don't have
+    // anything to do with menu being visible.
+    if (this.state.isMenuVisible) {
+      wrapperMods.push('menu-visible');
+    } else {
+      wrapperMods.push('menu-hidden');
+    }
+
+    if (this.props.isDisabled) {
+      wrapperMods.push('disabled');
+    }
+
+    return wrapperMods;
+  }
+
+  render() {
     return (
-      <bem.KoboDropdown m={wrapperMods}>
-        <bem.KoboDropdown__trigger
-          m={triggerMods}
-          onClick={this.onTriggerClick}
-        >
+      <bem.KoboDropdown m={this.getWrapperModifiers()}>
+        <bem.KoboDropdown__trigger onClick={this.onTriggerClick}>
           {this.props.triggerContent}
         </bem.KoboDropdown__trigger>
 
         {this.state.isMenuVisible &&
-          <bem.KoboDropdown__menu
-            onClick={this.onMenuClick}
-          >
+          <bem.KoboDropdown__menu onClick={this.onMenuClick}>
             {this.props.menuContent}
           </bem.KoboDropdown__menu>
         }
