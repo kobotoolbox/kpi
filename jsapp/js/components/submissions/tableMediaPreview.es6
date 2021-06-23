@@ -23,16 +23,27 @@ class TableMediaPreview extends React.Component {
     switch (this.props.questionType) {
       case QUESTION_TYPES.image.id:
         return (
-          <img src={this.props?.mediaURL}/>
+          <img
+            className='table-media-preview__image'
+            src={this.props?.mediaURL}
+          />
         );
       case QUESTION_TYPES.audio.id:
       case META_QUESTION_TYPES['background-audio']:
         return (
-          <label>{this.props.questionType}</label>
+          <audio
+            className='table-media-preview__audio'
+            src={this.props?.mediaURL}
+            controls
+          />
         );
       case QUESTION_TYPES.video.id:
         return (
-          <label>{this.props.questionType}</label>
+          <video
+            className='table-media-preview__video'
+            src={this.props?.mediaURL}
+            controls
+          />
         );
       default:
         return (
@@ -47,9 +58,8 @@ class TableMediaPreview extends React.Component {
   }
 
   render() {
-    console.log(this.props);
     return (
-      <div>
+      <div className='table-media-preview'>
         {this.props.questionType && this.renderPreviewByType()}
       </div>
     );

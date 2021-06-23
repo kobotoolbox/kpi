@@ -395,6 +395,14 @@ $z-modal-x: 10;
       }
     }
   }
+
+  .modal__body.table-media-preview {
+    text-align: center;
+
+    .table-media-preview__image {
+      max-width: 1000px;
+    }
+  }
 }
 
 .enketo-holder {
