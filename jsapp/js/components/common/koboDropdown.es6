@@ -2,26 +2,25 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import {KEY_CODES} from 'js/constants';
+import {
+  createEnum,
+  KEY_CODES,
+} from 'js/constants';
 import './koboDropdown.scss';
 
-export const KOBO_DROPDOWN_THEMES = {};
-new Set([
+export const KOBO_DROPDOWN_THEMES = createEnum([
   'light',
   'dark',
-]).forEach((codename) => {KOBO_DROPDOWN_THEMES[codename] = codename;});
-Object.freeze(KOBO_DROPDOWN_THEMES);
+]);
 
-export const KOBO_DROPDOWN_PLACEMENTS = {};
-new Set([
+export const KOBO_DROPDOWN_PLACEMENTS = createEnum([
   'up-left',
   'up-center',
   'up-right',
   'down-left',
   'down-center',
   'down-right',
-]).forEach((codename) => {KOBO_DROPDOWN_PLACEMENTS[codename] = codename;});
-Object.freeze(KOBO_DROPDOWN_PLACEMENTS);
+]);
 
 bem.KoboDropdown = bem.create('kobo-dropdown');
 bem.KoboDropdown__trigger = bem.KoboDropdown.__('trigger', 'button');
