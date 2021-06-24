@@ -892,7 +892,7 @@ export class DataTable extends React.Component {
     });
   }
   launchEditSubmission(evt) {
-    enketoHandler.editSubmission(this.props.asset.uid, evt.currentTarget.dataset.sid);
+    enketoHandler.openSubmission(this.props.asset.uid, evt.currentTarget.dataset.sid, 'edit');
   }
   onPageStateUpdated(pageState) {
     if (!pageState.modal) {
