@@ -401,10 +401,17 @@ export class DataTable extends React.Component {
     }
 
     // define the columns array
-    const columns = [
-      this._getColumnSubmissionActions(maxPageRes),
-      this._getColumnValidation(),
-    ];
+    const columns = [];
+
+    const columnSubmissionActions = this._getColumnSubmissionActions(maxPageRes);
+    if (columnSubmissionActions) {
+      columns.push(columnSubmissionActions);
+    }
+
+    const columnValidation = this._getColumnValidation();
+    if (columnValidation) {
+      columns.push(columnValidation);
+    }
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
