@@ -36,14 +36,13 @@ bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
  *
  * You can use some existing content elements:
  * - bem.KoboDropdown__menuButton - a generic dropdown row button
- * - bem.KoboDropdown__triggerButton - a generic dropdown row button
  *
- * @prop {string} [theme] - `light` by default - one of KOBO_DROPDOWN_THEMES
- * @prop {string} [placement] - `down-center` by default - one of KOBO_DROPDOWN_PLACEMENTS
- * @prop {boolean} [isDisabled] `false` by default
- * @prop {boolean} [hideOnMenuClick] `false` by default - hides menu whenever user clicks inside it, useful for simple menu with a list of actions
- * @prop {boolean} [hideOnMenuOutsideClick] `false` by default - hides menu when user clicks outside it
- * @prop {boolean} [hideOnEsc] `false` by default
+ * @prop {string} [theme=light] - one of KOBO_DROPDOWN_THEMES
+ * @prop {string} [placement=down-center] - one of KOBO_DROPDOWN_PLACEMENTS
+ * @prop {boolean} [isDisabled=false] - disables the dropdowns trigger, thus disallowing opening dropdown
+ * @prop {boolean} [hideOnMenuClick=false] - hides menu whenever user clicks inside it, useful for simple menu with a list of actions
+ * @prop {boolean} [hideOnMenuOutsideClick=false] - hides menu when user clicks outside it
+ * @prop {boolean} [hideOnEsc=false] - hides menu when opened and user uses Escape key
  * @prop {node} triggerContent
  * @prop {function} menuContent the content of dropdown, anything's allowed
  */
