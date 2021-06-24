@@ -35,6 +35,7 @@ import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from './tableBulkOptions';
 import TableBulkCheckbox from './tableBulkCheckbox';
 import TableColumnSortDropdown from './tableColumnSortDropdown';
+import './table.scss';
 
 // Columns that will be ALWAYS excluded from the view
 const EXCLUDED_COLUMNS = [
@@ -332,12 +333,15 @@ export class DataTable extends React.Component {
   _getColumnValidation() {
     return {
       Header: () => (
-        <div>
+        <div className='column-header-wrapper'>
           <span className='column-header-title'>
             {t('Validation status')}
           </span>
 
-          <TableColumnSortDropdown/>
+          <TableColumnSortDropdown
+            onSortChange={(newSort) => {console.log('onSortChange', newSort)}}
+            onFieldHiddenChange={(newFieldHidden) => {console.log('onFieldHiddenChange', newFieldHidden)}}
+          />
         </div>
       ),
       sortable: false,

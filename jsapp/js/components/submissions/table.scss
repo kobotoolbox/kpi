@@ -1,3 +1,6 @@
+@import "scss/_colors";
+@import "scss/libs/_mdl";
+
 // These are custom styles for Table View table.
 
 $data-table-border: 1px solid $kobo-gray-92;
@@ -34,6 +37,11 @@ $data-table-row-height: 42px;
   background: transparent;
   height: calc(100% - 50px);
 
+  .rt-resizer {
+    width: 10px;
+    right: -5px;
+  }
+
   .rt-table {
     border: $data-table-border;
     background-color: $kobo-white;
@@ -46,12 +54,19 @@ $data-table-row-height: 42px;
     min-height: 72px;
   }
 
-  .rt-tbody, .rt-thead {
+  .rt-tbody,
+  .rt-thead {
     overflow-x: hidden;
   }
 
   .rt-thead {
     background: $kobo-gray-96;
+
+    .column-header-wrapper {
+      display: flex;
+      flex-direction: row;
+      height: 100%;
+    }
 
     .column-header-title {
       font-weight: 600;
@@ -152,6 +167,7 @@ $data-table-row-height: 42px;
     .rt-resizable-header-content {
       overflow: visible;
       text-overflow: inherit;
+      height: $data-table-row-height - (2 * 5px);;
 
       .column-header-title,
       .column-header-hxl-tags {
@@ -185,7 +201,10 @@ $data-table-row-height: 42px;
     box-sizing: content-box; // to make the border be outside the cell for hover
   }
 
-  .rt-th, .rt-td {
+  .rt-tbody .rt-th,
+  .rt-tbody .rt-td,
+  .rt-thead .rt-th,
+  .rt-thead .rt-td {
     padding: 5px 8px;
     border-right: $data-table-border;
     line-height: $data-table-row-height - (2 * 5px);
@@ -357,51 +376,6 @@ $data-table-row-height: 42px;
   }
 }
 
-.tableColumn-modal {
-  .form-view__cell--label {
-    padding-bottom: 10px;
-  }
-
-  .form-modal__item {
-    margin-bottom: 20px;
-
-    &--advanced-table-options {
-      border: 1px solid $kobo-gray-92;
-      padding: 20px;
-      background: $kobo-gray-96;
-
-      .form-view__cell--note {
-        padding-bottom: 20px;
-      }
-
-      .form-modal__item:last-child {
-        margin-bottom: 0px;
-      }
-    }
-  }
-
-  .form-modal__item--translation-radios {
-    .radio__row--title {
-      font-size: inherit;
-      color: inherit;
-      font-weight: 500;
-    }
-  }
-
-  ul {
-    max-height: 160px;
-    overflow: auto;
-    border: 1px solid $kobo-gray-92;
-    padding: 10px;
-    background: $kobo-white;
-
-    li {
-      margin-bottom: 5px;
-      max-width: 100%;
-    }
-  }
-}
-
 @media screen and (max-width: 767px) {
   .form-view--table {
     padding: 0px 20px;
@@ -409,5 +383,54 @@ $data-table-row-height: 42px;
 
   .form-view--table .ReactTable .pagination-bottom {
     margin-bottom: 10px;
+  }
+}
+
+.table-meta {
+  flex-grow: 1;
+  min-height: 30px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .bulk-clear-badge-icon {
+    margin-right: -5px;
+    cursor: pointer;
+    padding: 0 5px;
+    border-radius: 50%;
+    color: $kobo-gray-24;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-red;
+    }
+  }
+
+  .table-meta__bulk-options {
+    > *:not(:first-child) {
+      margin-left: 10px;
+    }
+  }
+
+  .table-meta__counter {
+    display: inline;
+    white-space: nowrap;
+  }
+
+  @media screen and (max-width: 1100px) {
+    .table-meta__additional-text {
+      display: none;
+    }
+  }
+}
+
+.table-meta__bulk-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .popover-menu .popover-menu__toggle {
+    // overriding 36px from jsapp/scss/components/_kobo.form-view.scss
+    height: auto;
   }
 }

@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import ui from 'js/ui';
 import Checkbox from 'js/components/common/checkbox';
+import './tableBulkCheckbox.scss';
 
 /**
  * @prop visibleRowsCount

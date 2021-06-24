@@ -11,6 +11,7 @@ import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {notify} from 'utils';
 import {SUBMISSION_ACTIONS_ID} from 'js/components/submissions/table';
+import './tableColumnFilter.scss';
 
 export class TableColumnFilter extends React.Component {
   constructor(props){
