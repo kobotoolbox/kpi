@@ -55,6 +55,11 @@ export default class KoboDropdown extends React.Component {
     autoBind(this);
   }
 
+  componentWillUnmount() {
+    this.cancelEscKeyListener();
+    this.cancelOutsideClickListener();
+  }
+
   onTriggerClick(evt) {
     evt.preventDefault();
     this.toggleMenu();
