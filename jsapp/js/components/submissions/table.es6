@@ -514,7 +514,7 @@ export class DataTable extends React.Component {
           const columnName = _this.getColumnLabel(key, q, qParentG);
           const columnHXLTags = _this.getColumnHXLTags(key);
           return (
-            <React.Fragment>
+            <div className='column-header-wrapper'>
               <span className='column-header-title' title={columnName}>
                 {columnIcon}
                 {columnName}
@@ -522,7 +522,7 @@ export class DataTable extends React.Component {
               {this.state.showHXLTags && columnHXLTags &&
                 <span className='column-header-hxl-tags' title={columnHXLTags}>{columnHXLTags}</span>
               }
-            </React.Fragment>
+            </div>
           );
         },
         id: key,

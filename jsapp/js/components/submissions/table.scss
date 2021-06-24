@@ -65,11 +65,14 @@ $data-table-row-height: 42px;
     .column-header-wrapper {
       display: flex;
       flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-end;
       height: 100%;
     }
 
     .column-header-title {
       font-weight: 600;
+      line-height: 20px;
 
       .k-icon {
         font-size: 20px;
