@@ -1,5 +1,11 @@
 {% extends "admin/change_list.html" %}
-
+{% block extrahead %}
+    <style>
+        #changelist table {
+            width: calc(100% - 250px);
+        }
+    </style>
+{% endblock %}
 {% load i18n %}
 
 {% block content_title %}

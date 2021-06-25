@@ -5,6 +5,7 @@ from celery import shared_task
 from django.conf import settings
 from django.core.files.storage import get_storage_class
 
+from hub.models import ExtraUserDetail
 from kobo.static_lists import COUNTRIES
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.deployment_backends.kc_access.shadow_models import (
@@ -14,7 +15,6 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatInstance,
 )
 from kpi.models.asset import Asset
-from hub.models import ExtraUserDetail
 
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
 # complain that the task is unregistered
@@ -42,19 +42,25 @@ def generate_country_report(output_filename, start_date, end_date):
             if not kpi_form.has_deployment:
                 continue
 
-            xform = KobocatXForm.objects.get(
-                id_string=kpi_form.deployment.backend_response['id_string'])
-            count += ReadOnlyKobocatInstance.objects.filter(
-                xform=xform,
+            xform_id_strings = list(
+                Asset.objects.values_list(
+                    '_deployment_data__backend_response__id_string', flat=True
+                ).filter(
+                    _deployment_data__backend='kobocat',
+                    asset_type=ASSET_TYPE_SURVEY,
+                    settings__country__value=code,
+                )
+            )
+            instances_count = ReadOnlyKobocatInstance.objects.filter(
+                xform__id_string__in=xform_id_strings,
                 date_created__range=(start_date, end_date),
             ).count()
 
         row.append(label)
-        row.append(count)
+        row.append(instances_count)
 
         return row
 
-    CHUNK_SIZE = 1000
     columns = [
         'Country',
         'Count',
@@ -64,7 +70,6 @@ def generate_country_report(output_filename, start_date, end_date):
     with default_storage.open(output_filename, 'wb') as output_file:
         writer = unicodecsv.writer(output_file)
         writer.writerow(columns)
-        c = None
 
         for code, label in COUNTRIES:
 
