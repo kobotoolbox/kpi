@@ -74,6 +74,20 @@ export class DataTable extends React.Component {
     autoBind(this);
   }
 
+  componentDidMount() {
+    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.onSubmissionValidationStatusChange);
+    this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.onSubmissionValidationStatusChange);
+    this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
+    this.listenTo(stores.pageState, this.onPageStateUpdated);
+    this.listenTo(actions.resources.deleteSubmission.completed, this.refreshSubmissions);
+    this.listenTo(actions.resources.duplicateSubmission.completed, this.onDuplicateSubmissionCompleted);
+    this.listenTo(actions.resources.refreshTableSubmissions, this.refreshSubmissions);
+    actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted);
+    actions.submissions.bulkPatchStatus.completed.listen(this.onBulkChangeCompleted);
+    actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted);
+    actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted);
+  }
+
   /**
    * Makes call to endpoint to get new data
    *
@@ -150,10 +164,18 @@ export class DataTable extends React.Component {
     });
   }
 
+  /**
+   * @param {string} columnId
+   * @param {string} newSortValue
+   */
   onTableColumnSortChange(columnId, newSortValue) {
     console.log('onTableColumnSortChange', columnId, newSortValue);
   }
 
+  /**
+   * @param {string} columnId
+   * @param {boolean} isFieldHidden
+   */
   onTableColumnFieldHiddenChange(columnId, isFieldHidden) {
     console.log('onTableColumnFieldHiddenChange', columnId, isFieldHidden);
   }
@@ -778,6 +800,11 @@ export class DataTable extends React.Component {
     }
   }
 
+  /**
+   * Used to change some settings in TableSettings when user doesn't have
+   * permissions to save them.
+   * @param {object} overrides
+   */
   overrideLabelsAndGroups(overrides) {
     stores.pageState.hideModal();
     this.setState({
@@ -786,25 +813,16 @@ export class DataTable extends React.Component {
       this._prepColumns(this.state.tableData);
     });
   }
+
   toggleFullscreen() {
     this.setState({isFullscreen: !this.state.isFullscreen});
   }
 
-  componentDidMount() {
-    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
-    this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.refreshSubmissionValidationStatus);
-    this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
-    this.listenTo(stores.pageState, this.onPageStateUpdated);
-    this.listenTo(actions.resources.deleteSubmission.completed, this.refreshSubmissions);
-    this.listenTo(actions.resources.duplicateSubmission.completed, this.refreshSubmissionModal);
-    this.listenTo(actions.resources.refreshTableSubmissions, this.refreshSubmissions);
-    actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted);
-    actions.submissions.bulkPatchStatus.completed.listen(this.onBulkChangeCompleted);
-    actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted);
-    actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted);
-  }
-
-  refreshSubmissionValidationStatus(result, sid) {
+  /**
+   * @param {object} result
+   * @param {string} sid
+   */
+  onSubmissionValidationStatusChange(result, sid) {
     if (sid) {
       var subIndex = this.state.tableData.findIndex((x) => x._id === parseInt(sid));
       if (typeof subIndex !== 'undefined' && this.state.tableData[subIndex]) {
@@ -815,17 +833,30 @@ export class DataTable extends React.Component {
       }
     }
   }
+
   refreshSubmissions() {
     this.requestData(this.state.fetchInstance);
   }
-  refreshSubmissionModal(uid, sid, duplicatedSubmission) {
+
+  /**
+   * @param {string} uid
+   * @param {string} sid
+   * @param {object} duplicatedSubmission
+   */
+  onDuplicateSubmissionCompleted(uid, sid, duplicatedSubmission) {
     this.requestData(this.state.fetchInstance);
     this.submissionModalProcessing(sid, this.state.tableData, true, duplicatedSubmission);
   }
+
   onTableUpdateSettingsCompleted() {
     stores.pageState.hideModal();
     this._prepColumns(this.state.tableData);
   }
+
+  /**
+   * @param {object} state
+   * @param {object} instance
+   */
   fetchData(state, instance) {
     this.setState({
       loading: true,
@@ -836,13 +867,22 @@ export class DataTable extends React.Component {
     });
     this.requestData(instance);
   }
-  // TODO: if multiple background-audio's are allowed, we should return all
-  //       background-audio related names
+
+  /**
+   * TODO: if multiple background-audio's are allowed, we should return all
+   * background-audio related names
+   * @returns {string|null}
+   */
   getBackgroundAudioQuestionName() {
     return this.props?.asset?.content?.survey.find(
       (item) => item.type === META_QUESTION_TYPES['background-audio']
     )?.name || null;
   }
+
+  /**
+   * Opens submission modal
+   * @param {object} row
+   */
   launchSubmissionModal(row) {
     if (row && row.original) {
       const sid = row.original._id;
@@ -868,6 +908,16 @@ export class DataTable extends React.Component {
       }
     }
   }
+
+  /**
+   * Opens (or updates data in opened) submission modal
+   *
+   * @param {string} sid
+   * @param {object[]} tableData
+   * @param {boolean} isDuplicated
+   * @param {object} duplicatedSubmission
+   * @param {string} backgroundAudioUrl
+   */
   submissionModalProcessing(
     sid,
     tableData,
@@ -896,6 +946,7 @@ export class DataTable extends React.Component {
       },
     });
   }
+
   showTableColumnsOptionsModal() {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_SETTINGS,
@@ -904,9 +955,11 @@ export class DataTable extends React.Component {
       overrideLabelsAndGroups: this.overrideLabelsAndGroups,
     });
   }
+
   launchEditSubmission(evt) {
     enketoHandler.editSubmission(this.props.asset.uid, evt.currentTarget.dataset.sid);
   }
+
   onPageStateUpdated(pageState) {
     if (!pageState.modal) {
       return false;
@@ -936,8 +989,13 @@ export class DataTable extends React.Component {
         this.fetchData(this.state.fetchState, this.state.fetchInstance);
       });
     }
-
   }
+
+  /**
+   * Handles a given row bulk checkbox change
+   * @param {string} sid
+   * @param {boolean} isChecked
+   */
   bulkUpdateChange(sid, isChecked) {
     let selectedRows = this.state.selectedRows;
 
@@ -952,6 +1010,11 @@ export class DataTable extends React.Component {
       selectAll: false,
     });
   }
+
+  /**
+   * Handles whole page bulk checkbox change
+   * @param {boolean} isChecked
+   */
   bulkSelectAllRows(isChecked) {
     let s = this.state.selectedRows;
     this.state.tableData.forEach(function (r) {
@@ -984,6 +1047,9 @@ export class DataTable extends React.Component {
     this.fetchData(this.state.fetchState, this.state.fetchInstance);
   }
 
+  /**
+   * Handles all pages bulk change
+   */
   bulkSelectAll() {
     // make sure all rows on current page are selected
     let s = this.state.selectedRows;
@@ -996,11 +1062,12 @@ export class DataTable extends React.Component {
       selectAll: true,
     });
   }
+
   bulkClearSelection() {
     this.setState({selectAll: false, selectedRows: {}});
   }
 
-  bulkSelectUI() {
+  renderBulkSelectUI() {
     if (!this.state.tableData.length) {
       return false;
     }
@@ -1020,6 +1087,11 @@ export class DataTable extends React.Component {
       </bem.TableMeta>
     );
   }
+
+  /**
+   * @param {object} row
+   * @param {string} fileName
+   */
   getMediaDownloadLink(row, fileName) {
     let foundFile = '';
     row.original._attachments.forEach((attachment) => {
@@ -1037,6 +1109,7 @@ export class DataTable extends React.Component {
     var kc_base = `${kc_server.origin}${kc_prefix}`;
     return `${kc_base}/attachment/original?media_file=${encodeURI(foundFile)}`;
   }
+
   render() {
     if (this.state.error) {
       return (
@@ -1068,7 +1141,7 @@ export class DataTable extends React.Component {
     return (
       <bem.FormView m={formViewModifiers}>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
-          {this.bulkSelectUI()}
+          {this.renderBulkSelectUI()}
           <bem.FormView__item m='table-buttons'>
             <bem.Button
               m='icon' className='report-button__expand right-tooltip'
