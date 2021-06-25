@@ -41,7 +41,7 @@ import ProjectSettings from './modalForms/projectSettings';
 import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
 import SubmissionModal from 'js/components/submissions/submissionModal';
-import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
+import TableSettings from 'js/components/submissions/tableSettings';
 import TranslationSettings from './modalForms/translationSettings';
 import TranslationTable from './modalForms/translationTable';
 
@@ -152,7 +152,7 @@ class Modal extends React.Component {
         // title is set by formEditors
         break;
 
-      case MODAL_TYPES.TABLE_COLUMNS:
+      case MODAL_TYPES.TABLE_SETTINGS:
         this.setModalTitle(t('Table display options'));
         break;
 
@@ -342,8 +342,8 @@ class Modal extends React.Component {
                 </bem.Loading>
               </div>
             }
-            { this.props.params.type === MODAL_TYPES.TABLE_COLUMNS &&
-              <TableColumnFilter
+            { this.props.params.type === MODAL_TYPES.TABLE_SETTINGS &&
+              <TableSettings
                 asset={this.props.params.asset}
                 columns={this.props.params.columns}
                 getColumnLabel={this.props.params.getColumnLabel}

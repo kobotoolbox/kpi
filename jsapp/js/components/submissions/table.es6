@@ -444,7 +444,7 @@ export class DataTable extends React.Component {
     }
 
     // check for overrides by users with view permissions only
-    // see tableColumnFilter.es6's saveTableColumns()
+    // see tableSettings.es6's saveTableColumns()
     if (this.state.overrideLabelsAndGroups !== null) {
       showGroupName = this.state.overrideLabelsAndGroups.showGroupName;
       translationIndex = this.state.overrideLabelsAndGroups.translationIndex;
@@ -949,7 +949,7 @@ export class DataTable extends React.Component {
   }
   showTableColumnsOptionsModal() {
     stores.pageState.showModal({
-      type: MODAL_TYPES.TABLE_COLUMNS,
+      type: MODAL_TYPES.TABLE_SETTINGS,
       asset: this.props.asset,
       columns: this.state.columns,
       getColumnLabel: this.getColumnLabel,
@@ -971,7 +971,7 @@ export class DataTable extends React.Component {
     let params = pageState.modal;
     let page = 0;
 
-    if (params.type !== MODAL_TYPES.TABLE_COLUMNS && !params.sid) {
+    if (params.type !== MODAL_TYPES.TABLE_SETTINGS && !params.sid) {
       let fetchInstance = this.state.fetchInstance;
       if (params.page === 'next') {
         page = this.state.currentPage + 1;

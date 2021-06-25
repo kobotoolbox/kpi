@@ -11,9 +11,9 @@ import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {notify} from 'utils';
 import {SUBMISSION_ACTIONS_ID} from 'js/components/submissions/table';
-import './tableColumnFilter.scss';
+import './tableSettings.scss';
 
-export class TableColumnFilter extends React.Component {
+export class TableSettings extends React.Component {
   constructor(props){
     super(props);
     this.state = {
@@ -235,7 +235,7 @@ export class TableColumnFilter extends React.Component {
   }
 }
 
-reactMixin(TableColumnFilter.prototype, Reflux.ListenerMixin);
-reactMixin(TableColumnFilter.prototype, mixins.permissions);
+reactMixin(TableSettings.prototype, Reflux.ListenerMixin);
+reactMixin(TableSettings.prototype, mixins.permissions);
 
-export default TableColumnFilter;
+export default TableSettings;
