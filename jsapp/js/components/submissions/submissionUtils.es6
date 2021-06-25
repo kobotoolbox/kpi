@@ -5,6 +5,7 @@ import {
   isRowSpecialLabelHolder,
 } from 'js/assetUtils';
 import {
+  createEnum,
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   MATRIX_PAIR_PROPS,
@@ -13,14 +14,13 @@ import {
   CHOICE_LISTS,
 } from 'js/constants';
 
-export const DISPLAY_GROUP_TYPES = new Map();
-new Set([
+export const DISPLAY_GROUP_TYPES = createEnum([
   'group_root',
   'group_repeat',
   'group_regular',
   'group_matrix',
   'group_matrix_row',
-]).forEach((codename) => {DISPLAY_GROUP_TYPES.set(codename, codename);});
+]);
 
 /**
  * @typedef {Object} DisplayGroup
@@ -78,7 +78,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
   const flatPaths = getSurveyFlatPaths(survey, true);
 
   // let's start with a root of survey being a group with special flag
-  const output = new DisplayGroup(DISPLAY_GROUP_TYPES.get('group_root'));
+  const output = new DisplayGroup(DISPLAY_GROUP_TYPES.group_root);
 
   /**
    * recursively generates a nested architecture of survey with data
@@ -132,7 +132,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
         if (Array.isArray(rowData)) {
           rowData.forEach((item, itemIndex) => {
             let itemObj = new DisplayGroup(
-              DISPLAY_GROUP_TYPES.get('group_repeat'),
+              DISPLAY_GROUP_TYPES.group_repeat,
               rowLabel,
               rowName
             );
@@ -147,7 +147,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
         }
       } else if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
         let matrixGroupObj = new DisplayGroup(
-          DISPLAY_GROUP_TYPES.get('group_matrix'),
+          DISPLAY_GROUP_TYPES.group_matrix,
           rowLabel,
           rowName,
         );
@@ -180,7 +180,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
         row.type === GROUP_TYPES_BEGIN.begin_rank
       ) {
         let rowObj = new DisplayGroup(
-          DISPLAY_GROUP_TYPES.get('group_regular'),
+          DISPLAY_GROUP_TYPES.group_regular,
           rowLabel,
           rowName,
         );
@@ -249,7 +249,7 @@ function populateMatrixData(
   // create row display group and add it to matrix group
   const matrixRowLabel = getTranslatedRowLabel(matrixRowName, choices, translationIndex);
   let matrixRowGroupObj = new DisplayGroup(
-    DISPLAY_GROUP_TYPES.get('group_matrix_row'),
+    DISPLAY_GROUP_TYPES.group_matrix_row,
     matrixRowLabel,
     matrixRowName,
   );
