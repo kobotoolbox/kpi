@@ -35,28 +35,13 @@ import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from './tableBulkOptions';
 import TableBulkCheckbox from './tableBulkCheckbox';
 import TableColumnSortDropdown from './tableColumnSortDropdown';
+import {
+  EXCLUDED_COLUMNS,
+  SUBMISSION_ACTIONS_ID,
+  VALIDATION_STATUS_ID_PROP,
+} from './tableConstants';
+import {getColumnLabel} from './tableUtils';
 import './table.scss';
-
-// Columns that will be ALWAYS excluded from the view
-const EXCLUDED_COLUMNS = [
-  '_xform_id_string',
-  '_attachments',
-  '_notes',
-  '_bamboo_dataset_id',
-  // '_status' is always 'submitted_via_web' unless submitted in bulk;
-  // in that case, it's 'zip'
-  '_status',
-  'formhub/uuid',
-  '_tags',
-  '_geolocation',
-  'meta/instanceID',
-  'meta/deprecatedID',
-  '_validation_status',
-];
-
-export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
-
-const VALIDATION_STATUS_ID_PROP = '_validation_status.uid';
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -178,8 +163,8 @@ export class DataTable extends React.Component {
    * @returns {object} one of VALIDATION_STATUSES
    */
   getValidationStatusOption(originalRow) {
-    if (originalRow._validation_status && originalRow._validation_status.uid) {
-      return VALIDATION_STATUSES[originalRow._validation_status.uid];
+    if (originalRow._validation_status && originalRow[VALIDATION_STATUS_ID_PROP]) {
+      return VALIDATION_STATUSES[originalRow[VALIDATION_STATUS_ID_PROP]];
     } else {
       return VALIDATION_STATUSES.no_status;
     }
@@ -432,7 +417,7 @@ export class DataTable extends React.Component {
 
     if (settings['data-table'] && settings['data-table']['translation-index'] !== null) {
       translationIndex = settings['data-table']['translation-index'];
-      showLabels = translationIndex > -1 ? true : false;
+      showLabels = translationIndex > -1;
     }
 
     if (settings['data-table'] && settings['data-table']['show-group-name'] !== null) {
@@ -448,7 +433,7 @@ export class DataTable extends React.Component {
     if (this.state.overrideLabelsAndGroups !== null) {
       showGroupName = this.state.overrideLabelsAndGroups.showGroupName;
       translationIndex = this.state.overrideLabelsAndGroups.translationIndex;
-      showLabels = translationIndex > -1 ? true : false;
+      showLabels = translationIndex > -1;
     }
 
     // define the columns array
@@ -552,7 +537,14 @@ export class DataTable extends React.Component {
 
       columns.push({
         Header: () => {
-          const columnName = _this.getColumnLabel(key, q, qParentG);
+          const columnName = getColumnLabel(
+            this.props.asset.content.survey,
+            key,
+            q,
+            qParentG,
+            this.state.showGroupName,
+            this.state.translationIndex
+          );
           const columnHXLTags = _this.getColumnHXLTags(key);
           return (
             <div className='column-header-wrapper'>
@@ -768,67 +760,6 @@ export class DataTable extends React.Component {
     }
   }
 
-  /**
-   * @param {string} key - column id/question name
-   * @param {object} q - question
-   * @param {string[]} qParentG - question parent groups
-   * @param {boolean} stateOverrides
-   * @returns {string}
-   */
-  getColumnLabel(key, q, qParentG, stateOverrides = false) {
-    switch(key) {
-      case SUBMISSION_ACTIONS_ID:
-        return (
-          <span className='column-header-title'>
-            {t('Multi-select checkboxes column')}
-          </span>
-        );
-      case VALIDATION_STATUS_ID_PROP:
-        return (
-          <span className='column-header-title'>
-            {t('Validation status')}
-          </span>
-        );
-    }
-
-    var label = key;
-    let showLabels = this.state.showLabels;
-    let showGroupName = this.state.showGroupName;
-    let translationIndex = this.state.translationIndex;
-    let survey = this.props.asset.content.survey;
-
-    if (stateOverrides) {
-      showGroupName = stateOverrides.showGroupName;
-      translationIndex = stateOverrides.translationIndex;
-    }
-
-    if (key.includes('/')) {
-      var splitK = key.split('/');
-      label = splitK[splitK.length - 1];
-    }
-    if (q && q.label && showLabels && q.label[translationIndex]) {
-      label = q.label[translationIndex];
-    }
-    // show Groups in labels, when selected
-    if (showGroupName && qParentG && key.includes('/')) {
-      var gLabels = qParentG.join(' / ');
-
-      if (showLabels) {
-        var gT = qParentG.map(function (g) {
-          var x = survey.find((o) => o.name === g || o.$autoname === g);
-          if (x && x.label && x.label[translationIndex]) {
-            return x.label[translationIndex];
-          }
-
-          return g;
-        });
-        gLabels = gT.join(' / ');
-      }
-      return gLabels;
-    }
-
-    return label;
-  }
   overrideLabelsAndGroups(overrides) {
     stores.pageState.hideModal();
     this.setState({
@@ -952,7 +883,6 @@ export class DataTable extends React.Component {
       type: MODAL_TYPES.TABLE_SETTINGS,
       asset: this.props.asset,
       columns: this.state.columns,
-      getColumnLabel: this.getColumnLabel,
       overrideLabelsAndGroups: this.overrideLabelsAndGroups,
     });
   }

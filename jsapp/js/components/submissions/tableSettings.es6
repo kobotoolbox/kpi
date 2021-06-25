@@ -10,7 +10,8 @@ import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {notify} from 'utils';
-import {SUBMISSION_ACTIONS_ID} from 'js/components/submissions/table';
+import {SUBMISSION_ACTIONS_ID} from './tableConstants';
+import {getColumnLabel} from './tableUtils';
 import './tableSettings.scss';
 
 export class TableSettings extends React.Component {
@@ -110,12 +111,8 @@ export class TableSettings extends React.Component {
     actions.table.updateSettings(this.props.asset.uid, settings);
   }
   listColumns() {
-    let stateOverrides = {
-      showGroupName: this.state.showGroupName,
-      translationIndex: this.state.translationIndex,
-    };
     let colsArray = this.props.columns.reduce((acc, col) => {
-      if (col.id && col.id && col.id !== SUBMISSION_ACTIONS_ID) {
+      if (col.id && col.id !== SUBMISSION_ACTIONS_ID) {
         let qParentGroup = [];
         if (col.id.includes('/')) {
           qParentGroup = col.id.split('/');
@@ -123,7 +120,14 @@ export class TableSettings extends React.Component {
 
         acc.push({
           value: col.id,
-          label: this.props.getColumnLabel(col.id, col.question, qParentGroup, stateOverrides),
+          label: getColumnLabel(
+            this.props.asset.content.survey,
+            col.id,
+            col.question,
+            qParentGroup,
+            this.state.showGroupName,
+            this.state.translationIndex
+          ),
         });
       }
       return acc;
