@@ -343,10 +343,12 @@ class Modal extends React.Component {
               </div>
             }
             { this.props.params.type === MODAL_TYPES.TABLE_COLUMNS &&
-              <TableColumnFilter asset={this.props.params.asset}
-                                 columns={this.props.params.columns}
-                                 getColumnLabel={this.props.params.getColumnLabel}
-                                 overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
+              <TableColumnFilter
+                asset={this.props.params.asset}
+                columns={this.props.params.columns}
+                getColumnLabel={this.props.params.getColumnLabel}
+                overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups}
+              />
             }
             { this.props.params.type === MODAL_TYPES.REST_SERVICES &&
               <RESTServicesForm

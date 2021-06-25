@@ -56,6 +56,8 @@ const EXCLUDED_COLUMNS = [
 
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
 
+const VALIDATION_STATUS_ID_PROP = '_validation_status.uid';
+
 export class DataTable extends React.Component {
   constructor(props){
     super(props);
@@ -86,6 +88,12 @@ export class DataTable extends React.Component {
     this.tableScrollTop = 0;
     autoBind(this);
   }
+
+  /**
+   * Makes call to endpoint to get new data
+   *
+   * @param {object} instance
+   */
   requestData(instance) {
     let pageSize = instance.state.pageSize;
     let page = instance.state.page * instance.state.pageSize;
@@ -98,7 +106,7 @@ export class DataTable extends React.Component {
       filter.forEach(function (f, i) {
         if (f.id === '_id') {
           filterQuery += `"${f.id}":{"$in":[${f.value}]}`;
-        } else if (f.id === '_validation_status.uid') {
+        } else if (f.id === VALIDATION_STATUS_ID_PROP) {
           if (f.value === VALIDATION_STATUSES.no_status.value) {
             filterQuery += `"${f.id}":null`;
           } else {
@@ -156,6 +164,19 @@ export class DataTable extends React.Component {
       }
     });
   }
+
+  onTableColumnSortChange(columnId, newSortValue) {
+    console.log('onTableColumnSortChange', columnId, newSortValue);
+  }
+
+  onTableColumnFieldHiddenChange(columnId, isFieldHidden) {
+    console.log('onTableColumnFieldHiddenChange', columnId, isFieldHidden);
+  }
+
+  /**
+   * @param {object} originRow
+   * @returns {object} one of VALIDATION_STATUSES
+   */
   getValidationStatusOption(originalRow) {
     if (originalRow._validation_status && originalRow._validation_status.uid) {
       return VALIDATION_STATUSES[originalRow._validation_status.uid];
@@ -163,16 +184,22 @@ export class DataTable extends React.Component {
       return VALIDATION_STATUSES.no_status;
     }
   }
-  onValidationStatusChange(sid, index, evt) {
+
+  /**
+   * @param {string} sid - submission id
+   * @param {number} index
+   * @param {object} newValidationStatus - one of VALIDATION_STATUSES
+   */
+  onValidationStatusChange(sid, index, newValidationStatus) {
     const _this = this;
 
-    if (evt.value === null) {
+    if (newValidationStatus.value === null) {
       dataInterface.removeSubmissionValidationStatus(_this.props.asset.uid, sid).done(() => {
         _this.state.tableData[index]._validation_status = {};
         _this.setState({tableData: _this.state.tableData});
       }).fail(console.error);
     } else {
-      dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, {'validation_status.uid': evt.value}).done((result) => {
+      dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, {'validation_status.uid': newValidationStatus.value}).done((result) => {
         if (result.uid) {
           _this.state.tableData[index]._validation_status = result;
           _this.setState({tableData: _this.state.tableData});
@@ -183,7 +210,10 @@ export class DataTable extends React.Component {
     }
   }
 
-  // returns a unique list of columns (keys) that should be displayed to users
+  /**
+   * @param {object[]} data - list of submissions
+   * @returns {string[]} a unique list of columns (keys) that should be displayed to users
+   */
   getDisplayedColumns(data) {
     const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
 
@@ -247,6 +277,7 @@ export class DataTable extends React.Component {
 
   /**
    * @param {number} maxPageRes
+   * @returns {object} submission actions column for react-table
    */
   _getColumnSubmissionActions(maxPageRes) {
     let userCanSeeEditIcon = (
@@ -330,6 +361,9 @@ export class DataTable extends React.Component {
     }
   }
 
+  /**
+   * @returns {object} validation status column for react-table
+   */
   _getColumnValidation() {
     return {
       Header: () => (
@@ -339,15 +373,21 @@ export class DataTable extends React.Component {
           </span>
 
           <TableColumnSortDropdown
-            onSortChange={(newSort) => {console.log('onSortChange', newSort)}}
-            onFieldHiddenChange={(newFieldHidden) => {console.log('onFieldHiddenChange', newFieldHidden)}}
+            onSortChange={this.onTableColumnSortChange.bind(
+              this,
+              VALIDATION_STATUS_ID_PROP
+            )}
+            onFieldHiddenChange={this.onTableColumnFieldHiddenChange.bind(
+              this,
+              VALIDATION_STATUS_ID_PROP
+            )}
           />
         </div>
       ),
       sortable: false,
-      accessor: '_validation_status.uid',
+      accessor: VALIDATION_STATUS_ID_PROP,
       index: '__2',
-      id: '_validation_status.uid',
+      id: VALIDATION_STATUS_ID_PROP,
       width: 130,
       className: 'rt-status',
       headerClassName: 'rt-status',
@@ -375,8 +415,9 @@ export class DataTable extends React.Component {
   }
 
   /**
-   * Prepares data for react table
-   * @param {object} data
+   * Builds and gathers all necessary react-table data and stores in state.
+   *
+   * @param {object[]} data - list of submissions
    */
   _prepColumns(data) {
     const displayedColumns = this.getDisplayedColumns(data);
@@ -698,6 +739,11 @@ export class DataTable extends React.Component {
       showHXLTags: showHXLTags,
     });
   }
+
+  /**
+   * @param {string} key - column id/question name
+   * @returns {string|null} given column's HXL tags
+   */
   getColumnHXLTags(key) {
     if (this.state.showHXLTags) {
       const colQuestion = _.find(this.props.asset.content.survey, (question) =>
@@ -721,6 +767,14 @@ export class DataTable extends React.Component {
       return null;
     }
   }
+
+  /**
+   * @param {string} key - column id/question name
+   * @param {object} q - question
+   * @param {string[]} qParentG - question parent groups
+   * @param {boolean} stateOverrides
+   * @returns {string}
+   */
   getColumnLabel(key, q, qParentG, stateOverrides = false) {
     switch(key) {
       case SUBMISSION_ACTIONS_ID:
@@ -729,7 +783,7 @@ export class DataTable extends React.Component {
             {t('Multi-select checkboxes column')}
           </span>
         );
-      case '_validation_status.uid':
+      case VALIDATION_STATUS_ID_PROP:
         return (
           <span className='column-header-title'>
             {t('Validation status')}
