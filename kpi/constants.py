@@ -61,7 +61,7 @@ SHADOW_MODEL_APP_LABEL = 'shadow_model'
 # Useful in `db_routers.py`
 SHADOW_MODEL_APP_LABELS = [
     SHADOW_MODEL_APP_LABEL,
-    'usage_statistics',
+    'superuser_stats',
 ]
 
 # List of nested attributes which bypass 'dots' encoding

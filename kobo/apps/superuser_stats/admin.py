@@ -95,31 +95,38 @@ class SubmissionsByCountry(admin.ModelAdmin):
 
         data = []
 
+        asset_filter = CountryFilter(
+            request, request.GET.dict(), Asset, self.__class__
+        )
+
+        asset_queryset = Asset.objects.filter(
+            asset_type=ASSET_TYPE_SURVEY
+        )
+
+        records = asset_filter.queryset(request, asset_queryset).order_by()
+
         # Filter for individual countries
-        for country in COUNTRIES:
-            name = country[1]
-            assets = qs.filter(
-                asset_type=ASSET_TYPE_SURVEY,
-                settings__country__label=str(name),
+        for code, name in COUNTRIES:
+            assets = records.filter(
+                settings__country__value=code,
             )
-
-            # Get the count per country
-            count = 0
-
             if assets.count() != 0:
+                xform_id_strings = list(assets.values_list(
+                    '_deployment_data__backend_response__id_string', flat=True
+                ).filter(
+                    _deployment_data__backend='kobocat',
+                    asset_type=ASSET_TYPE_SURVEY,
+                ))
 
-                for asset in assets:
-                    form = KobocatXForm.objects.get(
-                        id_string=asset.deployment.backend_response['id_string']
-                    )
-                    count += ReadOnlyKobocatInstance.objects.filter(
-                        xform=form
-                    ).count()
+                instances_count = ReadOnlyKobocatInstance.objects.filter(
+                    xform__id_string__in=xform_id_strings,
+                ).count()
 
                 data.append({
                     'country': name,
-                    'count': count,
+                    'count': instances_count,
                 })
+
         return data
 
 
@@ -190,4 +197,4 @@ class UserStatisticsAdmin(admin.ModelAdmin):
 
 
 admin.site.register(KobocatSubmissionCounter, UserStatisticsAdmin)
-admin.site.register(Asset, SubmissionsByCountry)
+admin.site.register(ReadOnlyKobocatInstance, SubmissionsByCountry)
