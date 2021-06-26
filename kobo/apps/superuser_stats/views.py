@@ -51,25 +51,6 @@ def country_report(request):
 
 
 @user_passes_test(lambda u: u.is_superuser)
-def retrieve_country_report(request, base_filename):
-    filename = _base_filename_to_full_filename(
-        base_filename,
-        request.user.username,
-    )
-    default_storage = get_storage_class()()
-    if not default_storage.exists(filename):
-        raise Http404
-
-    f = default_storage.open(filename)
-    response = StreamingHttpResponse(f, content_type='text/csv')
-    # File is intentionally left open so it can be read by the streaming
-    # response
-    response['Content-Disposition'] = 'attachment;filename="{}"'.format(
-        base_filename)
-    return response
-
-
-@user_passes_test(lambda u: u.is_superuser)
 def user_report(request):
     base_filename = 'user-report_{}_{}_{}.csv'.format(
         re.sub('[^a-zA-Z0-9]', '-', request.META['HTTP_HOST']),
@@ -90,7 +71,7 @@ def user_report(request):
 
 
 @user_passes_test(lambda u: u.is_superuser)
-def retrieve_user_report(request, base_filename):
+def retrieve_reports(request, base_filename):
     filename = _base_filename_to_full_filename(
         base_filename, request.user.username)
     default_storage = get_storage_class()()
