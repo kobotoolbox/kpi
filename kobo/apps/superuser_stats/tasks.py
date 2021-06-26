@@ -36,7 +36,7 @@ def generate_country_report(output_filename, start_date, end_date):
             asset_type=ASSET_TYPE_SURVEY,
             settings__country__value=code,
         )
-        count = 0
+        instances_count = 0
         for kpi_form in kpi_forms:
             # Use deployments to get the xform the right id_string
             if not kpi_form.has_deployment:
@@ -76,7 +76,7 @@ def generate_country_report(output_filename, start_date, end_date):
             try:
                 row = get_row_for_country(code, label)
             except Exception as e:
-                row = ['!FAILED!', 'Country: {}'.format(c), repr(e)]
+                row = ['!FAILED!', 'Country: {}'.format(label), repr(e)]
             writer.writerow(row)
 
 
