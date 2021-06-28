@@ -932,7 +932,10 @@ export class DataTable extends React.Component {
   }
   getMediaDownloadLink(row, fileName) {
     const fileNameNoSpaces = fileName.replace(/ /g, '_');
-    let mediaURL = t('Could not find file');
+    let mediaURL = t('Could not find ##fileName##').replace(
+      '##fileName##',
+      fileName
+    );
 
     row.original._attachments.forEach((attachment) => {
       if (attachment.filename.includes(fileNameNoSpaces)) {
