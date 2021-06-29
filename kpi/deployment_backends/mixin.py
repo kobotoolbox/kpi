@@ -9,11 +9,11 @@ from .base_backend import BaseDeploymentBackend
 
 class DeployableMixin:
 
-    def async_media_files(self):
+    def async_media_files(self, force=True):
         """
         Synchronized form-media files with deployment backend asynchronously
         """
-        if self.asset_files.filter(
+        if force or self.asset_files.filter(
             file_type=AssetFile.FORM_MEDIA, synced_with_backend=False
         ).exists():
             self.deployment.store_data(
