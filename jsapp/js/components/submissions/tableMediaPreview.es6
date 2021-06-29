@@ -2,6 +2,7 @@ import autoBind from 'react-autobind';
 import React from 'react';
 
 import {bem} from 'js/bem';
+import AudioPlayer from 'js/components/common/audioPlayer';
 import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
@@ -32,11 +33,12 @@ class TableMediaPreview extends React.Component {
         return (
           // TODO: make our own audio player with options for here and in place
           // of bem.BackgroundAudioPlayer
-          <audio
-            src={this.props?.mediaURL}
-            controls
-            autoPlay
-          />
+          //<audio
+          //  src={this.props?.mediaURL}
+          //  controls
+          //  autoPlay
+          ///>
+          <AudioPlayer/>
         );
       case QUESTION_TYPES.video.id:
         return (
