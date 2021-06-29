@@ -24,6 +24,7 @@ import {
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
   NUMERICAL_SUBMISSION_PROPS,
+  ENKETO_ACTIONS,
 } from 'js/constants';
 import {formatTimeDate} from 'utils';
 import {
@@ -892,7 +893,10 @@ export class DataTable extends React.Component {
     });
   }
   launchEditSubmission(evt) {
-    enketoHandler.openSubmission(this.props.asset.uid, evt.currentTarget.dataset.sid, 'edit');
+    enketoHandler.openSubmission(
+      this.props.asset.uid,
+      evt.currentTarget.dataset.sid,
+      ENKETO_ACTIONS.edit);
   }
   onPageStateUpdated(pageState) {
     if (!pageState.modal) {

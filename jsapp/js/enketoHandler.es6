@@ -1,3 +1,4 @@
+import {ENKETO_ACTIONS} from 'js/constants'
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 
@@ -12,7 +13,7 @@ const enketoHandler = {
    * Builds unique url id.
    */
   _getUrlId(aid, sid, action) {
-    return `${aid}…${sid}-${action}`;
+    return `${aid}-${sid}-${action}`;
   },
 
   _hasEnketoUrl(urlId) {
@@ -47,9 +48,9 @@ const enketoHandler = {
   openSubmission(aid, sid, action) {
     // we create the tab immediately to avoid browser popup blocker killing it
     this.winTab = window.open('', '_blank');
-    let dataInt = dataInterface.getEnketoEditLink;
-    if ( action === 'view' ) {
-      dataInt = dataInterface.getEnketoViewLink;
+    let dataIntMethod = dataInterface.getEnketoEditLink;
+    if ( action === ENKETO_ACTIONS.view ) {
+      dataIntMethod = dataInterface.getEnketoViewLink;
     }
     const urlId = this._getUrlId(aid, sid, action);
     const enketoPromise = new Promise((resolve, reject) => {
@@ -57,7 +58,7 @@ const enketoHandler = {
         this._openEnketoUrl(urlId);
         resolve();
       } else {
-        dataInt(aid, sid)
+        dataIntMethod(aid, sid)
           .done((enketoData) => {
             if (enketoData.url) {
               this._saveEnketoUrl(urlId, enketoData.url);

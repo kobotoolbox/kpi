@@ -16,6 +16,7 @@ import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
   META_QUESTION_TYPES,
+  ENKETO_ACTIONS,
 } from 'js/constants';
 import SubmissionDataTable from './submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
@@ -170,7 +171,11 @@ class SubmissionModal extends React.Component {
       isEditLoading: true,
       isEditingDuplicate: true,
     });
-    enketoHandler.openSubmission(this.props.asset.uid, this.state.sid, 'edit').then(
+    enketoHandler.openSubmission(
+      this.props.asset.uid,
+      this.state.sid,
+      ENKETO_ACTIONS.edit
+    ).then(
       () => {this.setState({isEditLoading: false});},
       () => {this.setState({isEditLoading: false});}
     );
@@ -180,7 +185,11 @@ class SubmissionModal extends React.Component {
     this.setState({
       isViewLoading: true,
     });
-    enketoHandler.openSubmission(this.props.asset.uid, this.state.sid, 'view').then(
+    enketoHandler.openSubmission(
+      this.props.asset.uid,
+      this.state.sid,
+      ENKETO_ACTIONS.view
+    ).then(
       () => {this.setState({isViewLoading: false});}
     );
   }
@@ -490,6 +499,7 @@ class SubmissionModal extends React.Component {
                 <a
                   onClick={this.launchViewSubmission.bind(this)}
                   className='kobo-button kobo-button--blue submission-duplicate__button'
+                  disabled={this.state.isViewLoading}
                 >
                   {this.state.isViewLoading && t('Loading…')}
                   {!this.state.isViewLoading && t('View')}
