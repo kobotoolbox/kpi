@@ -1,3 +1,5 @@
+import {createEnum} from 'js/constants';
+
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
 
 export const VALIDATION_STATUS_ID_PROP = '_validation_status.uid';
@@ -19,9 +21,7 @@ export const EXCLUDED_COLUMNS = [
   '_validation_status',
 ];
 
-export const SORT_VALUES = {};
-new Set([
+export const SORT_VALUES = createEnum([
   'A_TO_Z',
   'Z_TO_A',
-]).forEach((codename) => {SORT_VALUES[codename] = codename;});
-Object.freeze(SORT_VALUES);
+]);
