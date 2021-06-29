@@ -30,7 +30,7 @@ bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
 
 /**
  * A generic dropdown component that accepts any content inside the menu and
- * inside the opener.
+ * inside the trigger.
  *
  * NOTE: If you need a select-type dropdown, please use `react-select`.
  *

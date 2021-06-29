@@ -165,22 +165,6 @@ export class DataTable extends React.Component {
   }
 
   /**
-   * @param {string} columnId
-   * @param {string} newSortValue
-   */
-  onTableColumnSortChange(columnId, newSortValue) {
-    console.log('onTableColumnSortChange', columnId, newSortValue);
-  }
-
-  /**
-   * @param {string} columnId
-   * @param {boolean} isFieldHidden
-   */
-  onTableColumnFieldHiddenChange(columnId, isFieldHidden) {
-    console.log('onTableColumnFieldHiddenChange', columnId, isFieldHidden);
-  }
-
-  /**
    * @param {object} originRow
    * @returns {object} one of VALIDATION_STATUSES
    */
@@ -390,16 +374,7 @@ export class DataTable extends React.Component {
             {t('Validation status')}
           </span>
 
-          <TableColumnSortDropdown
-            onSortChange={this.onTableColumnSortChange.bind(
-              this,
-              VALIDATION_STATUS_ID_PROP
-            )}
-            onFieldHiddenChange={this.onTableColumnFieldHiddenChange.bind(
-              this,
-              VALIDATION_STATUS_ID_PROP
-            )}
-          />
+          <TableColumnSortDropdown fieldId={VALIDATION_STATUS_ID_PROP}/>
         </div>
       ),
       sortable: false,

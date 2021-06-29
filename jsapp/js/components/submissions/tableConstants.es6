@@ -18,3 +18,10 @@ export const EXCLUDED_COLUMNS = [
   'meta/deprecatedID',
   '_validation_status',
 ];
+
+export const SORT_VALUES = {};
+new Set([
+  'A_TO_Z',
+  'Z_TO_A',
+]).forEach((codename) => {SORT_VALUES[codename] = codename;});
+Object.freeze(SORT_VALUES);
