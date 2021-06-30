@@ -8,6 +8,7 @@ import {
 const tableStore = Reflux.createStore({
   data: {
     hiddenFields: new Set(),
+    frozenFields: new Set(),
     fieldSortValues: new Map(),
   },
 
@@ -25,6 +26,7 @@ const tableStore = Reflux.createStore({
 
   resetData() {
     this.data.hiddenFields.clear();
+    this.data.frozenFields.clear();
     this.data.fieldSortValues.clear();
     this.trigger();
   },
@@ -50,6 +52,27 @@ const tableStore = Reflux.createStore({
    */
   isFieldHidden(fieldId) {
     return this.data.hiddenFields.has(fieldId);
+  },
+
+  /**
+   * @param {string} fieldId
+   * @param {boolean} isHidden
+   */
+  setFrozenField(fieldId, isFrozen) {
+    if (isFrozen === false) {
+      this.data.frozenFields.delete(fieldId);
+    } else {
+      this.data.frozenFields.add(fieldId);
+    }
+    this.trigger();
+  },
+
+  /**
+   * @param {string} fieldId
+   * @returns {boolean}
+   */
+  isFieldFrozen(fieldId) {
+    return this.data.frozenFields.has(fieldId);
   },
 
   /**
