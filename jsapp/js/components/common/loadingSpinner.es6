@@ -1,5 +1,6 @@
 import React from 'react';
 import {bem} from 'js/bem';
+import './loadingSpinner.scss';
 
 /**
  * @prop {string} [message] optional message

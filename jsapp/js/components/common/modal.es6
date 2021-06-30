@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import {KEY_CODES} from 'js/constants';
 import {bem} from 'js/bem';
 import classNames from 'classnames';
+import './modal.scss';
 
 /**
  * A generic modal component.

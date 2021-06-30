@@ -1,6 +1,7 @@
 import React from 'react';
 import {getAssetDisplayName} from 'js/assetUtils';
 import {hasLongWords} from 'utils';
+import './assetName.scss';
 
 /**
  * Displays the name of the asset. Works for any asset type and regardless if it
