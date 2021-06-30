@@ -11,7 +11,7 @@ class DeployableMixin:
 
     def async_media_files(self, force=True):
         """
-        Synchronized form-media files with deployment backend asynchronously
+        Synchronize form media files with deployment backend asynchronously
         """
         if force or self.asset_files.filter(
             file_type=AssetFile.FORM_MEDIA, synced_with_backend=False
