@@ -1,0 +1,108 @@
+@import "scss/_colors";
+
+@mixin rangeTrack() {
+  border-radius: 10px;
+  background: $kobo-gray-96;
+  height: 8px;
+}
+
+@mixin rangeThumb() {
+  border: none;
+}
+
+.audio-player {
+  max-width: 350px;
+  margin: auto;
+
+  .audio-player__controls {
+    display: flex;
+    justify-content: space-evenly;
+    margin: auto;
+    padding-top: 84px;
+    padding-bottom: 64px;
+    width: 80%;
+
+    i.k-icon {
+      font-size: 32px;
+      border-radius: 4px;
+      padding: 2px;
+      margin-right: 4px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: $kobo-gray-92;
+      }
+    }
+
+    i.k-icon-arrow-first, .k-icon-arrow-last {
+      color: $kobo-gray-65;
+    }
+
+    i.k-icon-caret-right, .k-icon-qt-area {
+      color: $kobo-blue;
+    }
+  }
+
+  .audio-player__progress {
+    .audio-player__time {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      margin: auto;
+      font-weight: 600;
+
+      .audio-player__time-current {
+        color: $kobo-blue;
+      }
+
+      .audio-player__time-total {
+        color: $kobo-gray-65;
+      }
+    }
+
+    // General input styling across browsers
+    input[type='range'] {
+      -webkit-appearance: none;
+      width: 90%;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    input[type='range'] {
+      &::-webkit-slider-thumb { @include rangeThumb }
+      &::-moz-range-thumb { @include rangeThumb }
+      &::-ms-thumb { @include rangeThumb}
+    }
+
+    input {
+      &::-webkit-slider-runnable-track { @include rangeTrack }
+      &::-moz-range-track { @include rangeTrack }
+      &::-ms-track { @include rangeTrack }
+    }
+
+    // Chrome et al input styling
+    //input[type=range]::-webkit-slider-thumb {
+    //  border: none;
+    //}
+
+    // Firefox et al input styling
+    input[type='range']::-moz-range-thumb {
+      background-color: transparent;
+      height: 8px;
+      border-radius: 0 10px 10px 0;
+    }
+
+    input[type='range']::-moz-range-progress {
+      background-color: $kobo-blue;
+      height: 8px;
+      border-radius: 10px;
+    }
+
+    //// Microsoft edge input styling
+    //input[type=range]::-ms-thumb {
+    //  border: none;
+    //}
+
+  }
+}

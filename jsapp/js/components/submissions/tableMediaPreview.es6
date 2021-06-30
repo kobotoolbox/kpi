@@ -38,7 +38,9 @@ class TableMediaPreview extends React.Component {
           //  controls
           //  autoPlay
           ///>
-          <AudioPlayer/>
+          <AudioPlayer
+            mediaURL={this.props?.mediaURL}
+          />
         );
       case QUESTION_TYPES.video.id:
         return (

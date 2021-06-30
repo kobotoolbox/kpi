@@ -350,6 +350,7 @@ $z-modal-x: 10;
 
 .modal.modal-media-preview {
   border-radius: 6px;
+  min-width: 25%;
 
   .modal__content {
     background-color: $kobo-gray-98;
@@ -376,6 +377,8 @@ $z-modal-x: 10;
       margin-right: 12px;
 
       .table-media-preview-header__title {
+        padding-top: 3px;
+
         .table-media-preview-header__label {
           vertical-align: top;
         }
@@ -397,6 +400,9 @@ $z-modal-x: 10;
   }
 
   .modal__body {
+    padding: 0;
+    margin: 0;
+
     .table-media-preview {
       text-align: center;
       max-width: 600px;
