@@ -304,7 +304,7 @@ export class DataTable extends React.Component {
             />
 
             <button
-              onClick={this.launchSubmissionModal}
+              onClick={this.launchSubmissionModal.bind(this, row)}
               data-sid={row.original._id}
               className='table-link'
               data-tip={t('Open')}
@@ -422,10 +422,17 @@ export class DataTable extends React.Component {
         return false;
       }
 
+      // Set ordering of question columns. Meta questions can be prepended or
+      // appended relative to survey questions with an index prefix
+
       // sets location of columns for questions not in current survey version
+      // `y` puts this case in front of known meta types
       var index = 'y_' + key;
 
-      // place meta question columns at the very end
+      // Get background-audio question name in case user changes it
+      const backgroundAudioName = this.getBackgroundAudioQuestionName();
+
+      // place meta question columns at the very end with `z` prefix
       switch(key) {
         case META_QUESTION_TYPES.username:
             index = 'z1';
@@ -460,6 +467,10 @@ export class DataTable extends React.Component {
             break;
         case ADDITIONAL_SUBMISSION_PROPS._submitted_by:
             index = 'z92';
+            break;
+        // set index for `background-audio` to the very first column with `_`
+        case backgroundAudioName:
+            index = '_1';
             break;
         default:
           // set index for questions in current version of survey (including questions in groups)
@@ -515,9 +526,10 @@ export class DataTable extends React.Component {
             if (
               q.type === QUESTION_TYPES.image.id ||
               q.type === QUESTION_TYPES.audio.id ||
-              q.type === QUESTION_TYPES.video.id
+              q.type === QUESTION_TYPES.video.id ||
+              q.type === META_QUESTION_TYPES['background-audio']
             ) {
-              var mediaURL = this.getMediaDownloadLink(row.value);
+              var mediaURL = this.getMediaDownloadLink(row, row.value);
               return <a href={mediaURL} target='_blank'>{row.value}</a>;
             }
             // show proper labels for choice questions
@@ -594,6 +606,7 @@ export class DataTable extends React.Component {
       META_QUESTION_TYPES.deviceid,
       META_QUESTION_TYPES.phonenumber,
       META_QUESTION_TYPES.today,
+      META_QUESTION_TYPES['background-audio'],
     ];
     const textFilterQuestionIds = [
       '__version__',
@@ -809,17 +822,44 @@ export class DataTable extends React.Component {
     });
     this.requestData(instance);
   }
-  launchSubmissionModal(evt) {
-    let el = $(evt.target).closest('[data-sid]').get(0);
-    const sid = el.getAttribute('data-sid');
+  // TODO: if multiple background-audio's are allowed, we should return all
+  //       background-audio related names
+  getBackgroundAudioQuestionName() {
+    return this.props?.asset?.content?.survey.find(
+      (item) => item.type === META_QUESTION_TYPES['background-audio']
+    )?.name || null;
+  }
+  launchSubmissionModal(row) {
+    if (row && row.original) {
+      const sid = row.original._id;
+      const backgroundAudioName = this.getBackgroundAudioQuestionName();
+      if (
+        backgroundAudioName &&
+        Object.keys(row.original).includes(backgroundAudioName)
+      ) {
+        let backgroundAudioUrl = this.getMediaDownloadLink(
+          row,
+          row.original[backgroundAudioName]
+        );
 
-    this.submissionModalProcessing(sid, this.state.tableData);
+        this.submissionModalProcessing(
+          sid,
+          this.state.tableData,
+          false,
+          null,
+          backgroundAudioUrl,
+        );
+      } else {
+        this.submissionModalProcessing(sid, this.state.tableData);
+      }
+    }
   }
   submissionModalProcessing(
     sid,
     tableData,
     isDuplicated = false,
-    duplicatedSubmission = null
+    duplicatedSubmission = null,
+    backgroundAudioUrl = null,
   ) {
     let ids = [];
 
@@ -834,6 +874,7 @@ export class DataTable extends React.Component {
       ids: ids,
       isDuplicated: isDuplicated,
       duplicatedSubmission: duplicatedSubmission,
+      backgroundAudioUrl: backgroundAudioUrl,
       tableInfo: {
         currentPage: this.state.currentPage,
         pageSize: this.state.pageSize,
@@ -966,20 +1007,22 @@ export class DataTable extends React.Component {
       </bem.TableMeta>
     );
   }
-  getMediaDownloadLink(fileName) {
-    this.state.tableData.forEach(function (a) {
-        a._attachments.forEach(function (b) {
-          if (b.filename.includes(fileName)) {
-            fileName = b.filename;
-          }
-        });
+  getMediaDownloadLink(row, fileName) {
+    let foundFile = '';
+    row.original._attachments.forEach((attachment) => {
+      if (attachment.filename.includes(fileName)) {
+        foundFile = attachment.filename;
+      }
     });
 
     var kc_server = document.createElement('a');
     kc_server.href = this.props.asset.deployment__identifier;
-    const kc_prefix = kc_server.pathname.split('/').length > 4 ? '/' + kc_server.pathname.split('/')[1] : '';
+    const kc_prefix =
+      kc_server.pathname.split('/').length > 4
+        ? '/' + kc_server.pathname.split('/')[1]
+        : '';
     var kc_base = `${kc_server.origin}${kc_prefix}`;
-    return `${kc_base}/attachment/original?media_file=${encodeURI(fileName)}`;
+    return `${kc_base}/attachment/original?media_file=${encodeURI(foundFile)}`;
   }
   render() {
     if (this.state.error) {
@@ -1040,7 +1083,7 @@ export class DataTable extends React.Component {
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={0}
-          className={tableClasses}
+          className={tableClasses.join(' ')}
           pages={pages}
           manual
           onFetchData={this.fetchData}

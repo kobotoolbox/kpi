@@ -15,6 +15,7 @@ import {stores} from 'js/stores';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
+  META_QUESTION_TYPES,
 } from 'js/constants';
 import SubmissionDataTable from './submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
@@ -241,6 +242,12 @@ class SubmissionModal extends React.Component {
     });
   }
 
+  hasBackgroundAudio() {
+    return this.props?.asset?.content?.survey.some(
+      (question) => question.type === META_QUESTION_TYPES['background-audio']
+    );
+  }
+
   render() {
     if (this.state.loading) {
       return (<LoadingSpinner/>);
@@ -353,8 +360,22 @@ class SubmissionModal extends React.Component {
             </div>
           }
 
+          <bem.FormModal__group>
+          {this.hasBackgroundAudio() &&
+            <bem.BackgroundAudioPlayer>
+              <bem.BackgroundAudioPlayer__label>
+                {t('Background audio recording')}
+              </bem.BackgroundAudioPlayer__label>
+
+              <bem.BackgroundAudioPlayer__audio
+                controls
+                src={this.props?.backgroundAudioUrl}
+              />
+            </bem.BackgroundAudioPlayer>
+          }
+
           {this.props.asset.deployment__active &&
-            <bem.FormModal__group>
+            <div className='submission-modal-dropdowns'>
               {translationOptions.length > 1 &&
                 <div className='switch--label-language'>
                   <label>{t('Language:')}</label>
@@ -383,8 +404,9 @@ class SubmissionModal extends React.Component {
                   isSearchable={false}
                 />
               </div>
-            </bem.FormModal__group>
+            </div>
           }
+          </bem.FormModal__group>
 
           <bem.FormModal__group>
 
