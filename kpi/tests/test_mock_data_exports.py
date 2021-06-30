@@ -381,7 +381,7 @@ class MockDataExports(MockDataExportsBase):
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_filter_fields(self):
-        export_options = {'fields': '["start", "end", "Do_you_descend_from_unicellular_organism"]'}
+        export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism"]}
         expected_lines = [
             '"start";"end";"Do you descend from an ancestral unicellular organism?";"_index"',
             '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"1"',
@@ -445,7 +445,7 @@ class MockDataExports(MockDataExportsBase):
         self.run_xls_export_test(expected_rows, export_options)
 
     def test_xls_export_filter_fields(self):
-        export_options = {'fields': '["start", "end", "Do_you_descend_from_unicellular_organism"]'}
+        export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism"]}
         expected_lines = [
             [ "start", "end", "Do you descend from an ancestral unicellular organism?", "_index" ],
             [ "2017-10-23T05:40:39.000-04:00", "2017-10-23T05:41:13.000-04:00", "No",  1.0  ],
