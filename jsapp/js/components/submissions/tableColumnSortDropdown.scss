@@ -1,26 +1,35 @@
 @import "scss/_colors";
 
-.kobo-dropdown.kobo-dropdown--menu-visible .table-column-sort-dropdown-trigger .k-icon.k-icon-caret-down {
-  display: none;
-}
-
-.kobo-dropdown.kobo-dropdown--menu-hidden .table-column-sort-dropdown-trigger .k-icon.k-icon-caret-up {
-  display: none;
-}
-
 // nested selector needed for specificity
-.kobo-dropdown .kobo-dropdown__menu {
-  .table-column-sort-dropdown-option {
-    &:not(:hover) .table-column-sort-dropdown-clear {
-      display: none;
-    }
+.kobo-dropdown  {
+  &.kobo-dropdown--menu-visible .table-column-sort-dropdown-trigger .k-icon.k-icon-caret-down {
+    display: none;
+  }
 
-    .table-column-sort-dropdown-clear {
-      color: $kobo-white !important;
-    }
+  &.kobo-dropdown--menu-hidden .table-column-sort-dropdown-trigger .k-icon.k-icon-caret-up {
+    display: none;
+  }
 
-    &.table-column-sort-dropdown-option--active {
-      color: $kobo-teal;
+  .table-column-sort-dropdown-trigger {
+    .k-icon.k-icon-sort-up,
+    .k-icon.k-icon-sort-down {
+      color: $kobo-teal-pale;
+    }
+  }
+
+  .kobo-dropdown__menu {
+    .table-column-sort-dropdown-option {
+      &:not(:hover) .table-column-sort-dropdown-clear {
+        display: none;
+      }
+
+      .table-column-sort-dropdown-clear {
+        color: $kobo-white !important;
+      }
+
+      &.table-column-sort-dropdown-option--active {
+        color: $kobo-teal-pale;
+      }
     }
   }
 }
