@@ -80,14 +80,16 @@ export default class KoboDropdown extends React.Component {
 
   showMenu() {
     this.setState({isMenuVisible: true});
-    window.addEventListener('click', this.onWindowClick);
-    this.registerEscKeyListener();
-    this.registerOutsideClickListener();
+    if (this.props.hideOnEsc) {
+      this.registerEscKeyListener();
+    }
+    if (this.props.hideOnMenuOutsideClick) {
+      this.registerOutsideClickListener();
+    }
   }
 
   hideMenu() {
     this.setState({isMenuVisible: false});
-    window.removeEventListener('click', this.onWindowClick);
     this.cancelEscKeyListener();
     this.cancelOutsideClickListener();
   }
