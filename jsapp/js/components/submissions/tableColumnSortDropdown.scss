@@ -11,11 +11,11 @@
 // nested selector needed for specificity
 .kobo-dropdown .kobo-dropdown__menu {
   .table-column-sort-dropdown-option {
-    &:not(:hover) .k-icon.k-icon-cancel {
+    &:not(:hover) .table-column-sort-dropdown-clear {
       display: none;
     }
 
-    .k-icon.k-icon-cancel {
+    .table-column-sort-dropdown-clear {
       color: $kobo-white !important;
     }
 

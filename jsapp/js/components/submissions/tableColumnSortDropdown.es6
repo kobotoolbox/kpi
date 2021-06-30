@@ -7,6 +7,8 @@ import {SORT_VALUES} from 'js/components/submissions/tableConstants';
 import tableStore from 'js/components/submissions/tableStore';
 import './tableColumnSortDropdown.scss';
 
+const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear';
+
 /**
  * A wrapper around KoboDropdown to be used in table header to sort columns. It
  * only needs the column id as all changes are done through tableStore.
@@ -61,12 +63,17 @@ class TableColumnSortDropdown extends React.Component {
     );
   }
 
-  clearSort(evt) {
-    evt.stopPropagation();
+  clearSort() {
     tableStore.removeFieldSortValue(this.props.fieldId);
   }
 
-  changeSort(sortValue) {
+  changeSort(sortValue, evt) {
+    // When clicking on clear icon button, we need to avoid triggering also the
+    // change sort button. We can't use `stopPropagation` on `clearSort` as it
+    // breaks `onMenuClick` functionality.
+    if (evt?.target?.classList?.contains(CLEAR_BUTTON_CLASS_NAME)) {
+      return;
+    }
     tableStore.setFieldSortValue(this.props.fieldId, sortValue);
   }
 
@@ -79,6 +86,8 @@ class TableColumnSortDropdown extends React.Component {
       <KoboDropdown
         theme={KOBO_DROPDOWN_THEMES.dark}
         hideOnEsc
+        hideOnMenuClick
+        hideOnMenuOutsideClick
         triggerContent={this.renderTrigger()}
         menuContent={
           <React.Fragment>
@@ -93,7 +102,7 @@ class TableColumnSortDropdown extends React.Component {
               {this.state.sortValue === SORT_VALUES.A_TO_Z &&
                 <i
                   onClick={this.clearSort}
-                  className='k-icon k-icon-cancel'
+                  className={classNames('k-icon', 'k-icon-cancel', CLEAR_BUTTON_CLASS_NAME)}
                 />
               }
             </bem.KoboDropdown__menuButton>
@@ -109,7 +118,7 @@ class TableColumnSortDropdown extends React.Component {
               {this.state.sortValue === SORT_VALUES.Z_TO_A &&
                 <i
                   onClick={this.clearSort}
-                  className='k-icon k-icon-cancel'
+                  className={classNames('k-icon', 'k-icon-cancel', CLEAR_BUTTON_CLASS_NAME)}
                 />
               }
             </bem.KoboDropdown__menuButton>
