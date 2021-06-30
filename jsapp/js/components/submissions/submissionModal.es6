@@ -17,7 +17,7 @@ import {
   MODAL_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
-import SubmissionDataTable from './submissionDataTable';
+import SubmissionDataTable from 'js/components/submissions/submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';

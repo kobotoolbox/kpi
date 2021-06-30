@@ -1,7 +1,7 @@
 import {
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
-} from './tableConstants';
+} from 'js/components/submissions/tableConstants';
 
 /**
  * @param {object[]} survey

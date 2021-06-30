@@ -3,8 +3,8 @@ import autoBind from 'react-autobind';
 import classNames from 'classnames';
 import {bem} from 'js/bem';
 import KoboDropdown, {KOBO_DROPDOWN_THEMES} from 'js/components/common/koboDropdown';
-import {SORT_VALUES} from './tableConstants';
-import tableStore from './tableStore';
+import {SORT_VALUES} from 'js/components/submissions/tableConstants';
+import tableStore from 'js/components/submissions/tableStore';
 import './tableColumnSortDropdown.scss';
 
 /**

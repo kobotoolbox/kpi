@@ -32,15 +32,15 @@ import {
   getQuestionOrChoiceDisplayName,
 } from 'js/assetUtils';
 import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
-import TableBulkOptions from './tableBulkOptions';
-import TableBulkCheckbox from './tableBulkCheckbox';
-import TableColumnSortDropdown from './tableColumnSortDropdown';
+import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
+import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
+import TableColumnSortDropdown from 'js/components/submissions/tableColumnSortDropdown';
 import {
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
-} from './tableConstants';
-import {getColumnLabel} from './tableUtils';
+} from 'js/components/submissions/tableConstants';
+import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import './table.scss';
 
 export class DataTable extends React.Component {

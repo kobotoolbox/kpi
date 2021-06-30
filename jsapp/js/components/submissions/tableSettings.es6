@@ -10,8 +10,8 @@ import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {notify} from 'utils';
-import {SUBMISSION_ACTIONS_ID} from './tableConstants';
-import {getColumnLabel} from './tableUtils';
+import {SUBMISSION_ACTIONS_ID} from 'js/components/submissions/tableConstants';
+import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import './tableSettings.scss';
 
 export class TableSettings extends React.Component {
