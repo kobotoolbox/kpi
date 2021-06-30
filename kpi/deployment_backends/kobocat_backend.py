@@ -843,6 +843,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                                   expect_formid=False,
                                   **kwargs)
 
+            file_.synced_with_backend = True
+            file_.save(update_fields=['synced_with_backend'])
+
         # Process deleted files in case two entries contain the same file but
         # one is flagged as deleted
         asset_files = self.asset.asset_files.filter(
