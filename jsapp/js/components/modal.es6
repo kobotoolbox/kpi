@@ -45,6 +45,29 @@ import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
 import TranslationSettings from './modalForms/translationSettings';
 import TranslationTable from './modalForms/translationTable';
 
+function getSubmissionTitle(props) {
+  let title = t('Success!');
+  let p = props.params;
+  let sid = parseInt(p.sid);
+
+  if (!p.isDuplicated) {
+    title = t('Submission Record');
+    if (p.tableInfo) {
+      let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
+      title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
+    } else {
+      let index = p.ids.indexOf(sid);
+      if (p.ids.length === 1) {
+        title = `${t('Submission Record')}`;
+      } else {
+        title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+      }
+    }
+  }
+
+  return title;
+}
+
 class Modal extends React.Component {
   constructor(props) {
     super(props);
@@ -55,7 +78,7 @@ class Modal extends React.Component {
     };
     autoBind(this);
   }
-  componentDidMount () {
+  componentDidMount() {
     var type = this.props.params.type;
     switch(type) {
       case MODAL_TYPES.SHARING:
@@ -111,7 +134,7 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.SUBMISSION:
         this.setState({
-          title: this.submissionTitle(this.props),
+          title: getSubmissionTitle(this.props),
           modalClass: 'modal--large modal-submission',
           sid: this.props.params.sid,
         });
@@ -174,47 +197,30 @@ class Modal extends React.Component {
       });
     }
   }
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.params && nextProps.params.sid) {
-      this.setState({
-        title: this.submissionTitle(nextProps),
-        sid: nextProps.params.sid
-      });
-    }
-
-    if (this.props.params.type != nextProps.params.type && nextProps.params.type === MODAL_TYPES.UPLOADING_XLS) {
-      var filename = nextProps.params.filename || '';
-      this.setState({
-        title: t('Uploading XLS file'),
-        message: t('Uploading: ') + filename
-      });
-    }
-    if (nextProps.params && !nextProps.params.sid) {
-      this.setState({ sid: false });
-    }
-  }
-  submissionTitle(props) {
-    let title = t('Success!'),
-      p = props.params,
-      sid = parseInt(p.sid);
-
-    if (!p.isDuplicated) {
-      title = t('Submission Record');
-      if (p.tableInfo) {
-        let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
-        title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
+  static getDerivedStateFromProps(props, state) {
+    if (props.params) {
+      const newState = {};
+      if (props.params.sid) {
+        newState.title = getSubmissionTitle(props);
+        newState.sid = props.params.sid;
       } else {
-        let index = p.ids.indexOf(sid);
-        if (p.ids.length === 1) {
-            title = `${t('Submission Record')}`;
-        } else {
-            title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
-        }
+        newState.sid = false;
       }
+
+      if (
+        state.prevType !== props.params.type &&
+        props.params.type === MODAL_TYPES.UPLOADING_XLS
+      ) {
+        var filename = props.params.filename || '';
+        newState.title = t('Uploading XLS file');
+        newState.message = t('Uploading: ') + filename;
+      }
+
+      // store for later
+      newState.prevType = props.params.type;
+      return newState;
     }
-
-
-    return title;
+    return null;
   }
   displaySafeCloseConfirm(title, message) {
     const dialog = alertify.dialog('confirm');
@@ -323,6 +329,7 @@ class Modal extends React.Component {
                 ids={this.props.params.ids}
                 isDuplicated={this.props.params.isDuplicated}
                 duplicatedSubmission={this.props.params.duplicatedSubmission}
+                backgroundAudioUrl={this.props.params.backgroundAudioUrl}
                 tableInfo={this.props.params.tableInfo || false}
               />
             }

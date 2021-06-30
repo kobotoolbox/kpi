@@ -207,7 +207,7 @@ export default class RESTServiceLogs extends React.Component {
           className='rest-services-list__header-back-button'
           href={`/#/forms/${this.state.assetUid}/settings/rest`}
         >
-          <i className='k-icon-prev' />
+          <i className='k-icon k-icon-prev' />
           {t('Back to REST Services')}
         </a>
 
@@ -266,7 +266,7 @@ export default class RESTServiceLogs extends React.Component {
                     data-tip={t('Retry all submissions')}
                     disabled={!this.state.isHookActive}
                   >
-                    <i className='k-icon-replace-all'/>
+                    <i className='k-icon k-icon-replace-all'/>
                   </bem.ServiceRow__actionButton>
                 }
               </bem.ServiceRow__column>
@@ -315,7 +315,7 @@ export default class RESTServiceLogs extends React.Component {
                         onClick={this.retryLog.bind(this, log)}
                         data-tip={t('Retry submission')}
                       >
-                        <i className='k-icon-replace' />
+                        <i className='k-icon k-icon-replace' />
                       </bem.ServiceRow__actionButton>
                     }
 
@@ -324,7 +324,7 @@ export default class RESTServiceLogs extends React.Component {
                         onClick={this.showLogInfo.bind(this, log)}
                         data-tip={t('More info')}
                       >
-                        <i className='k-icon-information' />
+                        <i className='k-icon k-icon-information' />
                       </bem.ServiceRow__actionButton>
                     }
                   </bem.ServiceRow__column>

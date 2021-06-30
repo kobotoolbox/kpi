@@ -49,6 +49,7 @@ class MainHeader extends Reflux.Component {
     this.unlisteners = [];
     autoBind(this);
   }
+
   componentDidMount() {
     this.unlisteners.push(
       stores.asset.listen(this.onAssetLoad),
@@ -59,6 +60,13 @@ class MainHeader extends Reflux.Component {
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
   }
+
+  /*
+   * NOTE: this should be updated to `getDerivedStateFromProps` but causes Error:
+   * Warning: Unsafe legacy lifecycles will not be called for components using new component APIs.
+   * MainHeader uses getDerivedStateFromProps() but also contains the following legacy lifecycles:
+   * componentWillMount
+   */
   componentWillUpdate(newProps) {
     if (this.props.assetid !== newProps.assetid) {
       this.setState({asset: false});
@@ -66,9 +74,17 @@ class MainHeader extends Reflux.Component {
       // action triggered by other component (route component)
     }
   }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.assetid !== this.props.assetid && this.props.assetid !== null) {
+      actions.resources.loadAsset({id: this.props.assetid});
+    }
+  }
+
   forceRender() {
     this.setState(this.state);
   }
+
   isSearchBoxDisabled() {
     if (this.isMyLibrary()) {
       // disable search when user has zero assets
@@ -77,22 +93,27 @@ class MainHeader extends Reflux.Component {
       return false;
     }
   }
+
   onAssetLoad(data) {
     const asset = data[this.props.assetid];
     this.setState(assign({asset: asset}));
   }
+
   logout() {
     actions.auth.logout();
   }
+
   toggleLanguageSelector() {
     this.setState({isLanguageSelectorVisible: !this.state.isLanguageSelectorVisible});
   }
+
   accountSettings() {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
       hashHistory.push(ROUTES.ACCOUNT_SETTINGS);
     });
   }
+
   languageChange(evt) {
     evt.preventDefault();
     let langCode = $(evt.target).data('key');
@@ -197,7 +218,7 @@ class MainHeader extends Reflux.Component {
                 }
                 <bem.AccountBox__menuLI m={'lang'} key='3'>
                   <bem.AccountBox__menuLink onClick={this.toggleLanguageSelector} data-popover-menu-stop-blur tabIndex='0'>
-                    <i className='k-icon-language' />
+                    <i className='k-icon k-icon-language' />
                     {t('Language')}
                   </bem.AccountBox__menuLink>
 
@@ -209,7 +230,7 @@ class MainHeader extends Reflux.Component {
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
-                    <i className='k-icon-logout' />
+                    <i className='k-icon k-icon-logout' />
                     {t('Logout')}
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
@@ -221,6 +242,7 @@ class MainHeader extends Reflux.Component {
 
     return null;
   }
+
   renderGitRevInfo() {
     if (stores.session.currentAccount && stores.session.currentAccount.git_rev) {
       var gitRev = stores.session.currentAccount.git_rev;
@@ -238,6 +260,7 @@ class MainHeader extends Reflux.Component {
 
     return false;
   }
+
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   }

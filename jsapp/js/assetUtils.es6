@@ -183,42 +183,42 @@ export function isLibraryAsset(assetType) {
 /**
  * For getting the icon class name for given asset type.
  * @param {Object} asset - BE asset data
- * @returns {string} k-icon CSS class name
+ * @returns {string} Contians two class names: Base `k-icon` class name and respective CSS class name
  */
 export function getAssetIcon(asset) {
   switch (asset.asset_type) {
     case ASSET_TYPES.template.id:
       if (asset.summary?.lock_any) {
-        return 'k-icon-template-locked';
+        return 'k-icon k-icon-template-locked';
       } else {
-        return 'k-icon-template';
+        return 'k-icon k-icon-template';
       }
     case ASSET_TYPES.question.id:
-      return 'k-icon-question';
+      return 'k-icon k-icon-question';
     case ASSET_TYPES.block.id:
-      return 'k-icon-block';
+      return 'k-icon k-icon-block';
     case ASSET_TYPES.survey.id:
       if (asset.summary?.lock_any) {
-        return 'k-icon-form-locked';
+        return 'k-icon k-icon-form-locked';
       } else if (asset.has_deployment && !asset.deployment__active) {
-        return 'k-icon-form-archived';
+        return 'k-icon k-icon-form-archived';
       } else if (asset.has_deployment) {
-        return 'k-icon-form-deployed';
+        return 'k-icon k-icon-form-deployed';
       } else {
-        return 'k-icon-form-draft';
+        return 'k-icon k-icon-form-draft';
       }
     case ASSET_TYPES.collection.id:
       if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
-        return 'k-icon-folder-subscribed';
+        return 'k-icon k-icon-folder-subscribed';
       } else if (isAssetPublic(asset.permissions)) {
-        return 'k-icon-folder-public';
+        return 'k-icon k-icon-folder-public';
       } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
-        return 'k-icon-folder-shared';
+        return 'k-icon k-icon-folder-shared';
       } else {
-        return 'k-icon-folder';
+        return 'k-icon k-icon-folder';
       }
     default:
-      return 'k-icon-form';
+      return 'k-icon k-icon-form';
   }
 }
 
@@ -408,7 +408,7 @@ function getRowLabelAtIndex(row, index) {
 
 /**
  * @param {string} type - one of QUESTION_TYPES
- * @returns {Node}
+ * @returns {Node|null}
  */
 export function renderQuestionTypeIcon(type) {
   let typeDef;
@@ -423,7 +423,7 @@ export function renderQuestionTypeIcon(type) {
   if (typeDef) {
     return (<i className={`k-icon k-icon-${typeDef.icon}`} title={type}/>);
   } else {
-    return <small><code>{type}</code></small>;
+    return null;
   }
 }
 

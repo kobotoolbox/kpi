@@ -635,7 +635,7 @@ export default assign({
               m={[{'close-warning': this.needsSave()}]}
               onClick={this.safeNavigateToAsset}
             >
-              <i className='k-icon-close'/>
+              <i className='k-icon k-icon-close'/>
             </bem.FormBuilderHeader__close>
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
@@ -648,7 +648,7 @@ export default assign({
               disabled={previewDisabled}
               data-tip={t('Preview form')}
             >
-              <i className='k-icon-view' />
+              <i className='k-icon k-icon-view' />
             </bem.FormBuilderHeader__button>
 
             { showAllAvailable &&
@@ -657,7 +657,7 @@ export default assign({
                   }]}
                   onClick={this.showAll}
                   data-tip={t('Expand / collapse questions')}>
-                <i className='k-icon-view-all' />
+                <i className='k-icon k-icon-view-all' />
               </bem.FormBuilderHeader__button>
             }
 
@@ -668,7 +668,7 @@ export default assign({
               className={this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
-              <i className='k-icon-group' />
+              <i className='k-icon k-icon-group' />
             </bem.FormBuilderHeader__button>
 
             { this.toggleCascade !== undefined &&
@@ -678,7 +678,7 @@ export default assign({
                 data-tip={t('Insert cascading select')}
                 className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
               >
-                <i className='k-icon-cascading' />
+                <i className='k-icon k-icon-cascading' />
               </bem.FormBuilderHeader__button>
             }
           </bem.FormBuilderHeader__cell>
@@ -950,6 +950,7 @@ export default assign({
                 {this.state.asset &&
                   <FormLockedMessage asset={this.state.asset}/>
                 }
+
                 {this.hasBackgroundAudio() &&
                   this.renderBackgroundAudioWarning()
                 }
