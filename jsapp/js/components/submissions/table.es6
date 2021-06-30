@@ -475,7 +475,7 @@ export class DataTable extends React.Component {
               q.type === QUESTION_TYPES.audio.id ||
               q.type === QUESTION_TYPES.video.id
             ) {
-              var mediaURL = this.getMediaDownloadLink(row.value);
+              var mediaURL = this.getMediaDownloadLink(row, row.value);
               return <a href={mediaURL} target='_blank'>{row.value}</a>;
             }
             // show proper labels for choice questions
@@ -930,20 +930,20 @@ export class DataTable extends React.Component {
       </bem.TableMeta>
     );
   }
-  getMediaDownloadLink(fileName) {
-    this.state.tableData.forEach(function (a) {
-        a._attachments.forEach(function (b) {
-          if (b.filename.includes(fileName)) {
-            fileName = b.filename;
-          }
-        });
+  getMediaDownloadLink(row, fileName) {
+    const fileNameNoSpaces = fileName.replace(/ /g, '_');
+    let mediaURL = t('Could not find ##fileName##').replace(
+      '##fileName##',
+      fileName
+    );
+
+    row.original._attachments.forEach((attachment) => {
+      if (attachment.filename.includes(fileNameNoSpaces)) {
+        mediaURL = attachment.download_url;
+      }
     });
 
-    var kc_server = document.createElement('a');
-    kc_server.href = this.props.asset.deployment__identifier;
-    const kc_prefix = kc_server.pathname.split('/').length > 4 ? '/' + kc_server.pathname.split('/')[1] : '';
-    var kc_base = `${kc_server.origin}${kc_prefix}`;
-    return `${kc_base}/attachment/original?media_file=${encodeURI(fileName)}`;
+    return mediaURL;
   }
   render() {
     if (this.state.error) {

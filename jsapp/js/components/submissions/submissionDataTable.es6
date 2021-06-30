@@ -264,7 +264,8 @@ class SubmissionDataTable extends React.Component {
    * @prop {string} filename
    */
   renderAttachment(type, filename) {
-    const attachment = this.findAttachmentData(filename);
+    const fileNameNoSpaces = filename.replace(/ /g, '_');
+    const attachment = this.findAttachmentData(fileNameNoSpaces);
 
     if (attachment) {
       if (type === QUESTION_TYPES.image.id) {
