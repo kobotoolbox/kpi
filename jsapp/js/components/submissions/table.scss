@@ -5,6 +5,7 @@
 
 $data-table-border: 1px solid $kobo-gray-92;
 $data-table-row-height: 42px;
+$c-header-bg: $kobo-gray-96;
 
 .form-view--table {
   padding: 0px 15px;
@@ -60,7 +61,7 @@ $data-table-row-height: 42px;
   }
 
   .rt-thead {
-    background: $kobo-gray-96;
+    background: $c-header-bg;
 
     .column-header-wrapper {
       display: flex;
@@ -352,16 +353,28 @@ $data-table-row-height: 42px;
 
   &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
     background: $kobo-gray-98;
+
+    .rt-td.frozen {
+      background-color: inherit;
+    }
   }
 
   &.has-frozen-column {
+    .rt-th.frozen {
+      background-color: $c-header-bg;
+    }
+
+    .rt-td.frozen {
+      background-color: $kobo-white;
+    }
+
     .rt-th.frozen,
     .rt-td.frozen {
       z-index: 100;
       order: -1;
       position: relative;
       left: 0;
-      background: $kobo-gray-96;
+      // background: $kobo-white;
       height: $data-table-row-height;
       margin-right: 6px;
       border-right: $data-table-border;
@@ -369,6 +382,32 @@ $data-table-row-height: 42px;
       // to avoid a visual glitch when there is half a pixel space left to the
       // frozen column and dark pixels of text below are visible
       margin-left: -1px;
+
+      // for ::after shadow
+      overflow: visible;
+
+      // the shadow
+      &::after {
+        content: '';
+        position: absolute;
+        left: calc(100% + 2px);
+        top: 0;
+        width: 8px;
+        height: 100%;
+        pointer-events: none;
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.04), transparent);
+        opacity: 0;
+        transition-property: opacity;
+        transition-duration: 0.5s;
+        transition-delay: 0.1s;
+        transition-timing-function: ease-in;
+      }
+    }
+
+    .rt-th.frozen.frozen-scrolled::after,
+    .rt-td.frozen.frozen-scrolled::after {
+      opacity: 1;
+      transition-timing-function: ease-out;
     }
   }
 

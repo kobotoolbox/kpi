@@ -21,6 +21,7 @@ class TableColumnSortDropdown extends React.Component {
     this.state = {
       sortValue: null,
       isFieldHidden: false,
+      isFieldFrozen: false,
     };
     this.unlisteners = [];
     autoBind(this);
@@ -40,6 +41,7 @@ class TableColumnSortDropdown extends React.Component {
     this.setState({
       sortValue: tableStore.getFieldSortValue(this.props.fieldId),
       isFieldHidden: tableStore.isFieldHidden(this.props.fieldId),
+      isFieldFrozen: tableStore.isFieldFrozen(this.props.fieldId),
     });
   }
 
@@ -79,6 +81,10 @@ class TableColumnSortDropdown extends React.Component {
 
   changeFieldHidden(isHidden) {
     tableStore.setHiddenField(this.props.fieldId, isHidden);
+  }
+
+  changeFieldFrozen(isFrozen) {
+    tableStore.setFrozenField(this.props.fieldId, isFrozen);
   }
 
   render() {
@@ -123,23 +129,23 @@ class TableColumnSortDropdown extends React.Component {
               }
             </bem.KoboDropdown__menuButton>
 
-            {this.state.isFieldHidden &&
-              <bem.KoboDropdown__menuButton
-                onClick={this.changeFieldHidden.bind(this, false)}
-              >
-                <i className='k-icon k-icon-view'/>
-                <span>{t('Show field')}</span>
-              </bem.KoboDropdown__menuButton>
-            }
+            <bem.KoboDropdown__menuButton
+              onClick={this.changeFieldHidden.bind(this, !this.state.isFieldHidden)}
+            >
+              <i className='k-icon k-icon-view'/>
+              <span>
+                {this.state.isFieldHidden ? t('Show field') : t('Hide field')}
+              </span>
+            </bem.KoboDropdown__menuButton>
 
-            {!this.state.isFieldHidden &&
-              <bem.KoboDropdown__menuButton
-                onClick={this.changeFieldHidden.bind(this, true)}
-              >
-                <i className='k-icon k-icon-view'/>
-                <span>{t('Hide field')}</span>
-              </bem.KoboDropdown__menuButton>
-            }
+            <bem.KoboDropdown__menuButton
+              onClick={this.changeFieldFrozen.bind(this, !this.state.isFieldFrozen)}
+            >
+              <i className='k-icon k-icon-snowflake'/>
+              <span>
+                {this.state.isFieldFrozen ? t('Unfreeze field') : t('Freeze field')}
+              </span>
+            </bem.KoboDropdown__menuButton>
           </React.Fragment>
         }
       />

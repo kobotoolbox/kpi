@@ -1168,9 +1168,18 @@ export class DataTable extends React.Component {
             return {
               onScroll: (e) => {
                 if (this.state.frozenColumn) {
+                  // same tableScrollTop means user is scrolling  horizontally
                   if (this.tableScrollTop === e.target.scrollTop) {
                     let left = e.target.scrollLeft > 0 ? e.target.scrollLeft : 0;
-                    $('.ReactTable .rt-tr .frozen').css({left: left});
+                    const $frozenEl = $('.ReactTable .rt-tr .frozen');
+
+                    $frozenEl.css({left: left});
+
+                    if (left >= 1) {
+                      $frozenEl.addClass('frozen-scrolled');
+                    } else {
+                      $frozenEl.removeClass('frozen-scrolled');
+                    }
                   } else {
                     this.tableScrollTop = e.target.scrollTop;
                   }
