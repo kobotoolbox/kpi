@@ -5,9 +5,6 @@ import {bem} from 'js/bem';
 
 import 'js/components/common/audioPlayer.scss';
 
-const POS_SEEK_TIME = 10;
-const NEG_SEEK_TIME = -10;
-
 bem.AudioPlayer = bem.create('audio-player');
 bem.AudioPlayer__controls = bem.AudioPlayer.__('controls', '<div>');
 bem.AudioPlayer__progress = bem.AudioPlayer.__('progress', '<div>');
@@ -79,21 +76,6 @@ class AudioPlayer extends React.Component {
     });
   }
 
-  onSeekButtonClicked(seekTime) {
-    let newTime = this.state.currentTime + seekTime;
-    if (newTime < 0) {
-      newTime = 0;
-    } else if (newTime > this.state.totalTime) {
-      newTime = this.state.totalTime;
-    }
-
-    this.state.audioInterface.currentTime = newTime;
-
-    this.setState({
-      currentTime: newTime,
-    });
-  }
-
   /* We deal internally with un-converted time for easier computing. Only use
    * this when it's time to display
    *
@@ -115,11 +97,6 @@ class AudioPlayer extends React.Component {
     return (
       <bem.AudioPlayer>
         <bem.AudioPlayer__controls>
-          <i
-            className='k-icon k-icon-arrow-first'
-            onClick={this.onSeekButtonClicked.bind(this, NEG_SEEK_TIME)}
-          />
-
           {this.state.isPlaying && (
             <i
               className='k-icon k-icon-qt-area'
@@ -133,11 +110,6 @@ class AudioPlayer extends React.Component {
               onClick={this.onPlayStatusChange}
             />
           )}
-
-          <i
-            className='k-icon k-icon-arrow-last'
-            onClick={this.onSeekButtonClicked.bind(this, POS_SEEK_TIME)}
-          />
         </bem.AudioPlayer__controls>
 
         <bem.AudioPlayer__progress>
