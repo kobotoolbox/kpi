@@ -170,19 +170,6 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
         raise Http404
 
 
-class AssetExportSettingsPermission(AssetNestedObjectPermission):
-    perms_map = {
-        'GET': ['%(app_label)s.view_submissions'],
-        'POST': ['%(app_label)s.manage_asset'],
-    }
-
-    perms_map['OPTIONS'] = perms_map['GET']
-    perms_map['HEAD'] = perms_map['GET']
-    perms_map['PUT'] = perms_map['POST']
-    perms_map['PATCH'] = perms_map['POST']
-    perms_map['DELETE'] = perms_map['POST']
-
-
 class AssetEditorPermission(AssetNestedObjectPermission):
     """
     Owner, managers and editors can write.
@@ -303,6 +290,19 @@ class SubmissionPermission(AssetNestedObjectPermission):
                 ))
 
         return user_permissions
+
+
+class AssetExportSettingsPermission(SubmissionPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+        'POST': ['%(app_label)s.manage_asset'],
+    }
+
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
+    perms_map['PUT'] = perms_map['POST']
+    perms_map['PATCH'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['POST']
 
 
 class DuplicateSubmissionPermission(SubmissionPermission):

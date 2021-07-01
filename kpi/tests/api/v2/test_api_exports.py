@@ -101,17 +101,25 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'someuser'}]
         }
-        list_url = reverse(
+        exports_list_url = reverse(
             self._get_endpoint('asset-export-list'),
             kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
         )
-        response = self.client.get(list_url)
+        export_settings_list_url = reverse(
+            self._get_endpoint('asset-export-settings-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+        )
+        response = self.client.get(exports_list_url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        response = self.client.get(export_settings_list_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
         anotheruser = User.objects.get(username='anotheruser')
         self.asset.assign_perm(anotheruser, PERM_PARTIAL_SUBMISSIONS,
                                partial_perms=partial_perms)
-        response = self.client.get(list_url)
+        response = self.client.get(exports_list_url)
+        assert response.status_code == status.HTTP_200_OK
+        response = self.client.get(export_settings_list_url)
         assert response.status_code == status.HTTP_200_OK
 
     def test_export_task_list_filtered(self):
