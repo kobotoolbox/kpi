@@ -429,11 +429,10 @@ class MockDataExports(MockDataExportsBase):
             expected_rows = expected_data[sheet_name]
             sheet = book.sheet_by_name(sheet_name)
             assert sheet.nrows == len(expected_rows)
-            row_index = 0
-            for expected_row in expected_rows:
+
+            for row_index, expected_row in enumerate(expected_rows):
                 result_row = [cell.value for cell in sheet.row(row_index)]
                 assert result_row == expected_row
-                row_index += 1
 
     def test_csv_export_default_options(self):
         expected_lines = [
