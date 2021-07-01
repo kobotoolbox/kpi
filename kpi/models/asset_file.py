@@ -36,7 +36,14 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
     )
 
     ALLOWED_MIME_TYPES = {
-        FORM_MEDIA: ('image', 'audio', 'video', 'text/csv', 'application/xml'),
+        FORM_MEDIA: (
+            'image',
+            'audio',
+            'video',
+            'text/csv',
+            'application/xml',
+            'application/zip',
+        ),
         MAP_LAYER: (
             'text/csv',
             'application/vnd.google-earth.kml+xml',
@@ -60,6 +67,7 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
     content = PrivateFileField(upload_to=upload_to, max_length=380, null=True)
     metadata = JSONBField(default=dict)
     date_deleted = models.DateTimeField(null=True, default=None)
+    synced_with_backend = models.BooleanField(default=False)
 
     def delete(self, using=None, keep_parents=False, force=False):
         # Delete object and files on storage if `force` is True or file type
@@ -71,7 +79,8 @@ class AssetFile(OpenRosaManifestInterface, models.Model):
 
         # Otherwise, just flag the file as deleted.
         self.date_deleted = timezone.now()
-        self.save(update_fields=['date_deleted'])
+        self.synced_with_backend = False
+        self.save(update_fields=['date_deleted', 'synced_with_backend'])
 
     @property
     def filename(self):
