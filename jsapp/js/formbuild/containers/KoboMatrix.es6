@@ -96,17 +96,17 @@ class KoboMatrix extends React.Component {
 
   autoName(val, type, ln = false) {
     var names = [];
-    const kobomatrix_list = this.state.kobomatrix_list;
     var data = this.state.data;
 
     if (type === 'column') {
-      data.get('cols').forEach(function(ch){
+      data.get('cols').forEach(function (ch) {
         names.push(data.getIn([ch, '$autoname']));
       });
     } else {
-      data.get('choices').forEach(function(ch){
-        if (ch.get('list_name') == ln)
+      data.get('choices').forEach(function (ch) {
+        if (ch.get('list_name') === ln) {
           names.push(ch.get('$autovalue'));
+        }
       });
     }
 
@@ -118,13 +118,13 @@ class KoboMatrix extends React.Component {
       characterLimit: 40,
       incrementorPadding: false,
       validXmlTag: false,
-      replaceNonWordCharacters: true
+      replaceNonWordCharacters: true,
     });
   }
 
   rowChange(e) {
-    const rowKuid = this.state.expandedRowKuid,
-          type = e.target.getAttribute('data-type');
+    const rowKuid = this.state.expandedRowKuid;
+    const type = e.target.getAttribute('data-type');
     var data = this.state.data;
     var val = e.target.value;
 
