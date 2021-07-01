@@ -419,20 +419,20 @@ class MockDataExports(MockDataExportsBase):
             export_task.data.update(export_options)
         messages = defaultdict(list)
         export_task._run_task(messages)
-        self.assertFalse(messages)
+        assert not messages
 
         book = xlrd.open_workbook(file_contents=export_task.result.read())
         expected_sheet_names = list(expected_data.keys())
-        self.assertEqual(book.sheet_names(), expected_sheet_names)
+        assert book.sheet_names() == expected_sheet_names
 
         for sheet_name in expected_sheet_names:
             expected_rows = expected_data[sheet_name]
             sheet = book.sheet_by_name(sheet_name)
-            self.assertEqual(sheet.nrows, len(expected_rows))
+            assert sheet.nrows == len(expected_rows)
             row_index = 0
             for expected_row in expected_rows:
                 result_row = [cell.value for cell in sheet.row(row_index)]
-                self.assertEqual(result_row, expected_row)
+                assert result_row == expected_row
                 row_index += 1
 
     def test_csv_export_default_options(self):
