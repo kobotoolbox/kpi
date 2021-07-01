@@ -1007,21 +1007,19 @@ export class DataTable extends React.Component {
     );
   }
   getMediaDownloadLink(row, fileName) {
-    let foundFile = '';
+    const fileNameNoSpaces = fileName.replace(/ /g, '_');
+    let mediaURL = t('Could not find ##fileName##').replace(
+      '##fileName##',
+      fileName
+    );
+
     row.original._attachments.forEach((attachment) => {
-      if (attachment.filename.includes(fileName)) {
-        foundFile = attachment.filename;
+      if (attachment.filename.includes(fileNameNoSpaces)) {
+        mediaURL = attachment.download_url;
       }
     });
 
-    var kc_server = document.createElement('a');
-    kc_server.href = this.props.asset.deployment__identifier;
-    const kc_prefix =
-      kc_server.pathname.split('/').length > 4
-        ? '/' + kc_server.pathname.split('/')[1]
-        : '';
-    var kc_base = `${kc_server.origin}${kc_prefix}`;
-    return `${kc_base}/attachment/original?media_file=${encodeURI(foundFile)}`;
+    return mediaURL;
   }
   cellDisplaysNumbers(questionOrKey) {
     let questionType = questionOrKey;
