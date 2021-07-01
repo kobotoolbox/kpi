@@ -87,6 +87,33 @@ class TableColumnSortDropdown extends React.Component {
     tableStore.setFrozenField(this.props.fieldId, isFrozen);
   }
 
+  renderSortButton(buttonSortValue) {
+    return (
+      <bem.KoboDropdown__menuButton
+        className={classNames('table-column-sort-dropdown-option', {
+          'table-column-sort-dropdown-option--active': this.state.sortValue === buttonSortValue,
+        })}
+        onClick={this.changeSort.bind(this, buttonSortValue)}
+      >
+        {buttonSortValue === SORT_VALUES.A_TO_Z && [
+          <i className='k-icon k-icon-sort-down'/>,
+          <span>{t('Sort A → Z')}</span>,
+        ]}
+        {buttonSortValue === SORT_VALUES.Z_TO_A && [
+          <i className='k-icon k-icon-sort-up'/>,
+          <span>{t('Sort A → Z')}</span>,
+        ]}
+
+        {this.state.sortValue === buttonSortValue &&
+          <i
+            onClick={this.clearSort}
+            className={classNames('k-icon', 'k-icon-cancel', CLEAR_BUTTON_CLASS_NAME)}
+          />
+        }
+      </bem.KoboDropdown__menuButton>
+    );
+  }
+
   render() {
     return (
       <KoboDropdown
@@ -97,54 +124,33 @@ class TableColumnSortDropdown extends React.Component {
         triggerContent={this.renderTrigger()}
         menuContent={
           <React.Fragment>
-            <bem.KoboDropdown__menuButton
-              className={classNames('table-column-sort-dropdown-option', {
-                'table-column-sort-dropdown-option--active': this.state.sortValue === SORT_VALUES.A_TO_Z,
-              })}
-              onClick={this.changeSort.bind(this, SORT_VALUES.A_TO_Z)}
-            >
-              <i className='k-icon k-icon-sort-down'/>
-              <span>{t('Sort A → Z')}</span>
-              {this.state.sortValue === SORT_VALUES.A_TO_Z &&
-                <i
-                  onClick={this.clearSort}
-                  className={classNames('k-icon', 'k-icon-cancel', CLEAR_BUTTON_CLASS_NAME)}
-                />
-              }
-            </bem.KoboDropdown__menuButton>
-
-            <bem.KoboDropdown__menuButton
-              className={classNames('table-column-sort-dropdown-option', {
-                'table-column-sort-dropdown-option--active': this.state.sortValue === SORT_VALUES.Z_TO_A,
-              })}
-              onClick={this.changeSort.bind(this, SORT_VALUES.Z_TO_A)}
-            >
-              <i className='k-icon k-icon-sort-up'/>
-              <span>{t('Sort Z → A')}</span>
-              {this.state.sortValue === SORT_VALUES.Z_TO_A &&
-                <i
-                  onClick={this.clearSort}
-                  className={classNames('k-icon', 'k-icon-cancel', CLEAR_BUTTON_CLASS_NAME)}
-                />
-              }
-            </bem.KoboDropdown__menuButton>
+            {this.renderSortButton(SORT_VALUES.A_TO_Z)}
+            {this.renderSortButton(SORT_VALUES.Z_TO_A)}
 
             <bem.KoboDropdown__menuButton
               onClick={this.changeFieldHidden.bind(this, !this.state.isFieldHidden)}
             >
-              <i className='k-icon k-icon-view'/>
-              <span>
-                {this.state.isFieldHidden ? t('Show field') : t('Hide field')}
-              </span>
+              {this.state.isFieldHidden && [
+                (<i className='k-icon k-icon-view'/>),
+                (<span>{t('Show field')}</span>),
+              ]}
+              {!this.state.isFieldHidden && [
+                <i className='k-icon k-icon-view-no'/>,
+                <span>{t('Hide field')}</span>,
+              ]}
             </bem.KoboDropdown__menuButton>
 
             <bem.KoboDropdown__menuButton
               onClick={this.changeFieldFrozen.bind(this, !this.state.isFieldFrozen)}
             >
-              <i className='k-icon k-icon-snowflake'/>
-              <span>
-                {this.state.isFieldFrozen ? t('Unfreeze field') : t('Freeze field')}
-              </span>
+              {this.state.isFieldFrozen && [
+                <i className='k-icon k-icon-unfreeze'/>,
+                <span>{t('Unfreeze field')}</span>,
+              ]}
+              {!this.state.isFieldFrozen && [
+                <i className='k-icon k-icon-freeze'/>,
+                <span>{t('Freeze field')}</span>,
+              ]}
             </bem.KoboDropdown__menuButton>
           </React.Fragment>
         }
