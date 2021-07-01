@@ -1,12 +1,26 @@
 # coding: utf-8
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.exceptions import BadAssetTypeException
+from kpi.models.asset_file import AssetFile
 from kpi.tasks import sync_media_files
 from .backends import DEPLOYMENT_BACKENDS
 from .base_backend import BaseDeploymentBackend
 
 
 class DeployableMixin:
+
+    def async_media_files(self, force=True):
+        """
+        Synchronize form media files with deployment backend asynchronously
+        """
+        if force or self.asset_files.filter(
+            file_type=AssetFile.FORM_MEDIA, synced_with_backend=False
+        ).exists():
+            self.deployment.store_data(
+                {'status': self.deployment.STATUS_NOT_SYNCED}
+            )
+            self.save(create_version=False, adjust_content=False)
+            sync_media_files.delay(self.uid)
 
     @property
     def can_be_deployed(self):
@@ -29,11 +43,7 @@ class DeployableMixin:
                 self.deployment.redeploy(active=active)
 
             self._mark_latest_version_as_deployed()
-            self.deployment.store_data(
-                {'status': self.deployment.STATUS_NOT_SYNCED}
-            )
-            self.save(create_version=False, adjust_content=False)
-            sync_media_files.delay(self.uid)
+            self.async_media_files()
 
         else:
             raise BadAssetTypeException(

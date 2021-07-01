@@ -212,6 +212,13 @@ class FormMedia extends React.Component {
     return (
       <bem.FormView m='form-media'>
         <bem.FormMedia>
+          {this.props.asset.deployment__active &&
+            <bem.FormView__cell m='warning'>
+              <i className='k-icon k-icon-alert' />
+              <p>{t('You must redeploy this form to see media changes.')}</p>
+            </bem.FormView__cell>
+          }
+
           <bem.FormMedia__title>
             <bem.FormMedia__label>
               {t('Attach files')}
