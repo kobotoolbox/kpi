@@ -145,8 +145,13 @@ class KoboMatrix extends React.Component {
   colChange(e) {
     const colKuid = this.state.expandedColKuid;
     var data = this.state.data;
-    const val = e.target.value;
+    let val = e.target.value;
     const type = e.target.getAttribute('data-type');
+
+    if (type === 'name') {
+      val = this.autoName(val, 'column');
+    }
+
     data = data.setIn([colKuid, type], val);
 
     this.setState({data: data});
