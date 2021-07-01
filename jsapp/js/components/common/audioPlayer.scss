@@ -1,13 +1,26 @@
 @import "scss/_colors";
 
 @mixin rangeTrack() {
+  -webkit-appearance: none;
   border-radius: 10px;
-  background: $kobo-gray-96;
+  background: $kobo-gray-92;
   height: 8px;
 }
 
-@mixin rangeThumb() {
-  border: none;
+/* HACK FIX: Chrome browsers et al don't have a `progress` pseudo class like
+ * Firefox or Edge, so we make our own
+ *
+ * Inspired by https://stackoverflow.com/questions/38095650/style-input-range-to-look-like-a-progress-bar
+ */
+@function makelongshadow() {
+  $val: 5px 0 0 0 $kobo-blue;
+
+  // In order for the hack fix to work, we have to hard code the slider length
+  @for $i from 6 through 300 {
+    $val: #{$val}, #{$i}px 0 0 0px #{$kobo-gray-92};
+  }
+
+  @return $val;
 }
 
 .audio-player {
@@ -47,7 +60,7 @@
     .audio-player__time {
       display: flex;
       justify-content: space-between;
-      width: 90%;
+      width: 300px;
       margin: auto;
       font-weight: 600;
 
@@ -63,46 +76,56 @@
     // General input styling across browsers
     input[type='range'] {
       -webkit-appearance: none;
-      width: 90%;
+      width: 300px;
       background: transparent;
       cursor: pointer;
       border-radius: 10px;
     }
 
+    // Input 'thumb' styling
     input[type='range'] {
-      &::-webkit-slider-thumb { @include rangeThumb }
-      &::-moz-range-thumb { @include rangeThumb }
-      &::-ms-thumb { @include rangeThumb}
+      &::-webkit-slider-thumb {
+        appearance: none;
+        height: 8px;
+        width: 8px;
+        background: $kobo-blue;
+        box-shadow: makelongshadow();
+        border-radius: 10px;
+      }
+
+      &::-moz-range-thumb {
+        background-color: transparent;
+        height: 8px;
+        border-radius: 0 10px 10px 0;
+        border: none;
+      }
     }
 
-    input {
-      &::-webkit-slider-runnable-track { @include rangeTrack }
-      &::-moz-range-track { @include rangeTrack }
-      &::-ms-track { @include rangeTrack }
+    // Input 'track' styling
+    input[type='range'] {
+      &::-webkit-slider-runnable-track {
+        @include rangeTrack;
+        overflow-x: hidden;
+        margin-bottom: 12px;
+        background: $kobo-blue;
+      }
+
+      &::-moz-range-track {
+        @include rangeTrack
+      }
+
+      &::-ms-track {
+        @include rangeTrack
+      }
     }
 
-    // Chrome et al input styling
-    //input[type=range]::-webkit-slider-thumb {
-    //  border: none;
-    //}
-
-    // Firefox et al input styling
-    input[type='range']::-moz-range-thumb {
-      background-color: transparent;
-      height: 8px;
-      border-radius: 0 10px 10px 0;
+    // Input 'progress' styling
+    input[type='range'] {
+      &::-moz-range-progress {
+        background-color: $kobo-blue;
+        height: 8px;
+        border-radius: 10px;
+      }
     }
-
-    input[type='range']::-moz-range-progress {
-      background-color: $kobo-blue;
-      height: 8px;
-      border-radius: 10px;
-    }
-
-    //// Microsoft edge input styling
-    //input[type=range]::-ms-thumb {
-    //  border: none;
-    //}
-
   }
 }
