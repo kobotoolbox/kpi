@@ -2,6 +2,7 @@
 from rest_framework.request import Request as DRFRequest
 from rest_framework.settings import api_settings
 
+from kpi.models.object_permission import get_anonymous_user
 
 def superuser_or_username_matches_prefix(private_file):
     """
@@ -27,11 +28,12 @@ def superuser_or_username_matches_prefix(private_file):
             private_file.request,
             authenticators=[
                 auth() for auth in api_settings.DEFAULT_AUTHENTICATION_CLASSES
-            ]
+            ],
         )
         user = request.user
-        if not user.is_authenticated:
-            return False
+
+    if user.is_anonymous:
+        user = get_anonymous_user()
 
     if user.is_superuser:
         return True
