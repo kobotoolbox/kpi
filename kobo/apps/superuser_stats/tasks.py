@@ -23,8 +23,8 @@ from kpi.models.asset import Asset
 @shared_task
 def generate_country_report(output_filename, start_date, end_date):
 
-    def get_row_for_country(code, label):
-        row = []
+    def get_row_for_country(code_: str, label_: str):
+        row_ = []
 
         kpi_forms = Asset.objects.filter(
             asset_type=ASSET_TYPE_SURVEY,
@@ -40,9 +40,9 @@ def generate_country_report(output_filename, start_date, end_date):
                 Asset.objects.values_list(
                     '_deployment_data__backend_response__id_string', flat=True
                 ).filter(
-                    _deployment_data__backend='kobocat',
+                    _deployment_data__active=True,
                     asset_type=ASSET_TYPE_SURVEY,
-                    settings__country__value=code,
+                    settings__country__value=code_,
                 )
             )
             instances_count = ReadOnlyKobocatInstance.objects.filter(
@@ -50,10 +50,10 @@ def generate_country_report(output_filename, start_date, end_date):
                 date_created__range=(start_date, end_date),
             ).count()
 
-        row.append(label)
-        row.append(instances_count)
+        row_.append(label_)
+        row_.append(instances_count)
 
-        return row
+        return row_
 
     columns = [
         'Country',
