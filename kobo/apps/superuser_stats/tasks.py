@@ -21,7 +21,8 @@ from kpi.models.asset import Asset
 
 
 @shared_task
-def generate_country_report(output_filename, start_date, end_date):
+def generate_country_report(
+        output_filename: str, start_date: str, end_date: str):
 
     def get_row_for_country(code_: str, label_: str):
         row_ = []
@@ -75,7 +76,7 @@ def generate_country_report(output_filename, start_date, end_date):
 
 
 @shared_task
-def generate_user_report(output_filename):
+def generate_user_report(output_filename: str):
 
     def format_date(d):
         if hasattr(d, 'strftime'):
