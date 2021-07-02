@@ -81,6 +81,12 @@ class SubmissionsByCountry(admin.ModelAdmin):
     list_filter = (('date_created', DateFieldListFilter), CountryFilter)
     actions = None
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
     def changelist_view(self, request, extra_context=None):
         response = super().changelist_view(
             request,
@@ -136,6 +142,9 @@ class UserStatisticsAdmin(admin.ModelAdmin):
     actions = None
 
     def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
         return False
 
     def changelist_view(self, request, extra_context=None):
