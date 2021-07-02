@@ -307,8 +307,20 @@ export class DataTable extends React.Component {
               <br/>
               <strong>{this.state.resultsTotal} {t('results')}</strong>
             </div>
-
-            {userCanSeeCheckbox &&
+          </div>
+        ),
+        accessor: 'sub-actions',
+        index: '__0',
+        id: SUBMISSION_ACTIONS_ID,
+        width: columnWidth,
+        filterable: true, // Not filterable, but we need react-table to render TableBulkCheckbox (the filter cell override)
+        sortable: false,
+        resizable: false,
+        headerClassName: 'rt-sub-actions',
+        className: 'rt-sub-actions',
+        Filter: () => {
+          if (userCanSeeCheckbox) {
+            return (
               <TableBulkCheckbox
                 visibleRowsCount={maxPageRes}
                 selectedRowsCount={Object.keys(this.state.selectedRows).length}
@@ -317,18 +329,9 @@ export class DataTable extends React.Component {
                 onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
                 onClearSelection={this.bulkClearSelection}
               />
-            }
-          </div>
-        ),
-        accessor: 'sub-actions',
-        index: '__0',
-        id: SUBMISSION_ACTIONS_ID,
-        width: columnWidth,
-        filterable: false,
-        sortable: false,
-        resizable: false,
-        headerClassName: 'table-submission-actions-header',
-        className: 'rt-sub-actions',
+            );
+          }
+        },
         Cell: (row) => (
           <div className='table-submission-actions'>
             {userCanSeeCheckbox &&
@@ -370,11 +373,14 @@ export class DataTable extends React.Component {
     return {
       Header: () => (
         <div className='column-header-wrapper'>
-          <span className='column-header-title'>
-            {t('Validation status')}
-          </span>
-
-          <TableColumnSortDropdown fieldId={VALIDATION_STATUS_ID_PROP}/>
+          <TableColumnSortDropdown
+            fieldId={VALIDATION_STATUS_ID_PROP}
+            additionalTriggerContent={
+              <span className='column-header-title'>
+                {t('Validation status')}
+              </span>
+            }
+          />
         </div>
       ),
       sortable: false,
@@ -1083,6 +1089,31 @@ export class DataTable extends React.Component {
     return mediaURL;
   }
 
+  onTableScroll(evt) {
+    // same tableScrollTop means user is scrolling  horizontally
+    if (this.tableScrollTop === evt.target.scrollTop) {
+      let left = evt.target.scrollLeft > 0 ? evt.target.scrollLeft : 0;
+
+      // first column is always sticky
+      const $firstColumnCells = $('.ReactTable .rt-tr .rt-sub-actions');
+      $firstColumnCells.css({left: left});
+
+      // user can set an additional sticky column
+      if (this.state.frozenColumn) {
+        const $frozenColumnCells = $('.ReactTable .rt-tr .frozen');
+        $frozenColumnCells.css({left: left});
+
+        if (left >= 1) {
+          $frozenColumnCells.addClass('frozen-scrolled');
+        } else {
+          $frozenColumnCells.removeClass('frozen-scrolled');
+        }
+      }
+    } else {
+      this.tableScrollTop = evt.target.scrollTop;
+    }
+  }
+
   render() {
     if (this.state.error) {
       return (
@@ -1164,25 +1195,7 @@ export class DataTable extends React.Component {
           rowsText={t('rows')}
           getTableProps={() => {
             return {
-              onScroll: (e) => {
-                if (this.state.frozenColumn) {
-                  // same tableScrollTop means user is scrolling  horizontally
-                  if (this.tableScrollTop === e.target.scrollTop) {
-                    let left = e.target.scrollLeft > 0 ? e.target.scrollLeft : 0;
-                    const $frozenEl = $('.ReactTable .rt-tr .frozen');
-
-                    $frozenEl.css({left: left});
-
-                    if (left >= 1) {
-                      $frozenEl.addClass('frozen-scrolled');
-                    } else {
-                      $frozenEl.removeClass('frozen-scrolled');
-                    }
-                  } else {
-                    this.tableScrollTop = e.target.scrollTop;
-                  }
-                }
-              },
+              onScroll: this.onTableScroll,
             };
           }}
           filterable

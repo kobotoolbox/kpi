@@ -7,6 +7,8 @@ $data-table-border: 1px solid $kobo-gray-92;
 $data-table-row-height: 42px;
 $c-header-bg: $kobo-gray-96;
 
+$z-table-frozen: 10;
+
 .form-view--table {
   padding: 0px 15px;
   position: relative;
@@ -37,6 +39,8 @@ $c-header-bg: $kobo-gray-96;
   border: none;
   background: transparent;
   height: calc(100% - 50px);
+  position: relative;
+  z-index: 0; // To not interfere with UI elements outside the table, as contents of the table have many different z-index values - this makes them all irrelevant.
 
   .rt-resizer {
     width: 10px;
@@ -88,7 +92,7 @@ $c-header-bg: $kobo-gray-96;
       box-shadow: none;
       overflow-x: visible;
 
-      .table-submission-actions-header {
+      .rt-sub-actions {
         overflow: visible;
         position: relative;
 
@@ -96,11 +100,25 @@ $c-header-bg: $kobo-gray-96;
           line-height: 21px;
           text-align: left;
         }
+      }
+    }
 
+    // the second header row
+    &.-filters {
+      overflow-x: visible;
+      // we want both header rows to look like one merged
+      border-bottom: $data-table-border;
+      border-bottom-width: 2px;
+
+      .rt-th,
+      .rt-td {
+        border-right: $data-table-border;
+      }
+
+      .rt-sub-actions {
         .table-bulk-checkbox {
-          z-index: 1;
           position: absolute;
-          top: 100%;
+          top: 0;
           left: 0;
           height: $data-table-row-height;
 
@@ -120,19 +138,6 @@ $c-header-bg: $kobo-gray-96;
             }
           }
         }
-      }
-    }
-
-    // the second header row
-    &.-filters {
-      overflow-x: visible;
-      // we want both header rows to look like one merged
-      border-bottom: $data-table-border;
-      border-bottom-width: 2px;
-
-      .rt-th,
-      .rt-td {
-        border-right: $data-table-border;
       }
 
       .table-filter-input {
@@ -226,11 +231,6 @@ $c-header-bg: $kobo-gray-96;
 
   .rt-td.rt-status {
     // needed for dropdown
-    overflow: visible;
-  }
-
-  .rt-sub-actions {
-    // needed for tooltips
     overflow: visible;
   }
 
@@ -354,61 +354,95 @@ $c-header-bg: $kobo-gray-96;
   &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
     background: $kobo-gray-98;
 
+    .rt-td.rt-sub-actions,
     .rt-td.frozen {
       background-color: inherit;
     }
   }
 
-  &.has-frozen-column {
-    .rt-th.frozen {
-      background-color: $c-header-bg;
-    }
-
-    .rt-td.frozen {
-      background-color: $kobo-white;
-    }
-
+  // currently hovered row will be on top - for tooltips
+  .rt-tr:hover {
+    .rt-th.rt-sub-actions,
+    .rt-td.rt-sub-actions,
     .rt-th.frozen,
     .rt-td.frozen {
-      z-index: 100;
-      order: -1;
-      position: relative;
-      left: 0;
-      // background: $kobo-white;
-      height: $data-table-row-height;
-      margin-right: 6px;
-      border-right: $data-table-border;
-      border-right-width: 2px;
-      // to avoid a visual glitch when there is half a pixel space left to the
-      // frozen column and dark pixels of text below are visible
-      margin-left: -1px;
-
-      // for ::after shadow
-      overflow: visible;
-
-      // the shadow
-      &::after {
-        content: '';
-        position: absolute;
-        left: calc(100% + 2px);
-        top: 0;
-        width: 8px;
-        height: 100%;
-        pointer-events: none;
-        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.04), transparent);
-        opacity: 0;
-        transition-property: opacity;
-        transition-duration: 0.5s;
-        transition-delay: 0.1s;
-        transition-timing-function: ease-in;
-      }
+      z-index: $z-table-frozen + 10;
     }
+  }
 
-    .rt-th.frozen.frozen-scrolled::after,
-    .rt-td.frozen.frozen-scrolled::after {
+  // NOTE: submissions actions column is always frozen as first column
+  .rt-th.rt-sub-actions,
+  .rt-td.rt-sub-actions,
+  .rt-th.frozen,
+  .rt-td.frozen {
+    z-index: $z-table-frozen;
+    position: relative;
+    left: 0;
+    // needed for tooltips and for ::after shadow
+    overflow: visible;
+  }
+
+  // The subtle shadow after the last sticky column.
+  &:not(.has-frozen-column) .rt-th.rt-sub-actions,
+  &:not(.has-frozen-column) .rt-td.rt-sub-actions,
+  .has-frozen-column .rt-th.frozen,
+  .has-frozen-column .rt-td.frozen {
+    &::after {
+      content: '';
+      position: absolute;
+      left: calc(100% + 2px);
+      top: 0;
+      width: 8px;
+      height: 100%;
+      pointer-events: none;
+      background-image: linear-gradient(to right, rgba(0, 0, 0, 0.04), transparent);
+      opacity: 0;
+      transition-property: opacity;
+      transition-duration: 0.5s;
+      transition-delay: 0.1s;
+      transition-timing-function: ease-in;
+    }
+  }
+
+  // animating the shadow to show up only if table is scrolled horizontally
+  &.is-scrolled-horizontally {
+    .rt-th.frozen::after,
+    .rt-td.frozen::after {
+    .rt-th.rt-sub-actions::after,
+    .rt-td.rt-sub-actions::after {
       opacity: 1;
       transition-timing-function: ease-out;
     }
+  }
+
+  .rt-th.rt-sub-actions,
+  .rt-th.frozen {
+    background-color: $c-header-bg;
+  }
+
+  .rt-td.rt-sub-actions,
+  .rt-td.frozen {
+    background-color: $kobo-white;
+  }
+
+  .rt-th.frozen,
+  .rt-td.frozen {
+    order: -1;
+    height: $data-table-row-height;
+    margin-right: 6px;
+    border-right: $data-table-border;
+    border-right-width: 2px !important; // important needed due to .-filters specificity
+  }
+
+  // NOTE: submissions actions column is always frozen as first column
+  .rt-th.rt-sub-actions,
+  .rt-td.rt-sub-actions {
+    order: -2;
+    border-right: $data-table-border;
+  }
+
+  &:not(.has-frozen-column) .rt-sub-actions {
+    border-right-width: 2px !important;
   }
 
   &.has-hxl-tags-visible {

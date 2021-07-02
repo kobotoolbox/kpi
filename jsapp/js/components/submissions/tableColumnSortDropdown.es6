@@ -14,6 +14,7 @@ const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear';
  * only needs the column id as all changes are done through tableStore.
  *
  * @prop {string} fieldId - one of table columns
+ * @prop {Node} [additionalTriggerContent] - to be put inside trigger, before the predefined content. Please note that the trigger as a whole is clickable, so this additional content would need stopPropagation to be clickable.
  */
 class TableColumnSortDropdown extends React.Component {
   constructor(props){
@@ -56,6 +57,7 @@ class TableColumnSortDropdown extends React.Component {
 
     return (
       <div className='table-column-sort-dropdown-trigger'>
+        {this.props.additionalTriggerContent}
         {this.state.sortValue &&
           <i className={sortIcon.join(' ')}/>
         }
