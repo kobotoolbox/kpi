@@ -23,12 +23,6 @@ from kpi.models.asset import Asset
 @shared_task
 def generate_country_report(output_filename, start_date, end_date):
 
-    def format_date(d):
-        if hasattr(d, 'strftime'):
-            return d.strftime('%F')
-        else:
-            return d
-
     def get_row_for_country(code, label):
         row = []
 
