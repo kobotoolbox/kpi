@@ -1,5 +1,6 @@
 @import "scss/_colors";
 @import "scss/libs/_mdl";
+@import "scss/components/_kobo.checkbox-and-radio.scss";
 
 // These are custom styles for Table View table.
 
@@ -160,6 +161,11 @@ $z-table-frozen: 10;
         margin-top: 2px;
         margin-right: 2px;
       }
+
+      input.checkbox__input {
+        // override the very specific styles that react-table gives to header filter `input`s that is causing our Checkbox component to fail
+        @extend .checkbox__input;
+      }
     }
 
     .rt-tr {
@@ -218,6 +224,15 @@ $z-table-frozen: 10;
     border-right: $data-table-border;
     line-height: $data-table-row-height - (2 * 5px);
     height: $data-table-row-height;
+  }
+
+  .rt-td .trimmed-text,
+  .rt-th .trimmed-text {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .rt-td.rt-numerical-value {
@@ -354,27 +369,19 @@ $z-table-frozen: 10;
   &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
     background: $kobo-gray-98;
 
-    .rt-td.rt-sub-actions,
-    .rt-td.frozen {
+    .rt-td.is-frozen {
       background-color: inherit;
     }
   }
 
-  // currently hovered row will be on top - for tooltips
-  .rt-tr:hover {
-    .rt-th.rt-sub-actions,
-    .rt-td.rt-sub-actions,
-    .rt-th.frozen,
-    .rt-td.frozen {
-      z-index: $z-table-frozen + 10;
-    }
+  // currently hovered cell will be on top - for tooltips and dropdowns
+  .rt-th:hover.is-frozen,
+  .rt-td:hover.is-frozen {
+    z-index: $z-table-frozen + 10;
   }
 
-  // NOTE: submissions actions column is always frozen as first column
-  .rt-th.rt-sub-actions,
-  .rt-td.rt-sub-actions,
-  .rt-th.frozen,
-  .rt-td.frozen {
+  .rt-th.is-frozen,
+  .rt-td.is-frozen {
     z-index: $z-table-frozen;
     position: relative;
     left: 0;
@@ -383,10 +390,8 @@ $z-table-frozen: 10;
   }
 
   // The subtle shadow after the last sticky column.
-  &:not(.has-frozen-column) .rt-th.rt-sub-actions,
-  &:not(.has-frozen-column) .rt-td.rt-sub-actions,
-  .has-frozen-column .rt-th.frozen,
-  .has-frozen-column .rt-td.frozen {
+  .rt-th.is-frozen.is-last-frozen,
+  .rt-td.is-frozen.is-last-frozen {
     &::after {
       content: '';
       position: absolute;
@@ -406,27 +411,23 @@ $z-table-frozen: 10;
 
   // animating the shadow to show up only if table is scrolled horizontally
   &.is-scrolled-horizontally {
-    .rt-th.frozen::after,
-    .rt-td.frozen::after {
-    .rt-th.rt-sub-actions::after,
-    .rt-td.rt-sub-actions::after {
+    .rt-th.is-frozen.is-last-frozen::after,
+    .rt-td.is-frozen.is-last-frozen::after {
       opacity: 1;
       transition-timing-function: ease-out;
     }
   }
 
-  .rt-th.rt-sub-actions,
-  .rt-th.frozen {
+  .rt-th.is-frozen {
     background-color: $c-header-bg;
   }
 
-  .rt-td.rt-sub-actions,
-  .rt-td.frozen {
+  .rt-td.is-frozen {
     background-color: $kobo-white;
   }
 
-  .rt-th.frozen,
-  .rt-td.frozen {
+  .rt-th.is-frozen.is-last-frozen,
+  .rt-td.is-frozen.is-last-frozen {
     order: -1;
     height: $data-table-row-height;
     margin-right: 6px;
@@ -438,11 +439,6 @@ $z-table-frozen: 10;
   .rt-th.rt-sub-actions,
   .rt-td.rt-sub-actions {
     order: -2;
-    border-right: $data-table-border;
-  }
-
-  &:not(.has-frozen-column) .rt-sub-actions {
-    border-right-width: 2px !important;
   }
 
   &.has-hxl-tags-visible {

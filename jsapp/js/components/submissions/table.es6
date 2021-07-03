@@ -44,6 +44,9 @@ import {
 import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import './table.scss';
 
+/**
+ * @prop {object} asset
+ */
 export class DataTable extends React.Component {
   constructor(props){
     super(props);
@@ -52,7 +55,7 @@ export class DataTable extends React.Component {
       tableData: [],
       columns: [],
       selectedColumns: false,
-      frozenColumn: false,
+      frozenColumn: this.getFrozenColumn(),
       sids: [],
       isFullscreen: false,
       defaultPageSize: 30,
@@ -69,8 +72,11 @@ export class DataTable extends React.Component {
       fetchState: false,
       submissionPager: false,
       overrideLabelsAndGroups: null,
+      tableScrollLeft: 0,
     };
 
+    // Store this value only to be able to check whether user is scrolling
+    // horizontally or vertically.
     this.tableScrollTop = 0;
     autoBind(this);
   }
@@ -202,6 +208,15 @@ export class DataTable extends React.Component {
     }
   }
 
+  getFrozenColumn() {
+    let frozenColumn = false;
+    const settings = this.props.asset.settings;
+    if (settings['data-table'] && settings['data-table']['frozen-column']) {
+      frozenColumn = settings['data-table']['frozen-column'];
+    }
+    return frozenColumn;
+  }
+
   /**
    * @param {object[]} data - list of submissions
    * @returns {string[]} a unique list of columns (keys) that should be displayed to users
@@ -300,6 +315,13 @@ export class DataTable extends React.Component {
         columnWidth += 20;
       }
 
+      console.log('frozenColumn', this.state.frozenColumn);
+
+      let columnClassNames = ['rt-sub-actions', 'is-frozen'];
+      if (!this.state.frozenColumn) {
+        columnClassNames.push('is-last-frozen');
+      }
+
       return {
         Header: () => (
           <div>
@@ -317,8 +339,8 @@ export class DataTable extends React.Component {
         filterable: true, // Not filterable, but we need react-table to render TableBulkCheckbox (the filter cell override)
         sortable: false,
         resizable: false,
-        headerClassName: 'rt-sub-actions',
-        className: 'rt-sub-actions',
+        headerClassName: columnClassNames.join(' '),
+        className: columnClassNames.join(' '),
         Filter: () => {
           if (userCanSeeCheckbox) {
             return (
@@ -544,12 +566,12 @@ export class DataTable extends React.Component {
           });
       }
 
-      let columnClassName = '';
+      let columnClassNames = '';
       if (
         (q && NUMERICAL_SUBMISSION_PROPS[q.type]) ||
         NUMERICAL_SUBMISSION_PROPS[key]
       ) {
-        columnClassName += 'rt-numerical-value';
+        columnClassNames += 'rt-numerical-value';
       }
 
       let columnIcon = null;
@@ -586,7 +608,7 @@ export class DataTable extends React.Component {
         question: q,
         filterable: false,
         sortable: false,
-        className: columnClassName,
+        className: columnClassNames,
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
             if (
@@ -596,8 +618,13 @@ export class DataTable extends React.Component {
               q.type === META_QUESTION_TYPES['background-audio']
             ) {
               var mediaURL = this.getMediaDownloadLink(row, row.value);
-              return <a href={mediaURL} target='_blank'>{row.value}</a>;
+              return (
+                <a href={mediaURL} target='_blank'>
+                  <span className='trimmed-text'>{row.value}</span>
+                </a>
+              );
             }
+
             // show proper labels for choice questions
             if (q.type === QUESTION_TYPES.select_one.id) {
               let choice = choices.find((o) =>
@@ -605,9 +632,15 @@ export class DataTable extends React.Component {
                 (o.name === row.value || o.$autoname === row.value)
               );
               if (choice?.label && choice.label[translationIndex]) {
-                return choice.label[translationIndex];
+                return (
+                  <span className='trimmed-text'>
+                    {choice.label[translationIndex]}
+                  </span>
+                );
               } else {
-                return row.value;
+                return (
+                  <span className='trimmed-text'>{row.value}</span>
+                );
               }
             }
             if (q.type === QUESTION_TYPES.select_multiple.id && row.value) {
@@ -623,14 +656,20 @@ export class DataTable extends React.Component {
                 }
               });
 
-              return labels.join(', ');
+              return (
+                <span className='trimmed-text'>{labels.join(', ')}</span>
+              );
             }
             if (
               q.type === META_QUESTION_TYPES.start ||
               q.type === META_QUESTION_TYPES.end ||
               q.type === ADDITIONAL_SUBMISSION_PROPS._submission_time
             ) {
-              return formatTimeDate(row.value);
+              return (
+                <span className='trimmed-text'>
+                  {formatTimeDate(row.value)}
+                </span>
+              );
             }
           }
           if (typeof(row.value) === 'object' || row.value === undefined) {
@@ -638,12 +677,16 @@ export class DataTable extends React.Component {
 
             if (repeatGroupAnswers) {
               // display a list of answers from a repeat group question
-              return repeatGroupAnswers.join(', ');
+              return (
+                <span className='trimmed-text'>
+                  {repeatGroupAnswers.join(', ')}
+                </span>
+              );
             } else {
               return '';
             }
           } else {
-            return row.value;
+            return (<span className='trimmed-text'>{row.value}</span>);
           }
         },
       });
@@ -655,7 +698,7 @@ export class DataTable extends React.Component {
     });
 
     let selectedColumns = false;
-    let frozenColumn = false;
+    let frozenColumn = this.getFrozenColumn();
     const textFilterQuestionTypes = [
       QUESTION_TYPES.text.id,
       QUESTION_TYPES.integer.id,
@@ -681,10 +724,6 @@ export class DataTable extends React.Component {
       ADDITIONAL_SUBMISSION_PROPS._submission_time,
       ADDITIONAL_SUBMISSION_PROPS._submitted_by,
     ];
-
-    if (settings['data-table'] && settings['data-table']['frozen-column']) {
-      frozenColumn = settings['data-table']['frozen-column'];
-    }
 
     columns.forEach(function (col) {
       // TODO: see if this can work for select_multiple too
@@ -719,8 +758,8 @@ export class DataTable extends React.Component {
       }
 
       if (frozenColumn === col.id) {
-        col.className = col.className ? `frozen ${col.className}` : 'frozen';
-        col.headerClassName = 'frozen';
+        col.className = col.className ? `is-frozen is-last-frozen ${col.className}` : 'is-frozen is-last-frozen';
+        col.headerClassName = 'is-frozen is-last-frozen';
       }
     });
 
@@ -1094,25 +1133,16 @@ export class DataTable extends React.Component {
   }
 
   onTableScroll(evt) {
-    // same tableScrollTop means user is scrolling  horizontally
+    console.log('onTableScroll', evt.target.scrollLeft);
+
+    // We need this check, because when scrolling vertically, the scrollLeft
+    // property is always `0` (which seems like a browser bug).
     if (this.tableScrollTop === evt.target.scrollTop) {
       let left = evt.target.scrollLeft > 0 ? evt.target.scrollLeft : 0;
-
+      this.setState({tableScrollLeft: left});
       // first column is always sticky
-      const $firstColumnCells = $('.ReactTable .rt-tr .rt-sub-actions');
-      $firstColumnCells.css({left: left});
-
-      // user can set an additional sticky column
-      if (this.state.frozenColumn) {
-        const $frozenColumnCells = $('.ReactTable .rt-tr .frozen');
-        $frozenColumnCells.css({left: left});
-
-        if (left >= 1) {
-          $frozenColumnCells.addClass('frozen-scrolled');
-        } else {
-          $frozenColumnCells.removeClass('frozen-scrolled');
-        }
-      }
+      const $frozenColumnCells = $('.ReactTable .rt-tr .is-frozen');
+      $frozenColumnCells.css({left: left});
     } else {
       this.tableScrollTop = evt.target.scrollTop;
     }
@@ -1135,8 +1165,8 @@ export class DataTable extends React.Component {
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
 
     let tableClasses = ['-highlight'];
-    if (this.state.frozenColumn) {
-      tableClasses.push('has-frozen-column');
+    if (this.state.tableScrollLeft) {
+      tableClasses.push('is-scrolled-horizontally');
     }
     if (this.state.showHXLTags) {
       tableClasses.push('has-hxl-tags-visible');
