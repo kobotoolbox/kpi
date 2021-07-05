@@ -592,10 +592,15 @@ export class DataTable extends React.Component {
           const columnHXLTags = _this.getColumnHXLTags(key);
           return (
             <div className='column-header-wrapper'>
-              <span className='column-header-title' title={columnName}>
-                {columnIcon}
-                {columnName}
-              </span>
+              <TableColumnSortDropdown
+                fieldId={key}
+                additionalTriggerContent={
+                  <span className='column-header-title' title={columnName}>
+                    {columnIcon}
+                    {columnName}
+                  </span>
+                }
+              />
               {this.state.showHXLTags && columnHXLTags &&
                 <span className='column-header-hxl-tags' title={columnHXLTags}>{columnHXLTags}</span>
               }

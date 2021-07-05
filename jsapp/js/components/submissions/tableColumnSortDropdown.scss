@@ -1,7 +1,16 @@
 @import "scss/_colors";
 
 // nested selector needed for specificity
-.kobo-dropdown  {
+.kobo-dropdown[data-name='table-column-sort']  {
+  display: block;
+  width: 100%;
+
+  .kobo-dropdown__trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+  }
+
   &.kobo-dropdown--menu-visible .table-column-sort-dropdown-trigger .k-icon.k-icon-caret-down {
     display: none;
   }
@@ -11,6 +20,22 @@
   }
 
   .table-column-sort-dropdown-trigger {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    .column-header-title {
+      flex: 1;
+
+      &:not(:last-child) {
+        margin-right: 5px;
+      }
+
+      &:not(:first-child) {
+        margin-left: 5px;
+      }
+    }
+
     .k-icon.k-icon-sort-up,
     .k-icon.k-icon-sort-down {
       color: $kobo-teal-pale;

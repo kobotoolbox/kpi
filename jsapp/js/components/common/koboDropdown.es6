@@ -44,6 +44,7 @@ bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
  * @prop {boolean} [hideOnEsc=false] - hides menu when opened and user uses Escape key
  * @prop {node} triggerContent
  * @prop {function} menuContent the content of dropdown, anything's allowed
+ * @prop {string} [name] optional name value useful for styling, ends up in `data-name` attribute
  */
 export default class KoboDropdown extends React.Component {
   constructor(props){
@@ -190,8 +191,14 @@ export default class KoboDropdown extends React.Component {
   }
 
   render() {
+    const additionalWrapperAttributes = {};
+    if (this.props.name) {
+      // We use `data-name` attribute to allow any character in the name.
+      additionalWrapperAttributes['data-name'] = this.props.name;
+    }
+
     return (
-      <bem.KoboDropdown m={this.getWrapperModifiers()}>
+      <bem.KoboDropdown m={this.getWrapperModifiers()} {...additionalWrapperAttributes}>
         <bem.KoboDropdown__trigger onClick={this.onTriggerClick}>
           {this.props.triggerContent}
         </bem.KoboDropdown__trigger>

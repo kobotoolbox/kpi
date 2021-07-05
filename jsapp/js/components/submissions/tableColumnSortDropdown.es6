@@ -123,6 +123,7 @@ class TableColumnSortDropdown extends React.Component {
         hideOnEsc
         hideOnMenuClick
         hideOnMenuOutsideClick
+        name='table-column-sort'
         triggerContent={this.renderTrigger()}
         menuContent={
           <React.Fragment>
