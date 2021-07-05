@@ -15,6 +15,8 @@ import {stores} from 'js/stores';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
+  META_QUESTION_TYPES,
+  ENKETO_ACTIONS,
 } from 'js/constants';
 import SubmissionDataTable from './submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
@@ -48,6 +50,7 @@ class SubmissionModal extends React.Component {
       sid: props.sid,
       showBetaFieldsWarning: false,
       isEditLoading: false,
+      isViewLoading: false,
       isDuplicated: props.isDuplicated,
       duplicatedSubmission: props.duplicatedSubmission || null,
       isEditingDuplicate: false,
@@ -168,9 +171,26 @@ class SubmissionModal extends React.Component {
       isEditLoading: true,
       isEditingDuplicate: true,
     });
-    enketoHandler.editSubmission(this.props.asset.uid, this.state.sid).then(
+    enketoHandler.openSubmission(
+      this.props.asset.uid,
+      this.state.sid,
+      ENKETO_ACTIONS.edit
+    ).then(
       () => {this.setState({isEditLoading: false});},
       () => {this.setState({isEditLoading: false});}
+    );
+  }
+
+  launchViewSubmission() {
+    this.setState({
+      isViewLoading: true,
+    });
+    enketoHandler.openSubmission(
+      this.props.asset.uid,
+      this.state.sid,
+      ENKETO_ACTIONS.view
+    ).then(
+      () => {this.setState({isViewLoading: false});}
     );
   }
 
@@ -239,6 +259,12 @@ class SubmissionModal extends React.Component {
     this.setState({
       translationIndex: index || 0,
     });
+  }
+
+  hasBackgroundAudio() {
+    return this.props?.asset?.content?.survey.some(
+      (question) => question.type === META_QUESTION_TYPES['background-audio']
+    );
   }
 
   render() {
@@ -353,8 +379,22 @@ class SubmissionModal extends React.Component {
             </div>
           }
 
+          <bem.FormModal__group>
+          {this.hasBackgroundAudio() &&
+            <bem.BackgroundAudioPlayer>
+              <bem.BackgroundAudioPlayer__label>
+                {t('Background audio recording')}
+              </bem.BackgroundAudioPlayer__label>
+
+              <bem.BackgroundAudioPlayer__audio
+                controls
+                src={this.props?.backgroundAudioUrl}
+              />
+            </bem.BackgroundAudioPlayer>
+          }
+
           {this.props.asset.deployment__active &&
-            <bem.FormModal__group>
+            <div className='submission-modal-dropdowns'>
               {translationOptions.length > 1 &&
                 <div className='switch--label-language'>
                   <label>{t('Language:')}</label>
@@ -383,8 +423,9 @@ class SubmissionModal extends React.Component {
                   isSearchable={false}
                 />
               </div>
-            </bem.FormModal__group>
+            </div>
           }
+          </bem.FormModal__group>
 
           <bem.FormModal__group>
 
@@ -451,6 +492,17 @@ class SubmissionModal extends React.Component {
                 >
                   {this.state.isEditLoading && t('Loading…')}
                   {!this.state.isEditLoading && t('Edit')}
+                </a>
+              }
+
+              {this.userCan('view_submissions', this.props.asset) &&
+                <a
+                  onClick={this.launchViewSubmission.bind(this)}
+                  className='kobo-button kobo-button--blue submission-duplicate__button'
+                  disabled={this.state.isViewLoading}
+                >
+                  {this.state.isViewLoading && t('Loading…')}
+                  {!this.state.isViewLoading && t('View')}
                 </a>
               }
 

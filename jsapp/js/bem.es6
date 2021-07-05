@@ -369,4 +369,8 @@ bem.ProjectDownloads__definedExportsSelector = bem.ProjectDownloads.__('defined-
 bem.ProjectDownloads__deleteSettingsButton = bem.ProjectDownloads.__('delete-settings-button', 'button');
 bem.ProjectDownloads__exportsCreator = bem.ProjectDownloads.__('exports-creator');
 
+bem.BackgroundAudioPlayer = BEM('background-audio-player');
+bem.BackgroundAudioPlayer__label = bem.BackgroundAudioPlayer.__('label', '<label>');
+bem.BackgroundAudioPlayer__audio = bem.BackgroundAudioPlayer.__('audio', '<audio>');
+
 bem.create = BEM;
