@@ -380,6 +380,17 @@ $z-table-frozen: 10;
     z-index: $z-table-frozen + 10;
   }
 
+  // currently focused cell will be over hovered one to not cover opened dropdown
+  //
+  // BUG NOTE: there is still an issue when you open the dropdown from within
+  // a frozen column and then TAB-navigate our of it (a non-functionality, as we
+  // still don't have a visible focus state :P) but is extremely unlikely to
+  // happen for a regular user.
+  .rt-th:focus-within.is-frozen,
+  .rt-td:focus-within.is-frozen {
+    z-index: $z-table-frozen + 11;
+  }
+
   .rt-th.is-frozen,
   .rt-td.is-frozen {
     z-index: $z-table-frozen;
