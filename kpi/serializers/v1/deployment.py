@@ -63,7 +63,11 @@ class DeploymentSerializer(serializers.Serializer):
                 active=validated_data.get('active', deployment.active)
             )
         elif 'active' in validated_data:
+            active = validated_data['active']
             # Set the `active` flag without touching the rest of the deployment
-            deployment.set_active(validated_data['active'])
+            deployment.set_active(active)
+            # If we (re)activate the asset, let's synchronize its media files
+            if active:
+                asset.async_media_files(force=False)
 
         return deployment
