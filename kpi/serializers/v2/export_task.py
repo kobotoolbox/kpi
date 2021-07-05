@@ -16,6 +16,7 @@ from formpack.constants import (
     EXPORT_SETTING_MULTIPLE_SELECT,
     EXPORT_SETTING_SOURCE,
     EXPORT_SETTING_TYPE,
+    EXPORT_SETTING_XLS_TYPES,
     OPTIONAL_EXPORT_SETTINGS,
     REQUIRED_EXPORT_SETTINGS,
     VALID_DEFAULT_LANGUAGES,
@@ -90,6 +91,9 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
         if EXPORT_SETTING_FLATTEN in data_:
             attrs[EXPORT_SETTING_FLATTEN] = data_[EXPORT_SETTING_FLATTEN]
+
+        if EXPORT_SETTING_XLS_TYPES in data_:
+            attrs[EXPORT_SETTING_XLS_TYPES] = data_[EXPORT_SETTING_XLS_TYPES]
 
         return attrs
 

@@ -539,6 +539,7 @@ class ExportTask(ImportExportTask):
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
         fields = self.data.get('fields', [])
+        xls_types = self.data.get('xls_types', False)
         try:
             # If applicable, substitute the constants that formpack expects for
             # friendlier language strings used by the API
@@ -557,6 +558,7 @@ class ExportTask(ImportExportTask):
             'force_index': True,
             'tag_cols_for_header': tag_cols_for_header,
             'filter_fields': fields,
+            'xls_types': xls_types,
         }
 
     def _record_last_submission_time(self, submission_stream):
