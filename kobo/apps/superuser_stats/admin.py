@@ -61,19 +61,14 @@ class CountryFilter(admin.SimpleListFilter):
     title = 'Country'
     parameter_name = 'Country'
 
-    def __init__(self, request, params, model, model_admin):
-        super().__init__(request, params, model, model_admin)
-        self.__model = model
+    def __init__(self, request, params, *args, **kwargs):
+        super().__init__(request, params, None, None)
 
     def lookups(self, request, model_admin):
         return COUNTRIES
 
     def queryset(self, request, queryset):
-        if not self.value():
-            return queryset
-
-        country = self.value()
-        return queryset.filter(settings__country__value=country)
+        pass
 
 
 class SubmissionsByCountry(admin.ModelAdmin):
@@ -101,19 +96,22 @@ class SubmissionsByCountry(admin.ModelAdmin):
 
         data = []
 
-        asset_filter = CountryFilter(
-            request, request.GET.dict(), Asset, self.__class__
+        country_filter = CountryFilter(
+            request, request.GET.dict()
         )
 
         asset_queryset = Asset.objects.filter(
             asset_type=ASSET_TYPE_SURVEY
         )
 
-        records = asset_filter.queryset(request, asset_queryset).order_by()
+        countries = COUNTRIES
+        if country_filter.value():
+            countries = [country for country in COUNTRIES if country[0] == country_filter.value()]
 
         # Filter for individual countries
-        for code, name in COUNTRIES:
-            assets = records.filter(
+        for code, name in countries:
+            instances_count = 0
+            assets = asset_queryset.filter(
                 settings__country__value=code,
             )
             if assets.count() != 0:
@@ -124,14 +122,14 @@ class SubmissionsByCountry(admin.ModelAdmin):
                     asset_type=ASSET_TYPE_SURVEY,
                 ))
 
-                instances_count = ReadOnlyKobocatInstance.objects.filter(
-                    xform__id_string__in=xform_id_strings,
-                ).count()
+                result = KobocatXForm.objects.filter(id_string__in=xform_id_strings).aggregate(
+                    instances_count=Sum('num_of_submissions'))
+                instances_count = result['instances_count']
 
-                data.append({
-                    'country': name,
-                    'count': instances_count,
-                })
+            data.append({
+                'country': name,
+                'count': instances_count,
+            })
 
         return data
 
@@ -175,7 +173,7 @@ class UserStatisticsAdmin(admin.ModelAdmin):
             record['owner_id']: record['form_count'] for record in records
         }
 
-        # Filter the asset_queryset for active deployements
+        # Filter the asset_queryset for active deployments
         asset_queryset.filter(_deployment_data__active=True)
         records = asset_filter.queryset(request, asset_queryset).annotate(
             deployment_count=Count('pk')
