@@ -174,10 +174,10 @@ class UserStatisticsAdmin(admin.ModelAdmin):
         }
 
         # Filter the asset_queryset for active deployments
-        asset_queryset.filter(_deployment_data__active=True)
+        asset_queryset = asset_queryset.filter(_deployment_data__active=True)
         records = asset_filter.queryset(request, asset_queryset).annotate(
             deployment_count=Count('pk')
-        )
+        ).order_by()
         deployment_count = {
             record['owner_id']: record['deployment_count']
             for record in records
