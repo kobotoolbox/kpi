@@ -410,12 +410,10 @@ $z-table-frozen: 10;
   }
 
   // animating the shadow to show up only if table is scrolled horizontally
-  &.is-scrolled-horizontally {
-    .rt-th.is-frozen.is-last-frozen::after,
-    .rt-td.is-frozen.is-last-frozen::after {
-      opacity: 1;
-      transition-timing-function: ease-out;
-    }
+  .rt-th.is-frozen.is-last-frozen.is-scrolled-horizontally::after,
+  .rt-td.is-frozen.is-last-frozen.is-scrolled-horizontally::after {
+    opacity: 1;
+    transition-timing-function: ease-out;
   }
 
   .rt-th.is-frozen {

@@ -72,7 +72,7 @@ export class DataTable extends React.Component {
       fetchState: false,
       submissionPager: false,
       overrideLabelsAndGroups: null,
-      tableScrollLeft: 0,
+      isScrolledHorizontally: 0,
     };
 
     // Store this value only to be able to check whether user is scrolling
@@ -1132,16 +1132,21 @@ export class DataTable extends React.Component {
     return mediaURL;
   }
 
+  // NOTE: Please avoid calling `setState` inside scroll callback, as it causes
+  // a noticeable lag.
   onTableScroll(evt) {
-    console.log('onTableScroll', evt.target.scrollLeft);
-
     // We need this check, because when scrolling vertically, the scrollLeft
     // property is always `0` (which seems like a browser bug).
     if (this.tableScrollTop === evt.target.scrollTop) {
-      let left = evt.target.scrollLeft > 0 ? evt.target.scrollLeft : 0;
-      this.setState({tableScrollLeft: left});
-      // first column is always sticky
+      const left = evt.target.scrollLeft > 0 ? evt.target.scrollLeft : 0;
       const $frozenColumnCells = $('.ReactTable .rt-tr .is-frozen');
+
+      if (left >= 1) {
+        $frozenColumnCells.addClass('is-scrolled-horizontally');
+      } else {
+        $frozenColumnCells.removeClass('is-scrolled-horizontally');
+      }
+
       $frozenColumnCells.css({left: left});
     } else {
       this.tableScrollTop = evt.target.scrollTop;
@@ -1165,9 +1170,6 @@ export class DataTable extends React.Component {
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
 
     let tableClasses = ['-highlight'];
-    if (this.state.tableScrollLeft) {
-      tableClasses.push('is-scrolled-horizontally');
-    }
     if (this.state.showHXLTags) {
       tableClasses.push('has-hxl-tags-visible');
     }
