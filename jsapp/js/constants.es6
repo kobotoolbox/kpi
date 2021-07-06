@@ -2,6 +2,19 @@
  * A list of all shareable constants for the application.
  */
 
+/**
+ * An enum creator function. Will create a frozen object of `foo: "foo"` pairs.
+ * Will make sure the returned values are unique.
+ *
+ * @param {string[]} values
+ * @returns {object}
+ */
+export function createEnum(values) {
+  const newEnum = {};
+  new Set(values).forEach((value) => {newEnum[value] = value;});
+  return Object.freeze(newEnum);
+}
+
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs
@@ -28,8 +41,7 @@ export const ANON_USERNAME = 'AnonymousUser';
  * NOTE: to know what these permissions permit see `kpi/permissions.py` file,
  * where you have to match the classes with endpoints and their HTTP methods.
  */
-export const PERMISSIONS_CODENAMES = {};
-new Set([
+export const PERMISSIONS_CODENAMES = createEnum([
   'view_asset',
   'change_asset',
   'discover_asset',
@@ -40,8 +52,12 @@ new Set([
   'change_submissions',
   'delete_submissions',
   'validate_submissions',
-]).forEach((codename) => {PERMISSIONS_CODENAMES[codename] = codename;});
-Object.freeze(PERMISSIONS_CODENAMES);
+]);
+
+export const ENKETO_ACTIONS = createEnum([
+  'edit',
+  'view',
+])
 
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
@@ -159,8 +175,7 @@ export const ASSET_FILE_TYPES = {
     id: 'form_media',
     label: t('form media'),
   },
-}
-
+};
 
 /**
  * When adding new question type please remember to update those places:
@@ -205,8 +220,7 @@ export const QUESTION_TYPES = Object.freeze({
   video: {label: t('Video'), icon: 'qt-video', id: 'video'},
 });
 
-export const META_QUESTION_TYPES = {};
-new Set([
+export const META_QUESTION_TYPES = createEnum([
   'start',
   'end',
   'today',
@@ -217,14 +231,12 @@ new Set([
   'phonenumber',
   'audit',
   'background-audio',
-]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
-Object.freeze(META_QUESTION_TYPES);
+]);
 
 // submission data extras being added by backend. see both of these:
 // 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
 // 2. https://github.com/kobotoolbox/kpi/blob/7db39015866c905edc645677d72b9c1ea16067b1/jsapp/js/constants.es6#L284-L294
-export const ADDITIONAL_SUBMISSION_PROPS = {};
-new Set([
+export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   // match the ordering of (Python) kpi.models.import_export_task.ExportTask.COPY_FIELDS
   '_id',
   '_uuid',
@@ -234,16 +246,14 @@ new Set([
   '_status',
   '_submitted_by',
   '_tags',
-]).forEach((codename) => {ADDITIONAL_SUBMISSION_PROPS[codename] = codename;});
-Object.freeze(ADDITIONAL_SUBMISSION_PROPS);
+]);
 
 /**
  * Submission data that has numerical values. Useful for displaying data with
  * monospaced font. This includes QUESTION_TYPES, META_QUESTION_TYPES and
  * ADDITIONAL_SUBMISSION_PROPS.
  */
-export const NUMERICAL_SUBMISSION_PROPS = {};
-new Set([
+export const NUMERICAL_SUBMISSION_PROPS = createEnum([
   QUESTION_TYPES.barcode.id,
   QUESTION_TYPES.date.id,
   QUESTION_TYPES.datetime.id,
@@ -264,8 +274,7 @@ new Set([
   ADDITIONAL_SUBMISSION_PROPS._id,
   ADDITIONAL_SUBMISSION_PROPS._uuid,
   ADDITIONAL_SUBMISSION_PROPS._submission_time,
-]).forEach((codename) => {NUMERICAL_SUBMISSION_PROPS[codename] = codename;});
-Object.freeze(NUMERICAL_SUBMISSION_PROPS);
+]);
 
 export const NAME_MAX_LENGTH = 255;
 
@@ -284,34 +293,28 @@ export const COMMON_QUERIES = Object.freeze({
   qbtc: '(asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection)',
 });
 
-export const ACCESS_TYPES = {};
-new Set([
+export const ACCESS_TYPES = createEnum([
   'owned',
   'shared',
   'public',
   'subscribed',
-]).forEach((codename) => {ACCESS_TYPES[codename] = codename;});
-Object.freeze(ACCESS_TYPES);
+]);
 
-export const GROUP_TYPES_BEGIN = {};
-new Set([
+export const GROUP_TYPES_BEGIN = createEnum([
   'begin_group',
   'begin_score',
   'begin_rank',
   'begin_kobomatrix',
   'begin_repeat',
-]).forEach((kind) => {GROUP_TYPES_BEGIN[kind] = kind;});
-Object.freeze(GROUP_TYPES_BEGIN);
+]);
 
-export const GROUP_TYPES_END = {};
-new Set([
+export const GROUP_TYPES_END = createEnum([
   'end_group',
   'end_score',
   'end_rank',
   'end_kobomatrix',
   'end_repeat',
-]).forEach((kind) => {GROUP_TYPES_END[kind] = kind;});
-Object.freeze(GROUP_TYPES_END);
+]);
 
 // a custom question type for score
 export const SCORE_ROW_TYPE = 'score__row';

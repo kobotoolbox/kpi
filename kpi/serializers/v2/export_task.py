@@ -28,6 +28,7 @@ from kpi.fields import ReadOnlyJSONField
 from kpi.models import ExportTask, Asset
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class ExportTaskSerializer(serializers.ModelSerializer):
@@ -56,8 +57,11 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data: dict) -> ExportTask:
         # Create a new export task
+        user = self._get_request.user
+        if user.is_anonymous:
+            user = get_anonymous_user()
         export_task = ExportTask.objects.create(
-            user=self._get_request.user, data=validated_data
+            user=user, data=validated_data
         )
         # Have Celery run the export in the background
         export_in_background.delay(export_task_uid=export_task.uid)

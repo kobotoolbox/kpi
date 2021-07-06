@@ -29,6 +29,7 @@ from kpi.permissions import (
     EditSubmissionPermission,
     SubmissionPermission,
     SubmissionValidationStatusPermission,
+    ViewSubmissionPermission,
 )
 from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -156,13 +157,24 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     Instead, it returns the URL where the instance can be opened in Enketo for editing in the UI._
 
     <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/edit/?return_url=false
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/edit/?return_url=false
     </pre>
 
     > Example
     >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/edit/?return_url=false
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/edit/?return_url=false
 
+    View-only version of current submission
+
+    Return a URL to display the filled submission in view-only mode in the Enketo UI.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{uid}</code>/data/<code>{id}</code>/enketo/view/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/234/enketo/view/
 
     ### Duplicate submission
 
@@ -317,16 +329,35 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         )
         return Response(**json_response)
 
-    @action(detail=True, methods=['GET'],
-            renderer_classes=[renderers.JSONRenderer],
-            permission_classes=[EditSubmissionPermission])
+    @action(
+        detail=True,
+        methods=['GET'],
+        renderer_classes=[renderers.JSONRenderer],
+        permission_classes=[EditSubmissionPermission],
+    )
     def edit(self, request, pk, *args, **kwargs):
-        deployment = self._get_deployment()
-        submission_id = positive_int(pk)
-        json_response = deployment.get_submission_edit_url(
-            submission_id, user=request.user, params=request.GET
-        )
-        return Response(**json_response)
+        # Keep /edit endpoint for retro-compatibility
+        return self.enketo_edit(request, pk, 'edit', *args, **kwargs)
+
+    @action(
+        detail=True,
+        methods=['GET'],
+        renderer_classes=[renderers.JSONRenderer],
+        permission_classes=[EditSubmissionPermission],
+        url_path='enketo/(?P<action>(edit))',
+    )
+    def enketo_edit(self, request, pk, action, *args, **kwargs):
+        return self._enketo_request(request, pk, action, *args, **kwargs)
+
+    @action(
+        detail=True,
+        methods=['GET'],
+        renderer_classes=[renderers.JSONRenderer],
+        permission_classes=[ViewSubmissionPermission],
+        url_path='enketo/(?P<action>(view))',
+    )
+    def enketo_view(self, request, pk, action, *args, **kwargs):
+        return self._enketo_request(request, pk, action, *args, **kwargs)
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is
@@ -433,6 +464,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         json_response = deployment.set_validation_statuses(
             request.user, bulk_actions_validator.data)
 
+        return Response(**json_response)
+
+    def _enketo_request(self, request, pk, action, *args, **kwargs):
+        deployment = self._get_deployment()
+        submission_id = positive_int(pk)
+        json_response = deployment.get_enketo_submission_url(
+            submission_id,
+            user=request.user,
+            params={**request.GET, 'action': action},
+        )
         return Response(**json_response)
 
     def _filter_mongo_query(self, request):

@@ -513,51 +513,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         return links
 
-    def get_enketo_survey_links(self):
-        data = {
-            'server_url': '{}/{}'.format(
-                settings.KOBOCAT_URL.rstrip('/'),
-                self.asset.owner.username
-            ),
-            'form_id': self.backend_response['id_string']
-        }
-        try:
-            response = requests.post(
-                '{}{}'.format(
-                    settings.ENKETO_SERVER, settings.ENKETO_SURVEY_ENDPOINT),
-                # bare tuple implies basic auth
-                auth=(settings.ENKETO_API_TOKEN, ''),
-                data=data
-            )
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            # Don't 500 the entire asset view if Enketo is unreachable
-            logging.error(
-                'Failed to retrieve links from Enketo', exc_info=True)
-            return {}
-        try:
-            links = response.json()
-        except ValueError:
-            logging.error('Received invalid JSON from Enketo', exc_info=True)
-            return {}
-        for discard in ('enketo_id', 'code', 'preview_iframe_url'):
-            try:
-                del links[discard]
-            except KeyError:
-                pass
-        return links
-
-    def get_submission_detail_url(self, submission_id: int) -> str:
-        url = f'{self.submission_list_url}/{submission_id}'
-        return url
-
-    def get_submission_edit_url(
+    def get_enketo_submission_url(
         self, submission_id: int, user: 'auth.User', params: dict = None
     ) -> dict:
         """
-        Gets edit URL of the submission from KoBoCAT through proxy
+        Get URLs of the submission from KoBoCAT through proxy
         """
-
         submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
@@ -597,6 +558,44 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 )
 
         return self.__prepare_as_drf_response_signature(kc_response)
+
+    def get_enketo_survey_links(self):
+        data = {
+            'server_url': '{}/{}'.format(
+                settings.KOBOCAT_URL.rstrip('/'),
+                self.asset.owner.username
+            ),
+            'form_id': self.backend_response['id_string']
+        }
+        try:
+            response = requests.post(
+                '{}{}'.format(
+                    settings.ENKETO_SERVER, settings.ENKETO_SURVEY_ENDPOINT),
+                # bare tuple implies basic auth
+                auth=(settings.ENKETO_API_TOKEN, ''),
+                data=data
+            )
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            # Don't 500 the entire asset view if Enketo is unreachable
+            logging.error(
+                'Failed to retrieve links from Enketo', exc_info=True)
+            return {}
+        try:
+            links = response.json()
+        except ValueError:
+            logging.error('Received invalid JSON from Enketo', exc_info=True)
+            return {}
+        for discard in ('enketo_id', 'code', 'preview_iframe_url'):
+            try:
+                del links[discard]
+            except KeyError:
+                pass
+        return links
+
+    def get_submission_detail_url(self, submission_id: int) -> str:
+        url = f'{self.submission_list_url}/{submission_id}'
+        return url
 
     def get_submission_validation_status_url(self, submission_id: int) -> str:
         url = '{detail_url}/validation_status'.format(
@@ -1368,6 +1367,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                               url=metadata_url,
                               expect_formid=False,
                               **kwargs)
+
+        file_.synced_with_backend = True
+        file_.save(update_fields=['synced_with_backend'])
 
     @staticmethod
     def __validate_bulk_update_submissions(submissions: list) -> list:

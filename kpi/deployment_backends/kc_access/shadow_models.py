@@ -277,9 +277,9 @@ class KobocatSubmissionCounter(ShadowModel):
     timestamp = models.DateTimeField(default=timezone.now)
 
     class Meta(ShadowModel.Meta):
-        app_label = 'usage_statistics'
+        app_label = 'superuser_stats'
         db_table = 'logger_submissioncounter'
-        verbose_name = 'User Statistic'
+        verbose_name_plural = 'User Statistics'
 
     @classmethod
     def sync(cls, user):
@@ -510,9 +510,10 @@ class ReadOnlyModel(ShadowModel):
 class ReadOnlyKobocatInstance(ReadOnlyModel):
 
     class Meta(ReadOnlyModel.Meta):
+        app_label = 'superuser_stats'
         db_table = 'logger_instance'
-        verbose_name = 'instance'
-        verbose_name_plural = 'instances'
+        verbose_name = 'Submissions by Country'
+        verbose_name_plural = 'Submissions by Country'
 
     xml = models.TextField()
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)

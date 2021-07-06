@@ -24,6 +24,7 @@ import {
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
   NUMERICAL_SUBMISSION_PROPS,
+  ENKETO_ACTIONS,
 } from 'js/constants';
 import {formatTimeDate} from 'utils';
 import {
@@ -255,18 +256,29 @@ export class DataTable extends React.Component {
       )
     );
 
-    if (
+    let userCanSeeCheckbox = (
       this.userCan('validate_submissions', this.props.asset) ||
       this.userCan('delete_submissions', this.props.asset) ||
       this.userCan('change_submissions', this.props.asset) ||
       this.userCanPartially('validate_submissions', this.props.asset) ||
       this.userCanPartially('delete_submissions', this.props.asset) ||
       this.userCanPartially('change_submissions', this.props.asset)
+    );
+
+    if (
+      this.userCan('validate_submissions', this.props.asset) ||
+      this.userCan('delete_submissions', this.props.asset) ||
+      this.userCan('change_submissions', this.props.asset) ||
+      this.userCan('view_submissions', this.props.asset) ||
+      this.userCanPartially('validate_submissions', this.props.asset) ||
+      this.userCanPartially('delete_submissions', this.props.asset) ||
+      this.userCanPartially('change_submissions', this.props.asset) ||
+      this.userCanPartially('view_submissions', this.props.asset)
     ) {
       const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
       const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
 
-      // To accommodate the checkbox and icon buttons.
+      // To accommodate the checkbox, icon buttons and header text.
       let columnWidth = 100;
       if (this.state.resultsTotal >= 100000) {
         // Whenever there are more results we need a bit more space for
@@ -283,14 +295,16 @@ export class DataTable extends React.Component {
               <strong>{this.state.resultsTotal} {t('results')}</strong>
             </div>
 
-            <TableBulkCheckbox
-              visibleRowsCount={maxPageRes}
-              selectedRowsCount={Object.keys(this.state.selectedRows).length}
-              totalRowsCount={this.state.resultsTotal}
-              onSelectAllPages={this.bulkSelectAll}
-              onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
-              onClearSelection={this.bulkClearSelection}
-            />
+            {userCanSeeCheckbox &&
+              <TableBulkCheckbox
+                visibleRowsCount={maxPageRes}
+                selectedRowsCount={Object.keys(this.state.selectedRows).length}
+                totalRowsCount={this.state.resultsTotal}
+                onSelectAllPages={this.bulkSelectAll}
+                onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
+                onClearSelection={this.bulkClearSelection}
+              />
+            }
           </div>
         ),
         accessor: 'sub-actions',
@@ -304,18 +318,20 @@ export class DataTable extends React.Component {
         className: 'rt-sub-actions',
         Cell: (row) => (
           <div className='table-submission-actions'>
-            <Checkbox
-              checked={this.state.selectedRows[row.original._id] ? true : false}
-              onChange={this.bulkUpdateChange.bind(this, row.original._id)}
-              disabled={!(
-                (this.isSubmissionWritable('change_submissions', this.props.asset, row.original)) ||
-                (this.isSubmissionWritable('delete_submissions', this.props.asset, row.original)) ||
-                (this.isSubmissionWritable('validate_submissions', this.props.asset, row.original))
-              )}
-            />
+            {userCanSeeCheckbox &&
+              <Checkbox
+                checked={this.state.selectedRows[row.original._id] ? true : false}
+                onChange={this.bulkUpdateChange.bind(this, row.original._id)}
+                disabled={!(
+                  (this.isSubmissionWritable('change_submissions', this.props.asset, row.original)) ||
+                  (this.isSubmissionWritable('delete_submissions', this.props.asset, row.original)) ||
+                  (this.isSubmissionWritable('validate_submissions', this.props.asset, row.original))
+                )}
+              />
+            }
 
             <button
-              onClick={this.launchSubmissionModal}
+              onClick={this.launchSubmissionModal.bind(this, row)}
               data-sid={row.original._id}
               className='table-link'
               data-tip={t('Open')}
@@ -412,10 +428,17 @@ export class DataTable extends React.Component {
     }
 
     // define the columns array
-    const columns = [
-      this._getColumnSubmissionActions(maxPageRes),
-      this._getColumnValidation(),
-    ];
+    const columns = [];
+
+    const columnSubmissionActions = this._getColumnSubmissionActions(maxPageRes);
+    if (columnSubmissionActions) {
+      columns.push(columnSubmissionActions);
+    }
+
+    const columnValidation = this._getColumnValidation();
+    if (columnValidation) {
+      columns.push(columnValidation);
+    }
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
@@ -433,10 +456,17 @@ export class DataTable extends React.Component {
         return false;
       }
 
+      // Set ordering of question columns. Meta questions can be prepended or
+      // appended relative to survey questions with an index prefix
+
       // sets location of columns for questions not in current survey version
+      // `y` puts this case in front of known meta types
       var index = 'y_' + key;
 
-      // place meta question columns at the very end
+      // Get background-audio question name in case user changes it
+      const backgroundAudioName = this.getBackgroundAudioQuestionName();
+
+      // place meta question columns at the very end with `z` prefix
       switch(key) {
         case META_QUESTION_TYPES.username:
             index = 'z1';
@@ -471,6 +501,10 @@ export class DataTable extends React.Component {
             break;
         case ADDITIONAL_SUBMISSION_PROPS._submitted_by:
             index = 'z92';
+            break;
+        // set index for `background-audio` to the very first column with `_`
+        case backgroundAudioName:
+            index = '_1';
             break;
         default:
           // set index for questions in current version of survey (including questions in groups)
@@ -526,9 +560,10 @@ export class DataTable extends React.Component {
             if (
               q.type === QUESTION_TYPES.image.id ||
               q.type === QUESTION_TYPES.audio.id ||
-              q.type === QUESTION_TYPES.video.id
+              q.type === QUESTION_TYPES.video.id ||
+              q.type === META_QUESTION_TYPES['background-audio']
             ) {
-              var mediaURL = this.getMediaDownloadLink(row.value);
+              var mediaURL = this.getMediaDownloadLink(row, row.value);
               return <a href={mediaURL} target='_blank'>{row.value}</a>;
             }
             // show proper labels for choice questions
@@ -605,6 +640,7 @@ export class DataTable extends React.Component {
       META_QUESTION_TYPES.deviceid,
       META_QUESTION_TYPES.phonenumber,
       META_QUESTION_TYPES.today,
+      META_QUESTION_TYPES['background-audio'],
     ];
     const textFilterQuestionIds = [
       '__version__',
@@ -820,17 +856,44 @@ export class DataTable extends React.Component {
     });
     this.requestData(instance);
   }
-  launchSubmissionModal(evt) {
-    let el = $(evt.target).closest('[data-sid]').get(0);
-    const sid = el.getAttribute('data-sid');
+  // TODO: if multiple background-audio's are allowed, we should return all
+  //       background-audio related names
+  getBackgroundAudioQuestionName() {
+    return this.props?.asset?.content?.survey.find(
+      (item) => item.type === META_QUESTION_TYPES['background-audio']
+    )?.name || null;
+  }
+  launchSubmissionModal(row) {
+    if (row && row.original) {
+      const sid = row.original._id;
+      const backgroundAudioName = this.getBackgroundAudioQuestionName();
+      if (
+        backgroundAudioName &&
+        Object.keys(row.original).includes(backgroundAudioName)
+      ) {
+        let backgroundAudioUrl = this.getMediaDownloadLink(
+          row,
+          row.original[backgroundAudioName]
+        );
 
-    this.submissionModalProcessing(sid, this.state.tableData);
+        this.submissionModalProcessing(
+          sid,
+          this.state.tableData,
+          false,
+          null,
+          backgroundAudioUrl,
+        );
+      } else {
+        this.submissionModalProcessing(sid, this.state.tableData);
+      }
+    }
   }
   submissionModalProcessing(
     sid,
     tableData,
     isDuplicated = false,
-    duplicatedSubmission = null
+    duplicatedSubmission = null,
+    backgroundAudioUrl = null,
   ) {
     let ids = [];
 
@@ -845,6 +908,7 @@ export class DataTable extends React.Component {
       ids: ids,
       isDuplicated: isDuplicated,
       duplicatedSubmission: duplicatedSubmission,
+      backgroundAudioUrl: backgroundAudioUrl,
       tableInfo: {
         currentPage: this.state.currentPage,
         pageSize: this.state.pageSize,
@@ -862,7 +926,10 @@ export class DataTable extends React.Component {
     });
   }
   launchEditSubmission(evt) {
-    enketoHandler.editSubmission(this.props.asset.uid, evt.currentTarget.dataset.sid);
+    enketoHandler.openSubmission(
+      this.props.asset.uid,
+      evt.currentTarget.dataset.sid,
+      ENKETO_ACTIONS.edit);
   }
   onPageStateUpdated(pageState) {
     if (!pageState.modal) {
@@ -976,20 +1043,20 @@ export class DataTable extends React.Component {
       </bem.TableMeta>
     );
   }
-  getMediaDownloadLink(fileName) {
-    this.state.tableData.forEach(function (a) {
-        a._attachments.forEach(function (b) {
-          if (b.filename.includes(fileName)) {
-            fileName = b.filename;
-          }
-        });
+  getMediaDownloadLink(row, fileName) {
+    const fileNameNoSpaces = fileName.replace(/ /g, '_');
+    let mediaURL = t('Could not find ##fileName##').replace(
+      '##fileName##',
+      fileName
+    );
+
+    row.original._attachments.forEach((attachment) => {
+      if (attachment.filename.includes(fileNameNoSpaces)) {
+        mediaURL = attachment.download_url;
+      }
     });
 
-    var kc_server = document.createElement('a');
-    kc_server.href = this.props.asset.deployment__identifier;
-    const kc_prefix = kc_server.pathname.split('/').length > 4 ? '/' + kc_server.pathname.split('/')[1] : '';
-    var kc_base = `${kc_server.origin}${kc_prefix}`;
-    return `${kc_base}/attachment/original?media_file=${encodeURI(fileName)}`;
+    return mediaURL;
   }
   render() {
     if (this.state.error) {
@@ -1048,7 +1115,7 @@ export class DataTable extends React.Component {
           defaultPageSize={defaultPageSize}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={0}
-          className={tableClasses}
+          className={tableClasses.join(' ')}
           pages={pages}
           manual
           onFetchData={this.fetchData}
