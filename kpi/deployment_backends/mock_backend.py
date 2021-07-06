@@ -221,11 +221,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submission_edit_url(
+    def get_enketo_submission_url(
         self, submission_pk: int, user: 'auth.User', params: dict = None
     ) -> dict:
         """
-        Gets edit URL of the submission in a format front end can understand
+        Gets URL of the submission in a format FE can understand
         """
 
         self.validate_write_access_with_partial_perms(

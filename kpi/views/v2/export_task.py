@@ -1,21 +1,15 @@
 # coding: utf-8
 from rest_framework import (
-    exceptions,
     filters,
     renderers,
-    serializers,
-    status,
-    viewsets,
 )
-from rest_framework.response import Response
-from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.filters import SearchFilter
 from kpi.models import ExportTask
 from kpi.permissions import ExportTaskPermission
 from kpi.serializers.v2.export_task import ExportTaskSerializer
-from kpi.tasks import export_in_background
+from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.views.no_update_model import NoUpdateModelViewSet
 
@@ -146,8 +140,11 @@ class ExportTaskViewSet(
     ]
 
     def get_queryset(self):
+        user = self.request.user
+        if user.is_anonymous:
+            user = get_anonymous_user()
         return self.model.objects.filter(
-            user=self.request.user,
+            user=user,
             data__source__icontains=self.kwargs['parent_lookup_asset'],
         )
 
