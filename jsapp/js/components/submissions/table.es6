@@ -72,7 +72,6 @@ export class DataTable extends React.Component {
       fetchState: false,
       submissionPager: false,
       overrideLabelsAndGroups: null,
-      isScrolledHorizontally: 0,
     };
 
     // Store this value only to be able to check whether user is scrolling
@@ -314,8 +313,6 @@ export class DataTable extends React.Component {
         // the "X results" text.
         columnWidth += 20;
       }
-
-      console.log('frozenColumn', this.state.frozenColumn);
 
       let columnClassNames = ['rt-sub-actions', 'is-frozen'];
       if (!this.state.frozenColumn) {

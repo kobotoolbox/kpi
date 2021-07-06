@@ -131,16 +131,10 @@ class TableColumnSortDropdown extends React.Component {
             {this.renderSortButton(SORT_VALUES.Z_TO_A)}
 
             <bem.KoboDropdown__menuButton
-              onClick={this.changeFieldHidden.bind(this, !this.state.isFieldHidden)}
+              onClick={this.changeFieldHidden.bind(this, true)}
             >
-              {this.state.isFieldHidden && [
-                (<i key='0' className='k-icon k-icon-view'/>),
-                (<span key='1'>{t('Show field')}</span>),
-              ]}
-              {!this.state.isFieldHidden && [
-                <i key='0' className='k-icon k-icon-view-no'/>,
-                <span key='1'>{t('Hide field')}</span>,
-              ]}
+              <i className='k-icon k-icon-hide'/>
+              <span>{t('Hide field')}</span>
             </bem.KoboDropdown__menuButton>
 
             <bem.KoboDropdown__menuButton

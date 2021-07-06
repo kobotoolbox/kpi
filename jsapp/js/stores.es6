@@ -280,7 +280,14 @@ stores.allAssets = Reflux.createStore({
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
     this.listenTo(actions.permissions.removeAssetPermission.completed, this.onDeletePermissionCompleted);
   },
-  whenLoaded (uid, cb) {
+  /**
+   * Either calls immediately if data already exists, or makes a call to get
+   * asset and then calls.
+   *
+   * @param {string} uid
+   * @param {function} cb
+   */
+  whenLoaded(uid, cb) {
     if (typeof uid !== 'string' || typeof cb !== 'function') {
       return;
     }
@@ -295,6 +302,7 @@ stores.allAssets = Reflux.createStore({
       actions.resources.loadAsset({id: uid});
     }
   },
+
   onUpdateAssetCompleted (asset) {
     this.registerAsset(asset);
     this.data.forEach((dataAsset, index) => {
