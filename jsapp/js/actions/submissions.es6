@@ -7,10 +7,24 @@ import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 
 const submissionsActions = Reflux.createActions({
+  getSubmissions: {children: ['completed', 'failed']},
   bulkDeleteStatus: {children: ['completed', 'failed']},
   bulkPatchStatus: {children: ['completed', 'failed']},
   bulkPatchValues: {children: ['completed', 'failed']},
   bulkDelete: {children: ['completed', 'failed']},
+});
+
+submissionsActions.getSubmissions.listen((
+  uid,
+  pageSize = 100,
+  page = 0,
+  sort = [],
+  fields = [],
+  filter = ''
+) => {
+  dataInterface.getSubmissions(uid, pageSize, page, sort, fields, filter)
+    .done(submissionsActions.getSubmissions.completed)
+    .fail(submissionsActions.getSubmissions.failed);
 });
 
 submissionsActions.bulkDeleteStatus.listen((uid, data) => {
