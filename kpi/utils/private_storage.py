@@ -2,7 +2,8 @@
 from rest_framework.request import Request as DRFRequest
 from rest_framework.settings import api_settings
 
-from kpi.models.object_permission import get_anonymous_user
+from kpi.utils.object_permission import get_anonymous_user
+
 
 def superuser_or_username_matches_prefix(private_file):
     """

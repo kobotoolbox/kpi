@@ -26,9 +26,9 @@ from formpack.constants import (
 
 from kpi.fields import ReadOnlyJSONField
 from kpi.models import ExportTask, Asset
-from kpi.models.object_permission import get_anonymous_user
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class ExportTaskSerializer(serializers.ModelSerializer):
