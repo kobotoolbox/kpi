@@ -494,6 +494,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         return links
 
+    def get_enketo_submission_url(
+        self, submission_id: int, user: 'auth.User', params: dict = None
+    ) -> dict:
+        """
+        Gets edit URL of the submission from KoBoCAT through proxy
+        """
+        url = '{detail_url}/enketo'.format(
+            detail_url=self.get_submission_detail_url(submission_id))
+        kc_request = requests.Request(method='GET', url=url, params=params)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+
+        return self.__prepare_as_drf_response_signature(kc_response)
+
     def get_enketo_survey_links(self):
         data = {
             'server_url': '{}/{}'.format(
@@ -531,19 +544,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'
         return url
-
-    def get_submission_edit_url(
-        self, submission_id: int, user: 'auth.User', params: dict = None
-    ) -> dict:
-        """
-        Gets edit URL of the submission from KoBoCAT through proxy
-        """
-        url = '{detail_url}/enketo'.format(
-            detail_url=self.get_submission_detail_url(submission_id))
-        kc_request = requests.Request(method='GET', url=url, params=params)
-        kc_response = self.__kobocat_proxy_request(kc_request, user)
-
-        return self.__prepare_as_drf_response_signature(kc_response)
 
     def get_submission_validation_status_url(self, submission_id: int) -> str:
         url = '{detail_url}/validation_status'.format(
@@ -1309,6 +1309,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                               url=metadata_url,
                               expect_formid=False,
                               **kwargs)
+
+        file_.synced_with_backend = True
+        file_.save(update_fields=['synced_with_backend'])
 
     @staticmethod
     def __validate_bulk_update_submissions(submissions: list) -> list:

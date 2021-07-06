@@ -73,7 +73,14 @@ class AssetFile(models.Model, AbstractFormMedia):
     )
 
     ALLOWED_MIME_TYPES = {
-        FORM_MEDIA: ('image', 'audio', 'video', 'text/csv', 'application/xml'),
+        FORM_MEDIA: (
+            'image',
+            'audio',
+            'video',
+            'text/csv',
+            'application/xml',
+            'application/zip',
+        ),
         PAIRED_DATA: ('application/xml',),
         MAP_LAYER: (
             'text/csv',
@@ -99,6 +106,7 @@ class AssetFile(models.Model, AbstractFormMedia):
     metadata = JSONBField(default=dict)
     date_deleted = models.DateTimeField(null=True, default=None)
     date_modified = models.DateTimeField(default=timezone.now)
+    synced_with_backend = models.BooleanField(default=False)
 
     @property
     def backend_data_value(self):
@@ -139,7 +147,8 @@ class AssetFile(models.Model, AbstractFormMedia):
 
         # Otherwise, just flag the file as deleted.
         self.date_deleted = timezone.now()
-        self.save(update_fields=['date_deleted'])
+        self.synced_with_backend = False
+        self.save(update_fields=['date_deleted', 'synced_with_backend'])
 
     @property
     def deleted_at(self):

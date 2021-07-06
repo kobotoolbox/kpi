@@ -10,7 +10,7 @@ import private_storage.storage.s3boto3
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0037_add_data_sharing_to_asset'),
+        ('kpi', '0038_add_data_sharing_to_asset'),
     ]
 
     operations = [
