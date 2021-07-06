@@ -89,7 +89,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'markitup',
     'django_digest',
-    'kobo.apps.superuser_stats',
+    'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
     'constance',
     'constance.backends.database',
@@ -100,7 +100,6 @@ INSTALLED_APPS = (
     'markdownx',
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
-    'kobo.apps.usage_statistics.UsageStatisticsAppConfig',
 )
 
 MIDDLEWARE = [

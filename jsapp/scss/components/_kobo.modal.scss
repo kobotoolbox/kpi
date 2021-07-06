@@ -211,39 +211,49 @@ $z-modal-x: 10;
     justify-content: space-between;
     margin-bottom: 20px;
 
-    .switch--label-language,
-    .switch--validation-status {
-      width: 50%;
-      text-align: left;
-
-      label, .kobo-select {
-        display: inline-block;
-        vertical-align: middle;
-      }
-
-      label {
-        margin-right: 12px;
-      }
-    }
-
-    .switch--validation-status {
+    .submission-modal-dropdowns:only-child {
       width: 100%;
-      text-align: right;
-      .kobo-select {
-        text-align: left;
-      }
     }
 
-    .switch--label-language + .switch--validation-status {
+    .submission-modal-dropdowns {
       width: 50%;
-    }
+      display: flex;
+      justify-content: space-between;
 
-    .kobo-select input {
-      min-width: 100px;
-    }
+      .switch--label-language,
+      .switch--validation-status {
+        width: 45%;
+        text-align: left;
 
-    .kobo-select {
-      min-width: 120px;
+        label, .kobo-select {
+          display: inline-block;
+          vertical-align: middle;
+        }
+
+        label {
+          margin-right: 12px;
+        }
+      }
+
+      .switch--validation-status {
+        width: 100%;
+        text-align: right;
+        .kobo-select {
+          text-align: left;
+        }
+      }
+
+      .switch--label-language + .switch--validation-status {
+        width: 50%;
+      }
+
+      .kobo-select input {
+        min-width: 100px;
+      }
+
+      .kobo-select {
+        min-width: 120px;
+      }
     }
   }
 

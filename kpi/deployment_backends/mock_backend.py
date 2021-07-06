@@ -204,6 +204,26 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def get_data_download_links(self):
         return {}
 
+    def get_enketo_submission_url(
+        self, submission_id: int, user: 'auth.User', params: dict = None
+    ) -> dict:
+        """
+        Gets URL of the submission in a format FE can understand
+        """
+
+        self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            submission_ids=[submission_id],
+        )
+
+        return {
+            'content_type': 'application/json',
+            'data': {
+                'url': f'http://server.mock/enketo/{submission_id}'
+            }
+        }
+
     def get_enketo_survey_links(self):
         # `self` is a demo Enketo form, but there's no guarantee it'll be
         # around forever.
@@ -220,26 +240,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         # We keep it to stay close to `KobocatDeploymentBackend`
         url = f'{self.submission_list_url}/{submission_id}'
         return url
-
-    def get_submission_edit_url(
-        self, submission_id: int, user: 'auth.User', params: dict = None
-    ) -> dict:
-        """
-        Gets edit URL of the submission in a format front end can understand
-        """
-
-        self.validate_write_access_with_partial_perms(
-            user=user,
-            perm=PERM_CHANGE_SUBMISSIONS,
-            submission_ids=[submission_id],
-        )
-
-        return {
-            'content_type': 'application/json',
-            'data': {
-                'url': f'http://server.mock/enketo/{submission_id}'
-            }
-        }
 
     def get_submission_validation_status_url(self, submission_id: int) -> str:
         url = '{detail_url}validation_status/'.format(
