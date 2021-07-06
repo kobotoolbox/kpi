@@ -644,7 +644,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_get_view_link_submission_shared_other_view_only_allowed(self):
-        self._share_with_another_user()
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
