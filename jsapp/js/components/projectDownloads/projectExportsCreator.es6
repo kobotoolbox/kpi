@@ -589,7 +589,7 @@ export default class ProjectExportsCreator extends React.Component {
               <Checkbox
                 checked={this.state.isXlsTypesEnabled}
                 onChange={this.onAnyInputChange.bind(this, 'isXlsTypesEnabled')}
-                label={t('Enable XLS types')}
+                label={t('Use XLS date and number formats')}
               />
             </bem.ProjectDownloads__columnRow>
           }
