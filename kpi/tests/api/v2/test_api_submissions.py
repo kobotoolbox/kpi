@@ -16,6 +16,7 @@ from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
+    PERM_ADD_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
@@ -639,7 +640,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission.get(
-                    self.asset.deployment.INSTANCE_ID_FIELDNAME
+                    self.asset.deployment.SUBMISSION_ID_FIELDNAME
                 ),
                 'action': 'view'
             },
@@ -651,7 +652,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
 
         expected_response = {
             'url': 'http://server.mock/enketo/{}'.format(self.submission.get(
-                self.asset.deployment.INSTANCE_ID_FIELDNAME))
+                self.asset.deployment.SUBMISSION_ID_FIELDNAME))
         }
         assert response.data == expected_response
 
@@ -666,7 +667,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_get_view_link_submission_shared_other_view_only_allowed(self):
-        self._share_with_another_user()
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
