@@ -226,7 +226,7 @@ class PairedDataSerializer(serializers.Serializer):
         source = validated_data.pop('source', None)
         if not self.instance:
             self.instance = PairedData(
-                source_uid=source.uid,
+                source_asset_or_uid=source.uid,
                 asset=asset,
                 **validated_data
             )
