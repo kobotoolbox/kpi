@@ -32,9 +32,9 @@ class ConnectProjects extends React.Component {
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
       isSharingSomeQuestions: Boolean(props.asset.data_sharing?.fields?.length) || false,
-      attachedParents: [],
+      attachedSources: [],
       sharingEnabledAssets: null,
-      newParent: null,
+      newSource: null,
       newFilename: '',
       columnsToDisplay: [],
       fieldsErrors: {},
@@ -51,23 +51,23 @@ class ConnectProjects extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      actions.dataShare.attachToParent.completed.listen(
+      actions.dataShare.attachToSource.completed.listen(
         this.refreshAttachmentList
       ),
-      actions.dataShare.attachToParent.failed.listen(
-        this.onAttachToParentFailed
+      actions.dataShare.attachToSource.failed.listen(
+        this.onAttachToSourceFailed
       ),
-      actions.dataShare.detachParent.completed.listen(
+      actions.dataShare.detachSource.completed.listen(
         this.refreshAttachmentList
       ),
-      actions.dataShare.patchParent.completed.listen(
-        this.onPatchParentCompleted
+      actions.dataShare.patchSource.completed.listen(
+        this.onPatchSourceCompleted
       ),
       actions.dataShare.getSharingEnabledAssets.completed.listen(
         this.onGetSharingEnabledAssetsCompleted
       ),
-      actions.dataShare.getAttachedParents.completed.listen(
-        this.onGetAttachedParentsCompleted
+      actions.dataShare.getAttachedSources.completed.listen(
+        this.onGetAttachedSourcesCompleted
       ),
       actions.dataShare.toggleDataSharing.completed.listen(
         this.onToggleDataSharingCompleted
@@ -78,13 +78,13 @@ class ConnectProjects extends React.Component {
       actions.dataShare.updateColumnFilters.failed.listen(
         this.stopLoading
       ),
-      actions.dataShare.detachParent.failed.listen(
+      actions.dataShare.detachSource.failed.listen(
         this.stopLoading
       ),
-      actions.dataShare.patchParent.completed.listen(
+      actions.dataShare.patchSource.completed.listen(
         this.stopLoading
       ),
-      actions.dataShare.patchParent.failed.listen(
+      actions.dataShare.patchSource.failed.listen(
         this.stopLoading
       ),
     );
@@ -111,18 +111,18 @@ class ConnectProjects extends React.Component {
    * `actions` Listeners
    */
 
-  onAttachToParentFailed(response) {
+  onAttachToSourceFailed(response) {
     this.setState({
       isLoading: false,
       fieldsErrors: response.responseJSON,
     });
   }
 
-  onGetAttachedParentsCompleted(response) {
+  onGetAttachedSourcesCompleted(response) {
     this.setState({
       isInitialised: true,
       isLoading: false,
-      attachedParents: response,
+      attachedSources: response,
     });
   }
 
@@ -152,16 +152,16 @@ class ConnectProjects extends React.Component {
     });
   }
 
-  onPatchParentCompleted() {
-    actions.dataShare.getAttachedParents(this.props.asset.uid);
+  onPatchSourceCompleted() {
+    actions.dataShare.getAttachedSources(this.props.asset.uid);
   }
 
   refreshAttachmentList() {
     this.setState({
-      newParent: null,
+      newSource: null,
       newFilename: '',
     });
-    actions.dataShare.getAttachedParents(this.props.asset.uid);
+    actions.dataShare.getAttachedSources(this.props.asset.uid);
   }
 
   stopLoading () {
@@ -179,9 +179,9 @@ class ConnectProjects extends React.Component {
     });
   }
 
-  onParentChange(newVal) {
+  onSourceChange(newVal) {
     this.setState({
-      newParent: newVal,
+      newSource: newVal,
       newFilename: generateAutoname(
         newVal?.name,
         0,
@@ -193,24 +193,24 @@ class ConnectProjects extends React.Component {
 
   onConfirmAttachment(evt) {
     evt.preventDefault();
-    if (this.state.newFilename !== '' && this.state.newParent?.url) {
+    if (this.state.newFilename !== '' && this.state.newSource?.url) {
       this.setState({
         fieldsErrors: {},
       });
 
       this.showColumnFilterModal(
         this.props.asset,
-        this.state.newParent,
+        this.state.newSource,
         this.state.newFilename,
         [],
       );
     } else {
-      if (!this.state.newParent?.url) {
+      if (!this.state.newSource?.url) {
         this.setState((state) => {
           return {
             fieldsErrors: {
               ...state.fieldsErrors,
-              parent: t('No project selected')
+              source: t('No project selected')
             }
           }
         });
@@ -230,7 +230,7 @@ class ConnectProjects extends React.Component {
 
   onRemoveAttachment(newVal) {
     this.setState({isLoading: true})
-    actions.dataShare.detachParent(newVal);
+    actions.dataShare.detachSource(newVal);
   }
 
   onToggleSharingData() {
@@ -341,27 +341,27 @@ class ConnectProjects extends React.Component {
   }
 
   generateFilteredAssetList() {
-    let attachedParentUids = [];
-    this.state.attachedParents.forEach((item) => {
-      attachedParentUids.push(item.parentUid)
+    let attachedSourceUids = [];
+    this.state.attachedSources.forEach((item) => {
+      attachedSourceUids.push(item.sourceUid)
     });
 
     // Filter out attached projects from displayed asset list
     return (
       this.state.sharingEnabledAssets.results.filter(
-        item => !attachedParentUids.includes(item.uid)
+        item => !attachedSourceUids.includes(item.uid)
       )
     );
   }
 
-  showColumnFilterModal(asset, parent, filename, fields, attachmentUrl) {
+  showColumnFilterModal(asset, source, filename, fields, attachmentUrl) {
     stores.pageState.showModal(
       {
         type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
         generateColumnFilters: this.generateColumnFilters,
-        triggerParentLoading: this.triggerParentLoading,
+        triggerSourceLoading: this.triggerSourceLoading,
         asset: asset,
-        parent: parent,
+        source: source,
         filename: filename,
         fields: fields,
         attachmentUrl: attachmentUrl,
@@ -370,7 +370,7 @@ class ConnectProjects extends React.Component {
   }
 
   // Allows import modal trigger loading of this modal
-  triggerParentLoading() {
+  triggerSourceLoading() {
     this.setState({isLoading: true})
   }
 
@@ -382,7 +382,7 @@ class ConnectProjects extends React.Component {
     if (this.state.sharingEnabledAssets !== null) {
       let sharingEnabledAssets = this.generateFilteredAssetList();
       const selectClassNames = ['kobo-select__wrapper'];
-      if (this.state.fieldsErrors?.parent) {
+      if (this.state.fieldsErrors?.source) {
         selectClassNames.push('kobo-select__wrapper--error');
       }
       return(
@@ -390,18 +390,18 @@ class ConnectProjects extends React.Component {
           <Select
             placeholder={t('Select a different project to import data from')}
             options={sharingEnabledAssets}
-            value={this.state.newParent}
+            value={this.state.newSource}
             isLoading={(!this.state.isInitialised || this.state.isLoading)}
             getOptionLabel={option => option.name}
             getOptionValue={option => option.url}
             noOptionsMessage={() => {return t('No projects to connect')}}
-            onChange={this.onParentChange}
+            onChange={this.onSourceChange}
             className='kobo-select'
             classNamePrefix='kobo-select'
           />
 
           <label className='select-errors'>
-            {this.state.fieldsErrors?.parent}
+            {this.state.fieldsErrors?.source}
           </label>
         </div>
       );
@@ -491,14 +491,14 @@ class ConnectProjects extends React.Component {
             </div>
           }
 
-          {!this.state.isLoading && this.state.attachedParents.length == 0 &&
+          {!this.state.isLoading && this.state.attachedSources.length == 0 &&
             <li className='connect-projects__no-imports'>
               {t('No data imported')}
             </li>
           }
 
-          {!this.state.isLoading && this.state.attachedParents.length > 0 &&
-            this.state.attachedParents.map((item, n) => {
+          {!this.state.isLoading && this.state.attachedSources.length > 0 &&
+            this.state.attachedSources.map((item, n) => {
               return (
                 <li key={n} className='connect-projects__import--list-item'>
                   <i className="k-icon k-icon-check"/>
@@ -508,8 +508,8 @@ class ConnectProjects extends React.Component {
                       {item.filename}
                     </span>
 
-                    <span className='connect-projects__import--labels--parent'>
-                      {item.parentName}
+                    <span className='connect-projects__import--labels--source'>
+                      {item.sourceName}
                     </span>
                   </div>
 
@@ -526,12 +526,12 @@ class ConnectProjects extends React.Component {
                       onClick={() => this.showColumnFilterModal(
                         this.props.asset,
                         {
-                          uid: item.parentUid,
-                          name: item.parentName,
-                          url: item.parentUrl,
+                          uid: item.sourceUid,
+                          name: item.sourceName,
+                          url: item.sourceUrl,
                         },
                         item.filename,
-                        item.childFields,
+                        item.linkedFields,
                         item.attachmentUrl,
                       )}
                     >

@@ -47,7 +47,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >           "previous": null,
     >           "results": [
     >               {
-    >                   "parent": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
+    >                   "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
     >                   "fields": [],
     >                   "filename": "external-data.xml",
     >                   "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
@@ -73,7 +73,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     > **Payload**
     >
     >        {
-    >           "parent": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
+    >           "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
     >           "filename": "external-data.xml",
     >           "fields": []",
     >        }
@@ -83,14 +83,14 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >
     >       HTTP 201 Created
     >       {
-    >           "parent": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
+    >           "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
     >           "fields": [],
     >           "filename": "external-data.xml",
     >           "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
     >       }
     >
 
-    * `fields`: Optional. List of questions of parent asset represented by their XPath I.e., Hierarchy group must be kept.
+    * `fields`: Optional. List of questions of source asset represented by their XPath I.e., Hierarchy group must be kept.
     * `filename`: Must be unique among all asset files. Only accept letters, numbers and '-'.
 
     ### Retrieve a project
@@ -107,7 +107,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >
     >       HTTP 200 Ok
     >       {
-    >           "parent": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
+    >           "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
     >           "fields": [],
     >           "filename": "external-data.xml",
     >           "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
@@ -132,13 +132,13 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >        }
     >
 
-    _Notes: `parent` cannot be changed_
+    _Notes: `source` cannot be changed_
 
     > Response
     >
     >       HTTP 200 Ok
     >       {
-    >           "parent": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
+    >           "source": "https://[kpi]/api/v2/assets/aFDZxidYs5X5oJjm2Tmdf5/",
     >           "fields": ['group/question_1'],
     >           "filename": "data-external.xml",
     >           "url": "https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/paired-data/pdFQheFF4cWbtcinRUqc64q/"
@@ -187,11 +187,11 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         """
         paired_data = self.get_object()
 
-        # Retrieve the parent if it exists
-        parent_asset = paired_data.get_parent()
+        # Retrieve the source if it exists
+        source_asset = paired_data.get_source()
 
-        if not parent_asset:
-            # We can enter this condition when parent data sharing has been
+        if not source_asset:
+            # We can enter this condition when source data sharing has been
             # deactivated after it has been paired with current form.
             # We don't want to keep zombie files on storage.
             try:
@@ -233,7 +233,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
             return Response(asset_file.content.file.read().decode())
 
         # If the content of `asset_file' has expired, let's regenerate the XML
-        submissions = parent_asset.deployment.get_submissions(
+        submissions = source_asset.deployment.get_submissions(
             self.asset.owner.pk,
             format_type=INSTANCE_FORMAT_TYPE_XML
         )
@@ -246,7 +246,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
             )
         filename = paired_data.filename
         parsed_submissions_to_str = ''.join(parsed_submissions).replace(
-            parent_asset.uid, 'data'
+            source_asset.uid, 'data'
         )
         root_tag_name = SubmissionXMLRenderer.root_tag_name
         xml_ = add_xml_declaration(
@@ -291,12 +291,12 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         context_['asset'] = self.asset
 
         # To avoid multiple calls to DB within the serializer on the
-        # list endpoint, we retrieve all parent names and cache them in a dict.
+        # list endpoint, we retrieve all source names and cache them in a dict.
         # The serializer can access it through the context.
-        parent_uids = self.asset.paired_data.keys()
-        parent_names = {}
-        records = Asset.objects.values('uid', 'name').filter(uid__in=parent_uids)  # noqa
+        source_uids = self.asset.paired_data.keys()
+        source__names = {}
+        records = Asset.objects.values('uid', 'name').filter(uid__in=source_uids)  # noqa
         for record in records:
-            parent_names[record['uid']] = record['name']
-        context_['parent_names'] = parent_names
+            source__names[record['uid']] = record['name']
+        context_['source__names'] = source__names
         return context_

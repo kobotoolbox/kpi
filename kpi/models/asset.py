@@ -511,15 +511,15 @@ class Asset(ObjectPermissionMixin,
     #   'fields': []  # shares all when empty
     # }
     data_sharing = LazyDefaultJSONBField(default=dict)
-    # JSON with parent assets information
+    # JSON with source assets' information
     # {
-    #   <parent_uid>: {
-    #       'fields': []  # includes all fields shared with parent when empty
+    #   <source_uid>: {
+    #       'fields': []  # includes all fields shared by source when empty
     #       'paired_data_uid': 'pdxxxxxxx'  # auto-generated read-only
     #       'filename: 'xxxxx.xml'
     #   },
     #   ...
-    #   <parent_uid>: {
+    #   <source_uid>: {
     #       'fields': []
     #       'paired_data_uid': 'pdxxxxxxx'
     #       'filename: 'xxxxx.xml'

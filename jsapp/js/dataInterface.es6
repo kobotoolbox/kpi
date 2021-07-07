@@ -236,7 +236,7 @@ export var dataInterface;
     /*
      * TODO: #2767 Dynamic data sharing, match with implemented API
      */
-    attachToParent(assetUid, data) {
+    attachToSource(assetUid, data) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
         method: 'POST',
@@ -244,13 +244,13 @@ export var dataInterface;
         contentType: 'application/json'
       });
     },
-    detachParent(attachmentUrl) {
+    detachSource(attachmentUrl) {
       return $ajax({
         url: attachmentUrl,
         method: 'DELETE',
       });
     },
-    patchParent(attachmentUrl, data) {
+    patchSource(attachmentUrl, data) {
       return $ajax({
         url: attachmentUrl,
         method: 'PATCH',
@@ -258,7 +258,7 @@ export var dataInterface;
         contentType: 'application/json'
       });
     },
-    getAttachedParents(assetUid) {
+    getAttachedSources(assetUid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
         method: 'GET',

@@ -20,7 +20,7 @@ from kpi.models import Asset, AssetFile, PairedData
 
 class PairedDataSerializer(serializers.Serializer):
 
-    parent = RelativePrefixHyperlinkedRelatedField(
+    source = RelativePrefixHyperlinkedRelatedField(
         lookup_field='uid',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY),
         view_name='asset-detail',
@@ -29,87 +29,87 @@ class PairedDataSerializer(serializers.Serializer):
     )
     fields = serializers.ListField(child=serializers.CharField(), required=False)
     filename = serializers.CharField()
-    parent_name = serializers.SerializerMethodField()
+    source__name = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         return self.__save(validated_data)
 
-    def get_parent_name(self, paired_data):
-        # To avoid multiple calls to DB, try to retrieve parent names from
+    def get_source__name(self, paired_data):
+        # To avoid multiple calls to DB, try to retrieve source names from
         # the context.
-        parent_name = None
+        source__name = None
         try:
-            parent_name = self.context['parent_names'].get(
-                paired_data.parent_uid
+            source__name = self.context['source__names'].get(
+                paired_data.source_uid
             )
         except KeyError:
             # Fallback on DB query.
             try:
-                parent_name = Asset.objects.values_list('name', flat=True).get(
-                    uid=paired_data.parent_uid
+                source__name = Asset.objects.values_list('name', flat=True).get(
+                    uid=paired_data.source_uid
                 )
             except Asset.DoesNotExist:
                 pass
             else:
-                parent_name = parent.name
+                source__name = source.name
 
-        return parent_name
+        return source__name
 
     def to_representation(self, instance):
         return {
-            'parent': self.__get_parent_asset_url(instance),
-            'parent_name': self.get_parent_name(instance),
+            'source': self.__get_source_asset_url(instance),
+            'source__name': self.get_source__name(instance),
             'fields': instance.fields,
             'filename': instance.filename,
             'url': self.__get_download_url(instance),
         }
 
     def validate(self, attrs: dict) -> dict:
-        # Ensure `parent` has been validated before validating `filename`
-        # and `fields`. If 'parent' is not present in `attrs`, it should be
+        # Ensure `source` has been validated before validating `filename`
+        # and `fields`. If 'source' is not present in `attrs`, it should be
         # only on update. (`RelativePrefixHyperlinkedRelatedField` validator
         # enforces its requirement)
         try:
-            attrs['parent']
+            attrs['source']
         except KeyError:
-            attrs['parent'] = Asset.objects.get(uid=self.instance.parent_uid)
+            attrs['source'] = Asset.objects.get(uid=self.instance.source_uid)
 
         self._validate_filename(attrs)
         self._validate_fields(attrs)
         return attrs
 
-    def validate_parent(self, parent):
+    def validate_source(self, source):
         asset = self.context['asset']
 
-        if self.instance and self.instance.parent_uid != parent.uid:
+        if self.instance and self.instance.source_uid != source.uid:
             raise serializers.ValidationError(
-                _('Parent cannot be changed')
+                _('Source cannot be changed')
             )
 
-        # Parent data sharing must be enabled before going further
-        if not parent.data_sharing.get('enabled'):
+        # Source data sharing must be enabled before going further
+        if not source.data_sharing.get('enabled'):
             raise serializers.ValidationError(_(
-                'Data sharing for `{parent_uid}` is not enabled'
-            ).format(parent_uid=parent.uid))
+                'Data sharing for `{source_uid}` is not enabled'
+            ).format(source_uid=source.uid))
 
         # Validate whether owner of the asset is allowed to link their form
-        # with the parent. Validation is made with owner of the asset instead of
+        # with the source. Validation is made with owner of the asset instead of
         # `request.user`
         required_perms = [
             PERM_PARTIAL_SUBMISSIONS,
             PERM_VIEW_SUBMISSIONS,
         ]
-        if not parent.has_perms(asset.owner, required_perms):
+        if not source.has_perms(asset.owner, required_perms, all_=False):
             raise serializers.ValidationError(_(
-                'Pairing data with `{parent_uid}` is not allowed'
-            ).format(parent_uid=parent.uid))
+                'Pairing data with `{source_uid}` is not allowed'
+            ).format(source_uid=source.uid))
 
-        if not self.instance and parent.uid in asset.paired_data:
+        if not self.instance and source.uid in asset.paired_data:
             raise serializers.ValidationError(_(
-                'Parent `{parent}` is already paired'
-            ).format(parent=parent.name))
+                'Source `{source}` is already paired'
+            ).format(source=source.name))
 
-        return parent
+        return source
 
     def update(self, instance, validated_data):
         return self.__save(validated_data)
@@ -123,24 +123,24 @@ class PairedDataSerializer(serializers.Serializer):
                 attrs['fields'] = []
             return
 
-        parent = attrs['parent']
-        schema = parent.latest_version.to_formpack_schema()
+        source = attrs['source']
+        schema = source.latest_version.to_formpack_schema()
         form_pack = FormPack(versions=schema)
         valid_fields = [
             f.path for f in form_pack.get_fields_for_versions()
         ]
 
-        parent_fields = parent.data_sharing.get('fields') or valid_fields
+        source_fields = source.data_sharing.get('fields') or valid_fields
         posted_fields = attrs['fields']
-        unknown_fields = set(posted_fields) - set(parent_fields)
+        unknown_fields = set(posted_fields) - set(source_fields)
 
-        if unknown_fields and parent_fields:
+        if unknown_fields and source_fields:
             raise serializers.ValidationError(
                 {
                     'fields': _(
                         'Some fields are invalid, '
-                        'choices are: `{parent_fields}`'
-                    ).format(parent_fields='`,`'.join(parent_fields))
+                        'choices are: `{source_fields}`'
+                    ).format(source_fields='`,`'.join(source_fields))
                 }
             )
 
@@ -152,7 +152,7 @@ class PairedDataSerializer(serializers.Serializer):
             return
 
         asset = self.context['asset']
-        parent = attrs['parent']
+        source = attrs['source']
         filename, extension = os.path.splitext(attrs['filename'])
 
         if not re.match(r'^[\w\d-]+$', filename):
@@ -185,7 +185,7 @@ class PairedDataSerializer(serializers.Serializer):
         for p_uid, values in asset.paired_data.items():
             paired_data_filenames[p_uid] = values['filename']
 
-        pd_filename = paired_data_filenames.get(parent.uid)
+        pd_filename = paired_data_filenames.get(source.uid)
         is_new = pd_filename is None
 
         if (
@@ -215,18 +215,18 @@ class PairedDataSerializer(serializers.Serializer):
             request=request,
         )
 
-    def __get_parent_asset_url(self, instance: 'kpi.models.PairedData') -> str:
+    def __get_source_asset_url(self, instance: 'kpi.models.PairedData') -> str:
         request = self.context['request']
         return reverse('asset-detail',
-                       args=[instance.parent_uid],
+                       args=[instance.source_uid],
                        request=request)
 
     def __save(self, validated_data):
         asset = self.context['asset']
-        parent = validated_data.pop('parent', None)
+        source = validated_data.pop('source', None)
         if not self.instance:
             self.instance = PairedData(
-                parent_uid=parent.uid,
+                source_uid=source.uid,
                 asset=asset,
                 **validated_data
             )

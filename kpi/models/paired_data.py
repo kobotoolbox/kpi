@@ -25,14 +25,17 @@ class PairedData(OpenRosaManifestInterface,
 
     def __init__(
         self,
-        parent_uid: str,
+        source_asset_or_uid: Union['kpi.models.Asset', str],
         filename: str,
         fields: list,
         asset: 'kpi.models.Asset',
         paired_data_uid: str = None,
         hash_: str = None,
     ):
-        self.parent_uid = parent_uid
+        try:
+            self.source_uid = source_asset_or_uid.uid
+        except AttributeError:
+            self.source_uid = source_asset_or_uid
         self.asset = asset
         self.__filename = filename
         self.fields = fields
@@ -93,7 +96,7 @@ class PairedData(OpenRosaManifestInterface,
             asset_file.delete()
 
         # Update asset
-        del self.asset.paired_data[self.parent_uid]
+        del self.asset.paired_data[self.source_uid]
         self.asset.save(
             update_fields=['paired_data'],
             adjust_content=False,
@@ -149,30 +152,32 @@ class PairedData(OpenRosaManifestInterface,
                        args=(self.asset.uid, self.paired_data_uid, 'xml'),
                        request=request)
 
-    def get_parent(self) -> Union['Asset', None]:
+    def get_source(self) -> Union['Asset', None]:
 
         # Avoid circular import
         Asset = self.asset.__class__  # noqa
         try:
-            parent_asset = Asset.objects.get(uid=self.parent_uid)
+            source_asset = Asset.objects.get(uid=self.source_uid)
         except Asset.DoesNotExist:
             return None
 
-        # Data sharing must be enabled on the parent
-        if not parent_asset.data_sharing.get('enabled'):
+        # Data sharing must be enabled on the source
+        if not source_asset.data_sharing.get('enabled'):
             return None
 
-        # Validate `self.owner` is still allowed to see parent data.
+        # Validate `self.owner` is still allowed to see source data.
         # Their permissions could have been revoked since they linked their
-        # form to parent asset.
+        # form to source asset.
         required_perms = [
             PERM_PARTIAL_SUBMISSIONS,
             PERM_VIEW_SUBMISSIONS,
         ]
-        if not parent_asset.has_perms(self.asset.owner, required_perms):
+        if not source_asset.has_perms(
+            self.asset.owner, required_perms, all_=False
+        ):
             return None
 
-        return parent_asset
+        return source_asset
 
     @property
     def md5_hash(self):
@@ -200,15 +205,15 @@ class PairedData(OpenRosaManifestInterface,
     @classmethod
     def objects(cls, asset: 'kpi.models.Asset') -> 'kpi.models.PairedData':
         objects_ = {}
-        for parent_uid, values in asset.paired_data.items():
+        for source_uid, values in asset.paired_data.items():
             objects_[values['paired_data_uid']] = cls(
-                parent_uid, asset=asset, **values
+                source_uid, asset=asset, **values
             )
         return objects_
 
     def save(self, **kwargs):
         try:
-            self.asset.paired_data[self.parent_uid]['paired_data_uid']
+            self.asset.paired_data[self.source_uid]['paired_data_uid']
         except KeyError:
             self.paired_data_uid = KpiUidField.generate_unique_id('pd')
 
@@ -216,7 +221,7 @@ class PairedData(OpenRosaManifestInterface,
         if generate_hash:
             self.generate_hash()
 
-        self.asset.paired_data[self.parent_uid] = {
+        self.asset.paired_data[self.source_uid] = {
             'fields': self.fields,
             'filename': self.filename,
             'paired_data_uid': self.paired_data_uid,

@@ -13,69 +13,69 @@ import {
 } from '../utils';
 
 const dataShareActions = Reflux.createActions({
-  attachToParent: {children: ['completed', 'failed']},
-  detachParent: {children: ['completed', 'failed']},
-  patchParent: {children: ['completed', 'failed']},
-  getAttachedParents: {children: ['completed', 'failed']},
+  attachToSource: {children: ['completed', 'failed']},
+  detachSource: {children: ['completed', 'failed']},
+  patchSource: {children: ['completed', 'failed']},
+  getAttachedSources: {children: ['completed', 'failed']},
   getSharingEnabledAssets: {children: ['completed', 'failed']},
   toggleDataSharing: {children: ['completed', 'failed']},
   updateColumnFilters: {children: ['completed', 'failed']},
 });
 
-dataShareActions.attachToParent.listen((assetUid, data) => {
-  dataInterface.attachToParent(assetUid, data)
-    .done(dataShareActions.attachToParent.completed)
-    .fail(dataShareActions.attachToParent.failed);
+dataShareActions.attachToSource.listen((assetUid, data) => {
+  dataInterface.attachToSource(assetUid, data)
+    .done(dataShareActions.attachToSource.completed)
+    .fail(dataShareActions.attachToSource.failed);
 });
-dataShareActions.attachToParent.failed.listen((response) => {
-  alertify.error(response?.responseJSON || t('Failed to attach to parent'));
-});
-
-dataShareActions.detachParent.listen((attachmentUrl) => {
-  dataInterface.detachParent(attachmentUrl)
-    .done(dataShareActions.detachParent.completed)
-    .fail(dataShareActions.detachParent.failed);
-});
-dataShareActions.detachParent.failed.listen((response) => {
-  alertify.error(response?.responseJSON || t('Failed to detach from parent'));
+dataShareActions.attachToSource.failed.listen((response) => {
+  alertify.error(response?.responseJSON || t('Failed to attach to source'));
 });
 
-dataShareActions.patchParent.listen((attachmentUrl, data) => {
-  dataInterface.patchParent(attachmentUrl, data)
-    .done(dataShareActions.patchParent.completed)
-    .fail(dataShareActions.patchParent.failed)
+dataShareActions.detachSource.listen((attachmentUrl) => {
+  dataInterface.detachSource(attachmentUrl)
+    .done(dataShareActions.detachSource.completed)
+    .fail(dataShareActions.detachSource.failed);
 });
-dataShareActions.patchParent.failed.listen((response) => {
-  alertify(response?.responseJSON || t('Failed to patch parent'));
+dataShareActions.detachSource.failed.listen((response) => {
+  alertify.error(response?.responseJSON || t('Failed to detach from source'));
 });
 
-dataShareActions.getAttachedParents.listen((assetUid) => {
-  dataInterface.getAttachedParents(assetUid)
+dataShareActions.patchSource.listen((attachmentUrl, data) => {
+  dataInterface.patchSource(attachmentUrl, data)
+    .done(dataShareActions.patchSource.completed)
+    .fail(dataShareActions.patchSource.failed)
+});
+dataShareActions.patchSource.failed.listen((response) => {
+  alertify(response?.responseJSON || t('Failed to patch source'));
+});
+
+dataShareActions.getAttachedSources.listen((assetUid) => {
+  dataInterface.getAttachedSources(assetUid)
     .done((response) => {
-      let allParents = [];
-      response.results.forEach((parent) => {
-        let parentUid = getAssetUIDFromUrl(parent.parent);
-        allParents.push({
-          parentName: truncateString(
-            parent.parent_name,
+      let allSources = [];
+      response.results.forEach((source) => {
+        let sourceUid = getAssetUIDFromUrl(source.source);
+        allSources.push({
+          sourceName: truncateString(
+            source.source__name,
             MAX_DISPLAYED_STRING_LENGTH.connect_projects,
           ),
-          // Parent's asset url
-          parentUrl: parent.parent,
-          parentUid: parentUid,
-          // Fields that child has selected to import
-          childFields: parent.fields,
+          // Source's asset url
+          sourceUrl: source.source,
+          sourceUid: sourceUid,
+          // Fields that the connecting project has selected to import
+          linkedFields: source.fields,
           filename: truncateFile(
-            parent.filename,
+            source.filename,
             MAX_DISPLAYED_STRING_LENGTH.connect_projects,
           ),
-          // Child-parent attachment endpoint
-          attachmentUrl: parent.url,
+          // Source project attachment endpoint
+          attachmentUrl: source.url,
         });
       });
-      dataShareActions.getAttachedParents.completed(allParents);
+      dataShareActions.getAttachedSources.completed(allSources);
     })
-    .fail(dataShareActions.getAttachedParents.failed);
+    .fail(dataShareActions.getAttachedSources.failed);
 });
 
 dataShareActions.getSharingEnabledAssets.listen(() => {

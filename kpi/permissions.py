@@ -372,7 +372,7 @@ class XMLExternalDataPermission(permissions.BasePermission):
         """
         The responsibility for securing data behove to the owner of the
         asset `obj` by requiring authentication on their form.
-        Otherwise, the paired parent data may be exposed to anyone
+        Otherwise, the paired source data may be exposed to anyone
         """
         # Check whether `asset` owner's account requires authentication:
         try:
