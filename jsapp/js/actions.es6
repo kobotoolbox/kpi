@@ -335,16 +335,11 @@ actions.reports.setCustom.listen(function(assetId, details){
 });
 
 actions.table = Reflux.createActions({
-  updateSettings: {
-    children: [
-      'completed',
-      'failed',
-    ]
-  }
+  updateSettings: {children: ['completed', 'failed']},
 });
 
-actions.table.updateSettings.listen(function(assetId, settings){
-  dataInterface.patchAsset(assetId, {settings: JSON.stringify(settings)})
+actions.table.updateSettings.listen((assetUid, settings) => {
+  dataInterface.patchAsset(assetUid, {settings: JSON.stringify(settings)})
     .done((asset) => {
       actions.table.updateSettings.completed(asset);
       actions.resources.updateAsset.completed(asset);

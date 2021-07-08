@@ -397,7 +397,7 @@ $z-table-frozen: 10;
     position: relative;
     left: 0;
     // needed for tooltips and for ::after shadow
-    overflow: visible;
+    overflow: visible !important; // important needed because of default react-table styles
   }
 
   // The subtle shadow after the last sticky column.

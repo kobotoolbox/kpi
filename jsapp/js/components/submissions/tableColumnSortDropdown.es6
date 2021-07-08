@@ -4,61 +4,40 @@ import classNames from 'classnames';
 import {bem} from 'js/bem';
 import KoboDropdown, {KOBO_DROPDOWN_THEMES} from 'js/components/common/koboDropdown';
 import {SORT_VALUES} from 'js/components/submissions/tableConstants';
-import tableStore from 'js/components/submissions/tableStore';
 import './tableColumnSortDropdown.scss';
 
 const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear';
 
 /**
- * A wrapper around KoboDropdown to be used in table header to sort columns. It
- * only needs the column id as all changes are done through tableStore.
+ * A wrapper around KoboDropdown to be used in table header to sort columns.
  *
  * @prop {string} fieldId - one of table columns
+ * @prop {string|null} sortValue
+ * @prop {function} onSortChange
+ * @prop {function} onHide
+ * @prop {boolean} isFieldFrozen
+ * @prop {function} onFrozenChange
  * @prop {Node} [additionalTriggerContent] - to be put inside trigger, before the predefined content. Please note that the trigger as a whole is clickable, so this additional content would need stopPropagation to be clickable.
  */
 class TableColumnSortDropdown extends React.Component {
   constructor(props){
     super(props);
-    this.state = {
-      sortValue: null,
-      isFieldHidden: false,
-      isFieldFrozen: false,
-    };
-    this.unlisteners = [];
     autoBind(this);
-  }
-
-  componentDidMount() {
-    this.unlisteners.push(
-      tableStore.listen(this.onTableStoreChange)
-    );
-  }
-
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {clb();});
-  }
-
-  onTableStoreChange() {
-    this.setState({
-      sortValue: tableStore.getFieldSortValue(this.props.fieldId),
-      isFieldHidden: tableStore.isFieldHidden(this.props.fieldId),
-      isFieldFrozen: tableStore.isFieldFrozen(this.props.fieldId),
-    });
   }
 
   renderTrigger() {
     let sortIcon = ['k-icon'];
-    if (this.state.sortValue && this.state.sortValue === SORT_VALUES.A_TO_Z) {
+    if (this.props.sortValue && this.props.sortValue === SORT_VALUES.A_TO_Z) {
       sortIcon.push('k-icon-sort-down');
     }
-    if (this.state.sortValue && this.state.sortValue === SORT_VALUES.Z_TO_A) {
+    if (this.props.sortValue && this.props.sortValue === SORT_VALUES.Z_TO_A) {
       sortIcon.push('k-icon-sort-up');
     }
 
     return (
       <div className='table-column-sort-dropdown-trigger'>
         {this.props.additionalTriggerContent}
-        {this.state.sortValue &&
+        {this.props.sortValue &&
           <i className={sortIcon.join(' ')}/>
         }
         <i className='k-icon k-icon-caret-up'/>
@@ -68,7 +47,7 @@ class TableColumnSortDropdown extends React.Component {
   }
 
   clearSort() {
-    tableStore.removeFieldSortValue(this.props.fieldId);
+    this.props.onSortChange(this.props.fieldId, null);
   }
 
   changeSort(sortValue, evt) {
@@ -78,22 +57,22 @@ class TableColumnSortDropdown extends React.Component {
     if (evt?.target?.classList?.contains(CLEAR_BUTTON_CLASS_NAME)) {
       return;
     }
-    tableStore.setFieldSortValue(this.props.fieldId, sortValue);
+    this.props.onSortChange(this.props.fieldId, sortValue);
   }
 
-  changeFieldHidden(isHidden) {
-    tableStore.setHiddenField(this.props.fieldId, isHidden);
+  hideField() {
+    this.props.onHide(this.props.fieldId);
   }
 
   changeFieldFrozen(isFrozen) {
-    tableStore.setFrozenField(this.props.fieldId, isFrozen);
+    this.props.onFrozenChange(this.props.fieldId, isFrozen);
   }
 
   renderSortButton(buttonSortValue) {
     return (
       <bem.KoboDropdown__menuButton
         className={classNames('table-column-sort-dropdown-option', {
-          'table-column-sort-dropdown-option--active': this.state.sortValue === buttonSortValue,
+          'table-column-sort-dropdown-option--active': this.props.sortValue === buttonSortValue,
         })}
         onClick={this.changeSort.bind(this, buttonSortValue)}
       >
@@ -106,7 +85,7 @@ class TableColumnSortDropdown extends React.Component {
           <span key='1'>{t('Sort A → Z')}</span>,
         ]}
 
-        {this.state.sortValue === buttonSortValue &&
+        {this.props.sortValue === buttonSortValue &&
           <i
             onClick={this.clearSort}
             className={classNames('k-icon', 'k-icon-cancel', CLEAR_BUTTON_CLASS_NAME)}
@@ -130,21 +109,19 @@ class TableColumnSortDropdown extends React.Component {
             {this.renderSortButton(SORT_VALUES.A_TO_Z)}
             {this.renderSortButton(SORT_VALUES.Z_TO_A)}
 
-            <bem.KoboDropdown__menuButton
-              onClick={this.changeFieldHidden.bind(this, true)}
-            >
+            <bem.KoboDropdown__menuButton onClick={this.hideField}>
               <i className='k-icon k-icon-hide'/>
               <span>{t('Hide field')}</span>
             </bem.KoboDropdown__menuButton>
 
             <bem.KoboDropdown__menuButton
-              onClick={this.changeFieldFrozen.bind(this, !this.state.isFieldFrozen)}
+              onClick={this.changeFieldFrozen.bind(this, !this.props.isFieldFrozen)}
             >
-              {this.state.isFieldFrozen && [
+              {this.props.isFieldFrozen && [
                 <i key='0' className='k-icon k-icon-unfreeze'/>,
                 <span key='1'>{t('Unfreeze field')}</span>,
               ]}
-              {!this.state.isFieldFrozen && [
+              {!this.props.isFieldFrozen && [
                 <i key='0' className='k-icon k-icon-freeze'/>,
                 <span key='1'>{t('Freeze field')}</span>,
               ]}

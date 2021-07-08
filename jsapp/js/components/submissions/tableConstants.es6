@@ -25,3 +25,14 @@ export const SORT_VALUES = createEnum([
   'A_TO_Z',
   'Z_TO_A',
 ]);
+
+// This is the setting object name from `asset.settings`
+export const DATA_TABLE_SETTING = 'data-table';
+// These are all possible settings of the above
+export const DATA_TABLE_SETTINGS = Object.freeze({
+  SELECTED_COLUMNS: 'selected-columns',
+  FROZEN_COLUMN: 'frozen-column',
+  SHOW_GROUP: 'show-group-name',
+  TRANSLATION: 'translation-index',
+  SHOW_HXL: 'show-hxl-tags',
+});

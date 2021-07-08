@@ -14,17 +14,21 @@ const submissionsActions = Reflux.createActions({
   bulkDelete: {children: ['completed', 'failed']},
 });
 
-submissionsActions.getSubmissions.listen((
-  uid,
-  pageSize = 100,
-  page = 0,
-  sort = [],
-  fields = [],
-  filter = ''
-) => {
-  dataInterface.getSubmissions(uid, pageSize, page, sort, fields, filter)
-    .done(submissionsActions.getSubmissions.completed)
-    .fail(submissionsActions.getSubmissions.failed);
+submissionsActions.getSubmissions.listen((options) => {
+  dataInterface.getSubmissions(
+    options.uid,
+    options.pageSize,
+    options.page,
+    options.sort,
+    options.fields,
+    options.filter
+  )
+    .done((response) => {
+      submissionsActions.getSubmissions.completed(response, options);
+    })
+    .fail((response) => {
+      submissionsActions.getSubmissions.failed(response, options);
+    });
 });
 
 submissionsActions.bulkDeleteStatus.listen((uid, data) => {

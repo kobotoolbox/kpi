@@ -3,8 +3,8 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import _ from 'underscore';
+import clonedeep from 'lodash.clonedeep';
 import enketoHandler from 'js/enketoHandler';
-import {dataInterface} from 'js/dataInterface';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
@@ -40,9 +40,13 @@ import {
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
+  DATA_TABLE_SETTING,
+  DATA_TABLE_SETTINGS,
 } from 'js/components/submissions/tableConstants';
 import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import './table.scss';
+
+const DEFAULT_PAGE_SIZE = 30;
 
 /**
  * @prop {object} asset
@@ -55,12 +59,11 @@ export class DataTable extends React.Component {
       tableData: [],
       columns: [],
       selectedColumns: false,
-      frozenColumn: this.getFrozenColumn(),
       sids: [],
       isFullscreen: false,
-      defaultPageSize: 30,
       pageSize: 30,
       currentPage: 0,
+      sortValue: null,
       error: false,
       showLabels: true,
       translationIndex: 0,
@@ -81,17 +84,30 @@ export class DataTable extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(actions.resources.updateSubmissionValidationStatus.completed, this.onSubmissionValidationStatusChange);
-    this.listenTo(actions.resources.removeSubmissionValidationStatus.completed, this.onSubmissionValidationStatusChange);
-    this.listenTo(actions.table.updateSettings.completed, this.onTableUpdateSettingsCompleted);
-    this.listenTo(stores.pageState, this.onPageStateUpdated);
-    this.listenTo(actions.resources.deleteSubmission.completed, this.refreshSubmissions);
-    this.listenTo(actions.resources.duplicateSubmission.completed, this.onDuplicateSubmissionCompleted);
-    this.listenTo(actions.resources.refreshTableSubmissions, this.refreshSubmissions);
+    stores.pageState.listen(this.onPageStateUpdated);
+    actions.resources.updateSubmissionValidationStatus.completed.listen(this.onSubmissionValidationStatusChange);
+    actions.resources.removeSubmissionValidationStatus.completed.listen(this.onSubmissionValidationStatusChange);
+    actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted);
+    actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions);
+    actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted);
+    actions.resources.refreshTableSubmissions.completed.listen(this.refreshSubmissions);
+    actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted);
+    actions.submissions.getSubmissions.failed.listen(this.onGetSubmissionsFailed);
     actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted);
     actions.submissions.bulkPatchStatus.completed.listen(this.onBulkChangeCompleted);
     actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted);
     actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted);
+  }
+
+  componentDidUpdate(prevProps) {
+    // If table settings changed, we need to fix columns, as after
+    // `actions.table.updateSettings` resolves, the props asset is not yet updated
+    if (
+      JSON.stringify(this.props.asset.settings[DATA_TABLE_SETTING]) !==
+      JSON.stringify(prevProps.asset.settings[DATA_TABLE_SETTING])
+    ) {
+      this._prepColumns(this.state.tableData);
+    }
   }
 
   /**
@@ -99,7 +115,7 @@ export class DataTable extends React.Component {
    *
    * @param {object} instance
    */
-  requestData(instance) {
+  fetchSubmissions(instance) {
     let pageSize = instance.state.pageSize;
     let page = instance.state.page * instance.state.pageSize;
     let sort = instance.state.sorted;
@@ -127,47 +143,58 @@ export class DataTable extends React.Component {
       filterQuery += '}';
     }
 
-    dataInterface.getSubmissions(this.props.asset.uid, pageSize, page, sort, [], filterQuery).done((data) => {
-      let results = data.results;
-
-      if (results && results.length > 0) {
-        if (this.state.submissionPager === 'next') {
-          this.submissionModalProcessing(results[0]._id, results);
-        }
-        if (this.state.submissionPager === 'prev') {
-          this.submissionModalProcessing(results[results.length - 1]._id, results);
-        }
-        this.setState({
-          loading: false,
-          selectedRows: {},
-          selectAll: false,
-          tableData: results,
-          submissionPager: false,
-          resultsTotal: data.count,
-        });
-        this._prepColumns(results);
-      } else if (filterQuery.length) {
-        this.setState({
-          loading: false,
-          selectedRows: {},
-          tableData: results,
-          resultsTotal: 0,
-        });
-      } else {
-        this.setState({
-          error: t('This project has no submitted data. Please collect some and try again.'),
-          loading: false,
-        });
-      }
-    }).fail((error) => {
-      if (error.responseText) {
-        this.setState({error: error.responseText, loading: false});
-      } else if (error.statusText) {
-        this.setState({error: error.statusText, loading: false});
-      } else {
-        this.setState({error: t('Error: could not load data.'), loading: false});
-      }
+    actions.submissions.getSubmissions({
+      uid: this.props.asset.uid,
+      pageSize: pageSize,
+      page: page,
+      sort: sort,
+      fields: [],
+      filter: filterQuery,
     });
+  }
+
+  onGetSubmissionsCompleted(data, options) {
+    let results = data.results;
+
+    if (results && results.length > 0) {
+      if (this.state.submissionPager === 'next') {
+        this.submissionModalProcessing(results[0]._id, results);
+      }
+      if (this.state.submissionPager === 'prev') {
+        this.submissionModalProcessing(results[results.length - 1]._id, results);
+      }
+      this.setState({
+        loading: false,
+        selectedRows: {},
+        selectAll: false,
+        tableData: results,
+        submissionPager: false,
+        resultsTotal: data.count,
+      });
+      this._prepColumns(results);
+    } else if (options.filter.length) {
+      this.setState({
+        loading: false,
+        selectedRows: {},
+        tableData: results,
+        resultsTotal: 0,
+      });
+    } else {
+      this.setState({
+        error: t('This project has no submitted data. Please collect some and try again.'),
+        loading: false,
+      });
+    }
+  }
+
+  onGetSubmissionsFailed(error) {
+    if (error?.responseText) {
+      this.setState({error: error.responseText, loading: false});
+    } else if (error?.statusText) {
+      this.setState({error: error.statusText, loading: false});
+    } else {
+      this.setState({error: t('Error: could not load data.'), loading: false});
+    }
   }
 
   /**
@@ -175,14 +202,15 @@ export class DataTable extends React.Component {
    * @returns {object} one of VALIDATION_STATUSES
    */
   getValidationStatusOption(originalRow) {
-    if (originalRow._validation_status && originalRow[VALIDATION_STATUS_ID_PROP]) {
-      return VALIDATION_STATUSES[originalRow[VALIDATION_STATUS_ID_PROP]];
+    if (originalRow._validation_status && originalRow._validation_status.uid) {
+      return VALIDATION_STATUSES[originalRow._validation_status.uid];
     } else {
       return VALIDATION_STATUSES.no_status;
     }
   }
 
   /**
+   * Callback for dropdown.
    * @param {string} sid - submission id
    * @param {number} index
    * @param {object} newValidationStatus - one of VALIDATION_STATUSES
@@ -191,29 +219,225 @@ export class DataTable extends React.Component {
     const _this = this;
 
     if (newValidationStatus.value === null) {
-      dataInterface.removeSubmissionValidationStatus(_this.props.asset.uid, sid).done(() => {
-        _this.state.tableData[index]._validation_status = {};
-        _this.setState({tableData: _this.state.tableData});
-      }).fail(console.error);
+      actions.resources.removeSubmissionValidationStatus(
+        _this.props.asset.uid,
+        sid
+      );
     } else {
-      dataInterface.updateSubmissionValidationStatus(_this.props.asset.uid, sid, {'validation_status.uid': newValidationStatus.value}).done((result) => {
-        if (result.uid) {
-          _this.state.tableData[index]._validation_status = result;
-          _this.setState({tableData: _this.state.tableData});
-        } else {
-          console.error('error updating validation status');
-        }
-      }).fail(console.error);
+      actions.resources.updateSubmissionValidationStatus(
+        _this.props.asset.uid,
+        sid,
+        {'validation_status.uid': newValidationStatus.value}
+      );
     }
   }
 
   getFrozenColumn() {
     let frozenColumn = false;
     const settings = this.props.asset.settings;
-    if (settings['data-table'] && settings['data-table']['frozen-column']) {
-      frozenColumn = settings['data-table']['frozen-column'];
+    if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.FROZEN_COLUMN]) {
+      frozenColumn = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.FROZEN_COLUMN];
     }
     return frozenColumn;
+  }
+
+  getFieldSortValue(fieldId) {
+    if (this.state.sortValue === null) {
+      return null;
+    }
+
+    if (this.state.sortValue?.fieldId === fieldId) {
+      return this.state.sortValue.value;
+    }
+  }
+
+  /**
+   * @param {string} fieldId
+   * @returns {boolean}
+   */
+  isFieldVisible(fieldId) {
+    // frozen column is never hidden
+    if (this.isFieldFrozen(fieldId)) {
+      return true;
+    }
+
+    // submission actions is never hidden
+    if (fieldId === SUBMISSION_ACTIONS_ID) {
+      return true;
+    }
+
+    const selectedColumns = this.getSelectedColumns();
+    // nothing is selected, so all columns are visible
+    if (selectedColumns === null) {
+      return true;
+    }
+
+    if (Array.isArray(selectedColumns)) {
+      return selectedColumns.includes(fieldId);
+    }
+
+    return true;
+  }
+
+  /**
+   * @param {string} fieldId
+   * @returns {boolean}
+   */
+  isFieldFrozen(fieldId) {
+    return this.getFrozenColumn() === fieldId;
+  }
+
+  /**
+   * @param {string} fieldId
+   * @param {string|null} sortValue one of SORT_VALUES or null for clear value
+   */
+  onFieldSortChange(fieldId, sortValue) {
+    if (sortValue === null) {
+      this.setState({sortValue: null});
+    } else {
+      this.setState({
+        sortValue: {
+          fieldId: fieldId,
+          value: sortValue,
+        },
+      });
+    }
+
+    // TODO this change should cause new data fetch
+  }
+
+  onHideField(fieldId) {
+    this.onFieldVisibleChange(fieldId, false);
+  }
+
+  /**
+   * @param {string} fieldId
+   * @param {boolean} isVisible
+   */
+  onFieldVisibleChange(fieldId, isVisible) {
+    const hideableColumns = this.getHideableColumns();
+    const selectedColumns = this.getSelectedColumns();
+
+    let newSelectedColumns = [];
+
+    // Case 1: nothing selected and we hide one column, i.e. we need to select all but one
+    if (selectedColumns === null && isVisible === false) {
+      newSelectedColumns = [...hideableColumns];
+      newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1);
+    }
+
+    // Case 2: some fields selected and we hide one column
+    if (Array.isArray(selectedColumns) && isVisible === false) {
+      newSelectedColumns = [...selectedColumns];
+      newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1);
+    }
+
+    // Case 3: some fields selected and we show one column
+    if (Array.isArray(selectedColumns) && isVisible === true) {
+      newSelectedColumns = [...selectedColumns];
+      newSelectedColumns.push(fieldId);
+
+      // Case 4: we are showing the last hidden column, we save `null` value
+      if (newSelectedColumns.length === hideableColumns.length) {
+        newSelectedColumns = null;
+      }
+    }
+
+    const settingsObj = {};
+    settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = newSelectedColumns;
+
+    // If we are hiding the column that is frozen, we need to unfreeze it
+    if (this.isFieldFrozen(fieldId) && isVisible === false) {
+      settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = null;
+    }
+
+    this.saveTableSettings(settingsObj);
+  }
+
+  /**
+   * Compares if two arrays contain exactly the same unique values, disregarding the order
+   */
+  isSameValuesArray(array1, array2) {
+    // make sets out of arrays to ensure only unique values are present
+    const set1 = new Set(array1);
+    const set2 = new Set(array2);
+    return (
+      set1.size === set2.size &&
+      // check if combinging both sets into new set gives identical set size
+      new Set([...set1, ...set2]).size === set1.size
+    );
+  }
+
+  /**
+   * @param {string} fieldId
+   * @param {boolean} isFrozen
+   */
+  onFieldFrozenChange(fieldId, isFrozen) {
+    // NOTE: Currently we only support one frozen column at a time, so that is
+    // why making column not-frozen means we just null-ify the value, without
+    // checking what column is frozen now.
+    let newVal = null;
+    if (isFrozen) {
+      newVal = fieldId;
+    }
+    const settingsObj = {};
+    settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = newVal;
+    this.saveTableSettings(settingsObj);
+  }
+
+  /**
+   * @returns {object} settings or empty object if no settings exist
+   */
+  getTableSettings() {
+    if (
+      this.props.asset?.settings &&
+      this.props.asset?.settings[DATA_TABLE_SETTING]
+    ) {
+      return this.props.asset.settings[DATA_TABLE_SETTING];
+    }
+    return {};
+  }
+
+  /**
+   * @param {object} newTableSettings - will be merged into current settings, overwriting any DATA_TABLE_SETTING properties
+   */
+  saveTableSettings(newTableSettings) {
+    // get whole asset settings
+    const newSettings = clonedeep(this.props.asset.settings);
+
+    if (!newSettings[DATA_TABLE_SETTING]) {
+      newSettings[DATA_TABLE_SETTING] = newTableSettings;
+    } else {
+      newSettings[DATA_TABLE_SETTING] = Object.assign(
+        newSettings[DATA_TABLE_SETTING],
+        newTableSettings
+      );
+    }
+
+    if (this.userCan('change_asset', this.props.asset)) {
+      actions.table.updateSettings(this.props.asset.uid, newSettings);
+    }
+  }
+
+  /**
+   * @returns {string[]} a list of columns that user can hide
+   */
+  getHideableColumns() {
+    const columns = this.getDisplayedColumns(this.state.tableData);
+    columns.push(VALIDATION_STATUS_ID_PROP);
+    return columns;
+  }
+
+  /**
+   * @returns {string[]|null} a list of selected columns from table settings,
+   * `null` means no selection, i.e. all columns
+   */
+  getSelectedColumns() {
+    const tableSettings = this.getTableSettings();
+    if (Array.isArray(tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS])) {
+      return tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS];
+    }
+    return null;
   }
 
   /**
@@ -315,7 +539,8 @@ export class DataTable extends React.Component {
       }
 
       let columnClassNames = ['rt-sub-actions', 'is-frozen'];
-      if (!this.state.frozenColumn) {
+      let frozenColumn = this.getFrozenColumn();
+      if (!frozenColumn) {
         columnClassNames.push('is-last-frozen');
       }
 
@@ -395,6 +620,11 @@ export class DataTable extends React.Component {
         <div className='column-header-wrapper'>
           <TableColumnSortDropdown
             fieldId={VALIDATION_STATUS_ID_PROP}
+            sortValue={this.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
+            onSortChange={this.onFieldSortChange}
+            onHide={this.onHideField}
+            isFieldFrozen={this.isFieldFrozen(VALIDATION_STATUS_ID_PROP)}
+            onFrozenChange={this.onFieldFrozenChange}
             additionalTriggerContent={
               <span className='column-header-title'>
                 {t('Validation status')}
@@ -449,17 +679,17 @@ export class DataTable extends React.Component {
     let maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
     let _this = this;
 
-    if (settings['data-table'] && settings['data-table']['translation-index'] !== null) {
-      translationIndex = settings['data-table']['translation-index'];
+    if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION] !== null) {
+      translationIndex = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION];
       showLabels = translationIndex > -1;
     }
 
-    if (settings['data-table'] && settings['data-table']['show-group-name'] !== null) {
-      showGroupName = settings['data-table']['show-group-name'];
+    if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP] !== null) {
+      showGroupName = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP];
     }
 
-    if (settings['data-table'] && settings['data-table']['show-hxl-tags'] !== null) {
-      showHXLTags = settings['data-table']['show-hxl-tags'];
+    if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL] !== null) {
+      showHXLTags = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL];
     }
 
     // check for overrides by users with view permissions only
@@ -591,6 +821,11 @@ export class DataTable extends React.Component {
             <div className='column-header-wrapper'>
               <TableColumnSortDropdown
                 fieldId={key}
+                sortValue={this.getFieldSortValue(key)}
+                onSortChange={this.onFieldSortChange}
+                onHide={this.onHideField}
+                isFieldFrozen={this.isFieldFrozen(key)}
+                onFrozenChange={this.onFieldFrozenChange}
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
                     {columnIcon}
@@ -766,8 +1001,8 @@ export class DataTable extends React.Component {
     });
 
     // prepare list of selected columns, if configured
-    if (settings['data-table'] && settings['data-table']['selected-columns']) {
-      const selCos = settings['data-table']['selected-columns'];
+    if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SELECTED_COLUMNS]) {
+      const selCos = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SELECTED_COLUMNS];
 
       // always include frozenColumn, if set
       if (frozenColumn && !selCos.includes(frozenColumn)) {
@@ -787,7 +1022,6 @@ export class DataTable extends React.Component {
     this.setState({
       columns: columns,
       selectedColumns: selectedColumns,
-      frozenColumn: frozenColumn,
       translationIndex: translationIndex,
       showLabels: showLabels,
       showGroupName: showGroupName,
@@ -858,7 +1092,7 @@ export class DataTable extends React.Component {
   }
 
   refreshSubmissions() {
-    this.requestData(this.state.fetchInstance);
+    this.fetchSubmissions(this.state.fetchInstance);
   }
 
   /**
@@ -867,13 +1101,14 @@ export class DataTable extends React.Component {
    * @param {object} duplicatedSubmission
    */
   onDuplicateSubmissionCompleted(uid, sid, duplicatedSubmission) {
-    this.requestData(this.state.fetchInstance);
+    this.fetchSubmissions(this.state.fetchInstance);
     this.submissionModalProcessing(sid, this.state.tableData, true, duplicatedSubmission);
   }
 
   onTableUpdateSettingsCompleted() {
+    // Close table settings modal after settings are saved.
     stores.pageState.hideModal();
-    this._prepColumns(this.state.tableData);
+    // Any updates after table settings are saved are handled by `componentDidUpdate`.
   }
 
   /**
@@ -888,7 +1123,7 @@ export class DataTable extends React.Component {
       fetchState: state,
       fetchInstance: instance,
     });
-    this.requestData(instance);
+    this.fetchSubmissions(instance);
   }
 
   /**
@@ -1168,7 +1403,7 @@ export class DataTable extends React.Component {
       );
     }
 
-    const { tableData, columns, selectedColumns, defaultPageSize, loading, pageSize, resultsTotal } = this.state;
+    const { tableData, columns, selectedColumns, loading, pageSize, resultsTotal } = this.state;
     const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
 
     let tableClasses = ['-highlight'];
@@ -1206,7 +1441,7 @@ export class DataTable extends React.Component {
         <ReactTable
           data={tableData}
           columns={selectedColumns || columns}
-          defaultPageSize={defaultPageSize}
+          defaultPageSize={DEFAULT_PAGE_SIZE}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={0}
           className={tableClasses.join(' ')}
