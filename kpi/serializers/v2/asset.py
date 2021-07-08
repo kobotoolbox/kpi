@@ -4,12 +4,12 @@ import json
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
-from formpack import FormPack
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
@@ -31,7 +31,7 @@ from kpi.fields import (
 )
 from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.models.asset import UserAssetSubscription
-from kpi.models.object_permission import get_anonymous_user
+from kpi.models.object_permission import get_database_user
 
 from kpi.utils.object_permission_helper import ObjectPermissionHelper
 
@@ -531,8 +531,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return data_sharing
 
     def validate_parent(self, parent: Asset) -> Asset:
-        user = self._get_current_user()
-
+        user = get_database_user(self.context['request'].user)
         # Validate first if user can update the current parent
         if self.instance and self.instance.parent is not None:
             if not self.instance.parent.has_perm(user, PERM_CHANGE_ASSET):
@@ -557,14 +556,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _content(self, obj):
         return json.dumps(obj.content)
-
-    def _get_current_user(self) -> User:
-        request = self.context['request']
-        user = request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
-
-        return user
 
     def _get_status(self, perm_assignments):
         """

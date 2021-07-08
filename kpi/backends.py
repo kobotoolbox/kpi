@@ -3,29 +3,14 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
 
-from .models.object_permission import get_anonymous_user, perm_parse
+from .models.object_permission import get_database_user, perm_parse
 
 
 class ObjectPermissionBackend(ModelBackend):
-    @staticmethod
-    def _translate_anonymous_user(user_obj):
-        """
-        Returns user_obj, is_anonymous, where user_obj is always a real
-        User object (translated from AnonymousUser if necessary), and
-        is_anonymous is True if the user is anonymous
-        """
-        is_anonymous = False
-        if isinstance(user_obj, AnonymousUser):
-            is_anonymous = True
-            user_obj = get_anonymous_user()
-        elif user_obj.pk == settings.ANONYMOUS_USER_ID:
-            is_anonymous = True
-        return user_obj, is_anonymous
-
     def get_group_permissions(self, user_obj, obj=None):
-        user_obj, is_anonymous = self._translate_anonymous_user(user_obj)
+        user_obj = get_database_user(user_obj)
         permissions = super().get_group_permissions(user_obj, obj)
-        if is_anonymous:
+        if user_obj.is_anonymous:
             # Obey limits on anonymous users' permissions
             allowed_set = set(settings.ALLOWED_ANONYMOUS_PERMISSIONS)
             return permissions.intersection(allowed_set)
@@ -33,9 +18,9 @@ class ObjectPermissionBackend(ModelBackend):
             return permissions
 
     def get_all_permissions(self, user_obj, obj=None):
-        user_obj, is_anonymous = self._translate_anonymous_user(user_obj)
+        user_obj = get_database_user(user_obj)
         permissions = super().get_all_permissions(user_obj, obj)
-        if is_anonymous:
+        if user_obj.is_anonymous:
             # Obey limits on anonymous users' permissions
             allowed_set = set(settings.ALLOWED_ANONYMOUS_PERMISSIONS)
             return permissions.intersection(allowed_set)
@@ -43,9 +28,9 @@ class ObjectPermissionBackend(ModelBackend):
             return permissions
 
     def has_perm(self, user_obj, perm, obj=None):
-        user_obj, is_anonymous = self._translate_anonymous_user(user_obj)
+        user_obj = get_database_user(user_obj)
         if obj is None or not hasattr(obj, 'has_perm'):
-            if is_anonymous:
+            if user_obj.is_anonymous:
                 # Obey limits on anonymous users' permissions
                 if perm not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
                     return False

@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from taggit.models import Tag
 
 from kpi.models import Asset, TagUid
-from kpi.models.object_permission import get_anonymous_user
+from kpi.models.object_permission import get_database_user
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -23,12 +23,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     def _get_assets(self, obj):
         request = self.context.get('request', None)
-        user = request.user
-        # Check if the user is anonymous. The
-        # django.contrib.auth.models.AnonymousUser object doesn't work for
-        # queries.
-        if user.is_anonymous:
-            user = get_anonymous_user()
+        user = get_database_user(request.user)
         return [reverse('asset-detail', args=(sa.uid,), request=request)
                 for sa in Asset.objects.filter(tags=obj, owner=user).all()]
 

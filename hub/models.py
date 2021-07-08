@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from markitup.fields import MarkupField
 
-from kpi.models.object_permission import get_anonymous_user
+from kpi.models.object_permission import get_database_user
 
 
 class SitewideMessage(models.Model):
@@ -76,8 +76,7 @@ class PerUserSetting(models.Model):
     value_when_not_matched = models.CharField(max_length=2048, blank=True)
 
     def user_matches(self, user, ignore_invalid_queries=True):
-        if user.is_anonymous:
-            user = get_anonymous_user()
+        user = get_database_user(user)
         manager = user._meta.model.objects
         queryset = manager.none()
         for user_query in self.user_queries:

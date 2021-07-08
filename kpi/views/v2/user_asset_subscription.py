@@ -2,7 +2,7 @@
 from rest_framework import viewsets
 from kpi.models import UserAssetSubscription
 
-from kpi.models.object_permission import get_anonymous_user
+from kpi.models.object_permission import get_database_user
 from kpi.serializers.v2.user_asset_subscription import \
     UserAssetSubscriptionSerializer
 
@@ -13,12 +13,7 @@ class UserAssetSubscriptionViewSet(viewsets.ModelViewSet):
     lookup_field = 'uid'
 
     def get_queryset(self):
-        user = self.request.user
-        # Check if the user is anonymous. The
-        # django.contrib.auth.models.AnonymousUser object doesn't work for
-        # queries.
-        if user.is_anonymous:
-            user = get_anonymous_user()
+        user = get_database_user(self.request.user)
         criteria = {'user': user}
         if 'asset__uid' in self.request.query_params:
             criteria['asset__uid'] = self.request.query_params[

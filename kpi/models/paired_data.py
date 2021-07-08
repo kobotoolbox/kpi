@@ -234,7 +234,9 @@ class PairedData(OpenRosaManifestInterface,
     def update(self, updated_values):
         for key, value in updated_values.items():
             if not hasattr(self, key):
-                continue
+                raise AttributeError(
+                    f"'PairedData' object has no attribute '{key}'"
+                )
             setattr(self, key, value)
 
         self.generate_hash()
