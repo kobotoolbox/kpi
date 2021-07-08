@@ -811,7 +811,7 @@ class ObjectPermissionMixin:
                 return False
         return result
 
-    def has_perms(self, user_obj: User, perms: list, all_: bool = False) -> bool:  # noqa
+    def has_perms(self, user_obj: User, perms: list, all_: bool = True) -> bool:  # noqa
         """
         Returns True or False whether user `user_obj` has several
         permissions (`perms`) on current object.

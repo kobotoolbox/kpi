@@ -21,7 +21,10 @@ from kpi.utils.hash import get_hash
 class PairedData(OpenRosaManifestInterface,
                  SyncBackendMediaInterface):
 
-    BACKEND_DATA_TYPE = 'paired_data'
+    # `filename` implements:
+    # - `OpenRosaManifestInterface.filename()`
+    # - `SyncBackendMediaInterface.filename()`
+    filename = None
 
     def __init__(
         self,
@@ -32,12 +35,26 @@ class PairedData(OpenRosaManifestInterface,
         paired_data_uid: str = None,
         hash_: str = None,
     ):
+        """
+        Usually, this constructor should NOT be called directly except when
+        creating a new paired data relationship. To retrieve existing pairings,
+        use `PairedData.objects(asset)` instead.
+
+        When the submission data from `source_asset_or_uid` is collected into
+        a single XML file, it is attached to `asset` using `filename`, which
+        the content of `asset` can then reference via `xml-external` (see
+        https://xlsform.org/en/#external-xml-data). Specify a list of fields
+        from the source asset to include using `fields`, or pass an empty list
+        to include all fields.
+        TODO: document `hash_` (it is currently used to set a value that would
+        never match the hash of real content, to force synchronization)
+        """
         try:
             self.source_uid = source_asset_or_uid.uid
         except AttributeError:
             self.source_uid = source_asset_or_uid
         self.asset = asset
-        self.__filename = filename
+        self.filename = filename
         self.fields = fields
 
         if not paired_data_uid:
@@ -54,23 +71,9 @@ class PairedData(OpenRosaManifestInterface,
         return f'<PairedData {self.paired_data_uid} ({self.filename})>'
 
     @property
-    def backend_data_value(self):
+    def backend_media_id(self):
         """
-        Implements `SyncBackendMediaInterface.backend_data_value()`
-        """
-        return self.backend_uniqid
-
-    @property
-    def backend_data_type(self):
-        """
-        Implements `SyncBackendMediaInterface.backend_data_type()`
-        """
-        return self.BACKEND_DATA_TYPE
-
-    @property
-    def backend_uniqid(self):
-        """
-        Implements `SyncBackendMediaInterface.backend_uniqid()`
+        Implements `SyncBackendMediaInterface.backend_media_id()`
         """
         from kpi.urls.router_api_v2 import URL_NAMESPACE  # avoid circular imports # noqa
         paired_data_url = reverse(
@@ -110,31 +113,16 @@ class PairedData(OpenRosaManifestInterface,
         """
         return None
 
-    @property
-    def filename(self):
-        """
-        Implements:
-        - `OpenRosaManifestInterface.filename()`
-        - `SyncBackendMediaInterface.filename()`
-        """
-        # Could be easier to just use a public attribute, but (IMHO) the
-        # `@property` makes the implementation of the interface more obvious
-        return self.__filename
-
-    @filename.setter
-    def filename(self, f):
-        self.__filename = f
-
     def generate_hash(self):
         # It generates the hash based on the related AssetFile content.
         # If the file does not exist yet, the hash is randomly generated with
-        # the current timestamp and `self.backend_uniqid`. A hash is needed to
-        # synchronize with KoBoCAt
+        # the current timestamp and `self.backend_media_id`. A hash is needed
+        # to synchronize with KoBoCAT
         try:
             asset_file = AssetFile.objects.get(uid=self.paired_data_uid)
         except AssetFile.DoesNotExist:
             self.__hash = get_hash(
-                f'{str(time.time())}.{self.backend_uniqid}',
+                f'{str(time.time())}.{self.backend_media_id}',
                 prefix=True
             )
         else:
@@ -214,6 +202,8 @@ class PairedData(OpenRosaManifestInterface,
     def save(self, **kwargs):
         try:
             self.asset.paired_data[self.source_uid]['paired_data_uid']
+            # self.paired_data_uid would have been set when `objects()`
+            # calls the constructor
         except KeyError:
             self.paired_data_uid = KpiUidField.generate_unique_id('pd')
 

@@ -55,10 +55,6 @@ class ImportAssetException(Exception):
     pass
 
 
-class ImportAssetException(Exception):
-    pass
-
-
 class InvalidSearchException(exceptions.APIException):
     status_code = 400
     default_detail = _('Invalid search. Please try again')
@@ -110,15 +106,6 @@ class ObjectDeploymentDoesNotExist(exceptions.APIException):
     status_code = 400
     default_detail = _('The specified object has not been deployed')
     default_code = 'deployment_does_not_exist'
-
-
-class PairedParentException(Exception):
-
-    def __init__(self,
-                 message=_('Parent is not set. '
-                           'Must call `asset.get_paired_data()` first')):
-        self.message = message
-        super().__init__(self.message)
 
 
 class ReadOnlyModelError(Exception):

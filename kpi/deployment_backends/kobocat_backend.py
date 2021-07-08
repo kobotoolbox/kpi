@@ -61,8 +61,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     ]
 
     SYNCED_DATA_FILE_TYPES = {
-        AssetFile.FORM_MEDIA: AssetFile.BACKEND_DATA_TYPE,
-        AssetFile.PAIRED_DATA: PairedData.BACKEND_DATA_TYPE,
+        AssetFile.FORM_MEDIA: 'media',
+        AssetFile.PAIRED_DATA: 'paired_data',
     }
 
     def bulk_assign_mapped_perms(self):
@@ -810,36 +810,37 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         queryset = self._get_metadata_queryset(file_type=file_type)
 
-        for obj in queryset:
+        for media_file in queryset:
 
-            uniq = obj.backend_uniqid
+            backend_media_id = media_file.backend_media_id
 
             # File does not exist in KC
-            if uniq not in kc_filenames:
-                if obj.deleted_at is None:
+            if backend_media_id not in kc_filenames:
+                if media_file.deleted_at is None:
                     # New file
-                    self.__save_kc_metadata(obj)
+                    self.__save_kc_metadata(media_file)
                 else:
                     # Orphan, delete it
-                    obj.delete(force=True)
+                    media_file.delete(force=True)
                 continue
 
             # Existing file
-            if uniq in kc_filenames:
-                kc_file = kc_files[uniq]
-                if obj.deleted_at is None:
+            if backend_media_id in kc_filenames:
+                kc_file = kc_files[backend_media_id]
+                if media_file.deleted_at is None:
                     # If md5 differs, we need to re-upload it.
-                    if obj.md5_hash != kc_file['md5']:
+                    if media_file.md5_hash != kc_file['md5']:
                         self.__delete_kc_metadata(kc_file)
-                        self.__save_kc_metadata(obj)
+                        self.__save_kc_metadata(media_file)
                 elif kc_file['from_kpi']:
-                    self.__delete_kc_metadata(kc_file, obj)
+                    self.__delete_kc_metadata(kc_file, media_file)
                 else:
                     # Remote file has been uploaded directly to KC. We
                     # cannot delete it, but we need to vacuum KPI.
-                    obj.delete(force=True)
-                    # Skip deletion of key corresponding to `uniq` in `kc_files`
-                    # to avoid unique constraint failure in case user deleted
+                    media_file.delete(force=True)
+                    # Skip deletion of key corresponding to `backend_media_id`
+                    # in `kc_files` to avoid unique constraint failure in case
+                    # user deleted
                     # and re-uploaded the same file in a row between
                     # two deployments
                     # Example:
@@ -855,7 +856,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 # Remove current filename from `kc_files`.
                 # All files which will remain in this dict (after this loop)
                 # will be considered obsolete and will be deleted
-                del kc_files[uniq]
+                del kc_files[backend_media_id]
 
         # Remove KC orphan files previously uploaded through KPI
         for kc_file in kc_files.values():
@@ -1226,9 +1227,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         kwargs = {
             'data': {
-                'data_value': file_.backend_data_value,
+                'data_value': file_.backend_media_id,
                 'xform': self.xform_id,
-                'data_type': file_.backend_data_type,
+                'data_type': self.SYNCED_DATA_FILE_TYPES[file_.file_type],
                 'from_kpi': True,
                 'data_filename': file_.filename,
                 'data_file_type': file_.mimetype,

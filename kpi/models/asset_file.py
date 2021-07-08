@@ -36,8 +36,6 @@ class AssetFile(models.Model,
     FORM_MEDIA = 'form_media'
     PAIRED_DATA = 'paired_data'
 
-    BACKEND_DATA_TYPE = 'media'
-
     TYPE_CHOICES = (
         (MAP_LAYER, MAP_LAYER),
         (FORM_MEDIA, FORM_MEDIA),
@@ -81,32 +79,14 @@ class AssetFile(models.Model,
     synced_with_backend = models.BooleanField(default=False)
 
     @property
-    def backend_data_value(self):
+    def backend_media_id(self):
         """
-        Implements `SyncBackendMediaInterface.backend_data_value()`
+        Implements `SyncBackendMediaInterface.backend_media_id()`
         """
         return (
             self.metadata['redirect_url']
             if self.is_remote_url
             else self.filename
-        )
-
-    @property
-    def backend_data_type(self):
-        """
-        Implements `SyncBackendMediaInterface.backend_data_type()`
-        """
-        return self.BACKEND_DATA_TYPE
-
-    @property
-    def backend_uniqid(self):
-        """
-        Implements `SyncBackendMediaInterface.backend_uniqid()`
-        """
-        return (
-            self.metadata['filename']
-            if not self.is_remote_url
-            else self.metadata['redirect_url']
         )
 
     def delete(self, using=None, keep_parents=False, force=False):

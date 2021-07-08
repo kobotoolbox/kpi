@@ -169,6 +169,8 @@ class KpiObjectPermissionsFilter:
 
         asset_ids = perms.values('asset')
 
+        # `SearchFilter` handles futher filtering to include only assets with
+        # `data_sharing__enabled` (`self.DATA_SHARING_PARAMETER`) set to true
         return queryset.filter(pk__in=asset_ids)
 
     def _get_discoverable(self, queryset):
@@ -256,7 +258,9 @@ class KpiObjectPermissionsFilter:
 
         if parent_obj.has_perm(get_anonymous_user(), PERM_DISCOVER_ASSET):
             self._return_queryset = True
-            return queryset.filter(pk__in=self._get_publics())
+            return queryset.filter(
+                pk__in=self._get_publics(), parent=parent_obj
+            )
 
         return queryset
 
