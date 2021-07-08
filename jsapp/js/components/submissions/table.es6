@@ -402,7 +402,7 @@ export class DataTable extends React.Component {
    * @param {object} newTableSettings - will be merged into current settings, overwriting any DATA_TABLE_SETTING properties
    */
   saveTableSettings(newTableSettings) {
-    // get whole asset settings
+    // get whole asset settings as clone to avoid bugs
     const newSettings = clonedeep(this.props.asset.settings);
 
     if (!newSettings[DATA_TABLE_SETTING]) {

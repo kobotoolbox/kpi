@@ -4,17 +4,22 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import Select from 'react-select';
 import autoBind from 'react-autobind';
+import clonedeep from 'lodash.clonedeep';
 import Checkbox from 'js/components/common/checkbox';
 import Radio from 'js/components/common/radio';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {notify} from 'utils';
-import {SUBMISSION_ACTIONS_ID} from 'js/components/submissions/tableConstants';
+import {
+  SUBMISSION_ACTIONS_ID,
+  DATA_TABLE_SETTING,
+  DATA_TABLE_SETTINGS,
+} from 'js/components/submissions/tableConstants';
 import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import './tableSettings.scss';
 
-export class TableSettings extends React.Component {
+class TableSettings extends React.Component {
   constructor(props){
     super(props);
     this.state = {
@@ -26,45 +31,50 @@ export class TableSettings extends React.Component {
     };
 
     let _sett = props.asset.settings;
-    if (_sett['data-table']) {
-      if (_sett['data-table']['selected-columns'] !== null) {
-        this.state.selectedColumns = _sett['data-table']['selected-columns'];
+    if (_sett[DATA_TABLE_SETTING]) {
+      if (_sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SELECTED_COLUMNS] !== null) {
+        this.state.selectedColumns = _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SELECTED_COLUMNS];
       }
-      if (typeof _sett['data-table']['frozen-column'] !== 'undefined') {
+      if (typeof _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.FROZEN_COLUMN] !== 'undefined') {
         const cols = this.listColumns();
-        this.state.frozenColumn = _.find(cols, (col) => col.value === _sett['data-table']['frozen-column']);
+        this.state.frozenColumn = _.find(cols, (col) => col.value === _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.FROZEN_COLUMN]);
       }
-      if (typeof _sett['data-table']['show-group-name'] !== 'undefined') {
-        this.state.showGroupName = _sett['data-table']['show-group-name'];
+      if (typeof _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
+        this.state.showGroupName = _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP];
       }
-      if (typeof _sett['data-table']['translation-index'] !== 'undefined') {
-        this.state.translationIndex = _sett['data-table']['translation-index'];
+      if (typeof _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
+        this.state.translationIndex = _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION];
       }
-      if (typeof _sett['data-table']['show-hxl-tags'] !== 'undefined') {
-        this.state.showHXLTags = _sett['data-table']['show-hxl-tags'];
+      if (typeof _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
+        this.state.showHXLTags = _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL];
       }
     }
 
     autoBind(this);
   }
+
   componentDidMount() {
-    this.listenTo(actions.table.updateSettings.failed, this.settingsUpdateFailed);
+    this.listenTo(actions.table.updateSettings.failed, this.onUpdateSettingsFailed);
   }
+
   saveTableColumns() {
     let s = this.state;
-    let settings = this.props.asset.settings;
-    if (!settings['data-table']) {
-      settings['data-table'] = {};
+
+    // get whole asset settings as clone to avoid bugs
+    const newSettings = clonedeep(this.props.asset.settings);
+
+    if (!newSettings[DATA_TABLE_SETTING]) {
+      newSettings[DATA_TABLE_SETTING] = {};
     }
 
     if (this.userCan('change_asset', this.props.asset)) {
-      settings['data-table']['selected-columns'] = s.selectedColumns.length > 0 ? s.selectedColumns : null;
-      settings['data-table']['frozen-column'] = s.frozenColumn.value;
-      settings['data-table']['show-group-name'] = s.showGroupName;
-      settings['data-table']['translation-index'] = s.translationIndex;
-      settings['data-table']['show-hxl-tags'] = s.showHXLTags;
+      newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = s.selectedColumns.length > 0 ? s.selectedColumns : null;
+      newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.FROZEN_COLUMN] = s.frozenColumn.value;
+      newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP] = s.showGroupName;
+      newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION] = s.translationIndex;
+      newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL] = s.showHXLTags;
 
-      actions.table.updateSettings(this.props.asset.uid, settings);
+      actions.table.updateSettings(this.props.asset.uid, newSettings);
     } else {
       // just update the state, since user cannot save settings
       let overrides = {
@@ -75,6 +85,7 @@ export class TableSettings extends React.Component {
       this.props.overrideLabelsAndGroups(overrides);
     }
   }
+
   toggleCheckboxChange(columnId) {
     const selectedColumns = this.state.selectedColumns;
     const idx = selectedColumns.indexOf(columnId);
@@ -87,29 +98,38 @@ export class TableSettings extends React.Component {
 
     this.setState({selectedColumns: selectedColumns});
   }
+
   setFrozenColumn(col) {
     this.setState({frozenColumn: col ? col : false});
   }
+
   updateGroupHeaderDisplay(isChecked) {
     this.setState({showGroupName: isChecked});
   }
+
   onHXLTagsChange(isChecked) {
     this.setState({showHXLTags: isChecked});
   }
+
   onLabelChange(name, value) {
     this.setState({translationIndex: parseInt(value)});
   }
-  settingsUpdateFailed() {
+
+  onUpdateSettingsFailed() {
     notify(t('There was an error, table settings could not be saved.'));
   }
+
   resetTableSettings() {
-    let settings = this.props.asset.settings;
-    if (settings['data-table']) {
-      delete settings['data-table'];
+    // get whole asset settings as clone to avoid bugs
+    const newSettings = clonedeep(this.props.asset.settings);
+
+    if (newSettings[DATA_TABLE_SETTING]) {
+      delete newSettings[DATA_TABLE_SETTING];
     }
 
-    actions.table.updateSettings(this.props.asset.uid, settings);
+    actions.table.updateSettings(this.props.asset.uid, newSettings);
   }
+
   listColumns() {
     let colsArray = this.props.columns.reduce((acc, col) => {
       if (col.id && col.id !== SUBMISSION_ACTIONS_ID) {
@@ -135,6 +155,7 @@ export class TableSettings extends React.Component {
 
     return colsArray;
   }
+
   getDisplayedLabelOptions() {
     const options = [];
     options.push({
@@ -153,6 +174,7 @@ export class TableSettings extends React.Component {
     });
     return options;
   }
+
   render() {
     let _this = this;
 
