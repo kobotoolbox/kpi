@@ -26,6 +26,9 @@ class PairedData(OpenRosaManifestInterface,
     # - `SyncBackendMediaInterface.filename()`
     filename = None
 
+    # `file_type` implements `SyncBackendMediaInterface.file_type()`
+    file_type = 'paired_data'
+
     def __init__(
         self,
         source_asset_or_uid: Union['kpi.models.Asset', str],
