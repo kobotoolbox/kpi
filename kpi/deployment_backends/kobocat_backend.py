@@ -342,7 +342,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             perm=PERM_DELETE_SUBMISSIONS,
             submission_ids=[submission_id]
         )
-
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
         headers = {}
@@ -1133,7 +1132,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :param params: dict. Filter params
         :return: generator<JSON>
         """
-
         instances, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params)
 
