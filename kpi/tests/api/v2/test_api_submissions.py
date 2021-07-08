@@ -16,7 +16,6 @@ from kpi.constants import (
     PERM_CHANGE_ASSET,
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
-    PERM_ADD_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
@@ -632,14 +631,12 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
-        self.submission = self.submissions[0]
+        self.submission = self.get_random_submission(self.asset.owner)
         self.submission_url = reverse(
             'submission-enketo-view',
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.submission.get(
-                    self.asset.deployment.SUBMISSION_ID_FIELDNAME
-                ),
+                'pk': self.submission['_id'],
                 'action': 'view'
             },
         )
@@ -649,8 +646,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': 'http://server.mock/enketo/{}'.format(self.submission.get(
-                self.asset.deployment.SUBMISSION_ID_FIELDNAME))
+            'url': 'http://server.mock/enketo/{}'.format(self.submission['_id'])
         }
         assert response.data == expected_response
 
