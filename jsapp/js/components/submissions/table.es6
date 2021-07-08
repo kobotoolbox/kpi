@@ -37,6 +37,7 @@ import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
 import TableColumnSortDropdown from 'js/components/submissions/tableColumnSortDropdown';
 import {
+  SORT_VALUES,
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
@@ -118,9 +119,10 @@ export class DataTable extends React.Component {
   fetchSubmissions(instance) {
     let pageSize = instance.state.pageSize;
     let page = instance.state.page * instance.state.pageSize;
-    let sort = instance.state.sorted;
     let filter = instance.state.filtered;
     let filterQuery = '';
+    // sort comes from outside react-table
+    let sort = [];
 
     if (filter.length) {
       filterQuery = '&query={';
@@ -141,6 +143,13 @@ export class DataTable extends React.Component {
         }
       });
       filterQuery += '}';
+    }
+
+    if (this.state.sortOption !== null) {
+      sort.push({
+        id: this.state.sortOption.fieldId,
+        desc: this.state.sortOption.value === SORT_VALUES.Z_TO_A,
+      });
     }
 
     actions.submissions.getSubmissions({
@@ -305,18 +314,16 @@ export class DataTable extends React.Component {
    * @param {string|null} sortValue one of SORT_VALUES or null for clear value
    */
   onFieldSortChange(fieldId, sortValue) {
-    if (sortValue === null) {
-      this.setState({sortOption: null});
-    } else {
-      this.setState({
-        sortOption: {
-          fieldId: fieldId,
-          value: sortValue,
-        },
-      });
+    let newSortOption = null;
+    if (sortValue !== null) {
+      newSortOption = {
+        fieldId: fieldId,
+        value: sortValue,
+      };
     }
 
-    // TODO this change should cause new data fetch
+    // after the state is set, get fresh submissions
+    this.setState({sortOption: newSortOption}, this.refreshSubmissions);
   }
 
   onHideField(fieldId) {
