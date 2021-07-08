@@ -63,7 +63,7 @@ export class DataTable extends React.Component {
       isFullscreen: false,
       pageSize: 30,
       currentPage: 0,
-      sortValue: null,
+      sortOption: null,
       error: false,
       showLabels: true,
       translationIndex: 0,
@@ -111,7 +111,7 @@ export class DataTable extends React.Component {
   }
 
   /**
-   * Makes call to endpoint to get new data
+   * Makes call to endpoint to get new submissions data
    *
    * @param {object} instance
    */
@@ -153,8 +153,12 @@ export class DataTable extends React.Component {
     });
   }
 
-  onGetSubmissionsCompleted(data, options) {
-    let results = data.results;
+  /**
+   * @param {object} response
+   * @param {object} options - the parameters that the call was made with
+   */
+  onGetSubmissionsCompleted(response, options) {
+    let results = response.results;
 
     if (results && results.length > 0) {
       if (this.state.submissionPager === 'next') {
@@ -169,10 +173,12 @@ export class DataTable extends React.Component {
         selectAll: false,
         tableData: results,
         submissionPager: false,
-        resultsTotal: data.count,
+        resultsTotal: response.count,
       });
       this._prepColumns(results);
     } else if (options.filter.length) {
+      // if there are no results, but there is some filtering applied, we don't
+      // want to display the "no data" message
       this.setState({
         loading: false,
         selectedRows: {},
@@ -232,8 +238,11 @@ export class DataTable extends React.Component {
     }
   }
 
+  /**
+   * @returns {string|null} the current frozen column
+   */
   getFrozenColumn() {
-    let frozenColumn = false;
+    let frozenColumn = null;
     const settings = this.props.asset.settings;
     if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.FROZEN_COLUMN]) {
       frozenColumn = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.FROZEN_COLUMN];
@@ -241,13 +250,17 @@ export class DataTable extends React.Component {
     return frozenColumn;
   }
 
+  /**
+   * @param {string} fieldId
+   * @returns {string|null} null for no option, or one of SORT_VALUES
+   */
   getFieldSortValue(fieldId) {
-    if (this.state.sortValue === null) {
+    if (this.state.sortOption === null) {
       return null;
     }
 
-    if (this.state.sortValue?.fieldId === fieldId) {
-      return this.state.sortValue.value;
+    if (this.state.sortOption?.fieldId === fieldId) {
+      return this.state.sortOption.value;
     }
   }
 
@@ -293,10 +306,10 @@ export class DataTable extends React.Component {
    */
   onFieldSortChange(fieldId, sortValue) {
     if (sortValue === null) {
-      this.setState({sortValue: null});
+      this.setState({sortOption: null});
     } else {
       this.setState({
-        sortValue: {
+        sortOption: {
           fieldId: fieldId,
           value: sortValue,
         },
