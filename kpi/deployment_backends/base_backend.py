@@ -343,6 +343,7 @@ class BaseDeploymentBackend(abc.ABC):
         fields = kwargs.get('fields', [])
         query = kwargs.get('query', {})
         submission_ids = kwargs.get('submission_ids', [])
+        skip_count = kwargs.get('skip_count', False)
 
         # TODO: Should this validation be in (or called directly by) the view
         # code? Does DRF have a validator for GET params?
@@ -413,7 +414,8 @@ class BaseDeploymentBackend(abc.ABC):
             'fields': fields,
             'sort': sort,
             'submission_ids': submission_ids,
-            'permission_filters': permission_filters
+            'permission_filters': permission_filters,
+            'skip_count': skip_count,
         }
 
         if limit:
@@ -454,6 +456,7 @@ class BaseDeploymentBackend(abc.ABC):
                 user=user,
                 partial_perm=perm,
                 fields=['_id'],
+                skip_count=True,
             )
             allowed_submission_ids = [r['_id'] for r in all_submissions]
 
@@ -473,6 +476,7 @@ class BaseDeploymentBackend(abc.ABC):
             fields=['_id'],
             submission_ids=submission_ids,
             query=query,
+            skip_count=True,
         )
 
         requested_submission_ids = [
