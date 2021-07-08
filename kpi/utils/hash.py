@@ -66,10 +66,17 @@ def get_hash(source: Union[str, bytes, BinaryIO],
                 # With `stream=True`, the connection is kept alive until it is
                 # closed or all the data is consumed. Because, we do not consume
                 # the data, we have to close the connexion manually.
-                response.close()
+                try:
+                    response.close()
+                except UnboundLocalError:
+                    pass
                 return _prefix_hash(hex_digest=url_hash)
+            try:
+                file_size = int(response.headers['Content-Length'])
+            except KeyError:
+                file_size = 0
+                fast = True
 
-            file_size = int(response.headers['Content-Length'])
             # If the remote file is smaller than the threshold or smaller than
             # 3 times the chunk, we retrieve the whole file to avoid extra
             # requests.
@@ -84,6 +91,11 @@ def get_hash(source: Union[str, bytes, BinaryIO],
                 # closed or all the data is consumed. Because, we do not consume
                 # the data, we have to close the connexion manually.
                 response.close()
+
+                # If file_size is empty, do not go further as we will probably
+                # not be able to get file by chunk
+                if not file_size:
+                    return _prefix_hash(hex_digest=url_hash)
 
                 # We fetch 3 parts of the file.
                 # - One chunk at the beginning
@@ -104,7 +116,10 @@ def get_hash(source: Union[str, bytes, BinaryIO],
                     response = requests.get(source, stream=True, headers=headers)
                     response.raise_for_status()
                 except requests.exceptions.RequestException:
-                    response.close()
+                    try:
+                        response.close()
+                    except UnboundLocalError:
+                        pass
                     return _prefix_hash(hex_digest=url_hash)
                 else:
                     if response.status_code != status.HTTP_206_PARTIAL_CONTENT:
