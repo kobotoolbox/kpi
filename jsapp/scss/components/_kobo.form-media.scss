@@ -5,6 +5,10 @@
 .form-media {
   padding: 30px 40px;
 
+  .form-view__cell--warning {
+    margin-bottom: 24px;
+  }
+
   .form-media__title {
     display: inline-block;
     position: relative;

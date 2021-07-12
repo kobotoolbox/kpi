@@ -8,6 +8,11 @@ import {
   META_QUESTION_TYPES,
 } from 'js/constants';
 
+bem.TableMediaPreview = bem('table-media-preview');
+bem.TableMediaPreview__image = bem.TableMediaPreview.__('image', '<img>');
+bem.TableMediaPreview__audio = bem.TableMediaPreview.__('audio', '<div>');
+bem.TableMediaPreview__video = bem.TableMediaPreview.__('video', '<video>');
+
 
 class TableMediaPreview extends React.Component {
   constructor(props) {
@@ -31,16 +36,13 @@ class TableMediaPreview extends React.Component {
       case QUESTION_TYPES.audio.id:
       case META_QUESTION_TYPES['background-audio']:
         return (
-          // TODO: make our own audio player with options for here and in place
-          // of bem.BackgroundAudioPlayer
-          //<audio
-          //  src={this.props?.mediaURL}
-          //  controls
-          //  autoPlay
-          ///>
-          <AudioPlayer
-            mediaURL={this.props?.mediaURL}
-          />
+          <bem.TableMediaPreview__audio>
+            <i className='k-icon k-icon-qt-audio'/>
+
+            <AudioPlayer
+              mediaURL={this.props?.mediaURL}
+            />
+          </bem.TableMediaPreview__audio>
         );
       case QUESTION_TYPES.video.id:
         return (
