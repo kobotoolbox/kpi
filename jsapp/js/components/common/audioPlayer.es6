@@ -99,6 +99,7 @@ class AudioPlayer extends React.Component {
         <bem.AudioPlayer__controls>
           {this.state.isPlaying && (
             <i
+              // TODO: Change this icon to pause.svg
               className='k-icon k-icon-qt-area'
               onClick={this.onPlayStatusChange}
             />
@@ -106,6 +107,7 @@ class AudioPlayer extends React.Component {
 
           {!this.state.isPlaying && (
             <i
+              // TODO: Change this icon to arrow_right.svg
               className='k-icon k-icon-caret-right'
               onClick={this.onPlayStatusChange}
             />
