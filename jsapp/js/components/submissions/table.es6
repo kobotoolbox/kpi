@@ -1091,9 +1091,6 @@ export class DataTable extends React.Component {
   }
   renderMediaCell(questionType, mediaURL, mediaName) {
     const iconClassNames = ['k-icon'];
-    // TODO: figure out duration stuff, right now just show a time
-    // let playableMedia = new Audio(mediaURL);
-    const tempTime = '01:23:45';
 
     // Different from renderQuestionTypeIcon as we need custom `title` and
     // event handling
@@ -1123,10 +1120,13 @@ export class DataTable extends React.Component {
           }
         />
 
-        {!(questionType === QUESTION_TYPES.image.id) &&
+        {/*
+          TODO: backend needs to store metadata to get duration, see kpi#3304
+          !(questionType === QUESTION_TYPES.image.id) &&
           <bem.MediaCell__duration>
             {tempTime}
           </bem.MediaCell__duration>
+          */
         }
       </bem.MediaCell>
     );
