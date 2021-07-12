@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
@@ -8,10 +7,12 @@ import Checkbox from 'js/components/common/checkbox';
 import ui from '../ui';
 import {bem} from '../bem';
 import {actions} from '../actions';
-import {dataInterface} from '../dataInterface';
 import {searches} from '../searches';
 import {stores} from '../stores';
-import {ACCESS_TYPES} from 'js/constants';
+import {
+  ASSET_TYPES,
+  ACCESS_TYPES,
+} from 'js/constants';
 
 export class ListSearch extends React.Component {
   constructor(props) {
@@ -19,19 +20,23 @@ export class ListSearch extends React.Component {
     this.state = {};
     autoBind(this);
   }
-  componentDidMount () {
+
+  componentDidMount() {
     this.listenTo(this.searchStore, this.searchStoreChanged);
   }
-  searchStoreChanged (searchStoreState) {
+
+  searchStoreChanged(searchStoreState) {
     if (searchStoreState.cleared) {
       this.refs['formlist-search'].setValue('');
     }
     this.setState(searchStoreState);
   }
+
   getValue() {
     return this.refs['formlist-search'].getValue();
   }
-  render () {
+
+  render() {
     return (
       <bem.Search m={[this.state.searchState]} >
         <bem.Search__icon className='k-icon k-icon-search'/>
@@ -46,11 +51,11 @@ export class ListSearch extends React.Component {
       </bem.Search>
     );
   }
-};
+}
 
 ListSearch.defaultProps = {
   searchContext: 'default',
-  placeholderText: t('Search...')
+  placeholderText: t('Search...'),
 };
 
 reactMixin(ListSearch.prototype, searches.common);
@@ -65,53 +70,51 @@ export class ListTagFilter extends React.Component {
     };
     autoBind(this);
   }
-  componentDidMount () {
+
+  componentDidMount() {
     this.listenTo(stores.tags, this.tagsLoaded);
     this.listenTo(this.searchStore, this.searchStoreChanged);
     actions.resources.listTags(this.searchStore.filterTagQueryData);
   }
-  searchStoreChanged (searchStoreState) {
+
+  searchStoreChanged(searchStoreState) {
     if (searchStoreState.cleared) {
       // re-render to remove tags if the search was cleared
       this.setState(searchStoreState);
-    } else {
-      if (searchStoreState.searchTags) {
-        let tags = null;
-        if (searchStoreState.searchTags.length !== 0) {
-          tags = searchStoreState.searchTags;
-        }
-        this.setState({
-          selectedTags: tags
-        });
+    } else if (searchStoreState.searchTags) {
+      let tags = null;
+      if (searchStoreState.searchTags.length !== 0) {
+        tags = searchStoreState.searchTags;
       }
+      this.setState({selectedTags: tags});
     }
-
   }
-  tagsLoaded (tags) {
+
+  tagsLoaded(tags) {
     this.setState({
       tagsLoaded: true,
-      availableTags: tags.map(function(tag){
-        return {
-          label: tag.name,
-          value: tag.name.replace(/\s/g, '-'),
-        };
-      }),
-      selectedTags: null
+      availableTags: tags.map((tag) => ({
+        label: tag.name,
+        value: tag.name.replace(/\s/g, '-'),
+      })),
+      selectedTags: null,
     });
   }
-  onTagsChange (tagsList) {
+
+  onTagsChange(tagsList) {
     this.searchTagsChange(tagsList);
   }
-  render () {
+
+  render() {
     return (
       <bem.tagSelect>
         <Select
           name='tags'
           isMulti
           isLoading={!this.state.tagsLoaded}
-          loadingMessage={() => {return t('Tags are loading...')}}
+          loadingMessage={t('Tags are loading...')}
           placeholder={t('Search Tags')}
-          noOptionsMessage={() => {return t('No results found')}}
+          noOptionsMessage={t('No results found')}
           options={this.state.availableTags}
           onChange={this.onTagsChange}
           className={[this.props.hidden ? 'hidden' : null, 'kobo-select'].join(' ')}
@@ -122,7 +125,7 @@ export class ListTagFilter extends React.Component {
       </bem.tagSelect>
     );
   }
-};
+}
 
 ListTagFilter.defaultProps = {
   searchContext: 'default',
@@ -221,6 +224,9 @@ ListCollectionFilter.defaultProps = {
 reactMixin(ListCollectionFilter.prototype, searches.common);
 reactMixin(ListCollectionFilter.prototype, Reflux.ListenerMixin);
 
+/**
+ * Component used in Form Builder's aside library search.
+ */
 export class ListExpandToggle extends React.Component {
   constructor(props) {
     super(props);
@@ -244,15 +250,25 @@ export class ListExpandToggle extends React.Component {
   }
 
   render() {
-    let count = this.state.defaultQueryCount;
-    if (this.state.searchResultsDisplayed) {
-      count = this.state.searchResultsCount;
+    let list = [];
+    const isSearch = this.state.searchResultsDisplayed;
+
+    if (isSearch && Array.isArray(this.state.searchResultsList)) {
+      list = this.state.searchResultsList;
+    } else if (Array.isArray(this.state.defaultQueryResultsList)) {
+      list = this.state.defaultQueryResultsList;
     }
+
+    // Make sure the list contains only actual library items before diplaying the count.
+    list = list.filter((item) => (
+      item.asset_type === ASSET_TYPES.question.id ||
+      item.asset_type === ASSET_TYPES.block.id
+    ));
 
     return (
       <bem.LibNav__expanded className={{hidden: this.props.hidden}}>
         <bem.LibNav__count>
-          {count} {t('assets found')}
+          {list.length} {t('assets found')}
         </bem.LibNav__count>
         <bem.LibNav__expandedToggle>
           <Checkbox
