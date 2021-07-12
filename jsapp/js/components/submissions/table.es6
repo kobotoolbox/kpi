@@ -24,6 +24,7 @@ import {
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
   NUMERICAL_SUBMISSION_PROPS,
+  ENKETO_ACTIONS,
 } from 'js/constants';
 import {formatTimeDate} from 'utils';
 import {
@@ -259,15 +260,22 @@ export class DataTable extends React.Component {
       this.userCan('change_submissions', this.props.asset)
     );
 
-    if (
+    let userCanSeeCheckbox = (
       this.userCan('validate_submissions', this.props.asset) ||
       this.userCan('delete_submissions', this.props.asset) ||
       this.userCan('change_submissions', this.props.asset)
+    );
+
+    if (
+      this.userCan('validate_submissions', this.props.asset) ||
+      this.userCan('delete_submissions', this.props.asset) ||
+      this.userCan('change_submissions', this.props.asset) ||
+      this.userCan('view_submissions', this.props.asset)
     ) {
       const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
       const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
 
-      // To accommodate the checkbox and icon buttons.
+      // To accommodate the checkbox, icon buttons and header text.
       let columnWidth = 100;
       if (this.state.resultsTotal >= 100000) {
         // Whenever there are more results we need a bit more space for
@@ -284,14 +292,16 @@ export class DataTable extends React.Component {
               <strong>{this.state.resultsTotal} {t('results')}</strong>
             </div>
 
-            <TableBulkCheckbox
-              visibleRowsCount={maxPageRes}
-              selectedRowsCount={Object.keys(this.state.selectedRows).length}
-              totalRowsCount={this.state.resultsTotal}
-              onSelectAllPages={this.bulkSelectAll}
-              onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
-              onClearSelection={this.bulkClearSelection}
-            />
+            {userCanSeeCheckbox &&
+              <TableBulkCheckbox
+                visibleRowsCount={maxPageRes}
+                selectedRowsCount={Object.keys(this.state.selectedRows).length}
+                totalRowsCount={this.state.resultsTotal}
+                onSelectAllPages={this.bulkSelectAll}
+                onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
+                onClearSelection={this.bulkClearSelection}
+              />
+            }
           </div>
         ),
         accessor: 'sub-actions',
@@ -305,10 +315,12 @@ export class DataTable extends React.Component {
         className: 'rt-sub-actions',
         Cell: (row) => (
           <div className='table-submission-actions'>
-            <Checkbox
-              checked={this.state.selectedRows[row.original._id] ? true : false}
-              onChange={this.bulkUpdateChange.bind(this, row.original._id)}
-            />
+            {userCanSeeCheckbox &&
+              <Checkbox
+                checked={this.state.selectedRows[row.original._id] ? true : false}
+                onChange={this.bulkUpdateChange.bind(this, row.original._id)}
+              />
+            }
 
             <button
               onClick={this.launchSubmissionModal.bind(this, row)}
@@ -408,10 +420,17 @@ export class DataTable extends React.Component {
     }
 
     // define the columns array
-    const columns = [
-      this._getColumnSubmissionActions(maxPageRes),
-      this._getColumnValidation(),
-    ];
+    const columns = [];
+
+    const columnSubmissionActions = this._getColumnSubmissionActions(maxPageRes);
+    if (columnSubmissionActions) {
+      columns.push(columnSubmissionActions);
+    }
+
+    const columnValidation = this._getColumnValidation();
+    if (columnValidation) {
+      columns.push(columnValidation);
+    }
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
@@ -891,7 +910,10 @@ export class DataTable extends React.Component {
     });
   }
   launchEditSubmission(evt) {
-    enketoHandler.editSubmission(this.props.asset.uid, evt.currentTarget.dataset.sid);
+    enketoHandler.openSubmission(
+      this.props.asset.uid,
+      evt.currentTarget.dataset.sid,
+      ENKETO_ACTIONS.edit);
   }
   onPageStateUpdated(pageState) {
     if (!pageState.modal) {
