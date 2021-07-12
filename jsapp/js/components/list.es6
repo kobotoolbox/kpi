@@ -256,55 +256,9 @@ ListExpandToggle.defaultProps = {
 reactMixin(ListExpandToggle.prototype, searches.common);
 reactMixin(ListExpandToggle.prototype, Reflux.ListenerMixin);
 
-export class ListSearchDebug extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {};
-    autoBind(this);
-  }
-  componentDidMount () {
-    this.listenTo(this.searchStore, this.searchStoreChanged);
-  }
-  searchStoreChanged (searchStoreState) {
-    this.setState(searchStoreState);
-  }
-  render () {
-    var searchResultsSuccess = this.state.searchResultsSuccess,
-        searchDebugQuery = this.state.searchDebugQuery;
-
-    return (
-            <bem.CollectionNav__searchcriteria>
-              <bem.CollectionNav__searchcriterion m={{
-                success: searchResultsSuccess
-                  }}>
-                {t('success')}
-                {this.state.searchResultsSuccess ? t('yes') : t('no')}
-              </bem.CollectionNav__searchcriterion>
-              <bem.CollectionNav__searchcriterion>
-                {t('count')}
-                {this.state.searchResultsCount}
-              </bem.CollectionNav__searchcriterion>
-              { searchDebugQuery ?
-                <bem.CollectionNav__searchcriterion m={'code'}>
-                  {searchDebugQuery}
-                </bem.CollectionNav__searchcriterion>
-              : null}
-            </bem.CollectionNav__searchcriteria>
-        );
-  }
-};
-
-ListSearchDebug.defaultProps = {
-  searchContext: 'default',
-};
-
-reactMixin(ListSearchDebug.prototype, searches.common);
-reactMixin(ListSearchDebug.prototype, Reflux.ListenerMixin);
-
 export const list = {
   // List: List,
   ListSearch: ListSearch,
-  ListSearchDebug: ListSearchDebug,
   ListTagFilter: ListTagFilter,
   ListCollectionFilter: ListCollectionFilter,
   ListExpandToggle: ListExpandToggle,
