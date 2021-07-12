@@ -161,10 +161,6 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         asset_file = self.get_object()
 
-        # We do not allow paired data to be retrieve through this endpoint
-        if asset_file.file_type == AssetFile.PAIRED_DATA:
-            return Http404
-
         if asset_file.metadata.get('redirect_url'):
             return HttpResponseRedirect(asset_file.metadata.get('redirect_url'))
 

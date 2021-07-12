@@ -113,6 +113,10 @@ class PairedData(OpenRosaManifestInterface,
         """
         return None
 
+    @property
+    def file_type(self):
+        return 'paired_data'
+
     def generate_hash(self):
         # It generates the hash based on the related AssetFile content.
         # If the file does not exist yet, the hash is randomly generated with

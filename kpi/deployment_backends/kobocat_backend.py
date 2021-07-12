@@ -1241,7 +1241,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             kwargs['files'] = {
                 'data_file': (
                     file_.filename,
-                    file_.content.file.read(),
+                    file_.content.file,
                     file_.mimetype,
                 )
             }

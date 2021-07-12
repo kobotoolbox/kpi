@@ -153,6 +153,7 @@ class KpiObjectPermissionsFilter:
         if not data_sharing:  # No reason to be False, but just in case
             return queryset
 
+        self._return_queryset = True
         required_perm_ids = get_perm_ids_from_code_names(
             [PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS]
         )
@@ -169,7 +170,7 @@ class KpiObjectPermissionsFilter:
 
         asset_ids = perms.values('asset')
 
-        # `SearchFilter` handles futher filtering to include only assets with
+        # `SearchFilter` handles further filtering to include only assets with
         # `data_sharing__enabled` (`self.DATA_SHARING_PARAMETER`) set to true
         return queryset.filter(pk__in=asset_ids)
 

@@ -550,10 +550,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         return metadata
 
-    def get_object(self):
-        self.asset = super().get_object()
-        return self.asset
-
     def get_paginated_response(self, data, metadata):
         """
         Override parent `get_paginated_response` response to include `metadata`

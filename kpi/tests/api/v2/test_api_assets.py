@@ -621,7 +621,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.patch(self.asset_url,
                                      data=payload,
                                      format='json')
-        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue('writable_jsonfield' in response.data['data_sharing'])
         self.assertTrue('Unable to parse JSON' in response.data['data_sharing']['writable_jsonfield'])  # noqa
 
@@ -634,7 +634,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.patch(self.asset_url,
                                      data=payload,
                                      format='json')
-        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         errors = {
             'enabled': 'The property is required',
             'fields': 'The property must be list',
@@ -652,8 +652,8 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.patch(self.asset_url,
                                      data=payload,
                                      format='json')
-        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(len(list(response.data['data_sharing'])), 1)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(list(response.data['data_sharing'])), 1)
         self.assertTrue(
             response.data['data_sharing']['fields'].startswith(
                 'Some fields are invalid'
@@ -692,7 +692,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.patch(self.asset_url,
                                      data=payload,
                                      format='json')
-        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.asset.refresh_from_db()
         data_sharing = self.asset.data_sharing
         self.assertEqual(data_sharing, response.data['data_sharing'])

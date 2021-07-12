@@ -145,7 +145,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >       }
     >
 
-    ### Delete a project
+    ### Unlink a project
 
     <pre class="prettyprint">
     <b>DELETE</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/{paired_data_uid}/
@@ -203,10 +203,8 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
 
             raise Http404
 
-        if not self.asset.has_deployment:
-            raise ObjectDeploymentDoesNotExist(
-                _('The specified asset has not been deployed')
-            )
+        if not source_asset.has_deployment or not self.asset.has_deployment:
+            raise Http404
 
         # Retrieve data from related asset file.
         # If data has already been fetched once, an `AssetFile` should exist.

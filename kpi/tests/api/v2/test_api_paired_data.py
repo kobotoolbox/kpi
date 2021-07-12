@@ -115,7 +115,7 @@ class BasePairedDataTestCase(BaseAssetTestCase):
         """
         Trivial case:
             - anotheruser tries to link their form `self.destination_asset`
-              with sometuser's asset `self.source_asset`.
+              with someuser's asset `self.source_asset`.
             - `POST` request is made with anotheruser's account
 
         Custom case:
@@ -307,47 +307,45 @@ class PairedDataDetailApiTests(BasePairedDataTestCase):
 
         # anotheruser pairs data with someuser's form
         paired_data_response = self.paired_data()
-        self.paired_data_detail_url = paired_data_response.data['url']
+        # Force JSON type
+        self.paired_data_detail_url = f"{paired_data_response.data['url'].rstrip('/')}.json"
 
     def test_read_paired_data_owner(self):
         response = self.client.get(self.paired_data_detail_url)
-        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_read_paired_data_other_user(self):
         self.login_as_other_user('quidam', 'quidam')
         response = self.client.get(self.paired_data_detail_url)
-        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         self.destination_asset.assign_perm(self.quidam, PERM_VIEW_ASSET)
         response = self.client.get(self.paired_data_detail_url)
-        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_read_paired_data_anonymous(self):
         self.client.logout()
         response = self.client.get(self.paired_data_detail_url)
-        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_paired_data(self):
-        response = self.client.get(self.paired_data_detail_url)
-        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.delete(self.paired_data_detail_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_paired_data_other_user(self):
         self.login_as_other_user('quidam', 'quidam')
-        response = self.client.get(self.paired_data_detail_url)
-        self.assertTrue(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.delete(self.paired_data_detail_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+        # Editors can link/unlink source
         self.destination_asset.assign_perm(self.quidam, PERM_CHANGE_ASSET)
-        response = self.client.get(self.paired_data_detail_url)
-        self.assertTrue(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        self.destination_asset.assign_perm(self.quidam, PERM_MANAGE_ASSET)
-        response = self.client.get(self.paired_data_detail_url)
-        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        response = self.client.delete(self.paired_data_detail_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_paired_data_anonymous(self):
         self.client.logout()
-        response = self.client.get(self.paired_data_detail_url)
-        self.assertTrue(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.delete(self.paired_data_detail_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class PairedDataExternalApiTests(BasePairedDataTestCase):
@@ -366,10 +364,8 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         self.external_xml_url = f'{self.paired_data_detail_url}external.xml'
 
     def test_get_external_with_not_deployed_source(self):
-        with self.assertRaises(DeploymentNotFound):
-            response = self.client.get(self.external_xml_url)
-            self.assertEqual(response.status_code,
-                             status.HTTP_500_INTERNAL_SERVER_ERROR)
+        response = self.client.get(self.external_xml_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_external_with_auth_on(self):
         self.deploy_source()
