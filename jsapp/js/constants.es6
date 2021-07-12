@@ -297,6 +297,7 @@ export const ACCESS_TYPES = createEnum([
   'shared',
   'public',
   'subscribed',
+  'superuser',
 ]);
 
 export const GROUP_TYPES_BEGIN = createEnum([

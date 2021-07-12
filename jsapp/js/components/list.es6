@@ -139,47 +139,61 @@ export class ListCollectionFilter extends React.Component {
       availableCollections: [],
       collectionsLoaded: false,
     };
+    this.unlisteners = [];
     autoBind(this);
   }
-  componentDidMount () {
+
+  componentDidMount() {
+    this.unlisteners.push(
+      actions.library.getCollections.completed.listen(this.onGetCollectionsCompleted)
+    );
     this.queryCollections();
   }
-  queryCollections () {
-    dataInterface.getCollections().then((collections)=>{
-      var availableCollections = collections.results.filter((value) => {
-        return (
-          value.access_types &&
-          !value.access_types.includes(ACCESS_TYPES.public)
-        );
-      });
 
-      this.setState({
-        collectionsLoaded: true,
-        availableCollections: availableCollections.map(function(collection){
-          return {
-            label: collection.name,
-            value: collection.uid,
-          };
-        }),
-        selectedCollection: false
-      });
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
 
+  onGetCollectionsCompleted(collections) {
+    const availableCollections = collections.results.filter((value) => (
+      value.access_types &&
+      (
+        // NOTE: asset can have multiple access types, e.g. "public" and "subscribed",
+        // so we need to check for each allowed one here
+        value.access_types.includes(ACCESS_TYPES.owned) ||
+        value.access_types.includes(ACCESS_TYPES.shared) ||
+        value.access_types.includes(ACCESS_TYPES.subscribed) ||
+        value.access_types.includes(ACCESS_TYPES.superuser)
+      )
+    ));
+
+    this.setState({
+      collectionsLoaded: true,
+      availableCollections: availableCollections.map((collection) => {
+        return {
+          label: collection.name,
+          value: collection.uid,
+        };
+      }),
+      selectedCollection: false,
     });
   }
-  onCollectionChange (evt) {
+
+  queryCollections() {
+    actions.library.getCollections();
+  }
+
+  onCollectionChange(evt) {
     if (evt) {
       this.searchCollectionChange(evt.value);
-      this.setState({
-        selectedCollection: evt
-      });
+      this.setState({selectedCollection: evt});
     } else {
       this.searchClear();
-      this.setState({
-        selectedCollection: false
-      });
+      this.setState({selectedCollection: false});
     }
   }
-  render () {
+
+  render() {
     return (
       <bem.collectionFilter>
         <Select
@@ -187,7 +201,7 @@ export class ListCollectionFilter extends React.Component {
           placeholder={t('Select Collection Name')}
           isClearable
           isLoading={!this.state.collectionsLoaded}
-          loadingMessage={() => {return t('Collections are loading...');}}
+          loadingMessage={t('Collections are loading...')}
           options={this.state.availableCollections}
           onChange={this.onCollectionChange}
           value={this.state.selectedCollection}
@@ -198,7 +212,7 @@ export class ListCollectionFilter extends React.Component {
       </bem.collectionFilter>
     );
   }
-};
+}
 
 ListCollectionFilter.defaultProps = {
   searchContext: 'default',
@@ -211,21 +225,25 @@ export class ListExpandToggle extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      assetNavExpanded: stores.pageState.state.assetNavExpanded
+      assetNavExpanded: stores.pageState.state.assetNavExpanded,
     };
     autoBind(this);
   }
-  componentDidMount () {
+
+  componentDidMount() {
     this.listenTo(this.searchStore, this.searchStoreChanged);
   }
-  searchStoreChanged (searchStoreState) {
+
+  searchStoreChanged(searchStoreState) {
     this.setState(searchStoreState);
   }
-  onExpandedToggleChange (isChecked) {
+
+  onExpandedToggleChange(isChecked) {
     stores.pageState.setState({assetNavExpanded: isChecked});
     this.setState({assetNavExpanded: isChecked});
   }
-  render () {
+
+  render() {
     let count = this.state.defaultQueryCount;
     if (this.state.searchResultsDisplayed) {
       count = this.state.searchResultsCount;
@@ -246,7 +264,7 @@ export class ListExpandToggle extends React.Component {
       </bem.LibNav__expanded>
       );
   }
-};
+}
 
 ListExpandToggle.defaultProps = {
   searchContext: 'default',
