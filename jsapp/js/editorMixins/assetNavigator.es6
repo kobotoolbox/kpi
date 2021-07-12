@@ -9,13 +9,13 @@ import {searches} from '../searches';
 import ui from '../ui';
 import {
   COMMON_QUERIES,
-  ASSET_TYPES
+  ASSET_TYPES,
 } from '../constants';
 import {
   ListSearch,
   ListTagFilter,
   ListCollectionFilter,
-  ListExpandToggle
+  ListExpandToggle,
 } from '../components/list';
 
 class AssetNavigatorListView extends React.Component {
@@ -110,7 +110,7 @@ class AssetNavigatorListView extends React.Component {
 
       return (
         <bem.LibList m={['done', isSearch ? 'search' : 'default']} ref='liblist'>
-          {list.map((item)=> {
+          {list.map((item) => {
             var modifiers = [item.asset_type];
             var summ = item.summary;
             return (
@@ -161,46 +161,50 @@ class AssetNavigator extends Reflux.Component {
       imports: [],
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: COMMON_QUERIES.qbt
-        }
+          assetType: COMMON_QUERIES.qbt,
+        },
       }),
-      selectedTags: []
+      selectedTags: [],
     };
     this.store = stores.tags;
     autoBind(this);
   }
+
   componentDidMount() {
     this.listenTo(stores.pageState, this.handlePageStateStore);
     this.state.searchContext.mixin.searchDefault();
   }
-  filterSearchResults (response) {
+
+  filterSearchResults(response) {
     if (this.searchFieldValue() === response.query) {
       return response.results;
     }
   }
-  handlePageStateStore (state) {
+
+  handlePageStateStore(state) {
     this.setState(state);
   }
-  getImportsByStatus (n) {
-    return this.imports.filter((i)=> i.status === n );
+
+  getImportsByStatus(n) {
+    return this.imports.filter((i) => i.status === n);
   }
-  searchFieldValue () {
+
+  searchFieldValue() {
     return this.refs.navigatorSearchBox.getValue();
   }
-  toggleTagSelected (tag) {
-    var tags = this.state.selectedTags,
-        _ti = tags.indexOf(tag);
+
+  toggleTagSelected(tag) {
+    let tags = this.state.selectedTags;
+    let _ti = tags.indexOf(tag);
     if (_ti === -1) {
       tags.push(tag);
     } else {
       tags.splice(tags.indexOf(_ti), 1);
     }
-    this.setState({
-      selectedTags: tags
-    });
+    this.setState({selectedTags: tags});
   }
 
-  render () {
+  render() {
     return (
       <bem.LibNav>
         <bem.LibNav__header>
@@ -224,7 +228,7 @@ class AssetNavigator extends Reflux.Component {
       </bem.LibNav>
     );
   }
-};
+}
 
 reactMixin(AssetNavigator.prototype, Reflux.connectFilter(stores.assetSearch, 'searchResults', AssetNavigator.prototype.filterSearchResults));
 
