@@ -228,7 +228,7 @@ class BaseDeploymentBackend:
 
         if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
             if 'sort' in kwargs:
-                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order  # noqa
+                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
                     'sort': _('This param is not supported in `XML` format')

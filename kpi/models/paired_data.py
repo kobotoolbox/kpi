@@ -75,7 +75,7 @@ class PairedData(OpenRosaManifestInterface,
         """
         Implements `SyncBackendMediaInterface.backend_media_id()`
         """
-        from kpi.urls.router_api_v2 import URL_NAMESPACE  # avoid circular imports # noqa
+        from kpi.urls.router_api_v2 import URL_NAMESPACE  # avoid circular imports
         paired_data_url = reverse(
             f'{URL_NAMESPACE}:paired-data-external',
             kwargs={

@@ -73,7 +73,7 @@ def strip_nodes(
          Nodes are processed in this order:
          - `<question_1>`: Removed because not in `subset_field`
 
-         - `<question_2>`: Kept. Parent node `<group>` is tagged `do_not_delete`  # noqa
+         - `<question_2>`: Kept. Parent node `<group>` is tagged `do_not_delete`
 
          - `<group>`: Kept even if it is not in `subset_field` because
                       it is tagged `do_not_delete` by its child `<question_2>`

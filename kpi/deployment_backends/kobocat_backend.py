@@ -1032,7 +1032,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # Get only their ids and pass them to PostgreSQL.
             params['fields'] = [self.INSTANCE_ID_FIELDNAME]
             # Force `sort` by `_id` for Mongo
-            # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`  # noqa
+            # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
             params['sort'] = {self.INSTANCE_ID_FIELDNAME: 1}
             instances, count = MongoHelper.get_instances(self.mongo_userform_id,
                                                          **params)
@@ -1054,7 +1054,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             self.current_submissions_count = queryset.count()
 
         # Force Sort by id
-        # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`  # noqa
+        # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
         queryset = queryset.order_by('id')
 
         # When using Mongo, data is already paginated,

@@ -15,7 +15,7 @@ def get_hash(source: Union[str, bytes, BinaryIO],
     """
     Calculates the hash for an object.
 
-    :param source: string, bytes or FileObject. Files must be opened in binary mode  # noqa
+    :param source: string, bytes or FileObject. Files must be opened in binary mode
     :param algorithm: Can be 'md5' or 'sha1'. Default: 'md5'.
     :param prefix: Prefix the return value with the algorithm, e.g.: 'md5:34523'
     :param fast: If True, only calculate on 3 small pieces of the object.

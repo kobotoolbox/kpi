@@ -295,7 +295,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         # The serializer can access it through the context.
         source_uids = self.asset.paired_data.keys()
         source__names = {}
-        records = Asset.objects.values('uid', 'name').filter(uid__in=source_uids)  # noqa
+        records = Asset.objects.values('uid', 'name').filter(uid__in=source_uids)
         for record in records:
             source__names[record['uid']] = record['name']
         context_['source__names'] = source__names
