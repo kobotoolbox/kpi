@@ -209,7 +209,7 @@ $mdl-layout-width: 1440px;
 .popover-menu__item {
   background-color: $kobo-white;
   display: block;
-  padding: 6px 16px 6px 10px;
+  padding: 6px 12px 6px 6px;
   position: relative;
   color: $kobo-gray-40;
   cursor: pointer;
@@ -218,8 +218,8 @@ $mdl-layout-width: 1440px;
   text-overflow: ellipsis;
 
   > i:first-child {
-    margin-right: 4px;
-    font-size: 32px;
+    margin-right: 5px;
+    font-size: 28px;
     width: 28px;
     vertical-align: middle;
   }
