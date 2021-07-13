@@ -59,10 +59,22 @@ class PairedData(OpenRosaManifestInterface,
         else:
             self.paired_data_uid = paired_data_uid
 
-        self.asset_file = None
+        self._asset_file = None
 
     def __str__(self):
         return f'<PairedData {self.paired_data_uid} ({self.filename})>'
+
+    @property
+    def asset_file(self):
+        if self._asset_file:
+            return self._asset_file
+        try:
+            self._asset_file = self.asset.asset_files.get(
+                uid=self.paired_data_uid
+            )
+            return self._asset_file
+        except AssetFile.DoesNotExist:
+            return None
 
     @property
     def backend_media_id(self):
@@ -87,7 +99,7 @@ class PairedData(OpenRosaManifestInterface,
         # Delete XML file
         if self.asset_file:
             self.asset_file.delete()
-            self.asset_file = None
+            self._asset_file = None
 
         # Update asset
         del self.asset.paired_data[self.source_uid]
@@ -153,17 +165,7 @@ class PairedData(OpenRosaManifestInterface,
         if self.asset_file:
             # If an AssetFile object is attached to this object, return its hash
             return self.asset_file.md5_hash
-
-        try:
-            # When `self.asset_file` is empty, it means that either the 'xml-external'
-            # endpoint has not been called once yet or `md5_hash` needs to be
-            # refreshed (see `save(update_md5_hash=True)`), i.e.: its content has
-            # expired.
-            #
-            # We try to load the related AssetFile object in case it exists but
-            # has not been linked yet.
-            self.asset_file = self.asset.asset_files.get(uid=self.paired_data_uid)
-        except AssetFile.DoesNotExist:
+        else:
             # Fallback on this custom hash which does NOT represent the real
             # content but changes everytime to force its synchronization with
             # the deployment back end.
@@ -197,7 +199,7 @@ class PairedData(OpenRosaManifestInterface,
             )
         return objects_
 
-    def save(self, update_md5_hash=False, **kwargs):
+    def save(self, **kwargs):
 
         # When PairedData objects are synchronize by back-end deployment class
         # (i.e.: `sync_media_files()` is triggered), the back-end deployment class
@@ -222,12 +224,6 @@ class PairedData(OpenRosaManifestInterface,
             # calls the constructor
         except KeyError:
             self.paired_data_uid = KpiUidField.generate_unique_id('pd')
-
-        if update_md5_hash:
-            # Dissociate `self.asset_file` will force its association next time
-            # `self.md5_hash` is called. Thus, it will refresh the hash at the
-            # same time.
-            self.asset_file = None
 
         self.asset.paired_data[self.source_uid] = {
             'fields': self.fields,

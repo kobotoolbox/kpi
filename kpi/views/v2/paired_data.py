@@ -272,7 +272,8 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         asset_file.set_md5_hash(calculate_hash(xml_, prefix=True))
         asset_file.save()
         if old_hash != asset_file.md5_hash:
-            paired_data.save(update_md5_hash=True)
+            # resync paired data to the deployment backend
+            self.asset.deployment.sync_media_files(AssetFile.PAIRED_DATA)
 
         return Response(xml_)
 
