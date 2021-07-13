@@ -245,7 +245,9 @@ $mdl-layout-width: 1440px;
 @media screen and (max-height: 475px) {
   .popover-menu__link,
   .popover-menu__item {
-    padding: 3px 8px 3px 5px;
+    i.k-icon:first-child {
+      font-size: 22px;
+    }
   }
 }
 
