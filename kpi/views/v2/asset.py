@@ -54,7 +54,7 @@ from kpi.renderers import (
 )
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
@@ -683,7 +683,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             assets_version_ids.sort()
 
             if len(assets_version_ids) > 0:
-                hash_ = get_hash(''.join(assets_version_ids), algorithm='md5')
+                hash_ = calculate_hash(''.join(assets_version_ids), algorithm='md5')
             else:
                 hash_ = ''
 

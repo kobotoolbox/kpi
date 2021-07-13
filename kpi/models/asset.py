@@ -79,7 +79,7 @@ from kpi.utils.asset_translation_utils import (
 )
 from kpi.utils.autoname import (autoname_fields_in_place,
                                 autovalue_choices_in_place)
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import (expand_rank_and_score_in_place,
                                        replace_with_autofields,
                                        remove_empty_expressions_in_place)
@@ -1463,7 +1463,7 @@ class AssetSnapshot(OpenRosaFormListInterface,
         """
         Implements `OpenRosaFormListInterface.md5_hash()`
         """
-        return f'md5:{get_hash(self.xml)}'
+        return f'{calculate_hash(self.xml, prefix=True)}'
 
     @property
     def name(self):

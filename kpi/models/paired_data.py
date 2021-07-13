@@ -15,7 +15,7 @@ from kpi.interfaces import (
     SyncBackendMediaInterface,
 )
 from kpi.models.asset_file import AssetFile
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 
 
 class PairedData(OpenRosaManifestInterface,
@@ -168,10 +168,9 @@ class PairedData(OpenRosaManifestInterface,
             # content but changes everytime to force its synchronization with
             # the deployment back end.
             # AssetFile object will be created on call to 'xml-external' endpoint
-            return get_hash(
-                f'{str(time.time())}.{self.backend_media_id}',
-                prefix=True
-            )
+            return calculate_hash(
+                f'{str(time.time())}.{self.backend_media_id}', prefix=True
+            ) + '-time'
 
         return self.asset_file.md5_hash
 

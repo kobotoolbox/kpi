@@ -25,7 +25,7 @@ from kpi.tests.base_test_case import (
 )
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -97,7 +97,7 @@ class AssetListApiTests(BaseAssetTestCase):
             another_user_asset.version_id
         ]
         versions_ids.sort()
-        expected_hash = get_hash(''.join(versions_ids))
+        expected_hash = calculate_hash(''.join(versions_ids))
         hash_url = reverse("asset-hash")
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get("hash"), expected_hash)

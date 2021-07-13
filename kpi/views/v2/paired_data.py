@@ -16,7 +16,7 @@ from kpi.permissions import (
 )
 from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.renderers import SubmissionXMLRenderer
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import strip_nodes, add_xml_declaration
 
@@ -269,7 +269,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
 
         # `xml_` is already there in memory, let's use its content to get its
         # hash and store it within `asset_file` metadata
-        asset_file.set_md5_hash(get_hash(xml_, prefix=True))
+        asset_file.set_md5_hash(calculate_hash(xml_, prefix=True))
         asset_file.save()
         if old_hash != asset_file.md5_hash:
             paired_data.save(update_md5_hash=True)

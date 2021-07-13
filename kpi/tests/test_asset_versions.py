@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from formpack.utils.expand_content import SCHEMA_VERSION
 from kpi.exceptions import BadAssetTypeException
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 from ..models import Asset
 from ..models import AssetVersion
 
@@ -93,8 +93,9 @@ class AssetVersionTestCase(TestCase):
             ],
         }
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
-        expected_hash = get_hash(json.dumps(new_asset.content, sort_keys=True),
-                                 'sha1')
+        expected_hash = calculate_hash(
+            json.dumps(new_asset.content, sort_keys=True), 'sha1'
+        )
         self.assertEqual(new_asset.latest_version.content_hash, expected_hash)
         return new_asset
 

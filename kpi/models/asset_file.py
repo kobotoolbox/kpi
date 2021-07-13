@@ -14,7 +14,7 @@ from kpi.interfaces import (
     OpenRosaManifestInterface,
     SyncBackendMediaInterface,
 )
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 
 
 def upload_to(self, filename):
@@ -200,12 +200,11 @@ class AssetFile(models.Model,
 
         if not self.metadata.get('hash'):
             if self.is_remote_url:
-                md5_hash = get_hash(self.metadata['redirect_url'],
-                                    fast=True,
-                                    prefix=True)
+                md5_hash = calculate_hash(self.metadata['redirect_url'],
+                                          prefix=True)
             else:
                 try:
-                    md5_hash = get_hash(self.content.file.read(), prefix=True)
+                    md5_hash = calculate_hash(self.content.file.read(), prefix=True)
                 except ValueError:
                     md5_hash = None
 
