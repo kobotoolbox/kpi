@@ -462,7 +462,7 @@
 
     i {
       color: $kobo-orange;
-      font-size: 32px;
+      font-size: 28px;
       margin-right: 5px;
       vertical-align: -11px;
       display: inline-block;
@@ -482,7 +482,7 @@
     align-items: center;
     i {
       color: $kobo-red;
-      font-size: 32px;
+      font-size: 28px;
       margin-right: 5px;
       // If used in a dropzone, need to overwrite left margin
       margin-left: 0px;
@@ -814,10 +814,6 @@
 
     a.form-view__tab {
       font-size: 12px;
-    }
-
-    a.form-view__link {
-      font-size: 28px;
     }
   }
 
