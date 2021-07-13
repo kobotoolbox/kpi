@@ -88,7 +88,7 @@ class TableColumnSortDropdown extends React.Component {
         {this.props.sortValue === buttonSortValue &&
           <i
             onClick={this.clearSort}
-            className={classNames('k-icon', 'k-icon-cancel', CLEAR_BUTTON_CLASS_NAME)}
+            className={classNames('k-icon', 'k-icon-close', CLEAR_BUTTON_CLASS_NAME)}
           />
         }
       </bem.KoboDropdown__menuButton>
