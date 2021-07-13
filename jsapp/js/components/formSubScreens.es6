@@ -17,7 +17,8 @@ import ProjectExportsList from 'js/components/projectDownloads/projectExportsLis
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
-import ui from '../ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 
 export class FormSubScreens extends React.Component {
   constructor(props){
@@ -41,11 +42,11 @@ export class FormSubScreens extends React.Component {
     if ((this.props.location.pathname == `/forms/${this.state.uid}/settings` || this.props.location.pathname == `/forms/${this.state.uid}/settings/sharing`) &&
         // TODO: Once "Manage Project" permission is added, remove "Edit Form" access here
         !this.userCan('change_asset', this.state)) {
-      return (<ui.AccessDeniedMessage/>);
+      return (<AccessDeniedMessage/>);
     }
 
     if (this.props.location.pathname == `/forms/${this.state.uid}/settings/rest` && !permAccess) {
-      return (<ui.AccessDeniedMessage/>);
+      return (<AccessDeniedMessage/>);
     }
 
     var iframeUrl = '';
@@ -118,7 +119,7 @@ export class FormSubScreens extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <React.Fragment>
           {!stores.session.isLoggedIn &&
-            <ui.AccessDeniedMessage/>
+            <AccessDeniedMessage/>
           }
           {stores.session.isLoggedIn &&
             <bem.FormView className='project-downloads'>
@@ -139,7 +140,7 @@ export class FormSubScreens extends React.Component {
     );
   }
   renderReset() {
-    return (<ui.LoadingSpinner/>);
+    return (<LoadingSpinner/>);
   }
 
   renderUpload() {

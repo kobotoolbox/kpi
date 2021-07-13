@@ -8,7 +8,7 @@ import enketoHandler from 'js/enketoHandler';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import ui from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import ReactTable from 'react-table';
@@ -1413,13 +1413,15 @@ export class DataTable extends React.Component {
   render() {
     if (this.state.error) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {this.state.error}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.Loading>
+              <bem.Loading__inner>
+                {this.state.error}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       );
     }
 
@@ -1481,7 +1483,7 @@ export class DataTable extends React.Component {
               <i className='k-icon k-icon-caret-right'/>
             </React.Fragment>
           )}
-          loadingText={<ui.LoadingSpinner/>}
+          loadingText={<LoadingSpinner/>}
           noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}
           ofText={t('of')}

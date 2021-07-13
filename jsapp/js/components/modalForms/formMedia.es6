@@ -6,7 +6,7 @@ import TextBox from 'js/components/common/textBox';
 import {ASSET_FILE_TYPES} from 'js/constants';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import {
   truncateString,
