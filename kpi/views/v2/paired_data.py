@@ -3,14 +3,12 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.http import Http404
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
 from rest_framework import renderers, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import INSTANCE_FORMAT_TYPE_XML
-from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset, AssetFile, PairedData
 from kpi.permissions import (
     AssetEditorPermission,
@@ -18,6 +16,7 @@ from kpi.permissions import (
 )
 from kpi.serializers.v2.paired_data import PairedDataSerializer
 from kpi.renderers import SubmissionXMLRenderer
+from kpi.utils.hash import get_hash
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.utils.xml import strip_nodes, add_xml_declaration
 
@@ -206,6 +205,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         if not source_asset.has_deployment or not self.asset.has_deployment:
             raise Http404
 
+        old_hash = None
         # Retrieve data from related asset file.
         # If data has already been fetched once, an `AssetFile` should exist.
         # Otherwise, we create one to store the generated XML.
@@ -222,10 +222,18 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
             # force its creation below
             has_expired = True
         else:
-            timedelta = timezone.now() - asset_file.date_modified
-            has_expired = (
-                timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION
-            )
+            if not asset_file.content:
+                # if `asset_file` exists but does not have any content, it means
+                # `paired_data` has changed since last time this endpoint has been
+                # called. E.g.: Project owner has changed the questions they want
+                # to include in the `xml-external` file
+                has_expired = True
+            else:
+                old_hash = asset_file.md5_hash
+                timedelta = timezone.now() - asset_file.date_modified
+                has_expired = (
+                    timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION
+                )
 
         if not has_expired:
             return Response(asset_file.content.file.read().decode())
@@ -258,11 +266,13 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
             asset_file.content.delete()
 
         asset_file.content = ContentFile(xml_.encode(), name=filename)
-        # We don't need to regenerate a hash when asset file is created.
-        # It also avoids synchronizing the file with the back end again.
-        generate_hash = bool(asset_file.pk)
+
+        # `xml_` is already there in memory, let's use its content to get its
+        # hash and store it within `asset_file` metadata
+        asset_file.set_md5_hash(get_hash(xml_, prefix=True))
         asset_file.save()
-        paired_data.save(generate_hash=generate_hash)
+        if old_hash != asset_file.md5_hash:
+            paired_data.save(update_md5_hash=True)
 
         return Response(xml_)
 

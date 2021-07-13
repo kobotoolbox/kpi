@@ -48,7 +48,7 @@ def get_hash(source: Union[str, bytes, BinaryIO],
             # If the any requests fail, it returns the hash of the URL itself.
             # We do not want to raise a `RequestException` while calculating
             # the hash.
-            # ToDo: Evaluate whether it could be better to return ̀`None` when
+            # ToDo: Evaluate whether it could be better to return `None` when
             # a request exception occurs
 
             # Ensure we do not receive a gzip response.

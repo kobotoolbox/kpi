@@ -801,6 +801,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         for metadata in response.get('metadata', []):
             if metadata['data_type'] == self.SYNCED_DATA_FILE_TYPES[file_type]:
                 kc_files[metadata['data_value']] = {
+                    'pk': metadata['id'],
                     'url': metadata['url'],
                     'md5': metadata['file_hash'],
                     'from_kpi': metadata['from_kpi'],
@@ -830,8 +831,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 if media_file.deleted_at is None:
                     # If md5 differs, we need to re-upload it.
                     if media_file.md5_hash != kc_file['md5']:
-                        self.__delete_kc_metadata(kc_file)
-                        self.__save_kc_metadata(media_file)
+                        if media_file.file_type == AssetFile.PAIRED_DATA:
+                            self.__update_kc_metadata_hash(
+                                media_file, kc_file['pk']
+                            )
+                        else:
+                            self.__delete_kc_metadata(kc_file)
+                            self.__save_kc_metadata(media_file)
                 elif kc_file['from_kpi']:
                     self.__delete_kc_metadata(kc_file, media_file)
                 else:
@@ -1221,9 +1227,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         identifier = self.identifier
         server, path_ = self.__parse_identifier(identifier)
-        metadata_url = self.external_to_internal_url(
-            '{}/api/v1/metadata'.format(server)
-        )
+        metadata_url = self.external_to_internal_url(f'{server}/api/v1/metadata')
 
         kwargs = {
             'data': {
@@ -1253,6 +1257,28 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
+
+    def __update_kc_metadata_hash(
+        self, file_: SyncBackendMediaInterface, kc_metadata_id: int
+    ):
+        """
+        Update metadata hash in KC
+        """
+        identifier = self.identifier
+        server, path_ = self.__parse_identifier(identifier)
+        metadata_detail_url = self.external_to_internal_url(
+            f'{server}/api/v1/metadata/{kc_metadata_id}'
+        )
+
+        data = {'file_hash': file_.md5_hash}
+        self._kobocat_request('PATCH',
+                              url=metadata_detail_url,
+                              expect_formid=False,
+                              data=data)
+
+        file_.synced_with_backend = True
+        file_.save(update_fields=['synced_with_backend'])
+
 
     @staticmethod
     def __validate_bulk_update_payload(payload: dict) -> dict:
