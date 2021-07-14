@@ -253,7 +253,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/reports/
 
     ### Data sharing
-    Enable data sharing for the current asset
+
+    Control sharing of submission data from this project to other projects
 
     <pre class="prettyprint">
     <b>PATCH</b> /api/v2/assets/{uid}/
@@ -273,7 +274,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >        }
     >
 
-    * `fields`: Optional. List of questions of asset represented by their XPath. I.e., Hierarchy group must be kept.
+    * `fields`: Optional. List of questions whose responses will be shared. If
+        missing or empty, all responses will be shared. Questions must be
+        identified by full group path separated by slashes, e.g.
+        `group/subgroup/question_name`.
 
     >
     > Response

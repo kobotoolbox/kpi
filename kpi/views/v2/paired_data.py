@@ -56,7 +56,8 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >       }
     >
 
-    The endpoint is paginated. Accept these parameters:
+    This endpoint is paginated and accepts these parameters:
+
     - `offset`: The initial index from which to return the results
     - `limit`: Number of results to return per page
 
@@ -90,8 +91,11 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >       }
     >
 
-    * `fields`: Optional. List of questions of source asset represented by their XPath I.e., Hierarchy group must be kept.
-    * `filename`: Must be unique among all asset files. Only accept letters, numbers and '-'.
+    * `fields`: Optional. List of questions whose responses will be retrieved
+        from the source data. If missing or empty, all responses will be
+        retrieved. Questions must be identified by full group path separated by
+        slashes, e.g. `group/subgroup/question_name`.
+    * `filename`: Must be unique among all asset files. Only accepts letters, numbers and '-'.
 
     ### Retrieve a project
 
@@ -184,6 +188,9 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     def external(self, request, paired_data_uid, **kwargs):
         """
         Returns an XML which contains data submitted to paired asset
+        Creates the endpoints
+        - /api/v2/assets/<parent_lookup_asset>/paired-data/<paired_data_uid>/external/
+        - /api/v2/assets/<parent_lookup_asset>/paired-data/<paired_data_uid>/external.xml/
         """
         paired_data = self.get_object()
 

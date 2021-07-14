@@ -193,7 +193,7 @@ class PairedDataSerializer(serializers.Serializer):
             filename in media_filenames
             or (
                 filename in paired_data_filenames.values()
-                and (is_new or not is_new and pd_filename != filename)
+                and (is_new or (not is_new and pd_filename != filename))
             )
         ):
             raise serializers.ValidationError(

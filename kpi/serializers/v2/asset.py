@@ -494,7 +494,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         Only the type of each property is validated. No data is validated.
         It is consistent with partial permissions and REST services.
 
-        The responsibility of valid date is on users
+        The client bears the responsibility of providing valid data.
         """
         errors = {}
         if not self.instance or not data_sharing:

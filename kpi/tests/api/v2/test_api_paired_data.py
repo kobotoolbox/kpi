@@ -239,6 +239,9 @@ class PairedDataListApiTests(BasePairedDataTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Let's give 'change_asset' to user quidam.
+        # It should succeed now because quidam is allowed to modify the
+        # destination asset AND the owner of the destination asset
+        # (anotheruser) is allowed to view submissions of the source asset
         self.destination_asset.assign_perm(self.quidam, PERM_CHANGE_ASSET)
         response = self.paired_data(login_username='quidam',
                                     login_password='quidam')
