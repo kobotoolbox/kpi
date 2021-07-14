@@ -245,10 +245,10 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         parsed_submissions = []
 
         for submission in submissions:
-            # `strip_nodes` expects field names,
             parsed_submissions.append(
-                strip_nodes(submission, paired_data.fields, use_xpath=True)
+                strip_nodes(submission, paired_data.allowed_fields, use_xpath=True)
             )
+
         filename = paired_data.filename
         parsed_submissions_to_str = ''.join(parsed_submissions).replace(
             source_asset.uid, 'data'
