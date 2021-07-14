@@ -2,7 +2,6 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
-import _ from 'underscore';
 import clonedeep from 'lodash.clonedeep';
 import enketoHandler from 'js/enketoHandler';
 import Checkbox from 'js/components/common/checkbox';
@@ -20,7 +19,6 @@ import {
   MODAL_TYPES,
   QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
-  GROUP_TYPES_END,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
   NUMERICAL_SUBMISSION_PROPS,
@@ -29,22 +27,30 @@ import {
 import {formatTimeDate} from 'utils';
 import {
   renderQuestionTypeIcon,
-  getSurveyFlatPaths,
   getQuestionOrChoiceDisplayName,
 } from 'js/assetUtils';
 import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
 import TableColumnSortDropdown from 'js/components/submissions/tableColumnSortDropdown';
+import ColumnsHideDropdown from 'js/components/submissions/columnsHideDropdown';
 import {
   SORT_VALUES,
-  EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
   DATA_TABLE_SETTING,
   DATA_TABLE_SETTINGS,
 } from 'js/components/submissions/tableConstants';
-import {getColumnLabel} from 'js/components/submissions/tableUtils';
+import {
+  getColumnLabel,
+  getColumnHXLTags,
+  getDisplayedColumns,
+  getHideableColumns,
+  getSelectedColumns,
+  getFrozenColumn,
+  isFieldFrozen,
+  getBackgroundAudioQuestionName,
+} from 'js/components/submissions/tableUtils';
 import './table.scss';
 
 const DEFAULT_PAGE_SIZE = 30;
@@ -59,7 +65,6 @@ export class DataTable extends React.Component {
       loading: true,
       tableData: [],
       columns: [],
-      selectedColumns: false,
       sids: [],
       isFullscreen: false,
       pageSize: 30,
@@ -248,18 +253,6 @@ export class DataTable extends React.Component {
   }
 
   /**
-   * @returns {string|null} the current frozen column
-   */
-  getFrozenColumn() {
-    let frozenColumn = null;
-    const settings = this.props.asset.settings;
-    if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.FROZEN_COLUMN]) {
-      frozenColumn = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.FROZEN_COLUMN];
-    }
-    return frozenColumn;
-  }
-
-  /**
    * @param {string} fieldId
    * @returns {string|null} null for no option, or one of SORT_VALUES
    */
@@ -271,42 +264,6 @@ export class DataTable extends React.Component {
     if (this.state.sortOption?.fieldId === fieldId) {
       return this.state.sortOption.value;
     }
-  }
-
-  /**
-   * @param {string} fieldId
-   * @returns {boolean}
-   */
-  isFieldVisible(fieldId) {
-    // frozen column is never hidden
-    if (this.isFieldFrozen(fieldId)) {
-      return true;
-    }
-
-    // submission actions is never hidden
-    if (fieldId === SUBMISSION_ACTIONS_ID) {
-      return true;
-    }
-
-    const selectedColumns = this.getSelectedColumns();
-    // nothing is selected, so all columns are visible
-    if (selectedColumns === null) {
-      return true;
-    }
-
-    if (Array.isArray(selectedColumns)) {
-      return selectedColumns.includes(fieldId);
-    }
-
-    return true;
-  }
-
-  /**
-   * @param {string} fieldId
-   * @returns {boolean}
-   */
-  isFieldFrozen(fieldId) {
-    return this.getFrozenColumn() === fieldId;
   }
 
   /**
@@ -335,8 +292,8 @@ export class DataTable extends React.Component {
    * @param {boolean} isVisible
    */
   onFieldVisibleChange(fieldId, isVisible) {
-    const hideableColumns = this.getHideableColumns();
-    const selectedColumns = this.getSelectedColumns();
+    const hideableColumns = getHideableColumns(this.props.asset, this.state.tableData);
+    const selectedColumns = getSelectedColumns(this.props.asset);
 
     let newSelectedColumns = [];
 
@@ -367,7 +324,7 @@ export class DataTable extends React.Component {
     settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = newSelectedColumns;
 
     // If we are hiding the column that is frozen, we need to unfreeze it
-    if (this.isFieldFrozen(fieldId) && isVisible === false) {
+    if (isFieldFrozen(this.props.asset, fieldId) && isVisible === false) {
       settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = null;
     }
 
@@ -406,19 +363,6 @@ export class DataTable extends React.Component {
   }
 
   /**
-   * @returns {object} settings or empty object if no settings exist
-   */
-  getTableSettings() {
-    if (
-      this.props.asset?.settings &&
-      this.props.asset?.settings[DATA_TABLE_SETTING]
-    ) {
-      return this.props.asset.settings[DATA_TABLE_SETTING];
-    }
-    return {};
-  }
-
-  /**
    * @param {object} newTableSettings - will be merged into current settings, overwriting any DATA_TABLE_SETTING properties
    */
   saveTableSettings(newTableSettings) {
@@ -437,92 +381,6 @@ export class DataTable extends React.Component {
     if (this.userCan('change_asset', this.props.asset)) {
       actions.table.updateSettings(this.props.asset.uid, newSettings);
     }
-  }
-
-  /**
-   * @returns {string[]} a list of columns that user can hide
-   */
-  getHideableColumns() {
-    const columns = this.getDisplayedColumns(this.state.tableData);
-    columns.push(VALIDATION_STATUS_ID_PROP);
-    return columns;
-  }
-
-  /**
-   * @returns {string[]|null} a list of selected columns from table settings,
-   * `null` means no selection, i.e. all columns
-   */
-  getSelectedColumns() {
-    const tableSettings = this.getTableSettings();
-    if (Array.isArray(tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS])) {
-      return tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS];
-    }
-    return null;
-  }
-
-  /**
-   * @param {object[]} data - list of submissions
-   * @returns {string[]} a unique list of columns (keys) that should be displayed to users
-   */
-  getDisplayedColumns(data) {
-    const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
-
-    // add all questions from the survey definition
-    let output = Object.values(flatPaths);
-
-    // Gather unique columns from all visible submissions and add them to output
-    const dataKeys = Object.keys(data.reduce(function (result, obj) {
-      return Object.assign(result, obj);
-    }, {}));
-    output = [...new Set([...dataKeys, ...output])];
-
-    // exclude some technical non-data columns
-    output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false);
-
-    // exclude notes
-    output = output.filter((key) => {
-      const foundPathKey = Object.keys(flatPaths).find(
-        (pathKey) => flatPaths[pathKey] === key
-      );
-
-
-      // no path means this definitely is not a note type
-      if (!foundPathKey) {
-        return true;
-      }
-
-      const foundNoteRow = this.props.asset.content.survey.find(
-        (row) =>
-          typeof foundPathKey !== 'undefined' &&
-          (foundPathKey === row.name || foundPathKey === row.$autoname) &&
-          row.type === QUESTION_TYPES.note.id
-      );
-
-      if (typeof foundNoteRow !== 'undefined') {
-        // filter out this row as this is a note type
-        return false;
-      }
-
-      return true;
-    });
-
-    // exclude kobomatrix rows as data is not directly tied to them, but
-    // to rows user answered to, thus making these columns always empty
-    const excludedMatrixKeys = [];
-    let isInsideKoboMatrix = false;
-    this.props.asset.content.survey.forEach((row) => {
-      if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
-        isInsideKoboMatrix = true;
-      } else if (row.type === GROUP_TYPES_END.end_kobomatrix) {
-        isInsideKoboMatrix = false;
-      } else if (isInsideKoboMatrix) {
-        const rowPath = flatPaths[row.name] || flatPaths[row.$autoname];
-        excludedMatrixKeys.push(rowPath);
-      }
-    });
-    output = output.filter((key) => excludedMatrixKeys.includes(key) === false);
-
-    return output;
   }
 
   /**
@@ -559,7 +417,7 @@ export class DataTable extends React.Component {
       }
 
       let columnClassNames = ['rt-sub-actions', 'is-frozen'];
-      let frozenColumn = this.getFrozenColumn();
+      let frozenColumn = getFrozenColumn(this.props.asset);
       if (!frozenColumn) {
         columnClassNames.push('is-last-frozen');
       }
@@ -643,7 +501,7 @@ export class DataTable extends React.Component {
             sortValue={this.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
             onSortChange={this.onFieldSortChange}
             onHide={this.onHideField}
-            isFieldFrozen={this.isFieldFrozen(VALIDATION_STATUS_ID_PROP)}
+            isFieldFrozen={isFieldFrozen(this.props.asset, VALIDATION_STATUS_ID_PROP)}
             onFrozenChange={this.onFieldFrozenChange}
             additionalTriggerContent={
               <span className='column-header-title'>
@@ -689,7 +547,7 @@ export class DataTable extends React.Component {
    * @param {object[]} data - list of submissions
    */
   _prepColumns(data) {
-    const displayedColumns = this.getDisplayedColumns(data);
+    const displayedColumns = getDisplayedColumns(this.props.asset, data);
 
     let showLabels = this.state.showLabels;
     let showGroupName = this.state.showGroupName;
@@ -697,7 +555,6 @@ export class DataTable extends React.Component {
     let settings = this.props.asset.settings;
     let translationIndex = this.state.translationIndex;
     let maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
-    let _this = this;
 
     if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION] !== null) {
       translationIndex = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION];
@@ -721,16 +578,16 @@ export class DataTable extends React.Component {
     }
 
     // define the columns array
-    const columns = [];
+    let columnsToRender = [];
 
     const columnSubmissionActions = this._getColumnSubmissionActions(maxPageRes);
     if (columnSubmissionActions) {
-      columns.push(columnSubmissionActions);
+      columnsToRender.push(columnSubmissionActions);
     }
 
     const columnValidation = this._getColumnValidation();
     if (columnValidation) {
-      columns.push(columnValidation);
+      columnsToRender.push(columnValidation);
     }
 
     let survey = this.props.asset.content.survey;
@@ -757,7 +614,7 @@ export class DataTable extends React.Component {
       var index = 'y_' + key;
 
       // Get background-audio question name in case user changes it
-      const backgroundAudioName = this.getBackgroundAudioQuestionName();
+      const backgroundAudioName = getBackgroundAudioQuestionName(this.props.asset);
 
       // place meta question columns at the very end with `z` prefix
       switch(key) {
@@ -826,7 +683,7 @@ export class DataTable extends React.Component {
         columnIcon = renderQuestionTypeIcon(q.type);
       }
 
-      columns.push({
+      columnsToRender.push({
         Header: () => {
           const columnName = getColumnLabel(
             this.props.asset.content.survey,
@@ -836,7 +693,7 @@ export class DataTable extends React.Component {
             this.state.showGroupName,
             this.state.translationIndex
           );
-          const columnHXLTags = _this.getColumnHXLTags(key);
+          const columnHXLTags = getColumnHXLTags(this.props.asset.content.survey, key);
           return (
             <div className='column-header-wrapper'>
               <TableColumnSortDropdown
@@ -844,7 +701,7 @@ export class DataTable extends React.Component {
                 sortValue={this.getFieldSortValue(key)}
                 onSortChange={this.onFieldSortChange}
                 onHide={this.onHideField}
-                isFieldFrozen={this.isFieldFrozen(key)}
+                isFieldFrozen={isFieldFrozen(this.props.asset, key)}
                 onFrozenChange={this.onFieldFrozenChange}
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
@@ -950,12 +807,11 @@ export class DataTable extends React.Component {
 
     });
 
-    columns.sort(function (a, b) {
+    columnsToRender.sort(function (a, b) {
       return a.index.localeCompare(b.index, 'en', {numeric: true});
     });
 
-    let selectedColumns = false;
-    let frozenColumn = this.getFrozenColumn();
+    let frozenColumn = getFrozenColumn(this.props.asset);
     const textFilterQuestionTypes = [
       QUESTION_TYPES.text.id,
       QUESTION_TYPES.integer.id,
@@ -982,7 +838,7 @@ export class DataTable extends React.Component {
       ADDITIONAL_SUBMISSION_PROPS._submitted_by,
     ];
 
-    columns.forEach(function (col) {
+    columnsToRender.forEach(function (col) {
       // TODO: see if this can work for select_multiple too
       if (col.question && col.question.type === QUESTION_TYPES.select_one.id) {
         col.filterable = true;
@@ -1021,60 +877,29 @@ export class DataTable extends React.Component {
     });
 
     // prepare list of selected columns, if configured
-    if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SELECTED_COLUMNS]) {
-      const selCos = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SELECTED_COLUMNS];
-
+    const selectedColumnsIds = getSelectedColumns(this.props.asset);
+    if (selectedColumnsIds) {
       // always include frozenColumn, if set
-      if (frozenColumn && !selCos.includes(frozenColumn)) {
-        selCos.unshift(frozenColumn);
+      if (frozenColumn && !selectedColumnsIds.includes(frozenColumn)) {
+        selectedColumnsIds.unshift(frozenColumn);
       }
 
-      selectedColumns = columns.filter((el) => {
+      columnsToRender = columnsToRender.filter((el) => {
         // always include checkbox column
         if (el.id === SUBMISSION_ACTIONS_ID) {
           return true;
         }
-
-        return selCos.includes(el.id) !== false;
+        return selectedColumnsIds.includes(el.id) !== false;
       });
     }
 
     this.setState({
-      columns: columns,
-      selectedColumns: selectedColumns,
+      columns: columnsToRender,
       translationIndex: translationIndex,
       showLabels: showLabels,
       showGroupName: showGroupName,
       showHXLTags: showHXLTags,
     });
-  }
-
-  /**
-   * @param {string} key - column id/question name
-   * @returns {string|null} given column's HXL tags
-   */
-  getColumnHXLTags(key) {
-    if (this.state.showHXLTags) {
-      const colQuestion = _.find(this.props.asset.content.survey, (question) =>
-        question.$autoname === key
-      );
-      if (!colQuestion || !colQuestion.tags) {
-        return null;
-      }
-      const HXLTags = [];
-      colQuestion.tags.map((tag) => {
-        if (tag.startsWith('hxl:')) {
-          HXLTags.push(tag.replace('hxl:', ''));
-        }
-      });
-      if (HXLTags.length === 0) {
-        return null;
-      } else {
-        return HXLTags.join('');
-      }
-    } else {
-      return null;
-    }
   }
 
   /**
@@ -1147,24 +972,13 @@ export class DataTable extends React.Component {
   }
 
   /**
-   * TODO: if multiple background-audio's are allowed, we should return all
-   * background-audio related names
-   * @returns {string|null}
-   */
-  getBackgroundAudioQuestionName() {
-    return this.props?.asset?.content?.survey.find(
-      (item) => item.type === META_QUESTION_TYPES['background-audio']
-    )?.name || null;
-  }
-
-  /**
    * Opens submission modal
    * @param {object} row
    */
   launchSubmissionModal(row) {
     if (row && row.original) {
       const sid = row.original._id;
-      const backgroundAudioName = this.getBackgroundAudioQuestionName();
+      const backgroundAudioName = getBackgroundAudioQuestionName(this.props.asset);
       if (
         backgroundAudioName &&
         Object.keys(row.original).includes(backgroundAudioName)
@@ -1229,7 +1043,6 @@ export class DataTable extends React.Component {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_SETTINGS,
       asset: this.props.asset,
-      columns: this.state.columns,
       overrideLabelsAndGroups: this.overrideLabelsAndGroups,
     });
   }
@@ -1425,8 +1238,7 @@ export class DataTable extends React.Component {
       );
     }
 
-    const { tableData, columns, selectedColumns, loading, pageSize, resultsTotal } = this.state;
-    const pages = Math.floor(((resultsTotal - 1) / pageSize) + 1);
+    const pages = Math.floor(((this.state.resultsTotal - 1) / this.state.pageSize) + 1);
 
     let tableClasses = ['-highlight'];
     if (this.state.showHXLTags) {
@@ -1440,7 +1252,12 @@ export class DataTable extends React.Component {
     return (
       <bem.FormView m={formViewModifiers}>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
+          <ColumnsHideDropdown
+            asset={this.props.asset}
+          />
+
           {this.renderBulkSelectUI()}
+
           <bem.FormView__item m='table-buttons'>
             <bem.Button
               m='icon' className='report-button__expand right-tooltip'
@@ -1461,8 +1278,8 @@ export class DataTable extends React.Component {
         </bem.FormView__group>
 
         <ReactTable
-          data={tableData}
-          columns={selectedColumns || columns}
+          data={this.state.tableData}
+          columns={this.state.columns}
           defaultPageSize={DEFAULT_PAGE_SIZE}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
           minRows={0}
@@ -1470,7 +1287,7 @@ export class DataTable extends React.Component {
           pages={pages}
           manual
           onFetchData={this.fetchData}
-          loading={loading}
+          loading={this.state.loading}
           previousText={(
             <React.Fragment>
               <i className='k-icon k-icon-caret-left'/>

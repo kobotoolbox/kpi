@@ -15,6 +15,10 @@ import {
 } from 'js/components/submissions/tableConstants';
 import './tableSettings.scss';
 
+/**
+ * @prop {object} asset
+ * @prop {function} overrideLabelsAndGroups - used to temporary save settings (e.g. when user doesn't have permissions to edit asset, but wants to display submissions in different way)
+ */
 class TableSettings extends React.Component {
   constructor(props){
     super(props);

@@ -1,6 +1,16 @@
+import {getSurveyFlatPaths} from 'js/assetUtils';
 import {
+  QUESTION_TYPES,
+  GROUP_TYPES_BEGIN,
+  GROUP_TYPES_END,
+  META_QUESTION_TYPES,
+} from 'js/constants';
+import {
+  DATA_TABLE_SETTING,
+  EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
+  DATA_TABLE_SETTINGS,
 } from 'js/components/submissions/tableConstants';
 
 /**
@@ -59,4 +69,196 @@ export function getColumnLabel(
   }
 
   return label;
+}
+
+/**
+ * @param {object} asset
+ * @param {object[]} submissions - list of submissions
+ * @returns {string[]} a unique list of columns (keys) that should be displayed to users
+ */
+export function getDisplayedColumns(asset, submissions) {
+  const flatPaths = getSurveyFlatPaths(asset.content.survey);
+
+  // add all questions from the survey definition
+  let output = Object.values(flatPaths);
+
+  // Gather unique columns from all visible submissions and add them to output
+  const dataKeys = Object.keys(submissions.reduce(function (result, obj) {
+    return Object.assign(result, obj);
+  }, {}));
+  output = [...new Set([...dataKeys, ...output])];
+
+  // exclude some technical non-data columns
+  output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false);
+
+  // exclude notes
+  output = output.filter((key) => {
+    const foundPathKey = Object.keys(flatPaths).find(
+      (pathKey) => flatPaths[pathKey] === key
+    );
+
+
+    // no path means this definitely is not a note type
+    if (!foundPathKey) {
+      return true;
+    }
+
+    const foundNoteRow = asset.content.survey.find(
+      (row) =>
+        typeof foundPathKey !== 'undefined' &&
+        (foundPathKey === row.name || foundPathKey === row.$autoname) &&
+        row.type === QUESTION_TYPES.note.id
+    );
+
+    if (typeof foundNoteRow !== 'undefined') {
+      // filter out this row as this is a note type
+      return false;
+    }
+
+    return true;
+  });
+
+  // exclude kobomatrix rows as data is not directly tied to them, but
+  // to rows user answered to, thus making these columns always empty
+  const excludedMatrixKeys = [];
+  let isInsideKoboMatrix = false;
+  asset.content.survey.forEach((row) => {
+    if (row.type === GROUP_TYPES_BEGIN.begin_kobomatrix) {
+      isInsideKoboMatrix = true;
+    } else if (row.type === GROUP_TYPES_END.end_kobomatrix) {
+      isInsideKoboMatrix = false;
+    } else if (isInsideKoboMatrix) {
+      const rowPath = flatPaths[row.name] || flatPaths[row.$autoname];
+      excludedMatrixKeys.push(rowPath);
+    }
+  });
+  output = output.filter((key) => excludedMatrixKeys.includes(key) === false);
+
+  return output;
+}
+
+/**
+ * @param {object} asset
+ * @param {object[]} submissions - list of submissions
+ * @returns {string[]} a list of columns that user can hide
+ */
+export function getHideableColumns(asset, submissions) {
+  const columns = getDisplayedColumns(asset, submissions);
+  columns.push(VALIDATION_STATUS_ID_PROP);
+  return columns;
+}
+
+/**
+ * @param {object} asset
+ * @returns {string[]|null} a list of selected columns from table settings,
+ * `null` means no selection, i.e. all columns
+ */
+export function getSelectedColumns(asset) {
+  const tableSettings = getTableSettings(asset);
+  if (Array.isArray(tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS])) {
+    return tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS];
+  }
+  return null;
+}
+
+/**
+ * @param {object} asset
+ * @returns {object} settings or empty object if no settings exist
+ */
+export function getTableSettings(asset) {
+  if (
+    asset?.settings &&
+    asset?.settings[DATA_TABLE_SETTING]
+  ) {
+    return asset.settings[DATA_TABLE_SETTING];
+  }
+  return {};
+}
+
+/**
+ * @param {object} asset
+ * @returns {string|null} the current frozen column
+ */
+export function getFrozenColumn(asset) {
+  let frozenColumn = null;
+  const tableSettings = getTableSettings(asset);
+  if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN]) {
+    frozenColumn = tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN];
+  }
+  return frozenColumn;
+}
+
+
+/**
+ * @param {object} asset
+ * @param {string} fieldId
+ * @returns {boolean}
+ */
+export function isFieldVisible(asset, fieldId) {
+  // frozen column is never hidden
+  if (isFieldFrozen(asset, fieldId)) {
+    return true;
+  }
+
+  // submission actions is never hidden
+  if (fieldId === SUBMISSION_ACTIONS_ID) {
+    return true;
+  }
+
+  const selectedColumns = getSelectedColumns(asset);
+  // nothing is selected, so all columns are visible
+  if (selectedColumns === null) {
+    return true;
+  }
+
+  if (Array.isArray(selectedColumns)) {
+    return selectedColumns.includes(fieldId);
+  }
+
+  return true;
+}
+
+/**
+ * @param {object} asset
+ * @param {string} fieldId
+ * @returns {boolean}
+ */
+export function isFieldFrozen(asset, fieldId) {
+  return getFrozenColumn(asset) === fieldId;
+}
+
+/**
+ * @param {string} key - column id/question name
+ * @returns {string} given column's HXL tags
+ */
+export function getColumnHXLTags(survey, key) {
+  const colQuestion = survey.find((question) =>
+    question.$autoname === key
+  );
+  if (!colQuestion || !colQuestion.tags) {
+    return null;
+  }
+  const HXLTags = [];
+  colQuestion.tags.forEach((tag) => {
+    if (tag.startsWith('hxl:')) {
+      HXLTags.push(tag.replace('hxl:', ''));
+    }
+  });
+  if (HXLTags.length === 0) {
+    return null;
+  } else {
+    return HXLTags.join('');
+  }
+}
+
+/**
+ * TODO: if multiple background-audio's are allowed, we should return all
+ * background-audio related names
+ * @param {object} asset
+ * @returns {string|null}
+ */
+export function getBackgroundAudioQuestionName(asset) {
+  return asset?.content?.survey.find(
+    (item) => item.type === META_QUESTION_TYPES['background-audio']
+  )?.name || null;
 }
