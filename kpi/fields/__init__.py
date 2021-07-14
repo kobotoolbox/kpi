@@ -5,4 +5,4 @@ from .paginated_api import PaginatedApiField
 from .read_only import ReadOnlyJSONField
 from .relative_prefix_hyperlinked_related import RelativePrefixHyperlinkedRelatedField
 from .serializer_method_file import SerializerMethodFileField
-from .writeable_json import WritableJSONField
+from .writable_json import WritableJSONField
