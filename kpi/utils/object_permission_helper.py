@@ -2,6 +2,7 @@
 from django.conf import settings
 
 from kpi.constants import PERM_MANAGE_ASSET, PERM_FROM_KC_ONLY
+from kpi.utils.permissions import is_user_anonymous
 
 
 class ObjectPermissionHelper:
@@ -31,7 +32,7 @@ class ObjectPermissionHelper:
 
         # Filtering is done in `get_queryset` instead of FilteredBackend class
         # because it's specific to `ObjectPermission`.
-        if not user or user.is_anonymous:
+        if not user or is_user_anonymous(user):
             queryset = queryset.filter(
                 user_id__in=[
                     affected_object.owner_id,
@@ -67,7 +68,7 @@ class ObjectPermissionHelper:
         user_permission_assignments = []
         filtered_user_ids = None
 
-        if not user or user.is_anonymous:
+        if not user or is_user_anonymous(user):
             filtered_user_ids = [affected_object.owner_id]
         elif not affected_object.has_perm(user, PERM_MANAGE_ASSET):
             # Display only users' permissions if they are not allowed to modify

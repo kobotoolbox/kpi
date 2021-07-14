@@ -25,6 +25,7 @@ from kpi.deployment_backends.kc_access.utils import (
 )
 from kpi.fields.kpi_uid import KpiUidField
 from kpi.utils.cache import void_cache_for_request
+from kpi.utils.permissions import is_user_anonymous
 
 
 def perm_parse(perm, obj=None):
@@ -134,14 +135,14 @@ def get_objects_for_user(
 def get_anonymous_user():
     """ Return a real User in the database to represent AnonymousUser. """
     try:
-        user = AnonymousDatabaseUser.objects.get(pk=settings.ANONYMOUS_USER_ID)
-    except AnonymousDatabaseUser.DoesNotExist:
+        user = User.objects.get(pk=settings.ANONYMOUS_USER_ID)
+    except User.DoesNotExist:
         username = getattr(
             settings,
             'ANONYMOUS_DEFAULT_USERNAME_VALUE',
             'AnonymousUser'
         )
-        user = AnonymousDatabaseUser.objects.create(
+        user = User.objects.create(
             pk=settings.ANONYMOUS_USER_ID,
             username=username
         )
@@ -182,7 +183,6 @@ def get_cached_code_names(model_: models.Model = None) -> dict:
     return perm_ids_from_code_names
 
 
-@cache_for_request
 def get_database_user(user: Union[User, AnonymousUser]) -> User:
     """
     Returns a real `User` object if `user` is an `AnonymousUser`, otherwise
@@ -214,23 +214,6 @@ def get_perm_ids_from_code_names(
         return [v['id'] for k, v in perm_ids.items() if k in code_names]
     else:
         return perm_ids[code_names]['id']
-
-
-class AnonymousDatabaseUser(User):
-    """
-    Normal `User` instances, i.e. users stored in the database, always have
-    `is_anonymous = False`. This is a hack for our special case where one user
-    in the database represents the anonymous user.
-    Possible alternative: set a custom user model?
-    https://docs.djangoproject.com/en/2.2/topics/auth/customizing/#specifying-a-custom-user-model
-    """
-    @property
-    def is_anonymous(self):
-        assert self.pk == settings.ANONYMOUS_USER_ID
-        return True
-
-    class Meta:
-        proxy = True
 
 
 class ObjectPermission(models.Model):
@@ -678,8 +661,9 @@ class ObjectPermissionMixin:
             raise serializers.ValidationError({
                 'permission': f'{codename} cannot be assigned explicitly to {self}'
             })
+        is_anonymous = is_user_anonymous(user_obj)
         user_obj = get_database_user(user_obj)
-        if user_obj.is_anonymous:
+        if is_anonymous:
             # Is an anonymous user allowed to have this permission?
             fq_permission = f'{app_label}.{codename}'
             if (
@@ -811,6 +795,7 @@ class ObjectPermissionMixin:
         Does `user_obj` have perm on this object? (True/False)
         """
         app_label, codename = perm_parse(perm, self)
+        is_anonymous = is_user_anonymous(user_obj)
         user_obj = get_database_user(user_obj)
         # Treat superusers the way django.contrib.auth does
         if user_obj.is_active and user_obj.is_superuser:
@@ -820,10 +805,10 @@ class ObjectPermissionMixin:
             user=user_obj,
             codename=codename
         )) == 1
-        if not result and not user_obj.is_anonymous:
+        if not result and not is_anonymous:
             # The user-specific test failed, but does the public have access?
             result = self.has_perm(AnonymousUser(), perm)
-        if result and user_obj.is_anonymous:
+        if result and is_anonymous:
             # Is an anonymous user allowed to have this permission?
             fq_permission = '{}.{}'.format(app_label, codename)
             if fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
@@ -1046,7 +1031,7 @@ class ObjectPermissionMixin:
                 settings.ANONYMOUS_USER_ID,
                 all_anon_object_permissions.get(self.pk),
             )
-            if not user.is_anonymous:
+            if not is_user_anonymous(user):
                 all_object_permissions = self.__get_all_user_permissions(
                     user_id=user.pk
                 )

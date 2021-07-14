@@ -30,6 +30,7 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.permissions import is_user_anonymous
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatXForm,
@@ -1077,7 +1078,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :param user: User
         :return: requests.models.Response
         """
-        if not user.is_anonymous and user.pk != settings.ANONYMOUS_USER_ID:
+        if not is_user_anonymous(user):
             token, created = Token.objects.get_or_create(user=user)
             kc_request.headers['Authorization'] = 'Token %s' % token.key
         session = requests.Session()
