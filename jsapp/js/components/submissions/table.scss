@@ -10,9 +10,15 @@ $c-header-bg: $kobo-gray-96;
 
 $z-table-frozen: 10;
 
-.form-view--table {
+.form-view__sidetabs + .form-view.form-view--table {
+  overflow-x: hidden;
+  overflow-y: auto; // needed for columnsHideDropdown on smaller screens
+}
+
+.form-view.form-view--table {
   padding: 0px 15px;
   position: relative;
+  background: $kobo-white;
 
   .form-view__group--table-header {
     padding: 10px 0px 0px 0px;

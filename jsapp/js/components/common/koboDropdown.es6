@@ -43,7 +43,7 @@ bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
  * @prop {boolean} [hideOnMenuOutsideClick=false] - hides menu when user clicks outside it
  * @prop {boolean} [hideOnEsc=false] - hides menu when opened and user uses Escape key
  * @prop {node} triggerContent
- * @prop {function} menuContent the content of dropdown, anything's allowed
+ * @prop {node} menuContent the content of dropdown, anything's allowed
  * @prop {string} [name] optional name value useful for styling, ends up in `data-name` attribute
  */
 export default class KoboDropdown extends React.Component {

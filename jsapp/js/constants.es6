@@ -437,6 +437,16 @@ export const FUNCTION_TYPE = Object.freeze({
   },
 });
 
+export const FUSE_OPTIONS = {
+  isCaseSensitive: false,
+  includeScore: true,
+  minMatchCharLength: 1,
+  shouldSort: false,
+  ignoreFieldNorm: true,
+  threshold: 0.2,
+  ignoreLocation: true,
+};
+
 // NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,

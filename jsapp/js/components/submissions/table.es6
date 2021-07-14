@@ -44,10 +44,11 @@ import {
 import {
   getColumnLabel,
   getColumnHXLTags,
-  getDisplayedColumns,
+  getAllColumns,
   getHideableColumns,
   getSelectedColumns,
   getFrozenColumn,
+  getTableSettings,
   isFieldFrozen,
   getBackgroundAudioQuestionName,
 } from 'js/components/submissions/tableUtils';
@@ -264,6 +265,8 @@ export class DataTable extends React.Component {
     if (this.state.sortOption?.fieldId === fieldId) {
       return this.state.sortOption.value;
     }
+
+    return null;
   }
 
   /**
@@ -326,6 +329,11 @@ export class DataTable extends React.Component {
     // If we are hiding the column that is frozen, we need to unfreeze it
     if (isFieldFrozen(this.props.asset, fieldId) && isVisible === false) {
       settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = null;
+    }
+
+    // If we are hiding the column that data is sorted by, we need to unsort it
+    if (this.getFieldSortValue(fieldId) !== null) {
+      this.onFieldSortChange(fieldId, null);
     }
 
     this.saveTableSettings(settingsObj);
@@ -547,26 +555,27 @@ export class DataTable extends React.Component {
    * @param {object[]} data - list of submissions
    */
   _prepColumns(data) {
-    const displayedColumns = getDisplayedColumns(this.props.asset, data);
+    const allColumns = getAllColumns(this.props.asset, data);
 
     let showLabels = this.state.showLabels;
     let showGroupName = this.state.showGroupName;
     let showHXLTags = this.state.showHXLTags;
-    let settings = this.props.asset.settings;
     let translationIndex = this.state.translationIndex;
     let maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
 
-    if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION] !== null) {
-      translationIndex = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION];
+    const tableSettings = getTableSettings(this.props.asset);
+
+    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] !== null) {
+      translationIndex = tableSettings[DATA_TABLE_SETTINGS.TRANSLATION];
       showLabels = translationIndex > -1;
     }
 
-    if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP] !== null) {
-      showGroupName = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP];
+    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] !== null) {
+      showGroupName = tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP];
     }
 
-    if (settings[DATA_TABLE_SETTING] && settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL] !== null) {
-      showHXLTags = settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL];
+    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] !== null) {
+      showHXLTags = tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL];
     }
 
     // check for overrides by users with view permissions only
@@ -592,12 +601,14 @@ export class DataTable extends React.Component {
 
     let survey = this.props.asset.content.survey;
     let choices = this.props.asset.content.choices;
-    displayedColumns.forEach((key) => {
+    allColumns.forEach((key) => {
       var q;
-      var qParentG = [];
       if (key.includes('/')) {
-        qParentG = key.split('/');
-        q = survey.find((o) => o.name === qParentG[qParentG.length - 1] || o.$autoname === qParentG[qParentG.length - 1]);
+        const qParentG = key.split('/');
+        q = survey.find((o) => (
+          o.name === qParentG[qParentG.length - 1] ||
+          o.$autoname === qParentG[qParentG.length - 1]
+        ));
       } else {
         q = survey.find((o) => o.name === key || o.$autoname === key);
       }
@@ -688,8 +699,6 @@ export class DataTable extends React.Component {
           const columnName = getColumnLabel(
             this.props.asset.content.survey,
             key,
-            q,
-            qParentG,
             this.state.showGroupName,
             this.state.translationIndex
           );
@@ -1254,6 +1263,9 @@ export class DataTable extends React.Component {
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           <ColumnsHideDropdown
             asset={this.props.asset}
+            submissions={this.state.tableData}
+            showGroupName={this.state.showGroupName}
+            translationIndex={this.state.translationIndex}
           />
 
           {this.renderBulkSelectUI()}

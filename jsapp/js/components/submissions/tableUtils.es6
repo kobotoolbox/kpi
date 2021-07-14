@@ -25,11 +25,21 @@ import {
 export function getColumnLabel(
   survey,
   key,
-  question,
-  questionPath,
   showGroupName,
   translationIndex = 0
 ) {
+  var question;
+  var questionPath = [];
+  if (key.includes('/')) {
+    questionPath = key.split('/');
+    question = survey.find((o) => (
+      o.name === questionPath[questionPath.length - 1] ||
+      o.$autoname === questionPath[questionPath.length - 1]
+    ));
+  } else {
+    question = survey.find((o) => o.name === key || o.$autoname === key);
+  }
+
   // NOTE: Some very old code has something to do with nonexistent/negative
   // translationIndex. No idea what is that. It does influences returned value.
   const showLabels = translationIndex > -1;
@@ -76,7 +86,7 @@ export function getColumnLabel(
  * @param {object[]} submissions - list of submissions
  * @returns {string[]} a unique list of columns (keys) that should be displayed to users
  */
-export function getDisplayedColumns(asset, submissions) {
+export function getAllColumns(asset, submissions) {
   const flatPaths = getSurveyFlatPaths(asset.content.survey);
 
   // add all questions from the survey definition
@@ -143,7 +153,7 @@ export function getDisplayedColumns(asset, submissions) {
  * @returns {string[]} a list of columns that user can hide
  */
 export function getHideableColumns(asset, submissions) {
-  const columns = getDisplayedColumns(asset, submissions);
+  const columns = getAllColumns(asset, submissions);
   columns.push(VALIDATION_STATUS_ID_PROP);
   return columns;
 }
