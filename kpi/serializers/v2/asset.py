@@ -505,16 +505,15 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         if 'fields' in data_sharing:
             if not isinstance(data_sharing['fields'], list):
-                errors['fields'] = _(
-                    'The property must be list, not {}'
-                ).format(data_sharing['fields'].__class__.__name__)
+                errors['fields'] = _('The property must be an array')
             else:
                 asset = self.instance
                 fields = data_sharing['fields']
-                schema = asset.latest_version.to_formpack_schema()
-                form_pack = FormPack(versions=schema)
+                form_pack, _unused = build_formpack(asset, submission_stream=[])
                 valid_fields = [
-                    f.path for f in form_pack.get_fields_for_versions()
+                    f.path for f in form_pack.get_fields_for_versions(
+                        form_pack.versions.keys()
+                    )
                 ]
                 unknown_fields = set(fields) - set(valid_fields)
                 if unknown_fields and valid_fields:

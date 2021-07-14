@@ -3,10 +3,10 @@ import os
 import re
 
 from django.utils.translation import gettext as _
-from formpack import FormPack
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
+from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_PARTIAL_SUBMISSIONS,
@@ -65,10 +65,10 @@ class PairedDataSerializer(serializers.Serializer):
         }
 
     def validate(self, attrs: dict) -> dict:
-        # Ensure `source` has been validated before validating `filename`
-        # and `fields`. If 'source' is not present in `attrs`, it should be
-        # only on update. (`RelativePrefixHyperlinkedRelatedField` validator
-        # enforces its requirement)
+        # Ensure `source`, which is required on creation but not on update, has
+        # been validated before validating `filename` and `fields`.
+        # (`RelativePrefixHyperlinkedRelatedField` validator enforces this
+        # requirement)
         try:
             attrs['source']
         except KeyError:
@@ -124,10 +124,11 @@ class PairedDataSerializer(serializers.Serializer):
             return
 
         source = attrs['source']
-        schema = source.latest_version.to_formpack_schema()
-        form_pack = FormPack(versions=schema)
+        form_pack, _unused = build_formpack(source, submission_stream=[])
         valid_fields = [
-            f.path for f in form_pack.get_fields_for_versions()
+            f.path for f in form_pack.get_fields_for_versions(
+                form_pack.versions.keys()
+            )
         ]
 
         source_fields = source.data_sharing.get('fields') or valid_fields
