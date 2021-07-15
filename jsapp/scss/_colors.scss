@@ -9,14 +9,6 @@
   Group 1: Blueish grays
 */
 
-$kobo-black: hsl(230, 12%, 20%); // base text color
-$kobo-darkgray: hsl(230, 12%, 40%);
-$kobo-gray-50: hsl(230, 12%, 50%);
-$kobo-midgray: hsl(230, 12%, 75%); // mostly used for darker borders
-$kobo-lightgray: hsl(230, 12%, 90%); // mostly used for lighter borders
-$kobo-whitegray: hsl(230, 12%, 95%);
-$kobo-white: hsl(0, 0%, 100%);
-
 // (accessible) our black, very very rare, only use if necessary for contrast
 $kobo-gray-14: hsl(225, 16%, 14%); // #1e2129
 
