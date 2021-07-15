@@ -468,7 +468,7 @@ class ConnectProjects extends React.Component {
             this.state.attachedSources.map((item, n) => {
               return (
                 <li key={n} className='connect-projects__import--list-item'>
-                  <i className="k-icon k-icon-check"/>
+                  <i className='k-icon k-icon-check'/>
 
                   <div className='connect-projects__import--labels'>
                     <span className='connect-projects__import--labels--filename'>

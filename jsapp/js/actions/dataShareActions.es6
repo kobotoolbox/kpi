@@ -29,7 +29,11 @@ dataShareActions.attachToSource.listen((assetUid, data) => {
   dataShareActions.attachToSource.started();
 });
 dataShareActions.attachToSource.failed.listen((response) => {
-  alertify.error(response?.responseJSON || t('Failed to attach to source'));
+  alertify.error(
+    response?.responseJSON?.filename[0] ||
+      response?.responseJSON ||
+      t('Failed to attach to source')
+  );
 });
 
 dataShareActions.detachSource.listen((attachmentUrl) => {
