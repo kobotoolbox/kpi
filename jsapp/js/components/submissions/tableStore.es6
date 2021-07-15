@@ -18,14 +18,15 @@ import {
 } from 'js/components/submissions/tableConstants';
 
 /**
- * TODO: The tableStore should be handling all data required by table.es6, but
- * as this would mean a huge refactor, we will stick to providing a one way
- * interface for changing things in asset.
+ * TODO: tableStore should be handling all data required by table.es6, but as
+ * this would mean a huge refactor, we will stick to providing a one way
+ * interface for changing things in asset plus some utility functions.
  *
  * NOTE: To simplify code a bit, we assume this will be used only on the table
- * route - i.e. asset and assetUid will be fetched separately.
+ * route - i.e. assetUid comes from url, and asset from other stores.
  *
- * Use actions listeners to be up to date.
+ * Use these actions listeners to be up to date:
+ * - `actions.table.updateSettings`
  */
 const tableStore = Reflux.createStore({
   /**
