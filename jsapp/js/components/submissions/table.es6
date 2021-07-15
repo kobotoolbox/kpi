@@ -2,7 +2,6 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
-import clonedeep from 'lodash.clonedeep';
 import enketoHandler from 'js/enketoHandler';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
@@ -53,6 +52,7 @@ import {
   isFieldFrozen,
   getBackgroundAudioQuestionName,
 } from 'js/components/submissions/tableUtils';
+import tableStore from 'js/components/submissions/tableStore';
 import './table.scss';
 
 const DEFAULT_PAGE_SIZE = 30;
@@ -264,90 +264,18 @@ export class DataTable extends React.Component {
 
   /**
    * @param {string} fieldId
-   * @returns {string|null} null for no option, or one of SORT_VALUES
-   */
-  getFieldSortValue(fieldId) {
-    const sortBy = getSortBy(this.props.asset);
-    if (sortBy === null) {
-      return null;
-    }
-
-    if (sortBy?.fieldId === fieldId) {
-      return sortBy.value;
-    }
-
-    return null;
-  }
-
-  /**
-   * @param {string} fieldId
    * @param {string|null} sortValue one of SORT_VALUES or null for clear value
    */
   onFieldSortChange(fieldId, sortValue) {
-    let newSortBy = null;
-    if (sortValue !== null) {
-      newSortBy = {
-        fieldId: fieldId,
-        value: sortValue,
-      };
-    }
-
-    const settingsObj = {};
-    settingsObj[DATA_TABLE_SETTINGS.SORT_BY] = newSortBy;
-    this.saveTableSettings(settingsObj);
-  }
-
-  onHideField(fieldId) {
-    this.onFieldVisibleChange(fieldId, false);
+    tableStore.setSortBy(fieldId, sortValue);
   }
 
   /**
    * @param {string} fieldId
-   * @param {boolean} isVisible
    */
-  onFieldVisibleChange(fieldId, isVisible) {
+  onHideField(fieldId) {
     const hideableColumns = getHideableColumns(this.props.asset, this.state.submissions);
-    const selectedColumns = getSelectedColumns(this.props.asset);
-
-    let newSelectedColumns = [];
-
-    // Case 1: nothing selected and we hide one column, i.e. we need to select all but one
-    if (selectedColumns === null && isVisible === false) {
-      newSelectedColumns = [...hideableColumns];
-      newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1);
-    }
-
-    // Case 2: some fields selected and we hide one column
-    if (Array.isArray(selectedColumns) && isVisible === false) {
-      newSelectedColumns = [...selectedColumns];
-      newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1);
-    }
-
-    // Case 3: some fields selected and we show one column
-    if (Array.isArray(selectedColumns) && isVisible === true) {
-      newSelectedColumns = [...selectedColumns];
-      newSelectedColumns.push(fieldId);
-
-      // Case 4: we are showing the last hidden column, we save `null` value
-      if (newSelectedColumns.length === hideableColumns.length) {
-        newSelectedColumns = null;
-      }
-    }
-
-    const settingsObj = {};
-    settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = newSelectedColumns;
-
-    // If we are hiding the column that is frozen, we need to unfreeze it
-    if (isFieldFrozen(this.props.asset, fieldId) && isVisible === false) {
-      settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = null;
-    }
-
-    // If we are hiding the column that data is sorted by, we need to unsort it
-    if (this.getFieldSortValue(fieldId) !== null) {
-      this.onFieldSortChange(fieldId, null);
-    }
-
-    this.saveTableSettings(settingsObj);
+    tableStore.hideField(hideableColumns, fieldId);
   }
 
   /**
@@ -355,37 +283,7 @@ export class DataTable extends React.Component {
    * @param {boolean} isFrozen
    */
   onFieldFrozenChange(fieldId, isFrozen) {
-    // NOTE: Currently we only support one frozen column at a time, so that is
-    // why making column not-frozen means we just null-ify the value, without
-    // checking what column is frozen now.
-    let newVal = null;
-    if (isFrozen) {
-      newVal = fieldId;
-    }
-    const settingsObj = {};
-    settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = newVal;
-    this.saveTableSettings(settingsObj);
-  }
-
-  /**
-   * @param {object} newTableSettings - will be merged into current settings, overwriting any DATA_TABLE_SETTING properties
-   */
-  saveTableSettings(newTableSettings) {
-    // get whole asset settings as clone to avoid bugs
-    const newSettings = clonedeep(this.props.asset.settings);
-
-    if (!newSettings[DATA_TABLE_SETTING]) {
-      newSettings[DATA_TABLE_SETTING] = newTableSettings;
-    } else {
-      newSettings[DATA_TABLE_SETTING] = Object.assign(
-        newSettings[DATA_TABLE_SETTING],
-        newTableSettings
-      );
-    }
-
-    if (this.userCan('change_asset', this.props.asset)) {
-      actions.table.updateSettings(this.props.asset.uid, newSettings);
-    }
+    tableStore.setFrozenColumn(fieldId, isFrozen);
   }
 
   /**
@@ -503,7 +401,7 @@ export class DataTable extends React.Component {
         <div className='column-header-wrapper'>
           <TableColumnSortDropdown
             fieldId={VALIDATION_STATUS_ID_PROP}
-            sortValue={this.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
+            sortValue={tableStore.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
             onSortChange={this.onFieldSortChange}
             onHide={this.onHideField}
             isFieldFrozen={isFieldFrozen(this.props.asset, VALIDATION_STATUS_ID_PROP)}
@@ -704,7 +602,7 @@ export class DataTable extends React.Component {
             <div className='column-header-wrapper'>
               <TableColumnSortDropdown
                 fieldId={key}
-                sortValue={this.getFieldSortValue(key)}
+                sortValue={tableStore.getFieldSortValue(key)}
                 onSortChange={this.onFieldSortChange}
                 onHide={this.onHideField}
                 isFieldFrozen={isFieldFrozen(this.props.asset, key)}

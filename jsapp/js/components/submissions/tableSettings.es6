@@ -16,6 +16,8 @@ import {
 import './tableSettings.scss';
 
 /**
+ * This is a modal form that handles changing some of the table settings.
+ *
  * @prop {object} asset
  * @prop {function} overrideLabelsAndGroups - used to temporary save settings (e.g. when user doesn't have permissions to edit asset, but wants to display submissions in different way)
  */

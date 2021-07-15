@@ -291,6 +291,14 @@ stores.allAssets = Reflux.createStore({
     }
   },
 
+  /**
+   * @param {string} assetUid
+   * @returns {object|undefined}
+   */
+  getAsset(assetUid) {
+    return this.byUid(assetUid);
+  },
+
   onUpdateAssetCompleted (asset) {
     this.registerAsset(asset);
     this.data.forEach((dataAsset, index) => {
