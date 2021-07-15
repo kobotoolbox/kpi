@@ -96,7 +96,7 @@
     color: $kobo-gray-40;
     font-weight: normal;
     letter-spacing: -0.01em;
-    display: block;
+    display: flex;
     margin-left: 10px;
 
     &:hover,
@@ -135,12 +135,6 @@
     span {
       vertical-align: middle;
     }
-  }
-
-  label.form-view__tab-label {
-    display: inline-block;
-    width: 70%;
-    vertical-align: middle;
   }
 }
 
@@ -898,51 +892,9 @@
   }
 }
 
-.form-modal__form.form-modal__form--data-attachment-columns {
-   color: $kobo-gray-50;
-
-  .bulk-options {
-    margin-top: 14px;
-    display: flex;
-    justify-content: space-between;
-
-    .bulk-options__description {
-      font-weight: bold;
-    }
-
-    .bulk-options__buttons {
-      span {
-        margin: 12px;
-      }
-
-      a {
-        text-decoration: underline;
-        cursor: pointer;
-      }
-    }
-  }
-
-  .multi-checkbox {
-    margin-top: 12px;
-    height: 200px;
-  }
-
-  .loading {
-    margin-top: 12px;
-  }
-
-  .modal__footer {
-    text-align: center;
-
-    button {
-      padding-left: 64px;
-      padding-right: 64px;
-    }
-  }
-
-}
-
 // Compensate for when sidebar(s) messes up modal a bit
+
+// TODO: Clean this up via PR changes
 @media
   (min-width: 770px) and (max-width: 1020px),
   (max-width: 560px) {

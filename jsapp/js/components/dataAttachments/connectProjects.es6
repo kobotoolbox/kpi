@@ -18,6 +18,8 @@ import {
   MAX_DISPLAYED_STRING_LENGTH,
 } from 'js/constants';
 
+import './connect-projects.scss';
+
 /*
  * Modal for connecting project data
  *
@@ -119,7 +121,7 @@ class ConnectProjects extends React.Component {
   onAttachToSourceFailed(response) {
     this.setState({
       isLoading: false,
-      fieldsErrors: response.responseJSON,
+      fieldsErrors: response?.responseJSON || t('Please check file name'),
     });
   }
 
@@ -379,7 +381,7 @@ class ConnectProjects extends React.Component {
     if (this.state.isShared) {
       return (
         <div className='connect-projects__export'>
-          <div className='connect-projects__export--options'>
+          <div className='connect-projects__export-options'>
             <ToggleSwitch
               onChange={this.onToggleSharingData.bind(this)}
               label={t('Data sharing enabled')}
@@ -395,7 +397,7 @@ class ConnectProjects extends React.Component {
           </div>
 
           {this.state.isSharingAnyQuestions &&
-            <div className='connect-projects__export--multicheckbox'>
+            <div className='connect-projects__export-multicheckbox'>
               <span>
                 {t('Select any questions you want to share in the right side table')}
                 {this.state.isLoading &&
@@ -415,7 +417,7 @@ class ConnectProjects extends React.Component {
     } else {
       return (
         <div className='connect-projects__export'>
-          <div className='connect-projects__export--switch'>
+          <div className='connect-projects__export-switch'>
             <ToggleSwitch
               onChange={this.onToggleSharingData.bind(this)}
               label={t('Data sharing disabled')}
@@ -430,7 +432,7 @@ class ConnectProjects extends React.Component {
   renderImports() {
     return (
       <div className='connect-projects__import'>
-        <div className='connect-projects__import--form'>
+        <div className='connect-projects__import-form'>
           {this.renderSelect()}
 
           <TextBox
@@ -449,17 +451,17 @@ class ConnectProjects extends React.Component {
         </div>
 
         {/* Display attached projects */}
-        <ul className='connect-projects__import--list'>
+        <ul className='connect-projects__import-list'>
           <label>{t('Imported')}</label>
 
           {(!this.state.isInitialised || this.state.isLoading) &&
-            <div className='connect-projects__import--list-item'>
+            <div className='connect-projects__import-list-item'>
               <LoadingSpinner message={t('Loading imported projects')} />
             </div>
           }
 
           {!this.state.isLoading && this.state.attachedSources.length == 0 &&
-            <li className='connect-projects__no-imports'>
+            <li className='connect-projects__import-list-item--no-imports'>
               {t('No data imported')}
             </li>
           }
@@ -467,20 +469,20 @@ class ConnectProjects extends React.Component {
           {!this.state.isLoading && this.state.attachedSources.length > 0 &&
             this.state.attachedSources.map((item, n) => {
               return (
-                <li key={n} className='connect-projects__import--list-item'>
+                <li key={n} className='connect-projects__import-list-item'>
                   <i className='k-icon k-icon-check'/>
 
-                  <div className='connect-projects__import--labels'>
-                    <span className='connect-projects__import--labels--filename'>
+                  <div className='connect-projects__import-labels'>
+                    <span className='connect-projects__import-labels-filename'>
                       {item.filename}
                     </span>
 
-                    <span className='connect-projects__import--labels--source'>
+                    <span className='connect-projects__import-labels-source'>
                       {item.sourceName}
                     </span>
                   </div>
 
-                  <div className='connect-projects__import--options'>
+                  <div className='connect-projects__import-options'>
                     <bem.KoboLightButton
                       m={['red', 'icon-only']}
                       onClick={() => this.onRemoveAttachment(item.attachmentUrl)}
