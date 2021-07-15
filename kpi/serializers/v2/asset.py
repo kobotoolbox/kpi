@@ -2,7 +2,6 @@
 import json
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
@@ -23,7 +22,6 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.fields import (
     PaginatedApiField,
     RelativePrefixHyperlinkedRelatedField,
@@ -31,10 +29,11 @@ from kpi.fields import (
 )
 from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.models.asset import UserAssetSubscription
-from kpi.models.object_permission import get_database_user
-
-from kpi.utils.object_permission_helper import ObjectPermissionHelper
-
+from kpi.utils.object_permission import (
+    get_database_user,
+    get_user_permission_assignments,
+    get_user_permission_assignments_queryset,
+)
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
@@ -373,8 +372,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         context = self.context
         request = self.context.get('request')
 
-        queryset = ObjectPermissionHelper. \
-            get_user_permission_assignments_queryset(obj, request.user)
+        queryset = get_user_permission_assignments_queryset(obj, request.user)
         # Need to pass `asset` and `asset_uid` to context of
         # AssetPermissionAssignmentSerializer serializer to avoid extra queries
         # to DB within the serializer to retrieve the asset object.
@@ -643,10 +641,9 @@ class AssetListSerializer(AssetSerializer):
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
-        user_assignments = ObjectPermissionHelper. \
-            get_user_permission_assignments(asset,
-                                            request.user,
-                                            asset_permission_assignments)
+        user_assignments = get_user_permission_assignments(
+            asset, request.user, asset_permission_assignments
+        )
         return AssetPermissionAssignmentSerializer(user_assignments,
                                                    many=True, read_only=True,
                                                    context=context).data

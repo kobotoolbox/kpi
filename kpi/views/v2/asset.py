@@ -32,13 +32,11 @@ from kpi.filters import (
     SearchFilter,
 )
 from kpi.highlighters import highlight_xform
-from kpi.models import Asset
-from kpi.models.object_permission import (
+from kpi.models import (
+    Asset,
     ObjectPermission,
-    get_database_user,
-    get_objects_for_user
+    UserAssetSubscription,
 )
-from kpi.models.asset import UserAssetSubscription
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
     get_perm_name,
@@ -58,6 +56,10 @@ from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.utils.object_permission import (
+    get_database_user,
+    get_objects_for_user,
+)
 
 
 class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):

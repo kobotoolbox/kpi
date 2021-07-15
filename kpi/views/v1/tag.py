@@ -1,15 +1,15 @@
 # coding: utf-8
-from itertools import chain
-
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
 from rest_framework import viewsets
 from taggit.models import Tag
 
 from kpi.constants import PERM_VIEW_ASSET
 from kpi.filters import SearchFilter
 from kpi.models import Asset
-from kpi.models.object_permission import get_database_user, get_objects_for_user
+from kpi.utils.object_permission import (
+    get_database_user,
+    get_objects_for_user,
+)
 from kpi.serializers import TagSerializer, TagListSerializer
 
 

@@ -1,10 +1,11 @@
 # coding: utf-8
 from rest_framework import viewsets
-from kpi.models import UserAssetSubscription
 
-from kpi.models.object_permission import get_database_user
-from kpi.serializers.v2.user_asset_subscription import \
-    UserAssetSubscriptionSerializer
+from kpi.models import UserAssetSubscription
+from kpi.serializers.v2.user_asset_subscription import (
+    UserAssetSubscriptionSerializer,
+)
+from kpi.utils.object_permission import get_database_user
 
 
 class UserAssetSubscriptionViewSet(viewsets.ModelViewSet):

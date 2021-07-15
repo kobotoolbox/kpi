@@ -10,7 +10,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from markitup.fields import MarkupField
 
-from kpi.models.object_permission import get_database_user
+from kpi.utils.object_permission import get_database_user
 
 
 class SitewideMessage(models.Model):

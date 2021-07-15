@@ -21,13 +21,13 @@ from kpi.constants import (
 from kpi.exceptions import SearchQueryTooShortException
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import get_parsed_parameters, parse, ParseError
-from kpi.utils.permissions import is_user_anonymous
-from .models import Asset, ObjectPermission
-from .models.object_permission import (
+from kpi.utils.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
-    get_perm_ids_from_code_names
+    get_perm_ids_from_code_names,
 )
+from kpi.utils.permissions import is_user_anonymous
+from .models import Asset, ObjectPermission
 
 
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):

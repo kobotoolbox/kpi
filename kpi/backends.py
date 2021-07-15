@@ -1,9 +1,8 @@
 # coding: utf-8
 from django.contrib.auth.backends import ModelBackend
-from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
 
-from .models.object_permission import  get_database_user, perm_parse
+from kpi.utils.object_permission import get_database_user
 from .utils.permissions import is_user_anonymous
 
 
