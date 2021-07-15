@@ -19,6 +19,7 @@ from kpi.models.asset_file import AssetFile
 from kpi.utils.hash import calculate_hash
 
 
+# FIXME: simplify this by making PairedData a real Django Model ^_^
 class PairedData(OpenRosaManifestInterface,
                  SyncBackendMediaInterface):
 
