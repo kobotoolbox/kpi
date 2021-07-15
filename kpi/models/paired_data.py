@@ -264,6 +264,12 @@ class PairedData(OpenRosaManifestInterface,
             create_version=False,
         )
 
+    def void_external_xml_cache(self):
+        # We delete the content of `self.asset_file` to force its regeneration
+        # when the 'xml_endpoint' is called
+        if self.asset_file and self.asset_file.content:
+            self.asset_file.content.delete()
+
     def update(self, updated_values):
         for key, value in updated_values.items():
             if not hasattr(self, key):
@@ -272,8 +278,5 @@ class PairedData(OpenRosaManifestInterface,
                 )
             setattr(self, key, value)
 
-        # We delete the content of `self.asset_file` to force its regeneration
-        # when the 'xml_endpoint' is called
-        if self.asset_file and self.asset_file.content:
-            self.asset_file.content.delete()
+        self.void_external_xml_cache()
 
