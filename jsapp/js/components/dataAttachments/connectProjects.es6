@@ -1,14 +1,14 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
-import assetUtils from 'js/assetUtils';
+import dataAttachmentsUtils from 'js/components/dataAttachments/dataAttachmentsUtils';
 import Select from 'react-select';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {actions} from 'js/actions';
-import {stores} from '../../stores';
+import {stores} from 'js/stores';
 import {bem} from 'js/bem';
 import {generateAutoname} from 'js/utils';
 import {LoadingSpinner} from 'js/ui';
@@ -16,7 +16,7 @@ import {LoadingSpinner} from 'js/ui';
 import {
   MODAL_TYPES,
   MAX_DISPLAYED_STRING_LENGTH,
-} from '../../constants';
+} from 'js/constants';
 
 /*
  * Modal for connecting project data
@@ -31,7 +31,7 @@ class ConnectProjects extends React.Component {
       isLoading: false,
       // `data_sharing` is an empty object if never enabled before
       isShared: props.asset.data_sharing?.enabled || false,
-      isSharingSomeQuestions: Boolean(props.asset.data_sharing?.fields?.length) || false,
+      isSharingAnyQuestions: Boolean(props.asset.data_sharing?.fields?.length) || false,
       attachedSources: [],
       sharingEnabledAssets: null,
       newSource: null,
@@ -39,6 +39,14 @@ class ConnectProjects extends React.Component {
       columnsToDisplay: [],
       fieldsErrors: {},
     };
+
+    if (this.state.isShared) {
+      this.state.columnsToDisplay = dataAttachmentsUtils.generateColumnFilters(
+          this.props.asset.data_sharing.fields,
+          this.props.asset.content.survey,
+      );
+    }
+
 
     autoBind(this);
 
@@ -51,6 +59,9 @@ class ConnectProjects extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
+      actions.dataShare.attachToSource.started.listen(
+        this.markComponentAsLoading
+      ),
       actions.dataShare.attachToSource.completed.listen(
         this.refreshAttachmentList
       ),
@@ -59,6 +70,9 @@ class ConnectProjects extends React.Component {
       ),
       actions.dataShare.detachSource.completed.listen(
         this.refreshAttachmentList
+      ),
+      actions.dataShare.patchSource.started.listen(
+        this.markComponentAsLoading
       ),
       actions.dataShare.patchSource.completed.listen(
         this.onPatchSourceCompleted
@@ -90,15 +104,6 @@ class ConnectProjects extends React.Component {
     );
 
     this.refreshAttachmentList();
-
-    if (this.state.isShared) {
-      this.setState({
-        columnsToDisplay: this.generateColumnFilters(
-          this.props.asset.data_sharing.fields,
-          this.props.asset.content.survey,
-        ),
-      });
-    }
 
     actions.dataShare.getSharingEnabledAssets();
   }
@@ -133,8 +138,8 @@ class ConnectProjects extends React.Component {
   onToggleDataSharingCompleted(response) {
     this.setState({
       isShared: response.data_sharing.enabled,
-      isSharingSomeQuestions: false,
-      columnsToDisplay: this.generateColumnFilters(
+      isSharingAnyQuestions: false,
+      columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(
         [],
         this.props.asset.content.survey,
       ),
@@ -145,7 +150,7 @@ class ConnectProjects extends React.Component {
   onUpdateColumnFiltersCompleted(response) {
     this.setState({
       isLoading: false,
-      columnsToDisplay: this.generateColumnFilters(
+      columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(
         response.data_sharing.fields,
         this.props.asset.content.survey,
       ),
@@ -160,11 +165,12 @@ class ConnectProjects extends React.Component {
     this.setState({
       newSource: null,
       newFilename: '',
+      fieldsErrors: {},
     });
     actions.dataShare.getAttachedSources(this.props.asset.uid);
   }
 
-  stopLoading () {
+  stopLoading() {
     this.setState({isLoading: false});
   }
 
@@ -229,31 +235,29 @@ class ConnectProjects extends React.Component {
   }
 
   onRemoveAttachment(newVal) {
-    this.setState({isLoading: true})
+    this.setState({isLoading: true});
     actions.dataShare.detachSource(newVal);
   }
 
   onToggleSharingData() {
-    const data = JSON.stringify({
+    const data = {
       data_sharing: {
         enabled: !this.state.isShared,
         fields: [],
-      }
-    });
+      },
+    };
 
     if (!this.state.isShared) {
       let dialog = alertify.dialog('confirm');
       let opts = {
         title: `${t('Privacy Notice')}`,
-        message: t('This will attach the full dataset from \"##ASSET_NAME##\" as a background XML file to this form. While not easily visible, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if \"##ASSET_NAME##\" includes sensitive data.').replaceAll('##ASSET_NAME##', this.props.asset.name),
+        message: t('This will attach the full dataset from "##ASSET_NAME##" as a background XML file to this form. While not easily visible, it is technically possible for anyone entering data to your form to retrieve and view this dataset. Do not use this feature if "##ASSET_NAME##" includes sensitive data.').replaceAll('##ASSET_NAME##', this.props.asset.name),
         labels: {ok: t('Acknowledge and continue'), cancel: t('Cancel')},
-        onok: (evt, value) => {
+        onok: () => {
           actions.dataShare.toggleDataSharing(this.props.asset.uid, data);
           dialog.destroy();
         },
-        oncancel: () => {
-          dialog.destroy();
-        }
+        oncancel: dialog.destroy,
       };
       dialog.set(opts).show();
     } else {
@@ -269,13 +273,14 @@ class ConnectProjects extends React.Component {
       if (item.checked) {
         fields.push(item.label);
       }
-    })
-    const data = JSON.stringify({
+    });
+
+    const data = {
       data_sharing: {
         enabled: this.state.isShared,
         fields: fields,
-      }
-    });
+      },
+    };
 
     actions.dataShare.updateColumnFilters(this.props.asset.uid, data);
   }
@@ -284,18 +289,18 @@ class ConnectProjects extends React.Component {
     let columnsToDisplay = this.state.columnsToDisplay;
     if (!checked) {
       columnsToDisplay = [];
-      const data = JSON.stringify({
+      const data = {
         data_sharing: {
           enabled: this.state.isShared,
           fields: [],
-        }
-      });
+        },
+      };
       actions.dataShare.updateColumnFilters(this.props.asset.uid, data);
     }
 
     this.setState({
       columnsToDisplay: columnsToDisplay,
-      isSharingSomeQuestions: checked,
+      isSharingAnyQuestions: checked,
     });
   }
 
@@ -303,47 +308,10 @@ class ConnectProjects extends React.Component {
    * Utilities
    */
 
-  // Figure out what columns need to be 'checked' or 'unchecked' by comparing
-  // `selectedColumns` - the columns that are already selected versus
-  // `selectableColumns` - the columns that are allowed to be exposed
-  generateColumnFilters(selectedColumns, selectableQuestions) {
-    let selectableColumns = [];
-
-    // We need to flatten questions if coming from survey
-    if (selectableQuestions?.length && typeof selectableQuestions[0] === 'object') {
-      let questions = assetUtils.getSurveyFlatPaths(selectableQuestions);
-      for (const key in questions) {
-        if (!questions[key].includes('version')) {
-          selectableColumns.push(questions[key]);
-        }
-      }
-    } else {
-      selectableColumns = selectableQuestions;
-    }
-
-    const columnsToDisplay = [];
-    // Columns are unchecked by default to avoid exposing new questions if user
-    // has selected `Share some questions`
-    if (selectedColumns.length == 0) {
-      selectableColumns.forEach((column) => {
-        columnsToDisplay.push({label: column, checked: false});
-      });
-    } else {
-      selectableColumns.forEach((column) => {
-        // 'Check' only matching columns
-        columnsToDisplay.push({
-          label: column,
-          checked: selectedColumns.includes(column),
-        });
-      });
-    }
-    return columnsToDisplay;
-  }
-
   generateFilteredAssetList() {
     let attachedSourceUids = [];
     this.state.attachedSources.forEach((item) => {
-      attachedSourceUids.push(item.sourceUid)
+      attachedSourceUids.push(item.sourceUid);
     });
 
     // Filter out attached projects from displayed asset list
@@ -358,8 +326,6 @@ class ConnectProjects extends React.Component {
     stores.pageState.showModal(
       {
         type: MODAL_TYPES.DATA_ATTACHMENT_COLUMNS,
-        generateColumnFilters: this.generateColumnFilters,
-        triggerSourceLoading: this.triggerSourceLoading,
         asset: asset,
         source: source,
         filename: filename,
@@ -369,14 +335,15 @@ class ConnectProjects extends React.Component {
     );
   }
 
-  // Allows import modal trigger loading of this modal
-  triggerSourceLoading() {
-    this.setState({isLoading: true})
+  markComponentAsLoading() {
+    this.setState({isLoading: true});
   }
 
   /*
    * Rendering
    */
+
+  //TODO: Use BEM elements instead
 
   renderSelect() {
     if (this.state.sharingEnabledAssets !== null) {
@@ -392,9 +359,9 @@ class ConnectProjects extends React.Component {
             options={sharingEnabledAssets}
             value={this.state.newSource}
             isLoading={(!this.state.isInitialised || this.state.isLoading)}
-            getOptionLabel={option => option.name}
-            getOptionValue={option => option.url}
-            noOptionsMessage={() => {return t('No projects to connect')}}
+            getOptionLabel={(option) => option.name}
+            getOptionValue={(option) => option.url}
+            noOptionsMessage={() => t('No projects to connect')}
             onChange={this.onSourceChange}
             className='kobo-select'
             classNamePrefix='kobo-select'
@@ -421,13 +388,13 @@ class ConnectProjects extends React.Component {
 
             <Checkbox
               name='sharing'
-              checked={this.state.isSharingSomeQuestions}
+              checked={this.state.isSharingAnyQuestions}
               onChange={this.onSharingCheckboxChange}
               label={t('Select specific questions to share')}
             />
           </div>
 
-          {this.state.isSharingSomeQuestions &&
+          {this.state.isSharingAnyQuestions &&
             <div className='connect-projects__export--multicheckbox'>
               <span>
                 {t('Select any questions you want to share in the right side table')}

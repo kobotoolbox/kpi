@@ -5,17 +5,17 @@
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {dataInterface} from 'js/dataInterface';
-import {MAX_DISPLAYED_STRING_LENGTH} from '../constants';
+import {MAX_DISPLAYED_STRING_LENGTH} from 'js/constants';
 import {
   getAssetUIDFromUrl,
   truncateFile,
   truncateString,
-} from '../utils';
+} from 'js/utils';
 
 const dataShareActions = Reflux.createActions({
-  attachToSource: {children: ['completed', 'failed']},
+  attachToSource: {children: ['started', 'completed', 'failed']},
   detachSource: {children: ['completed', 'failed']},
-  patchSource: {children: ['completed', 'failed']},
+  patchSource: {children: ['started', 'completed', 'failed']},
   getAttachedSources: {children: ['completed', 'failed']},
   getSharingEnabledAssets: {children: ['completed', 'failed']},
   toggleDataSharing: {children: ['completed', 'failed']},
@@ -26,6 +26,7 @@ dataShareActions.attachToSource.listen((assetUid, data) => {
   dataInterface.attachToSource(assetUid, data)
     .done(dataShareActions.attachToSource.completed)
     .fail(dataShareActions.attachToSource.failed);
+  dataShareActions.attachToSource.started();
 });
 dataShareActions.attachToSource.failed.listen((response) => {
   alertify.error(response?.responseJSON || t('Failed to attach to source'));
@@ -43,7 +44,8 @@ dataShareActions.detachSource.failed.listen((response) => {
 dataShareActions.patchSource.listen((attachmentUrl, data) => {
   dataInterface.patchSource(attachmentUrl, data)
     .done(dataShareActions.patchSource.completed)
-    .fail(dataShareActions.patchSource.failed)
+    .fail(dataShareActions.patchSource.failed);
+  dataShareActions.patchSource.started();
 });
 dataShareActions.patchSource.failed.listen((response) => {
   alertify(response?.responseJSON || t('Failed to patch source'));
@@ -52,7 +54,13 @@ dataShareActions.patchSource.failed.listen((response) => {
 dataShareActions.getAttachedSources.listen((assetUid) => {
   dataInterface.getAttachedSources(assetUid)
     .done((response) => {
+      // We create our own object from backend response because:
+      // 1. We need to truncate the filename and display this instead
+      // 2. We need both the current asset URL as well as it's source data URL
       let allSources = [];
+
+      // TODO: Check is pagination is an issue, if so we should try to use the
+      //       backend response directly
       response.results.forEach((source) => {
         let sourceUid = getAssetUIDFromUrl(source.source);
         allSources.push({
@@ -73,6 +81,7 @@ dataShareActions.getAttachedSources.listen((assetUid) => {
           attachmentUrl: source.url,
         });
       });
+
       dataShareActions.getAttachedSources.completed(allSources);
     })
     .fail(dataShareActions.getAttachedSources.failed);
@@ -89,6 +98,9 @@ dataShareActions.getSharingEnabledAssets.failed.listen(() => {
 
 // The next two actions have the same endpoint but must be handled very
 // differently so we leave them as seperate actions
+
+// TODO: Improve the parameters so these functions are clearly different from
+//       each other
 dataShareActions.toggleDataSharing.listen((uid, data) => {
   dataInterface.patchDataSharing(uid, data)
     .done(dataShareActions.toggleDataSharing.completed)
