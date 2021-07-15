@@ -15,6 +15,7 @@ from kpi.interfaces import (
     SyncBackendMediaInterface,
 )
 from kpi.utils.hash import calculate_hash
+from kpi.utils.models import DjangoModelABCMetaclass
 
 
 def upload_to(self, filename):
@@ -28,10 +29,37 @@ def upload_to(self, filename):
     return AssetFile.get_path(self.asset, self.file_type, filename)
 
 
-class AssetFile(models.Model,
-                OpenRosaManifestInterface,
-                SyncBackendMediaInterface):
+class AbstractFormMedia(
+    SyncBackendMediaInterface,
+    OpenRosaManifestInterface,
+    metaclass=DjangoModelABCMetaclass,
+):
+    """
+    The only purpose of this class is to make `./manage.py migrate` pass.
+    Unfortunately, `AbstractFormMedia` cannot inherit directly from
+    `SyncBackendMediaInterface` and `OpenRosaManifestInterface`
+    i.e.,
+    ```
+        AssetFile(
+            models.Model,
+            OpenRosaManifestInterface,
+            SyncBackendMediaInterface,
+            metaclass=DjangoModelABCMetaclass,
+        )
+    ```
+    because Django calls internally `type('model_name', model.__bases__, ...)`
+    ignoring the specified meta class of the model. This makes a meta class
+    conflict between the "base" classes which use meta classes too, e.g.,
+    `django.db.models.base.ModelBase` and `abc.ABC`
 
+    > TypeError: metaclass conflict: the metaclass of a derived class must be
+    > a (non-strict) subclass of the metaclasses of all its bases
+
+    """
+    pass
+
+
+class AssetFile(models.Model, AbstractFormMedia):
     # More to come!
     MAP_LAYER = 'map_layer'
     FORM_MEDIA = 'form_media'
@@ -118,9 +146,7 @@ class AssetFile(models.Model,
         - `OpenRosaManifestInterface.filename()`
         - `SyncBackendMediaInterface.filename()`
         """
-        if not self.metadata.get('filename'):
-            self.metadata['filename'] = self.content.name
-
+        self.set_filename()
         return self.metadata['filename']
 
     def get_download_url(self, request):
@@ -170,23 +196,23 @@ class AssetFile(models.Model,
         """
         Implements `SyncBackendMediaInterface.mimetype()`
         """
-        if not self.metadata.get('mimetype'):
-            mimetype, _ = guess_type(self.filename)
-            self.metadata['mimetype'] = mimetype
-
+        self.set_mimetype()
         return self.metadata['mimetype']
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         if self.pk is None:
-            # Call these properties to populate `self.metadata`
-            self.filename
-            self.md5_hash
-            self.mimetype
+            self.set_filename()
+            self.set_md5_hash()
+            self.set_mimetype()
         else:
             self.date_modified = timezone.now()
 
         return super().save(force_insert, force_update, using, update_fields)
+
+    def set_filename(self):
+        if not self.metadata.get('filename'):
+            self.metadata['filename'] = self.content.name
 
     def set_md5_hash(self, md5_hash: Optional[str] = None):
         """
@@ -209,3 +235,8 @@ class AssetFile(models.Model,
                     md5_hash = None
 
             self.metadata['hash'] = md5_hash
+
+    def set_mimetype(self):
+        if not self.metadata.get('mimetype'):
+            mimetype, _ = guess_type(self.filename)
+            self.metadata['mimetype'] = mimetype

@@ -1,28 +1,31 @@
 # coding: utf-8
-from kpi.exceptions import AbstractMethodError, AbstractPropertyError
+from abc import ABCMeta, abstractmethod
 
 
-class SyncBackendMediaInterface:
+class SyncBackendMediaInterface(metaclass=ABCMeta):
     """
-    This interface defines required properties and methods
-    of objects passed to deployment back-end class on media synchronization.
-
+    This interface defines required properties and methods of objects passed to
+    deployment back-end class on media synchronization.
     """
 
     @property
+    @abstractmethod
     def backend_media_id(self):
-        raise AbstractPropertyError
+        pass
 
+    @abstractmethod
     def delete(self, **kwargs):
-        raise AbstractMethodError
+        pass
 
     @property
+    @abstractmethod
     def deleted_at(self):
-        raise AbstractPropertyError
+        pass
 
     @property
+    @abstractmethod
     def filename(self):
-        raise AbstractPropertyError
+        pass
 
     # FIXME in ABC PR #3268
     # @property
@@ -30,19 +33,22 @@ class SyncBackendMediaInterface:
     #     raise AbstractPropertyError
 
     @property
+    @abstractmethod
     def md5_hash(self):
         """
         Return md5 hash string needed to establish the list of files to synchronize
         between KPI and back-end server
         """
-        raise AbstractPropertyError
+        pass
 
     @property
+    @abstractmethod
     def is_remote_url(self):
-        raise AbstractPropertyError
+        pass
 
     @property
+    @abstractmethod
     def mimetype(self):
-        raise AbstractPropertyError
+        pass
 
 

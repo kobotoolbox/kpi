@@ -137,6 +137,7 @@ describe('utils', () => {
     it("should change all spaces to underscores", () => {
       const testString = "i am   a very long na   me with  weird s      paces";
       chai
+        // TODO: See if backend uses single or multiple underscores for spaces
         .expect(generateAutoname(testString))
         .to.equal("i_am___a_very_long_na___me_with__weird_s______paces");
     });

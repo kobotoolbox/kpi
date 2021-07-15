@@ -88,7 +88,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
-    deployment__status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
 
     # Only add link instead of hooks list to avoid multiple access to DB.
@@ -124,7 +123,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__active',
                   'deployment__data_download_links',
                   'deployment__submission_count',
-                  'deployment__status',
                   'report_styles',
                   'report_custom',
                   'map_styles',
@@ -319,12 +317,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             pass
 
         return 0
-
-    def get_deployment__status(self, obj):
-        if not obj.has_deployment:
-            return ''
-
-        return obj.deployment.status
 
     def get_assignable_permissions(self, asset):
         return [

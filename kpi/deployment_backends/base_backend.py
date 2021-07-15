@@ -25,8 +25,6 @@ class BaseDeploymentBackend:
     """
 
     INSTANCE_ID_FIELDNAME = '_id'
-    STATUS_SYNCED = 'synced'
-    STATUS_NOT_SYNCED = 'not-synced'
 
     def __init__(self, asset):
         self.asset = asset
@@ -152,9 +150,6 @@ class BaseDeploymentBackend:
 
     def set_asset_uid(self, **kwargs) -> bool:
         raise AbstractMethodError
-
-    def set_status(self, status):
-        self.save_to_db({'status': status})
 
     @property
     def status(self):

@@ -234,13 +234,13 @@ export var dataInterface;
     },
 
     /*
-     * TODO: #2767 Dynamic data sharing, match with implemented API
+     * Dynamic data attachments
      */
     attachToSource(assetUid, data) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
         method: 'POST',
-        data: data,
+        data: JSON.stringify(data),
         contentType: 'application/json'
       });
     },
@@ -254,7 +254,7 @@ export var dataInterface;
       return $ajax({
         url: attachmentUrl,
         method: 'PATCH',
-        data: data,
+        data: JSON.stringify(data),
         contentType: 'application/json'
       });
     },
@@ -274,7 +274,7 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
         method: 'PATCH',
-        data: data,
+        data: JSON.stringify(data),
         contentType: 'application/json'
       });
     },

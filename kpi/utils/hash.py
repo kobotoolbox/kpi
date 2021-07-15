@@ -29,17 +29,9 @@ def calculate_hash(
 
     """
 
-    supported_algorithm = ['md5', 'sha1']
-
-    if algorithm not in supported_algorithm:
-        raise NotImplementedError('Only `{algorithms}` are supported'.format(
-            algorithms=', '.join(supported_algorithm)
-        ))
-
-    if algorithm == 'md5':
-        hashlib_def = hashlib.md5
-    else:
-        hashlib_def = hashlib.sha1
+    hashlib_def = getattr(hashlib, algorithm, None)
+    if not hashlib_def:
+        raise NotImplementedError('`{algorithm}` is not supported')
 
     def _finalize_hash(
         hashable_: Union[str, bytes], suffix: Optional[str] = None
