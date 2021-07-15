@@ -61,7 +61,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     - `offset`: The initial index from which to return the results
     - `limit`: Number of results to return per page
 
-    ### Link a project
+    ### Create a connection between two projects
 
     <pre class="prettyprint">
     <b>POST</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/
@@ -97,7 +97,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         slashes, e.g. `group/subgroup/question_name`.
     * `filename`: Must be unique among all asset files. Only accepts letters, numbers and '-'.
 
-    ### Retrieve a project
+    ### Retrieve a connection between two projects
 
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/{paired_data_uid}/
@@ -118,7 +118,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >       }
     >
 
-    ### Update a project
+    ### Update a connection between two projects
 
     <pre class="prettyprint">
     <b>PATCH</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/{paired_data_uid}/
@@ -149,7 +149,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
     >       }
     >
 
-    ### Unlink a project
+    ### Remove a connection between two projects
 
     <pre class="prettyprint">
     <b>DELETE</b> /api/v2/assets/<code>{asset_uid}</code>/paired-data/{paired_data_uid}/
