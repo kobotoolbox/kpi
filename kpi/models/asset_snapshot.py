@@ -14,7 +14,7 @@ from kpi.mixins import (
     FormpackXLSFormUtilsMixin,
     XlsExportableMixin,
 )
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 from kpi.utils.log import logging
 from kpi.utils.models import DjangoModelABCMetaclass
 
@@ -119,7 +119,7 @@ class AssetSnapshot(
         """
         Implements `OpenRosaFormListInterface.md5_hash()`
         """
-        return f'md5:{get_hash(self.xml)}'
+        return f'{calculate_hash(self.xml, prefix=True)}'
 
     @property
     def name(self):

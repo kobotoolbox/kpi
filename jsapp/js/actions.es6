@@ -19,7 +19,7 @@ import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
 import formMediaActions from './actions/mediaActions';
 import exportsActions from './actions/exportsActions';
-import dataShareActions from './actions/datashare';
+import dataShareActions from './actions/dataShareActions';
 import {
   notify,
   replaceSupportEmail,
