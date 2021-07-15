@@ -64,7 +64,7 @@ export class DataTable extends React.Component {
     super(props);
     this.state = {
       loading: true,
-      tableData: [],
+      submissions: [],
       columns: [],
       sids: [],
       isFullscreen: false,
@@ -113,7 +113,7 @@ export class DataTable extends React.Component {
       JSON.stringify(this.props.asset.settings[DATA_TABLE_SETTING]) !==
       JSON.stringify(prevProps.asset.settings[DATA_TABLE_SETTING])
     ) {
-      this._prepColumns(this.state.tableData);
+      this._prepColumns(this.state.submissions);
     }
   }
 
@@ -186,7 +186,7 @@ export class DataTable extends React.Component {
         loading: false,
         selectedRows: {},
         selectAll: false,
-        tableData: results,
+        submissions: results,
         submissionPager: false,
         resultsTotal: response.count,
       });
@@ -197,7 +197,7 @@ export class DataTable extends React.Component {
       this.setState({
         loading: false,
         selectedRows: {},
-        tableData: results,
+        submissions: results,
         resultsTotal: 0,
       });
     } else {
@@ -295,7 +295,7 @@ export class DataTable extends React.Component {
    * @param {boolean} isVisible
    */
   onFieldVisibleChange(fieldId, isVisible) {
-    const hideableColumns = getHideableColumns(this.props.asset, this.state.tableData);
+    const hideableColumns = getHideableColumns(this.props.asset, this.state.submissions);
     const selectedColumns = getSelectedColumns(this.props.asset);
 
     let newSelectedColumns = [];
@@ -337,20 +337,6 @@ export class DataTable extends React.Component {
     }
 
     this.saveTableSettings(settingsObj);
-  }
-
-  /**
-   * Compares if two arrays contain exactly the same unique values, disregarding the order
-   */
-  isSameValuesArray(array1, array2) {
-    // make sets out of arrays to ensure only unique values are present
-    const set1 = new Set(array1);
-    const set2 = new Set(array2);
-    return (
-      set1.size === set2.size &&
-      // check if combinging both sets into new set gives identical set size
-      new Set([...set1, ...set2]).size === set1.size
-    );
   }
 
   /**
@@ -561,7 +547,7 @@ export class DataTable extends React.Component {
     let showGroupName = this.state.showGroupName;
     let showHXLTags = this.state.showHXLTags;
     let translationIndex = this.state.translationIndex;
-    let maxPageRes = Math.min(this.state.pageSize, this.state.tableData.length);
+    let maxPageRes = Math.min(this.state.pageSize, this.state.submissions.length);
 
     const tableSettings = getTableSettings(this.props.asset);
 
@@ -921,7 +907,7 @@ export class DataTable extends React.Component {
     this.setState({
       overrideLabelsAndGroups: overrides,
     }, () => {
-      this._prepColumns(this.state.tableData);
+      this._prepColumns(this.state.submissions);
     });
   }
 
@@ -935,11 +921,11 @@ export class DataTable extends React.Component {
    */
   onSubmissionValidationStatusChange(result, sid) {
     if (sid) {
-      var subIndex = this.state.tableData.findIndex((x) => x._id === parseInt(sid));
-      if (typeof subIndex !== 'undefined' && this.state.tableData[subIndex]) {
-        var newData = this.state.tableData;
+      var subIndex = this.state.submissions.findIndex((x) => x._id === parseInt(sid));
+      if (typeof subIndex !== 'undefined' && this.state.submissions[subIndex]) {
+        var newData = this.state.submissions;
         newData[subIndex]._validation_status = result || {};
-        this.setState({tableData: newData});
+        this.setState({submissions: newData});
         this._prepColumns(newData);
       }
     }
@@ -956,7 +942,7 @@ export class DataTable extends React.Component {
    */
   onDuplicateSubmissionCompleted(uid, sid, duplicatedSubmission) {
     this.fetchSubmissions(this.state.fetchInstance);
-    this.submissionModalProcessing(sid, this.state.tableData, true, duplicatedSubmission);
+    this.submissionModalProcessing(sid, this.state.submissions, true, duplicatedSubmission);
   }
 
   onTableUpdateSettingsCompleted() {
@@ -999,13 +985,13 @@ export class DataTable extends React.Component {
 
         this.submissionModalProcessing(
           sid,
-          this.state.tableData,
+          this.state.submissions,
           false,
           null,
           backgroundAudioUrl,
         );
       } else {
-        this.submissionModalProcessing(sid, this.state.tableData);
+        this.submissionModalProcessing(sid, this.state.submissions);
       }
     }
   }
@@ -1014,21 +1000,21 @@ export class DataTable extends React.Component {
    * Opens (or updates data in opened) submission modal
    *
    * @param {string} sid
-   * @param {object[]} tableData
+   * @param {object[]} submissions
    * @param {boolean} isDuplicated
    * @param {object} duplicatedSubmission
    * @param {string} backgroundAudioUrl
    */
   submissionModalProcessing(
     sid,
-    tableData,
+    submissions,
     isDuplicated = false,
     duplicatedSubmission = null,
     backgroundAudioUrl = null,
   ) {
     let ids = [];
 
-    tableData.forEach(function (r) {
+    submissions.forEach(function (r) {
       ids.push(r._id);
     });
 
@@ -1120,7 +1106,7 @@ export class DataTable extends React.Component {
    */
   bulkSelectAllRows(isChecked) {
     let s = this.state.selectedRows;
-    this.state.tableData.forEach(function (r) {
+    this.state.submissions.forEach(function (r) {
       if (isChecked) {
         s[r._id] = true;
       } else {
@@ -1156,7 +1142,7 @@ export class DataTable extends React.Component {
   bulkSelectAll() {
     // make sure all rows on current page are selected
     let s = this.state.selectedRows;
-    this.state.tableData.forEach(function (r) {
+    this.state.submissions.forEach(function (r) {
       s[r._id] = true;
     });
 
@@ -1171,7 +1157,7 @@ export class DataTable extends React.Component {
   }
 
   renderBulkSelectUI() {
-    if (!this.state.tableData.length) {
+    if (!this.state.submissions.length) {
       return false;
     }
 
@@ -1179,7 +1165,7 @@ export class DataTable extends React.Component {
       <bem.TableMeta>
         <TableBulkOptions
           asset={this.props.asset}
-          data={this.state.tableData}
+          data={this.state.submissions}
           pageSize={this.state.pageSize}
           totalRowsCount={this.state.resultsTotal}
           selectedRows={this.state.selectedRows}
@@ -1263,7 +1249,7 @@ export class DataTable extends React.Component {
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
           <ColumnsHideDropdown
             asset={this.props.asset}
-            submissions={this.state.tableData}
+            submissions={this.state.submissions}
             showGroupName={this.state.showGroupName}
             translationIndex={this.state.translationIndex}
           />
@@ -1290,7 +1276,7 @@ export class DataTable extends React.Component {
         </bem.FormView__group>
 
         <ReactTable
-          data={this.state.tableData}
+          data={this.state.submissions}
           columns={this.state.columns}
           defaultPageSize={DEFAULT_PAGE_SIZE}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
