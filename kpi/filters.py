@@ -21,6 +21,7 @@ from kpi.constants import (
 from kpi.exceptions import SearchQueryTooShortException
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.query_parser import get_parsed_parameters, parse, ParseError
+from kpi.utils.permissions import is_user_anonymous
 from .models import Asset, ObjectPermission
 from .models.object_permission import (
     get_objects_for_user,
@@ -158,7 +159,7 @@ class KpiObjectPermissionsFilter:
             [PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS]
         )
         user = request.user
-        if user.is_anonymous:
+        if is_user_anonymous(user):
             # Avoid giving anonymous users special treatment when viewing
             # public objects
             perms = ObjectPermission.objects.none()
@@ -268,7 +269,7 @@ class KpiObjectPermissionsFilter:
     @staticmethod
     def _get_owned_and_explicitly_shared(user):
         view_asset_perm_id = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
-        if user.is_anonymous:
+        if is_user_anonymous(user):
             # Avoid giving anonymous users special treatment when viewing
             # public objects
             perms = ObjectPermission.objects.none()
@@ -291,7 +292,7 @@ class KpiObjectPermissionsFilter:
     @classmethod
     def _get_subscribed(cls, user):
         # Of the public objects, determine to which the user has subscribed
-        if user.is_anonymous:
+        if is_user_anonymous(user):
             user = get_anonymous_user()
 
         return UserAssetSubscription.objects.filter(

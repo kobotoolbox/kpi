@@ -637,7 +637,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         errors = {
             'enabled': 'The property is required',
-            'fields': 'The property must be list',
+            'fields': 'The property must be an array',
         }
         for key, error in errors.items():
             self.assertTrue(response.data['data_sharing'][key].startswith(error))

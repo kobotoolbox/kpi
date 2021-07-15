@@ -1,6 +1,6 @@
 # coding: utf-8
 import re
-from typing import Union
+from typing import Optional, Union
 from lxml import etree
 
 
@@ -9,10 +9,13 @@ def strip_nodes(
     nodes_to_keep: list,
     use_xpath: bool = False,
     xml_declaration: bool = False,
+    rename_root_node_to: Optional[str] = None,
 ) -> str:
     """
     Returns a stripped version of `source`. It keeps only nodes provided in
-    `nodes_to_keep`
+    `nodes_to_keep`.
+    If `rename_root_node_to` is provided, the root node will be renamed to the
+    value of that parameter in the returned XML string.
     """
     # Force `source` to be bytes in case it contains an XML declaration
     # `etree` does not support strings with xml declarations.
@@ -29,9 +32,7 @@ def strip_nodes(
         if use_xpath:
             xpaths_ = []
             for xpath_ in nodes_to_keep:
-                leading_slash = '' if xpath_.startswith('/') else '/'
-                trailing_slash = '' if xpath_.endswith('/') else '/'
-                xpaths_.append(f'{leading_slash}{xpath_}{trailing_slash}')
+                xpaths_.append(f"/{xpath_.strip('/')}/")
             return xpaths_
 
         xpath_matches = []
@@ -42,8 +43,9 @@ def strip_nodes(
                 # To make a difference between XPaths with same beginning
                 # string, we need to add a trailing slash for later comparison
                 # in `process_node()`.
-                # For example, `subgroup1` and `subgroup11` both start with
-                # `subgroup1` but `subgroup11/` and `subgroup1/` do not.
+                # For example, `subgroup1` would match both `subgroup1/` and
+                # `subgroup11/`, but `subgroup1/` correctly excludes
+                # `subgroup11/`
                 xpath_matches.append(f'{xpath_match}/')
 
         return xpath_matches
@@ -61,7 +63,7 @@ def strip_nodes(
         parents must be kept.
 
         For example:
-        With `subset_fields = ['question_2', 'question_3']` and this XML:
+        With `nodes_to_keep = ['question_2', 'question_3']` and this XML:
         <root>
           <group>
               <question_1>Value1</question_1>
@@ -71,11 +73,11 @@ def strip_nodes(
         </root>
 
          Nodes are processed in this order:
-         - `<question_1>`: Removed because not in `subset_field`
+         - `<question_1>`: Removed because not in `nodes_to_keep`
 
          - `<question_2>`: Kept. Parent node `<group>` is tagged `do_not_delete`
 
-         - `<group>`: Kept even if it is not in `subset_field` because
+         - `<group>`: Kept even if it is not in `nodes_to_keep` because
                       it is tagged `do_not_delete` by its child `<question_2>`
 
          - `<question_3>`: Kept.

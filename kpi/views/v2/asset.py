@@ -35,7 +35,7 @@ from kpi.highlighters import highlight_xform
 from kpi.models import Asset
 from kpi.models.object_permission import (
     ObjectPermission,
-    get_anonymous_user,
+    get_database_user,
     get_objects_for_user
 )
 from kpi.models.asset import UserAssetSubscription
@@ -253,7 +253,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/reports/
 
     ### Data sharing
-    Enable data sharing for the current asset
+
+    Control sharing of submission data from this project to other projects
 
     <pre class="prettyprint">
     <b>PATCH</b> /api/v2/assets/{uid}/
@@ -273,7 +274,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >        }
     >
 
-    * `fields`: Optional. List of questions of asset represented by their XPath. I.e., Hierarchy group must be kept.
+    * `fields`: Optional. List of questions whose responses will be shared. If
+        missing or empty, all responses will be shared. Questions must be
+        identified by full group path separated by slashes, e.g.
+        `group/subgroup/question_name`.
 
     >
     > Response
@@ -713,12 +717,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_create(self, serializer):
-        # Check if the user is anonymous. The
-        # django.contrib.auth.models.AnonymousUser object doesn't work for
-        # queries.
-        user = self.request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
+        user = get_database_user(self.request.user)
         serializer.save(owner=user)
 
     def perform_destroy(self, instance):

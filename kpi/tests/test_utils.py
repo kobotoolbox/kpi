@@ -392,6 +392,7 @@ class XmlUtilsTestCase(TestCase):
         )
 
     def __compare_xml(self, source: str, target: str) -> bool:
+        """ Attempts to standardize XML by removing whitespace between tags """
         pattern = r'\s*(<[^>]+>)\s*'
         re_source = re.sub(pattern, r'\1', source)
         re_target = re.sub(pattern, r'\1', target)

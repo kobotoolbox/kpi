@@ -24,6 +24,11 @@ class SyncBackendMediaInterface:
     def filename(self):
         raise AbstractPropertyError
 
+    # FIXME in ABC PR #3268
+    # @property
+    # def file_type(self):
+    #     raise AbstractPropertyError
+
     @property
     def md5_hash(self):
         """

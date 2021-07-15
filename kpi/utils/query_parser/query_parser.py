@@ -58,7 +58,8 @@ class QueryParseActions:
         if value == 'null':
             return None
 
-        # Handle booleans
+        # Handle booleans - necessary when querying inside JSONBFields, and
+        # also some other contexts: see `get_parsed_parameters()`
         try:
             lower_value = value.lower()
         except AttributeError:

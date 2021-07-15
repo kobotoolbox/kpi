@@ -108,6 +108,10 @@ class ObjectDeploymentDoesNotExist(exceptions.APIException):
     default_code = 'deployment_does_not_exist'
 
 
+class PairedDataException(Exception):
+    pass
+
+
 class ReadOnlyModelError(Exception):
 
     def __init__(self, msg='This model is read only', *args, **kwargs):
