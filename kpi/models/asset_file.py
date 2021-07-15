@@ -118,9 +118,7 @@ class AssetFile(models.Model,
         - `OpenRosaManifestInterface.filename()`
         - `SyncBackendMediaInterface.filename()`
         """
-        if not self.metadata.get('filename'):
-            self.metadata['filename'] = self.content.name
-
+        self.set_filename()
         return self.metadata['filename']
 
     def get_download_url(self, request):
@@ -170,23 +168,23 @@ class AssetFile(models.Model,
         """
         Implements `SyncBackendMediaInterface.mimetype()`
         """
-        if not self.metadata.get('mimetype'):
-            mimetype, _ = guess_type(self.filename)
-            self.metadata['mimetype'] = mimetype
-
+        self.set_mimetype()
         return self.metadata['mimetype']
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         if self.pk is None:
-            # Call these properties to populate `self.metadata`
-            self.filename
-            self.md5_hash
-            self.mimetype
+            self.set_filename()
+            self.set_md5_hash()
+            self.set_mimetype()
         else:
             self.date_modified = timezone.now()
 
         return super().save(force_insert, force_update, using, update_fields)
+
+    def set_filename(self):
+        if not self.metadata.get('filename'):
+            self.metadata['filename'] = self.content.name
 
     def set_md5_hash(self, md5_hash: Optional[str] = None):
         """
@@ -209,3 +207,8 @@ class AssetFile(models.Model,
                     md5_hash = None
 
             self.metadata['hash'] = md5_hash
+
+    def set_mimetype(self):
+        if not self.metadata.get('mimetype'):
+            mimetype, _ = guess_type(self.filename)
+            self.metadata['mimetype'] = mimetype
