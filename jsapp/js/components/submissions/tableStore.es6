@@ -274,12 +274,18 @@ const tableStore = Reflux.createStore({
     }
   },
 
+  showAllFields() {
+    const settingsObj = {};
+    settingsObj[DATA_TABLE_SETTINGS.SELECTED_COLUMNS] = null;
+    this.saveTableSettings(settingsObj);
+  },
+
   /**
    * Show single column - shortcut method for setFieldsVisibility
-   * @param {string[]} hideableColumns
+   * @param {object[]} submissions
    * @param {string} fieldId
    */
-  showField(hideableColumns, fieldId) {
+  showField(submissions, fieldId) {
     const selectedColumns = this.getSelectedColumns();
 
     // We start with `null` just to be safe, but the case when selectedColumns
@@ -293,16 +299,17 @@ const tableStore = Reflux.createStore({
       newSelectedColumns.push(fieldId);
     }
 
-    this.setFieldsVisibility(hideableColumns, newSelectedColumns);
+    this.setFieldsVisibility(submissions, newSelectedColumns);
   },
 
   /**
    * Hide single column - a shortcut method for setFieldsVisibility
-   * @param {string[]} hideableColumns
+   * @param {object[]} submissions
    * @param {string} fieldId
    */
-  hideField(hideableColumns, fieldId) {
+  hideField(submissions, fieldId) {
     const selectedColumns = this.getSelectedColumns();
+    const hideableColumns = this.getHideableColumns(submissions);
 
     let newSelectedColumns = [];
 
@@ -318,14 +325,15 @@ const tableStore = Reflux.createStore({
       newSelectedColumns.splice(newSelectedColumns.indexOf(fieldId), 1);
     }
 
-    this.setFieldsVisibility(hideableColumns, newSelectedColumns);
+    this.setFieldsVisibility(submissions, newSelectedColumns);
   },
 
   /**
-   * @param {string[]} hideableColumns - needs it for now, as tableStore doesn't handle all data by itself and hideableColumns is built with data from two endpoints: asset and submissions
+   * @param {object[]} submissions
    * @param {string[]} columnsToBeVisible
    */
-  setFieldsVisibility(hideableColumns, columnsToBeVisible) {
+  setFieldsVisibility(submissions, columnsToBeVisible) {
+    const hideableColumns = this.getHideableColumns(submissions);
     let newSelectedColumns = columnsToBeVisible;
 
     // If we make all possible columns visible, we save `null` value

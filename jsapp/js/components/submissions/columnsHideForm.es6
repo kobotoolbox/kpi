@@ -9,6 +9,7 @@ import {
   getAllColumns,
   getSelectedColumns,
 } from 'js/components/submissions/tableUtils';
+import tableStore from 'js/components/submissions/tableStore';
 import {FUSE_OPTIONS} from 'js/constants';
 import './columnsHideDropdown.scss';
 
@@ -54,10 +55,12 @@ class ColumnsHideForm extends React.Component {
 
   onReset() {
     console.log('onReset');
+    tableStore.showAllFields();
   }
 
   onApply() {
     console.log('onApply');
+    tableStore.setFieldsVisibility(this.props.submissions, this.state.selectedColumns);
   }
 
   onFieldToggleChange(fieldId, isSelected) {

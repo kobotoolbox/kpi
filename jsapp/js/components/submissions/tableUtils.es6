@@ -1,6 +1,4 @@
-import {
-  META_QUESTION_TYPES,
-} from 'js/constants';
+import {META_QUESTION_TYPES} from 'js/constants';
 import {
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,

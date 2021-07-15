@@ -267,8 +267,7 @@ export class DataTable extends React.Component {
    * @param {string} fieldId
    */
   onHideField(fieldId) {
-    const hideableColumns = tableStore.getHideableColumns(this.state.submissions);
-    tableStore.hideField(hideableColumns, fieldId);
+    tableStore.hideField(this.state.submissions, fieldId);
   }
 
   /**
