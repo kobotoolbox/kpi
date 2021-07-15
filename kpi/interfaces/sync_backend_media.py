@@ -35,6 +35,10 @@ class SyncBackendMediaInterface(metaclass=ABCMeta):
     @property
     @abstractmethod
     def md5_hash(self):
+        """
+        Return md5 hash string needed to establish the list of files to synchronize
+        between KPI and back-end server
+        """
         pass
 
     @property

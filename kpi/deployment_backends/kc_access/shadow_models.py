@@ -16,7 +16,7 @@ from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 
 
 def update_autofield_sequence(model):
@@ -427,7 +427,7 @@ class KobocatXForm(ShadowModel):
 
     @property
     def md5_hash(self):
-        return get_hash(self.xml)
+        return calculate_hash(self.xml)
 
     @property
     def prefixed_hash(self):
