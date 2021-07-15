@@ -35,4 +35,5 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
   SHOW_GROUP: 'show-group-name',
   TRANSLATION: 'translation-index',
   SHOW_HXL: 'show-hxl-tags',
+  SORT_BY: 'sort-by',
 });

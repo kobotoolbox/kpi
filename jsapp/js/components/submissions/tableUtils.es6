@@ -198,6 +198,18 @@ export function getFrozenColumn(asset) {
   return frozenColumn;
 }
 
+/**
+ * @param {object} asset
+ * @returns {object|null} the current sort by value
+ */
+export function getSortBy(asset) {
+  let sortBy = null;
+  const tableSettings = getTableSettings(asset);
+  if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SORT_BY]) {
+    sortBy = tableSettings[DATA_TABLE_SETTINGS.SORT_BY];
+  }
+  return sortBy;
+}
 
 /**
  * @param {object} asset

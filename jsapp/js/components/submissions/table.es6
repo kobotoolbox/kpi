@@ -48,6 +48,7 @@ import {
   getHideableColumns,
   getSelectedColumns,
   getFrozenColumn,
+  getSortBy,
   getTableSettings,
   isFieldFrozen,
   getBackgroundAudioQuestionName,
@@ -70,7 +71,6 @@ export class DataTable extends React.Component {
       isFullscreen: false,
       pageSize: 30,
       currentPage: 0,
-      sortOption: null,
       error: false,
       showLabels: true,
       translationIndex: 0,
@@ -107,9 +107,17 @@ export class DataTable extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    // If table settings changed, we need to fix columns, as after
-    // `actions.table.updateSettings` resolves, the props asset is not yet updated
+    // If sort setting changed, we definitely need to get new submissions (which
+    // will rebuild columns)
     if (
+      JSON.stringify(this.props.asset.settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SORT_BY]) !==
+      JSON.stringify(prevProps.asset.settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SORT_BY])
+    ) {
+      this.refreshSubmissions();
+    // If some other table settings changed, we need to fix columns using
+    // existing data, as after `actions.table.updateSettings` resolves,
+    // the props asset is not yet updated
+    } else if (
       JSON.stringify(this.props.asset.settings[DATA_TABLE_SETTING]) !==
       JSON.stringify(prevProps.asset.settings[DATA_TABLE_SETTING])
     ) {
@@ -151,10 +159,11 @@ export class DataTable extends React.Component {
       filterQuery += '}';
     }
 
-    if (this.state.sortOption !== null) {
+    const sortBy = getSortBy(this.props.asset);
+    if (sortBy !== null) {
       sort.push({
-        id: this.state.sortOption.fieldId,
-        desc: this.state.sortOption.value === SORT_VALUES.Z_TO_A,
+        id: sortBy.fieldId,
+        desc: sortBy.value === SORT_VALUES.Z_TO_A,
       });
     }
 
@@ -258,12 +267,13 @@ export class DataTable extends React.Component {
    * @returns {string|null} null for no option, or one of SORT_VALUES
    */
   getFieldSortValue(fieldId) {
-    if (this.state.sortOption === null) {
+    const sortBy = getSortBy(this.props.asset);
+    if (sortBy === null) {
       return null;
     }
 
-    if (this.state.sortOption?.fieldId === fieldId) {
-      return this.state.sortOption.value;
+    if (sortBy?.fieldId === fieldId) {
+      return sortBy.value;
     }
 
     return null;
@@ -274,16 +284,17 @@ export class DataTable extends React.Component {
    * @param {string|null} sortValue one of SORT_VALUES or null for clear value
    */
   onFieldSortChange(fieldId, sortValue) {
-    let newSortOption = null;
+    let newSortBy = null;
     if (sortValue !== null) {
-      newSortOption = {
+      newSortBy = {
         fieldId: fieldId,
         value: sortValue,
       };
     }
 
-    // after the state is set, get fresh submissions
-    this.setState({sortOption: newSortOption}, this.refreshSubmissions);
+    const settingsObj = {};
+    settingsObj[DATA_TABLE_SETTINGS.SORT_BY] = newSortBy;
+    this.saveTableSettings(settingsObj);
   }
 
   onHideField(fieldId) {
