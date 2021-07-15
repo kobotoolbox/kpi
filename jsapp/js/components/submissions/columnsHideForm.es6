@@ -105,36 +105,45 @@ class ColumnsHideForm extends React.Component {
   render() {
     const filteredFieldsList = this.getFilteredFieldsList();
     return (
-      <React.Fragment>
-        <header>warning message</header>
+      <section className='columns-hide-form'>
+        <p className='columns-hide-form__message'>
+          {t('These settings affects the experience for all project users.')}
+        </p>
 
         <TextBox
           value={this.state.filterPhrase}
           onChange={this.onFilterPhraseChange}
+          customModifiers='on-white'
           placeholder={t('Find a field')}
         />
 
-        {filteredFieldsList.map((fieldObj) => {
-          // fieldObj can be either one of allColumns or a fuse result object
-          let fieldId = fieldObj.fieldId || fieldObj.item.fieldId;
-          let label = fieldObj.label || fieldObj.item.label;
-          return (
-            <div key={fieldId}>
-              <ToggleSwitch
-                checked={this.state.selectedColumns.includes(fieldId)}
-                onChange={this.onFieldToggleChange.bind(this, fieldId)}
-                disabled={this.state.isPending}
-                label={label}
-              />
-            </div>
-          );
-        })}
-
-        {filteredFieldsList.length === 0 &&
-          t('No results')
+        {filteredFieldsList.length !== 0 &&
+          <ul className='columns-hide-form__list'>
+            {filteredFieldsList.map((fieldObj) => {
+              // fieldObj can be either one of allColumns or a fuse result object
+              let fieldId = fieldObj.fieldId || fieldObj.item.fieldId;
+              let label = fieldObj.label || fieldObj.item.label;
+              return (
+                <li className='columns-hide-form__list-item' key={fieldId}>
+                  <ToggleSwitch
+                    checked={this.state.selectedColumns.includes(fieldId)}
+                    onChange={this.onFieldToggleChange.bind(this, fieldId)}
+                    disabled={this.state.isPending}
+                    label={label}
+                  />
+                </li>
+              );
+            })}
+          </ul>
         }
 
-        <footer>
+        {filteredFieldsList.length === 0 &&
+          <p className='columns-hide-form__message'>
+            {t('No results')}
+          </p>
+        }
+
+        <footer className='columns-hide-form__footer'>
           <bem.KoboLightButton
             m='red'
             onClick={this.onReset}
@@ -151,7 +160,7 @@ class ColumnsHideForm extends React.Component {
             {t('Apply')}
           </bem.KoboLightButton>
         </footer>
-      </React.Fragment>
+      </section>
     );
   }
 }
