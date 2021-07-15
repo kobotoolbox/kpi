@@ -4,14 +4,10 @@ import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {getRouteAssetUid} from 'js/routerUtils';
 import {
+  SUBMISSION_ACTIONS_ID,
   DATA_TABLE_SETTING,
   DATA_TABLE_SETTINGS,
 } from 'js/components/submissions/tableConstants';
-import {
-  getSortBy,
-  getSelectedColumns,
-  getFrozenColumn,
-} from 'js/components/submissions/tableUtils';
 
 /**
  * TODO: The tableStore should be handling all data required by table.es6, but
@@ -29,6 +25,93 @@ const tableStore = Reflux.createStore({
    */
   getCurrentAsset() {
     return stores.allAssets.getAsset(getRouteAssetUid());
+  },
+
+  /**
+   * @returns {string[]|null} a list of selected columns from table settings,
+   * `null` means no selection, i.e. all columns
+   */
+  getSelectedColumns() {
+    const tableSettings = this.getTableSettings();
+    if (Array.isArray(tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS])) {
+      return tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS];
+    }
+    return null;
+  },
+
+  /**
+   * @returns {object} settings or empty object if no settings exist
+   */
+  getTableSettings() {
+    const asset = this.getCurrentAsset();
+    if (
+      asset?.settings &&
+      asset?.settings[DATA_TABLE_SETTING]
+    ) {
+      return asset.settings[DATA_TABLE_SETTING];
+    }
+    return {};
+  },
+
+  /**
+   * @returns {string|null} the current frozen column
+   */
+  getFrozenColumn() {
+    let frozenColumn = null;
+    const tableSettings = this.getTableSettings();
+    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN]) {
+      frozenColumn = tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN];
+    }
+    return frozenColumn;
+  },
+
+  /**
+   * @returns {object|null} the current sort by value
+   */
+  getSortBy() {
+    let sortBy = null;
+    const tableSettings = this.getTableSettings();
+    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SORT_BY]) {
+      sortBy = tableSettings[DATA_TABLE_SETTINGS.SORT_BY];
+    }
+    return sortBy;
+  },
+
+  /**
+   * @param {string} fieldId
+   * @returns {boolean}
+   */
+  isFieldVisible(fieldId) {
+    // frozen column is never hidden
+    if (this.isFieldFrozen(fieldId)) {
+      return true;
+    }
+
+    // submission actions is never hidden
+    if (fieldId === SUBMISSION_ACTIONS_ID) {
+      return true;
+    }
+
+    const selectedColumns = this.getSelectedColumns();
+    // nothing is selected, so all columns are visible
+    if (selectedColumns === null) {
+      return true;
+    }
+
+    if (Array.isArray(selectedColumns)) {
+      return selectedColumns.includes(fieldId);
+    }
+
+    return true;
+  },
+
+  /**
+   * @param {object} asset
+   * @param {string} fieldId
+   * @returns {boolean}
+   */
+  isFieldFrozen(fieldId) {
+    return this.getFrozenColumn() === fieldId;
   },
 
   /**
@@ -53,8 +136,7 @@ const tableStore = Reflux.createStore({
    * @returns {string|null} null for no option, or one of SORT_VALUES
    */
   getFieldSortValue(fieldId) {
-    const asset = this.getCurrentAsset();
-    const sortBy = getSortBy(asset);
+    const sortBy = this.getSortBy();
     if (sortBy === null) {
       return null;
     }
@@ -113,8 +195,7 @@ const tableStore = Reflux.createStore({
    * @param {string} fieldId
    */
   showField(hideableColumns, fieldId) {
-    const asset = this.getCurrentAsset();
-    const selectedColumns = getSelectedColumns(asset);
+    const selectedColumns = this.getSelectedColumns();
 
     // We start with `null` just to be safe, but the case when selectedColumns
     // is `null` already (i.e. all columns visible) and we show column should
@@ -136,8 +217,7 @@ const tableStore = Reflux.createStore({
    * @param {string} fieldId
    */
   hideField(hideableColumns, fieldId) {
-    const asset = this.getCurrentAsset();
-    const selectedColumns = getSelectedColumns(asset);
+    const selectedColumns = this.getSelectedColumns();
 
     let newSelectedColumns = [];
 
@@ -161,7 +241,6 @@ const tableStore = Reflux.createStore({
    * @param {string[]} columnsToBeVisible
    */
   setFieldsVisibility(hideableColumns, columnsToBeVisible) {
-    const asset = this.getCurrentAsset();
     let newSelectedColumns = columnsToBeVisible;
 
     // If we make all possible columns visible, we save `null` value
@@ -174,14 +253,14 @@ const tableStore = Reflux.createStore({
 
     // If current frozen column is not in the newSelectedColumns, we need to
     // unfreeze it.
-    const frozenColumn = getFrozenColumn(asset);
+    const frozenColumn = this.getFrozenColumn();
     if (frozenColumn !== null && !newSelectedColumns.includes(frozenColumn)) {
       // Currently we allow only one frozen column, so we just set it to `null`.
       settingsObj[DATA_TABLE_SETTINGS.FROZEN_COLUMN] = null;
     }
 
     // If we are hiding the column that data is sorted by, we need to unsort it.
-    const sortBy = getSortBy(asset);
+    const sortBy = this.getSortBy();
     if (
       sortBy !== null &&
       typeof sortBy === 'object' &&

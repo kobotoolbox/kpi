@@ -6,11 +6,9 @@ import {
   META_QUESTION_TYPES,
 } from 'js/constants';
 import {
-  DATA_TABLE_SETTING,
   EXCLUDED_COLUMNS,
   SUBMISSION_ACTIONS_ID,
   VALIDATION_STATUS_ID_PROP,
-  DATA_TABLE_SETTINGS,
 } from 'js/components/submissions/tableConstants';
 
 /**
@@ -156,97 +154,6 @@ export function getHideableColumns(asset, submissions) {
   const columns = getAllColumns(asset, submissions);
   columns.push(VALIDATION_STATUS_ID_PROP);
   return columns;
-}
-
-/**
- * @param {object} asset
- * @returns {string[]|null} a list of selected columns from table settings,
- * `null` means no selection, i.e. all columns
- */
-export function getSelectedColumns(asset) {
-  const tableSettings = getTableSettings(asset);
-  if (Array.isArray(tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS])) {
-    return tableSettings[DATA_TABLE_SETTINGS.SELECTED_COLUMNS];
-  }
-  return null;
-}
-
-/**
- * @param {object} asset
- * @returns {object} settings or empty object if no settings exist
- */
-export function getTableSettings(asset) {
-  if (
-    asset?.settings &&
-    asset?.settings[DATA_TABLE_SETTING]
-  ) {
-    return asset.settings[DATA_TABLE_SETTING];
-  }
-  return {};
-}
-
-/**
- * @param {object} asset
- * @returns {string|null} the current frozen column
- */
-export function getFrozenColumn(asset) {
-  let frozenColumn = null;
-  const tableSettings = getTableSettings(asset);
-  if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN]) {
-    frozenColumn = tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN];
-  }
-  return frozenColumn;
-}
-
-/**
- * @param {object} asset
- * @returns {object|null} the current sort by value
- */
-export function getSortBy(asset) {
-  let sortBy = null;
-  const tableSettings = getTableSettings(asset);
-  if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SORT_BY]) {
-    sortBy = tableSettings[DATA_TABLE_SETTINGS.SORT_BY];
-  }
-  return sortBy;
-}
-
-/**
- * @param {object} asset
- * @param {string} fieldId
- * @returns {boolean}
- */
-export function isFieldVisible(asset, fieldId) {
-  // frozen column is never hidden
-  if (isFieldFrozen(asset, fieldId)) {
-    return true;
-  }
-
-  // submission actions is never hidden
-  if (fieldId === SUBMISSION_ACTIONS_ID) {
-    return true;
-  }
-
-  const selectedColumns = getSelectedColumns(asset);
-  // nothing is selected, so all columns are visible
-  if (selectedColumns === null) {
-    return true;
-  }
-
-  if (Array.isArray(selectedColumns)) {
-    return selectedColumns.includes(fieldId);
-  }
-
-  return true;
-}
-
-/**
- * @param {object} asset
- * @param {string} fieldId
- * @returns {boolean}
- */
-export function isFieldFrozen(asset, fieldId) {
-  return getFrozenColumn(asset) === fieldId;
 }
 
 /**

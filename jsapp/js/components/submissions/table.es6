@@ -45,11 +45,6 @@ import {
   getColumnHXLTags,
   getAllColumns,
   getHideableColumns,
-  getSelectedColumns,
-  getFrozenColumn,
-  getSortBy,
-  getTableSettings,
-  isFieldFrozen,
   getBackgroundAudioQuestionName,
 } from 'js/components/submissions/tableUtils';
 import tableStore from 'js/components/submissions/tableStore';
@@ -159,7 +154,7 @@ export class DataTable extends React.Component {
       filterQuery += '}';
     }
 
-    const sortBy = getSortBy(this.props.asset);
+    const sortBy = tableStore.getSortBy();
     if (sortBy !== null) {
       sort.push({
         id: sortBy.fieldId,
@@ -320,7 +315,7 @@ export class DataTable extends React.Component {
       }
 
       let columnClassNames = ['rt-sub-actions', 'is-frozen'];
-      let frozenColumn = getFrozenColumn(this.props.asset);
+      let frozenColumn = tableStore.getFrozenColumn();
       if (!frozenColumn) {
         columnClassNames.push('is-last-frozen');
       }
@@ -404,7 +399,7 @@ export class DataTable extends React.Component {
             sortValue={tableStore.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
             onSortChange={this.onFieldSortChange}
             onHide={this.onHideField}
-            isFieldFrozen={isFieldFrozen(this.props.asset, VALIDATION_STATUS_ID_PROP)}
+            isFieldFrozen={tableStore.isFieldFrozen(VALIDATION_STATUS_ID_PROP)}
             onFrozenChange={this.onFieldFrozenChange}
             additionalTriggerContent={
               <span className='column-header-title'>
@@ -458,7 +453,7 @@ export class DataTable extends React.Component {
     let translationIndex = this.state.translationIndex;
     let maxPageRes = Math.min(this.state.pageSize, this.state.submissions.length);
 
-    const tableSettings = getTableSettings(this.props.asset);
+    const tableSettings = tableStore.getTableSettings();
 
     if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] !== null) {
       translationIndex = tableSettings[DATA_TABLE_SETTINGS.TRANSLATION];
@@ -605,7 +600,7 @@ export class DataTable extends React.Component {
                 sortValue={tableStore.getFieldSortValue(key)}
                 onSortChange={this.onFieldSortChange}
                 onHide={this.onHideField}
-                isFieldFrozen={isFieldFrozen(this.props.asset, key)}
+                isFieldFrozen={tableStore.isFieldFrozen(key)}
                 onFrozenChange={this.onFieldFrozenChange}
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
@@ -715,7 +710,7 @@ export class DataTable extends React.Component {
       return a.index.localeCompare(b.index, 'en', {numeric: true});
     });
 
-    let frozenColumn = getFrozenColumn(this.props.asset);
+    let frozenColumn = tableStore.getFrozenColumn();
     const textFilterQuestionTypes = [
       QUESTION_TYPES.text.id,
       QUESTION_TYPES.integer.id,
@@ -781,7 +776,7 @@ export class DataTable extends React.Component {
     });
 
     // prepare list of selected columns, if configured
-    const selectedColumnsIds = getSelectedColumns(this.props.asset);
+    const selectedColumnsIds = tableStore.getSelectedColumns();
     if (selectedColumnsIds) {
       // always include frozenColumn, if set
       if (frozenColumn && !selectedColumnsIds.includes(frozenColumn)) {
