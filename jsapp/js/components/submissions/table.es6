@@ -43,8 +43,6 @@ import {
 import {
   getColumnLabel,
   getColumnHXLTags,
-  getAllColumns,
-  getHideableColumns,
   getBackgroundAudioQuestionName,
 } from 'js/components/submissions/tableUtils';
 import tableStore from 'js/components/submissions/tableStore';
@@ -269,7 +267,7 @@ export class DataTable extends React.Component {
    * @param {string} fieldId
    */
   onHideField(fieldId) {
-    const hideableColumns = getHideableColumns(this.props.asset, this.state.submissions);
+    const hideableColumns = tableStore.getHideableColumns(this.state.submissions);
     tableStore.hideField(hideableColumns, fieldId);
   }
 
@@ -445,7 +443,7 @@ export class DataTable extends React.Component {
    * @param {object[]} data - list of submissions
    */
   _prepColumns(data) {
-    const allColumns = getAllColumns(this.props.asset, data);
+    const allColumns = tableStore.getAllColumns(data);
 
     let showLabels = this.state.showLabels;
     let showGroupName = this.state.showGroupName;
