@@ -1,4 +1,5 @@
 # coding: utf-8
+import unittest
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
@@ -7,12 +8,10 @@ from rest_framework.exceptions import ErrorDetail
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
-    PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import DeploymentNotFound
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
@@ -393,6 +392,36 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         self.client.logout()
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    @unittest.skip(reason='Skip until mock back end supports XML submissions')
+    def test_get_external_with_changed_source_fields(self):
+        self.deploy_source()
+        self.toggle_source_sharing(enabled=True, fields=['city_name'])
+        response = self.client.get(self.external_xml_url)
+        expected_xml = ''  # FIXME when XML support is added
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.content, expected_xml)
+
+    @unittest.skip(reason='Skip until mock back end supports XML submissions')
+    def test_get_external_with_specific_fields(self):
+        self.deploy_source()
+        self.paired_data(fields=['city_name'])
+        response = self.client.get(self.external_xml_url)
+        expected_xml = ''  # FIXME when XML support is added
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.content, expected_xml)
+
+    @unittest.skip(reason='Skip until mock back end supports XML submissions')
+    def test_get_external_with_specific_fields_and_changed_source_fields(self):
+        self.deploy_source()
+        self.paired_data(fields=['city_name'])
+        self.toggle_source_sharing(
+            enabled=True, fields=['group_restaurant/favourite_restaurant']
+        )
+        response = self.client.get(self.external_xml_url)
+        expected_xml = ''  # FIXME when XML support is added
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.content, expected_xml)
 
     def deploy_source(self):
         # Refresh source asset from DB, it has been altered by

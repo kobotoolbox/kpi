@@ -9,6 +9,7 @@ from kpi.constants import (
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import PairedDataException
 from kpi.fields import KpiUidField
 from kpi.interfaces import (
     OpenRosaManifestInterface,
@@ -26,8 +27,9 @@ class PairedData(OpenRosaManifestInterface,
     # - `SyncBackendMediaInterface.filename()`
     filename = None
 
+    # FIXME after merging kpi#3268
     # `file_type` implements `SyncBackendMediaInterface.file_type()`
-    file_type = 'paired_data'
+    # file_type = 'paired_data'
 
     def __init__(
         self,
@@ -72,6 +74,28 @@ class PairedData(OpenRosaManifestInterface,
 
     def __str__(self):
         return f'<PairedData {self.paired_data_uid} ({self.filename})>'
+
+    @property
+    def allowed_fields(self):
+        """
+        Return only the fields (aka questions) that the destination project is
+        allowed to pull data from.
+        """
+        source_asset = self.get_source()
+        if not source_asset:
+            raise PairedDataException('No source asset found.')
+
+        source_fields = source_asset.data_sharing['fields']
+        if not source_fields:
+            return self.fields
+
+        if not self.fields:
+            return source_fields
+
+        source_set = set(source_fields)
+        self_set = set(self.fields)
+
+        return list(self_set.intersection(source_set))
 
     @property
     def backend_media_id(self):

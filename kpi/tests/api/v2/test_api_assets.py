@@ -622,8 +622,9 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
                                      data=payload,
                                      format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue('writable_jsonfield' in response.data['data_sharing'])
-        self.assertTrue('Unable to parse JSON' in response.data['data_sharing']['writable_jsonfield'])  # noqa
+        self.assertTrue(
+            'Unable to parse JSON' in repr(response.data['data_sharing'])
+        )
 
         # 2. Omit `enabled` property and provide `fields` as str
         payload = {

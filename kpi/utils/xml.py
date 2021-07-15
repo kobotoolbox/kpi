@@ -121,6 +121,9 @@ def strip_nodes(
         xpath_matches = get_xpath_matches()
         process_node(root_element, xpath_matches)
 
+    if rename_root_node_to:
+        tree.getroot().tag = rename_root_node_to
+
     return etree.tostring(
         tree,
         pretty_print=True,
@@ -132,15 +135,19 @@ def strip_nodes(
 def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
     xml_declaration = '<?xml version="1.0" encoding="utf-8"?>'
     # Should support ̀ lmxl` and `dicttoxml`
-    pattern = r'<\?xml version=\"1.0\"( encoding=\"utf-8\" ?)?\?>'
+    start_of_declaration = '<?xml'
     use_bytes = False
-    xml_content_as_str = xml_content
+    xml_content_as_str = xml_content.strip()
 
     if isinstance(xml_content, bytes):
         use_bytes = True
         xml_content_as_str = xml_content.decode()
 
-    if re.match(pattern, xml_content_as_str, re.IGNORECASE):
+    if (
+       xml_content_as_str[:len(start_of_declaration)].lower()
+        == start_of_declaration.lower()
+    ):
+        # There's already a declaration. Don't add anything.
         return xml_content
 
     xml_ = f'{xml_declaration}\n{xml_content_as_str}'
