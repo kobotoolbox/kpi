@@ -37,7 +37,7 @@ import LibraryNewItemForm from './modalForms/libraryNewItemForm';
 import LibraryUploadForm from './modalForms/libraryUploadForm';
 import EncryptForm from './modalForms/encryptForm.es6';
 import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
-import DataAttachmentColumnsForm from './modalForms/dataAttachmentColumnsForm.es6';
+import DataAttachmentColumnsForm from 'js/components/dataAttachments/dataAttachmentColumnsForm.es6';
 import ProjectSettings from './modalForms/projectSettings';
 import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
