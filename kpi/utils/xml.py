@@ -121,6 +121,9 @@ def strip_nodes(
         xpath_matches = get_xpath_matches()
         process_node(root_element, xpath_matches)
 
+    if rename_root_node_to:
+        tree.getroot().tag = rename_root_node_to
+
     return etree.tostring(
         tree,
         pretty_print=True,

@@ -245,14 +245,23 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         parsed_submissions = []
 
         for submission in submissions:
+            # Use `rename_root_node_to='data'` to rename the root node of each
+            # submission to `data` so that form authors do not have to rewrite
+            # their `xml-external` formulas any time the asset UID changes,
+            # e.g. when cloning a form or creating a project from a template.
+            # Set `use_xpath=True` because `paired_data.fields` uses full group
+            # hierarchies, not just question names.
             parsed_submissions.append(
-                strip_nodes(submission, paired_data.allowed_fields, use_xpath=True)
+                strip_nodes(
+                    submission,
+                    paired_data.allowed_fields,
+                    use_xpath=True,
+                    rename_root_node_to='data',
+                )
             )
 
         filename = paired_data.filename
-        parsed_submissions_to_str = ''.join(parsed_submissions).replace(
-            source_asset.uid, 'data'
-        )
+        parsed_submissions_to_str = ''.join(parsed_submissions)
         root_tag_name = SubmissionXMLRenderer.root_tag_name
         xml_ = add_xml_declaration(
             f'<{root_tag_name}>'
