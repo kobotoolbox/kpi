@@ -57,7 +57,8 @@ export class DataTable extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      loading: true,
+      isInitialized: false, // for having asset with content
+      loading: true, // for fetching submissions data
       submissions: [],
       columns: [],
       sids: [],
@@ -77,6 +78,8 @@ export class DataTable extends React.Component {
       overrideLabelsAndGroups: null,
     };
 
+    this.unlisteners = [];
+
     // Store this value only to be able to check whether user is scrolling
     // horizontally or vertically.
     this.tableScrollTop = 0;
@@ -84,19 +87,34 @@ export class DataTable extends React.Component {
   }
 
   componentDidMount() {
-    stores.pageState.listen(this.onPageStateUpdated);
-    actions.resources.updateSubmissionValidationStatus.completed.listen(this.onSubmissionValidationStatusChange);
-    actions.resources.removeSubmissionValidationStatus.completed.listen(this.onSubmissionValidationStatusChange);
-    actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted);
-    actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions);
-    actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted);
-    actions.resources.refreshTableSubmissions.completed.listen(this.refreshSubmissions);
-    actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted);
-    actions.submissions.getSubmissions.failed.listen(this.onGetSubmissionsFailed);
-    actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted);
-    actions.submissions.bulkPatchStatus.completed.listen(this.onBulkChangeCompleted);
-    actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted);
-    actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted);
+    this.unlisteners.push(
+      stores.pageState.listen(this.onPageStateUpdated),
+      actions.resources.updateSubmissionValidationStatus.completed.listen(this.onSubmissionValidationStatusChange),
+      actions.resources.removeSubmissionValidationStatus.completed.listen(this.onSubmissionValidationStatusChange),
+      actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted),
+      actions.resources.deleteSubmission.completed.listen(this.refreshSubmissions),
+      actions.resources.duplicateSubmission.completed.listen(this.onDuplicateSubmissionCompleted),
+      actions.resources.refreshTableSubmissions.completed.listen(this.refreshSubmissions),
+      actions.submissions.getSubmissions.completed.listen(this.onGetSubmissionsCompleted),
+      actions.submissions.getSubmissions.failed.listen(this.onGetSubmissionsFailed),
+      actions.submissions.bulkDeleteStatus.completed.listen(this.onBulkChangeCompleted),
+      actions.submissions.bulkPatchStatus.completed.listen(this.onBulkChangeCompleted),
+      actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted),
+      actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted)
+    );
+
+    stores.allAssets.whenLoaded(this.props.asset.uid, this.whenLoaded);
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  /**
+   * This triggers only when asset with `content` was loaded.
+   */
+  whenLoaded() {
+    this.setState({isInitialized: true});
   }
 
   componentDidUpdate(prevProps) {
@@ -1132,6 +1150,10 @@ export class DataTable extends React.Component {
           </bem.uiPanel__body>
         </bem.uiPanel>
       );
+    }
+
+    if (!this.state.isInitialized) {
+      return (<LoadingSpinner/>);
     }
 
     const pages = Math.floor(((this.state.resultsTotal - 1) / this.state.pageSize) + 1);

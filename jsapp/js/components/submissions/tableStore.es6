@@ -1,10 +1,12 @@
 import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
 import {stores} from 'js/stores';
+import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import {getRouteAssetUid} from 'js/routerUtils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 import {
+  PERMISSIONS_CODENAMES,
   QUESTION_TYPES,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
@@ -33,7 +35,7 @@ const tableStore = Reflux.createStore({
    * A shortcut method, to be deleted in future.
    */
   getCurrentAsset() {
-    return stores.allAssets.getAsset(getRouteAssetUid());
+    return stores.asset.getAsset(getRouteAssetUid());
   },
 
   /**
@@ -98,6 +100,17 @@ const tableStore = Reflux.createStore({
       }
     });
     output = output.filter((key) => excludedMatrixKeys.includes(key) === false);
+
+    // exclude repeat groups as we don't handle them in table yet
+    const excludedRepeatGroups = [];
+    const flatPathsWithGroups = getSurveyFlatPaths(asset.content.survey, true);
+    asset.content.survey.forEach((row) => {
+      if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
+        const rowPath = flatPathsWithGroups[row.name] || flatPathsWithGroups[row.$autoname];
+        excludedRepeatGroups.push(rowPath);
+      }
+    });
+    output = output.filter((key) => excludedRepeatGroups.includes(key) === false);
 
     return output;
   },
@@ -269,7 +282,7 @@ const tableStore = Reflux.createStore({
       );
     }
 
-    if (asset && this.userCan('change_asset', asset)) {
+    if (asset && mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, asset)) {
       actions.table.updateSettings(asset.uid, newSettings);
     }
   },

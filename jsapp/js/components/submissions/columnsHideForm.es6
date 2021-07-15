@@ -2,15 +2,13 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Fuse from 'fuse.js';
 import {bem} from 'js/bem';
+import {actions} from 'js/actions';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import TextBox from 'js/components/common/textBox';
-import {
-  getColumnLabel,
-  getAllColumns,
-  getSelectedColumns,
-} from 'js/components/submissions/tableUtils';
+import {getColumnLabel} from 'js/components/submissions/tableUtils';
 import tableStore from 'js/components/submissions/tableStore';
 import {FUSE_OPTIONS} from 'js/constants';
+import koboDropdownActions from 'js/components/common/koboDropdownActions';
 import './columnsHideDropdown.scss';
 
 /**
@@ -28,11 +26,23 @@ class ColumnsHideForm extends React.Component {
       allColumns: [], // {object[]}
       selectedColumns: [], // {string[]}
     };
+    this.unlisteners = [];
     autoBind(this);
   }
 
   componentDidMount() {
-    const allColumnsIds = [...getAllColumns(this.props.asset, this.props.submissions)];
+    this.unlisteners.push(
+      actions.table.updateSettings.completed.listen(this.onTableUpdateSettingsCompleted)
+    );
+    this.prepareColumns();
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
+  }
+
+  prepareColumns() {
+    const allColumnsIds = [...tableStore.getAllColumns(this.props.submissions)];
 
     const allColumns = [];
     allColumnsIds.forEach((fieldId) => {
@@ -49,18 +59,25 @@ class ColumnsHideForm extends React.Component {
 
     this.setState({
       allColumns: allColumns,
-      selectedColumns: getSelectedColumns(this.props.asset) || allColumnsIds,
+      selectedColumns: tableStore.getSelectedColumns() || allColumnsIds,
     });
   }
 
+  onTableUpdateSettingsCompleted() {
+    koboDropdownActions.hideAnyDropdown();
+  }
+
   onReset() {
-    console.log('onReset');
+    this.setState({isPending: true});
     tableStore.showAllFields();
   }
 
   onApply() {
-    console.log('onApply');
-    tableStore.setFieldsVisibility(this.props.submissions, this.state.selectedColumns);
+    this.setState({isPending: true});
+    tableStore.setFieldsVisibility(
+      this.props.submissions,
+      this.state.selectedColumns
+    );
   }
 
   onFieldToggleChange(fieldId, isSelected) {
@@ -106,6 +123,7 @@ class ColumnsHideForm extends React.Component {
               <ToggleSwitch
                 checked={this.state.selectedColumns.includes(fieldId)}
                 onChange={this.onFieldToggleChange.bind(this, fieldId)}
+                disabled={this.state.isPending}
                 label={label}
               />
             </div>
@@ -117,11 +135,19 @@ class ColumnsHideForm extends React.Component {
         }
 
         <footer>
-          <bem.KoboLightButton m='red' onClick={this.onReset}>
+          <bem.KoboLightButton
+            m='red'
+            onClick={this.onReset}
+            disabled={this.state.isPending}
+          >
             {t('Reset')}
           </bem.KoboLightButton>
 
-          <bem.KoboLightButton m='blue' onClick={this.onApply}>
+          <bem.KoboLightButton
+            m='blue'
+            onClick={this.onApply}
+            disabled={this.state.isPending}
+          >
             {t('Apply')}
           </bem.KoboLightButton>
         </footer>

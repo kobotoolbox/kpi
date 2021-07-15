@@ -6,6 +6,7 @@ import {
   createEnum,
   KEY_CODES,
 } from 'js/constants';
+import koboDropdownActions from './koboDropdownActions';
 import './koboDropdown.scss';
 
 export const KOBO_DROPDOWN_THEMES = createEnum([
@@ -36,6 +37,9 @@ bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
  * You can use some existing content elements:
  * - bem.KoboDropdown__menuButton - a generic dropdown row button
  *
+ * To close dropdown from outside the component use:
+ * - koboDropdownActions.hideAnyDropdown
+ *
  * @prop {string} [theme=light] - one of KOBO_DROPDOWN_THEMES
  * @prop {string} [placement=down-center] - one of KOBO_DROPDOWN_PLACEMENTS
  * @prop {boolean} [isDisabled=false] - disables the dropdowns trigger, thus disallowing opening dropdown
@@ -49,13 +53,19 @@ bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
 export default class KoboDropdown extends React.Component {
   constructor(props){
     super(props);
-    this.state = {
-      isMenuVisible: false,
-    };
+    this.state = {isMenuVisible: false};
+    this.unlisteners = [];
     autoBind(this);
   }
 
+  componentDidMount() {
+    this.unlisteners.push(
+      koboDropdownActions.hideAnyDropdown.requested.listen(this.hideMenu)
+    );
+  }
+
   componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
     this.cancelEscKeyListener();
     this.cancelOutsideClickListener();
   }
