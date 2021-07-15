@@ -242,6 +242,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
                     timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION
                 )
 
+        # ToDo evaluate adding headers for caching and a HTTP 304 status code
         if not has_expired:
             return Response(asset_file.content.file.read().decode())
 
@@ -276,6 +277,11 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
             f'{parsed_submissions_to_str}'
             f'</{root_tag_name}>'
         )
+
+        if not parsed_submissions:
+            # We do not want to cache an empty file
+            return Response(xml_)
+
         # We need to delete the current file (if it exists) when filename
         # has changed. Otherwise, it would leave an orphan file on storage
         if asset_file.pk and asset_file.content.name != filename:
