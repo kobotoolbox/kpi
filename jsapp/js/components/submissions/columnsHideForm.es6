@@ -145,7 +145,7 @@ class ColumnsHideForm extends React.Component {
 
         <footer className='columns-hide-form__footer'>
           <bem.KoboLightButton
-            m='red'
+            m={['red', 'full-width']}
             onClick={this.onReset}
             disabled={this.state.isPending}
           >
@@ -153,7 +153,7 @@ class ColumnsHideForm extends React.Component {
           </bem.KoboLightButton>
 
           <bem.KoboLightButton
-            m='blue'
+            m={['blue', 'full-width']}
             onClick={this.onApply}
             disabled={this.state.isPending}
           >

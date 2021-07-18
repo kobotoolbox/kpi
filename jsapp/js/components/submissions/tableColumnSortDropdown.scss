@@ -9,6 +9,11 @@
     display: block;
     width: 100%;
     padding: 0;
+
+    &:hover,
+    &:hover .k-icon {
+      color: $kobo-blue !important;
+    }
   }
 
   &.kobo-dropdown--menu-visible .table-column-sort-dropdown-trigger .k-icon.k-icon-caret-down {

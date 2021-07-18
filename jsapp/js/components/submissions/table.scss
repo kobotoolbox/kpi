@@ -23,7 +23,8 @@ $z-table-frozen: 10;
   .form-view__group--table-header {
     padding: 10px 0px 0px 0px;
     display: flex;
-    justify-content: 'space-between';
+    justify-content: space-between;
+    align-content: center;
     transition: 0.3s all;
     opacity: 1;
 
@@ -36,6 +37,7 @@ $z-table-frozen: 10;
 
       button {
         overflow: visible;
+        margin-left: 10px;
       }
     }
   }
@@ -276,13 +278,14 @@ $z-table-frozen: 10;
       background: transparent;
       border: 0;
       padding: 0;
+      color: $kobo-gray-55;
 
       &:hover {
         color: $kobo-blue;
       }
 
-      i {
-        font-size: 24px;
+      .k-icon {
+        font-size: 22px;
         margin: 0 3px;
         vertical-align: middle;
       }

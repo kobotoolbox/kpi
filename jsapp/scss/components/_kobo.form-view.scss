@@ -173,8 +173,10 @@
 
   a.form-view__link--close {
     position: absolute;
-    right: 5px;
+    right: 10px;
     top: 10px;
+    padding: 5px;
+    font-size: 18px;
   }
 }
 
@@ -538,11 +540,6 @@
 .form-view__group {
   .dropzone {
     display: inline;
-  }
-
-  .popover-menu .popover-menu__toggle {
-    // TODO: this is too generic, find out what was this really set for
-    height: 36px;
   }
 
   &.form-view__group--items {

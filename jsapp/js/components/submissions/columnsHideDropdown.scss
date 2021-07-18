@@ -2,7 +2,8 @@
 
 // nested selector needed for specificity
 .kobo-dropdown[data-name='columns-hide-dropdown']  {
-
+  display: flex; // for alignment
+  margin-right: 10px;
 }
 
 .columns-hide-dropdown-trigger {
@@ -11,13 +12,19 @@
   border: none;
   margin: 0;
   padding: 0;
-  color: $kobo-blue;
+  color: $kobo-gray-55;
   font-size: 14px;
   font-weight: 500;
+  line-height: 24px;
+
+  &:hover {
+    color: $kobo-blue;
+  }
 
   .k-icon {
-    font-size: 24px;
+    font-size: 22px;
     vertical-align: top;
+    margin-right: 5px;
   }
 }
 
@@ -56,5 +63,9 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+
+    > *:not(:first-child) {
+      margin-left: 10px;
+    }
   }
 }
