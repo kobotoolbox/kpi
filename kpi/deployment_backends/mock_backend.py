@@ -194,7 +194,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return {}
 
     def get_enketo_submission_url(
-        self, submission_id: int, user: 'auth.User', params: dict = None
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        params: dict = None,
+        action_: str = 'edit',
     ) -> dict:
         """
         Gets URL of the submission in a format FE can understand

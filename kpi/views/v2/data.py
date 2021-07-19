@@ -334,30 +334,21 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[EditSubmissionPermission],
+        url_path='enketo(?:/(?P<action_>(edit)))?',
     )
-    def edit(self, request, pk, *args, **kwargs):
-        # Keep /edit endpoint for retro-compatibility
-        return self.enketo_edit(request, pk, 'edit', *args, **kwargs)
-
-    @action(
-        detail=True,
-        methods=['GET'],
-        renderer_classes=[renderers.JSONRenderer],
-        permission_classes=[EditSubmissionPermission],
-        url_path='enketo/(?P<action>(edit))',
-    )
-    def enketo_edit(self, request, pk, action, *args, **kwargs):
-        return self._enketo_request(request, pk, action, *args, **kwargs)
+    def enketo_edit(self, request, pk, action_, *args, **kwargs):
+        action_ = action_ or 'edit'
+        return self._enketo_request(request, pk, action_, *args, **kwargs)
 
     @action(
         detail=True,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[ViewSubmissionPermission],
-        url_path='enketo/(?P<action>(view))',
+        url_path='enketo/(?P<action_>(view))',
     )
-    def enketo_view(self, request, pk, action, *args, **kwargs):
-        return self._enketo_request(request, pk, action, *args, **kwargs)
+    def enketo_view(self, request, pk, action_, *args, **kwargs):
+        return self._enketo_request(request, pk, action_, *args, **kwargs)
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is
@@ -466,13 +457,14 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         return Response(**json_response)
 
-    def _enketo_request(self, request, pk, action, *args, **kwargs):
+    def _enketo_request(self, request, pk, action_, *args, **kwargs):
         deployment = self._get_deployment()
         submission_id = positive_int(pk)
         json_response = deployment.get_enketo_submission_url(
             submission_id,
             user=request.user,
-            params={**request.GET, 'action': action},
+            action_=action_,
+            params=request.GET
         )
         return Response(**json_response)
 

@@ -576,11 +576,11 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
-                'action': 'edit',
+                'action_': 'edit',
             },
         )
         self.submission_url_legacy = reverse(
-            self._get_endpoint('submission-edit'),
+            self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
@@ -637,7 +637,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
-                'action': 'view'
+                'action_': 'view'
             },
         )
 
@@ -682,7 +682,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         # Try first submission submitted by unknown
         submission = self.get_random_submission(self.asset.owner)
         url = reverse(
-            self._get_endpoint('submission-edit'),
+            self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': submission['_id'],
@@ -694,7 +694,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         # Try second submission submitted by someuser
         submission = self.get_random_submission(self.anotheruser)
         url = reverse(
-            self._get_endpoint('submission-edit'),
+            self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': submission['_id'],

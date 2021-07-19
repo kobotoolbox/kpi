@@ -513,7 +513,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return links
 
     def get_enketo_submission_url(
-        self, submission_id: int, user: 'auth.User', params: dict = None
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        params: dict = None,
+        action_: str = 'edit',
     ) -> dict:
         """
         Get URLs of the submission from KoBoCAT through proxy
@@ -532,8 +536,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             use_partial_perms = True
             headers.update(KobocatOneTimeAuthRequest.get_header(user, 'GET'))
 
-        url = '{detail_url}/enketo'.format(
-            detail_url=self.get_submission_detail_url(submission_id))
+        url = '{detail_url}/enketo_{action}'.format(
+            detail_url=self.get_submission_detail_url(submission_id),
+            action=action_,
+        )
         kc_request = requests.Request(
             method='GET', url=url, params=params, headers=headers
         )
