@@ -20,6 +20,8 @@ import {
 
 import './connect-projects.scss';
 
+const DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL = 'dynamic_data_attachment.html';
+
 /*
  * Modal for connecting project data
  *
@@ -530,7 +532,15 @@ class ConnectProjects extends React.Component {
             <span>
               {t('Enable data sharing to allow other forms to import and use dynamic data from this project. Learn more about dynamic data attachments')}
               &nbsp;
-              <a href='#'>{t('here')}</a>
+              <a
+                href={
+                  stores.serverEnvironment.state.support_url +
+                  DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL
+                }
+                target='_blank'
+              >
+                {t('here')}
+              </a>
             </span>
 
             {this.renderExports()}
@@ -548,7 +558,15 @@ class ConnectProjects extends React.Component {
             <span>
               {t('Connect with other project(s) to import dynamic data from them into this project. Learn more about dynamic data attachments')}
               &nbsp;
-              <a href='#'>{t('here')}</a>
+              <a
+                href={
+                  stores.serverEnvironment.state.support_url +
+                  DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL
+                }
+                target='_blank'
+              >
+                {t('here')}
+              </a>
             </span>
             {this.renderImports()}
           </bem.FormView__form>
