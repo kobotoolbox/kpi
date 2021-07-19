@@ -362,9 +362,6 @@ export var dataInterface;
         });
       });
     },
-    getAssetContent ({id}) {
-      return $.getJSON(`${ROOT_URL}/api/v2/assets/${id}/content/`);
-    },
     getImportDetails ({uid}) {
       return $.getJSON(`${ROOT_URL}/api/v2/imports/${uid}/`);
     },
