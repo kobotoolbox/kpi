@@ -145,7 +145,7 @@ export default class KoboDropdown extends React.Component {
     let loopEl = evt.target;
     // If we check too much parents going upward looking for dropdown then we
     // assume it is not a dropdown.
-    let parentsLookupLimit = 6;
+    let parentsLookupLimit = 10;
     while (loopEl.parentNode !== null) {
       if (--parentsLookupLimit === 0) {break;}
       loopEl = loopEl.parentNode;

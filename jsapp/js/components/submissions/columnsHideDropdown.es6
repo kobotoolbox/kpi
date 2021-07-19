@@ -30,10 +30,10 @@ class ColumnsHideDropdown extends React.Component {
         placement={KOBO_DROPDOWN_PLACEMENTS['down-left']}
         name='columns-hide-dropdown'
         triggerContent={
-          <button className='columns-hide-dropdown-trigger'>
+          <span className='columns-hide-dropdown-trigger'>
             <i className='k-icon k-icon-hide'/>
             {t('hide fields')}
-          </button>
+          </span>
         }
         menuContent={
           <ColumnsHideForm {...this.props}/>

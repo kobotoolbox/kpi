@@ -187,6 +187,14 @@ $z-table-frozen: 10;
       box-shadow: inset 0 3px 0 0 $kobo-teal;
     }
 
+    .rt-th.rt-resizable-header:last-child {
+      overflow: visible;
+      .rt-resizer {
+        width: 5px;
+        right: 0;
+      }
+    }
+
     .rt-resizable-header-content {
       overflow: visible;
       text-overflow: inherit;

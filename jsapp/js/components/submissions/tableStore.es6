@@ -32,6 +32,110 @@ import {
  */
 const tableStore = Reflux.createStore({
   /**
+   * We use overrides for users with no permissions
+   */
+  data: {
+    overrides: {
+      // starts empty, but all possible properties are:
+      // - DATA_TABLE_SETTINGS.SHOW_GROUP
+      // - DATA_TABLE_SETTINGS.TRANSLATION
+      // - DATA_TABLE_SETTINGS.SHOW_HXL
+      // - DATA_TABLE_SETTINGS.SORT_BY
+    },
+  },
+
+  /**
+   * @returns {object} settings or empty object if no settings exist
+   */
+  getTableSettings() {
+    let tableSettings = {};
+
+    const asset = this.getCurrentAsset();
+    if (
+      asset?.settings &&
+      asset?.settings[DATA_TABLE_SETTING]
+    ) {
+      // clone settings, as we will possibly overwrite some of them
+      tableSettings = clonedeep(asset.settings[DATA_TABLE_SETTING]);
+
+      // overrides take precedense over asset endpoint settings
+      if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
+        tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP];
+      }
+      if (typeof this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
+        tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION];
+      }
+      if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
+        tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] = this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL];
+      }
+      if (typeof this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
+        tableSettings[DATA_TABLE_SETTINGS.SORT_BY] = this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY];
+      }
+    }
+
+    return tableSettings;
+  },
+
+  /**
+   * @param {object} newTableSettings - will be merged into current settings, overwriting any DATA_TABLE_SETTING properties
+   */
+  saveTableSettings(newTableSettings) {
+    const asset = this.getCurrentAsset();
+
+    // get whole asset settings (as clone to avoid bugs) to not lose existing
+    // settings that are not updated by newTableSettings
+    const newSettings = clonedeep(asset.settings);
+
+    // settings object doesn't even have DATA_TABLE_SETTING, we can pass newTableSettings
+    if (!newSettings[DATA_TABLE_SETTING]) {
+      newSettings[DATA_TABLE_SETTING] = newTableSettings;
+    // settings exist, so we merge them
+    } else {
+      newSettings[DATA_TABLE_SETTING] = Object.assign(
+        newSettings[DATA_TABLE_SETTING],
+        newTableSettings
+      );
+    }
+
+    // Case 1: use can save, so we call the endpoint
+    if (asset && mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, asset)) {
+      // Cleanup all `null` settings, as we don't want to store `null`s and `null`
+      // means "delete setting"
+      Object.keys(newSettings[DATA_TABLE_SETTING]).forEach((key) => {
+        if (newSettings[DATA_TABLE_SETTING][key] === null) {
+          delete newSettings[DATA_TABLE_SETTING][key];
+        }
+      });
+      actions.table.updateSettings(asset.uid, newSettings);
+    } else {
+      // Case 2: user can't save, so we store temporary overrides
+      this.setOverrides(newSettings[DATA_TABLE_SETTING]);
+    }
+  },
+
+  /**
+   * @param {object} newOverrides
+   */
+  setOverrides(newOverrides) {
+    const prevData = clonedeep(this.data);
+
+    if (typeof newOverrides[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
+      this.data.overrides[DATA_TABLE_SETTINGS.SHOW_GROUP] = newOverrides[DATA_TABLE_SETTINGS.SHOW_GROUP];
+    }
+    if (typeof newOverrides[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
+      this.data.overrides[DATA_TABLE_SETTINGS.TRANSLATION] = newOverrides[DATA_TABLE_SETTINGS.TRANSLATION];
+    }
+    if (typeof newOverrides[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
+      this.data.overrides[DATA_TABLE_SETTINGS.SHOW_HXL] = newOverrides[DATA_TABLE_SETTINGS.SHOW_HXL];
+    }
+    if (typeof newOverrides[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
+      this.data.overrides[DATA_TABLE_SETTINGS.SORT_BY] = newOverrides[DATA_TABLE_SETTINGS.SORT_BY];
+    }
+
+    this.trigger(prevData, this.data);
+  },
+
+  /**
    * A shortcut method, to be deleted in future.
    */
   getCurrentAsset() {
@@ -138,20 +242,6 @@ const tableStore = Reflux.createStore({
   },
 
   /**
-   * @returns {object} settings or empty object if no settings exist
-   */
-  getTableSettings() {
-    const asset = this.getCurrentAsset();
-    if (
-      asset?.settings &&
-      asset?.settings[DATA_TABLE_SETTING]
-    ) {
-      return asset.settings[DATA_TABLE_SETTING];
-    }
-    return {};
-  },
-
-  /**
    * @returns {string|null} the current frozen column
    */
   getFrozenColumn() {
@@ -161,18 +251,6 @@ const tableStore = Reflux.createStore({
       frozenColumn = tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN];
     }
     return frozenColumn;
-  },
-
-  /**
-   * @returns {object|null} the current sort by value
-   */
-  getSortBy() {
-    let sortBy = null;
-    const tableSettings = this.getTableSettings();
-    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SORT_BY]) {
-      sortBy = tableSettings[DATA_TABLE_SETTINGS.SORT_BY];
-    }
-    return sortBy;
   },
 
   /**
@@ -250,7 +328,7 @@ const tableStore = Reflux.createStore({
    * @param {string} fieldId
    * @param {string|null} sortValue one of SORT_VALUES or null for clear value
    */
-  setSortBy(assetUid, fieldId, sortValue) {
+  setSortBy(fieldId, sortValue) {
     let newSortBy = null;
     if (sortValue !== null) {
       newSortBy = {
@@ -265,26 +343,15 @@ const tableStore = Reflux.createStore({
   },
 
   /**
-   * @param {object} newTableSettings - will be merged into current settings, overwriting any DATA_TABLE_SETTING properties
+   * @returns {object|null} the current sort by value
    */
-  saveTableSettings(newTableSettings) {
-    const asset = this.getCurrentAsset();
-
-    // get whole asset settings as clone to avoid bugs
-    const newSettings = clonedeep(asset.settings);
-
-    if (!newSettings[DATA_TABLE_SETTING]) {
-      newSettings[DATA_TABLE_SETTING] = newTableSettings;
-    } else {
-      newSettings[DATA_TABLE_SETTING] = Object.assign(
-        newSettings[DATA_TABLE_SETTING],
-        newTableSettings
-      );
+  getSortBy() {
+    let sortBy = null;
+    const tableSettings = this.getTableSettings();
+    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SORT_BY]) {
+      sortBy = tableSettings[DATA_TABLE_SETTINGS.SORT_BY];
     }
-
-    if (asset && mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, asset)) {
-      actions.table.updateSettings(asset.uid, newSettings);
-    }
+    return sortBy;
   },
 
   showAllFields() {
@@ -377,6 +444,42 @@ const tableStore = Reflux.createStore({
     }
 
     this.saveTableSettings(settingsObj);
+  },
+
+  /**
+   * @returns {boolean} whether to show group names, `true` by default
+   */
+  getShowGroupName() {
+    let showGroupName = true;
+    const tableSettings = this.getTableSettings();
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
+      showGroupName = tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP];
+    }
+    return showGroupName;
+  },
+
+  /**
+   * @returns {number} chosen translation index, `0` by default
+   */
+  getTranslationIndex() {
+    let translationIndex = 0;
+    const tableSettings = this.getTableSettings();
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
+      translationIndex = tableSettings[DATA_TABLE_SETTINGS.TRANSLATION];
+    }
+    return translationIndex;
+  },
+
+  /**
+   * @returns {boolean} whether to show HXL tags, `false` by default
+   */
+  getShowHXLTags() {
+    let showHXLTags = false;
+    const tableSettings = this.getTableSettings();
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
+      showHXLTags = tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL];
+    }
+    return showHXLTags;
   },
 });
 

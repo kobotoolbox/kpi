@@ -2,79 +2,41 @@ import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import clonedeep from 'lodash.clonedeep';
 import Checkbox from 'js/components/common/checkbox';
 import Radio from 'js/components/common/radio';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {notify} from 'utils';
-import {
-  DATA_TABLE_SETTING,
-  DATA_TABLE_SETTINGS,
-} from 'js/components/submissions/tableConstants';
+import {DATA_TABLE_SETTINGS} from 'js/components/submissions/tableConstants';
+import tableStore from 'js/components/submissions/tableStore';
 import './tableSettings.scss';
 
 /**
  * This is a modal form that handles changing some of the table settings.
- *
- * @prop {object} asset
- * @prop {function} overrideLabelsAndGroups - used to temporary save settings (e.g. when user doesn't have permissions to edit asset, but wants to display submissions in different way)
  */
 class TableSettings extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      showGroupName: true,
-      showHXLTags: false,
-      translationIndex: 0,
+      showGroupName: tableStore.getShowGroupName(),
+      showHXLTags: tableStore.getShowHXLTags(),
+      translationIndex: tableStore.getTranslationIndex(),
     };
-
-    let _sett = props.asset.settings;
-    if (_sett[DATA_TABLE_SETTING]) {
-      if (typeof _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP] !== 'undefined') {
-        this.state.showGroupName = _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP];
-      }
-      if (typeof _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION] !== 'undefined') {
-        this.state.translationIndex = _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION];
-      }
-      if (typeof _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL] !== 'undefined') {
-        this.state.showHXLTags = _sett[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL];
-      }
-    }
-
     autoBind(this);
   }
 
   componentDidMount() {
-    this.listenTo(actions.table.updateSettings.failed, this.onUpdateSettingsFailed);
+    actions.table.updateSettings.failed.listen(this.onUpdateSettingsFailed);
+    tableStore.listen(this.onTableStoreChange);
   }
 
-  saveTableColumns() {
-    let s = this.state;
-
-    // get whole asset settings as clone to avoid bugs
-    const newSettings = clonedeep(this.props.asset.settings);
-
-    if (!newSettings[DATA_TABLE_SETTING]) {
-      newSettings[DATA_TABLE_SETTING] = {};
-    }
-
-    if (this.userCan('change_asset', this.props.asset)) {
-      newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP] = s.showGroupName;
-      newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION] = s.translationIndex;
-      newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL] = s.showHXLTags;
-
-      actions.table.updateSettings(this.props.asset.uid, newSettings);
-    } else {
-      // just update the state, since user cannot save settings
-      let overrides = {
-        showGroupName: s.showGroupName,
-        translationIndex: s.translationIndex,
-      };
-
-      this.props.overrideLabelsAndGroups(overrides);
-    }
+  onTableStoreChange() {
+    this.setState({
+      showGroupName: tableStore.getShowGroupName(),
+      showHXLTags: tableStore.getShowHXLTags(),
+      translationIndex: tableStore.getTranslationIndex(),
+    });
   }
 
   updateGroupHeaderDisplay(isChecked) {
@@ -93,19 +55,20 @@ class TableSettings extends React.Component {
     notify(t('There was an error, table settings could not be saved.'));
   }
 
-  resetTableSettings() {
-    // get whole asset settings as clone to avoid bugs
-    const newSettings = clonedeep(this.props.asset.settings);
+  onSave() {
+    const newTableSettings = {};
+    newTableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = this.state.showGroupName;
+    newTableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = this.state.translationIndex;
+    newTableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] = this.state.showHXLTags;
+    tableStore.saveTableSettings(newTableSettings);
+  }
 
-    if (newSettings[DATA_TABLE_SETTING]) {
-      // Just delete the settings from this modal, i.e. leave frozen column
-      // and selected columns intact.
-      delete newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_GROUP];
-      delete newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.TRANSLATION];
-      delete newSettings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SHOW_HXL];
-    }
-
-    actions.table.updateSettings(this.props.asset.uid, newSettings);
+  onReset() {
+    const newTableSettings = {};
+    newTableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] = null;
+    newTableSettings[DATA_TABLE_SETTINGS.TRANSLATION] = null;
+    newTableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] = null;
+    tableStore.saveTableSettings(newTableSettings);
   }
 
   getDisplayedLabelOptions() {
@@ -156,12 +119,12 @@ class TableSettings extends React.Component {
 
         <bem.Modal__footer>
           {this.userCan('change_asset', this.props.asset) &&
-            <bem.KoboButton m='whitegray' onClick={this.resetTableSettings}>
+            <bem.KoboButton m='whitegray' onClick={this.onReset}>
               {t('Reset')}
             </bem.KoboButton>
           }
 
-          <bem.KoboButton m='blue' onClick={this.saveTableColumns}>
+          <bem.KoboButton m='blue' onClick={this.onSave}>
             {t('Save')}
           </bem.KoboButton>
         </bem.Modal__footer>

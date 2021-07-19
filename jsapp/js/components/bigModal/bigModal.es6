@@ -367,8 +367,6 @@ class BigModal extends React.Component {
             { this.props.params.type === MODAL_TYPES.TABLE_SETTINGS &&
               <TableSettings
                 asset={this.props.params.asset}
-                columns={this.props.params.columns}
-                overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups}
               />
             }
             { this.props.params.type === MODAL_TYPES.REST_SERVICES &&

@@ -76,7 +76,6 @@ export class DataTable extends React.Component {
       selectAll: false,
       fetchState: false,
       submissionPager: false,
-      overrideLabelsAndGroups: null,
     };
 
     this.unlisteners = [];
@@ -89,6 +88,7 @@ export class DataTable extends React.Component {
 
   componentDidMount() {
     this.unlisteners.push(
+      tableStore.listen(this.onTableStoreChange),
       stores.pageState.listen(this.onPageStateUpdated),
       actions.resources.updateSubmissionValidationStatus.completed.listen(this.onSubmissionValidationStatusChange),
       actions.resources.removeSubmissionValidationStatus.completed.listen(this.onSubmissionValidationStatusChange),
@@ -367,6 +367,8 @@ export class DataTable extends React.Component {
                 onClearSelection={this.bulkClearSelection}
               />
             );
+          } else {
+            return null;
           }
         },
         Cell: (row) => (
@@ -483,14 +485,6 @@ export class DataTable extends React.Component {
 
     if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] !== null) {
       showHXLTags = tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL];
-    }
-
-    // check for overrides by users with view permissions only
-    // see tableSettings.es6's saveTableColumns()
-    if (this.state.overrideLabelsAndGroups !== null) {
-      showGroupName = this.state.overrideLabelsAndGroups.showGroupName;
-      translationIndex = this.state.overrideLabelsAndGroups.translationIndex;
-      showLabels = translationIndex > -1;
     }
 
     // define the columns array
@@ -613,6 +607,7 @@ export class DataTable extends React.Component {
           return (
             <div className='column-header-wrapper'>
               <TableColumnSortDropdown
+                asset={this.props.asset}
                 fieldId={key}
                 sortValue={tableStore.getFieldSortValue(key)}
                 onSortChange={this.onFieldSortChange}
@@ -818,19 +813,6 @@ export class DataTable extends React.Component {
     });
   }
 
-  /**
-   * Used to change some settings in TableSettings when user doesn't have
-   * permissions to save them.
-   * @param {object} overrides
-   */
-  overrideLabelsAndGroups(overrides) {
-    stores.pageState.hideModal();
-    this.setState({
-      overrideLabelsAndGroups: overrides,
-    }, () => {
-      this._prepColumns(this.state.submissions);
-    });
-  }
 
   toggleFullscreen() {
     this.setState({isFullscreen: !this.state.isFullscreen});
@@ -864,6 +846,28 @@ export class DataTable extends React.Component {
   onDuplicateSubmissionCompleted(uid, sid, duplicatedSubmission) {
     this.fetchSubmissions(this.state.fetchInstance);
     this.submissionModalProcessing(sid, this.state.submissions, true, duplicatedSubmission);
+  }
+
+  onTableStoreChange(prevData, newData) {
+    // Close table settings modal after settings are saved.
+    stores.pageState.hideModal();
+
+    // If sort setting changed, we definitely need to get new submissions (which
+    // will rebuild columns)
+    if (
+      JSON.stringify(prevData.overrides[DATA_TABLE_SETTINGS.SORT_BY]) !==
+      JSON.stringify(newData.overrides[DATA_TABLE_SETTINGS.SORT_BY])
+    ) {
+      this.refreshSubmissions();
+    // If some other table settings changed, we need to fix columns using
+    // existing data, as after `actions.table.updateSettings` resolves,
+    // the props asset is not yet updated
+    } else if (
+      JSON.stringify(prevData.overrides[DATA_TABLE_SETTING]) !==
+      JSON.stringify(newData.overrides[DATA_TABLE_SETTING])
+    ) {
+      this._prepColumns(this.state.submissions);
+    }
   }
 
   onTableUpdateSettingsCompleted() {
@@ -959,7 +963,6 @@ export class DataTable extends React.Component {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_SETTINGS,
       asset: this.props.asset,
-      overrideLabelsAndGroups: this.overrideLabelsAndGroups,
     });
   }
 
