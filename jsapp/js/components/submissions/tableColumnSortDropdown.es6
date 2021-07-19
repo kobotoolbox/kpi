@@ -1,8 +1,10 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import classNames from 'classnames';
+import {mixins} from 'js/mixins';
 import {bem} from 'js/bem';
 import KoboDropdown, {KOBO_DROPDOWN_THEMES} from 'js/components/common/koboDropdown';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {SORT_VALUES} from 'js/components/submissions/tableConstants';
 import './tableColumnSortDropdown.scss';
 
@@ -11,6 +13,7 @@ const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear';
 /**
  * A wrapper around KoboDropdown to be used in table header to sort columns.
  *
+ * @prop {object} asset
  * @prop {string} fieldId - one of table columns
  * @prop {string|null} sortValue
  * @prop {function} onSortChange
@@ -109,23 +112,26 @@ class TableColumnSortDropdown extends React.Component {
             {this.renderSortButton(SORT_VALUES.A_TO_Z)}
             {this.renderSortButton(SORT_VALUES.Z_TO_A)}
 
-            <bem.KoboDropdown__menuButton onClick={this.hideField}>
-              <i className='k-icon k-icon-hide'/>
-              <span>{t('Hide field')}</span>
-            </bem.KoboDropdown__menuButton>
-
-            <bem.KoboDropdown__menuButton
-              onClick={this.changeFieldFrozen.bind(this, !this.props.isFieldFrozen)}
-            >
-              {this.props.isFieldFrozen && [
-                <i key='0' className='k-icon k-icon-unfreeze'/>,
-                <span key='1'>{t('Unfreeze field')}</span>,
-              ]}
-              {!this.props.isFieldFrozen && [
-                <i key='0' className='k-icon k-icon-freeze'/>,
-                <span key='1'>{t('Freeze field')}</span>,
-              ]}
-            </bem.KoboDropdown__menuButton>
+            {mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+              <bem.KoboDropdown__menuButton onClick={this.hideField}>
+                <i className='k-icon k-icon-hide'/>
+                <span>{t('Hide field')}</span>
+              </bem.KoboDropdown__menuButton>
+            }
+            {mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+              <bem.KoboDropdown__menuButton
+                onClick={this.changeFieldFrozen.bind(this, !this.props.isFieldFrozen)}
+              >
+                {this.props.isFieldFrozen && [
+                  <i key='0' className='k-icon k-icon-unfreeze'/>,
+                  <span key='1'>{t('Unfreeze field')}</span>,
+                ]}
+                {!this.props.isFieldFrozen && [
+                  <i key='0' className='k-icon k-icon-freeze'/>,
+                  <span key='1'>{t('Freeze field')}</span>,
+                ]}
+              </bem.KoboDropdown__menuButton>
+            }
           </React.Fragment>
         }
       />

@@ -13,6 +13,7 @@ import ReactTable from 'react-table';
 import ValidationStatusDropdown, { SHOW_ALL_OPTION } from 'js/components/submissions/validationStatusDropdown';
 import {DebounceInput} from 'react-debounce-input';
 import {
+  PERMISSIONS_CODENAMES,
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
@@ -303,20 +304,20 @@ export class DataTable extends React.Component {
   _getColumnSubmissionActions(maxPageRes) {
     let userCanSeeEditIcon = (
       this.props.asset.deployment__active &&
-      this.userCan('change_submissions', this.props.asset)
+      this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
     );
 
     let userCanSeeCheckbox = (
-      this.userCan('validate_submissions', this.props.asset) ||
-      this.userCan('delete_submissions', this.props.asset) ||
-      this.userCan('change_submissions', this.props.asset)
+      this.userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
+      this.userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+      this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
     );
 
     if (
-      this.userCan('validate_submissions', this.props.asset) ||
-      this.userCan('delete_submissions', this.props.asset) ||
-      this.userCan('change_submissions', this.props.asset) ||
-      this.userCan('view_submissions', this.props.asset)
+      this.userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
+      this.userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+      this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+      this.userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset)
     ) {
       const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
       const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
@@ -410,6 +411,7 @@ export class DataTable extends React.Component {
       Header: () => (
         <div className='column-header-wrapper'>
           <TableColumnSortDropdown
+            asset={this.props.asset}
             fieldId={VALIDATION_STATUS_ID_PROP}
             sortValue={tableStore.getFieldSortValue(VALIDATION_STATUS_ID_PROP)}
             onSortChange={this.onFieldSortChange}
@@ -448,7 +450,7 @@ export class DataTable extends React.Component {
         <ValidationStatusDropdown
           onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
           currentValue={this.getValidationStatusOption(row.original)}
-          isDisabled={!this.userCan('validate_submissions', this.props.asset)}
+          isDisabled={!this.userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset)}
         />
       ),
     };
@@ -1170,12 +1172,14 @@ export class DataTable extends React.Component {
     return (
       <bem.FormView m={formViewModifiers}>
         <bem.FormView__group m={['table-header', this.state.loading ? 'table-loading' : 'table-loaded']}>
-          <ColumnsHideDropdown
-            asset={this.props.asset}
-            submissions={this.state.submissions}
-            showGroupName={this.state.showGroupName}
-            translationIndex={this.state.translationIndex}
-          />
+          {this.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+            <ColumnsHideDropdown
+              asset={this.props.asset}
+              submissions={this.state.submissions}
+              showGroupName={this.state.showGroupName}
+              translationIndex={this.state.translationIndex}
+            />
+          }
 
           {this.renderBulkSelectUI()}
 

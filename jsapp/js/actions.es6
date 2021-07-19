@@ -337,6 +337,18 @@ actions.table = Reflux.createActions({
   updateSettings: {children: ['completed', 'failed']},
 });
 
+/**
+ * @param {string} assetUid
+ * @param {object} settings
+ * @param {string[]} [settings.selected-columns]
+ * @param {string} [settings.frozen-column]
+ * @param {boolean} [settings.show-group-name]
+ * @param {number} [settings.translation-index]
+ * @param {boolean} [settings.show-hxl-tags]
+ * @param {object} [settings.sort-by]
+ * @param {string} [settings.sort-by.fieldId]
+ * @param {string} [settings.sort-by.sortValue]
+ */
 actions.table.updateSettings.listen((assetUid, settings) => {
   dataInterface.patchAsset(assetUid, {settings: JSON.stringify(settings)})
     .done((asset) => {
