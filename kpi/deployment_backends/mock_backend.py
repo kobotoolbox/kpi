@@ -283,7 +283,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             if format_type == INSTANCE_FORMAT_TYPE_XML:
                 instance_ids = [str(instance_id) for instance_id in
                                 instance_ids]
-                # ugly way to find matches, but it avoids to load each xml in memory  # noqa
+                # ugly way to find matches, but it avoids to load each xml in memory
                 pattern = r'<{id_field}>({instance_ids})<\/{id_field}>'.format(
                     instance_ids='|'.join(instance_ids),
                     id_field=self.INSTANCE_ID_FIELDNAME

@@ -33,8 +33,6 @@ class BaseDeploymentBackend:
     """
 
     INSTANCE_ID_FIELDNAME = '_id'
-    STATUS_SYNCED = 'synced'
-    STATUS_NOT_SYNCED = 'not-synced'
 
     def __init__(self, asset):
         self.asset = asset
@@ -161,9 +159,6 @@ class BaseDeploymentBackend:
     def set_asset_uid(self, **kwargs) -> bool:
         raise AbstractMethodError
 
-    def set_status(self, status):
-        self.save_to_db({'status': status})
-
     @property
     def status(self):
         return self.get_data('status')
@@ -235,7 +230,7 @@ class BaseDeploymentBackend:
 
         if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
             if 'sort' in kwargs:
-                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order  # noqa
+                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
                     'sort': _('This param is not supported in `XML` format')

@@ -24,6 +24,7 @@ LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKIN
 $icons = require('./view.icons')
 multiConfirm = require('js/alertify').multiConfirm
 alertify = require('alertifyjs')
+constants = require('js/constants')
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
@@ -125,7 +126,7 @@ module.exports = do ->
 
       if questionType is 'calculate' or
          questionType is 'hidden' or
-         questionType is 'xml-external'
+         questionType is constants.QUESTION_TYPES['xml-external']
         @$hint.hide()
 
       if 'getList' of @model and (cl = @model.getList())
@@ -143,10 +144,10 @@ module.exports = do ->
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
         if key is 'label' and
            (@getRawType() is 'calculate' or
-            @getRawType() is 'xml-external')
+            @getRawType() is constants.QUESTION_TYPES['xml-external'])
           if @getRawType() is 'calculate'
             view.model = @model.get('calculation')
-          else if @getRawType() is 'xml-external'
+          else if @getRawType() is constants.QUESTION_TYPES['xml-external']
             view.model = @model.get('name')
           @model.finalize()
           val.set('value', '')

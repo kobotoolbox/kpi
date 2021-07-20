@@ -2,14 +2,13 @@
 import json
 
 from django.conf import settings
-from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
-from formpack import FormPack
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
@@ -31,7 +30,7 @@ from kpi.fields import (
 from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.models.asset import UserAssetSubscription
 from kpi.utils.object_permission import (
-    get_anonymous_user,
+    get_database_user,
     get_user_permission_assignments,
     get_user_permission_assignments_queryset,
 )
@@ -88,7 +87,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
-    deployment__status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
 
     # Only add link instead of hooks list to avoid multiple access to DB.
@@ -124,7 +122,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__active',
                   'deployment__data_download_links',
                   'deployment__submission_count',
-                  'deployment__status',
                   'report_styles',
                   'report_custom',
                   'map_styles',
@@ -320,12 +317,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return 0
 
-    def get_deployment__status(self, obj):
-        if not obj.has_deployment:
-            return ''
-
-        return obj.deployment.status
-
     def get_assignable_permissions(self, asset):
         return [
             {
@@ -493,7 +484,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         Only the type of each property is validated. No data is validated.
         It is consistent with partial permissions and REST services.
 
-        The responsibility of valid date is on users
+        The client bears the responsibility of providing valid data.
         """
         errors = {}
         if not self.instance or not data_sharing:
@@ -504,16 +495,15 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         if 'fields' in data_sharing:
             if not isinstance(data_sharing['fields'], list):
-                errors['fields'] = _(
-                    'The property must be list, not {}'
-                ).format(data_sharing['fields'].__class__.__name__)
+                errors['fields'] = _('The property must be an array')
             else:
                 asset = self.instance
                 fields = data_sharing['fields']
-                schema = asset.latest_version.to_formpack_schema()
-                form_pack = FormPack(versions=schema)
+                form_pack, _unused = build_formpack(asset, submission_stream=[])
                 valid_fields = [
-                    f.path for f in form_pack.get_fields_for_versions()
+                    f.path for f in form_pack.get_fields_for_versions(
+                        form_pack.versions.keys()
+                    )
                 ]
                 unknown_fields = set(fields) - set(valid_fields)
                 if unknown_fields and valid_fields:
@@ -530,8 +520,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return data_sharing
 
     def validate_parent(self, parent: Asset) -> Asset:
-        user = self._get_current_user()
-
+        user = get_database_user(self.context['request'].user)
         # Validate first if user can update the current parent
         if self.instance and self.instance.parent is not None:
             if not self.instance.parent.has_perm(user, PERM_CHANGE_ASSET):
@@ -556,14 +545,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     def _content(self, obj):
         return json.dumps(obj.content)
-
-    def _get_current_user(self) -> User:
-        request = self.context['request']
-        user = request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
-
-        return user
 
     def _get_status(self, perm_assignments):
         """
