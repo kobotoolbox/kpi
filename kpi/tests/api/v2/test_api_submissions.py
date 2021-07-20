@@ -719,6 +719,11 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         )
 
     def _check_duplicate(self, response, submission: dict = None):
+        """
+        Given `submission`, the source submission, and `response`, as returned
+        by a request to duplicate `submission`, verify that the new, duplicate
+        submission has the expected attributes
+        """
         submission = submission if submission else self.submissions[0]
         duplicate_submission = response.data
 
