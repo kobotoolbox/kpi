@@ -37,7 +37,6 @@ class TableMediaPreview extends React.Component {
       case META_QUESTION_TYPES['background-audio']:
         return (
           <bem.TableMediaPreview__audio>
-            {/*// TODO: Change this icon to file_audio.svg*/}
             <i className='k-icon k-icon-file-audio'/>
 
             <AudioPlayer
