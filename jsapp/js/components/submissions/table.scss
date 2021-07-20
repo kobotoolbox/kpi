@@ -461,6 +461,14 @@ $z-table-frozen: 10;
     border-right-width: 2px !important; // important needed due to .-filters specificity
   }
 
+  .rt-th.is-sorted {
+    background-color: $kobo-teal-white;
+  }
+
+  .rt-td.is-sorted {
+    background-color: $kobo-teal-white-light;
+  }
+
   // NOTE: submissions actions column is always frozen as first column
   .rt-th.rt-sub-actions,
   .rt-td.rt-sub-actions {

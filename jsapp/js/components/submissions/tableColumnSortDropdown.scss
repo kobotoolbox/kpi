@@ -56,6 +56,10 @@
       .table-column-sort-dropdown-clear {
         color: $kobo-white !important;
         float: right;
+
+        &.k-icon {
+          font-size: 18px;
+        }
       }
 
       &.table-column-sort-dropdown-option--active {

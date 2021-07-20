@@ -330,10 +330,10 @@ export class DataTable extends React.Component {
         columnWidth += 20;
       }
 
-      let columnClassNames = ['rt-sub-actions', 'is-frozen'];
+      let elClassNames = ['rt-sub-actions', 'is-frozen'];
       let frozenColumn = tableStore.getFrozenColumn();
       if (!frozenColumn) {
-        columnClassNames.push('is-last-frozen');
+        elClassNames.push('is-last-frozen');
       }
 
       return {
@@ -353,8 +353,8 @@ export class DataTable extends React.Component {
         filterable: true, // Not filterable, but we need react-table to render TableBulkCheckbox (the filter cell override)
         sortable: false,
         resizable: false,
-        headerClassName: columnClassNames.join(' '),
-        className: columnClassNames.join(' '),
+        headerClassName: elClassNames.join(' '),
+        className: elClassNames.join(' '),
         Filter: () => {
           if (userCanSeeCheckbox) {
             return (
@@ -409,6 +409,11 @@ export class DataTable extends React.Component {
    * @returns {object} validation status column for react-table
    */
   _getColumnValidation() {
+    const elClassNames = ['rt-status'];
+    if (tableStore.getFieldSortValue(VALIDATION_STATUS_ID_PROP) !== null) {
+      elClassNames.push('is-sorted');
+    }
+
     return {
       Header: () => (
         <div className='column-header-wrapper'>
@@ -433,8 +438,8 @@ export class DataTable extends React.Component {
       index: '__2',
       id: VALIDATION_STATUS_ID_PROP,
       width: 130,
-      className: 'rt-status',
-      headerClassName: 'rt-status',
+      className: elClassNames.join(' '),
+      headerClassName: elClassNames.join(' '),
       Filter: ({ filter, onChange }) => {
         let currentOption = VALIDATION_STATUSES_LIST.find((item) => item.value === filter?.value);
         if (!currentOption) {
@@ -582,12 +587,16 @@ export class DataTable extends React.Component {
           });
       }
 
-      let columnClassNames = '';
+      const elClassNames = [];
       if (
         (q && NUMERICAL_SUBMISSION_PROPS[q.type]) ||
         NUMERICAL_SUBMISSION_PROPS[key]
       ) {
-        columnClassNames += 'rt-numerical-value';
+        elClassNames.push('rt-numerical-value');
+      }
+
+      if (tableStore.getFieldSortValue(key) !== null) {
+        elClassNames.push('is-sorted');
       }
 
       let columnIcon = null;
@@ -633,7 +642,8 @@ export class DataTable extends React.Component {
         question: q,
         filterable: false,
         sortable: false,
-        className: columnClassNames,
+        className: elClassNames.join(' '),
+        headerClassName: elClassNames.join(' '),
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
             if (
