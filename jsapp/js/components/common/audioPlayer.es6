@@ -100,7 +100,7 @@ class AudioPlayer extends React.Component {
           {this.state.isPlaying && (
             <i
               // TODO: Change this icon to pause.svg
-              className='k-icon k-icon-qt-area'
+              className='k-icon k-icon-pause'
               onClick={this.onPlayStatusChange}
             />
           )}

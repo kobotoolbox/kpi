@@ -7,6 +7,11 @@
   height: 8px;
 }
 
+// In order for the hack fix to work, we have to hard code the slider length
+$hack-fix-slider-length: 300px;
+$hack-fix-slider-length-int: 300;
+
+
 /* HACK FIX: Chrome browsers et al don't have a `progress` pseudo class like
  * Firefox or Edge, so we make our own
  *
@@ -15,8 +20,7 @@
 @function makelongshadow() {
   $val: 5px 0 0 0 $kobo-blue;
 
-  // In order for the hack fix to work, we have to hard code the slider length
-  @for $i from 6 through 300 {
+  @for $i from 6 through $hack-fix-slider-length-int {
     $val: #{$val}, #{$i}px 0 0 0px #{$kobo-gray-92};
   }
 
@@ -25,19 +29,13 @@
 
 .audio-player {
   display: flex;
-  margin-right: 24px;
+  justify-content: center;
 
   .audio-player__controls {
-    margin-top: 4px;
-    padding-left: 12px;
-    padding-right: 12px;
-    width: 25%;
-
+    margin-right: 12px;
     i.k-icon {
-      font-size: 32px;
+      font-size: 48px;
       border-radius: 4px;
-      padding: 2px;
-      margin-right: 4px;
       cursor: pointer;
 
       &:hover {
@@ -45,22 +43,21 @@
       }
     }
 
-    i.k-icon-arrow-first, .k-icon-arrow-last {
-      color: $kobo-gray-65;
-    }
-
-    i.k-icon-caret-right, .k-icon-qt-area {
+    i.k-icon-caret-right, .k-icon-pause {
       color: $kobo-blue;
     }
   }
 
   .audio-player__progress {
+    padding-top: 6px;
     .audio-player__time {
       display: flex;
       justify-content: space-between;
-      width: 300px;
+      width: $hack-fix-slider-length;
       margin: auto;
+      padding-bottom: 3px;
       font-weight: 600;
+      font-size: 18px;
 
       .audio-player__time-current {
         color: $kobo-blue;
@@ -71,17 +68,15 @@
       }
     }
 
-    // General input styling across browsers
     input[type='range'] {
+      // General input styling across browsers
       -webkit-appearance: none;
-      width: 300px;
+      width: $hack-fix-slider-length;
       background: transparent;
       cursor: pointer;
       border-radius: 10px;
-    }
 
-    // Input 'thumb' styling
-    input[type='range'] {
+      // Input 'thumb' styling
       &::-webkit-slider-thumb {
         appearance: none;
         height: 8px;
@@ -97,10 +92,8 @@
         border-radius: 0 10px 10px 0;
         border: none;
       }
-    }
 
-    // Input 'track' styling
-    input[type='range'] {
+      // Input 'track' styling
       &::-webkit-slider-runnable-track {
         @include rangeTrack;
         overflow-x: hidden;
@@ -115,10 +108,8 @@
       &::-ms-track {
         @include rangeTrack
       }
-    }
 
-    // Input 'progress' styling
-    input[type='range'] {
+      // Input 'progress' styling
       &::-moz-range-progress {
         background-color: $kobo-blue;
         height: 8px;

@@ -357,7 +357,6 @@ $z-modal-x: 10;
   }
 
   .modal__header {
-    background-color: $kobo-white;
     min-height: 0;
     padding: 16px;
     background-color: $kobo-white;
@@ -404,15 +403,20 @@ $z-modal-x: 10;
     margin: 0;
 
     .table-media-preview {
+      padding: 32px 0 12px 0;
       text-align: center;
       max-width: 600px;
+
+      .audio-player {
+        margin-right: 12px;
+      }
 
       img, video {
         width: 100%;
       }
 
-      i.k-icon-qt-audio {
-        font-size: 84px;
+      i.k-icon-file-audio {
+        font-size: 128px;
         color: $kobo-gray-92
       }
     }

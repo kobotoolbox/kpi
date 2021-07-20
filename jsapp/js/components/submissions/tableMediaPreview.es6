@@ -38,7 +38,7 @@ class TableMediaPreview extends React.Component {
         return (
           <bem.TableMediaPreview__audio>
             {/*// TODO: Change this icon to file_audio.svg*/}
-            <i className='k-icon k-icon-qt-audio'/>
+            <i className='k-icon k-icon-file-audio'/>
 
             <AudioPlayer
               mediaURL={this.props?.mediaURL}
