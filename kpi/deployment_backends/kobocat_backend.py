@@ -469,9 +469,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submission_edit_url(self, submission_pk, user, params=None):
+    def get_enketo_submission_url(self, submission_pk, user, params=None):
         """
-        Gets edit URL of the submission from `kc` through proxy
+        Gets URL of the submission from KC through proxy
 
         :param submission_pk: int
         :param user: User
@@ -842,6 +842,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                                   url=metadata_url,
                                   expect_formid=False,
                                   **kwargs)
+
+            file_.synced_with_backend = True
+            file_.save(update_fields=['synced_with_backend'])
 
         # Process deleted files in case two entries contain the same file but
         # one is flagged as deleted
