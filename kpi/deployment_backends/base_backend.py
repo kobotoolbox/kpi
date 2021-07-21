@@ -22,7 +22,7 @@ from kpi.constants import (
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.jsonbfield_helper import ReplaceValues
-from kpi.utils.iterators import compare, to_int
+from kpi.utils.iterators import to_int
 
 
 class BaseDeploymentBackend(abc.ABC):
@@ -292,6 +292,7 @@ class BaseDeploymentBackend(abc.ABC):
         user: 'auth.User',
         format_type: str = INSTANCE_FORMAT_TYPE_JSON,
         validate_count: bool = False,
+        partial_perm=PERM_VIEW_SUBMISSIONS,
         **kwargs
     ) -> dict:
         """
@@ -305,10 +306,11 @@ class BaseDeploymentBackend(abc.ABC):
             - submission_ids
         If `validate_count` is True,`start`, `limit`, `fields` and `sort` are
         ignored.
-
         If `user` has partial permissions, conditions are
         applied to the query to narrow down results to what they are allowed
-        to see.
+        to see. Partial permissions are validated with 'view_submissions' by
+        default. To check with another permission, pass a different permission
+        to `partial_perm`.
         """
 
         if 'count' in kwargs:
@@ -360,7 +362,6 @@ class BaseDeploymentBackend(abc.ABC):
 
         # This error should not be returned as `ValidationError` to user.
         # We want to return a 500.
-        partial_perm = kwargs.pop('partial_perm', PERM_VIEW_SUBMISSIONS)
         try:
             permission_filters = self.asset.get_filters_for_partial_perm(
                 user.pk, perm=partial_perm)
@@ -482,9 +483,7 @@ class BaseDeploymentBackend(abc.ABC):
         if (
             allowed_submission_ids
             and set(requested_submission_ids).issubset(allowed_submission_ids)
-            or compare(
-                sorted(requested_submission_ids), sorted(to_int(submission_ids))
-            )
+            or sorted(requested_submission_ids) == sorted(to_int(submission_ids))
         ):
             # Regardless of whether or not the request contained a query or a
             # list of IDs, always return IDs here because the results of a

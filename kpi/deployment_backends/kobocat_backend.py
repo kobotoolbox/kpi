@@ -125,19 +125,21 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             partial_perms = False
             submission_ids = data['submission_ids']
 
-        submissions = list(self.get_submissions(
+        submissions = self.get_submissions(
             user=user,
             format_type=INSTANCE_FORMAT_TYPE_XML,
             submission_ids=submission_ids,
             query=data['query'],
-        ))
-
-        validated_submissions = self.__validate_bulk_update_submissions(
-            submissions
         )
+
+        if not self.current_submissions_count:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('No submissions match the given `submission_ids`')
+            )
+
         update_data = self.__prepare_bulk_update_data(data['data'])
         kc_responses = []
-        for submission in validated_submissions:
+        for submission in submissions:
             xml_parsed = ET.fromstring(submission)
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
@@ -1395,12 +1397,3 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
-
-
-    @staticmethod
-    def __validate_bulk_update_submissions(submissions: list) -> list:
-        if len(submissions) == 0:
-            raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('No submissions match the given `submission_ids`')
-            )
-        return submissions

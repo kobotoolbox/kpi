@@ -12,7 +12,12 @@ from kpi.utils.iterators import to_int
 
 
 class DataBulkActionsValidator(serializers.Serializer):
-
+    """
+    The purpose of this class is to benefit of DRF validation mechanism
+    without reinventing the wheel.
+    It uses to validate the bulk actions payload and to pass correctly formatted
+    dictionary to the deployment back end.
+    """
     payload = WritableJSONField()
 
     def __init__(self, instance=None, data=empty, **kwargs):

@@ -1,23 +1,35 @@
 # coding: utf-8
-from typing import Union
+import types
+from typing import Generator, Union
 
 
-def compare(iter_a: Union[list, tuple], iter_b: Union[list, tuple]):
+def to_int(
+    iter_obj: Union[list, tuple, Generator[str, None, None]],
+    unique: bool = True,
+) -> Union[list, tuple, Generator[int, None, None]]:
+    """
+    Coerce items of an object which can be iterated to integer
+    """
+    # If `iterator` is a generator, keep it as is
+    if isinstance(iter_obj, types.GeneratorType):
+        if not unique:
+            return (int(item) for item in iter_obj)
 
-    if not isinstance(iter_a, type(iter_b)):
-        return False
+        # There are no real benefits to use `unique=True` with a generator,
+        # if the generator is all consumed because `unique_integers` will take
+        # just as much memory as a the whole generator coerced into a set.
+        def _get_unique_integers_generator():
+            unique_integers = set()
+            for item in iter_obj:
+                if item not in unique_integers:
+                    yield item
+                    unique_integers.add(item)
 
-    if len(iter_a) != len(iter_b):
-        return False
+        return _get_unique_integers_generator()
 
-    return iter_a == iter_b
-
-
-def to_int(iterator: list, unique: bool = True):
-
-    coerced = map(int, iterator)
+    type_ = type(iter_obj)
+    coerced = map(int, iter_obj)
     if unique:
-        return list(set(coerced))
-    return list(coerced)
-
+        return type_(set(coerced))
+    return type_(coerced)
 
