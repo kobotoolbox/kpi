@@ -95,7 +95,12 @@ class KoboMatrix extends React.Component {
     }
   }
 
-  autoName(val, type, ln = false) {
+  /**
+   * @param {string} val
+   * @param {string} type
+   * @param {string} [ln]
+   */
+  autoName(val, type, ln) {
     var names = [];
     var data = this.state.data;
 
@@ -123,37 +128,115 @@ class KoboMatrix extends React.Component {
     });
   }
 
-  rowChange(e) {
+  /**
+   * Here we save the input raw value, and it will be fixed either after some
+   * short time not typing, or when blur happens.
+   * @param {string} type
+   * @param {Event} evt
+   */
+  onRowChange(type, evt) {
     const rowKuid = this.state.expandedRowKuid;
-    const type = e.target.getAttribute('data-type');
+    const val = evt.target.value;
+
+    this.setRow(this.state.expandedRowKuid, type, val);
+    clearTimeout(this.typingTimer);
+    this.typingTimer = setTimeout(
+      this.setRow.bind(
+        this,
+        rowKuid,
+        type,
+        val,
+        true
+      ),
+      1500
+    );
+  }
+
+  /**
+   * Here we save a cleaned up value.
+   * @param {string} type
+   * @param {Event} evt
+   */
+  onRowBlur(type, evt) {
+    this.setRow(this.state.expandedRowKuid, type, evt.target.value, true);
+    clearTimeout(this.typingTimer);
+  }
+
+  /**
+   * @param {string} rowKuid
+   * @param {string} type
+   * @param {string} value
+   * @param {boolean} [applyAutoName=false]
+   */
+  setRow(rowKuid, type, value, applyAutoName = false) {
     var data = this.state.data;
-    var val = e.target.value;
+    let newValue = value;
 
     if (type === 'label') {
-      data = data.setIn(['choices', rowKuid, type], val);
+      data = data.setIn(['choices', rowKuid, type], value);
     }
 
     if (type === 'name') {
-      val = this.autoName(val, false, this.state.kobomatrix_list);
-      data = data.setIn(['choices', rowKuid, 'name'], val);
-      data = data.setIn(['choices', rowKuid, '$autovalue'], val);
+      if (applyAutoName) {
+        newValue = this.autoName(newValue, false, this.state.kobomatrix_list);
+      }
+      data = data.setIn(['choices', rowKuid, 'name'], newValue);
+      data = data.setIn(['choices', rowKuid, '$autovalue'], newValue);
     }
 
     this.setState({data: data});
     this.toLocalStorage(data);
   }
 
-  colChange(e) {
+  /**
+   * Here we save the input raw value, and it will be fixed either after some
+   * short time not typing, or when blur happens.
+   * @param {string} type
+   * @param {Event} evt
+   */
+  onColumnChange(type, evt) {
     const colKuid = this.state.expandedColKuid;
-    var data = this.state.data;
-    let val = e.target.value;
-    const type = e.target.getAttribute('data-type');
+    const val = evt.target.value;
 
-    if (type === 'name') {
-      val = this.autoName(val, 'column');
+    this.setColumn(colKuid, type, val);
+    clearTimeout(this.typingTimer);
+    this.typingTimer = setTimeout(
+      this.setColumn.bind(
+        this,
+        colKuid,
+        type,
+        val,
+        true
+      ),
+      1500
+    );
+  }
+
+  /**
+   * Here we save a cleaned up value.
+   * @param {string} type
+   * @param {Event} evt
+   */
+  onColumnBlur(type, evt) {
+    this.setColumn(this.state.expandedColKuid, type, evt.target.value, true);
+    clearTimeout(this.typingTimer);
+  }
+
+  /**
+   * @param {string} colKuid
+   * @param {string} type
+   * @param {string} value
+   * @param {boolean} [applyAutoName=false]
+   */
+  setColumn(colKuid, type, value, applyAutoName = false) {
+    let data = this.state.data;
+    let newValue = value;
+
+    if (applyAutoName && type === 'name') {
+      newValue = this.autoName(newValue, 'column');
     }
 
-    data = data.setIn([colKuid, type], val);
+    data = data.setIn([colKuid, type], newValue);
 
     this.setState({data: data});
     this.toLocalStorage(data);
@@ -423,17 +506,23 @@ class KoboMatrix extends React.Component {
               </label>
               <label>
                 <span>{t('Label')}</span>
-                <input type='text' value={this.getCol(expandedCol, 'label')}
-                  onChange={this.colChange}
+                <input
+                  type='text'
+                  value={this.getCol(expandedCol, 'label')}
+                  onChange={this.onColumnChange.bind(this, 'label')}
+                  onBlur={this.onColumnBlur.bind(this, 'label')}
                   className='js-cancel-sort'
-                  data-type='label' />
+                />
               </label>
               <label>
                 <span>{t('Data Column Suffix')}</span>
-                <input type='text' value={this.getCol(expandedCol, 'name')}
-                  onChange={this.colChange}
+                <input
+                  type='text'
+                  value={this.getCol(expandedCol, 'name')}
+                  onChange={this.onColumnChange.bind(this, 'name')}
+                  onBlur={this.onColumnBlur.bind(this, 'name')}
                   className='js-cancel-sort'
-                  data-type='name' />
+                />
               </label>
               <label>
                 <span>{t('Required')}</span>
@@ -526,17 +615,21 @@ class KoboMatrix extends React.Component {
                   <bem.MatrixCols__settings_inner>
                     <label>
                       <span>{t('Label')}</span>
-                      <input type='text' value={item.label}
-                        onChange={_this.rowChange}
+                      <input
+                        type='text'
+                        value={item.label}
+                        onChange={_this.onRowChange.bind(this, 'label')}
                         className='js-cancel-sort'
-                        data-type='label' />
+                      />
                     </label>
                     <label>
                       <span>{t('Data Column Prefix')}</span>
-                      <input type='text' value={item.name}
-                        onChange={_this.rowChange}
+                      <input
+                        type='text'
+                        value={item.name}
+                        onChange={_this.onRowChange.bind(this, 'name')}
                         className='js-cancel-sort'
-                        data-type='name' />
+                      />
                     </label>
                     <div className='matrix-cols__delete'>
                       <span className='matrix-cols__delete-action' onClick={_this.deleteRow} data-kuid={item.$kuid}>
