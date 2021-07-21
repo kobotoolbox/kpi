@@ -10,7 +10,7 @@ import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
-import ConnectProjects from './modalForms/connectProjects';
+import ConnectProjects from 'js/components/dataAttachments/connectProjects';
 import FormMedia from './modalForms/formMedia';
 import DataTable from 'js/components/submissions/table';
 import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
@@ -19,7 +19,7 @@ import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
 import ui from '../ui';
-import {ROUTES} from '../constants.es6';
+import {ROUTES} from 'js/constants.es6';
 
 export class FormSubScreens extends React.Component {
   constructor(props){

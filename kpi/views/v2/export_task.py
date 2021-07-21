@@ -9,7 +9,7 @@ from kpi.filters import SearchFilter
 from kpi.models import ExportTask
 from kpi.permissions import ExportTaskPermission
 from kpi.serializers.v2.export_task import ExportTaskSerializer
-from kpi.utils.object_permission import get_anonymous_user
+from kpi.utils.object_permission import get_database_user
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.views.no_update_model import NoUpdateModelViewSet
 
@@ -140,9 +140,7 @@ class ExportTaskViewSet(
     ]
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
+        user = get_database_user(self.request.user)
         return self.model.objects.filter(
             user=user,
             data__source__icontains=self.kwargs['parent_lookup_asset'],

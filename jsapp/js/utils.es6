@@ -239,8 +239,9 @@ export function getUsernameFromUrl(userUrl) {
   return userUrl.match(/\/users\/(.*)\//)[1];
 }
 
-export function getAssetUIDFromUrl(userUrl) {
-  return userUrl.match(/.*\/([^/]+)\//)[1];
+// TODO: Test if works for both form and library routes, if not make it more general
+export function getAssetUIDFromUrl(assetUrl) {
+  return assetUrl.match(/.*\/([^/]+)\//)[1];
 }
 
 export function buildUserUrl(username) {

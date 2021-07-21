@@ -26,6 +26,7 @@ from kpi.utils.object_permission import (
     get_anonymous_user,
     get_perm_ids_from_code_names,
 )
+from kpi.utils.permissions import is_user_anonymous
 from .models import Asset, ObjectPermission
 
 
@@ -153,11 +154,12 @@ class KpiObjectPermissionsFilter:
         if not data_sharing:  # No reason to be False, but just in case
             return queryset
 
+        self._return_queryset = True
         required_perm_ids = get_perm_ids_from_code_names(
             [PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS]
         )
         user = request.user
-        if user.is_anonymous:
+        if is_user_anonymous(user):
             # Avoid giving anonymous users special treatment when viewing
             # public objects
             perms = ObjectPermission.objects.none()
@@ -169,6 +171,8 @@ class KpiObjectPermissionsFilter:
 
         asset_ids = perms.values('asset')
 
+        # `SearchFilter` handles further filtering to include only assets with
+        # `data_sharing__enabled` (`self.DATA_SHARING_PARAMETER`) set to true
         return queryset.filter(pk__in=asset_ids)
 
     def _get_discoverable(self, queryset):
@@ -256,14 +260,16 @@ class KpiObjectPermissionsFilter:
 
         if parent_obj.has_perm(get_anonymous_user(), PERM_DISCOVER_ASSET):
             self._return_queryset = True
-            return queryset.filter(pk__in=self._get_publics())
+            return queryset.filter(
+                pk__in=self._get_publics(), parent=parent_obj
+            )
 
         return queryset
 
     @staticmethod
     def _get_owned_and_explicitly_shared(user):
         view_asset_perm_id = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
-        if user.is_anonymous:
+        if is_user_anonymous(user):
             # Avoid giving anonymous users special treatment when viewing
             # public objects
             perms = ObjectPermission.objects.none()
@@ -286,7 +292,7 @@ class KpiObjectPermissionsFilter:
     @classmethod
     def _get_subscribed(cls, user):
         # Of the public objects, determine to which the user has subscribed
-        if user.is_anonymous:
+        if is_user_anonymous(user):
             user = get_anonymous_user()
 
         return UserAssetSubscription.objects.filter(

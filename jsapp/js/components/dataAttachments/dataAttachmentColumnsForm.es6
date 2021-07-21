@@ -1,14 +1,15 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import dataAttachmentsUtils from 'js/components/dataAttachments/dataAttachmentsUtils';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import {LoadingSpinner} from 'js/ui';
 
 /**
- * Attributes from parent needed to generate `columnsToDisplay`
+ * Attributes from source needed to generate `columnsToDisplay`
  *
- * @namespace parentAttributes
+ * @namespace sourceAttributes
  * @prop {string} uid
  * @prop {string} name
  * @prop {string} url
@@ -19,16 +20,14 @@ import {LoadingSpinner} from 'js/ui';
  *
  * @prop {function} onSetModalTitle - for changing the modal title by this component
  * @prop {function} onModalClose - causes the modal to close
- * @prop {function} triggerParentLoading - triggers loading on parent modal
- * @prop {function} generateColumnFilters - generates columns for multicheckbox
  * @prop {object} asset - current asset
- * @prop {parentAttributes} parent
+ * @prop {sourceAttributes} source
  * @prop {string} fileName
- * @prop {string[]} fields - child selected fields
+ * @prop {string[]} fields - selected fields to retrieve from source
  * @prop {string} attachmentUrl - if exists, we are patching an existing attachment
                                   otherwise, this is a new import
  */
-class dataAttachmentColumnsForm extends React.Component {
+class DataAttachmentColumnsForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -41,21 +40,30 @@ class dataAttachmentColumnsForm extends React.Component {
   }
 
   componentDidMount() {
-    // We must query for parent's asset content in order to display their
+    // We must query for source's asset content in order to display their
     // available columns
-    actions.resources.loadAsset({id: this.props.parent.uid});
+
+    // TODO: See if we can simplify this to only call this if props does not
+    // have any connected questions
+    actions.resources.loadAsset({id: this.props.source.uid});
 
     this.unlisteners.push(
-      actions.dataShare.attachToParent.completed.listen(
-        this.onAttachToParentCompleted
+      actions.dataShare.attachToSource.started.listen(
+        this.markComponentAsLoading
       ),
-      actions.dataShare.attachToParent.failed.listen(
+      actions.dataShare.attachToSource.completed.listen(
+        this.onAttachToSourceCompleted
+      ),
+      actions.dataShare.attachToSource.failed.listen(
         this.stopLoading
       ),
-      actions.dataShare.patchParent.completed.listen(
-        this.onPatchParentCompleted
+      actions.dataShare.patchSource.started.listen(
+        this.markComponentAsLoading
       ),
-      actions.dataShare.patchParent.failed.listen(
+      actions.dataShare.patchSource.completed.listen(
+        this.onPatchSourceCompleted
+      ),
+      actions.dataShare.patchSource.failed.listen(
         this.stopLoading
       ),
       actions.resources.loadAsset.completed.listen(
@@ -74,12 +82,12 @@ class dataAttachmentColumnsForm extends React.Component {
 
   setModalTitle() {
     this.props.onSetModalTitle(
-      t('Import data from ##PARENT_NAME##')
-        .replace('##PARENT_NAME##', this.props.parent.name)
+      t('Import data from ##SOURCE_NAME##')
+        .replace('##SOURCE_NAME##', this.props.source.name)
     );
   }
 
-  onAttachToParentCompleted() {
+  onAttachToSourceCompleted() {
     this.props.onModalClose();
   }
   onBulkSelect() {
@@ -100,32 +108,33 @@ class dataAttachmentColumnsForm extends React.Component {
     ) {
       this.setState({
         isInitialised: true,
-        columnsToDisplay: this.props.generateColumnFilters(
+        columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(
           this.props.fields,
           response.data_sharing.fields,
         ),
       });
     } else {
-      // empty `fields` implies all parent questions are exposed
+      // empty `fields` implies all source questions are exposed
       this.setState({
         isInitialised: true,
-        columnsToDisplay: this.props.generateColumnFilters(
+        columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(
           this.props.fields,
           response.content.survey,
         ),
       });
     }
   }
-  onPatchParentCompleted(response) {
+  onPatchSourceCompleted(response) {
     this.setState({
       isLoading: false,
-      columnsToDisplay: this.props.generateColumnFilters(
+      columnsToDisplay: dataAttachmentsUtils.generateColumnFilters(
         this.props.fields,
         response.fields,
       ),
     });
     this.props.onModalClose();
   }
+  // Actions take care of the error handling for this modal
   stopLoading() {
     this.setState({isLoading: false});
   }
@@ -136,40 +145,43 @@ class dataAttachmentColumnsForm extends React.Component {
 
   onSubmit(evt) {
     evt.preventDefault();
-    this.setState({isLoading: true});
-    this.props.triggerParentLoading();
 
     const fields = [];
     let data = '';
 
-    this.state.columnsToDisplay.map((item) => {
+    this.state.columnsToDisplay.forEach((item) => {
       if (item.checked) {
         fields.push(item.label);
       }
     });
 
     if (this.props.attachmentUrl) {
-      data = JSON.stringify({
+      data = {
         fields: fields,
         filename: this.props.filename,
-      });
-      actions.dataShare.patchParent(this.props.attachmentUrl, data);
+      };
+      actions.dataShare.patchSource(this.props.attachmentUrl, data);
     } else {
-      data = JSON.stringify({
-        parent: this.props.parent.url,
+      data = {
+        source: this.props.source.url,
         fields: fields,
         filename: this.props.filename,
-      });
-      actions.dataShare.attachToParent(this.props.asset.uid, data);
+      };
+      actions.dataShare.attachToSource(this.props.asset.uid, data);
     }
+  }
+
+  markComponentAsLoading() {
+    this.setState({isLoading: true});
   }
 
   render() {
     return (
+      // TODO: Use BEM elements
       <bem.FormModal__form m='data-attachment-columns'>
         <div className='header'>
           <span className='modal-description'>
-            {t('You are about to import ##PARENT_NAME##. Select or deselect in the list below to narrow down the number of questions to import.').replace('##PARENT_NAME##', this.props.parent.name)}
+            {t('You are about to import ##SOURCE_NAME##. Select or deselect in the list below to narrow down the number of questions to import.').replace('##SOURCE_NAME##', this.props.source.name)}
           </span>
 
           <div className='bulk-options'>
@@ -182,7 +194,7 @@ class dataAttachmentColumnsForm extends React.Component {
                 m='blue'
                 onClick={this.onBulkSelect}
               >
-                {t('select all')}
+                {t('Select all')}
               </bem.KoboLightButton>
 
               <span>
@@ -193,7 +205,7 @@ class dataAttachmentColumnsForm extends React.Component {
                 m='blue'
                 onClick={this.onBulkDeselect}
               >
-                {t('deselect all')}
+                {t('Deselect all')}
               </bem.KoboLightButton>
             </div>
           </div>
@@ -229,4 +241,4 @@ class dataAttachmentColumnsForm extends React.Component {
   }
 }
 
-export default dataAttachmentColumnsForm;
+export default DataAttachmentColumnsForm;

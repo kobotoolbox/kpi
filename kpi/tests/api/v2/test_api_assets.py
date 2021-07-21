@@ -25,7 +25,7 @@ from kpi.tests.base_test_case import (
 )
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -97,7 +97,7 @@ class AssetListApiTests(BaseAssetTestCase):
             another_user_asset.version_id
         ]
         versions_ids.sort()
-        expected_hash = get_hash(''.join(versions_ids))
+        expected_hash = calculate_hash(''.join(versions_ids))
         hash_url = reverse("asset-hash")
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get("hash"), expected_hash)
@@ -632,9 +632,10 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.patch(self.asset_url,
                                      data=payload,
                                      format='json')
-        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue('writable_jsonfield' in response.data['data_sharing'])
-        self.assertTrue('Unable to parse JSON' in response.data['data_sharing']['writable_jsonfield'])  # noqa
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(
+            'Unable to parse JSON' in repr(response.data['data_sharing'])
+        )
 
         # 2. Omit `enabled` property and provide `fields` as str
         payload = {
@@ -645,10 +646,10 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.patch(self.asset_url,
                                      data=payload,
                                      format='json')
-        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         errors = {
             'enabled': 'The property is required',
-            'fields': 'The property must be list',
+            'fields': 'The property must be an array',
         }
         for key, error in errors.items():
             self.assertTrue(response.data['data_sharing'][key].startswith(error))
@@ -663,8 +664,8 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.patch(self.asset_url,
                                      data=payload,
                                      format='json')
-        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertTrue(len(list(response.data['data_sharing'])), 1)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(list(response.data['data_sharing'])), 1)
         self.assertTrue(
             response.data['data_sharing']['fields'].startswith(
                 'Some fields are invalid'
@@ -703,7 +704,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.patch(self.asset_url,
                                      data=payload,
                                      format='json')
-        self.assertTrue(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.asset.refresh_from_db()
         data_sharing = self.asset.data_sharing
         self.assertEqual(data_sharing, response.data['data_sharing'])

@@ -1,175 +1,106 @@
 # coding: utf-8
 import hashlib
-import os
-from typing import Union, BinaryIO
+from typing import Union, BinaryIO, Optional
 
 import requests
-from django.conf import settings
-from rest_framework import status
 
 
-def get_hash(source: Union[str, bytes, BinaryIO],
-             algorithm: str = 'md5',
-             prefix: bool = False,
-             fast: bool = False) -> str:
+def calculate_hash(
+    source: Union[str, bytes, BinaryIO],
+    algorithm: str = 'md5',
+    prefix: bool = False,
+) -> str:
     """
-    Calculates the hash for an object.
+    Calculates the hash for `source`. Supported algorithm are `md5` and `sha1`.
+    The returned string is prefixed with `algorithm` if `prefix` is `True`.
+    If `source` is a file, it must be opened in binary mode.
+    If `source` is a URL, headers are used to build the hash in this order.
+    - `ETag`
+    - `Last-Modified`
+    - `Content-Length`
+    If none of them work, it falls back to the URL itself. Moreover, the hash is
+    suffixed with a keyword related to the detected header.
+    For example:
+        - `ETag` => `aaaa1111111-etag`
+        - `Last-Modified` => `aaaa1111111-last-modified`
+        - `Content-Length` => `aaaa1111111-length`
 
-    :param source: string, bytes or FileObject. Files must be opened in binary mode  # noqa
-    :param algorithm: Can be 'md5' or 'sha1'. Default: 'md5'.
-    :param prefix: Prefix the return value with the algorithm, e.g.: 'md5:34523'
-    :param fast: If True, only calculate on 3 small pieces of the object.
-                 Useful with big (remote) files.
+        - `none` => `aaaa1111111-url`
+
     """
 
-    supported_algorithm = ['md5', 'sha1']
+    hashlib_def = getattr(hashlib, algorithm, None)
+    if not hashlib_def:
+        raise NotImplementedError('`{algorithm}` is not supported')
 
-    if algorithm not in supported_algorithm:
-        raise NotImplementedError('Only `{algorithms}` are supported'.format(
-            algorithms=', '.join(supported_algorithm)
-        ))
+    def _finalize_hash(
+        hashable_: Union[str, bytes], suffix: Optional[str] = None
+    ) -> str:
+        """
+        Return final string with/without the algorithm as prefix and specified
+        suffix if any
+        """
+        if isinstance(hashable_, str):
+            hashable_ = hashable_.encode()
 
-    if algorithm == 'md5':
-        hashlib_def = hashlib.md5
-    else:
-        hashlib_def = hashlib.sha1
+        hash_ = hashlib_def(hashable_).hexdigest()
 
-    def _prefix_hash(hex_digest: str) -> str:
         if prefix:
-            return f'{algorithm}:{hex_digest}'
-        return hex_digest
+            hash_ = f'{algorithm}:{hash_}'
+
+        if suffix:
+            hash_ = f'{hash_}-{suffix}'
+
+        return hash_
+
+    if not isinstance(source, str):
+        try:
+            source = source.read()
+        except AttributeError:
+            # Source is `bytes`, just return its hash
+            pass
+
+        return _finalize_hash(source)
 
     # If `source` is a string, it can be a URL or real string
-    if isinstance(source, str):
-        if not source.startswith('http'):
-            hashable = source.encode()
-        else:
-            # Try to get hash from the content of a URL.
-            # If the any requests fail, it returns the hash of the URL itself.
-            # We do not want to raise a `RequestException` while calculating
-            # the hash.
-            # ToDo: Evaluate whether it could be better to return ̀`None` when
-            # a request exception occurs
+    if not source.startswith('http'):
+        return _finalize_hash(source)
 
-            # Ensure we do not receive a gzip response.
-            headers = {'Accept-Encoding': None}
-            url_hash = hashlib_def(source.encode()).hexdigest()
-            # Get remote file size
-            # `requests.get(url, stream=True)` only gets headers. Body is
-            # only retrieved when `response.content` is called.
-            # It avoids making a second request to get the body
-            # (i.e.: vs `requests.head()`).
-            try:
-                response = requests.get(source, stream=True, headers=headers)
-                response.raise_for_status()
-            except requests.exceptions.RequestException:
-                # With `stream=True`, the connection is kept alive until it is
-                # closed or all the data is consumed. Because, we do not consume
-                # the data, we have to close the connexion manually.
-                response.close()
-                return _prefix_hash(hex_digest=url_hash)
-
-            file_size = int(response.headers['Content-Length'])
-            # If the remote file is smaller than the threshold or smaller than
-            # 3 times the chunk, we retrieve the whole file to avoid extra
-            # requests.
-            if (
-                not fast
-                or file_size < settings.HASH_BIG_FILE_SIZE_THRESHOLD
-                or file_size < 3 * settings.HASH_BIG_FILE_CHUNK
-            ):
-                hashable = response.content
-            else:
-                # With `stream=True`, the connection is kept alive until it is
-                # closed or all the data is consumed. Because, we do not consume
-                # the data, we have to close the connexion manually.
-                response.close()
-
-                # We fetch 3 parts of the file.
-                # - One chunk at the beginning
-                # - One chunk in the middle
-                # - One chunk at the end
-                # It should be accurate enough to detect whether big files
-                # over the network have changed without locking uWSGI workers
-                # for a long time.
-                # Drawback on this solution, it relies on the remote server to
-                # support `Accept-Ranges`. If it does not, it returns the whole
-                # file. In that case, we calculate on the URL itself, not its
-                # content
-
-                # 1) First part
-                range_ = f'0-{settings.HASH_BIG_FILE_CHUNK - 1}'
-                headers['Range'] = f'bytes={range_}'
-                try:
-                    response = requests.get(source, stream=True, headers=headers)
-                    response.raise_for_status()
-                except requests.exceptions.RequestException:
-                    response.close()
-                    return _prefix_hash(hex_digest=url_hash)
-                else:
-                    if response.status_code != status.HTTP_206_PARTIAL_CONTENT:
-                        # Remove server does not support ranges. The file may be
-                        # huge. Do not try to download it
-                        response.close()
-                        return _prefix_hash(hex_digest=url_hash)
-                hashable = response.content
-
-                # 2) Second part
-                range_lower_bound = file_size // 2
-                range_upper_bound = (range_lower_bound
-                                     + settings.HASH_BIG_FILE_CHUNK - 1)
-                range_ = f'{range_lower_bound}-{range_upper_bound}'
-                headers['Range'] = f'bytes={range_}'
-                try:
-                    response = requests.get(source, headers=headers)
-                    response.raise_for_status()
-                except requests.exceptions.RequestException:
-                    return _prefix_hash(hex_digest=url_hash)
-                hashable += response.content
-
-                # 3) Last part
-                range_lower_bound = file_size - settings.HASH_BIG_FILE_CHUNK
-                range_upper_bound = file_size - 1
-                range_ = f'{range_lower_bound}-{range_upper_bound}'
-                headers['Range'] = f'bytes={range_}'
-                try:
-                    response = requests.get(source, headers=headers)
-                    response.raise_for_status()
-                except requests.exceptions.RequestException:
-                    return _prefix_hash(hex_digest=url_hash)
-                hashable += response.content
-
-        return _prefix_hash(hashlib_def(hashable).hexdigest())
+    # Ensure we do not receive a gzip response to be able to read headers such
+    # as `Content-Length`
+    headers = {'Accept-Encoding': 'identity'}
+    try:
+        response = requests.head(source, headers=headers)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        return _finalize_hash(source, 'url')
 
     try:
-        source.read(settings.HASH_BIG_FILE_CHUNK)
-    except AttributeError:
-        # Source is `bytes`, just return its hash
-        return _prefix_hash(hashlib_def(source).hexdigest())
+        content_type = response.headers['Content-Type']
+    except KeyError:
+        return _finalize_hash(source, 'url')
 
-    # Get local file size
-    source.seek(0, os.SEEK_END)
-    file_size = source.tell()
-    source.seek(0, os.SEEK_SET)
+    try:
+        etag = response.headers['ETag']
+    except KeyError:
+        pass
+    else:
+        return _finalize_hash(f'{content_type}:{etag}', 'etag')
 
-    # If the local file is smaller than the threshold or smaller than
-    # 3 times the chunk, we retrieve the whole file to avoid error when seeking
-    # out of bounds.
-    if (
-        not fast
-        or file_size < settings.HASH_BIG_FILE_SIZE_THRESHOLD
-        or file_size < 3 * settings.HASH_BIG_FILE_CHUNK
-    ):
-        hashable = hashlib_def()
-        while chunk := source.read(settings.HASH_BIG_FILE_CHUNK):
-            hashable.update(chunk)
+    try:
+        last_modified = response.headers['Last-Modified']
+    except KeyError:
+        pass
+    else:
+        return _finalize_hash(f'{content_type}:{last_modified}', 'last-modified')
 
-        return _prefix_hash(hashable.hexdigest())
+    try:
+        content_length = response.headers['Content-Length']
+    except KeyError:
+        pass
+    else:
+        return _finalize_hash(f'{content_type}:{content_length}', 'length')
 
-    hashable = source.read(settings.HASH_BIG_FILE_CHUNK)
-    source.seek(file_size // 2, os.SEEK_SET)
-    hashable += source.read(settings.HASH_BIG_FILE_CHUNK)
-    source.seek(-settings.HASH_BIG_FILE_CHUNK, os.SEEK_END)
-    hashable += source.read(settings.HASH_BIG_FILE_CHUNK)
+    return _finalize_hash(source, 'url')
 
-    return _prefix_hash(hashlib_def(hashable).hexdigest())
+
