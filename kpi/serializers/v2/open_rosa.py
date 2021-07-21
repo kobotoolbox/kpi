@@ -5,12 +5,12 @@ from rest_framework import serializers
 class FormListSerializer(serializers.Serializer):
     """
     This serializer is model-agnostic. The list of objects passed to the
-    serializer must inherit from `kpi.interfaces.open_rosa.OpenRosaFormListInterface`  # noqa
+    serializer must inherit from `kpi.interfaces.open_rosa.OpenRosaFormListInterface`
     to be sure expected methods and properties are defined.
     """
     # The PEP-8 naming convention is broken on purpose
     # Open Rosa XML uses CamelCase
-    # See https://docs.getodk.org/openrosa-form-list/#successful-response-document  # noqa
+    # See https://docs.getodk.org/openrosa-form-list/#successful-response-document
     formID = serializers.SerializerMethodField('get_form_id')
     name = serializers.SerializerMethodField('get_name')
     hash = serializers.SerializerMethodField('get_name')

@@ -234,31 +234,31 @@ export var dataInterface;
     },
 
     /*
-     * TODO: #2767 Dynamic data sharing, match with implemented API
+     * Dynamic data attachments
      */
-    attachToParent(assetUid, data) {
+    attachToSource(assetUid, data) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
         method: 'POST',
-        data: data,
+        data: JSON.stringify(data),
         contentType: 'application/json'
       });
     },
-    detachParent(attachmentUrl) {
+    detachSource(attachmentUrl) {
       return $ajax({
         url: attachmentUrl,
         method: 'DELETE',
       });
     },
-    patchParent(attachmentUrl, data) {
+    patchSource(attachmentUrl, data) {
       return $ajax({
         url: attachmentUrl,
         method: 'PATCH',
-        data: data,
+        data: JSON.stringify(data),
         contentType: 'application/json'
       });
     },
-    getAttachedParents(assetUid) {
+    getAttachedSources(assetUid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
         method: 'GET',
@@ -274,7 +274,7 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
         method: 'PATCH',
-        data: data,
+        data: JSON.stringify(data),
         contentType: 'application/json'
       });
     },
@@ -361,9 +361,6 @@ export var dataInterface;
           method: 'DELETE'
         });
       });
-    },
-    getAssetContent ({id}) {
-      return $.getJSON(`${ROOT_URL}/api/v2/assets/${id}/content/`);
     },
     getImportDetails ({uid}) {
       return $.getJSON(`${ROOT_URL}/api/v2/imports/${uid}/`);

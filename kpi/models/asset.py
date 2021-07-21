@@ -48,7 +48,6 @@ from kpi.deployment_backends.mixin import DeployableMixin
 from kpi.exceptions import (
     BadPermissionsException,
     DeploymentDataException,
-    PairedParentException,
 )
 from kpi.fields import (
     KpiUidField,
@@ -61,8 +60,8 @@ from kpi.mixins import (
 )
 from kpi.models.asset_file import AssetFile
 from kpi.models.asset_snapshot import AssetSnapshot
-from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.object_permission import get_cached_code_names
+from kpi.utils.asset_content_analyzer import AssetContentAnalyzer
 from kpi.utils.sluggify import sluggify_label
 from .asset_user_partial_permission import AssetUserPartialPermission
 from .asset_version import AssetVersion
@@ -157,21 +156,21 @@ class Asset(ObjectPermissionMixin,
     # ToDo Move the field to another table with one-to-one relationship
     _deployment_data = JSONBField(default=dict)
 
-    # JSON with subset of fields and allowed users to use it
+    # JSON with subset of fields to share
     # {
     #   'enable': True,
     #   'fields': []  # shares all when empty
     # }
     data_sharing = LazyDefaultJSONBField(default=dict)
-    # JSON with parent assets information
+    # JSON with source assets' information
     # {
-    #   <parent_uid>: {
-    #       'fields': []  # includes all fields shared with parent when empty
+    #   <source_uid>: {
+    #       'fields': []  # includes all fields shared by source when empty
     #       'paired_data_uid': 'pdxxxxxxx'  # auto-generated read-only
     #       'filename: 'xxxxx.xml'
     #   },
     #   ...
-    #   <parent_uid>: {
+    #   <source_uid>: {
     #       'fields': []
     #       'paired_data_uid': 'pdxxxxxxx'
     #       'filename: 'xxxxx.xml'
@@ -513,40 +512,6 @@ class Asset(ObjectPermissionMixin,
         )
         return label
 
-    def get_paired_parent(self, paired_data_uid: str) -> Union['Asset', None]:
-
-        # Validate `paired_data_uid`, i.e., must exist in `self.paired_data`
-        parent_uid = None
-        for key, values in self.paired_data.items():
-            if values['paired_data_uid'] == paired_data_uid:
-                parent_uid = key
-                break
-
-        if not parent_uid:
-            return None
-
-        try:
-            parent_asset = Asset.objects.get(uid=parent_uid)
-        except Asset.DoesNotExist:
-            return None
-
-        # Data sharing must be enabled on the parent
-        parent_data_sharing = parent_asset.data_sharing
-        if not parent_data_sharing.get('enabled'):
-            return None
-
-        # Validate `self.owner` is still allowed to see parent data
-        allowed_users = parent_data_sharing.get('users', [])
-        if allowed_users and self.owner.username not in allowed_users:
-            return None
-
-        if not parent_asset.has_deployment:
-            return None
-
-        self.__parent_paired_asset = parent_asset
-
-        return parent_asset
-
     def get_partial_perms(
         self, user_id: int, with_filters: bool = False
     ) -> Union[list, dict, None]:
@@ -622,25 +587,6 @@ class Asset(ObjectPermissionMixin,
             return versions[0]
         except IndexError:
             return None
-
-    @property
-    def paired_data_fields(self):
-        try:
-            parent_asset = self.__parent_paired_asset
-        except AttributeError:
-            raise PairedParentException
-
-        parent_fields = parent_asset.data_sharing['fields']
-        asset_fields = self.paired_data[parent_asset.uid]['fields']
-
-        if parent_fields and asset_fields:
-            return list(set(parent_fields).intersection(set(asset_fields)))
-
-        if not asset_fields:
-            return parent_fields
-
-        if not parent_fields:
-            return asset_fields
 
     @staticmethod
     def optimize_queryset_for_list(queryset):
