@@ -274,7 +274,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             if format_type == INSTANCE_FORMAT_TYPE_XML:
                 submission_ids = [str(submission_id) for submission_id in
                                   submission_ids]
-                # ugly way to find matches, but it avoids to load each xml in memory  # noqa
+                # ugly way to find matches, but it avoids to load each xml in memory
                 pattern = r'<{id_field}>({submission_ids})<\/{id_field}>'.format(
                     submission_ids='|'.join(submission_ids),
                     id_field=self.SUBMISSION_ID_FIELDNAME

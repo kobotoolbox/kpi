@@ -8,22 +8,9 @@ class SyncBackendMediaInterface(metaclass=ABCMeta):
     deployment back-end class on media synchronization.
     """
 
-    # Type of file sent to back end during synchronization
-    BACKEND_DATA_TYPE = None
-
     @property
     @abstractmethod
-    def backend_data_value(self):
-        pass
-
-    @property
-    @abstractmethod
-    def backend_data_type():
-        pass
-
-    @property
-    @abstractmethod
-    def backend_uniqid(self):
+    def backend_media_id(self):
         pass
 
     @abstractmethod
@@ -40,9 +27,18 @@ class SyncBackendMediaInterface(metaclass=ABCMeta):
     def filename(self):
         pass
 
+    # FIXME in ABC PR #3268
+    # @property
+    # def file_type(self):
+    #     raise AbstractPropertyError
+
     @property
     @abstractmethod
     def md5_hash(self):
+        """
+        Return md5 hash string needed to establish the list of files to synchronize
+        between KPI and back-end server
+        """
         pass
 
     @property

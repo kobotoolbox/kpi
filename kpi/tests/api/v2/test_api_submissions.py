@@ -357,16 +357,16 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
         anonymous_user = get_anonymous_user()
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == False
+        assert not self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
         assert PERM_VIEW_ASSET not in self.asset.get_perms(self.anotheruser)
-        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == False
+        assert not self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET)
         assert PERM_CHANGE_ASSET not in self.asset.get_perms(self.anotheruser)
 
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_ASSET)
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
         assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
-        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == True
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET)
         assert PERM_CHANGE_ASSET in self.asset.get_perms(self.anotheruser)
 
         assert (
@@ -379,12 +379,10 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
         assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
 
-        assert (
-            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
-        )
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
 
         # resetting permssions of asset
@@ -714,6 +712,11 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         )
 
     def _check_duplicate(self, response, submission: dict = None):
+        """
+        Given `submission`, the source submission, and `response`, as returned
+        by a request to duplicate `submission`, verify that the new, duplicate
+        submission has the expected attributes
+        """
         submission = submission if submission else self.submissions[0]
         duplicate_submission = response.data
 

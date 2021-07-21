@@ -31,8 +31,6 @@ class BaseDeploymentBackend(abc.ABC):
     """
 
     SUBMISSION_ID_FIELDNAME = '_id'
-    STATUS_SYNCED = 'synced'
-    STATUS_NOT_SYNCED = 'not-synced'
 
     def __init__(self, asset):
         self.asset = asset
@@ -327,7 +325,7 @@ class BaseDeploymentBackend(abc.ABC):
 
         if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
             if 'sort' in kwargs:
-                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order  # noqa
+                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
                     'sort': _('This param is not supported in `XML` format')
@@ -491,12 +489,18 @@ class BaseDeploymentBackend(abc.ABC):
                 sorted(requested_submission_ids), sorted(to_int(submission_ids))
             )
         ):
-            # Users may try to access submissions they are not allowed to with
-            # a query (e.g.: `{"query": {"_id": {"$in": [1, 2, ...]}`. AFAIK,
-            # there is no way to know if the query is 100% legit, expect running
-            # the same query with the owner and compare the results. To avoid an
-            # extra query, we return only the allowed submission ids that the
-            # back end should work with.
+            # Regardless of whether or not the request contained a query or a
+            # list of IDs, always return IDs here because the results of a
+            # query may contain submissions that the requesting user is not
+            # allowed to access. For example,
+            #   - In submissions 4, 5, and 6, the response to the "state"
+            #       question was "California"
+            #   - Bob is allowed to access only submissions made by Jerry
+            #   - Jerry uploaded submissions 5, 6, and 7
+            #   - Bob submits a query for all submissions where
+            #       `{"state": "California"}`
+            #   - Bob must only see submissions 5 and 6
+
             return requested_submission_ids
 
         raise PermissionDenied

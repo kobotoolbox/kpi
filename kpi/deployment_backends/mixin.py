@@ -16,9 +16,6 @@ class DeployableMixin:
         if force or self.asset_files.filter(
             file_type=AssetFile.FORM_MEDIA, synced_with_backend=False
         ).exists():
-            self.deployment.store_data(
-                {'status': self.deployment.STATUS_NOT_SYNCED}
-            )
             self.save(create_version=False, adjust_content=False)
             sync_media_files.delay(self.uid)
 

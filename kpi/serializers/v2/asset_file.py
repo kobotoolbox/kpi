@@ -79,7 +79,7 @@ class AssetFileSerializer(serializers.ModelSerializer):
         return ret
 
     def validate(self, attr):
-        self.__file_type = attr['file_type']  # noqa
+        self.__file_type = attr['file_type']
 
         metadata = self._get_metadata(attr.get('metadata'))
         validated_field = self._validate_media_content_method(attr, metadata)
