@@ -119,9 +119,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submission_edit_url(self, submission_pk, user, params=None):
+    def get_enketo_submission_url(self, submission_pk, user, params=None):
         """
-        Gets edit URL of the submission in a format FE can understand
+        Gets URL of the submission in a format FE can understand
 
         :param submission_pk: int
         :param user: User

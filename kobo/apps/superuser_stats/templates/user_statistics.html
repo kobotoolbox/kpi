@@ -1,5 +1,11 @@
 {% extends "admin/change_list.html" %}
-
+{% block extrahead %}
+    <style>
+        #changelist table {
+            width: calc(100% - 250px);
+        }
+    </style>
+{% endblock %}
 {% load i18n %}
 
 {% block content_title %}
@@ -13,6 +19,11 @@
                 <th>
                     <div class="text">
                         <a href="#">User</a>
+                    </div>
+                </th>
+                <th>
+                    <div class="text">
+                        <a href="#">Date Joined</a>
                     </div>
                 </th>
                 <th>
@@ -36,6 +47,7 @@
             {% for row in summary %}
             <tr class="{% cycle 'row1' 'row2' %}">
                 <td> {{ row.username }} </td>
+                <td> {{ row.date_joined }} </td>
                 <td> {{ row.submission_count }} </td>
                 <td> {{ row.form_count }} </td>
                 <td> {{ row.deployed_form_count }} </td>

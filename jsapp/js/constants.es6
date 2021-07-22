@@ -54,6 +54,11 @@ export const PERMISSIONS_CODENAMES = createEnum([
   'validate_submissions',
 ]);
 
+export const ENKETO_ACTIONS = createEnum([
+  'edit',
+  'view',
+])
+
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
