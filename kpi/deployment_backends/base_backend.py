@@ -187,8 +187,9 @@ class BaseDeploymentBackend(abc.ABC):
         Results can be filtered by submission ids. Moreover MongoDB filters can
         be passed through `mongo_query_params` to narrow down the results.
 
-        If `user` has no access to these submissions or no matches are found,
-        `None` is returned.
+        If `user` has no access to these submissions or no matches are found, an
+        empty iterator is returned.
+
         If `format_type` is 'json', an iterator of dictionary is returned.
         Otherwise, if `format_type` is 'xml', an iterator of string is returned.
         """

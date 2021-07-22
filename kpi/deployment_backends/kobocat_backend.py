@@ -623,7 +623,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         be passed through `query` to narrow down the results.
 
         If `user` has no access to these submissions or no matches are found,
-        `None` is returned.
+        an empty generator is returned.
+
         If `format_type` is 'json', a generator of dictionary is returned.
         Otherwise, if `format_type` is 'xml', a generator of string is returned.
         """

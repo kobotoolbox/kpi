@@ -254,7 +254,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         be passed through `mongo_query_params` to narrow down the results.
 
         If `user` has no access to these submissions or no matches are found,
-        `None` is returned.
+        an empty list is returned.
         If `format_type` is 'json', a list of dictionary is returned.
         Otherwise, if `format_type` is 'xml', a list of string is returned.
         """
