@@ -1048,7 +1048,7 @@ class Asset(ObjectPermissionMixin,
                         implied_perm not in new_partial_perms
                         and implied_perm in partial_perms
                     ):
-                        new_partial_perms[implied_perm] = partial_perms[implied_perm]  # noqa
+                        new_partial_perms[implied_perm] = partial_perms[implied_perm]
 
                     new_partial_perm = new_partial_perms[implied_perm]
                     # Trivial case, i.e.: permissions are built with front end.

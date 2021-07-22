@@ -20,8 +20,8 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 from kpi.constants import (
-    INSTANCE_FORMAT_TYPE_JSON,
-    INSTANCE_FORMAT_TYPE_XML,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
     PERM_FROM_KC_ONLY,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
@@ -127,7 +127,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         submissions = self.get_submissions(
             user=user,
-            format_type=INSTANCE_FORMAT_TYPE_XML,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
             submission_ids=submission_ids,
             query=data['query'],
         )
@@ -195,7 +195,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # duplicating a submission
             file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
-            # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission # noqa
+            # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
             headers = {}
             if partial_perms:
                 headers.update(
@@ -426,7 +426,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         submission = self.get_submission(
             submission_id,
             user=user,
-            format_type=INSTANCE_FORMAT_TYPE_XML,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
         )
 
         # parse XML string to ET object
@@ -608,28 +608,34 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def get_submissions(
         self,
         user: 'auth.User',
-        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+        format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
-        **kwargs
+        **mongo_query_params
     ) -> Union[Generator[dict, None, None], list]:
         """
-        Retrieves submissions which `user` is allowed to access
-        The format `format_type` can be either:
-        - 'json' (See `kpi.constants.INSTANCE_FORMAT_TYPE_JSON)
-        - 'xml' (See `kpi.constants.INSTANCE_FORMAT_TYPE_XML)
+        Retrieve submissions that `user` is allowed to access.
 
-        Results can be filtered on instance ids and/or MongoDB filters can be
-        passed through `kwargs`
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML)
+
+        Results can be filtered by submission ids. Moreover MongoDB filters can
+        be passed through `query` to narrow down the results.
+
+        If `user` has no access to these submissions or no matches are found,
+        `None` is returned.
+        If `format_type` is 'json', a generator of dictionary is returned.
+        Otherwise, if `format_type` is 'xml', a generator of string is returned.
         """
 
-        kwargs['submission_ids'] = submission_ids
+        mongo_query_params['submission_ids'] = submission_ids
         params = self.validate_submission_list_params(user,
                                                       format_type=format_type,
-                                                      **kwargs)
+                                                      **mongo_query_params)
 
-        if format_type == INSTANCE_FORMAT_TYPE_JSON:
+        if format_type == SUBMISSION_FORMAT_TYPE_JSON:
             submissions = self.__get_submissions_in_json(**params)
-        elif format_type == INSTANCE_FORMAT_TYPE_XML:
+        elif format_type == SUBMISSION_FORMAT_TYPE_XML:
             submissions = self.__get_submissions_in_xml(**params)
         else:
             raise BadFormatException(
@@ -637,11 +643,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         return submissions
 
-    def get_validation_status(
-        self, submission_id, user: 'auth.User', params: dict
-    ) -> dict:
+    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
         url = self.get_submission_validation_status_url(submission_id)
-        kc_request = requests.Request(method='GET', url=url, data=params)
+        kc_request = requests.Request(method='GET', url=url)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)

@@ -1056,7 +1056,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
     def setUp(self):
         super().setUp()
         for submission in self.submissions:
-            submission['_validation_status']['uid'] = 'validation_status_not_approved'  # noqa
+            submission['_validation_status']['uid'] = 'validation_status_not_approved'
         self.asset.deployment.mock_submissions(self.submissions)
         self.validation_statuses_url = reverse(
             self._get_endpoint('submission-validation-statuses'),

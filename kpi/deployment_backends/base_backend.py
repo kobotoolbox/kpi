@@ -14,8 +14,8 @@ from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
 
 from kpi.constants import (
-    INSTANCE_FORMAT_TYPE_XML,
-    INSTANCE_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
+    SUBMISSION_FORMAT_TYPE_JSON,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
@@ -105,7 +105,7 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def duplicate_submission(
-        self,  submission_id: int, user: 'auth.User', **kwargs
+        self,  submission_id: int, user: 'auth.User'
     ) -> dict:
         pass
 
@@ -129,23 +129,28 @@ class BaseDeploymentBackend(abc.ABC):
     def get_submission(self,
                        submission_id: int,
                        user: 'auth.User',
-                       format_type: str = INSTANCE_FORMAT_TYPE_JSON,
-                       **kwargs: dict) -> Union[dict, str, None]:
+                       format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
+                       **mongo_query_params: dict) -> Union[dict, str, None]:
         """
-        Returns the corresponding submission whose id equals `pk` and which
-        `user` is allowed to access.
-        Otherwise, it returns `None`.
-        The format `format_type` can be either:
-        - 'json' (See `kpi.constants.INSTANCE_FORMAT_TYPE_JSON)
-        - 'xml' (See `kpi.constants.INSTANCE_FORMAT_TYPE_XML)
+        Retrieve the corresponding submission whose id equals `submission_id`
+        and which `user` is allowed to access.
 
-        MongoDB filters can be passed through `kwargs` to narrow down the
-        result.
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML)
+
+        MongoDB filters can be passed through `mongo_query_params` to narrow
+        down the result.
+
+        If `user` has no access to that submission or no matches are found,
+        `None` is returned.
+        If `format_type` is 'json', a dictionary is returned.
+        Otherwise, if `format_type` is 'xml', a string is returned.
         """
 
         submissions = list(
             self.get_submissions(
-                user, format_type, [int(submission_id)], **kwargs
+                user, format_type, [int(submission_id)], **mongo_query_params
             )
         )
         try:
@@ -159,32 +164,38 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     def get_submission_validation_status_url(self, submission_id: int) -> str:
-        # This does not really need to be implemented.
-        # We keep it to stay close to `KobocatDeploymentBackend` for unit tests
         url = '{detail_url}validation_status/'.format(
             detail_url=self.get_submission_detail_url(submission_id)
         )
         return url
 
     @abc.abstractmethod
-    def get_submissions(self,
-                        user: 'auth.User',
-                        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
-                        submission_ids: list = [],
-                        **kwargs: dict) -> Union[Iterator[dict], Iterator[str]]:
+    def get_submissions(
+        self,
+        user: 'auth.User',
+        format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
+        submission_ids: list = [],
+        **mongo_query_params: dict
+    ) -> Union[Iterator[dict], Iterator[str]]:
         """
-        Retrieves submissions whose `user` is allowed to access
-        The format `format_type` can be either:
-        - 'json' (See `kpi.constants.INSTANCE_FORMAT_TYPE_JSON)
-        - 'xml' (See `kpi.constants.INSTANCE_FORMAT_TYPE_XML)
+        Retrieve submissions that `user` is allowed to access.
 
-        Results can be filtered on instance ids. Moreover filters can be
-        passed through `kwargs` to narrow down results in the back end
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML)
+
+        Results can be filtered by submission ids. Moreover MongoDB filters can
+        be passed through `mongo_query_params` to narrow down the results.
+
+        If `user` has no access to these submissions or no matches are found,
+        `None` is returned.
+        If `format_type` is 'json', an iterator of dictionary is returned.
+        Otherwise, if `format_type` is 'xml', an iterator of string is returned.
         """
         pass
 
     @abc.abstractmethod
-    def get_validation_status(self, submission_id, user, params) -> dict:
+    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
         """
         Return a formatted dict to be passed to a Response object
         """
@@ -252,13 +263,13 @@ class BaseDeploymentBackend(abc.ABC):
     @abc.abstractmethod
     def set_validation_status(self,
                               submission_id: int,
-                              data: dict,
                               user: 'auth.User',
+                              data: dict,
                               method: str) -> dict:
         pass
 
     @abc.abstractmethod
-    def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
+    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
         pass
 
     @property
@@ -290,13 +301,13 @@ class BaseDeploymentBackend(abc.ABC):
     def validate_submission_list_params(
         self,
         user: 'auth.User',
-        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+        format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         validate_count: bool = False,
         partial_perm=PERM_VIEW_SUBMISSIONS,
-        **kwargs
+        **mongo_query_params
     ) -> dict:
         """
-        Validates parameters (`kwargs`) to be passed to Mongo.
+        Validates parameters (`mongo_query_params`) to be passed to MongoDB.
         parameters can be:
             - start
             - limit
@@ -313,7 +324,7 @@ class BaseDeploymentBackend(abc.ABC):
         to `partial_perm`.
         """
 
-        if 'count' in kwargs:
+        if 'count' in mongo_query_params:
             raise serializers.ValidationError(
                 {
                     'count': _(
@@ -323,28 +334,29 @@ class BaseDeploymentBackend(abc.ABC):
                 }
             )
 
-        if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
-            if 'sort' in kwargs:
+        if validate_count is False and format_type == SUBMISSION_FORMAT_TYPE_XML:
+            if 'sort' in mongo_query_params:
                 # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
                     'sort': _('This param is not supported in `XML` format')
                 })
 
-            if 'fields' in kwargs:
+            if 'fields' in mongo_query_params:
                 raise serializers.ValidationError({
                     'fields': _('This is not supported in `XML` format')
                 })
 
-        start = kwargs.get('start', 0)
-        limit = kwargs.get('limit')
-        sort = kwargs.get('sort', {})
-        fields = kwargs.get('fields', [])
-        query = kwargs.get('query', {})
-        submission_ids = kwargs.get('submission_ids', [])
+        start = mongo_query_params.get('start', 0)
+        limit = mongo_query_params.get('limit')
+        sort = mongo_query_params.get('sort', {})
+        fields = mongo_query_params.get('fields', [])
+        query = mongo_query_params.get('query', {})
+        submission_ids = mongo_query_params.get('submission_ids', [])
 
-        # TODO: Should this validation be in (or called directly by) the view
-        # code? Does DRF have a validator for GET params?
+        # I've copied these `ValidationError` messages verbatim from DRF where
+        # possible.TODO: Should this validation be in (or called directly by)
+        # the view code? Does DRF have a validator for GET params?
 
         if isinstance(query, str):
             try:

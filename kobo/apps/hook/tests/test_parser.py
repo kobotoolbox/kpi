@@ -4,7 +4,7 @@ import re
 
 from lxml import etree
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_XML
+from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.utils.strings import to_str
 from .hook_test_case import HookTestCase
 
@@ -36,11 +36,11 @@ class ParserTestCase(HookTestCase):
         self.asset.save()
 
         hook = self._create_hook(subset_fields=['_id', 'subgroup1', 'q3'],
-                                 format_type=INSTANCE_FORMAT_TYPE_XML)
+                                 format_type=SUBMISSION_FORMAT_TYPE_XML)
 
         ServiceDefinition = hook.get_service_definition()
         submissions = hook.asset.deployment.get_submissions(
-            self.asset.owner, format_type=INSTANCE_FORMAT_TYPE_XML)
+            self.asset.owner, format_type=SUBMISSION_FORMAT_TYPE_XML)
         xml_doc = etree.fromstring(submissions[0].encode())
         tree = etree.ElementTree(xml_doc)
         uuid = tree.find('_id').text
