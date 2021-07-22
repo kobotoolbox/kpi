@@ -11,6 +11,7 @@ import {
   notify,
   formatTime,
 } from 'utils';
+import './assetInfoBox.scss';
 
 /**
  * @prop asset
@@ -20,7 +21,7 @@ class AssetInfoBox extends React.Component {
     super(props);
     this.state = {
       areDetailsVisible: false,
-      ownerData: null
+      ownerData: null,
     };
     autoBind(this);
   }

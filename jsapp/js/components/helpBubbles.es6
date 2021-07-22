@@ -6,6 +6,7 @@ import {actions} from '../actions';
 import {stores} from '../stores';
 import {USE_CUSTOM_INTERCOM_LAUNCHER} from './intercomHandler';
 import {KEY_CODES} from 'js/constants';
+import './helpBubbles.scss';
 
 const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';
 

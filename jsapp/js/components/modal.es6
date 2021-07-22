@@ -25,6 +25,7 @@ import SubmissionModal from 'js/components/submissions/submissionModal';
 import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
 import TranslationSettings from './modalForms/translationSettings';
 import TranslationTable from './modalForms/translationTable';
+import './modal.scss';
 
 function getSubmissionTitle(props) {
   let title = t('Success!');

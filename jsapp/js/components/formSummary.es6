@@ -18,8 +18,8 @@ import {
   formatDate,
   stringToColor,
 } from 'utils';
-
 import {MODAL_TYPES} from 'js/constants';
+import './formSummary.scss';
 
 class FormSummary extends React.Component {
   constructor(props) {

@@ -14,6 +14,7 @@ import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
 import {formatTime} from 'utils';
 import {getAssetOwnerDisplayName} from 'js/assetUtils';
+import './templatesList.scss';
 
 class TemplatesList extends React.Component {
   constructor(props) {

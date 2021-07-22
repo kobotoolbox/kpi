@@ -12,6 +12,7 @@ import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
 import {stores} from 'js/stores';
+import './bulkEditSubmissionsForm.scss';
 
 const FUSE_OPTIONS = {
   isCaseSensitive: false,

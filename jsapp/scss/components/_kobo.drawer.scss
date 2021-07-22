@@ -1,9 +1,5 @@
 // drawer (sidebar)
 
-$drawer-icons-width: 58px;
-$drawer-background: $kobo-gray-96;
-$s-drawer-width: 270px;
-
 .k-drawer {
   height: calc(100% - #{$layout-desktop-header-height});
   top: $layout-desktop-header-height;

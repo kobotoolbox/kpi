@@ -11,8 +11,9 @@ import {LoadingSpinner} from 'js/ui';
 import {buildUserUrl} from 'utils';
 import {
   ASSET_TYPES,
-  ANON_USERNAME
+  ANON_USERNAME,
 } from 'js/constants';
+import './sharingForm.scss';
 
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';

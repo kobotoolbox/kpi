@@ -16,6 +16,7 @@ import {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
 } from 'js/constants';
+import './submissionDataTable.scss';
 
 /**
  * @prop {object} asset

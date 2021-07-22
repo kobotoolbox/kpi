@@ -1,12 +1,12 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import DocumentTitle from 'react-document-title';
-import stores from '../stores';
 import mixins from 'js/mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import ui from 'js/ui';
 import RESTServicesList from './RESTServices/RESTServicesList';
 import RESTServiceLogs from './RESTServices/RESTServiceLogs';
+import './RESTServices.scss';
 
 export default class RESTServices extends React.Component {
   constructor(props){
