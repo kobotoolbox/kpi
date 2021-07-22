@@ -1,7 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import './toggle-switch.scss';
+import './toggleSwitch.scss';
 
 /**
  * A toggle switch generic component. Operates same as checkbox, different look.
