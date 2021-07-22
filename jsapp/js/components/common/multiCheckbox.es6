@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import Checkbox from 'js/components/common/checkbox';
+import './multi-checkbox.scss';
 
 /**
  * @namespace MultiCheckboxItem

@@ -2,6 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
+import './text-box.scss';
 
 /**
  * A text box generic component.
