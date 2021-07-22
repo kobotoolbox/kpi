@@ -13,6 +13,17 @@
 @import "./libs/react-select.overrides";
 @import "./libs/react-tagsinput";
 
+// Form Builder related stylesheets
+@import "stylesheets/partials/select2_override";
+@import "stylesheets/partials/tagsinput_override";
+@import "stylesheets/partials/base";
+@import "stylesheets/partials/buttons";
+@import "stylesheets/partials/misc";
+@import "stylesheets/partials/content";
+@import "stylesheets/partials/registration";
+@import "stylesheets/pages/form_builder";
+@import "stylesheets/partials/helpers";
+
 @import "./components/kobo.bem.ui";
 @import "./components/kobo.button";
 @import "./components/kobo.light-button";
@@ -26,7 +37,6 @@
 @import "./components/kobo.drawer";
 @import "./components/kobo.drawer.sidebar";
 @import "./components/kobo.help-bubble";
-@import "./kobo";
 @import "./components/kobo.form-builder";
 @import "./components/kobo.form-builder-message-box";
 @import "./components/kobo.locking";

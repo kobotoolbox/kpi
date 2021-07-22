@@ -341,13 +341,13 @@ $nested-btn--addrow-height: 24px;
   top: -20px;
 
   .k-icon {
-    background-color: $addButtonColor;
+    background-color: $kobo-gray-65;
     display: block;
     width: 24px;
     font-size: 21px;
     height: $btn--addrow-height;
     line-height: $btn--addrow-height;
-    border-radius: $buttonBorderRadius;
+    border-radius: 5px;
   }
 
   // when debugging, it's helpful to mock :hover
@@ -357,7 +357,7 @@ $nested-btn--addrow-height: 24px;
     background-color: transparent;
 
     .k-icon {
-      background-color: $addButtonColorHover;
+      background-color: $kobo-blue-light;
     }
   }
 }
