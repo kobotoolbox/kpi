@@ -428,11 +428,18 @@ class XlsExportable:
             # We want to keep the order and append `version` at the end.
             append_settings = OrderedDict(append.setdefault('settings', {}))
             append_survey.append(
-                {'name': '__version__',
-                 'calculation': '\'{}\''.format(self.version_id),
-                 'type': 'calculate'}
+                {
+                    'name': '__version__',
+                    'calculation': '\'{}\''.format(self.version_id),
+                    'type': 'calculate',
+                }
             )
-            append_settings.update({'version': self.version_number_and_date})
+            append_settings.update(
+                {
+                    'version': self.version_number_and_date,
+                    'form_title': self.name,
+                }
+            )
             kwargs['append']['settings'] = append_settings
         try:
             def _add_contents_to_sheet(sheet, contents):
