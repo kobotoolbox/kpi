@@ -5,7 +5,7 @@ from typing import Generator, Union
 
 def to_int(
     iter_obj: Union[list, tuple, Generator[str, None, None]],
-    unique: bool = True,
+    unique: bool = False,
 ) -> Union[list, tuple, Generator[int, None, None]]:
     """
     Coerce items of an object which can be iterated to integer

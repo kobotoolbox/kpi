@@ -493,10 +493,11 @@ class BaseDeploymentBackend(abc.ABC):
         if not requested_submission_ids:
             raise PermissionDenied
 
+        submission_ids = to_int(submission_ids, unique=True)
         if (
-            allowed_submission_ids
-            and set(requested_submission_ids).issubset(allowed_submission_ids)
-            or sorted(requested_submission_ids) == sorted(to_int(submission_ids))
+            (allowed_submission_ids
+             and set(requested_submission_ids).issubset(allowed_submission_ids))
+            or sorted(requested_submission_ids) == sorted(submission_ids)
         ):
             # Regardless of whether or not the request contained a query or a
             # list of IDs, always return IDs here because the results of a
