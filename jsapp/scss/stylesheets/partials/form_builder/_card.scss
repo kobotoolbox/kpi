@@ -190,7 +190,7 @@ $cardIndicatorIconWidth: 21px;
     border-width: 0 0 0 1px;
     position: absolute;
     top: 0;
-    right: 0;
+    right: 1px; // needed for settings icon to not cover the right border when active
     width: $s-fb-row-buttons-width;
     height: 100%;
     z-index: 3;

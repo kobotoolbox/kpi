@@ -65,8 +65,9 @@ module.exports = do ->
       "click .js-toggle-row-multioptions": "toggleRowMultioptions"
       "click .js-close-warning": "closeWarningBox"
       "click .js-expand-row-selector": "expandRowSelector"
-      "mouseenter .card__buttons__button": "buttonHoverIn"
-      "mouseleave .card__buttons__button": "buttonHoverOut"
+      # it is important to distinct these buttons from the group buttons
+      "mouseenter .card__header .card__buttons__button": "buttonHoverIn"
+      "mouseleave .card__header .card__buttons__button": "buttonHoverOut"
       "click .card__settings__tabs li": "switchTab"
 
     @create: (params = {}) ->
@@ -220,7 +221,7 @@ module.exports = do ->
       if $et.hasClass('js-blur-on-select-row') || $et.hasClass('editable-wrapper')
         return
       $ect = $(evt.currentTarget)
-      if $et.closest('.card__settings, .card__buttons, .group__header__buttons, .js-cancel-select-row').length > 0
+      if $et.closest('.card__settings, .card__buttons, .js-cancel-select-row').length > 0
         return
       # a way to ensure the event is not run twice when in nested .js-select-row elements
       _isIntendedTarget = $ect.closest('.survey__row').get(0) is $et.closest('.survey__row').get(0)
@@ -654,7 +655,7 @@ module.exports = do ->
       @_getViewForTarget(evt).deleteGroup(evt)
 
     clickAddRowToQuestionLibrary: (evt)->
-      @_getViewForTarget(evt).add_row_to_question_library(evt)
+      @_getViewForTarget(evt).addItemToLibrary(evt)
 
     clickAddGroupToLibrary: (evt)->
       @_getViewForTarget(evt).add_group_to_library(evt)
