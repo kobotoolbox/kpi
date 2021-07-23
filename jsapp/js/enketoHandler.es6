@@ -1,3 +1,4 @@
+import {ENKETO_ACTIONS} from 'js/constants'
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 
@@ -11,30 +12,29 @@ const enketoHandler = {
   /**
    * Builds unique url id.
    */
-  _getUrlId(aid, sid) {
-    return `${aid}…${sid}`;
+  _getUrlId(aid, sid, action) {
+    return `${aid}-${sid}-${action}`;
   },
 
-  _hasEnketoUrl(aid, sid) {
-    return this.enketoUrls.has(this._getUrlId(aid, sid));
+  _hasEnketoUrl(urlId) {
+    return this.enketoUrls.has(urlId);
   },
 
   /**
-   * Opens submission editing in new window.
+   * Opens submission in new window.
    */
-  _openEnketoUrl(aid, sid) {
-    this.winTab.location.href = this.enketoUrls.get(this._getUrlId(aid, sid));
+  _openEnketoUrl(urlId) {
+    this.winTab.location.href = this.enketoUrls.get(urlId);
   },
 
-  _saveEnketoUrl(aid, sid, url) {
-    const urlId = this._getUrlId(aid, sid);
+  _saveEnketoUrl(urlId, url) {
     this.enketoUrls.set(urlId, url);
     // store url for 30 seconds as configured in Enketo
-    setTimeout(this._removeEnketoUrl.bind(this, aid, sid), 30 * 1000);
+    setTimeout(this._removeEnketoUrl.bind(this, urlId), 30 * 1000);
   },
 
-  _removeEnketoUrl(aid, sid) {
-    this.enketoUrls.delete(this._getUrlId(aid, sid));
+  _removeEnketoUrl(urlId) {
+    this.enketoUrls.delete(urlId);
   },
 
   /**
@@ -45,31 +45,36 @@ const enketoHandler = {
    *
    * @returns {Promise} Promise that resolves when url is being opened.
    */
-  editSubmission(aid, sid) {
+  openSubmission(aid, sid, action) {
     // we create the tab immediately to avoid browser popup blocker killing it
     this.winTab = window.open('', '_blank');
-    const editPromise = new Promise((resolve, reject) => {
-      if (this._hasEnketoUrl(aid, sid)) {
-        this._openEnketoUrl(aid, sid);
+    let dataIntMethod = dataInterface.getEnketoEditLink;
+    if ( action === ENKETO_ACTIONS.view ) {
+      dataIntMethod = dataInterface.getEnketoViewLink;
+    }
+    const urlId = this._getUrlId(aid, sid, action);
+    const enketoPromise = new Promise((resolve, reject) => {
+      if (this._hasEnketoUrl(urlId)) {
+        this._openEnketoUrl(urlId);
         resolve();
       } else {
-        dataInterface.getEnketoEditLink(aid, sid)
-          .done((editData) => {
-            if (editData.url) {
-              this._saveEnketoUrl(aid, sid, editData.url);
-              this._openEnketoUrl(aid, sid);
+        dataIntMethod(aid, sid)
+          .done((enketoData) => {
+            if (enketoData.url) {
+              this._saveEnketoUrl(urlId, enketoData.url);
+              this._openEnketoUrl(urlId);
               resolve();
             } else {
               let errorMsg = t('There was an error loading Enketo.');
-              if (editData.detail) {
-                errorMsg += `<br><code>${editData.detail}</code>`;
+              if (enketoData.detail) {
+                errorMsg += `<br><code>${enketoData.detail}</code>`;
               }
               notify(errorMsg, 'error');
               reject();
             }
           })
           .fail(() => {
-            notify(t('There was an error getting Enketo edit link'), 'error');
+            notify(t('There was an error getting Enketo link'), 'error');
             reject();
           });
       }
@@ -78,8 +83,8 @@ const enketoHandler = {
       // (and it obscures the error message)
       this.winTab.close();
     });
-    return editPromise;
-  }
+    return enketoPromise;
+  },
 };
 
 export default enketoHandler;
