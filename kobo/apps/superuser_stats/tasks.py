@@ -1,21 +1,82 @@
 # coding: utf-8
+import unicodecsv
+
 from celery import shared_task
 from django.conf import settings
+from django.core.files.storage import get_storage_class
+
+from hub.models import ExtraUserDetail
+from kobo.static_lists import COUNTRIES
+from kpi.constants import ASSET_TYPE_SURVEY
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatUser,
+    KobocatUserProfile,
+    KobocatXForm,
+    ReadOnlyKobocatInstance,
+)
+from kpi.models.asset import Asset
 
 # Make sure this app is listed in `INSTALLED_APPS`; otherwise, Celery will
 # complain that the task is unregistered
 
 
 @shared_task
-def generate_user_report(output_filename):
-    import unicodecsv
-    from django.core.files.storage import get_storage_class
-    from kpi.deployment_backends.kc_access.shadow_models import (
-        KobocatUser,
-        KobocatUserProfile,
-        KobocatXForm,
-    )
-    from hub.models import ExtraUserDetail
+def generate_country_report(
+        output_filename: str, start_date: str, end_date: str):
+
+    def get_row_for_country(code_: str, label_: str):
+        row_ = []
+
+        kpi_forms = Asset.objects.filter(
+            asset_type=ASSET_TYPE_SURVEY,
+            settings__country__value=code,
+        )
+        instances_count = 0
+        for kpi_form in kpi_forms:
+            # Use deployments to get the xform the right id_string
+            if not kpi_form.has_deployment:
+                continue
+
+            xform_id_strings = list(
+                Asset.objects.values_list(
+                    '_deployment_data__backend_response__id_string', flat=True
+                ).filter(
+                    _deployment_data__active=True,
+                    asset_type=ASSET_TYPE_SURVEY,
+                    settings__country__value=code_,
+                )
+            )
+            instances_count = ReadOnlyKobocatInstance.objects.filter(
+                xform__id_string__in=xform_id_strings,
+                date_created__range=(start_date, end_date),
+            ).count()
+
+        row_.append(label_)
+        row_.append(instances_count)
+
+        return row_
+
+    columns = [
+        'Country',
+        'Count',
+    ]
+
+    default_storage = get_storage_class()()
+    with default_storage.open(output_filename, 'wb') as output_file:
+        writer = unicodecsv.writer(output_file)
+        writer.writerow(columns)
+
+        for code, label in COUNTRIES:
+
+            try:
+                row = get_row_for_country(code, label)
+            except Exception as e:
+                row = ['!FAILED!', 'Country: {}'.format(label), repr(e)]
+            writer.writerow(row)
+
+
+@shared_task
+def generate_user_report(output_filename: str):
 
     def format_date(d):
         if hasattr(d, 'strftime'):

@@ -1,24 +1,3 @@
-/**
- * Custom modal component for displaying complex modals.
- *
- * It uses generic Modal component underneath.
- *
- * It allows for displaying single modal at a time, as there is only single
- * modal element with adjustable title content.
- *
- * To display a modal, you need to use `pageState` store with `showModal` method:
- *
- * ```
- * stores.pageState.showModal({
- *   type: MODAL_TYPES.NEW_FORM
- * });
- * ```
- *
- * Each modal type uses different props, you can add them in the above object.
- *
- * There are also two other important methods: `hideModal` and `switchModal`.
- */
-
 import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
@@ -71,6 +50,26 @@ function getSubmissionTitle(props) {
   return title;
 }
 
+/**
+ * Custom modal component for displaying complex modals.
+ *
+ * It allows for displaying single modal at a time, as there is only single
+ * modal element with adjustable title content.
+ *
+ * To display a modal, you need to use `pageState` store with `showModal` method:
+ *
+ * ```
+ * stores.pageState.showModal({
+ *   type: MODAL_TYPES.NEW_FORM
+ * });
+ * ```
+ *
+ * Each modal type uses different props, you can add them in the above object.
+ *
+ * There are also two other important methods: `hideModal` and `switchModal`.
+ *
+ * @prop {object} params - to be passed to the custom modal component
+ */
 class BigModal extends React.Component {
   constructor(props) {
     super(props);
@@ -81,6 +80,7 @@ class BigModal extends React.Component {
     };
     autoBind(this);
   }
+
   componentDidMount() {
     var type = this.props.params.type;
     switch(type) {
@@ -122,7 +122,7 @@ class BigModal extends React.Component {
 
       case MODAL_TYPES.ENKETO_PREVIEW:
         const uid = this.props.params.assetid || this.props.params.uid;
-        stores.allAssets.whenLoaded(uid, function(asset){
+        stores.allAssets.whenLoaded(uid, (asset) => {
           actions.resources.createSnapshot({
             asset: asset.url,
           });
@@ -166,7 +166,7 @@ class BigModal extends React.Component {
       case MODAL_TYPES.FORM_TRANSLATIONS_TABLE:
         this.setState({
           title: t('Translations Table'),
-          modalClass: 'modal--large'
+          modalClass: 'modal--large',
         });
         break;
 
@@ -177,7 +177,7 @@ class BigModal extends React.Component {
       case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
         // title is set by BulkEditSubmissionsForm
         this.setState({
-          modalClass: 'modal--large modal--large-shorter'
+          modalClass: 'modal--large modal--large-shorter',
         });
         break;
 
@@ -185,21 +185,33 @@ class BigModal extends React.Component {
         console.error(`Unknown modal type: "${type}"!`);
     }
   }
+
+  /**
+   * @param {string} title
+   */
   setModalTitle(title) {
     this.setState({title: title});
   }
-  enketoSnapshotCreation (data) {
+
+  /**
+   * @param {object} data
+   * @param {boolean} data.success
+   * @param {string} data.error
+   * @param {string} data.enketopreviewlink
+   */
+  enketoSnapshotCreation(data) {
     if (data.success) {
       this.setState({
-        enketopreviewlink: data.enketopreviewlink
+        enketopreviewlink: data.enketopreviewlink,
       });
     } else {
       this.setState({
         message: data.error,
-        error: true
+        error: true,
       });
     }
   }
+
   static getDerivedStateFromProps(props, state) {
     if (props.params) {
       const newState = {};
@@ -225,6 +237,11 @@ class BigModal extends React.Component {
     }
     return null;
   }
+
+  /**
+   * @param {string} title
+   * @param {string} message
+   */
   displaySafeCloseConfirm(title, message) {
     const dialog = alertify.dialog('confirm');
     const opts = {
@@ -232,10 +249,11 @@ class BigModal extends React.Component {
       message: message,
       labels: {ok: t('Close'), cancel: t('Cancel')},
       onok: stores.pageState.hideModal,
-      oncancel: dialog.destroy
+      oncancel: dialog.destroy,
     };
     dialog.set(opts).show();
   }
+
   onModalClose() {
     if (
       this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
@@ -249,6 +267,7 @@ class BigModal extends React.Component {
       stores.pageState.hideModal();
     }
   }
+
   render() {
     const uid = this.props.params.assetid || this.props.params.uid;
 

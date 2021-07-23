@@ -406,42 +406,110 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
     def setUp(self):
         super().setUp()
         self.submission = self.submissions[0]
-        self.submission_url = reverse(self._get_endpoint('submission-edit'), kwargs={
-            "parent_lookup_asset": self.asset.uid,
-            "pk": self.submission.get(self.asset.deployment.INSTANCE_ID_FIELDNAME)
-        })
+        self.submission_url_legacy = reverse(
+            self._get_endpoint('submission-edit'),
+            kwargs={
+                "parent_lookup_asset": self.asset.uid,
+                "pk": self.submission.get(
+                    self.asset.deployment.INSTANCE_ID_FIELDNAME
+                ),
+            },
+        )
+        self.submission_url = reverse(
+            'submission-enketo-edit',
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission.get(
+                    self.asset.deployment.INSTANCE_ID_FIELDNAME
+                ),
+                'action': 'edit'
+            },
+        )
 
-    def test_get_edit_link_submission_owner(self):
-        response = self.client.get(self.submission_url, {"format": "json"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_get_legacy_edit_link_submission_owner(self):
+        response = self.client.get(self.submission_url_legacy, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            "url": "http://server.mock/enketo/{}".format(self.submission.get(
+            'url': 'http://server.mock/enketo/{}'.format(self.submission.get(
                 self.asset.deployment.INSTANCE_ID_FIELDNAME))
         }
-        self.assertEqual(response.data, expected_response)
+        assert response.data == expected_response
+
+    def test_get_edit_link_submission_owner(self):
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+
+        expected_response = {
+            'url': 'http://server.mock/enketo/{}'.format(self.submission.get(
+                self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        }
+        assert response.data == expected_response
 
     def test_get_edit_link_submission_anonymous(self):
         self.client.logout()
-        response = self.client.get(self.submission_url, {"format": "json"})
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_get_edit_link_submission_not_shared_other(self):
         self._log_in_as_another_user()
-        response = self.client.get(self.submission_url, {"format": "json"})
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_get_edit_link_submission_shared_other_view_only(self):
         self._share_with_another_user()
         self._log_in_as_another_user()
-        response = self.client.get(self.submission_url, {"format": "json"})
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_get_edit_link_submission_shared_other_can_edit(self):
         self._share_with_another_user(view_only=False)
         self._log_in_as_another_user()
-        response = self.client.get(self.submission_url, {"format": "json"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+
+
+class SubmissionViewApiTests(BaseSubmissionTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.submission = self.submissions[0]
+        self.submission_url = reverse(
+            'submission-enketo-view',
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission.get(
+                    self.asset.deployment.INSTANCE_ID_FIELDNAME
+                ),
+                'action': 'view'
+            },
+        )
+
+    def test_get_view_link_submission_owner(self):
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+
+        expected_response = {
+            'url': 'http://server.mock/enketo/{}'.format(self.submission.get(
+                self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        }
+        assert response.data == expected_response
+
+    def test_get_view_link_submission_anonymous(self):
+        self.client.logout()
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_get_view_link_submission_not_shared_other(self):
+        self._log_in_as_another_user()
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_get_view_link_submission_shared_other_view_only_allowed(self):
+        self._share_with_another_user()
+        self._log_in_as_another_user()
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
 
 
 class SubmissionDuplicateApiTests(BaseSubmissionTestCase):

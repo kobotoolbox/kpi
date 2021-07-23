@@ -316,9 +316,6 @@ export var dataInterface;
         });
       });
     },
-    getAssetContent ({id}) {
-      return $.getJSON(`${ROOT_URL}/api/v2/assets/${id}/content/`);
-    },
     getImportDetails ({uid}) {
       return $.getJSON(`${ROOT_URL}/api/v2/imports/${uid}/`);
     },
@@ -699,7 +696,13 @@ export var dataInterface;
     },
     getEnketoEditLink(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/edit/?return_url=false`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/edit/?return_url=false`,
+        method: 'GET'
+      });
+    },
+    getEnketoViewLink(uid, sid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/view/`,
         method: 'GET'
       });
     },
