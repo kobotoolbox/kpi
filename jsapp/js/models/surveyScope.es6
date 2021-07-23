@@ -1,8 +1,6 @@
 import {actions} from '../actions';
-import {
-  notify,
-  unnullifyTranslations,
-} from 'utils';
+import {notify} from 'utils';
+import {unnullifyTranslations} from 'js/components/formBuilder/formBuilderUtils';
 
 class SurveyScope {
   constructor ({survey, rawSurvey, assetType}) {
