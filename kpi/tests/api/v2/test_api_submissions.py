@@ -306,7 +306,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
 
         Test that another cannot delete someuser's data
         """
-
+        # FIXME when merging kpi#3358
         self._log_in_as_another_user()
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'someuser'}],
