@@ -809,17 +809,17 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
             partial_perms=partial_perms,
         )
 
-        # # Try first submission submitted by unknown
-        # submission = self.get_random_submission(self.asset.owner)
-        # url = reverse(
-        #     self._get_endpoint('submission-duplicate'),
-        #     kwargs={
-        #         'parent_lookup_asset': self.asset.uid,
-        #         'pk': submission['_id'],
-        #     },
-        # )
-        # response = self.client.post(url, {'format': 'json'})
-        # self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # Try first submission submitted by unknown
+        submission = self.get_random_submission(self.asset.owner)
+        url = reverse(
+            self._get_endpoint('submission-duplicate'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.post(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
         submission = self.get_random_submission(self.anotheruser)
