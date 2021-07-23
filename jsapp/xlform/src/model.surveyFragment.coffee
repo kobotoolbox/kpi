@@ -307,6 +307,7 @@ module.exports = do ->
       for row, n in @rows.models
         row._parent = @_parent
         @_parent._parent.addRowAtIndex(row, startingIndex + n)
+      return
 
     _beforeIterator: (cb, ctxt)->
       cb(@groupStart())  if ctxt.includeGroupEnds

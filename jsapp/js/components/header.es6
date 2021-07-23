@@ -13,11 +13,13 @@ import {dataInterface} from '../dataInterface';
 import {
   assign,
   currentLang,
+  getLoginUrl,
   stringToColor,
 } from 'utils';
 import {getAssetIcon} from 'js/assetUtils';
 import {
   COMMON_QUERIES,
+  PATHS,
   ROUTES,
 } from 'js/constants';
 import {searches} from '../searches';
@@ -105,6 +107,7 @@ class MainHeader extends Reflux.Component {
       });
     }
   }
+
   renderLangItem(lang) {
     return (
       <bem.AccountBox__menuLI key={lang.value}>
@@ -114,6 +117,20 @@ class MainHeader extends Reflux.Component {
       </bem.AccountBox__menuLI>
     );
   }
+
+  renderLoginButton() {
+    return (
+      <bem.LoginBox>
+        <a
+          href={getLoginUrl()}
+          className='kobo-button kobo-button--blue'
+        >
+          {t('Log In')}
+        </a>
+      </bem.LoginBox>
+    );
+  }
+
   renderAccountNavMenu() {
     let shouldDisplayUrls = false;
     if (
@@ -137,7 +154,7 @@ class MainHeader extends Reflux.Component {
     if (stores.session.environment) {
       langs = stores.session.environment.interface_languages;
     }
-    if (stores.session.currentAccount) {
+    if (stores.session.isLoggedIn) {
       var accountName = stores.session.currentAccount.username;
       var accountEmail = stores.session.currentAccount.email;
 
@@ -180,7 +197,7 @@ class MainHeader extends Reflux.Component {
                 }
                 <bem.AccountBox__menuLI m={'lang'} key='3'>
                   <bem.AccountBox__menuLink onClick={this.toggleLanguageSelector} data-popover-menu-stop-blur tabIndex='0'>
-                    <i className='k-icon-language' />
+                    <i className='k-icon k-icon-language' />
                     {t('Language')}
                   </bem.AccountBox__menuLink>
 
@@ -192,14 +209,14 @@ class MainHeader extends Reflux.Component {
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
-                    <i className='k-icon-logout' />
+                    <i className='k-icon k-icon-logout' />
                     {t('Logout')}
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
               </bem.AccountBox__menu>
           </ui.PopoverMenu>
         </bem.AccountBox>
-        );
+      );
     }
 
     return null;
@@ -226,6 +243,8 @@ class MainHeader extends Reflux.Component {
   }
 
   render() {
+    const isLoggedIn = stores.session.isLoggedIn;
+
     let userCanEditAsset = false;
     if (this.state.asset) {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
@@ -244,20 +263,22 @@ class MainHeader extends Reflux.Component {
     return (
         <bem.MainHeader className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
-            <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
-              <i className='fa fa-bars' />
-            </bem.Button>
+            {stores.session.isLoggedIn &&
+              <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
+                <i className='k-icon k-icon-menu' />
+              </bem.Button>
+            }
             <span className='mdl-layout-title'>
               <a href='/'>
                 <bem.Header__logo />
               </a>
             </span>
-            { this.isFormList() &&
+            { isLoggedIn && this.isFormList() &&
               <div className='mdl-layout__header-searchers'>
                 <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
-            { (this.isMyLibrary() || this.isPublicCollections()) &&
+            { isLoggedIn && (this.isMyLibrary() || this.isPublicCollections()) &&
               <div className='mdl-layout__header-searchers'>
                 <SearchBox
                   placeholder={librarySearchBoxPlaceholder}
@@ -282,6 +303,7 @@ class MainHeader extends Reflux.Component {
               </React.Fragment>
             }
             {this.renderAccountNavMenu()}
+            { !isLoggedIn && this.renderLoginButton()}
           </div>
           {this.renderGitRevInfo()}
         </bem.MainHeader>

@@ -1,7 +1,10 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import {getFlatQuestionsList} from 'js/assetUtils';
+import {
+  getFlatQuestionsList,
+  renderQuestionTypeIcon,
+} from 'js/assetUtils';
 import {QUESTION_TYPES} from 'js/constants';
 
 const DISPLAY_LIMIT = 8;
@@ -20,7 +23,6 @@ class AssetContentSummary extends React.Component {
   }
 
   renderQuestion(question, itemIndex) {
-    const typeDef = QUESTION_TYPES[question.type];
     const modifiers = ['columns', 'padding-small'];
     if (itemIndex !== 0) {
       modifiers.push('bordertop');
@@ -28,8 +30,7 @@ class AssetContentSummary extends React.Component {
     return (
       <bem.FormView__cell m={modifiers} key={itemIndex}>
         <bem.FormView__cell m='column-icon'>
-          {/* fix icon for date time */}
-          <i className={['fa', 'fa-lg', typeDef.faIcon].join(' ')}/>
+          {renderQuestionTypeIcon(question.type)}
         </bem.FormView__cell>
 
         <bem.FormView__cell m={['column-1', 'asset-content-summary-name']}>

@@ -7,11 +7,11 @@ import {actions} from '../actions';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import mixins from '../mixins';
-import assetUtils from 'js/assetUtils';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
 import ProjectSettings from './modalForms/projectSettings';
-import DataTable from './table';
+import FormMedia from './modalForms/formMedia';
+import DataTable from 'js/components/submissions/table';
 import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
 import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
@@ -28,11 +28,7 @@ export class FormSubScreens extends React.Component {
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
-    if (this.props.randdelay && uid) {
-      window.setTimeout(()=>{
-        actions.resources.loadAsset({id: uid});
-      }, Math.random() * 3000);
-    } else if (uid) {
+    if (uid) {
       actions.resources.loadAsset({id: uid});
     }
   }
@@ -52,11 +48,6 @@ export class FormSubScreens extends React.Component {
       return (<ui.AccessDeniedMessage/>);
     }
 
-    //TODO:Remove owner only access to settings/media after we remove KC iframe: https://github.com/kobotoolbox/kpi/issues/2647#issuecomment-624301693
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/media` && !assetUtils.isSelfOwned(this.state)) {
-      return (<ui.AccessDeniedMessage/>);
-    }
-
     var iframeUrl = '';
     var report__base = '';
     var deployment__identifier = '';
@@ -67,14 +58,8 @@ export class FormSubScreens extends React.Component {
         report__base = deployment__identifier.replace('/forms/', '/reports/');
       }
       switch(this.props.location.pathname) {
-        case `/forms/${this.state.uid}/data/report-legacy`:
-          iframeUrl = report__base+'/digest.html';
-          break;
         case `/forms/${this.state.uid}/data/table`:
           return <DataTable asset={this.state} />;
-        case `/forms/${this.state.uid}/data/table-legacy`:
-          iframeUrl = report__base+'/export.html';
-          break;
         case `/forms/${this.state.uid}/data/gallery`:
           iframeUrl = deployment__identifier+'/photos';
           break;
@@ -87,8 +72,7 @@ export class FormSubScreens extends React.Component {
         case `/forms/${this.state.uid}/settings`:
           return this.renderSettingsEditor();
         case `/forms/${this.state.uid}/settings/media`:
-          iframeUrl = deployment__identifier+'/form_settings';
-          break;
+          return this.renderUpload();
         case `/forms/${this.state.uid}/settings/sharing`:
           return this.renderSharing();
         case `/forms/${this.state.uid}/settings/rest`:
@@ -132,10 +116,17 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled');
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.FormView className='project-downloads'>
-          <ProjectExportsCreator asset={this.state} />
-          <ProjectExportsList asset={this.state} />
-        </bem.FormView>
+        <React.Fragment>
+          {!stores.session.isLoggedIn &&
+            <ui.AccessDeniedMessage/>
+          }
+          {stores.session.isLoggedIn &&
+            <bem.FormView className='project-downloads'>
+              <ProjectExportsCreator asset={this.state} />
+              <ProjectExportsList asset={this.state} />
+            </bem.FormView>
+          }
+        </React.Fragment>
       </DocumentTitle>
     );
   }
@@ -148,13 +139,12 @@ export class FormSubScreens extends React.Component {
     );
   }
   renderReset() {
+    return (<ui.LoadingSpinner/>);
+  }
+
+  renderUpload() {
     return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
+      <FormMedia asset={this.state}/>
     );
   }
 }

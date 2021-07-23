@@ -34,7 +34,7 @@ $z-map-settings-3: 701;
     background: $kobo-white;
     z-index: $z-map-settings-2;
     cursor: pointer;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
 
     &--heatmap {
       top: 118px;
@@ -60,7 +60,7 @@ $z-map-settings-3: 701;
 
     &.active,
     &:hover {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &:active {
@@ -116,7 +116,7 @@ $z-map-settings-3: 701;
     border-radius: 6px;
     padding: 12px;
     text-align: left;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 
   .popover-menu__content {
@@ -127,12 +127,12 @@ $z-map-settings-3: 701;
     overflow: auto;
     max-height: 300px;
     border-radius: 5px;
-    box-shadow: 0 0 5px 5px rgba($kobo-black, 0.15);
+    box-shadow: 0 0 5px 5px rgba($kobo-gray-24, 0.15);
     bottom: calc(100% + 10px);
 
     .popover-menu__link.see-all {
-      background: $kobo-whitegray;
-      border-top: 1px solid $kobo-lightgray;
+      background: $kobo-gray-96;
+      border-top: 1px solid $kobo-gray-92;
     }
 
     .popover-menu__heading {
@@ -186,10 +186,11 @@ body .leaflet-control-layers,
     padding: 2px 8px;
     cursor: pointer;
 
-    i {
-      font-size: 18px;
+    .k-icon {
+      font-size: 21px;
       margin-right: 8px;
       margin-left: 3px;
+      vertical-align: bottom;
       color: $kobo-blue;
     }
   }
@@ -216,19 +217,19 @@ body .leaflet-control-layers,
     &::after {
       position: absolute;
       display: inline-block;
-      font-family: 'FontAwesome';
-      font-size: 10px;
+      width: 8px;
+      height: 8px;
+      border-radius: 8px;
       right: 6px;
-      top: 8px;
-      opacity: 0.5;
+      top: 12px;
     }
 
     &.selected {
-      background: $kobo-whitegray;
+      background: $kobo-gray-96;
 
       &::after {
-        // fa-circle
-        content: "\f111";
+        content: "";
+        background: $kobo-blue;
       }
     }
 
@@ -236,8 +237,8 @@ body .leaflet-control-layers,
       opacity: 0.6;
 
       &::after {
-        // fa-circle-o
-        content: "\f10c";
+        content: "";
+        background: $kobo-gray-65;
       }
 
       &:hover {
@@ -275,7 +276,7 @@ body .leaflet-control-layers,
     padding: 0 3px;
     position: relative;
     text-shadow: 0 0 1px $kobo-white;
-    color: $kobo-black;
+    color: $kobo-gray-24;
 
     &::after {
       position: absolute;
@@ -320,13 +321,13 @@ body .leaflet-control-layers,
   }
 
   .form-modal__item--list-files {
-    border: 1px solid $kobo-lightgray;
+    border: 1px solid $kobo-gray-92;
     padding: 10px;
     max-width: 600px;
     margin-bottom: 20px;
 
     .list-file-row {
-      border-top: 1px solid $kobo-lightgray;
+      border-top: 1px solid $kobo-gray-92;
       padding: 5px;
 
       > span {
@@ -492,7 +493,7 @@ body .leaflet-control-layers,
   margin-left: 5px;
   margin-top: 5px;
   text-align: center;
-  color: $kobo-black;
+  color: $kobo-gray-24;
 }
 
 .marker-cluster span {

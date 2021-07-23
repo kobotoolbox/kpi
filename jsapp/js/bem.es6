@@ -44,9 +44,12 @@ bem.ServiceRow__actionButton = bem.ServiceRow.__('action-button', '<button>');
 bem.ServiceRow__linkOverlay = bem.ServiceRow.__('link-overlay', '<a>');
 bem.ServiceRowButton = BEM('service-row-button', '<button>');
 
-bem.FormBuilder = BEM('formBuilder');
-bem.FormBuilder__row = bem.FormBuilder.__('row');
+bem.FormBuilder = BEM('form-builder');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
+
+bem.FormBuilderMessageBox = BEM('form-builder-message-box');
+bem.FormBuilderMessageBox__toggle = bem.FormBuilderMessageBox.__('toggle', 'button');
+bem.FormBuilderMessageBox__details = bem.FormBuilderMessageBox.__('details', 'section');
 
 bem.FormBuilderMeta = bem('form-builder-meta');
 bem.FormBuilderMeta__columns = bem.FormBuilderMeta.__('columns');
@@ -58,12 +61,23 @@ bem.FormBuilderAside__content = bem.FormBuilderAside.__('content');
 bem.FormBuilderAside__header = bem.FormBuilderAside.__('header', '<h2>');
 bem.FormBuilderAside__row = bem.FormBuilderAside.__('row', '<section>');
 
-bem.FormBuilderHeader = BEM('formBuilder-header');
+bem.FormBuilderHeader = BEM('form-builder-header');
 bem.FormBuilderHeader__row = bem.FormBuilderHeader.__('row');
 bem.FormBuilderHeader__cell = bem.FormBuilderHeader.__('cell');
 bem.FormBuilderHeader__item = bem.FormBuilderHeader.__('item', '<span>');
 bem.FormBuilderHeader__button = bem.FormBuilderHeader.__('button', '<button>');
 bem.FormBuilderHeader__close = bem.FormBuilderHeader.__('close', '<button>');
+
+bem.FormMedia = BEM('form-media');
+bem.FormMedia__title = bem.FormMedia.__('title');
+bem.FormMedia__upload = bem.FormMedia.__('upload');
+bem.FormMedia__list = bem.FormMedia.__('list');
+bem.FormMedia__label = bem.FormMedia.__('label', '<label>');
+bem.FormMedia__listItem = bem.FormMedia.__('list-item', '<li>');
+
+bem.FormMediaUploadUrl = BEM('form-media-upload-url');
+bem.FormMediaUploadUrl__label = bem.FormMediaUploadUrl.__('label', '<label>');
+bem.FormMediaUploadUrl__form = bem.FormMediaUploadUrl.__('form');
 
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
@@ -101,7 +115,7 @@ bem.SubmissionDataTable__value = bem.SubmissionDataTable.__('value');
 
 bem.TableMeta = bem('table-meta');
 bem.TableMeta__counter = bem.TableMeta.__('counter');
-bem.TableMeta__additionalText = bem.TableMeta.__('additional-text'); // generally text not needed on smaller screens
+bem.TableMeta__additionalText = bem.TableMeta.__('additional-text', 'span'); // generally text not needed on smaller screens
 bem.TableMeta__bulkOptions = bem.TableMeta.__('bulk-options');
 
 bem.CollectionsWrapper = bem('collections-wrapper');
@@ -128,8 +142,6 @@ bem.AssetItems = BEM('asset-items', '<ul>');
 
 bem.AssetListSorts = BEM('asset-list-sorts', '<div>');
 bem.AssetListSorts__item = bem.AssetListSorts.__('item');
-
-bem.Message = BEM('message');
 
 bem.FormView = BEM('form-view');
 // used in header.es6
@@ -210,6 +222,8 @@ bem.PopoverMenu__moveTo = bem.PopoverMenu.__('moveTo');
 
 bem.Header = BEM('header');
 bem.Header__logo = bem.Header.__('logo', '<span>');
+
+bem.LoginBox = BEM('login-box');
 
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__name = bem.AccountBox.__('name', '<div>');

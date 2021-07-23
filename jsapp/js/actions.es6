@@ -17,6 +17,7 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
+import formMediaActions from './actions/mediaActions';
 import exportsActions from './actions/exportsActions';
 import {
   notify,
@@ -31,6 +32,7 @@ export const actions = {
   help: helpActions,
   library: libraryActions,
   submissions: submissionsActions,
+  media: formMediaActions,
   exports: exportsActions,
 };
 
@@ -117,9 +119,12 @@ permissionsActions.copyPermissionsFrom.completed.listen((sourceUid, targetUid) =
 permissionsActions.setAssetPublic.completed.listen((uid) => {
   actions.resources.loadAsset({id: uid});
 });
-permissionsActions.removeAssetPermission.completed.listen((uid) => {
-  // needed to update publicShareSettings after disabling link sharing
-  actions.resources.loadAsset({id: uid});
+permissionsActions.removeAssetPermission.completed.listen((uid, isNonOwner) => {
+  // Avoid this call if a non-owner removed their own permissions as it will fail
+  if (!isNonOwner) {
+    // needed to update publicShareSettings after disabling link sharing
+    actions.resources.loadAsset({id: uid});
+  }
 });
 
 actions.misc.getUser.listen((userUrl) => {
@@ -288,9 +293,9 @@ actions.resources.setDeploymentActive.completed.listen((result) => {
   }
 });
 
-actions.resources.getAssetFiles.listen(function(assetId) {
+actions.resources.getAssetFiles.listen(function(assetId, fileType) {
   dataInterface
-    .getAssetFiles(assetId)
+    .getAssetFiles(assetId, fileType)
     .done(actions.resources.getAssetFiles.completed)
     .fail(actions.resources.getAssetFiles.failed);
 });

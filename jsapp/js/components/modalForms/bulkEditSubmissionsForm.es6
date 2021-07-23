@@ -5,6 +5,7 @@ import Fuse from 'fuse.js';
 import {
   getSurveyFlatPaths,
   getFlatQuestionsList,
+  renderQuestionTypeIcon,
 } from 'js/assetUtils';
 import {QUESTION_TYPES} from 'js/constants';
 import {bem} from 'js/bem';
@@ -230,12 +231,10 @@ class BulkEditSubmissionsForm extends React.Component {
       modifiers.push('bulk-edit-row-disabled');
     }
 
-    const typeDef = QUESTION_TYPES[question.type];
     return (
       <bem.SimpleTable__row key={itemIndex} m={modifiers}>
         <bem.SimpleTable__cell>
-          {/* TODO fix icon for date time */}
-          <i title={typeDef.label} className={['fa', typeDef.faIcon].join(' ')}/>
+          {renderQuestionTypeIcon(question.type)}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
@@ -548,14 +547,11 @@ class BulkEditRowForm extends React.Component {
       inputValue = this.props.overrideData;
     }
 
-    const typeDef = QUESTION_TYPES[this.props.question.type];
-
     return (
       <React.Fragment>
         <bem.FormView__cell m={['columns', 'columns-top']}>
           <bem.FormView__cell m='column-icon'>
-            {/* TODO fix icon for date time */}
-            <i title={typeDef.label} className={['fa', typeDef.faIcon].join(' ')}/>
+            {renderQuestionTypeIcon(this.props.question.type)}
           </bem.FormView__cell>
 
           <bem.FormView__cell m='column-1'>

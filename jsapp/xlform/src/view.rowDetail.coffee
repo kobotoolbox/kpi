@@ -26,15 +26,19 @@ module.exports = do ->
       _.extend(@, viewRowDetail.DetailViewMixins[@model.key] || viewRowDetail.DetailViewMixins.default)
       @$el.addClass(@extraClass)
 
+      return
+
     render: ()->
       rendered = @html()
       if rendered
         @$el.html rendered
 
       @afterRender && @afterRender()
-      @
+      return @
+
     html: ()->
       $viewTemplates.$$render('xlfDetailView', @)
+
     listenForCheckboxChange: (opts={})->
       el = opts.el || @$('input[type=checkbox]').get(0)
       $el = $(el)
@@ -54,6 +58,8 @@ module.exports = do ->
         if _requiredBox
           $el.parents('.card').eq(0).toggleClass('card--required', $el.prop('checked'))
         changing = false
+      return
+
     listenForInputChange: (opts={})->
       # listens to checkboxes and input fields and ensures
       # the model's value is reflected in the element and changes
@@ -150,11 +156,12 @@ module.exports = do ->
     insertInDOM: (rowView)->
       typeStr = @model.get("typeId")
       if !(@model._parent.constructor.kls is "Group")
-        faClass = $icons.get(typeStr)?.get("faClass")
-        if !faClass
+        iconClassName = $icons.get(typeStr)?.get("iconClassName")
+        if !iconClassName
           console?.error("could not find icon for type: #{typeStr}")
-          faClass = "fighter-jet"
-        rowView.$el.find(".card__header-icon").addClass("fa-#{faClass}")
+          iconClassName = "k-icon k-icon-alert"
+        rowView.$el.find(".card__header-icon").addClass('k-icon').addClass(iconClassName)
+      return
 
 
   viewRowDetail.DetailViewMixins.label =
@@ -197,7 +204,7 @@ module.exports = do ->
       @$el.addClass("card__settings__fields--active")
       viewRowDetail.Templates.textbox @cid, @model.key, t("Error Message"), 'text'
     insertInDOM: (rowView)->
-      @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--validation-criteria').eq(0)
+      @_insertInDOM rowView.cardSettingsWrap.find('.js-card-settings-validation-criteria').eq(0)
     afterRender: ->
       @listenForInputChange()
 
@@ -231,7 +238,7 @@ module.exports = do ->
       @model.facade.render @target_element
 
     insertInDOM: (rowView) ->
-      @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--skip-logic').eq(0)
+      @_insertInDOM rowView.cardSettingsWrap.find('.js-card-settings-skip-logic').eq(0)
 
   viewRowDetail.DetailViewMixins.constraint =
     html: ->
@@ -252,7 +259,7 @@ module.exports = do ->
       @model.facade.render @target_element
 
     insertInDOM: (rowView) ->
-      @_insertInDOM rowView.cardSettingsWrap.find('.card__settings__fields--validation-criteria')
+      @_insertInDOM rowView.cardSettingsWrap.find('.js-card-settings-validation-criteria')
 
   viewRowDetail.DetailViewMixins.name =
     html: ->

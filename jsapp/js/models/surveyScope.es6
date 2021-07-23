@@ -6,8 +6,10 @@ import {
 } from 'utils';
 
 class SurveyScope {
-  constructor ({survey}) {
+  constructor ({survey, rawSurvey, assetType}) {
     this.survey = survey;
+    this.rawSurvey = rawSurvey;
+    this.assetType = assetType;
   }
   add_row_to_question_library (row, assetContent) {
     var surv = this.survey.toFlatJSON();

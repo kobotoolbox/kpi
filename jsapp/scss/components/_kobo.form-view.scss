@@ -27,7 +27,7 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background: $kobo-whitegray;
+  background: $kobo-gray-96;
 
   &.form-view--fullscreen {
     position: fixed;
@@ -55,7 +55,7 @@
   overflow-y: auto;
   float: left;
   background: $kobo-white;
-  border-right: 1px solid $kobo-lightgray;
+  border-right: 1px solid $kobo-gray-92;
 
   & + .form-view,
   & + .report-view,
@@ -89,7 +89,7 @@
     font-size: 14px;
     cursor: pointer;
     position: relative;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     font-weight: normal;
     letter-spacing: -0.01em;
     display: block;
@@ -97,7 +97,7 @@
 
     &:hover,
     &.active {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.active {
@@ -116,10 +116,16 @@
       }
     }
 
-    i {
-      font-size: 36px;
-      vertical-align: -13px;
-      margin-right: 4px;
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .k-icon {
+      font-size: 26px;
+      vertical-align: -7px;
+      line-height: 36px;
+      margin: 0 9px 0 5px;
     }
 
     span {
@@ -131,7 +137,7 @@
 // The main tabs on top
 .form-view__toptabs {
   background: $kobo-white;
-  border-bottom: 1px solid $kobo-lightgray;
+  border-bottom: 1px solid $kobo-gray-92;
   text-align: center;
   height: 48px;
   position: relative;
@@ -150,24 +156,29 @@
     font-size: 15px;
     cursor: pointer;
     position: relative;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     font-weight: normal;
 
     &:hover,
     &.active {
-      color: $kobo-black;
+      color: $kobo-gray-24;
     }
 
     &.active {
       font-weight: 700;
       border-bottom: 4px solid $kobo-teal;
     }
+
+    &.form-view__tab--disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
   }
 
   a.form-view__link--close {
     position: absolute;
-    right: 0;
-    top: 5px;
+    right: 5px;
+    top: 10px;
   }
 }
 
@@ -218,7 +229,7 @@
   }
 
   &.form-view__cell--bordered {
-    border: 1px solid $kobo-lightgray;
+    border: 1px solid $kobo-gray-92;
   }
 
   &.form-view__cell--page-title {
@@ -263,7 +274,12 @@
     width: 30px;
     margin-right: 10px;
     text-align: center;
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
+
+    .k-icon {
+      font-size: 24px;
+      display: block;
+    }
   }
 
   &.form-view__cell--toggle-details button {
@@ -283,8 +299,8 @@
     }
 
     .k-icon {
-      font-size: 24px;
-      vertical-align: -8px;
+      font-size: 18px;
+      vertical-align: -5px;
     }
   }
 
@@ -293,7 +309,7 @@
   }
 
   &.form-view__cell--bordertop {
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
   }
 
   &.form-view__cell--padding {
@@ -307,12 +323,12 @@
   // preferably with or inside .form-view__cell--first
   &.form-view__cell--label {
     font-size: 14px;
-    color: $kobo-black;
+    color: $kobo-gray-24;
     font-weight: 500;
 
     span {
       display: block;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       font-size: 12px;
     }
 
@@ -358,7 +374,7 @@
 
     &:first-child {
       .k-icon {
-        margin-left: -10px;
+        margin-left: -7px;
       }
     }
   }
@@ -369,7 +385,8 @@
     line-height: 32px;
 
     .k-icon {
-      font-size: 32px;
+      font-size: 24px;
+      margin: 0 3px;
       vertical-align: top;
       color: $kobo-teal;
     }
@@ -406,7 +423,7 @@
   }
 
   &.form-view__cell--thin-label {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     opacity: 0.6;
     font-size: 12px;
     line-height: 18px;
@@ -452,6 +469,23 @@
     }
   }
 
+  &.form-view__cell--error {
+    background-color: $kobo-red-light;
+    color: $kobo-red-dark;
+    border: 1px solid $kobo-red;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    i {
+      color: $kobo-red;
+      font-size: 32px;
+      margin-right: 5px;
+      // If used in a dropzone, need to overwrite left margin
+      margin-left: 0px;
+    }
+  }
+
+
   &.form-view__cell--translation-modal-warning {
     margin-bottom: 20px;
   }
@@ -473,10 +507,10 @@
 
 // buttons in forms
 .form-view__link {
-  font-size: 36px;
+  font-size: 26px;
   line-height: 18px;
   padding: 0 5px;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   cursor: pointer;
   vertical-align: middle;
   display: inline-block;
@@ -487,7 +521,7 @@
 
   &--disabled,
   &--disabled:hover {
-    color: $kobo-midgray;
+    color: $kobo-gray-65;
   }
 }
 
@@ -517,7 +551,7 @@
 
   &.form-view__group--items {
     padding: 0;
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
     display: flex;
     align-items: center;
 
@@ -686,13 +720,26 @@
   }
 }
 
+.form-view__cell--collect-header {
+  .collect-link-missing {
+    color: $kobo-orange-dark;
+    display: block;
+    line-height: 24px;
+
+    .k-icon {
+      vertical-align: top;
+      font-size: 24px;
+    }
+  }
+}
+
 .form-view__cell--collect-meta {
   pre {
     display: block;
     margin: 10px 0;
     padding: 10px;
-    border: 1px solid $kobo-lightgray;
-    background: $kobo-whitegray;
+    border: 1px solid $kobo-gray-92;
+    background: $kobo-gray-96;
     font-size: 13px;
     white-space: normal;
   }
@@ -708,17 +755,17 @@
       padding: 5px;
     }
 
-    i {
-      margin: 0 6px;
-      font-size: 18px;
+    .k-icon.k-icon-more-vertical {
+      font-size: 20px;
       display: inline-block;
+      vertical-align: top;
     }
   }
 
   code {
     padding: 4px;
-    border: 1px solid $kobo-lightgray;
-    background: $kobo-whitegray;
+    border: 1px solid $kobo-gray-92;
+    background: $kobo-gray-96;
     margin-left: 5px;
     margin-right: 5px;
   }

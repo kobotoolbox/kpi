@@ -187,6 +187,59 @@ xlform_survey_model = ($model)->
       expect(processed_required(`undefined`)).toEqual('false')
       expect(processed_required('')).toEqual('false')
 
+  describe 'test start questions', ->
+    beforeEach ->
+      @srv = $model.Survey.loadDict({
+        survey: [
+          {
+            type: 'start',
+            name: 'start',
+          },
+        ]
+      })
+    it "loads start meta question", ->
+      start_sd = @srv.surveyDetails.get('start')
+      expect(start_sd.get('name')).toEqual('start')
+      expect(start_sd.get('value')).toEqual(true)
+
+  describe 'test background-audio questions', ->
+    beforeEach ->
+      @srv = $model.Survey.loadDict({
+        survey: [
+          {
+            type: 'background-audio',
+            name: 'background-audio',
+          },
+        ]
+      })
+
+    it "loads background-audio with parameters", ->
+      srv = $model.Survey.loadDict({
+        survey: [
+          {
+            type: 'background-audio',
+            name: 'background-audio',
+            parameters: 'quality=99'
+          },
+        ]
+      })
+      exported = srv.toJSON()
+      expect(exported.survey[0].parameters).toEqual('quality=99')
+
+    it "loads bg audio meta question", ->
+      sd1 = @srv.surveyDetails.get('background-audio')
+      expect(sd1.get('name')).toEqual('background-audio')
+      expect(sd1.get('value')).toEqual(true)
+
+    it "when value is false (un-checked in the interace), no row is added", ->
+      @srv.surveyDetails.get('background-audio').set('value', false)
+      exported = @srv.toJSON()
+      expect(exported.survey.length).toEqual(0)
+
+    it "exports to json properly", ->
+      exported = @srv.toJSON()
+      expect(exported.survey[0].type).toEqual('background-audio')
+      expect(exported.survey[0].name).toEqual('background-audio')
 
     it "captures required values", ->
       srv = $model.Survey.loadDict({

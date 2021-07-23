@@ -6,17 +6,6 @@ import {
   PERMISSIONS_CODENAMES
 } from 'js/constants';
 
-export function renderLoading(message = t('loading…')) {
-  return (
-    <bem.Loading>
-      <bem.Loading__inner>
-        <i />
-        {message}
-      </bem.Loading__inner>
-    </bem.Loading>
-  );
-}
-
 export function renderBackButton(isDisabled = false) {
   if (stores.pageState.hasPreviousModal()) {
     return (

@@ -5,7 +5,10 @@ import {
   searchBoxStore
 } from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
-import {isOnPublicCollectionsRoute} from './libraryUtils';
+import {
+  getCurrentPath,
+  isPublicCollectionsRoute,
+} from 'js/routerUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
@@ -23,7 +26,7 @@ const publicCollectionsStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-  previousPath: hashHistory.getCurrentLocation().pathname,
+  previousPath: getCurrentPath(),
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
@@ -66,7 +69,7 @@ const publicCollectionsStore = Reflux.createStore({
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (!this.isInitialised && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
+    if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
   },
@@ -129,11 +132,11 @@ const publicCollectionsStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    if (!this.isInitialised && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
+    if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
       this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS) === false &&
-      isOnPublicCollectionsRoute()
+      isPublicCollectionsRoute()
     ) {
       // refresh data when navigating into public-collections from other place
       this.setDefaultColumns();

@@ -33,6 +33,27 @@ var commonOptions = {
         }
       },
       {
+        enforce: 'pre',
+        test: /\.coffee$/,
+        exclude: /node_modules/,
+        loader: 'less-terrible-coffeelint-loader',
+        options: {
+          failOnErrors: true,
+          failOnWarns: false,
+          // custom reporter function that only returns errors (no warnings)
+          reporter: function(errors) {
+            errors.forEach((error) => {
+              if (error.level === 'error') {
+                this.emitError([
+                  error.lineNumber,
+                  error.message,
+                ].join(' ') + '\n');
+              }
+            });
+          },
+        },
+      },
+      {
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
         use: {

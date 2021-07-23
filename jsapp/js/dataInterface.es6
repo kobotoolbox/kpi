@@ -217,6 +217,23 @@ export var dataInterface;
     },
 
     /*
+     * form media
+     */
+    postFormMedia(uid, data) {
+      return $ajax({
+        method: 'POST',
+        url: `${ROOT_URL}/api/v2/assets/${uid}/files/`,
+        data: data,
+      });
+    },
+    deleteFormMedia(url) {
+      return $ajax({
+        method: 'DELETE',
+        url: url,
+      });
+    },
+
+    /*
      * permissions
      */
 
@@ -700,9 +717,9 @@ export var dataInterface;
         contentType: false
       });
     },
-    getAssetFiles(uid) {
+    getAssetFiles(uid, fileType) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/files/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/files/?file_type=${fileType}`,
         method: 'GET'
       });
     },

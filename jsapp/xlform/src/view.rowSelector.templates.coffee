@@ -18,7 +18,7 @@ module.exports = do ->
   xlfRowSelector.cell = (atts) ->
       """
         <div class="questiontypelist__item" data-menu-item="#{atts.id}">
-          <i class="fa fa-fw fa-#{atts.faClass}"></i>
+          <i class="#{atts.iconClassName}"></i>
           #{atts.label}
         </div>
       """

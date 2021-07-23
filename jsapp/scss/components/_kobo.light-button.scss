@@ -20,29 +20,33 @@
   border-style: solid;
   white-space: nowrap; // for smaller screens
 
-  // icon inside
+  // icon inside is bigger than the button, so we need cleverness to position it
   i,
   .k-icon {
     vertical-align: top;
-    font-size: 24px;
+    font-size: 18px;
     position: relative;
-    top: -5px;
-    margin-left: -6px; // this assumes there is a text and icon is first
+    top: -2px;
+    margin-right: 3px;
   }
 
   &.kobo-light-button--icon-only,
   &.kobo-light-badge--icon-only {
+    // ideally we want a square here
+    padding-left: 4px;
+    padding-right: 4px;
+
     & i,
     & .k-icon {
-      margin-right: -6px;
+      margin-right: 0;
     }
   }
 }
 
 .kobo-light-badge {
-  color: $kobo-black;
-  background-color: $kobo-lightgray;
-  border-color: $kobo-lightgray;
+  color: $kobo-gray-24;
+  background-color: $kobo-gray-92;
+  border-color: $kobo-gray-92;
   white-space: nowrap;
   padding-left: 8px;
   padding-right: 8px;
@@ -50,19 +54,19 @@
 
 .kobo-light-button {
   cursor: pointer;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   background-color: transparent;
   border-color: currentColor;
 
   &[disabled] {
     pointer-events: none;
-    opacity: 0.75;
+    opacity: 0.5;
   }
 
   &:hover {
     color: $kobo-white;
-    background-color: $kobo-darkgray;
-    border-color: $kobo-darkgray;
+    background-color: $kobo-gray-40;
+    border-color: $kobo-gray-40;
   }
 
   &:active {

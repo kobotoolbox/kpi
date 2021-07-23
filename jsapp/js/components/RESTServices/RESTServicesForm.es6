@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import alertify from 'alertifyjs';
 import {bem} from '../../bem';
+import {LoadingSpinner} from 'js/ui';
 import {dataInterface} from '../../dataInterface';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
@@ -408,14 +409,7 @@ export default class RESTServicesForm extends React.Component {
     const isEditingExistingHook = Boolean(this.state.hookUid);
 
     if (this.state.isLoadingHook) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<LoadingSpinner/>);
     } else {
       let submissionPlaceholder = '%SUBMISSION%';
       if (stores.session.environment && stores.session.environment.submission_placeholder) {
@@ -491,6 +485,7 @@ export default class RESTServicesForm extends React.Component {
                 id='rest-service-form--security'
                 name='authLevel'
                 menuPlacement='auto'
+                isSearchable={false}
               />
             </bem.FormModal__item>
 

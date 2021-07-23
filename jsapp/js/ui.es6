@@ -108,7 +108,7 @@ class Modal extends React.Component {
     } else {
       return(
         <a className='modal__x' type='button' onClick={this.props.onClose}>
-          <i className='k-icon-close'/>
+          <i className='k-icon k-icon-close'/>
         </a>
       );
     }
@@ -334,7 +334,7 @@ class PopoverMenu extends React.Component {
   }
 };
 
-class AccessDeniedMessage extends React.Component {
+export class AccessDeniedMessage extends React.Component {
   render() {
     return (
       <bem.FormView>
@@ -351,8 +351,27 @@ class AccessDeniedMessage extends React.Component {
   }
 }
 
+/**
+ * @prop {string} [message] optional message
+ */
+export class LoadingSpinner extends React.Component {
+  render() {
+    const message = this.props.message || t('loading…');
+
+    return (
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i className='k-spin k-icon k-icon-spinner'/>
+          {message}
+        </bem.Loading__inner>
+      </bem.Loading>
+    );
+  }
+}
+
 var ui = {
   AccessDeniedMessage,
+  LoadingSpinner,
   SearchBox: SearchBox,
   Panel: Panel,
   Modal: Modal,

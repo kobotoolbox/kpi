@@ -148,20 +148,20 @@ export function getAssetDisplayName(asset) {
 }
 
 /**
- * @param {Object} question - Part of BE asset data
+ * @param {Object} questionOrChoice - Part of BE asset data
  * @param {number} [translationIndex] - defaults to first (default) language
- * @returns {string} usable name of the question when possible, "Unlabelled" otherwise.
+ * @returns {string} usable name of the question or choice when possible, "Unlabelled" otherwise.
  */
-export function getQuestionDisplayName(question, translationIndex = 0) {
-  if (question.label && Array.isArray(question.label)) {
-    return question.label[translationIndex];
-  } else if (question.label && !Array.isArray(question.label)) {
+export function getQuestionOrChoiceDisplayName(questionOrChoice, translationIndex = 0) {
+  if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
+    return questionOrChoice.label[translationIndex];
+  } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
     // in rare cases the label could be a string
-    return question.label;
-  } else if (question.name) {
-    return question.name;
-  } else if (question.$autoname) {
-    return question.$autoname;
+    return questionOrChoice.label;
+  } else if (questionOrChoice.name) {
+    return questionOrChoice.name;
+  } else if (questionOrChoice.$autoname) {
+    return questionOrChoice.$autoname;
   } else {
     t('Unlabelled');
   }
@@ -183,31 +183,42 @@ export function isLibraryAsset(assetType) {
 /**
  * For getting the icon class name for given asset type.
  * @param {Object} asset - BE asset data
- * @returns {string} k-icon CSS class name
+ * @returns {string} Contians two class names: Base `k-icon` class name and respective CSS class name
  */
 export function getAssetIcon(asset) {
-  if (asset.asset_type === ASSET_TYPES.template.id) {
-    return 'k-icon-template-new';
-  } else if (asset.asset_type === ASSET_TYPES.question.id) {
-    return 'k-icon-question-new';
-  } else if (asset.asset_type === ASSET_TYPES.block.id) {
-    return 'k-icon-block-new';
-  } else if (asset.asset_type === ASSET_TYPES.survey.id) {
-    if (asset.has_deployment) {
-      return 'k-icon-deploy';
-    } else {
-      return 'k-icon-drafts';
-    }
-  } else if (asset.asset_type === ASSET_TYPES.collection.id) {
-    if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
-      return 'k-icon-folder-subscribed';
-    } else if (isAssetPublic(asset.permissions)) {
-      return 'k-icon-folder-public';
-    } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
-      return 'k-icon-folder-shared';
-    } else {
-      return 'k-icon-folder';
-    }
+  switch (asset.asset_type) {
+    case ASSET_TYPES.template.id:
+      if (asset.summary?.lock_any) {
+        return 'k-icon k-icon-template-locked';
+      } else {
+        return 'k-icon k-icon-template';
+      }
+    case ASSET_TYPES.question.id:
+      return 'k-icon k-icon-question';
+    case ASSET_TYPES.block.id:
+      return 'k-icon k-icon-block';
+    case ASSET_TYPES.survey.id:
+      if (asset.summary?.lock_any) {
+        return 'k-icon k-icon-form-locked';
+      } else if (asset.has_deployment && !asset.deployment__active) {
+        return 'k-icon k-icon-form-archived';
+      } else if (asset.has_deployment) {
+        return 'k-icon k-icon-form-deployed';
+      } else {
+        return 'k-icon k-icon-form-draft';
+      }
+    case ASSET_TYPES.collection.id:
+      if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
+        return 'k-icon k-icon-folder-subscribed';
+      } else if (isAssetPublic(asset.permissions)) {
+        return 'k-icon k-icon-folder-public';
+      } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
+        return 'k-icon k-icon-folder-shared';
+      } else {
+        return 'k-icon k-icon-folder';
+      }
+    default:
+      return 'k-icon k-icon-form';
   }
 }
 
@@ -399,7 +410,7 @@ function getRowLabelAtIndex(row, index) {
  * @param {string} type - one of QUESTION_TYPES
  * @returns {Node}
  */
-export function renderTypeIcon(type, additionalClassNames = []) {
+export function renderQuestionTypeIcon(type) {
   let typeDef;
   if (type === SCORE_ROW_TYPE) {
     typeDef = QUESTION_TYPES.score;
@@ -410,10 +421,7 @@ export function renderTypeIcon(type, additionalClassNames = []) {
   }
 
   if (typeDef) {
-    const classNames = additionalClassNames;
-    classNames.push('fa');
-    classNames.push(typeDef.faIcon);
-    return (<i className={classNames.join(' ')} title={type}/>);
+    return (<i className={`k-icon k-icon-${typeDef.icon}`} title={type}/>);
   } else {
     return <small><code>{type}</code></small>;
   }
@@ -435,7 +443,7 @@ export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta =
   let openedRepeatGroupsCount = 0;
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
-      openedGroups.push(getQuestionDisplayName(row, translationIndex));
+      openedGroups.push(getQuestionOrChoiceDisplayName(row, translationIndex));
     }
     if (row.type === 'end_group' || row.type === 'end_repeat') {
       openedGroups.pop();
@@ -456,7 +464,7 @@ export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta =
         type: row.type,
         name: rowName,
         isRequired: Boolean(row.required),
-        label: getQuestionDisplayName(row, translationIndex),
+        label: getQuestionOrChoiceDisplayName(row, translationIndex),
         path: flatPaths[rowName],
         parents: openedGroups.slice(0),
         hasRepatParent: openedRepeatGroupsCount >= 1,
@@ -556,7 +564,7 @@ export default {
   getLanguageIndex,
   getLanguagesDisplayString,
   getOrganizationDisplayString,
-  getQuestionDisplayName,
+  getQuestionOrChoiceDisplayName,
   getRowName,
   getSectorDisplayString,
   getSurveyFlatPaths,
@@ -567,7 +575,7 @@ export default {
   isRowSpecialLabelHolder,
   isSelfOwned,
   modifyDetails,
-  renderTypeIcon,
+  renderQuestionTypeIcon,
   replaceForm,
   share,
   removeInvalidChars,

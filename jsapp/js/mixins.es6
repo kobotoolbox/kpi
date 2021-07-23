@@ -210,6 +210,9 @@ mixins.dmix = {
     if (this.props.params) {
       return this.props.params.assetid || this.props.params.uid;
     } else if (this.props.formAsset) {
+      // formAsset case is being used strictly for projectSettings component to
+      // cause the componentDidMount callback to load the full asset (i.e. one
+      // that includes `content`).
       return this.props.formAsset.uid;
     } else {
       return this.props.uid;
@@ -230,19 +233,17 @@ mixins.dmix = {
       actions.resources.loadAsset({id: newProps.params.uid});
     }
   },
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
     const uid = this._getAssetUid();
-
-    if (this.props.randdelay && uid) {
-      window.setTimeout(() => {
-        actions.resources.loadAsset({id: uid});
-      }, Math.random() * 3000);
-    } else if (uid) {
+    if (uid) {
       actions.resources.loadAsset({id: uid});
     }
-  }
+  },
+  removeSharing: function() {
+    mixins.clickAssets.click.asset.removeSharing(this.props.params.uid);
+  },
 };
 
 /*
@@ -421,15 +422,15 @@ mixins.droppable = {
     });
   },
 
-  dropFiles (files, rejectedFiles, evt, pms = {}) {
+  dropFiles(files, rejectedFiles, evt, pms = {}) {
     files.map((file) => {
       var reader = new FileReader();
       reader.onload = (e) => {
         let params = assign({
-          base64Encoded: e.target.result,
           name: file.name,
+          base64Encoded: e.target.result,
           lastModified: file.lastModified,
-          totalFiles: files.length
+          totalFiles: files.length,
         }, pms);
 
         this._forEachDroppedFile(params);
@@ -447,7 +448,7 @@ mixins.droppable = {
         break;
       }
     }
-  }
+  },
 };
 
 mixins.clickAssets = {
@@ -704,19 +705,48 @@ mixins.clickAssets = {
           type: MODAL_TYPES.ENCRYPT_FORM,
           assetUid: uid
         });
-      }
+      },
+      removeSharing: function(uid) {
+        /**
+         * Extends `removeAllPermissions` from `userPermissionRow.es6`:
+         * Checks for permissions from current user before finding correct
+         * "most basic" permission to remove.
+         */
+        const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+        const userViewAssetPerm = asset.permissions.find((perm) => {
+          // Get permissions url related to current user
+          var permUserUrl = perm.user.split('/');
+          return (
+            permUserUrl[permUserUrl.length - 2] === stores.session.currentAccount.username &&
+            perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
+          );
+        });
+
+        let dialog = alertify.dialog('confirm');
+        let opts = {
+          title: t('Remove shared form'),
+          message: `${t('Are you sure you want to remove this shared form?')}`,
+          labels: {ok: t('Remove'), cancel: t('Cancel')},
+          onok: (evt, val) => {
+            // Only non-owners should have the asset removed from their asset list.
+            // This menu option is only open to non-owners so we don't need to check again.
+            let isNonOwner = true;
+            actions.permissions.removeAssetPermission(uid, userViewAssetPerm.url, isNonOwner);
+          },
+          oncancel: () => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
+      },
 
     }
   },
 };
 
 mixins.permissions = {
-  userCan (permName, asset) {
+  userCan(permName, asset) {
     if (!asset.permissions) {
-      return false;
-    }
-
-    if (!stores.session.currentAccount) {
       return false;
     }
 
@@ -742,7 +772,7 @@ mixins.permissions = {
         perm.permission === permConfig.getPermissionByCodename(permName).url
       );
     });
-  }
+  },
 };
 
 mixins.contextRouter = {

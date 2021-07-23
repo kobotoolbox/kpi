@@ -54,10 +54,14 @@ class FormSidebar extends Reflux.Component {
       type: MODAL_TYPES.NEW_FORM
     });
   }
-  render () {
+  render() {
     return (
       <React.Fragment>
-        <bem.KoboButton onClick={this.newFormModal} m={['blue', 'fullwidth']}>
+        <bem.KoboButton
+          m={['blue', 'fullwidth']}
+          disabled={!stores.session.isLoggedIn}
+          onClick={this.newFormModal}
+        >
           {t('new')}
         </bem.KoboButton>
         <SidebarFormsList/>
@@ -91,8 +95,7 @@ class DrawerLink extends React.Component {
     }
   }
   render () {
-    var icon_class = (this.props['ki-icon'] == undefined ? 'fa fa-globe' : `k-icon-${this.props['ki-icon']}`);
-    var icon = (<i className={icon_class}/>);
+    var icon = (<i className={`k-icon-${this.props['k-icon']}`}/>);
     var classNames = [this.props.class, 'k-drawer__link'];
 
     var link;
@@ -129,12 +132,17 @@ class Drawer extends Reflux.Component {
       stores.serverEnvironment,
     ];
   }
-  render () {
+  render() {
+    // no sidebar for not logged in users
+    if (!stores.session.isLoggedIn) {
+      return null;
+    }
+
     return (
       <bem.KDrawer>
         <bem.KDrawer__primaryIcons>
-          <DrawerLink label={t('Projects')} linkto={ROUTES.FORMS} ki-icon='projects' />
-          <DrawerLink label={t('Library')} linkto={ROUTES.LIBRARY} ki-icon='library' />
+          <DrawerLink label={t('Projects')} linkto={ROUTES.FORMS} k-icon='projects' />
+          <DrawerLink label={t('Library')} linkto={ROUTES.LIBRARY} k-icon='library' />
         </bem.KDrawer__primaryIcons>
 
         <bem.KDrawer__sidebar>
@@ -145,13 +153,14 @@ class Drawer extends Reflux.Component {
         </bem.KDrawer__sidebar>
 
         <bem.KDrawer__secondaryIcons>
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
             <IntercomHelpBubble/>
           }
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
             <SupportHelpBubble/>
           }
-          { stores.session.currentAccount &&
+          { stores.session.isLoggedIn &&
+            stores.session.currentAccount.projects_url &&
             <a href={stores.session.currentAccount.projects_url}
               className='k-drawer__link'
               target='_blank'
@@ -164,7 +173,7 @@ class Drawer extends Reflux.Component {
             stores.serverEnvironment.state.source_code_url &&
             <a href={stores.serverEnvironment.state.source_code_url}
               className='k-drawer__link' target='_blank' data-tip={t('Source')}>
-              <i className='k-icon k-icon-github' />
+              <i className='k-icon k-icon-logo-github' />
             </a>
           }
         </bem.KDrawer__secondaryIcons>

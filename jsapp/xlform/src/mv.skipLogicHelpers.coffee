@@ -392,7 +392,7 @@ module.exports = do ->
     constructor: (@criteria, @builder, @view_factory, @context) ->
       @$parent = $('<div>')
       @textarea = @view_factory.create_textarea @criteria, 'skiplogic__handcode-edit'
-      @button = @view_factory.create_button '<i class="fa fa-trash-o"></i>', 'skiplogic-handcode__cancel'
+      @button = @view_factory.create_button '<i class="k-icon k-icon-trash"></i>', 'skiplogic-handcode__cancel'
 
   class skipLogicHelpers.SkipLogicModeSelectorHelper
     render: ($destination) ->
@@ -413,7 +413,7 @@ module.exports = do ->
     serialize: () ->
       return ''
     constructor: (view_factory, @context) ->
-      @criterion_builder_button = view_factory.create_button '<i class="fa fa-plus"></i> ' + t("Add a condition"), 'kobo-button kobo-button--green'
+      @criterion_builder_button = view_factory.create_button '<i>+</i> ' + t("Add a condition"), 'kobo-button kobo-button--green'
       @handcode_button = view_factory.create_button '<i>${}</i> ' + t("Manually enter your skip logic in XLSForm code"), 'kobo-button kobo-button--blue'
       ###@view = @view_factory.create_skip_logic_picker_view(context)###
     switch_editing_mode: () -> return
