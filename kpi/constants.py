@@ -55,7 +55,14 @@ CLONE_COMPATIBLE_TYPES = {
 
 ASSET_TYPE_ARG_NAME = "asset_type"
 
-SHADOW_MODEL_APP_LABEL = "shadow_model"
+# Main app label for shadow models.
+SHADOW_MODEL_APP_LABEL = 'shadow_model'
+# List of app labels that need to read/write data from KoBoCAT database
+# Useful in `db_routers.py`
+SHADOW_MODEL_APP_LABELS = [
+    SHADOW_MODEL_APP_LABEL,
+    'superuser_stats',
+]
 
 # List of nested attributes which bypass 'dots' encoding
 NESTED_MONGO_RESERVED_ATTRIBUTES = [

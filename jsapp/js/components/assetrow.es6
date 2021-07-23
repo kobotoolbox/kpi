@@ -57,14 +57,14 @@ class AssetRow extends React.Component {
     assetUtils.moveToCollection(this.props.uid, evt.currentTarget.dataset.collid);
   }
 
-  clearPopover () {
+  forceClosePopover () {
     if (this.state.popoverVisible) {
       this.setState({clearPopover: true, popoverVisible: false});
     }
   }
 
   popoverSetVisible () {
-    this.setState({popoverVisible: true});
+    this.setState({clearPopover: false, popoverVisible: true});
   }
 
   render () {
@@ -112,7 +112,7 @@ class AssetRow extends React.Component {
           }}
           className='mdl-grid'
           key={this.props.uid}
-          onMouseLeave={this.clearPopover}
+          onMouseLeave={this.forceClosePopover}
         >
           <bem.AssetRow__cell
             m={'asset-details'}
@@ -203,7 +203,7 @@ class AssetRow extends React.Component {
             { this.props.asset_type == ASSET_TYPES.survey.id &&
               <bem.AssetRow__cell
                 m={'submission-count'}
-                key={'submisson-count'}
+                key={'submission-count'}
                 className='mdl-cell mdl-cell--1-col mdl-cell--1-col-tablet mdl-cell--1-col-phone'
               >
                 {
@@ -233,7 +233,7 @@ class AssetRow extends React.Component {
                   data-asset-type={this.props.kind}
                   data-disabled={false}
                   >
-                <i className='k-icon-edit' />
+                <i className='k-icon k-icon-edit' />
               </bem.AssetRow__actionIcon>
             }
 
@@ -243,7 +243,7 @@ class AssetRow extends React.Component {
                   onClick={this.clickTagsToggle}
                   data-tip= {t('Tags')}
                   >
-                <i className='k-icon-tag' />
+                <i className='k-icon k-icon-tag' />
               </bem.AssetRow__actionIcon>
             }
 
@@ -256,7 +256,7 @@ class AssetRow extends React.Component {
                   data-tip= {t('Share')}
                   data-disabled={false}
                   >
-                <i className='k-icon-user-share' />
+                <i className='k-icon k-icon-user-share' />
               </bem.AssetRow__actionIcon>
             }
 
@@ -269,7 +269,7 @@ class AssetRow extends React.Component {
                 data-asset-name={assetName}
                 data-disabled={false}
                 >
-              <i className='k-icon-clone' />
+              <i className='k-icon k-icon-clone' />
             </bem.AssetRow__actionIcon>
 
             { this.props.asset_type &&
@@ -284,7 +284,7 @@ class AssetRow extends React.Component {
                 data-asset-name={assetName}
                 data-disabled={false}
               >
-                <i className='k-icon-projects' />
+                <i className='k-icon k-icon-projects' />
               </bem.AssetRow__actionIcon>
             }
 
@@ -305,8 +305,8 @@ class AssetRow extends React.Component {
             }
             <ui.PopoverMenu
               type='assetrow-menu'
-              triggerLabel={<i className='k-icon-more' />}
-              triggerTip={t('More Actions')}
+              triggerLabel={<i className='k-icon k-icon-more' />}
+              triggerTip={t('More actions')}
               clearPopover={this.state.clearPopover}
               popoverSetVisible={this.popoverSetVisible}
             >
@@ -315,7 +315,7 @@ class AssetRow extends React.Component {
                     m={'deploy'}
                     data-action={'deploy'}
                     data-asset-type={this.props.kind}>
-                  <i className='k-icon-deploy' />
+                  <i className='k-icon k-icon-deploy' />
                   {t('Deploy this project')}
                 </bem.PopoverMenu__link>
               }
@@ -325,7 +325,7 @@ class AssetRow extends React.Component {
                       data-action={'unarchive'}
                       data-asset-type={this.props.kind}
                     >
-                  <i className='k-icon-archived' />
+                  <i className='k-icon k-icon-archived' />
                   {t('Unarchive')}
                 </bem.PopoverMenu__link>
               }
@@ -335,7 +335,7 @@ class AssetRow extends React.Component {
                   data-action={'refresh'}
                   data-asset-type={this.props.kind}
                 >
-                  <i className='k-icon-replace' />
+                  <i className='k-icon k-icon-replace' />
                   {t('Replace form')}
                 </bem.PopoverMenu__link>
               }
@@ -344,8 +344,8 @@ class AssetRow extends React.Component {
                   data-action={'translations'}
                   data-asset-uid={this.props.uid}
                 >
-                  <i className='k-icon-language' />
-                  {t('Manage Translations')}
+                  <i className='k-icon k-icon-language' />
+                  {t('Manage translations')}
                 </bem.PopoverMenu__link>
               }
               { /* temporarily disabled
@@ -353,7 +353,7 @@ class AssetRow extends React.Component {
                 data-action={'encryption'}
                 data-asset-uid={this.props.uid}
               >
-                <i className='k-icon-lock'/>
+                <i className='k-icon k-icon-lock'/>
                 {t('Manage Encryption')}
               </bem.PopoverMenu__link>
               */ }
@@ -361,7 +361,7 @@ class AssetRow extends React.Component {
                 return (
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                         key={`dl-${dl.format}`}>
-                      <i className={`k-icon-${dl.format}-file`}/>
+                      <i className={`k-icon k-icon-${dl.format}-file`}/>
                       {t('Download')}&nbsp;
                       {dl.format.toString().toUpperCase()}
                     </bem.PopoverMenu__link>
@@ -383,7 +383,7 @@ class AssetRow extends React.Component {
                           key={col.value}
                           title={col.label}
                           m='move-coll-item'>
-                            <i className='k-icon-folder' />
+                            <i className='k-icon k-icon-folder' />
                             {col.label}
                         </bem.PopoverMenu__item>
                       );
@@ -396,7 +396,7 @@ class AssetRow extends React.Component {
                       data-action={'archive'}
                       data-asset-type={this.props.kind}
                     >
-                  <i className='k-icon-archived' />
+                  <i className='k-icon k-icon-archived' />
                   {t('Archive')}
                 </bem.PopoverMenu__link>
               }
@@ -407,7 +407,7 @@ class AssetRow extends React.Component {
                   data-asset-type={this.props.kind}
                   data-asset-name={assetName}
                 >
-                  <i className='k-icon-template' />
+                  <i className='k-icon k-icon-template' />
                   {t('Create template')}
                 </bem.PopoverMenu__link>
               }
@@ -418,7 +418,7 @@ class AssetRow extends React.Component {
                   data-asset-type={this.props.kind}
                   data-asset-name={assetName}
                 >
-                  <i className='k-icon-trash' />
+                  <i className='k-icon k-icon-trash' />
                   {t('Delete')}
                 </bem.PopoverMenu__link>
               }
@@ -427,8 +427,8 @@ class AssetRow extends React.Component {
                   m={'removeSharing'}
                   data-action={'removeSharing'}
                 >
-                  <i className='k-icon-trash' />
-                  {t('Remove Shared Form')}
+                  <i className='k-icon k-icon-trash' />
+                  {t('Remove shared form')}
                 </bem.PopoverMenu__link>
               }
             </ui.PopoverMenu>

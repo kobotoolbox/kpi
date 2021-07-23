@@ -21,7 +21,7 @@ from .shadow_models import (
     KobocatUserObjectPermission,
     KobocatUserPermission,
     KobocatUserProfile,
-    ReadOnlyKobocatXForm,
+    KobocatXForm,
 )
 
 
@@ -44,17 +44,17 @@ def _trigger_kc_profile_creation(user):
 @safe_kc_read
 def instance_count(xform_id_string, user_id):
     try:
-        return ReadOnlyKobocatXForm.objects.only('num_of_submissions').get(
+        return KobocatXForm.objects.only('num_of_submissions').get(
             id_string=xform_id_string,
             user_id=user_id
         ).num_of_submissions
-    except ReadOnlyKobocatXForm.DoesNotExist:
+    except KobocatXForm.DoesNotExist:
         return 0
 
 
 @safe_kc_read
 def last_submission_time(xform_id_string, user_id):
-    return ReadOnlyKobocatXForm.objects.get(
+    return KobocatXForm.objects.get(
         user_id=user_id, id_string=xform_id_string
     ).last_submission_time
 
@@ -291,7 +291,7 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
             flags = {flag: not value for flag, value in flags.items()}
         xform_updates.update(flags)
     # Write to the KC database
-    ReadOnlyKobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)
+    KobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)
 
 
 @transaction.atomic()

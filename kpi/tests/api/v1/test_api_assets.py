@@ -24,7 +24,7 @@ from kpi.tests.kpi_test_case import KpiTestCase
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
 
 
-class AssetsListApiTests(test_api_assets.AssetsListApiTests):
+class AssetListApiTests(test_api_assets.AssetListApiTests):
     URL_NAMESPACE = None
 
     def test_asset_list_matches_detail(self):
@@ -49,7 +49,7 @@ class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
     URL_NAMESPACE = None
 
 
-class AssetsDetailApiTests(test_api_assets.AssetsDetailApiTests):
+class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
     URL_NAMESPACE = None
 
     @unittest.skip(reason='`assignable_permissions` property only exists in '
@@ -246,7 +246,7 @@ class ObjectRelationshipsTests(BaseTestCase):
         self.assertIn('/assets/%s' % (other_coll.uid), req.data['parent'])
 
 
-class AssetsSettingsFieldTest(test_api_assets.AssetsSettingsFieldTest):
+class AssetSettingsFieldTest(test_api_assets.AssetSettingsFieldTest):
     URL_NAMESPACE = None
 
 

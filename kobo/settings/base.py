@@ -2,6 +2,7 @@
 import multiprocessing
 import os
 import subprocess
+from mimetypes import add_type
 from datetime import timedelta
 from urllib.parse import quote_plus
 
@@ -88,7 +89,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'markitup',
     'django_digest',
-    'kobo.apps.superuser_stats',
+    'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
     'constance',
     'constance.backends.database',
@@ -98,6 +99,7 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
+    'kobo.apps.shadow_model.ShadowModelAppConfig',
 )
 
 MIDDLEWARE = [
@@ -379,12 +381,14 @@ else:
 
 ''' Enketo configuration '''
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
-ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
-ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
+ENKETO_SERVER = ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
+ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
 
+# ToDo 2020-01-23 Verify if 2 lines below are still needed?
 assert ENKETO_VERSION in ['legacy', 'express']
 ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'preview'
+
 # The number of hours to keep a kobo survey preview (generated for enketo)
 # around before purging it.
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
@@ -392,6 +396,7 @@ KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION'
 ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
+ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 
 
 ''' Celery configuration '''
@@ -700,6 +705,8 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
+MONGO_DB_MAX_TIME_MS = CELERY_TASK_TIME_LIMIT * 1000
+
 SESSION_ENGINE = "redis_sessions.session"
 SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
 
@@ -710,3 +717,10 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
 # The maximum size (in bytes) that an upload will be before it gets streamed to the file system
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
+
+# OpenRosa setting in bytes
+OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
+
+# add some mimetype
+add_type('application/wkt', '.wkt')
+add_type('application/geo+json', '.geojson')

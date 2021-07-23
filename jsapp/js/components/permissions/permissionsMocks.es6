@@ -33,7 +33,8 @@ const permissions = {
       'codename': 'change_submissions',
       'implied': [
         '/api/v2/permissions/view_asset/',
-        '/api/v2/permissions/view_submissions/'
+        '/api/v2/permissions/view_submissions/',
+        '/api/v2/permissions/add_submissions/'
       ],
       'contradictory': [
         '/api/v2/permissions/partial_submissions/'

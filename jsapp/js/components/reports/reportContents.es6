@@ -9,11 +9,13 @@ export default class ReportContents extends React.Component {
     super(props);
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps) {
     // to improve UI performance, don't refresh report while a modal window is visible
-    if (nextProps.parentState.showReportGraphSettings
-        || nextProps.parentState.showCustomReportModal
-        || nextProps.parentState.currentQuestionGraph) {
+    if (
+      nextProps.parentState.showReportGraphSettings ||
+      nextProps.parentState.showCustomReportModal ||
+      nextProps.parentState.currentQuestionGraph
+    ) {
       return false;
     } else {
       return true;
@@ -138,7 +140,11 @@ export default class ReportContents extends React.Component {
                   (o.name === vals[vD][0] || o.$autoname === vals[vD][0])
                 );
               });
-              vals[vD][2] = (choice && choice.label && choice.label[tnslIndex]) ? choice.label[tnslIndex] : vals[vD][0];
+              if (choice && choice.label && choice.label[tnslIndex]) {
+                vals[vD][2] = choice.label[tnslIndex];
+              } else {
+                vals[vD][2] = vals[vD][0];
+              }
             }
           }
         }
@@ -148,7 +154,7 @@ export default class ReportContents extends React.Component {
     return (
       <div>
         {
-          reportData.map((rowContent, i) =>{
+          reportData.map((rowContent, i) => {
             let label = t('Unlabeled');
             if (_.isArray(rowContent.row.label)) {
               label = rowContent.row.label[tnslIndex];

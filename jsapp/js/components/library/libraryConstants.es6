@@ -1,3 +1,5 @@
+import {createEnum} from 'js/constants';
+
 export const ROOT_BREADCRUMBS = Object.freeze({
   PROJECTS: {
     label: t('Projects'),
@@ -13,20 +15,16 @@ export const ROOT_BREADCRUMBS = Object.freeze({
   },
 });
 
-export const ASSETS_TABLE_CONTEXTS = {};
-new Set([
+export const ASSETS_TABLE_CONTEXTS = createEnum([
   'MY_LIBRARY',
   'COLLECTION_CONTENT',
   'PUBLIC_COLLECTIONS',
-]).forEach((name) => {ASSETS_TABLE_CONTEXTS[name] = name;});
-Object.freeze(ASSETS_TABLE_CONTEXTS);
+]);
 
-export const ORDER_DIRECTIONS = {};
-new Set([
+export const ORDER_DIRECTIONS = createEnum([
   'ascending',
   'descending',
-]).forEach((name) => {ORDER_DIRECTIONS[name] = name;});
-Object.freeze(ORDER_DIRECTIONS);
+]);
 
 /**
  * @typedef AssetsTableColumn

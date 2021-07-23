@@ -15,8 +15,8 @@ export default class ChartTypePicker extends React.Component {
 
   defaultReportStyleChange(evt) {
     this.props.onChange(
-      { default: true },
-      { report_type: evt.currentTarget.value || 'bar' },
+      {default: true},
+      {report_type: evt.currentTarget.value || 'bar'}
     );
   }
 
@@ -30,7 +30,7 @@ export default class ChartTypePicker extends React.Component {
       REPORT_STYLES.line,
     ];
 
-    var radioButtons = reportStylesOrdered.map(function(style, i) {
+    var radioButtons = reportStylesOrdered.map(function (style, i) {
       return (
         <bem.GraphSettings__radio m={style.value} key={i}>
           <input
@@ -41,9 +41,7 @@ export default class ChartTypePicker extends React.Component {
             onChange={this.defaultReportStyleChange}
             id={'type-' + style.value}
           />
-          <label htmlFor={'type-' + style.value}>
-            {style.label}
-          </label>
+          <label htmlFor={'type-' + style.value}>{style.label}</label>
         </bem.GraphSettings__radio>
       );
     }, this);

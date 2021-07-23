@@ -10,30 +10,30 @@ import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {bem} from 'js/bem';
 import {LoadingSpinner} from 'js/ui';
-import {notify, launchPrinting} from 'utils';
+import {launchPrinting} from 'utils';
 import {stores} from 'js/stores';
 import {
   VALIDATION_STATUSES_LIST,
   MODAL_TYPES,
-  GROUP_TYPES_BEGIN,
-  GROUP_TYPES_END
+  META_QUESTION_TYPES,
+  ENKETO_ACTIONS,
 } from 'js/constants';
-import SubmissionDataTable from 'js/components/submissionDataTable';
+import SubmissionDataTable from './submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
-class Submission extends React.Component {
+class SubmissionModal extends React.Component {
   constructor(props) {
     super(props);
-    let translations = this.props.asset.content.translations,
-        translationOptions = [];
+    let translations = this.props.asset.content.translations;
+    let translationOptions = [];
 
     if (translations.length > 1) {
       translationOptions = translations.map((trns) => {
         return {
           value: trns,
-          label: trns || t('Unnamed language')
+          label: trns || t('Unnamed language'),
         };
       });
     }
@@ -50,13 +50,14 @@ class Submission extends React.Component {
       sid: props.sid,
       showBetaFieldsWarning: false,
       isEditLoading: false,
+      isViewLoading: false,
       isDuplicated: props.isDuplicated,
       duplicatedSubmission: props.duplicatedSubmission || null,
       isEditingDuplicate: false,
       promptRefresh: false,
       translationIndex: 0,
       translationOptions: translationOptions,
-      showXMLNames: false
+      showXMLNames: false,
     };
 
     autoBind(this);
@@ -88,7 +89,7 @@ class Submission extends React.Component {
       let next = -1;
 
       if (this.props.ids && sid) {
-        const c = this.props.ids.findIndex((k) => {return k === parseInt(sid);});
+        const c = this.props.ids.findIndex((k) => k === parseInt(sid));
         let tableInfo = this.props.tableInfo || false;
         if (this.props.ids[c - 1]) {
           prev = this.props.ids[c - 1];
@@ -114,7 +115,7 @@ class Submission extends React.Component {
         submission: data,
         loading: false,
         next: next,
-        previous: prev
+        previous: prev,
       });
     }).fail((error) => {
       if (error.responseText) {
@@ -131,13 +132,17 @@ class Submission extends React.Component {
     });
   }
 
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      sid: nextProps.sid,
-      promptRefresh: false
-    });
+  static getDerivedStateFromProps(props) {
+    return {
+      sid: props.sid,
+      promptRefresh: false,
+    };
+  }
 
-    this.getSubmission(nextProps.asset.uid, nextProps.sid);
+  componentDidUpdate(prevProps) {
+    if (this.props.asset && prevProps.sid !== this.props.sid) {
+      this.getSubmission(this.props.asset.uid, this.props.sid);
+    }
   }
 
   deleteSubmission() {
@@ -151,7 +156,7 @@ class Submission extends React.Component {
       },
       oncancel: () => {
         dialog.destroy();
-      }
+      },
     };
     dialog.set(opts).show();
   }
@@ -166,9 +171,26 @@ class Submission extends React.Component {
       isEditLoading: true,
       isEditingDuplicate: true,
     });
-    enketoHandler.editSubmission(this.props.asset.uid, this.state.sid).then(
+    enketoHandler.openSubmission(
+      this.props.asset.uid,
+      this.state.sid,
+      ENKETO_ACTIONS.edit
+    ).then(
       () => {this.setState({isEditLoading: false});},
       () => {this.setState({isEditLoading: false});}
+    );
+  }
+
+  launchViewSubmission() {
+    this.setState({
+      isViewLoading: true,
+    });
+    enketoHandler.openSubmission(
+      this.props.asset.uid,
+      this.state.sid,
+      ENKETO_ACTIONS.view
+    ).then(
+      () => {this.setState({isViewLoading: false});}
     );
   }
 
@@ -183,7 +205,7 @@ class Submission extends React.Component {
   triggerRefresh() {
     this.getSubmission(this.props.asset.uid, this.props.sid);
     this.setState({
-      promptRefresh: false
+      promptRefresh: false,
     });
     // Prompt table to refresh submission list
     actions.resources.refreshTableSubmissions();
@@ -196,7 +218,7 @@ class Submission extends React.Component {
       sid: sid,
       asset: this.props.asset,
       ids: this.props.ids,
-      tableInfo: this.props.tableInfo || false
+      tableInfo: this.props.tableInfo || false,
     });
   }
 
@@ -206,7 +228,7 @@ class Submission extends React.Component {
     stores.pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: false,
-      page: 'prev'
+      page: 'prev',
     });
   }
 
@@ -216,7 +238,7 @@ class Submission extends React.Component {
     stores.pageState.showModal({
       type: MODAL_TYPES.SUBMISSION,
       sid: false,
-      page: 'next'
+      page: 'next',
     });
   }
 
@@ -233,10 +255,16 @@ class Submission extends React.Component {
   }
 
   languageChange(e) {
-    let index = this.state.translationOptions.findIndex((x) => {return x === e;});
+    let index = this.state.translationOptions.findIndex((x) => x === e);
     this.setState({
-      translationIndex: index || 0
+      translationIndex: index || 0,
     });
+  }
+
+  hasBackgroundAudio() {
+    return this.props?.asset?.content?.survey.some(
+      (question) => question.type === META_QUESTION_TYPES['background-audio']
+    );
   }
 
   render() {
@@ -322,6 +350,7 @@ class Submission extends React.Component {
                   className='kobo-select'
                   classNamePrefix='kobo-select'
                   menuPlacement='auto'
+                  isSearchable={false}
                 />
               </div>
             </bem.FormModal__group>
@@ -350,8 +379,22 @@ class Submission extends React.Component {
             </div>
           }
 
+          <bem.FormModal__group>
+          {this.hasBackgroundAudio() &&
+            <bem.BackgroundAudioPlayer>
+              <bem.BackgroundAudioPlayer__label>
+                {t('Background audio recording')}
+              </bem.BackgroundAudioPlayer__label>
+
+              <bem.BackgroundAudioPlayer__audio
+                controls
+                src={this.props?.backgroundAudioUrl}
+              />
+            </bem.BackgroundAudioPlayer>
+          }
+
           {this.props.asset.deployment__active &&
-            <bem.FormModal__group>
+            <div className='submission-modal-dropdowns'>
               {translationOptions.length > 1 &&
                 <div className='switch--label-language'>
                   <label>{t('Language:')}</label>
@@ -377,10 +420,12 @@ class Submission extends React.Component {
                   className='kobo-select'
                   classNamePrefix='kobo-select'
                   menuPlacement='auto'
+                  isSearchable={false}
                 />
               </div>
-            </bem.FormModal__group>
+            </div>
           }
+          </bem.FormModal__group>
 
           <bem.FormModal__group>
 
@@ -417,7 +462,7 @@ class Submission extends React.Component {
                     className='mdl-button mdl-button--colored'
                   >
                     {t('Next')}
-                    <i className='k-icon-next' />
+                    <i className='k-icon k-icon-next' />
                   </a>
                 }
                 {this.state.next === -2 &&
@@ -426,7 +471,7 @@ class Submission extends React.Component {
                     className='mdl-button mdl-button--colored'
                   >
                     {t('Next')}
-                    <i className='k-icon-next' />
+                    <i className='k-icon k-icon-next' />
                   </a>
                 }
               </div>
@@ -450,6 +495,17 @@ class Submission extends React.Component {
                 </a>
               }
 
+              {this.userCan('view_submissions', this.props.asset) &&
+                <a
+                  onClick={this.launchViewSubmission.bind(this)}
+                  className='kobo-button kobo-button--blue submission-duplicate__button'
+                  disabled={this.state.isViewLoading}
+                >
+                  {this.state.isViewLoading && t('Loading…')}
+                  {!this.state.isViewLoading && t('View')}
+                </a>
+              }
+
               {this.userCan('change_submissions', this.props.asset) &&
                 <a
                   onClick={this.duplicateSubmission.bind(this)}
@@ -460,10 +516,13 @@ class Submission extends React.Component {
                 </a>
               }
 
-              <bem.Button m='icon' className='report-button__print'
-                      onClick={launchPrinting}
-                      data-tip={t('Print')}>
-                <i className='k-icon-print' />
+              <bem.Button
+                m='icon'
+                className='report-button__print'
+                onClick={launchPrinting}
+                data-tip={t('Print')}
+              >
+                <i className='k-icon k-icon-print' />
               </bem.Button>
 
               {this.userCan('delete_submissions', this.props.asset) &&
@@ -472,7 +531,7 @@ class Submission extends React.Component {
                   className='mdl-button mdl-button--icon mdl-button--colored mdl-button--red right-tooltip'
                   data-tip={t('Delete submission')}
                 >
-                  <i className='k-icon-trash' />
+                  <i className='k-icon k-icon-trash' />
                 </a>
               }
             </div>
@@ -490,7 +549,7 @@ class Submission extends React.Component {
   }
 }
 
-reactMixin(Submission.prototype, Reflux.ListenerMixin);
-reactMixin(Submission.prototype, mixins.permissions);
+reactMixin(SubmissionModal.prototype, Reflux.ListenerMixin);
+reactMixin(SubmissionModal.prototype, mixins.permissions);
 
-export default Submission;
+export default SubmissionModal;

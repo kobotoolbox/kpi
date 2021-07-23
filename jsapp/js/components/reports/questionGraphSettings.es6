@@ -36,16 +36,20 @@ export default class QuestionGraphSettings extends React.Component {
       specificSettings = this.props.parentState.currentCustomReport.specified;
     }
 
-    if (specificSettings && specificSettings[_qn] && Object.keys(specificSettings[_qn]).length) {
+    if (
+      specificSettings &&
+      specificSettings[_qn] &&
+      Object.keys(specificSettings[_qn]).length
+    ) {
       const rStyle = Object.assign({}, specificSettings[_qn]);
       this.setState({rStyle: rStyle});
     }
   }
 
   saveQS(reset) {
-    let assetUid = this.props.parentState.asset.uid,
-        customReport = this.props.parentState.currentCustomReport,
-        _qn = this.props.question;
+    let assetUid = this.props.parentState.asset.uid;
+    let customReport = this.props.parentState.currentCustomReport;
+    let _qn = this.props.question;
 
     if (!customReport) {
       var sett_ = this.props.parentState.reportStyles;
@@ -57,7 +61,11 @@ export default class QuestionGraphSettings extends React.Component {
         report_custom[customReport.crid].specified = {};
       }
 
-      report_custom[customReport.crid].specified[_qn] = reset ? {} : this.state.rStyle;
+      if (reset) {
+        report_custom[customReport.crid].specified[_qn] = {};
+      } else {
+        report_custom[customReport.crid].specified[_qn] = this.state.rStyle;
+      }
       actions.reports.setCustom(assetUid, report_custom);
     }
   }
@@ -82,10 +90,18 @@ export default class QuestionGraphSettings extends React.Component {
     let reportStyle = this.state.rStyle;
 
     var tabs = [t('Chart Type'), t('Colors')];
-    var modalTabs = tabs.map(function(tab, i) {
+    var modalTabs = tabs.map(function (tab, i) {
+      let tabClassNames = [
+        'mdl-button',
+        'mdl-button--tab',
+      ];
+      if (this.state.activeModalTab === i) {
+        tabClassNames.push('active');
+      }
+
       return (
         <button
-          className={`mdl-button mdl-button--tab ${this.state.activeModalTab === i ? 'active' : ''}`}
+          className={tabClassNames.join(' ')}
           onClick={this.toggleTab}
           data-index={i}
           key={i}
@@ -97,36 +113,43 @@ export default class QuestionGraphSettings extends React.Component {
 
     return (
       <bem.GraphSettings>
-        <ui.Modal.Tabs>
-          {modalTabs}
-        </ui.Modal.Tabs>
+        <ui.Modal.Tabs>{modalTabs}</ui.Modal.Tabs>
         <ui.Modal.Body>
           <div className='tabs-content'>
-            {this.state.activeModalTab === 0 &&
+            {this.state.activeModalTab === 0 && (
               <div id='graph-type'>
                 <ChartTypePicker
                   defaultStyle={reportStyle}
                   onChange={this.questionStyleChange}
                 />
               </div>
-            }
-            {this.state.activeModalTab === 1 &&
+            )}
+            {this.state.activeModalTab === 1 && (
               <div id='graph-colors'>
                 <ChartColorsPicker
                   defaultStyle={reportStyle}
-                  onChange={this.questionStyleChange} />
+                  onChange={this.questionStyleChange}
+                />
               </div>
-            }
+            )}
           </div>
         </ui.Modal.Body>
 
         <ui.Modal.Footer>
-          {(reportStyle.report_type || reportStyle.report_colors || reportStyle.width) &&
-            <bem.Button className='reset' onClick={this.saveQS.bind(this, true)}>
+          {(reportStyle.report_type ||
+            reportStyle.report_colors ||
+            reportStyle.width) && (
+            <bem.Button
+              className='reset'
+              onClick={this.saveQS.bind(this, true)}
+            >
               {t('Reset')}
             </bem.Button>
-          }
-          <bem.Button className='primary' onClick={this.saveQS.bind(this, false)}>
+          )}
+          <bem.Button
+            className='primary'
+            onClick={this.saveQS.bind(this, false)}
+          >
             {t('Save')}
           </bem.Button>
         </ui.Modal.Footer>

@@ -12,14 +12,14 @@ import ui from 'js/ui';
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
 import Chart from 'chart.js';
-
+import {getFormDataTabs} from './formViewTabs';
 import {
   formatTime,
   formatDate,
-  stringToColor
+  stringToColor,
 } from 'utils';
 
-import {MODAL_TYPES} from '../constants';
+import {MODAL_TYPES} from 'js/constants';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -245,13 +245,7 @@ class FormSummary extends React.Component {
     );
   }
   renderDataTabs() {
-    const sideTabs = [
-      {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.uid}/data/report`},
-      {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.uid}/data/table`},
-      {label: t('Gallery'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.uid}/data/gallery`},
-      {label: t('Downloads'), icon: 'k-icon-download', path: `/forms/${this.state.uid}/data/downloads`},
-      {label: t('Map'), icon: 'k-icon-map-view', path: `/forms/${this.state.uid}/data/map`},
-    ];
+    const sideTabs = getFormDataTabs(this.state.uid, stores.session.isLoggedIn);
 
     return (
       <bem.FormView__cell m='data-tabs'>
@@ -263,10 +257,11 @@ class FormSummary extends React.Component {
             onlyActiveOnIndex
             className='form-view__tab'
             data-path={item.path}
-            onClick={this.triggerRefresh}>
-              <i className={`k-icon ${item.icon}`} />
-              {item.label}
-              <i className='k-icon k-icon-next' />
+            onClick={this.triggerRefresh}
+          >
+            <i className={`k-icon ${item.icon}`} />
+            {item.label}
+            <i className='k-icon k-icon-next' />
           </Link>
         )}
       </bem.FormView__cell>

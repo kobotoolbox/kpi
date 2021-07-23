@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import React from 'react';
-import PropTypes from 'prop-types';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import Select from 'react-select';
@@ -8,12 +7,10 @@ import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
 import Radio from 'js/components/common/radio';
 import {bem} from 'js/bem';
-import ui from 'js/ui';
 import {actions} from 'js/actions';
-import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import {notify} from 'utils';
-import {SUBMISSION_LINKS_ID} from 'js/components/table';
+import {SUBMISSION_ACTIONS_ID} from 'js/components/submissions/table';
 
 export class TableColumnFilter extends React.Component {
   constructor(props){
@@ -23,23 +20,27 @@ export class TableColumnFilter extends React.Component {
       frozenColumn: false,
       showGroupName: true,
       showHXLTags: false,
-      translationIndex: 0
+      translationIndex: 0,
     };
 
     let _sett = props.asset.settings;
     if (_sett['data-table']) {
-      if (_sett['data-table']['selected-columns'] !== null)
+      if (_sett['data-table']['selected-columns'] !== null) {
         this.state.selectedColumns = _sett['data-table']['selected-columns'];
+      }
       if (typeof _sett['data-table']['frozen-column'] !== 'undefined') {
         const cols = this.listColumns();
-        this.state.frozenColumn = _.find(cols, (col) => {return col.value === _sett['data-table']['frozen-column']});
+        this.state.frozenColumn = _.find(cols, (col) => col.value === _sett['data-table']['frozen-column']);
       }
-      if (typeof _sett['data-table']['show-group-name'] !== 'undefined')
+      if (typeof _sett['data-table']['show-group-name'] !== 'undefined') {
         this.state.showGroupName = _sett['data-table']['show-group-name'];
-      if (typeof _sett['data-table']['translation-index'] !== 'undefined')
+      }
+      if (typeof _sett['data-table']['translation-index'] !== 'undefined') {
         this.state.translationIndex = _sett['data-table']['translation-index'];
-      if (typeof _sett['data-table']['show-hxl-tags'] !== 'undefined')
+      }
+      if (typeof _sett['data-table']['show-hxl-tags'] !== 'undefined') {
         this.state.showHXLTags = _sett['data-table']['show-hxl-tags'];
+      }
     }
 
     autoBind(this);
@@ -63,11 +64,11 @@ export class TableColumnFilter extends React.Component {
 
       actions.table.updateSettings(this.props.asset.uid, settings);
     } else {
-      console.log('just update the state, since user cannot save settings');
+      // just update the state, since user cannot save settings
       let overrides = {
         showGroupName: s.showGroupName,
-        translationIndex: s.translationIndex
-      }
+        translationIndex: s.translationIndex,
+      };
 
       this.props.overrideLabelsAndGroups(overrides);
     }
@@ -82,47 +83,38 @@ export class TableColumnFilter extends React.Component {
       selectedColumns.push(columnId);
     }
 
-    this.setState({
-      selectedColumns: selectedColumns
-    })
+    this.setState({selectedColumns: selectedColumns});
   }
   setFrozenColumn(col) {
-    this.setState({
-      frozenColumn: col ? col : false
-    })
+    this.setState({frozenColumn: col ? col : false});
   }
   updateGroupHeaderDisplay(isChecked) {
-    this.setState({
-      showGroupName: isChecked
-    })
+    this.setState({showGroupName: isChecked});
   }
   onHXLTagsChange(isChecked) {
-    this.setState({
-      showHXLTags: isChecked
-    })
+    this.setState({showHXLTags: isChecked});
   }
   onLabelChange(name, value) {
-    this.setState({
-      translationIndex: parseInt(value)
-    })
+    this.setState({translationIndex: parseInt(value)});
   }
   settingsUpdateFailed() {
     notify(t('There was an error, table settings could not be saved.'));
   }
   resetTableSettings() {
     let settings = this.props.asset.settings;
-    if (settings['data-table'])
+    if (settings['data-table']) {
       delete settings['data-table'];
+    }
 
     actions.table.updateSettings(this.props.asset.uid, settings);
   }
   listColumns() {
     let stateOverrides = {
       showGroupName: this.state.showGroupName,
-      translationIndex: this.state.translationIndex
-    }
+      translationIndex: this.state.translationIndex,
+    };
     let colsArray = this.props.columns.reduce((acc, col) => {
-      if (col.id && col.id !== SUBMISSION_LINKS_ID && col.id !== '__SubmissionCheckbox') {
+      if (col.id && col.id && col.id !== SUBMISSION_ACTIONS_ID) {
         let qParentGroup = [];
         if (col.id.includes('/')) {
           qParentGroup = col.id.split('/');
@@ -130,24 +122,19 @@ export class TableColumnFilter extends React.Component {
 
         acc.push({
           value: col.id,
-          label: this.props.getColumnLabel(col.id, col.question, qParentGroup, stateOverrides)
+          label: this.props.getColumnLabel(col.id, col.question, qParentGroup, stateOverrides),
         });
       }
       return acc;
     }, []);
 
-    colsArray.unshift({
-      value: SUBMISSION_LINKS_ID,
-      label: t('Submission links')
-    });
-
     return colsArray;
   }
-  getDisplayedLabelOptions () {
+  getDisplayedLabelOptions() {
     const options = [];
     options.push({
       value: -1,
-      label: t('XML Values')
+      label: t('XML Values'),
     });
     this.props.asset.content.translations.map((trns, n) => {
       let label = t('Labels');
@@ -156,12 +143,12 @@ export class TableColumnFilter extends React.Component {
       }
       options.push({
         value: n,
-        label: label
+        label: label,
       });
     });
     return options;
   }
-  render () {
+  render() {
     let _this = this;
 
     return (
@@ -215,7 +202,7 @@ export class TableColumnFilter extends React.Component {
                 <span>{t('All columns are visible by default')}</span>
               </bem.FormView__cell>
               <ul>
-                {this.listColumns().map(function(col) {
+                {this.listColumns().map(function (col) {
                   return (
                     <li key={col.value}>
                       <Checkbox
@@ -243,7 +230,7 @@ export class TableColumnFilter extends React.Component {
         </bem.Modal__footer>
 
       </div>
-    )
+    );
   }
 }
 

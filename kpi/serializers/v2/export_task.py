@@ -1,4 +1,6 @@
 # coding: utf-8
+from typing import Optional
+
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
 from rest_framework.request import Request
@@ -10,6 +12,7 @@ from formpack.constants import (
     EXPORT_SETTING_GROUP_SEP,
     EXPORT_SETTING_HIERARCHY_IN_LABELS,
     EXPORT_SETTING_LANG,
+    EXPORT_SETTING_NAME,
     EXPORT_SETTING_MULTIPLE_SELECT,
     EXPORT_SETTING_SOURCE,
     EXPORT_SETTING_TYPE,
@@ -23,6 +26,7 @@ from formpack.constants import (
 
 from kpi.fields import ReadOnlyJSONField
 from kpi.models import ExportTask, Asset
+from kpi.models.object_permission import get_anonymous_user
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
 
@@ -53,8 +57,11 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data: dict) -> ExportTask:
         # Create a new export task
+        user = self._get_request.user
+        if user.is_anonymous:
+            user = get_anonymous_user()
         export_task = ExportTask.objects.create(
-            user=self._get_request.user, data=validated_data
+            user=user, data=validated_data
         )
         # Have Celery run the export in the background
         export_in_background.delay(export_task_uid=export_task.uid)
@@ -75,6 +82,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             data_
         )
         attrs[EXPORT_SETTING_SOURCE] = self.validate_source()
+        attrs[EXPORT_SETTING_NAME] = self.validate_name(data_)
         attrs[EXPORT_SETTING_TYPE] = self.validate_type(data_)
 
         if EXPORT_SETTING_FIELDS in data_:
@@ -181,6 +189,19 @@ class ExportTaskSerializer(serializers.ModelSerializer):
             kwargs={'uid': self._get_asset.uid},
             request=self._get_request,
         )
+
+    def validate_name(self, data: dict) -> Optional[str]:
+        name = data.get(EXPORT_SETTING_NAME)
+
+        # Allow name to be empty
+        if name is None:
+            return
+
+        if not isinstance(name, str):
+            raise serializers.ValidationError(
+                {EXPORT_SETTING_NAME: _('The export name must be a string.')}
+            )
+        return name
 
     def validate_type(self, data: dict) -> str:
         export_type = data[EXPORT_SETTING_TYPE]

@@ -2,6 +2,19 @@
  * A list of all shareable constants for the application.
  */
 
+/**
+ * An enum creator function. Will create a frozen object of `foo: "foo"` pairs.
+ * Will make sure the returned values are unique.
+ *
+ * @param {string[]} values
+ * @returns {object}
+ */
+export function createEnum(values) {
+  const newEnum = {};
+  new Set(values).forEach((value) => {newEnum[value] = value;});
+  return Object.freeze(newEnum);
+}
+
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs
@@ -28,8 +41,7 @@ export const ANON_USERNAME = 'AnonymousUser';
  * NOTE: to know what these permissions permit see `kpi/permissions.py` file,
  * where you have to match the classes with endpoints and their HTTP methods.
  */
-export const PERMISSIONS_CODENAMES = {};
-new Set([
+export const PERMISSIONS_CODENAMES = createEnum([
   'view_asset',
   'change_asset',
   'discover_asset',
@@ -40,8 +52,12 @@ new Set([
   'change_submissions',
   'delete_submissions',
   'validate_submissions',
-]).forEach((codename) => {PERMISSIONS_CODENAMES[codename] = codename;});
-Object.freeze(PERMISSIONS_CODENAMES);
+]);
+
+export const ENKETO_ACTIONS = createEnum([
+  'edit',
+  'view',
+])
 
 export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
@@ -77,12 +93,12 @@ export const MODAL_TYPES = {
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
 };
 
-export const PROJECT_SETTINGS_CONTEXTS = {
+export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
   NEW: 'newForm',
   EXISTING: 'existingForm',
   REPLACE: 'replaceProject',
   BUILDER: 'formBuilderAside',
-};
+});
 
 export const update_states = {
   UNSAVED_CHANGES: -1,
@@ -107,7 +123,7 @@ export const VALIDATION_STATUSES = {
   },
   validation_status_not_approved: {
     value: 'validation_status_not_approved',
-    label: t('Not Approved'),
+    label: t('Not approved'),
   },
   validation_status_approved: {
     value: 'validation_status_approved',
@@ -115,7 +131,7 @@ export const VALIDATION_STATUSES = {
   },
   validation_status_on_hold: {
     value: 'validation_status_on_hold',
-    label: t('On Hold'),
+    label: t('On hold'),
   },
 };
 
@@ -149,6 +165,32 @@ export const ASSET_TYPES = {
   },
 };
 
+export const ASSET_FILE_TYPES = {
+  map_layer: {
+    id: 'map_layer',
+    label: t('map layer'),
+  },
+  form_media: {
+    id: 'form_media',
+    label: t('form media'),
+  },
+};
+
+/**
+ * When adding new question type please remember to update those places:
+ * 1. Add question type here
+ * 2. Add new SVG icon to jsapp/svg-icons
+ * 3. Add icon to row view.icons.coffee
+ * 4. If it's non-regular type, you might need to update:
+ *   - isRowSpecialLabelHolder in assetUtils.es6
+ *   - renderQuestionTypeIcon in assetUtils.es6
+ * 5. If question doesn't hold data, update:
+ *   - getDisplayData in bulkEditSubmissionsForm.es6
+ *   - getDisplayedColumns in table.es6
+ * 6. Update renderResponseData in submissionDataTable.es6
+ * 7. Update getSubmissionDisplayData in submissionUtils.es6
+ * 8. If it's media type update renderAttachment in submissionDataTable.es6
+ */
 export const QUESTION_TYPES = Object.freeze({
   acknowledge: {label: t('Acknowledge'), icon: 'qt-acknowledge', id: 'acknowledge'},
   audio: {label: t('Audio'), icon: 'qt-audio', id: 'audio'},
@@ -177,8 +219,7 @@ export const QUESTION_TYPES = Object.freeze({
   video: {label: t('Video'), icon: 'qt-video', id: 'video'},
 });
 
-export const META_QUESTION_TYPES = {};
-new Set([
+export const META_QUESTION_TYPES = createEnum([
   'start',
   'end',
   'today',
@@ -188,14 +229,13 @@ new Set([
   'deviceid',
   'phonenumber',
   'audit',
-]).forEach((codename) => {META_QUESTION_TYPES[codename] = codename;});
-Object.freeze(META_QUESTION_TYPES);
+  'background-audio',
+]);
 
 // submission data extras being added by backend. see both of these:
 // 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
 // 2. https://github.com/kobotoolbox/kpi/blob/7db39015866c905edc645677d72b9c1ea16067b1/jsapp/js/constants.es6#L284-L294
-export const ADDITIONAL_SUBMISSION_PROPS = {};
-new Set([
+export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   // match the ordering of (Python) kpi.models.import_export_task.ExportTask.COPY_FIELDS
   '_id',
   '_uuid',
@@ -205,8 +245,35 @@ new Set([
   '_status',
   '_submitted_by',
   '_tags',
-]).forEach((codename) => {ADDITIONAL_SUBMISSION_PROPS[codename] = codename;});
-Object.freeze(ADDITIONAL_SUBMISSION_PROPS);
+]);
+
+/**
+ * Submission data that has numerical values. Useful for displaying data with
+ * monospaced font. This includes QUESTION_TYPES, META_QUESTION_TYPES and
+ * ADDITIONAL_SUBMISSION_PROPS.
+ */
+export const NUMERICAL_SUBMISSION_PROPS = createEnum([
+  QUESTION_TYPES.barcode.id,
+  QUESTION_TYPES.date.id,
+  QUESTION_TYPES.datetime.id,
+  QUESTION_TYPES.decimal.id,
+  QUESTION_TYPES.geopoint.id,
+  QUESTION_TYPES.geoshape.id,
+  QUESTION_TYPES.geotrace.id,
+  QUESTION_TYPES.integer.id,
+  QUESTION_TYPES.score.id,
+  QUESTION_TYPES.time.id,
+  META_QUESTION_TYPES.start,
+  META_QUESTION_TYPES.end,
+  META_QUESTION_TYPES.today,
+  META_QUESTION_TYPES.simserial,
+  META_QUESTION_TYPES.subscriberid,
+  META_QUESTION_TYPES.deviceid,
+  META_QUESTION_TYPES.phonenumber,
+  ADDITIONAL_SUBMISSION_PROPS._id,
+  ADDITIONAL_SUBMISSION_PROPS._uuid,
+  ADDITIONAL_SUBMISSION_PROPS._submission_time,
+]);
 
 export const NAME_MAX_LENGTH = 255;
 
@@ -225,34 +292,28 @@ export const COMMON_QUERIES = Object.freeze({
   qbtc: '(asset_type:question OR asset_type:block OR asset_type:template OR asset_type:collection)',
 });
 
-export const ACCESS_TYPES = {};
-new Set([
+export const ACCESS_TYPES = createEnum([
   'owned',
   'shared',
   'public',
   'subscribed',
-]).forEach((codename) => {ACCESS_TYPES[codename] = codename;});
-Object.freeze(ACCESS_TYPES);
+]);
 
-export const GROUP_TYPES_BEGIN = {};
-new Set([
+export const GROUP_TYPES_BEGIN = createEnum([
   'begin_group',
   'begin_score',
   'begin_rank',
   'begin_kobomatrix',
   'begin_repeat',
-]).forEach((kind) => {GROUP_TYPES_BEGIN[kind] = kind;});
-Object.freeze(GROUP_TYPES_BEGIN);
+]);
 
-export const GROUP_TYPES_END = {};
-new Set([
+export const GROUP_TYPES_END = createEnum([
   'end_group',
   'end_score',
   'end_rank',
   'end_kobomatrix',
   'end_repeat',
-]).forEach((kind) => {GROUP_TYPES_END[kind] = kind;});
-Object.freeze(GROUP_TYPES_END);
+]);
 
 // a custom question type for score
 export const SCORE_ROW_TYPE = 'score__row';
@@ -280,6 +341,12 @@ export const DEPLOYMENT_CATEGORIES = Object.freeze({
 
 export const QUERY_LIMIT_DEFAULT = 5000;
 
+// List of server routes
+export const PATHS = Object.freeze({
+  LOGIN: '/accounts/login',
+});
+
+// List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ACCOUNT_SETTINGS: '/account-settings',
   CHANGE_PASSWORD: '/change-password',
@@ -301,7 +368,6 @@ export const ROUTES = Object.freeze({
   FORM_LANDING: '/forms/:uid/landing',
   FORM_DATA: '/forms/:uid/data',
   FORM_REPORT: '/forms/:uid/data/report',
-  FORM_REPORT_OLD: '/forms/:uid/data/report-legacy',
   FORM_TABLE: '/forms/:uid/data/table',
   FORM_DOWNLOADS: '/forms/:uid/data/downloads',
   FORM_GALLERY: '/forms/:uid/data/gallery',
@@ -316,6 +382,62 @@ export const ROUTES = Object.freeze({
   FORM_RESET: '/forms/:uid/reset',
 });
 
+export const COLLECTION_METHODS = Object.freeze({
+  offline_url: {
+    id: 'offline_url',
+    label: t('Online-Offline (multiple submission)'),
+    desc: t('This allows online and offline submissions and is the best option for collecting data in the field.'),
+  },
+  url: {
+    id: 'url',
+    label: t('Online-Only (multiple submissions)'),
+    desc: t('This is the best option when entering many records at once on a computer, e.g. for transcribing paper records.'),
+  },
+  single_url: {
+    id: 'single_url',
+    label: t('Online-Only (single submission)'),
+    desc: t('This allows a single submission, and can be paired with the "return_url" parameter to redirect the user to a URL of your choice after the form has been submitted.'),
+  },
+  single_once_url: {
+    id: 'single_once_url',
+    label: t('Online-only (once per respondent)'),
+    desc: t('This allows your web form to only be submitted once per user, using basic protection to prevent the same user (on the same browser & device) from submitting more than once.'),
+  },
+  iframe_url: {
+    id: 'iframe_url',
+    label: t('Embeddable web form code'),
+    desc: t('Use this html5 code snippet to integrate your form on your own website using smaller margins.'),
+  },
+  preview_url: {
+    id: 'preview_url',
+    label: t('View only'),
+    desc: t('Use this version for testing, getting feedback. Does not allow submitting data.'),
+  },
+  android: {
+    id: 'android',
+    label: t('Android application'),
+    desc: t('Use this option to collect data in the field with your Android device.'),
+    url: 'https://play.google.com/store/apps/details?id=org.koboc.collect.android&hl=en',
+  },
+});
+
+
+export const SURVEY_DETAIL_ATTRIBUTES = Object.freeze({
+  value: {
+    id: 'value',
+  },
+  parameters: {
+    id: 'parameters',
+  },
+});
+
+export const FUNCTION_TYPE = Object.freeze({
+  function: {
+    id: 'function',
+  },
+});
+
+// NOTE: The default export is mainly for tests
 const constants = {
   ROOT_URL,
   ANON_USERNAME,
@@ -329,6 +451,7 @@ const constants = {
   VALIDATION_STATUSES,
   VALIDATION_STATUSES_LIST,
   ASSET_TYPES,
+  ASSET_FILE_TYPES,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
@@ -340,9 +463,12 @@ const constants = {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
   DEPLOYMENT_CATEGORIES,
+  PATHS,
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
+  SURVEY_DETAIL_ATTRIBUTES,
+  FUNCTION_TYPE,
 };
 
 export default constants;

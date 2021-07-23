@@ -222,7 +222,7 @@ class AssetActionButtons extends React.Component {
     return (
       <ui.PopoverMenu
         triggerLabel={<i className='k-icon k-icon-more'/>}
-        triggerTip={t('More Actions')}
+        triggerTip={t('More actions')}
         triggerClassName='right-tooltip'
         clearPopover={this.state.shouldHidePopover}
         popoverSetVisible={this.onPopoverSetVisible}
@@ -244,7 +244,7 @@ class AssetActionButtons extends React.Component {
         {userCanEdit && assetType !== ASSET_TYPES.collection.id &&
           <bem.PopoverMenu__link onClick={this.editLanguages}>
             <i className='k-icon k-icon-language'/>
-            {t('Manage Translations')}
+            {t('Manage translations')}
           </bem.PopoverMenu__link>
         }
 
@@ -456,7 +456,7 @@ class AssetActionButtons extends React.Component {
           </bem.AssetActionButtons__iconButton>
         }
 
-        {userCanEdit && assetType === ASSET_TYPES.template.id &&
+        {assetType === ASSET_TYPES.template.id &&
           <bem.AssetActionButtons__iconButton
             onClick={this.cloneAsSurvey}
             data-tip={t('Create project')}

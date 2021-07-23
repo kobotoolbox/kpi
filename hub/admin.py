@@ -2,7 +2,6 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from django.utils.translation import gettext as _
 
 from kpi.deployment_backends.kc_access.utils import delete_kc_users
 from .models import SitewideMessage, ConfigurationFile, PerUserSetting
@@ -41,9 +40,9 @@ class UserDeleteAdmin(UserAdmin):
             # Maybe it still makes sense because KPI users are deleted.
             self.message_user(
                 request,
-                _('Could not delete users in KoBoCAT database. They may own '
-                  'projects and/or submissions. Log into KoBoCAT admin '
-                  'interface and delete them from there.'),
+                'Could not delete users in KoBoCAT database. They may own '
+                'projects and/or submissions. Log into KoBoCAT admin '
+                'interface and delete them from there.',
                 messages.ERROR
             )
 
@@ -67,9 +66,9 @@ class UserDeleteAdmin(UserAdmin):
             # Maybe it still makes sense because KPI user is deleted.
             self.message_user(
                 request,
-                _('Could not delete user in KoBoCAT database. They may own '
-                  'projects and/or submissions. Log into KoBoCAT admin '
-                  'interface and delete them from there.'),
+                'Could not delete user in KoBoCAT database. They may own '
+                'projects and/or submissions. Log into KoBoCAT admin '
+                'interface and delete them from there.',
                 messages.ERROR
             )
 

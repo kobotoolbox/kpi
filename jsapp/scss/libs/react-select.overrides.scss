@@ -41,17 +41,17 @@
   .kobo-select__control {
     box-shadow: none;
     border: none;
-    border-width: 0;
-    border-bottom-width: 1px;
-    border-style: solid;
-    border-color: $kobo-lightgray;
-    border-radius: 0;
+    border-radius: 3px;
+    color: $kobo-gray-40;
     background-color: $kobo-white;
-    transition: border-color 250ms;
+    min-height: 24px;
+    font-size: 12px;
+    padding: 0 8px;
+    box-sizing: border-box;
     cursor: pointer;
 
     &:hover {
-      border-color: $kobo-lightgray;
+      border-color: $kobo-gray-92;
     }
 
     &.kobo-select__control--is-focused {
@@ -67,7 +67,7 @@
   }
 
   .kobo-select__placeholder {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 
   .kobo-select__indicator-separator {
@@ -76,6 +76,7 @@
 
   .kobo-select__menu {
     @include box-shadow;
+    border-radius: 4px;
     // getting select menus to appear over checkboxes
     z-index: 2;
     margin-top: 0;
@@ -102,7 +103,7 @@
 
     // is-focused needs to go after is-selected
     &.kobo-select__option--is-focused {
-      background-color: $kobo-whitegray;
+      background-color: $kobo-gray-96;
     }
   }
 }

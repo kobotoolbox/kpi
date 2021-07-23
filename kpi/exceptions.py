@@ -3,8 +3,20 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions
 
 
-class BadPermissionsException(Exception):
-    pass
+class AbstractMethodError(NotImplementedError):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            'This method should be implemented in subclasses', *args, **kwargs
+        )
+
+
+class AbstractPropertyError(NotImplementedError):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            'This property should be implemented in subclasses', *args, **kwargs
+        )
 
 
 class BadAssetTypeException(Exception):
@@ -19,11 +31,19 @@ class BadFormatException(Exception):
     pass
 
 
-class ImportAssetException(Exception):
+class BadPermissionsException(Exception):
     pass
 
 
-class KobocatProfileException(Exception):
+class DeploymentDataException(Exception):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            'Cannot alter `_deployment_data` directly', *args, **kwargs
+        )
+
+
+class ImportAssetException(Exception):
     pass
 
 
@@ -33,9 +53,17 @@ class InvalidSearchException(exceptions.APIException):
     default_code = 'invalid_search'
 
 
-class SearchQueryTooShortException(InvalidSearchException):
-    default_detail = _('Your query is too short')
-    default_code = 'query_too_short'
+class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
+    # This is message should be overridden with something more specific
+    default_detail = _('Invalid payload for bulk updating of submissions')
+    default_code = 'bulk_update_submissions_client_error'
+
+
+class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
+    status_code = 500
+    default_detail = _(
+        'An error occurred trying to bulk update the submissions.')
+    default_code = 'bulk_update_submissions_error'
 
 
 class KobocatDeploymentException(exceptions.APIException):
@@ -62,16 +90,19 @@ class KobocatDuplicateSubmissionException(exceptions.APIException):
     default_code = 'submission_duplication_error'
 
 
-class KobocatBulkUpdateSubmissionsException(exceptions.APIException):
-    status_code = 500
-    default_detail = _('An error occurred trying to bulk update the submissions.')
-    default_code = 'bulk_update_submissions_error'
+class KobocatProfileException(Exception):
+    pass
 
 
-class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
-    # This is message should be overridden with something more specific
-    default_detail = _('Invalid payload for bulk updating of submissions')
-    default_code = 'bulk_update_submissions_client_error'
+class ReadOnlyModelError(Exception):
+
+    def __init__(self, msg='This model is read only', *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
+
+
+class SearchQueryTooShortException(InvalidSearchException):
+    default_detail = _('Your query is too short')
+    default_code = 'query_too_short'
 
 
 class ObjectDeploymentDoesNotExist(exceptions.APIException):
