@@ -82,7 +82,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
                 'query': '{"_submitted_by": {"$in": ["", "someuser", "another"]}}',
             }
         )
-        # ToDo add more assertions
+        # ToDo add more assertions. E.g. test whether sort, limit, start really work
         self.assertEqual(len(response.data), 5)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

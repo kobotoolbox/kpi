@@ -1142,25 +1142,25 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def __get_submissions_in_json(self, **params):
         """
-        Retrieve instances directly from Mongo.
+        Retrieve submissions directly from Mongo.
 
         :param params: dict. Filter params
         :return: generator<JSON>
         """
-        instances, total_count = MongoHelper.get_instances(
+        mongo_cursor, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params)
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = total_count
 
         return (
-            MongoHelper.to_readable_dict(instance)
-            for instance in instances
+            MongoHelper.to_readable_dict(submission)
+            for submission in mongo_cursor
         )
 
     def __get_submissions_in_xml(self, **params):
         """
-        Retrieves instances directly from Postgres.
+        Retrieves submissions directly from PostgreSQL.
 
         :param params: dict. Filter params
         :return: list<XML>

@@ -52,7 +52,6 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.asset.save()
 
         self.__add_submissions()
-        self.submissions = self.asset.deployment.get_submissions(self.asset.owner)
 
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_list_url = self.asset.deployment.submission_list_url
@@ -87,9 +86,13 @@ class BaseSubmissionTestCase(BaseTestCase):
         letters = string.ascii_letters
         submissions = []
         v_uid = self.asset.latest_deployed_version.uid
+        self.submissions_submitted_by_someuser = []
+        self.submissions_submitted_by_unknown = []
+        self.submissions_submitted_by_anotheruser = []
 
         for i in range(20):
-            submissions.append({
+            submitted_by = random.choice(['', 'someuser', 'anotheruser'])
+            submission = {
                 '__version__': v_uid,
                 'q1': ''.join(random.choice(letters) for l in range(10)),
                 'q2': ''.join(random.choice(letters) for l in range(10)),
@@ -101,9 +104,22 @@ class BaseSubmissionTestCase(BaseTestCase):
                     'color': '#0000ff',
                     'label': 'On Hold'
                 },
-                '_submitted_by': random.choice(['', 'someuser', 'anotheruser'])
-            })
+                '_submitted_by': submitted_by
+            }
+
+            if submitted_by == 'someuser':
+                self.submissions_submitted_by_someuser.append(submission)
+
+            if submitted_by == '':
+                self.submissions_submitted_by_unknown.append(submission)
+
+            if submitted_by == 'anotheruser':
+                self.submissions_submitted_by_anotheruser.append(submission)
+
+            submissions.append(submission)
+
         self.asset.deployment.mock_submissions(submissions)
+        self.submissions = submissions
 
 
 class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
@@ -167,28 +183,44 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
 
-        # Allow anotheruser to delete someuser's data
+        # Allow anotheruser to delete their own data
         self.asset.assign_perm(
             self.anotheruser,
             PERM_PARTIAL_SUBMISSIONS,
             partial_perms=partial_perms,
         )
 
-        # Delete only submissions submitted by someuser
+        # Delete only submissions submitted by anotheruser
         data = {'payload': {'confirm': True}}
         response = self.client.delete(self.submission_bulk_url,
                                       data=data,
                                       format='json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], 0)
 
         # Ensure another only deleted their submissions
-        # Log in as the owner of the project: `someuser`
+        # Log in as the owner of the project: `someuser`. They can retrieve all
+        # submissions
         self.login_as_other_user('someuser', 'someuser')
         response = self.client.get(self.submission_list_url, {'format': 'json'})
-        for submission in response.data['results']:
-            self.assertNotEqual(submission['_submitted_by'], 'anotheruser')
+
+        unknown_submission_ids = [
+            sub['_id'] for sub in self.submissions_submitted_by_unknown
+        ]
+        someuser_submission_ids = [
+            sub['_id'] for sub in self.submissions_submitted_by_someuser
+        ]
+        submission_ids = [sub['_id'] for sub in response.data['results']]
+        not_anotheruser_submission_ids = [
+            int(id_) for id_ in (unknown_submission_ids + someuser_submission_ids)
+        ]
+        # Results should contain only data submitted by unknown and someuser
+        self.assertEqual(
+            sorted(not_anotheruser_submission_ids),
+            sorted(submission_ids)
+        )
 
     def test_delete_some_allowed_submissions_with_partial_perms_as_anotheruser(self):
         self._log_in_as_another_user()
@@ -196,7 +228,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
             PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
 
-        # Allow anotheruser to delete someuser's data
+        # Allow anotheruser to delete their own data
         self.asset.assign_perm(
             self.anotheruser,
             PERM_PARTIAL_SUBMISSIONS,
@@ -215,7 +247,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
                                       format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Try second submission submitted by someuser
+        # Try second submission submitted by anotheruser
         count = self._deployment.calculated_submission_count(self.anotheruser)
         random_submissions = self.get_random_submissions(self.anotheruser, 3)
         data = {
@@ -270,7 +302,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                 'query': '{"_submitted_by": {"$in": ["", "someuser", "another"]}}',
             }
         )
-        # ToDo add more assertions
+        # ToDo add more assertions. E.g. test whether sort, limit, start really work
         self.assertEqual(len(response.data['results']), 5)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -325,7 +357,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
     def test_list_submissions_with_partial_permissions_as_anotheruser(self):
         self._log_in_as_another_user()
         partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
+            PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
         response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -335,24 +367,12 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Calculate number of submissions that matches partial permissions
-        # condition.
-        all_submissions = self._deployment.get_submissions(self.asset.owner)
-        viewable_submissions_count = 0
-        for submission in all_submissions:
-            if {'_submitted_by': submission['_submitted_by']} in partial_perms[
-                PERM_VIEW_SUBMISSIONS
-            ]:
-                viewable_submissions_count += 1
-
         # User `anotheruser` should only see submissions where `submitted_by`
-        # is filled up and equals to `someuser`
+        # is filled in and equals to `anotheruser`
+        viewable_submissions_count = len(self.submissions_submitted_by_anotheruser)
         self.assertTrue(response.data.get('count') == viewable_submissions_count)
         for submission in response.data['results']:
-            self.assertTrue(
-                {'_submitted_by': submission['_submitted_by']}
-                in partial_perms[PERM_VIEW_SUBMISSIONS]
-            )
+            self.assertTrue(submission['_submitted_by'] == 'anotheruser')
 
     def test_list_submissions_as_anonymous(self):
         self.client.logout()
@@ -479,6 +499,11 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_list_url, {'format': 'json'})
 
         self.assertEqual(response.data['count'], len(self.submissions) - 1)
+
+    def test_delete_not_existing_submission_as_owner(self):
+        url = self.asset.deployment.get_submission_detail_url(9999)
+        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_as_anonymous(self):
         self.client.logout()
@@ -774,7 +799,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
 
         partial_perms = {
-            PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
+            PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
         }
 
         # Allow anotheruser to duplicate someuser's data
@@ -783,24 +808,20 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
             PERM_PARTIAL_SUBMISSIONS,
             partial_perms=partial_perms,
         )
-        self.asset.assign_perm(
-            self.anotheruser,
-            PERM_ADD_SUBMISSIONS,
-        )
 
-        # Try first submission submitted by unknown
-        submission = self.get_random_submission(self.asset.owner)
-        url = reverse(
-            self._get_endpoint('submission-duplicate'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'pk': submission['_id'],
-            },
-        )
-        response = self.client.post(url, {'format': 'json'})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        # # Try first submission submitted by unknown
+        # submission = self.get_random_submission(self.asset.owner)
+        # url = reverse(
+        #     self._get_endpoint('submission-duplicate'),
+        #     kwargs={
+        #         'parent_lookup_asset': self.asset.uid,
+        #         'pk': submission['_id'],
+        #     },
+        # )
+        # response = self.client.post(url, {'format': 'json'})
+        # self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        # Try second submission submitted by someuser
+        # Try second submission submitted by anotheruser
         submission = self.get_random_submission(self.anotheruser)
         url = reverse(
             self._get_endpoint('submission-duplicate'),

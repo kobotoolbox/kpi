@@ -22,7 +22,6 @@ from kpi.constants import (
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.jsonbfield_helper import ReplaceValues
-from kpi.utils.iterators import to_int
 
 
 class BaseDeploymentBackend(abc.ABC):
@@ -493,7 +492,7 @@ class BaseDeploymentBackend(abc.ABC):
         if not requested_submission_ids:
             raise PermissionDenied
 
-        submission_ids = to_int(submission_ids, unique=True)
+        submission_ids = [int(id_) for id_ in set(submission_ids)]
         if (
             (allowed_submission_ids
              and set(requested_submission_ids).issubset(allowed_submission_ids))
