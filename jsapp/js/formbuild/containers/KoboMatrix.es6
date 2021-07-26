@@ -352,7 +352,7 @@ class KoboMatrix extends React.Component {
   }
 
   newChoiceOption(e) {
-    var data = this.state.data;
+    let data = this.state.data;
     let listName = null;
     if (e && e.target) {
       listName = e.target.getAttribute('data-list-name');
@@ -429,7 +429,7 @@ class KoboMatrix extends React.Component {
       message: t('Are you sure you want to delete this column? This action cannot be undone.'),
       labels: {ok: t('Delete'), cancel: t('Cancel')},
       onok: () => {
-        data = data.update('cols', (cols) => cols.filterNot((x) => x === colKuid));
+        data = data.update('cols', (cols) => cols.filterNot((col) => col === colKuid));
         _this.setState({data: data, expandedColKuid: false});
         _this.toLocalStorage(data);
       },
