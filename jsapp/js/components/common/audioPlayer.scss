@@ -8,8 +8,8 @@
 }
 
 // In order for the hack fix to work, we have to hard code the slider length
-$hack-fix-slider-length: 300px;
 $hack-fix-slider-length-int: 300;
+$hack-fix-slider-length: #{$hack-fix-slider-length-int}px;
 
 
 /* HACK FIX: Chrome browsers et al don't have a `progress` pseudo class like
@@ -43,7 +43,7 @@ $hack-fix-slider-length-int: 300;
       }
     }
 
-    i.k-icon-caret-right, .k-icon-pause {
+    i.k-icon-caret-right, i.k-icon-pause {
       color: $kobo-blue;
     }
   }

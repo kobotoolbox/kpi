@@ -35,6 +35,7 @@ import {
 import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from './tableBulkOptions';
 import TableBulkCheckbox from './tableBulkCheckbox';
+import MediaCell from './mediaCell';
 
 // Columns that will be ALWAYS excluded from the view
 const EXCLUDED_COLUMNS = [
@@ -548,7 +549,13 @@ export class DataTable extends React.Component {
           if (showLabels && q && q.type && row.value) {
             if (TABLE_MEDIA_TYPES.includes(q.type)) {
               var mediaURL = this.getMediaDownloadLink(row, row.value);
-              return this.renderMediaCell(q.type, mediaURL, row.value);
+              return (
+                <MediaCell
+                  questionType={q.type}
+                  mediaURL={mediaURL}
+                  mediaName={row.value}
+                />
+              );
             }
             // show proper labels for choice questions
             if (q.type === QUESTION_TYPES.select_one.id) {

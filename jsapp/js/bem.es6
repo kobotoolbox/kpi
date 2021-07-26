@@ -377,8 +377,4 @@ bem.BackgroundAudioPlayer = BEM('background-audio-player');
 bem.BackgroundAudioPlayer__label = bem.BackgroundAudioPlayer.__('label', '<label>');
 bem.BackgroundAudioPlayer__audio = bem.BackgroundAudioPlayer.__('audio', '<audio>');
 
-bem.MediaCell = BEM('media-cell');
-bem.MediaCell__icon = bem.MediaCell.__('icon', '<i>');
-bem.MediaCell__duration = bem.MediaCell.__('duration', '<label>');
-
 bem.create = BEM;

@@ -27,27 +27,28 @@ class AudioPlayer extends React.Component {
       isPlaying: false,
       currentTime: 0,
       totalTime: 0,
-      audioInterface: new Audio(props.mediaURL),
     };
 
+    this.audioInterface = new Audio(this.props.mediaURL);
+
     // Set up listeners for audio component
-    this.state.audioInterface.onloadedmetadata = () => {
+    this.audioInterface.onloadedmetadata = () => {
       this.setState({
-        totalTime: this.state.audioInterface.duration,
+        totalTime: this.audioInterface.duration,
       });
     };
 
-    this.state.audioInterface.ontimeupdate = () => {
+    this.audioInterface.ontimeupdate = () => {
       // Pause the player when it reaches the end
       if (
-        this.state.audioInterface.currentTime === this.state.totalTime &&
+        this.audioInterface.currentTime === this.state.totalTime &&
         this.state.isPlaying
       ) {
         this.onPlayStatusChange();
       }
 
       this.setState({
-        currentTime: this.state.audioInterface.currentTime,
+        currentTime: this.audioInterface.currentTime,
       });
     };
 
@@ -56,9 +57,9 @@ class AudioPlayer extends React.Component {
 
   onPlayStatusChange() {
     if (!this.state.isPlaying) {
-      this.state.audioInterface.play();
+      this.audioInterface.play();
     } else {
-      this.state.audioInterface.pause();
+      this.audioInterface.pause();
     }
 
     this.setState({
@@ -69,7 +70,7 @@ class AudioPlayer extends React.Component {
   onSeekChange(newVal) {
     const newTime = newVal.currentTarget.value;
 
-    this.state.audioInterface.currentTime = newTime;
+    this.audioInterface.currentTime = newTime;
 
     this.setState({
       currentTime: parseInt(newTime),
@@ -93,23 +94,26 @@ class AudioPlayer extends React.Component {
     return minutes + ':' + seconds;
   }
 
+  getControlIcon(isPlaying) {
+    const iconClassNames = ['k-icon'];
+
+    if (isPlaying) {
+      iconClassNames.push('k-icon-pause');
+    } else {
+      iconClassNames.push('k-icon-caret-right');
+    }
+
+    return iconClassNames.join(' ');
+  }
+
   render() {
     return (
       <bem.AudioPlayer>
         <bem.AudioPlayer__controls>
-          {this.state.isPlaying && (
-            <i
-              className='k-icon k-icon-pause'
-              onClick={this.onPlayStatusChange}
-            />
-          )}
-
-          {!this.state.isPlaying && (
-            <i
-              className='k-icon k-icon-caret-right'
-              onClick={this.onPlayStatusChange}
-            />
-          )}
+          <i
+            className={this.getControlIcon(this.state.isPlaying)}
+            onClick={this.onPlayStatusChange}
+          />
         </bem.AudioPlayer__controls>
 
         <bem.AudioPlayer__progress>

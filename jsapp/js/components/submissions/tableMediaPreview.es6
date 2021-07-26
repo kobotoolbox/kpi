@@ -14,6 +14,14 @@ bem.TableMediaPreview__audio = bem.TableMediaPreview.__('audio', '<div>');
 bem.TableMediaPreview__video = bem.TableMediaPreview.__('video', '<video>');
 
 
+/**
+ * The crossroads for selecting the skeletons of table media preview modals
+ *
+ * @prop {string} questionType
+ * @prop {string} mediaURL - Backend stored media attachment URL
+ * @prop {string} mediaName - Backend stored media attachment file name
+ *
+ */
 class TableMediaPreview extends React.Component {
   constructor(props) {
     super(props);
