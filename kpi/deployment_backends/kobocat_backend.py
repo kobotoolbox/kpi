@@ -26,6 +26,7 @@ from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
@@ -525,9 +526,12 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         Get URLs of the submission from KoBoCAT through proxy
         """
+        partial_perm = (PERM_CHANGE_SUBMISSIONS
+                        if action_ == 'edit' else PERM_VIEW_SUBMISSIONS)
+
         submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
-            perm=PERM_CHANGE_SUBMISSIONS,
+            perm=partial_perm,
             submission_ids=[submission_id],
         )
 

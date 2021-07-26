@@ -334,21 +334,20 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[EditSubmissionPermission],
-        url_path='enketo(?:/(?P<action_>(edit)))?',
+        url_path='enketo(?:/edit)?',
     )
-    def enketo_edit(self, request, pk, action_, *args, **kwargs):
-        action_ = action_ or 'edit'
-        return self._enketo_request(request, pk, action_, *args, **kwargs)
+    def enketo_edit(self, request, pk, *args, **kwargs):
+        return self._enketo_request(request, pk, action_='edit', *args, **kwargs)
 
     @action(
         detail=True,
         methods=['GET'],
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[ViewSubmissionPermission],
-        url_path='enketo/(?P<action_>(view))',
+        url_path='enketo/view',
     )
-    def enketo_view(self, request, pk, action_, *args, **kwargs):
-        return self._enketo_request(request, pk, action_, *args, **kwargs)
+    def enketo_view(self, request, pk, *args, **kwargs):
+        return self._enketo_request(request, pk, action_='view', *args, **kwargs)
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is

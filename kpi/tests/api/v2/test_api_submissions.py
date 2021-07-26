@@ -230,7 +230,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], 0)
 
-        # Ensure another only deleted their submissions
+        # Ensure anotheruser only deleted their submissions
         # Log in as the owner of the project: `someuser`. They can retrieve all
         # submissions
         self.login_as_other_user('someuser', 'someuser')
@@ -304,7 +304,7 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         someuser is the owner of the project
         anotheruser is allowed to view someuser's data and delete their own data
 
-        Test that another cannot delete someuser's data
+        Test that anotheruser cannot delete someuser's data
         """
         self._log_in_as_another_user()
         partial_perms = {
@@ -781,7 +781,6 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
-                'action_': 'edit',
             },
         )
         self.submission_url_legacy = reverse(
@@ -790,18 +789,18 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
-        )
+        ).replace('edit/', '')
 
     def test_get_legacy_edit_link_submission_as_owner(self):
         """
         someuser is the owner of the project.
-        someuser can retrieve enketo edit link
+        someuser can retrieve enketo edit link through old API endpoint
         """
         response = self.client.get(self.submission_url_legacy, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': 'http://server.mock/enketo/{}'.format(self.submission['_id'])
+            'url': 'http://server.mock/enketo/edit/{}'.format(self.submission['_id'])
         }
         assert response.data == expected_response
 
@@ -813,7 +812,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
-        url = f"http://server.mock/enketo/{self.submission['_id']}"
+        url = f"http://server.mock/enketo/edit/{self.submission['_id']}"
         expected_response = {'url': url}
         self.assertEqual(response.data, expected_response)
 
@@ -884,7 +883,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         # Try first submission submitted by unknown
         submission = self.get_random_submission(self.asset.owner)
         url = reverse(
-            self._get_endpoint('submission-edit'),
+            self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': submission['_id'],
@@ -896,7 +895,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         # Try second submission submitted by anotheruser
         submission = self.get_random_submission(self.anotheruser)
         url = reverse(
-            self._get_endpoint('submission-edit'),
+            self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': submission['_id'],
@@ -904,7 +903,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         )
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        url = f"http://server.mock/enketo/{submission['_id']}"
+        url = f"http://server.mock/enketo/edit/{submission['_id']}"
         expected_response = {'url': url}
         self.assertEqual(response.data, expected_response)
 
@@ -915,11 +914,10 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         super().setUp()
         self.submission = self.get_random_submission(self.asset.owner)
         self.submission_view_link_url = reverse(
-            'submission-enketo-view',
+            self._get_endpoint('submission-enketo-view'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
-                'action_': 'view'
             },
         )
 
@@ -932,7 +930,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': 'http://server.mock/enketo/{}'.format(self.submission['_id'])
+            'url': 'http://server.mock/enketo/view/{}'.format(self.submission['_id'])
         }
         assert response.data == expected_response
 
@@ -969,7 +967,6 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
-    # FIXME when merging kpi#3358
     def test_get_view_link_with_partial_perms_as_anotheruser(self):
         """
         someuser is the owner of the project.
@@ -989,14 +986,12 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         )
 
         # Try first submission submitted by unknown
-        submission = self.get_random_submission(self.asset.owner)
+        submission = self.submissions_submitted_by_unknown[0]
         url = reverse(
-            self._get_endpoint('submission-enketo-edit'),
             self._get_endpoint('submission-enketo-view'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': submission['_id'],
-                'action': 'view'
             },
         )
 
@@ -1004,18 +999,17 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Try second submission submitted by anotheruser
-        submission = self.get_random_submission(self.anotheruser)
+        submission = self.submissions_submitted_by_anotheruser[0]
         url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.submission['_id'],
-                'action': 'view'
+                'pk': submission['_id'],
             },
         )
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        url = f"http://server.mock/enketo/{submission['_id']}"
+        url = f"http://server.mock/enketo/view/{submission['_id']}"
         expected_response = {'url': url}
         self.assertEqual(response.data, expected_response)
 
