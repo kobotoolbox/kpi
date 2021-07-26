@@ -12,10 +12,10 @@ from kpi.fields import WritableJSONField
 
 class DataBulkActionsValidator(serializers.Serializer):
     """
-    The purpose of this class is to benefit of DRF validation mechanism
+    The purpose of this class is to benefit from the DRF validation mechanism
     without reinventing the wheel.
-    It uses to validate the bulk actions payload and to pass correctly formatted
-    dictionary to the deployment back end.
+    It is used to validate the bulk actions payload and to pass a correctly
+    formatted dictionary to the deployment back end.
     """
     payload = WritableJSONField()
 

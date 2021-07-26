@@ -1342,7 +1342,7 @@ class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.data, expected_response)
 
         # Get all submissions and ensure only the ones that anotheruser is
-        # allowed to edit have been modified to edit are modified
+        # allowed to edit have been modified
         self.client.logout()
         self.client.login(username="someuser", password="someuser")
         response = self.client.get(self.submission_list_url)
