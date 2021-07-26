@@ -306,7 +306,6 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
 
         Test that another cannot delete someuser's data
         """
-        # FIXME when merging kpi#3358
         self._log_in_as_another_user()
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': 'someuser'}],
@@ -330,12 +329,6 @@ class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_ids = [int(sub['_id']) for sub in response.data['results']]
         self.assertEqual(sorted(response_ids), sorted(viewable_submission_ids))
-
-        data = {
-            'payload': {
-                'submission_ids': viewable_submission_ids
-            }
-        }
 
         # Try to delete all viewable submissions
         data = {
@@ -976,6 +969,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_view_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
+    # FIXME when merging kpi#3358
     def test_get_view_link_with_partial_perms_as_anotheruser(self):
         """
         someuser is the owner of the project.
