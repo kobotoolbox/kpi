@@ -63,9 +63,9 @@ class ApiHookTestCase(HookTestCase):
                       content_type="application/json")
         hook_signal_url = reverse("hook-signal-list", kwargs={"parent_lookup_asset": self.asset.uid})
 
-        submissions = self.asset.deployment.get_submissions(self.asset.owner.id)
-        data = {"instance_id": submissions[0].get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME)}
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        data = {'submission_id': submissions[0].get(
+            self.asset.deployment.SUBMISSION_ID_FIELDNAME)}
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
@@ -83,7 +83,7 @@ class ApiHookTestCase(HookTestCase):
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
 
-        data = {'instance_id': 4}  # Instance doesn't belong to `self.asset`
+        data = {'submission_id': 4}  # Instance doesn't belong to `self.asset`
         response = self.client.post(hook_signal_url, data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -239,14 +239,14 @@ class ApiHookTestCase(HookTestCase):
                                  payload_template=payload_template)
 
         ServiceDefinition = hook.get_service_definition()
-        submissions = self.asset.deployment.get_submissions(self.asset.owner.id)
-        instance_id = submissions[0].get(self.asset.deployment.INSTANCE_ID_FIELDNAME)
-        service_definition = ServiceDefinition(hook, instance_id)
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        submission_id = submissions[0].get(self.asset.deployment.SUBMISSION_ID_FIELDNAME)
+        service_definition = ServiceDefinition(hook, submission_id)
 
         def request_callback(request):
             payload = json.loads(request.body)
             resp_body = payload
-            headers = {'request-id': str(instance_id)}
+            headers = {'request-id': str(submission_id)}
             return 200, headers, json.dumps(resp_body)
 
         responses.add_callback(

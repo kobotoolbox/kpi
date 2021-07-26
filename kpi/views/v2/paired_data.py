@@ -248,7 +248,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
 
         # If the content of `asset_file' has expired, let's regenerate the XML
         submissions = source_asset.deployment.get_submissions(
-            self.asset.owner.pk,
+            self.asset.owner,
             format_type=INSTANCE_FORMAT_TYPE_XML
         )
         parsed_submissions = []

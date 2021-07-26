@@ -311,7 +311,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
             if obj.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
                 return obj.deployment.calculated_submission_count(
-                    requesting_user_id=user.id)
+                    user=user)
         except KeyError:
             pass
 

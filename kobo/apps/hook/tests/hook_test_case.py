@@ -99,9 +99,9 @@ class HookTestCase(KpiTestCase):
         self.hook = self._create_hook()
 
         ServiceDefinition = self.hook.get_service_definition()
-        submissions = self.asset.deployment.get_submissions(self.asset.owner.id)
-        instance_id = submissions[0].get(self.asset.deployment.INSTANCE_ID_FIELDNAME)
-        service_definition = ServiceDefinition(self.hook, instance_id)
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        submission_id = submissions[0].get(self.asset.deployment.SUBMISSION_ID_FIELDNAME)
+        service_definition = ServiceDefinition(self.hook, submission_id)
         first_mock_response = {'error': 'not found'}
 
         # Mock first request's try
@@ -180,6 +180,6 @@ class HookTestCase(KpiTestCase):
 
     def __inject_submission(self, asset, submission):
         self._submission_pk += 1
-        submissions = asset.deployment.get_submissions(asset.owner.id)
+        submissions = asset.deployment.get_submissions(asset.owner)
         submissions.append(submission)
         asset.deployment.mock_submissions(submissions)

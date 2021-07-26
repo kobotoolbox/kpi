@@ -15,8 +15,8 @@ class ParserTestCase(HookTestCase):
         hook = self._create_hook(subset_fields=['_id', 'subgroup1', 'q3'])
 
         ServiceDefinition = hook.get_service_definition()
-        submissions = hook.asset.deployment.get_submissions(hook.asset.owner.id)
-        uuid = submissions[0].get(hook.asset.deployment.INSTANCE_ID_FIELDNAME)
+        submissions = hook.asset.deployment.get_submissions(hook.asset.owner)
+        uuid = submissions[0].get(hook.asset.deployment.SUBMISSION_ID_FIELDNAME)
         service_definition = ServiceDefinition(hook, uuid)
         expected_data = {
             'group1/q3': u'¿Cómo está en el grupo uno la segunda vez?',
@@ -40,10 +40,10 @@ class ParserTestCase(HookTestCase):
 
         ServiceDefinition = hook.get_service_definition()
         submissions = hook.asset.deployment.get_submissions(
-            self.asset.owner.id, format_type=INSTANCE_FORMAT_TYPE_XML)
+            self.asset.owner, format_type=INSTANCE_FORMAT_TYPE_XML)
         xml_doc = etree.fromstring(submissions[0])
         tree = etree.ElementTree(xml_doc)
-        uuid = tree.find(hook.asset.deployment.INSTANCE_ID_FIELDNAME).text
+        uuid = tree.find(hook.asset.deployment.SUBMISSION_ID_FIELDNAME).text
 
         service_definition = ServiceDefinition(hook, uuid)
         expected_etree = etree.fromstring(

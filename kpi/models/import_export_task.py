@@ -614,7 +614,7 @@ class ExportTask(ImportExportTask):
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
         submission_stream = source.deployment.get_submissions(
-            requesting_user_id=self.user.id,
+            user=self.user,
             fields=fields
         )
 

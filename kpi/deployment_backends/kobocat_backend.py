@@ -7,7 +7,7 @@ import re
 import uuid
 from collections import defaultdict
 from datetime import datetime
-from typing import Union, Optional
+from typing import Generator, Optional, Union
 from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
@@ -88,7 +88,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             assign_applicable_kc_permissions(self.asset, user, perms)
 
     def bulk_update_submissions(
-        self, data: dict, requesting_user: 'auth.User'
+        self, data: dict, user: 'auth.User'
     ) -> dict:
         """
         Allows for bulk updating of submissions proxied through KoBoCAT. A
@@ -101,14 +101,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Args:
             data (dict): must contain a list of `submission_ids` and at
                 least one other key:value field for updating the submissions
-            requesting_user (User)
+            user (User)
 
         Returns:
             dict: formatted dict to be passed to a Response object
         """
-
         submission_ids = self.validate_write_access_with_partial_perms(
-            user=requesting_user,
+            user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
             submission_ids=data['submission_ids'],
             query=data['query'],
@@ -124,9 +123,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             submission_ids = data['submission_ids']
 
         submissions = list(self.get_submissions(
-            requesting_user_id=requesting_user.pk,
+            user=user,
             format_type=INSTANCE_FORMAT_TYPE_XML,
-            instance_ids=submission_ids
+            submission_ids=submission_ids
         ))
 
         validated_submissions = self.__validate_bulk_update_submissions(
@@ -195,7 +194,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 method='POST', url=self.submission_url, files=files
             )
             kc_response = self.__kobocat_proxy_request(
-                kc_request, user=requesting_user
+                kc_request, user=user
             )
 
             kc_responses.append(
@@ -207,8 +206,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return self.__prepare_bulk_update_response(kc_responses)
 
-    def calculated_submission_count(self, requesting_user_id, **kwargs):
-        params = self.validate_submission_list_params(requesting_user_id,
+    def calculated_submission_count(self, user: 'auth.User', **kwargs):
+        params = self.validate_submission_list_params(user,
                                                       validate_count=True,
                                                       **kwargs)
         return MongoHelper.get_count(self.mongo_userform_id, **params)
@@ -319,15 +318,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise
         super().delete()
 
-    def delete_submission(self, pk: int, user: 'auth.User') -> dict:
+    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
         """
         Delete a submission through KoBoCAT proxy
+
+        It returns a dictionary which can used as Response object arguments
         """
 
         submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
-            submission_ids=[pk]
+            submission_ids=[submission_id]
         )
         # If `submission_ids` is not empty, user has partial permissions.
         # Otherwise, they have have full access.
@@ -335,7 +336,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # TODO add one-time valid token
             raise NotImplementedError('Back end does not support this request')
 
-        kc_url = self.get_submission_detail_url(pk)
+        kc_url = self.get_submission_detail_url(submission_id)
         kc_request = requests.Request(method='DELETE', url=kc_url)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
@@ -370,17 +371,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             raise NotImplementedError('Back end does not support this request')
 
         kc_url = self.submission_list_url
-        kc_request = requests.Request(method='DELETE', url=kc_url, data=data)
+        kc_request = requests.Request(method='DELETE', url=kc_url, json=data)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
 
     def duplicate_submission(
-        self, requesting_user: 'auth.User', instance_id: int
+        self, submission_id: int, user: 'auth.User'
     ) -> dict:
         """
         Duplicates a single submission proxied through KoBoCAT. The submission
-        with the given `instance_id` is duplicated and the `start`, `end` and
+        with the given `submission_id` is duplicated and the `start`, `end` and
         `instanceID` parameters of the submission are reset before being posted
         to KoBoCAT.
 
@@ -390,9 +391,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
 
         submission_ids = self.validate_write_access_with_partial_perms(
-            user=requesting_user,
+            user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
-            submission_ids=[instance_id],
+            submission_ids=[submission_id],
         )
 
         # If `submission_ids` is not empty, user has partial permissions.
@@ -402,8 +403,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             raise NotImplementedError('Back end does not support this request')
 
         submission = self.get_submission(
-            instance_id,
-            requesting_user_id=requesting_user.pk,
+            submission_id,
+            user=user,
             format_type=INSTANCE_FORMAT_TYPE_XML,
         )
 
@@ -431,13 +432,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             method='POST', url=self.submission_url, files=files
         )
         kc_response = self.__kobocat_proxy_request(
-            kc_request, user=requesting_user
+            kc_request, user=user
         )
 
         if kc_response.status_code == status.HTTP_201_CREATED:
-            return next(
-                self.get_submissions(requesting_user.pk, query={'_uuid': _uuid})
-            )
+            return next(self.get_submissions(user, query={'_uuid': _uuid}))
         else:
             raise KobocatDuplicateSubmissionException
 
@@ -495,6 +494,19 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         }
         return links
 
+    def get_enketo_submission_url(
+        self, submission_id: int, user: 'auth.User', params: dict = None
+    ) -> dict:
+        """
+        Gets edit URL of the submission from KoBoCAT through proxy
+        """
+        url = '{detail_url}/enketo'.format(
+            detail_url=self.get_submission_detail_url(submission_id))
+        kc_request = requests.Request(method='GET', url=url, params=params)
+        kc_response = self.__kobocat_proxy_request(kc_request, user)
+
+        return self.__prepare_as_drf_response_signature(kc_response)
+
     def get_enketo_survey_links(self):
         data = {
             'server_url': '{}/{}'.format(
@@ -529,58 +541,35 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 pass
         return links
 
-    def get_submission_detail_url(self, submission_pk):
-        url = '{list_url}/{pk}'.format(
-            list_url=self.submission_list_url,
-            pk=submission_pk
-        )
+    def get_submission_detail_url(self, submission_id: int) -> str:
+        url = f'{self.submission_list_url}/{submission_id}'
         return url
 
-    def get_enketo_submission_url(self, submission_pk, user, params=None):
-        """
-        Gets URL of the submission from KC through proxy
-
-        :param submission_pk: int
-        :param user: User
-        :param params: dict
-        :return: dict
-        """
-        url = '{detail_url}/enketo'.format(
-            detail_url=self.get_submission_detail_url(submission_pk))
-        kc_request = requests.Request(method='GET', url=url, params=params)
-        kc_response = self.__kobocat_proxy_request(kc_request, user)
-
-        return self.__prepare_as_drf_response_signature(kc_response)
-
-    def get_submission_validation_status_url(self, submission_pk):
+    def get_submission_validation_status_url(self, submission_id: int) -> str:
         url = '{detail_url}/validation_status'.format(
-            detail_url=self.get_submission_detail_url(submission_pk)
+            detail_url=self.get_submission_detail_url(submission_id)
         )
         return url
 
-    def get_submissions(self, requesting_user_id,
-                        format_type=INSTANCE_FORMAT_TYPE_JSON,
-                        instance_ids=[], **kwargs):
+    def get_submissions(
+        self,
+        user: 'auth.User',
+        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+        submission_ids: list = [],
+        **kwargs
+    ) -> Union[Generator[dict, None, None], list]:
         """
-        Retrieves submissions through Postgres or Mongo depending on `format_type`.
-        It can be filtered on instances ids.
+        Retrieves submissions which `user` is allowed to access
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.INSTANCE_FORMAT_TYPE_JSON)
+        - 'xml' (See `kpi.constants.INSTANCE_FORMAT_TYPE_XML)
 
-        Args:
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            instance_ids (list): Instance ids to retrieve
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
-
-        Returns:
-            (dict|str|`None`): Depending on `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instances' XML as string
-                - `None` if no results
+        Results can be filtered on instance ids and/or MongoDB filters can be
+        passed through `kwargs`
         """
 
-        kwargs['instance_ids'] = instance_ids
-        params = self.validate_submission_list_params(requesting_user_id,
+        kwargs['submission_ids'] = submission_ids
+        params = self.validate_submission_list_params(user,
                                                       format_type=format_type,
                                                       **kwargs)
 
@@ -594,8 +583,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         return submissions
 
-    def get_validation_status(self, submission_pk, params, user):
-        url = self.get_submission_validation_status_url(submission_pk)
+    def get_validation_status(
+        self, submission_id, user: 'auth.User', params: dict
+    ) -> dict:
+        url = self.get_submission_validation_status_url(submission_id)
         kc_request = requests.Request(method='GET', url=url, data=params)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
@@ -790,20 +781,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             })
 
     def set_validation_status(self,
-                              submission_pk: int,
-                              data: dict,
+                              submission_id: int,
                               user: 'auth.User',
+                              data: dict,
                               method: str) -> dict:
         """
         Update validation status through KoBoCAT proxy,
         authenticated by `user`'s API token.
         If `method` is `DELETE`, the status is reset to `None`
+
+        It returns a dictionary which can used as Response object arguments
         """
 
         submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
-            submission_ids=[submission_pk],
+            submission_ids=[submission_id],
         )
 
         # If `submission_ids` is not empty, user has partial permissions.
@@ -814,7 +807,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         kc_request_params = {
             'method': method,
-            'url': self.get_submission_validation_status_url(submission_pk)
+            'url': self.get_submission_validation_status_url(submission_id)
         }
         if method == 'PATCH':
             kc_request_params.update({'json': data})
@@ -823,7 +816,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         kc_response = self.__kobocat_proxy_request(kc_request, user)
         return self.__prepare_as_drf_response_signature(kc_response)
 
-    def set_validation_statuses(self, data: dict, user: 'auth.User') -> dict:
+    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
         """
         Bulk update validation status for provided submissions through
         KoBoCAT proxy, authenticated by `user`'s API token.
@@ -1114,16 +1107,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if use_mongo:
             # We use Mongo to retrieve matching instances.
-            # Get only their ids and pass them to PostgreSQL.
-            params['fields'] = [self.INSTANCE_ID_FIELDNAME]
+            params['fields'] = [self.SUBMISSION_ID_FIELDNAME]
             # Force `sort` by `_id` for Mongo
             # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
-            params['sort'] = {self.INSTANCE_ID_FIELDNAME: 1}
-            instances, count = MongoHelper.get_instances(self.mongo_userform_id,
-                                                         **params)
-            instance_ids = [
-                instance.get(self.INSTANCE_ID_FIELDNAME)
-                for instance in instances
+            params['sort'] = {self.SUBMISSION_ID_FIELDNAME: 1}
+            submissions, count = MongoHelper.get_instances(
+                self.mongo_userform_id, **params
+            )
+            submission_ids = [
+                submission.get(self.SUBMISSION_ID_FIELDNAME)
+                for submission in submissions
             ]
             self.current_submissions_count = count
 
@@ -1131,8 +1124,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             xform_id=self.xform_id,
         )
 
-        if len(instance_ids) > 0 or use_mongo:
-            queryset = queryset.filter(id__in=instance_ids)
+        if len(submission_ids) > 0 or use_mongo:
+            queryset = queryset.filter(id__in=submission_ids)
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         if not use_mongo:

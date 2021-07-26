@@ -224,7 +224,7 @@ class MockDataExports(MockDataExportsBase):
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,
             submission_stream=self.asset.deployment.get_submissions(
-                self.asset.owner.id
+                self.asset.owner
             ),
         )
 

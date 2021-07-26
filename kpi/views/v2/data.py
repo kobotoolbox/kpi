@@ -372,18 +372,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             # `SubmissionGeoJsonRenderer` handle the rest
             return Response(
                 deployment.get_submissions(
-                    requesting_user_id=request.user,
+                    user=request.user,
                     format_type=INSTANCE_FORMAT_TYPE_JSON,
                     **filters
                 )
             )
 
-        submissions = deployment.get_submissions(request.user.id,
+        submissions = deployment.get_submissions(request.user,
                                                  format_type=format_type,
                                                  **filters)
         # Create a dummy list to let the Paginator do all the calculation
         # for pagination because it does not need the list of real objects.
-        # It avoids to retrieve all the objects from MongoDB
+        # It avoids retrieving all the objects from MongoDB
         dummy_submissions_list = [None] * deployment.current_submissions_count
         page = self.paginate_queryset(dummy_submissions_list)
         if page is not None:
@@ -396,10 +396,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
         try:
-            submission = deployment.get_submission(positive_int(pk),
-                                                   request.user.id,
-                                                   format_type=format_type,
-                                                   **filters)
+            submission = deployment.get_submission(
+                positive_int(pk),
+                user=request.user,
+                format_type=format_type,
+                **filters,
+            )
         except ValueError:
             raise Http404
         else:
@@ -416,7 +418,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         deployment = self._get_deployment()
         duplicate_response = deployment.duplicate_submission(
-            requesting_user=request.user, instance_id=positive_int(pk)
+            submission_id=positive_int(pk), user=request.user
         )
         return Response(duplicate_response, status=status.HTTP_201_CREATED)
 
@@ -426,14 +428,16 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         if request.method == 'GET':
-            json_response = deployment.get_validation_status(pk,
-                                                             request.GET,
-                                                             request.user)
+            json_response = deployment.get_validation_status(
+                submission_id=pk, user=request.user, params=request.GET.dict()
+            )
         else:
-            json_response = deployment.set_validation_status(pk,
-                                                             request.data,
-                                                             request.user,
-                                                             request.method)
+            json_response = deployment.set_validation_status(
+                submission_id=pk,
+                user=request.user,
+                data=request.data,
+                method=request.method,
+            )
 
         return Response(**json_response)
 
@@ -449,7 +453,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         )
         bulk_actions_validator.is_valid(raise_exception=True)
         json_response = deployment.set_validation_statuses(
-            bulk_actions_validator.data, request.user)
+            request.user, bulk_actions_validator.data)
 
         return Response(**json_response)
 
