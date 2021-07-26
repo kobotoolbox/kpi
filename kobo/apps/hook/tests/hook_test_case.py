@@ -52,19 +52,17 @@ class HookTestCase(KpiTestCase):
     def _create_hook(self, return_response_only=False, **kwargs):
 
         format_type = kwargs.get('format_type', INSTANCE_FORMAT_TYPE_JSON)
-
-        if format_type == INSTANCE_FORMAT_TYPE_JSON:
-            self.__prepare_json_submission()
-            _asset = self.asset
-        elif format_type == INSTANCE_FORMAT_TYPE_XML:
-            self.__prepare_xml_submission()
-            _asset = self.asset_xml
-        else:
+        if format_type not in [
+            INSTANCE_FORMAT_TYPE_JSON,
+            INSTANCE_FORMAT_TYPE_XML,
+        ]:
             raise BadFormatException(
                 'The format {} is not supported'.format(format_type)
             )
 
-        url = reverse('hook-list', kwargs={'parent_lookup_asset': _asset.uid})
+        self.__prepare_submission()
+
+        url = reverse('hook-list', args=(self.asset.uid,))
         data = {
             'name': kwargs.get('name', 'some external service with token'),
             'endpoint': kwargs.get('endpoint', 'http://external.service.local/'),
@@ -85,7 +83,7 @@ class HookTestCase(KpiTestCase):
         else:
             self.assertEqual(response.status_code, status.HTTP_201_CREATED,
                              msg=response.data)
-            hook = _asset.hooks.last()
+            hook = self.asset.hooks.last()
             self.assertTrue(hook.active)
             return hook
 
@@ -100,7 +98,7 @@ class HookTestCase(KpiTestCase):
 
         ServiceDefinition = self.hook.get_service_definition()
         submissions = self.asset.deployment.get_submissions(self.asset.owner)
-        submission_id = submissions[0].get(self.asset.deployment.SUBMISSION_ID_FIELDNAME)
+        submission_id = submissions[0]['_id']
         service_definition = ServiceDefinition(self.hook, submission_id)
         first_mock_response = {'error': 'not found'}
 
@@ -127,59 +125,33 @@ class HookTestCase(KpiTestCase):
         first_hooklog_response = response.data.get('results')[0]
 
         # Result should match first try
-        self.assertEqual(first_hooklog_response.get('status_code'), status.HTTP_404_NOT_FOUND)
-        self.assertEqual(json.loads(first_hooklog_response.get('message')), first_mock_response)
+        self.assertEqual(
+            first_hooklog_response.get('status_code'), status.HTTP_404_NOT_FOUND
+        )
+        self.assertEqual(
+            json.loads(first_hooklog_response.get('message')),
+            first_mock_response,
+        )
 
-        # Fakes Celery n retries by forcing status to `failed` (where n is `settings.HOOKLOG_MAX_RETRIES`)
-        first_hooklog = HookLog.objects.get(uid=first_hooklog_response.get('uid'))
+        # Fakes Celery n retries by forcing status to `failed`
+        # (where n is `settings.HOOKLOG_MAX_RETRIES`)
+        first_hooklog = HookLog.objects.get(
+            uid=first_hooklog_response.get('uid')
+        )
         first_hooklog.change_status(HOOK_LOG_FAILED)
 
         return first_hooklog_response
 
-    def __prepare_json_submission(self):
+    def __prepare_submission(self):
         v_uid = self.asset.latest_deployed_version.uid
         submission = {
             '__version__': v_uid,
-            'q1': u'¿Qué tal?',
-            'group1/q2': u'¿Cómo está en el grupo uno la primera vez?',
-            'group1/q3': u'¿Cómo está en el grupo uno la segunda vez?',
-            'group2/subgroup1/q4': u'¿Cómo está en el subgrupo uno la primera vez?',
-            'group2/subgroup1/q5': u'¿Cómo está en el subgrupo uno la segunda vez?',
-            'group2/subgroup1/q6': u'¿Cómo está en el subgrupo uno la tercera vez?',
-            'group2/subgroup11/q1': u'¿Cómo está en el subgrupo once?',
-            '_id': self._submission_pk
+            'q1': '¿Qué tal?',
+            'group1/q2': '¿Cómo está en el grupo uno la primera vez?',
+            'group1/q3': '¿Cómo está en el grupo uno la segunda vez?',
+            'group2/subgroup1/q4': '¿Cómo está en el subgrupo uno la primera vez?',
+            'group2/subgroup1/q5': '¿Cómo está en el subgrupo uno la segunda vez?',
+            'group2/subgroup1/q6': '¿Cómo está en el subgrupo uno la tercera vez?',
+            'group2/subgroup11/q1': '¿Cómo está en el subgrupo once?',
         }
-        self.__inject_submission(self.asset, submission)
-
-    def __prepare_xml_submission(self):
-        v_uid = self.asset_xml.latest_deployed_version.uid
-        submission = ('<{asset_uid}>'
-                      '   <__version__>{v_uid}</__version__>'
-                      '   <q1>¿Qué tal?</q1>'
-                      '   <group1>'
-                      '      <q2>¿Cómo está en el grupo uno la primera vez?</q2>'
-                      '      <q3>¿Cómo está en el grupo uno la segunda vez?</q3>'
-                      '   </group1>'
-                      '   <group2>'
-                      '      <subgroup1>'
-                      '          <q4>¿Cómo está en el subgrupo uno la primera vez?</q4>'
-                      '          <q5>¿Cómo está en el subgrupo uno la segunda vez?</q5>'
-                      '          <q6>¿Cómo está en el subgrupo uno la tercera vez?</q6>'
-                      '      </subgroup1>'
-                      '      <subgroup11>'
-                      '          <q1>¿Cómo está en el subgrupo once?</q1>'
-                      '      </subgroup11>'
-                      '   </group2>'
-                      '   <_id>{id}</_id>'
-                      '</{asset_uid}>').format(
-            asset_uid=self.asset_xml.uid,
-            v_uid=v_uid,
-            id=self._submission_pk
-        )
-        self.__inject_submission(self.asset_xml, submission)
-
-    def __inject_submission(self, asset, submission):
-        self._submission_pk += 1
-        submissions = asset.deployment.get_submissions(asset.owner)
-        submissions.append(submission)
-        asset.deployment.mock_submissions(submissions)
+        self.asset.deployment.mock_submissions([submission])

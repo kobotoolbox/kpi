@@ -24,7 +24,7 @@ class SSRFHookTestCase(HookTestCase):
 
         ServiceDefinition = hook.get_service_definition()
         submissions = self.asset.deployment.get_submissions(self.asset.owner)
-        submission_id = submissions[0].get(self.asset.deployment.SUBMISSION_ID_FIELDNAME)
+        submission_id = submissions[0]['_id']
         service_definition = ServiceDefinition(hook, submission_id)
         first_mock_response = {'error': 'not found'}
 

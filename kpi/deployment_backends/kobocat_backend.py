@@ -206,7 +206,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         return self.__prepare_bulk_update_response(kc_responses)
 
-    def calculated_submission_count(self, user: 'auth.User', **kwargs):
+    def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
         params = self.validate_submission_list_params(user,
                                                       validate_count=True,
                                                       **kwargs)
@@ -1107,15 +1107,15 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         if use_mongo:
             # We use Mongo to retrieve matching instances.
-            params['fields'] = [self.SUBMISSION_ID_FIELDNAME]
+            params['fields'] = ['_id']
             # Force `sort` by `_id` for Mongo
             # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
-            params['sort'] = {self.SUBMISSION_ID_FIELDNAME: 1}
+            params['sort'] = {'_id': 1}
             submissions, count = MongoHelper.get_instances(
                 self.mongo_userform_id, **params
             )
             submission_ids = [
-                submission.get(self.SUBMISSION_ID_FIELDNAME)
+                submission.get('_id')
                 for submission in submissions
             ]
             self.current_submissions_count = count

@@ -25,14 +25,14 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         pass
 
     def test_list_submissions_owner(self):
-        response = self.client.get(self.submission_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.submissions)
 
     def test_list_submissions_shared_other(self):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
-        response = self.client.get(self.submission_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.submissions)
 
@@ -71,25 +71,39 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), limit)
 
+    def test_list_submissions_owner_with_params(self):
+        response = self.client.get(
+            self.submission_list_url, {
+                'format': 'json',
+                'start': 1,
+                'limit': 5,
+                'sort': '{"q1": -1}',
+                'fields': '["q1", "_submitted_by"]',
+                'query': '{"_submitted_by": {"$in": ["", "someuser", "another"]}}',
+            }
+        )
+        # ToDo add more assertions
+        self.assertEqual(len(response.data), 5)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_delete_submission_owner(self):
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
+        submission = self.get_random_submission(self.asset.owner)
+        url = self.asset.deployment.get_submission_detail_url(
+            submission['_id'])
 
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        response = self.client.get(self.submission_url, {'format': 'json'})
-        # FIXME get submission count for user from Mockbackend
+        response = self.client.get(self.submission_list_url,
+                                   {'format': 'json'})
         self.assertEqual(len(response.data), len(self.submissions) - 1)
 
     def test_delete_submission_shared_other(self):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.SUBMISSION_ID_FIELDNAME))
+        submission = self.get_random_submission(self.asset.owner)
+        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
@@ -109,8 +123,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        response = self.client.get(self.submission_url, {'format': 'json'})
-        # FIXME get submission count for user from Mockbackend
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(len(response.data), len(self.submissions) - 1)
 
     @pytest.mark.skip(reason='Partial permissions should be used only with v2')

@@ -259,7 +259,8 @@ class MockDataExports(MockDataExportsBase):
                 (line + '\r\n').encode('utf-8') for line in expected_lines
             ]
             result_lines = list(export_task.result)
-
+            print('RESULT LINES', result_lines)
+            print('expected_lines', expected_lines)
             self.assertEqual(result_lines, expected_lines)
 
         self.assertFalse(messages)
@@ -720,7 +721,7 @@ class MockDataExports(MockDataExportsBase):
         # observe that `ignore` does not appear!
         expected_lines = [
             '"q";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"_tags";"_index"',
-            '"123";"";"";"";"";"";"";"";"";"1"',
+            '"123";"1";"";"";"";"";"";"";"";"1"',
         ]
         # fails with `KeyError` prior to fix for kobotoolbox/formpack#219
         self.run_csv_export_test(expected_lines, asset=asset)

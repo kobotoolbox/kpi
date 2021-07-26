@@ -60,9 +60,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         except ValueError:
             raise Http404
 
-        submission_id_fieldname = self.asset.deployment.SUBMISSION_ID_FIELDNAME
-        if not (submission and
-                int(submission.get(submission_id_fieldname)) == submission_id):
+        if not (submission and int(submission['_id']) == submission_id):
             raise Http404
 
         if HookUtils.call_services(self.asset, submission_id):
