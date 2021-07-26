@@ -6,8 +6,8 @@ import {bem} from 'js/bem';
  * A checkbox generic component.
  *
  * @prop {boolean} checked
- * @prop {boolean} disabled
- * @prop {function} onChange : required
+ * @prop {boolean} [disabled]
+ * @prop {function} onChange
  * @prop {string} label
  */
 class Checkbox extends React.Component {
@@ -24,15 +24,21 @@ class Checkbox extends React.Component {
   }
 
   render() {
+    const wrapperModifiers = [];
+    if (this.props.disabled) {
+      // needed to disable pointer cursor
+      wrapperModifiers.push('disabled');
+    }
+
     return (
-      <bem.Checkbox>
+      <bem.Checkbox m={wrapperModifiers}>
         <bem.Checkbox__wrapper>
           <bem.Checkbox__input
             type='checkbox'
             name={this.props.name}
             id={this.props.id}
             onChange={this.onChange}
-            checked={!this.props.disabled && this.props.checked}
+            checked={this.props.checked}
             disabled={this.props.disabled}
           />
 

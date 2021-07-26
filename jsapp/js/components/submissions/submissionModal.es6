@@ -505,7 +505,7 @@ class SubmissionModal extends React.Component {
               }
 
               {(
-                this.userCan('view_submissions', this.props.asset) &&
+                this.userCan('view_submissions', this.props.asset) ||
                 this.isSubmissionWritable('view_submissions', this.props.asset, this.state.submission)
               ) &&
                 <a

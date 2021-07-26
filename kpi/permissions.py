@@ -8,7 +8,7 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models.asset import Asset
-from kpi.utils.object_permission import get_anonymous_user
+from kpi.utils.object_permission import get_database_user
 
 
 # FIXME: Move to `object_permissions` module.
@@ -137,11 +137,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
             return True
 
         parent_object = self._get_parent_object(view)
-
-        user = request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
-
+        user = get_database_user(request.user)
         user_permissions = self._get_user_permissions(parent_object, user)
         view_permissions = self.get_required_permissions('GET')
         can_view = set(view_permissions).issubset(user_permissions)
@@ -257,11 +253,9 @@ class ReportPermission(IsOwnerOrReadOnly):
     def has_object_permission(self, request, view, obj):
         # Checks if the user has the required permissions
         # To access the submission data in reports
-        user = request.user
+        user = get_database_user(request.user)
         if user.is_superuser:
             return True
-        if user.is_anonymous:
-            user = get_anonymous_user()
         permissions = list(obj.get_perms(user))
         required_permissions = [
             PERM_VIEW_SUBMISSIONS,
@@ -372,7 +366,7 @@ class XMLExternalDataPermission(permissions.BasePermission):
         """
         The responsibility for securing data behove to the owner of the
         asset `obj` by requiring authentication on their form.
-        Otherwise, the paired parent data may be exposed to anyone
+        Otherwise, the paired source data may be exposed to anyone
         """
         # Check whether `asset` owner's account requires authentication:
         try:

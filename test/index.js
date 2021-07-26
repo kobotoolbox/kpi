@@ -18,6 +18,7 @@ require('./xlform/utils.tests');
 
 require('../jsapp/js/utils.tests');
 require('../jsapp/js/components/permissions/permParser.tests');
+require('../jsapp/js/components/formBuilder/formBuilderUtils.tests');
 require('../jsapp/js/assetUtils.tests');
 require('../jsapp/js/components/locking/lockingUtils.tests');
 require('../jsapp/js/components/submissions/submissionUtils.tests');

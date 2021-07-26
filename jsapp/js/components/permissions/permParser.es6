@@ -28,7 +28,7 @@ import {
  * @property {string} data.username - Who give permissions to.
  * @property {boolean} data.formView
  * @property {boolean} data.formEdit
- * @property {boolean} data.formManage - Is able to change form permissions (and future stuff TBD).
+ * @property {boolean} data.formManage
  * @property {boolean} data.submissionsAdd
  * @property {boolean} data.submissionsView
  * @property {boolean} data.submissionsViewPartial

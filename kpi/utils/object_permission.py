@@ -4,7 +4,7 @@ from typing import Union
 
 from django.apps import apps
 from django.conf import settings
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import User, Permission, AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.shortcuts import _get_queryset
@@ -12,6 +12,7 @@ from django_request_cache import cache_for_request
 from rest_framework import serializers
 
 from kpi.constants import PERM_MANAGE_ASSET, PERM_FROM_KC_ONLY
+from kpi.utils.permissions import is_user_anonymous
 
 
 def get_all_objects_for_user(user, klass):
@@ -78,6 +79,16 @@ def get_anonymous_user():
     return user
 
 
+def get_database_user(user: Union[User, AnonymousUser]) -> User:
+    """
+    Returns a real `User` object if `user` is an `AnonymousUser`, otherwise
+    returns `user` unchanged
+    """
+    if user.is_anonymous:
+        user = get_anonymous_user()
+    return user
+
+
 def get_objects_for_user(
     user,
     perms,
@@ -132,8 +143,7 @@ def get_objects_for_user(
     # Check if the user is anonymous. The
     # django.contrib.auth.models.AnonymousUser object doesn't work for
     # queries, and it's nice to be able to pass in request.user blindly.
-    if user.is_anonymous:
-        user = get_anonymous_user()
+    user = get_database_user(user)
 
     if all_perms_required:
         for codename in codenames:
@@ -196,7 +206,7 @@ def get_user_permission_assignments(
     user_permission_assignments = []
     filtered_user_ids = None
 
-    if not user or user.is_anonymous:
+    if not user or is_user_anonymous(user):
         filtered_user_ids = [affected_object.owner_id]
     elif not affected_object.has_perm(user, PERM_MANAGE_ASSET):
         # Display only users' permissions if they are not allowed to modify
@@ -237,7 +247,7 @@ def get_user_permission_assignments_queryset(affected_object, user):
 
     # Filtering is done in `get_queryset` instead of FilteredBackend class
     # because it's specific to `ObjectPermission`.
-    if not user or user.is_anonymous:
+    if not user or is_user_anonymous(user):
         queryset = queryset.filter(
             user_id__in=[
                 affected_object.owner_id,

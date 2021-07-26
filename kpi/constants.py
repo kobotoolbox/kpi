@@ -1,6 +1,6 @@
 # coding: utf-8
-INSTANCE_FORMAT_TYPE_XML = "xml"
-INSTANCE_FORMAT_TYPE_JSON = "json"
+SUBMISSION_FORMAT_TYPE_XML = "xml"
+SUBMISSION_FORMAT_TYPE_JSON = "json"
 
 GEO_QUESTION_TYPES = ('geopoint', 'geotrace', 'geoshape')
 

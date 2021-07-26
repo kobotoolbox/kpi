@@ -1,6 +1,7 @@
 # coding: utf-8
 import posixpath
 from mimetypes import guess_type
+from typing import Optional
 
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.db import models
@@ -13,8 +14,8 @@ from kpi.interfaces import (
     OpenRosaManifestInterface,
     SyncBackendMediaInterface,
 )
+from kpi.utils.hash import calculate_hash
 from kpi.utils.models import DjangoModelABCMetaclass
-from kpi.utils.hash import get_hash
 
 
 def upload_to(self, filename):
@@ -64,8 +65,6 @@ class AssetFile(models.Model, AbstractFormMedia):
     FORM_MEDIA = 'form_media'
     PAIRED_DATA = 'paired_data'
 
-    BACKEND_DATA_TYPE = 'media'
-
     TYPE_CHOICES = (
         (MAP_LAYER, MAP_LAYER),
         (FORM_MEDIA, FORM_MEDIA),
@@ -109,32 +108,14 @@ class AssetFile(models.Model, AbstractFormMedia):
     synced_with_backend = models.BooleanField(default=False)
 
     @property
-    def backend_data_value(self):
+    def backend_media_id(self):
         """
-        Implements `SyncBackendMediaInterface.backend_data_value()`
+        Implements `SyncBackendMediaInterface.backend_media_id()`
         """
         return (
             self.metadata['redirect_url']
             if self.is_remote_url
             else self.filename
-        )
-
-    @property
-    def backend_data_type(self):
-        """
-        Implements `SyncBackendMediaInterface.backend_data_type()`
-        """
-        return self.BACKEND_DATA_TYPE
-
-    @property
-    def backend_uniqid(self):
-        """
-        Implements `SyncBackendMediaInterface.backend_uniqid()`
-        """
-        return (
-            self.metadata['filename']
-            if not self.is_remote_url
-            else self.metadata['redirect_url']
         )
 
     def delete(self, using=None, keep_parents=False, force=False):
@@ -165,12 +146,8 @@ class AssetFile(models.Model, AbstractFormMedia):
         - `OpenRosaManifestInterface.filename()`
         - `SyncBackendMediaInterface.filename()`
         """
-        if hasattr(self, '__filename'):
-            return self.__filename
-
         self.set_filename()
-        self.__filename = self.metadata['filename']
-        return self.__filename
+        return self.metadata['filename']
 
     def get_download_url(self, request):
         """
@@ -197,12 +174,10 @@ class AssetFile(models.Model, AbstractFormMedia):
          - `OpenRosaManifestInterface.md5_hash()`
          - `SyncBackendMediaInterface.md5_hash()`
         """
-        if hasattr(self, '__hash'):
-            return self.__hash
+        if not self.metadata.get('hash'):
+            self.set_md5_hash()
 
-        self.set_hash()
-        self.__hash = self.metadata['hash']
-        return self.__hash
+        return self.metadata['hash']
 
     @property
     def is_remote_url(self):
@@ -221,18 +196,14 @@ class AssetFile(models.Model, AbstractFormMedia):
         """
         Implements `SyncBackendMediaInterface.mimetype()`
         """
-        if hasattr(self, '__mimetype'):
-            return self.__mimetype
-
         self.set_mimetype()
-        self.__mimetype = self.metadata['mimetype']
-        return self.__mimetype
+        return self.metadata['mimetype']
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         if self.pk is None:
             self.set_filename()
-            self.set_hash()
+            self.set_md5_hash()
             self.set_mimetype()
         else:
             self.date_modified = timezone.now()
@@ -243,18 +214,29 @@ class AssetFile(models.Model, AbstractFormMedia):
         if not self.metadata.get('filename'):
             self.metadata['filename'] = self.content.name
 
-    def set_hash(self):
+    def set_md5_hash(self, md5_hash: Optional[str] = None):
+        """
+        Calculate md5 hash and store it in `metadata` field if it does not exist
+        or empty.
+        Value can be also set with the optional `md5_hash` parameter.
+        If `md5_hash` is an empty string, the hash is recalculated.
+        """
+        if md5_hash is not None:
+            self.metadata['hash'] = md5_hash
+
         if not self.metadata.get('hash'):
             if self.is_remote_url:
-                md5_hash = get_hash(self.metadata['redirect_url'],
-                                    fast=True,
-                                    prefix=True)
+                md5_hash = calculate_hash(self.metadata['redirect_url'],
+                                          prefix=True)
             else:
-                md5_hash = get_hash(self.content.file.read(),
-                                    prefix=True)
+                try:
+                    md5_hash = calculate_hash(self.content.file.read(), prefix=True)
+                except ValueError:
+                    md5_hash = None
 
             self.metadata['hash'] = md5_hash
 
     def set_mimetype(self):
-        mimetype, _ = guess_type(self.filename)
-        self.metadata['mimetype'] = mimetype
+        if not self.metadata.get('mimetype'):
+            mimetype, _ = guess_type(self.filename)
+            self.metadata['mimetype'] = mimetype

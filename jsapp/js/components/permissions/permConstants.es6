@@ -16,7 +16,8 @@ export const SUFFIX_USERS = 'Users'; // should be always added to a Partial one
 
 /**
  * This list contains the names of all the checkboxes in userAssetPermsEditor.
- * Every one of them is strictly connected to a permission.
+ * Every one of them is strictly connected to a permission, see the pairs at
+ * CHECKBOX_PERM_PAIRS below.
  */
 export const CHECKBOX_NAMES = {};
 new Set([

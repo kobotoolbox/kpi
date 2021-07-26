@@ -11,12 +11,12 @@ from ..constants import HOOK_LOG_PENDING, HOOK_LOG_FAILED, HOOK_LOG_SUCCESS, KOB
 
 class HookLog(models.Model):
 
-    hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)  # noqa
+    hook = models.ForeignKey("Hook", related_name="logs", on_delete=models.CASCADE)
     uid = KpiUidField(uid_prefix="hl")
-    submission_id = models.IntegerField(default=0, db_index=True)  # `KoBoCAT.logger.Instance.id`  # noqa
+    submission_id = models.IntegerField(default=0, db_index=True)  # `KoBoCAT.logger.Instance.id`
     tries = models.PositiveSmallIntegerField(default=0)
-    status = models.PositiveSmallIntegerField(default=HOOK_LOG_PENDING)  # Could use status_code, but will speed-up queries  # noqa
-    status_code = models.IntegerField(default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True)  # noqa
+    status = models.PositiveSmallIntegerField(default=HOOK_LOG_PENDING)  # Could use status_code, but will speed-up queries
+    status_code = models.IntegerField(default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True)
     message = models.TextField(default="")
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now_add=True)
@@ -38,8 +38,8 @@ class HookLog(models.Model):
             # If log is still pending after 3 times, there was an issue,
             # we allow the retry
             return (
-                self.date_modified < threshold and self.status == HOOK_LOG_PENDING
-                or self.status == HOOK_LOG_FAILED
+                self.status == HOOK_LOG_FAILED
+                or (self.date_modified < threshold and self.status == HOOK_LOG_PENDING)
             )
 
         return False

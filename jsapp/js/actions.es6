@@ -19,7 +19,7 @@ import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
 import formMediaActions from './actions/mediaActions';
 import exportsActions from './actions/exportsActions';
-import dataShareActions from './actions/dataShare';
+import dataShareActions from './actions/dataShareActions';
 import {
   notify,
   replaceSupportEmail,
@@ -71,7 +71,6 @@ actions.resources = Reflux.createActions({
   deleteAsset: {children: ['completed', 'failed']},
   listTags: {children: ['completed', 'failed']},
   loadAssetSubResource: {children: ['completed', 'failed']},
-  loadAssetContent: {children: ['completed', 'failed']},
   createResource: {asyncResult: true},
   updateAsset: {asyncResult: true},
   updateSubmissionValidationStatus: {children: ['completed', 'failed']},
@@ -499,12 +498,6 @@ actions.resources.loadAsset.listen(function(params){
   dataInterface.getAsset(params)
     .done(actions.resources.loadAsset.completed)
     .fail(actions.resources.loadAsset.failed);
-});
-
-actions.resources.loadAssetContent.listen(function(params){
-  dataInterface.getAssetContent(params)
-    .done(actions.resources.loadAssetContent.completed)
-    .fail(actions.resources.loadAssetContent.failed);
 });
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){
