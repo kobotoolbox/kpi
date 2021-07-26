@@ -7,16 +7,24 @@ from bson import json_util
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
+from kpi.constants import (
+    INSTANCE_FORMAT_TYPE_XML,
+    INSTANCE_FORMAT_TYPE_JSON,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.exceptions import AbstractMethodError
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.paired_data import PairedData
 from kpi.utils.jsonbfield_helper import ReplaceValues
+from kpi.utils.iterators import compare, to_int
 
 
 class BaseDeploymentBackend:
@@ -168,7 +176,6 @@ class BaseDeploymentBackend:
     def submission_count(self):
         return self._submission_count()
 
-
     def remove_from_kc_only_flag(self, *args, **kwargs):
         # TODO: This exists only to support KoBoCAT (see #1161) and should be
         # removed, along with all places where it is called, once we remove
@@ -260,9 +267,11 @@ class BaseDeploymentBackend:
 
         # This error should not be returned as `ValidationError` to user.
         # We want to return a 500.
+
+        partial_perm = kwargs.pop('partial_perm', PERM_VIEW_SUBMISSIONS)
         try:
             permission_filters = self.asset.get_filters_for_partial_perm(
-                requesting_user_id)
+                requesting_user_id, perm=partial_perm)
         except ValueError:
             raise ValueError('Invalid `requesting_user_id` param')
 
@@ -317,6 +326,92 @@ class BaseDeploymentBackend:
 
         return params
 
+    def validate_write_access_with_partial_perms(
+        self,
+        user: 'auth.User',
+        perm: str,
+        submission_ids: list = [],
+        query: dict = {},
+    ) -> list:
+        """
+        Validate whether `user` is allowed to perform write actions on
+        submissions with the permission `perm`.
+        It raises a `PermissionDenied` error if they cannot.
+
+        Return a list of valid submission ids to pass to back end
+
+        No validations are made whether `user` is granted with other permissions
+        than 'partial_submission' permission.
+        """
+        if PERM_PARTIAL_SUBMISSIONS not in self.asset.get_perms(user):
+            return
+
+        allowed_submission_ids = []
+
+        if not submission_ids:
+            # if no submission ids are provided, the back end must rebuild the
+            # query to retrieve the related submissions. Unfortunately, the
+            # current back end (KoBoCAT) does not support row level permissions.
+            # Thus, we need to fetch all the submissions the user is allowed to
+            # see in order to to compare the requested subset of submissions to
+            # all
+            all_submissions = self.get_submissions(
+                requesting_user_id=user.pk,
+                partial_perm=perm,
+                fields=[self.INSTANCE_ID_FIELDNAME],
+            )
+            allowed_submission_ids = [
+                r[self.INSTANCE_ID_FIELDNAME] for r in all_submissions
+            ]
+
+            # User should see at least one submission to be allowed to do
+            # something
+            if not allowed_submission_ids:
+                raise PermissionDenied
+
+            # if `query` is not provided, the action is performed on all
+            # submissions. There are no needs to go further.
+            if not query:
+                return allowed_submission_ids
+
+        submissions = self.get_submissions(
+            requesting_user_id=user.pk,
+            partial_perm=perm,
+            fields=[self.INSTANCE_ID_FIELDNAME],
+            instance_ids=submission_ids,
+            query=query,
+        )
+
+        requested_submission_ids = [
+            r[self.INSTANCE_ID_FIELDNAME] for r in submissions
+        ]
+
+        if not requested_submission_ids:
+            raise PermissionDenied
+
+        if (
+            allowed_submission_ids
+            and set(requested_submission_ids).issubset(allowed_submission_ids)
+            or compare(
+                sorted(requested_submission_ids), sorted(to_int(submission_ids))
+            )
+        ):
+            # Regardless of whether or not the request contained a query or a
+            # list of IDs, always return IDs here because the results of a
+            # query may contain submissions that the requesting user is not
+            # allowed to access. For example,
+            #   - In submissions 4, 5, and 6, the response to the "state"
+            #       question was "California"
+            #   - Bob is allowed to access only submissions made by Jerry
+            #   - Jerry uploaded submissions 5, 6, and 7
+            #   - Bob submits a query for all submissions where
+            #       `{"state": "California"}`
+            #   - Bob must only see submissions 5 and 6
+
+            return requested_submission_ids
+
+        raise PermissionDenied
+
     @property
     def version(self):
         raise NotImplementedError('Use `asset.deployment.version_id`')
@@ -324,7 +419,6 @@ class BaseDeploymentBackend:
     @property
     def version_id(self):
         return self.get_data('version')
-
 
     def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
         if file_type == AssetFile.FORM_MEDIA:

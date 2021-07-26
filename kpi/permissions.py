@@ -251,7 +251,7 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
 
 class ReportPermission(IsOwnerOrReadOnly):
     def has_object_permission(self, request, view, obj):
-        # Checks if the user has the require permissions
+        # Checks if the user has the required permissions
         # To access the submission data in reports
         user = get_database_user(request.user)
         if user.is_superuser:

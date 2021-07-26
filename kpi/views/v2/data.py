@@ -1,4 +1,6 @@
 # coding: utf-8
+import json
+
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
@@ -15,6 +17,9 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
     INSTANCE_FORMAT_TYPE_JSON,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
@@ -28,6 +33,7 @@ from kpi.permissions import (
 )
 from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
 class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
@@ -297,18 +303,26 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
         deployment = self._get_deployment()
+        kwargs = {
+            'data': request.data,
+            'context': self.get_serializer_context(),
+        }
         if request.method == 'DELETE':
-            json_response = deployment.delete_submissions(request.data,
-                                                          request.user)
+            action_ = deployment.delete_submissions
+            kwargs['perm'] = PERM_DELETE_SUBMISSIONS
         elif request.method == 'PATCH':
-            json_response = deployment.bulk_update_submissions(
-                dict(request.data), request.user
-            )
+            action_ = deployment.bulk_update_submissions
+            kwargs['perm'] = PERM_CHANGE_SUBMISSIONS
+
+        bulk_actions_validator = DataBulkActionsValidator(**kwargs)
+        bulk_actions_validator.is_valid(raise_exception=True)
+        json_response = action_(bulk_actions_validator.data, request.user)
+
         return Response(**json_response)
 
     def destroy(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-        pk = kwargs.get("pk")
+        pk = kwargs.get('pk')
         json_response = deployment.delete_submission(pk, user=request.user)
         return Response(**json_response)
 
@@ -412,7 +426,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
         if request.method == 'GET':
-            json_response = deployment.get_validation_status(pk, request.GET, request.user)
+            json_response = deployment.get_validation_status(pk,
+                                                             request.GET,
+                                                             request.user)
         else:
             json_response = deployment.set_validation_status(pk,
                                                              request.data,
@@ -426,9 +442,14 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             permission_classes=[SubmissionValidationStatusPermission])
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-        json_response = deployment.set_validation_statuses(request.data,
-                                                           request.user,
-                                                           request.method)
+        bulk_actions_validator = DataBulkActionsValidator(
+            data=request.data,
+            context=self.get_serializer_context(),
+            perm=PERM_VALIDATE_SUBMISSIONS
+        )
+        bulk_actions_validator.is_valid(raise_exception=True)
+        json_response = deployment.set_validation_statuses(
+            bulk_actions_validator.data, request.user)
 
         return Response(**json_response)
 
@@ -460,9 +481,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # submissions at one time
         limit = filters.get('limit', settings.SUBMISSION_LIST_LIMIT)
         try:
-            filters['limit'] = positive_int(limit,
-                                            strict=True,
-                                            cutoff=settings.SUBMISSION_LIST_LIMIT)
+            filters['limit'] = positive_int(
+                limit, strict=True, cutoff=settings.SUBMISSION_LIST_LIMIT
+            )
         except ValueError:
             raise serializers.ValidationError(
                 {'limit': _('A positive integer is required')}

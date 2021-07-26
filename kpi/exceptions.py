@@ -94,7 +94,7 @@ class KobocatDeploymentException(exceptions.APIException):
 
 class KobocatDuplicateSubmissionException(exceptions.APIException):
     status_code = 500
-    default_detail = _('An error occurred trying to duplicate the submission.')
+    default_detail = _('An error occurred trying to duplicate the submission')
     default_code = 'submission_duplication_error'
 
 

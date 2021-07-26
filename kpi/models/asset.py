@@ -445,21 +445,31 @@ class Asset(ObjectPermissionMixin,
         return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
                                        user_id=settings.ANONYMOUS_USER_ID).exists()
 
-    def get_filters_for_partial_perm(self, user_id, perm=PERM_VIEW_SUBMISSIONS):
+    def get_filters_for_partial_perm(
+        self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
+    ) -> Union[list, None]:
         """
         Returns the list of filters for a specific permission `perm`
         and this specific asset.
-        :param user_id:
-        :param perm: see `constants.*_SUBMISSIONS`
-        :return:
+
+        `perm` can only one of the submission permissions.
         """
-        if not perm.endswith(SUFFIX_SUBMISSIONS_PERMS) or perm == PERM_PARTIAL_SUBMISSIONS:
+        if (
+            not perm.endswith(SUFFIX_SUBMISSIONS_PERMS)
+            or perm == PERM_PARTIAL_SUBMISSIONS
+        ):
             raise BadPermissionsException(_('Only partial permissions for '
                                             'submissions are supported'))
 
         perms = self.get_partial_perms(user_id, with_filters=True)
         if perms:
-            return perms.get(perm)
+            try:
+                return perms[perm]
+            except KeyError:
+                # User has some partial permissions but not the good one.
+                # Return a false condition to avoid showing any results.
+                return [{'_id': -1}]
+
         return None
 
     def get_label_for_permission(
