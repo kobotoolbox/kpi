@@ -239,6 +239,16 @@ class XmlUtilsTestCase(TestCase):
         self.__submission_xml_file.close()
         super().tearDown()
 
+    def test_strip_xml_nodes_and_rename_root_node(self):
+        source = '<abcdef><a><b><c>abcdef</c></b></a></abcdef>'
+        expected = '<root><a><b><c>abcdef</c></b></a></root>'
+        result = strip_nodes(
+            source=source,
+            nodes_to_keep=['a', 'b', 'c'],
+            rename_root_node_to='root',
+        )
+        self.__compare_xml(result, expected)
+
     def test_strip_xml_nodes_by_fields(self):
         expected = (
             '<root>'
@@ -392,6 +402,7 @@ class XmlUtilsTestCase(TestCase):
         )
 
     def __compare_xml(self, source: str, target: str) -> bool:
+        """ Attempts to standardize XML by removing whitespace between tags """
         pattern = r'\s*(<[^>]+>)\s*'
         re_source = re.sub(pattern, r'\1', source)
         re_target = re.sub(pattern, r'\1', target)

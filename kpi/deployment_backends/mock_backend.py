@@ -12,8 +12,8 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import (
-    INSTANCE_FORMAT_TYPE_JSON,
-    INSTANCE_FORMAT_TYPE_XML,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
@@ -21,7 +21,6 @@ from kpi.constants import (
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.utils.mongo_helper import MongoHelper
-from kpi.utils.iterators import to_int
 from .base_backend import BaseDeploymentBackend
 
 
@@ -49,11 +48,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         submissions = self.get_submissions(
             user=user,
-            format_type=INSTANCE_FORMAT_TYPE_JSON,
+            format_type=SUBMISSION_FORMAT_TYPE_JSON,
             submission_ids=submission_ids
         )
 
-        submission_ids = to_int(submission_ids)
+        submission_ids = [int(id_) for id_ in submission_ids]
 
         responses = []
         for submission in submissions:
@@ -104,6 +103,16 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             submission_ids=[submission_id],
         )
 
+        if not settings.MONGO_DB.instances.find_one({'_id': submission_id}):
+            return {
+                'content_type': 'application/json',
+                'status': status.HTTP_404_NOT_FOUND,
+                'data': {
+                    'detail': 'Not found'
+                }
+            }
+
+        self._check_mock_mongo()
         settings.MONGO_DB.instances.delete_one({'_id': submission_id})
 
         return {
@@ -176,10 +185,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             self.get_submission(submission_id, user=user)
         )
         updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
-        next_id = max([
-            s['_id']
-            for s in self.get_submissions(self.asset.owner, fields=['_id'])
-        ]) + 1
+        next_id = max((
+            sub['_id']
+            for sub in self.get_submissions(self.asset.owner, fields=['_id'])
+        )) + 1
         duplicated_submission.update({
             '_id': next_id,
             'start': updated_time,
@@ -240,27 +249,35 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
         return url
 
-    def get_submissions(self,
-                        user: 'auth.User',
-                        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
-                        submission_ids: list = [],
-                        **kwargs) -> list:
+    def get_submissions(
+        self,
+        user: 'auth.User',
+        format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
+        submission_ids: list = [],
+        **mongo_query_params
+    ) -> list:
         """
-        Retrieves submissions whose `user` is allowed to access
+        Retrieve submissions that `user` is allowed to access.
+
         The format `format_type` can be either:
-        - 'json' (See `kpi.constants.INSTANCE_FORMAT_TYPE_JSON)
-        - 'xml' (See `kpi.constants.INSTANCE_FORMAT_TYPE_XML)
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML)
 
-        Results can be filtered on instance ids and/or MongoDB filters can be
-        passed through `kwargs`
+        Results can be filtered by submission ids. Moreover MongoDB filters can
+        be passed through `mongo_query_params` to narrow down the results.
+
+        If `user` has no access to these submissions or no matches are found,
+        an empty list is returned.
+        If `format_type` is 'json', a list of dictionary is returned.
+        Otherwise, if `format_type` is 'xml', a list of string is returned.
         """
 
-        kwargs['submission_ids'] = submission_ids
+        mongo_query_params['submission_ids'] = submission_ids
         params = self.validate_submission_list_params(user,
                                                       format_type=format_type,
-                                                      **kwargs)
+                                                      **mongo_query_params)
 
-        submissions, total_count = MongoHelper.get_instances(
+        mongo_cursor, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params)
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
@@ -268,10 +285,10 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         submissions = [
             MongoHelper.to_readable_dict(submission)
-            for submission in submissions
+            for submission in mongo_cursor
         ]
 
-        if format_type != INSTANCE_FORMAT_TYPE_XML:
+        if format_type != SUBMISSION_FORMAT_TYPE_XML:
             return submissions
 
         return [
@@ -283,9 +300,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             for submission in submissions
         ]
 
-    def get_validation_status(
-        self, submission_id, user: 'auth.User', params: dict
-    ) -> dict:
+    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
 
         submission = self.get_submission(submission_id, user)
         return {
@@ -297,6 +312,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
         Insert dummy submissions into deployment data
         """
+        self._check_mock_mongo()
         settings.MONGO_DB.instances.drop()
         for idx, submission in enumerate(submissions):
             submission[MongoHelper.USERFORM_ID] = self.mongo_userform_id
@@ -307,6 +323,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             if '_id' not in submission:
                 submission['_id'] = idx + 1
             settings.MONGO_DB.instances.insert_one(submission)
+            # Do not add `MongoHelper.USERFORM_ID` to original `submissions`
+            del submission[MongoHelper.USERFORM_ID]
 
     @property
     def mongo_userform_id(self):
@@ -465,6 +483,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         queryset = self._get_metadata_queryset(file_type=file_type)
         for obj in queryset:
             assert issubclass(obj.__class__, SyncBackendMediaInterface)
+
+    @staticmethod
+    def _check_mock_mongo():
+        # Ensure we are using MockMongo before deleting data
+        mongo_db_driver__repr = repr(settings.MONGO_DB)
+        if 'mongomock' not in mongo_db_driver__repr:
+            raise Exception('Cannot run tests on a production database')
 
     @staticmethod
     def __prepare_bulk_update_response(kc_responses: list) -> dict:

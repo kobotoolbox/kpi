@@ -21,9 +21,10 @@ from kpi.deployment_backends.kc_access.utils import (
 )
 from kpi.models.object_permission import ObjectPermission
 from kpi.utils.object_permission import (
-    get_anonymous_user,
+    get_database_user,
     perm_parse,
 )
+from kpi.utils.permissions import is_user_anonymous
 
 
 class ObjectPermissionMixin:
@@ -412,9 +413,9 @@ class ObjectPermissionMixin:
             raise serializers.ValidationError({
                 'permission': f'{codename} cannot be assigned explicitly to {self}'
             })
-        if isinstance(user_obj, AnonymousUser) or (
-            user_obj.pk == settings.ANONYMOUS_USER_ID
-        ):
+        is_anonymous = is_user_anonymous(user_obj)
+        user_obj = get_database_user(user_obj)
+        if is_anonymous:
             # Is an anonymous user allowed to have this permission?
             fq_permission = f'{app_label}.{codename}'
             if (
@@ -424,8 +425,6 @@ class ObjectPermissionMixin:
                 raise serializers.ValidationError({
                     'permission': f'Anonymous users cannot be granted the permission {codename}.'
                 })
-            # Get the User database representation for AnonymousUser
-            user_obj = get_anonymous_user()
         perm_model = Permission.objects.get(
             content_type__app_label=app_label,
             codename=codename
@@ -548,12 +547,8 @@ class ObjectPermissionMixin:
         Does `user_obj` have perm on this object? (True/False)
         """
         app_label, codename = perm_parse(perm, self)
-        is_anonymous = False
-        if isinstance(user_obj, AnonymousUser):
-            # Get the User database representation for AnonymousUser
-            user_obj = get_anonymous_user()
-        if user_obj.pk == settings.ANONYMOUS_USER_ID:
-            is_anonymous = True
+        is_anonymous = is_user_anonymous(user_obj)
+        user_obj = get_database_user(user_obj)
         # Treat superusers the way django.contrib.auth does
         if user_obj.is_active and user_obj.is_superuser:
             return True
@@ -572,7 +567,7 @@ class ObjectPermissionMixin:
                 return False
         return result
 
-    def has_perms(self, user_obj: User, perms: list, all_: bool = False) -> bool:  # noqa
+    def has_perms(self, user_obj: User, perms: list, all_: bool = True) -> bool:
         """
         Returns True or False whether user `user_obj` has several
         permissions (`perms`) on current object.
@@ -602,9 +597,7 @@ class ObjectPermissionMixin:
             :param skip_kc bool: When `True`, skip assignment of applicable KC
                 permissions
         """
-        if isinstance(user_obj, AnonymousUser):
-            # Get the User database representation for AnonymousUser
-            user_obj = get_anonymous_user()
+        user_obj = get_database_user(user_obj)
         app_label, codename = perm_parse(perm, self)
         # Get all assignable permissions, regardless of asset type. That way,
         # we can allow invalid permissions to be removed
@@ -795,7 +788,7 @@ class ObjectPermissionMixin:
                 settings.ANONYMOUS_USER_ID,
                 all_anon_object_permissions.get(self.pk),
             )
-            if not user.is_anonymous:
+            if not is_user_anonymous(user):
                 all_object_permissions = self.__get_all_user_permissions(
                     user_id=user.pk
                 )

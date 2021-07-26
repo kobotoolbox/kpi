@@ -84,8 +84,13 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
                 date_deleted__isnull=True,
             )
         )
-        paired_data_files = list(PairedData.objects(asset).values())
-        files = form_media_files + paired_data_files
+        files = form_media_files
+        # paired data files are treated differently from form media files
+        # void any cache when previewing the form
+        for paired_data in PairedData.objects(asset).values():
+            paired_data.void_external_xml_cache()
+            files.append(paired_data)
+
         context = {'request': request}
         serializer = ManifestSerializer(files, many=True, context=context)
 

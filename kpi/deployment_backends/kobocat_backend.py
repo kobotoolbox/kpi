@@ -20,8 +20,8 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 from kpi.constants import (
-    INSTANCE_FORMAT_TYPE_JSON,
-    INSTANCE_FORMAT_TYPE_XML,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
     PERM_FROM_KC_ONLY,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
@@ -33,6 +33,7 @@ from kpi.models.object_permission import ObjectPermission
 from kpi.models.paired_data import PairedData
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.permissions import is_user_anonymous
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthRequest,
@@ -65,8 +66,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     ]
 
     SYNCED_DATA_FILE_TYPES = {
-        AssetFile.FORM_MEDIA: AssetFile.BACKEND_DATA_TYPE,
-        AssetFile.PAIRED_DATA: PairedData.BACKEND_DATA_TYPE,
+        AssetFile.FORM_MEDIA: 'media',
+        AssetFile.PAIRED_DATA: 'paired_data',
     }
 
     def bulk_assign_mapped_perms(self):
@@ -124,19 +125,21 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             partial_perms = False
             submission_ids = data['submission_ids']
 
-        submissions = list(self.get_submissions(
+        submissions = self.get_submissions(
             user=user,
-            format_type=INSTANCE_FORMAT_TYPE_XML,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
             submission_ids=submission_ids,
             query=data['query'],
-        ))
-
-        validated_submissions = self.__validate_bulk_update_submissions(
-            submissions
         )
+
+        if not self.current_submissions_count:
+            raise KobocatBulkUpdateSubmissionsClientException(
+                detail=_('No submissions match the given `submission_ids`')
+            )
+
         update_data = self.__prepare_bulk_update_data(data['data'])
         kc_responses = []
-        for submission in validated_submissions:
+        for submission in submissions:
             xml_parsed = ET.fromstring(submission)
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
@@ -192,7 +195,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # duplicating a submission
             file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
-            # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission # noqa
+            # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
             headers = {}
             if partial_perms:
                 headers.update(
@@ -423,7 +426,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         submission = self.get_submission(
             submission_id,
             user=user,
-            format_type=INSTANCE_FORMAT_TYPE_XML,
+            format_type=SUBMISSION_FORMAT_TYPE_XML,
         )
 
         # parse XML string to ET object
@@ -611,28 +614,35 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def get_submissions(
         self,
         user: 'auth.User',
-        format_type: str = INSTANCE_FORMAT_TYPE_JSON,
+        format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
-        **kwargs
+        **mongo_query_params
     ) -> Union[Generator[dict, None, None], list]:
         """
-        Retrieves submissions which `user` is allowed to access
-        The format `format_type` can be either:
-        - 'json' (See `kpi.constants.INSTANCE_FORMAT_TYPE_JSON)
-        - 'xml' (See `kpi.constants.INSTANCE_FORMAT_TYPE_XML)
+        Retrieve submissions that `user` is allowed to access.
 
-        Results can be filtered on instance ids and/or MongoDB filters can be
-        passed through `kwargs`
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML)
+
+        Results can be filtered by submission ids. Moreover MongoDB filters can
+        be passed through `query` to narrow down the results.
+
+        If `user` has no access to these submissions or no matches are found,
+        an empty generator is returned.
+
+        If `format_type` is 'json', a generator of dictionary is returned.
+        Otherwise, if `format_type` is 'xml', a generator of string is returned.
         """
 
-        kwargs['submission_ids'] = submission_ids
+        mongo_query_params['submission_ids'] = submission_ids
         params = self.validate_submission_list_params(user,
                                                       format_type=format_type,
-                                                      **kwargs)
+                                                      **mongo_query_params)
 
-        if format_type == INSTANCE_FORMAT_TYPE_JSON:
+        if format_type == SUBMISSION_FORMAT_TYPE_JSON:
             submissions = self.__get_submissions_in_json(**params)
-        elif format_type == INSTANCE_FORMAT_TYPE_XML:
+        elif format_type == SUBMISSION_FORMAT_TYPE_XML:
             submissions = self.__get_submissions_in_xml(**params)
         else:
             raise BadFormatException(
@@ -640,11 +650,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             )
         return submissions
 
-    def get_validation_status(
-        self, submission_id, user: 'auth.User', params: dict
-    ) -> dict:
+    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
         url = self.get_submission_validation_status_url(submission_id)
-        kc_request = requests.Request(method='GET', url=url, data=params)
+        kc_request = requests.Request(method='GET', url=url)
         kc_response = self.__kobocat_proxy_request(kc_request, user)
 
         return self.__prepare_as_drf_response_signature(kc_response)
@@ -937,6 +945,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         for metadata in response.get('metadata', []):
             if metadata['data_type'] == self.SYNCED_DATA_FILE_TYPES[file_type]:
                 kc_files[metadata['data_value']] = {
+                    'pk': metadata['id'],
                     'url': metadata['url'],
                     'md5': metadata['file_hash'],
                     'from_kpi': metadata['from_kpi'],
@@ -946,36 +955,42 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         queryset = self._get_metadata_queryset(file_type=file_type)
 
-        for obj in queryset:
+        for media_file in queryset:
 
-            uniq = obj.backend_uniqid
+            backend_media_id = media_file.backend_media_id
 
             # File does not exist in KC
-            if uniq not in kc_filenames:
-                if obj.deleted_at is None:
+            if backend_media_id not in kc_filenames:
+                if media_file.deleted_at is None:
                     # New file
-                    self.__save_kc_metadata(obj)
+                    self.__save_kc_metadata(media_file)
                 else:
                     # Orphan, delete it
-                    obj.delete(force=True)
+                    media_file.delete(force=True)
                 continue
 
             # Existing file
-            if uniq in kc_filenames:
-                kc_file = kc_files[uniq]
-                if obj.deleted_at is None:
+            if backend_media_id in kc_filenames:
+                kc_file = kc_files[backend_media_id]
+                if media_file.deleted_at is None:
                     # If md5 differs, we need to re-upload it.
-                    if obj.md5_hash != kc_file['md5']:
-                        self.__delete_kc_metadata(kc_file)
-                        self.__save_kc_metadata(obj)
+                    if media_file.md5_hash != kc_file['md5']:
+                        if media_file.file_type == AssetFile.PAIRED_DATA:
+                            self.__update_kc_metadata_hash(
+                                media_file, kc_file['pk']
+                            )
+                        else:
+                            self.__delete_kc_metadata(kc_file)
+                            self.__save_kc_metadata(media_file)
                 elif kc_file['from_kpi']:
-                    self.__delete_kc_metadata(kc_file, obj)
+                    self.__delete_kc_metadata(kc_file, media_file)
                 else:
                     # Remote file has been uploaded directly to KC. We
                     # cannot delete it, but we need to vacuum KPI.
-                    obj.delete(force=True)
-                    # Skip deletion of key corresponding to `uniq` in `kc_files`
-                    # to avoid unique constraint failure in case user deleted
+                    media_file.delete(force=True)
+                    # Skip deletion of key corresponding to `backend_media_id`
+                    # in `kc_files` to avoid unique constraint failure in case
+                    # user deleted
                     # and re-uploaded the same file in a row between
                     # two deployments
                     # Example:
@@ -991,7 +1006,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 # Remove current filename from `kc_files`.
                 # All files which will remain in this dict (after this loop)
                 # will be considered obsolete and will be deleted
-                del kc_files[uniq]
+                del kc_files[backend_media_id]
 
         # Remove KC orphan files previously uploaded through KPI
         for kc_file in kc_files.values():
@@ -1133,25 +1148,25 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def __get_submissions_in_json(self, **params):
         """
-        Retrieve instances directly from Mongo.
+        Retrieve submissions directly from Mongo.
 
         :param params: dict. Filter params
         :return: generator<JSON>
         """
-        instances, total_count = MongoHelper.get_instances(
+        mongo_cursor, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params)
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = total_count
 
         return (
-            MongoHelper.to_readable_dict(instance)
-            for instance in instances
+            MongoHelper.to_readable_dict(submission)
+            for submission in mongo_cursor
         )
 
     def __get_submissions_in_xml(self, **params):
         """
-        Retrieves instances directly from Postgres.
+        Retrieves submissions directly from PostgreSQL.
 
         :param params: dict. Filter params
         :return: list<XML>
@@ -1165,7 +1180,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # We use Mongo to retrieve matching instances.
             params['fields'] = ['_id']
             # Force `sort` by `_id` for Mongo
-            # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`  # noqa
+            # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
             params['sort'] = {'_id': 1}
             submissions, count = MongoHelper.get_instances(
                 self.mongo_userform_id, **params
@@ -1188,7 +1203,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             self.current_submissions_count = queryset.count()
 
         # Force Sort by id
-        # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`  # noqa
+        # See FIXME about sort in `BaseDeploymentBackend.validate_submission_list_params()`
         queryset = queryset.order_by('id')
 
         # When using Mongo, data is already paginated,
@@ -1211,7 +1226,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         :param user: User
         :return: requests.models.Response
         """
-        if not user.is_anonymous and user.pk != settings.ANONYMOUS_USER_ID:
+        if not is_user_anonymous(user):
             token, created = Token.objects.get_or_create(user=user)
             kc_request.headers['Authorization'] = 'Token %s' % token.key
         session = requests.Session()
@@ -1342,15 +1357,13 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         identifier = self.identifier
         server, path_ = self.__parse_identifier(identifier)
-        metadata_url = self.external_to_internal_url(
-            '{}/api/v1/metadata'.format(server)
-        )
+        metadata_url = self.external_to_internal_url(f'{server}/api/v1/metadata')
 
         kwargs = {
             'data': {
-                'data_value': file_.backend_data_value,
+                'data_value': file_.backend_media_id,
                 'xform': self.xform_id,
-                'data_type': file_.backend_data_type,
+                'data_type': self.SYNCED_DATA_FILE_TYPES[file_.file_type],
                 'from_kpi': True,
                 'data_filename': file_.filename,
                 'data_file_type': file_.mimetype,
@@ -1362,7 +1375,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             kwargs['files'] = {
                 'data_file': (
                     file_.filename,
-                    file_.content.file.read(),
+                    file_.content.file,
                     file_.mimetype,
                 )
             }
@@ -1375,10 +1388,23 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
 
-    @staticmethod
-    def __validate_bulk_update_submissions(submissions: list) -> list:
-        if len(submissions) == 0:
-            raise KobocatBulkUpdateSubmissionsClientException(
-                detail=_('No submissions match the given `submission_ids`')
-            )
-        return submissions
+    def __update_kc_metadata_hash(
+        self, file_: SyncBackendMediaInterface, kc_metadata_id: int
+    ):
+        """
+        Update metadata hash in KC
+        """
+        identifier = self.identifier
+        server, path_ = self.__parse_identifier(identifier)
+        metadata_detail_url = self.external_to_internal_url(
+            f'{server}/api/v1/metadata/{kc_metadata_id}'
+        )
+
+        data = {'file_hash': file_.md5_hash}
+        self._kobocat_request('PATCH',
+                              url=metadata_detail_url,
+                              expect_formid=False,
+                              data=data)
+
+        file_.synced_with_backend = True
+        file_.save(update_fields=['synced_with_backend'])

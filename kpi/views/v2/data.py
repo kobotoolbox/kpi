@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
-    INSTANCE_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_JSON,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
@@ -367,7 +367,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             return Response(
                 deployment.get_submissions(
                     user=request.user,
-                    format_type=INSTANCE_FORMAT_TYPE_JSON,
+                    format_type=SUBMISSION_FORMAT_TYPE_JSON,
                     **filters
                 )
             )
@@ -429,7 +429,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             json_response = deployment.get_validation_status(
                 submission_id=submission_id,
                 user=request.user,
-                params=request.GET.dict(),
             )
         else:
             json_response = deployment.set_validation_status(

@@ -42,15 +42,38 @@ export const ANON_USERNAME = 'AnonymousUser';
  * where you have to match the classes with endpoints and their HTTP methods.
  */
 export const PERMISSIONS_CODENAMES = createEnum([
+  // Is user able to view asset - mostly handled by Backend just not returning
+  // asset in the results or direct endpoint.
   'view_asset',
+
+  // Is user able to edit asset, i.e. to change anything in the asset endpoint,
+  // so: editing in Form Builder, changing tags, changing settings, replace XLS,
+  // change translations, move between collection, archive, unarchive, delete…
   'change_asset',
+
+  // Is asset discoverable in public lists.
   'discover_asset',
+
+  // Is user able to manage some aspects of asset (it is different from editing)
+  // such as: saving export settings, sharing asset (TODO)…
   'manage_asset',
+
+  // Is user able to add submissions - handled by Backend submissions endpoint.
   'add_submissions',
+
+  // Is user able to see submissions, i.e. the Table View.
   'view_submissions',
+
+  // Used for partially permissing user actions on submissions.
   'partial_submissions',
+
+  // Is user able to edit existing submissions.
   'change_submissions',
+
+  // Is user able to delete submissions.
   'delete_submissions',
+
+  // Is user able to change the validation status of submissions.
   'validate_submissions',
 ]);
 
@@ -200,7 +223,7 @@ export const QUESTION_TYPES = Object.freeze({
   date: {label: t('Date'), icon: 'qt-date', id: 'date'},
   datetime: {label: t('Date & time'), icon: 'qt-date-time', id: 'datetime'},
   decimal: {label: t('Decimal'), icon: 'qt-decimal', id: 'decimal'},
-  'external-xml': {label: t('External XML'), icon: 'qt-external-xml', id: 'external-xml'},
+  'xml-external': {label: t('External XML'), icon: 'qt-external-xml', id: 'xml-external'},
   file: {label: t('File'), icon: 'qt-file', id: 'file'},
   geopoint: {label: t('Point'), icon: 'qt-point', id: 'geopoint'},
   geoshape: {label: t('Area'), icon: 'qt-area', id: 'geoshape'},

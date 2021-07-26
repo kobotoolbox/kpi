@@ -52,12 +52,12 @@ from kpi.renderers import (
 )
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 from kpi.utils.object_permission import (
-    get_anonymous_user,
+    get_database_user,
     get_objects_for_user,
 )
 
@@ -255,7 +255,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/reports/
 
     ### Data sharing
-    Enable data sharing for the current asset
+
+    Control sharing of submission data from this project to other projects
 
     <pre class="prettyprint">
     <b>PATCH</b> /api/v2/assets/{uid}/
@@ -275,7 +276,10 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     >        }
     >
 
-    * `fields`: Optional. List of questions of asset represented by their XPath. I.e., Hierarchy group must be kept.
+    * `fields`: Optional. List of questions whose responses will be shared. If
+        missing or empty, all responses will be shared. Questions must be
+        identified by full group path separated by slashes, e.g.
+        `group/subgroup/question_name`.
 
     >
     > Response
@@ -552,10 +556,6 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         return metadata
 
-    def get_object(self):
-        self.asset = super().get_object()
-        return self.asset
-
     def get_paginated_response(self, data, metadata):
         """
         Override parent `get_paginated_response` response to include `metadata`
@@ -689,7 +689,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             assets_version_ids.sort()
 
             if len(assets_version_ids) > 0:
-                hash_ = get_hash(''.join(assets_version_ids), algorithm='md5')
+                hash_ = calculate_hash(''.join(assets_version_ids), algorithm='md5')
             else:
                 hash_ = ''
 
@@ -719,12 +719,7 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_create(self, serializer):
-        # Check if the user is anonymous. The
-        # django.contrib.auth.models.AnonymousUser object doesn't work for
-        # queries.
-        user = self.request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
+        user = get_database_user(self.request.user)
         serializer.save(owner=user)
 
     def perform_destroy(self, instance):

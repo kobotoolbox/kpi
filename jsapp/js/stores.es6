@@ -254,18 +254,6 @@ stores.session = Reflux.createStore({
   },
 });
 
-stores.assetContent = Reflux.createStore({
-  init: function () {
-    this.data = {};
-    this.surveys = {};
-    this.listenTo(actions.resources.loadAssetContent.completed, this.onLoadAssetContentCompleted);
-  },
-  onLoadAssetContentCompleted: function(resp/*, req, jqxhr*/) {
-    this.data[resp.uid] = resp;
-    this.trigger(this.data, resp.uid);
-  },
-});
-
 stores.allAssets = Reflux.createStore({
   init() {
     this.data = [];

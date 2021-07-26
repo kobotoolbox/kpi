@@ -58,7 +58,8 @@ class QueryParseActions:
         if value == 'null':
             return None
 
-        # Handle booleans
+        # Handle booleans - necessary when querying inside JSONBFields, and
+        # also some other contexts: see `get_parsed_parameters()`
         try:
             lower_value = value.lower()
         except AttributeError:
@@ -171,6 +172,7 @@ class QueryParseActions:
 
 def get_parsed_parameters(parsed_query: Q) -> dict:
     """
+    NOTE: this is a hack that does not respect boolean logic.
     Returns a dictionary of all parameters detected in the query and their
     values. Values are always returned as list even if there is only one value
     found.
