@@ -7,7 +7,12 @@ import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
+import {truncateString} from 'js/utils';
 import './mediaCell.scss';
+
+bem.TableMediaPreviewHeader = bem('table-media-preview-header');
+bem.TableMediaPreviewHeader__title = bem.TableMediaPreviewHeader.__('title', '<div>');
+bem.TableMediaPreviewHeader__label = bem.TableMediaPreviewHeader.__('label', '<label>');
 
 bem.MediaCell = bem('media-cell');
 bem.MediaCell__icon = bem.MediaCell.__('icon', '<i>');
@@ -42,12 +47,16 @@ class mediaCell extends React.Component {
   }
 
   renderMediaModalCustomHeader(questionIcon, mediaURL, mediaName) {
+    const truncatedFileName = truncateString(mediaName, 50);
     return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
           <i className={questionIcon.join(' ')}/>
-          <bem.TableMediaPreviewHeader__label>
-            {mediaName}
+          <bem.TableMediaPreviewHeader__label
+            // Give the user a way to see the full file name
+            title={mediaName}
+          >
+            {truncatedFileName}
           </bem.TableMediaPreviewHeader__label>
         </bem.TableMediaPreviewHeader__title>
 

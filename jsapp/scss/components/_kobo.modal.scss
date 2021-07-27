@@ -377,6 +377,7 @@ $z-modal-x: 10;
 
       .table-media-preview-header__title {
         padding-top: 3px;
+        margin-right: 6px;
 
         .table-media-preview-header__label {
           vertical-align: top;
@@ -406,6 +407,7 @@ $z-modal-x: 10;
       padding: 32px 0 12px 0;
       text-align: center;
       max-width: 600px;
+      margin: auto;
 
       .audio-player {
         margin-right: 12px;
@@ -837,6 +839,24 @@ $z-modal-x: 10;
 
 .remove-encryption {
   float: right;
+}
+@media screen and (max-width: 480px) {
+  .table-media-preview-header {
+    margin-right: 0 !important;
+    display: block !important;
+
+    .table-media-preview-header__title {
+      display: flex;
+    }
+
+    .kobo-light-button {
+      display: block;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 12px;
+    }
+  }
 }
 
 @media screen and (max-width: 767px) {

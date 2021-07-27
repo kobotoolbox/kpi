@@ -55,6 +55,10 @@ class AudioPlayer extends React.Component {
     autoBind(this);
   }
 
+  componentWillUnmount() {
+    this.audioInterface.pause();
+  }
+
   onPlayStatusChange() {
     if (!this.state.isPlaying) {
       this.audioInterface.play();

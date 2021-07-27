@@ -122,10 +122,6 @@ bem.TableMeta__counter = bem.TableMeta.__('counter');
 bem.TableMeta__additionalText = bem.TableMeta.__('additional-text', 'span'); // generally text not needed on smaller screens
 bem.TableMeta__bulkOptions = bem.TableMeta.__('bulk-options');
 
-bem.TableMediaPreviewHeader = bem('table-media-preview-header');
-bem.TableMediaPreviewHeader__title = bem.TableMediaPreviewHeader.__('title', '<div>');
-bem.TableMediaPreviewHeader__label = bem.TableMediaPreviewHeader.__('label', '<label>');
-
 bem.CollectionsWrapper = bem('collections-wrapper');
 
 bem.CollectionNav = bem('collection-nav');
