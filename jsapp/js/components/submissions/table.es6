@@ -26,6 +26,11 @@ import {
   NUMERICAL_SUBMISSION_PROPS,
   ENKETO_ACTIONS,
 } from 'js/constants';
+import {
+  EXCLUDED_COLUMNS,
+  SUBMISSION_ACTIONS_ID,
+  TABLE_MEDIA_TYPES,
+} from './tableConstants';
 import {formatTimeDate} from 'utils';
 import {
   renderQuestionTypeIcon,
@@ -36,32 +41,6 @@ import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from './tableBulkOptions';
 import TableBulkCheckbox from './tableBulkCheckbox';
 import MediaCell from './mediaCell';
-
-// Columns that will be ALWAYS excluded from the view
-const EXCLUDED_COLUMNS = [
-  '_xform_id_string',
-  '_attachments',
-  '_notes',
-  '_bamboo_dataset_id',
-  // '_status' is always 'submitted_via_web' unless submitted in bulk;
-  // in that case, it's 'zip'
-  '_status',
-  'formhub/uuid',
-  '_tags',
-  '_geolocation',
-  'meta/instanceID',
-  'meta/deprecatedID',
-  '_validation_status',
-];
-
-export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
-
-export const TABLE_MEDIA_TYPES = [
-  QUESTION_TYPES.image.id,
-  QUESTION_TYPES.audio.id,
-  QUESTION_TYPES.video.id,
-  META_QUESTION_TYPES['background-audio'],
-];
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -204,7 +183,9 @@ export class DataTable extends React.Component {
     output = [...new Set([...dataKeys, ...output])];
 
     // exclude some technical non-data columns
-    output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false);
+    output = output.filter(
+      (key) => Object.keys(EXCLUDED_COLUMNS).includes(key) === false
+    );
 
     // exclude notes
     output = output.filter((key) => {
@@ -547,7 +528,7 @@ export class DataTable extends React.Component {
         className: columnClassName,
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
-            if (TABLE_MEDIA_TYPES.includes(q.type)) {
+            if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               var mediaURL = this.getMediaDownloadLink(row, row.value);
               return (
                 <MediaCell
@@ -1058,7 +1039,7 @@ export class DataTable extends React.Component {
 
     return (
       NUMERICAL_SUBMISSION_PROPS[questionType] ||
-      TABLE_MEDIA_TYPES.includes(questionType)
+      Object.keys(TABLE_MEDIA_TYPES).includes(questionType)
     );
   }
   launchMediaModal(questionType, questionIcon, mediaURL, mediaName) {
