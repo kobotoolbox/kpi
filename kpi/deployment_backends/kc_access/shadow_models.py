@@ -1,4 +1,7 @@
 # coding: utf-8
+from datetime import datetime
+from secrets import token_urlsafe
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -18,8 +21,8 @@ from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
-from kpi.fields import KpiUidField
 from kpi.utils.hash import calculate_hash
+from kpi.utils.datetime import one_minute_from_now
 
 
 def update_autofield_sequence(model):
@@ -192,26 +195,26 @@ class KobocatGenericForeignKey(GenericForeignKey):
                 return []
 
 
-class KobocatOneTimeAuthRequest(ShadowModel):
+class KobocatOneTimeAuthToken(ShadowModel):
     """
-    One time authenticated request
+    One time authenticated token
     """
     HEADER = 'X-KOBOCAT-OTAR-TOKEN'
-    DEFAULT_TTL = 60
 
     user = models.ForeignKey(
         'KobocatUser',
         related_name='authenticated_requests',
         on_delete=models.CASCADE,
     )
-    token = KpiUidField(uid_prefix='', length=50)
-    date_created = models.DateTimeField(default=timezone.now)
-    ttl = models.IntegerField(default=60)
+    token = models.CharField(max_length=50, default=token_urlsafe)
+    # TODO Change this (date_created and ttl are gone) in KoBoCAT and remove this TODO
+    expiration_time = models.DateTimeField(default=one_minute_from_now)
     method = models.CharField(max_length=6)
     used = models.BooleanField(default=False)
 
     class Meta(ShadowModel.Meta):
-        db_table = 'logger_onetimeauthrequest'
+        # TODO Change this in KoBoCAT and remove this TODO
+        db_table = 'api_onetimeauthrequest'
         unique_together = ('token', 'used')
 
     @classmethod
@@ -219,11 +222,11 @@ class KobocatOneTimeAuthRequest(ShadowModel):
             cls,
             user: 'auth.User',
             method: str = 'POST',
-            ttl: int = DEFAULT_TTL,
+            expiration_time: datetime = one_minute_from_now,
             url: str = None,
-    ) -> 'KobocatOneTimeAuthRequest':
+    ) -> 'KobocatOneTimeAuthToken':
         """
-        Create and return an instance of KobocatOneTimeAuthRequest.
+        Create and return an instance of KobocatOneTimeAuthToken.
 
         If `url` is specified, it generates the token based on the URL instead
         of auto-generating it.
@@ -240,14 +243,12 @@ class KobocatOneTimeAuthRequest(ShadowModel):
             token = parts[-1]
 
         auth_request, created = cls.objects.get_or_create(
-            user=kc_user, token=token, ttl=ttl, method=method
+            user=kc_user, token=token, expiration_time=expiration_time, method=method
         )
         return auth_request
 
-    @classmethod
-    def get_header(cls, user: 'auth.User', method: str) -> dict:
-        auth_request = cls.create_token(user, method)
-        return {cls.HEADER: auth_request.token}
+    def get_header(self) -> dict:
+        return {self.HEADER: self.token}
 
 
 class KobocatPermission(ShadowModel):

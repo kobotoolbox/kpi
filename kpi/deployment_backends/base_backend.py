@@ -135,8 +135,8 @@ class BaseDeploymentBackend(abc.ABC):
         and which `user` is allowed to access.
 
         The format `format_type` can be either:
-        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON)
-        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML)
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON`)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML`)
 
         MongoDB filters can be passed through `mongo_query_params` to narrow
         down the result.
@@ -180,8 +180,8 @@ class BaseDeploymentBackend(abc.ABC):
         Retrieve submissions that `user` is allowed to access.
 
         The format `format_type` can be either:
-        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON)
-        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML)
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON`)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML`)
 
         Results can be filtered by submission ids. Moreover MongoDB filters can
         be passed through `mongo_query_params` to narrow down the results.
@@ -189,8 +189,8 @@ class BaseDeploymentBackend(abc.ABC):
         If `user` has no access to these submissions or no matches are found, an
         empty iterator is returned.
 
-        If `format_type` is 'json', an iterator of dictionary is returned.
-        Otherwise, if `format_type` is 'xml', an iterator of string is returned.
+        If `format_type` is 'json', an iterator of dictionaries is returned.
+        Otherwise, if `format_type` is 'xml', an iterator of strings is returned.
         """
         pass
 

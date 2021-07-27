@@ -269,8 +269,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         Retrieve submissions that `user` is allowed to access.
 
         The format `format_type` can be either:
-        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON)
-        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML)
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON`)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML`)
 
         Results can be filtered by submission ids. Moreover MongoDB filters can
         be passed through `mongo_query_params` to narrow down the results.

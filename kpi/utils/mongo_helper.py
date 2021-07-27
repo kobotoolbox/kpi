@@ -291,7 +291,7 @@ class MongoHelper:
                 permission_filters_query = permission_filters[0]
             else:
                 permission_filters_query = {cls.OR_OPERATOR: []}
-                for idx, permission_filter in enumerate(permission_filters):
+                for permission_filter in permission_filters:
                     if isinstance(permission_filter, list):
                         permission_filters_query[cls.OR_OPERATOR].append(
                             {cls.OR_OPERATOR: permission_filter}

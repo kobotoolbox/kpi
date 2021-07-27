@@ -258,7 +258,7 @@ class Asset(ObjectPermissionMixin,
         PERM_VIEW_SUBMISSIONS: _('View submissions'),
         PERM_PARTIAL_SUBMISSIONS: {
             'default': _(
-                'Make partial actions only from specific users'
+                'Act on submissions only from specific users'
             ),
             PERM_VIEW_SUBMISSIONS: _(
                 'View submissions only from specific users'
