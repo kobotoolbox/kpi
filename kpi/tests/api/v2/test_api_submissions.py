@@ -781,6 +781,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
+                'action': 'edit',
             },
         )
         self.submission_url_legacy = reverse(
@@ -789,7 +790,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
-        ).replace('edit/', '')
+        )
 
     def test_get_legacy_edit_link_submission_as_owner(self):
         """
