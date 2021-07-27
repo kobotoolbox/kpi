@@ -32,7 +32,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     > **Expected payload**
     >
     >        {
-    >           "instance_id": {integer}
+    >           "submission_id": {integer}
     >        }
 
     """
@@ -47,25 +47,23 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         :return:
         """
         try:
-            instance_id = positive_int(
-                request.data.get('instance_id'), strict=True)
+            submission_id = positive_int(
+                request.data.get('submission_id'), strict=True)
         except ValueError:
             raise serializers.ValidationError(
-                {'instance_id': _('A positive integer is required.')})
+                {'submission_id': _('A positive integer is required.')})
 
         # Check if instance really belongs to Asset.
         try:
-            instance = self.asset.deployment.get_submission(instance_id,
-                                                            request.user.id)
+            submission = self.asset.deployment.get_submission(submission_id,
+                                                              request.user)
         except ValueError:
             raise Http404
 
-        instance_id_fieldname = self.asset.deployment.INSTANCE_ID_FIELDNAME
-        if not (instance and
-                int(instance.get(instance_id_fieldname)) == instance_id):
+        if not (submission and int(submission['_id']) == submission_id):
             raise Http404
 
-        if HookUtils.call_services(self.asset, instance_id):
+        if HookUtils.call_services(self.asset, submission_id):
             # Follow Open Rosa responses by default
             response_status_code = status.HTTP_202_ACCEPTED
             response = {
@@ -80,7 +78,7 @@ class HookSignalViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             response = {
                 "detail": _(
                     "Your data for instance {} has been already "
-                    "submitted.".format(instance_id))
+                    "submitted.".format(submission_id))
             }
 
         return Response(response, status=response_status_code)

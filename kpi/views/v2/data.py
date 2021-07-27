@@ -1,9 +1,10 @@
 # coding: utf-8
+import json
+
 from django.conf import settings
 from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import (
-    exceptions,
     renderers,
     serializers,
     status,
@@ -16,8 +17,9 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
     INSTANCE_FORMAT_TYPE_JSON,
-    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset
@@ -31,6 +33,7 @@ from kpi.permissions import (
 )
 from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.serializers.v2.data import DataBulkActionsValidator
 
 
 class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
@@ -290,8 +293,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         Returns the deployment for the asset specified by the request
         """
         if not self.asset.has_deployment:
-            raise ObjectDeploymentDoesNotExist(_('The specified asset has not been '
-                                                 'deployed'))
+            raise ObjectDeploymentDoesNotExist(
+                _('The specified asset has not been deployed')
+            )
 
         return self.asset.deployment
 
@@ -299,19 +303,30 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
         deployment = self._get_deployment()
+        kwargs = {
+            'data': request.data,
+            'context': self.get_serializer_context(),
+        }
         if request.method == 'DELETE':
-            json_response = deployment.delete_submissions(request.data,
-                                                          request.user)
+            action_ = deployment.delete_submissions
+            kwargs['perm'] = PERM_DELETE_SUBMISSIONS
         elif request.method == 'PATCH':
-            json_response = deployment.bulk_update_submissions(
-                dict(request.data), request.user
-            )
+            action_ = deployment.bulk_update_submissions
+            kwargs['perm'] = PERM_CHANGE_SUBMISSIONS
+
+        bulk_actions_validator = DataBulkActionsValidator(**kwargs)
+        bulk_actions_validator.is_valid(raise_exception=True)
+        json_response = action_(bulk_actions_validator.data, request.user)
+
         return Response(**json_response)
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        pk = kwargs.get("pk")
-        json_response = deployment.delete_submission(pk, user=request.user)
+        # Coerce to int because back end only finds matches with same type
+        submission_id = positive_int(pk)
+        json_response = deployment.delete_submission(
+            submission_id, user=request.user
+        )
         return Response(**json_response)
 
     @action(
@@ -360,18 +375,18 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             # `SubmissionGeoJsonRenderer` handle the rest
             return Response(
                 deployment.get_submissions(
-                    requesting_user_id=request.user,
+                    user=request.user,
                     format_type=INSTANCE_FORMAT_TYPE_JSON,
                     **filters
                 )
             )
 
-        submissions = deployment.get_submissions(request.user.id,
+        submissions = deployment.get_submissions(request.user,
                                                  format_type=format_type,
                                                  **filters)
         # Create a dummy list to let the Paginator do all the calculation
         # for pagination because it does not need the list of real objects.
-        # It avoids to retrieve all the objects from MongoDB
+        # It avoids retrieving all the objects from MongoDB
         dummy_submissions_list = [None] * deployment.current_submissions_count
         page = self.paginate_queryset(dummy_submissions_list)
         if page is not None:
@@ -384,10 +399,12 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         deployment = self._get_deployment()
         filters = self._filter_mongo_query(request)
         try:
-            submission = deployment.get_submission(positive_int(pk),
-                                                   request.user.id,
-                                                   format_type=format_type,
-                                                   **filters)
+            submission = deployment.get_submission(
+                positive_int(pk),
+                user=request.user,
+                format_type=format_type,
+                **filters,
+            )
         except ValueError:
             raise Http404
         else:
@@ -403,8 +420,10 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         Creates a duplicate of the submission with a given `pk`
         """
         deployment = self._get_deployment()
+        # Coerce to int because back end only finds matches with same type
+        submission_id = positive_int(pk)
         duplicate_response = deployment.duplicate_submission(
-            requesting_user=request.user, instance_id=positive_int(pk)
+            submission_id=submission_id, user=request.user
         )
         return Response(duplicate_response, status=status.HTTP_201_CREATED)
 
@@ -413,13 +432,21 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             permission_classes=[SubmissionValidationStatusPermission])
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
+        # Coerce to int because back end only finds matches with same type
+        submission_id = positive_int(pk)
         if request.method == 'GET':
-            json_response = deployment.get_validation_status(pk, request.GET, request.user)
+            json_response = deployment.get_validation_status(
+                submission_id=submission_id,
+                user=request.user,
+                params=request.GET.dict(),
+            )
         else:
-            json_response = deployment.set_validation_status(pk,
-                                                             request.data,
-                                                             request.user,
-                                                             request.method)
+            json_response = deployment.set_validation_status(
+                submission_id=submission_id,
+                user=request.user,
+                data=request.data,
+                method=request.method,
+            )
 
         return Response(**json_response)
 
@@ -428,16 +455,22 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             permission_classes=[SubmissionValidationStatusPermission])
     def validation_statuses(self, request, *args, **kwargs):
         deployment = self._get_deployment()
-        json_response = deployment.set_validation_statuses(request.data,
-                                                           request.user,
-                                                           request.method)
+        bulk_actions_validator = DataBulkActionsValidator(
+            data=request.data,
+            context=self.get_serializer_context(),
+            perm=PERM_VALIDATE_SUBMISSIONS
+        )
+        bulk_actions_validator.is_valid(raise_exception=True)
+        json_response = deployment.set_validation_statuses(
+            request.user, bulk_actions_validator.data)
 
         return Response(**json_response)
 
     def _enketo_request(self, request, pk, action, *args, **kwargs):
         deployment = self._get_deployment()
+        submission_id = positive_int(pk)
         json_response = deployment.get_enketo_submission_url(
-            pk,
+            submission_id,
             user=request.user,
             params={**request.GET, 'action': action},
         )
@@ -462,9 +495,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         # submissions at one time
         limit = filters.get('limit', settings.SUBMISSION_LIST_LIMIT)
         try:
-            filters['limit'] = positive_int(limit,
-                                            strict=True,
-                                            cutoff=settings.SUBMISSION_LIST_LIMIT)
+            filters['limit'] = positive_int(
+                limit, strict=True, cutoff=settings.SUBMISSION_LIST_LIMIT
+            )
         except ValueError:
             raise serializers.ValidationError(
                 {'limit': _('A positive integer is required')}

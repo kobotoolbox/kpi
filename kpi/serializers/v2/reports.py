@@ -16,9 +16,13 @@ class ReportsDetailSerializer(serializers.BaseSerializer):
             vnames = None
 
         split_by = request.query_params.get('split_by', None)
-        submission_stream = obj.deployment.get_submissions(request.user.id)
-        _list = report_data.data_by_identifiers(obj, vnames, split_by=split_by,
-                                                submission_stream=submission_stream)
+        submission_stream = obj.deployment.get_submissions(request.user)
+        _list = report_data.data_by_identifiers(
+            obj,
+            vnames,
+            split_by=split_by,
+            submission_stream=submission_stream,
+        )
 
         return {
             'url': reverse('asset-reports', args=(obj.uid,), request=request),
