@@ -213,8 +213,14 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
         Gets URL of the submission in a format FE can understand
         """
-        partial_perm = (PERM_CHANGE_SUBMISSIONS
-                        if action_ == 'edit' else PERM_VIEW_SUBMISSIONS)
+        if action_ == 'edit':
+            partial_perm = PERM_CHANGE_SUBMISSIONS
+        elif action_ == 'view':
+            partial_perm = PERM_VIEW_SUBMISSIONS
+        else:
+            raise NotImplementedError(
+                "Only 'view' and 'edit' actions are currently supported"
+            )
 
         submission_ids = self.validate_write_access_with_partial_perms(
             user=user,
