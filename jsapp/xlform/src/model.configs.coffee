@@ -164,6 +164,12 @@ module.exports = do ->
     acknowledge:
       label:
         value: "Acknowledge"
+    'xml-external':
+      label:
+        value: "File_name"
+      required:
+        value: false
+        _hideUnlessChanged: true
 
   configs.paramTypes = {
     number: 'number',
@@ -249,6 +255,7 @@ module.exports = do ->
       ["kobomatrix", "Advanced Matrix"],
       ["rank__level", "Rank Level"],
       ["select_multiple", "Multiple choice", orOtherOption: true, specifyChoice: true]
+      ["xml-external", "External XML"],
     ]
 
     class Type

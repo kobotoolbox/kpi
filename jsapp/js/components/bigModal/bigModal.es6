@@ -22,6 +22,7 @@ import BulkEditSubmissionsForm from 'js/components/modalForms/bulkEditSubmission
 import ProjectSettings from 'js/components/modalForms/projectSettings';
 import RESTServicesForm from 'js/components/RESTServices/RESTServicesForm';
 import SharingForm from 'js/components/permissions/sharingForm';
+import DataAttachmentColumnsForm from 'js/components/dataAttachments/dataAttachmentColumnsForm.es6';
 import SubmissionModal from 'js/components/submissions/submissionModal';
 import TableSettings from 'js/components/submissions/tableSettings';
 import TranslationSettings from 'js/components/modalForms/translationSettings';
@@ -179,6 +180,10 @@ class BigModal extends React.Component {
         this.setState({
           modalClass: 'modal--large modal--large-shorter',
         });
+        break;
+
+      case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
+        // title is set by DataAttachmentColumnsForm
         break;
 
       default:
@@ -399,6 +404,13 @@ class BigModal extends React.Component {
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
                 asset={this.props.params.asset}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS &&
+              <DataAttachmentColumnsForm
+                onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
                 {...this.props.params}
               />
             }

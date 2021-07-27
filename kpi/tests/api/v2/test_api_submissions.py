@@ -1,6 +1,8 @@
 # coding: utf-8
-import copy
 import json
+import random
+import string
+import time
 import uuid
 from datetime import datetime
 
@@ -11,18 +13,20 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import (
-    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
+    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
+    PERM_ADD_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset
-from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class BaseSubmissionTestCase(BaseTestCase):
@@ -48,42 +52,30 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
 
-        v_uid = self.asset.latest_deployed_version.uid
-        self.submissions = [
-            {
-                "__version__": v_uid,
-                "q1": "a1",
-                "q2": "a2",
-                "_id": 1,
-                "instanceID": f'uuid:{uuid.uuid4()}',
-                "_validation_status": {
-                    "by_whom": "someuser",
-                    "timestamp": 1547839938,
-                    "uid": "validation_status_on_hold",
-                    "color": "#0000ff",
-                    "label": "On Hold"
-                },
-                "_submitted_by": ""
-            },
-            {
-                "__version__": v_uid,
-                "q1": "a3",
-                "q2": "a4",
-                "_id": 2,
-                "instanceID": f'uuid:{uuid.uuid4()}',
-                "_validation_status": {
-                    "by_whom": "someuser",
-                    "timestamp": 1547839938,
-                    "uid": "validation_status_approved",
-                    "color": "#0000ff",
-                    "label": "On Hold"
-                },
-                "_submitted_by": "someuser"
-            }
-        ]
-        self.asset.deployment.mock_submissions(self.submissions)
+        self.__add_submissions()
+        self.submissions = self.asset.deployment.get_submissions(self.asset.owner)
+
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
-        self.submission_url = self.asset.deployment.submission_list_url
+        self.submission_list_url = self.asset.deployment.submission_list_url
+        self._deployment = self.asset.deployment
+
+    def get_random_submission(self, user: 'auth.User') -> dict:
+        return self.get_random_submissions(user, 1)[0]
+
+    def get_random_submissions(self, user: 'auth.User', limit: int = 1) -> list:
+        """
+        Get random submissions within all generated submissions.
+        If user is the owner, we only return submissions submitted by unknown.
+        It is useful to ensure restricted users fail tests with forbidden
+        submissions.
+        """
+        query = {}
+        if self.asset.owner == user:
+            query = {'_submitted_by': ''}
+
+        submissions = self.asset.deployment.get_submissions(user, query=query)
+        random.shuffle(submissions)
+        return submissions[:limit]
 
     def _log_in_as_another_user(self):
         """
@@ -92,60 +84,194 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.client.logout()
         self.client.login(username="anotheruser", password="anotheruser")
 
-    def _share_with_another_user(self, view_only=True):
-        """
-        Helper to share `self.asset` with `self.anotheruser`.
-        `view_only` controls what kind of permissions to give.
-        """
-        perm = PERM_VIEW_SUBMISSIONS if view_only else PERM_CHANGE_SUBMISSIONS
-        self.asset.assign_perm(self.anotheruser, perm)
+    def __add_submissions(self):
+        letters = string.ascii_letters
+        submissions = []
+        v_uid = self.asset.latest_deployed_version.uid
+
+        for i in range(20):
+            submissions.append({
+                '__version__': v_uid,
+                'q1': ''.join(random.choice(letters) for l in range(10)),
+                'q2': ''.join(random.choice(letters) for l in range(10)),
+                'instanceID': f'uuid:{uuid.uuid4()}',
+                '_validation_status': {
+                    'by_whom': 'someuser',
+                    'timestamp': int(time.time()),
+                    'uid': 'validation_status_on_hold',
+                    'color': '#0000ff',
+                    'label': 'On Hold'
+                },
+                '_submitted_by': random.choice(['', 'someuser', 'anotheruser'])
+            })
+        self.asset.deployment.mock_submissions(submissions)
+
+
+class BulkDeleteSubmissionsApiTests(BaseSubmissionTestCase):
+
+    # TODO, Add tests with ids and query
+
+    def setUp(self):
+        super().setUp()
+        self.submissions_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+        )
+        self.submission_bulk_url = reverse(
+            self._get_endpoint('submission-bulk'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+            },
+        )
+
+    def test_delete_submissions_owner(self):
+        data = {'payload': {'confirm': True}}
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submissions_url, {'format': 'json'})
+
+        self.assertEqual(response.data['count'], 0)
+
+    def test_delete_submissions_anonymous(self):
+        self.client.logout()
+        data = {'payload': {'confirm': True}}
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_submissions_not_shared_other(self):
+        self._log_in_as_another_user()
+        data = {'payload': {'confirm': True}}
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_submissions_shared_other(self):
+        self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
+        self._log_in_as_another_user()
+        data = {'payload': {'confirm': True}}
+
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submissions_url, {'format': 'json'})
+        self.assertEqual(response.data['count'], 0)
+
+    def test_delete_all_allowed_submissions_with_partial_perms(self):
+        self._log_in_as_another_user()
+        partial_perms = {
+            PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
+        }
+
+        # Allow anotheruser to delete someuser's data
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+
+        # Delete only submissions submitted by someuser
+        data = {'payload': {'confirm': True}}
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submissions_url, {'format': 'json'})
+        self.assertEqual(response.data['count'], 0)
+
+        # Ensure another only deleted their submissions
+        self.login_as_other_user('someuser', 'someuser')
+        response = self.client.get(self.submissions_url, {'format': 'json'})
+        for submission in response.data['results']:
+            self.assertNotEqual(submission['_submitted_by'], 'anotheruser')
+
+    def test_delete_some_allowed_submissions_with_partial_perms(self):
+        self._log_in_as_another_user()
+        partial_perms = {
+            PERM_DELETE_SUBMISSIONS: [{'_submitted_by': 'anotheruser'}]
+        }
+
+        # Allow anotheruser to delete someuser's data
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+
+        # Try first submission submitted by unknown
+        random_submissions = self.get_random_submissions(self.asset.owner, 3)
+        data = {
+            'payload': {
+                'submission_ids': [rs['_id'] for rs in random_submissions]
+            }
+        }
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Try second submission submitted by someuser
+        count = self._deployment.calculated_submission_count(self.anotheruser)
+        random_submissions = self.get_random_submissions(self.anotheruser, 3)
+        data = {
+            'payload': {
+                'submission_ids': [rs['_id'] for rs in random_submissions],
+            }
+        }
+        response = self.client.delete(self.submission_bulk_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submissions_url, {'format': 'json'})
+        self.assertEqual(response.data['count'], count - len(random_submissions))
 
 
 class SubmissionApiTests(BaseSubmissionTestCase):
 
     def test_cannot_create_submission(self):
-        v_uid = self.asset.latest_deployed_version.uid
         submission = {
             "q1": "a5",
             "q2": "a6",
         }
         # Owner
-        response = self.client.post(self.submission_url, data=submission)
+        response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         # Shared
-        self._share_with_another_user()
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
-        response = self.client.post(self.submission_url, data=submission)
+        response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Anonymous
         self.client.logout()
-        response = self.client.post(self.submission_url, data=submission)
+        response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_submissions_owner(self):
-        response = self.client.get(self.submission_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data.get('results'), self.submissions)
         self.assertEqual(response.data.get('count'), len(self.submissions))
 
     def test_list_submissions_owner_with_params(self):
-        """
-        The mock backend doesn't support all of these parameters, but we can at
-        least check that they pass through
-        `BaseDeploymentBackend.validate_submission_list_params()` without error
-        """
         response = self.client.get(
-            self.submission_url, {
+            self.submission_list_url, {
                 'format': 'json',
                 'start': 1,
-                'limit': 1,
-                'sort': '{"dummy": -1}',
-                'fields': '{"dummy": 1}',
-                'query': '{"dummy": "make me a match"}',
+                'limit': 5,
+                'sort': '{"q1": -1}',
+                'fields': '["q1", "_submitted_by"]',
+                'query': '{"_submitted_by": {"$in": ["", "someuser", "another"]}}',
             }
         )
+        # ToDo add more assertions
+        self.assertEqual(len(response.data['results']), 5)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_submissions_limit(self):
@@ -185,13 +311,13 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
     def test_list_submissions_not_shared_other(self):
         self._log_in_as_another_user()
-        response = self.client.get(self.submission_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_submissions_shared_other(self):
-        self._share_with_another_user()
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
-        response = self.client.get(self.submission_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data.get('results'), self.submissions)
         self.assertEqual(response.data.get('count'), len(self.submissions))
@@ -201,30 +327,43 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         partial_perms = {
             PERM_VIEW_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
         }
-        response = self.client.get(self.submission_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
                                partial_perms=partial_perms)
-        response = self.client.get(self.submission_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(self.asset.deployment.submission_count == 2)
+
+        # Calculate number of submissions that matches partial permissions
+        # condition.
+        all_submissions = self._deployment.get_submissions(self.asset.owner)
+        viewable_submissions_count = 0
+        for submission in all_submissions:
+            if {'_submitted_by': submission['_submitted_by']} in partial_perms[
+                PERM_VIEW_SUBMISSIONS
+            ]:
+                viewable_submissions_count += 1
+
         # User `anotheruser` should only see submissions where `submitted_by`
         # is filled up and equals to `someuser`
-        self.assertTrue(response.data.get('count') == 1)
-        submission = response.data.get('results')[0]
-        self.assertTrue(submission.get('_submitted_by') == self.someuser.username)
+        self.assertTrue(response.data.get('count') == viewable_submissions_count)
+        for submission in response.data['results']:
+            self.assertTrue(
+                {'_submitted_by': submission['_submitted_by']}
+                in partial_perms[PERM_VIEW_SUBMISSIONS]
+            )
 
     def test_list_submissions_anonymous(self):
         self.client.logout()
-        response = self.client.get(self.submission_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_list_submissions_anonymous_asset_publicly_shared(self):
         self.client.logout()
         anonymous_user = get_anonymous_user()
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
-        response = self.client.get(self.submission_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
@@ -242,7 +381,7 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         # `self.asset` is owned by `someuser`; `anotheruser` has no
         # explicitly-granted access to it
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
-        response = self.client.get(self.submission_url, {"format": "json"})
+        response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
@@ -257,46 +396,40 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self._log_in_as_another_user()
         anonymous_user = get_anonymous_user()
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == False
+        assert not self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
         assert PERM_VIEW_ASSET not in self.asset.get_perms(self.anotheruser)
-        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == False
+        assert not self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET)
         assert PERM_CHANGE_ASSET not in self.asset.get_perms(self.anotheruser)
 
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_ASSET)
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
         assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
-        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == True
+        assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET)
         assert PERM_CHANGE_ASSET in self.asset.get_perms(self.anotheruser)
 
-        assert (
-            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-            == False
-        )
+        assert not self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(
             self.anotheruser
         )
 
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
-        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET) == True
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_ASSET)
         assert PERM_VIEW_ASSET in self.asset.get_perms(self.anotheruser)
 
-        assert (
-            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
-        )
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
 
-        # resetting permssions of asset
+        # resetting permissions of asset
         self.asset.remove_perm(self.anotheruser, PERM_VIEW_ASSET)
         self.asset.remove_perm(self.anotheruser, PERM_CHANGE_ASSET)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_ASSET)
         self.asset.remove_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
     def test_retrieve_submission_owner(self):
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        submission = self.get_random_submission(self.asset.owner)
+        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
 
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -304,18 +437,16 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
     def test_retrieve_submission_not_shared_other(self):
         self._log_in_as_another_user()
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        submission = self.get_random_submission(self.asset.owner)
+        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_retrieve_submission_shared_other(self):
-        self._share_with_another_user()
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        submission = self.get_random_submission(self.asset.owner)
+        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, submission)
@@ -329,34 +460,33 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                                partial_perms=partial_perms)
 
         # Try first submission submitted by unknown
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        submission = self.get_random_submission(self.asset.owner)
+        url = self._deployment.get_submission_detail_url(submission['_id'])
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Try second submission submitted by someuser
-        submission = self.submissions[1]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        submission = self.get_random_submission(self.anotheruser)
+        url = self._deployment.get_submission_detail_url(submission['_id'])
         response = self.client.get(url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_submission_owner(self):
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        submission = self.get_random_submission(self.asset.owner)
+        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
 
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+
+        self.assertEqual(response.data['count'], len(self.submissions) - 1)
 
     def test_delete_submission_anonymous(self):
         self.client.logout()
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        submission = self.get_random_submission(self.asset.owner)
+        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
 
         response = self.client.delete(url,
                                       content_type="application/json",
@@ -365,9 +495,8 @@ class SubmissionApiTests(BaseSubmissionTestCase):
 
     def test_delete_submission_not_shared_other(self):
         self._log_in_as_another_user()
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        submission = self.get_random_submission(self.asset.owner)
+        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
 
         response = self.client.delete(url,
                                       content_type="application/json",
@@ -375,11 +504,10 @@ class SubmissionApiTests(BaseSubmissionTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_shared_other(self):
-        self._share_with_another_user()
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
-        submission = self.submissions[0]
-        url = self.asset.deployment.get_submission_detail_url(submission.get(
-            self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        submission = self.get_random_submission(self.asset.owner)
+        url = self.asset.deployment.get_submission_detail_url(submission['_id'])
         response = self.client.delete(url,
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
@@ -399,30 +527,64 @@ class SubmissionApiTests(BaseSubmissionTestCase):
                                       content_type="application/json",
                                       HTTP_ACCEPT="application/json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+        self.assertEqual(response.data['count'], len(self.submissions) - 1)
+
+    def test_delete_submission_with_partial_perms(self):
+        self._log_in_as_another_user()
+        partial_perms = {
+            PERM_DELETE_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
+        }
+
+        # Allow anotheruser to delete someuser's data
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+
+        # Try first submission submitted by unknown
+        submission = self.get_random_submission(self.asset.owner)
+        url = self._deployment.get_submission_detail_url(submission['_id'])
+        response = self.client.delete(url,
+                                      content_type='application/json',
+                                      HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Try second submission submitted by someuser
+        anotheruser_submission_count = (
+            self._deployment.calculated_submission_count(self.anotheruser)
+        )
+        submission = self.get_random_submission(self.anotheruser)
+        url = self._deployment.get_submission_detail_url(submission['_id'])
+        response = self.client.delete(url,
+                                      content_type='application/json',
+                                      HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+        self.assertEqual(
+            response.data['count'], anotheruser_submission_count - 1
+        )
 
 
 class SubmissionEditApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
-        self.submission = self.submissions[0]
+        self.submission = self.get_random_submission(self.asset.owner)
+        self.submission_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+                'action': 'edit',
+            },
+        )
         self.submission_url_legacy = reverse(
             self._get_endpoint('submission-edit'),
             kwargs={
-                "parent_lookup_asset": self.asset.uid,
-                "pk": self.submission.get(
-                    self.asset.deployment.INSTANCE_ID_FIELDNAME
-                ),
-            },
-        )
-        self.submission_url = reverse(
-            'submission-enketo-edit',
-            kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.submission.get(
-                    self.asset.deployment.INSTANCE_ID_FIELDNAME
-                ),
-                'action': 'edit'
+                'pk': self.submission['_id'],
             },
         )
 
@@ -431,8 +593,7 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': 'http://server.mock/enketo/{}'.format(self.submission.get(
-                self.asset.deployment.INSTANCE_ID_FIELDNAME))
+            'url': 'http://server.mock/enketo/{}'.format(self.submission['_id'])
         }
         assert response.data == expected_response
 
@@ -440,11 +601,9 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
 
-        expected_response = {
-            'url': 'http://server.mock/enketo/{}'.format(self.submission.get(
-                self.asset.deployment.INSTANCE_ID_FIELDNAME))
-        }
-        assert response.data == expected_response
+        url = f"http://server.mock/enketo/{self.submission['_id']}"
+        expected_response = {'url': url}
+        self.assertEqual(response.data, expected_response)
 
     def test_get_edit_link_submission_anonymous(self):
         self.client.logout()
@@ -457,13 +616,13 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_get_edit_link_submission_shared_other_view_only(self):
-        self._share_with_another_user()
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_get_edit_link_submission_shared_other_can_edit(self):
-        self._share_with_another_user(view_only=False)
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
@@ -478,9 +637,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
             'submission-enketo-view',
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.submission.get(
-                    self.asset.deployment.INSTANCE_ID_FIELDNAME
-                ),
+                'pk': self.submission['_id'],
                 'action': 'view'
             },
         )
@@ -490,8 +647,7 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_200_OK
 
         expected_response = {
-            'url': 'http://server.mock/enketo/{}'.format(self.submission.get(
-                self.asset.deployment.INSTANCE_ID_FIELDNAME))
+            'url': 'http://server.mock/enketo/{}'.format(self.submission['_id'])
         }
         assert response.data == expected_response
 
@@ -506,70 +662,83 @@ class SubmissionViewApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_get_view_link_submission_shared_other_view_only_allowed(self):
-        self._share_with_another_user()
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
+
+    def test_get_edit_link_with_partial_perms(self):
+        self._log_in_as_another_user()
+        partial_perms = {
+            PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
+        }
+
+        # Allow anotheruser to edit someuser's data
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+
+        # Try first submission submitted by unknown
+        submission = self.get_random_submission(self.asset.owner)
+        url = reverse(
+            self._get_endpoint('submission-edit'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Try second submission submitted by someuser
+        submission = self.get_random_submission(self.anotheruser)
+        url = reverse(
+            self._get_endpoint('submission-edit'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.get(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        url = f"http://server.mock/enketo/{submission['_id']}"
+        expected_response = {'url': url}
+        self.assertEqual(response.data, expected_response)
 
 
 class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
-        v_uid = self.asset.latest_deployed_version.uid
         current_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
         # TODO: also test a submission that's missing `start` or `end`; see
         # #3054. Right now that would be useless, though, because the
         # MockDeploymentBackend doesn't use XML at all and won't fail if an
         # expected field is missing
-        self.submissions = [
-            {
-                '__version__': v_uid,
-                'instanceID': f'uuid:{uuid.uuid4()}',
-                'start': current_time,
-                'end': current_time,
-                'q1': 'a1',
-                'q2': 'a2',
-                '_id': 1,
-                '_validation_status': {
-                    'by_whom': 'someuser',
-                    'timestamp': 1547839938,
-                    'uid': 'validation_status_on_hold',
-                    'color': '#0000ff',
-                    'label': 'On Hold'
-                },
-                '_submitted_by': ''
-            },
-            {
-                '__version__': v_uid,
-                'instanceID': f'uuid:{uuid.uuid4()}',
-                'start': current_time,
-                'end': current_time,
-                'q1': 'a3',
-                'q2': 'a4',
-                '_id': 2,
-                '_validation_status': {
-                    'by_whom': 'someuser',
-                    'timestamp': 1547839938,
-                    'uid': 'validation_status_approved',
-                    'color': '#0000ff',
-                    'label': 'On Hold'
-                },
-                '_submitted_by': 'someuser'
-            }
-        ]
+        for submission in self.submissions:
+            submission['start'] = current_time
+            submission['end'] = current_time
+
+        self.asset.deployment.mock_submissions(self.submissions)
+
+        self.submission = self.get_random_submission(self.asset.owner)
         self.submission_url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
-                'pk': self.submissions[0].get(
-                    self.asset.deployment.INSTANCE_ID_FIELDNAME
-                ),
+                'pk': self.submission['_id'],
             },
         )
 
-    def _check_duplicate(self, response):
-        submission = self.submissions[0]
+    def _check_duplicate(self, response, submission: dict = None):
+        """
+        Given `submission`, the source submission, and `response`, as returned
+        by a request to duplicate `submission`, verify that the new, duplicate
+        submission has the expected attributes
+        """
+        submission = submission if submission else self.submission
         duplicate_submission = response.data
 
         expected_next_id = max((sub['_id'] for sub in self.submissions)) + 1
@@ -596,7 +765,7 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_duplicate_submission_by_anotheruser_shared_view_only_not_allowed(self):
-        self._share_with_another_user()
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -615,6 +784,49 @@ class SubmissionDuplicateApiTests(BaseSubmissionTestCase):
         response = self.client.post(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_duplicate_submission_with_partial_perms(self):
+        self._log_in_as_another_user()
+
+        partial_perms = {
+            PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
+        }
+
+        # Allow anotheruser to duplicate someuser's data
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_ADD_SUBMISSIONS,
+        )
+
+        # Try first submission submitted by unknown
+        submission = self.get_random_submission(self.asset.owner)
+        url = reverse(
+            self._get_endpoint('submission-duplicate'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.post(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Try second submission submitted by someuser
+        submission = self.get_random_submission(self.anotheruser)
+        url = reverse(
+            self._get_endpoint('submission-duplicate'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'pk': submission['_id'],
+            },
+        )
+        response = self.client.post(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self._check_duplicate(response, submission)
+
 
 class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
 
@@ -626,22 +838,27 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
                 'parent_lookup_asset': self.asset.uid,
             },
         )
+
+        random_submissions = self.get_random_submissions(self.asset.owner, 3)
         self.updated_submission_data = {
-            'submission_ids': ['1', '2'],
+            'submission_ids': [rs['_id'] for rs in random_submissions],
             'data': {
                 'q1': '🕺',
             },
         }
 
+        self.submitted_payload = {
+            'payload': self.updated_submission_data
+        }
+
     def _check_bulk_update(self, response):
-        updated_submission_data = copy.copy(self.updated_submission_data)
-        submission_ids = updated_submission_data.pop('submission_ids')
+        submission_ids = self.updated_submission_data['submission_ids']
         # Check that the number of ids given matches the number of successful
         assert len(submission_ids) == response.data['successes']
 
     def test_bulk_update_submissions_by_owner_allowed(self):
         response = self.client.patch(
-            self.submission_url, data=self.updated_submission_data, format='json'
+            self.submission_url, data=self.submitted_payload, format='json'
         )
         assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)
@@ -649,30 +866,60 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
     def test_bulk_update_submissions_by_anotheruser_not_allowed(self):
         self._log_in_as_another_user()
         response = self.client.patch(
-            self.submission_url, data=self.updated_submission_data, format='json'
+            self.submission_url, data=self.submitted_payload, format='json'
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_bulk_update_submissions_by_anonymous_not_allowed(self):
         self.client.logout()
         response = self.client.patch(
-            self.submission_url, data=self.updated_submission_data, format='json'
+            self.submission_url, data=self.submitted_payload, format='json'
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_bulk_update_submissions_by_anotheruser_shared_view_only_not_allowed(self):
-        self._share_with_another_user()
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.patch(
-            self.submission_url, data=self.updated_submission_data, format='json'
+            self.submission_url, data=self.submitted_payload, format='json'
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_bulk_update_submissions_by_anotheruser_shared_allowed(self):
-        self._share_with_another_user(view_only=False)
+        self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.patch(
-            self.submission_url, data=self.updated_submission_data, format='json'
+            self.submission_url, data=self.submitted_payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
+
+    def test_bulk_update_submissions_with_partial_perms(self):
+        self._log_in_as_another_user()
+        # Allow anotheruser to update someuser's submissions
+        partial_perms = {
+            PERM_CHANGE_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
+        }
+
+        self.asset.assign_perm(
+            self.anotheruser,
+            PERM_PARTIAL_SUBMISSIONS,
+            partial_perms=partial_perms,
+        )
+        # Try to update all submissions, but anotheruser is allowed to update
+        # someuser's submissions only.
+        response = self.client.patch(
+            self.submission_url, data=self.submitted_payload, format='json'
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        # Update someuser's submissions
+        random_submissions = self.get_random_submissions(self.anotheruser, 3)
+        self.updated_submission_data['submission_ids'] = [
+            rs['_id'] for rs in random_submissions
+        ]
+        response = self.client.patch(
+            self.submission_url, data=self.submitted_payload, format='json'
         )
         assert response.status_code == status.HTTP_200_OK
         self._check_bulk_update(response)
@@ -680,35 +927,495 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
 
 class SubmissionValidationStatusApiTests(BaseSubmissionTestCase):
 
-    # @TODO Test PATCH
+    def setUp(self):
+        super().setUp()
+        self.submission = self.get_random_submission(self.asset.owner)
+        self.validation_status_url = (
+            self._deployment.get_submission_validation_status_url(
+                self.submission['_id']
+            )
+        )
+
+    def test_retrieve_submission_validation_status_owner(self):
+        response = self.client.get(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, self.submission.get("_validation_status"))
+
+    def test_retrieve_submission_validation_status_not_shared_other(self):
+        self._log_in_as_another_user()
+        response = self.client.get(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_retrieve_submission_validation_status_other(self):
+        self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+        self._log_in_as_another_user()
+        response = self.client.get(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, self.submission.get("_validation_status"))
+
+    def test_retrieve_submission_validation_status_anonymous(self):
+        self.client.logout()
+        response = self.client.get(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_submission_validation_status_owner(self):
+        response = self.client.delete(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Ensure delete worked.
+        response = self.client.get(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {})
+
+    def test_delete_submission_validation_status_not_shared_other(self):
+        self._log_in_as_another_user()
+        response = self.client.delete(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_submission_validation_status_other(self):
+        self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
+        self._log_in_as_another_user()
+        response = self.client.delete(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Ensure delete worked.
+        response = self.client.get(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {})
+
+    def test_delete_submission_validation_status_anonymous(self):
+        self.client.logout()
+        response = self.client.delete(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_submission_validation_status_owner(self):
+        data = {
+            'validation_status.uid': 'validation_status_not_approved'
+        }
+        response = self.client.patch(self.validation_status_url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Ensure update worked.
+        response = self.client.get(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['by_whom'], 'someuser')
+        self.assertEqual(response.data['uid'], data['validation_status.uid'])
+
+    def test_edit_submission_validation_status_not_shared_other(self):
+        self._log_in_as_another_user()
+        response = self.client.patch(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_submission_validation_status_other(self):
+        self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
+        self._log_in_as_another_user()
+        data = {
+            'validation_status.uid': 'validation_status_not_approved'
+        }
+        response = self.client.patch(self.validation_status_url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Ensure update worked.
+        response = self.client.get(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['by_whom'], 'anotheruser')
+        self.assertEqual(response.data['uid'], data['validation_status.uid'])
+
+    def test_edit_submission_validation_status_anonymous(self):
+        self.client.logout()
+        response = self.client.patch(self.validation_status_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_submission_validation_status_with_partial_perms(self):
+        self._log_in_as_another_user()
+        partial_perms = {
+            PERM_VALIDATE_SUBMISSIONS: [{'_submitted_by': self.someuser.username}]
+        }
+        # Allow anotheruser to validate someuser's data
+        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
+                               partial_perms=partial_perms)
+        data = {
+            'validation_status.uid': 'validation_status_not_approved'
+        }
+
+        # Try first submission submitted by unknown
+        submission = self.get_random_submission(self.asset.owner)
+        url = (
+            self._deployment.get_submission_validation_status_url(
+                submission['_id']
+            )
+        )
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Try second submission submitted by someuser
+        submission = self.get_random_submission(self.anotheruser)
+        url = (
+            self._deployment.get_submission_validation_status_url(
+                submission['_id']
+            )
+        )
+        response = self.client.patch(url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Ensure update worked.
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['by_whom'], 'anotheruser')
+        self.assertEqual(response.data['uid'], data['validation_status.uid'])
+
+
+class SubmissionValidationStatusesApiTests(BaseSubmissionTestCase):
 
     def setUp(self):
         super().setUp()
-        self.submission = self.submissions[0]
-        self.validation_status_url = self.asset.deployment.get_submission_validation_status_url(
-            self.submission.get(self.asset.deployment.INSTANCE_ID_FIELDNAME))
+        for submission in self.submissions:
+            submission['_validation_status']['uid'] = 'validation_status_not_approved'  # noqa
+        self.asset.deployment.mock_submissions(self.submissions)
+        self.validation_statuses_url = reverse(
+            self._get_endpoint('submission-validation-statuses'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+        )
+        self.submissions_url = reverse(
+            self._get_endpoint('submission-list'),
+            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+        )
 
-    def test_submission_validation_status_owner(self):
-        response = self.client.get(self.validation_status_url, {"format": "json"})
+    def test_delete_all_submission_validation_statuses_owner(self):
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+        # `confirm` must me send within payload (when all submissions are
+        # modified). Otherwise, a ValidationError is raised
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data['payload']['confirm'] = True
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, self.submission.get("_validation_status"))
+        count = self._deployment.calculated_submission_count(self.someuser)
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
 
-    def test_submission_validation_status_not_shared_other(self):
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            self.assertEqual(submission['_validation_status'], {})
+
+    def test_delete_some_submission_validation_statuses_owner(self):
+        submission_id = 1
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+                'submission_ids': [submission_id]
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(
+            self.someuser, submission_ids=[submission_id]
+        )
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            if submission['_id'] == submission_id:
+                self.assertEqual(submission['_validation_status'], {})
+            else:
+                self.assertNotEqual(submission['_validation_status'], {})
+
+        # TODO Test with `query` when Mockbackend support Mongo queries
+
+    def test_delete_submission_validation_statuses_not_shared_other(self):
         self._log_in_as_another_user()
-        response = self.client.get(self.validation_status_url, {"format": "json"})
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+                'confirm': True,
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_submission_validation_status_other(self):
-        self._share_with_another_user()
+    def test_delete_submission_validation_statuses_other(self):
+        self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
         self._log_in_as_another_user()
-        response = self.client.get(self.validation_status_url, {"format": "json"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, self.submission.get("_validation_status"))
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+                'confirm': True,
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
 
-    def test_submission_validation_status_anonymous(self):
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(self.anotheruser)
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            self.assertEqual(submission['_validation_status'], {})
+
+    def test_delete_submission_validation_statuses_anonymous(self):
         self.client.logout()
-        response = self.client.get(self.validation_status_url, {"format": "json"})
+        data = {
+            'payload': {
+                'validation_status.uid': None,
+                'confirm': True,
+            }
+        }
+        response = self.client.delete(self.validation_statuses_url,
+                                      data=data,
+                                      format='json')
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_all_submission_validation_statuses_owner(self):
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+            }
+        }
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        # `confirm` must me send within payload (when all submissions are
+        # modified). Otherwise, a ValidationError is raised
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        data['payload']['confirm'] = True
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(self.someuser)
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            validation_status = submission['_validation_status']
+            self.assertEqual(validation_status['by_whom'], 'someuser')
+            self.assertEqual(
+                validation_status['uid'], data['payload']['validation_status.uid']
+            )
+
+    def test_edit_some_submission_validation_statuses_owner(self):
+        submission_id = 1
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'submission_ids': [submission_id]
+            }
+        }
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(
+            self.someuser, submission_ids=[submission_id]
+        )
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            validation_status = submission['_validation_status']
+            if submission['_id'] == submission_id:
+                self.assertEqual(validation_status['by_whom'], 'someuser')
+                self.assertEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
+            else:
+                self.assertNotEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
+
+    def test_edit_submission_validation_statuses_not_shared_other(self):
+        self._log_in_as_another_user()
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'confirm': True,
+            }
+        }
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_submission_validation_statuses_other(self):
+        self.asset.assign_perm(self.anotheruser, PERM_VALIDATE_SUBMISSIONS)
+        self._log_in_as_another_user()
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'confirm': True,
+            }
+        }
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        count = self._deployment.calculated_submission_count(
+            self.anotheruser)
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Ensure update worked.
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            validation_status = submission['_validation_status']
+            self.assertEqual(validation_status['by_whom'], 'anotheruser')
+            self.assertEqual(
+                validation_status['uid'],
+                data['payload']['validation_status.uid']
+            )
+
+    def test_edit_submission_validation_statuses_anonymous(self):
+        self.client.logout()
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'confirm': True,
+            }
+        }
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_all_submission_validation_statuses_with_partial_perms(self):
+        self._log_in_as_another_user()
+        partial_perms = {
+            PERM_VALIDATE_SUBMISSIONS: [
+                {'_submitted_by': self.someuser.username}]
+        }
+        # Allow anotheruser to validate someuser's data
+        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
+                               partial_perms=partial_perms)
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'confirm': True,
+            }
+        }
+
+        # Update all submissions anotheruser is allowed to edit
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        count = self._deployment.calculated_submission_count(
+            self.anotheruser)
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Get all submissions and ensure only submissions whose another is only
+        # to edit are modified
+        self.client.logout()
+        self.client.login(username="someuser", password="someuser")
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            validation_status = submission['_validation_status']
+            if submission['_submitted_by'] == 'someuser':
+                self.assertEqual(validation_status['by_whom'], 'anotheruser')
+                self.assertEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
+            else:
+                self.assertNotEqual(validation_status['by_whom'], 'anotheruser')
+                self.assertNotEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
+
+    def test_edit_some_submission_validation_statuses_with_partial_perms(self):
+        self._log_in_as_another_user()
+        partial_perms = {
+            PERM_VALIDATE_SUBMISSIONS: [
+                {'_submitted_by': self.someuser.username}]
+        }
+        # Allow anotheruser to validate someuser's data
+        self.asset.assign_perm(self.anotheruser, PERM_PARTIAL_SUBMISSIONS,
+                               partial_perms=partial_perms)
+
+        random_submissions = self.get_random_submissions(self.asset.owner, 3)
+        data = {
+            'payload': {
+                'validation_status.uid': 'validation_status_approved',
+                'submission_ids': [
+                    rs['_id'] for rs in random_submissions
+                ]
+            }
+        }
+
+        # Try first submission submitted by unknown
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Try 2nd submission submitted by someuser
+        random_submissions = self.get_random_submissions(self.anotheruser, 3)
+        data['payload']['submission_ids'] = [
+            rs['_id'] for rs in random_submissions
+        ]
+        response = self.client.patch(self.validation_statuses_url,
+                                     data=data,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        count = self._deployment.calculated_submission_count(
+            self.anotheruser, submission_ids=data['payload']['submission_ids'])
+        expected_response = {'detail': f'{count} submissions have been updated'}
+        self.assertEqual(response.data, expected_response)
+
+        # Get all submissions and ensure only submissions whose another is only
+        # to edit are modified
+        self.client.logout()
+        self.client.login(username="someuser", password="someuser")
+        response = self.client.get(self.submissions_url)
+        for submission in response.data['results']:
+            validation_status = submission['_validation_status']
+            if submission['_id'] in data['payload']['submission_ids']:
+                self.assertEqual(validation_status['by_whom'], 'anotheruser')
+                self.assertEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
+            else:
+                self.assertNotEqual(validation_status['by_whom'], 'anotheruser')
+                self.assertNotEqual(
+                    validation_status['uid'],
+                    data['payload']['validation_status.uid']
+                )
+
+        # TODO Test with `query` when Mockbackend support Mongo queries
 
 
 class SubmissionGeoJsonApiTests(BaseTestCase):

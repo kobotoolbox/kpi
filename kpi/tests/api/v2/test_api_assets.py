@@ -25,7 +25,7 @@ from kpi.tests.base_test_case import (
 )
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 
 
 class AssetListApiTests(BaseAssetTestCase):
@@ -36,10 +36,6 @@ class AssetListApiTests(BaseAssetTestCase):
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
         self.list_url = reverse(self._get_endpoint('asset-list'))
-
-    def login_as_other_user(self, username, password):
-        self.client.logout()
-        self.client.login(username=username, password=password)
 
     def test_login_as_other_users(self):
         self.login_as_other_user(username='admin', password='pass')
@@ -101,7 +97,7 @@ class AssetListApiTests(BaseAssetTestCase):
             another_user_asset.version_id
         ]
         versions_ids.sort()
-        expected_hash = get_hash(''.join(versions_ids))
+        expected_hash = calculate_hash(''.join(versions_ids))
         hash_url = reverse("asset-hash")
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get("hash"), expected_hash)
@@ -593,6 +589,117 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         for index, assignable_perm in enumerate(assignable_permissions):
             self.assertEqual(assignable_perm['url'], expected_response[index]['url'])
             self.assertEqual(assignable_perm['label'], expected_response[index]['label'])
+
+    def test_cannot_update_data_sharing_with_invalid_payload(self):
+
+        if not self.URL_NAMESPACE:
+            # By pass test in v1. Data sharing is not available with v1
+            return
+
+        self.assertFalse(self.asset.data_sharing.get('enabled'))
+        self.asset.content = {
+            'survey': [
+                {
+                    'name': 'favourite_restaurant',
+                    'type': 'text',
+                    'label': 'What is your favourite restaurant?',
+                },
+                {
+                    'name': 'city_name',
+                    'type': 'text',
+                    'label': 'Where is it located?',
+                }
+            ],
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
+        payload = {
+            'data_sharing': True
+        }
+        # First, try with invalid JSON
+        response = self.client.patch(self.asset_url,
+                                     data=payload,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(
+            'Unable to parse JSON' in repr(response.data['data_sharing'])
+        )
+
+        # 2. Omit `enabled` property and provide `fields` as str
+        payload = {
+            'data_sharing': {
+                'fields': 'foo',
+            }
+        }
+        response = self.client.patch(self.asset_url,
+                                     data=payload,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        errors = {
+            'enabled': 'The property is required',
+            'fields': 'The property must be an array',
+        }
+        for key, error in errors.items():
+            self.assertTrue(response.data['data_sharing'][key].startswith(error))
+
+        # 3. Wrong fields
+        payload = {
+            'data_sharing': {
+                'enabled': True,
+                'fields': ['foo'],
+            }
+        }
+        response = self.client.patch(self.asset_url,
+                                     data=payload,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(len(list(response.data['data_sharing'])), 1)
+        self.assertTrue(
+            response.data['data_sharing']['fields'].startswith(
+                'Some fields are invalid'
+            )
+        )
+
+    def test_can_update_data_sharing(self):
+
+        if not self.URL_NAMESPACE:
+            # By pass test in v1. Data sharing is not available with v1
+            return
+
+        self.assertFalse(self.asset.data_sharing.get('enabled'))
+        self.asset.content = {
+            'survey': [
+                {
+                    'name': 'favourite_restaurant',
+                    'type': 'text',
+                    'label': 'What is your favourite restaurant?',
+                },
+                {
+                    'name': 'city_name',
+                    'type': 'text',
+                    'label': 'Where is it located?',
+                }
+            ],
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.save()
+        payload = {
+            'data_sharing': {
+                'enabled': True,
+            },
+        }
+        response = self.client.patch(self.asset_url,
+                                     data=payload,
+                                     format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.asset.refresh_from_db()
+        data_sharing = self.asset.data_sharing
+        self.assertEqual(data_sharing, response.data['data_sharing'])
+        # Even 'fields' are not provided in payload, they should
+        # exist after `PATCH`
+        self.assertTrue('fields' in data_sharing)
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
