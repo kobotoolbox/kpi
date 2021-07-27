@@ -92,6 +92,7 @@ export const MODAL_TYPES = {
   ENCRYPT_FORM: 'encrypt-form',
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   TABLE_MEDIA_PREVIEW: 'table-media-preview',
+  DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
@@ -200,7 +201,7 @@ export const QUESTION_TYPES = Object.freeze({
   date: {label: t('Date'), icon: 'qt-date', id: 'date'},
   datetime: {label: t('Date & time'), icon: 'qt-date-time', id: 'datetime'},
   decimal: {label: t('Decimal'), icon: 'qt-decimal', id: 'decimal'},
-  'external-xml': {label: t('External XML'), icon: 'qt-external-xml', id: 'external-xml'},
+  'xml-external': {label: t('External XML'), icon: 'qt-external-xml', id: 'xml-external'},
   file: {label: t('File'), icon: 'qt-file', id: 'file'},
   geopoint: {label: t('Point'), icon: 'qt-point', id: 'geopoint'},
   geoshape: {label: t('Area'), icon: 'qt-area', id: 'geoshape'},
@@ -377,10 +378,16 @@ export const ROUTES = Object.freeze({
   FORM_SETTINGS: '/forms/:uid/settings',
   FORM_MEDIA: '/forms/:uid/settings/media',
   FORM_SHARING: '/forms/:uid/settings/sharing',
+  FORM_RECORDS: '/forms/:uid/settings/records',
   FORM_REST: '/forms/:uid/settings/rest',
   FORM_REST_HOOK: '/forms/:uid/settings/rest/:hookUid',
   FORM_KOBOCAT: '/forms/:uid/settings/kobocat',
   FORM_RESET: '/forms/:uid/reset',
+});
+
+export const MAX_DISPLAYED_STRING_LENGTH = Object.freeze({
+  form_media: 50,
+  connect_projects: 30,
 });
 
 export const COLLECTION_METHODS = Object.freeze({
@@ -468,6 +475,7 @@ const constants = {
   ROUTES,
   QUERY_LIMIT_DEFAULT,
   CHOICE_LISTS,
+  MAX_DISPLAYED_STRING_LENGTH,
   SURVEY_DETAIL_ATTRIBUTES,
   FUNCTION_TYPE,
 };

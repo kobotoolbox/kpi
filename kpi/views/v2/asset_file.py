@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from private_storage.views import PrivateStorageDetailView
 from rest_framework.decorators import action
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -134,7 +134,9 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         file_type = self.request.GET.get('file_type')
         if file_type is not None:
             _queryset = _queryset.filter(file_type=file_type)
-        _queryset = _queryset.filter(date_deleted__isnull=True)
+        _queryset = _queryset.filter(date_deleted__isnull=True).exclude(
+            file_type=AssetFile.PAIRED_DATA
+        )
         return _queryset
 
     def perform_create(self, serializer):
@@ -158,6 +160,7 @@ class AssetFileViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def content(self, *args, **kwargs):
 
         asset_file = self.get_object()
+
         if asset_file.metadata.get('redirect_url'):
             return HttpResponseRedirect(asset_file.metadata.get('redirect_url'))
 

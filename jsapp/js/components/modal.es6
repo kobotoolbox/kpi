@@ -18,6 +18,7 @@ import LibraryNewItemForm from './modalForms/libraryNewItemForm';
 import LibraryUploadForm from './modalForms/libraryUploadForm';
 import EncryptForm from './modalForms/encryptForm.es6';
 import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
+import DataAttachmentColumnsForm from 'js/components/dataAttachments/dataAttachmentColumnsForm.es6';
 import ProjectSettings from './modalForms/projectSettings';
 import RESTServicesForm from './RESTServices/RESTServicesForm';
 import SharingForm from './permissions/sharingForm';
@@ -186,6 +187,8 @@ class Modal extends React.Component {
         this.setState({
           modalClass: 'modal-media-preview'
         });
+      case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
+        // title is set by DataAttachmentColumnsForm
         break;
 
       default:
@@ -411,8 +414,15 @@ class Modal extends React.Component {
                 {...this.props.params}
               />
             }
+<<<<<<< HEAD
             { this.props.params.type === MODAL_TYPES.TABLE_MEDIA_PREVIEW &&
               <TableMediaPreview
+=======
+            { this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS &&
+              <DataAttachmentColumnsForm
+                onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
+>>>>>>> beta
                 {...this.props.params}
               />
             }

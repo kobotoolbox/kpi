@@ -157,21 +157,21 @@ class FormViewTabs extends Reflux.Component {
     if (
       this.state.asset &&
       this.state.asset.has_deployment &&
-      this.isActiveRoute(`/forms/${this.state.assetid}/data`)
+      this.isActiveRoute(ROUTES.FORM_DATA.replace(':uid', this.state.assetid))
     ) {
       sideTabs = getFormDataTabs(this.state.assetid, stores.session.isLoggedIn);
     }
 
     if (
       this.state.asset &&
-      this.isActiveRoute(`/forms/${this.state.assetid}/settings`)
+      this.isActiveRoute(ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid))
     ) {
       sideTabs = [];
 
       sideTabs.push({
         label: t('General'),
         icon: 'k-icon k-icon-settings',
-        path: `/forms/${this.state.assetid}/settings`,
+        path: ROUTES.FORM_SETTINGS.replace(':uid', this.state.assetid),
       });
 
       if (
@@ -183,14 +183,20 @@ class FormViewTabs extends Reflux.Component {
         sideTabs.push({
           label: t('Media'),
           icon: 'k-icon k-icon-photo-gallery',
-          path: `/forms/${this.state.assetid}/settings/media`,
+          path: ROUTES.FORM_MEDIA.replace(':uid', this.state.assetid),
         });
       }
 
       sideTabs.push({
         label: t('Sharing'),
         icon: 'k-icon k-icon-user-share',
-        path: `/forms/${this.state.assetid}/settings/sharing`,
+        path: ROUTES.FORM_SHARING.replace(':uid', this.state.assetid),
+      });
+
+      sideTabs.push({
+        label: t('Connect Projects'),
+        icon: 'k-icon k-icon-attach',
+        path: ROUTES.FORM_RECORDS.replace(':uid', this.state.assetid),
       });
 
       if (
@@ -211,7 +217,7 @@ class FormViewTabs extends Reflux.Component {
         sideTabs.push({
           label: t('REST Services'),
           icon: 'k-icon k-icon-data-sync',
-          path: `/forms/${this.state.assetid}/settings/rest`,
+          path: ROUTES.FORM_REST.replace(':uid', this.state.assetid),
         });
       }
     }
