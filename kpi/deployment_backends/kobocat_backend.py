@@ -580,7 +580,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 # Give the token a longer life in case the edit takes longer
                 # than `KobocatOneTimeAuthToken` default expiration time
                 KobocatOneTimeAuthToken.create_token(
-                    user=user, url=url, expiration_time=several_minutes_from_now(300)
+                    user=user, url=url,
+                    expiration_time=several_minutes_from_now(24 * 60)
                 )
 
         return self.__prepare_as_drf_response_signature(kc_response)

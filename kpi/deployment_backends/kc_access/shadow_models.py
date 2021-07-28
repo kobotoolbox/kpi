@@ -1,6 +1,7 @@
 # coding: utf-8
 from datetime import datetime
 from secrets import token_urlsafe
+from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -199,7 +200,7 @@ class KobocatOneTimeAuthToken(ShadowModel):
     """
     One time authenticated token
     """
-    HEADER = 'X-KOBOCAT-OTAR-TOKEN'
+    HEADER = 'X-KOBOCAT-OTA-TOKEN'
 
     user = models.ForeignKey(
         'KobocatUser',
@@ -207,23 +208,20 @@ class KobocatOneTimeAuthToken(ShadowModel):
         on_delete=models.CASCADE,
     )
     token = models.CharField(max_length=50, default=token_urlsafe)
-    # TODO Change this (date_created and ttl are gone) in KoBoCAT and remove this TODO
-    expiration_time = models.DateTimeField(default=one_minute_from_now)
+    expiration_time = models.DateTimeField()
     method = models.CharField(max_length=6)
-    used = models.BooleanField(default=False)
 
     class Meta(ShadowModel.Meta):
-        # TODO Change this in KoBoCAT and remove this TODO
-        db_table = 'api_onetimeauthrequest'
-        unique_together = ('token', 'used')
+        db_table = 'api_onetimeauthtoken'
+        unique_together = ('user', 'token', 'method')
 
     @classmethod
     def create_token(
             cls,
             user: 'auth.User',
             method: str = 'POST',
-            expiration_time: datetime = one_minute_from_now,
-            url: str = None,
+            expiration_time: Optional[datetime] = None,
+            url: Optional[str] = None,
     ) -> 'KobocatOneTimeAuthToken':
         """
         Create and return an instance of KobocatOneTimeAuthToken.
@@ -233,22 +231,39 @@ class KobocatOneTimeAuthToken(ShadowModel):
         It's useful for Enketo Express to be granted when POSTing data to
         KoBoCAT from one specific url (e.g.: edit a submission).
         """
-        token = None
         kc_user = KobocatUser.objects.get(id=user.pk)
+        token_attrs = dict(
+            user=kc_user, method=method,
+            defaults={'expiration_time': expiration_time},
+        )
+
         if url is not None:
             # `Signer()` returns 'url:encoded-string'.
             # E.g: https://ee.kt.org/edit:a123bc'
             # We only want the last part
             parts = Signer().sign(url).split(':')
-            token = parts[-1]
+            # TODO: consider removing Signer() as it's only value here is to
+            # assure that the token will always be a consistent length (and,
+            # for example, not overrun the size of the database column for long
+            # URLs)
+            token_attrs['token'] = parts[-1]
 
-        auth_request, created = cls.objects.get_or_create(
-            user=kc_user, token=token, expiration_time=expiration_time, method=method
-        )
-        return auth_request
+        auth_token, created = cls.objects.get_or_create(**token_attrs)
+        if not created:
+            # Make sure to reset the validity period of an existing token
+            auth_token.expiration_time = expiration_time
+            auth_token.save()
+
+        return auth_token
 
     def get_header(self) -> dict:
         return {self.HEADER: self.token}
+
+    def save(self, *args, **kwargs):
+        if not self.expiration_time:
+            self.expiration_time = one_minute_from_now()
+
+        super().save(*args, **kwargs)
 
 
 class KobocatPermission(ShadowModel):

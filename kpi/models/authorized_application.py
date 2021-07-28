@@ -1,5 +1,6 @@
 # coding: utf-8
 from functools import partial
+import math
 from secrets import token_urlsafe
 
 from django.db import models
@@ -12,6 +13,7 @@ from rest_framework import exceptions
 from kpi.utils.datetime import ten_minutes_from_now
 
 KEY_LENGTH = 60
+NUM_KEY_BYTES = math.floor(KEY_LENGTH * 3 / 4)
 
 
 class AuthorizedApplication(models.Model):
@@ -19,7 +21,7 @@ class AuthorizedApplication(models.Model):
     key = models.CharField(
         max_length=KEY_LENGTH,
         validators=[MinLengthValidator(KEY_LENGTH)],
-        default=partial(token_urlsafe, nbytes=45)
+        default=partial(token_urlsafe, nbytes=NUM_KEY_BYTES)
     )
 
     def __str__(self):
@@ -31,7 +33,7 @@ class OneTimeAuthenticationKey(models.Model):
     key = models.CharField(
         max_length=KEY_LENGTH,
         validators=[MinLengthValidator(KEY_LENGTH)],
-        default=token_urlsafe
+        default=partial(token_urlsafe, nbytes=NUM_KEY_BYTES)
     )
     expiry = models.DateTimeField(default=ten_minutes_from_now)
 
