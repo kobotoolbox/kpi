@@ -11,7 +11,7 @@ from rest_framework.reverse import reverse
 
 from kpi.filters import RelatedAssetPermissionsFilter
 from kpi.highlighters import highlight_xform
-from kpi.models import AssetSnapshot, AssetFile
+from kpi.models import AssetSnapshot, AssetFile, PairedData
 from kpi.renderers import (
     OpenRosaFormListRenderer,
     OpenRosaManifestRenderer,
@@ -19,7 +19,6 @@ from kpi.renderers import (
 )
 from kpi.serializers.v2.asset_snapshot import AssetSnapshotSerializer
 from kpi.serializers.v2.open_rosa import FormListSerializer, ManifestSerializer
-from kpi.utils.log import logging
 from kpi.views.no_update_model import NoUpdateModelViewSet
 from kpi.views.v2.open_rosa import OpenRosaViewSetMixin
 
@@ -79,8 +78,19 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
         """
         snapshot = self.get_object()
         asset = snapshot.asset
-        files = asset.asset_files.filter(file_type=AssetFile.FORM_MEDIA,
-                                         date_deleted__isnull=True)
+        form_media_files = list(
+            asset.asset_files.filter(
+                file_type=AssetFile.FORM_MEDIA,
+                date_deleted__isnull=True,
+            )
+        )
+        files = form_media_files
+        # paired data files are treated differently from form media files
+        # void any cache when previewing the form
+        for paired_data in PairedData.objects(asset).values():
+            paired_data.void_external_xml_cache()
+            files.append(paired_data)
+
         context = {'request': request}
         serializer = ManifestSerializer(files, many=True, context=context)
 

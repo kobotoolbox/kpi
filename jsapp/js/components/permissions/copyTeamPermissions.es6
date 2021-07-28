@@ -115,14 +115,14 @@ class CopyTeamPermissions extends React.Component {
 
     return (
       <bem.FormModal__item className={rootButtonClasses}>
-        <bem.Button
-          m='copy-team-permissions-opener'
+        <button
+          className='copy-team-permissions-opener'
           onClick={this.toggleCopyForm}
         >
           {t('Copy team from another project')}
 
           <i className='k-icon k-icon-next'/>
-        </bem.Button>
+        </button>
 
         {this.state.isCopyFormVisible && (
           <bem.FormView__cell>

@@ -155,7 +155,6 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
         assert parent_collection.children.count() ==\
             parent_data['children']['count']
 
-
     def add_to_collection(self, child, parent_collection,
                           owner=None, owner_password=None):
         if owner and owner_password:
