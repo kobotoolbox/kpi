@@ -217,6 +217,69 @@ export var dataInterface;
     },
 
     /*
+     * form media
+     */
+    postFormMedia(uid, data) {
+      return $ajax({
+        method: 'POST',
+        url: `${ROOT_URL}/api/v2/assets/${uid}/files/`,
+        data: data,
+      });
+    },
+    deleteFormMedia(url) {
+      return $ajax({
+        method: 'DELETE',
+        url: url,
+      });
+    },
+
+    /*
+     * Dynamic data attachments
+     */
+    attachToSource(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+    detachSource(attachmentUrl) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'DELETE',
+      });
+    },
+    patchSource(attachmentUrl, data) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+    getAttachedSources(assetUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'GET',
+      });
+    },
+    getSharingEnabledAssets() {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/?q=data_sharing__enabled:true`,
+        method: 'GET',
+      });
+    },
+    patchDataSharing(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+
+    /*
      * permissions
      */
 
@@ -299,11 +362,8 @@ export var dataInterface;
         });
       });
     },
-    getAssetContent ({id}) {
-      return $.getJSON(`${ROOT_URL}/api/v2/assets/${id}/content/`);
-    },
     getImportDetails ({uid}) {
-      return $.getJSON(`${ROOT_URL}/imports/${uid}/`);
+      return $.getJSON(`${ROOT_URL}/api/v2/imports/${uid}/`);
     },
     getAsset (params={}) {
       if (params.url) {
@@ -313,36 +373,79 @@ export var dataInterface;
         return $.getJSON(`${ROOT_URL}/api/v2/assets/${params.id}/?limit=${DEFAULT_PAGE_SIZE}`);
       }
     },
-    /**
-     * @param {object} data
-     * @param {string} [data.source]
-     * @param {string} [data.type]
-     * @param {boolean} [data.fields_from_all_versions]
-     * @param {string} [data.lang]
-     * @param {boolean} [data.hierarchy_in_labels]
-     * @param {string} [data.group_sep]
-     */
-    createExport (data) {
+
+    getAssetExports(assetUid) {
       return $ajax({
-        url: `${ROOT_URL}/exports/`,
-        method: 'POST',
-        data: data
-      });
-    },
-    getAssetExports (uid) {
-      return $ajax({
-        url: `${ROOT_URL}/exports/`,
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
         data: {
-          q: `source:${uid}`
-        }
+          ordering: '-date_created',
+          // TODO: handle pagination of this in future, for now we get "all"
+          limit: 9999,
+        },
       });
     },
-    deleteAssetExport (euid) {
+
+    createAssetExport(assetUid, data) {
       return $ajax({
-        url: `${ROOT_URL}/exports/${euid}/`,
-        method: 'DELETE'
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/`,
+        method: 'POST',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json',
       });
     },
+
+    getAssetExport(assetUid, exportUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${exportUid}/`,
+        method: 'GET',
+      });
+    },
+
+    deleteAssetExport(assetUid, exportUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/exports/${exportUid}/`,
+        method: 'DELETE',
+      });
+    },
+
+    getExportSettings(assetUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
+        // TODO: handle pagination of this in future, for now we get "all"
+        data: {limit: 9999},
+      });
+    },
+
+    getExportSetting(assetUid, settingUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+      });
+    },
+
+    updateExportSetting(assetUid, settingUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+        method: 'PATCH',
+        data: data,
+      });
+    },
+
+    createExportSetting(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/`,
+        method: 'POST',
+        data: data,
+      });
+    },
+
+    deleteExportSetting(assetUid, settingUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/export-settings/${settingUid}/`,
+        method: 'DELETE',
+      });
+    },
+
     getAssetXformView (uid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/xform/`,
@@ -501,7 +604,9 @@ export var dataInterface;
         url: `${ROOT_URL}/tags/`,
         method: 'GET',
         data: assign({
-          limit: 9999,
+          // If this number is too big (e.g. 9999) it causes a deadly timeout
+          // whenever Form Builder displays the aside Library search
+          limit: 100,
         }, data),
       });
     },
@@ -542,7 +647,7 @@ export var dataInterface;
       });
       return $ajax({
         method: 'POST',
-        url: `${ROOT_URL}/imports/`,
+        url: `${ROOT_URL}/api/v2/imports/`,
         data: formData,
         processData: false,
         contentType: false
@@ -637,7 +742,13 @@ export var dataInterface;
     },
     getEnketoEditLink(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/edit/?return_url=false`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/edit/?return_url=false`,
+        method: 'GET'
+      });
+    },
+    getEnketoViewLink(uid, sid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/view/`,
         method: 'GET'
       });
     },
@@ -655,9 +766,9 @@ export var dataInterface;
         contentType: false
       });
     },
-    getAssetFiles(uid) {
+    getAssetFiles(uid, fileType) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/files/`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/files/?file_type=${fileType}`,
         method: 'GET'
       });
     },

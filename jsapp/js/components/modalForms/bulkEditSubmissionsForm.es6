@@ -5,19 +5,22 @@ import Fuse from 'fuse.js';
 import {
   getSurveyFlatPaths,
   getFlatQuestionsList,
+  renderQuestionTypeIcon,
 } from 'js/assetUtils';
 import {QUESTION_TYPES} from 'js/constants';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
-import TextBox from 'js/components/textBox';
+import TextBox from 'js/components/common/textBox';
 import {stores} from 'js/stores';
 
 const FUSE_OPTIONS = {
+  isCaseSensitive: false,
   includeScore: true,
   minMatchCharLength: 1,
   shouldSort: false,
   ignoreFieldNorm: true,
   threshold: 0.2,
+  ignoreLocation: true,
 };
 
 // we need a text to display when we need to say "this question has no answer"
@@ -171,10 +174,20 @@ class BulkEditSubmissionsForm extends React.Component {
    * @returns {object[]} a list of question objects with all responses included
    */
   getDisplayData() {
-    const questions = getFlatQuestionsList(this.props.asset.content.survey);
+    let questions = getFlatQuestionsList(this.props.asset.content.survey);
     const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey);
 
-    questions.forEach((question) => {
+    questions = questions.filter((question) => {
+      // let's hide rows that don't carry any submission data
+      if (
+        question.type === QUESTION_TYPES.calculate.id ||
+        question.type === QUESTION_TYPES.note.id ||
+        question.type === QUESTION_TYPES.hidden.id
+      ) {
+        return false;
+      }
+
+      // build selected data for question
       question.selectedData = [];
       const questionPath = flatPaths[question.name];
       this.props.data.forEach((submissionData) => {
@@ -185,6 +198,7 @@ class BulkEditSubmissionsForm extends React.Component {
           });
         }
       });
+      return true;
     });
     return questions;
   }
@@ -211,16 +225,16 @@ class BulkEditSubmissionsForm extends React.Component {
     }
 
     let modifiers = [];
+    // we don't support bulk editing questions from repeat groups yet
+    // we display them but disabled
     if (question.hasRepatParent) {
       modifiers.push('bulk-edit-row-disabled');
     }
 
-    const typeDef = QUESTION_TYPES[question.type];
     return (
       <bem.SimpleTable__row key={itemIndex} m={modifiers}>
         <bem.SimpleTable__cell>
-          {/* TODO fix icon for date time */}
-          <i title={typeDef.label} className={['fa', typeDef.faIcon].join(' ')}/>
+          {renderQuestionTypeIcon(question.type)}
         </bem.SimpleTable__cell>
 
         <bem.SimpleTable__cell>
@@ -533,14 +547,11 @@ class BulkEditRowForm extends React.Component {
       inputValue = this.props.overrideData;
     }
 
-    const typeDef = QUESTION_TYPES[this.props.question.type];
-
     return (
       <React.Fragment>
         <bem.FormView__cell m={['columns', 'columns-top']}>
           <bem.FormView__cell m='column-icon'>
-            {/* TODO fix icon for date time */}
-            <i title={typeDef.label} className={['fa', typeDef.faIcon].join(' ')}/>
+            {renderQuestionTypeIcon(this.props.question.type)}
           </bem.FormView__cell>
 
           <bem.FormView__cell m='column-1'>

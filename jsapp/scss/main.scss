@@ -5,7 +5,6 @@
 
 @import "./fonts/roboto";
 @import "../fonts/k-icons";
-@import "~font-awesome/scss/font-awesome";
 @import "~select2/select2.css";
 @import "~react-table/react-table.css";
 @import "~alertifyjs/build/css/alertify.css";
@@ -20,14 +19,18 @@
 @import "./components/kobo.text-button";
 @import "./components/kobo.checkbox-and-radio";
 @import "./components/kobo.toggle-switch";
+@import "./components/kobo.multi-checkbox";
 @import "./components/kobo.modal";
 @import "./components/kobo.tooltips";
+@import "./components/kobo.tooltips-big";
 @import "./components/kobo.navigation";
 @import "./components/kobo.drawer";
 @import "./components/kobo.drawer.sidebar";
 @import "./components/kobo.help-bubble";
 @import "./kobo";
 @import "./components/kobo.form-builder";
+@import "./components/kobo.form-builder-message-box";
+@import "./components/kobo.locking";
 @import "./components/kobo.collection-asset-list";
 @import "./components/kobo.asset-name";
 @import "./components/kobo.asset-row";
@@ -39,6 +42,7 @@
 @import "./components/kobo.form-summary";
 @import "./components/kobo.password-strength";
 @import "./components/kobo.report-view";
+@import "./components/kobo.project-downloads";
 @import "./components/kobo.table";
 @import "./components/kobo.table-meta";
 @import "./components/kobo.account-settings";
@@ -52,8 +56,13 @@
 @import "./components/kobo.text-box";
 @import "./components/kobo.submission-data-table";
 @import "./components/kobo.simple-table";
+@import "./components/kobo.bulk-edit";
 @import "./components/kobo.breadcrumbs";
 @import "./components/kobo.asset-info-box";
+@import "./components/kobo.multi-checkbox";
+@import "./components/kobo.form-media";
+@import "./components/kobo.background-audio-player";
+@import "./components/kobo.dropzone";
 
 @import "./formbuild/kobomatrix";
 

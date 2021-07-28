@@ -8,7 +8,6 @@ import {
   getScrollbarWidth
 } from 'utils';
 import AssetsTableRow from './assetsTableRow';
-import {renderLoading} from 'js/components/modalForms/modalHelpers';
 import {
   ASSETS_TABLE_CONTEXTS,
   ORDER_DIRECTIONS,
@@ -124,6 +123,11 @@ export default class AssetsTable extends React.Component {
     }
   }
 
+  onClearFilter(evt) {
+    evt.stopPropagation();
+    this.props.onFilterChange(null, null);
+  }
+
   /**
    * @param {AssetsTableColumn} columnDef - Given column definition.
    * @param {string} [option] - Currently either 'first' or 'last'.
@@ -175,10 +179,9 @@ export default class AssetsTable extends React.Component {
       );
     }
 
-    // empty icon to take up space in column
     let icon = (<i className='k-icon k-icon-filter-arrows'/>);
     if (this.props.filterColumnId === columnDef.id) {
-      icon = (<i className='k-icon k-icon-check'/>);
+      icon = (<i className='k-icon k-icon-close' onClick={this.onClearFilter}/>);
     }
 
     return (
@@ -356,7 +359,7 @@ export default class AssetsTable extends React.Component {
 
         <bem.AssetsTable__body ref={this.bodyRef}>
           {this.props.isLoading &&
-            renderLoading()
+            <ui.LoadingSpinner/>
           }
 
           {!this.props.isLoading && this.props.assets.length === 0 &&

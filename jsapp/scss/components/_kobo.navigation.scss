@@ -37,6 +37,14 @@
     display: block;
   }
 
+  .login-box {
+    text-align: right;
+  }
+
+  .mdl-layout-title + .login-box {
+    flex: 1;
+  }
+
   .account-box {
     margin-left: auto;
     position: relative;
@@ -98,23 +106,17 @@
     .search__icon,
     .search__cancel {
       position: absolute;
-      top: 11px;
+      top: 9px;
       color: $kobo-white;
-
-      &::before {
-        font-size: 18px;
-      }
+      font-size: 24px;
     }
 
     .search__icon {
-      @extend .fa, .fa-search;
-
       left: 12px;
     }
 
     .search__cancel {
-      @extend .fa, .fa-close;
-
+      cursor: pointer;
       right: 12px;
     }
   }
@@ -139,7 +141,7 @@
   }
 
   .account-box__menu-item--mini-profile {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -168,14 +170,15 @@
     padding-bottom: 15px;
 
     a {
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       cursor: pointer;
       font-weight: normal;
       display: block;
 
       i {
-        font-size: 32px;
-        vertical-align: middle;
+        font-size: 24px;
+        margin: 3px;
+        vertical-align: -6px;
       }
 
       span {
@@ -200,22 +203,22 @@
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid $kobo-lightgray;
+    border-top: 1px solid $kobo-gray-92;
     padding-bottom: 5px;
 
     ul {
       background-color: $kobo-white;
-      color: $kobo-darkgray;
+      color: $kobo-gray-40;
       min-width: 140px;
       padding: 0;
-      border: 1px solid $kobo-lightgray;
+      border: 1px solid $kobo-gray-92;
 
       li {
         text-transform: capitalize;
         padding: 0;
 
         &:not(:last-child) {
-          border-bottom: 1px solid $kobo-lightgray;
+          border-bottom: 1px solid $kobo-gray-92;
         }
 
         a {
@@ -242,10 +245,11 @@
       padding: 0px;
       color: $kobo-white;
 
-      i {
-        line-height: 1.5em;
-        display: inline-block;
-        font-size: 24px;
+      .k-icon.k-icon-menu {
+        font-size: 32px;
+        line-height: 32px;
+        display: block;
+        margin: 3px;
       }
     }
 
@@ -282,7 +286,7 @@
 .main-header {
   .main-header__icon {
     font-size: 38px;
-    color: $kobo-midgray;
+    color: $kobo-gray-65;
     vertical-align: middle;
     width: 38px;
   }
@@ -315,11 +319,11 @@
       width: 100%;
       // keep these pseudo-states separate
       &::-webkit-input-placeholder {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
       }
 
       &:-ms-input-placeholder {
-        color: $kobo-darkgray;
+        color: $kobo-gray-40;
       }
 
       &:hover {
@@ -336,7 +340,7 @@
   .main-header__counter {
     font-size: 14px;
     margin-right: 20px;
-    color: $kobo-midgray;
+    color: $kobo-gray-65;
   }
 }
 
@@ -374,6 +378,7 @@
   border-radius: 32px;
   display: inline-block;
   vertical-align: middle;
+  line-height: 20px;
   font-size: 16px;
   color: $kobo-white;
 }
@@ -383,6 +388,7 @@
     width: 48px;
     padding: 10px;
     border-radius: 48px;
+    line-height: 28px;
     font-size: 24px;
   }
 }
@@ -417,7 +423,7 @@
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid $kobo-lightgray;
+      border: 1px solid $kobo-gray-92;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;

@@ -2,13 +2,12 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import TagsInput from 'react-tagsinput';
+import KoboTagsInput from 'js/components/common/koboTagsInput';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
-import {cleanupTags} from 'js/assetUtils';
-import {renderLoading} from './modalHelpers';
+import {LoadingSpinner} from 'js/ui';
 
 /**
  * @param {Object} asset - Modal asset.
@@ -16,16 +15,16 @@ import {renderLoading} from './modalHelpers';
 export class AssetTagsForm extends React.Component {
   constructor(props) {
     super(props);
-    this.unlisteners = [];
+
     this.state = {
-      isSessionLoaded: !!stores.session.currentAccount,
-      tags: [],
-      isPending: false
+      isSessionLoaded: !!stores.session.isLoggedIn,
+      tags: this.props.asset?.tag_string || '',
+      isPending: false,
     };
+
+    this.unlisteners = [];
+
     autoBind(this);
-    if (this.props.asset) {
-      this.applyPropsData();
-    }
   }
 
   componentDidMount() {
@@ -40,12 +39,6 @@ export class AssetTagsForm extends React.Component {
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
-  }
-
-  applyPropsData() {
-    if (this.props.asset.tag_string) {
-      this.state.tags = this.props.asset.tag_string.split(',');
-    }
   }
 
   onUpdateAssetCompleted() {
@@ -63,12 +56,12 @@ export class AssetTagsForm extends React.Component {
     this.setState({isPending: true});
     actions.resources.updateAsset(
       this.props.asset.uid,
-      {tag_string: this.state.tags.join(',')}
+      {tag_string: this.state.tags}
     );
   }
 
   onTagsChange(newValue) {
-    this.setState({tags: cleanupTags(newValue)});
+    this.setState({tags: newValue});
   }
 
   getSubmitButtonLabel() {
@@ -81,17 +74,16 @@ export class AssetTagsForm extends React.Component {
 
   render() {
     if (!this.state.isSessionLoaded) {
-      return renderLoading();
+      return (<LoadingSpinner/>);
     }
 
     return (
       <bem.FormModal__form className='project-settings'>
         <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
-            <TagsInput
-              value={this.state.tags}
+            <KoboTagsInput
+              tags={this.state.tags}
               onChange={this.onTagsChange}
-              inputProps={{placeholder: t('Tags')}}
             />
           </bem.FormModal__item>
         </bem.FormModal__item>

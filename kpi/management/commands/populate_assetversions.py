@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from reversion.models import Version
 
-from kpi.model_utils import disable_auto_field_update
+from kpi.utils.models import disable_auto_field_update
 from kpi.models import Asset, AssetVersion
 
 NULL_CHAR_REPR = '\\u0000'
@@ -112,18 +112,21 @@ def _replace_deployment_ids(_AssetVersion, _Asset):
         for a_id in a_ids:
             # `only()` saves about 8/1000s per iteration
             asset = _Asset.objects.only('_deployment_data').get(id=a_id)
-            version_id = asset._deployment_data['version']
+            version_id = asset.deployment.version_id
             if isinstance(version_id, int):
                 try:
                     # `only()` saves about 5/1000s per iteration
                     uid = asset.asset_versions.only('uid').get(
                         _reversion_version_id=version_id).uid
-                    if 'version_uid' not in asset._deployment_data or \
-                            asset._deployment_data['version_uid'] != uid:
-                        asset._deployment_data['version_uid'] = uid
+                    version_uid = asset.deployment.get_data('version_uid')
+                    if (
+                        version_uid is None
+                        or version_uid != uid
+                    ):
+                        asset.deployment.store_data({'version_uid': uid})
                         # `update()` saves about 7/1000s per iteration
                         _Asset.objects.filter(id=asset.id).update(
-                            _deployment_data=asset._deployment_data)
+                            _deployment_data=asset.deployment.get_data())
                 except ObjectDoesNotExist as e:
                     ids_not_counted.append(version_id)
             a_ids_done += 1

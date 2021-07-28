@@ -17,6 +17,9 @@ import {permissionsActions} from './actions/permissions';
 import {helpActions} from './actions/help';
 import libraryActions from './actions/library';
 import submissionsActions from './actions/submissions';
+import formMediaActions from './actions/mediaActions';
+import exportsActions from './actions/exportsActions';
+import dataShareActions from './actions/dataShareActions';
 import {
   notify,
   replaceSupportEmail,
@@ -30,6 +33,9 @@ export const actions = {
   help: helpActions,
   library: libraryActions,
   submissions: submissionsActions,
+  media: formMediaActions,
+  exports: exportsActions,
+  dataShare: dataShareActions,
 };
 
 actions.navigation = Reflux.createActions([
@@ -65,7 +71,6 @@ actions.resources = Reflux.createActions({
   deleteAsset: {children: ['completed', 'failed']},
   listTags: {children: ['completed', 'failed']},
   loadAssetSubResource: {children: ['completed', 'failed']},
-  loadAssetContent: {children: ['completed', 'failed']},
   createResource: {asyncResult: true},
   updateAsset: {asyncResult: true},
   updateSubmissionValidationStatus: {children: ['completed', 'failed']},
@@ -115,9 +120,12 @@ permissionsActions.copyPermissionsFrom.completed.listen((sourceUid, targetUid) =
 permissionsActions.setAssetPublic.completed.listen((uid) => {
   actions.resources.loadAsset({id: uid});
 });
-permissionsActions.removeAssetPermission.completed.listen((uid) => {
-  // needed to update publicShareSettings after disabling link sharing
-  actions.resources.loadAsset({id: uid});
+permissionsActions.removeAssetPermission.completed.listen((uid, isNonOwner) => {
+  // Avoid this call if a non-owner removed their own permissions as it will fail
+  if (!isNonOwner) {
+    // needed to update publicShareSettings after disabling link sharing
+    actions.resources.loadAsset({id: uid});
+  }
 });
 
 actions.misc.getUser.listen((userUrl) => {
@@ -286,9 +294,9 @@ actions.resources.setDeploymentActive.completed.listen((result) => {
   }
 });
 
-actions.resources.getAssetFiles.listen(function(assetId) {
+actions.resources.getAssetFiles.listen(function(assetId, fileType) {
   dataInterface
-    .getAssetFiles(assetId)
+    .getAssetFiles(assetId, fileType)
     .done(actions.resources.getAssetFiles.completed)
     .fail(actions.resources.getAssetFiles.failed);
 });
@@ -492,12 +500,6 @@ actions.resources.loadAsset.listen(function(params){
     .fail(actions.resources.loadAsset.failed);
 });
 
-actions.resources.loadAssetContent.listen(function(params){
-  dataInterface.getAssetContent(params)
-    .done(actions.resources.loadAssetContent.completed)
-    .fail(actions.resources.loadAssetContent.failed);
-});
-
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){
   dataInterface.updateSubmissionValidationStatus(uid, sid, data).done((result) => {
     actions.resources.updateSubmissionValidationStatus.completed(result, sid);
@@ -537,7 +539,7 @@ actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) =>
       actions.resources.loadAsset({id: uid});
     })
     .fail((response) => {
-      alertify.error(t('Failed to duplciate submisson'));
+      alertify.error(t('Failed to duplicate submission'));
       actions.resources.duplicateSubmission.failed(response);
     });
 });

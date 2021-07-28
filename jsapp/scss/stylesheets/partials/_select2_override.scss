@@ -30,7 +30,6 @@ Overrides to Select2 CSS Defaults
 
 .select2-search-choice-close {
   background: none !important;
-  font-family: 'FontAwesome';
   display: block;
   font-size: 12px;
   height: 12px;
@@ -39,6 +38,6 @@ Overrides to Select2 CSS Defaults
 }
 
 .select2-search-choice-close:before {
-  content: "\f00d";
+  content: "x";
   opacity: 0.6;
 }

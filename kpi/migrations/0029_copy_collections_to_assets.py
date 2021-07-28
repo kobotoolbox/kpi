@@ -1,11 +1,12 @@
 import sys
 from collections import defaultdict
 
+import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
 
 import kpi.fields.kpi_uid
+from kpi.utils.models import disable_auto_field_update
 
 
 def migrate_collections_to_assets(apps, schema_editor):
@@ -89,7 +90,9 @@ def migrate_collections_to_assets(apps, schema_editor):
         asset.parent = collection.parent_id
 
         # write to database now so we can create m2m relationships
-        Asset.objects.bulk_create([asset])  # avoid save() shenanigans
+        with disable_auto_field_update(Asset, 'date_created'):
+            with disable_auto_field_update(Asset, 'date_modified'):
+                Asset.objects.bulk_create([asset])  # avoid save() shenanigans
         collection_pks_to_asset_pks[collection.pk] = asset.pk
 
         # copy permissions

@@ -11,6 +11,7 @@ from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException
 from kpi.utils.log import logging
+from kpi.utils.permissions import is_user_anonymous
 from .shadow_models import (
     safe_kc_read,
     KobocatContentType,
@@ -21,7 +22,7 @@ from .shadow_models import (
     KobocatUserObjectPermission,
     KobocatUserPermission,
     KobocatUserProfile,
-    ReadOnlyKobocatXForm,
+    KobocatXForm,
 )
 
 
@@ -30,7 +31,7 @@ def _trigger_kc_profile_creation(user):
     Get the user's profile via the KC API, causing KC to create a KC
     UserProfile if none exists already
     """
-    url = settings.KOBOCAT_URL + '/api/v1/user'
+    url = settings.KOBOCAT_INTERNAL_URL + '/api/v1/user'
     token, _ = Token.objects.get_or_create(user=user)
     response = requests.get(
         url, headers={'Authorization': 'Token ' + token.key})
@@ -44,17 +45,17 @@ def _trigger_kc_profile_creation(user):
 @safe_kc_read
 def instance_count(xform_id_string, user_id):
     try:
-        return ReadOnlyKobocatXForm.objects.only('num_of_submissions').get(
+        return KobocatXForm.objects.only('num_of_submissions').get(
             id_string=xform_id_string,
             user_id=user_id
         ).num_of_submissions
-    except ReadOnlyKobocatXForm.DoesNotExist:
+    except KobocatXForm.DoesNotExist:
         return 0
 
 
 @safe_kc_read
 def last_submission_time(xform_id_string, user_id):
-    return ReadOnlyKobocatXForm.objects.get(
+    return KobocatXForm.objects.get(
         user_id=user_id, id_string=xform_id_string
     ).last_submission_time
 
@@ -291,7 +292,7 @@ def set_kc_anonymous_permissions_xform_flags(obj, kpi_codenames, xform_id,
             flags = {flag: not value for flag, value in flags.items()}
         xform_updates.update(flags)
     # Write to the KC database
-    ReadOnlyKobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)
+    KobocatXForm.objects.filter(pk=xform_id).update(**xform_updates)
 
 
 @transaction.atomic()
@@ -313,7 +314,7 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
-    if user.is_anonymous or user.pk == settings.ANONYMOUS_USER_ID:
+    if is_user_anonymous(user):
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id)
     xform_content_type = KobocatContentType.objects.get(
@@ -351,7 +352,7 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
-    if user.is_anonymous or user.pk == settings.ANONYMOUS_USER_ID:
+    if is_user_anonymous(user):
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id, remove=True)
     content_type_kwargs = _get_content_type_kwargs_for_related(obj)

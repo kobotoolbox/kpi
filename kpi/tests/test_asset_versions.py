@@ -1,5 +1,4 @@
 # coding: utf-8
-import hashlib
 import json
 from copy import deepcopy
 
@@ -7,7 +6,7 @@ from django.test import TestCase
 
 from formpack.utils.expand_content import SCHEMA_VERSION
 from kpi.exceptions import BadAssetTypeException
-from kpi.utils.strings import hashable_str
+from kpi.utils.hash import calculate_hash
 from ..models import Asset
 from ..models import AssetVersion
 
@@ -94,9 +93,9 @@ class AssetVersionTestCase(TestCase):
             ],
         }
         new_asset = Asset.objects.create(asset_type='survey', content=_content)
-        expected_hash = hashlib.sha1(hashable_str(
-            json.dumps(new_asset.content,
-                       sort_keys=True))).hexdigest()
+        expected_hash = calculate_hash(
+            json.dumps(new_asset.content, sort_keys=True), 'sha1'
+        )
         self.assertEqual(new_asset.latest_version.content_hash, expected_hash)
         return new_asset
 

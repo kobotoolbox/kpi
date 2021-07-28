@@ -2,7 +2,7 @@ import autoBind from 'react-autobind';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import TextBox from 'js/components/textBox';
+import TextBox from 'js/components/common/textBox';
 
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';

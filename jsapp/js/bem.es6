@@ -14,6 +14,10 @@ bem.KoboLightButton = BEM('kobo-light-button', '<button>');
 bem.KoboTextButton = BEM('kobo-text-button', '<button>');
 bem.KoboLightBadge = BEM('kobo-light-badge', '<span>');
 
+bem.KoboSelect = BEM('kobo-select');
+bem.KoboSelect__optionWrapper = bem.KoboSelect.__('option-wrapper');
+bem.KoboSelect__optionBadge = bem.KoboSelect.__('option-badge');
+
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
@@ -44,9 +48,12 @@ bem.ServiceRow__actionButton = bem.ServiceRow.__('action-button', '<button>');
 bem.ServiceRow__linkOverlay = bem.ServiceRow.__('link-overlay', '<a>');
 bem.ServiceRowButton = BEM('service-row-button', '<button>');
 
-bem.FormBuilder = BEM('formBuilder');
-bem.FormBuilder__row = bem.FormBuilder.__('row');
+bem.FormBuilder = BEM('form-builder');
 bem.FormBuilder__contents = bem.FormBuilder.__('contents');
+
+bem.FormBuilderMessageBox = BEM('form-builder-message-box');
+bem.FormBuilderMessageBox__toggle = bem.FormBuilderMessageBox.__('toggle', 'button');
+bem.FormBuilderMessageBox__details = bem.FormBuilderMessageBox.__('details', 'section');
 
 bem.FormBuilderMeta = bem('form-builder-meta');
 bem.FormBuilderMeta__columns = bem.FormBuilderMeta.__('columns');
@@ -58,12 +65,23 @@ bem.FormBuilderAside__content = bem.FormBuilderAside.__('content');
 bem.FormBuilderAside__header = bem.FormBuilderAside.__('header', '<h2>');
 bem.FormBuilderAside__row = bem.FormBuilderAside.__('row', '<section>');
 
-bem.FormBuilderHeader = BEM('formBuilder-header');
+bem.FormBuilderHeader = BEM('form-builder-header');
 bem.FormBuilderHeader__row = bem.FormBuilderHeader.__('row');
 bem.FormBuilderHeader__cell = bem.FormBuilderHeader.__('cell');
 bem.FormBuilderHeader__item = bem.FormBuilderHeader.__('item', '<span>');
 bem.FormBuilderHeader__button = bem.FormBuilderHeader.__('button', '<button>');
 bem.FormBuilderHeader__close = bem.FormBuilderHeader.__('close', '<button>');
+
+bem.FormMedia = BEM('form-media');
+bem.FormMedia__title = bem.FormMedia.__('title');
+bem.FormMedia__upload = bem.FormMedia.__('upload');
+bem.FormMedia__list = bem.FormMedia.__('list');
+bem.FormMedia__label = bem.FormMedia.__('label', '<label>');
+bem.FormMedia__listItem = bem.FormMedia.__('list-item', '<li>');
+
+bem.FormMediaUploadUrl = BEM('form-media-upload-url');
+bem.FormMediaUploadUrl__label = bem.FormMediaUploadUrl.__('label', '<label>');
+bem.FormMediaUploadUrl__form = bem.FormMediaUploadUrl.__('form');
 
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
@@ -101,7 +119,7 @@ bem.SubmissionDataTable__value = bem.SubmissionDataTable.__('value');
 
 bem.TableMeta = bem('table-meta');
 bem.TableMeta__counter = bem.TableMeta.__('counter');
-bem.TableMeta__additionalText = bem.TableMeta.__('additional-text'); // generally text not needed on smaller screens
+bem.TableMeta__additionalText = bem.TableMeta.__('additional-text', 'span'); // generally text not needed on smaller screens
 bem.TableMeta__bulkOptions = bem.TableMeta.__('bulk-options');
 
 bem.CollectionsWrapper = bem('collections-wrapper');
@@ -129,8 +147,6 @@ bem.AssetItems = BEM('asset-items', '<ul>');
 bem.AssetListSorts = BEM('asset-list-sorts', '<div>');
 bem.AssetListSorts__item = bem.AssetListSorts.__('item');
 
-bem.Message = BEM('message');
-
 bem.FormView = BEM('form-view');
 // used in header.es6
 bem.FormView__title = bem.FormView.__('title');
@@ -140,7 +156,6 @@ bem.FormView__subs = bem.FormView.__('subs');
 // end used in header.es6
 bem.FormView__toptabs = bem.FormView.__('toptabs');
 bem.FormView__sidetabs = bem.FormView.__('sidetabs');
-bem.FormView__tab = bem.FormView.__('tab', '<a>');
 
 bem.FormView__label = bem.FormView.__('label');
 bem.FormView__group = bem.FormView.__('group');
@@ -210,6 +225,8 @@ bem.PopoverMenu__moveTo = bem.PopoverMenu.__('moveTo');
 
 bem.Header = BEM('header');
 bem.Header__logo = bem.Header.__('logo', '<span>');
+
+bem.LoginBox = BEM('login-box');
 
 bem.AccountBox = BEM('account-box');
 bem.AccountBox__name = bem.AccountBox.__('name', '<div>');
@@ -303,6 +320,9 @@ bem.Checkbox__wrapper = bem.Checkbox.__('wrapper', '<label>');
 bem.Checkbox__input = bem.Checkbox.__('input', '<input>');
 bem.Checkbox__label = bem.Checkbox.__('label', '<span>');
 
+bem.MultiCheckbox = BEM('multi-checkbox', 'ul');
+bem.MultiCheckbox__item = bem.MultiCheckbox.__('item', '<li>');
+
 bem.ToggleSwitch = BEM('toggle-switch');
 bem.ToggleSwitch__wrapper = bem.ToggleSwitch.__('wrapper', '<label>');
 bem.ToggleSwitch__input = bem.ToggleSwitch.__('input', '<input>');
@@ -334,5 +354,22 @@ bem.PrintOnly = BEM('print-only');
 
 bem.GitRev = BEM('git-rev');
 bem.GitRev__item = bem.GitRev.__('item', '<div>');
+
+bem.ProjectDownloads = BEM('project-downloads');
+bem.ProjectDownloads__advancedView = bem.ProjectDownloads.__('advanced-view', 'section');
+bem.ProjectDownloads__column = bem.ProjectDownloads.__('column');
+bem.ProjectDownloads__columnRow = bem.ProjectDownloads.__('column-row');
+bem.ProjectDownloads__title = bem.ProjectDownloads.__('title', 'span');
+bem.ProjectDownloads__textButton = bem.ProjectDownloads.__('text-button', 'button');
+bem.ProjectDownloads__selectorRow = bem.ProjectDownloads.__('selector-row');
+bem.ProjectDownloads__legacyIframeWrapper = bem.ProjectDownloads.__('legacy-iframe-wrapper');
+bem.ProjectDownloads__submitRow = bem.ProjectDownloads.__('submit-row', 'footer');
+bem.ProjectDownloads__definedExportsSelector = bem.ProjectDownloads.__('defined-exports-selector');
+bem.ProjectDownloads__deleteSettingsButton = bem.ProjectDownloads.__('delete-settings-button', 'button');
+bem.ProjectDownloads__exportsCreator = bem.ProjectDownloads.__('exports-creator');
+
+bem.BackgroundAudioPlayer = BEM('background-audio-player');
+bem.BackgroundAudioPlayer__label = bem.BackgroundAudioPlayer.__('label', '<label>');
+bem.BackgroundAudioPlayer__audio = bem.BackgroundAudioPlayer.__('audio', '<audio>');
 
 bem.create = BEM;

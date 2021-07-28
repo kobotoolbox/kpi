@@ -210,6 +210,9 @@ mixins.dmix = {
     if (this.props.params) {
       return this.props.params.assetid || this.props.params.uid;
     } else if (this.props.formAsset) {
+      // formAsset case is being used strictly for projectSettings component to
+      // cause the componentDidMount callback to load the full asset (i.e. one
+      // that includes `content`).
       return this.props.formAsset.uid;
     } else {
       return this.props.uid;
@@ -223,30 +226,24 @@ mixins.dmix = {
   // indication when the loading starts and when ends.
   componentWillUpdate(newProps) {
     if (
-      this.props.params &&
-      this.props.params.assetid &&
-      newProps.params &&
-      newProps.params.assetid &&
-      this.props.params.assetid !== newProps.params.assetid
+      this.props.params?.uid !== newProps.params?.uid
     ) {
       // This case is used by other components (header.es6 is one such component)
       // in a not clear way to gain a data on new asset.
-      actions.resources.loadAsset({id: newProps.params.assetid});
+      actions.resources.loadAsset({id: newProps.params.uid});
     }
   },
-  componentDidMount () {
+  componentDidMount() {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
     const uid = this._getAssetUid();
-
-    if (this.props.randdelay && uid) {
-      window.setTimeout(() => {
-        actions.resources.loadAsset({id: uid});
-      }, Math.random() * 3000);
-    } else if (uid) {
+    if (uid) {
       actions.resources.loadAsset({id: uid});
     }
-  }
+  },
+  removeSharing: function() {
+    mixins.clickAssets.click.asset.removeSharing(this.props.params.uid);
+  },
 };
 
 /*
@@ -425,15 +422,15 @@ mixins.droppable = {
     });
   },
 
-  dropFiles (files, rejectedFiles, evt, pms = {}) {
+  dropFiles(files, rejectedFiles, evt, pms = {}) {
     files.map((file) => {
       var reader = new FileReader();
       reader.onload = (e) => {
         let params = assign({
-          base64Encoded: e.target.result,
           name: file.name,
+          base64Encoded: e.target.result,
           lastModified: file.lastModified,
-          totalFiles: files.length
+          totalFiles: files.length,
         }, pms);
 
         this._forEachDroppedFile(params);
@@ -451,7 +448,7 @@ mixins.droppable = {
         break;
       }
     }
-  }
+  },
 };
 
 mixins.clickAssets = {
@@ -708,19 +705,138 @@ mixins.clickAssets = {
           type: MODAL_TYPES.ENCRYPT_FORM,
           assetUid: uid
         });
-      }
+      },
+      removeSharing: function(uid) {
+        /**
+         * Extends `removeAllPermissions` from `userPermissionRow.es6`:
+         * Checks for permissions from current user before finding correct
+         * "most basic" permission to remove.
+         */
+        const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+        const userViewAssetPerm = asset.permissions.find((perm) => {
+          // Get permissions url related to current user
+          var permUserUrl = perm.user.split('/');
+          return (
+            permUserUrl[permUserUrl.length - 2] === stores.session.currentAccount.username &&
+            perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
+          );
+        });
+
+        let dialog = alertify.dialog('confirm');
+        let opts = {
+          title: t('Remove shared form'),
+          message: `${t('Are you sure you want to remove this shared form?')}`,
+          labels: {ok: t('Remove'), cancel: t('Cancel')},
+          onok: (evt, val) => {
+            // Only non-owners should have the asset removed from their asset list.
+            // This menu option is only open to non-owners so we don't need to check again.
+            let isNonOwner = true;
+            actions.permissions.removeAssetPermission(uid, userViewAssetPerm.url, isNonOwner);
+          },
+          oncancel: () => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
+      },
 
     }
   },
 };
 
 mixins.permissions = {
-  userCan (permName, asset) {
-    if (!asset.permissions) {
+  /**
+   * For `.find`-ing the permissions
+   *
+   * @param {Object} perm
+   * @param {string} permName
+   * @param {string} [partialPermName]
+   *
+   * @returns {boolean}
+   */
+  _doesPermMatch(perm, permName, partialPermName = null) {
+    // Case 1: permissions don't match, stop looking
+    if (perm.permission !== permConfig.getPermissionByCodename(permName).url) {
       return false;
     }
 
-    if (!stores.session.currentAccount) {
+    // Case 2: permissions match, and we're not looking for partial one
+    if (permName !== PERMISSIONS_CODENAMES.partial_submissions) {
+      return true;
+    }
+
+    // Case 3a: we are looking for partial permission, but the name was no given
+    if (!partialPermName) {
+      return false;
+    }
+
+    // Case 3b: we are looking for partial permission, check if there are some that match
+    return perm.partial_permissions.some((partialPerm) => {
+      return partialPerm.url === permConfig.getPermissionByCodename(partialPermName).url;
+    });
+  },
+
+  /**
+   * This implementation does not use the back end to detect if `submission`
+   * is writable or not. So far, the front end only supports filters like:
+   *    `_submitted_by: {'$in': []}`
+   * Let's search for `submissions._submitted_by` value among these `$in`
+   * lists.
+   *
+   * @param {string} permName - permission to check if user can do at least partially
+   * @param {Object} asset
+   * @param {Object} submission
+   *
+   * @returns {boolean}
+   */
+  isSubmissionWritable(permName, asset, submission) {
+    // TODO optimize this to avoid calling `userCan()` and `userCanPartially()`
+    // repeatedly in the table view
+    // TODO Support multiple permissions at once
+    const userCan = this.userCan(permName, asset);
+    const userCanPartially = this.userCanPartially(permName, asset);
+
+    // Case 1: User has full permission
+    if (userCan) {
+      return true;
+    }
+
+    // Case 2: User has neither full nor partial permission
+    if (!userCanPartially) {
+      return false;
+    }
+
+    // Case 3: User has only partial permission, and things are complicated
+    const currentUsername = stores.session.currentAccount.username;
+    const partialPerms = asset.permissions.find((perm) => {
+      return (
+        perm.user === buildUserUrl(currentUsername) &&
+        this._doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
+      );
+    });
+
+    const partialPerm = partialPerms.partial_permissions.find((nestedPerm) => {
+      return nestedPerm.url === permConfig.getPermissionByCodename(permName).url;
+    });
+
+    const submittedBy = submission._submitted_by;
+    let allowedUsers = [];
+
+    partialPerm.filters.forEach((filter) => {
+      if (filter._submitted_by) {
+        allowedUsers = allowedUsers.concat(filter._submitted_by.$in);
+      }
+    });
+    return allowedUsers.includes(submittedBy);
+  },
+
+  /**
+   * @param {string} permName
+   * @param {Object} asset
+   * @param {string} [partialPermName]
+   */
+  userCan(permName, asset, partialPermName = null) {
+    if (!asset.permissions) {
       return false;
     }
 
@@ -743,10 +859,18 @@ mixins.permissions = {
     return asset.permissions.some((perm) => {
       return (
         perm.user === buildUserUrl(currentUsername) &&
-        perm.permission === permConfig.getPermissionByCodename(permName).url
+        this._doesPermMatch(perm, permName, partialPermName)
       );
     });
-  }
+  },
+
+  /**
+   * @param {string} permName
+   * @param {Object} asset
+   */
+  userCanPartially(permName, asset) {
+    return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
+  },
 };
 
 mixins.contextRouter = {

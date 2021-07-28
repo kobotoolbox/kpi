@@ -1,18 +1,22 @@
 # coding: utf-8
+import os
+import re
 from copy import deepcopy
 
+from django.conf import settings
 from django.db.models import Q
 from django.test import TestCase
 
 from kpi.exceptions import SearchQueryTooShortException
-from kpi.constants import ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
 from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
-from kpi.utils.query_parser import parse, ParseError
+from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
+from kpi.utils.xml import strip_nodes
 
 
 class UtilsTestCase(TestCase):
+
     def test_sluggify(self):
         inp_exps = [
             ['A B C', 'a_b_c'],
@@ -171,52 +175,235 @@ class UtilsTestCase(TestCase):
                 snakes:🐍🐍 AND NOT alphabet:🍲soup
             ) NOT 'in a house' NOT "with a mouse"
         '''
+
+        default_field_lookups = [
+            'field_a__icontains',
+            'field_b'
+        ]
+
         expected_q = (
             (Q(a='a') | Q(b='b') & Q(c='c')) & Q(d='d') | (
                 Q(snakes='🐍🐍') & ~Q(alphabet='🍲soup')
             )
             & ~(
-                Q(name__icontains='in a house') |
-                Q(owner__username__icontains='in a house') |
-                Q(settings__description__icontains='in a house') |
-                Q(summary__icontains='in a house') |
-                Q(tags__name__icontains='in a house') |
-                Q(uid__icontains='in a house')
+                Q(field_a__icontains='in a house') |
+                Q(field_b='in a house')
             )
             & ~(
-                Q(name__icontains='with a mouse') |
-                Q(owner__username__icontains='with a mouse') |
-                Q(settings__description__icontains='with a mouse') |
-                Q(summary__icontains='with a mouse') |
-                Q(tags__name__icontains='with a mouse') |
-                Q(uid__icontains='with a mouse')
+                Q(field_a__icontains='with a mouse') |
+                Q(field_b='with a mouse')
             )
         )
-        assert (
-            expected_q
-            == parse(query_string, ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)
-        )
+        assert expected_q == parse(query_string, default_field_lookups)
 
     def test_query_parser_no_specified_field(self):
         query_string = 'foo'
+        default_field_lookups = [
+            'field_a__icontains',
+            'field_b'
+        ]
         expected_q = (
-            Q(name__icontains='foo') |
-            Q(owner__username__icontains='foo') |
-            Q(settings__description__icontains='foo') |
-            Q(summary__icontains='foo') |
-            Q(tags__name__icontains='foo') |
-            Q(uid__icontains='foo')
+            Q(field_a__icontains='foo') |
+            Q(field_b='foo')
         )
-        self.assertEqual(
-            repr(expected_q),
-            repr(parse(query_string, ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)),
+        assert repr(expected_q) == repr(
+            parse(query_string, default_field_lookups)
         )
 
     def test_query_parser_default_search_too_short(self):
         # if the search query without a field is less than a specified
         # length of characters (currently 3), then it should
         # throw `SearchQueryTooShortException()` from `query_parser.py`
+        default_field_lookups = [
+            'field_a__icontains',
+            'field_b'
+        ]
         query_string = 'fo'
         with self.assertRaises(SearchQueryTooShortException) as e:
-            parse(query_string, ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS)
-        self.assertTrue('Your query is too short' in str(e.exception))
+            parse(query_string, default_field_lookups)
+        assert 'Your query is too short' in str(e.exception)
+
+
+class XmlUtilsTestCase(TestCase):
+
+    def setUp(self):
+        super().setUp()
+        fixtures_dir = os.path.join(settings.BASE_DIR,
+                                    'kpi', 'fixtures')
+        self.__submission_xml_file = open(
+            os.path.join(fixtures_dir, 'submission.xml')
+        )
+        self.__submission = self.__submission_xml_file.read()
+
+    def tearDown(self) -> None:
+        self.__submission_xml_file.close()
+        super().tearDown()
+
+    def test_strip_xml_nodes_and_rename_root_node(self):
+        source = '<abcdef><a><b><c>abcdef</c></b></a></abcdef>'
+        expected = '<root><a><b><c>abcdef</c></b></a></root>'
+        result = strip_nodes(
+            source=source,
+            nodes_to_keep=['a', 'b', 'c'],
+            rename_root_node_to='root',
+        )
+        self.__compare_xml(result, expected)
+
+    def test_strip_xml_nodes_by_fields(self):
+        expected = (
+            '<root>'
+            '    <group1>'
+            '        <subgroup1>'
+            '            <question_1>Answer 1</question_1>'
+            '        </subgroup1>'
+            '        <question_5>Answer 5</question_5>'
+            '    </group1>'
+            '</root>'
+        )
+        self.__compare_xml(
+            strip_nodes(self.__submission, ['question_1', 'question_5']),
+            expected,
+        )
+
+        expected = (
+            '<root>'
+            '    <group1>'
+            '        <question_5>Answer 5</question_5>'
+            '    </group1>'
+            '</root>'
+        )
+        self.__compare_xml(
+            strip_nodes(self.__submission, ['question_5']),
+            expected,
+        )
+
+    def test_strip_xml_nodes_by_fields_similar_names(self):
+        expected_subgroup = (
+            '<root>'
+            '    <group1>'
+            '        <subgroup1>'
+            '            <question_1>Answer 1</question_1>'
+            '            <question_2>Answer 2</question_2>'
+            '        </subgroup1>'
+            '    </group1>'
+            '</root>'
+        )
+        expected_group = (
+            '<root>'
+            '    <group1>'
+            '        <subgroup1>'
+            '            <question_1>Answer 1</question_1>'
+            '            <question_2>Answer 2</question_2>'
+            '        </subgroup1>'
+            '        <subgroup11>'
+            '            <question_3>Answer 3</question_3>'
+            '            <question_4>Answer 4</question_4>'
+            '        </subgroup11>'            
+            '        <question_5>Answer 5</question_5>'
+            '    </group1>'
+            '</root>'
+        )
+        self.__compare_xml(
+            strip_nodes(self.__submission, ['subgroup1']),
+            expected_subgroup,
+        )
+        self.__compare_xml(
+            strip_nodes(self.__submission, ['group1']),
+            expected_group,
+        )
+
+    def test_strip_xml_nodes_by_xpaths(self):
+        expected = (
+            '<root>'
+            '    <group1>'
+            '        <subgroup1>'
+            '            <question_1>Answer 1</question_1>'
+            '        </subgroup1>'
+            '        <question_5>Answer 5</question_5>'
+            '    </group1>'
+            '</root>'
+        )
+        self.__compare_xml(
+            strip_nodes(
+                self.__submission,
+                ['group1/subgroup1/question_1', 'group1/question_5'],
+                use_xpath=True,
+            ),
+            expected,
+        )
+
+    def test_strip_xml_nodes_by_xpaths_similar_names(self):
+        expected_subgroup = (
+            '<root>'
+            '    <group1>'
+            '        <subgroup1>'
+            '            <question_1>Answer 1</question_1>'
+            '            <question_2>Answer 2</question_2>'
+            '        </subgroup1>'
+            '    </group1>'
+            '</root>'
+        )
+        expected_group = (
+            '<root>'
+            '    <group1>'
+            '        <subgroup1>'
+            '            <question_1>Answer 1</question_1>'
+            '            <question_2>Answer 2</question_2>'
+            '        </subgroup1>'
+            '        <subgroup11>'
+            '            <question_3>Answer 3</question_3>'
+            '            <question_4>Answer 4</question_4>'
+            '        </subgroup11>'            
+            '        <question_5>Answer 5</question_5>'
+            '    </group1>'
+            '</root>'
+        )
+        self.__compare_xml(
+            strip_nodes(self.__submission, ['group1/subgroup1'], use_xpath=True),
+            expected_subgroup,
+
+        )
+        self.__compare_xml(
+            strip_nodes(self.__submission, ['group1'], use_xpath=True),
+            expected_group,
+        )
+
+    def test_strip_xml_nodes_by_xpaths_with_slashes(self):
+        expected = (
+            '<root>'
+            '    <group1>'
+            '        <question_5>Answer 5</question_5>'
+            '    </group1>'
+            '</root>'
+        )
+
+        # With trailing slash
+        self.__compare_xml(
+            strip_nodes(self.__submission, ['group1/question_5/'],
+                        use_xpath=True),
+            expected,
+
+        )
+
+        # With leading slash
+        self.__compare_xml(
+            strip_nodes(self.__submission, ['/group1/question_5'],
+                        use_xpath=True),
+            expected,
+
+        )
+
+        # With both
+        self.__compare_xml(
+            strip_nodes(self.__submission, ['/group1/question_5/'],
+                        use_xpath=True),
+            expected,
+
+        )
+
+    def __compare_xml(self, source: str, target: str) -> bool:
+        """ Attempts to standardize XML by removing whitespace between tags """
+        pattern = r'\s*(<[^>]+>)\s*'
+        re_source = re.sub(pattern, r'\1', source)
+        re_target = re.sub(pattern, r'\1', target)
+        self.assertEqual(re_source, re_target)

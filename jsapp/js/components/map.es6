@@ -19,6 +19,7 @@ import 'leaflet.markercluster/dist/leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 
 import {
+  ASSET_FILE_TYPES,
   MODAL_TYPES,
   QUESTION_TYPES,
   QUERY_LIMIT_DEFAULT,
@@ -137,10 +138,12 @@ export class FormMap extends React.Component {
     this.listenTo(actions.map.setMapStyles.started, this.onSetMapStylesStarted);
     this.listenTo(actions.map.setMapStyles.completed, this.onSetMapStylesCompleted);
     this.listenTo(actions.resources.getAssetFiles.completed, this.updateOverlayList);
-    actions.resources.getAssetFiles(this.props.asset.uid);
+    actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id);
   }
   loadOverlayLayers(map) {
-    dataInterface.getAssetFiles(this.props.asset.uid).done(data => {});
+    dataInterface
+      .getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
+      .done((data) => {});
   }
   updateOverlayList(data) {
     let map = this.state.map;
@@ -555,14 +558,23 @@ export class FormMap extends React.Component {
     let index = evt.target.getAttribute('data-index');
     this.setState({langIndex: index});
   }
-  componentWillReceiveProps (nextProps) {
-    if (this.props.viewby != undefined) {
-      this.setState({markersVisible: true});
+  static getDerivedStateFromProps(props, state) {
+    const newState = {
+      previousViewby: props.viewby
+    };
+    if (props.viewby !== undefined) {
+      newState.markersVisible = true;
     }
-    if (this.props.viewby != nextProps.viewby) {
-      this.setState({filteredByMarker: false, componentRefreshed: true});
+    if (state.previousViewby !== props.viewby) {
+      newState.filteredByMarker = false;
+      newState.componentRefreshed = true;
+    }
+    return newState;
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.viewby !== this.props.viewby) {
       let map = this.refreshMap();
-      this.requestData(map, nextProps.viewby);
+      this.requestData(map, this.props.viewby);
     }
   }
   refreshMap() {
@@ -696,31 +708,31 @@ export class FormMap extends React.Component {
           onClick={this.toggleFullscreen}
           data-tip={t('Toggle Fullscreen')}
           className={this.state.toggleFullscreen ? 'active': ''}>
-          <i className='k-icon-expand' />
+          <i className='k-icon k-icon-expand' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'markers'}
           onClick={this.showMarkers}
           data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active': ''}>
-          <i className='k-icon-pins' />
+          <i className='k-icon k-icon-pins' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'layers'}
           onClick={this.showLayerControls}
           data-tip={t('Toggle layers')}>
-          <i className='k-icon-layer' />
+          <i className='k-icon k-icon-layer' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
           m={'map-settings'}
           onClick={this.toggleMapSettings}
           data-tip={t('Map display settings')}>
-          <i className='k-icon-settings' />
+          <i className='k-icon k-icon-settings' />
         </bem.FormView__mapButton>
         {!viewby &&
           <bem.FormView__mapButton m={'heatmap'}
             onClick={this.showHeatmap}
             data-tip={t('Show as heatmap')}
             className={!this.state.markersVisible ? 'active': ''}>
-            <i className='k-icon-heatmap' />
+            <i className='k-icon k-icon-heatmap' />
           </bem.FormView__mapButton>
         }
 
@@ -816,14 +828,14 @@ export class FormMap extends React.Component {
               })}
             </div>
             <div className='maplist-legend' onClick={this.toggleLegend}>
-              <i className={classNames('fa', this.state.showExpandedLegend ? 'fa-angle-down' : 'fa-angle-up')} /> {t('Legend')}
+              <i className={classNames('k-icon', this.state.showExpandedLegend ? 'k-icon-down' : 'k-icon-up')} /> {t('Legend')}
             </div>
           </bem.FormView__mapList>
         }
         {!this.state.markers && !this.state.heatmap &&
           <bem.Loading>
             <bem.Loading__inner>
-              <i />
+              <i className='k-spin k-icon k-icon-spinner'/>
             </bem.Loading__inner>
           </bem.Loading>
         }

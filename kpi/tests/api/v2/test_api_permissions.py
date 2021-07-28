@@ -7,12 +7,13 @@ from rest_framework import status
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     PERM_CHANGE_ASSET,
+    PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
 )
 from kpi.models import Asset, ObjectPermission
-from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class ApiAnonymousPermissionsTestCase(KpiTestCase):
@@ -354,6 +355,45 @@ class ApiPermissionsTestCase(KpiTestCase):
         assert res.status_code == status.HTTP_404_NOT_FOUND
         assert yetanotheruser.has_perm(PERM_VIEW_ASSET, new_asset)
 
+    def test_shared_asset_manage_asset_remove_another_non_owners_permissions_allowed(self):
+        """
+        Ensure that a non-owner who has an asset shared with them and has
+        `manage_asset` permissions is able to remove permissions from another
+        non-owner with that same asset shared with them.
+        """
+        yetanotheruser = User.objects.create(
+            username='yetanotheruser',
+        )
+        self.client.login(
+            username=self.someuser.username,
+            password=self.someuser_password,
+        )
+        new_asset = self.create_asset(
+            name='a new asset',
+            owner=self.someuser,
+            owner_password=self.someuser_password,
+        )
+        new_asset.assign_perm(self.anotheruser, PERM_MANAGE_ASSET)
+        perm = new_asset.assign_perm(yetanotheruser, PERM_VIEW_ASSET)
+        kwargs = {
+            'parent_lookup_asset': new_asset.uid,
+            'uid': perm.uid,
+        }
+        url = reverse(
+            'api_v2:asset-permission-assignment-detail', kwargs=kwargs
+        )
+        self.client.logout()
+        self.client.login(
+            username=self.anotheruser.username,
+            password=self.anotheruser_password,
+        )
+        assert yetanotheruser.has_perm(PERM_VIEW_ASSET, new_asset)
+
+        # `anotheruser` attempting to remove `yetanotheruser` from the asset
+        res = self.client.delete(url)
+        assert res.status_code == status.HTTP_204_NO_CONTENT
+        assert not yetanotheruser.has_perm(PERM_VIEW_ASSET, new_asset)
+
     def test_copy_permissions_between_assets(self):
         # Give "someuser" edit permissions on an asset owned by "admin"
         self.add_perm(self.admin_asset, self.someuser, 'change_')
@@ -630,7 +670,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
           to which they have been assigned any permission
 
     See also
-        kpi.utils.object_permission_helper.ObjectPermissionHelper.get_user_permission_assignments_queryset
+        kpi.utils.object_permission.get_user_permission_assignments_queryset
     """
 
     # TODO: does this duplicate stuff in
@@ -653,7 +693,7 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         )
         self.asset = Asset.objects.create(owner=self.someuser)
 
-    def test_anon_only_sees_owner_permissions(self):
+    def test_anon_only_sees_owner_and_anon_permissions(self):
         self.asset.assign_perm(self.anon, PERM_VIEW_ASSET)
         self.assertTrue(self.anon.has_perm(PERM_VIEW_ASSET, self.asset))
 
@@ -661,12 +701,16 @@ class ApiAssignedPermissionsTestCase(KpiTestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        owner_url = self.absolute_reverse(
-            self._get_endpoint('user-detail'),
-            kwargs={'username': self.asset.owner.username},
-        )
+        user_urls = []
+        for username in [self.asset.owner.username, self.anon.username]:
+            user_urls.append(
+                self.absolute_reverse(
+                    self._get_endpoint('user-detail'),
+                    kwargs={'username': username},
+                )
+            )
         self.assertSetEqual(
-            set((a['user'] for a in response.data)), set((owner_url,))
+            set((a['user'] for a in response.data)), set(user_urls)
         )
 
     def test_user_sees_relevant_permissions_on_assigned_objects(self):

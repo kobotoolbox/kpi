@@ -19,11 +19,13 @@
       height: calc(100% - 20px);
       padding-right: 40px;
       overflow: auto;
+
+       > *:last-child { margin-bottom: 20px; }
     }
 
     .form-modal__item--api-token {
       input {
-        font-family: monospace;
+        font-family: $font_mono;
         width: 50%;
       }
     }
@@ -62,11 +64,11 @@
   h4 {
     margin: 0;
     font-weight: 400;
-    color: $kobo-black;
+    color: $kobo-gray-24;
   }
 
   .account-settings__desc {
-    color: $kobo-darkgray;
+    color: $kobo-gray-40;
   }
 
   .form-modal__item--primary-sector {

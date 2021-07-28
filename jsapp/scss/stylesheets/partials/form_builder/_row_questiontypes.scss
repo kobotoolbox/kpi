@@ -23,6 +23,8 @@
   border-top: 1px solid $kobo-blue;
   padding: 3px;
   position: relative;
+  line-height: 20px;
+
   &:after, &:before {
     bottom: 100%;
     left: 50%;
@@ -51,7 +53,7 @@
   position: absolute;
   top: -3px;
   right: 1px;
-  color: $kobo-darkgray;
+  color: $kobo-gray-40;
   background: transparent;
   border: 0 none;
   font-family: $font;
@@ -62,7 +64,7 @@
   cursor: pointer;
 
   &:hover {
-    color: $kobo-black;
+    color: $kobo-gray-24;
   }
 }
 
@@ -118,26 +120,17 @@ input.row__questiontypes__new-question-name {
   font-family: $font;
   font-weight: 600;
   cursor: pointer;
-  color: $kobo-black;
-  i {
-    margin-right: 10px;
-    font-size: 16px;
-    &.fa.invert {
-      background-color: $kobo-black;
-      color: $kobo-white;
-      border-radius: 4px;
-      padding: 3px;
-      font-size: 1em;
-      margin-left: 2px;
-      margin-right: 13px;
-    }
+  color: $kobo-gray-24;
+
+  .k-icon {
+    margin-right: 6px;
+    font-size: 20px;
+    vertical-align: top;
   }
+
   &:hover {
     border-color: $cardInSortBorderColor;
     color: $cardInSortBorderColor;
-    i.fa.invert {
-      background-color: $cardInSortBorderColor;
-    }
   }
 }
 
@@ -146,8 +139,4 @@ input.row__questiontypes__new-question-name {
   @include form-builder-focus();
 
   color: $cardInSortBorderColor;
-
-  i.fa.invert {
-    background-color: $cardInSortBorderColor;
-  }
 }

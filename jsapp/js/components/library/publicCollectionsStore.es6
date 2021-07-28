@@ -5,7 +5,10 @@ import {
   searchBoxStore
 } from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
-import {isOnPublicCollectionsRoute} from './libraryUtils';
+import {
+  getCurrentPath,
+  isPublicCollectionsRoute,
+} from 'js/routerUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
@@ -23,12 +26,12 @@ const publicCollectionsStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-  previousPath: hashHistory.getCurrentLocation().pathname,
+  previousPath: getCurrentPath(),
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
 
-  isVirgin: true,
+  isInitialised: false,
 
   data: {
     isFetchingData: false,
@@ -66,7 +69,7 @@ const publicCollectionsStore = Reflux.createStore({
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
+    if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
   },
@@ -96,6 +99,12 @@ const publicCollectionsStore = Reflux.createStore({
       params.filterValue = this.data.filterValue;
     }
 
+    // Surrounds `filterValue` with double quotes to avoid filters that have
+    // spaces which would split the query in two, thus breaking the filter
+    if (params.filterValue !== undefined) {
+      params.filterValue = JSON.stringify(params.filterValue); // Adds quotes
+    }
+
     return params;
   },
 
@@ -123,11 +132,11 @@ const publicCollectionsStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    if (this.isVirgin && isOnPublicCollectionsRoute() && !this.data.isFetchingData) {
+    if (!this.isInitialised && isPublicCollectionsRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
       this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS) === false &&
-      isOnPublicCollectionsRoute()
+      isPublicCollectionsRoute()
     ) {
       // refresh data when navigating into public-collections from other place
       this.setDefaultColumns();
@@ -166,7 +175,7 @@ const publicCollectionsStore = Reflux.createStore({
     }
     this.data.totalSearchAssets = response.count;
     this.data.isFetchingData = false;
-    this.isVirgin = false;
+    this.isInitialised = true;
     this.trigger(this.data);
   },
 
@@ -297,11 +306,6 @@ const publicCollectionsStore = Reflux.createStore({
       this.data.filterValue !== filterValue
     ) {
       this.data.filterColumnId = filterColumnId;
-      // Surrounds `filterValue` with double quotes to avoid filters that have
-      // spaces which would split the query in two, thus breaking the filter
-      if (filterValue !== undefined) {
-        filterValue = JSON.stringify(filterValue); // Adds quotes
-      }
       this.data.filterValue = filterValue;
       this.fetchData(true);
     }

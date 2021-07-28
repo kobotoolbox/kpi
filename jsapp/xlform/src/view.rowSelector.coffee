@@ -207,7 +207,7 @@ module.exports = do ->
       if !$row.length
         return
 
-      $fbC = @$el.parents('.formBuilder__contents')
+      $fbC = @$el.parents('.form-builder__contents')
 
       if $row.height() + $row.position().top + 50 > $fbC.height() + $fbC.prop('scrollTop')
         $fbC.animate scrollTop: scrollBy

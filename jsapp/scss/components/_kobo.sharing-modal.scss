@@ -6,7 +6,7 @@ $s-gray-row-spacing: 10px;
   h2 {
     margin: 0;
     font-size: 14px;
-    color: $kobo-black;
+    color: $kobo-gray-24;
     font-weight: 500;
   }
 
@@ -24,7 +24,7 @@ $s-gray-row-spacing: 10px;
 .copy-team-permissions {
   margin-bottom: 30px;
 
-  &.copy-team-permissions--opened .mdl-button--copy-team-permissions-opener .k-icon::before {
+  &.copy-team-permissions--opened .copy-team-permissions-opener .k-icon::before {
     transform: rotate(-90deg);
   }
 
@@ -32,8 +32,11 @@ $s-gray-row-spacing: 10px;
     flex: 1;
   }
 
-  .mdl-button--copy-team-permissions-opener {
+  .copy-team-permissions-opener {
+    cursor: pointer;
     color: $kobo-blue;
+    border: 0;
+    background: transparent;
     padding-left: 0;
     padding-right: 0;
     font-weight: 500;
@@ -42,8 +45,17 @@ $s-gray-row-spacing: 10px;
     min-height: 20px;
     margin-bottom: 10px;
 
+    &:hover {
+      color: $kobo-blue-dark;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
     .k-icon {
-      font-size: 20px;
+      font-size: 14px;
+      margin: 0 3px;
       vertical-align: middle;
 
       &::before {
@@ -54,7 +66,7 @@ $s-gray-row-spacing: 10px;
 }
 
 .user-row {
-  border-bottom: 1px solid $kobo-lightgray;
+  border-bottom: 1px solid $kobo-gray-92;
   padding-bottom: 5px;
   padding-top: 5px;
 
@@ -146,8 +158,8 @@ $s-gray-row-spacing: 10px;
       left: 10px;
       width: 15px;
       height: 15px;
-      border-left: 1px solid $kobo-lightgray;
-      border-bottom: 1px solid $kobo-lightgray;
+      border-left: 1px solid $kobo-gray-92;
+      border-bottom: 1px solid $kobo-gray-92;
       border-radius: 2px;
     }
   }
@@ -159,7 +171,7 @@ $s-gray-row-spacing: 10px;
 
 .user-row__editor,
 .form-modal__item--gray-row {
-  background: $kobo-whitegray;
+  background: $kobo-gray-96;
   padding: 15px;
 }
 

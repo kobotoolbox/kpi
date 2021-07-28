@@ -1,14 +1,15 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
-constants = require '../../js/constants'
+_ = require('underscore')
+Backbone = require('backbone')
+constants = require('../../js/constants')
 
 module.exports = do ->
   _t = require("utils").t
 
-  addIconToRow = (typeDef, group) =>
+  addIconToRow = (typeDef, group) ->
     iconDetails.push({
       label: typeDef.label,
-      faClass: typeDef.faIcon.replace("fa-", ""),
+      iconClassName: "k-icon k-icon-#{typeDef.icon}",
+      iconClassNameLocked: "k-icon k-icon-#{typeDef.icon}-lock",
       grouping: group,
       id: typeDef.id
     })
@@ -45,23 +46,26 @@ module.exports = do ->
   addIconToRow(constants.QUESTION_TYPES.hidden, "r6")
   addIconToRow(constants.QUESTION_TYPES.file, "r6")
   addIconToRow(constants.QUESTION_TYPES.range, "r6")
+  # row 7
+  addIconToRow(constants.QUESTION_TYPES['xml-external'], "r7")
 
   class QtypeIcon extends Backbone.Model
-    defaults:
-      faClass: "question-circle"
+    defaults: {
+      iconClassname: "k-icon"
+    }
 
   class QtypeIconCollection extends Backbone.Collection
     model: QtypeIcon
-    grouped: ()->
+    grouped: () ->
       unless @_groups
         @_groups = []
         grp_keys = []
-        @each (model)=>
+        @each (model) =>
           grping = model.get("grouping")
           grp_keys.push(grping)  unless grping in grp_keys
           ii = grp_keys.indexOf(grping)
           @_groups[ii] or @_groups[ii] = []
-          @_groups[ii].push model
+          @_groups[ii].push(model)
       _.zip.apply(null, @_groups)
 
   new QtypeIconCollection(iconDetails)

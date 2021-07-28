@@ -8,13 +8,23 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset
-from kpi.models.object_permission import get_objects_for_user, get_anonymous_user
+from kpi.utils.object_permission import (
+    get_anonymous_user,
+    get_objects_for_user,
+)
 from .serializers import ReportsListSerializer, ReportsDetailSerializer
 
 
 class ReportsViewSet(mixins.ListModelMixin,
                      mixins.RetrieveModelMixin,
                      viewsets.GenericViewSet):
+    """
+        ## This document is for a deprecated version of kpi's Report Endpoint.
+
+        **Please upgrade to the newest API version `/api/v2/assets/{asset_uid}/reports**
+        **This endpoint may be removed in a future release**
+    """
+
     lookup_field = 'uid'
     # Requesting user must have *any* of these permissions
     required_permissions = [
@@ -66,7 +76,7 @@ class ReportsViewSet(mixins.ListModelMixin,
             get_anonymous_user(),
             self.required_permissions,
             queryset.filter(
-                parent__usercollectionsubscription__user=self.request.user
+                parent__userassetsubscription__user=self.request.user
             ),
             all_perms_required=False,
         )
@@ -74,6 +84,6 @@ class ReportsViewSet(mixins.ListModelMixin,
         # Find which of these are deployed, using a custom manager method
         deployed_assets = (
             owned_and_explicitly_shared | subscribed_and_public
-        ) & Asset.objects.deployed()
+        ) & Asset.objects.deployed().distinct()
 
         return deployed_assets

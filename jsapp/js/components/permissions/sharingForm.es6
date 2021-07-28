@@ -7,10 +7,11 @@ import mixins from 'js/mixins';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
+import {LoadingSpinner} from 'js/ui';
 import {buildUserUrl} from 'utils';
 import {
   ASSET_TYPES,
-  ANON_USERNAME
+  ANON_USERNAME,
 } from 'js/constants';
 
 // parts
@@ -26,7 +27,7 @@ class SharingForm extends React.Component {
     autoBind(this);
     this.state = {
       allAssetsCount: 0,
-      isAddUserEditorVisible: false
+      isAddUserEditorVisible: false,
     };
   }
 
@@ -60,7 +61,7 @@ class SharingForm extends React.Component {
     this.setState({
       permissions: parsedPerms,
       nonOwnerPerms: nonOwnerPerms,
-      publicPerms: publicPerms
+      publicPerms: publicPerms,
     });
   }
 
@@ -98,20 +99,9 @@ class SharingForm extends React.Component {
     }
   }
 
-  renderLoadingMessage() {
-    return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
-    );
-  }
-
   render() {
     if (!this.state.permissions) {
-      return this.renderLoadingMessage();
+      return (<LoadingSpinner/>);
     }
 
     let uid = this.state.asset.uid,
@@ -209,9 +199,7 @@ class SharingForm extends React.Component {
   }
 }
 
-SharingForm.contextTypes = {
-  router: PropTypes.object
-};
+SharingForm.contextTypes = {router: PropTypes.object};
 
 reactMixin(SharingForm.prototype, mixins.permissions);
 reactMixin(SharingForm.prototype, mixins.contextRouter);

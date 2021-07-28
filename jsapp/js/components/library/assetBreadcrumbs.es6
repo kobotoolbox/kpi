@@ -1,14 +1,17 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import {getAssetDisplayName} from 'js/assetUtils';
-import {isOnLibraryRoute} from './libraryUtils';
+import {
+  isSelfOwned,
+  getAssetDisplayName
+} from 'js/assetUtils';
+import {isAnyLibraryRoute} from 'js/routerUtils';
 import myLibraryStore from './myLibraryStore';
 import publicCollectionsStore from './publicCollectionsStore';
 import {ROOT_BREADCRUMBS} from './libraryConstants';
 import {
   ACCESS_TYPES,
-  ASSET_TYPES
+  ASSET_TYPES,
 } from 'js/constants';
 
 /**
@@ -24,7 +27,13 @@ class AssetBreadcrumbs extends React.Component {
     const parentAssetData = this.getParentAssetData();
 
     if (
-      isOnLibraryRoute() &&
+      isAnyLibraryRoute() &&
+      isSelfOwned(this.props.asset)
+    ) {
+      // case for self owned asset
+      return ROOT_BREADCRUMBS.MY_LIBRARY;
+    } else if (
+      isAnyLibraryRoute() &&
       this.props.asset &&
       this.props.asset.asset_type === ASSET_TYPES.collection.id &&
       this.props.asset.access_types !== null &&
@@ -35,7 +44,7 @@ class AssetBreadcrumbs extends React.Component {
       // case for a collection that is public
       return ROOT_BREADCRUMBS.PUBLIC_COLLECTIONS;
     } else if (
-      isOnLibraryRoute() &&
+      isAnyLibraryRoute() &&
       this.props.asset &&
       this.props.asset.asset_type !== ASSET_TYPES.collection.id &&
       parentAssetData &&
@@ -46,7 +55,7 @@ class AssetBreadcrumbs extends React.Component {
     ) {
       // case for an asset that has parent collection that is public
       return ROOT_BREADCRUMBS.PUBLIC_COLLECTIONS;
-    } else if (isOnLibraryRoute()) {
+    } else if (isAnyLibraryRoute()) {
       // all the other library assets
       return ROOT_BREADCRUMBS.MY_LIBRARY;
     } else {

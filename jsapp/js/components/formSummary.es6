@@ -12,14 +12,14 @@ import ui from 'js/ui';
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
 import Chart from 'chart.js';
-
+import {getFormDataTabs} from './formViewTabs';
 import {
   formatTime,
   formatDate,
-  stringToColor
+  stringToColor,
 } from 'utils';
 
-import {MODAL_TYPES} from '../constants';
+import {MODAL_TYPES} from 'js/constants';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -213,15 +213,15 @@ class FormSummary extends React.Component {
           className={'form-view__tab'}
           data-path={`/forms/${this.state.uid}/landing`}
           onClick={this.triggerRefresh}>
-            <i className='k-icon-projects' />
+            <i className='k-icon k-icon-projects' />
             {t('Collect data')}
-            <i className='fa fa-angle-right' />
+            <i className='k-icon k-icon-next' />
         </Link>
         {this.userCan('change_asset', this.state) &&
           <bem.PopoverMenu__link onClick={this.sharingModal}>
-            <i className='k-icon-user-share'/>
+            <i className='k-icon k-icon-user-share'/>
             {t('Share project')}
-            <i className='fa fa-angle-right' />
+            <i className='k-icon k-icon-next' />
           </bem.PopoverMenu__link>
         }
         {this.userCan('change_asset', this.state) &&
@@ -231,27 +231,21 @@ class FormSummary extends React.Component {
             className={'form-view__tab'}
             data-path={`/forms/${this.state.uid}/edit`}
             onClick={this.triggerRefresh}>
-              <i className='k-icon-edit' />
+              <i className='k-icon k-icon-edit' />
               {t('Edit form')}
-              <i className='fa fa-angle-right' />
+              <i className='k-icon k-icon-next' />
           </Link>
         }
         <bem.PopoverMenu__link onClick={this.enketoPreviewModal}>
-          <i className='k-icon-view' />
+          <i className='k-icon k-icon-view' />
           {t('Preview form')}
-          <i className='fa fa-angle-right' />
+          <i className='k-icon k-icon-next' />
         </bem.PopoverMenu__link>
       </bem.FormView__cell>
     );
   }
   renderDataTabs() {
-    const sideTabs = [
-      {label: t('Reports'), icon: 'k-icon-report', path: `/forms/${this.state.uid}/data/report`},
-      {label: t('Table'), icon: 'k-icon-table', path: `/forms/${this.state.uid}/data/table`},
-      {label: t('Gallery'), icon: 'k-icon-photo-gallery', path: `/forms/${this.state.uid}/data/gallery`},
-      {label: t('Downloads'), icon: 'k-icon-download', path: `/forms/${this.state.uid}/data/downloads`},
-      {label: t('Map'), icon: 'k-icon-map-view', path: `/forms/${this.state.uid}/data/map`},
-    ];
+    const sideTabs = getFormDataTabs(this.state.uid, stores.session.isLoggedIn);
 
     return (
       <bem.FormView__cell m='data-tabs'>
@@ -263,10 +257,11 @@ class FormSummary extends React.Component {
             onlyActiveOnIndex
             className='form-view__tab'
             data-path={item.path}
-            onClick={this.triggerRefresh}>
-              <i className={item.icon} />
-              {item.label}
-              <i className={'fa fa-angle-right'} />
+            onClick={this.triggerRefresh}
+          >
+            <i className={`k-icon ${item.icon}`} />
+            {item.label}
+            <i className='k-icon k-icon-next' />
           </Link>
         )}
       </bem.FormView__cell>
@@ -303,7 +298,7 @@ class FormSummary extends React.Component {
         </bem.FormView__cell>
         {this.userCan('change_asset', this.state) &&
           <a onClick={this.sharingModal} className='team-sharing-button'>
-            <i className='k-icon-user-share' />
+            <i className='k-icon k-icon-user-share' />
           </a>
         }
         <bem.FormView__cell m={['box', 'padding']}>
@@ -322,17 +317,10 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
-    let permAccess = this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state);
+    let permAccess = this.userCan('view_submissions', this.state) || this.userCanPartially('view_submissions', this.state);
 
     if (!this.state.permissions) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<ui.LoadingSpinner/>);
     }
 
     if (!permAccess) {

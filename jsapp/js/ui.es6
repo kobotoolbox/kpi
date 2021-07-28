@@ -108,7 +108,7 @@ class Modal extends React.Component {
     } else {
       return(
         <a className='modal__x' type='button' onClick={this.props.onClose}>
-          <i className='k-icon-close'/>
+          <i className='k-icon k-icon-close'/>
         </a>
       );
     }
@@ -252,6 +252,23 @@ class PopoverMenu extends React.Component {
   componentWillUnmount() {
     this._mounted = false;
   }
+  // BUG: we should use `getDerivedStateFromProps` instead of depracated
+  // `componentWillReceiveProps` but due to unnecessarily complex way of
+  // operation of PopoverMenu, using this will cause some instances to open
+  // only once.
+  // static getDerivedStateFromProps(props, state) {
+  //   if (state.popoverVisible && props.clearPopover) {
+  //     return {popoverVisible: false};
+  //   }
+  //   return null;
+  // }
+  componentWillReceiveProps(nextProps) {
+    if (this.state.popoverVisible && nextProps.clearPopover) {
+      this.setState({
+        popoverVisible: false
+      });
+    }
+  }
   toggle(evt) {
     var isBlur = evt.type === 'blur';
 
@@ -306,13 +323,6 @@ class PopoverMenu extends React.Component {
       this.props.popoverSetVisible();
     }
   }
-  componentWillReceiveProps(nextProps) {
-    if (this.state.popoverVisible && nextProps.clearPopover) {
-      this.setState({
-        popoverVisible: false
-      });
-    }
-  }
   render () {
     const mods = this.props.additionalModifiers || [];
     mods.push(this.state.placement);
@@ -334,7 +344,7 @@ class PopoverMenu extends React.Component {
   }
 };
 
-class AccessDeniedMessage extends React.Component {
+export class AccessDeniedMessage extends React.Component {
   render() {
     return (
       <bem.FormView>
@@ -351,8 +361,27 @@ class AccessDeniedMessage extends React.Component {
   }
 }
 
+/**
+ * @prop {string} [message] optional message
+ */
+export class LoadingSpinner extends React.Component {
+  render() {
+    const message = this.props.message || t('loading…');
+
+    return (
+      <bem.Loading>
+        <bem.Loading__inner>
+          <i className='k-spin k-icon k-icon-spinner'/>
+          {message}
+        </bem.Loading__inner>
+      </bem.Loading>
+    );
+  }
+}
+
 var ui = {
   AccessDeniedMessage,
+  LoadingSpinner,
   SearchBox: SearchBox,
   Panel: Panel,
   Modal: Modal,

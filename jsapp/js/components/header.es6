@@ -13,11 +13,13 @@ import {dataInterface} from '../dataInterface';
 import {
   assign,
   currentLang,
+  getLoginUrl,
   stringToColor,
 } from 'utils';
 import {getAssetIcon} from 'js/assetUtils';
 import {
   COMMON_QUERIES,
+  PATHS,
   ROUTES,
 } from 'js/constants';
 import {searches} from '../searches';
@@ -47,6 +49,7 @@ class MainHeader extends Reflux.Component {
     this.unlisteners = [];
     autoBind(this);
   }
+
   componentDidMount() {
     this.unlisteners.push(
       stores.asset.listen(this.onAssetLoad),
@@ -57,6 +60,13 @@ class MainHeader extends Reflux.Component {
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
   }
+
+  /*
+   * NOTE: this should be updated to `getDerivedStateFromProps` but causes Error:
+   * Warning: Unsafe legacy lifecycles will not be called for components using new component APIs.
+   * MainHeader uses getDerivedStateFromProps() but also contains the following legacy lifecycles:
+   * componentWillMount
+   */
   componentWillUpdate(newProps) {
     if (this.props.assetid !== newProps.assetid) {
       this.setState({asset: false});
@@ -64,9 +74,17 @@ class MainHeader extends Reflux.Component {
       // action triggered by other component (route component)
     }
   }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.assetid !== this.props.assetid && this.props.assetid !== null) {
+      actions.resources.loadAsset({id: this.props.assetid});
+    }
+  }
+
   forceRender() {
     this.setState(this.state);
   }
+
   isSearchBoxDisabled() {
     if (this.isMyLibrary()) {
       // disable search when user has zero assets
@@ -75,22 +93,27 @@ class MainHeader extends Reflux.Component {
       return false;
     }
   }
+
   onAssetLoad(data) {
     const asset = data[this.props.assetid];
     this.setState(assign({asset: asset}));
   }
+
   logout() {
     actions.auth.logout();
   }
+
   toggleLanguageSelector() {
     this.setState({isLanguageSelectorVisible: !this.state.isLanguageSelectorVisible});
   }
+
   accountSettings() {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
       hashHistory.push(ROUTES.ACCOUNT_SETTINGS);
     });
   }
+
   languageChange(evt) {
     evt.preventDefault();
     let langCode = $(evt.target).data('key');
@@ -105,6 +128,7 @@ class MainHeader extends Reflux.Component {
       });
     }
   }
+
   renderLangItem(lang) {
     return (
       <bem.AccountBox__menuLI key={lang.value}>
@@ -114,6 +138,20 @@ class MainHeader extends Reflux.Component {
       </bem.AccountBox__menuLI>
     );
   }
+
+  renderLoginButton() {
+    return (
+      <bem.LoginBox>
+        <a
+          href={getLoginUrl()}
+          className='kobo-button kobo-button--blue'
+        >
+          {t('Log In')}
+        </a>
+      </bem.LoginBox>
+    );
+  }
+
   renderAccountNavMenu() {
     let shouldDisplayUrls = false;
     if (
@@ -137,7 +175,7 @@ class MainHeader extends Reflux.Component {
     if (stores.session.environment) {
       langs = stores.session.environment.interface_languages;
     }
-    if (stores.session.currentAccount) {
+    if (stores.session.isLoggedIn) {
       var accountName = stores.session.currentAccount.username;
       var accountEmail = stores.session.currentAccount.email;
 
@@ -180,7 +218,7 @@ class MainHeader extends Reflux.Component {
                 }
                 <bem.AccountBox__menuLI m={'lang'} key='3'>
                   <bem.AccountBox__menuLink onClick={this.toggleLanguageSelector} data-popover-menu-stop-blur tabIndex='0'>
-                    <i className='k-icon-language' />
+                    <i className='k-icon k-icon-language' />
                     {t('Language')}
                   </bem.AccountBox__menuLink>
 
@@ -192,18 +230,19 @@ class MainHeader extends Reflux.Component {
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
-                    <i className='k-icon-logout' />
+                    <i className='k-icon k-icon-logout' />
                     {t('Logout')}
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
               </bem.AccountBox__menu>
           </ui.PopoverMenu>
         </bem.AccountBox>
-        );
+      );
     }
 
     return null;
   }
+
   renderGitRevInfo() {
     if (stores.session.currentAccount && stores.session.currentAccount.git_rev) {
       var gitRev = stores.session.currentAccount.git_rev;
@@ -221,11 +260,14 @@ class MainHeader extends Reflux.Component {
 
     return false;
   }
+
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   }
 
   render() {
+    const isLoggedIn = stores.session.isLoggedIn;
+
     let userCanEditAsset = false;
     if (this.state.asset) {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
@@ -236,26 +278,33 @@ class MainHeader extends Reflux.Component {
       iconClassName = getAssetIcon(this.state.asset);
     }
 
+    let librarySearchBoxPlaceholder = t('Search My Library');
+    if (this.isPublicCollections()) {
+      librarySearchBoxPlaceholder = t('Search Public Collections');
+    }
+
     return (
         <bem.MainHeader className='mdl-layout__header'>
           <div className='mdl-layout__header-row'>
-            <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
-              <i className='fa fa-bars' />
-            </bem.Button>
+            {stores.session.isLoggedIn &&
+              <bem.Button m='icon' onClick={this.toggleFixedDrawer}>
+                <i className='k-icon k-icon-menu' />
+              </bem.Button>
+            }
             <span className='mdl-layout-title'>
               <a href='/'>
                 <bem.Header__logo />
               </a>
             </span>
-            { this.isFormList() &&
+            { isLoggedIn && this.isFormList() &&
               <div className='mdl-layout__header-searchers'>
                 <ListSearch searchContext={this.state.formFiltersContext} placeholderText={t('Search Projects')} />
               </div>
             }
-            { (this.isMyLibrary() || this.isPublicCollections()) &&
+            { isLoggedIn && (this.isMyLibrary() || this.isPublicCollections()) &&
               <div className='mdl-layout__header-searchers'>
                 <SearchBox
-                  placeholder={t('Search Library')}
+                  placeholder={librarySearchBoxPlaceholder}
                   disabled={this.isSearchBoxDisabled()}
                 />
               </div>
@@ -277,6 +326,7 @@ class MainHeader extends Reflux.Component {
               </React.Fragment>
             }
             {this.renderAccountNavMenu()}
+            { !isLoggedIn && this.renderLoginButton()}
           </div>
           {this.renderGitRevInfo()}
         </bem.MainHeader>

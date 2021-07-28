@@ -1,12 +1,12 @@
 import {actions} from '../actions';
-import {
-  notify,
-  unnullifyTranslations,
-} from 'utils';
+import {notify} from 'utils';
+import {unnullifyTranslations} from 'js/components/formBuilder/formBuilderUtils';
 
 class SurveyScope {
-  constructor ({survey}) {
+  constructor ({survey, rawSurvey, assetType}) {
     this.survey = survey;
+    this.rawSurvey = rawSurvey;
+    this.assetType = assetType;
   }
   add_row_to_question_library (row, assetContent) {
     if (row.constructor.kls === 'Row') {

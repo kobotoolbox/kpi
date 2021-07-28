@@ -40,9 +40,6 @@ class SidebarFormsList extends Reflux.Component {
       this.searchSemaphore();
     }
   }
-  componentWillReceiveProps() {
-    this.listenTo(this.searchStore, this.searchChanged);
-  }
   searchChanged(searchStoreState) {
     this.setState(searchStoreState);
   }
@@ -95,14 +92,7 @@ class SidebarFormsList extends Reflux.Component {
     }
 
     if (s.searchState === 'loading' && s.searchString === false) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<ui.LoadingSpinner/>);
     }
 
     return (
@@ -110,14 +100,7 @@ class SidebarFormsList extends Reflux.Component {
         {
           (() => {
             if (s.defaultQueryState === 'loading') {
-              return (
-                <bem.Loading>
-                  <bem.Loading__inner>
-                    <i />
-                    {t('loading...')}
-                  </bem.Loading__inner>
-                </bem.Loading>
-              );
+              return (<ui.LoadingSpinner/>);
             } else if (s.defaultQueryState === 'done') {
               return Object.keys(DEPLOYMENT_CATEGORIES).map(
                 (categoryId) => {

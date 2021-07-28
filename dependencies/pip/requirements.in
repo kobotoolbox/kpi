@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@d8d7a64acd69f6c6fa56638588dbe38c7a97a1e0#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@a2bbc81e1cf0980449633656455de142e8a500bc#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -75,6 +75,7 @@ static3
 tabulate
 unicodecsv
 uWSGI
+Werkzeug
 xlrd
 xlwt
 xlutils
@@ -84,3 +85,6 @@ XlsxWriter
 pyopenssl
 ndg-httpsclient
 pyasn1
+
+# This package is only needed for unit tests but MockBackend is loaded even on production environment
+deepmerge

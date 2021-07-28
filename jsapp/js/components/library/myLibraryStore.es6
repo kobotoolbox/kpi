@@ -6,7 +6,10 @@ import {
   searchBoxStore
 } from '../header/searchBoxStore';
 import assetUtils from 'js/assetUtils';
-import {isOnLibraryRoute} from './libraryUtils';
+import {
+  getCurrentPath,
+  isAnyLibraryRoute,
+} from 'js/routerUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
@@ -20,12 +23,12 @@ const myLibraryStore = Reflux.createStore({
    * It doesn't need to be defined upfront, but I'm adding it here for clarity.
    */
   abortFetchData: undefined,
-  previousPath: hashHistory.getCurrentLocation().pathname,
+  previousPath: getCurrentPath(),
   previousSearchPhrase: searchBoxStore.getSearchPhrase(),
   PAGE_SIZE: 100,
   DEFAULT_ORDER_COLUMN: ASSETS_TABLE_COLUMNS['date-modified'],
 
-  isVirgin: true,
+  isInitialised: false,
 
   data: {
     isFetchingData: false,
@@ -69,7 +72,7 @@ const myLibraryStore = Reflux.createStore({
    * otherwise wait until route changes to a library (see `onRouteChange`)
    */
   startupStore() {
-    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+    if (!this.isInitialised && isAnyLibraryRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     }
   },
@@ -100,6 +103,12 @@ const myLibraryStore = Reflux.createStore({
       params.filterValue = this.data.filterValue;
     }
 
+    // Surrounds `filterValue` with double quotes to avoid filters that have
+    // spaces which would split the query in two, thus breaking the filter
+    if (params.filterValue !== undefined) {
+      params.filterValue = JSON.stringify(params.filterValue); // Adds quotes
+    }
+
     return params;
   },
 
@@ -116,11 +125,6 @@ const myLibraryStore = Reflux.createStore({
     }
 
     const params = this.getSearchParams();
-    // Surrounds `filterValue` with double quotes to avoid filters that have
-    // spaces which would split the query in two, thus breaking the filter
-    if (params.filterProperty !== undefined) {
-      params.filterValue = JSON.stringify(params.filterValue); // Adds quotes
-    }
 
     params.metadata = needsMetadata;
 
@@ -132,7 +136,7 @@ const myLibraryStore = Reflux.createStore({
   },
 
   onRouteChange(data) {
-    if (this.isVirgin && isOnLibraryRoute() && !this.data.isFetchingData) {
+    if (!this.isInitialised && isAnyLibraryRoute() && !this.data.isFetchingData) {
       this.fetchData(true);
     } else if (
       (
@@ -142,7 +146,7 @@ const myLibraryStore = Reflux.createStore({
         // actually outside of it
         this.previousPath.startsWith(ROUTES.PUBLIC_COLLECTIONS)
       ) &&
-      isOnLibraryRoute()
+      isAnyLibraryRoute()
     ) {
       // refresh data when navigating into library from other place
       this.setDefaultColumns();
@@ -185,7 +189,7 @@ const myLibraryStore = Reflux.createStore({
       this.data.totalUserAssets = this.data.totalSearchAssets;
     }
     this.data.isFetchingData = false;
-    this.isVirgin = false;
+    this.isInitialised = true;
     this.trigger(this.data);
   },
 

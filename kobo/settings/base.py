@@ -2,6 +2,7 @@
 import multiprocessing
 import os
 import subprocess
+from mimetypes import add_type
 from datetime import timedelta
 from urllib.parse import quote_plus
 
@@ -88,7 +89,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'markitup',
     'django_digest',
-    'kobo.apps.superuser_stats',
+    'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
     'constance',
     'constance.backends.database',
@@ -98,6 +99,7 @@ INSTALLED_APPS = (
     'kobo.apps.external_integrations.ExternalIntegrationsAppConfig',
     'markdownx',
     'kobo.apps.help',
+    'kobo.apps.shadow_model.ShadowModelAppConfig',
 )
 
 MIDDLEWARE = [
@@ -280,6 +282,13 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/' + os.environ.get('KPI_MEDIA_URL', 'media').strip('/') + '/'
 
+# `PUBLIC_MEDIA_PATH` sets the `upload_to` attribute of explicitly-public
+# `FileField`s, e.g. in `ConfigurationFile`. The corresponding location on the
+# file system (usually `MEDIA_ROOT + PUBLIC_MEDIA_PATH`) should be exposed to
+# everyone via NGINX. For more information, see
+# https://docs.djangoproject.com/en/2.2/ref/models/fields/#django.db.models.FileField.upload_to
+PUBLIC_MEDIA_PATH = '__public/'
+
 # Following the uWSGI mountpoint convention, this should have a leading slash
 # but no trailing slash
 KPI_PREFIX = os.environ.get('KPI_PREFIX', 'False')
@@ -358,11 +367,12 @@ GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
 
 # replace this with the pointer to the kobocat server, if it exists
-KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
+KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
-                                      'http://kobocat/')
+                                      'http://kobocat')
 
-KPI_URL = os.environ.get('KPI_URL', 'http://kpi/')
+KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'http://kpi')
+KOBOFORM_INTERNAL_URL = os.environ.get('KOBOFORM_INTERNAL_URL', 'http://kpi')
 
 if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
@@ -372,12 +382,14 @@ else:
 
 ''' Enketo configuration '''
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
-ENKETO_SERVER= ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
-ENKETO_VERSION= os.environ.get('ENKETO_VERSION', 'Legacy').lower()
+ENKETO_SERVER = ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
+ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
 
+# ToDo 2020-01-23 Verify if 2 lines below are still needed?
 assert ENKETO_VERSION in ['legacy', 'express']
 ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'preview'
+
 # The number of hours to keep a kobo survey preview (generated for enketo)
 # around before purging it.
 KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION', 24)
@@ -385,6 +397,7 @@ KOBO_SURVEY_PREVIEW_EXPIRATION = os.environ.get('KOBO_SURVEY_PREVIEW_EXPIRATION'
 ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
+ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
 
 
 ''' Celery configuration '''
@@ -454,6 +467,7 @@ if 'KOBOCAT_URL' in os.environ:
         }
 
 CELERY_BROKER_URL = os.environ.get('KPI_BROKER_URL', 'redis://localhost:6379/1')
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 
 
 ''' Django Registration configuration '''
@@ -692,13 +706,36 @@ MONGO_CONNECTION = MongoClient(
     MONGO_CONNECTION_URL, j=True, tz_aware=True, connect=False)
 MONGO_DB = MONGO_CONNECTION[MONGO_DATABASE['NAME']]
 
+MONGO_DB_MAX_TIME_MS = CELERY_TASK_TIME_LIMIT * 1000
+
 SESSION_ENGINE = "redis_sessions.session"
 SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
 
 ENV = None
 
-# The maximum size in bytes that a request body may be before a SuspiciousOperation (RequestDataTooBig) is raised
+# The maximum size in bytes that a request body may be before a
+# SuspiciousOperation (RequestDataTooBig) is raised
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
-# The maximum size (in bytes) that an upload will be before it gets streamed to the file system
+# The maximum size (in bytes) that an upload will be before it gets streamed
+# to the file system
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
+
+# OpenRosa setting in bytes
+OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
+
+# Expiration time in sec. after which paired data xml file must be regenerated
+# Should match KoBoCAT setting
+PAIRED_DATA_EXPIRATION = 300
+
+# Minimum size (in bytes) of files to allow fast calculation of hashes
+# Should match KoBoCAT setting
+HASH_BIG_FILE_SIZE_THRESHOLD = 0.5 * 1024 * 1024  # 512 kB
+
+# Chunk size in bytes to read per iteration when hash of a file is calculated
+# Should match KoBoCAT setting
+HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
+
+# add some mimetype
+add_type('application/wkt', '.wkt')
+add_type('application/geo+json', '.geojson')

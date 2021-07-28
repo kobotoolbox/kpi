@@ -21,6 +21,7 @@ import {
 import moment from 'moment';
 import {actions} from './actions';
 import {stores} from './stores';
+import {surveyCompanionStore} from './surveyCompanionStore'; // importing it so it exists
 import {dataInterface} from './dataInterface';
 import {bem} from './bem';
 import ui from './ui';
@@ -34,7 +35,7 @@ import {
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
 import AssetRoute from 'js/components/library/assetRoute';
-import Reports from './components/reports';
+import Reports from './components/reports/reports';
 import FormLanding from './components/formLanding';
 import FormSummary from './components/formSummary';
 import FormSubScreens from './components/formSubScreens';
@@ -62,21 +63,12 @@ class App extends React.Component {
       pageState: stores.pageState.state,
     });
   }
-  componentWillReceiveProps() {
-    // slide out drawer overlay on every page change (better mobile experience)
-    if (this.state.pageState.showFixedDrawer) {
-      stores.pageState.setState({showFixedDrawer: false});
-    }
-    // hide modal on every page change
-    if (this.state.pageState.modal) {
-      stores.pageState.hideModal();
-    }
-  }
   componentDidMount() {
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
     actions.misc.getServerEnvironment();
     actions.permissions.getConfig();
+    hashHistory.listen(this.onRouteChange.bind(this));
   }
   onGetConfigCompleted(response) {
     this.setState({isConfigReady: true});
@@ -85,16 +77,20 @@ class App extends React.Component {
   onGetConfigFailed() {
     notify('Failed to get permissions config!', 'error');
   }
+  onRouteChange() {
+    // slide out drawer overlay on every page change (better mobile experience)
+    if (this.state.pageState.showFixedDrawer) {
+      stores.pageState.setState({showFixedDrawer: false});
+    }
+
+    // hide modal on every page change
+    if (this.state.pageState.modal) {
+      stores.pageState.hideModal();
+    }
+  }
   render() {
     if (!this.state.isConfigReady) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<ui.LoadingSpinner/>);
     }
 
     var assetid = this.props.params.assetid || this.props.params.uid || null;
@@ -295,13 +291,14 @@ export var routes = (
           <Route path={ROUTES.FORM_GALLERY} component={FormSubScreens} />
           <Route path={ROUTES.FORM_MAP} component={FormSubScreens} />
           <Route path={ROUTES.FORM_MAP_BY} component={FormSubScreens} />
-          <IndexRedirect to={ROUTES.FORM_REPORT} />
+          <IndexRedirect to={ROUTES.FORM_TABLE} />
         </Route>
 
         <Route path={ROUTES.FORM_SETTINGS}>
           <IndexRoute component={FormSubScreens} />
           <Route path={ROUTES.FORM_MEDIA} component={FormSubScreens} />
           <Route path={ROUTES.FORM_SHARING} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_RECORDS} component={FormSubScreens} />
           <Route path={ROUTES.FORM_REST} component={FormSubScreens} />
           <Route path={ROUTES.FORM_REST_HOOK} component={FormSubScreens} />
           <Route path={ROUTES.FORM_KOBOCAT} component={FormSubScreens} />
@@ -334,7 +331,8 @@ hashHistory.listen(function() {
 
 export default class RunRoutes extends React.Component {
   componentDidMount(){
-    // when hot reloading, componentWillReceiveProps whines about changing the routes prop so this shuts that up
+    // HACK: when hot reloading, componentWillReceiveProps whines about
+    // changing the routes prop so this shuts that up
     this.router.componentWillReceiveProps = function(){};
   }
 
