@@ -1,20 +1,19 @@
 # coding: utf-8
-import datetime
+from functools import partial
+import math
+from secrets import token_urlsafe
 
 from django.db import models
-from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MinLengthValidator
 from django.contrib.auth.models import AnonymousUser
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import exceptions
 
-KEY_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+from kpi.utils.datetime import ten_minutes_from_now
+
 KEY_LENGTH = 60
-
-
-def _generate_random_key():
-    return get_random_string(KEY_LENGTH, KEY_CHARS)
+NUM_KEY_BYTES = math.floor(KEY_LENGTH * 3 / 4)
 
 
 class AuthorizedApplication(models.Model):
@@ -22,15 +21,11 @@ class AuthorizedApplication(models.Model):
     key = models.CharField(
         max_length=KEY_LENGTH,
         validators=[MinLengthValidator(KEY_LENGTH)],
-        default=_generate_random_key
+        default=partial(token_urlsafe, nbytes=NUM_KEY_BYTES)
     )
 
     def __str__(self):
         return self.name
-
-
-def ten_minutes_from_now():
-    return datetime.datetime.now() + datetime.timedelta(minutes=10)
 
 
 class OneTimeAuthenticationKey(models.Model):
@@ -38,7 +33,7 @@ class OneTimeAuthenticationKey(models.Model):
     key = models.CharField(
         max_length=KEY_LENGTH,
         validators=[MinLengthValidator(KEY_LENGTH)],
-        default=_generate_random_key
+        default=partial(token_urlsafe, nbytes=NUM_KEY_BYTES)
     )
     expiry = models.DateTimeField(default=ten_minutes_from_now)
 

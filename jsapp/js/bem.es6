@@ -156,7 +156,6 @@ bem.FormView__subs = bem.FormView.__('subs');
 // end used in header.es6
 bem.FormView__toptabs = bem.FormView.__('toptabs');
 bem.FormView__sidetabs = bem.FormView.__('sidetabs');
-bem.FormView__tab = bem.FormView.__('tab', '<a>');
 
 bem.FormView__label = bem.FormView.__('label');
 bem.FormView__group = bem.FormView.__('group');

@@ -19,13 +19,14 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
     FUZZY_VERSION_ID_KEY = '_version_'
     INFERRED_VERSION_ID_KEY = '__inferred_version__'
 
-    if not asset.has_deployment:
-        raise Exception('Cannot build formpack for asset without deployment')
-
-    if use_all_form_versions:
-        _versions = asset.deployed_versions
+    if asset.has_deployment:
+        if use_all_form_versions:
+            _versions = asset.deployed_versions
+        else:
+            _versions = [asset.deployed_versions.first()]
     else:
-        _versions = [asset.deployed_versions.first()]
+        # Use the newest version only if the asset was never deployed
+        _versions = [asset.asset_versions.first()]
 
     schemas = []
     version_ids_newest_first = []
@@ -97,8 +98,7 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         if not _userform_id.startswith(asset.owner.username):
             raise Exception('asset has unexpected `mongo_userform_id`')
 
-        submission_stream = asset.deployment.get_submissions(
-            requesting_user_id=asset.owner.id)
+        submission_stream = asset.deployment.get_submissions(user=asset.owner)
 
     submission_stream = (
         _infer_version_id(submission) for submission in submission_stream
