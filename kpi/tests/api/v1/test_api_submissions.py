@@ -17,19 +17,19 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
     URL_NAMESPACE = None
 
     @pytest.mark.skip(reason='Partial permissions should be used only with v2')
-    def test_list_submissions_with_partial_permissions(self):
+    def test_list_submissions_with_partial_permissions_as_anotheruser(self):
         pass
 
     @pytest.mark.skip(reason='Partial permissions should be used only with v2')
-    def test_retrieve_submission_with_partial_permissions(self):
+    def test_retrieve_submission_with_partial_permissions_as_anotheruser(self):
         pass
 
-    def test_list_submissions_owner(self):
+    def test_list_submissions_as_owner(self):
         response = self.client.get(self.submission_list_url, {"format": "json"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, self.submissions)
 
-    def test_list_submissions_shared_other(self):
+    def test_list_submissions_shared_as_anotheruser(self):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
         response = self.client.get(self.submission_list_url, {"format": "json"})
@@ -71,7 +71,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), limit)
 
-    def test_list_submissions_owner_with_params(self):
+    def test_list_submissions_as_owner_with_params(self):
         response = self.client.get(
             self.submission_list_url, {
                 'format': 'json',
@@ -82,52 +82,48 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
                 'query': '{"_submitted_by": {"$in": ["", "someuser", "another"]}}',
             }
         )
-        # ToDo add more assertions
+        # ToDo add more assertions. E.g. test whether sort, limit, start really work
         self.assertEqual(len(response.data), 5)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_delete_submission_owner(self):
+    def test_delete_submission_as_owner(self):
         submission = self.get_random_submission(self.asset.owner)
         url = self.asset.deployment.get_submission_detail_url(
             submission['_id'])
 
-        response = self.client.delete(url,
-                                      content_type="application/json",
-                                      HTTP_ACCEPT="application/json")
+        response = self.client.delete(url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submission_list_url,
                                    {'format': 'json'})
         self.assertEqual(len(response.data), len(self.submissions) - 1)
 
-    def test_delete_submission_shared_other(self):
+    def test_delete_submission_shared_as_anotheruser(self):
         self.asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
         self._log_in_as_another_user()
         submission = self.get_random_submission(self.asset.owner)
         url = self.asset.deployment.get_submission_detail_url(submission['_id'])
-        response = self.client.delete(url,
-                                      content_type="application/json",
-                                      HTTP_ACCEPT="application/json")
+        response = self.client.delete(url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+        self.assertEqual(len(response.data), len(self.submissions))
 
         # `another_user` should not be able to delete with 'change_submissions'
         # permission.
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
-        response = self.client.delete(url,
-                                      content_type="application/json",
-                                      HTTP_ACCEPT="application/json")
+        response = self.client.delete(url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.get(self.submission_list_url, {'format': 'json'})
+        self.assertEqual(len(response.data), len(self.submissions))
 
         # Let's assign them 'delete_submissions'. Everything should be ok then!
         self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
-        response = self.client.delete(url,
-                                      content_type="application/json",
-                                      HTTP_ACCEPT="application/json")
+        response = self.client.delete(url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(len(response.data), len(self.submissions) - 1)
 
     @pytest.mark.skip(reason='Partial permissions should be used only with v2')
-    def test_delete_submission_with_partial_perms(self):
+    def test_delete_submission_with_partial_perms_as_anotheruser(self):
         pass
 
 

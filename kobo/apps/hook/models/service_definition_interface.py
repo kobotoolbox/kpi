@@ -162,7 +162,9 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
     def save_log(self, status_code: int, message: str, success: bool = False):
         """
-        Updates/creates log entry
+        Updates/creates log entry with:
+        - `status_code` as the HTTP status code of the remote server response
+        - `message` as the content of the remote server response
         """
         fields = {
             'hook': self._hook,

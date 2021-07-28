@@ -10,7 +10,7 @@ from rest_framework import status
 
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.hook.models.hook import Hook
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON
+from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON
 from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
     PERM_CHANGE_ASSET
@@ -192,7 +192,7 @@ class ApiHookTestCase(HookTestCase):
             "name": "some disabled external service",
             "active": False
         }
-        response = self.client.patch(url, data, format=INSTANCE_FORMAT_TYPE_JSON)
+        response = self.client.patch(url, data, format=SUBMISSION_FORMAT_TYPE_JSON)
         self.assertEqual(response.status_code, status.HTTP_200_OK,
                          msg=response.data)
         hook.refresh_from_db()
@@ -214,7 +214,7 @@ class ApiHookTestCase(HookTestCase):
         })
 
         # It should be a success
-        response = self.client.patch(retry_url, format=INSTANCE_FORMAT_TYPE_JSON)
+        response = self.client.patch(retry_url, format=SUBMISSION_FORMAT_TYPE_JSON)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Let's check if logs has 2 tries
@@ -224,7 +224,7 @@ class ApiHookTestCase(HookTestCase):
             "uid": first_log_response.get("uid")
         })
 
-        response = self.client.get(detail_url, format=INSTANCE_FORMAT_TYPE_JSON)
+        response = self.client.get(detail_url, format=SUBMISSION_FORMAT_TYPE_JSON)
         self.assertEqual(response.data.get("tries"), 2)
 
     @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',

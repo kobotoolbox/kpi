@@ -7,7 +7,7 @@ from django.urls import reverse
 from ipaddress import ip_address
 from rest_framework import status
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON, SUBMISSION_FORMAT_TYPE_XML
 from kpi.exceptions import BadFormatException
 from kpi.tests.kpi_test_case import KpiTestCase
 from ..constants import HOOK_LOG_FAILED
@@ -51,10 +51,10 @@ class HookTestCase(KpiTestCase):
 
     def _create_hook(self, return_response_only=False, **kwargs):
 
-        format_type = kwargs.get('format_type', INSTANCE_FORMAT_TYPE_JSON)
+        format_type = kwargs.get('format_type', SUBMISSION_FORMAT_TYPE_JSON)
         if format_type not in [
-            INSTANCE_FORMAT_TYPE_JSON,
-            INSTANCE_FORMAT_TYPE_XML,
+            SUBMISSION_FORMAT_TYPE_JSON,
+            SUBMISSION_FORMAT_TYPE_XML,
         ]:
             raise BadFormatException(
                 'The format {} is not supported'.format(format_type)

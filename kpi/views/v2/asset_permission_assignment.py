@@ -96,11 +96,9 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
 
     N.B.:
 
-    - Only submissions support partial (`view`) permissions so far.
-    - Filters use Mongo Query Engine to narrow down results.
+    - Filters use Mongo Query Engine to narrow down results
+    - Filters are joined with `OR` operator
     - Implied permissions will be also assigned. (e.g. `change_asset` will add `view_asset` too)
-
-
 
     **Remove a permission assignment**
 

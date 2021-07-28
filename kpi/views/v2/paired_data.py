@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_XML
+from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.models import Asset, AssetFile, PairedData
 from kpi.permissions import (
     AssetEditorPermission,
@@ -249,7 +249,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         # If the content of `asset_file' has expired, let's regenerate the XML
         submissions = source_asset.deployment.get_submissions(
             self.asset.owner,
-            format_type=INSTANCE_FORMAT_TYPE_XML
+            format_type=SUBMISSION_FORMAT_TYPE_XML
         )
         parsed_submissions = []
 

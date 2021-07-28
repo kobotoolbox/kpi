@@ -403,7 +403,7 @@ class ConnectProjects extends React.Component {
               <span>
                 {t('Select any questions you want to share in the right side table')}
                 {this.state.isLoading &&
-                  <LoadingSpinner message={t('Updating shared questions')} />
+                  <LoadingSpinner message={t('Updating shared questions')}/>
                 }
               </span>
 
