@@ -10,7 +10,10 @@ from kpi.constants import (
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models import Asset
 from kpi.models import UserAssetSubscription
-from kpi.models.object_permission import get_anonymous_user, get_objects_for_user
+from kpi.utils.object_permission import (
+    get_anonymous_user,
+    get_objects_for_user,
+)
 
 
 class UserAssetSubscriptionSerializer(serializers.ModelSerializer):

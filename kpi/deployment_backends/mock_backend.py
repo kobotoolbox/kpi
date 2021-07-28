@@ -1,14 +1,27 @@
 # coding: utf-8
 import copy
-import re
+import time
 import uuid
 from datetime import datetime
 
 import pytz
+from deepmerge import always_merger
+from dicttoxml import dicttoxml
+from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_JSON, INSTANCE_FORMAT_TYPE_XML
+from kpi.constants import (
+    SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
+    PERM_CHANGE_SUBMISSIONS,
+    PERM_DELETE_SUBMISSIONS,
+    PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
+)
+from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
+from kpi.models.asset_file import AssetFile
+from kpi.utils.mongo_helper import MongoHelper
 from .base_backend import BaseDeploymentBackend
 
 
@@ -21,35 +34,53 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         pass
 
     def bulk_update_submissions(
-        self, request_data: dict, requesting_user: 'auth.User'
+        self, data: dict, user: 'auth.User'
     ) -> dict:
-        payload = self.__prepare_bulk_update_payload(request_data)
-        all_submissions = copy.copy(self.get_data('submissions'))
-        instance_ids = payload.pop('submission_ids')
+
+        submission_ids = self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            submission_ids=data['submission_ids'],
+            query=data['query'],
+        )
+
+        if not submission_ids:
+            submission_ids = data['submission_ids']
+
+        submissions = self.get_submissions(
+            user=user,
+            format_type=SUBMISSION_FORMAT_TYPE_JSON,
+            submission_ids=submission_ids
+        )
+
+        submission_ids = [int(id_) for id_ in submission_ids]
 
         responses = []
-        for submission in all_submissions:
-            if submission['_id'] in instance_ids:
+        for submission in submissions:
+            if submission['_id'] in submission_ids:
                 _uuid = uuid.uuid4()
-                submission['deprecatedID'] = submission['instanceID']
-                submission['instanceID'] = f'uuid:{_uuid}'
-                for k, v in payload['data'].items():
+                submission['meta/deprecatedID'] = submission['meta/instanceID']
+                submission['meta/instanceID'] = f'uuid:{_uuid}'
+                for k, v in data['data'].items():
                     submission[k] = v
+
+                # Mirror KobocatDeploymentBackend responses
                 responses.append(
                     {
                         'uuid': _uuid,
-                        'response': {},
+                        'status_code': status.HTTP_201_CREATED,
+                        'message': 'Successful submission'
                     }
                 )
 
+        self.mock_submissions(submissions)
         return self.__prepare_bulk_update_response(responses)
 
-    def calculated_submission_count(self, requesting_user_id, **kwargs):
-        params = self.validate_submission_list_params(requesting_user_id,
+    def calculated_submission_count(self, user: 'auth.User', **kwargs) -> int:
+        params = self.validate_submission_list_params(user,
                                                       validate_count=True,
                                                       **kwargs)
-        instances = self.get_submissions(requesting_user_id, **params)
-        return len(instances)
+        return MongoHelper.get_count(self.mongo_userform_id, **params)
 
     def connect(self, active=False):
         self.store_data({
@@ -63,41 +94,146 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             }
         })
 
-    def delete_submission(self, pk, user):
+    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
         """
-        Deletes submission
-        :param pk: int
-        :param user: User
-        :return: JSON
+        Delete a submission
         """
-        # No need to delete data, just fake it
+        self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_DELETE_SUBMISSIONS,
+            submission_ids=[submission_id],
+        )
+
+        if not settings.MONGO_DB.instances.find_one({'_id': submission_id}):
+            return {
+                'content_type': 'application/json',
+                'status': status.HTTP_404_NOT_FOUND,
+                'data': {
+                    'detail': 'Not found'
+                }
+            }
+
+        self._check_mock_mongo()
+        settings.MONGO_DB.instances.delete_one({'_id': submission_id})
+
         return {
-            "content_type": "application/json",
-            "status": status.HTTP_204_NO_CONTENT,
+            'content_type': 'application/json',
+            'status': status.HTTP_204_NO_CONTENT,
+        }
+
+    def delete_submissions(self, data: dict, user: 'auth.User') -> dict:
+        """
+        Bulk delete provided submissions authenticated by `user`'s API token.
+
+        `data` should contains the submission ids or the query to get the subset
+        of submissions to delete
+        Example:
+             {"submission_ids": [1, 2, 3]}
+             or
+             {"query": {"Question": "response"}
+        """
+        submission_ids = self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_DELETE_SUBMISSIONS,
+            submission_ids=data['submission_ids'],
+            query=data['query'],
+        )
+
+        if not submission_ids:
+            submission_ids = data['submission_ids']
+        else:
+            data['query'] = {}
+
+        # Retrieve the subset of submissions to delete
+        submissions = self.get_submissions(user,
+                                           submission_ids=submission_ids,
+                                           query=data['query'])
+
+        # If no submissions have been fetched, user is not allowed to perform
+        # the request
+        if not submissions:
+            return {
+                'content_type': 'application/json',
+                'status': status.HTTP_404_NOT_FOUND,
+            }
+
+        # We could use `delete_many()` but we would have to recreate the query
+        # with submission ids or query.
+        for submission in submissions:
+            submission_id = submission['_id']
+            settings.MONGO_DB.instances.delete_one(
+                {'_id': submission_id}
+            )
+
+        return {
+            'content_type': 'application/json',
+            'status': status.HTTP_204_NO_CONTENT,
         }
 
     def duplicate_submission(
-        self, requesting_user: 'auth.User', instance_id: int, **kwargs: dict
+        self, submission_id: int, user: 'auth.User'
     ) -> dict:
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
-        all_submissions = self.get_data('submissions')
-        submission = next(
-            filter(lambda sub: sub['_id'] == instance_id, all_submissions)
+
+        self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            submission_ids=[submission_id],
         )
-        next_id = max((sub['_id'] for sub in all_submissions)) + 1
+
+        duplicated_submission = copy.deepcopy(
+            self.get_submission(submission_id, user=user)
+        )
         updated_time = datetime.now(tz=pytz.UTC).isoformat('T', 'milliseconds')
-        updated_fields = {
+        next_id = max((
+            sub['_id']
+            for sub in self.get_submissions(self.asset.owner, fields=['_id'])
+        )) + 1
+        duplicated_submission.update({
             '_id': next_id,
             'start': updated_time,
             'end': updated_time,
-            'instanceID': f'uuid:{uuid.uuid4()}'
-        }
-
-        return {**submission, **updated_fields}
+            'meta/instanceID': f'uuid:{uuid.uuid4()}'
+        })
+        
+        settings.MONGO_DB.instances.insert_one(duplicated_submission)
+        return duplicated_submission
 
     def get_data_download_links(self):
         return {}
+
+    def get_enketo_submission_url(
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        params: dict = None,
+        action_: str = 'edit',
+    ) -> dict:
+        """
+        Gets URL of the submission in a format FE can understand
+        """
+        if action_ == 'edit':
+            partial_perm = PERM_CHANGE_SUBMISSIONS
+        elif action_ == 'view':
+            partial_perm = PERM_VIEW_SUBMISSIONS
+        else:
+            raise NotImplementedError(
+                "Only 'view' and 'edit' actions are currently supported"
+            )
+
+        submission_ids = self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=partial_perm,
+            submission_ids=[submission_id],
+        )
+
+        return {
+            'content_type': 'application/json',
+            'data': {
+                'url': f'http://server.mock/enketo/{action_}/{submission_id}'
+            }
+        }
 
     def get_enketo_survey_links(self):
         # `self` is a demo Enketo form, but there's no guarantee it'll be
@@ -110,130 +246,100 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             # 'preview_iframe_url': 'https://enke.to/preview/i/::self',
         }
 
-    def get_submission_detail_url(self, submission_pk):
+    def get_submission_detail_url(self, submission_id: int) -> str:
         # This doesn't really need to be implemented.
         # We keep it to stay close to `KobocatDeploymentBackend`
-        url = '{list_url}{pk}/'.format(
-            list_url=self.submission_list_url,
-            pk=submission_pk
-        )
+        url = f'{self.submission_list_url}{submission_id}/'
         return url
 
-    def get_enketo_submission_url(self, submission_pk, user, params=None):
-        """
-        Gets URL of the submission in a format FE can understand
-
-        :param submission_pk: int
-        :param user: User
-        :param params: dict
-        :return: dict
-        """
-
-        return {
-            "data": {
-                "url": "http://server.mock/enketo/{}".format(submission_pk)
-            }
-        }
-
-    def get_submission_validation_status_url(self, submission_pk):
-        # This doesn't really need to be implemented.
-        # We keep it to stay close to `KobocatDeploymentBackend`
+    def get_submission_validation_status_url(self, submission_id: int) -> str:
         url = '{detail_url}validation_status/'.format(
-            detail_url=self.get_submission_detail_url(submission_pk)
+            detail_url=self.get_submission_detail_url(submission_id)
         )
         return url
 
-    def get_submissions(self, requesting_user_id,
-                        format_type=INSTANCE_FORMAT_TYPE_JSON,
-                        instance_ids=[], **kwargs):
+    def get_submissions(
+        self,
+        user: 'auth.User',
+        format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
+        submission_ids: list = [],
+        **mongo_query_params
+    ) -> list:
         """
-        Retrieves submissions on `format_type`.
-        It can be filtered on instances ids.
+        Retrieve submissions that `user` is allowed to access.
 
-        Args:
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            instance_ids (list): Instance ids to retrieve
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON`)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML`)
 
-        Returns:
-            (dict|str|`None`): Depending of `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instances' XML as string
-                - `None` if no results
+        Results can be filtered by submission ids. Moreover MongoDB filters can
+        be passed through `mongo_query_params` to narrow down the results.
+
+        If `user` has no access to these submissions or no matches are found,
+        an empty list is returned.
+        If `format_type` is 'json', a list of dictionaries is returned.
+        Otherwise, if `format_type` is 'xml', a list of strings is returned.
         """
 
-        submissions = self.get_data("submissions", [])
-        kwargs['instance_ids'] = instance_ids
-        params = self.validate_submission_list_params(requesting_user_id,
+        mongo_query_params['submission_ids'] = submission_ids
+        params = self.validate_submission_list_params(user,
                                                       format_type=format_type,
-                                                      **kwargs)
-        permission_filters = params['permission_filters']
+                                                      **mongo_query_params)
 
-        if len(instance_ids) > 0:
-            if format_type == INSTANCE_FORMAT_TYPE_XML:
-                instance_ids = [str(instance_id) for instance_id in
-                                instance_ids]
-                # ugly way to find matches, but it avoids to load each xml in memory  # noqa
-                pattern = r'<{id_field}>({instance_ids})<\/{id_field}>'.format(
-                    instance_ids='|'.join(instance_ids),
-                    id_field=self.INSTANCE_ID_FIELDNAME
-                )
-                submissions = [
-                    submission
-                    for submission in submissions
-                    if re.search(pattern, submission)
-                ]
-            else:
-                instance_ids = [
-                    int(instance_id)
-                    for instance_id in instance_ids
-                ]
-
-                submissions = [
-                    submission
-                    for submission in submissions
-                    if submission.get(self.INSTANCE_ID_FIELDNAME)
-                    in instance_ids
-                ]
-
-        if permission_filters:
-            submitted_by = [k.get('_submitted_by') for k in permission_filters]
-            if format_type == INSTANCE_FORMAT_TYPE_XML:
-                # TODO handle `submitted_by` too.
-                raise NotImplementedError
-            else:
-                submissions = [
-                    submission
-                    for submission in submissions
-                    if submission.get('_submitted_by') in submitted_by
-                ]
+        mongo_cursor, total_count = MongoHelper.get_instances(
+            self.mongo_userform_id, **params)
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
-        self.current_submissions_count = len(submissions)
+        self.current_submissions_count = total_count
 
-        # TODO: support other query parameters?
-        if 'limit' in params:
-            submissions = submissions[:params['limit']]
+        submissions = [
+            MongoHelper.to_readable_dict(submission)
+            for submission in mongo_cursor
+        ]
 
-        return submissions
+        if format_type != SUBMISSION_FORMAT_TYPE_XML:
+            return submissions
 
-    def get_validation_status(self, submission_pk, params, user):
-        submission = self.get_submission(submission_pk, user.id,
-                                         INSTANCE_FORMAT_TYPE_JSON)
+        return [
+            dicttoxml(
+                self.__prepare_xml(submission),
+                attr_type=False,
+                custom_root=self.asset.uid,
+            ).decode()
+            for submission in submissions
+        ]
+
+    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
+
+        submission = self.get_submission(submission_id, user)
         return {
-            "data": submission.get("_validation_status")
+            'content_type': 'application/json',
+            'data': submission.get('_validation_status')
         }
 
     def mock_submissions(self, submissions: list):
         """
         Insert dummy submissions into deployment data
         """
-        self.store_data({"submissions": submissions})
-        self.asset.save(create_version=False)
+        self._check_mock_mongo()
+        settings.MONGO_DB.instances.drop()
+        for idx, submission in enumerate(submissions):
+            submission[MongoHelper.USERFORM_ID] = self.mongo_userform_id
+            # Some data already provide `_id`. Use it if it is present.
+            # There could be conflicts if some submissions come with an id
+            # or others do not.
+            # MockMongo will raise a DuplicateKey error
+            if '_id' not in submission:
+                submission['_id'] = idx + 1
+            settings.MONGO_DB.instances.insert_one(submission)
+            # Do not add `MongoHelper.USERFORM_ID` to original `submissions`
+            del submission[MongoHelper.USERFORM_ID]
 
-    def redeploy(self, active=None):
+    @property
+    def mongo_userform_id(self):
+        return f'{self.asset.owner.username}_{self.asset.uid}'
+
+    def redeploy(self, active: bool = None):
         """
         Replace (overwrite) the deployment, keeping the same identifier, and
         optionally changing whether the deployment is active
@@ -248,6 +354,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         self.set_asset_uid()
 
+    def set_active(self, active: bool):
+        self.save_to_db({
+            'active': bool(active),
+        })
+
     def set_asset_uid(self, **kwargs) -> bool:
         backend_response = self.backend_response
         backend_response.update({
@@ -255,11 +366,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         })
         self.store_data({
             'backend_response': backend_response
-        })
-
-    def set_active(self, active):
-        self.save_to_db({
-            'active': bool(active),
         })
 
     def set_has_kpi_hooks(self):
@@ -278,11 +384,98 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'namespace': namespace,
         })
 
-    def set_validation_status(self, submission_pk, data, user, method):
-        pass
+    def set_validation_status(self,
+                              submission_id: int,
+                              user: 'auth.User',
+                              data: dict,
+                              method: str) -> dict:
 
-    def set_validation_statuses(self, data, user, method):
-        pass
+        self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_VALIDATE_SUBMISSIONS,
+            submission_ids=[submission_id],
+        )
+
+        validation_status = {}
+        status_code = status.HTTP_204_NO_CONTENT
+
+        if method != 'DELETE':
+            validation_status = {
+                'timestamp': int(time.time()),
+                'uid': data['validation_status.uid'],
+                'by_whom': user.username,
+            }
+            status_code = status.HTTP_200_OK
+
+        settings.MONGO_DB.instances.update_one(
+            {'_id': submission_id},
+            {'$set': {'_validation_status': validation_status}},
+        )
+        return {
+            'content_type': 'application/json',
+            'status': status_code,
+            'data': validation_status
+        }
+
+    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
+        """
+        Bulk update validation status for provided submissions.
+
+        `data` should contains either the submission ids or the query to
+        retrieve the subset of submissions chosen by then user.
+        If none of them are provided, all the submissions are selected
+        Examples:
+            {"submission_ids": [1, 2, 3]}
+            {"query":{"_validation_status.uid":"validation_status_not_approved"}
+        
+        """
+
+        submission_ids = self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_VALIDATE_SUBMISSIONS,
+            submission_ids=data['submission_ids'],
+            query=data['query'],
+        )
+
+        if not submission_ids:
+            submission_ids = data['submission_ids']
+        else:
+            # Reset query because submission ids are provided from partial
+            # perms validation
+            data['query'] = {}
+
+        submissions = self.get_submissions(
+            user=user,
+            submission_ids=submission_ids,
+            query=data['query'],
+            fields=['_id'],
+        )
+
+        submissions_count = 0
+
+        for submission in submissions:
+            if not data['validation_status.uid']:
+                validation_status = {}
+            else:
+                validation_status = {
+                    'timestamp': int(time.time()),
+                    'uid': data['validation_status.uid'],
+                    'by_whom': user.username,
+                }
+            settings.MONGO_DB.instances.update_one(
+                {'_id': submission['_id']},
+                {'$set': {'_validation_status': validation_status}},
+            )
+
+            submissions_count += 1
+
+        return {
+            'content_type': 'application/json',
+            'status': status.HTTP_200_OK,
+            'data': {
+                'detail': f'{submissions_count} submissions have been updated'
+            }
+        }
 
     @property
     def submission_list_url(self):
@@ -293,39 +486,19 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         if namespace is not None:
             view_name = '{}:{}'.format(namespace, view_name)
         return reverse(view_name,
-                       kwargs={"parent_lookup_asset": self.asset.uid})
+                       kwargs={'parent_lookup_asset': self.asset.uid})
 
-    def sync_media_files(self):
-        pass
-
-    def _mock_submission(self, submission):
-        """
-        @TODO may be useless because of mock_submissions. Remove if it's not used anymore anywhere else.
-        :param submission:
-        """
-        submissions = self.get_data('submissions', [])
-        submissions.append(submission)
-        self.store_data({
-            'submissions': submissions,
-        })
-
-    def _submission_count(self):
-        submissions = self.get_data('submissions', [])
-        return len(submissions)
+    def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
+        queryset = self._get_metadata_queryset(file_type=file_type)
+        for obj in queryset:
+            assert issubclass(obj.__class__, SyncBackendMediaInterface)
 
     @staticmethod
-    def __prepare_bulk_update_payload(request_data: dict) -> dict:
-        # For some reason DRF puts the strings into a list so this just takes
-        # them back out again to more accurately reflect the behaviour of the
-        # non-mocked methods
-        for k, v in request_data['data'].items():
-            request_data['data'][k] = v[0]
-
-        request_data['submission_ids'] = list(
-            set(map(int, request_data['submission_ids']))
-        )
-
-        return request_data
+    def _check_mock_mongo():
+        # Ensure we are using MockMongo before deleting data
+        mongo_db_driver__repr = repr(settings.MONGO_DB)
+        if 'mongomock' not in mongo_db_driver__repr:
+            raise Exception('Cannot run tests on a production database')
 
     @staticmethod
     def __prepare_bulk_update_response(kc_responses: list) -> dict:
@@ -340,3 +513,18 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 'results': kc_responses,
             },
         }
+
+    @staticmethod
+    def __prepare_xml(submission: dict) -> dict:
+        submission_copy = copy.deepcopy(submission)
+
+        for k, v in submission_copy.items():
+            if '/' not in k:
+                continue
+            value = v
+            for key in reversed(k.strip('/').split('/')):
+                value = {key: value}
+            always_merger.merge(submission, value)
+            del submission[k]
+
+        return submission

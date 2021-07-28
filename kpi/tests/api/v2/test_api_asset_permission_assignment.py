@@ -15,10 +15,9 @@ from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
 )
-from kpi.models import Asset, ObjectPermission
-from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class BaseApiAssetPermissionTestCase(KpiTestCase):

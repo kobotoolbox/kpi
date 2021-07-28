@@ -43,6 +43,14 @@ class DeploymentDataException(Exception):
         )
 
 
+class DeploymentNotFound(Exception):
+
+    def __init__(self,
+                 message=_('Must call `asset.connect_deployment()` first')):
+        self.message = message
+        super().__init__(self.message)
+
+
 class ImportAssetException(Exception):
     pass
 
@@ -86,11 +94,21 @@ class KobocatDeploymentException(exceptions.APIException):
 
 class KobocatDuplicateSubmissionException(exceptions.APIException):
     status_code = 500
-    default_detail = _('An error occurred trying to duplicate the submission.')
+    default_detail = _('An error occurred trying to duplicate the submission')
     default_code = 'submission_duplication_error'
 
 
 class KobocatProfileException(Exception):
+    pass
+
+
+class ObjectDeploymentDoesNotExist(exceptions.APIException):
+    status_code = 400
+    default_detail = _('The specified object has not been deployed')
+    default_code = 'deployment_does_not_exist'
+
+
+class PairedDataException(Exception):
     pass
 
 
@@ -103,9 +121,3 @@ class ReadOnlyModelError(Exception):
 class SearchQueryTooShortException(InvalidSearchException):
     default_detail = _('Your query is too short')
     default_code = 'query_too_short'
-
-
-class ObjectDeploymentDoesNotExist(exceptions.APIException):
-    status_code = 400
-    default_detail = _('The specified object has not been deployed')
-    default_code = 'deployment_does_not_exist'
