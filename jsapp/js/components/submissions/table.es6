@@ -304,20 +304,30 @@ export class DataTable extends React.Component {
   _getColumnSubmissionActions(maxPageRes) {
     let userCanSeeEditIcon = (
       this.props.asset.deployment__active &&
-      this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
+      (
+        this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+        this.userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
+      )
     );
 
     let userCanSeeCheckbox = (
       this.userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
       this.userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
-      this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
+      this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+      this.userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
+      this.userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+      this.userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)
     );
 
     if (
       this.userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
       this.userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
       this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
-      this.userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset)
+      this.userCan(PERMISSIONS_CODENAMES.view_submissions, this.props.asset) ||
+      this.userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) ||
+      this.userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) ||
+      this.userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) ||
+      this.userCanPartially(PERMISSIONS_CODENAMES.view_submissions, this.props.asset)
     ) {
       const res1 = (this.state.resultsTotal === 0) ? 0 : (this.state.currentPage * this.state.pageSize) + 1;
       const res2 = Math.min((this.state.currentPage + 1) * this.state.pageSize, this.state.resultsTotal);
@@ -377,6 +387,11 @@ export class DataTable extends React.Component {
               <Checkbox
                 checked={this.state.selectedRows[row.original._id] ? true : false}
                 onChange={this.bulkUpdateChange.bind(this, row.original._id)}
+                disabled={!(
+                  (this.isSubmissionWritable('change_submissions', this.props.asset, row.original)) ||
+                  (this.isSubmissionWritable('delete_submissions', this.props.asset, row.original)) ||
+                  (this.isSubmissionWritable('validate_submissions', this.props.asset, row.original))
+                )}
               />
             }
 
@@ -389,7 +404,7 @@ export class DataTable extends React.Component {
               <i className='k-icon k-icon-view'/>
             </button>
 
-            {userCanSeeEditIcon &&
+            {userCanSeeEditIcon && (this.isSubmissionWritable('change_submissions', this.props.asset, row.original)) &&
               <button
                 onClick={this.launchEditSubmission.bind(this)}
                 data-sid={row.original._id}
@@ -457,7 +472,7 @@ export class DataTable extends React.Component {
         <ValidationStatusDropdown
           onChange={this.onValidationStatusChange.bind(this, row.original._id, row.index)}
           currentValue={this.getValidationStatusOption(row.original)}
-          isDisabled={!this.userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset)}
+          isDisabled={!(this.isSubmissionWritable(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset, row.original))}
         />
       ),
     };
@@ -1021,7 +1036,6 @@ export class DataTable extends React.Component {
    */
   bulkUpdateChange(sid, isChecked) {
     let selectedRows = this.state.selectedRows;
-
     if (isChecked) {
       selectedRows[sid] = true;
     } else {

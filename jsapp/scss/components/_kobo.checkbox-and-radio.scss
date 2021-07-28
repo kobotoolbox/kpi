@@ -18,6 +18,10 @@
     }
   }
 
+  &.checkbox--disabled .checkbox__wrapper {
+    cursor: default;
+  }
+
   .radio__row {
     display: block;
   }

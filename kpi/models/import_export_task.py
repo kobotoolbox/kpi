@@ -613,6 +613,12 @@ class ExportTask(ImportExportTask):
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
+        # Include the group name in `fields` for Mongo to correctly filter
+        # for repeat groups
+        if fields:
+            field_groups = set(f.split('/')[0] for f in fields if '/' in f)
+            fields += list(field_groups)
+
         submission_stream = source.deployment.get_submissions(
             user=self.user,
             fields=fields
