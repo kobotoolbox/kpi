@@ -22,9 +22,9 @@ class BaseTestCase(APITestCase):
                 if self.URL_NAMESPACE else endpoint
         return endpoint
 
-    @staticmethod
-    def absolute_reverse(*args, **kwargs):
-        return 'http://testserver/' + reverse(*args, **kwargs).lstrip('/')
+    def login_as_other_user(self, username, password):
+        self.client.logout()
+        self.client.login(username=username, password=password)
 
 
 class BaseAssetTestCase(BaseTestCase):

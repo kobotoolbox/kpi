@@ -367,11 +367,12 @@ GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
 RAVEN_JS_DSN = os.environ.get('RAVEN_JS_DSN')
 
 # replace this with the pointer to the kobocat server, if it exists
-KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat/')
+KOBOCAT_URL = os.environ.get('KOBOCAT_URL', 'http://kobocat')
 KOBOCAT_INTERNAL_URL = os.environ.get('KOBOCAT_INTERNAL_URL',
-                                      'http://kobocat/')
+                                      'http://kobocat')
 
-KPI_URL = os.environ.get('KPI_URL', 'http://kpi/')
+KOBOFORM_URL = os.environ.get('KOBOFORM_URL', 'http://kpi')
+KOBOFORM_INTERNAL_URL = os.environ.get('KOBOFORM_INTERNAL_URL', 'http://kpi')
 
 if 'KOBOCAT_URL' in os.environ:
     DEFAULT_DEPLOYMENT_BACKEND = 'kobocat'
@@ -712,14 +713,28 @@ SESSION_REDIS = RedisHelper.config(default="redis://redis_cache:6380/2")
 
 ENV = None
 
-# The maximum size in bytes that a request body may be before a SuspiciousOperation (RequestDataTooBig) is raised
+# The maximum size in bytes that a request body may be before a
+# SuspiciousOperation (RequestDataTooBig) is raised
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
-# The maximum size (in bytes) that an upload will be before it gets streamed to the file system
+# The maximum size (in bytes) that an upload will be before it gets streamed
+# to the file system
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 
 # OpenRosa setting in bytes
 OPEN_ROSA_DEFAULT_CONTENT_LENGTH = 10000000
+
+# Expiration time in sec. after which paired data xml file must be regenerated
+# Should match KoBoCAT setting
+PAIRED_DATA_EXPIRATION = 300
+
+# Minimum size (in bytes) of files to allow fast calculation of hashes
+# Should match KoBoCAT setting
+HASH_BIG_FILE_SIZE_THRESHOLD = 0.5 * 1024 * 1024  # 512 kB
+
+# Chunk size in bytes to read per iteration when hash of a file is calculated
+# Should match KoBoCAT setting
+HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
 
 # add some mimetype
 add_type('application/wkt', '.wkt')

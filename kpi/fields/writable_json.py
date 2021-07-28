@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 
+from django.utils.translation import ugettext as _
 from rest_framework import serializers
 
 
@@ -25,9 +26,9 @@ class WritableJSONField(serializers.Field):
             try:
                 return json.loads(data)
             except Exception as e:
-                raise serializers.ValidationError({
-                    'writable_jsonfield': 'Unable to parse JSON: {}'.format(e)
-                })
+                raise serializers.ValidationError(
+                    _('Unable to parse JSON: {error}').format(error=e)
+                )
 
     def to_representation(self, value):
         return value

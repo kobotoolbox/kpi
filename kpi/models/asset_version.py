@@ -9,7 +9,7 @@ from formpack.utils.expand_content import expand_content
 from reversion.models import Version
 
 from kpi.fields import KpiUidField
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 
 DEFAULT_DATETIME = datetime.datetime(2010, 1, 1)
@@ -60,7 +60,7 @@ class AssetVersion(models.Model):
         # used to determine changes in the content from version to version
         # not saved, only compared with other asset_versions
         _json_string = json.dumps(self.version_content, sort_keys=True)
-        return get_hash(_json_string, 'sha1')
+        return calculate_hash(_json_string, 'sha1')
 
     def __str__(self):
         return '{}@{} T{}{}'.format(

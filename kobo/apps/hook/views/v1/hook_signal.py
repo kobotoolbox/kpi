@@ -25,7 +25,7 @@ class HookSignalViewSet(HookSignalViewSetV2):
     > **Expected payload**
     >
     >        {
-    >           "instance_id": {integer}
+    >           "submission_id": {integer}
     >        }
 
     """
