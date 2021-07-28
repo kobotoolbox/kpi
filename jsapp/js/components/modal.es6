@@ -414,15 +414,15 @@ class Modal extends React.Component {
                 {...this.props.params}
               />
             }
-<<<<<<< HEAD
             { this.props.params.type === MODAL_TYPES.TABLE_MEDIA_PREVIEW &&
               <TableMediaPreview
-=======
+                {...this.props.params}
+              />
+            }
             { this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS &&
               <DataAttachmentColumnsForm
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
->>>>>>> beta
                 {...this.props.params}
               />
             }

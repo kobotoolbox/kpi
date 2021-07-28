@@ -5,7 +5,7 @@ import {
 } from 'js/constants';
 
 // Columns that will be ALWAYS excluded from the view
-export const EXCLUDED_COLUMNS = createEnum([
+export const EXCLUDED_COLUMNS = [
   '_xform_id_string',
   '_attachments',
   '_notes',
@@ -19,7 +19,7 @@ export const EXCLUDED_COLUMNS = createEnum([
   'meta/instanceID',
   'meta/deprecatedID',
   '_validation_status',
-]);
+];
 
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
 
@@ -29,11 +29,3 @@ export const TABLE_MEDIA_TYPES = createEnum([
   QUESTION_TYPES.video.id,
   META_QUESTION_TYPES['background-audio'],
 ]);
-
-const tableConstants = {
-  EXCLUDED_COLUMNS,
-  SUBMISSION_ACTIONS_ID,
-  TABLE_MEDIA_TYPES,
-};
-
-export default tableConstants;

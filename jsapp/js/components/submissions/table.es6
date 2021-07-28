@@ -184,7 +184,7 @@ export class DataTable extends React.Component {
 
     // exclude some technical non-data columns
     output = output.filter(
-      (key) => Object.keys(EXCLUDED_COLUMNS).includes(key) === false
+      (key) => EXCLUDED_COLUMNS.includes(key) === false
     );
 
     // exclude notes
