@@ -277,8 +277,8 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
         If `user` has no access to these submissions or no matches are found,
         an empty list is returned.
-        If `format_type` is 'json', a list of dictionary is returned.
-        Otherwise, if `format_type` is 'xml', a list of string is returned.
+        If `format_type` is 'json', a list of dictionaries is returned.
+        Otherwise, if `format_type` is 'xml', a list of strings is returned.
         """
 
         mongo_query_params['submission_ids'] = submission_ids

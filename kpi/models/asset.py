@@ -531,14 +531,16 @@ class Asset(ObjectPermissionMixin,
             for key_ in labels.keys():
                 labels[key_] = labels[key_].replace(
                     '##asset_type_label##',
-                    # Raises TypeError if not coerced explicitly
+                    # Raises TypeError if not coerced explicitly due to
+                    # ugettext_lazy()
                     str(asset_type_label)
                 )
             return labels
         else:
             return label.replace(
                 '##asset_type_label##',
-                # Raises TypeError if not coerced explicitly
+                # Raises TypeError if not coerced explicitly due to
+                # ugettext_lazy()
                 str(asset_type_label)
             )
 
@@ -966,45 +968,43 @@ class Asset(ObjectPermissionMixin,
         partial_perms: Optional[dict] = None,
     ):
         """
-        Update partial permissions relation table according to `perm`.
+        Stores, updates, and removes permissions that apply only to a subset of
+        submissions in a project (also called row-level permissions or partial
+        permissions).
 
-        When `perm` equals `PERM_PARTIAL_SUBMISSIONS`, it adds all implied
-        permissions too. Otherwise, it is a contradictory permission, it remove
-        any partial submissions.
+        If `perm = PERM_PARTIAL_SUBMISSIONS`, it must be accompanied by
+        `partial_perms`, which is a dictionary of permissions mapped to MongoDB
+        filters. Each key of that dictionary is a permission string (codename),
+        and each value is a list of MongoDB queries that specify which
+        submissions the permission affects. A submission is affected if it
+        matches *ANY* of the queries in the list.
 
-        When assigning new (partial) permissions, `partial_perms` should be a
-        dict with filters mapped to their corresponding permission.
-        Each filter is used to narrow down results when querying Mongo.
-        e.g.:
+        For example, to allow `user` to edit submissions made by 'alice' or
+        'bob', and to allow `user` also to validate only submissions made by
+        'bob', the following `partial_perms` could be used:
         ```
-            {
-                'view_submissions': [{
-                    '_submitted_by': {
-                        '$in': [
-                            'someuser',
-                            'anotheruser'
-                        ]
-                    }
-                }],
-            }
+        {
+            'change_submissions': [{
+                '_submitted_by': {
+                    '$in': [
+                        'alice',
+                        'bob'
+                    ]
+                }
+            }],
+            'validate_submissions': [{
+                '_submitted_by': 'bob'
+            }],
+        }
         ```
 
-        `partial_perms` could be passed as:
-        ```
-            {
-                'change_submissions': [{
-                    '_submitted_by': {
-                        '$in': [
-                            'someuser',
-                            'anotheruser'
-                        ]
-                    }
-                }],
-                'validate_submissions': [{
-                    '_submitted_by': 'someuser'
-                }],
-            }
-        ```
+        If `perm` is something other than `PERM_PARTIAL_SUBMISSIONS`, and that
+        permission contradicts `PERM_PARTIAL_SUBMISSIONS`, *all* partial
+        permission assignments for `user` on this asset are removed from the
+        database. If the permission does not conflict, no action is taken.
+
+        `remove = True` deletes all partial permissions assignments for `user`
+        on this asset.
         """
 
         def clean_up_table():
