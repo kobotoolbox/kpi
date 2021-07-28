@@ -212,7 +212,7 @@ class DataAttachmentColumnsForm extends React.Component {
         </div>
 
         {!this.state.isInitialised &&
-          <LoadingSpinner message={t('Loading imported questions')} />
+          <LoadingSpinner message={t('Loading imported questions')}/>
         }
 
         <MultiCheckbox
@@ -222,7 +222,7 @@ class DataAttachmentColumnsForm extends React.Component {
         />
 
         {this.state.isLoading &&
-          <LoadingSpinner message={t('Loading imported questions')} />
+          <LoadingSpinner message={t('Updating imported questions')}/>
         }
 
         <footer className='modal__footer'>

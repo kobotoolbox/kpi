@@ -47,9 +47,11 @@ class FormViewTabs extends Reflux.Component {
     this.state = {};
     autoBind(this);
   }
+
   componentDidMount() {
     this.listenTo(stores.asset, this.assetLoad);
   }
+
   assetLoad(data) {
     var assetid = this.currentAssetID();
     var asset = data[assetid];
@@ -60,6 +62,7 @@ class FormViewTabs extends Reflux.Component {
       })
     );
   }
+
   triggerRefresh(evt) {
     if ($(evt.target).hasClass('active')) {
       hashHistory.push(`/forms/${this.state.assetid}/reset`);
@@ -78,8 +81,10 @@ class FormViewTabs extends Reflux.Component {
       this.state.asset.deployment__identifier != undefined &&
       this.state.asset.has_deployment &&
       this.state.asset.deployment__submission_count > 0 &&
-      (this.userCan('view_submissions', this.state.asset) ||
-        this.userCan('partial_submissions', this.state.asset))
+      (
+        this.userCan('view_submissions', this.state.asset) ||
+        this.userCanPartially('view_submissions', this.state.asset)
+      )
     );
   }
 
@@ -151,6 +156,7 @@ class FormViewTabs extends Reflux.Component {
       </bem.FormView__toptabs>
     );
   }
+
   renderFormSideTabs() {
     var sideTabs = [];
 
@@ -251,15 +257,20 @@ class FormViewTabs extends Reflux.Component {
 
     return false;
   }
+
   render() {
     if (!this.props.show) {
       return false;
     }
-    if (this.props.type == 'top') {
-      return this.renderTopTabs();
+    if (this.props.type === 'top') {
+      return (
+        this.renderTopTabs()
+      );
     }
-    if (this.props.type == 'side') {
-      return this.renderFormSideTabs();
+    if (this.props.type === 'side') {
+      return (
+        this.renderFormSideTabs()
+      );
     }
   }
 }

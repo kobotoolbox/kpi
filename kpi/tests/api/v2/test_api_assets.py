@@ -546,19 +546,30 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
              'url': 'http://testserver/api/v2/permissions/change_submissions/'},
             {'label': 'Manage project',
              'url': 'http://testserver/api/v2/permissions/manage_asset/'},
+            {'label':
+                {
+                    'default': 'Act on submissions only from specific users',
+                    'view_submissions': 'View submissions only from specific users',
+                    'change_submissions': 'Edit submissions only from specific users',
+                    'delete_submissions': 'Delete submissions only from specific users',
+                    'validate_submissions': 'Validate submissions only from specific users'
+                },
+             'url': 'http://testserver/api/v2/permissions/partial_submissions/'},
             {'label': 'Validate submissions',
              'url': 'http://testserver/api/v2/permissions/validate_submissions/'},
             {'label': 'View form',
              'url': 'http://testserver/api/v2/permissions/view_asset/'},
             {'label': 'View submissions',
              'url': 'http://testserver/api/v2/permissions/view_submissions/'},
-            {'label': 'View submissions only from specific users',
-             'url': 'http://testserver/api/v2/permissions/partial_submissions/'},
         ]
 
         assignable_permissions = sorted(
             response.data['assignable_permissions'],
-            key=lambda assignable_perm_: assignable_perm_['label']
+            key=lambda assignable_perm_: (
+                assignable_perm_['label']
+                if isinstance(assignable_perm_['label'], str)
+                else 'Partial permissions'
+            ),
         )
 
         for index, assignable_perm in enumerate(assignable_permissions):
@@ -1035,7 +1046,7 @@ class AssetFileTest(BaseTestCase):
             'file_type': AssetFile.FORM_MEDIA,
             'description': 'A beautiful bird',
             'metadata': json.dumps({'filename': 'eagle.png'}),
-            'base64Encoded': 'data:image/png;ase64,iVBORw0KGgoAAAAN',  # noqa
+            'base64Encoded': 'data:image/png;ase64,iVBORw0KGgoAAAAN',
         }
         response = self.create_asset_file(
             payload=payload,

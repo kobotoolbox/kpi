@@ -8,11 +8,15 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.fields import WritableJSONField
-from kpi.utils.iterators import to_int
 
 
 class DataBulkActionsValidator(serializers.Serializer):
-
+    """
+    The purpose of this class is to benefit from the DRF validation mechanism
+    without reinventing the wheel.
+    It is used to validate the bulk actions payload and to pass a correctly
+    formatted dictionary to the deployment back end.
+    """
     payload = WritableJSONField()
 
     def __init__(self, instance=None, data=empty, **kwargs):
@@ -60,7 +64,7 @@ class DataBulkActionsValidator(serializers.Serializer):
     def __validate_submission_ids(self, payload: dict):
         try:
             # Ensuring submission ids are integer values and unique
-            submission_ids = to_int(payload['submission_ids'], unique=True)
+            submission_ids = [int(id_) for id_ in set(payload['submission_ids'])]
         except ValueError:
             raise serializers.ValidationError(
                 _('`submission_ids` must only contain integer values')

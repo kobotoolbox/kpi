@@ -63,3 +63,4 @@ class ObjectPermission(models.Model):
             'denied from' if self.deny else 'granted to',
             str(self.user)  # TODO Test if cast is still needed
         )
+

@@ -1,6 +1,7 @@
 # coding: utf-8
 import copy
 from collections import defaultdict
+from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser, Permission
@@ -437,7 +438,7 @@ class ObjectPermissionMixin:
         if identical_existing_perm.exists():
             # We need to always update partial permissions because
             # they may have changed even if `perm` is the same.
-            self._update_partial_permissions(user_obj.pk, perm,
+            self._update_partial_permissions(user_obj, perm,
                                              partial_perms=partial_perms)
             # The user already has this permission directly applied
             return identical_existing_perm.first()
@@ -487,7 +488,7 @@ class ObjectPermissionMixin:
         if defer_recalc:
             return new_permission
 
-        self._update_partial_permissions(user_obj.pk, perm,
+        self._update_partial_permissions(user_obj, perm,
                                          partial_perms=partial_perms)
 
         # Recalculate all descendants
@@ -636,12 +637,17 @@ class ObjectPermissionMixin:
         if defer_recalc:
             return
 
-        self._update_partial_permissions(user_obj.pk, perm, remove=True)
+        self._update_partial_permissions(user_obj, perm, remove=True)
         # Recalculate all descendants
         self.recalculate_descendants_perms()
 
-    def _update_partial_permissions(self, user_id, perm, remove=False,
-                                    partial_perms=None):
+    def _update_partial_permissions(
+        self,
+        user: User,
+        perm: str,
+        remove: bool = False,
+        partial_perms: Optional[dict] = None,
+    ):
         # Class is not an abstract class. Just pass.
         # Let the dev implement within the classes that inherit from this mixin
         pass
