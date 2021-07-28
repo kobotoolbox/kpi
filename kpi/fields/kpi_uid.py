@@ -12,10 +12,9 @@ class KpiUidField(models.CharField):
     """
     If empty, automatically populates itself with a UID before saving
     """
-    def __init__(self, uid_prefix: str, length: int = UUID_LENGTH):
+    def __init__(self, uid_prefix):
         self.uid_prefix = uid_prefix
-        self.__length = length
-        total_length = len(uid_prefix) + self.__length
+        total_length = len(uid_prefix) + UUID_LENGTH
         super().__init__(max_length=total_length, unique=True)
 
     def deconstruct(self):
@@ -26,17 +25,15 @@ class KpiUidField(models.CharField):
         return name, path, args, kwargs
 
     def generate_uid(self) -> str:
-        return KpiUidField.generate_unique_id(self.uid_prefix, self.__length)
+        return KpiUidField.generate_unique_id(self.uid_prefix)
 
     @staticmethod
-    def generate_unique_id(
-        prefix: str = None, length: int = UUID_LENGTH
-    ) -> str:
+    def generate_unique_id(prefix: str = None) -> str:
         # When UID_LENGTH is 22, that should be changed to:
         # return self.uid_prefix + shortuuid.uuid()
         if not prefix:
             prefix = ''
-        return f'{prefix}{ShortUUID().random(length)}'
+        return f'{prefix}{ShortUUID().random(UUID_LENGTH)}'
 
     def pre_save(self, model_instance, add):
         value = getattr(model_instance, self.attname)
