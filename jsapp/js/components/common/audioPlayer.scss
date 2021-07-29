@@ -10,7 +10,7 @@
 // In order for the hack fix to work, we have to hard code the slider length
 $hack-fix-slider-length-int: 300;
 $hack-fix-slider-length: #{$hack-fix-slider-length-int}px;
-// Make it a bit smaller for modile screens
+// Make it a bit smaller for mobile screens
 $hack-fix-slider-length-mobile-int: 150;
 $hack-fix-slider-length-mobile: #{$hack-fix-slider-length-mobile-int}px;
 
