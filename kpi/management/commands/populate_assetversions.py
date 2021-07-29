@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand
 from reversion.models import Version
 
-from kpi.model_utils import disable_auto_field_update
+from kpi.utils.models import disable_auto_field_update
 from kpi.models import Asset, AssetVersion
 
 NULL_CHAR_REPR = '\\u0000'

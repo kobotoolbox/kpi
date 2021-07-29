@@ -12,7 +12,6 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset, AssetExportSettings
-from kpi.models.object_permission import get_anonymous_user
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 

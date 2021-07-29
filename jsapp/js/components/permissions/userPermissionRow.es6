@@ -69,6 +69,9 @@ class UserPermissionRow extends React.Component {
     this.setState({isEditFormVisible: !this.state.isEditFormVisible});
   }
 
+  // TODO this doesn't display partial_permissions in a nice way,
+  // as it assumes that there can be only "view" in them,
+  // but this is partially a fault of Backend giving a non universal label to "partial_permissions"
   renderPermissions(permissions) {
     const maxParentheticalUsernames = 3;
     return (
@@ -86,25 +89,34 @@ class UserPermissionRow extends React.Component {
             });
           }
 
-          let permName = '???';
+          // Keep only unique values
+          permUsers = [...new Set(permUsers)];
+
+          let permLabel = '???';
           if (this.props.assignablePerms.has(perm.permission)) {
-            permName = this.props.assignablePerms.get(perm.permission);
+            permLabel = this.props.assignablePerms.get(perm.permission);
+            if (typeof permLabel === 'object') {
+              // let's assume back end always returns a `default` property with
+              // nested permissions
+              permLabel = permLabel.default;
+            }
           }
 
           // Hopefully this is friendly to translators of RTL languages
           let permNameTemplate;
           if (permUsers.length === 0) {
-            permNameTemplate = '##permission_name##';
+            permNameTemplate = '##permission_label##';
           } else if (permUsers.length <= maxParentheticalUsernames) {
-            permNameTemplate = t('##permission_name## (##username_list##)');
+            permNameTemplate = t('##permission_label## (##username_list##)');
           } else if (permUsers.length === maxParentheticalUsernames + 1) {
-            permNameTemplate = t('##permission_name## (##username_list## and 1 other)');
+            permNameTemplate = t('##permission_label## (##username_list## and 1 other)');
           } else {
-            permNameTemplate = t('##permission_name## (##username_list## and ' +
+            permNameTemplate = t('##permission_label## (##username_list## and ' +
                                  '##hidden_username_count## others)');
           }
+
           let friendlyPermName = (
-            permNameTemplate.replace('##permission_name##', permName)
+            permNameTemplate.replace('##permission_label##', permLabel)
                             .replace('##username_list##', permUsers.slice(0, maxParentheticalUsernames).join(', '))
                             .replace('##hidden_username_count##', permUsers.length - maxParentheticalUsernames)
           );
@@ -112,7 +124,7 @@ class UserPermissionRow extends React.Component {
 
           return <bem.UserRow__perm
             title={perm.description}
-            key={permName}
+            key={permLabel}
           >
             {friendlyPermName}
           </bem.UserRow__perm>;

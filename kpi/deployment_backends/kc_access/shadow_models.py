@@ -1,14 +1,20 @@
 # coding: utf-8
+from datetime import datetime
+from secrets import token_urlsafe
+from typing import Optional
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.postgres.fields import JSONField as JSONBField
+from django.core.signing import Signer
 from django.core import checks
 from django.core.exceptions import FieldDoesNotExist
 from django.db import (
     ProgrammingError,
     connections,
     models,
+    IntegrityError,
     router,
 )
 from django.utils import timezone
@@ -16,7 +22,8 @@ from django_digest.models import PartialDigest
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
+from kpi.utils.datetime import one_minute_from_now
 
 
 def update_autofield_sequence(model):
@@ -187,6 +194,76 @@ class KobocatGenericForeignKey(GenericForeignKey):
                 ]
             else:
                 return []
+
+
+class KobocatOneTimeAuthToken(ShadowModel):
+    """
+    One time authenticated token
+    """
+    HEADER = 'X-KOBOCAT-OTA-TOKEN'
+
+    user = models.ForeignKey(
+        'KobocatUser',
+        related_name='authenticated_requests',
+        on_delete=models.CASCADE,
+    )
+    token = models.CharField(max_length=50, default=token_urlsafe)
+    expiration_time = models.DateTimeField()
+    method = models.CharField(max_length=6)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'api_onetimeauthtoken'
+        unique_together = ('user', 'token', 'method')
+
+    @classmethod
+    def create_token(
+            cls,
+            user: 'auth.User',
+            method: str = 'POST',
+            expiration_time: Optional[datetime] = None,
+            url: Optional[str] = None,
+    ) -> 'KobocatOneTimeAuthToken':
+        """
+        Create and return an instance of KobocatOneTimeAuthToken.
+
+        If `url` is specified, it generates the token based on the URL instead
+        of auto-generating it.
+        It's useful for Enketo Express to be granted when POSTing data to
+        KoBoCAT from one specific url (e.g.: edit a submission).
+        """
+        kc_user = KobocatUser.objects.get(id=user.pk)
+        token_attrs = dict(
+            user=kc_user, method=method,
+            defaults={'expiration_time': expiration_time},
+        )
+
+        if url is not None:
+            # `Signer()` returns 'url:encoded-string'.
+            # E.g: https://ee.kt.org/edit:a123bc'
+            # We only want the last part
+            parts = Signer().sign(url).split(':')
+            # TODO: consider removing Signer() as it's only value here is to
+            # assure that the token will always be a consistent length (and,
+            # for example, not overrun the size of the database column for long
+            # URLs)
+            token_attrs['token'] = parts[-1]
+
+        auth_token, created = cls.objects.get_or_create(**token_attrs)
+        if not created:
+            # Make sure to reset the validity period of an existing token
+            auth_token.expiration_time = expiration_time
+            auth_token.save()
+
+        return auth_token
+
+    def get_header(self) -> dict:
+        return {self.HEADER: self.token}
+
+    def save(self, *args, **kwargs):
+        if not self.expiration_time:
+            self.expiration_time = one_minute_from_now()
+
+        super().save(*args, **kwargs)
 
 
 class KobocatPermission(ShadowModel):
@@ -426,8 +503,8 @@ class KobocatXForm(ShadowModel):
     num_of_submissions = models.IntegerField(default=0)
 
     @property
-    def hash(self):
-        return get_hash(self.xml)
+    def md5_hash(self):
+        return calculate_hash(self.xml)
 
     @property
     def prefixed_hash(self):
@@ -435,7 +512,7 @@ class KobocatXForm(ShadowModel):
         Matches what's returned by the KC API
         """
 
-        return "md5:%s" % self.hash
+        return "md5:%s" % self.md5_hash
 
 
 class ReadOnlyModel(ShadowModel):

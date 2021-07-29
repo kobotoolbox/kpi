@@ -6,21 +6,25 @@ from .tasks import service_definition_task
 class HookUtils:
 
     @staticmethod
-    def call_services(asset, instance_id):
+    def call_services(asset: 'kpi.models.asset.Asset', submission_id: int):
         """
         Delegates to Celery data submission to remote servers
-
-        :param asset: Asset.
-        :param instance_id: int. Instance primary key
         """
         # Retrieve `Hook` ids, to send data to their respective endpoint.
-        hooks_ids = asset.hooks.filter(active=True).values_list("id", flat=True).distinct()
-        # At least, one of the hooks must not have a log that corresponds to `instance_id`
+        hooks_ids = (
+            asset.hooks.filter(active=True)
+            .values_list('id', flat=True)
+            .distinct()
+        )
+        # At least, one of the hooks must not have a log that corresponds to
+        # `submission_id`
         # to make success equal True
         success = False
         for hook_id in hooks_ids:
-            if not HookLog.objects.filter(instance_id=instance_id, hook_id=hook_id).exists():
+            if not HookLog.objects.filter(
+                submission_id=submission_id, hook_id=hook_id
+            ).exists():
                 success = True
-                service_definition_task.delay(hook_id, instance_id)
+                service_definition_task.delay(hook_id, submission_id)
 
         return success

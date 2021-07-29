@@ -298,6 +298,7 @@ export var routes = (
           <IndexRoute component={FormSubScreens} />
           <Route path={ROUTES.FORM_MEDIA} component={FormSubScreens} />
           <Route path={ROUTES.FORM_SHARING} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_RECORDS} component={FormSubScreens} />
           <Route path={ROUTES.FORM_REST} component={FormSubScreens} />
           <Route path={ROUTES.FORM_REST_HOOK} component={FormSubScreens} />
           <Route path={ROUTES.FORM_KOBOCAT} component={FormSubScreens} />
