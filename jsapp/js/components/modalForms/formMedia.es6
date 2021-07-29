@@ -90,7 +90,8 @@ class FormMedia extends React.Component {
    * @namespace formMediaJSON
    * @param {string} description - can be anything, when in doubt use 'default'
    * @param {string} filetype - should be `ASSET_FILE_TYPES.form_media.id`
-   * @param {string} metadata - JSON stringified filename
+   * @param {string} metadata - Won't break if not included, but should contain
+   *                            the JSON stringified filename for downloading
    * @param {string} base64Encoded
    *
    * @param {formMediaJSON} formMediaJSON
@@ -190,7 +191,12 @@ class FormMedia extends React.Component {
     }
 
     return (
-      <a href={item?.content} target='_blank'>
+      <a
+        href={item?.content}
+        target='_blank'
+        // Added manually by frontend, not backend. See uploadMedia()
+        download={item?.metadata?.filename}
+      >
         {fileName}
       </a>
     );
