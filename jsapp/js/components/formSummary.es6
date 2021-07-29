@@ -319,7 +319,7 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
-    let permAccess = this.userCan('view_submissions', this.state) || this.userCan('partial_submissions', this.state);
+    let permAccess = this.userCan('view_submissions', this.state) || this.userCanPartially('view_submissions', this.state);
 
     if (!this.state.permissions) {
       return (<LoadingSpinner/>);

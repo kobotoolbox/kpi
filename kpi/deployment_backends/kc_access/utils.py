@@ -11,6 +11,7 @@ from rest_framework.authtoken.models import Token
 
 from kpi.exceptions import KobocatProfileException
 from kpi.utils.log import logging
+from kpi.utils.permissions import is_user_anonymous
 from .shadow_models import (
     safe_kc_read,
     KobocatContentType,
@@ -313,7 +314,7 @@ def assign_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
-    if user.is_anonymous or user.pk == settings.ANONYMOUS_USER_ID:
+    if is_user_anonymous(user):
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id)
     xform_content_type = KobocatContentType.objects.get(
@@ -351,7 +352,7 @@ def remove_applicable_kc_permissions(obj, user, kpi_codenames):
     xform_id = _get_xform_id_for_asset(obj)
     if not xform_id:
         return
-    if user.is_anonymous or user.pk == settings.ANONYMOUS_USER_ID:
+    if is_user_anonymous(user):
         return set_kc_anonymous_permissions_xform_flags(
             obj, kpi_codenames, xform_id, remove=True)
     content_type_kwargs = _get_content_type_kwargs_for_related(obj)

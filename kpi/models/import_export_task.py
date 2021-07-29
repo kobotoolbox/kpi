@@ -2,7 +2,6 @@
 import base64
 import datetime
 import posixpath
-import json
 import re
 import tempfile
 from collections import defaultdict
@@ -45,7 +44,7 @@ from kpi.utils.rename_xls_sheet import (
 )
 
 from ..fields import KpiUidField
-from ..model_utils import create_assets, _load_library_content, \
+from kpi.utils.models import create_assets, _load_library_content, \
     remove_string_prefix
 from ..models import Asset
 from ..zip_importer import HttpContentParse
@@ -614,8 +613,14 @@ class ExportTask(ImportExportTask):
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
+        # Include the group name in `fields` for Mongo to correctly filter
+        # for repeat groups
+        if fields:
+            field_groups = set(f.split('/')[0] for f in fields if '/' in f)
+            fields += list(field_groups)
+
         submission_stream = source.deployment.get_submissions(
-            requesting_user_id=self.user.id,
+            user=self.user,
             fields=fields
         )
 

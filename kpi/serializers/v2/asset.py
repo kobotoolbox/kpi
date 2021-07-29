@@ -8,6 +8,7 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.reverse import reverse
 from rest_framework.utils.serializer_helpers import ReturnList
 
+from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_STATUS_DISCOVERABLE,
     ASSET_STATUS_PRIVATE,
@@ -28,10 +29,11 @@ from kpi.fields import (
 )
 from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.models.asset import UserAssetSubscription
-from kpi.models.object_permission import get_anonymous_user
-
-from kpi.utils.object_permission_helper import ObjectPermissionHelper
-
+from kpi.utils.object_permission import (
+    get_database_user,
+    get_user_permission_assignments,
+    get_user_permission_assignments_queryset,
+)
 from .asset_version import AssetVersionListSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentSerializer
 from .asset_export_settings import AssetExportSettingsSerializer
@@ -85,7 +87,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     deployment__links = serializers.SerializerMethodField()
     deployment__data_download_links = serializers.SerializerMethodField()
     deployment__submission_count = serializers.SerializerMethodField()
-    deployment__status = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
 
     # Only add link instead of hooks list to avoid multiple access to DB.
@@ -95,6 +96,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     access_types = serializers.SerializerMethodField()
+    data_sharing = WritableJSONField(required=False)
+    paired_data = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -119,7 +122,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'deployment__active',
                   'deployment__data_download_links',
                   'deployment__submission_count',
-                  'deployment__status',
                   'report_styles',
                   'report_custom',
                   'map_styles',
@@ -145,6 +147,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'subscribers_count',
                   'status',
                   'access_types',
+                  'data_sharing',
+                  'paired_data',
                   )
         extra_kwargs = {
             'parent': {
@@ -307,17 +311,11 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
             if obj.has_perm(user, PERM_PARTIAL_SUBMISSIONS):
                 return obj.deployment.calculated_submission_count(
-                    requesting_user_id=user.id)
+                    user=user)
         except KeyError:
             pass
 
         return 0
-
-    def get_deployment__status(self, obj):
-        if not obj.has_deployment:
-            return ''
-
-        return obj.deployment.status
 
     def get_assignable_permissions(self, asset):
         return [
@@ -366,12 +364,15 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return self._get_status(perm_assignments)
 
+    def get_paired_data(self, asset):
+        request = self.context.get('request')
+        return reverse('paired-data-list', args=(asset.uid,), request=request)
+
     def get_permissions(self, obj):
         context = self.context
         request = self.context.get('request')
 
-        queryset = ObjectPermissionHelper. \
-            get_user_permission_assignments_queryset(obj, request.user)
+        queryset = get_user_permission_assignments_queryset(obj, request.user)
         # Need to pass `asset` and `asset_uid` to context of
         # AssetPermissionAssignmentSerializer serializer to avoid extra queries
         # to DB within the serializer to retrieve the asset object.
@@ -477,12 +478,49 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return access_types
 
-    def validate_parent(self, parent: Asset) -> Asset:
-        request = self.context['request']
-        user = request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
+    def validate_data_sharing(self, data_sharing: dict) -> dict:
+        """
+        Validates `data_sharing`. It is really basic.
+        Only the type of each property is validated. No data is validated.
+        It is consistent with partial permissions and REST services.
 
+        The client bears the responsibility of providing valid data.
+        """
+        errors = {}
+        if not self.instance or not data_sharing:
+            return data_sharing
+
+        if 'enabled' not in data_sharing:
+            errors['enabled'] = _('The property is required')
+
+        if 'fields' in data_sharing:
+            if not isinstance(data_sharing['fields'], list):
+                errors['fields'] = _('The property must be an array')
+            else:
+                asset = self.instance
+                fields = data_sharing['fields']
+                form_pack, _unused = build_formpack(asset, submission_stream=[])
+                valid_fields = [
+                    f.path for f in form_pack.get_fields_for_versions(
+                        form_pack.versions.keys()
+                    )
+                ]
+                unknown_fields = set(fields) - set(valid_fields)
+                if unknown_fields and valid_fields:
+                    errors['fields'] = _(
+                        'Some fields are invalid, '
+                        'choices are: `{valid_fields}`'
+                    ).format(valid_fields='`,`'.join(valid_fields))
+        else:
+            data_sharing['fields'] = []
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        return data_sharing
+
+    def validate_parent(self, parent: Asset) -> Asset:
+        user = get_database_user(self.context['request'].user)
         # Validate first if user can update the current parent
         if self.instance and self.instance.parent is not None:
             if not self.instance.parent.has_perm(user, PERM_CHANGE_ASSET):
@@ -580,7 +618,8 @@ class AssetListSerializer(AssetSerializer):
                   'subscribers_count',
                   'status',
                   'access_types',
-                  'children'
+                  'children',
+                  'data_sharing'
                   )
 
     def get_permissions(self, asset):
@@ -602,10 +641,9 @@ class AssetListSerializer(AssetSerializer):
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
-        user_assignments = ObjectPermissionHelper. \
-            get_user_permission_assignments(asset,
-                                            request.user,
-                                            asset_permission_assignments)
+        user_assignments = get_user_permission_assignments(
+            asset, request.user, asset_permission_assignments
+        )
         return AssetPermissionAssignmentSerializer(user_assignments,
                                                    many=True, read_only=True,
                                                    context=context).data

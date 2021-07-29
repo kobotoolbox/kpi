@@ -2,9 +2,13 @@
 from django.http import Http404
 from rest_framework import exceptions, permissions
 
+from kpi.constants import (
+    PERM_ADD_SUBMISSIONS,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
+)
 from kpi.models.asset import Asset
-from kpi.models.object_permission import get_anonymous_user
-from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
+from kpi.utils.object_permission import get_database_user
 
 
 # FIXME: Move to `object_permissions` module.
@@ -96,13 +100,13 @@ class BaseAssetNestedObjectPermission(permissions.BasePermission):
             raise exceptions.MethodNotAllowed(method)
 
         perms = [perm % kwargs for perm in perm_list]
-        # Because `ObjectPermissionMixin.get_perms()` returns codenames only, remove the
-        # `app_label` prefix before returning
+        # Because `ObjectPermissionMixin.get_perms()` returns codenames only,
+        # remove the `app_label` prefix before returning
         return [perm.replace("{}.".format(app_label), "") for perm in perms]
 
     def has_object_permission(self, request, view, obj):
-        # Because authentication checks have already executed via has_permission,
-        # always return True.
+        # Because authentication checks has already executed via
+        # `has_permission()`, always return True.
         return True
 
 
@@ -133,11 +137,7 @@ class AssetNestedObjectPermission(BaseAssetNestedObjectPermission):
             return True
 
         parent_object = self._get_parent_object(view)
-
-        user = request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
-
+        user = get_database_user(request.user)
         user_permissions = self._get_user_permissions(parent_object, user)
         view_permissions = self.get_required_permissions('GET')
         can_view = set(view_permissions).issubset(user_permissions)
@@ -203,6 +203,19 @@ class AssetEditorSubmissionViewerPermission(AssetNestedObjectPermission):
     }
 
 
+class AssetExportSettingsPermission(AssetNestedObjectPermission):
+    perms_map = {
+        'GET': ['%(app_label)s.view_submissions'],
+        'POST': ['%(app_label)s.manage_asset'],
+    }
+
+    perms_map['OPTIONS'] = perms_map['GET']
+    perms_map['HEAD'] = perms_map['GET']
+    perms_map['PUT'] = perms_map['POST']
+    perms_map['PATCH'] = perms_map['POST']
+    perms_map['DELETE'] = perms_map['POST']
+
+
 class AssetPermissionAssignmentPermission(AssetNestedObjectPermission):
 
     perms_map = AssetNestedObjectPermission.perms_map.copy()
@@ -238,13 +251,11 @@ class PostMappedToChangePermission(IsOwnerOrReadOnly):
 
 class ReportPermission(IsOwnerOrReadOnly):
     def has_object_permission(self, request, view, obj):
-        # Checks if the user has the require permissions
+        # Checks if the user has the required permissions
         # To access the submission data in reports
-        user = request.user
+        user = get_database_user(request.user)
         if user.is_superuser:
             return True
-        if user.is_anonymous:
-            user = get_anonymous_user()
         permissions = list(obj.get_perms(user))
         required_permissions = [
             PERM_VIEW_SUBMISSIONS,
@@ -339,3 +350,36 @@ class SubmissionValidationStatusPermission(SubmissionPermission):
         'PATCH': ['%(app_label)s.validate_%(model_name)s'],
         'DELETE': ['%(app_label)s.validate_%(model_name)s'],
     }
+
+
+class XMLExternalDataPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        """
+        We cannot rely on Django permissions because the form clients
+        (i.e. Enketo, Collect) need to get access even if user is
+        not authenticated
+        """
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        """
+        The responsibility for securing data behove to the owner of the
+        asset `obj` by requiring authentication on their form.
+        Otherwise, the paired source data may be exposed to anyone
+        """
+        # Check whether `asset` owner's account requires authentication:
+        try:
+            require_auth = obj.asset.owner.extra_details.data['require_auth']
+        except KeyError:
+            require_auth = False
+
+        # If authentication is required, `request.user` should have
+        # 'add_submission' permission on `obj`
+        if (
+            require_auth
+            and not obj.asset.has_perm(request.user, PERM_ADD_SUBMISSIONS)
+        ):
+            raise Http404
+
+        return True
