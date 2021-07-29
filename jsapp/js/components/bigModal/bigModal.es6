@@ -415,8 +415,8 @@ class BigModal extends React.Component {
                 {...this.props.params}
               />
             }
-        </ui.Modal.Body>
-      </ui.Modal>
+        </Modal.Body>
+      </Modal>
     );
   }
 }
