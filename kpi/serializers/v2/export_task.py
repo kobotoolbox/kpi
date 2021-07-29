@@ -16,7 +16,6 @@ from formpack.constants import (
     EXPORT_SETTING_MULTIPLE_SELECT,
     EXPORT_SETTING_SOURCE,
     EXPORT_SETTING_TYPE,
-    OPTIONAL_EXPORT_SETTINGS,
     REQUIRED_EXPORT_SETTINGS,
     VALID_DEFAULT_LANGUAGES,
     VALID_EXPORT_SETTINGS,
@@ -28,6 +27,7 @@ from kpi.fields import ReadOnlyJSONField
 from kpi.models import ExportTask, Asset
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
+from kpi.utils.object_permission import get_database_user
 
 
 class ExportTaskSerializer(serializers.ModelSerializer):
@@ -56,8 +56,9 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data: dict) -> ExportTask:
         # Create a new export task
+        user = get_database_user(self._get_request.user)
         export_task = ExportTask.objects.create(
-            user=self._get_request.user, data=validated_data
+            user=user, data=validated_data
         )
         # Have Celery run the export in the background
         export_in_background.delay(export_task_uid=export_task.uid)

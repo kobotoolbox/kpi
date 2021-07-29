@@ -1,14 +1,12 @@
 import _ from 'underscore';
 import {actions} from '../actions';
 import {
-  notify,
-  unnullifyTranslations,
-} from 'utils';
-import {
   ASSET_TYPES,
   QUESTION_TYPES,
   CHOICE_LISTS,
 } from 'js/constants';
+import {notify} from 'utils';
+import {unnullifyTranslations} from 'js/components/formBuilder/formBuilderUtils';
 
 class SurveyScope {
   constructor ({survey, rawSurvey, assetType}) {

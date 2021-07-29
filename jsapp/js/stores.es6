@@ -254,18 +254,6 @@ stores.session = Reflux.createStore({
   },
 });
 
-stores.assetContent = Reflux.createStore({
-  init: function () {
-    this.data = {};
-    this.surveys = {};
-    this.listenTo(actions.resources.loadAssetContent.completed, this.onLoadAssetContentCompleted);
-  },
-  onLoadAssetContentCompleted: function(resp/*, req, jqxhr*/) {
-    this.data[resp.uid] = resp;
-    this.trigger(this.data, resp.uid);
-  },
-});
-
 stores.allAssets = Reflux.createStore({
   init() {
     this.data = [];
@@ -358,7 +346,7 @@ stores.allAssets = Reflux.createStore({
     this.trigger(this.data);
   },
   onListAssetsFailed: function (searchData, response) {
-    notify(response.responseJSON.detail || t('failed to list assets'));
+    notify(response?.responseJSON?.detail || t('failed to list assets'));
   }
 });
 

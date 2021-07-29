@@ -14,13 +14,12 @@ from django.test import TestCase
 from kobo.apps.reports import report_data
 from kpi.constants import (
     PERM_CHANGE_ASSET,
-    PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset, ExportTask
-from kpi.models.object_permission import get_anonymous_user
+from kpi.utils.object_permission import get_anonymous_user
 
 
 class MockDataExportsBase(TestCase):
@@ -352,7 +351,7 @@ class MockDataExports(MockDataExportsBase):
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,
             submission_stream=self.asset.deployment.get_submissions(
-                self.asset.owner.id
+                self.asset.owner
             ),
         )
 
@@ -387,7 +386,6 @@ class MockDataExports(MockDataExportsBase):
                 (line + '\r\n').encode('utf-8') for line in expected_lines
             ]
             result_lines = list(export_task.result)
-
             self.assertEqual(result_lines, expected_lines)
 
         self.assertFalse(messages)
@@ -1011,7 +1009,7 @@ class MockDataExports(MockDataExportsBase):
         # observe that `ignore` does not appear!
         expected_lines = [
             '"q";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"_tags";"_index"',
-            '"123";"";"";"";"";"";"";"";"";"1"',
+            '"123";"1";"";"";"";"";"";"";"";"1"',
         ]
         # fails with `KeyError` prior to fix for kobotoolbox/formpack#219
         self.run_csv_export_test(expected_lines, asset=asset)

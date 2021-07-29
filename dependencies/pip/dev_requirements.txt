@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@f7ba6360949fb3075a52b2b7210224ebb60734ed#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@a2bbc81e1cf0980449633656455de142e8a500bc#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -69,6 +69,8 @@ decorator==4.4.1
     # via
     #   ipython
     #   traitlets
+deepmerge==0.3.0
+    # via -r dependencies/pip/requirements.in
 defusedxml==0.6.0
     # via djangorestframework-xml
 dicttoxml==1.7.4
@@ -201,6 +203,8 @@ markdown==3.1.1
     #   django-markdownx
 mock==3.0.5
     # via -r dependencies/pip/dev_requirements.in
+mongomock==3.22.1
+    # via -r dependencies/pip/dev_requirements.in
 more-itertools==7.2.0
     # via
     #   pytest
@@ -298,6 +302,8 @@ responses==0.10.6
     # via -r dependencies/pip/requirements.in
 s3transfer==0.2.1
     # via boto3
+sentinels==1.0.0
+    # via mongomock
 shortuuid==0.5.0
     # via -r dependencies/pip/requirements.in
 six==1.13.0
@@ -307,6 +313,7 @@ six==1.13.0
     #   django-extensions
     #   jsonschema
     #   mock
+    #   mongomock
     #   packaging
     #   prompt-toolkit
     #   pynacl

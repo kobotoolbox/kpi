@@ -24,6 +24,7 @@ LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKIN
 $icons = require('./view.icons')
 multiConfirm = require('js/alertify').multiConfirm
 alertify = require('alertifyjs')
+constants = require('js/constants')
 
 module.exports = do ->
   class BaseRowView extends Backbone.View
@@ -123,7 +124,9 @@ module.exports = do ->
           questionType: questionType
         }).render().insertInDOMAfter(@$header)
 
-      if questionType is 'calculate' or questionType is 'hidden'
+      if questionType is 'calculate' or
+         questionType is 'hidden' or
+         questionType is constants.QUESTION_TYPES['xml-external']
         @$hint.hide()
 
       if 'getList' of @model and (cl = @model.getList())
@@ -139,8 +142,13 @@ module.exports = do ->
       @defaultRowDetailParent = @cardSettingsWrap.find('.js-card-settings-row-options').eq(0)
       for [key, val] in @model.attributesArray() when key in ['label', 'hint', 'type']
         view = new $viewRowDetail.DetailView(model: val, rowView: @)
-        if key == 'label' and @getRawType() == 'calculate'
-          view.model = @model.get('calculation')
+        if key is 'label' and
+           (@getRawType() is 'calculate' or
+            @getRawType() is constants.QUESTION_TYPES['xml-external'])
+          if @getRawType() is 'calculate'
+            view.model = @model.get('calculation')
+          else if @getRawType() is constants.QUESTION_TYPES['xml-external']
+            view.model = @model.get('name')
           @model.finalize()
           val.set('value', '')
         view.render().insertInDOM(@)

@@ -63,21 +63,12 @@ class App extends React.Component {
       pageState: stores.pageState.state,
     });
   }
-  componentWillReceiveProps() {
-    // slide out drawer overlay on every page change (better mobile experience)
-    if (this.state.pageState.showFixedDrawer) {
-      stores.pageState.setState({showFixedDrawer: false});
-    }
-    // hide modal on every page change
-    if (this.state.pageState.modal) {
-      stores.pageState.hideModal();
-    }
-  }
   componentDidMount() {
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
     actions.misc.getServerEnvironment();
     actions.permissions.getConfig();
+    hashHistory.listen(this.onRouteChange.bind(this));
   }
   onGetConfigCompleted(response) {
     this.setState({isConfigReady: true});
@@ -85,6 +76,17 @@ class App extends React.Component {
   }
   onGetConfigFailed() {
     notify('Failed to get permissions config!', 'error');
+  }
+  onRouteChange() {
+    // slide out drawer overlay on every page change (better mobile experience)
+    if (this.state.pageState.showFixedDrawer) {
+      stores.pageState.setState({showFixedDrawer: false});
+    }
+
+    // hide modal on every page change
+    if (this.state.pageState.modal) {
+      stores.pageState.hideModal();
+    }
   }
   render() {
     if (!this.state.isConfigReady) {
@@ -296,6 +298,7 @@ export var routes = (
           <IndexRoute component={FormSubScreens} />
           <Route path={ROUTES.FORM_MEDIA} component={FormSubScreens} />
           <Route path={ROUTES.FORM_SHARING} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_RECORDS} component={FormSubScreens} />
           <Route path={ROUTES.FORM_REST} component={FormSubScreens} />
           <Route path={ROUTES.FORM_REST_HOOK} component={FormSubScreens} />
           <Route path={ROUTES.FORM_KOBOCAT} component={FormSubScreens} />
@@ -328,7 +331,8 @@ hashHistory.listen(function() {
 
 export default class RunRoutes extends React.Component {
   componentDidMount(){
-    // when hot reloading, componentWillReceiveProps whines about changing the routes prop so this shuts that up
+    // HACK: when hot reloading, componentWillReceiveProps whines about
+    // changing the routes prop so this shuts that up
     this.router.componentWillReceiveProps = function(){};
   }
 

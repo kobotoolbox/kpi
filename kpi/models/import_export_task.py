@@ -2,7 +2,6 @@
 import base64
 import datetime
 import posixpath
-import json
 import re
 import tempfile
 from collections import defaultdict
@@ -45,7 +44,7 @@ from kpi.utils.rename_xls_sheet import (
 )
 
 from ..fields import KpiUidField
-from ..model_utils import create_assets, _load_library_content, \
+from kpi.utils.models import create_assets, _load_library_content, \
     remove_string_prefix
 from ..models import Asset
 from ..zip_importer import HttpContentParse
@@ -621,7 +620,7 @@ class ExportTask(ImportExportTask):
             fields += list(field_groups)
 
         submission_stream = source.deployment.get_submissions(
-            requesting_user_id=self.user.id,
+            user=self.user,
             fields=fields
         )
 

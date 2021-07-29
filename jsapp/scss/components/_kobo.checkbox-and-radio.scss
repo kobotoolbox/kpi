@@ -18,6 +18,10 @@
     }
   }
 
+  &.checkbox--disabled .checkbox__wrapper {
+    cursor: default;
+  }
+
   .radio__row {
     display: block;
   }
@@ -84,7 +88,7 @@
     width: 20px;
     height: 20px;
     outline: 0;
-    background-color: transparent;
+    background-color: $kobo-white;
     color: $kobo-gray-40;
     cursor: pointer;
 

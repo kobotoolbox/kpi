@@ -32,11 +32,17 @@ class SearchCollectionList extends Reflux.Component {
       fixedHeadingsWidth: 'auto'
     };
     this.store = stores.selectedAsset;
+    this.unlisteners = [];
     autoBind(this);
   }
   componentDidMount() {
-    this.listenTo(this.searchStore, this.searchChanged);
+    this.unlisteners.push(
+      this.searchStore.listen(this.searchChanged)
+    );
     this.queryCollections();
+  }
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
   searchChanged(searchStoreState) {
     this.setState(searchStoreState);

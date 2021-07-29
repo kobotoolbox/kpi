@@ -14,6 +14,10 @@ bem.KoboLightButton = BEM('kobo-light-button', '<button>');
 bem.KoboTextButton = BEM('kobo-text-button', '<button>');
 bem.KoboLightBadge = BEM('kobo-light-badge', '<span>');
 
+bem.KoboSelect = BEM('kobo-select');
+bem.KoboSelect__optionWrapper = bem.KoboSelect.__('option-wrapper');
+bem.KoboSelect__optionBadge = bem.KoboSelect.__('option-badge');
+
 bem.PageWrapper = BEM('page-wrapper');
 bem.PageWrapper__content = bem.PageWrapper.__('content');
 
@@ -152,7 +156,6 @@ bem.FormView__subs = bem.FormView.__('subs');
 // end used in header.es6
 bem.FormView__toptabs = bem.FormView.__('toptabs');
 bem.FormView__sidetabs = bem.FormView.__('sidetabs');
-bem.FormView__tab = bem.FormView.__('tab', '<a>');
 
 bem.FormView__label = bem.FormView.__('label');
 bem.FormView__group = bem.FormView.__('group');
@@ -364,5 +367,9 @@ bem.ProjectDownloads__submitRow = bem.ProjectDownloads.__('submit-row', 'footer'
 bem.ProjectDownloads__definedExportsSelector = bem.ProjectDownloads.__('defined-exports-selector');
 bem.ProjectDownloads__deleteSettingsButton = bem.ProjectDownloads.__('delete-settings-button', 'button');
 bem.ProjectDownloads__exportsCreator = bem.ProjectDownloads.__('exports-creator');
+
+bem.BackgroundAudioPlayer = BEM('background-audio-player');
+bem.BackgroundAudioPlayer__label = bem.BackgroundAudioPlayer.__('label', '<label>');
+bem.BackgroundAudioPlayer__audio = bem.BackgroundAudioPlayer.__('audio', '<audio>');
 
 bem.create = BEM;

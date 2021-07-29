@@ -1,3 +1,55 @@
+import React from 'react';
+import reactMixin from 'react-mixin';
+import autoBind from 'react-autobind';
+import Reflux from 'reflux';
+import alertify from 'alertifyjs';
+import {actions} from '../actions';
+import {bem} from '../bem';
+import ui from '../ui';
+import {stores} from '../stores';
+import {
+  PROJECT_SETTINGS_CONTEXTS,
+  MODAL_TYPES,
+  ASSET_TYPES,
+} from 'js/constants';
+import {AssetTagsForm} from './modalForms/assetTagsForm';
+import {LibraryAssetForm} from './modalForms/libraryAssetForm';
+import LibraryNewItemForm from './modalForms/libraryNewItemForm';
+import LibraryUploadForm from './modalForms/libraryUploadForm';
+import EncryptForm from './modalForms/encryptForm.es6';
+import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
+import DataAttachmentColumnsForm from 'js/components/dataAttachments/dataAttachmentColumnsForm.es6';
+import ProjectSettings from './modalForms/projectSettings';
+import RESTServicesForm from './RESTServices/RESTServicesForm';
+import SharingForm from './permissions/sharingForm';
+import SubmissionModal from 'js/components/submissions/submissionModal';
+import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
+import TranslationSettings from './modalForms/translationSettings';
+import TranslationTable from './modalForms/translationTable';
+
+function getSubmissionTitle(props) {
+  let title = t('Success!');
+  let p = props.params;
+  let sid = parseInt(p.sid);
+
+  if (!p.isDuplicated) {
+    title = t('Submission Record');
+    if (p.tableInfo) {
+      let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
+      title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
+    } else {
+      let index = p.ids.indexOf(sid);
+      if (p.ids.length === 1) {
+        title = `${t('Submission Record')}`;
+      } else {
+        title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
+      }
+    }
+  }
+
+  return title;
+}
+
 /**
  * Custom modal component for displaying complex modals.
  *
@@ -15,47 +67,21 @@
  * Each modal type uses different props, you can add them in the above object.
  *
  * There are also two other important methods: `hideModal` and `switchModal`.
+ *
+ * @prop {object} params - to be passed to the custom modal component
  */
-
-import React from 'react';
-import reactMixin from 'react-mixin';
-import autoBind from 'react-autobind';
-import Reflux from 'reflux';
-import alertify from 'alertifyjs';
-import {actions} from '../actions';
-import {bem} from '../bem';
-import ui from '../ui';
-import {stores} from '../stores';
-import {
-  PROJECT_SETTINGS_CONTEXTS,
-  MODAL_TYPES,
-  ASSET_TYPES
-} from 'js/constants';
-import {AssetTagsForm} from './modalForms/assetTagsForm';
-import {LibraryAssetForm} from './modalForms/libraryAssetForm';
-import LibraryNewItemForm from './modalForms/libraryNewItemForm';
-import LibraryUploadForm from './modalForms/libraryUploadForm';
-import EncryptForm from './modalForms/encryptForm.es6';
-import BulkEditSubmissionsForm from './modalForms/bulkEditSubmissionsForm.es6';
-import ProjectSettings from './modalForms/projectSettings';
-import RESTServicesForm from './RESTServices/RESTServicesForm';
-import SharingForm from './permissions/sharingForm';
-import SubmissionModal from 'js/components/submissions/submissionModal';
-import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
-import TranslationSettings from './modalForms/translationSettings';
-import TranslationTable from './modalForms/translationTable';
-
 class Modal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       enketopreviewlink: false,
       error: false,
-      modalClass: false
+      modalClass: false,
     };
     autoBind(this);
   }
-  componentDidMount () {
+
+  componentDidMount() {
     var type = this.props.params.type;
     switch(type) {
       case MODAL_TYPES.SHARING:
@@ -66,7 +92,7 @@ class Modal extends React.Component {
         var filename = this.props.params.filename || '';
         this.setState({
           title: t('Uploading XLS file'),
-          message: t('Uploading: ') + filename
+          message: t('Uploading: ') + filename,
         });
         break;
 
@@ -96,7 +122,7 @@ class Modal extends React.Component {
 
       case MODAL_TYPES.ENKETO_PREVIEW:
         const uid = this.props.params.assetid || this.props.params.uid;
-        stores.allAssets.whenLoaded(uid, function(asset){
+        stores.allAssets.whenLoaded(uid, (asset) => {
           actions.resources.createSnapshot({
             asset: asset.url,
           });
@@ -105,13 +131,13 @@ class Modal extends React.Component {
 
         this.setState({
           title: t('Form Preview'),
-          modalClass: 'modal--large'
+          modalClass: 'modal--large',
         });
         break;
 
       case MODAL_TYPES.SUBMISSION:
         this.setState({
-          title: this.submissionTitle(this.props),
+          title: getSubmissionTitle(this.props),
           modalClass: 'modal--large modal-submission',
           sid: this.props.params.sid,
         });
@@ -140,7 +166,7 @@ class Modal extends React.Component {
       case MODAL_TYPES.FORM_TRANSLATIONS_TABLE:
         this.setState({
           title: t('Translations Table'),
-          modalClass: 'modal--large'
+          modalClass: 'modal--large',
         });
         break;
 
@@ -151,71 +177,75 @@ class Modal extends React.Component {
       case MODAL_TYPES.BULK_EDIT_SUBMISSIONS:
         // title is set by BulkEditSubmissionsForm
         this.setState({
-          modalClass: 'modal--large modal--large-shorter'
+          modalClass: 'modal--large modal--large-shorter',
         });
+        break;
+
+      case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
+        // title is set by DataAttachmentColumnsForm
         break;
 
       default:
         console.error(`Unknown modal type: "${type}"!`);
     }
   }
+
+  /**
+   * @param {string} title
+   */
   setModalTitle(title) {
     this.setState({title: title});
   }
-  enketoSnapshotCreation (data) {
+
+  /**
+   * @param {object} data
+   * @param {boolean} data.success
+   * @param {string} data.error
+   * @param {string} data.enketopreviewlink
+   */
+  enketoSnapshotCreation(data) {
     if (data.success) {
       this.setState({
-        enketopreviewlink: data.enketopreviewlink
+        enketopreviewlink: data.enketopreviewlink,
       });
     } else {
       this.setState({
         message: data.error,
-        error: true
+        error: true,
       });
     }
   }
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.params && nextProps.params.sid) {
-      this.setState({
-        title: this.submissionTitle(nextProps),
-        sid: nextProps.params.sid
-      });
-    }
 
-    if (this.props.params.type != nextProps.params.type && nextProps.params.type === MODAL_TYPES.UPLOADING_XLS) {
-      var filename = nextProps.params.filename || '';
-      this.setState({
-        title: t('Uploading XLS file'),
-        message: t('Uploading: ') + filename
-      });
-    }
-    if (nextProps.params && !nextProps.params.sid) {
-      this.setState({ sid: false });
-    }
-  }
-  submissionTitle(props) {
-    let title = t('Success!'),
-      p = props.params,
-      sid = parseInt(p.sid);
-
-    if (!p.isDuplicated) {
-      title = t('Submission Record');
-      if (p.tableInfo) {
-        let index = p.ids.indexOf(sid) + (p.tableInfo.pageSize * p.tableInfo.currentPage) + 1;
-        title = `${t('Submission Record')} (${index} ${t('of')} ${p.tableInfo.resultsTotal})`;
+  static getDerivedStateFromProps(props, state) {
+    if (props.params) {
+      const newState = {};
+      if (props.params.sid) {
+        newState.title = getSubmissionTitle(props);
+        newState.sid = props.params.sid;
       } else {
-        let index = p.ids.indexOf(sid);
-        if (p.ids.length === 1) {
-            title = `${t('Submission Record')}`;
-        } else {
-            title = `${t('Submission Record')} (${index} ${t('of')} ${p.ids.length})`;
-        }
+        newState.sid = false;
       }
+
+      if (
+        state.prevType !== props.params.type &&
+        props.params.type === MODAL_TYPES.UPLOADING_XLS
+      ) {
+        var filename = props.params.filename || '';
+        newState.title = t('Uploading XLS file');
+        newState.message = t('Uploading: ') + filename;
+      }
+
+      // store for later
+      newState.prevType = props.params.type;
+      return newState;
     }
-
-
-    return title;
+    return null;
   }
+
+  /**
+   * @param {string} title
+   * @param {string} message
+   */
   displaySafeCloseConfirm(title, message) {
     const dialog = alertify.dialog('confirm');
     const opts = {
@@ -223,10 +253,11 @@ class Modal extends React.Component {
       message: message,
       labels: {ok: t('Close'), cancel: t('Cancel')},
       onok: stores.pageState.hideModal,
-      oncancel: dialog.destroy
+      oncancel: dialog.destroy,
     };
     dialog.set(opts).show();
   }
+
   onModalClose() {
     if (
       this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE &&
@@ -240,6 +271,7 @@ class Modal extends React.Component {
       stores.pageState.hideModal();
     }
   }
+
   render() {
     const uid = this.props.params.assetid || this.props.params.uid;
 
@@ -323,6 +355,7 @@ class Modal extends React.Component {
                 ids={this.props.params.ids}
                 isDuplicated={this.props.params.isDuplicated}
                 duplicatedSubmission={this.props.params.duplicatedSubmission}
+                backgroundAudioUrl={this.props.params.backgroundAudioUrl}
                 tableInfo={this.props.params.tableInfo || false}
               />
             }
@@ -371,6 +404,13 @@ class Modal extends React.Component {
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
                 asset={this.props.params.asset}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.DATA_ATTACHMENT_COLUMNS &&
+              <DataAttachmentColumnsForm
+                onSetModalTitle={this.setModalTitle}
+                onModalClose={this.onModalClose}
                 {...this.props.params}
               />
             }
