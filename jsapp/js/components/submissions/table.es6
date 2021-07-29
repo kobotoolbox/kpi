@@ -119,25 +119,27 @@ export class DataTable extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    // If there are no settings defined, we're not going to do anything
-    if (!this.props.asset.settings[DATA_TABLE_SETTING]) {
-      return;
+    let prevSettings = prevProps.asset.settings[DATA_TABLE_SETTING];
+    if (!prevSettings) {
+      prevSettings = {};
+    }
+
+    let newSettings = this.props.asset.settings[DATA_TABLE_SETTING];
+    if (!newSettings) {
+      newSettings = {};
     }
 
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
     if (
-      JSON.stringify(this.props.asset.settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SORT_BY]) !==
-      JSON.stringify(prevProps.asset.settings[DATA_TABLE_SETTING][DATA_TABLE_SETTINGS.SORT_BY])
+      JSON.stringify(newSettings[DATA_TABLE_SETTINGS.SORT_BY]) !==
+      JSON.stringify(prevSettings[DATA_TABLE_SETTINGS.SORT_BY])
     ) {
       this.refreshSubmissions();
     // If some other table settings changed, we need to fix columns using
     // existing data, as after `actions.table.updateSettings` resolves,
     // the props asset is not yet updated
-    } else if (
-      JSON.stringify(this.props.asset.settings[DATA_TABLE_SETTING]) !==
-      JSON.stringify(prevProps.asset.settings[DATA_TABLE_SETTING])
-    ) {
+    } else if (JSON.stringify(newSettings) !== JSON.stringify(prevSettings)) {
       this._prepColumns(this.state.submissions);
     }
   }
