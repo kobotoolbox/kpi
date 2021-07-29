@@ -4,8 +4,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from rest_framework import serializers
 
-from ..models.asset import Asset
-from ..models.object_permission import get_all_objects_for_user
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_QUESTION,
@@ -13,6 +11,8 @@ from kpi.constants import (
     PERM_DISCOVER_ASSET,
     PERM_VIEW_ASSET,
 )
+from kpi.utils.object_permission import get_all_objects_for_user
+from ..models.asset import Asset
 
 
 class CreateCollectionTests(TestCase):

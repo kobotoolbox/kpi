@@ -28,7 +28,7 @@ $s-gray-row-spacing: 10px;
 .copy-team-permissions {
   margin-bottom: 30px;
 
-  &.copy-team-permissions--opened .mdl-button--copy-team-permissions-opener .k-icon::before {
+  &.copy-team-permissions--opened .copy-team-permissions-opener .k-icon::before {
     transform: rotate(-90deg);
   }
 
@@ -36,8 +36,11 @@ $s-gray-row-spacing: 10px;
     flex: 1;
   }
 
-  .mdl-button--copy-team-permissions-opener {
+  .copy-team-permissions-opener {
+    cursor: pointer;
     color: $kobo-blue;
+    border: 0;
+    background: transparent;
     padding-left: 0;
     padding-right: 0;
     font-weight: 500;
@@ -45,6 +48,10 @@ $s-gray-row-spacing: 10px;
     line-height: 20px;
     min-height: 20px;
     margin-bottom: 10px;
+
+    &:hover {
+      color: $kobo-blue-dark;
+    }
 
     &:active {
       transform: translateY(1px);

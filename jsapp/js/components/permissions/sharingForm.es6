@@ -28,7 +28,7 @@ class SharingForm extends React.Component {
     autoBind(this);
     this.state = {
       allAssetsCount: 0,
-      isAddUserEditorVisible: false
+      isAddUserEditorVisible: false,
     };
   }
 
@@ -62,7 +62,7 @@ class SharingForm extends React.Component {
     this.setState({
       permissions: parsedPerms,
       nonOwnerPerms: nonOwnerPerms,
-      publicPerms: publicPerms
+      publicPerms: publicPerms,
     });
   }
 
@@ -200,9 +200,7 @@ class SharingForm extends React.Component {
   }
 }
 
-SharingForm.contextTypes = {
-  router: PropTypes.object
-};
+SharingForm.contextTypes = {router: PropTypes.object};
 
 reactMixin(SharingForm.prototype, mixins.permissions);
 reactMixin(SharingForm.prototype, mixins.contextRouter);
