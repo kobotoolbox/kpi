@@ -119,6 +119,11 @@ export class DataTable extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
+    // If there are no settings defined, we're not going to do anything
+    if (!this.props.asset.settings[DATA_TABLE_SETTING]) {
+      return;
+    }
+
     // If sort setting changed, we definitely need to get new submissions (which
     // will rebuild columns)
     if (
