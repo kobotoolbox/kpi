@@ -47,8 +47,8 @@ class FormSummary extends React.Component {
   }
   prep() {
     const uid = this.props.params.assetid || this.props.params.uid;
-    this.getLatestSubmissionTime(uid);
-    this.prepSubmissions(uid);
+    //this.getLatestSubmissionTime(uid);
+    //this.prepSubmissions(uid);
   }
   createChart() {
     Chart.defaults.global.elements.rectangle.backgroundColor = 'rgba(61, 194, 212, 0.6)';
@@ -361,7 +361,15 @@ class FormSummary extends React.Component {
                 </bem.FormView__cell>
               </bem.FormView__row>
             }
-            {this.renderSubmissionsGraph()}
+            {/*this.renderSubmissionsGraph()*/}
+            <bem.FormView__row m='summary-submissions'>
+              <bem.FormView__cell m={['label', 'first']}>
+                {t('Submissions')}
+              </bem.FormView__cell>
+              <bem.FormView__cell m={['box']}>
+                This information is temporarily unavailable.
+              </bem.FormView__cell>
+            </bem.FormView__row>
             <bem.FormView__row m='summary-details'>
               <bem.FormView__cell m={['label', 'first']}>
                 {t('Form details')}
