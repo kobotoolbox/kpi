@@ -4,12 +4,10 @@
  * TODO: move routes configuration to separate file for clarity.
  */
 
-require('jquery-ui/ui/widgets/sortable');
 import React from 'react';
 import PropTypes from 'prop-types';
 import DocumentTitle from 'react-document-title';
 import reactMixin from 'react-mixin';
-import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {
   IndexRoute,
@@ -22,7 +20,6 @@ import moment from 'moment';
 import {actions} from './actions';
 import {stores} from './stores';
 import {surveyCompanionStore} from './surveyCompanionStore'; // importing it so it exists
-import {dataInterface} from './dataInterface';
 import {bem} from './bem';
 import ui from './ui';
 import mixins from './mixins';
@@ -45,6 +42,10 @@ import PermValidator from './components/permissions/permValidator';
 import Modal from './components/modal';
 import AccountSettings from './components/accountSettings';
 import ChangePassword from './components/changePassword';
+import SectionNotFound from './components/sectionNotFound';
+import FormNotFound from './components/formNotFound';
+import FormXform from './components/formXform';
+import FormJson from './components/formJson';
 import {
   assign,
   notify,
@@ -63,20 +64,24 @@ class App extends React.Component {
       pageState: stores.pageState.state,
     });
   }
+
   componentDidMount() {
-    this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
-    this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
+    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted.bind(this));
+    actions.permissions.getConfig.failed.listen(this.onGetConfigFailed.bind(this));
     actions.misc.getServerEnvironment();
     actions.permissions.getConfig();
     hashHistory.listen(this.onRouteChange.bind(this));
   }
+
   onGetConfigCompleted(response) {
     this.setState({isConfigReady: true});
     permConfig.setPermissions(response.results);
   }
+
   onGetConfigFailed() {
     notify('Failed to get permissions config!', 'error');
   }
+
   onRouteChange() {
     // slide out drawer overlay on every page change (better mobile experience)
     if (this.state.pageState.showFixedDrawer) {
@@ -88,6 +93,7 @@ class App extends React.Component {
       stores.pageState.hideModal();
     }
   }
+
   render() {
     if (!this.state.isConfigReady) {
       return (<ui.LoadingSpinner/>);
@@ -151,103 +157,6 @@ App.contextTypes = {router: PropTypes.object};
 
 reactMixin(App.prototype, Reflux.connect(stores.pageState, 'pageState'));
 reactMixin(App.prototype, mixins.contextRouter);
-
-class FormJson extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {assetcontent: false};
-    autoBind(this);
-  }
-  componentDidMount() {
-    this.listenTo(stores.asset, this.assetStoreTriggered);
-    const uid = this.props.params.assetid || this.props.params.uid;
-    actions.resources.loadAsset({id: uid});
-
-  }
-  assetStoreTriggered(data, uid) {
-    this.setState({assetcontent: data[uid].content});
-  }
-  render() {
-    return (
-        <ui.Panel>
-          <bem.FormView>
-            <pre>
-            <code>
-              { this.state.assetcontent ?
-                JSON.stringify(this.state.assetcontent, null, 4)
-                : null }
-            </code>
-            </pre>
-          </bem.FormView>
-        </ui.Panel>
-      );
-  }
-}
-
-reactMixin(FormJson.prototype, Reflux.ListenerMixin);
-
-class FormXform extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {xformLoaded: false};
-  }
-  componentDidMount() {
-    const uid = this.props.params.assetid || this.props.params.uid;
-    dataInterface.getAssetXformView(uid).done((content) => {
-      this.setState({
-        xformLoaded: true,
-        xformHtml: {__html: $('<div>').html(content).find('.pygment').html()},
-      });
-    });
-  }
-  render() {
-    if (!this.state.xformLoaded) {
-      return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              <p>XForm is loading</p>
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
-
-        );
-    } else {
-      return (
-        <ui.Panel>
-          <bem.FormView>
-            <div className='pygment' dangerouslySetInnerHTML={this.state.xformHtml} />
-          </bem.FormView>
-        </ui.Panel>
-        );
-    }
-  }
-}
-
-class FormNotFound extends React.Component {
-  render() {
-    return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {t('path not found / recognized')}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
-      );
-  }
-}
-
-class SectionNotFound extends React.Component {
-  render() {
-    return (
-        <ui.Panel className='k404'>
-          <i />
-          <em>section not found</em>
-        </ui.Panel>
-      );
-  }
-}
 
 export var routes = (
   <Route name='home' path='/' component={App}>
@@ -323,7 +232,7 @@ export var routes = (
 );
 
 /* Send a pageview to Google Analytics for every change in routes */
-hashHistory.listen(function() {
+hashHistory.listen(() => {
   if (typeof ga === 'function') {
     ga('send', 'pageview', window.location.hash);
   }
@@ -333,12 +242,16 @@ export default class RunRoutes extends React.Component {
   componentDidMount(){
     // HACK: when hot reloading, componentWillReceiveProps whines about
     // changing the routes prop so this shuts that up
-    this.router.componentWillReceiveProps = function(){};
+    this.router.componentWillReceiveProps = function () {};
   }
 
   render() {
     return (
-      <Router history={hashHistory} ref={(ref) => {return this.router = ref;}} routes={this.props.routes} />
+      <Router
+        history={hashHistory}
+        ref={(ref) => this.router = ref}
+        routes={this.props.routes}
+      />
     );
   }
 }
