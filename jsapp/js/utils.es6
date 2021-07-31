@@ -362,3 +362,8 @@ export function generateAutoname(str, startIndex=0, endIndex=str.length) {
   .substring(startIndex, endIndex)
   .replace(/(\ |\.)/g, "_");
 }
+
+export function csrfSafeMethod(method) {
+  // these HTTP methods do not require CSRF protection
+  return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
+}

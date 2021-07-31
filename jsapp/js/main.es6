@@ -1,30 +1,35 @@
 /**
- * The Project Management app bundle file.
+ * The Project Management app bundle file. All the required setup is done here
+ * plus it is the file that is handling the root rendering.
  */
 
 require('jquery-ui/ui/widgets/sortable');
-import RunRoutes, {routes} from './app';
+import moment from 'moment';
+import RunRoutes, {routes} from './routerSetup';
 import RegistrationPasswordApp from './registrationPasswordApp';
 import {AppContainer} from 'react-hot-loader';
 import '@babel/polyfill'; // required to support Array.prototypes.includes in IE11
 import React from 'react';
+import {hashHistory} from 'react-router';
 import {Cookies} from 'react-cookie';
 import {render} from 'react-dom';
+import {
+  csrfSafeMethod,
+  currentLang,
+} from 'utils';
 require('../scss/main.scss');
 
-var el = (() => {
-  var $d = $('<div>', {class: 'kpiapp'});
-  $('body').prepend($d);
-  return $d.get(0);
-})();
+// Tell moment library what is the app language
+moment.locale(currentLang());
 
-const cookies = new Cookies();
+// Send a pageview to Google Analytics for every change in routes
+hashHistory.listen(() => {
+  if (typeof ga === 'function') {
+    ga('send', 'pageview', window.location.hash);
+  }
+});
 
-function csrfSafeMethod(method) {
-  // these HTTP methods do not require CSRF protection
-  return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
-}
-
+// Setup the authentication of AJAX calls
 $.ajaxSetup({
   beforeSend: function (xhr, settings) {
     let csrfToken = '';
@@ -34,6 +39,7 @@ $.ajaxSetup({
       console.error('Cookie not matched');
     }
     if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+      const cookies = new Cookies();
       xhr.setRequestHeader(
         'X-CSRFToken',
         csrfToken || cookies.get('csrftoken')
@@ -41,6 +47,13 @@ $.ajaxSetup({
     }
   },
 });
+
+// Create the element for rendering the app into
+const el = (() => {
+  const $d = $('<div>', {class: 'kpiapp'});
+  $('body').prepend($d);
+  return $d.get(0);
+})();
 
 if (document.head.querySelector('meta[name=kpi-root-path]')) {
   render(<RunRoutes routes={routes} />, el);
@@ -60,6 +73,7 @@ if (document.head.querySelector('meta[name=kpi-root-path]')) {
   console.error('no kpi-root-path meta tag set. skipping react-router init');
 }
 
+// Handles rendering a small app in the registration form
 document.addEventListener('DOMContentLoaded', () => {
   const registrationPasswordAppEl = document.getElementById(
     'registration-password-app'
