@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import ui from 'js/ui';
+import Modal from 'js/components/common/modal';
 import ChartTypePicker from './chartTypePicker';
 import ChartColorsPicker from './chartColorsPicker';
 
@@ -113,8 +113,8 @@ export default class QuestionGraphSettings extends React.Component {
 
     return (
       <bem.GraphSettings>
-        <ui.Modal.Tabs>{modalTabs}</ui.Modal.Tabs>
-        <ui.Modal.Body>
+        <Modal.Tabs>{modalTabs}</Modal.Tabs>
+        <Modal.Body>
           <div className='tabs-content'>
             {this.state.activeModalTab === 0 && (
               <div id='graph-type'>
@@ -133,9 +133,9 @@ export default class QuestionGraphSettings extends React.Component {
               </div>
             )}
           </div>
-        </ui.Modal.Body>
+        </Modal.Body>
 
-        <ui.Modal.Footer>
+        <Modal.Footer>
           {(reportStyle.report_type ||
             reportStyle.report_colors ||
             reportStyle.width) && (
@@ -152,7 +152,7 @@ export default class QuestionGraphSettings extends React.Component {
           >
             {t('Save')}
           </bem.Button>
-        </ui.Modal.Footer>
+        </Modal.Footer>
       </bem.GraphSettings>
     );
   }
