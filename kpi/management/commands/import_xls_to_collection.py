@@ -1,15 +1,13 @@
-from django.core.management.base import BaseCommand, CommandError
-from django.contrib.auth.models import User
-from django.conf import settings
-import StringIO
-import tempfile
-import pyxform
-import urllib
-import json
-import xlrd
-import csv
-import sys
+# coding: utf-8
+import datetime
 import re
+
+import xlrd
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+
+from kpi.constants import ASSET_TYPE_COLLECTION
+
 
 def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
     """
@@ -20,7 +18,7 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
     a part of `pyxform.xls2json_backends.xls_to_dict`.)
     """
     def _iswhitespace(string):
-        return isinstance(string, basestring) and len(string.strip()) == 0
+        return isinstance(string, str) and len(string.strip()) == 0
 
     def xls_value_to_unicode(value, value_type):
         """
@@ -28,30 +26,30 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
         representation.
         """
         if value_type == xlrd.XL_CELL_BOOLEAN:
-            return u"TRUE" if value else u"FALSE"
+            return "TRUE" if value else "FALSE"
         elif value_type == xlrd.XL_CELL_NUMBER:
-            #Try to display as an int if possible.
+            # Try to display as an int if possible.
             int_value = int(value)
             if int_value == value:
-                return unicode(int_value)
+                return str(int_value)
             else:
-                return unicode(value)
+                return str(value)
         elif value_type is xlrd.XL_CELL_DATE:
-            #Warn that it is better to single quote as a string.
-            #error_location = cellFormatString % (ss_row_idx, ss_col_idx)
-            #raise Exception(
+            # Warn that it is better to single quote as a string.
+            # error_location = cellFormatString % (ss_row_idx, ss_col_idx)
+            # raise Exception(
             #   "Cannot handle excel formatted date at " + error_location)
             datetime_or_time_only = xlrd.xldate_as_tuple(
                 value, workbook.datemode)
             if datetime_or_time_only[:3] == (0, 0, 0):
                 # must be time only
-                return unicode(datetime.time(*datetime_or_time_only[3:]))
-            return unicode(datetime.datetime(*datetime_or_time_only))
+                return str(datetime.time(*datetime_or_time_only[3:]))
+            return str(datetime.datetime(*datetime_or_time_only))
         else:
-            #ensure unicode and replace nbsp spaces with normal ones
-            #to avoid this issue:
-            #https://github.com/modilabs/pyxform/issues/83
-            return unicode(value).replace(unichr(160), ' ')
+            # ensure unicode and replace nbsp spaces with normal ones
+            # to avoid this issue:
+            # https://github.com/modilabs/pyxform/issues/83
+            return str(value).replace(chr(160), ' ')
 
     def _escape_newline_chars(cell):
         return re.sub(r'\r', '\\\\r', re.sub(r'\n', '\\\\n', cell))
@@ -63,7 +61,7 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
             row_empty = True
             for col in range(0, sheet.ncols):
                 value = sheet.cell_value(row, col)
-                if isinstance(value, basestring):
+                if isinstance(value, str):
                     value = _escape_newline_chars(value.strip())
                 if (value is not None) and (not _iswhitespace(value)):
                     value = xls_value_to_unicode(value, sheet.cell_type(row, col))
@@ -84,13 +82,14 @@ def convert_xls_to_ss_structure(xls_file_object, strip_empty_rows=True):
         ss_structure[sheet_name] = sheet_contents
     return ss_structure
 
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
         username = args[0]
         filename = args[1]
         user = User.objects.get(username=username)
         with open(filename, 'rb') as ff:
-            contents = convert_xlsto_ss_structure(ff)
+            contents = convert_xls_to_ss_structure(ff)
         library = contents.get('library')
         choices = contents.get('choices')
         cols = library[0]
@@ -109,4 +108,7 @@ class Command(BaseCommand):
                         'survey': [row],
                     },
                 })
-        new_library = user.collections.create(name=filename, survey_assets=assets)
+        new_library = user.assets.create(
+            asset_type=ASSET_TYPE_COLLECTION, name=filename,
+            children_to_create=assets
+        )

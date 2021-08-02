@@ -1,10 +1,11 @@
+# coding: utf-8
 from collections import OrderedDict
 
 
 def _convert_sheets_to_lists(content):
     cols = OrderedDict()
-    if not content or len(content) is 0:
-        return ([], None)
+    if not content or len(content) == 0:
+        return [], None
     if isinstance(content[0], list):
         cols.update(OrderedDict.fromkeys(content[0]))
     for row in content:
@@ -23,7 +24,7 @@ def _convert_sheets_to_lists(content):
         if len(out_row) > 0:
             _valid = True
         out_content.append(out_row)
-    return (cols, out_content if _valid else None)
+    return cols, out_content if _valid else None
 
 
 def ss_structure_to_mdtable(content):
@@ -36,7 +37,7 @@ def ss_structure_to_mdtable(content):
     output = []
 
     def cell_to_str(cell):
-        return '' if cell is None else unicode(cell)
+        return '' if cell is None else str(cell)
 
     for (sheet_name, contents) in content.items():
         out_sheets[sheet_name] = output

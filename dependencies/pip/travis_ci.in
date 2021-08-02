@@ -1,0 +1,10 @@
+-r requirements.in
+
+coverage
+codacy-coverage
+python-coveralls
+pytest-cov
+pytest-django
+pytest-env
+pytest
+mock

@@ -3,15 +3,14 @@ import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import actions from '../actions';
-import stores from '../stores';
-import bem from '../bem';
-import searches from '../searches';
-import ui from '../ui';
-import mixins from '../mixins';
-
-import { t } from '../utils';
-
+import {stores} from '../stores';
+import {bem} from '../bem';
+import {searches} from '../searches';
+import AssetName from 'js/components/common/assetName';
+import {
+  COMMON_QUERIES,
+  ASSET_TYPES
+} from '../constants';
 import {
   ListSearch,
   ListTagFilter,
@@ -46,7 +45,10 @@ class AssetNavigatorListView extends React.Component {
       cursor: 'move',
       distance: 5,
       items: '> li',
-      connectWith: '.survey-editor__list',
+      connectWith: [
+        '.survey-editor__list',
+        '.group__rows'
+      ],
       opacity: 0.9,
       scroll: false,
       deactivate: ()=> {
@@ -92,20 +94,23 @@ class AssetNavigatorListView extends React.Component {
       window.setTimeout(()=>{
         this.activateSortable();
       }, 1);
-
       return (
         <bem.LibList m={['done', isSearch ? 'search' : 'default']} ref='liblist'>
           {list.map((item)=> {
             var modifiers = [item.asset_type];
             var summ = item.summary;
-            if (summ.row_count == undefined) {
+            // HACK FIX: (ideally `survey`s would not be searched)
+            // Library questions can only be of `question` or `block` types
+            // Reject `survey` types to not include current survey on save
+            if (summ.row_count == undefined
+              || item.asset_type === ASSET_TYPES.survey.id) {
               return false;
             }
             return (
               <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                 <bem.LibList__dragbox />
                 <bem.LibList__label m={'name'}>
-                  <ui.AssetName {...item} />
+                  <AssetName asset={item} />
                 </bem.LibList__label>
 
                 { item.asset_type === 'block' &&
@@ -149,7 +154,7 @@ class AssetNavigator extends Reflux.Component {
       imports: [],
       searchContext: searches.getSearchContext('library', {
         filterParams: {
-          assetType: 'asset_type:question OR asset_type:block OR asset_type:template'
+          assetType: COMMON_QUERIES.qbt
         }
       }),
       selectedTags: []

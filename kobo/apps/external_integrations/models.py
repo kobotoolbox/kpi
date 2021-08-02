@@ -1,28 +1,24 @@
-from django.utils.translation import ugettext_lazy as _
-from corsheaders.models import AbstractCorsModel
+# coding: utf-8
+from django.db import models
 
 
-def _set_cors_field_options(name, bases, attrs):
-    cls = type(name, bases, attrs)
-    # The `cors` field is already defined by `AbstractCorsModel`, but let's
-    # help folks out by giving it a more descriptive name and help text, which
-    # will both appear in the admin interface
-    cors_field = cls._meta.get_field('cors')
-    cors_field.verbose_name = _('allowed origin')
-    cors_field.help_text = _('do not include http:// or https://')
-    return cls
-
-
-class CorsModel(AbstractCorsModel):
-    '''
+class CorsModel(models.Model):
+    """
     A model with one field, `cors`, which specifies an allowed origin that must
-    exactly match the `netloc` returned by `urlparse`
-    '''
+    exactly match `request.META.get('HTTP_ORIGIN')`
+    """
 
-    def __unicode__(self):
+    cors = models.CharField(
+        max_length=255,
+        verbose_name='allowed origin',
+        help_text=
+            'Must contain exactly the URI scheme, host, and port, e.g. '
+            'https://example.com:1234. Standard ports (80 for http and 443 '
+            'for https) may be omitted.'
+    )
+
+    def __str__(self):
         return self.cors
 
-    __metaclass__ = _set_cors_field_options
-
     class Meta:
-        verbose_name = _('allowed CORS origin')
+        verbose_name = 'allowed CORS origin'

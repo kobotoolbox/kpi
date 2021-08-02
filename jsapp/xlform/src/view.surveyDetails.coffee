@@ -26,7 +26,7 @@ module.exports = do ->
         @$el.removeClass("active")
         @model.set("value", false)
     constructor: (options) ->
-      super
+      super(options)
       @selector = options.selector
     attach_to: (destination) ->
       destination.find(@selector).append @el

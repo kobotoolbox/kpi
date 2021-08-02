@@ -1,11 +1,8 @@
 # coding: utf-8
-
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
-
 import xml.etree.ElementTree as ET
-import md5
 import re
+
+from kpi.utils.hash import calculate_hash
 
 # an approximation of the max size.
 # actual max length will be 40 + len(join_with) + len("_001")
@@ -30,12 +27,11 @@ DEFAULT_OPTS = {
 }
 
 
-
 def sluggify(_str, _opts):
-    '''
+    """
     this method is ported over from coffeescript:
     jsapp/xlform/src/model.utils.coffee
-    '''
+    """
     _initial = _str
     if _str == '':
         return ''
@@ -52,14 +48,15 @@ def sluggify(_str, _opts):
         _str = _str.lower()
 
     if opts['underscores']:
-        _str = re.sub('\s', '_', _str)
+        _str = re.sub(r'\s', '_', _str)
         # .replace(/[_]+/g, "_") <- replaces duplicates?
 
     if opts['replaceNonWordCharacters']:
         if opts['nonWordCharsExceptions']:
-            regex = '\W^[%s]' % opts['nonWordCharsExceptions']
+            regex = r'[^a-zA-Z0-9_{}]'.format(opts['nonWordCharsExceptions'])
         else:
-            regex = '\W+'
+            regex = r'[^a-zA-Z0-9_]+'  # Cannot use `\W`. Different behaviour with Python 2 & 3
+
         _str = re.sub(regex, '_', _str)
         if _str != '_' and re.search('_$', _str):
             _str = re.sub('_$', '', _str)
@@ -72,7 +69,7 @@ def sluggify(_str, _opts):
             _str = _str[0:opts['characterLimit']]
 
     if opts['validXmlTag']:
-        if re.search('^\d', _str):
+        if re.search(r'^\d', _str):
             _str = '_' + _str
 
     if opts['preventDuplicateUnderscores']:
@@ -85,9 +82,7 @@ def sluggify(_str, _opts):
         attempt_base = _str
         if len(attempt_base) == 0:
             # empty string because arabic / cyrillic characters
-            _str = 'h' + md5.md5(
-                                 _initial[0:7].encode('utf-8')
-                                 ).hexdigest()[0:7]
+            _str = 'h{}'.format(calculate_hash(_initial[0:7])[0:7])
         attempt = attempt_base
         incremented = 0
         while attempt.lower() in names_lc:
@@ -109,8 +104,8 @@ def sluggify_label(label, **opts):
            }, **opts))
 
 
-def is_valid_nodeName(_name):
-    if not isinstance(_name, basestring):
+def is_valid_node_name(_name):
+    if not isinstance(_name, str):
         return False
     if _name == '':
         return False
@@ -122,12 +117,12 @@ def is_valid_nodeName(_name):
 
 
 def _shorten_long_name(name, character_limit, join_with):
-    '''
+    """
     This takes the beginning and the ending of the string and concatenates it to
     meet the length requirements.
     Example:
         "beginning_of_the_" + "_end_of_the_long_question"
-    '''
+    """
     if len(name) > character_limit:
         _half_length = int(character_limit / 2)
         _last_half_start_n = len(name) - _half_length

@@ -1,16 +1,17 @@
 // Variable declarations here to make them available to all stylesheets
 
+@import "colors";
+@import "variables";
+
 // Colors
 // ==========================================================================
-$cardBorderColor: #d9dde1;
-$cardInSortBorderColor: #3fa2ee;
+$cardBorderColor: $kobo-gray-65;
+$cardInSortBorderColor: $kobo-blue-light;
 
-$wellTextColor: #7a8692;
-$addButtonColor: #bec9d0;
-$addButtonColorHover: #5cb2ee;
+$addButtonColor: $kobo-gray-65;
+$addButtonColorHover: $kobo-blue-light;
 
-$linkColor: #3fa2ee;
-$indicatorColor: #8595a5;
+$linkColor: $kobo-blue-light;
 
 // Borders
 // ==========================================================================
@@ -29,14 +30,11 @@ $buttonBorderRadius: 5px;
 @import "stylesheets/partials/tagsinput_override";
 
 @import "stylesheets/partials/base";
-@import "stylesheets/partials/icons";
 @import "stylesheets/partials/buttons";
 @import "stylesheets/partials/misc";
-@import "stylesheets/partials/modals_iframes";
 
 @import "stylesheets/partials/content";
 @import "stylesheets/partials/registration";
-@import "stylesheets/partials/sidenote";
 
 @import "stylesheets/pages/form_builder";
 

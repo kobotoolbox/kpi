@@ -1,8 +1,19 @@
-import clonedeep from 'lodash.clonedeep';
+/**
+ * A collection of miscellaneous utility functions.
+ *
+ * NOTE: these are used also by the Form Builder coffee code (see
+ * `jsapp/xlform/src/view.surveyApp.coffee`)
+ *
+ * TODO: group these functions by what are they doing or where are they mostly
+ * (or uniquely) used, and split to smaller files.
+ */
+
 import moment from 'moment';
 import alertify from 'alertifyjs';
-import $ from 'jquery';
 import {Cookies} from 'react-cookie';
+import { hashHistory } from 'react-router';
+// importing whole constants, as we override ROOT_URL in tests
+import constants from 'js/constants';
 
 export const LANGUAGE_COOKIE_NAME = 'django_language';
 
@@ -18,191 +29,58 @@ export function notify(msg, atype='success') {
   alertify.notify(msg, atype);
 }
 
+/**
+ * @returns {string} something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
+ */
 export function formatTime(timeStr) {
   var _m = moment(timeStr);
   return _m.calendar(null, {sameElse: 'LL'});
 }
 
+/**
+ * @returns {string} something like "March 15, 2021 4:06 PM"
+ */
 export function formatTimeDate(timeStr) {
   var _m = moment(timeStr);
   return _m.format('LLL');
 }
 
+/**
+ * @returns {string} something like "Mar 15, 2021"
+ */
 export function formatDate(timeStr) {
   var _m = moment(timeStr);
   return _m.format('ll');
 }
 
-export var anonUsername = 'AnonymousUser';
-export function getAnonymousUserPermission(permissions) {
-  return permissions.filter(function(perm){
-    if (perm.user__username === undefined) {
-      perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
-    }
-    return perm.user__username === anonUsername;
-  })[0];
+export function getLoginUrl() {
+  let url = constants.PATHS.LOGIN;
+  const currentLoc = hashHistory.getCurrentLocation();
+  if (currentLoc?.pathname) {
+    const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
+    // add redirection after logging in to current page
+    url += `?next=${nextUrl}`;
+  }
+  return url;
 }
 
-export function surveyToValidJson(survey) {
-  // skip logic references only preserved after initial call
-  // to "survey.toFlatJSON()"
-  survey.toFlatJSON();
-  // returning the result of the second call to "toFlatJSON()"
-  return JSON.stringify(survey.toFlatJSON());
+// works universally for v1 and v2 urls
+export function getUsernameFromUrl(userUrl) {
+  return userUrl.match(/\/users\/(.*)\//)[1];
 }
 
-// TRANSLATIONS HACK (Part 2/2):
-// this function reverses nullifying default language - use it just before saving
-export function unnullifyTranslations(surveyDataJSON, assetContent) {
-  let surveyData = JSON.parse(surveyDataJSON);
-
-  let translatedProps = [];
-  if (assetContent.translated) {
-     translatedProps = assetContent.translated;
-  }
-
-  // set default_language
-  let defaultLang = assetContent.translations_0;
-  if (!defaultLang) {
-    defaultLang = null;
-  }
-  if (!surveyData.settings[0].default_language && defaultLang !== null) {
-    surveyData.settings[0].default_language = defaultLang;
-  }
-
-  if (defaultLang !== null) {
-    // replace every "translatedProp" with "translatedProp::defaultLang"
-    if (surveyData.choices) {
-      surveyData.choices.forEach((choice) => {
-        translatedProps.forEach((translatedProp) => {
-          if (typeof choice[translatedProp] !== 'undefined') {
-            choice[`${translatedProp}::${defaultLang}`] = choice[translatedProp]
-            delete choice[translatedProp];
-          }
-        });
-      });
-    }
-    if (surveyData.survey) {
-      surveyData.survey.forEach((surveyRow) => {
-        translatedProps.forEach((translatedProp) => {
-          if (typeof surveyRow[translatedProp] !== 'undefined') {
-            surveyRow[`${translatedProp}::${defaultLang}`] = surveyRow[translatedProp]
-            delete surveyRow[translatedProp];
-          }
-        });
-      });
-    }
-  }
-
-  return JSON.stringify(surveyData);
+// TODO: Test if works for both form and library routes, if not make it more general
+export function getAssetUIDFromUrl(assetUrl) {
+  return assetUrl.match(/.*\/([^/]+)\//)[1];
 }
 
-export function nullifyTranslations(translations, translatedProps, survey, baseSurvey) {
-  const data = {
-    survey: clonedeep(survey),
-    translations: clonedeep(translations)
-  };
-
-  if (typeof translations === 'undefined') {
-    data.translations = [null];
-    return data;
+export function buildUserUrl(username) {
+  if (username.startsWith(window.location.protocol)) {
+    console.error("buildUserUrl() called with URL instead of username (incomplete v2 migration)");
+    return username;
   }
-
-  if (data.translations.length > 1 && data.translations.indexOf(null) !== -1) {
-    throw new Error('There is an unnamed translation in your form definition.\nPlease give a name to all translations in your form.\nUse "Manage Translations" option from form landing page.');
-  }
-
-  /*
-  TRANSLATIONS HACK (Part 1/2):
-  all the coffee code assumes first language to be null, and we don't want
-  to introduce potential code-breaking refactor in old code, so we store
-  first language, then replace with null and reverse this just before saving
-  NOTE: when importing assets from Library into form, we need to make sure
-  the default language is the same (or force baseSurvey default language)
-  */
-  if (baseSurvey) {
-    const formDefaultLang = baseSurvey._initialParams.translations_0 || null;
-    if (data.translations[0] === formDefaultLang) {
-      // case 1: nothing to do - same default language in both
-    } else if (data.translations.includes(formDefaultLang)) {
-      // case 2: imported asset has form default language but not as first, so
-      // we need to reorder things
-      const defaultLangIndex = data.translations.indexOf(formDefaultLang);
-      data.translations.unshift(data.translations.pop(defaultLangIndex));
-      data.survey.forEach((row) => {
-        translatedProps.forEach((translatedProp) => {
-          const transletedPropArr = row[translatedProp];
-          if (transletedPropArr) {
-            transletedPropArr.unshift(transletedPropArr.pop(defaultLangIndex));
-          }
-        });
-      });
-    }
-
-    if (!data.translations.includes(formDefaultLang)) {
-      // case 3: imported asset doesn't have form default language, so we
-      // force it onto the asset as the first language and try setting some
-      // meaningful property value
-      data.translations.unshift(formDefaultLang);
-      data.survey.forEach((row) => {
-        translatedProps.forEach((translatedProp) => {
-          if (row[translatedProp]) {
-            let propVal = null
-            if (row.name) {
-              propVal = row.name;
-            } else if (row.$autoname) {
-              propVal = row.$autoname;
-            }
-            row[translatedProp].unshift(propVal);
-          }
-        });
-      });
-    }
-  }
-
-  // no need to nullify null
-  if (data.translations[0] !== null) {
-    data.translations_0 = data.translations[0]
-    data.translations[0] = null
-  }
-
-  return data;
+  return `${constants.ROOT_URL}/api/v2/users/${username}/`;
 }
-
-export function redirectTo(href) {
-  window.location.href = href;
-}
-
-export function parsePermissions(owner, permissions) {
-  var users = [];
-  var perms = {};
-  if (!permissions) {
-    return [];
-  }
-  permissions.map((perm) => {
-    perm.user__username = perm.user.match(/\/users\/(.*)\//)[1];
-    return perm;
-  }).filter((perm)=> {
-    return ( perm.user__username !== owner && perm.user__username !== anonUsername);
-  }).forEach((perm)=> {
-    if(users.indexOf(perm.user__username) === -1) {
-      users.push(perm.user__username);
-      perms[perm.user__username] = [];
-    }
-    perms[perm.user__username].push(perm);
-  });
-  return users.map((username)=>{
-    return {
-      username: username,
-      can: perms[username].reduce((cans, perm)=> {
-        var permCode = perm.permission.includes('_submissions') ? perm.permission : perm.permission.split('_')[0];
-        cans[permCode] = perm;
-        return cans;
-      }, {})
-    };
-  });
-}
-
 
 export var log = (function(){
   var _log = function(...args) {
@@ -219,22 +97,7 @@ export var log = (function(){
 })();
 window.log = log;
 
-
 var __strings = [];
-
-
-/*global gettext*/
-if (window.gettext) {
-  var _gettext = window.gettext;
-} else {
-  var _gettext = function(s){
-    return s;
-  };
-}
-export function t(str) {
-  return _gettext(str);
-};
-
 
 const originalSupportEmail = 'help@kobotoolbox.org';
 
@@ -302,7 +165,7 @@ export var randString = function () {
 
 export function stringToColor(str, prc) {
   // Higher prc = lighter color, lower = darker
-  var prc = typeof prc === 'number' ? prc : -15;
+  prc = typeof prc === 'number' ? prc : -15;
   var hash = function(word) {
       var h = 0;
       for (var i = 0; i < word.length; i++) {
@@ -345,7 +208,6 @@ export function checkLatLng(geolocation) {
   if (geolocation && geolocation[0] && geolocation[1]) return true;
   else return false;
 }
-
 
 export function validFileTypes() {
   const VALID_ASSET_UPLOAD_FILE_TYPES = [
@@ -436,47 +298,132 @@ export function escapeHtml(str) {
   return div.innerHTML;
 }
 
-export function readParameters(str) {
-  if (typeof str !== 'string') {
-    return null;
+export function renderCheckbox(id, label, isImportant) {
+  let additionalClass = '';
+  if (isImportant) {
+    additionalClass += 'alertify-toggle-important';
   }
-
-  const params = {};
-
-  let separator = ' ';
-  if (str.includes(';')) {
-    separator = ';';
-  } else if (str.includes(',')) {
-    separator = ',';
-  }
-  const otherSeparators = ';, '.replace(separator, '');
-  const cleanStr = str.replace(new RegExp(' *= *', 'g'), '=');
-  const parts = cleanStr.split(new RegExp(`[${otherSeparators}]*${separator}[${otherSeparators}]*`, 'g'));
-
-  parts.forEach((part) => {
-    if (part.includes('=')) {
-      const key = part.slice(0, part.indexOf('='));
-      const value = part.slice(key.length + 1);
-      params[key] = value;
-    }
-  });
-
-  if (Object.keys(params).length < 1) {
-    return null;
-  }
-  return params;
+  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
 }
 
-export function writeParameters(obj) {
-  let params = [];
-  Object.keys(obj).forEach((key) => {
-    if (obj[key] !== undefined && obj[key] !== null) {
-      let value = obj[key];
-      if (typeof value === 'object') {
-        value = JSON.stringify(value);
-      }
-      params.push(`${key}=${value}`);
-    }
-  });
-  return params.join(';');
+/**
+ * @param {string} text
+ * @param {number} [limit] - how long the long word is
+ * @return {boolean}
+ */
+export function hasLongWords(text, limit = 25) {
+  const textArr = text.split(' ');
+  const maxLength = Math.max(...(textArr.map((el) => {return el.length;})));
+  return maxLength >= limit;
+}
+
+/**
+ * @param {Node} element
+ */
+export function hasVerticalScrollbar(element) {
+  return element.scrollHeight > element.offsetHeight;
+}
+
+/**
+ * @returns {number}
+ */
+export function getScrollbarWidth() {
+  // Creating invisible container
+  const outer = document.createElement('div');
+  outer.style.visibility = 'hidden';
+  outer.style.overflow = 'scroll'; // forcing scrollbar to appear
+  outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
+  document.body.appendChild(outer);
+
+  // Creating inner element and placing it in the container
+  const inner = document.createElement('div');
+  outer.appendChild(inner);
+
+  // Calculating difference between container's full width and the child width
+  const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+
+  // Removing temporary elements from the DOM
+  outer.parentNode.removeChild(outer);
+
+  return scrollbarWidth;
+}
+
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+export function toTitleCase(str) {
+  return str.replace(/(^|\s)\S/g, (t) => {return t.toUpperCase();});
+}
+
+export function launchPrinting() {
+  window.print();
+}
+
+/**
+ * Trunactes strings to specified length
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateString(str, length, type='') {
+  let truncatedString = str;
+  const halfway = Math.trunc(length / 2);
+
+  if (length < truncatedString.length) {
+    let truncatedStringFront = truncatedString.substring(0, halfway);
+    let truncatedStringBack = truncatedString.slice(
+      truncatedString.length - halfway
+    );
+    truncatedString = truncatedStringFront + '…' + truncatedStringBack;
+  }
+
+  return truncatedString;
+}
+
+/**
+ * Removes protocol then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateUrl(str, length) {
+  let truncatedString = str.replace('https://', '').replace('http://', '');
+
+  return truncateString(truncatedString, length);
+}
+
+/**
+ * Removes file extension then calls truncateString()
+ *
+ * @param {string} str
+ * @param {number} length - resultant length
+ * @returns {string} truncatedString
+ */
+export function truncateFile(str, length) {
+  // Remove file extension with simple regex that truncates everything past
+  // the last occurance of `.` inclusively
+  let truncatedString = str.replace(/\.[^/.]+$/, '');
+
+  return truncateString(truncatedString, length);
+}
+
+/**
+ * Generates a simple lowercase, underscored version of a string. Useful for
+ * quick filename generation
+ *
+ * Inspired by the way backend handles generating autonames for translations:
+ * https://github.com/kobotoolbox/kpi/blob/27220c2e65b47a7f150c5bef64db97226987f8fc/kpi/utils/autoname.py#L132-L138
+ *
+ * @param {string} str
+ * @param {number} [startIndex=0]
+ * @param {number} [endIndex=str.length]
+ */
+export function generateAutoname(str, startIndex=0, endIndex=str.length) {
+  return str
+  .toLowerCase()
+  .substring(startIndex, endIndex)
+  .replace(/(\ |\.)/g, "_");
 }

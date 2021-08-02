@@ -1,23 +1,22 @@
-from django.core.management.base import BaseCommand, CommandError
-from django.core.management import call_command
-from django.contrib.auth.models import User
-from django.conf import settings
-from django.forms.models import model_to_dict
-import os
-import json
-import glob
-import random
-# from django.utils import timezone
-from django.contrib.sites.models import Site
+# coding: utf-8
 import dateutil.parser
-
+import glob
+import json
+import os
+import random
 import re
+from io import StringIO
 
-from kpi.models import Collection
-from kpi.models import Asset
-
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.management import call_command
+from django.core.management.base import BaseCommand
 from pyxform.xls2json_backends import csv_to_dict
-from StringIO import StringIO
+
+from kpi.models import Asset
+from kpi.constants import ASSET_TYPE_COLLECTION
+from kpi.utils.models import _set_auto_field_update
+
 
 def _csv_to_dict(content):
     out_dict = {}
@@ -27,20 +26,18 @@ def _csv_to_dict(content):
     return out_dict
 
 
-def _set_auto_field_update(kls, field_name, val):
-    field = filter(lambda f: f.name == field_name, kls._meta.fields)[0]
-    field.auto_now = val
-    field.auto_now_add = val
-
 def _import_user_drafts(server, username, draft_id, fpath):
     try:
         owner = User.objects.get(username=username)
-    except User.DoesNotExist, e:
+    except User.DoesNotExist as e:
         owner = User.objects.create(username=username, password='password', email='%s@kobo.org' % username)
         owner.set_password('password')
         owner.save()
 
-    (collection, created) = Collection.objects.get_or_create(name="%s's drafts" % (username,), owner=owner)
+    (collection, created) = Asset.objects.get_or_create(
+        asset_type=ASSET_TYPE_COLLECTION,
+        name="%s's drafts" % (username,), owner=owner
+    )
 
     sd = {}
     with open(fpath, 'rb') as ff:
@@ -55,7 +52,9 @@ def _import_user_drafts(server, username, draft_id, fpath):
 
     _set_auto_field_update(Asset, "date_created", True)
     _set_auto_field_update(Asset, "date_modified", True)
-    (asset, sa_created) = collection.assets.get_or_create(name=obj['name'], owner=owner)
+    (asset, sa_created) = collection.children.get_or_create(
+        name=obj["name"], owner=owner
+    )
 
     collection.tags = "server-%s" % server
     survey_dict = _csv_to_dict(sd['body'])
@@ -68,6 +67,7 @@ def _import_user_drafts(server, username, draft_id, fpath):
     _set_auto_field_update(Asset, "date_modified", False)
     asset.save()
 
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
         dirname = args[0]
@@ -76,7 +76,6 @@ class Command(BaseCommand):
             raise Exception("directory doesnt exist")
 
         Asset.objects.all().delete()
-        Collection.objects.all().delete()
 
         n = 0
         maxn = 300000

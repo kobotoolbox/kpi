@@ -18,6 +18,10 @@
     }
   }
 
+  &.checkbox--disabled .checkbox__wrapper {
+    cursor: default;
+  }
+
   .radio__row {
     display: block;
   }
@@ -32,8 +36,9 @@
 
   .radio__label,
   .checkbox__label {
-    max-width: calc(100% - 28px);
-    color: $black;
+    // it's 28px plus whitespace between inline-blocks
+    max-width: calc(100% - 32px);
+    color: $kobo-gray-24;
     font-size: 14px;
   }
 
@@ -44,6 +49,7 @@
 
   .radio__input {
     border-radius: 50%;
+
     &::after {
       content: "";
       top: 4px;
@@ -51,20 +57,22 @@
       border-radius: 50%;
       width: 10px;
       height: 10px;
-      background-color: $cool-blue;
+      background-color: $kobo-blue;
     }
   }
 
   .checkbox__input {
     border-radius: 2px;
+
     &::after {
       content: "✓";
-      top: 0;
-      left: 0;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       width: 18px;
       height: 18px;
-      color: $white;
-      background-color: $cool-blue;
+      color: $kobo-white;
+      background-color: $kobo-blue;
       text-align: center;
       line-height: 18px;
       font-size: 18px;
@@ -76,12 +84,12 @@
     appearance: none;
     position: relative;
     margin: 0;
-    border: 1px solid $cool-gray;
+    border: 1px solid $kobo-gray-40;
     width: 20px;
     height: 20px;
     outline: 0;
-    background-color: transparent;
-    color: $cool-gray;
+    background-color: $kobo-white;
+    color: $kobo-gray-40;
     cursor: pointer;
 
     &::after {
@@ -91,14 +99,19 @@
     }
 
     &:checked {
-      border-color: $cool-blue;
+      border-color: $kobo-blue;
 
-      &::after {opacity: 1;}
+      &::after { opacity: 1; }
     }
 
     &[disabled] {
       pointer-events: none;
       opacity: 0.5;
+
+      & + .radio__label,
+      & + .checkbox__label {
+        opacity: 0.5;
+      }
     }
   }
 }

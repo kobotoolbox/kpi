@@ -1,32 +1,51 @@
-import actions from '../actions';
-import {
-  notify,
-  t,
-} from '../utils';
+import {actions} from '../actions';
+import {notify} from 'utils';
+import {unnullifyTranslations} from 'js/components/formBuilder/formBuilderUtils';
 
 class SurveyScope {
-  constructor ({survey}) {
+  constructor ({survey, rawSurvey, assetType}) {
     this.survey = survey;
+    this.rawSurvey = rawSurvey;
+    this.assetType = assetType;
   }
-  add_row_to_question_library (row) {
+  add_row_to_question_library (row, assetContent) {
     if (row.constructor.kls === 'Row') {
       var rowJSON = row.toJSON2();
       let content;
+      var surv = this.survey.toFlatJSON();
+      /*
+       * Apply translations "hack" again for saving single questions to library
+       * Since `unnullifyTranslations` requires the whole survey, we need to
+       * fish out the saved row and its translation settings out of the unnullified return
+       */
+      var unnullifiedContent = JSON.parse(unnullifyTranslations(JSON.stringify(surv), assetContent));
+      var settingsObj = unnullifiedContent.settings;
+      var surveyObj = unnullifiedContent.survey;
       if (rowJSON.type === 'select_one' || rowJSON.type === 'select_multiple') {
-        var surv = this.survey.toFlatJSON();
-        var choices = surv.choices.filter(s => s.list_name === rowJSON.select_from_list_name);
-        content = JSON.stringify({
-          survey: [
-            row.toJSON2()
-          ],
-          choices: choices || undefined
-        });
+        var choices = unnullifiedContent.choices.filter(s => s.list_name === rowJSON.select_from_list_name);
+        for (var i in surveyObj) {
+          if (surveyObj[i].$kuid == row.toJSON2().$kuid) {
+            content = JSON.stringify({
+              survey: [
+                surveyObj[i]
+              ],
+              choices: choices,
+              settings: settingsObj
+            });
+          }
+        }
       } else {
-        content = JSON.stringify({
-          survey: [
-            row.toJSON2()
-          ]
-        });
+        for (var j in surveyObj) {
+          if (surveyObj[j].$kuid == row.toJSON2().$kuid) {
+            content = JSON.stringify({
+              survey: [
+                surveyObj[j]
+              ],
+              choices: choices,
+              settings: settingsObj
+            });
+          }
+        }
       }
       actions.resources.createResource.triggerAsync({
         asset_type: 'question',
@@ -38,8 +57,17 @@ class SurveyScope {
       console.error('cannot add group to question library');
     }
   }
-  handleItem({position, itemData}) {
-    actions.survey.addItemAtPosition({position: position, uid: itemData.uid, survey: this.survey});
+  handleItem({position, itemUid, groupId}) {
+    if (!itemUid) {
+      throw new Error('itemUid not provided!');
+    }
+
+    actions.survey.addExternalItemAtPosition({
+      position: position,
+      uid: itemUid,
+      survey: this.survey,
+      groupId: groupId
+    });
   }
 }
 

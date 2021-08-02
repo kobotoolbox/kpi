@@ -1,4 +1,5 @@
-from base_handlers import GroupHandler
+# coding: utf-8
+from .base_handlers import GroupHandler
 
 COLS = {
     'score-choices': 'kobo--score-choices',
@@ -45,11 +46,13 @@ class KoboScoreGroup(GroupHandler):
         self._base_handler = base_handler
 
     def begin(self, initial_row):
-        super(KoboScoreGroup, self).begin(initial_row)
+        super().begin(initial_row)
 
-        begin_group = {u'type': u'begin_group',
-                       u'appearance': u'field-list'}
-        begin_group[u'name'] = self.name
+        begin_group = {
+            'type': 'begin_group',
+            'appearance': 'field-list',
+            'name': self.name
+        }
 
         if 'required' in initial_row:
             self._initial_row_required = initial_row['required']
@@ -62,8 +65,8 @@ class KoboScoreGroup(GroupHandler):
         try:
             choice_colname = initial_row[COLS['score-choices']]
             self._common = {
-                u'type': u'select_one',
-                u'select_from_list_name': choice_colname,
+                'type': 'select_one',
+                'select_from_list_name': choice_colname,
             }
             del initial_row[COLS['score-choices']]
         except KeyError:
@@ -87,13 +90,13 @@ class KoboScoreGroup(GroupHandler):
         row.update(self._common)
         if hasattr(self, '_initial_row_required') and \
                 self._initial_row_required:
-            row.update({u'required': True})
+            row.update({'required': True})
         self._rows.append(row)
 
     def handle_row(self, row):
         if row.get('type') == 'end_score':
             self._rows.append({
-                    u'type': u'end_group',
+                    'type': 'end_group',
                 })
             self.finish()
             return False

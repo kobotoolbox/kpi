@@ -1,25 +1,32 @@
 # File for use with `pip-compile`; see https://github.com/nvie/pip-tools
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
-# Formpack
--e git+https://github.com/kobotoolbox/formpack.git@45a49bbcc794c6ac3756afe04a4f851c3da9219d#egg=formpack
+# formpack
+-e git+https://github.com/kobotoolbox/formpack.git@a2bbc81e1cf0980449633656455de142e8a500bc#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
-python-digest==1.7
--e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
+-e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
+-e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest
+
+# ssrf protect
+-e git+https://github.com/kobotoolbox/ssrf-protect@9eec6c4aa37700c6e7ca90540a9407bd20acddb0#egg=ssrf_protect
+
+# Necessary to use this fork until the resolution of
+# https://github.com/jschneier/django-storages/issues/566
+-e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
 
 # Regular PyPI packages
-Django<1.9
+Django>=2.2,<2.3
 Markdown
 Pygments
 amqp
 anyjson
 billiard
-boto
 boto3
 celery>=4.0,<5.0
 celery[redis]
+dicttoxml
 dj-static
 dj-database-url
 django-braces
@@ -28,53 +35,56 @@ django-constance[database]
 django-cors-headers
 django-debug-toolbar
 django-extensions
-django-jsonbfield
 django-oauth-toolkit
-django-registration-redux==1.3 # DO NOT UPGRADE TO 1.4 WITHOUT TESTING!
-django-ses
-django-toolbelt
+django-registration-redux
+django-amazon-ses
 django-webpack-loader
-django-haystack
-django-loginas==0.2.3
+django-loginas
+django-markdownx
+
+# django-markitup # Not compatible with Django 2.0+ (see above ToDo²)
+
 django-markitup
 django-mptt
-django-reversion
+
+django-reversion<3.0.2 # Migration issue with 3.0.2
 django-taggit
-django-storages
 django-private-storage
 djangorestframework
 djangorestframework-xml
+django-redis-sessions
+django-request-cache
 drf-extensions
-gunicorn
+future
+geojson-rewind
 jsonfield
 kombu
 lxml
-mock
 oauthlib
+#py-gfm # Incompatible with markdown 3.x
 psycopg2
 pymongo
-pytest-django
 python-dateutil
 pytz
 pyxform
 requests
 responses
 shortuuid
-six
 sqlparse
 static3
 tabulate
 unicodecsv
 uWSGI
-whitenoise
-Whoosh==2.7.4
+Werkzeug
 xlrd
 xlwt
+xlutils
+XlsxWriter
 
 # These packages allow `requests` to support SNI
 pyopenssl
 ndg-httpsclient
 pyasn1
-Pillow
-django_storages
-django_mock_queries==0.0.15
+
+# This package is only needed for unit tests but MockBackend is loaded even on production environment
+deepmerge

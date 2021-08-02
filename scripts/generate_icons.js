@@ -1,3 +1,7 @@
+/*
+ * This scripts generates icon font from our SVG icons to be used in the app.
+ */
+
 const webfontsGenerator = require('webfonts-generator');
 const replaceInFile = require('replace-in-file');
 const fs = require('fs');
@@ -6,7 +10,7 @@ const destDir = 'jsapp/fonts/';
 
 console.warn(
   '\x1b[31m***\n',
-  'Please make sure SVGs are at least 1200px in size! Otherwise glyphs will look terrible during svg2ttf conversion.',
+  'Please make sure SVGs are at least 640px in size! Otherwise glyphs will look terrible during svg2ttf conversion.',
   '\n***',
   '\x1b[0m'
 );
@@ -61,15 +65,32 @@ webfontsGenerator(
       throw new Error('Fail!', error);
     } else {
       try {
-        fs.copyFileSync(`${destDir}k-icons.css`, `${destDir}_k-icons.scss`);
-        // add '#', because for some reason query string gets removed somewhere
-        // in the frontend building process
-        replaceInFile.sync({
-          files: `${destDir}_k-icons.scss`,
-          from: ['woff2?',  'woff?',  'ttf?',  'eot?',  'svg?',  '?#iefix', '#k-icons'],
-          to:   ['woff2?#', 'woff?#', 'ttf?#', 'eot?#', 'svg?#', '',        '']
+        /*
+         * We load styles by importing into React.
+         * It puts the contents of the generated CSS in an inline style tag,
+         * which somehow causes hash in query parameters to be lost.
+         * Our HACKFIX is manually adding timestamps to filenames.
+         */
+        console.info('Adding timestamp to files…');
+        const timestamp = Date.now();
+        ['eot', 'svg', 'ttf', 'woff', 'woff2'].forEach((ext) => {
+          const oldName = `k-icons.${ext}`;
+          const newName = `k-icons.${timestamp}.${ext}`;
+          fs.renameSync(`${destDir}${oldName}`, `${destDir}${newName}`);
+          replaceInFile.sync({
+            files: [`${destDir}k-icons.css`, `${destDir}k-icons.html`],
+            // Use additional "?" to differentiate woff and woff2
+            from: [`${oldName}?`],
+            to: [`${newName}?`]
+          });
         });
-        console.info('Copied k-icons.css to _k-icons.scss in fonts folder.');
+
+        /*
+         * This is needed because we use @extend on k-icons selectors, and it
+         * sadly doesn't work with a regular CSS file.
+         */
+        console.info('Copying k-icons.css to SCSS file…');
+        fs.copyFileSync(`${destDir}k-icons.css`, `${destDir}k-icons.scss`);
       } catch(e){
         console.warn(
           '\x1b[31m***\n',

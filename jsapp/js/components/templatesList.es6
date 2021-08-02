@@ -8,19 +8,12 @@ import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import bem from '../bem';
-import classNames from 'classnames';
-import Select from 'react-select';
-import alertify from 'alertifyjs';
-import stores from '../stores';
-import actions from '../actions';
-import mixins from '../mixins';
+import {bem} from '../bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
-import {
-  t,
-  formatTime,
-  notify
-} from '../utils';
+import {formatTime} from 'utils';
+import {getAssetOwnerDisplayName} from 'js/assetUtils';
 
 class TemplatesList extends React.Component {
   constructor(props) {
@@ -59,20 +52,13 @@ class TemplatesList extends React.Component {
 
   render() {
     if (this.state.isLoading) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      )
+      return (<LoadingSpinner/>);
     } else if (this.state.templatesCount === 0) {
       return (
         <bem.FormView__cell>
           {t('You have no templates. Go to Library and create some.')}
         </bem.FormView__cell>
-      )
+      );
     } else {
       return (
         <bem.TemplatesList>
@@ -93,10 +79,6 @@ class TemplatesList extends React.Component {
 
           {this.state.templates.map((template) => {
             const htmlId = `selected_template_${template.uid}`;
-            let owner = template.owner__username;
-            if (owner = this.state.currentAccountUsername) {
-              owner = t('me');
-            }
 
             return (
               <bem.TemplatesList__template
@@ -108,7 +90,7 @@ class TemplatesList extends React.Component {
                   {template.name}
                 </bem.TemplatesList__column>
                 <bem.TemplatesList__column m='owner'>
-                  {owner}
+                  {getAssetOwnerDisplayName(template.owner__username)}
                 </bem.TemplatesList__column>
                 <bem.TemplatesList__column m='date'>
                   {formatTime(template.date_modified)}
@@ -126,7 +108,7 @@ class TemplatesList extends React.Component {
                   onChange={this.onSelectedTemplateChange}
                  />
               </bem.TemplatesList__template>
-            )
+            );
           })}
         </bem.TemplatesList>
       );

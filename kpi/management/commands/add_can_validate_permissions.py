@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
-
+# coding: utf-8
 import sys
+
 from django.core.management.base import BaseCommand
 
+from kpi.constants import PERM_VALIDATE_SUBMISSIONS
 from ...models import Asset
 
 
@@ -18,7 +19,7 @@ class Command(BaseCommand):
         self.counter = 0
         self.chunk_number = 0
         self.assets_count = 0
-        super(Command, self).__init__(stdout=stdout, stderr=stderr, no_color=no_color)
+        super().__init__(stdout=stdout, stderr=stderr, no_color=no_color)
 
     def handle(self, *args, **options):
         self.assets_count = Asset.objects.all().count()
@@ -38,8 +39,8 @@ class Command(BaseCommand):
             last_id = None
             for asset in assets:
                 owner = asset.owner
-                if not owner.has_perm('validate_submissions', asset):
-                    asset.assign_perm(owner, 'validate_submissions')
+                if not owner.has_perm(PERM_VALIDATE_SUBMISSIONS, asset):
+                    asset.assign_perm(owner, PERM_VALIDATE_SUBMISSIONS)
                 self._write_to_stdout()
                 last_id = asset.id
             # important to empty assets list to make the GC free some memory

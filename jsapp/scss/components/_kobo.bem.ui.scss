@@ -1,3 +1,5 @@
+$mdl-layout-width: 1440px;
+
 .kpiapp,
 .mdl-wrapper,
 .mdl-layout {
@@ -5,42 +7,21 @@
 }
 
 .mdl-layout {
-  max-width: 1440px;
+  max-width: $mdl-layout-width;
   margin: 0 auto;
   overflow: hidden;
 }
 
 .mdl-layout__content {
-  height: calc(100% - 97px);
+  height: calc(100% - #{$layout-desktop-header-height});
   position: relative;
-  margin-top: 20px;
   flex-grow: 0;
-  margin-right: 12px;
   overflow: hidden;
 
-  &.page-wrapper__content--form-landing {
-    @include box-shadow;
-
-    height: calc(100% - 102px);
-    margin-right: 18px;
-  }
-
-  > .dropzone {
+  > .dropzone,
+  .public-collections-wrapper {
     height: 100%;
     overflow: hidden;
-  }
-}
-
-@media screen and (max-width: 767px) {
-  .mdl-layout__content {
-    margin-right: 0px;
-    margin-top: 10px;
-    height: calc(100% - 74px);
-
-    &.page-wrapper__content--form-landing {
-      margin-right: 0px;
-      height: calc(100% - 76px);
-    }
   }
 }
 
@@ -66,7 +47,7 @@
   flex-direction: column;
 
   > .asset-view__content,
-  > .formBuilder {
+  > .form-builder {
     @extend .mdl-cell, .mdl-cell--12-col;
 
     flex-flow: column;
@@ -77,7 +58,7 @@
     height: 100%;
   }
 
-  > .formBuilder {
+  > .form-builder {
     height: 100%;
   }
 }
@@ -106,67 +87,6 @@
   opacity: .75;
 }
 
-.message--error {
-  text-decoration: uppercase;
-}
-
-.message--loading {
-  text-align: center;
-
-  > i:first-child {
-    @extend .fa, .fa-fw, .fa-circle-o-notch, .k-spin;
-  }
-}
-
-// Loading messages
-.loading {
-  display: table;
-  vertical-align: middle;
-  height: 100%;
-  width: 100%;
-  font-size: 18px;
-  opacity: 0.8;
-
-  i:first-child {
-    @extend .fa, .k-spin, .fa-circle-o-notch;
-
-    margin-right: 12px;
-    vertical-align: middle;
-    font-size: 24px;
-  }
-
-  &__inner {
-    display: table-cell;
-    vertical-align: middle;
-    text-align: center;
-    padding-left: 20px;
-    padding-right: 20px;
-    overflow: hidden; // avoids spinner icon overflowing scrollable areas
-
-    code {
-      margin: 20px;
-      padding: 15px;
-      font-size: 13px;
-      display: block;
-      background: white;
-      width: 80%;
-      max-height: 300px;
-      overflow: auto;
-      word-wrap: break-word;
-      text-align: left;
-    }
-
-    .pro-tip {
-      font-size: 14px;
-      margin-top: 30px;
-    }
-  }
-
-  &__msg {
-    padding-top: 10px;
-  }
-}
-
 // Popover menu
 .popover-menu {
   position: relative;
@@ -180,27 +100,29 @@
   margin: 0;
   padding: 0;
   cursor: pointer;
-  color: $cool-gray;
+  color: $kobo-gray-40;
   display: inline-block;
   vertical-align: middle;
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 
   i {
-    margin: 0px;
-    font-size: 36px;
+    margin: 3px;
+    font-size: 26px;
   }
 }
 
 .popover-menu__content {
+  @include box-shadow-mid;
+
+  overflow: hidden;
   position: absolute;
   min-width: 160px;
   max-width: 300px;
   text-align: left;
-  background: #FFF;
-  box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.06), 0 8px 8px 0 rgba(0, 0, 0, 0.12);
+  background: $kobo-white;
   z-index: 10;
   right: -10px;
   transition: opacity 0.35s;
@@ -224,6 +146,11 @@
   top: 100%;
 }
 
+.popover-menu--right .popover-menu__content {
+  right: auto;
+  left: -10px;
+}
+
 .popover-menu--above .popover-menu__content,
 .popover-menu--viewby-menu .popover-menu__content {
   bottom: 100%;
@@ -232,19 +159,19 @@
 
 .popover-menu__link,
 .popover-menu__item {
-  background-color: #FFF;
+  background-color: $kobo-white;
   display: block;
-  padding: 6px 16px 6px 10px;
+  padding: 6px 12px 6px 6px;
   position: relative;
-  color: $cool-gray;
+  color: $kobo-gray-40;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
   > i:first-child {
-    margin-right: 4px;
-    font-size: 32px;
+    margin-right: 5px;
+    font-size: 28px;
     width: 28px;
     vertical-align: middle;
   }
@@ -254,23 +181,25 @@
   }
 
   &:hover {
-    background-color: #eff0f1;
-    color: $cool-gray;
+    background-color: $kobo-gray-96;
+    color: $kobo-gray-24;
   }
 
   &.active {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 
   &.divider {
-    border-top: 1px solid lighten($cool-gray, 25%);
+    border-top: 1px solid $kobo-gray-92;
   }
 }
 
 @media screen and (max-height: 475px) {
   .popover-menu__link,
   .popover-menu__item {
-    padding: 3px 8px 3px 5px;
+    i.k-icon:first-child {
+      font-size: 22px;
+    }
   }
 }
 
@@ -278,17 +207,15 @@
   max-height: 120px;
   overflow: auto;
   overflow-x: hidden;
-  background-color: #F9F9F9;
-  border-bottom: 1px solid lighten($cool-gray, 25%);
+  background-color: $kobo-gray-96;
+  border-bottom: 1px solid $kobo-gray-92;
 }
 
 .popover-menu__item--move-coll-item {
-  background-color: #F9F9F9;
+  background-color: $kobo-gray-96;
   position: relative;
   text-align: left;
-  padding-right: 35px;
-  padding-top: 0px;
-  padding-bottom: 0px;
+  padding: 3px 8px 3px 5px;
 
   span {
     display: inline-block;
@@ -298,21 +225,18 @@
     word-wrap: break-word;
   }
 
-  .has-parent {
-    position: absolute;
-    right: 12px;
-    top: 6px;
-    padding-right: 0px;
-    font-size: 32px;
-    color: $cool-green;
+  &.popover-menu__item--move-coll-item-parent {
+    pointer-events: none;
+    font-weight: 700;
+    color: $kobo-gray-24;
   }
 }
 
 .popover-menu__heading {
   padding: 8px 15px;
-  color: $cool-gray;
-  border-top: 1px solid lighten($cool-gray, 25%);
-  background-color: #F9F9F9;
+  color: $kobo-gray-40;
+  border-top: 1px solid $kobo-gray-92;
+  background-color: $kobo-gray-96;
   margin: 0px;
 }
 
@@ -340,27 +264,40 @@
 
 .popover-menu--new-menu .popover-menu__toggle {
   @extend .mdl-button, .mdl-button--raised, .mdl-button--colored;
+  border-radius: 6px;
 
   width: 100%;
 }
 
-.popover-menu--bulkUpdate-menu .popover-menu__toggle {
-  @extend .mdl-button, .mdl-button--colored;
+.popover-menu--assets-table {
+  .popover-menu__content {
+    max-height: 26px * 7.5;
+    overflow: auto;
+  }
 }
 
-.popover-menu--question-language {
-  .popover-menu__toggle {
-    @extend .mdl-button;
+.popover-menu--bulkUpdate-menu {
+  vertical-align: top;
 
-    text-transform: uppercase;
-    padding-left: 0px;
+  .popover-menu__toggle {
+    vertical-align: inherit;
+    color: $kobo-blue;
+
+    &:hover {
+      color: lighten($kobo-blue, 10%);
+    }
 
     &::after {
-      content: "\f107";
-      font-family: "FontAwesome";
-      font-size: 18px;
-      margin-left: 5px;
+      content: "\25BC";
+      font-size: 8px;
+      margin-left: 3px;
+      display: inline-block;
+      vertical-align: 1px;
     }
+  }
+
+  .popover-menu__content {
+    line-height: 20px;
   }
 }
 
@@ -372,10 +309,11 @@
     padding-left: 0px;
 
     &::after {
-      content: "\f107";
-      font-family: "FontAwesome";
-      font-size: 18px;
+      content: "\25BC";
+      font-size: 10px;
       margin-left: 5px;
+      display: inline-block;
+      vertical-align: 1px;
     }
   }
 
@@ -396,22 +334,22 @@
   .popover-menu__toggle {
     padding: 8px 12px;
     padding-right: 90px;
-    background: #F8F8F8;
+    color: $kobo-gray-40;
+    background: $kobo-gray-96;
     position: relative;
 
     @include box-shadow;
 
     &:hover {
-      color: $cool-gray;
+      color: $kobo-gray-24;
     }
 
     &::after {
       position: absolute;
       right: 10px;
-      top: 8px;
-      content: "\f0d7";
-      font-family: "FontAwesome";
-      font-size: 16px;
+      top: 9px;
+      content: "\25BC";
+      font-size: 10px;
     }
   }
 
@@ -429,7 +367,7 @@
       max-width: 100%;
       white-space: normal;
       padding: 12px;
-      border-bottom: 1px solid $divider-color;
+      border-bottom: 1px solid $kobo-gray-92;
       border-left: 2px solid transparent;
 
       &:last-child {
@@ -438,7 +376,7 @@
 
       .collect-data-label {
         font-weight: 600;
-        color: $black;
+        color: $kobo-gray-24;
       }
 
       .collect-data-desc {
@@ -447,7 +385,7 @@
       }
 
       &:hover {
-        border-left: 2px solid $cool-green;
+        border-left: 2px solid $kobo-teal;
       }
     }
   }
@@ -507,7 +445,7 @@ iframe {
   label {
     font-weight: normal;
     font-size: 12px;
-    color: $cool-silver;
+    color: $kobo-gray-40;
 
     &.long {
       padding-top: 5px;
@@ -538,12 +476,12 @@ iframe {
     padding: 4px 10px;
     font-size: 15px;
     border: 1px solid transparent;
-    border-bottom-color: $divider-color;
+    border-bottom-color: $kobo-gray-92;
     transition: border-color 0.3s;
 
     &:focus {
       transition: border-color 0.3s;
-      border-bottom-color: $cool-blue;
+      border-bottom-color: $kobo-blue;
     }
   }
 
@@ -564,7 +502,7 @@ iframe {
   .form-modal__item {
     select {
       max-width: 90%;
-      background: #DEDEDE;
+      background: $kobo-gray-65;
     }
   }
 }
@@ -575,12 +513,12 @@ iframe {
   padding: 6px 0px;
   font-size: 15px;
   border: 1px solid transparent;
-  border-bottom-color: $divider-color;
+  border-bottom-color: $kobo-gray-92;
   transition: border-color 0.3s;
 
   &:focus {
     transition: border-color 0.3s;
-    border-bottom-color: $cool-blue;
+    border-bottom-color: $kobo-blue;
   }
 }
 
@@ -593,10 +531,19 @@ span.svg-icon {
   }
 }
 
-// faster spinning icons, based on fa-spin
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// spinning with easing
 .k-spin {
-  -webkit-animation: fa-spin 1.2s infinite linear;
-  animation: fa-spin 1.2s infinite linear;
+  transform-origin: center;
+  animation: spinner 1.2s infinite ease-in-out;
 }
 
 // Scrollbar overrides
@@ -610,15 +557,15 @@ span.svg-icon {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #DEDEDE;
+  background-color: $kobo-gray-65;
   background-color: transparent;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #DEDEDE;
+  background-color: $kobo-gray-65;
   outline: none;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 // active dropzone element (above list while dragging)
@@ -635,11 +582,11 @@ span.svg-icon {
   font-size: 18px;
 
   i {
-    font-size: 64px;
+    font-size: 46px;
     display: block;
     margin: 0 auto;
     margin-bottom: 10px;
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 }
 
@@ -654,8 +601,8 @@ span.svg-icon {
     bottom: 0;
     left: 0;
     content: '';
-    background: rgba(255, 255, 255, 0.7);
-    border: 2px solid $cool-blue;
+    background: rgba($kobo-white, 0.7);
+    border: 2px solid $kobo-blue;
     z-index: 1;
     opacity: 0;
     visibility: hidden;

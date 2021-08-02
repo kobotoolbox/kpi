@@ -3,7 +3,6 @@ Backbone = require 'backbone'
 $modelRowDetailsSkipLogic = require './model.rowDetails.skipLogic'
 $viewWidgets = require './view.widgets'
 $skipLogicHelpers = require './mv.skipLogicHelpers'
-_t = require('utils').t
 
 PLACEHOLDER_VALUE = 'placeholderVal'
 
@@ -23,15 +22,15 @@ module.exports = do ->
       tempId = _.uniqueId("skiplogic_expr")
       @$el.html("""
         <p>
-          #{_t('This question will only be displayed if the following conditions apply')}
+          #{t("This question will only be displayed if the following conditions apply")}
         </p>
         <div class="skiplogic__criterialist"></div>
         <p class="skiplogic__addnew">
-          <button class="skiplogic__addcriterion">+ #{_t('Add another condition')}</button>
+          <button class="skiplogic__addcriterion kobo-button kobo-button--green">+ #{t("Add another condition")}</button>
         </p>
         <select class="skiplogic__delimselect">
-          <option value="and">#{_t('Question should match all of these criteria')}</option>
-          <option value="or">#{_t('Question should match any of these criteria')}</option>
+          <option value="and">#{t("Question should match all of these criteria")}</option>
+          <option value="or">#{t("Question should match any of these criteria")}</option>
         </select>
       """)
 
@@ -61,7 +60,7 @@ module.exports = do ->
 
       @question_picker_view.render()
       if !@alreadyRendered
-        @$el.append $("""<i class="skiplogic__deletecriterion fa fa-trash-o" data-criterion-id="#{@model.cid}"></i>""")
+        @$el.append $("""<i class="skiplogic__deletecriterion k-icon k-icon-trash" data-criterion-id="#{@model.cid}"></i>""")
 
       @change_operator @operator_picker_view
       @change_response @response_value_view
@@ -138,7 +137,8 @@ module.exports = do ->
       @bind_question_picker()
       @attach_operator()
       @attach_response()
-      super
+      super(element)
+      return
 
     constructor: (@question_picker_view, @operator_picker_view, @response_value_view, @presenter) ->
       super()
@@ -253,23 +253,25 @@ module.exports = do ->
   class viewRowDetailSkipLogic.SkipLogicTextResponse extends $viewWidgets.TextBox
     attach_to: (target) ->
       target.find('.skiplogic__responseval').remove()
-      super
+      super(target)
+      return
 
     bind_event: (handler) ->
       @$el.on 'blur', handler
 
     constructor: (text) ->
-      super(text, "skiplogic__responseval", _t("response value"))
+      super(text, "skiplogic__responseval", t("response value"))
 
   class viewRowDetailSkipLogic.SkipLogicValidatingTextResponseView extends viewRowDetailSkipLogic.SkipLogicTextResponse
     render: () ->
-      super
+      super()
       @setElement('<div class="skiplogic__responseval-wrapper">' + @$el + '<div></div></div>')
       @$error_message = @$('div')
       @model.bind 'validated:invalid', @show_invalid_view
       @model.bind 'validated:valid', @clear_invalid_view
       @$input = @$el.find('input')
-      @
+      return @
+
     show_invalid_view: (model, errors) =>
       if @$input.val()
         @$el.addClass('textbox--invalid')
@@ -302,7 +304,7 @@ module.exports = do ->
       super 'change', handler
 
     render: () ->
-      super
+      super()
       handle_model_cid_change = () =>
         @val(@model.get 'cid')
 
@@ -335,7 +337,7 @@ module.exports = do ->
         # add placeholder message/option
         options.unshift({
           value: PLACEHOLDER_VALUE
-          text: _t('Select question from list')
+          text: t("Select question from list")
         })
 
         model.set('options', options)

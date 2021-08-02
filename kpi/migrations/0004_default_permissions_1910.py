@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-import sys
-
+# coding: utf-8
 from django.db import models, migrations
 from django.contrib.auth import get_user_model
 from django.contrib.auth.management import create_permissions
-from ..model_utils import grant_all_model_level_perms
+from kpi.utils.permissions import grant_all_model_level_perms
 
 
 def default_permissions_to_existing_users(apps, schema_editor):

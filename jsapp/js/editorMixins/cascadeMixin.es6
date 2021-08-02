@@ -1,20 +1,20 @@
+// TODO: this shouldn't be a mixin (wtf)
+
 import React from 'react';
 import ReactDOM from 'react-dom';
-import bem from '../bem';
+import {bem} from '../bem';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import _ from 'underscore';
-import stores from '../stores';
+import {stores} from '../stores';
 
 var CascadePopup = bem.create('cascade-popup'),
     CascadePopup__message = bem.create('cascade-popup__message'),
     CascadePopup__buttonWrapper = bem.create('cascade-popup__buttonWrapper'),
     CascadePopup__button = bem.create('cascade-popup__button', '<button>');
 
-var choiceListHelpUrl = 'http://support.kobotoolbox.org/creating-forms/general/adding-cascading-select-questions';
+const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html';
 
-import {t} from '../utils';
-
-export default {
+export const cascadeMixin = {
   toggleCascade () {
     var lastSelectedRow = _.last(this.app.selectedRows()),
         lastSelectedRowIndex = lastSelectedRow ? this.app.survey.rows.indexOf(lastSelectedRow) : -1;
@@ -99,15 +99,16 @@ export default {
             <textarea ref='cascade' onChange={this.cascadePopopChange}
               value={this.state.cascadeTextareaValue} />
 
-            {choiceListHelpUrl ?
+            { stores.serverEnvironment &&
+              stores.serverEnvironment.state.support_url &&
               <div className='cascade-help right-tooltip'>
-                <a href={choiceListHelpUrl}
+                <a href={stores.serverEnvironment.state.support_url + CHOICE_LIST_SUPPORT_URL}
                   target='_blank'
                   data-tip={t('Learn more about importing cascading lists from Excel')}>
-                    <i className='k-icon-help' />
+                    <i className='k-icon k-icon-help' />
                 </a>
               </div>
-            : null}
+            }
 
             <CascadePopup__buttonWrapper>
               <CascadePopup__button disabled={!this.state.cascadeReady}

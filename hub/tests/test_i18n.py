@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from django.test import TestCase
 
 from hub.utils.i18n import I18nUtils
 
 
 class I18nTestCase(TestCase):
-    fixtures= ['test_data']
+    fixtures = ['test_data']
 
     def setUp(self):
         pass

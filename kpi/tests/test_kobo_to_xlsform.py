@@ -1,6 +1,4 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
+# coding: utf-8
 from django.test import TestCase
 
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure

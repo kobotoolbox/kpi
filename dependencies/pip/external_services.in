@@ -2,6 +2,5 @@
 
 -r requirements.in
 
-newrelic
 raven
 transifex-client

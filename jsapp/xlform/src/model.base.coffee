@@ -120,16 +120,7 @@ module.exports = do ->
       # In the quick fix, this is done in the view for 'required' rowDetails
       # (grep: XLF.configs.truthyValues)
 
-      if @key is "required"
-        _val = _innerValue(value)
-        if _.isString(_val)
-          _val = _val.toLowerCase()
-        @set({
-          value: (
-              _val in ['yes', 'true', true]
-            )
-        })
-      else if value not in [undefined, false, null]
+      if value not in [undefined, null]
         vals2set = {}
         if _.isString(value) || _.isNumber(value)
           vals2set.value = value

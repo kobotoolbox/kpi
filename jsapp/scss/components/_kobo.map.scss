@@ -1,3 +1,9 @@
+$z-map-overlay: 1001; // leaflet interface elements
+$z-map-list: 689;
+$z-map-settings: 699;
+$z-map-settings-2: 700;
+$z-map-settings-3: 701;
+
 #data-map {
   height: 100%;
   width: 100%;
@@ -8,53 +14,57 @@
 
   .loading {
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1001;
-    background: rgba(#FFF, 0.8);
+    z-index: 0;
+    background: rgba($kobo-white, 0.8);
   }
 
   .form-view__map-button {
     position: absolute;
     right: 12px;
     top: 65px;
-    padding: 2px 4px 0px 4px;
+    padding: 2px 4px 0 4px;
 
     @include box-shadow;
 
     border-radius: 6px;
-    background: white;
-    z-index: 700;
+    background: $kobo-white;
+    z-index: $z-map-settings-2;
     cursor: pointer;
-    color: $cool-silver;
+    color: $kobo-gray-40;
 
     &--heatmap {
       top: 118px;
-      z-index: 699;
+      z-index: $z-map-settings;
     }
 
     &--layers {
       top: 12px;
       right: 65px;
-      z-index: 701;
+      z-index: $z-map-settings-3;
     }
 
     &--expand {
       top: 12px;
-      z-index: 701;
+      z-index: $z-map-settings-3;
     }
 
     &--map-settings {
       top: 12px;
-      z-index: 699;
+      z-index: $z-map-settings;
       right: 120px;
     }
 
     &.active,
     &:hover {
-      color: $black;
+      color: $kobo-gray-24;
+    }
+
+    &:active {
+      transform: translateY(1px);
     }
 
     i {
@@ -91,11 +101,11 @@
   position: absolute;
   bottom: 15px;
   left: 15px;
-  z-index: 700;
+  z-index: $z-map-settings-2;
 
   .popover-menu__toggle {
     min-width: 180px;
-    background: #FFF;
+    background: $kobo-white;
     max-width: 340px;
     overflow: hidden;
     white-space: nowrap;
@@ -106,7 +116,7 @@
     border-radius: 6px;
     padding: 12px;
     text-align: left;
-    color: $cool-gray;
+    color: $kobo-gray-40;
   }
 
   .popover-menu__content {
@@ -117,12 +127,12 @@
     overflow: auto;
     max-height: 300px;
     border-radius: 5px;
-    box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0 5px 5px rgba($kobo-gray-24, 0.15);
     bottom: calc(100% + 10px);
 
     .popover-menu__link.see-all {
-      background: #F9F9F9;
-      border-top: 1px solid $divider-color;
+      background: $kobo-gray-96;
+      border-top: 1px solid $kobo-gray-92;
     }
 
     .popover-menu__heading {
@@ -160,12 +170,12 @@ body .leaflet-control-layers,
   position: absolute;
   bottom: 70px;
   left: 15px;
-  z-index: 689;
+  z-index: $z-map-list;
   height: 250px;
   min-width: 180px;
   max-width: 300px;
   padding: 5px;
-  background: #FFF;
+  background: $kobo-white;
   overflow: none;
 
   @include box-shadow;
@@ -176,11 +186,12 @@ body .leaflet-control-layers,
     padding: 2px 8px;
     cursor: pointer;
 
-    i {
-      font-size: 18px;
+    .k-icon {
+      font-size: 21px;
       margin-right: 8px;
       margin-left: 3px;
-      color: $cool-blue;
+      vertical-align: bottom;
+      color: $kobo-blue;
     }
   }
 
@@ -203,31 +214,31 @@ body .leaflet-control-layers,
     padding: 4px 6px;
     position: relative;
 
-    &:after {
+    &::after {
       position: absolute;
       display: inline-block;
-      font-family: 'FontAwesome';
-      font-size: 10px;
+      width: 8px;
+      height: 8px;
+      border-radius: 8px;
       right: 6px;
-      top: 8px;
-      opacity: 0.5;
+      top: 12px;
     }
 
     &.selected {
-      background: $cool-whitegray;
+      background: $kobo-gray-96;
 
-      &:after {
-        // fa-circle
-        content: "\f111";
+      &::after {
+        content: "";
+        background: $kobo-blue;
       }
     }
 
     &.unselected {
       opacity: 0.6;
 
-      &:after {
-        // fa-circle-o
-        content: "\f10c";
+      &::after {
+        content: "";
+        background: $kobo-gray-65;
       }
 
       &:hover {
@@ -238,7 +249,7 @@ body .leaflet-control-layers,
     &.map-marker-reset {
       text-align: right;
       font-size: 12px;
-      color: $cool-blue;
+      color: $kobo-blue;
       opacity: 0.8;
       cursor: pointer;
 
@@ -262,12 +273,12 @@ body .leaflet-control-layers,
     max-width: 48px;
     width: auto;
     height: 24px;
-    padding: 0px 3px;
+    padding: 0 3px;
     position: relative;
-    text-shadow: 0px 0px 1px #FFF;
-    color: $black;
+    text-shadow: 0 0 1px $kobo-white;
+    color: $kobo-gray-24;
 
-    &:after {
+    &::after {
       position: absolute;
       width: 10px;
       content: '';
@@ -296,27 +307,27 @@ body .leaflet-control-layers,
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.5);
-    z-index: 701;
+    background: rgba($kobo-white, 0.5);
+    z-index: $z-map-settings-3;
   }
 }
 
 .map-settings {
   .form-modal__item--layer-upload label {
     display: block;
-    padding: 8px 0px;
+    padding: 10px 0 20px;
     position: relative;
     font-size: 14px;
   }
 
   .form-modal__item--list-files {
-    border: 1px solid $divider-color;
+    border: 1px solid $kobo-gray-92;
     padding: 10px;
     max-width: 600px;
     margin-bottom: 20px;
 
     .list-file-row {
-      border-top: 1px solid $divider-color;
+      border-top: 1px solid $kobo-gray-92;
       padding: 5px;
 
       > span {
@@ -344,7 +355,7 @@ body .leaflet-control-layers,
 
         i {
           font-size: 24px;
-          color: $cool-red;
+          color: $kobo-red;
         }
       }
     }
@@ -353,11 +364,6 @@ body .leaflet-control-layers,
   .form-modal__item--layer-upload {
     position: relative;
 
-    label {
-      padding-top: 10px;
-      padding-bottom: 20px;
-    }
-
     input {
       width: calc(100% - 140px);
     }
@@ -365,9 +371,9 @@ body .leaflet-control-layers,
     .dropzone {
       // !important used because strangely, in some browsers, there is in an inline position: relative on the element
       position: absolute !important;
-      right: 0px;
+      right: 0;
       width: 120px;
-      bottom: 0px;
+      bottom: 0;
       text-align: right;
       min-height: 30px;
     }
@@ -384,7 +390,7 @@ body .leaflet-control-layers,
   }
 
   .form-modal__item--map-color-item {
-    margin-bottom: 0px;
+    margin-bottom: 0;
   }
 }
 
@@ -397,6 +403,54 @@ body .leaflet-control-layers,
       margin-right: 8px;
     }
   }
+}
+
+.change-limit-warning {
+  color: red;
+}
+
+.change-limit-slider {
+  width: 75%;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.change-limit-slider-value {
+  width: 10%;
+  margin-left: 10px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@media screen and (max-width: 1265px) {
+  .change-limit-slider {
+    width: 60%;
+  }
+
+  .change-limit-slider-value {
+    width: 30%;
+  }
+}
+
+.map-no-geopoint {
+  text-align: center;
+  font-weight: bold;
+  color: $kobo-white;
+}
+
+.map-no-geopoint-wrapper {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+}
+
+.map-transparent-background {
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: $z-map-overlay;
+  background: rgba(100, 100, 100, 0.7);
 }
 
 // ClusterMarker overrides
@@ -439,7 +493,7 @@ body .leaflet-control-layers,
   margin-left: 5px;
   margin-top: 5px;
   text-align: center;
-  color: $black;
+  color: $kobo-gray-24;
 }
 
 .marker-cluster span {

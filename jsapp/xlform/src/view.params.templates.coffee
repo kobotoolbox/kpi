@@ -9,7 +9,7 @@ module.exports = do ->
       valueAttr = "value='#{defaultValue}'"
 
     return """
-    <label class='text-box'>
+    <label class='text-box text-box--on-white'>
       <span class='text-box__label'>#{label}</span>
       <input class='text-box__input' type='number' #{valueAttr} #{defaultValueAttr}/>
     </label>

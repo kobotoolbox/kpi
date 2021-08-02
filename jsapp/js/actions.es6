@@ -1,224 +1,85 @@
+/**
+ * A bundle file for all Reflux actions. This is the only place that React
+ * components should be talking to Backend.
+ *
+ * You can observe action result through Reflux callbacks in your component, or
+ * more preferably (where applicable) use the update eveont of one of the stores
+ * from `jsapp/js/stores.es6`
+ *
+ * TODO: Group and split actions to separate files. For a working example see `./actions/help`.
+ */
+
 import alertify from 'alertifyjs';
+import Reflux from 'reflux';
+import RefluxPromise from './libs/reflux-promise';
 import {dataInterface} from './dataInterface';
+import {permissionsActions} from './actions/permissions';
+import {helpActions} from './actions/help';
+import libraryActions from './actions/library';
+import submissionsActions from './actions/submissions';
+import formMediaActions from './actions/mediaActions';
+import exportsActions from './actions/exportsActions';
+import dataShareActions from './actions/dataShareActions';
 import {
-  log,
-  t,
   notify,
   replaceSupportEmail,
-} from './utils';
+} from 'utils';
 
-var Reflux = require('reflux');
-import RefluxPromise from './libs/reflux-promise';
+// Configure Reflux
 Reflux.use(RefluxPromise(window.Promise));
 
-var actions = {};
-
+export const actions = {
+  permissions: permissionsActions,
+  help: helpActions,
+  library: libraryActions,
+  submissions: submissionsActions,
+  media: formMediaActions,
+  exports: exportsActions,
+  dataShare: dataShareActions,
+};
 
 actions.navigation = Reflux.createActions([
-    'transitionStart',
-    'transitionEnd',
-    'routeUpdate',
-    'documentTitleUpdate'
-  ]);
+  'transitionStart',
+  'transitionEnd',
+  'routeUpdate',
+  'documentTitleUpdate'
+]);
 
 actions.auth = Reflux.createActions({
-  verifyLogin: {
-    children: [
-      'loggedin',
-      'anonymous',
-      'failed'
-    ]
-  },
-  logout: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  changePassword: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  getEnvironment: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
+  verifyLogin: {children: ['loggedin', 'anonymous', 'failed']},
+  logout: {children: ['completed', 'failed']},
+  changePassword: {children: ['completed', 'failed']},
+  getEnvironment: {children: ['completed', 'failed']},
+  getApiToken: {children: ['completed', 'failed']},
 });
 
 actions.survey = Reflux.createActions({
-  addItemAtPosition: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  }
+  addExternalItemAtPosition: {children: ['completed', 'failed']}
 });
 
 actions.search = Reflux.createActions({
-  assets: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  collections: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  }
+  assets: {children: ['completed', 'failed']}
 });
 
 actions.resources = Reflux.createActions({
-  listCollections: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  createAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  createImport: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  loadAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  deployAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  setDeploymentActive: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  createSnapshot: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  cloneAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  deleteAsset: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  listTags: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  createCollection: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  updateCollection: {
-    asyncResult: true
-  },
-  deleteCollection: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  loadAssetSubResource: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  loadAssetContent: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  loadResource: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  },
-  createResource: {
-    asyncResult: true
-  },
-  updateAsset: {
-    asyncResult: true
-  },
-  updateSubmissionValidationStatus: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  },
-  getAssetFiles: {
-    children: [
-      'completed',
-      'failed'
-    ],
-  },
+  createImport: {children: ['completed', 'failed']},
+  loadAsset: {children: ['completed', 'failed']},
+  deployAsset: {children: ['completed', 'failed']},
+  setDeploymentActive: {children: ['completed', 'failed']},
+  createSnapshot: {children: ['completed', 'failed']},
+  cloneAsset: {children: ['completed', 'failed']},
+  deleteAsset: {children: ['completed', 'failed']},
+  listTags: {children: ['completed', 'failed']},
+  loadAssetSubResource: {children: ['completed', 'failed']},
+  createResource: {asyncResult: true},
+  updateAsset: {asyncResult: true},
+  updateSubmissionValidationStatus: {children: ['completed', 'failed']},
+  removeSubmissionValidationStatus: {children: ['completed', 'failed']},
+  deleteSubmission: {children: ['completed', 'failed']},
+  duplicateSubmission: {children: ['completed', 'failed',]},
+  refreshTableSubmissions: {children: ['completed', 'failed',]},
+  getAssetFiles: {children: ['completed', 'failed']},
   notFound: {}
-});
-
-actions.permissions = Reflux.createActions({
-  assignPerm: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  removePerm: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  copyPermissionsFrom: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  assignPublicPerm: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  setCollectionDiscoverability: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
 });
 
 actions.hooks = Reflux.createActions({
@@ -232,32 +93,51 @@ actions.hooks = Reflux.createActions({
 });
 
 actions.misc = Reflux.createActions({
-  checkUsername: {
-    asyncResult: true,
-    children: [
-      'completed',
-      'failed_'
-    ]
-  },
-  updateProfile: {
-    children: [
-      'completed',
-      'failed'
-    ]
-  },
-  getServerEnvironment: {
-    children: [
-      'completed',
-      'failed',
-    ]
-  },
+  getUser: {children: ['completed', 'failed']},
+  checkUsername: {asyncResult: true, children: ['completed', 'failed']},
+  updateProfile: {children: ['completed', 'failed']},
+  getServerEnvironment: {children: ['completed', 'failed']},
 });
 
+// TODO move these callbacks to `actions/permissions.es6` after moving
+// `actions.resources` to separate file (circular dependency issue)
+permissionsActions.assignAssetPermission.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.removeAssetPermission.failed.listen(() => {
+  notify(t('Failed to remove permissions'), 'error');
+});
+permissionsActions.bulkSetAssetPermissions.failed.listen(() => {
+  notify(t('Failed to update permissions'), 'error');
+});
+permissionsActions.assignAssetPermission.completed.listen((uid) => {
+  // needed to update publicShareSettings after enabling link sharing
+  actions.resources.loadAsset({id: uid});
+});
+permissionsActions.copyPermissionsFrom.completed.listen((sourceUid, targetUid) => {
+  actions.resources.loadAsset({id: targetUid});
+});
+permissionsActions.setAssetPublic.completed.listen((uid) => {
+  actions.resources.loadAsset({id: uid});
+});
+permissionsActions.removeAssetPermission.completed.listen((uid, isNonOwner) => {
+  // Avoid this call if a non-owner removed their own permissions as it will fail
+  if (!isNonOwner) {
+    // needed to update publicShareSettings after disabling link sharing
+    actions.resources.loadAsset({id: uid});
+  }
+});
+
+actions.misc.getUser.listen((userUrl) => {
+  dataInterface.getUser(userUrl)
+    .done(actions.misc.getUser.completed)
+    .fail(actions.misc.getUser.failed);
+});
 
 actions.misc.checkUsername.listen(function(username){
   dataInterface.queryUserExistence(username)
     .done(actions.misc.checkUsername.completed)
-    .fail(actions.misc.checkUsername.failed_);
+    .fail(actions.misc.checkUsername.failed);
 });
 
 actions.misc.updateProfile.listen(function(data, callbacks={}){
@@ -299,27 +179,16 @@ actions.misc.getServerEnvironment.listen(function(){
     .fail(actions.misc.getServerEnvironment.failed);
 });
 
-actions.resources.createImport.listen(function(contents){
-  if (contents.base64Encoded) {
-    dataInterface.postCreateImport(contents)
-      .done(actions.resources.createImport.completed)
-      .fail(actions.resources.createImport.failed);
-  } else if (contents.content) {
-    dataInterface.createResource(contents);
-  }
-});
-
-actions.resources.createImport.completed.listen(function(contents){
-  if (contents.status) {
-    if(contents.status === 'processing') {
-      notify(t('successfully uploaded file; processing may take a few minutes'));
-      log('processing import ' + contents.uid, contents);
-    } else {
-      notify(`unexpected import status ${contents.status}`, 'error');
-    }
-  } else {
-    notify(t('Error: import.status not available'));
-  }
+actions.resources.createImport.listen((params, onCompleted, onFailed) => {
+  dataInterface.createImport(params)
+    .done((response) => {
+      actions.resources.createImport.completed(response);
+      if (typeof onCompleted === 'function') {onCompleted(response);}
+    })
+    .fail((response) => {
+      actions.resources.createImport.failed(response);
+      if (typeof onFailed === 'function') {onFailed(response);}
+    });
 });
 
 actions.resources.createSnapshot.listen(function(details){
@@ -343,7 +212,7 @@ actions.resources.listTags.completed.listen(function(results){
 actions.resources.updateAsset.listen(function(uid, values, params={}) {
   dataInterface.patchAsset(uid, values)
     .done((asset) => {
-      actions.resources.updateAsset.completed(asset, uid, values);
+      actions.resources.updateAsset.completed(asset);
       if (typeof params.onComplete === 'function') {
         params.onComplete(asset, uid, values);
       }
@@ -425,9 +294,9 @@ actions.resources.setDeploymentActive.completed.listen((result) => {
   }
 });
 
-actions.resources.getAssetFiles.listen(function(assetId) {
+actions.resources.getAssetFiles.listen(function(assetId, fileType) {
   dataInterface
-    .getAssetFiles(assetId)
+    .getAssetFiles(assetId, fileType)
     .done(actions.resources.getAssetFiles.completed)
     .fail(actions.resources.getAssetFiles.failed);
 });
@@ -449,16 +318,20 @@ actions.reports = Reflux.createActions({
 });
 
 actions.reports.setStyle.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {
-    report_styles: JSON.stringify(details),
-  }).done(actions.reports.setStyle.completed)
+  dataInterface.patchAsset(assetId, {report_styles: JSON.stringify(details)})
+    .done((asset) => {
+      actions.reports.setStyle.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.reports.setStyle.failed);
 });
 
 actions.reports.setCustom.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {
-    report_custom: JSON.stringify(details),
-  }).done(actions.reports.setCustom.completed)
+  dataInterface.patchAsset(assetId, {report_custom: JSON.stringify(details)})
+    .done((asset) => {
+      actions.reports.setCustom.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.reports.setCustom.failed);
 });
 
@@ -472,26 +345,34 @@ actions.table = Reflux.createActions({
 });
 
 actions.table.updateSettings.listen(function(assetId, settings){
-  dataInterface.patchAsset(assetId, {
-    settings: JSON.stringify(settings),
-  }).done(actions.table.updateSettings.completed)
+  dataInterface.patchAsset(assetId, {settings: JSON.stringify(settings)})
+    .done((asset) => {
+      actions.table.updateSettings.completed(asset);
+      actions.resources.updateAsset.completed(asset);
+    })
     .fail(actions.table.updateSettings.failed);
 });
 
 
 actions.map = Reflux.createActions({
-  setMapSettings: {
-    children: ['completed', 'failed']
+  setMapStyles: {
+    children: ['started', 'completed', 'failed']
   }
 });
 
-actions.map.setMapSettings.listen(function(assetId, details) {
-  dataInterface
-    .patchAsset(assetId, {
-      map_styles: JSON.stringify(details)
+/**
+ * Note: `started` callback returns parameters with wich the action was called
+ * @param {string} assetUid
+ * @param {object} mapStyles
+ */
+actions.map.setMapStyles.listen(function(assetUid, mapStyles) {
+  dataInterface.patchAsset(assetUid, {map_styles: JSON.stringify(mapStyles)})
+    .done((asset) => {
+      actions.map.setMapStyles.completed(asset);
+      actions.resources.updateAsset.completed(asset);
     })
-    .done(actions.map.setMapSettings.completed)
-    .fail(actions.map.setMapSettings.failed);
+    .fail(actions.map.setMapStyles.failed);
+  actions.map.setMapStyles.started(assetUid, mapStyles);
 });
 
 
@@ -501,7 +382,7 @@ actions.resources.createResource.listen(function(details){
       actions.resources.createResource.completed(asset);
     })
     .fail(function(...args){
-      actions.resources.createResource.failed(...args)
+      actions.resources.createResource.failed(...args);
     });
 });
 
@@ -522,31 +403,6 @@ actions.resources.deleteAsset.listen(function(details, params={}){
     });
 });
 
-actions.resources.deleteCollection.listen(function(details, params = {}){
-  dataInterface.deleteCollection(details)
-    .done(function(result) {
-      actions.resources.deleteCollection.completed(details, result);
-      if (typeof params.onComplete === 'function') {
-        params.onComplete(details, result);
-      }
-    })
-    .fail(actions.resources.deleteCollection.failed);
-});
-actions.resources.deleteCollection.failed.listen(() => {
-  notify(t('Failed to delete collection.'), 'error');
-});
-
-actions.resources.updateCollection.listen(function(uid, values){
-  dataInterface.patchCollection(uid, values)
-    .done(function(asset){
-      actions.resources.updateCollection.completed(asset);
-      notify(t('successfully updated'));
-    })
-    .fail(function(...args){
-      actions.resources.updateCollection.failed(...args);
-    });
-});
-
 actions.resources.cloneAsset.listen(function(details, params={}){
   dataInterface.cloneAsset(details)
     .done((asset) => {
@@ -561,7 +417,7 @@ actions.resources.cloneAsset.failed.listen(() => {
   notify(t('Could not create project!'), 'error');
 });
 
-actions.search.assets.listen(function(searchData, params={}){
+actions.search.assets.listen(function(searchData, params = {}){
   dataInterface.searchAssets(searchData)
     .done(function(response){
       actions.search.assets.completed(searchData, response);
@@ -575,55 +431,6 @@ actions.search.assets.listen(function(searchData, params={}){
         params.onFailed(searchData, response);
       }
     });
-});
-
-actions.permissions.assignPerm.listen(function(creds){
-  dataInterface.assignPerm(creds)
-    .done(actions.permissions.assignPerm.completed)
-    .fail(actions.permissions.assignPerm.failed);
-});
-actions.permissions.assignPerm.completed.listen(function(val){
-  actions.resources.loadAsset({url: val.content_object});
-});
-actions.permissions.assignPerm.failed.listen(function(){
-  notify(t('failed to update permissions'), 'error');
-});
-
-// copies permissions from one asset to other
-actions.permissions.copyPermissionsFrom.listen(function(sourceUid, targetUid) {
-  dataInterface.copyPermissionsFrom(sourceUid, targetUid)
-    .done((response) => {
-      actions.resources.loadAsset({id: targetUid});
-      actions.permissions.copyPermissionsFrom.completed();
-    })
-    .fail(actions.permissions.copyPermissionsFrom.failed);
-});
-
-actions.permissions.removePerm.listen(function(details){
-  if (!details.content_object_uid) {
-    throw new Error('removePerm needs a content_object_uid parameter to be set');
-  }
-  dataInterface.removePerm(details.permission_url)
-    .done(function(resp){
-      actions.permissions.removePerm.completed(details.content_object_uid, resp);
-    })
-    .fail(actions.permissions.removePerm.failed);
-});
-
-actions.permissions.removePerm.completed.listen(function(uid){
-  actions.resources.loadAsset({id: uid});
-});
-actions.permissions.removePerm.failed.listen(function(){
-  notify(t('failed to remove permissions'), 'error');
-});
-
-actions.permissions.setCollectionDiscoverability.listen(function(uid, discoverable){
-  dataInterface.patchCollection(uid, {discoverable_when_public: discoverable})
-    .done(actions.permissions.setCollectionDiscoverability.completed)
-    .fail(actions.permissions.setCollectionDiscoverability.failed);
-});
-actions.permissions.setCollectionDiscoverability.completed.listen(function(val){
-  actions.resources.loadAsset({url: val.url});
 });
 
 // reload so a new csrf token is issued
@@ -676,33 +483,21 @@ actions.auth.getEnvironment.failed.listen(() => {
   notify(t('failed to load environment data'), 'error');
 });
 
-actions.resources.loadAsset.listen(function(params){
-  var dispatchMethodName;
-  if (params.url) {
-    dispatchMethodName = params.url.indexOf('collections') === -1 ?
-        'getAsset' : 'getCollection';
-  } else {
-    dispatchMethodName = {
-      c: 'getCollection',
-      a: 'getAsset'
-    }[params.id[0]];
-  }
+actions.auth.getApiToken.listen(() => {
+  dataInterface.apiToken()
+    .done((response) => {
+      actions.auth.getApiToken.completed(response.token);
+    })
+    .fail(actions.auth.getApiToken.failed);
+});
+actions.auth.getApiToken.failed.listen(() => {
+  notify(t('failed to load API token'), 'error');
+});
 
-  dataInterface[dispatchMethodName](params)
+actions.resources.loadAsset.listen(function(params){
+  dataInterface.getAsset(params)
     .done(actions.resources.loadAsset.completed)
     .fail(actions.resources.loadAsset.failed);
-});
-
-actions.resources.loadAssetContent.listen(function(params){
-  dataInterface.getAssetContent(params)
-    .done(actions.resources.loadAssetContent.completed)
-    .fail(actions.resources.loadAssetContent.failed);
-});
-
-actions.resources.listCollections.listen(function(){
-  dataInterface.listCollections()
-    .done(actions.resources.listCollections.completed)
-    .fail(actions.resources.listCollections.failed);
 });
 
 actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, data){
@@ -712,6 +507,41 @@ actions.resources.updateSubmissionValidationStatus.listen(function(uid, sid, dat
     console.error(error);
     actions.resources.updateSubmissionValidationStatus.failed(error);
   });
+});
+
+actions.resources.removeSubmissionValidationStatus.listen((uid, sid) => {
+  dataInterface.removeSubmissionValidationStatus(uid, sid).done((result) => {
+    actions.resources.removeSubmissionValidationStatus.completed(result, sid);
+  }).fail((error)=>{
+    console.error(error);
+    actions.resources.removeSubmissionValidationStatus.failed(error);
+  });
+});
+
+actions.resources.deleteSubmission.listen((uid, sid) => {
+  dataInterface.deleteSubmission(uid, sid)
+    .done(() => {
+      notify(t('submission deleted'));
+      actions.resources.deleteSubmission.completed();
+      actions.resources.loadAsset({id: uid});
+    })
+    .fail(() => {
+      alertify.error(t('failed to delete submission'));
+      actions.resources.deleteSubmission.failed();
+    });
+});
+
+actions.resources.duplicateSubmission.listen((uid, sid, duplicatedSubmission) => {
+  dataInterface.duplicateSubmission(uid, sid)
+    .done((response) => {
+      notify(t('Successfully duplicated submission'));
+      actions.resources.duplicateSubmission.completed(uid, response._id, duplicatedSubmission);
+      actions.resources.loadAsset({id: uid});
+    })
+    .fail((response) => {
+      alertify.error(t('Failed to duplicate submission'));
+      actions.resources.duplicateSubmission.failed(response);
+    });
 });
 
 actions.hooks.getAll.listen((assetUid, callbacks = {}) => {
@@ -769,11 +599,11 @@ actions.hooks.update.listen((assetUid, hookUid, data, callbacks = {}) => {
       }
     });
 });
-actions.hooks.update.completed.listen((response) => {
+actions.hooks.update.completed.listen(() => {
   notify(t('REST Service updated successfully'));
 });
-actions.hooks.update.failed.listen((response) => {
-  notify(t('Failed saving REST Service'), 'error');
+actions.hooks.update.failed.listen(() => {
+  alertify.error(t('Failed saving REST Service'));
 });
 
 actions.hooks.delete.listen((assetUid, hookUid, callbacks = {}) => {
@@ -855,10 +685,8 @@ actions.hooks.retryLogs.listen((assetUid, hookUid, callbacks = {}) => {
     });
 });
 actions.hooks.retryLogs.completed.listen((response) => {
-  notify(t(response.detail), 'warning');
+  notify(response.detail, 'warning');
 });
 actions.hooks.retryLogs.failed.listen((response) => {
   notify(t('Retrying all submissions failed'), 'error');
 });
-
-module.exports = actions;

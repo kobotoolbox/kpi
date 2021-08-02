@@ -4,120 +4,308 @@
 #
 #    make pip_compile
 #
--e git+https://github.com/dimagi/django-digest@0eb1c921329dd187c343b61acfbec4e98450136e#egg=django_digest
--e git+https://github.com/kobotoolbox/formpack.git@45a49bbcc794c6ac3756afe04a4f851c3da9219d#egg=formpack
-amqp==2.4.0
+-e git+https://github.com/dimagi/django-digest@52ba7edeb326efd97d5670273bb6fa8b0539e501#egg=django_digest
+    # via -r dependencies/pip/requirements.in
+-e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
+    # via -r dependencies/pip/requirements.in
+-e git+https://github.com/kobotoolbox/formpack.git@a2bbc81e1cf0980449633656455de142e8a500bc#egg=formpack
+    # via -r dependencies/pip/requirements.in
+-e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
+    # via -r dependencies/pip/requirements.in
+-e git+https://github.com/kobotoolbox/ssrf-protect@9eec6c4aa37700c6e7ca90540a9407bd20acddb0#egg=ssrf_protect
+    # via -r dependencies/pip/requirements.in
+amqp==2.5.2
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   kombu
 anyjson==0.3.3
-argparse==1.4.0           # via unittest2
-asn1crypto==0.24.0        # via cryptography
-backports.os==0.1.1       # via path.py
+    # via -r dependencies/pip/requirements.in
+argparse==1.4.0
+    # via unittest2
+attrs==19.3.0
+    # via jsonschema
+backports.csv==1.0.7
+    # via formpack
 begins==0.9
-billiard==3.5.0.5
-boto3==1.9.80
-boto==2.49.0
-botocore==1.12.80         # via boto3, s3transfer
-celery[redis]==4.2.1
-certifi==2018.11.29       # via requests
-cffi==1.8.3               # via cryptography
-chardet==3.0.4            # via requests
-configparser==3.7.1       # via importlib-metadata
-contextlib2==0.5.5        # via importlib-metadata, raven
-cookies==2.2.1            # via responses
-cryptography==2.2.2       # via pyopenssl
-cssselect==1.0.3          # via pyquery
-cyordereddict==1.0.0
-defusedxml==0.5.0         # via djangorestframework-xml
-dj-database-url==0.4.1
+    # via formpack
+billiard==3.6.1.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   celery
+boto3==1.10.15
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   django-amazon-ses
+botocore==1.13.15
+    # via
+    #   boto3
+    #   s3transfer
+celery[redis]==4.3.0
+    # via -r dependencies/pip/requirements.in
+certifi==2019.9.11
+    # via requests
+cffi==1.13.2
+    # via cryptography
+chardet==3.0.4
+    # via requests
+cryptography==2.8
+    # via pyopenssl
+cssselect==1.1.0
+    # via pyquery
+deepmerge==0.3.0
+    # via -r dependencies/pip/requirements.in
+defusedxml==0.6.0
+    # via djangorestframework-xml
+dicttoxml==1.7.4
+    # via -r dependencies/pip/requirements.in
+dj-database-url==0.5.0
+    # via -r dependencies/pip/requirements.in
 dj-static==0.0.6
+    # via -r dependencies/pip/requirements.in
+django-amazon-ses==2.1.1
+    # via -r dependencies/pip/requirements.in
 django-braces==1.13.0
-django-celery-beat==1.1.1
-django-constance[database]==2.2.0
-django-cors-headers==2.4.0
-django-debug-toolbar==1.4
-django-extensions==1.6.7
-django-haystack==2.6.0
-django-jsonbfield==0.1.0
-django-loginas==0.2.3
-django-markitup==3.0.0
-django-mptt==0.8.7
-django-oauth-toolkit==0.10.0
-django-picklefield==1.0.0  # via django-constance
-django-private-storage==2.1.2
-django-registration-redux==1.3
-django-reversion==2.0.8
-django-ses==0.8.9
-django-storages==1.6.5
-django-taggit==0.22.0
-django-toolbelt==0.0.1
-django-webpack-loader==0.3.0
-django==1.8.19
-django_mock_queries==0.0.15
+    # via -r dependencies/pip/requirements.in
+django-celery-beat==1.5.0
+    # via -r dependencies/pip/requirements.in
+django-constance[database]==2.4.0
+    # via -r dependencies/pip/requirements.in
+django-cors-headers==3.1.1
+    # via -r dependencies/pip/requirements.in
+django-debug-toolbar==2.1
+    # via -r dependencies/pip/requirements.in
+django-extensions==2.2.5
+    # via -r dependencies/pip/requirements.in
+django-js-asset==1.2.2
+    # via django-mptt
+django-loginas==0.3.6
+    # via -r dependencies/pip/requirements.in
+django-markdownx==2.0.28
+    # via -r dependencies/pip/requirements.in
+django-markitup==4.0.0
+    # via -r dependencies/pip/requirements.in
+django-mptt==0.10.0
+    # via -r dependencies/pip/requirements.in
+django-oauth-toolkit==1.2.0
+    # via -r dependencies/pip/requirements.in
+django-picklefield==2.0
+    # via django-constance
+django-private-storage==2.2.2
+    # via -r dependencies/pip/requirements.in
+django-redis-sessions==0.6.1
+    # via -r dependencies/pip/requirements.in
+django-registration-redux==2.6
+    # via -r dependencies/pip/requirements.in
+django-request-cache==1.2
+    # via -r dependencies/pip/requirements.in
+django-reversion==3.0.1
+    # via -r dependencies/pip/requirements.in
+django-taggit==1.1.0
+    # via -r dependencies/pip/requirements.in
+django-timezone-field==3.1
+    # via django-celery-beat
+django-userforeignkey==0.3.0
+    # via django-request-cache
+django-webpack-loader==0.6.0
+    # via -r dependencies/pip/requirements.in
+django==2.2.7
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   django-amazon-ses
+    #   django-cors-headers
+    #   django-debug-toolbar
+    #   django-markdownx
+    #   django-mptt
+    #   django-oauth-toolkit
+    #   django-picklefield
+    #   django-request-cache
+    #   django-reversion
+    #   django-storages
+    #   django-taggit
+    #   django-timezone-field
+    #   jsonfield
 djangorestframework-xml==1.4.0
-djangorestframework==3.6.4
-docutils==0.14            # via botocore, statistics
-drf-extensions==0.3.1
-enum34==1.1.6             # via cryptography
-formencode==1.3.1         # via pyxform
-funcsigs==1.0.2           # via begins, mock
-functools32==3.2.3.post2  # via jsonschema
-future==0.17.1            # via backports.os, django-ses
-futures==3.2.0            # via s3transfer
-gunicorn==19.4.5
-idna==2.8                 # via cryptography, requests
-importlib-metadata==0.8   # via path.py
-ipaddress==1.0.17         # via cryptography
-jmespath==0.9.3           # via boto3, botocore
-jsonfield==1.0.3
-jsonschema==2.6.0
-kombu==4.2.2.post1
-linecache2==1.0.0         # via traceback2
-lxml==4.3.0
-markdown==3.0.1
-mock==2.0.0
-ndg-httpsclient==0.4.2
-newrelic==2.84.0.64
-oauthlib==1.0.3
-olefile==0.44             # via pillow
-path.py==11.5.0
-pathlib2==2.3.3           # via importlib-metadata
-pbr==4.0.2                # via mock
-pillow==4.1.0
-psycopg2==2.7.7
-py==1.4.31                # via pytest
-pyasn1==0.1.9
-pycparser==2.14           # via cffi
-pygments==2.1.3
-pymongo==3.7.2
-pyopenssl==18.0.0
-pyquery==1.4.0
-pytest-django==3.1.2
-pytest==3.0.3             # via pytest-django
-python-dateutil==2.7.5
-python-digest==1.7
-pytz==2018.9
-pyxform==0.12.0
-raven==5.32.0
-redis==3.0.1              # via celery
-requests==2.21.0
-responses==0.9.0
-s3transfer==0.1.13        # via boto3
-scandir==1.9.0            # via pathlib2
-shortuuid==0.4.3
-six==1.12.0
-sqlparse==0.1.19
+    # via -r dependencies/pip/requirements.in
+djangorestframework==3.10.3
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   drf-extensions
+docutils==0.15.2
+    # via
+    #   botocore
+    #   statistics
+drf-extensions==0.5.0
+    # via -r dependencies/pip/requirements.in
+formencode==1.3.1
+    # via pyxform
+future==0.18.2
+    # via -r dependencies/pip/requirements.in
+geojson-rewind==0.2.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   formpack
+idna==2.8
+    # via requests
+importlib-metadata==1.7.0
+    # via
+    #   jsonschema
+    #   kombu
+    #   path.py
+jmespath==0.9.4
+    # via
+    #   boto3
+    #   botocore
+jsonfield==2.0.2
+    # via -r dependencies/pip/requirements.in
+jsonschema==3.1.1
+    # via formpack
+kombu==4.6.6
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   celery
+linecache2==1.0.0
+    # via traceback2
+lxml==4.4.1
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   formpack
+    #   pyquery
+markdown==3.1.1
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   django-markdownx
+more-itertools==7.2.0
+    # via zipp
+ndg-httpsclient==0.5.1
+    # via -r dependencies/pip/requirements.in
+oauthlib==3.1.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   django-oauth-toolkit
+path.py==12.0.2
+    # via formpack
+pillow==6.2.1
+    # via django-markdownx
+psycopg2==2.8.4
+    # via -r dependencies/pip/requirements.in
+pyasn1==0.4.7
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   ndg-httpsclient
+pycparser==2.19
+    # via cffi
+pygments==2.4.2
+    # via -r dependencies/pip/requirements.in
+pymongo==3.9.0
+    # via -r dependencies/pip/requirements.in
+pyopenssl==19.0.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   ndg-httpsclient
+pyquery==1.4.1
+    # via formpack
+pyrsistent==0.15.5
+    # via jsonschema
+python-crontab==2.4.0
+    # via django-celery-beat
+python-dateutil==2.8.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   botocore
+    #   python-crontab
+pytz==2019.3
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   celery
+    #   django
+    #   django-timezone-field
+pyxform==1.5.1
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   formpack
+raven==6.10.0
+    # via -r dependencies/pip/external_services.in
+redis==3.3.11
+    # via
+    #   celery
+    #   django-redis-sessions
+requests==2.22.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   django-oauth-toolkit
+    #   responses
+responses==0.10.6
+    # via -r dependencies/pip/requirements.in
+s3transfer==0.2.1
+    # via boto3
+shortuuid==0.5.0
+    # via -r dependencies/pip/requirements.in
+six==1.13.0
+    # via
+    #   cryptography
+    #   django-extensions
+    #   jsonschema
+    #   pyopenssl
+    #   pyrsistent
+    #   python-dateutil
+    #   responses
+    #   ssrf-protect
+    #   transifex-client
+    #   unittest2
+sqlparse==0.3.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   django
+    #   django-debug-toolbar
 static3==0.7.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   dj-static
 statistics==1.0.3.5
-tabulate==0.8.2
-traceback2==1.4.0         # via unittest2
-transifex-client==0.11
+    # via formpack
+tabulate==0.8.5
+    # via -r dependencies/pip/requirements.in
+traceback2==1.4.0
+    # via unittest2
+transifex-client==0.12.5
+    # via -r dependencies/pip/external_services.in
 unicodecsv==0.14.1
-unittest2==1.1.0          # via pyxform
-urllib3==1.24.1           # via botocore, requests, transifex-client
-uwsgi==2.0.17
-vine==1.2.0               # via amqp
-whitenoise==3.3.1
-whoosh==2.7.4
-xlrd==1.1.0
-xlsxwriter==1.1.2
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   pyxform
+unittest2==1.1.0
+    # via pyxform
+urllib3==1.25.7
+    # via
+    #   botocore
+    #   requests
+    #   transifex-client
+uwsgi==2.0.18
+    # via -r dependencies/pip/requirements.in
+vine==1.3.0
+    # via
+    #   amqp
+    #   celery
+werkzeug==1.0.1
+    # via -r dependencies/pip/requirements.in
+xlrd==1.2.0
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   pyxform
+    #   xlutils
+xlsxwriter==1.2.5
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   formpack
+xlutils==2.0.0
+    # via -r dependencies/pip/requirements.in
 xlwt==1.3.0
-zipp==0.3.3               # via importlib-metadata
+    # via
+    #   -r dependencies/pip/requirements.in
+    #   xlutils
+zipp==0.6.0
+    # via importlib-metadata
+
+# The following packages are considered to be unsafe in a requirements file:
+# pip
+# setuptools

@@ -1,6 +1,7 @@
 $s-service-row-action-button: 36px;
 $s-service-row-leading: 18px;
 $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-leading) * 0.5;
+$s-service-row-z-link: 10;
 
 .service-row {
   display: flex;
@@ -9,13 +10,24 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   min-height: $s-service-row-action-button;
   box-sizing: content-box;
   line-height: $s-service-row-leading;
+  position: relative;
 
   &:not(:last-of-type) {
-    border-bottom: 1px solid $divider-color;
+    border-bottom: 1px solid $kobo-gray-92;
+  }
+
+  &:hover .service-row__action-button {
+    position: relative;
+    z-index: $s-service-row-z-link + 1;
   }
 
   &:not(.service-row--header):hover {
-    background-color: $cool-whitegray;
+    background-color: $kobo-gray-96;
+    color: $kobo-gray-24;
+  }
+
+  &.service-row--clickable {
+    cursor: pointer;
   }
 
   &.service-row--header {
@@ -24,30 +36,25 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   }
 
   &.service-row--active {
-    color: $cool-darkgray;
+    color: $kobo-gray-40;
   }
 
   &.service-row--inactive {
-    color: $cool-silver;
+    color: $kobo-gray-65;
   }
 }
 
+.service-row__link-overlay {
+  position: absolute;
+  z-index: $s-service-row-z-link;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
 .service-row__column {
-  a {
-    color: inherit;
-    display: block;
-    cursor: pointer;
-    &:hover {color: $cool-charcoal;}
-  }
-
-  &.service-row__column--name,
-  &.service-row__column--count {
-    padding: 0;
-
-    .service-row--header & {padding: $s-service-row-column-spacing;}
-
-    a {padding: $s-service-row-column-spacing;}
-  }
+  padding: $s-service-row-column-spacing;
 
   &.service-row__column--name {
     flex: 6;
@@ -56,34 +63,11 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   &.service-row__column--count {
     flex: 1;
     line-height: 18px;
-
-    .count-information-wrapper {
-      display: inline-block;
-      vertical-align: bottom;
-      font-size: 36px;
-
-      &[data-tip]::before,
-      &[data-tip]::after {
-        // to align with action buttons
-        margin-top: 9px;
-      }
-
-      i {
-        color: inherit;
-        vertical-align: inherit;
-        line-height: inherit;
-
-        &::before {
-          vertical-align: inherit;
-          line-height: inherit;
-        }
-      }
-    }
   }
 
-
   &.service-row__column--actions {
-    flex: 1;
+    min-width: $s-service-row-action-button * 2;
+    text-align: right;
     padding: 0 $s-service-row-column-spacing;
     box-sizing: content-box;
     white-space: nowrap;
@@ -99,19 +83,18 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
 
   &.service-row__column--date {
     flex: 1;
-    padding: $s-service-row-column-spacing;
   }
 
   &.service-row__column--success {
-    color: $cool-gray;
+    color: $kobo-gray-40;
   }
 
   &.service-row__column--pending {
-    color: $cool-green;
+    color: $kobo-teal;
   }
 
   &.service-row__column--failed {
-    color: $cool-red;
+    color: $kobo-red;
   }
 }
 
@@ -128,17 +111,13 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   display: inline-block;
   vertical-align: top;
 
-  &:first-of-type {
-    margin-left: 12px;
-  }
-
   &[disabled] {
     opacity: 0.5;
     pointer-events: none;
   }
 
   &:hover {
-    color: $cool-blue;
+    color: $kobo-blue;
   }
 }
 
@@ -153,18 +132,18 @@ $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-le
   padding: 0;
   text-transform: uppercase;
   cursor: pointer;
-  color: $cool-charcoal;
+  color: $kobo-gray-40;
 
   &:hover {
-    color: $cool-darkgray;
+    color: $kobo-gray-24;
   }
 
   &:active {
-    color: $cool-gray;
+    transform: translateY(1px);
   }
 
   &.service-row-button--loading {
     pointer-events: none;
-    color: $cool-silver;
+    color: $kobo-gray-40;
   }
 }

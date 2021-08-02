@@ -5,8 +5,11 @@ branches:
 dist: xenial
 sudo: required
 language: python
+python:
+  - "3.8"
 services:
-    - postgresql
+  - postgresql
+  - redis-server
 addons:
   postgresql: "9.5"
   chrome: stable
@@ -39,8 +42,10 @@ env:
        PIP_DOWNLOAD_CACHE=$HOME/.pip-download-cache
        DJANGO_DEBUG=False
        DJANGO_SECRET_KEY=ZGtvYm90cmF2aXM
-       DJANGO_SETTINGS_MODULE=kobo.settings
+       DJANGO_SETTINGS_MODULE=kobo.settings.testing
+       DJANGO_LANGUAGE_CODES="en ar es fr hi ku pl pt zh-hans"
        DATABASE_URL="postgres://postgres@localhost:5432/travis_ci_test"
+       REDIS_SESSION_URL="redis://localhost:6379"
        TRAVIS_NODE_VERSION="8"
        PATH=$PATH:$HOME/build/kobotoolbox/kpi/node_modules/.bin/
 install:
@@ -55,5 +60,8 @@ install:
   - npm config set strict-ssl false && npm install --save-dev
   - pip install --upgrade 'pip>=8.0' wheel
   - pip install pip-tools
-  - pip-sync dependencies/pip/requirements.txt
-  - pip install coverage codacy-coverage python-coveralls pytest-cov
+  - pip-sync dependencies/pip/travis_ci.txt
+  - >-
+        git submodule init &&
+        git submodule update --remote &&
+        python manage.py compilemessages

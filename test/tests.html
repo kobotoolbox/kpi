@@ -11,9 +11,11 @@
 <body>
     <div id="mocha"></div>
     <script>
-      expect = chai.expect;
+      var expect = chai.expect;
+      // need "t" defined for tests to pass
+      function t (str) { return str; }
     </script>
-    <script src="./compiled/app.js"></script>
+    <script src="./compiled/webpack-built-tests.js"></script>
     <script src="../node_modules/jquery-mockjax/dist/jquery.mockjax.js"></script>
     <script>
       mocha.run();

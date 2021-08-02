@@ -1,5 +1,6 @@
+# coding: utf-8
+from django.urls import reverse
 from rest_framework.test import APITestCase
-from django.core.urlresolvers import reverse
 
 from ..models import CorsModel
 
@@ -24,8 +25,7 @@ class CorsTests(APITestCase):
 
     def test_cors_response_with_trusted_origin(self):
         trusted_origin = 'https://www.fsf.org'
-        trusted_netloc = 'www.fsf.org'
-        CorsModel.objects.create(cors=trusted_netloc)
+        CorsModel.objects.create(cors=trusted_origin)
         response = self.client.get(
             self.innocuous_url,
             HTTP_ORIGIN=trusted_origin,

@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
-
+# coding: utf-8
 from datetime import timedelta
 
 from django.db.models import Max
 from django.utils import timezone
 
-from .delete_base_command import DeleteBaseCommand
 from kpi.models import AssetSnapshot
+from kpi.management.delete_base_command import DeleteBaseCommand
 
 
 class Command(DeleteBaseCommand):

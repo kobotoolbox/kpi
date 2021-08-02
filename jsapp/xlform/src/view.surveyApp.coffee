@@ -1,7 +1,5 @@
 _ = require 'underscore'
 Backbone = require 'backbone'
-jQuery = require 'jquery'
-$ = jQuery
 $survey = require './model.survey'
 $modelUtils = require './model.utils'
 $viewTemplates = require './view.templates'
@@ -10,8 +8,11 @@ $viewRowSelector = require './view.rowSelector'
 $rowView = require './view.row'
 $baseView = require './view.pluggedIn.backboneView'
 $viewUtils = require './view.utils'
-_t = require('utils').t
 alertify = require 'alertifyjs'
+isAssetLockable = require('js/components/locking/lockingUtils').isAssetLockable
+hasAssetRestriction = require('js/components/locking/lockingUtils').hasAssetRestriction
+LOCKING_RESTRICTIONS = require('js/components/locking/lockingConstants').LOCKING_RESTRICTIONS
+LOCKING_UI_CLASSNAMES = require('js/components/locking/lockingConstants').LOCKING_UI_CLASSNAMES
 
 module.exports = do ->
   surveyApp = {}
@@ -19,6 +20,9 @@ module.exports = do ->
   _notifyIfRowsOutOfOrder = do ->
     # a temporary function to notify devs if rows are mysteriously falling out of order
     fn = (surveyApp)->
+      if surveyApp.orderfail
+        # it's already been reported so no need to report it again
+        return
       survey = surveyApp.survey
       elIds = []
       surveyApp.$('.survey__row').each -> elIds.push $(@).data('rowId')
@@ -30,9 +34,13 @@ module.exports = do ->
 
       _s = (i)-> JSON.stringify(i)
       if _s(rIds) isnt _s(elIds)
-        Raven?.captureException new Error('Row model does not match view'), extra:
-          rIds: _s(rIds)
-          elIds: _s(elIds)
+        pathname = window.location.pathname
+        surveyApp.orderfail = true
+        err_message = """
+          Row model does not match view: #{_s(rIds)} #{_s(elIds)} #{pathname}
+        """.trim()
+        console?.error(err_message)
+        Raven?.captureException new Error(err_message)
 
         false
       else
@@ -48,11 +56,6 @@ module.exports = do ->
       "click .js-delete-group": "clickDeleteGroup"
       "click .js-add-to-question-library": "clickAddRowToQuestionLibrary"
       "click .js-clone-question": "clickCloneQuestion"
-      "click #xlf-preview": "previewButtonClick"
-      "click #csv-preview": "previewCsv"
-      "click #xlf-download": "downloadButtonClick"
-      "click #save": "saveButtonClick"
-      "click #publish": "publishButtonClick"
       "update-sort": "updateSort"
       "click .js-select-row": "selectRow"
       "click .js-select-row--force": "forceSelectRow"
@@ -61,7 +64,6 @@ module.exports = do ->
       "click .js-toggle-row-multioptions": "toggleRowMultioptions"
       "click .js-close-warning": "closeWarningBox"
       "click .js-expand-row-selector": "expandRowSelector"
-      "click .rowselector_toggle-library": "toggleLibrary"
       "mouseenter .card__buttons__button": "buttonHoverIn"
       "mouseleave .card__buttons__button": "buttonHoverOut"
       "click .card__settings__tabs li": "switchTab"
@@ -83,7 +85,7 @@ module.exports = do ->
       $et.addClass('card__settings__tabs__tab--active')
 
       $et.parents('.card__settings').find(".card__settings__fields--active").removeClass('card__settings__fields--active')
-      $et.parents('.card__settings').find(".card__settings__fields--#{tabId}").addClass('card__settings__fields--active')
+      $et.parents('.card__settings').find(".js-card-settings-#{tabId}").addClass('card__settings__fields--active')
 
     surveyRowSortableStop: (evt)->
       @survey.trigger('change')
@@ -109,15 +111,19 @@ module.exports = do ->
       [prev, parent]
 
     initialize: (options)->
-      @reset = ()=>
-        clearTimeout(@_timedReset)  if @_timedReset
+      @reset = (newlyAddedRow = false) =>
+        if @_timedReset
+          clearTimeout(@_timedReset)
         promise = $.Deferred();
-        @_timedReset = setTimeout =>
-          @_reset.call(@)
-          promise.resolve()
-        , 0
+        @_timedReset = setTimeout(
+          () =>
+            @_reset.call(@, newlyAddedRow)
+            promise.resolve()
+            return
+          , 0
+        )
 
-        promise
+        return promise
 
       if options.survey and (options.survey instanceof $survey.Survey)
         @survey = options.survey
@@ -133,8 +139,8 @@ module.exports = do ->
 
       @survey.settings.on 'change:form_id', (model, value) =>
         $('.form-id').text(value)
-      @survey.on 'rows-add', @reset, @
-      @survey.on 'rows-remove', @reset, @
+      @survey.on('rows-add', @reset, @)
+      @survey.on('rows-remove', @reset, @)
       @survey.on "row-detail-change", (row, key, val, ctxt)=>
         if key.match(/^\$/)
           return
@@ -152,7 +158,28 @@ module.exports = do ->
 
       @expand_all_multioptions = () -> @$('.survey__row:not(.survey__row--deleted) .card--expandedchoices:visible').length > 0
 
+      # Keyboard Navigation
+      currentLabelIndex = 0
+      hoverOver = false
       $(window).on "keydown", (evt)=>
+        focusedElement = $(':focus')
+        if evt.keyCode == 13
+          evt.preventDefault()
+          # preventDefault stops ENTER from pressing twice, need to trigger click when adding question label
+          $('div.row__questiontypes').find('button').eq(1).trigger('click')
+          focusedElement = $(':focus')
+          # ENTER should highlight add choice button first
+          if focusedElement.hasClass('editable-wrapper')
+            if hoverOver
+              focusedElement.trigger('click')
+              hoverOver = false
+            else
+              hoverOver = true
+          else if focusedElement.css('display') == 'none'
+            focusedElement.css('display', 'block')
+          else
+            focusedElement.trigger('click')
+
         @onEscapeKeydown(evt)  if evt.keyCode is 27
 
     getView: (cid)->
@@ -228,7 +255,7 @@ module.exports = do ->
 
     activateGroupButton: (active) ->
       @surveyStateStore.setState({groupButtonIsActive: active})
-      $('.formBuilder-header__button--group').attr('disabled', !active)
+      $('.form-builder-header__button--group').attr('disabled', !active)
       return
 
     getApp: -> @
@@ -250,15 +277,20 @@ module.exports = do ->
           groupShrunk: groupsAreShrunk
         })
       $et = $(evt.currentTarget)
-      $et.toggleClass('fa-caret-right')
-      $et.toggleClass('fa-caret-down')
+      $et.toggleClass('k-icon-caret-down')
+      $et.toggleClass('k-icon-caret-right')
 
       view.$el.toggleClass('group--shrunk', !groupsAreShrunk)
 
 
     toggleRowMultioptions: (evt)->
+      $et = $(evt.currentTarget)
+      $et.find('.k-icon').toggleClass('k-icon-caret-right')
+      $et.find('.k-icon').toggleClass('k-icon-caret-down')
+
       view = @_getViewForTarget(evt)
       view.toggleMultioptions()
+      return
 
     expandRowSelector: (evt)->
       $ect = $(evt.currentTarget)
@@ -278,30 +310,9 @@ module.exports = do ->
 
     _render_html: ->
       @$el.html $viewTemplates.$$render('surveyApp', @)
-
-      ###
-      @$settings =
-        form_id: @$('.form__settings__field--form_id')
-        version: @$('.form__settings__field--version')
-        style: @$('.form__settings__field--style')
-
-      @$settings.form_id.find('input').val(@survey.settings.get('form_id'))
-      @$settings.version.find('input').val(@survey.settings.get('version'))
-
-      _style_val = @survey.settings.get('style') || ""
-
-      if @$settings.style.find('select option')
-          .filter(((i, opt)-> opt.value is _style_val)).length is 0
-        # user has specified a style other than the available styles
-        _inp = $("<input>", {type: 'text'})
-        @$settings.style.find('select').replaceWith(_inp)
-        _inp.val(_style_val)
-      else
-        @$settings.style.find('select').val(_style_val)
-      ###
-
       @formEditorEl = @$(".-form-editor")
       @settingsBox = @$(".form__settings-meta__questions")
+      return
 
     _render_attachEvents: ->
       @survey.settings.on 'validated:invalid', (model, validations) ->
@@ -310,27 +321,26 @@ module.exports = do ->
 
       $inps = {}
       _settings = @survey.settings
+      return
 
-      ###
-      if @$settings.form_id.length > 0
-        $inps.form_id = @$settings.form_id.find('input').eq(0)
-        $inps.form_id.change (evt)->
-          _val = $inps.form_id.val()
-          _sluggified = $modelUtils.sluggify(_val)
-          _settings.set('form_id', _sluggified)
-          if _sluggified isnt _val
-            $inps.form_id.val(_sluggified)
+    hasRestriction: (restrictionName) ->
+      return hasAssetRestriction(@ngScope.rawSurvey, restrictionName)
 
-      if @$settings.version.length > 0
-        $inps.version = @$settings.version.find('input').eq(0)
-        $inps.version.change (evt)->
-          _settings.set('version', $inps.version.val())
+    isLockable: ->
+      return isAssetLockable(@ngScope.assetType?.id)
 
-      if @$settings.style.length > 0
-        $inps.style = @$settings.style.find('input,select').eq(0)
-        $inps.style.change (evt)->
-          _settings.set('style', $inps.style.val())
-      ###
+    applyLocking: ->
+      # hide all ways of adding new questions
+      if (
+        @isLockable() and
+        @hasRestriction(LOCKING_RESTRICTIONS.question_add.name)
+      )
+        # "+" buttons
+        @$('.js-add-row-button').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+        # clone buttons
+        @$('.js-clone-question').addClass(LOCKING_UI_CLASSNAMES.HIDDEN)
+
+      return
 
     _render_addSubViews: ->
       meta_view = new $viewUtils.ViewComposer()
@@ -370,6 +380,8 @@ module.exports = do ->
 
         @_render_hideConditionallyDisplayedContent()
 
+        @applyLocking()
+
       catch error
         @$el.addClass("survey-editor--error")
         throw error
@@ -377,13 +389,28 @@ module.exports = do ->
       @$el.removeClass("survey-editor--loading")
       @
 
+    shrinkAllGroups: ->
+      @$('.survey__row--group:not(.group--shrunk)').each (i, el) ->
+        if !$(el).hasClass('group--shrunk')
+          $(el).find('.group__caret').click()
+
+    expandAllGroups: ->
+      depth = 0
+      while @$('.survey__row--group.group--shrunk').length > 0
+        @$('.survey__row--group.group--shrunk').each (i, el) ->
+          $(el).find('.group__caret').click()
+        if depth++ > 10
+          break
+
     expandMultioptions: ->
       if @expand_all_multioptions()
+        @shrinkAllGroups()
         @$(".card--expandedchoices").each (i, el)=>
           @_getViewForTarget(currentTarget: el).hideMultioptions()
           ``
         _expanded = false
       else
+        @expandAllGroups()
         @$(".card--selectquestion").each (i, el)=>
           @_getViewForTarget(currentTarget: el).showMultioptions()
           ``
@@ -404,6 +431,8 @@ module.exports = do ->
         i++
 
       return i
+
+    # responsible for groups and questions sortable
     activateSortable: ->
       $el = @formEditorEl
       survey = @survey
@@ -433,22 +462,29 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          create: =>
+            @formEditorEl.addClass('js-sortable-enabled')
+            return
           receive: (evt, ui) =>
-            if ui.sender.hasClass('group__rows')
-              return
-            item = ui.item.prev()
-            if @ngScope.handleItem
+            itemUid = ui.item.data().uid
+            if @ngScope.handleItem and itemUid
+              prevItemPosition = @getItemPosition(ui.item.prev())
               @ngScope.handleItem({
-                  position: @getItemPosition(item) - 1,
-                  itemData: ui.item.data()
-                })
-            else
-              @ngScope.add_item @getItemPosition(item) - 1
-            ui.sender.sortable('cancel')
+                position: prevItemPosition - 1
+                itemUid: itemUid
+              })
+              # element has a custom handler, so we need to stop sortable
+              # instance from its default reaction
+              ui.sender.sortable('cancel')
+
+            # default action is handled by surveyRowSortableStop
+            return
         })
+
+      # apply sortable to all groups
       group_rows = @formEditorEl.find('.group__rows')
-      group_rows.each (index) ->
-        $(@).sortable({
+      group_rows.each (index) =>
+        $(group_rows[index]).sortable({
           cancel: 'button, .btn--addrow, .well, ul.list-view, li.editor-message, .editableform, .row-extras, .js-cancel-sort, .js-cancel-group-sort' + index
           cursor: "move"
           distance: 5
@@ -460,6 +496,31 @@ module.exports = do ->
           stop: sortable_stop
           activate: sortable_activate_deactivate
           deactivate: sortable_activate_deactivate
+          create: =>
+            # HACK: We dispatch this event to make all instances know that
+            # sortable is created (so in fact rendered). This allows for the
+            # groups to check themselves if they should disable it due to
+            # locking restrictions.
+            @survey.trigger('group-sortable-created', group_rows[index])
+            $(group_rows[index]).addClass('js-sortable-enabled')
+            return
+          receive: (evt, ui) =>
+            itemUid = ui.item.data().uid
+            if @ngScope.handleItem and itemUid
+              uiItemParentWithId = $(ui.item).parents('[data-row-id]')[0]
+              if uiItemParentWithId
+                groupId = uiItemParentWithId.dataset.rowId
+              @ngScope.handleItem({
+                position: @getItemPosition(ui.item.prev()),
+                itemUid: itemUid,
+                groupId: groupId
+              })
+              # element has a custom handler, so we need to stop sortable
+              # instance from its default reaction
+              ui.sender.sortable('cancel')
+
+            # default action is handled by surveyRowSortableStop
+            return
         })
         $(@).attr('data-sortable-index', index)
 
@@ -479,12 +540,6 @@ module.exports = do ->
         return @survey.rows.length == 1
 
       return @survey._validate()
-
-    previewCsv: ->
-      scsv = @survey.toCSV()
-      console?.clear()
-      log scsv
-      return
 
     ensureElInView: (row, parentView, $parentEl)->
       view = @getViewForRow(row)
@@ -537,22 +592,59 @@ module.exports = do ->
         xlfrv = @__rowViews.get(row.cid)
       xlfrv
 
-    _reset: ->
+    _reset: (newlyAddedRow = false) ->
       _notifyIfRowsOutOfOrder(@)
 
       isEmpty = true
-      @survey.forEachRow(((row)=>
+
+      @survey.forEachRow((
+        (row) =>
           if !@features.skipLogic
             row.unset 'relevant'
           isEmpty = false
           @ensureElInView(row, @, @formEditorEl).render()
-        ), includeErrors: true, includeGroups: true, flat: true)
+        ), {
+          includeErrors: true,
+          includeGroups: true,
+          flat: true
+        })
+
+      newlyAddedEl = null
+      newlyAddedType = null
+      if newlyAddedRow
+        newlyAddedEl = $("*[data-row-id=\"#{newlyAddedRow.cid}\"]")
+        newlyAddedType = newlyAddedRow.getValue('type')
+
+      if (
+        newlyAddedEl and
+        newlyAddedType and
+        (
+          newlyAddedType.includes('select_one') or
+          newlyAddedType.includes('select_multiple')
+        )
+      )
+        # If newest question has choices then hightlight the first choice
+        newlyAddedEl.find('input.option-view-input').eq(0).select()
+      else if newlyAddedEl
+        # focus on the next add row button
+        closestAddrow = newlyAddedEl.find('.btn--addrow').eq(0)
+        closestAddrow.addClass('btn--addrow-force-show')
+        closestAddrow.focus()
+        $(document).one('keydown click', (evt) =>
+          closestAddrow.removeClass('btn--addrow-force-show')
+          closestAddrow.blur()
+        )
 
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")
       null_top_row.toggleClass("survey-editor__null-top-row--hidden", !isEmpty)
 
-
-      if @features.multipleQuestions
+      if (
+        @features.multipleQuestions and
+        not (
+          @isLockable() and
+          @hasRestriction(LOCKING_RESTRICTIONS.question_order_edit.name)
+        )
+      )
         @activateSortable()
 
       return
@@ -568,8 +660,8 @@ module.exports = do ->
 
     clickRemoveRow: (evt)->
       evt.preventDefault()
-      if confirm(_t("Are you sure you want to delete this question?") + " " +
-          _t("This action cannot be undone."))
+      if confirm(t("Are you sure you want to delete this question?") + " " +
+          t("This action cannot be undone."))
         @survey.trigger('change')
 
         $et = $(evt.target)
@@ -596,11 +688,13 @@ module.exports = do ->
         rowEl.slideUp 175, "swing", ()=>
           rowEl.remove()
           @survey.rows.remove matchingRow
+          # remove group if after deleting row the group is empty
           if parent.constructor.kls == "Group" && parent.rows.length == 0
             parent_view = @__rowViews.get(parent.cid)
             if !parent_view
               Raven?.captureException("parent view is not defined", matchingRow.get('name').get('value'))
             parent_view._deleteGroup()
+      return
 
     groupSelectedRows: ->
       rows = @selectedRows()
@@ -611,9 +705,9 @@ module.exports = do ->
       if rows.length > 0
         @survey._addGroup(__rows: rows)
         @reset()
-        true
+        return true
       else
-        false
+        return false
 
     selectedRows: ()->
       rows = []
@@ -629,68 +723,25 @@ module.exports = do ->
         @survey.forEachRow findMatch, includeGroups: true
         # matchingRow = @survey.rows.find (row)-> row.cid is rowId
         rows.push matchingRow
-      rows
+      return rows
 
     onEscapeKeydown: -> #noop. to be overridden
-    previewButtonClick: (evt)->
-      if evt.shiftKey #and evt.altKey
-        evt.preventDefault()
-        if evt.altKey
-          content = @survey.toCSV()
-        else
-          content = JSON.stringify(@survey.toJSON(), null, 4)
-        $viewUtils.debugFrame content.replace(new RegExp(' ', 'g'), '&nbsp;')
-        @onEscapeKeydown = $viewUtils.debugFrame.close
-      else
-        $viewUtils.enketoIframe.fromCsv @survey.toCSV(),
-          previewServer: window.koboConfigs?.previewServer or "https://kf.kobotoolbox.org"
-          enketoServer: window.koboConfigs?.enketoServer or false
-          enketoPreviewUri: window.koboConfigs?.enketoPreviewUri or false
-          onSuccess: => @onEscapeKeydown = $viewUtils.enketoIframe.close
-          onError: (message)=> alertify.error(message)
-      return
-    downloadButtonClick: (evt)->
-      # Download = save a CSV file to the disk
-      surveyCsv = @survey.toCSV()
-      if surveyCsv
-        evt.target.href = "data:text/csv;charset=utf-8,#{encodeURIComponent(@survey.toCSV())}"
-    saveButtonClick: (evt)->
-      # Save = store CSV in local storage.
-      icon = $(evt.currentTarget).find('i')
-      icon.addClass 'fa-spinner fa-spin blue'
-      icon.removeClass 'fa-check-circle green'
-      @onSave.apply(@, arguments).finally () ->
-        icon.removeClass 'fa-spinner fa-spin blue'
-        icon.addClass 'fa-check-circle green'
 
-    publishButtonClick: (evt)->
-      # Publish = trigger publish action (ie. post to formhub)
-      @onPublish.apply(@, arguments)
-    toggleLibrary: (evt)->
-      evt.stopPropagation()
-      $et = $(evt.target)
-      $et.toggleClass('active__sidebar')
-      $("section.form-builder").toggleClass('active__sidebar')
-      @ngScope.displayQlib = !@ngScope.displayQlib
-      @ngScope.$apply()
-
-      $("section.koboform__questionlibrary").toggleClass('active').data("rowIndex", -1)
-      return
     buttonHoverIn: (evt)->
       evt.stopPropagation()
       $et = $(evt.currentTarget)
       buttonName = $et.data('buttonName')
-      $et.parents('.card').addClass('card--shaded')
-      $header = $et.parents('.card__header')
+      $et.closest('.card').addClass('card--shaded')
+      $header = $et.closest('.card__header')
       card_hover_text = do ->
         if buttonName is 'settings'
-          _t('[button triggers] Settings')
+          t("[button triggers] Settings")
         else if buttonName is 'delete'
-          _t('[button triggers] Delete Question')
+          t("[button triggers] Delete Question")
         else if buttonName is 'duplicate'
-          _t('[button triggers] Duplicate Question')
+          t("[button triggers] Duplicate Question")
         else if buttonName is 'add-to-library'
-          _t('[button triggers] Add Question to Library')
+          t("[button triggers] Add Question to Library")
 
       $header.find('.card__header--shade').eq(0).children('span').eq(0)
         .attr('data-card-hover-text', card_hover_text)
@@ -700,8 +751,8 @@ module.exports = do ->
       evt.stopPropagation()
       $et = $(evt.currentTarget)
       buttonName = $et.data('buttonName')
-      $et.parents('.card__header').removeClass(buttonName)
-      $et.parents('.card').removeClass('card--shaded')
+      $et.closest('.card__header').removeClass(buttonName)
+      $et.closest('.card').removeClass('card--shaded')
       return
 
   class surveyApp.SurveyApp extends SurveyFragmentApp
@@ -709,25 +760,5 @@ module.exports = do ->
       multipleQuestions: true
       skipLogic: true
       copyToLibrary: true
-
-  class surveyApp.QuestionApp extends SurveyFragmentApp
-    features:
-      multipleQuestions: false
-      skipLogic: false
-      copyToLibrary: false
-    render: () ->
-      super
-      @$('.survey-editor.form-editor-wrap.container').append $('.question__tags')
-
-  class surveyApp.SurveyTemplateApp extends $baseView
-    events:
-      "click .js-start-survey": "startSurvey"
-    initialize: (@options)->
-    render: ()->
-      @$el.addClass("content--centered").addClass("content")
-      @$el.html $viewTemplates.$$render('surveyTemplateApp')
-      @
-    startSurvey: ->
-      new surveyApp.SurveyApp(@options).render()
 
   surveyApp

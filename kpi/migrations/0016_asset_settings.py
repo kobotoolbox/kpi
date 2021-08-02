@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-from django.db import migrations, models
-import jsonbfield.fields
+# coding: utf-8
+from django.db import migrations
+from django.contrib.postgres.fields import JSONField as JSONBField
 
 
 class Migration(migrations.Migration):
@@ -15,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='asset',
             name='settings',
-            field=jsonbfield.fields.JSONField(default=dict),
+            field=JSONBField(default=dict),
         ),
     ]

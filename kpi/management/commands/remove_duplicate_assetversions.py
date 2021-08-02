@@ -1,18 +1,19 @@
+# coding: utf-8
 import json
 from collections import defaultdict
 from hashlib import md5
-from optparse import make_option
 
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import transaction
+
 from ...models import Asset, AssetVersion
 
 ROUGH_BATCH_MEM_LIMIT_MB = 100
 MAX_BATCH_SIZE = 100
 
+
 def find_original_and_duplicate_versions(version_pks, asset_pk):
-    '''
+    """
     Given a list of `AssetVersion` primary keys, returns a tuple of:
         * a list of the original `AssetVersion` primary keys;
         * a list of the duplicate primary keys;
@@ -31,7 +32,7 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
         for duplicates. They MUST all belong to the same `Asset`.
     :param asset_pk: the primary key of the `Asset` to which all versions
         belong. This is required as a safety check.
-    '''
+    """
     version_pks = sorted(version_pks)
     digests_to_first_version_pks = defaultdict(list)
 
@@ -60,7 +61,7 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
             serialized = json.dumps((
                 version.deployed_content,
                 version.name,
-                version._deployment_data,
+                version._deployment_data,  # noqa
                 version.version_content,
                 version.deployed
             ), sort_keys=True)
@@ -74,7 +75,7 @@ def find_original_and_duplicate_versions(version_pks, asset_pk):
 
         if not batch_size_guessed:
             batch_size = max(
-                1, ROUGH_BATCH_MEM_LIMIT_MB * 1024 * 1024 / len(serialized))
+                1, int(ROUGH_BATCH_MEM_LIMIT_MB * 1024 * 1024 / len(serialized)))
             batch_size = min(batch_size, MAX_BATCH_SIZE)
             batch_size_guessed = True
 
@@ -105,24 +106,29 @@ class Command(BaseCommand):
         '\tAsterisk If Deployed Version Is Duplicate\n'
         'The currently deployed version will never be deleted.'
     )
-    option_list = BaseCommand.option_list + (
-        make_option('--dry-run',
-                    action='store_true',
-                    dest='dry_run',
-                    default=False,
-                    help='Show information about duplicates but do not remove '
-                         'them'),
-        make_option('--username',
-                    action='store',
-                    dest='username',
-                    default=False,
-                    help='Consider only versions owned by a specific user'),
-        make_option('--asset-uid',
-                    action='store',
-                    dest='asset_uid',
-                    default=False,
-                    help='Consider only versions of the specified `Asset`')
-    )
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--dry-run',
+            action='store_true',
+            dest='dry_run',
+            default=False,
+            help='Show information about duplicates but do not remove them'
+        )
+        parser.add_argument(
+            '--username',
+            action='store',
+            dest='username',
+            default=False,
+            help='Consider only versions owned by a specific user'
+        )
+        parser.add_argument(
+            '--asset-uid',
+            action='store',
+            dest='asset_uid',
+            default=False,
+            help='Consider only versions of the specified `Asset`'
+        )
 
     def handle(self, *args, **options):
         versions = AssetVersion.objects.order_by('pk')
@@ -142,7 +148,7 @@ class Command(BaseCommand):
             versions_for_assets[asset_pk].append(version_pk)
         version_counts_for_assets = {
             asset_pk: len(version_pks) for
-                asset_pk, version_pks in versions_for_assets.iteritems()
+                asset_pk, version_pks in versions_for_assets.items()
         }
         # Sort descending by version count; the higher the version count, the
         # more likely many of the versions are duplicates
@@ -203,7 +209,7 @@ class Command(BaseCommand):
                 if not options.get('dry_run'):
                     # Store the UIDs of all duplicate versions in the original
                     # version's `uid_aliases` field
-                    for (pk, new_uid_aliases) in duplicate_uids.iteritems():
+                    for pk, new_uid_aliases in duplicate_uids.items():
                         version_qs = AssetVersion.objects.filter(pk=pk)
                         uid_aliases = version_qs.values_list(
                             'uid_aliases', flat=True)[0]

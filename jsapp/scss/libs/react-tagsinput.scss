@@ -1,14 +1,24 @@
-$tagBgColor: $cool-gray;
-$tagTextColor: white;
+@import "../colors";
 
-$innerInputCursorColor: #777777;
-$wrapBorderColor: transparent;
-$invalidBgColor: #fbd8db;
-$invalidColor: #90111a;
+.react-tagsinput {
+  &.react-tagsinput-invalid {
+    .react-tagsinput-input {
+      color: $kobo-red;
+      border-bottom-color: $kobo-red;
+    }
+  }
+
+  &.react-tagsinput-validating {
+    .react-tagsinput-input {
+      color: $kobo-teal;
+      border-bottom-color: $kobo-teal;
+    }
+  }
+}
 
 .react-tagsinput-tag {
-  background-color: $tagBgColor;
-  color: $tagTextColor;
+  background-color: $kobo-gray-40;
+  color: $kobo-white;
   font-weight: 400;
   margin-bottom: 4px;
   margin-right: 4px;
@@ -21,11 +31,14 @@ $invalidColor: #90111a;
 
 /* a.k-tagsinput-remove */
 .react-tagsinput-remove {
-  cursor: pointer;
-  color: $tagTextColor !important;
-  opacity: 0.6;
-  margin-left: 6px;
   @extend .k-icon, .k-icon-close;
+
+  cursor: pointer;
+  color: $kobo-white !important;
+  opacity: 0.6;
+  margin-left: 3px;
+  vertical-align: middle;
+
   &:hover {
     opacity: 0.9;
   }
@@ -34,7 +47,7 @@ $invalidColor: #90111a;
 .react-tagsinput-input {
   background: transparent;
   border: 0 none;
-  color: $innerInputCursorColor;
+  color: $kobo-gray-40;
   font-family: sans-serif;
   font-size: 13px;
   font-weight: 400;
@@ -43,16 +56,6 @@ $invalidColor: #90111a;
   outline: none;
   padding: 5px;
   min-width: 90px;
-}
-
-.react-tagsinput-invalid {
-  background-color: $invalidBgColor;
-  color: $invalidColor;
-}
-
-.react-tagsinput-validating {
-  background-color: #fffacd;
-  color: darken(#fffacd, 60%);
 }
 
 .react-tags-save-button {

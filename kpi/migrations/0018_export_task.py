@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 from django.db import migrations, models
 import jsonfield.fields
 from django.conf import settings
@@ -23,13 +21,13 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('data', jsonfield.fields.JSONField()),
-                ('messages', jsonfield.fields.JSONField(default={})),
-                ('status', models.CharField(default=b'created', max_length=32, choices=[(b'created', b'created'), (b'processing', b'processing'), (b'error', b'error'), (b'complete', b'complete')])),
+                ('messages', jsonfield.fields.JSONField(default=dict)),
+                ('status', models.CharField(default='created', max_length=32, choices=[('created', 'created'), ('processing', 'processing'), ('error', 'error'), ('complete', 'complete')])),
                 ('date_created', models.DateTimeField(auto_now_add=True)),
-                ('uid', kpi.fields.KpiUidField(uid_prefix=b'e')),
+                ('uid', kpi.fields.KpiUidField(uid_prefix='e')),
                 ('last_submission_time', models.DateTimeField(null=True)),
                 ('result', private_storage.fields.PrivateFileField(storage=private_storage.storage.files.PrivateFileSystemStorage(), max_length=380, upload_to=kpi.models.import_export_task.export_upload_to)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,

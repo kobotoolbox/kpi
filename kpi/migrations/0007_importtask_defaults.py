@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 from django.db import models, migrations
 import jsonfield.fields
 
@@ -15,13 +13,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='importtask',
             name='messages',
-            field=jsonfield.fields.JSONField(default={}),
+            field=jsonfield.fields.JSONField(default=dict),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='importtask',
             name='status',
-            field=models.CharField(default=b'created', max_length=32, choices=[(b'created', b'created'), (b'processing', b'processing'), (b'error', b'error'), (b'complete', b'complete')]),
+            field=models.CharField(default='created', max_length=32, choices=[('created', 'created'), ('processing', 'processing'), ('error', 'error'), ('complete', 'complete')]),
             preserve_default=True,
         ),
     ]

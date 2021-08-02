@@ -1,28 +1,23 @@
 // header and navigation styling
 
-$headerAccountTextColor: #dbedf7;
-
-.k-header__bar {
-  background-color: $layout-header-bg-color;
-
-  @include shadow-2dp;
-
+// This element handles stretched background of app header
+.header-stretch-bg {
   position: absolute;
-  min-height: 64px;
   width: 100%;
+  background-color: $layout-header-bg-color;
+  min-height: $layout-desktop-header-height;
   z-index: 0;
 }
 
 .mdl-layout__header {
-  background-color: transparent;
-  box-shadow: none !important;
+  background-color: $layout-header-bg-color;
   min-height: $layout-desktop-header-height;
   margin-left: 0px;
   width: 100%;
   z-index: auto;
 
   .mdl-layout__header-row {
-    height: 63px;
+    height: $layout-desktop-header-height;
     padding: 0px 20px;
   }
 
@@ -42,37 +37,18 @@ $headerAccountTextColor: #dbedf7;
     display: block;
   }
 
+  .login-box {
+    text-align: right;
+  }
+
+  .mdl-layout-title + .login-box {
+    flex: 1;
+  }
+
   .account-box {
     margin-left: auto;
     position: relative;
     max-width: 115px;
-  }
-
-  .account-box__notifications {
-    display: inline-block;
-    vertical-align: middle;
-    margin: 0px 32px;
-    margin-top: 4px;
-    position: relative;
-
-    i {
-      font-size: 24px;
-      color: $headerAccountTextColor;
-    }
-  }
-
-  .account-box__notifications__count {
-    background-color: #FF5469;
-    color: white;
-    padding: 1px 5px;
-    font-weight: bold;
-    border-radius: 15px;
-    position: absolute;
-    font-size: 11px;
-    line-height: 15px;
-    top: -8px;
-    left: 10px;
-    border: 1px solid $layout-header-bg-color;
   }
 
   .account-box__name {
@@ -89,6 +65,15 @@ $headerAccountTextColor: #dbedf7;
     flex-grow: 1;
   }
 
+  .header__link {
+    color: $kobo-white;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
   .search {
     vertical-align: middle;
     margin: 0px 6px;
@@ -99,36 +84,40 @@ $headerAccountTextColor: #dbedf7;
 
   .search {
     ::-webkit-input-placeholder {
-      color: #FFF;
+      color: $kobo-white;
     }
 
     :-ms-input-placeholder {
-      color: #FFF;
+      color: $kobo-white;
     }
 
-    .k-search__input {
-      color: #FFF;
+    .search-input {
+      color: $kobo-white;
       border: none;
       border-radius: 0px;
       padding: 10px 12px;
       padding-left: 42px;
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: rgba($kobo-white, 0.1);
       font-size: 16px;
       position: relative;
       width: 99%;
     }
 
-    .search__icon {
-      @extend .fa, .fa-search;
-
+    .search__icon,
+    .search__cancel {
       position: absolute;
-      top: 11px;
-      left: 12px;
-      color: #FFF;
+      top: 9px;
+      color: $kobo-white;
+      font-size: 24px;
+    }
 
-      &:before {
-        font-size: 18px;
-      }
+    .search__icon {
+      left: 12px;
+    }
+
+    .search__cancel {
+      cursor: pointer;
+      right: 12px;
     }
   }
 }
@@ -136,7 +125,7 @@ $headerAccountTextColor: #dbedf7;
 .popover-menu--account-menu {
   .popover-menu__content {
     min-width: 240px;
-    z-index: 1001;
+    z-index: 1101;
   }
 }
 
@@ -152,7 +141,7 @@ $headerAccountTextColor: #dbedf7;
   }
 
   .account-box__menu-item--mini-profile {
-    color: $cool-gray;
+    color: $kobo-gray-40;
     display: inline-block;
     width: calc(100% - 70px);
     line-height: 20px;
@@ -181,14 +170,15 @@ $headerAccountTextColor: #dbedf7;
     padding-bottom: 15px;
 
     a {
-      color: $cool-gray;
+      color: $kobo-gray-40;
       cursor: pointer;
       font-weight: normal;
       display: block;
 
       i {
-        font-size: 32px;
-        vertical-align: middle;
+        font-size: 24px;
+        margin: 3px;
+        vertical-align: -6px;
       }
 
       span {
@@ -196,7 +186,7 @@ $headerAccountTextColor: #dbedf7;
       }
 
       &:hover {
-        color: $cool-blue;
+        color: $kobo-blue;
       }
     }
 
@@ -213,24 +203,26 @@ $headerAccountTextColor: #dbedf7;
 
   .account-box__menu-li--lang {
     position: relative;
-    border-top: 1px solid $divider-color;
+    border-top: 1px solid $kobo-gray-92;
     padding-bottom: 5px;
 
     ul {
-      background-color: #FFF;
-      color: $cool-gray;
+      background-color: $kobo-white;
+      color: $kobo-gray-40;
       min-width: 140px;
       padding: 0;
-
-      @include box-shadow;
+      border: 1px solid $kobo-gray-92;
 
       li {
-        padding: 10px 15px;
         text-transform: capitalize;
-        border-bottom: 1px solid $divider-color;
+        padding: 0;
 
-        &:last-child {
-          border-bottom: 0px;
+        &:not(:last-child) {
+          border-bottom: 1px solid $kobo-gray-92;
+        }
+
+        a {
+          padding: 10px 15px;
         }
       }
     }
@@ -251,12 +243,13 @@ $headerAccountTextColor: #dbedf7;
       display: block;
       margin-right: 8px;
       padding: 0px;
-      color: #FFF;
+      color: $kobo-white;
 
-      i {
-        line-height: 1.5em;
-        display: inline-block;
-        font-size: 24px;
+      .k-icon.k-icon-menu {
+        font-size: 32px;
+        line-height: 32px;
+        display: block;
+        margin: 3px;
       }
     }
 
@@ -290,88 +283,73 @@ $headerAccountTextColor: #dbedf7;
 
 // Form title + desc in header, editable
 
-.form-title {
-  vertical-align: middle;
-  margin: 0px;
-  display: flex;
-  align-items: center;
-  width: calc(100% - 300px);
-  color: $cool-gray;
-
-  > i {
+.main-header {
+  .main-header__icon {
     font-size: 38px;
+    color: $kobo-gray-65;
     vertical-align: middle;
     width: 38px;
   }
 
-  .form-title__name {
+  .main-header__title {
+    vertical-align: middle;
+    margin-right: 20px;
     flex: 1;
-    color: #FFF;
+    align-items: center;
+    color: $kobo-white;
     font-size: 18px;
-    padding-right: 20px;
 
-    input[name='title'] {
-      color: #FFF;
-      font-size: 18px;
-      min-width: 100%;
-      line-height: 1.3333;
-      padding: 0 20px 0 5px;
-    }
-
-    &.form-title__name--long input[name='title'] {
+    &.main-header__title--long input {
       font-size: 14px;
     }
+
+    input {
+      background: transparent;
+      border-left: none;
+      border-right: none;
+      border-bottom: 1px solid transparent;
+      border-top: 1px solid transparent;
+      color: $kobo-white;
+      font-size: 18px;
+      margin: 0;
+      overflow: hidden;
+      padding: 3px 6px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+      // keep these pseudo-states separate
+      &::-webkit-input-placeholder {
+        color: $kobo-gray-40;
+      }
+
+      &:-ms-input-placeholder {
+        color: $kobo-gray-40;
+      }
+
+      &:hover {
+        border-bottom: 1px solid $kobo-blue;
+      }
+
+      &:focus {
+        background: rgba($kobo-white, 0.05);
+        border-bottom: 1px solid $kobo-blue;
+      }
+    }
   }
 
-  input {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    width: 100%;
-    background: transparent;
-    padding: 3px 6px;
-    margin: 0;
-    border: none;
-    border-bottom: 1px solid transparent;
-    // keep these pseudo-states separate
-    &::-webkit-input-placeholder {
-      color: darken($cool-gray, 10%);
-    }
-
-    &:-ms-input-placeholder {
-      color: darken($cool-gray, 10%);
-    }
-
-    &:hover {
-      border-bottom: 1px solid $cool-blue;
-    }
-
-    &:focus {
-      background: rgba(255, 255, 255, 0.05);
-      border-bottom: 1px solid $cool-blue;
-    }
-  }
-
-  .form-title__submissions {
+  .main-header__counter {
     font-size: 14px;
-  }
-}
-
-@media screen and (max-width: 999px) {
-  .form-view__title {
-    .form-view__name {
-      width: 80%;
-    }
-
-    .form-view__subs {
-      width: 10%;
-    }
+    margin-right: 20px;
+    color: $kobo-gray-65;
   }
 }
 
 @media screen and (max-width: 767px) {
-  .form-title__submissions {
-    display: none;
+  .main-header {
+    .main-header__icon,
+    .main-header__counter {
+      display: none;
+    }
   }
 
   .mdl-layout__header {
@@ -379,20 +357,8 @@ $headerAccountTextColor: #dbedf7;
       width: 40px;
     }
 
-    .form-title {
-      width: calc(100% - 110px);
-
-      input {
-        border-radius: 0px;
-      }
-
-      .form-title__name {
-        width: 100%;
-      }
-
-      > i {
-        display: none;
-      }
+    .main-header__title input {
+      border-radius: 0;
     }
 
     .header__logo {
@@ -412,8 +378,9 @@ $headerAccountTextColor: #dbedf7;
   border-radius: 32px;
   display: inline-block;
   vertical-align: middle;
+  line-height: 20px;
   font-size: 16px;
-  color: #FFF;
+  color: $kobo-white;
 }
 
 .account-box__menu-item--avatar {
@@ -421,6 +388,7 @@ $headerAccountTextColor: #dbedf7;
     width: 48px;
     padding: 10px;
     border-radius: 48px;
+    line-height: 28px;
     font-size: 24px;
   }
 }
@@ -438,9 +406,9 @@ $headerAccountTextColor: #dbedf7;
     z-index: 100;
 
     .git-rev__item {
-      color: white;
+      color: $kobo-white;
       opacity: 0.85;
-      background: darken($cool-green, 10%);
+      background: darken($kobo-teal, 10%);
       margin-top: 5px;
       padding: 6px 12px;
       display: block;
@@ -455,7 +423,7 @@ $headerAccountTextColor: #dbedf7;
     ul {
       opacity: 1;
       position: static;
-      border: 1px solid $divider-color;
+      border: 1px solid $kobo-gray-92;
       margin-left: 12px;
       padding: 0px;
       max-height: 1000px;

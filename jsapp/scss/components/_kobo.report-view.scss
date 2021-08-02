@@ -8,48 +8,22 @@
   padding-bottom: 16px;
 }
 
-.report-view__warning {
-  background-color: #FFF;
-
-  @include box-shadow;
-
-  padding: 16px 24px;
-
-  p {
-    font-size: 13px;
-    line-height: 1.3em;
-    margin: 0;
-    color: $cool-gray;
-  }
-
-  h4 {
-    color: $cool-red;
-    margin: 0px;
-    padding: 0px;
-    padding-bottom: 8px;
-    font-size: 16px;
-    font-weight: normal;
-  }
-}
-
 .report-view__item {
-  background-color: #FFF;
-
-  @include box-shadow;
-
+  border: 1px solid $kobo-gray-92;
   margin: 15px 0px;
+  background: $kobo-white;
 }
 
 .report-view__itemHeading {
   padding: 10px 24px;
-  border-left: 5px solid $cool-green;
-  border-bottom: 1px solid #CCC;
+  border-left: 5px solid $kobo-teal;
+  border-bottom: 1px solid $kobo-gray-92;
   position: relative;
 
   h2 {
     margin: 0px;
     margin-right: 60px;
-    color: $cool-green;
+    color: $kobo-teal;
     font-size: 16px;
     font-weight: normal;
     line-height: 1.35em;
@@ -86,8 +60,8 @@
     thead th {
       margin: 0px;
       padding: 8px;
-      background-color: lighten($cool-gray, 10%);
-      color: white;
+      background-color: $kobo-gray-40;
+      color: $kobo-white;
       text-align: right;
       font-weight: normal;
       font-size: 14px;
@@ -98,7 +72,7 @@
     }
 
     tbody tr td {
-      border-bottom: 1px solid #CCC;
+      border-bottom: 1px solid $kobo-gray-65;
       padding: 8px;
       text-align: right;
 
@@ -139,11 +113,6 @@
   }
 
   button {
-    i.fa {
-      font-size: 18px;
-      margin-left: 8px;
-    }
-
     &.report-button__edit,
     &.report-button__settings {
       overflow: visible;
@@ -203,7 +172,7 @@
     margin-bottom: 20px;
     display: block;
     font-weight: 400;
-    color: $cool-gray;
+    color: $kobo-gray-40;
   }
 }
 
@@ -225,7 +194,7 @@
   }
 
   input:checked + label {
-    border: 2px solid $cool-blue;
+    border: 2px solid $kobo-blue;
   }
 
   &--vertical {

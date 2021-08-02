@@ -3,34 +3,25 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import _ from 'underscore';
-
-import {dataInterface} from '../dataInterface';
-import actions from '../actions';
-import bem from '../bem';
-import stores from '../stores';
-import Select from 'react-select';
-import ui from '../ui';
+import {actions} from '../actions';
+import {bem} from '../bem';
+import {stores} from '../stores';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import FormGallery from '../components/formGallery/formGallery';
 import SharingForm from '../components/modalForms/sharingForm';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import DataTable from '../components/table';
-
-import {ProjectDownloads} from '../components/formEditors';
-
+import ConnectProjects from 'js/components/dataAttachments/connectProjects';
+import FormMedia from './modalForms/formMedia';
+import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
+import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
-
-import FormMap from '../components/map';
-import RESTServices from '../components/RESTServices';
-
-import {
-  assign,
-  t,
-  log,
-  notify,
-} from '../utils';
+import FormMap from './map';
+import RESTServices from './RESTServices';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
+import {ROUTES} from 'js/constants.es6';
 
 export class FormSubScreens extends React.Component {
   constructor(props){
@@ -41,80 +32,68 @@ export class FormSubScreens extends React.Component {
   componentDidMount () {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
-    if (this.props.randdelay && uid) {
-      window.setTimeout(()=>{
-        actions.resources.loadAsset({id: uid});
-      }, Math.random() * 3000);
-    } else if (uid) {
+    if (uid) {
       actions.resources.loadAsset({id: uid});
     }
   }
   render () {
+    let permAccess = this.userCan('view_submissions', this.state) || this.userCanPartially('view_submissions', this.state);
+
     if (!this.state.permissions)
       return false;
 
-    if (this.props.location.pathname != `/forms/${this.state.uid}/settings` &&
-        !this.userCan('view_submissions', this.state)) {
-      return this.renderDenied();
-    }
-
-    if (this.props.location.pathname == `/forms/${this.state.uid}/settings` &&
+    if ((this.props.location.pathname == `/forms/${this.state.uid}/settings` || this.props.location.pathname == `/forms/${this.state.uid}/settings/sharing`) &&
+        // TODO: Once "Manage Project" permission is added, remove "Edit Form" access here
         !this.userCan('change_asset', this.state)) {
-      return this.renderDenied();
+      return (<AccessDeniedMessage/>);
     }
 
-    var formClass = '', iframeUrl = '', report__base = '', deployment__identifier = '';
+    if (this.props.location.pathname == `/forms/${this.state.uid}/settings/rest` && !permAccess) {
+      return (<AccessDeniedMessage/>);
+    }
+
+    var iframeUrl = '';
+    var report__base = '';
+    var deployment__identifier = '';
 
     if (this.state.uid != undefined) {
       if (this.state.deployment__identifier != undefined) {
-        var deployment__identifier = this.state.deployment__identifier;
-        var report__base = deployment__identifier.replace('/forms/', '/reports/');
+        deployment__identifier = this.state.deployment__identifier;
+        report__base = deployment__identifier.replace('/forms/', '/reports/');
       }
       switch(this.props.location.pathname) {
-        case `/forms/${this.state.uid}/data/report-legacy`:
-          iframeUrl = report__base+'/digest.html';
-          break;
-        case `/forms/${this.state.uid}/data/table`:
+        case ROUTES.FORM_TABLE.replace(':uid', this.state.uid):
           return <DataTable asset={this.state} />;
-          break;
-        case `/forms/${this.state.uid}/data/table-legacy`:
-          iframeUrl = report__base+'/export.html';
-          break;
-        case `/forms/${this.state.uid}/data/gallery`:
+        case ROUTES.FORM_GALLERY.replace(':uid', this.state.uid):
           return this.renderFormGallery();
           break;
-        case `/forms/${this.state.uid}/data/map`:
+        case ROUTES.FORM_MAP.replace(':uid', this.state.uid):
           return <FormMap asset={this.state} />;
-          break;
-        case `/forms/${this.state.uid}/data/map/${this.props.params.viewby}`:
+        case ROUTES.FORM_MAP_BY
+            .replace(':uid', this.state.uid)
+            .replace(':viewby', this.props.params.viewby):
           return <FormMap asset={this.state} viewby={this.props.params.viewby}/>;
-          break;
-        case `/forms/${this.state.uid}/data/downloads`:
+        case ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.uid):
           return this.renderProjectDownloads();
-          break;
-        case `/forms/${this.state.uid}/settings`:
-          if (deployment__identifier != '')
-            iframeUrl = deployment__identifier+'/form_settings';
-          return this.renderSettingsEditor(iframeUrl);
-          break;
-        case `/forms/${this.state.uid}/settings/media`:
-          iframeUrl = deployment__identifier+'/form_settings';
-          break;
-        case `/forms/${this.state.uid}/settings/sharing`:
+        case ROUTES.FORM_SETTINGS.replace(':uid', this.state.uid):
+          return this.renderSettingsEditor();
+        case ROUTES.FORM_MEDIA.replace(':uid', this.state.uid):
+          return this.renderUpload();
+        case ROUTES.FORM_SHARING.replace(':uid', this.state.uid):
           return this.renderSharing();
-          break;
-        case `/forms/${this.state.uid}/settings/rest`:
+        case ROUTES.FORM_RECORDS.replace(':uid', this.state.uid):
+          return this.renderRecords();
+        case ROUTES.FORM_REST.replace(':uid', this.state.uid):
           return <RESTServices asset={this.state} />;
-          break;
-        case `/forms/${this.state.uid}/settings/rest/${this.props.params.hookUid}`:
+        case ROUTES.FORM_REST_HOOK
+            .replace(':uid', this.state.uid)
+            .replace(':hook', this.props.params.hookUid):
           return <RESTServices asset={this.state} hookUid={this.props.params.hookUid}/>;
-          break;
-        case `/forms/${this.state.uid}/settings/kobocat`:
+        case ROUTES.FORM_KOBOCAT.replace(':uid', this.state.uid):
           iframeUrl = deployment__identifier+'/form_settings';
           break;
-        case `/forms/${this.state.uid}/reset`:
+        case ROUTES.FORM_RESET.replace(':uid', this.state.uid):
           return this.renderReset();
-          break;
       }
     }
 
@@ -146,17 +125,7 @@ export class FormSubScreens extends React.Component {
       </DocumentTitle>
     );
   }
-  renderSharing() {
-    var docTitle = this.state.name || t('Untitled');
-    return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <bem.FormView m={'settings-sharing'}>
-            <SharingForm />
-          </bem.FormView>
-        </DocumentTitle>
-    );
-  }
-  renderSettingsEditor(iframeUrl) {
+  renderSettingsEditor() {
     var docTitle = this.state.name || t('Untitled');
     return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
@@ -164,7 +133,6 @@ export class FormSubScreens extends React.Component {
             <ProjectSettings
               context={PROJECT_SETTINGS_CONTEXTS.EXISTING}
               formAsset={this.state}
-              iframeUrl={iframeUrl}
             />
           </bem.FormView>
         </DocumentTitle>
@@ -174,42 +142,45 @@ export class FormSubScreens extends React.Component {
     var docTitle = this.state.name || t('Untitled');
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <ProjectDownloads asset={this.state} />
+        <React.Fragment>
+          {!stores.session.isLoggedIn &&
+            <AccessDeniedMessage/>
+          }
+          {stores.session.isLoggedIn &&
+            <bem.FormView className='project-downloads'>
+              <ProjectExportsCreator asset={this.state} />
+              <ProjectExportsList asset={this.state} />
+            </bem.FormView>
+          }
+        </React.Fragment>
       </DocumentTitle>
     );
   }
   renderSharing() {
+    const uid = this.props.params.assetid || this.props.params.uid;
     return (
       <bem.FormView m='form-settings-sharing'>
-        <SharingForm uid={this.props.params.assetid} />
+        <SharingForm uid={uid} />
+      </bem.FormView>
+    );
+  }
+  renderRecords() {
+    return (
+      <bem.FormView className='connect-projects'>
+        <ConnectProjects asset={this.state}/>
       </bem.FormView>
     );
   }
   renderReset() {
+    return (<LoadingSpinner/>);
+  }
+
+  renderUpload() {
     return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i />
-          {t('loading...')}
-        </bem.Loading__inner>
-      </bem.Loading>
+      <FormMedia asset={this.state}/>
     );
   }
-  renderDenied() {
-    return (
-      <bem.FormView>
-        <bem.Loading>
-          <bem.Loading__inner>
-            <h3>
-              {t('Access Denied')}
-            </h3>
-            {t('You do not have permission to view this page.')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      </bem.FormView>
-    );
-  }
-};
+}
 
 reactMixin(FormSubScreens.prototype, Reflux.ListenerMixin);
 reactMixin(FormSubScreens.prototype, mixins.dmix);

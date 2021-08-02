@@ -1,16 +1,13 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# coding: utf-8
 # 😬
 
-from __future__ import (unicode_literals, print_function,
-                        absolute_import, division)
 
+class RowHandler:
 
-class RowHandler(object):
     def handle_row(self, row):
-        '''
+        """
         handle_row(row) should return False to return to the base handler
-        '''
+        """
         raise NotImplementedError("RowHandler.handle_row"
                                   " must be overridden by subclass")
 

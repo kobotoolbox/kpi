@@ -9,6 +9,7 @@ $inputDeserializer = require './model.inputDeserializer'
 $inputParser = require './model.inputParser'
 $markdownTable = require './model.utils.markdownTable'
 csv = require './csv'
+LOCKING_PROFILES_PROP_NAME = require('js/components/locking/lockingConstants').LOCKING_PROFILES_PROP_NAME
 
 module.exports = do ->
   class Survey extends $surveyFragment.SurveyFragment
@@ -24,6 +25,12 @@ module.exports = do ->
 
       if (sname = @settings.get("name") or options.name)
         @set("name", sname)
+
+      ###
+      # We don't use locking profiles in any way yet, so we just store it for
+      # saving - for checking these out, coffee code is using raw survey JSON.
+      ###
+      @lockingProfiles = options[LOCKING_PROFILES_PROP_NAME]
 
       @newRowDetails = options.newRowDetails || $configs.newRowDetails
       @defaultsForType = options.defaultsForType || $configs.defaultsForType
@@ -85,23 +92,50 @@ module.exports = do ->
       if !row.rows && rowlist = row.getList()
         @choices.add(name: rowlist.get("name"), options: rowlist.options.toJSON())
 
-    insertSurvey: (survey, index=-1)->
-      index = @rows.length  if index is -1
+    insertSurvey: (survey, index=-1, targetGroupId)->
+      index = @rows.length if index is -1
       for row, row_i in survey.rows.models
+        # if target is a group, not root list of rows, we need to switch
+        target = @
+        if targetGroupId
+          foundGroup = @findRowByCid(targetGroupId, {includeGroups: true})
+          if foundGroup
+            target = foundGroup
+          else
+            throw new Error("Couldn't find group #{targetGroupId}!")
+
         index_incr = index + row_i
+
+        # inserting a group
         if row.rows
-          # item is a group
-          group = row
-          if group.forEachRow
-            group.forEachRow(((r)=> @_ensure_row_list_is_copied(r)), includeGroups: true)
-          @_insertRowInPlace group, {'index': index_incr, 'noDetach': true}
+          if row.forEachRow
+            row.forEachRow(
+              (r) => @_ensure_row_list_is_copied(r),
+              {includeGroups: true}
+            )
+
+          @_insertRowInPlace(
+            row,
+            {
+              index: index_incr,
+              parent: target,
+              noDetach: true
+            }
+          )
+
+          # inserting a group (block from Library) doesn't trigger change event
+          # anywhere else, so we do it here manually
+          @trigger('change')
+        # inserting a question
         else
           @_ensure_row_list_is_copied(row)
-          # its a group
           name_detail = row.get('name')
           name_detail.set 'value', name_detail.deduplicate(@)
-          @rows.add(row.toJSON(), at: index_incr)
-      ``
+          target.rows.add(
+            row.toJSON(),
+            at: index_incr
+          )
+      return
 
     toFlatJSON: (stringify=false, spaces=4)->
       obj = @toJSON()
@@ -122,6 +156,9 @@ module.exports = do ->
         obj.choices = flattened_choices
 
       obj.settings = [@settings.attributes]
+
+      if @lockingProfiles
+        obj[LOCKING_PROFILES_PROP_NAME] = @lockingProfiles
 
       if stringify
         JSON.stringify(obj, null, spaces)
@@ -172,7 +209,8 @@ module.exports = do ->
         else
           logFn tabs.join(''), r.get('label').get('value')
       @forEachRow(logr, flat: true, includeGroups: true)
-      ``
+      return
+
     summarize: ->
       rowCount = 0
       hasGps = false
@@ -198,8 +236,11 @@ module.exports = do ->
         index = parent.rows.indexOf(previous) + 1
       if !parent
         parent = @
-      parent.rows.add(row, at: index, silent: true)
+      parent.rows.add(row, {at: index})
+
+      # line below looks like BAD CODE™ but in fact it enables row reordering
       row._parent = parent.rows
+
       if opts.event
         parent.rows.trigger(opts.event)
       return

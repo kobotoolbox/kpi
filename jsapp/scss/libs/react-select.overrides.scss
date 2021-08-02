@@ -1,3 +1,20 @@
+@import "../colors";
+
+.kobo-select__wrapper {
+  &.kobo-select__wrapper--error {
+    > label,
+    .kobo-select-label,
+    .kobo-select-error,
+    .kobo-select .kobo-select__placeholder {
+      color: $kobo-red;
+    }
+
+    .kobo-select .kobo-select__control {
+      border-bottom-color: $kobo-red;
+    }
+  }
+}
+
 .kobo-select-label {
   display: block;
   color: inherit;
@@ -11,21 +28,34 @@
   }
 }
 
+.kobo-select-error {
+  font-size: 12px;
+}
+
 .kobo-select {
+  &.kobo-select--is-disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
   .kobo-select__control {
     box-shadow: none;
     border: none;
-    border-bottom: 1px solid $cool-lightgray;
-    border-radius: 0;
-    background-color: white;
-    transition: border-bottom-color 250ms;
+    border-radius: 3px;
+    color: $kobo-gray-40;
+    background-color: $kobo-white;
+    min-height: 24px;
+    font-size: 12px;
+    padding: 0 8px;
+    box-sizing: border-box;
+    cursor: pointer;
 
     &:hover {
-      border-bottom-color: $cool-lightgray;
+      border-color: $kobo-gray-92;
     }
 
     &.kobo-select__control--is-focused {
-      border-bottom-color: $cool-blue;
+      border-color: $kobo-blue;
     }
   }
 
@@ -37,7 +67,7 @@
   }
 
   .kobo-select__placeholder {
-    color: $cool-gray;
+    color: $kobo-gray-40;
   }
 
   .kobo-select__indicator-separator {
@@ -45,21 +75,35 @@
   }
 
   .kobo-select__menu {
+    @include box-shadow;
+    border-radius: 4px;
     // getting select menus to appear over checkboxes
     z-index: 2;
-    @include box-shadow;
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   .kobo-select__menu-list {
-    max-height: 36px * 3.5 + 8px; // display 3.5 items
+    // NOTE: we previously restricted height of select dropdown by brute force
+    // but it seems that our current version of react-select handles this very
+    // well. I will leave this commented out for now here.
+    // max-height: 36px * 3.5 + 8px; // display 3.5 items
+    padding-top: 0;
+    padding-bottom: 0;
   }
 
   .kobo-select__option {
-    &.kobo-select__option--is-focused {
-      background-color: lighten($cool-blue, 40%);
-    }
+    cursor: pointer;
+
     &.kobo-select__option--is-selected {
-      background-color: $cool-blue;
+      background-color: $kobo-white;
+      color: $kobo-blue;
+      font-weight: 700;
+    }
+
+    // is-focused needs to go after is-selected
+    &.kobo-select__option--is-focused {
+      background-color: $kobo-gray-96;
     }
   }
 }

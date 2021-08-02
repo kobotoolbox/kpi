@@ -20,9 +20,20 @@
     display: none;
   }
 
-  &:hover {
+  // display button for adding row when hovering,
+  // or when an input inside has focus (useful for keyboard navigation)
+  &:hover,
+  &:focus-within {
     > .survey__row__spacer > .btn--addrow {
       display: block;
+    }
+  }
+
+  // for displaying after row was added
+  .btn--addrow-force-show {
+    // don't override when hidden by locking profile restriction
+    &:not(.locking__ui-hidden) {
+      display: block !important;
     }
   }
 }
@@ -41,7 +52,7 @@
 }
 
 .score_preview, .rank_preview {
-  background-color: #fff;
+  background-color: $kobo-white;
   margin-left: -16px;
 }
 
@@ -55,15 +66,16 @@
   border: 0 none;
   background-color: transparent;
   float: right;
-  color: rgba(181, 15, 15, 0.33);
+  color: $kobo-red;
+  cursor: pointer;
 
   &:hover {
-    color: rgba(181, 15, 15, 1);
+    color: $kobo-red-dark;
   }
 }
 
 .scorecell__col {
-  border: 1px solid #ccc;
+  border: 1px solid $kobo-gray-65;
   border-width: 1px 0 0.5px 1px;
   text-align: center;
   padding: 0;
@@ -78,43 +90,7 @@
   }
 }
 
-.scorerow--add {
-  button {
-    &:hover {
-      background-color: #d3d3d3;
-    }
-
-    cursor: pointer;
-    background-color: #f3f3f3;
-    font-weight: bold;
-    display: block;
-    width: 100%;
-    padding: 2px 6px;
-    border: 1px solid $cool-lightgray;
-  }
-}
-
-.scorecell--add {
-  vertical-align: bottom;
-
-  span {
-    &:hover {
-      background-color: #d3d3d3;
-    }
-
-    cursor: pointer;
-    background-color: #f3f3f3;
-    font-weight: bold;
-    display: inline-block;
-    padding: 2px 6px;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border: 1px solid $cool-lightgray;
-    border-width: 1px 1px 1px 0;
-  }
-}
-
-$scorebordercolor: #ccc;
+$scorebordercolor: $kobo-gray-65;
 
 tr:first-child .scorelabel {
   border-top-width: 1px;
@@ -128,11 +104,11 @@ tr:first-child .scorelabel {
   border-left-color: $scorebordercolor;
   border-right-width: 1px;
   border-right-style: solid;
-  border-right-color: $cool-lightgray;
+  border-right-color: $kobo-gray-92;
 }
 
 .scorelabel, .scorecell__radio {
-  border-bottom: 1px dotted $cool-lightgray;
+  border-bottom: 1px dotted $kobo-gray-92;
   padding: 4px 6px;
 }
 
@@ -151,7 +127,7 @@ tr:last-child {
 }
 
 .score__options {
-  background-color: #fff;
+  background-color: $kobo-white;
   padding: 12px 0;
 }
 
@@ -168,11 +144,11 @@ tr:last-child {
 }
 
 tr:hover .scorecell__radio {
-  background-color: #fafafa;
+  background-color: $kobo-gray-96;
 }
 
 tr .scorecell__radio:hover {
-  background-color: #f8f8f8;
+  background-color: $kobo-gray-96;
 }
 
 .rank__rows {
@@ -185,7 +161,7 @@ tr .scorecell__radio:hover {
 
 .rank__levels, .rank__rows {
   float: left;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba($kobo-white, 0.5);
   padding: 4px 20px 18px 2px;
   margin: 0;
 }
@@ -202,7 +178,7 @@ tr .scorecell__radio:hover {
 
 .rank_items__constraint_explanation {
   font-size: 10px;
-  color: #888;
+  color: $kobo-gray-40;
   text-decoration: underline;
 }
 
@@ -218,13 +194,13 @@ tr .scorecell__radio:hover {
 
 .rank_items__item, .rank_items__level {
   border: 1px solid;
-  border-color: rgb(194, 176, 176) rgb(194, 176, 176) rgb(194, 176, 176) rgb(194, 176, 176);
+  border-color: $kobo-gray-65;
   border-radius: 4px;
 }
 
 .rank_items__constraint_message {
   font-size: 92%;
-  color: #444;
+  color: $kobo-gray-24;
   font-style: italic;
 
   &:before {
@@ -236,7 +212,7 @@ tr .scorecell__radio:hover {
       content: '';
     }
 
-    color: #777;
+    color: $kobo-gray-40;
   }
 
   div {
@@ -251,24 +227,24 @@ tr .scorecell__radio:hover {
 .rank_items__add {
   list-style-type: none;
 
-  button {
+  .btn {
     display: block;
-    width: 35%;
+    width: 100%;
     line-height: 10px;
   }
 }
 
 .scorecell__name {
   margin: 0 0 -1px 0;
-  background-color: #f1f1f1;
-  color: #868686;
-  line-height: 13px;
+  background-color: $kobo-gray-96;
+  color: $kobo-gray-40;
+  line-height: 15px;
   font-size: 9px;
 }
 
 .scorecell__name, .scorelabel__name {
   display: block;
-  border-bottom: 1px dotted $cool-lightgray;
+  border-bottom: 1px dotted $kobo-gray-92;
 
   br {
     display: none;
@@ -276,8 +252,6 @@ tr .scorecell__radio:hover {
 }
 
 .scorelabel__name, .rank__rows .rank_items__name {
-  opacity: 0.8;
-
   &:before, &:after {
     line-height: 20px;
     margin: 0 3px;
@@ -316,10 +290,10 @@ tr .scorecell__radio:hover {
 }
 
 .kobomatrix-warning {
-  color: rgb(193, 128, 128);
+  color: $kobo-orange-dark;
   position: absolute;
   top: 0;
-  right: 30px;
+  right: 5px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width;
   text-align: right;
   margin: 0;
   padding: 2px;
@@ -328,11 +302,11 @@ tr .scorecell__radio:hover {
 
 .scorecell__name, .scorelabel__name, .rank_items__name {
   font-size: 90%;
-  color: #bbb;
+  color: $kobo-gray-40;
 
   &.prelim {
     font-style: italic;
-    color: $cool-lightgray;
+    color: $kobo-gray-92;
   }
 }
 
@@ -357,7 +331,7 @@ $nested-btn--addrow-height: 24px;
 
 //== usage:
 //   div.btn--addrow
-//     i.fa.fa-plus ''
+//     i.k-icon.k-icon-plus ''
 .btn--addrow {
   background-color: transparent;
   width: 52px;
@@ -366,10 +340,11 @@ $nested-btn--addrow-height: 24px;
   left: -50px;
   top: -20px;
 
-  .fa {
+  .k-icon {
     background-color: $addButtonColor;
     display: block;
     width: 24px;
+    font-size: 21px;
     height: $btn--addrow-height;
     line-height: $btn--addrow-height;
     border-radius: $buttonBorderRadius;
@@ -377,10 +352,11 @@ $nested-btn--addrow-height: 24px;
 
   // when debugging, it's helpful to mock :hover
   // &:hover, &.hover {
-  &:hover {
+  &:hover,
+  &:focus {
     background-color: transparent;
 
-    .fa {
+    .k-icon {
       background-color: $addButtonColorHover;
     }
   }
@@ -388,8 +364,6 @@ $nested-btn--addrow-height: 24px;
 
 .no-touch .btn--addrow {
   padding: $click-area-btn--addrow-padding-tb 0 0 11px;
-
-  // z-index: 1;
 }
 
 .touch .btn--addrow {
@@ -410,7 +384,7 @@ $nested-btn--addrow-height: 24px;
   z-index: 101;
 
   // 101 so it is above .btn--addrow when last item in group
-  .fa {
+  .k-icon {
     width: 22px;
     height: 22px;
     line-height: 22px;
@@ -436,6 +410,10 @@ $nested-btn--addrow-height: 24px;
 // display last row's button, but not for groups
 .survey-editor__list > .survey__row:not(.survey__row--group):last-child .btn--addrow {
   display: block;
+}
+
+.survey-editor__list > .survey__row:last-child {
+  margin-bottom: 30px;
 }
 
 // helper class

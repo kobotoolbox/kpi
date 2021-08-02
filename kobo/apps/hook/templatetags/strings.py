@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 from django import template
-from datetime import date, timedelta
 
 register = template.Library()
 

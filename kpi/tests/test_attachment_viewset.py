@@ -15,8 +15,12 @@ from mock import patch, MagicMock
 
 from kpi.models import Asset
 #from kpi.utils import image_tools
-from kpi.views import AttachmentViewSet
-from kpi.deployment_backends.kc_access.shadow_models import _models
+from kpi.views.v2.attachment import AttachmentViewSet
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatXForm,
+    ReadOnlyKobocatInstance,
+    ReadOnlyKobocatAttachment,
+)
 
 
 class AttachmentViewsetTestCase(TestCase):
@@ -47,7 +51,7 @@ class AttachmentViewsetTestCase(TestCase):
         return asset
 
     def _generateXForm(self, id_string, title='Test XForm', user=None, questions=[]):
-        xform = _models.XForm(
+        xform = KobocatXForm(
             pk=len(self.SAVED_XFORMS) + 1,
             id_string=id_string,
             title=title,
@@ -59,7 +63,7 @@ class AttachmentViewsetTestCase(TestCase):
 
     def _generateInstance(self, uuid, xform, status='test status', answers={}):
         now = datetime.datetime.now()
-        instance = _models.Instance(
+        instance = ReadOnlyKoBocatInstance(
             pk=len(self.SAVED_INSTANCES) + 1,
             uuid=uuid,
             status=status,
@@ -72,7 +76,7 @@ class AttachmentViewsetTestCase(TestCase):
         return instance
 
     def _generateAttachment(self, instance, filename, size=1000, mimetype='image/jpeg'):
-        attachment = _models.Attachment(
+        attachment = ReadOnlyKobocatAttachment(
             pk=len(self.SAVED_ATTACHMENTS) + 1,
             instance=instance,
             media_file=self._mockFile(filename, size),
@@ -143,7 +147,7 @@ class AttachmentViewsetTestCase(TestCase):
         )
 
         self.parent_qs = MockSet(self.asset, model=MagicMock(spec=Asset, return_value=True))
-        self.qs = MockSet(*self.SAVED_ATTACHMENTS, model=_models.Attachment)
+        self.qs = MockSet(*self.SAVED_ATTACHMENTS, model=ReadOnlyKobocatAttachment)
 
     def setUp(self):
         self._setUpData()
@@ -156,7 +160,7 @@ class AttachmentViewsetTestCase(TestCase):
         })
 
     def test_list_view(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 url = '/assets/%s/attachmments' % self.asset.uid
                 request = self.factory.get(url)
@@ -172,8 +176,8 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEquals(len(data['results']), len(self.SAVED_ATTACHMENTS))
 
     def test_list_view_no_results(self):
-        empty = MockSet(model=_models.Attachment)
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', empty):
+        empty = MockSet(model=ReadOnlyKobocatAttachment)
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', empty):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 url = '/assets/%s/attachmments' % self.asset.uid
                 request = self.factory.get(url)
@@ -189,7 +193,7 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEquals(len(data['results']), 0)
 
     def test_list_view_asset_not_found(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             empty = MockSet(model=Asset)
             with patch('kpi.models.Asset.objects', empty):
                 url = '/assets/%s/attachmments' % self.asset.uid
@@ -198,9 +202,9 @@ class AttachmentViewsetTestCase(TestCase):
                 response = self.list_view(request, parent_lookup_asset=self.asset.uid)
                 self.assertEqual(response.status_code, 404)
 
-    #@patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.secure_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
+    #@patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.secure_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
     def test_retrieve_view(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 expected = self.SAVED_ATTACHMENTS[-1]
                 pk = expected.pk
@@ -221,8 +225,8 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertIsNotNone(data['submission'])
 
     def test_retrieve_view_attachment_not_found(self):
-        empty = MockSet(model=_models.Attachment)
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', empty):
+        empty = MockSet(model=ReadOnlyKobocatAttachment)
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', empty):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 pk = self.SAVED_ATTACHMENTS[-1].pk
                 url = '/assets/%s/attachmments/%s' % (self.asset.uid, pk)
@@ -233,7 +237,7 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEqual(response.status_code, 404)
 
     def test_retrieve_view_asset_not_found(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             empty = MockSet(model=Asset)
             with patch('kpi.models.Asset.objects', empty):
                 pk = self.SAVED_ATTACHMENTS[-1].pk
@@ -245,7 +249,7 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEqual(response.status_code, 404)
 
     def test_list_view_filter_by_type(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 type = 'image'
                 url = '/assets/%s/attachmments?type=%s' % (self.asset.uid, type)
@@ -262,7 +266,7 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEquals(len(data['results']), len(self.SAVED_ATTACHMENTS))
 
     def test_list_view_filter_by_non_image_type(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 type = 'survey'
                 url = '/assets/%s/attachmments?type=%s' % (self.asset.uid, type)
@@ -279,7 +283,7 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEquals(len(data['results']), 0)
 
     def test_list_view_paging(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 page_size = 2
                 url = '/assets/%s/attachmments?page_size=%s' % (self.asset.uid, page_size)
@@ -300,7 +304,7 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEquals(len(data['results']), page_size)
 
     def test_list_view_group_by_submission(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 group_by = 'submission'
                 url = '/assets/%s/attachmments?group_by=%s' % (self.asset.uid, group_by)
@@ -326,7 +330,7 @@ class AttachmentViewsetTestCase(TestCase):
                     self.assertEqual(len(attachments['results']), 2)
 
     def test_list_view_group_by_question(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 group_by = 'question'
                 url = '/assets/%s/attachmments?group_by=%s' % (self.asset.uid, group_by)
@@ -352,7 +356,7 @@ class AttachmentViewsetTestCase(TestCase):
 
     @patch('kpi.serializers.image_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
     def test_retrieve_view_raw_image(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 expected = self.SAVED_ATTACHMENTS[-1]
                 pk = expected.pk
@@ -367,7 +371,7 @@ class AttachmentViewsetTestCase(TestCase):
 
     @patch('kpi.serializers.image_url', MagicMock(side_effect=lambda att, size: att.media_file.url))
     def test_retrieve_view_resized_raw_image(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 expected = self.SAVED_ATTACHMENTS[-1]
                 pk = expected.pk
@@ -382,7 +386,7 @@ class AttachmentViewsetTestCase(TestCase):
                 self.assertEqual(response.url, expected.media_file.url) # True since we're mocking image_url :)
 
     def test_retrieve_view_raw_image_does_not_exist(self):
-        with patch('kpi.deployment_backends.kc_access.shadow_models._models.Attachment.objects', self.qs):
+        with patch('kpi.deployment_backends.kc_access.shadow_models.ReadOnlyKobocatAttachment.objects', self.qs):
             with patch('kpi.models.Asset.objects', self.parent_qs):
                 expected = self.SAVED_ATTACHMENTS[-1]
                 pk = expected.pk

@@ -1,7 +1,8 @@
+# coding: utf-8
 import constance
 from django.conf import settings
 
-from hub.models import ConfigurationFile
+from hub.models import ConfigurationFile, PerUserSetting
 from hub.utils.i18n import I18nUtils
 
 
@@ -9,10 +10,14 @@ def external_service_tokens(request):
     out = {}
     if settings.GOOGLE_ANALYTICS_TOKEN:
         out['google_analytics_token'] = settings.GOOGLE_ANALYTICS_TOKEN
-    if settings.INTERCOM_APP_ID:
-        out['intercom_app_id'] = settings.INTERCOM_APP_ID
     if settings.RAVEN_JS_DSN:
         out['raven_js_dsn'] = settings.RAVEN_JS_DSN
+    try:
+        intercom_setting = PerUserSetting.objects.get(name='INTERCOM_APP_ID')
+    except PerUserSetting.DoesNotExist:
+        pass
+    else:
+        out['intercom_app_id'] = intercom_setting.get_for_user(request.user)
     return out
 
 
@@ -37,7 +42,7 @@ def sitewide_messages(request):
     return {}
 
 
-class CombinedConfig(object):
+class CombinedConfig:
     '''
     An object that gets its attributes from both a dictionary (`extra_config`)
     AND a django-constance LazyConfig object

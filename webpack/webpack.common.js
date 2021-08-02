@@ -1,8 +1,8 @@
+const BundleTracker = require('webpack-bundle-tracker');
+const ExtractTranslationKeysPlugin = require('webpack-extract-translation-keys-plugin');
+const lodash = require('lodash');
 const path = require('path');
 const webpack = require('webpack');
-const BundleTracker = require('webpack-bundle-tracker');
-const StyleLintPlugin = require('stylelint-webpack-plugin');
-var merge = require('lodash.merge');
 
 // HACK: we needed to define this postcss-loader because of a problem with
 // including CSS files from node_modules directory, i.e. this build error:
@@ -20,14 +20,38 @@ const postCssLoader = {
   }
 };
 
-var defaultOptions = {
+var commonOptions = {
   module: {
     rules: [
       {
-        enforce: "pre",
+        enforce: 'pre',
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
         loader: 'eslint-loader',
+        options: {
+          quiet: true
+        }
+      },
+      {
+        enforce: 'pre',
+        test: /\.coffee$/,
+        exclude: /node_modules/,
+        loader: 'less-terrible-coffeelint-loader',
+        options: {
+          failOnErrors: true,
+          failOnWarns: false,
+          // custom reporter function that only returns errors (no warnings)
+          reporter: function(errors) {
+            errors.forEach((error) => {
+              if (error.level === 'error') {
+                this.emitError([
+                  error.lineNumber,
+                  error.message,
+                ].join(' ') + '\n');
+              }
+            });
+          },
+        },
       },
       {
         test: /\.(js|jsx|es6)$/,
@@ -35,8 +59,8 @@ var defaultOptions = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ["env","react"],
-            plugins: ["add-module-exports", "react-hot-loader/babel"]
+            presets: ['@babel/preset-env', '@babel/preset-react'],
+            plugins: ['react-hot-loader/babel']
           }
         }
       },
@@ -56,7 +80,7 @@ var defaultOptions = {
       },
       {
         test: /\.(png|jpg|gif|ttf|eot|svg|woff(2)?)$/,
-        use : {
+        use: {
           loader: 'file-loader',
           options: {
             name: '[name].[ext]'
@@ -70,22 +94,30 @@ var defaultOptions = {
     alias: {
       app: path.join(__dirname, '../app'),
       js: path.join(__dirname, '../jsapp/js'),
+      scss: path.join(__dirname, '../jsapp/scss'),
       utils: path.join(__dirname, '../jsapp/js/utils'),
       test: path.join(__dirname, '../test'),
     }
   },
   plugins: [
-    new StyleLintPlugin({
-      failOnError: false,
-      emitErrors: true,
-      syntax: 'scss',
-      files: './jsapp/**/*.scss'
+    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'}),
+    new ExtractTranslationKeysPlugin({
+      functionName: 't',
+      output: path.join(__dirname, '../jsapp/compiled/extracted-strings.json'),
     }),
-    new BundleTracker({path: __dirname, filename: '../webpack-stats.json'})
+    new webpack.ProvidePlugin({
+      '$': 'jquery'
+    })
   ]
-}
+};
 
 module.exports = function (options) {
-  options = merge(defaultOptions, options || {});
+  options = lodash.mergeWith(
+    commonOptions, options || {},
+    (objValue, srcValue) => {
+      if (lodash.isArray(objValue)) {
+        return objValue.concat(srcValue);
+    }
+  });
   return options;
 };

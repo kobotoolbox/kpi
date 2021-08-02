@@ -1,5 +1,6 @@
+# coding: utf-8
 import os
-import sys
+
 import subprocess
 import atexit
 import signal
@@ -8,6 +9,7 @@ from django.conf import settings
 from django.contrib.staticfiles.management.commands.runserver import Command\
     as StaticfilesRunserverCommand
 
+
 class Command(StaticfilesRunserverCommand):
     # As described in this blog post:
     # http://lincolnloop.com/blog/simplifying-your-django-frontend-tasks-grunt/
@@ -15,12 +17,13 @@ class Command(StaticfilesRunserverCommand):
     def handle(self, *args, **kwargs):
         messages = []
         if not settings.DEBUG:
-            messages.append("You cannot have `settings.DEBUG = False` when trying to run the 'gruntserver' management command")
-        return super(Command, self).handle(*args, **kwargs)
+            messages.append("You cannot have `settings.DEBUG = False` when "
+                            "trying to run the 'gruntserver' management command")
+        return super().handle(*args, **kwargs)
 
     def inner_run(self, *args, **options):
         self.start_grunt()
-        return super(Command, self).inner_run(*args, **options)
+        return super().inner_run(*args, **options)
 
     def start_grunt(self):
         self.stdout.write('>>> Starting grunt')

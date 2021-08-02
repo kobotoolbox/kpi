@@ -1,21 +1,29 @@
-import $ from 'jquery';
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import Select from 'react-select';
-import bem from '../bem';
-import ui from '../ui';
+import {bem} from '../bem';
+import Modal from 'js/components/common/modal';
 import autoBind from 'react-autobind';
-import actions from '../actions';
+import {actions} from '../actions';
 import mixins from '../mixins';
 import Dropzone from 'react-dropzone';
 import alertify from 'alertifyjs';
-
-import { assign, t, validFileTypes } from '../utils';
+import {
+  QUERY_LIMIT_DEFAULT,
+  ASSET_FILE_TYPES,
+} from 'js/constants';
 import { dataInterface } from '../dataInterface';
 
-let colorSets = ['a', 'b', 'c', 'd', 'e'];
 // see kobo.map.marker-colors.scss for styling details of each set
+const COLOR_SETS = ['a', 'b', 'c', 'd', 'e'];
+const QUERY_LIMIT_MINIMUM = 1000;
+const QUERY_LIMIT_MAXIMUM = 30000;
+const TABS = new Map([
+  ['colors', {id: 'colors', label: t('Marker Colors')}],
+  ['querylimit', {id: 'querylimit', label: t('Query Limit')}],
+  ['geoquestion', {id: 'geoquestion', label: t('Geopoint question')}],
+  ['overlays', {id: 'overlays', label: t('Overlays')}]
+]);
 
 class MapColorPicker extends React.Component {
   constructor(props) {
@@ -25,17 +33,19 @@ class MapColorPicker extends React.Component {
     this.state = {
       selected: props.mapSettings.colorSet ? props.mapSettings.colorSet : 'a'
     };
-
   }
+
   onChange (e) {
     this.props.onChange(e.currentTarget.value);
     this.setState({
       selected: e.currentTarget.value
     });
   }
+
   defaultValue (set) {
     return this.state.selected === set;
   }
+
   colorRows(set, length = 10) {
     let colorRows = [];
     for (let i = 1; i < length; i++) {
@@ -43,14 +53,15 @@ class MapColorPicker extends React.Component {
     }
     return colorRows;
   }
+
   render () {
-    var radioButtons = colorSets.map(function(set, index){
+    var radioButtons = COLOR_SETS.map(function(set, index){
       var length = 10;
       var label = false;
-      if (set === 'a') length = 16;
-      if (set === 'a') label = t('Best for qualitative data');
-      if (set === 'b') label = t('Best for sequential data');
-      if (set === 'd') label = t('Best for diverging data');
+      if (set === 'a') {length = 16;}
+      if (set === 'a') {label = t('Best for qualitative data');}
+      if (set === 'b') {label = t('Best for sequential data');}
+      if (set === 'd') {label = t('Best for diverging data');}
       return (
         <bem.FormModal__item m='map-color-item' key={index}>
           {label &&
@@ -75,15 +86,14 @@ class MapColorPicker extends React.Component {
       <bem.GraphSettings__colors>{radioButtons}</bem.GraphSettings__colors>
     );
   }
-};
+}
 
 class MapSettings extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
 
-    var geoQuestions = [];
-
+    const geoQuestions = [];
     props.asset.content.survey.forEach(function(question) {
       if (question.type && question.type === 'geopoint') {
         geoQuestions.push({
@@ -93,96 +103,131 @@ class MapSettings extends React.Component {
       }
     });
 
-    let defaultActiveTab = 'colors';
-    if (this.userCan('change_asset', this.props.asset)) defaultActiveTab = 'overlays';
-    if (geoQuestions.length > 1) defaultActiveTab = 'geoquestion';
+    const queryCount = props.asset.deployment__submission_count;
+
+    let defaultActiveTab = TABS.get('colors').id;
+    if (queryCount > QUERY_LIMIT_MINIMUM) {
+      defaultActiveTab = TABS.get('querylimit').id;
+    } else if (geoQuestions.length > 1) {
+      defaultActiveTab = TABS.get('geoquestion').id;
+    } else if (this.userCan('change_asset', this.props.asset)) {
+      defaultActiveTab = TABS.get('overlays').id;
+    }
+
+    let mapStyles = Object.assign({}, this.props.asset.map_styles);
+    if (this.props.overridenStyles) {
+      Object.assign(mapStyles, this.props.overridenStyles);
+    }
 
     this.state = {
       activeModalTab: defaultActiveTab,
       geoQuestions: geoQuestions,
-      mapSettings: this.props.asset.map_styles,
+      mapSettings: mapStyles,
       files: [],
-      layerName: ''
+      layerName: '',
+      queryCount: queryCount
     };
   }
+
   componentDidMount() {
-    actions.resources.getAssetFiles(this.props.asset.uid);
-    this.listenTo(
-      actions.resources.getAssetFiles.completed,
-      this.updateFileList
-    );
+    actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id);
+    this.listenTo(actions.resources.getAssetFiles.completed, this.updateFileList);
   }
-  toggleTab(evt) {
-    var n = evt.target.getAttribute('data-tabname');
-    this.setState({
-      activeModalTab: n
-    });
+
+  // modal handling
+
+  switchTab(evt) {
+    this.setState({activeModalTab: evt.target.getAttribute('data-tabid')});
   }
-  geoPointQuestionChange(evt) {
+
+  resetMapSettings() {
+    this.saveMapSettings({});
+  }
+
+  onSave() {
+    this.saveMapSettings(this.state.mapSettings);
+  }
+
+  saveMapSettings(newSettings) {
+    let assetUid = this.props.asset.uid;
+    if (this.userCan('change_asset', this.props.asset)) {
+      actions.map.setMapStyles(assetUid, newSettings);
+    } else {
+      // pass settings to parent component directly
+      // for users with no permission to edit asset
+      this.props.overrideStyles(newSettings);
+    }
+    this.props.toggleMapSettings();
+  }
+
+  // user input handling
+
+  onGeoPointQuestionChange(evt) {
     let settings = this.state.mapSettings;
     settings.selectedQuestion = evt.target.value;
     this.setState({ mapSettings: settings });
   }
-  resetMapSettings() {
-    actions.map.setMapSettings(this.props.asset.uid, {});
-    this.props.toggleMapSettings();
-  }
-  saveMapSettings() {
-    let settings = this.state.mapSettings,
-      assetUid = this.props.asset.uid;
 
-    if (this.userCan('change_asset', this.props.asset)) {
-      actions.map.setMapSettings(assetUid, settings);
-    } else {
-      // pass settings to parent component directly
-      // for users with no permission to edit asset
-      this.props.overrideStyles(settings);
-    }
-    this.props.toggleMapSettings();
+  onQueryLimitChange(evt) {
+    let settings = this.state.mapSettings;
+    settings.querylimit = evt.target.value;
+    this.setState({ mapSettings: settings });
   }
+
+  onColorChange(val) {
+    let settings = this.state.mapSettings;
+    settings.colorSet = val;
+    this.setState({ mapSettings: settings });
+  }
+
+  onLayerNameChange(e) {
+    this.setState({ layerName: e.target.value });
+  }
+
+  // handling files
+
   updateFileList(data) {
     if (data.results) {
       this.setState({ files: data.results });
     }
   }
+
   dropFiles(files, rejectedFiles) {
     let uid = this.props.asset.uid,
       _this = this,
-      name = this.state.layerName;
+      description = this.state.layerName;
 
-    if (!name) {
+    if (!description) {
       alertify.error(t('Please add a name for your layer file.'));
       return false;
     }
 
-    files.map(file => {
+    files.map((file) => {
       let metadata = {
         type: file.name.split('.').pop(),
         size: file.size
       };
       let data = {
         content: file,
-        name: name,
+        description: description,
         file_type: 'map_layer',
         metadata: JSON.stringify(metadata)
       };
-      dataInterface.uploadAssetFile(uid, data).done(result => {
+      dataInterface.uploadAssetFile(uid, data).done(() => {
         _this.setState({ layerName: '' });
-        actions.resources.getAssetFiles(this.props.asset.uid);
+        actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
       }).fail((jqxhr) => {
         var errMsg = t('Upload error: ##error_message##.').replace('##error_message##', jqxhr.statusText);
         alertify.error(errMsg);
       });
     });
 
-    rejectedFiles.map(rej => {
+    rejectedFiles.map(() => {
       var errMsg = t('Upload error: not a valid map overlay format.');
       alertify.error(errMsg);
     });
   }
-  layerNameChange(e) {
-    this.setState({ layerName: e.target.value });
-  }
+
   deleteFile(evt) {
     let el = $(evt.target)
         .closest('[data-uid]')
@@ -197,9 +242,9 @@ class MapSettings extends React.Component {
           '<br/><br/><strong>This action cannot be undone.</strong>'
       ),
       labels: { ok: t('Delete'), cancel: t('Cancel') },
-      onok: (evt, val) => {
-        dataInterface.deleteAssetFile(this.props.asset.uid, uid).done(r => {
-          actions.resources.getAssetFiles(this.props.asset.uid);
+      onok: () => {
+        dataInterface.deleteAssetFile(this.props.asset.uid, uid).done(() => {
+          actions.resources.getAssetFiles(this.props.asset.uid, 'map_layer');
           dialog.destroy();
         });
       },
@@ -209,51 +254,39 @@ class MapSettings extends React.Component {
     };
     dialog.set(opts).show();
   }
-  tabLabel(tab) {
-    switch (tab) {
-      case 'overlays':
-        return t('Overlays');
-      case 'colors':
-        return t('Marker Colors');
-      case 'geoquestion':
-        return t('Geopoint question');
-    }
-  }
-  colorChange(val) {
-    let settings = this.state.mapSettings;
-    settings.colorSet = val;
-    this.setState({ mapSettings: settings });
-  }
+
   render() {
     let asset = this.props.asset,
       geoQuestions = this.state.geoQuestions,
-      activeTab = this.state.activeModalTab;
+      activeTab = this.state.activeModalTab,
+      queryLimit = this.state.mapSettings.querylimit || QUERY_LIMIT_DEFAULT,
+      queryCount = this.state.queryCount;
+    var tabs = [TABS.get('colors').id];
 
-    var tabs = ['colors'];
+    if (this.userCan('change_asset', asset)) {tabs.unshift(TABS.get('overlays').id);}
+    if (geoQuestions.length > 1) {tabs.unshift(TABS.get('geoquestion').id);}
+    if (queryCount > QUERY_LIMIT_MINIMUM) {tabs.unshift(TABS.get('querylimit').id);}
 
-    if (this.userCan('change_asset', asset)) tabs.unshift('overlays');
-    if (geoQuestions.length > 1) tabs.unshift('geoquestion');
-
-    var modalTabs = tabs.map(function(tab, i) {
+    var modalTabs = tabs.map(function(tabId, i) {
       return (
         <button
           className={`mdl-button mdl-button--tab ${
-            this.state.activeModalTab === tab ? 'active' : ''
+            this.state.activeModalTab === tabId ? 'active' : ''
           }`}
-          onClick={this.toggleTab}
-          data-tabname={tab}
+          onClick={this.switchTab}
+          data-tabid={tabId}
           key={i}
         >
-          {this.tabLabel(tab)}
+          {TABS.get(tabId).label}
         </button>
       );
     }, this);
     return (
       <bem.GraphSettings>
-        <ui.Modal.Tabs>{modalTabs}</ui.Modal.Tabs>
-        <ui.Modal.Body>
+        <Modal.Tabs>{modalTabs}</Modal.Tabs>
+        <Modal.Body>
           <div className='tabs-content map-settings'>
-            {activeTab === 'geoquestion' && (
+            {activeTab === TABS.get('geoquestion').id && (
               <div className='map-settings__GeoQuestions'>
                 <p>
                   {t(
@@ -267,7 +300,7 @@ class MapSettings extends React.Component {
                         type='radio'
                         name='trnsltn'
                         value={question.value}
-                        onChange={this.geoPointQuestionChange}
+                        onChange={this.onGeoPointQuestionChange}
                         checked={
                           this.state.mapSettings.selectedQuestion ===
                           question.value
@@ -282,7 +315,7 @@ class MapSettings extends React.Component {
                 })}
               </div>
             )}
-            {activeTab === 'overlays' && (
+            {activeTab === TABS.get('overlays').id && (
               <div className='map-settings__overlay'>
                 {this.state.files.length > 0 && (
                   <bem.FormModal__item m='list-files'>
@@ -293,14 +326,14 @@ class MapSettings extends React.Component {
                           <span className='file-type'>
                             {file.metadata.type}
                           </span>
-                          <span className='file-layer-name'>{file.name}</span>
+                          <span className='file-layer-name'>{file.description}</span>
                           <span
                             className='file-delete'
                             onClick={this.deleteFile}
                             data-tip={t('Delete layer')}
                             data-uid={file.uid}
                           >
-                            <i className='k-icon-trash' />
+                            <i className='k-icon k-icon-trash' />
                           </span>
                         </div>
                       );
@@ -316,7 +349,7 @@ class MapSettings extends React.Component {
                     id='name'
                     placeholder={t('Layer name')}
                     value={this.state.layerName}
-                    onChange={this.layerNameChange}
+                    onChange={this.onLayerNameChange}
                   />
                   <Dropzone
                     onDrop={this.dropFiles}
@@ -324,39 +357,59 @@ class MapSettings extends React.Component {
                     className='dropzone'
                     accept={'.csv,.kml,.geojson,.wkt,.json,.kmz'}
                   >
-                    <button className='mdl-button mdl-button--raised mdl-button--colored'>
+                    <bem.KoboButton m='blue'>
                       {t('Upload')}
-                    </button>
+                    </bem.KoboButton>
                   </Dropzone>
                 </bem.FormModal__item>
               </div>
             )}
-            {activeTab === 'colors' && (
+            {activeTab === TABS.get('colors').id && (
               <bem.FormModal__item>
                 <div className='map-settings__colors'>
                   {t('Choose the color set for the disaggregated map markers.')}
-                  <MapColorPicker onChange={this.colorChange} mapSettings={this.state.mapSettings}/>
+                  <MapColorPicker onChange={this.onColorChange} mapSettings={this.state.mapSettings}/>
+                </div>
+              </bem.FormModal__item>
+            )}
+            {activeTab === TABS.get('querylimit').id && (
+              <bem.FormModal__item>
+                <div className='map-settings__querylimit'>
+                  {t('By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent submissions. You can temporarily increase this limit to a different value. Note that this is reset whenever you reopen the map.').replace('##QUERY_LIMIT_DEFAULT##', QUERY_LIMIT_DEFAULT)}
+                  <p className='change-limit-warning'>Warning: Displaying a large number of points requires a lot of memory.</p>
+                  <form>
+                    <input
+                      id='limit-slider'
+                      className='change-limit-slider'
+                      type='range'
+                      step={QUERY_LIMIT_MINIMUM}
+                      min={QUERY_LIMIT_MINIMUM}
+                      max={QUERY_LIMIT_MAXIMUM}
+                      value={queryLimit}
+                      onChange={this.onQueryLimitChange
+                    }/>
+                    <output
+                      id='limit-slider-value'
+                      className='change-limit-slider-value'
+                      htmlFor='limit-slider'
+                    >{queryLimit}</output>
+                  </form>
                 </div>
               </bem.FormModal__item>
             )}
           </div>
-        </ui.Modal.Body>
+        </Modal.Body>
 
-        {(activeTab === 'geoquestion' || activeTab === 'colors') &&
+        {[TABS.get('geoquestion').id, TABS.get('colors').id, TABS.get('querylimit').id].includes(activeTab) &&
           <bem.Modal__footer>
-            {this.userCan('change_asset', this.props.asset) &&
-              <bem.Modal__footerButton
-                onClick={this.resetMapSettings}
-              >
+            {this.userCan('change_asset', this.props.asset) && queryLimit !== QUERY_LIMIT_DEFAULT &&
+              <bem.KoboButton m='whitegray' onClick={this.resetMapSettings}>
                 {t('Reset')}
-              </bem.Modal__footerButton>
+              </bem.KoboButton>
             }
-            <bem.Modal__footerButton
-              m='primary'
-              onClick={this.saveMapSettings}
-            >
+            <bem.KoboButton m='blue' onClick={this.onSave}>
               {t('Save')}
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           </bem.Modal__footer>
         }
       </bem.GraphSettings>

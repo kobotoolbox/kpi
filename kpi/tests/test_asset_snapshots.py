@@ -1,9 +1,10 @@
+# coding: utf-8
 import json
 
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from .test_api_asset_snapshots import TestAssetSnapshotList
+from kpi.tests.api.v2 import test_api_asset_snapshots
 from ..models import Asset
 from ..models import AssetSnapshot
 
@@ -41,9 +42,10 @@ class CreateAssetSnapshots(AssetSnapshotsTestCase):
         self.assertEqual(ae_count + 1, ae_count2)
 
     def test_create_assetless_snapshot(self):
-        asset_snapshot_count= AssetSnapshot.objects.count()
-        asset_snapshot= AssetSnapshot.objects.create(
-                source=json.loads(TestAssetSnapshotList.form_source))
+        asset_snapshot_count = AssetSnapshot.objects.count()
+        asset_snapshot = AssetSnapshot.objects.create(
+                source=json.loads(test_api_asset_snapshots.
+                                  TestAssetSnapshotList.form_source))
         self.assertGreater(len(asset_snapshot.uid), 0)
         self.assertEqual(asset_snapshot_count + 1, AssetSnapshot.objects.count())
 

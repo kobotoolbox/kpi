@@ -12,8 +12,12 @@ from django.contrib.auth.models import User
 from django.db.models import FileField
 from mock import MagicMock
 
-from kpi.deployment_backends.kc_access.shadow_models import ReadOnlyModelError
-from kpi.deployment_backends.kc_access.shadow_models import _models
+from kpi.exceptions import ReadOnlyModelError
+from kpi.deployment_backends.kc_access.shadow_models import (
+    KobocatXForm,
+    ReadOnlyKobocatAttachment,
+    ReadOnlyKobocatInstance,
+)
 from kpi.models.asset import Asset
 
 
@@ -59,7 +63,7 @@ class ShadowModelsTest(TestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
 
-        self.xform = _models.XForm(
+        self.xform = KobocatXForm(
             pk=1,
             id_string=self.asset.uid,
             title='Test XForm',
@@ -67,7 +71,7 @@ class ShadowModelsTest(TestCase):
             json=self.questions
         )
 
-        self.instance = _models.Instance(
+        self.instance = ReadOnlyKobocatInstance(
             pk=1,
             id='123',
             uuid='instance_uuid',
@@ -78,7 +82,7 @@ class ShadowModelsTest(TestCase):
             date_modified=self.now
         )
 
-        self.attachment = _models.Attachment(
+        self.attachment = ReadOnlyKobocatAttachment(
             pk=1,
             instance=self.instance,
             media_file=self.media_file,

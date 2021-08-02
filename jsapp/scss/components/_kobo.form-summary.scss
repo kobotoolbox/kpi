@@ -1,4 +1,4 @@
-.form-view__group--description-cols {
+.form-view__group.form-view__group--description-cols {
   padding: 20px;
   display: flex;
 
@@ -12,12 +12,13 @@
   }
 }
 
-.form-view__cell--description {
-  border-top: 1px solid $divider-color;
-  padding: 20px;
+.form-view__row--summary-description {
+  .form-view__cell--description:not(:first-child) {
+    border-top: 1px solid $kobo-gray-92;
+  }
 }
 
-.form-view__group--summary-details-cols {
+.form-view__group.form-view__group--summary-details-cols {
   display: flex;
   align-items: flex-start;
 
@@ -36,7 +37,7 @@
   }
 }
 
-.form-view__cell--subs-graph {
+.form-view__cell.form-view__cell--subs-graph {
   padding: 30px;
   padding-bottom: 0px;
 
@@ -50,22 +51,22 @@
     a {
       display: inline-block;
       padding: 8px;
-      color: $cool-blue;
+      color: $kobo-teal;
       cursor: pointer;
       font-size: 16px;
       background: transparent;
 
       &.active {
-        color: $cool-gray;
-        background: #F8F8F8;
+        color: $kobo-white;
+        background: $kobo-teal;
         position: relative;
 
-        &:after {
+        &::after {
           width: 0;
           height: 0;
           border-left: 10px solid transparent;
           border-right: 10px solid transparent;
-          border-top: 10px solid #F8F8F8;
+          border-top: 10px solid $kobo-teal;
           content: '';
           position: absolute;
           bottom: -9px;
@@ -77,12 +78,12 @@
   }
 }
 
-.form-view__group--submission-stats {
+.form-view__group.form-view__group--submission-stats {
   padding: 30px;
   display: flex;
 
   .form-view__cell {
-    background: #F8F8FA;
+    border: 1px solid $kobo-gray-92;
     padding: 20px;
     flex: 2;
     margin-right: 10px;
@@ -96,44 +97,49 @@
   .subs-graph-number {
     font-size: 32px;
     font-weight: 600;
-    color: $cool-green;
+    color: $kobo-teal;
   }
 }
 
-.form-view__cell--data-tabs {
-  a {
+.form-view__cell.form-view__cell--data-tabs {
+  a,
+  button {
+    cursor: pointer;
     display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
     padding: 6px 10px;
-    color: $cool-gray;
-    border-bottom: 1px solid $divider-color;
+    color: $kobo-gray-40;
+    border-bottom: 1px solid $kobo-gray-92;
     position: relative;
+    text-align: left;
 
     &:last-child {
       border-bottom: none;
     }
 
     &:hover {
-      background: #F8F8FA;
+      color: $kobo-gray-24;
     }
 
-    i {
-      font-size: 32px;
-      margin-right: 6px;
+    .k-icon {
+      font-size: 24px;
+      width: 24px;
+      margin: 4px 10px 4px 4px;
+      display: inline-block;
       vertical-align: middle;
 
-      &.fa {
-        font-size: 24px;
+      &.k-icon-next {
         position: absolute;
-        right: 10px;
-        top: 50%;
-        margin-top: -12px;
-        line-height: 24px;
+        right: 4px;
+        top: 6px;
       }
     }
   }
 }
 
-.form-view__row--team {
+.form-view__row.form-view__row--team {
   position: relative;
 
   .form-view__cell--box {
@@ -150,22 +156,22 @@
 
   a.team-sharing-button {
     cursor: pointer;
-    color: $cool-gray;
+    color: $kobo-gray-40;
     position: absolute;
     right: 0px;
     top: -6px;
 
-    i {
-      font-size: 32px;
+    .k-icon {
+      font-size: 28px;
     }
 
     &:hover {
-      color: $cool-blue;
+      color: $kobo-blue;
     }
   }
 }
 
-.form-view__cell--summary-chart {
+.form-view__cell.form-view__cell--summary-chart {
   position: relative;
   height: 0px;
   overflow: hidden;
@@ -175,11 +181,10 @@
     justify-content: center;
     align-items: center;
     display: flex;
-    background: #F8F8FA;
+    border: 1px solid $kobo-gray-92;
 
     span {
       font-size: 16px;
-      color: $cool-gray;
       margin: 10px;
     }
   }

@@ -1,17 +1,17 @@
-import $ from 'jquery';
 import React from 'react';
 import autoBind from 'react-autobind';
-import TagsInput from 'react-tagsinput';
+import KoboTagsInput from 'js/components/common/koboTagsInput';
 import alertify from 'alertifyjs';
-import bem from '../../bem';
+import {bem} from '../../bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {dataInterface} from '../../dataInterface';
-import actions from '../../actions';
-import stores from '../../stores';
+import {actions} from '../../actions';
+import {stores} from '../../stores';
 import Select from 'react-select';
-import Checkbox from '../checkbox';
-import Radio from '../radio';
-import TextBox from '../textBox';
-import {t} from '../../utils';
+import Checkbox from 'js/components/common/checkbox';
+import Radio from 'js/components/common/radio';
+import TextBox from 'js/components/common/textBox';
+import {KEY_CODES} from 'js/constants';
 
 const EXPORT_TYPES = {
   json: {
@@ -65,7 +65,9 @@ export default class RESTServicesForm extends React.Component {
       subsetFields: [],
       customHeaders: [
         this.getEmptyHeaderRow()
-      ]
+      ],
+      payloadTemplate: '',
+      payloadTemplateErrors: []
     };
     autoBind(this);
   }
@@ -83,7 +85,8 @@ export default class RESTServicesForm extends React.Component {
             subsetFields: data.subset_fields || [],
             type: data.export_type,
             authLevel: AUTH_OPTIONS[data.auth_level] || null,
-            customHeaders: this.headersObjToArr(data.settings.custom_headers)
+            customHeaders: this.headersObjToArr(data.settings.custom_headers),
+            payloadTemplate: data.payload_template
           };
 
           if (stateUpdate.customHeaders.length === 0) {
@@ -98,7 +101,7 @@ export default class RESTServicesForm extends React.Component {
 
           this.setState(stateUpdate);
         })
-        .fail((data) => {
+        .fail(() => {
           this.setState({isSubmitPending: false});
           alertify.error(t('Could not load REST Service'));
         });
@@ -129,7 +132,7 @@ export default class RESTServicesForm extends React.Component {
   }
 
   headersArrToObj(headersArr) {
-    const headersObj = {}
+    const headersObj = {};
     for (const header of headersArr) {
       if (header.name) {
         headersObj[header.name] = header.value;
@@ -184,6 +187,13 @@ export default class RESTServicesForm extends React.Component {
     this.setState({customHeaders: newCustomHeaders});
   }
 
+  handleCustomWrapperChange(newVal) {
+    this.setState({
+      payloadTemplate: newVal,
+      payloadTemplateErrors: []
+    });
+  }
+
   /*
    * submitting form
    */
@@ -204,7 +214,8 @@ export default class RESTServicesForm extends React.Component {
       auth_level: authLevel,
       settings: {
         custom_headers: this.headersArrToObj(this.state.customHeaders)
-      }
+      },
+      payload_template: this.state.payloadTemplate
     };
 
     if (this.state.authUsername) {
@@ -213,7 +224,6 @@ export default class RESTServicesForm extends React.Component {
     if (this.state.authPassword) {
       data.settings.password = this.state.authPassword;
     }
-
     return data;
   }
 
@@ -243,8 +253,19 @@ export default class RESTServicesForm extends React.Component {
         stores.pageState.hideModal();
         actions.resources.loadAsset({id: this.state.assetUid});
       },
-      onFail: () => {
-        this.setState({isSubmitPending: false});
+      onFail: (data) => {
+        let payloadTemplateErrors = [];
+        if (
+          data.responseJSON &&
+          data.responseJSON.payload_template &&
+          data.responseJSON.payload_template.length !== 0
+        ) {
+          payloadTemplateErrors = data.responseJSON.payload_template;
+        }
+        this.setState({
+          payloadTemplateErrors: payloadTemplateErrors,
+          isSubmitPending: false
+        });
       },
     };
 
@@ -271,11 +292,11 @@ export default class RESTServicesForm extends React.Component {
    */
 
  onCustomHeaderInputKeyPress(evt) {
-   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerName') {
+   if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerName') {
      evt.preventDefault();
      $(evt.currentTarget).parent().find('input[name="headerValue"]').focus();
    }
-   if (evt.key === 'Enter' && evt.currentTarget.name === 'headerValue') {
+   if (evt.keyCode === KEY_CODES.ENTER && evt.currentTarget.name === 'headerValue') {
      evt.preventDefault();
      this.addNewCustomHeaderRow();
    }
@@ -336,55 +357,48 @@ export default class RESTServicesForm extends React.Component {
                 onKeyPress={this.onCustomHeaderInputKeyPress}
               />
 
-              <button
+              <bem.Button
+                m='icon'
                 className='http-header-row-remove'
                 data-index={n}
                 onClick={this.removeCustomHeaderRow}
               >
                 <i className='k-icon k-icon-trash'/>
-              </button>
+              </bem.Button>
             </bem.FormModal__item>
           );
         })}
 
-        <button
-          className='http-header-add'
+        <bem.KoboButton
+          m='small'
           onClick={this.addNewCustomHeaderRow}
         >
           <i className='k-icon k-icon-plus' />
           {t('Add header')}
-        </button>
+        </bem.KoboButton>
       </bem.FormModal__item>
-    )
+    );
   }
 
   /*
    * handle fields
    */
 
-  onSubsetFieldsChange(evt) {
-    this.setState({subsetFields: evt});
+  onSubsetFieldsChange(newValue) {
+    this.setState({subsetFields: newValue.split(',')});
   }
 
   renderFieldsSelector() {
-    const inputProps = {
-      placeholder: t('Add field(s)'),
-      id: 'subset-fields-input'
-    };
-
     return (
       <bem.FormModal__item>
-        <label htmlFor='subset-fields-input'>
-          {t('Select fields subset')}
-        </label>
-
-        <TagsInput
-          value={this.state.subsetFields}
-          onChange={this.onSubsetFieldsChange.bind(this)}
-          inputProps={inputProps}
+        <KoboTagsInput
+          tags={this.state.subsetFields.join(',')}
+          onChange={this.onSubsetFieldsChange}
+          placeholder={t('Add field(s)')}
+          label={t('Select fields subset')}
         />
       </bem.FormModal__item>
-    )
+    );
   }
 
   /*
@@ -395,15 +409,13 @@ export default class RESTServicesForm extends React.Component {
     const isEditingExistingHook = Boolean(this.state.hookUid);
 
     if (this.state.isLoadingHook) {
-      return (
-        <bem.Loading>
-          <bem.Loading__inner>
-            <i />
-            {t('loading...')}
-          </bem.Loading__inner>
-        </bem.Loading>
-      );
+      return (<LoadingSpinner/>);
     } else {
+      let submissionPlaceholder = '%SUBMISSION%';
+      if (stores.session.environment && stores.session.environment.submission_placeholder) {
+        submissionPlaceholder = stores.session.environment.submission_placeholder;
+      }
+
       return (
         <bem.FormModal__form onSubmit={this.onSubmit.bind(this)}>
           <bem.FormModal__item m='wrapper'>
@@ -473,10 +485,9 @@ export default class RESTServicesForm extends React.Component {
                 id='rest-service-form--security'
                 name='authLevel'
                 menuPlacement='auto'
+                isSearchable={false}
               />
             </bem.FormModal__item>
-
-            {this.renderFieldsSelector()}
 
             {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value &&
               <bem.FormModal__item>
@@ -496,20 +507,35 @@ export default class RESTServicesForm extends React.Component {
               </bem.FormModal__item>
             }
 
+            {this.renderFieldsSelector()}
+
             {this.renderCustomHeaders()}
+
+            {this.state.type === EXPORT_TYPES.json.value &&
+              <bem.FormModal__item m='rest-custom-wrapper'>
+                <TextBox
+                  label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}
+                  type='text-multiline'
+                  placeholder={t('Add Custom Wrapper')}
+                  value={this.state.payloadTemplate}
+                  errors={this.state.payloadTemplateErrors}
+                  onChange={this.handleCustomWrapperChange.bind(this)}
+                />
+              </bem.FormModal__item>
+            }
           </bem.FormModal__item>
 
           <bem.Modal__footer>
-            <bem.Modal__footerButton
-              m='primary'
+            <bem.KoboButton
+              m='blue'
               onClick={this.onSubmit}
               disabled={this.state.isSubmitPending}
             >
               { isEditingExistingHook ? t('Save') : t('Create') }
-            </bem.Modal__footerButton>
+            </bem.KoboButton>
           </bem.Modal__footer>
         </bem.FormModal__form>
       );
     }
   }
-};
+}

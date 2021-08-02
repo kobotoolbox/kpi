@@ -62,6 +62,10 @@
     page-break-inside: avoid;
   }
 
+  .report-view__item {
+    break-inside: avoid;
+  }
+
   // Fix Chrome printing headers overlap bug
   thead {
     display: table-row-group;
@@ -74,6 +78,31 @@
 
   .form-view__sidetabs + .report-view {
     width: 100%;
+  }
+
+  .modal__backdrop {
+    position: static;
+
+    .modal {
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      box-shadow: none;
+      border-radius: initial;
+      position: static;
+      top: auto;
+      left: auto;
+      transform: none;
+      max-height: none;
+    }
+  }
+
+  .page-wrapper {
+    &.page-wrapper--is-modal-visible.page-wrapper--is-modal-submission {
+      .form-view.form-view--table {
+        display: none;
+      }
+    }
   }
 }
 

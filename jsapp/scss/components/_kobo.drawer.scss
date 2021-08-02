@@ -1,77 +1,88 @@
 // drawer (sidebar)
 
+$drawer-icons-width: 58px;
+$drawer-background: $kobo-gray-96;
+$s-drawer-width: 270px;
+
 .k-drawer {
-  height: calc(100% - 66px);
-  top: 65px;
-  width: 270px;
+  height: calc(100% - #{$layout-desktop-header-height});
+  top: $layout-desktop-header-height;
+  width: $s-drawer-width;
   position: absolute;
-  left: 0px;
+  left: 0;
   display: flex;
   flex-direction: row;
+  border-right: 2px solid $kobo-gray-92;
 }
 
-.mdl-layout__content {
-  margin-left: 270px;
+// only add the margin for drawer if drawer exists (e.g. no drawer when logged out)
+.k-drawer + .mdl-layout__content {
+  margin-left: $s-drawer-width; // for drawer
 }
 
-.k-drawer__icons {
+.k-drawer__primary-icons {
   display: flex;
   flex-direction: column;
-  width: 58px;
+  width: $drawer-icons-width;
   height: 100%;
-  border-right: 1px solid #D9DADD;
+  background-color: $drawer-background;
 }
 
 .k-drawer__link {
-  font-size: 42px;
+  font-size: 26px;
+  margin: 6px 0;
   text-align: center;
-  color: $cool-silver;
-  padding: 0px;
+  color: $kobo-gray-40;
+  padding: 0;
   border-left: 3px solid transparent;
 
   &:first-child {
-    margin-top: 20px;
+    margin-top: 26px;
+  }
+
+  &:hover {
+    color: $kobo-teal;
   }
 
   &.active {
-    color: $cool-green;
-    border-left: 3px solid $cool-green;
+    color: $kobo-teal;
+    border-left: 3px solid $kobo-teal;
   }
 }
 
-.k-drawer__icons-bottom {
-  left: 0px;
-  bottom: 0px;
+.k-drawer__secondary-icons {
+  left: 0;
+  bottom: 0;
   position: absolute;
-  width: 58px;
+  width: $drawer-icons-width;
 
   .k-drawer__link {
-    padding: 0px;
+    padding: 0;
     margin-bottom: 5px;
     display: block;
     text-align: center;
     font-weight: normal;
     position: relative;
-    color: $cool-silver;
+    color: $kobo-gray-40;
 
     &:hover {
-      color: $cool-blue;
+      color: $kobo-teal;
     }
 
     i {
-      font-size: 38px;
+      font-size: 24px;
+      margin: 12px;
+      display: block;
     }
   }
 }
 
-.drawer__sidebar {
-  width: calc(100% - 58px);
+.k-drawer__sidebar {
+  width: calc(100% - #{$drawer-icons-width});
   height: 100%;
   padding: 20px 14px;
-
-  .form-sidebar__wrapper, .collections-wrapper {
-    height: 100%;
-  }
+  display: flex;
+  flex-direction: column;
 
   button.mdl-button {
     width: 100%;
@@ -81,26 +92,20 @@
 @media screen and (max-width: 999px) {
   .k-drawer {
     position: fixed;
-    z-index: 4;
+    z-index: 1050; // must be over leaflet
     left: -274px;
     transition: left 0.5s;
-    background-color: #FFF;
+    background-color: $kobo-white;
 
-    @include box-shadow;
+    @include box-shadow-mid;
   }
 
   .page-wrapper--fixed-drawer .k-drawer {
-    left: 0px;
+    left: 0;
     width: 340px;
   }
 
-  .mdl-layout__content {
-    margin-left: 0px;
-  }
-}
-
-@media screen and (min-width: 768px) and (max-width: 999px) {
-  .mdl-layout__content {
-    margin-left: 18px;
+  .k-drawer + .mdl-layout__content {
+    margin-left: 0;
   }
 }

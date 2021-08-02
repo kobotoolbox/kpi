@@ -1,17 +1,13 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
+# coding: utf-8
 import re
 import string
 import random
-import json
+from collections import OrderedDict
 from copy import deepcopy
-from collections import OrderedDict, defaultdict
 
-from kpi.utils.sluggify import (sluggify, sluggify_label, is_valid_nodeName)
 
 from formpack.utils.json_hash import json_hash
-
+from kpi.utils.sluggify import sluggify, sluggify_label, is_valid_node_name
 
 
 def _increment(name):
@@ -29,7 +25,7 @@ def _has_name(row):
 
 def _is_group_end(row):
     row_type = row['type']
-    return isinstance(row_type, basestring) and \
+    return isinstance(row_type, str) and \
         (row_type.startswith('end ') or row_type.startswith('end_'))
 
 
@@ -38,10 +34,10 @@ def _first_non_falsey_item(_list):
 
 
 def autoname_fields__depr(surv_content):
-    '''
+    """
     Note: this method is deprecated but kept around to link prior deployments
     which don't have any names saved.
-    '''
+    """
     surv_list = surv_content.get('survey')
     kuid_names = {}
     for surv_row in surv_list:
@@ -99,17 +95,16 @@ def autoname_fields_in_place(surv_content, destination_key):
 
     # rows_needing_names is all rows needing a valid and unique name
     # end_group, etc. do not need valid names
-    rows_needing_names = filter(lambda r: not _is_group_end(r), surv_list)
-
+    rows_needing_names = [r for r in surv_list if not _is_group_end(r)]
     # cycle through existing names ane ensure that names are valid and unique
-    for row in filter(lambda r: _has_name(r), rows_needing_names):
+    for row in [r for r in rows_needing_names if _has_name(r)]:
         _name = row['name']
         _attempt_count = 0
-        while (not is_valid_nodeName(_name) or _name in other_names):
+        while not is_valid_node_name(_name) or _name in other_names:
             # this will be necessary for untangling skip logic
             row['$given_name'] = _name
             _name = sluggify_label(_name,
-                                   other_names=other_names.keys())
+                                   other_names=list(other_names.keys()))
             # We might be able to remove these next 4 lines because
             # sluggify_label shouldn't be returning an empty string
             # and these fields already have names (_has_name(r)==True).
@@ -125,7 +120,7 @@ def autoname_fields_in_place(surv_content, destination_key):
             _attempt_count += 1
         _assign_row_to_name(row, _name)
 
-    for row in filter(lambda r: not _has_name(r), rows_needing_names):
+    for row in [r for r in rows_needing_names if not _has_name(r)]:
         if 'label' in row:
             if isinstance(row['label'], list):
                 # in this case, label is a list of translations.
@@ -136,7 +131,7 @@ def autoname_fields_in_place(surv_content, destination_key):
                 _label = row['label']
             if _label:
                 _name = sluggify_label(_label,
-                                       other_names=other_names.keys(),
+                                       other_names=list(other_names.keys()),
                                        characterLimit=40)
                 if _name not in ['', '_']:
                     _assign_row_to_name(row, _name)
@@ -147,16 +142,17 @@ def autoname_fields_in_place(surv_content, destination_key):
         _slug = row['type']
         if '$kuid' in row:
             _slug += ('_' + row['$kuid'])
-        _assign_row_to_name(row, sluggify_label(_slug,
-                                                other_names=other_names.keys(),
-                                                characterLimit=40,
-                                                ))
+        _assign_row_to_name(row, sluggify_label(
+            _slug,
+            other_names=list(other_names.keys()),
+            characterLimit=40,
+        ))
 
     return surv_list
 
 
 def sluggify_valid_xml__depr(name):
-    out = re.sub('\W+', '_', name.strip().lower())
+    out = re.sub(r'\W+', '_', name.strip().lower())
     if re.match(r'^\d', out):
         out = '_'+out
     return out
@@ -172,13 +168,13 @@ def autovalue_choices(surv_choices, in_place=False, destination_key='name'):
 
 
 def autovalue_choices_in_place(surv_content, destination_key):
-    '''
+    """
     choice names must have spaces removed because select-multiple
     results are presented in a space-delimited string.
 
     we have been ensuring that choice names are unique to
     avoid errors leading to submission of ambiguous responses.
-    '''
+    """
     surv_choices = surv_content.get('choices', [])
     choice_value_key = 'name'
     choices = OrderedDict()
@@ -190,7 +186,7 @@ def autovalue_choices_in_place(surv_content, destination_key):
             choices[_list_name] = []
         choices[_list_name].append(choice)
 
-    for (list_name, choice_list) in choices.iteritems():
+    for list_name, choice_list in choices.items():
         previous_values = []
         for choice in choice_list:
             if choice_value_key in choice and choice[choice_value_key]:

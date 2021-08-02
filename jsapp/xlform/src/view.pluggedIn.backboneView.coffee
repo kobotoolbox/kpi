@@ -5,7 +5,7 @@ displayed.
 ###
 
 Backbone = require 'backbone'
-@jQuery = $ = require 'jquery'
+@jQuery = $
 select2 = require 'select2'
 
 module.exports = do ->

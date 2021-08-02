@@ -1,0 +1,22 @@
+.mandatory-setting {
+  .card__settings__fields__field > label {
+    vertical-align: top;
+    margin-top: 6px;
+  }
+
+  .mandatory-setting__row {
+    &.mandatory-setting__row--custom {
+      .text-box {
+        margin-top: 5px;
+        display: block;
+      }
+
+      .radio__input:not(:checked) ~ .text-box {
+        visibility: hidden;
+        height: 0;
+        overflow: hidden;
+        margin-top: 0;
+      }
+    }
+  }
+}

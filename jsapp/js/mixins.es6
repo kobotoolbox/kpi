@@ -1,38 +1,44 @@
-/*eslint no-unused-vars:0*/
-import React from 'react';
-import Reflux from 'reflux';
-import alertify from 'alertifyjs';
-import {Link, hashHistory} from 'react-router';
-import DocumentTitle from 'react-document-title';
-import classNames from 'classnames';
+/**
+ * Mixins to be used via react-mixin plugin. These extend components with the
+ * methods defined within the given mixin, using the component as `this`.
+ *
+ * NOTE: please try using mixins as less as possible - when needing a method
+ * from here, move it out to separete file (utils?), import here to avoid
+ * breaking the code and use the separete file instead of mixin.
+ *
+ * TODO: think about moving out of mixins, as they are deprecated in new React
+ * versions and considered harmful (see
+ * https://reactjs.org/blog/2016/07/13/mixins-considered-harmful.html).
+ */
 
+import _ from 'underscore';
+import React from 'react';
+import alertify from 'alertifyjs';
+import {hashHistory} from 'react-router';
+import assetUtils from 'js/assetUtils';
 import {
   PROJECT_SETTINGS_CONTEXTS,
   MODAL_TYPES,
-  ASSET_TYPES
+  ASSET_TYPES,
+  ANON_USERNAME,
+  PERMISSIONS_CODENAMES,
+  ROUTES,
 } from './constants';
 import {dataInterface} from './dataInterface';
-import stores from './stores';
-import bem from './bem';
-import actions from './actions';
-import ui from './ui';
-import $ from 'jquery';
-
+import {stores} from './stores';
+import {actions} from './actions';
+import permConfig from 'js/components/permissions/permConfig';
 import {
-  anonUsername,
-  formatTime,
-  currentLang,
   log,
-  t,
   assign,
   notify,
-  stringToColor,
-  escapeHtml
-} from './utils';
+  escapeHtml,
+  buildUserUrl,
+  renderCheckbox
+} from 'utils';
+import myLibraryStore from 'js/components/library/myLibraryStore';
 
-import icons from '../xlform/src/view.icons';
-
-const IMPORT_CHECK_INTERVAL = 500;
+const IMPORT_CHECK_INTERVAL = 1000;
 
 var mixins = {};
 
@@ -51,7 +57,7 @@ mixins.dmix = {
       value: name,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, value) => {
-        let uid = this.props.params.assetid;
+        const uid = this.props.params.assetid || this.props.params.uid;
         actions.resources.cloneAsset({
           uid: uid,
           name: value,
@@ -139,8 +145,8 @@ mixins.dmix = {
     dialog.set(opts).show();
   },
   deployAsset (asset) {
-    if (!asset || asset.kind != 'asset') {
-        if (this.state && this.state.kind == 'asset') {
+    if (!asset || asset.asset_type !== ASSET_TYPES.survey.id) {
+        if (this.state && this.state.asset_type === ASSET_TYPES.survey.id) {
           asset = this.state;
         } else {
           console.error('Neither the arguments nor the state supplied an asset.');
@@ -156,15 +162,15 @@ mixins.dmix = {
   archiveAsset (uid, callback) {
     mixins.clickAssets.click.asset.archive(uid, callback);
   },
-  unarchiveAsset (uid=null, callback) {
+  unarchiveAsset (uid = null, callback) {
     if (uid === null) {
       mixins.clickAssets.click.asset.unarchive(this.state, callback);
     } else {
       mixins.clickAssets.click.asset.unarchive(uid, callback);
     }
   },
-  deleteAsset (uid, name, callback) {
-    mixins.clickAssets.click.asset.delete(uid, name, callback);
+  deleteAsset(assetOrUid, name, callback) {
+    mixins.clickAssets.click.asset.delete(assetOrUid, name, callback);
   },
   toggleDeploymentHistory () {
     this.setState({
@@ -202,26 +208,42 @@ mixins.dmix = {
   },
   _getAssetUid () {
     if (this.props.params) {
-      return this.props.params.assetid || this.props.params.uid
+      return this.props.params.assetid || this.props.params.uid;
     } else if (this.props.formAsset) {
+      // formAsset case is being used strictly for projectSettings component to
+      // cause the componentDidMount callback to load the full asset (i.e. one
+      // that includes `content`).
       return this.props.formAsset.uid;
     } else {
-      return this.props.uid
+      return this.props.uid;
     }
   },
-  componentDidMount () {
+  // TODO
+  // Fix `componentWillUpdate` and `componentDidMount` asset loading flow.
+  // Ideally we should build a single overaching component that would
+  // handle loading of the asset in all necessary cases in a way that all
+  // interested parties could use without duplication or confusion and with
+  // indication when the loading starts and when ends.
+  componentWillUpdate(newProps) {
+    if (
+      this.props.params?.uid !== newProps.params?.uid
+    ) {
+      // This case is used by other components (header.es6 is one such component)
+      // in a not clear way to gain a data on new asset.
+      actions.resources.loadAsset({id: newProps.params.uid});
+    }
+  },
+  componentDidMount() {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
     const uid = this._getAssetUid();
-
-    if (this.props.randdelay && uid) {
-      window.setTimeout(()=>{
-        actions.resources.loadAsset({id: uid});
-      }, Math.random() * 3000);
-    } else if (uid) {
+    if (uid) {
       actions.resources.loadAsset({id: uid});
     }
-  }
+  },
+  removeSharing: function() {
+    mixins.clickAssets.click.asset.removeSharing(this.props.params.uid);
+  },
 };
 
 /*
@@ -230,13 +252,13 @@ mixins.dmix = {
  */
 const applyImport = (params) => {
   const applyPromise = new Promise((resolve, reject) => {
-    dataInterface.postCreateImport(params).then((data)=> {
+    actions.resources.createImport(params, (data) => {
       const doneCheckInterval = setInterval(() => {
         dataInterface.getImportDetails({
           uid: data.uid,
         }).done((importData) => {
           switch (importData.status) {
-            case 'complete':
+            case 'complete': {
               const finalData = importData.messages.updated || importData.messages.created;
               if (finalData && finalData.length > 0 && finalData[0].uid) {
                 clearInterval(doneCheckInterval);
@@ -246,16 +268,19 @@ const applyImport = (params) => {
                 reject(importData);
               }
               break;
+            }
             case 'processing':
-            case 'created':
+            case 'created': {
               // TODO: notify promise awaiter about delay (after multiple interval rounds)
               break;
+            }
             case 'error':
-            default:
+            default: {
               clearInterval(doneCheckInterval);
               reject(importData);
+            }
           }
-        }).fail((failData)=>{
+        }).fail((failData) => {
           clearInterval(doneCheckInterval);
           reject(failData);
         });
@@ -312,16 +337,16 @@ mixins.droppable = {
     return applyPromise;
   },
 
-  _forEachDroppedFile (params={}) {
+  _forEachDroppedFile(params = {}) {
     let router = this.context.router;
     let isProjectReplaceInForm = (
       this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE
       && router.isActive('forms')
-      && router.params.assetid != undefined
+      && router.params.uid !== undefined
     );
-    var library = router.isActive('library');
+    var isLibrary = router.isActive('library');
     var multipleFiles = params.totalFiles > 1 ? true : false;
-    params = assign({library: library}, params);
+    params = assign({library: isLibrary}, params);
 
     if (params.base64Encoded) {
       stores.pageState.showModal({
@@ -332,47 +357,47 @@ mixins.droppable = {
 
     delete params.totalFiles;
 
-    if (!library && params.base64Encoded) {
+    if (!isLibrary && params.base64Encoded) {
       let destination = params.destination || this.state.url;
       if (destination) {
         params = assign({ destination: destination }, params);
       }
     }
 
-    dataInterface.postCreateImport(params).then((data)=> {
-      window.setTimeout((() => {
+    actions.resources.createImport(params, (data) => {
+      // TODO get rid of this barbaric method of waiting a magic number of seconds
+      // to check if import was done - possibly while doing
+      // https://github.com/kobotoolbox/kpi/issues/476
+      window.setTimeout(() => {
         dataInterface.getImportDetails({
           uid: data.uid,
         }).done((importData) => {
           if (importData.status === 'complete') {
             var assetData = importData.messages.updated || importData.messages.created;
             var assetUid = assetData && assetData.length > 0 && assetData[0].uid;
-            if (multipleFiles) {
+            if (!isLibrary && multipleFiles) {
               this.searchDefault();
               // No message shown for multiple files when successful, to avoid overloading screen
-            } else {
-              if (!assetUid) {
-                // TODO: use a more specific error message here
-                alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
-                if (params.assetUid)
-                  hashHistory.push(`/forms/${params.assetUid}`);
-              } else {
-                if (isProjectReplaceInForm) {
-                  actions.resources.loadAsset({id: assetUid});
-                } else if (library) {
-                  this.searchDefault();
-                } else {
-                  hashHistory.push(`/forms/${assetUid}`);
-                }
-                notify(t('XLS Import completed'));
+            } else if (!assetUid) {
+              // TODO: use a more specific error message here
+              alertify.error(t('XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and try again using the "Replace form" icon.'));
+              if (params.assetUid) {
+                hashHistory.push(`/forms/${params.assetUid}`);
               }
+            } else {
+              if (isProjectReplaceInForm) {
+                actions.resources.loadAsset({id: assetUid});
+              } else if (!isLibrary) {
+                hashHistory.push(`/forms/${assetUid}`);
+              }
+              notify(t('XLS Import completed'));
             }
           } else if (importData.status === 'processing') {
             // If the import task didn't complete immediately, inform the user accordingly.
             alertify.warning(t('Your upload is being processed. This may take a few moments.'));
           } else if (importData.status === 'created') {
             alertify.warning(t('Your upload is queued for processing. This may take a few moments.'));
-          } else if (importData.status === 'error')  {
+          } else if (importData.status === 'error') {
             const errLines = [];
             errLines.push(t('Import Failed!'));
             if (params.name) {
@@ -385,27 +410,27 @@ mixins.droppable = {
           } else {
             alertify.error(t('Import Failed!'));
           }
-        }).fail((failData)=>{
+        }).fail((failData) => {
           alertify.error(t('Import Failed!'));
           log('import failed', failData);
         });
         stores.pageState.hideModal();
-      }), 2500);
-    }).fail((jqxhr)=> {
+      }, 2500);
+    }, (jqxhr) => {
       log('Failed to create import: ', jqxhr);
       alertify.error(t('Failed to create import.'));
     });
   },
 
-  dropFiles (files, rejectedFiles, evt, pms={}) {
+  dropFiles(files, rejectedFiles, evt, pms = {}) {
     files.map((file) => {
       var reader = new FileReader();
-      reader.onload = (e)=> {
+      reader.onload = (e) => {
         let params = assign({
-          base64Encoded: e.target.result,
           name: file.name,
+          base64Encoded: e.target.result,
           lastModified: file.lastModified,
-          totalFiles: files.length
+          totalFiles: files.length,
         }, pms);
 
         this._forEachDroppedFile(params);
@@ -423,32 +448,8 @@ mixins.droppable = {
         break;
       }
     }
-  }
-};
-
-mixins.collectionList = {
-  getInitialState () {
-    // initial state is a copy of "stores.collections.initialState"
-    return assign({}, stores.collections.initialState);
-  },
-  listCollections () {
-    actions.resources.listCollections();
-  },
-  componentDidMount () {
-    this.listenTo(stores.collections, this.collectionsChanged);
-  },
-  collectionsChanged (collections) {
-    this.setState(collections);
   },
 };
-
-const renderCheckbox = (id, label, isImportant) => {
-  let additionalClass = '';
-  if (isImportant) {
-    additionalClass += 'alertify-toggle-important';
-  }
-  return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
-}
 
 mixins.clickAssets = {
   onActionButtonClick (action, uid, name) {
@@ -456,28 +457,64 @@ mixins.clickAssets = {
   },
   click: {
     asset: {
-      clone: function(uid, name){
-        let assetType = ASSET_TYPES[stores.selectedAsset.asset.asset_type].label || '';
-        let newName = `${t('Clone of')} ${name}`;
+      clone: function(assetOrUid) {
+        let asset;
+        if (typeof assetOrUid === 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
+        let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
+
+        let newName;
+        const displayName = assetUtils.getAssetDisplayName(asset);
+        // propose new name only if source asset name is not empty
+        if (displayName.original) {
+          newName = `${t('Clone of')} ${displayName.original}`;
+        }
+
         let dialog = alertify.dialog('prompt');
         let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
-          title: `${t('Clone')} ${assetType}`,
-          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetType),
+          title: `${t('Clone')} ${assetTypeLabel}`,
+          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetTypeLabel),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
             ok_button.disabled = true;
             ok_button.innerText = t('Cloning...');
+
+            let canAddToParent = false;
+            if (asset.parent) {
+              const foundParentAsset = myLibraryStore.findAssetByUrl(asset.parent);
+              canAddToParent = (
+                typeof foundParentAsset !== 'undefined' &&
+                mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, foundParentAsset)
+              );
+            }
+
             actions.resources.cloneAsset({
-              uid: uid,
+              uid: asset.uid,
               name: value,
+              parent: canAddToParent ? asset.parent : undefined
             }, {
             onComplete: (asset) => {
               ok_button.disabled = false;
               dialog.destroy();
-              hashHistory.push(`/forms/${asset.uid}/landing`);
-              notify(t('cloned project created'));
+
+              // TODO when on collection landing page and user clones this
+              // collection's child asset, instead of navigating to cloned asset
+              // landing page, it would be better to stay here and refresh data
+              // (if the clone will keep the parent asset)
+              let goToUrl;
+              if (asset.asset_type === ASSET_TYPES.survey.id) {
+                goToUrl = `/forms/${asset.uid}/landing`;
+              } else {
+                goToUrl = `/library/asset/${asset.uid}`;
+              }
+
+              hashHistory.push(goToUrl);
+              notify(t('cloned ##ASSET_TYPE## created').replace('##ASSET_TYPE##', assetTypeLabel));
             }
             });
             // keep the dialog open
@@ -502,28 +539,36 @@ mixins.clickAssets = {
         mixins.cloneAssetAsNewType.dialog({
           sourceUid: sourceUid,
           sourceName: sourceName,
-          targetType: 'survey',
+          targetType: ASSET_TYPES.survey.id,
           promptTitle: t('Create new project from this template'),
           promptMessage: t('Enter the name of the new project.')
         });
       },
       edit: function (uid) {
-        if (this.context.router.isActive('library'))
-          hashHistory.push(`/library/${uid}/edit`);
-        else
+        if (this.context.router.isActive('library')) {
+          hashHistory.push(`/library/asset/${uid}/edit`);
+        } else {
           hashHistory.push(`/forms/${uid}/edit`);
+        }
       },
-      delete: function(uid, name, callback) {
-        const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+      delete: function(assetOrUid, name, callback) {
+        let asset;
+        if (typeof assetOrUid === 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
         let assetTypeLabel = ASSET_TYPES[asset.asset_type].label;
+
+        const safeName = _.escape(name);
 
         let dialog = alertify.dialog('confirm');
         let deployed = asset.has_deployment;
         let msg, onshow;
         let onok = (evt, val) => {
-          actions.resources.deleteAsset({uid: uid}, {
+          actions.resources.deleteAsset({uid: asset.uid, assetType: asset.asset_type}, {
             onComplete: ()=> {
-              notify(`${assetTypeLabel} ${t('deleted permanently')}`);
+              notify(t('##ASSET_TYPE## deleted permanently').replace('##ASSET_TYPE##', assetTypeLabel));
               if (typeof callback === 'function') {
                 callback();
               }
@@ -532,17 +577,18 @@ mixins.clickAssets = {
         };
 
         if (!deployed) {
-          if (asset.asset_type != ASSET_TYPES.survey.id)
+          if (asset.asset_type !== ASSET_TYPES.survey.id) {
             msg = t('You are about to permanently delete this item from your library.');
-          else
+          } else {
             msg = t('You are about to permanently delete this draft.');
+          }
         } else {
-          msg = `
-            ${t('You are about to permanently delete this form.')}
-            ${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}
-            ${renderCheckbox('dt2', t('All questions created for this form will be deleted.'))}
-            ${renderCheckbox('dt3', t('The form associated with this project will be deleted.'))}
-            ${renderCheckbox('dt4', t('I understand that if I delete this project I will not be able to recover it.'), true)}
+          msg = `${t('You are about to permanently delete this form.')}`;
+          if (asset.deployment__submission_count !== 0) {
+            msg += `${renderCheckbox('dt1', t('All data gathered for this form will be deleted.'))}`;
+          }
+          msg += `${renderCheckbox('dt2', t('The form associated with this project will be deleted.'))}
+            ${renderCheckbox('dt3', t('I understand that if I delete this project I will not be able to recover it.'), true)}
           `;
           onshow = (evt) => {
             let ok_button = dialog.elements.buttons.primary.firstChild;
@@ -562,7 +608,7 @@ mixins.clickAssets = {
           };
         }
         let opts = {
-          title: `${t('Delete')} ${assetTypeLabel} "${name}"`,
+          title: `${t('Delete')} ${assetTypeLabel} "${safeName}"`,
           message: msg,
           labels: {
             ok: t('Delete'),
@@ -581,8 +627,13 @@ mixins.clickAssets = {
         let asset = stores.selectedAsset.asset;
         mixins.dmix.deployAsset(asset);
       },
-      archive: function(uid, callback) {
-        let asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+      archive: function(assetOrUid, callback) {
+        let asset;
+        if (typeof assetOrUid === 'object') {
+          asset = assetOrUid;
+        } else {
+          asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
+        }
         let dialog = alertify.dialog('confirm');
         let opts = {
           title: t('Archive Project'),
@@ -606,7 +657,7 @@ mixins.clickAssets = {
       },
       unarchive: function(assetOrUid, callback) {
         let asset;
-        if (typeof assetOrUid == 'object') {
+        if (typeof assetOrUid === 'object') {
           asset = assetOrUid;
         } else {
           asset = stores.selectedAsset.asset || stores.allAssets.byUid[assetOrUid];
@@ -648,104 +699,225 @@ mixins.clickAssets = {
           type: MODAL_TYPES.FORM_LANGUAGES,
           assetUid: uid
         });
-      }
+      },
+      encryption: function(uid) {
+        stores.pageState.showModal({
+          type: MODAL_TYPES.ENCRYPT_FORM,
+          assetUid: uid
+        });
+      },
+      removeSharing: function(uid) {
+        /**
+         * Extends `removeAllPermissions` from `userPermissionRow.es6`:
+         * Checks for permissions from current user before finding correct
+         * "most basic" permission to remove.
+         */
+        const asset = stores.selectedAsset.asset || stores.allAssets.byUid[uid];
+        const userViewAssetPerm = asset.permissions.find((perm) => {
+          // Get permissions url related to current user
+          var permUserUrl = perm.user.split('/');
+          return (
+            permUserUrl[permUserUrl.length - 2] === stores.session.currentAccount.username &&
+            perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.view_asset).url
+          );
+        });
+
+        let dialog = alertify.dialog('confirm');
+        let opts = {
+          title: t('Remove shared form'),
+          message: `${t('Are you sure you want to remove this shared form?')}`,
+          labels: {ok: t('Remove'), cancel: t('Cancel')},
+          onok: (evt, val) => {
+            // Only non-owners should have the asset removed from their asset list.
+            // This menu option is only open to non-owners so we don't need to check again.
+            let isNonOwner = true;
+            actions.permissions.removeAssetPermission(uid, userViewAssetPerm.url, isNonOwner);
+          },
+          oncancel: () => {
+            dialog.destroy();
+          }
+        };
+        dialog.set(opts).show();
+      },
 
     }
   },
 };
 
 mixins.permissions = {
-  removePerm (permName, permObject, content_object_uid) {
-    actions.permissions.removePerm({
-      permission_url: permObject.url,
-      content_object_uid: content_object_uid
-    });
-  },
-  // PM: temporarily disabled
-  // removeCollectionPublicPerm (collection, publicPerm) {
-  //   return (evt) => {
-  //     evt.preventDefault();
-  //     if (collection.discoverable_when_public) {
-  //       actions.permissions.setCollectionDiscoverability(
-  //         collection.uid, false
-  //       );
-  //     }
-  //     actions.permissions.removePerm({
-  //       permission_url: publicPerm.url,
-  //       content_object_uid: collection.uid
-  //     });
-  //   };
-  // },
-  setPerm (permName, props) {
-    actions.permissions.assignPerm({
-      username: props.username,
-      uid: props.uid,
-      kind: props.kind,
-      objectUrl: props.objectUrl,
-      role: permName
-    });
-  },
-  userCan (permName, asset) {
-    if (!asset.permissions)
+  /**
+   * For `.find`-ing the permissions
+   *
+   * @param {Object} perm
+   * @param {string} permName
+   * @param {string} [partialPermName]
+   *
+   * @returns {boolean}
+   */
+  _doesPermMatch(perm, permName, partialPermName = null) {
+    // Case 1: permissions don't match, stop looking
+    if (perm.permission !== permConfig.getPermissionByCodename(permName).url) {
       return false;
+    }
 
-    if (!stores.session.currentAccount)
+    // Case 2: permissions match, and we're not looking for partial one
+    if (permName !== PERMISSIONS_CODENAMES.partial_submissions) {
+      return true;
+    }
+
+    // Case 3a: we are looking for partial permission, but the name was no given
+    if (!partialPermName) {
       return false;
+    }
+
+    // Case 3b: we are looking for partial permission, check if there are some that match
+    return perm.partial_permissions.some((partialPerm) => {
+      return partialPerm.url === permConfig.getPermissionByCodename(partialPermName).url;
+    });
+  },
+
+  /**
+   * This implementation does not use the back end to detect if `submission`
+   * is writable or not. So far, the front end only supports filters like:
+   *    `_submitted_by: {'$in': []}`
+   * Let's search for `submissions._submitted_by` value among these `$in`
+   * lists.
+   *
+   * @param {string} permName - permission to check if user can do at least partially
+   * @param {Object} asset
+   * @param {Object} submission
+   *
+   * @returns {boolean}
+   */
+  isSubmissionWritable(permName, asset, submission) {
+    // TODO optimize this to avoid calling `userCan()` and `userCanPartially()`
+    // repeatedly in the table view
+    // TODO Support multiple permissions at once
+    const userCan = this.userCan(permName, asset);
+    const userCanPartially = this.userCanPartially(permName, asset);
+
+    // Case 1: User has full permission
+    if (userCan) {
+      return true;
+    }
+
+    // Case 2: User has neither full nor partial permission
+    if (!userCanPartially) {
+      return false;
+    }
+
+    // Case 3: User has only partial permission, and things are complicated
+    const currentUsername = stores.session.currentAccount.username;
+    const partialPerms = asset.permissions.find((perm) => {
+      return (
+        perm.user === buildUserUrl(currentUsername) &&
+        this._doesPermMatch(perm, PERMISSIONS_CODENAMES.partial_submissions, permName)
+      );
+    });
+
+    const partialPerm = partialPerms.partial_permissions.find((nestedPerm) => {
+      return nestedPerm.url === permConfig.getPermissionByCodename(permName).url;
+    });
+
+    const submittedBy = submission._submitted_by;
+    let allowedUsers = [];
+
+    partialPerm.filters.forEach((filter) => {
+      if (filter._submitted_by) {
+        allowedUsers = allowedUsers.concat(filter._submitted_by.$in);
+      }
+    });
+    return allowedUsers.includes(submittedBy);
+  },
+
+  /**
+   * @param {string} permName
+   * @param {Object} asset
+   * @param {string} [partialPermName]
+   */
+  userCan(permName, asset, partialPermName = null) {
+    if (!asset.permissions) {
+      return false;
+    }
 
     const currentUsername = stores.session.currentAccount.username;
-    if (asset.owner__username === currentUsername)
+    if (asset.owner__username === currentUsername) {
       return true;
-
-    // TODO: should super user always have access to all UI?
-    // if (stores.session.currentAccount.is_superuser)
-    //   return true;
+    }
 
     // if permission is granted publicly, then grant it to current user
-    const anonAccess = asset.permissions.some(perm => perm.user__username === 'AnonymousUser' && perm.permission === permName);
-    if (anonAccess)
+    const anonAccess = asset.permissions.some((perm) => {
+      return (
+        perm.user === buildUserUrl(ANON_USERNAME) &&
+        perm.permission === permConfig.getPermissionByCodename(permName).url
+      );
+    });
+    if (anonAccess) {
       return true;
+    }
 
-    const userPerms = asset.permissions.filter(perm => perm.user__username === currentUsername);
-    return userPerms.some(p => p.permission === permName);
-  }
+    return asset.permissions.some((perm) => {
+      return (
+        perm.user === buildUserUrl(currentUsername) &&
+        this._doesPermMatch(perm, permName, partialPermName)
+      );
+    });
+  },
+
+  /**
+   * @param {string} permName
+   * @param {Object} asset
+   */
+  userCanPartially(permName, asset) {
+    return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
+  },
 };
 
 mixins.contextRouter = {
-  isFormList () {
-    return this.context.router.isActive('forms') && this.context.router.params.assetid == undefined;
+  isFormList() {
+    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() === undefined;
   },
-  isLibrary () {
-    return this.context.router.isActive('library');
+  isLibrary() {
+    return this.context.router.isActive(ROUTES.LIBRARY);
   },
-  isFormSingle () {
-    return this.context.router.isActive('forms') && this.context.router.params.assetid != undefined;
+  isMyLibrary() {
+    return this.context.router.isActive(ROUTES.MY_LIBRARY);
   },
-  currentAssetID () {
-    return this.context.router.params.assetid;
+  isPublicCollections() {
+    return this.context.router.isActive(ROUTES.PUBLIC_COLLECTIONS);
   },
-  currentAsset () {
+  isLibraryList() {
+    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() === undefined;
+  },
+  isLibrarySingle() {
+    return this.context.router.isActive(ROUTES.LIBRARY) && this.currentAssetID() !== undefined;
+  },
+  isFormSingle() {
+    return this.context.router.isActive(ROUTES.FORMS) && this.currentAssetID() !== undefined;
+  },
+  currentAssetID() {
+    return this.context.router.params.assetid || this.context.router.params.uid;
+  },
+  currentAsset() {
     return stores.asset.data[this.currentAssetID()];
   },
-  isActiveRoute (path, indexOnly = false) {
+  isActiveRoute(path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);
   },
-  isFormBuilder () {
-    if (this.context.router.isActive('/library/new'))
+  isFormBuilder() {
+    if (this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM)) {
       return true;
+    }
 
-    if (this.context.router.isActive('/library/new/template'))
-      return true;
-
-    if (this.context.router.params.assetid == undefined)
-      return false
-
-    var assetid = this.context.router.params.assetid;
-    if (this.context.router.isActive(`/library/${assetid}/edit`))
-      return true;
-
-    return this.context.router.isActive(`/forms/${assetid}/edit`);
+    const uid = this.currentAssetID();
+    return (
+      uid !== undefined &&
+      this.context.router.isActive(ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid)) ||
+      this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
+      this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
+    );
   }
-}
+};
 
 /*
  * generates dialog when cloning an asset as new type
@@ -756,7 +928,7 @@ mixins.cloneAssetAsNewType = {
     const opts = {
       title: params.promptTitle,
       message: params.promptMessage,
-      value: params.sourceName,
+      value: _.escape(params.sourceName),
       labels: {ok: t('Create'), cancel: t('Cancel')},
       onok: (evt, value) => {
         // disable buttons
@@ -774,12 +946,12 @@ mixins.cloneAssetAsNewType = {
 
             switch (asset.asset_type) {
               case ASSET_TYPES.survey.id:
-                hashHistory.push(`/forms/${asset.uid}/landing`);
+                hashHistory.push(ROUTES.FORM_LANDING.replace(':uid', asset.uid));
                 break;
               case ASSET_TYPES.template.id:
               case ASSET_TYPES.block.id:
               case ASSET_TYPES.question.id:
-                hashHistory.push('/library');
+                hashHistory.push(ROUTES.LIBRARY);
                 break;
             }
           },
@@ -798,6 +970,6 @@ mixins.cloneAssetAsNewType = {
     };
     dialog.set(opts).show();
   }
-}
+};
 
 export default mixins;

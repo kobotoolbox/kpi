@@ -1,45 +1,43 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-import unittest
-
-from django.test import TestCase
+# coding: utf-8
 from django.conf import settings
+from django.test import TestCase
 
-from kpi.utils.mongo_helper import MongoDecodingHelper
+from kpi.utils.mongo_helper import MongoHelper
 
 
 def get_instances_from_mongo():
+    # TODO: remove this as we no longer use `_deleted_at`
     query = {'_deleted_at': {'$exists': False}}
     instances = settings.MONGO_DB.instances.find(query)
     return (
-        MongoDecodingHelper.to_readable_dict(instance)
-            for instance in instances
+        MongoHelper.to_readable_dict(instance) for instance in instances
     )
 
 
-class FakeMongoDB(object):
-    '''
+class FakeMongoDB:
+    """
     A fake Mongo connection that supports one collection, `instances`, and one
     method on that collection, `find()`, which returns the fake query results
     provided to the constructor. Example:
         FakeMongoDB(static_results_list).instances.find(ignored_query) ->
             static_results_list
-    '''
-    class FakeMongoCollection(object):
+    """
+    class FakeMongoCollection:
         def __init__(self, fake_query_results):
             self.fake_query_results = fake_query_results
+
         def find(self, *args, **kwargs):
             return self.fake_query_results
+
     def __init__(self, fake_query_results):
         self.instances = FakeMongoDB.FakeMongoCollection(fake_query_results)
 
 
 class MongoBase64Decoding(TestCase):
-    '''
+    """
     MongoDB does not support dots in key names, so KC encodes them using
     Base64. Verify that KPI decodes these as expected when reading from MongoDB
-    '''
+    """
     def setUp(self):
         self.maxDiff = None
         self.original_mongo_db = settings.MONGO_DB

@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 # 😬
-
-from __future__ import unicode_literals
 from django.utils.translation import ugettext_lazy as _
 
 # This file is a place to store static, translatable strings
@@ -37,9 +35,7 @@ SECTORS = (
 
 # You might generate such a list of countries with code like this:
 #
-#     from __future__ import print_function
-#     import requests
-#     import sys
+#     #     import sys
 #
 #     url = 'https://www.humanitarianresponse.info/api/v1.0/locations?filter[admin_level]=0'
 #     while url:

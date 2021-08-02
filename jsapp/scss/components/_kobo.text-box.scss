@@ -1,14 +1,71 @@
-// TODO: this uses a lot of global styles defined in _kobo.bem.ui.scss
-// for inputs nested inside .form-modal__item - we need to refactor/reinclude
-// those styles here
+// TODO: cleanup the other places
+// this copies a lot of global styles defined in _kobo.bem.ui.scss
+// we copy it because we want to use this component outside of .form-modal__item
+// plus we fight the specificity battle because of too general styles of Form Builder
 
-.text-box {
-  display: block;
-
+label.text-box {
+  display: block; // TODO Validate merge beta-gallery-2
   &.text-box--error {
-    color: $cool-red;
+    color: $kobo-red;
 
-    .text-box__input {border-bottom-color: $cool-red;}
+    input.text-box__input {
+      // Don't type red if there is an error
+      color: $kobo-gray-40;
+      border-bottom-color: $kobo-red;
+    }
+  }
+
+  &.text-box--on-white input.text-box__input,
+  &.text-box--on-white textarea.text-box__input {
+    border-color: $kobo-gray-92;
+
+    &:focus {
+      border-color: $kobo-blue;
+    }
+  }
+
+  &.text-box--on-white.text-box--error input.text-box__input {
+    border-color: $kobo-red;
+  }
+
+  .text-box__label .text-box__label-link {
+    display: inline-block;
+    vertical-align: bottom;
+
+    .k-icon {
+      font-size: 18px;
+      display: block;
+      margin: 1px;
+    }
+  }
+
+  input.text-box__input {
+    width: 100%;
+    padding: 5px 0px;
+    font-size: 14px;
+    color: inherit;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-bottom-color: $kobo-gray-85;
+    transition: border-color 0.3s;
+
+    &:focus {
+      transition: border-color 0.3s;
+      border-bottom-color: $kobo-blue;
+    }
+
+    &:disabled {
+      color: $kobo-gray-65;
+      pointer-events: none;
+
+      &::placeholder {
+        color: $kobo-gray-65;
+      }
+    }
+
+    &::placeholder {
+      color: $kobo-gray-40;
+    }
   }
 
   .text-box__input {

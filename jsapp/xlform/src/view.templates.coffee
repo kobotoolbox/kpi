@@ -24,6 +24,7 @@ module.exports = do ->
   templates['ParamsView.booleanParam'] = params_templates.booleanParam
   templates['xlfListView.addOptionButton']  = choices_templates.addOptionButton
   templates['xlfSurveyDetailView']          = surveyDetails_templates.xlfSurveyDetailView
+  templates['row.mandatorySettingSelector'] = row_templates.mandatorySettingSelector
   templates['row.rowErrorView']             = row_templates.rowErrorView
   templates['row.xlfRowView']               = row_templates.xlfRowView
   templates['row.scoreView']                = row_templates.scoreView
@@ -39,7 +40,6 @@ module.exports = do ->
     # better than 'undefined is not a function'.
     template = templates[id]
     unless template
-      console.log(typeof choices_templates, _.keys(choices_templates))
       throw new Error("Template not available: '#{id}'")
     unless 'function' is typeof template
       throw new Error("Template not a function: '#{id}'")

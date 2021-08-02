@@ -3,7 +3,7 @@ set -e
 
 source /etc/profile
 
-echo 'KoBoForm initializing.'
+echo 'KoBoForm initializing...'
 
 cd "${KPI_SRC_DIR}"
 
@@ -13,42 +13,56 @@ if [[ -z $DATABASE_URL ]]; then
     exit 1
 fi
 
-echo 'Synchronizing database.'
-python manage.py syncdb --noinput
 
-echo 'Running migrations.'
+# Wait for databases to be up & running before going further
+/bin/bash "${INIT_PATH}/wait_for_mongo.bash"
+/bin/bash "${INIT_PATH}/wait_for_postgres.bash"
+
+echo 'Running migrations...'
 python manage.py migrate --noinput
 
-if [[ ! -L "${KPI_SRC_DIR}/node_modules" ]] || [[ ! -d "${KPI_SRC_DIR}/node_modules" ]]; then
-    echo "Restoring \`npm\` packages to \`${KPI_SRC_DIR}/node_modules\`."
-    rm -rf "${KPI_SRC_DIR}/node_modules"
-    ln -s "${KPI_NODE_PATH}" "${KPI_SRC_DIR}/node_modules"
-fi
-
-if [[ ! -L "${KPI_SRC_DIR}/jsapp/compiled" ]] || [[ ! -d "${KPI_SRC_DIR}/jsapp/compiled" ]]; then
-    echo "Restoring build directory to \`${KPI_SRC_DIR}/jsapp/compiled\`."
-    rm -rf "${KPI_SRC_DIR}/jsapp/compiled"
-    ln -s "${BUILD_DIR}" "${KPI_SRC_DIR}/jsapp/compiled"
-fi
-
-if [[ ! -L "${KPI_SRC_DIR}/jsapp/fonts" ]] || [[ ! -d "${KPI_SRC_DIR}/jsapp/fonts" ]]; then
-    echo "Restoring fonts directory to \`${KPI_SRC_DIR}/jsapp/fonts\`."
-    rm -rf "${KPI_SRC_DIR}/jsapp/fonts"
-    ln -s "${FONTS_DIR}" "${KPI_SRC_DIR}/jsapp/fonts"
-fi
+echo 'Creating superuser...'
+python manage.py create_kobo_superuser
 
 if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/check_kpi_prefix_outdated.py"; then
-    echo 'Building static files from live code.'
-    (cd "${KPI_SRC_DIR}" && npm run build && python manage.py collectstatic --noinput)
+    if [[ "${FRONTEND_DEV_MODE}" == "host" ]]; then
+        echo "Dev mode is activated and \`npm\` should be run from host."
+        # Create folder to be sure following `rsync` command does not fail
+        mkdir -p "${KPI_SRC_DIR}/staticfiles"
+    else
+        echo "Syncing \`npm\` packages..."
+        check-dependencies --install
+
+        # Clean up folders
+        rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
+        rm -rf "${KPI_SRC_DIR}/jsapp/compiled" && \
+        echo "Rebuilding client code..."
+        npm run copy-fonts && npm run build
+
+        echo "Building static files from live code..."
+        python manage.py collectstatic --noinput
+    fi
 fi
 
 echo "Copying static files to nginx volume..."
-rsync -aq --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
+rsync -aq --delete --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
+
+if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" ]]; then
+    echo "Fetching translations..."
+    git submodule init && \
+    git submodule update --remote && \
+    python manage.py compilemessages
+fi
 
 rm -rf /etc/profile.d/pydev_debugger.bash.sh
-if [[ -d /srv/pydev_orig && ! -z "${KPI_PATH_FROM_ECLIPSE_TO_PYTHON_PAIRS}" ]]; then
+if [[ -d /srv/pydev_orig && -n "${KPI_PATH_FROM_ECLIPSE_TO_PYTHON_PAIRS}" ]]; then
     echo 'Enabling PyDev remote debugging.'
     "${KPI_SRC_DIR}/docker/setup_pydev.bash"
 fi
 
+echo 'Cleaning up Celery PIDs...'
+rm -rf /tmp/celery*.pid
+
 echo 'KoBoForm initialization completed.'
+
+exec /usr/bin/runsvdir /etc/service

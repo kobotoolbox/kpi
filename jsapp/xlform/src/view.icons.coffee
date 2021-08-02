@@ -1,154 +1,71 @@
-_ = require 'underscore'
-Backbone = require 'backbone'
+_ = require('underscore')
+Backbone = require('backbone')
+constants = require('../../js/constants')
 
 module.exports = do ->
   _t = require("utils").t
 
-  iconDetails = [
-    # row 1
-      label: _t("Select One")
-      faClass: "dot-circle-o"
-      grouping: "r1"
-      id: "select_one"
-    ,
-      label: _t("Select Many")
-      faClass: "list-ul"
-      grouping: "r1"
-      id: "select_multiple"
-    ,
-      label: _t("Text")
-      faClass: "lato-text"
-      grouping: "r1"
-      id: "text"
-    ,
-      label: _t("Number")
-      faClass: "lato-integer"
-      grouping: "r1"
-      id: "integer"
-    ,
+  addIconToRow = (typeDef, group) ->
+    iconDetails.push({
+      label: typeDef.label,
+      iconClassName: "k-icon k-icon-#{typeDef.icon}",
+      iconClassNameLocked: "k-icon k-icon-#{typeDef.icon}-lock",
+      grouping: group,
+      id: typeDef.id
+    })
+    return
 
-    # row 2
-      label: _t("Decimal")
-      faClass: "lato-decimal"
-      grouping: "r2"
-      id: "decimal"
-    ,
-      label: _t("Date")
-      faClass: "calendar"
-      grouping: "r2"
-      id: "date"
-    ,
-      label: _t("Time")
-      faClass: "clock-o"
-      grouping: "r2"
-      id: "time"
-    ,
-      label: _t("Date & time")
-      faClass: "calendar clock-over"
-      grouping: "r2"
-      id: "datetime"
-    ,
-
-    # r3
-      label: _t("Point")
-      faClass: "map-marker"
-      grouping: "r3"
-      id: "geopoint"
-    ,
-      label: _t("Photo")
-      faClass: "picture-o"
-      grouping: "r3"
-      id: "image"
-    ,
-      label: _t("Audio")
-      faClass: "volume-up"
-      grouping: "r3"
-      id: "audio"
-    ,
-      label: _t("Video")
-      faClass: "video-camera"
-      grouping: "r3"
-      id: "video"
-    ,
-
-    # r4
-      label: _t("Line")
-      faClass: "share-alt"
-      grouping: "r4"
-      id: "geotrace"
-    ,
-      label: _t("Note")
-      faClass: "bars"
-      grouping: "r4"
-      id: "note"
-    ,
-      label: _t("Barcode / QR Code")
-      faClass: "qrcode"
-      grouping: "r4"
-      id: "barcode"
-    ,
-      label: _t("Acknowledge")
-      faClass: "check-square-o"
-      grouping: "r4"
-      id: "acknowledge"
-    ,
-
-    # r5
-      label: _t("Area")
-      faClass: "square"
-      grouping: "r5"
-      id: "geoshape"
-    ,
-      label: _t("Rating")
-      faClass: "server"
-      grouping: "r5"
-      id: "score"
-    ,
-      label: _t("Question Matrix")
-      faClass: "table"
-      grouping: "r5"
-      id: "kobomatrix"
-    ,
-      label: _t("Ranking")
-      faClass: "sort-amount-desc"
-      grouping: "r5"
-      id: "rank"
-    ,
-
-    # r6
-      label: _t("Calculate")
-      faClass: "lato-calculate"
-      grouping: "r6"
-      id: "calculate"
-    ,
-      label: _t("File")
-      faClass: "file"
-      grouping: "r6"
-      id: "file"
-    ,
-      label: _t("Range")
-      faClass: "lato-range"
-      grouping: "r6"
-      id: "range"
-    ,
-    ]
+  iconDetails = []
+  # row 1
+  addIconToRow(constants.QUESTION_TYPES.select_one,  "r1")
+  addIconToRow(constants.QUESTION_TYPES.select_multiple, "r1")
+  addIconToRow(constants.QUESTION_TYPES.text, "r1")
+  addIconToRow(constants.QUESTION_TYPES.integer, "r1")
+  # row 2
+  addIconToRow(constants.QUESTION_TYPES.decimal, "r2")
+  addIconToRow(constants.QUESTION_TYPES.date, "r2")
+  addIconToRow(constants.QUESTION_TYPES.time, "r2")
+  addIconToRow(constants.QUESTION_TYPES.datetime, "r2")
+  # row 3
+  addIconToRow(constants.QUESTION_TYPES.geopoint, "r3")
+  addIconToRow(constants.QUESTION_TYPES.image, "r3")
+  addIconToRow(constants.QUESTION_TYPES.audio, "r3")
+  addIconToRow(constants.QUESTION_TYPES.video, "r3")
+  # row 4
+  addIconToRow(constants.QUESTION_TYPES.geotrace, "r4")
+  addIconToRow(constants.QUESTION_TYPES.note, "r4")
+  addIconToRow(constants.QUESTION_TYPES.barcode, "r4")
+  addIconToRow(constants.QUESTION_TYPES.acknowledge, "r4")
+  # row 5
+  addIconToRow(constants.QUESTION_TYPES.geoshape, "r5")
+  addIconToRow(constants.QUESTION_TYPES.score, "r5")
+  addIconToRow(constants.QUESTION_TYPES.kobomatrix, "r5")
+  addIconToRow(constants.QUESTION_TYPES.rank, "r5")
+  # row 6
+  addIconToRow(constants.QUESTION_TYPES.calculate, "r6")
+  addIconToRow(constants.QUESTION_TYPES.hidden, "r6")
+  addIconToRow(constants.QUESTION_TYPES.file, "r6")
+  addIconToRow(constants.QUESTION_TYPES.range, "r6")
+  # row 7
+  addIconToRow(constants.QUESTION_TYPES['xml-external'], "r7")
 
   class QtypeIcon extends Backbone.Model
-    defaults:
-      faClass: "question-circle"
+    defaults: {
+      iconClassname: "k-icon"
+    }
 
   class QtypeIconCollection extends Backbone.Collection
     model: QtypeIcon
-    grouped: ()->
+    grouped: () ->
       unless @_groups
         @_groups = []
         grp_keys = []
-        @each (model)=>
+        @each (model) =>
           grping = model.get("grouping")
           grp_keys.push(grping)  unless grping in grp_keys
           ii = grp_keys.indexOf(grping)
           @_groups[ii] or @_groups[ii] = []
-          @_groups[ii].push model
+          @_groups[ii].push(model)
       _.zip.apply(null, @_groups)
 
   new QtypeIconCollection(iconDetails)

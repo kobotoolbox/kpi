@@ -1,22 +1,34 @@
 #!/bin/bash
-set -e
 
 source /etc/profile
 
 KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
-uwsgi_command="/usr/local/bin/uwsgi --ini ${KPI_SRC_DIR}/uwsgi.ini"
-if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' && -z "${NEW_RELIC_LICENSE_KEY}" ]]; then
-    echo 'Running `kpi` container with uWSGI application server.'
-    exec ${uwsgi_command}
-elif [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' && ! -z "${NEW_RELIC_LICENSE_KEY}" ]]; then
-    echo 'Running `kpi` container with uWSGI application server and New Relic analytics.'
-    export NEW_RELIC_APP_NAME="${NEW_RELIC_APP_NAME:-KoBoForm}"
-    export NEW_RELIC_LOG="${NEW_RELIC_LOG:-stdout}"
-    export NEW_RELIC_LOG_LEVEL="${NEW_RELIC_LOG_LEVEL:-info}"
-    exec newrelic-admin run-program ${uwsgi_command}
-else
-    echo 'Running `kpi` container with `runserver_plus` debugging application server.'
+UWSGI_COMMAND="$(command -v uwsgi) --ini ${KPI_SRC_DIR}/uwsgi.ini"
+
+if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
     cd "${KPI_SRC_DIR}"
-    pip install werkzeug ipython
+    DIFF=$(diff "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt")
+    if [[ -n "$DIFF" ]]; then
+        echo "Syncing pip dependencies..."
+        pip-sync dependencies/pip/external_services.txt 1>/dev/null
+        cp "dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt"
+    fi
+    echo "Running \`kpi\` container with uWSGI application server."
+    exec ${UWSGI_COMMAND}
+else
+    cd "${KPI_SRC_DIR}"
+    DIFF=$(diff "${KPI_SRC_DIR}/dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt")
+    if [[ -n "$DIFF" ]]; then
+        echo "Syncing pip dependencies..."
+        pip-sync dependencies/pip/dev_requirements.txt 1>/dev/null
+        cp "dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt"
+    fi
+
+    if [[ -n "$RAVEN_DSN" ]]; then
+        echo "Sentry detected. Installing \`raven\` pip dependency..."
+        pip install raven
+    fi
+
+    echo "Running \`kpi\` container with \`runserver_plus\` debugging application server."
     exec python manage.py runserver_plus 0:8000
 fi
