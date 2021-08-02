@@ -46,7 +46,6 @@ export var dataInterface;
 
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${ROOT_URL}/me/` }),
-    serverEnvironment: ()=> $ajax({ url: `${ROOT_URL}/environment/` }),
     apiToken: () => {
       return $ajax({
         url: `${ROOT_URL}/token/?format=json`
@@ -803,7 +802,7 @@ export var dataInterface;
       });
     },
     environment() {
-      return $ajax({url: `${ROOT_URL}/environment/`,method: 'GET'});
+      return $ajax({url: `${ROOT_URL}/environment/`});
     },
     login: (creds)=> {
       return $ajax({ url: `${ROOT_URL}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});

@@ -205,7 +205,6 @@ stores.session = Reflux.createStore({
   },
   isAuthStateKnown: false,
   init() {
-    this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.verifyLogin.anonymous, (data) => {
       this.isAuthStateKnown = true;
@@ -215,33 +214,6 @@ stores.session = Reflux.createStore({
       log('login not verified', xhr.status, xhr.statusText);
     });
     actions.auth.verifyLogin();
-    actions.auth.getEnvironment();
-  },
-  triggerEnv(environment) {
-    const nestedArrToChoiceObjs = (i) => {
-      return {
-        value: i[0],
-        label: i[1],
-      };
-    };
-    if (environment.available_sectors) {
-      environment.available_sectors = environment.available_sectors.map(
-        nestedArrToChoiceObjs);
-    }
-    if (environment.available_countries) {
-      environment.available_countries = environment.available_countries.map(
-        nestedArrToChoiceObjs);
-    }
-    if (environment.interface_languages) {
-      environment.interface_languages = environment.interface_languages.map(
-        nestedArrToChoiceObjs);
-    }
-    if (environment.all_languages) {
-      environment.all_languages = environment.all_languages.map(
-        nestedArrToChoiceObjs);
-    }
-    this.environment = environment;
-    this.trigger({environment: environment});
   },
   triggerLoggedIn(acct) {
     this.isAuthStateKnown = true;
@@ -398,22 +370,4 @@ stores.userExists = Reflux.createStore({
     this.checked[username] = false;
     this.trigger(this.checked, username);
   }
-});
-
-stores.serverEnvironment = Reflux.createStore({
-  init() {
-    this.state = {};
-    this.listenTo(actions.misc.getServerEnvironment.completed,
-                  this.updateEnvironment);
-  },
-  setState (state) {
-    var chz = changes(this.state, state);
-    if (chz) {
-      assign(this.state, state);
-      this.trigger(chz);
-    }
-  },
-  updateEnvironment(response) {
-    this.setState(response);
-  },
 });

@@ -5,7 +5,6 @@ import Reflux from 'reflux';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import {bem} from 'js/bem';
-import ui from 'js/ui';
 
 export default class FormJson extends React.Component {
   constructor(props) {
@@ -31,15 +30,17 @@ export default class FormJson extends React.Component {
     }
 
     return (
-      <ui.Panel>
-        <bem.FormView>
-          <pre>
-            <code>
-              {content}
-            </code>
-          </pre>
-        </bem.FormView>
-      </ui.Panel>
+      <bem.uiPanel>
+        <bem.uiPanel__body>
+          <bem.FormView>
+            <pre>
+              <code>
+                {content}
+              </code>
+            </pre>
+          </bem.FormView>
+        </bem.uiPanel__body>
+      </bem.uiPanel>
     );
   }
 }

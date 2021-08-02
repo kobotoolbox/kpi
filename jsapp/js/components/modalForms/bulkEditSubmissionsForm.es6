@@ -11,7 +11,7 @@ import {QUESTION_TYPES} from 'js/constants';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
-import {stores} from 'js/stores';
+import envStore from 'js/envStore';
 
 const FUSE_OPTIONS = {
   isCaseSensitive: false,
@@ -204,10 +204,10 @@ class BulkEditSubmissionsForm extends React.Component {
   }
 
   renderSupportUrlLink() {
-    if (stores.serverEnvironment?.state?.support_url) {
+    if (envStore.isReady && envStore.data.support_url) {
       return (
         <a
-          href={stores.serverEnvironment.state.support_url + HELP_ARTICLE_URL}
+          href={envStore.data.support_url + HELP_ARTICLE_URL}
           target='_blank'
         >
           {t('in the help article')}
