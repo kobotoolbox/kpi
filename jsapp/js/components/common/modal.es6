@@ -92,7 +92,10 @@ export default class Modal extends React.Component {
           }
           <bem.Modal__content>
             <bem.Modal__header>
-              {this.renderTitle()}
+              {!this.props.customModalHeader &&
+                this.renderTitle()
+              }
+              {this.props.customModalHeader}
               {this.renderClose()}
             </bem.Modal__header>
             {this.props.children}
