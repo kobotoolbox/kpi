@@ -27,7 +27,6 @@ import FormJson from 'js/components/formJson';
 import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/constants';
 import {actions} from 'js/actions';
-import {notify} from 'utils';
 import permConfig from 'js/components/permissions/permConfig';
 import ui from 'js/ui';
 
@@ -41,7 +40,6 @@ export default class AllRoutes extends React.Component {
 
   componentDidMount() {
     actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted.bind(this));
-    actions.permissions.getConfig.failed.listen(this.onGetConfigFailed.bind(this));
     actions.misc.getServerEnvironment();
     actions.permissions.getConfig();
   }
@@ -49,10 +47,6 @@ export default class AllRoutes extends React.Component {
   onGetConfigCompleted(response) {
     permConfig.setPermissions(response.results);
     this.setState({isPermsConfigReady: true});
-  }
-
-  onGetConfigFailed() {
-    notify('Failed to get permissions config!', 'error');
   }
 
   getRoutes() {
