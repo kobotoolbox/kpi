@@ -67,7 +67,7 @@ class ApiTokenDisplay extends React.Component {
           disabled={this.state.isLoadingToken}
           m='icon'
         >
-          <i className={this.state.isTokenVisible ? 'k-icon k-icon-view-no'
+          <i className={this.state.isTokenVisible ? 'k-icon k-icon-hide'
                                                   : 'k-icon k-icon-view'}
           />
         </bem.Button>
