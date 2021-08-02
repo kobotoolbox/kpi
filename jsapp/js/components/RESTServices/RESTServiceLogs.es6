@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {bem} from '../../bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from '../../actions';
 import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';

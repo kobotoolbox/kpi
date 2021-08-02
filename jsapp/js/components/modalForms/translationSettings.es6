@@ -5,7 +5,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import LanguageForm from 'js/components/modalForms/languageForm';
 import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
