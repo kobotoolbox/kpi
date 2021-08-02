@@ -25,6 +25,7 @@ import SharingForm from 'js/components/permissions/sharingForm';
 import DataAttachmentColumnsForm from 'js/components/dataAttachments/dataAttachmentColumnsForm.es6';
 import SubmissionModal from 'js/components/submissions/submissionModal';
 import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
+import TableMediaPreview from 'js/components/submissions/tableMediaPreview';
 import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
 
@@ -182,6 +183,11 @@ class BigModal extends React.Component {
         });
         break;
 
+      case MODAL_TYPES.TABLE_MEDIA_PREVIEW:
+        // Size and title will depend on its props
+        this.setState({
+          modalClass: 'modal-media-preview'
+        });
       case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
         // title is set by DataAttachmentColumnsForm
         break;
@@ -283,6 +289,7 @@ class BigModal extends React.Component {
         title={this.state.title}
         className={this.state.modalClass}
         isDuplicated={this.props.params.isDuplicated}
+        customModalHeader={this.props.params.customModalHeader}
       >
         <Modal.Body>
             { this.props.params.type === MODAL_TYPES.SHARING &&
@@ -405,6 +412,11 @@ class BigModal extends React.Component {
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
                 asset={this.props.params.asset}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.TABLE_MEDIA_PREVIEW &&
+              <TableMediaPreview
                 {...this.props.params}
               />
             }
