@@ -542,8 +542,6 @@ export class DataTable extends React.Component {
         filterable: false,
         className: columnClassName,
         Cell: (row) => {
-          console.log(showLabels + ' | ' + q);
-          console.log('-----------------------');
           if (showLabels && q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               var mediaURL = this.getMediaDownloadLink(row, row.value);
