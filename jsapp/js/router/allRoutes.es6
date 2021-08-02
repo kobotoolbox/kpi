@@ -35,7 +35,7 @@ export default class AllRoutes extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isPermsConfigReady: false,
+      isPermsConfigReady: permConfig.isReady(),
       isSessionReady: stores.session.isAuthStateKnown,
     };
   }
@@ -48,7 +48,7 @@ export default class AllRoutes extends React.Component {
 
   onGetConfigCompleted(response) {
     permConfig.setPermissions(response.results);
-    this.setState({isPermsConfigReady: true});
+    this.setState({isPermsConfigReady: permConfig.isReady()});
   }
 
   onSessionChange() {
