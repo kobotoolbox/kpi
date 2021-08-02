@@ -8,15 +8,15 @@ import {bem} from '../bem';
 import {stores} from '../stores';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
-import FormGallery from '../components/formGallery/formGallery';
-import SharingForm from '../components/modalForms/sharingForm';
-import ProjectSettings from '../components/modalForms/projectSettings';
-import DataTable from '../components/table';
+import FormGallery from 'js/components/formGallery/formGallery';
+import SharingForm from 'js/components/permissions/sharingForm';
+import ProjectSettings from 'js/components/modalForms/projectSettings';
+import DataTable from 'js/components/submissions/table';
 import ConnectProjects from 'js/components/dataAttachments/connectProjects';
 import FormMedia from './modalForms/formMedia';
 import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
 import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
-import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
+import {PROJECT_SETTINGS_CONTEXTS} from 'js/constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -66,7 +66,6 @@ export class FormSubScreens extends React.Component {
           return <DataTable asset={this.state} />;
         case ROUTES.FORM_GALLERY.replace(':uid', this.state.uid):
           return this.renderFormGallery();
-          break;
         case ROUTES.FORM_MAP.replace(':uid', this.state.uid):
           return <FormMap asset={this.state} />;
         case ROUTES.FORM_MAP_BY

@@ -3,10 +3,9 @@ this handles storing and managing gallery data
 */
 
 import Reflux from 'reflux';
-import stores from 'js/stores';
+import {stores} from 'js/stores';
 import {dataInterface} from 'js/dataInterface';
 import {
-  t,
   assign,
   stateChanges,
   formatTimeDate

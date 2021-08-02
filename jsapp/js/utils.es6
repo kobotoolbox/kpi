@@ -224,10 +224,11 @@ export function validFileTypes() {
 }
 
 export function koboMatrixParser(params) {
+  let content = {};
   if (params.content)
-    var content = JSON.parse(params.content);
+    content = JSON.parse(params.content);
   if (params.source)
-    var content = JSON.parse(params.source);
+    content = JSON.parse(params.source);
 
   if (!content.survey)
     return params;

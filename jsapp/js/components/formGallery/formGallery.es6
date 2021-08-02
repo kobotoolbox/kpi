@@ -2,17 +2,14 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import bem from '../../bem';
+import {bem} from 'js/bem';
 import {
   galleryActions,
   galleryStore
 } from './galleryInterface';
 import FormGalleryFilter from './formGalleryFilter';
 import FormGalleryGrid from './formGalleryGrid';
-import {
-  t,
-  assign
-} from '../../utils';
+import {assign} from 'js/utils';
 
 export default class FormGallery extends React.Component {
   constructor(props) {

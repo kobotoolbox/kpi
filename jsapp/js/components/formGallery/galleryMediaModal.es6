@@ -4,15 +4,14 @@ import PropTypes from 'prop-types';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import mixins from '../../mixins';
-import bem from '../../bem';
-import stores from '../../stores';
+import mixins from 'js/mixins';
+import {bem} from 'js/bem';
+import {stores} from 'js/stores';
 import {
   galleryActions,
   galleryStore
 } from './galleryInterface';
-import {t} from '../../utils';
-import {MODAL_TYPES} from '../../constants';
+import {MODAL_TYPES} from 'js/constants';
 
 export default class GalleryMediaModal extends React.Component {
   constructor(props) {

@@ -2,14 +2,13 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import bem from '../../bem';
+import {bem} from 'js/bem';
 import FormGalleryGridItem from './formGalleryGridItem';
 import {
   GROUPBY_OPTIONS,
   galleryActions,
   galleryStore
 } from './galleryInterface';
-import {t} from '../../utils';
 
 export default class FormGalleryGrid extends React.Component {
   constructor(props) {

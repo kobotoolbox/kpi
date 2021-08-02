@@ -1,5 +1,5 @@
 import React from 'react';
-import bem from '../../bem';
+import {bem} from 'js/bem';
 import {galleryActions} from './galleryInterface';
 
 export default class FormGalleryGridItem extends React.Component {

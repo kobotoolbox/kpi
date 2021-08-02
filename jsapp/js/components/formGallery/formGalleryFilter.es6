@@ -5,20 +5,17 @@ import Select from 'react-select';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import TextBox from '../textBox';
-import Checkbox from '../checkbox';
-import mixins from '../../mixins';
-import bem from '../../bem';
+import TextBox from 'js/components/common/textBox';
+import Checkbox from 'js/components/common/checkbox';
+import mixins from 'js/mixins';
+import {bem} from 'js/bem';
 import {
   ORDER_OPTIONS,
   GROUPBY_OPTIONS,
   galleryActions,
   galleryStore
 } from './galleryInterface';
-import {
-  t,
-  assign
-} from '../../utils';
+import {assign} from 'js/utils';
 
 const groupByOptions = [
   GROUPBY_OPTIONS.question,
