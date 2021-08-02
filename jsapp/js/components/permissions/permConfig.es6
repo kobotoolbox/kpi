@@ -54,7 +54,7 @@ const permConfig = Reflux.createStore({
   },
 
   isReady() {
-    return Array.isArray(this.permissions) && this.permissions.length === 0;
+    return Array.isArray(this.permissions) && this.permissions.length !== 0;
   },
 });
 
