@@ -291,7 +291,7 @@ class SubmissionDataTable extends React.Component {
     return (
       <bem.SubmissionDataTable__row m={['columns', 'response', 'metadata']}>
         <bem.SubmissionDataTable__column m='type'>
-          <i className='k-icon k-icon-qt-meta-default'/>
+          {renderQuestionTypeIcon(dataName)}
         </bem.SubmissionDataTable__column>
 
         <bem.SubmissionDataTable__column m='label'>
