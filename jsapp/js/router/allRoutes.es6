@@ -31,10 +31,15 @@ export default class AllRoutes extends React.Component {
   getRoutes() {
     return (
       <Route name='home' path='/' component={App}>
+        <IndexRedirect to={ROUTES.FORMS} />
+
+        {/* MISC */}
         <Route path={ROUTES.ACCOUNT_SETTINGS} component={AccountSettings} />
         <Route path={ROUTES.CHANGE_PASSWORD} component={ChangePassword} />
 
+        {/* LIBRARY */}
         <Route path={ROUTES.LIBRARY}>
+          <IndexRedirect to={ROUTES.MY_LIBRARY}/>
           <Route path={ROUTES.MY_LIBRARY} component={MyLibraryRoute}/>
           <Route path={ROUTES.PUBLIC_COLLECTIONS} component={PublicCollectionsRoute}/>
           <Route path={ROUTES.NEW_LIBRARY_ITEM} component={LibraryAssetEditor}/>
@@ -43,14 +48,15 @@ export default class AllRoutes extends React.Component {
           <Route path={ROUTES.NEW_LIBRARY_CHILD} component={LibraryAssetEditor}/>
           <Route path={ROUTES.LIBRARY_ITEM_JSON} component={FormJson}/>
           <Route path={ROUTES.LIBRARY_ITEM_XFORM} component={FormXform}/>
-          <IndexRedirect to={ROUTES.MY_LIBRARY}/>
         </Route>
 
-        <IndexRedirect to={ROUTES.FORMS} />
+        {/* FORMS */}
         <Route path={ROUTES.FORMS} >
           <IndexRoute component={FormsSearchableList} />
 
           <Route path={ROUTES.FORM}>
+            <IndexRedirect to={ROUTES.FORM_LANDING} />
+
             <Route path={ROUTES.FORM_JSON} component={FormJson} />
             <Route path={ROUTES.FORM_XFORM} component={FormXform} />
             <Route path={ROUTES.FORM_EDIT} component={FormPage} />
@@ -64,6 +70,7 @@ export default class AllRoutes extends React.Component {
             </Route>
 
             <Route path={ROUTES.FORM_DATA}>
+              <IndexRedirect to={ROUTES.FORM_TABLE} />
               <Route path={ROUTES.FORM_REPORT} component={Reports} />
               <Route path={ROUTES.FORM_REPORT_OLD} component={FormSubScreens} />
               <Route path={ROUTES.FORM_TABLE} component={FormSubScreens} />
@@ -71,7 +78,6 @@ export default class AllRoutes extends React.Component {
               <Route path={ROUTES.FORM_GALLERY} component={FormSubScreens} />
               <Route path={ROUTES.FORM_MAP} component={FormSubScreens} />
               <Route path={ROUTES.FORM_MAP_BY} component={FormSubScreens} />
-              <IndexRedirect to={ROUTES.FORM_TABLE} />
             </Route>
 
             <Route path={ROUTES.FORM_SETTINGS}>
@@ -91,8 +97,6 @@ export default class AllRoutes extends React.Component {
               * way of introducing a loading screen during sub route refresh.
               **/}
             <Route path={ROUTES.FORM_RESET} component={FormSubScreens} />
-
-            <IndexRedirect to={ROUTES.FORM_LANDING} />
           </Route>
 
           <Route path='*' component={FormNotFound} />
