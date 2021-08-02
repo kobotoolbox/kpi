@@ -6,7 +6,9 @@ import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
-import ui from 'js/ui';
+import PopoverMenu from 'js/popoverMenu';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Modal from 'js/components/common/modal';
 import mixins from 'js/mixins';
 import DocumentTitle from 'react-document-title';
 import {txtid} from '../../../xlform/src/model.utils';
@@ -334,7 +336,7 @@ export default class Reports extends React.Component {
 
     return (
       <bem.FormView__reportButtons>
-        <ui.PopoverMenu type='custom-reports' triggerLabel={menuLabel}>
+        <PopoverMenu type='custom-reports' triggerLabel={menuLabel}>
           <bem.PopoverMenu__link
             key='default'
             data-name=''
@@ -370,7 +372,7 @@ export default class Reports extends React.Component {
               {t('Create New Report')}
             </bem.PopoverMenu__link>
           )}
-        </ui.PopoverMenu>
+        </PopoverMenu>
 
         {this.state.currentCustomReport && (
           <bem.Button
@@ -418,13 +420,13 @@ export default class Reports extends React.Component {
   renderCustomReportModal() {
     return (
       <bem.GraphSettings>
-        <ui.Modal.Body>
+        <Modal.Body>
           <CustomReportForm
             reportData={this.state.reportData}
             customReport={this.state.currentCustomReport}
             asset={this.state.asset}
           />
-        </ui.Modal.Body>
+        </Modal.Body>
       </bem.GraphSettings>
     );
   }
@@ -445,7 +447,7 @@ export default class Reports extends React.Component {
   renderQuestionSettings() {
     return (
       <bem.GraphSettings>
-        <ui.Modal.Body />
+        <Modal.Body />
       </bem.GraphSettings>
     );
   }
@@ -470,7 +472,7 @@ export default class Reports extends React.Component {
     } else {
       return (
         <bem.Loading>
-          <ui.LoadingSpinner />
+          <LoadingSpinner />
         </bem.Loading>
       );
     }
@@ -581,27 +583,27 @@ export default class Reports extends React.Component {
             )}
 
             {this.state.showReportGraphSettings && (
-              <ui.Modal
+              <Modal
                 open
                 onClose={this.toggleReportGraphSettings}
                 title={t('Edit Report Style')}
               >
                 <ReportStyleSettings parentState={this.state} />
-              </ui.Modal>
+              </Modal>
             )}
 
             {this.state.showCustomReportModal && (
-              <ui.Modal
+              <Modal
                 open
                 onClose={this.toggleCustomReportModal}
                 title={t('Custom Report')}
               >
                 {this.renderCustomReportModal()}
-              </ui.Modal>
+              </Modal>
             )}
 
             {this.state.currentQuestionGraph && (
-              <ui.Modal
+              <Modal
                 open
                 onClose={this.closeQuestionSettings}
                 title={t('Question Style')}
@@ -610,7 +612,7 @@ export default class Reports extends React.Component {
                   question={this.state.currentQuestionGraph}
                   parentState={this.state}
                 />
-              </ui.Modal>
+              </Modal>
             )}
           </bem.ReportView>
         </bem.FormView>

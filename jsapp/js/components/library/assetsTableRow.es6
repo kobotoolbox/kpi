@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import AssetActionButtons from './assetActionButtons';
-import ui from 'js/ui';
+import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'utils';
 import {ASSET_TYPES} from 'js/constants';
 import assetUtils from 'js/assetUtils';
@@ -47,7 +47,7 @@ class AssetsTableRow extends React.Component {
         </bem.AssetsTableRow__column>
 
         <bem.AssetsTableRow__column m='name'>
-          <ui.AssetName {...this.props.asset}/>
+          <AssetName asset={this.props.asset}/>
 
           {this.props.asset.settings && this.props.asset.tag_string && this.props.asset.tag_string.length > 0 &&
             <bem.AssetsTableRow__tags>
