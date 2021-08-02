@@ -1,3 +1,6 @@
+@import "scss/_colors";
+@import "scss/libs/_mdl";
+
 $z-modal-backdrop: 1101;
 $z-enketo-iframe-icon: 1100;
 $z-modal-x: 10;
@@ -515,7 +518,7 @@ $z-modal-x: 10;
   .form-modal__item--http-header-row {
     margin-top: 10px;
 
-    input {
+    input[type="text"] {
       width: calc(50% - 20px);
       background-color: rgba($kobo-gray-24, 0.05);
       padding-left: 5px;
@@ -755,7 +758,7 @@ $z-modal-x: 10;
   color: $kobo-gray-40;
   background: transparent;
   border: 0;
-  font-size: 32px;
+  font-size: 28px;
   vertical-align: middle;
   cursor: pointer;
 }

@@ -1,10 +1,10 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Select from 'react-select';
 import Checkbox from 'js/components/common/checkbox';
-import ui from '../ui';
 import {bem} from '../bem';
 import {actions} from '../actions';
 import {searches} from '../searches';
@@ -27,20 +27,32 @@ export class ListSearch extends React.Component {
 
   searchStoreChanged(searchStoreState) {
     if (searchStoreState.cleared) {
-      this.refs['formlist-search'].setValue('');
+      this.setValue('');
     }
     this.setState(searchStoreState);
   }
 
+  /**
+   * NOTE: this is used outside the component
+   */
   getValue() {
-    return this.refs['formlist-search'].getValue();
+    return ReactDOM.findDOMNode(this.refs['formlist-search']).value;
+  }
+
+  setValue(v) {
+    ReactDOM.findDOMNode(this.refs['formlist-search']).value = v;
   }
 
   render() {
     return (
       <bem.Search m={[this.state.searchState]} >
         <bem.Search__icon className='k-icon k-icon-search'/>
-        <ui.SearchBox ref='formlist-search' placeholder={this.props.placeholderText} onChange={this.searchChangeEvent} />
+        <bem.SearchInput
+          type='text'
+          ref='formlist-search'
+          onChange={this.searchChangeEvent}
+          placeholder={this.props.placeholderText}
+        />
 
         {this.state.searchState !== 'none' &&
           <bem.Search__cancel

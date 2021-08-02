@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 import {stores} from '../stores';
 import {bem} from '../bem';
 import {searches} from '../searches';
-import ui from '../ui';
+import AssetName from 'js/components/common/assetName';
 import {
   COMMON_QUERIES,
   ASSET_TYPES,
@@ -117,7 +117,7 @@ class AssetNavigatorListView extends React.Component {
               <bem.LibList__item m={modifiers} key={item.uid} data-uid={item.uid}>
                 <bem.LibList__dragbox />
                 <bem.LibList__label m={'name'}>
-                  <ui.AssetName {...item} />
+                  <AssetName asset={item} />
                 </bem.LibList__label>
 
                 { item.asset_type === 'block' &&

@@ -1,7 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
-import ui from 'js/ui';
+import PopoverMenu from 'js/popoverMenu';
 import Checkbox from 'js/components/common/checkbox';
 
 /**
@@ -46,7 +46,7 @@ class TableBulkCheckbox extends React.Component {
           onChange={this.onToggleCurrentPage}
         />
 
-        <ui.PopoverMenu type='table-bulk-checkbox' triggerLabel='' additionalModifiers={['right']}>
+        <PopoverMenu type='table-bulk-checkbox' triggerLabel='' additionalModifiers={['right']}>
           <bem.PopoverMenu__link onClick={this.onSelectAllPages}>
             {t('Select all results (##count##)').replace('##count##', this.props.totalRowsCount)}
           </bem.PopoverMenu__link>
@@ -58,7 +58,7 @@ class TableBulkCheckbox extends React.Component {
           <bem.PopoverMenu__link onClick={this.onClearSelection}>
             {t('None')}
           </bem.PopoverMenu__link>
-        </ui.PopoverMenu>
+        </PopoverMenu>
       </div>
     );
   }
