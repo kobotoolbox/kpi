@@ -28,12 +28,6 @@ import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/constants';
 
 export default class AllRoutes extends React.Component {
-  componentDidMount(){
-    // HACK: when hot reloading, componentWillReceiveProps whines about
-    // changing the routes prop so this shuts that up
-    this.router.componentWillReceiveProps = function () {};
-  }
-
   getRoutes() {
     return (
       <Route name='home' path='/' component={App}>

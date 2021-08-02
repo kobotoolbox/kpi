@@ -13,13 +13,12 @@ import {dataInterface} from '../dataInterface';
 import {
   assign,
   currentLang,
-  getLoginUrl,
   stringToColor,
 } from 'utils';
+import {getLoginUrl} from 'js/router/routerUtils';
 import {getAssetIcon} from 'js/assetUtils';
 import {
   COMMON_QUERIES,
-  PATHS,
   ROUTES,
 } from 'js/constants';
 import {searches} from '../searches';

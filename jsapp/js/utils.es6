@@ -53,19 +53,6 @@ export function formatDate(timeStr) {
   return _m.format('ll');
 }
 
-
-
-export function getLoginUrl() {
-  let url = constants.PATHS.LOGIN;
-  const currentLoc = hashHistory.getCurrentLocation();
-  if (currentLoc?.pathname) {
-    const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
-    // add redirection after logging in to current page
-    url += `?next=${nextUrl}`;
-  }
-  return url;
-}
-
 // works universally for v1 and v2 urls
 export function getUsernameFromUrl(userUrl) {
   return userUrl.match(/\/users\/(.*)\//)[1];
