@@ -12,6 +12,7 @@ import {MODAL_TYPES} from 'js/constants';
 import {getLangString, notify} from 'utils';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
+import envStore from 'js/envStore';
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html';
 
@@ -292,12 +293,12 @@ export class TranslationSettings extends React.Component {
               </a>
               {t('(e.g. "English (en)" or "Rohingya (rhg)").')}
 
-              {stores.serverEnvironment &&
-                stores.serverEnvironment.state.support_url && (
+              {envStore.isReady &&
+                envStore.data.support_url && (
                   <a
                     target='_blank'
                     href={
-                      stores.serverEnvironment.state.support_url +
+                      envStore.data.support_url +
                       LANGUAGE_SUPPORT_URL
                     }
                   >

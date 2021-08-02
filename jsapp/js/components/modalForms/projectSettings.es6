@@ -30,6 +30,7 @@ import {
 } from 'js/constants';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
+import envStore from 'js/envStore';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
 
@@ -762,9 +763,9 @@ class ProjectSettings extends React.Component {
         <div className='intro'>
           {t('Enter a valid XLSForm URL in the field below.')}<br/>
 
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.support_url &&
-            <a href={stores.serverEnvironment.state.support_url + VIA_URL_SUPPORT_URL} target='_blank'>
+          { envStore.isReady &&
+            envStore.data.support_url &&
+            <a href={envStore.data.support_url + VIA_URL_SUPPORT_URL} target='_blank'>
               {t('Having issues? See this help article.')}
             </a>
           }
@@ -797,8 +798,8 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
-    const sectors = stores.session.environment.available_sectors;
-    const countries = stores.session.environment.available_countries;
+    const sectors = envStore.data.available_sectors;
+    const countries = envStore.data.available_countries;
     const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
 
     return (

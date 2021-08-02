@@ -22,6 +22,7 @@ import moment from 'moment';
 import {actions} from './actions';
 import {stores} from './stores';
 import {surveyCompanionStore} from './surveyCompanionStore'; // importing it so it exists
+import {envStore} from 'js/envStore'; // initializing it
 import {dataInterface} from './dataInterface';
 import {bem} from './bem';
 import ui from './ui';
@@ -66,7 +67,6 @@ class App extends React.Component {
   componentDidMount() {
     this.listenTo(actions.permissions.getConfig.completed, this.onGetConfigCompleted);
     this.listenTo(actions.permissions.getConfig.failed, this.onGetConfigFailed);
-    actions.misc.getServerEnvironment();
     actions.permissions.getConfig();
     hashHistory.listen(this.onRouteChange.bind(this));
   }
