@@ -8,7 +8,8 @@ import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import mixins from '../mixins';
 import {bem} from '../bem';
-import ui from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
 import Chart from 'chart.js';
@@ -208,38 +209,40 @@ class FormSummary extends React.Component {
       <bem.FormView__cell m='data-tabs'>
         <Link
           to={`/forms/${this.state.uid}/landing`}
-          key={'landing'}
-          className={'form-view__tab'}
+          key='landing'
           data-path={`/forms/${this.state.uid}/landing`}
           onClick={this.triggerRefresh}>
             <i className='k-icon k-icon-projects' />
             {t('Collect data')}
             <i className='k-icon k-icon-next' />
         </Link>
+
         {this.userCan('change_asset', this.state) &&
-          <bem.PopoverMenu__link onClick={this.sharingModal}>
+          <button onClick={this.sharingModal}>
             <i className='k-icon k-icon-user-share'/>
             {t('Share project')}
             <i className='k-icon k-icon-next' />
-          </bem.PopoverMenu__link>
+          </button>
         }
+
         {this.userCan('change_asset', this.state) &&
           <Link
             to={`/forms/${this.state.uid}/edit`}
-            key={'edit'}
-            className={'form-view__tab'}
+            key='edit'
             data-path={`/forms/${this.state.uid}/edit`}
-            onClick={this.triggerRefresh}>
-              <i className='k-icon k-icon-edit' />
-              {t('Edit form')}
-              <i className='k-icon k-icon-next' />
+            onClick={this.triggerRefresh}
+          >
+            <i className='k-icon k-icon-edit' />
+            {t('Edit form')}
+            <i className='k-icon k-icon-next' />
           </Link>
         }
-        <bem.PopoverMenu__link onClick={this.enketoPreviewModal}>
+
+        <button onClick={this.enketoPreviewModal}>
           <i className='k-icon k-icon-view' />
           {t('Preview form')}
           <i className='k-icon k-icon-next' />
-        </bem.PopoverMenu__link>
+        </button>
       </bem.FormView__cell>
     );
   }
@@ -254,7 +257,6 @@ class FormSummary extends React.Component {
             key={ind}
             activeClassName='active'
             onlyActiveOnIndex
-            className='form-view__tab'
             data-path={item.path}
             onClick={this.triggerRefresh}
           >
@@ -319,11 +321,11 @@ class FormSummary extends React.Component {
     let permAccess = this.userCan('view_submissions', this.state) || this.userCanPartially('view_submissions', this.state);
 
     if (!this.state.permissions) {
-      return (<ui.LoadingSpinner/>);
+      return (<LoadingSpinner/>);
     }
 
     if (!permAccess) {
-      return (<ui.AccessDeniedMessage/>);
+      return (<AccessDeniedMessage/>);
     }
 
     return (
