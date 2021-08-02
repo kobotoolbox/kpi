@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import Radio from 'js/components/common/radio';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import ui from 'js/ui';
+import Modal from 'js/components/common/modal';
 import {assign} from 'utils';
 import ChartTypePicker from './chartTypePicker';
 import ChartColorsPicker from './chartColorsPicker';
@@ -144,8 +144,8 @@ export default class ReportStyleSettings extends React.Component {
 
     return (
       <bem.GraphSettings>
-        <ui.Modal.Tabs>{modalTabs}</ui.Modal.Tabs>
-        <ui.Modal.Body>
+        <Modal.Tabs>{modalTabs}</Modal.Tabs>
+        <Modal.Body>
           <div className='tabs-content'>
             {tabs[this.state.activeModalTab] === t('Chart Type') && (
               <div id='graph-type'>
@@ -186,12 +186,12 @@ export default class ReportStyleSettings extends React.Component {
                 </div>
               )}
           </div>
-          <ui.Modal.Footer>
+          <Modal.Footer>
             <bem.KoboButton m='blue' onClick={this.saveReportStyles}>
               {t('Save')}
             </bem.KoboButton>
-          </ui.Modal.Footer>
-        </ui.Modal.Body>
+          </Modal.Footer>
+        </Modal.Body>
       </bem.GraphSettings>
     );
   }

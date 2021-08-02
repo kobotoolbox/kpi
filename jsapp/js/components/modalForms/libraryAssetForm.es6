@@ -7,7 +7,7 @@ import Select from 'react-select';
 import PropTypes from 'prop-types';
 import TextBox from 'js/components/common/textBox';
 import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
