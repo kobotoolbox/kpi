@@ -5,7 +5,7 @@ import {
   isSelfOwned,
   getAssetDisplayName
 } from 'js/assetUtils';
-import {isAnyLibraryRoute} from 'js/routerUtils';
+import {isAnyLibraryRoute} from 'js/router/routerUtils';
 import myLibraryStore from './myLibraryStore';
 import publicCollectionsStore from './publicCollectionsStore';
 import {ROOT_BREADCRUMBS} from './libraryConstants';

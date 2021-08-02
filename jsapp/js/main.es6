@@ -5,7 +5,7 @@
 
 require('jquery-ui/ui/widgets/sortable');
 import moment from 'moment';
-import RunRoutes, {routes} from './routerSetup';
+import RunRoutes, {routes} from 'js/router/routerSetup';
 import RegistrationPasswordApp from './registrationPasswordApp';
 import {AppContainer} from 'react-hot-loader';
 import '@babel/polyfill'; // required to support Array.prototypes.includes in IE11

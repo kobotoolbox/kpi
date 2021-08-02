@@ -8,7 +8,7 @@ import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
   isPublicCollectionsRoute,
-} from 'js/routerUtils';
+} from 'js/router/routerUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,

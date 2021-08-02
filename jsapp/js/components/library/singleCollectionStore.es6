@@ -4,7 +4,7 @@ import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
   isAnyLibraryItemRoute,
-} from 'js/routerUtils';
+} from 'js/router/routerUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
