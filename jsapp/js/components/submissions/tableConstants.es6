@@ -1,4 +1,8 @@
-import {createEnum} from 'js/constants';
+import {
+  createEnum,
+  QUESTION_TYPES,
+  META_QUESTION_TYPES,
+} from 'js/constants';
 
 export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
 
@@ -37,3 +41,10 @@ export const DATA_TABLE_SETTINGS = Object.freeze({
   SHOW_HXL: 'show-hxl-tags',
   SORT_BY: 'sort-by',
 });
+
+export const TABLE_MEDIA_TYPES = createEnum([
+  QUESTION_TYPES.image.id,
+  QUESTION_TYPES.audio.id,
+  QUESTION_TYPES.video.id,
+  META_QUESTION_TYPES['background-audio'],
+]);

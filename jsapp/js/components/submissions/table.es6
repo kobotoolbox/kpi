@@ -40,6 +40,8 @@ import {
   VALIDATION_STATUS_ID_PROP,
   DATA_TABLE_SETTING,
   DATA_TABLE_SETTINGS,
+  EXCLUDED_COLUMNS,
+  TABLE_MEDIA_TYPES,
 } from 'js/components/submissions/tableConstants';
 import {
   getColumnLabel,
@@ -48,6 +50,7 @@ import {
 } from 'js/components/submissions/tableUtils';
 import tableStore from 'js/components/submissions/tableStore';
 import './table.scss';
+import MediaCell from './mediaCell';
 
 const DEFAULT_PAGE_SIZE = 30;
 
@@ -610,10 +613,7 @@ export class DataTable extends React.Component {
       }
 
       const elClassNames = [];
-      if (
-        (q && NUMERICAL_SUBMISSION_PROPS[q.type]) ||
-        NUMERICAL_SUBMISSION_PROPS[key]
-      ) {
+      if (this.cellDisplaysNumbers(q || key)) {
         elClassNames.push('rt-numerical-value');
       }
 
@@ -668,17 +668,14 @@ export class DataTable extends React.Component {
         headerClassName: elClassNames.join(' '),
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
-            if (
-              q.type === QUESTION_TYPES.image.id ||
-              q.type === QUESTION_TYPES.audio.id ||
-              q.type === QUESTION_TYPES.video.id ||
-              q.type === META_QUESTION_TYPES['background-audio']
-            ) {
+            if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               var mediaURL = this.getMediaDownloadLink(row, row.value);
               return (
-                <a href={mediaURL} target='_blank'>
-                  <span className='trimmed-text'>{row.value}</span>
-                </a>
+                <MediaCell
+                  questionType={q.type}
+                  mediaURL={mediaURL}
+                  mediaName={row.value}
+                />
               );
             }
 
@@ -1171,6 +1168,18 @@ export class DataTable extends React.Component {
     } else {
       this.tableScrollTop = evt.target.scrollTop;
     }
+  }
+
+  cellDisplaysNumbers(questionOrKey) {
+    let questionType = questionOrKey;
+    if (questionOrKey.type) {
+      questionType = questionOrKey.type;
+    }
+
+    return (
+      NUMERICAL_SUBMISSION_PROPS[questionType] ||
+      Object.keys(TABLE_MEDIA_TYPES).includes(questionType)
+    );
   }
 
   render() {
