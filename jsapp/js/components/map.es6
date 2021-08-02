@@ -7,7 +7,8 @@ import {hashHistory} from 'react-router';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
-import ui from '../ui';
+import PopoverMenu from 'js/popoverMenu';
+import Modal from 'js/components/common/modal';
 import classNames from 'classnames';
 import omnivore from '@mapbox/leaflet-omnivore';
 import JSZip from 'jszip';
@@ -538,7 +539,7 @@ export class FormMap extends React.Component {
   filterMap (evt) {
     // roundabout solution for https://github.com/kobotoolbox/kpi/issues/1678
     //
-    // when blurEventDisabled prop is set, no blur event takes place in ui.popovermenu
+    // when blurEventDisabled prop is set, no blur event takes place in PopoverMenu
     // hence, dropdown stays visible when invoking other click events (like filterLanguage below)
     // but when changing question, dropdown needs to be removed, clearDisaggregatedPopover does this via props
     this.setState({clearDisaggregatedPopover: true});
@@ -667,13 +668,15 @@ export class FormMap extends React.Component {
   render () {
     if (this.state.error) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {this.state.error}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.Loading>
+              <bem.Loading__inner>
+                {this.state.error}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       );
     }
 
@@ -737,7 +740,7 @@ export class FormMap extends React.Component {
         }
 
         { this.state.hasGeoPoint && !this.state.noData &&
-          <ui.PopoverMenu type='viewby-menu'
+          <PopoverMenu type='viewby-menu'
                         triggerLabel={label}
                         m={'above'}
                         clearPopover={this.state.clearDisaggregatedPopover}
@@ -772,7 +775,7 @@ export class FormMap extends React.Component {
                   </bem.PopoverMenu__link>
                 );
             })}
-          </ui.PopoverMenu>
+          </PopoverMenu>
 
         }
 
@@ -840,7 +843,7 @@ export class FormMap extends React.Component {
           </bem.Loading>
         }
         {this.state.showMapSettings && (
-          <ui.Modal
+          <Modal
             open
             onClose={this.toggleMapSettings}
             title={t('Map Settings')}>
@@ -850,7 +853,7 @@ export class FormMap extends React.Component {
               overrideStyles={this.overrideStyles}
               overridenStyles={this.state.overridenStyles}
             />
-          </ui.Modal>
+          </Modal>
         )}
 
         <div id='data-map' />

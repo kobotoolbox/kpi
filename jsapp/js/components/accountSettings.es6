@@ -7,7 +7,7 @@ import TextareaAutosize from 'react-autosize-textarea';
 import alertify from 'alertifyjs';
 import {actions} from '../actions';
 import {bem} from '../bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from '../stores';
 import Select from 'react-select';
 import TextBox from 'js/components/common/textBox';

@@ -8,7 +8,7 @@ import {dataInterface} from 'js/dataInterface';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import ui from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import ReactTable from 'react-table';
@@ -26,6 +26,11 @@ import {
   NUMERICAL_SUBMISSION_PROPS,
   ENKETO_ACTIONS,
 } from 'js/constants';
+import {
+  EXCLUDED_COLUMNS,
+  SUBMISSION_ACTIONS_ID,
+  TABLE_MEDIA_TYPES,
+} from './tableConstants';
 import {formatTimeDate} from 'utils';
 import {
   renderQuestionTypeIcon,
@@ -35,25 +40,7 @@ import {
 import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from './tableBulkOptions';
 import TableBulkCheckbox from './tableBulkCheckbox';
-
-// Columns that will be ALWAYS excluded from the view
-const EXCLUDED_COLUMNS = [
-  '_xform_id_string',
-  '_attachments',
-  '_notes',
-  '_bamboo_dataset_id',
-  // '_status' is always 'submitted_via_web' unless submitted in bulk;
-  // in that case, it's 'zip'
-  '_status',
-  'formhub/uuid',
-  '_tags',
-  '_geolocation',
-  'meta/instanceID',
-  'meta/deprecatedID',
-  '_validation_status',
-];
-
-export const SUBMISSION_ACTIONS_ID = '__SubmissionActions';
+import MediaCell from './mediaCell';
 
 export class DataTable extends React.Component {
   constructor(props){
@@ -196,7 +183,9 @@ export class DataTable extends React.Component {
     output = [...new Set([...dataKeys, ...output])];
 
     // exclude some technical non-data columns
-    output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false);
+    output = output.filter(
+      (key) => EXCLUDED_COLUMNS.includes(key) === false
+    );
 
     // exclude notes
     output = output.filter((key) => {
@@ -521,10 +510,7 @@ export class DataTable extends React.Component {
       }
 
       let columnClassName = '';
-      if (
-        (q && NUMERICAL_SUBMISSION_PROPS[q.type]) ||
-        NUMERICAL_SUBMISSION_PROPS[key]
-      ) {
+      if (this.cellDisplaysNumbers(q || key)) {
         columnClassName += 'rt-numerical-value';
       }
 
@@ -557,14 +543,15 @@ export class DataTable extends React.Component {
         className: columnClassName,
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
-            if (
-              q.type === QUESTION_TYPES.image.id ||
-              q.type === QUESTION_TYPES.audio.id ||
-              q.type === QUESTION_TYPES.video.id ||
-              q.type === META_QUESTION_TYPES['background-audio']
-            ) {
+            if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               var mediaURL = this.getMediaDownloadLink(row, row.value);
-              return <a href={mediaURL} target='_blank'>{row.value}</a>;
+              return (
+                <MediaCell
+                  questionType={q.type}
+                  mediaURL={mediaURL}
+                  mediaName={row.value}
+                />
+              );
             }
             // show proper labels for choice questions
             if (q.type === QUESTION_TYPES.select_one.id) {
@@ -1058,16 +1045,29 @@ export class DataTable extends React.Component {
 
     return mediaURL;
   }
+  cellDisplaysNumbers(questionOrKey) {
+    let questionType = questionOrKey;
+    if (questionOrKey.type) {
+      questionType = questionOrKey.type;
+    }
+
+    return (
+      NUMERICAL_SUBMISSION_PROPS[questionType] ||
+      Object.keys(TABLE_MEDIA_TYPES).includes(questionType)
+    );
+  }
   render() {
     if (this.state.error) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {this.state.error}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.Loading>
+              <bem.Loading__inner>
+                {this.state.error}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       );
     }
 
@@ -1132,7 +1132,7 @@ export class DataTable extends React.Component {
               <i className='k-icon k-icon-caret-right'/>
             </React.Fragment>
           )}
-          loadingText={<ui.LoadingSpinner/>}
+          loadingText={<LoadingSpinner/>}
           noDataText={t('Your filters returned no submissions.')}
           pageText={t('Page')}
           ofText={t('of')}
