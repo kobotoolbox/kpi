@@ -30,6 +30,13 @@ export class ListSearch extends React.Component {
     this.setState(searchStoreState);
   }
 
+  /**
+   * NOTE: this is used outside the component
+   */
+  getValue() {
+    return ReactDOM.findDOMNode(this.refs['formlist-search']).value;
+  }
+
   setValue(v) {
     ReactDOM.findDOMNode(this.refs['formlist-search']).value = v;
   }
