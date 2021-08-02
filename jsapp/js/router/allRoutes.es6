@@ -27,6 +27,7 @@ import FormJson from 'js/components/formJson';
 import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/constants';
 import {actions} from 'js/actions';
+import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import ui from 'js/ui';
 
@@ -35,18 +36,23 @@ export default class AllRoutes extends React.Component {
     super(props);
     this.state = {
       isPermsConfigReady: false,
+      isSessionReady: stores.session.isAuthStateKnown,
     };
   }
 
   componentDidMount() {
     actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted.bind(this));
-    actions.misc.getServerEnvironment();
+    stores.session.listen(this.onSessionChange);
     actions.permissions.getConfig();
   }
 
   onGetConfigCompleted(response) {
     permConfig.setPermissions(response.results);
     this.setState({isPermsConfigReady: true});
+  }
+
+  onSessionChange() {
+    this.setState({isSessionReady: stores.session.isAuthStateKnown});
   }
 
   getRoutes() {
