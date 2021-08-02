@@ -59,8 +59,8 @@ if (document.head.querySelector('meta[name=kpi-root-path]')) {
   render(<AllRoutes/>, el);
 
   if (module.hot) {
-    module.hot.accept('./app', () => {
-      let AllRoutes = require('./app').default;
+    module.hot.accept('js/app', () => {
+      let AllRoutes = require('js/app').default;
       render(
         <AppContainer>
           <AllRoutes/>

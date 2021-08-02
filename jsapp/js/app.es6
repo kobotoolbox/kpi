@@ -9,11 +9,9 @@ import DocumentTitle from 'react-document-title';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
-import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import {surveyCompanionStore} from 'js/surveyCompanionStore'; // importing it so it exists
 import {bem} from 'js/bem';
-import ui from 'js/ui';
 import mixins from 'js/mixins';
 import MainHeader from 'js/components/header';
 import Drawer from 'js/components/drawer';
@@ -21,36 +19,18 @@ import FormViewTabs from 'js/components/formViewTabs';
 import IntercomHandler from 'js/components/intercomHandler';
 import PermValidator from 'js/components/permissions/permValidator';
 import Modal from 'js/components/modal';
-import {
-  assign,
-  notify,
-} from 'utils';
-import permConfig from 'js/components/permissions/permConfig';
+import {assign} from 'utils';
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = assign({
-      isConfigReady: false,
       pageState: stores.pageState.state,
     });
   }
 
   componentDidMount() {
-    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted.bind(this));
-    actions.permissions.getConfig.failed.listen(this.onGetConfigFailed.bind(this));
-    actions.misc.getServerEnvironment();
-    actions.permissions.getConfig();
     hashHistory.listen(this.onRouteChange.bind(this));
-  }
-
-  onGetConfigCompleted(response) {
-    this.setState({isConfigReady: true});
-    permConfig.setPermissions(response.results);
-  }
-
-  onGetConfigFailed() {
-    notify('Failed to get permissions config!', 'error');
   }
 
   onRouteChange() {
@@ -66,10 +46,6 @@ export default class App extends React.Component {
   }
 
   render() {
-    if (!this.state.isConfigReady) {
-      return (<ui.LoadingSpinner/>);
-    }
-
     var assetid = this.props.params.assetid || this.props.params.uid || null;
 
     const pageWrapperContentModifiers = [];
