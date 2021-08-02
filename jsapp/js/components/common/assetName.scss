@@ -1,3 +1,5 @@
+@import "scss/_colors";
+
 .asset-name {
   &.asset-name--empty {
     font-style: italic;
@@ -16,12 +18,6 @@
     color: $kobo-gray-40;
     margin-left: 5px;
     font-size: smaller;
-    font-style: italic;
-  }
-}
-
-.sidebar-asset-name {
-  &.asset-name--noname {
     font-style: italic;
   }
 }
