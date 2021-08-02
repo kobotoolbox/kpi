@@ -1,7 +1,6 @@
 import React from 'react';
 import {dataInterface} from 'js/dataInterface';
 import {bem} from 'js/bem';
-import ui from 'js/ui';
 
 export default class FormXform extends React.Component {
   constructor(props) {
@@ -22,24 +21,28 @@ export default class FormXform extends React.Component {
   render() {
     if (!this.state.xformLoaded) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              <p>XForm is loading</p>
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.Loading>
+              <bem.Loading__inner>
+                <p>XForm is loading</p>
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       );
     } else {
       return (
-        <ui.Panel>
-          <bem.FormView>
-            <div
-              className='pygment'
-              dangerouslySetInnerHTML={this.state.xformHtml}
-            />
-          </bem.FormView>
-        </ui.Panel>
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.FormView>
+              <div
+                className='pygment'
+                dangerouslySetInnerHTML={this.state.xformHtml}
+              />
+            </bem.FormView>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       );
     }
   }

@@ -28,7 +28,7 @@ import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/constants';
 import {actions} from 'js/actions';
 import permConfig from 'js/components/permissions/permConfig';
-import ui from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 export default class AllRoutes extends React.Component {
   constructor(props) {
@@ -132,7 +132,7 @@ export default class AllRoutes extends React.Component {
     // This is the place that stops any app rendering until all necessary
     // backend calls are done.
     if (!this.state.isPermsConfigReady) {
-      return (<ui.LoadingSpinner/>);
+      return (<LoadingSpinner/>);
     }
 
     return (

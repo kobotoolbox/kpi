@@ -1,13 +1,15 @@
 import React from 'react';
-import ui from 'js/ui';
+import {bem} from 'js/bem';
 
 export default class SectionNotFound extends React.Component {
   render() {
     return (
-        <ui.Panel className='k404'>
+      <bem.uiPanel className='k404'>
+        <bem.uiPanel__body>
           <i />
           <em>section not found</em>
-        </ui.Panel>
-      );
+        </bem.uiPanel__body>
+      </bem.uiPanel>
+    );
   }
 }
