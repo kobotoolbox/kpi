@@ -5,7 +5,7 @@
 
 require('jquery-ui/ui/widgets/sortable');
 import moment from 'moment';
-import RunRoutes, {routes} from 'js/router/routerSetup';
+import AllRoutes from 'js/router/allRoutes';
 import RegistrationPasswordApp from './registrationPasswordApp';
 import {AppContainer} from 'react-hot-loader';
 import '@babel/polyfill'; // required to support Array.prototypes.includes in IE11
@@ -56,14 +56,14 @@ const el = (() => {
 })();
 
 if (document.head.querySelector('meta[name=kpi-root-path]')) {
-  render(<RunRoutes routes={routes} />, el);
+  render(<AllRoutes/>, el);
 
   if (module.hot) {
     module.hot.accept('./app', () => {
-      let RunRoutes = require('./app').default;
+      let AllRoutes = require('./app').default;
       render(
         <AppContainer>
-          <RunRoutes routes={routes} />
+          <AllRoutes/>
         </AppContainer>,
         el
       );
