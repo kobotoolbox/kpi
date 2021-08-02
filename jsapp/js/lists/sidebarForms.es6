@@ -6,13 +6,14 @@ import {Link} from 'react-router';
 import Reflux from 'reflux';
 import mixins from '../mixins';
 import {bem} from '../bem';
-import ui from '../ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {searches} from '../searches';
 import {stores} from '../stores';
 import {
   COMMON_QUERIES,
   DEPLOYMENT_CATEGORIES
 } from 'js/constants';
+import AssetName from 'js/components/common/assetName';
 
 class SidebarFormsList extends Reflux.Component {
   constructor(props) {
@@ -63,7 +64,7 @@ class SidebarFormsList extends Reflux.Component {
         key={asset.uid}
         className={classNames.join(' ')}
       >
-        <ui.SidebarAssetName {...asset} />
+        <AssetName asset={asset}/>
       </Link>
     );
   }
@@ -92,7 +93,7 @@ class SidebarFormsList extends Reflux.Component {
     }
 
     if (s.searchState === 'loading' && s.searchString === false) {
-      return (<ui.LoadingSpinner/>);
+      return (<LoadingSpinner/>);
     }
 
     return (
@@ -100,7 +101,7 @@ class SidebarFormsList extends Reflux.Component {
         {
           (() => {
             if (s.defaultQueryState === 'loading') {
-              return (<ui.LoadingSpinner/>);
+              return (<LoadingSpinner/>);
             } else if (s.defaultQueryState === 'done') {
               return Object.keys(DEPLOYMENT_CATEGORIES).map(
                 (categoryId) => {

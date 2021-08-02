@@ -18,8 +18,8 @@ import Drawer from 'js/components/drawer';
 import FormViewTabs from 'js/components/formViewTabs';
 import IntercomHandler from 'js/components/intercomHandler';
 import PermValidator from 'js/components/permissions/permValidator';
-import Modal from 'js/components/modal';
 import {assign} from 'utils';
+import BigModal from 'js/components/bigModal/bigModal';
 
 export default class App extends React.Component {
   constructor(props) {
@@ -74,7 +74,7 @@ export default class App extends React.Component {
           <div className='header-stretch-bg'/>
           <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
             { this.state.pageState.modal &&
-              <Modal params={this.state.pageState.modal} />
+              <BigModal params={this.state.pageState.modal} />
             }
 
             { !this.isFormBuilder() &&
