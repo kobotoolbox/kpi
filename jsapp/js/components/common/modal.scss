@@ -351,6 +351,83 @@ $z-modal-x: 10;
   }
 }
 
+.modal.modal-media-preview {
+  border-radius: 6px;
+  min-width: 25%;
+
+  .modal__content {
+    background-color: $kobo-gray-98;
+  }
+
+  .modal__header {
+    min-height: 0;
+    padding: 16px;
+    background-color: $kobo-white;
+    color: $kobo-gray-24;
+
+    .modal__x {
+      padding: 0;
+      margin: 0;
+    }
+
+    .table-media-preview-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: 12px;
+
+      .table-media-preview-header__title {
+        padding-top: 3px;
+        margin-right: 6px;
+
+        .table-media-preview-header__label {
+          vertical-align: top;
+        }
+
+        i.k-icon {
+          color: $kobo-gray-65;
+          margin-right: 6px;
+        }
+      }
+
+      .kobo-light-button {
+        padding-right: 0px;
+        i.k-icon-download {
+          font-weight: 800;
+          margin-left: 3px;
+        }
+      }
+    }
+  }
+
+  .modal__body {
+    padding: 0;
+    margin: 0;
+
+    .table-media-preview {
+      padding: 32px 0 12px 0;
+      text-align: center;
+      max-width: 600px;
+      margin: auto;
+
+      .audio-player {
+        margin-right: 12px;
+      }
+
+      img, video {
+        width: 100%;
+      }
+
+      i.k-icon-file-audio {
+        font-size: 128px;
+        color: $kobo-gray-92
+      }
+    }
+  }
+}
+
 .enketo-holder {
   // resets modal window paddings
   margin: -30px -30px;
@@ -765,6 +842,24 @@ $z-modal-x: 10;
 
 .remove-encryption {
   float: right;
+}
+@media screen and (max-width: 480px) {
+  .table-media-preview-header {
+    margin-right: 0 !important;
+    display: block !important;
+
+    .table-media-preview-header__title {
+      display: flex;
+    }
+
+    .kobo-light-button {
+      display: block;
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 12px;
+    }
+  }
 }
 
 @media screen and (max-width: 767px) {

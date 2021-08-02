@@ -10,7 +10,7 @@ import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {notify} from 'utils';
-import {SUBMISSION_ACTIONS_ID} from 'js/components/submissions/table';
+import {SUBMISSION_ACTIONS_ID} from 'js/components/submissions/tableConstants';
 
 export class TableColumnFilter extends React.Component {
   constructor(props){
