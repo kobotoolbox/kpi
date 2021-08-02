@@ -1,4 +1,5 @@
 import React from 'react';
+import autoBind from 'react-autobind';
 import {
   IndexRoute,
   IndexRedirect,
@@ -38,10 +39,11 @@ export default class AllRoutes extends React.Component {
       isPermsConfigReady: permConfig.isReady(),
       isSessionReady: stores.session.isAuthStateKnown,
     };
+    autoBind(this);
   }
 
   componentDidMount() {
-    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted.bind(this));
+    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
     stores.session.listen(this.onSessionChange);
     actions.permissions.getConfig();
   }
@@ -137,7 +139,7 @@ export default class AllRoutes extends React.Component {
   render() {
     // This is the place that stops any app rendering until all necessary
     // backend calls are done.
-    if (!this.state.isPermsConfigReady) {
+    if (!this.state.isPermsConfigReady || !this.state.isSessionReady) {
       return (<LoadingSpinner/>);
     }
 
