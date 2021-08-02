@@ -266,7 +266,7 @@ export default class RESTServiceLogs extends React.Component {
                     data-tip={t('Retry all submissions')}
                     disabled={!this.state.isHookActive}
                   >
-                    <i className='k-icon k-icon-replace-all'/>
+                    <i className='k-icon k-icon-replace'/>
                   </bem.ServiceRow__actionButton>
                 }
               </bem.ServiceRow__column>
