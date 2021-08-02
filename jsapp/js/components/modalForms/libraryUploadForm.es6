@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 import Dropzone from 'react-dropzone';
 import Select from 'react-select';
 import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import {renderBackButton} from './modalHelpers';

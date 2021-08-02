@@ -4,7 +4,7 @@ import dataAttachmentsUtils from 'js/components/dataAttachments/dataAttachmentsU
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 /**
  * Attributes from source needed to generate `columnsToDisplay`
