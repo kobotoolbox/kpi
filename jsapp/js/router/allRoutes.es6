@@ -31,7 +31,10 @@ import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {redirectToLogin} from 'js/router/routerUtils';
+import {
+  isRootRoute,
+  redirectToLogin,
+} from 'js/router/routerUtils';
 
 export default class AllRoutes extends React.Component {
   constructor(props) {
@@ -47,20 +50,36 @@ export default class AllRoutes extends React.Component {
     actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
     stores.session.listen(this.onSessionChange);
     actions.permissions.getConfig();
+    this.checkRootRedirect();
   }
 
   onGetConfigCompleted(response) {
     permConfig.setPermissions(response.results);
-    this.setState({isPermsConfigReady: permConfig.isReady()});
+    this.setState({isPermsConfigReady: permConfig.isReady()}, this.checkRootRedirect);
   }
 
   onSessionChange() {
-    this.setState({isSessionReady: stores.session.isAuthStateKnown});
+    this.setState({isSessionReady: stores.session.isAuthStateKnown}, this.checkRootRedirect());
+  }
+
+  /**
+   * Checks if currently on root route without authorization and redirects to
+   * login page - ideally without user noticing the UI.
+   */
+  checkRootRedirect() {
+    if (
+      this.state.isPermsConfigReady &&
+      this.state.isSessionReady &&
+      !stores.session.isLoggedIn &&
+      isRootRoute()
+    ) {
+      redirectToLogin();
+    }
   }
 
   getRoutes() {
     return (
-      <Route name='home' path='/' component={App}>
+      <Route name='home' path={ROUTES.ROOT} component={App}>
         <IndexRedirect to={ROUTES.FORMS} />
 
         {/* MISC */}
