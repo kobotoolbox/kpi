@@ -50,30 +50,44 @@ export default class AllRoutes extends React.Component {
     actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
     stores.session.listen(this.onSessionChange);
     actions.permissions.getConfig();
-    this.checkRootRedirect();
   }
 
   onGetConfigCompleted(response) {
     permConfig.setPermissions(response.results);
-    this.setState({isPermsConfigReady: permConfig.isReady()}, this.checkRootRedirect);
+    this.setReady({isPermsConfigReady: permConfig.isReady()});
   }
 
   onSessionChange() {
-    this.setState({isSessionReady: stores.session.isAuthStateKnown}, this.checkRootRedirect());
+    this.setReady({isSessionReady: stores.session.isAuthStateKnown});
   }
 
   /**
-   * Checks if currently on root route without authorization and redirects to
-   * login page - ideally without user noticing the UI.
+   * This convoluted function wants to check if redirect should be made before
+   * setting the state - which would cause an unwanted rerender.
    */
-  checkRootRedirect() {
+  setReady(data) {
+    const newStateObj = {
+      isPermsConfigReady: this.state.isPermsConfigReady,
+      isSessionReady: this.state.isSessionReady,
+    };
+
+    if (typeof data.isPermsConfigReady !== 'undefined') {
+      newStateObj.isPermsConfigReady = data.isPermsConfigReady;
+    }
+
+    if (typeof data.isSessionReady !== 'undefined') {
+      newStateObj.isSessionReady = data.isSessionReady;
+    }
+
     if (
-      this.state.isPermsConfigReady &&
-      this.state.isSessionReady &&
+      newStateObj.isPermsConfigReady &&
+      newStateObj.isSessionReady &&
       !stores.session.isLoggedIn &&
       isRootRoute()
     ) {
       redirectToLogin();
+    } else {
+      this.setState(newStateObj);
     }
   }
 
@@ -159,7 +173,7 @@ export default class AllRoutes extends React.Component {
   render() {
     // This is the place that stops any app rendering until all necessary
     // backend calls are done.
-    if (!this.state.isPermsConfigReady || !this.state.isSessionReady) {
+    if (this.state.isRedirecting || !this.state.isPermsConfigReady || !this.state.isSessionReady) {
       return (<LoadingSpinner/>);
     }
 
