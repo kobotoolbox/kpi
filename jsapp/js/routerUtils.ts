@@ -43,23 +43,23 @@ export function isNewLibraryItemRoute() {
   return getCurrentPath() === ROUTES.NEW_LIBRARY_ITEM;
 }
 
-export function isLibraryItemRoute(uid) {
+export function isLibraryItemRoute(uid: string) {
   return getCurrentPath() === ROUTES.LIBRARY_ITEM.replace(':uid', uid);
 }
 
-export function isEditLibraryItemRoute(uid) {
+export function isEditLibraryItemRoute(uid: string) {
   return getCurrentPath() === ROUTES.EDIT_LIBRARY_ITEM.replace(':uid', uid);
 }
 
-export function isNewLibraryChildRoute(uid) {
+export function isNewLibraryChildRoute(uid: string) {
   return getCurrentPath() === ROUTES.NEW_LIBRARY_CHILD.replace(':uid', uid);
 }
 
-export function isLibraryItemJsonRoute(uid) {
+export function isLibraryItemJsonRoute(uid: string) {
   return getCurrentPath() === ROUTES.LIBRARY_ITEM_JSON.replace(':uid', uid);
 }
 
-export function isLibraryItemXformRoute(uid) {
+export function isLibraryItemXformRoute(uid: string) {
   return getCurrentPath() === ROUTES.LIBRARY_ITEM_XFORM.replace(':uid', uid);
 }
 
@@ -67,87 +67,83 @@ export function isFormsRoute() {
   return getCurrentPath() === ROUTES.FORMS;
 }
 
-export function isFormRoute(uid) {
+export function isFormRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM.replace(':uid', uid);
 }
 
-export function isFormJsonRoute(uid) {
+export function isFormJsonRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_JSON.replace(':uid', uid);
 }
 
-export function isFormXformRoute(uid) {
+export function isFormXformRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_XFORM.replace(':uid', uid);
 }
 
-export function isFormEditRoute(uid) {
+export function isFormEditRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_EDIT.replace(':uid', uid);
 }
 
-export function isFormSummaryRoute(uid) {
+export function isFormSummaryRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_SUMMARY.replace(':uid', uid);
 }
 
-export function isFormLandingRoute(uid) {
+export function isFormLandingRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_LANDING.replace(':uid', uid);
 }
 
-export function isFormDataRoute(uid) {
+export function isFormDataRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_DATA.replace(':uid', uid);
 }
 
-export function isFormReportRoute(uid) {
+export function isFormReportRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_REPORT.replace(':uid', uid);
 }
 
-export function isFormReportOldRoute(uid) {
-  return getCurrentPath() === ROUTES.FORM_REPORT_OLD.replace(':uid', uid);
-}
-
-export function isFormTableRoute(uid) {
+export function isFormTableRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_TABLE.replace(':uid', uid);
 }
 
-export function isFormDownloadsRoute(uid) {
+export function isFormDownloadsRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_DOWNLOADS.replace(':uid', uid);
 }
 
-export function isFormGalleryRoute(uid) {
+export function isFormGalleryRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_GALLERY.replace(':uid', uid);
 }
 
-export function isFormMapRoute(uid) {
+export function isFormMapRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_MAP.replace(':uid', uid);
 }
 
-export function isFormMapByRoute(uid, viewby) {
+export function isFormMapByRoute(uid: string, viewby: string) {
   return getCurrentPath() === ROUTES.FORM_MAP_BY.replace(':uid', uid).replace(':viewby', viewby);
 }
 
-export function isFormSettingsRoute(uid) {
+export function isFormSettingsRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_SETTINGS.replace(':uid', uid);
 }
 
-export function isFormMediaRoute(uid) {
+export function isFormMediaRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_MEDIA.replace(':uid', uid);
 }
 
-export function isFormSharingRoute(uid) {
+export function isFormSharingRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_SHARING.replace(':uid', uid);
 }
 
-export function isFormRestRoute(uid) {
+export function isFormRestRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_REST.replace(':uid', uid);
 }
 
-export function isFormRestHookRoute(uid, hookUid) {
+export function isFormRestHookRoute(uid: string, hookUid: string) {
   return getCurrentPath() === ROUTES.FORM_REST_HOOK.replace(':uid', uid).replace(':hookUid', hookUid);
 }
 
-export function isFormKobocatRoute(uid) {
+export function isFormKobocatRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_KOBOCAT.replace(':uid', uid);
 }
 
-export function isFormResetRoute(uid) {
+export function isFormResetRoute(uid: string) {
   return getCurrentPath() === ROUTES.FORM_RESET.replace(':uid', uid);
 }
 
