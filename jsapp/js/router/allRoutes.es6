@@ -31,6 +31,7 @@ import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import {redirectToLogin} from 'js/router/routerUtils';
 
 export default class AllRoutes extends React.Component {
   constructor(props) {

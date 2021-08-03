@@ -37,6 +37,10 @@ export function getCurrentPath() {
  * A list of functions that match routes defined in constants
  */
 
+export function isRootRoute() {
+  return getCurrentPath() === ROUTES.ROOT;
+}
+
 export function isAccountSettingsRoute() {
   return getCurrentPath() === ROUTES.ACCOUNT_SETTINGS;
 }
