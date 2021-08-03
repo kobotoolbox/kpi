@@ -204,6 +204,7 @@ stores.session = Reflux.createStore({
     username: ANON_USERNAME,
   },
   isAuthStateKnown: false,
+  isLoggedIn: false,
   init() {
     this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
