@@ -15,7 +15,7 @@ import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
 } from './libraryConstants';
-import {ROUTES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 
 const myLibraryStore = Reflux.createStore({
   /**
