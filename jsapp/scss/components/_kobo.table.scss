@@ -77,30 +77,6 @@ $data-table-row-height: 42px;
           line-height: 21px;
           text-align: left;
         }
-
-        .table-bulk-checkbox {
-          z-index: 1;
-          position: absolute;
-          top: 100%;
-          left: 0;
-          height: $data-table-row-height;
-
-          .popover-menu {
-            margin-top: 10px;
-
-            .popover-menu__toggle::after {
-              content: "\25BC";
-              font-size: 16px;
-              display: inline-block;
-              vertical-align: 1px;
-              padding: 0 5px 0 35px;
-            }
-
-            .popover-menu__content {
-              left: 5px;
-            }
-          }
-        }
       }
     }
 
@@ -215,11 +191,10 @@ $data-table-row-height: 42px;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-around;
+    justify-content: flex-start;
 
     .checkbox {
-      margin-left: 5px;
-      margin-right: 5px;
+      margin-right: 7px;
     }
 
     .checkbox__input {
