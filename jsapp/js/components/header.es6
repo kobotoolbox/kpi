@@ -17,10 +17,8 @@ import {
 } from 'utils';
 import {getLoginUrl} from 'js/router/routerUtils';
 import {getAssetIcon} from 'js/assetUtils';
-import {
-  COMMON_QUERIES,
-  ROUTES,
-} from 'js/constants';
+import {COMMON_QUERIES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';

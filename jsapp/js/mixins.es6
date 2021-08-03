@@ -22,8 +22,8 @@ import {
   ASSET_TYPES,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
-  ROUTES,
 } from './constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
 import {actions} from './actions';

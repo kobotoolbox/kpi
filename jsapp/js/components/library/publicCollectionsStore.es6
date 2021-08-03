@@ -17,8 +17,8 @@ import {
 import {
   ASSET_TYPES,
   ACCESS_TYPES,
-  ROUTES,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 
 const publicCollectionsStore = Reflux.createStore({
   /**

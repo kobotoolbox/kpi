@@ -25,7 +25,7 @@ import FormNotFound from 'js/components/formNotFound';
 import FormXform from 'js/components/formXform';
 import FormJson from 'js/components/formJson';
 import FormsSearchableList from 'js/lists/forms';
-import {ROUTES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {actions} from 'js/actions';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';

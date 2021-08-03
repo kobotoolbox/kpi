@@ -12,7 +12,7 @@ import {hashHistory} from 'react-router';
 import {
   ROUTES,
   PATHS,
-} from 'js/constants';
+} from 'js/router/routerConstants';
 
 export function redirectToLogin() {
   window.location.replace(getLoginUrl());

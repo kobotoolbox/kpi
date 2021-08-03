@@ -10,7 +10,7 @@ import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS,
 } from './libraryConstants';
-import {ROUTES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 
 // A store that listens for actions on assets from a single collection
 // Extends most functionality from myLibraryStore but overwrites some actions:

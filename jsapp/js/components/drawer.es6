@@ -11,13 +11,13 @@ import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
 import {
   IntercomHelpBubble,
-  SupportHelpBubble
+  SupportHelpBubble,
 } from '../components/helpBubbles';
 import {
   COMMON_QUERIES,
   MODAL_TYPES,
-  ROUTES,
 } from '../constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
 
