@@ -132,11 +132,13 @@ class SubmissionModal extends React.Component {
     });
   }
 
-  static getDerivedStateFromProps(props) {
-    return {
-      sid: props.sid,
-      promptRefresh: false,
-    };
+  static getDerivedStateFromProps(props, state) {
+    if (!(state.sid === props.sid)) {
+      return {
+        sid: props.sid,
+        promptRefresh: false,
+      };
+    }
   }
 
   componentDidUpdate(prevProps) {

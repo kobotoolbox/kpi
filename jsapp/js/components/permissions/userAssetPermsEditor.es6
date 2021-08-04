@@ -517,10 +517,6 @@ class UserAssetPermsEditor extends React.Component {
             this.renderCheckbox(CHECKBOX_NAMES.formEdit)
           }
 
-          {this.isAssignable(PERMISSIONS_CODENAMES.manage_asset) &&
-            this.renderCheckbox(CHECKBOX_NAMES.formManage)
-          }
-
           {this.isAssignable(PERMISSIONS_CODENAMES.view_submissions) &&
             this.renderCheckbox(CHECKBOX_NAMES.submissionsView)
           }
@@ -535,15 +531,19 @@ class UserAssetPermsEditor extends React.Component {
           }
           {this.renderPartialRow(CHECKBOX_NAMES.submissionsEditPartial)}
 
+          {this.isAssignable(PERMISSIONS_CODENAMES.validate_submissions) &&
+            this.renderCheckbox(CHECKBOX_NAMES.submissionsValidate)
+          }
+          {this.renderPartialRow(CHECKBOX_NAMES.submissionsValidatePartial)}
+
           {this.isAssignable(PERMISSIONS_CODENAMES.delete_submissions) &&
             this.renderCheckbox(CHECKBOX_NAMES.submissionsDelete)
           }
           {this.renderPartialRow(CHECKBOX_NAMES.submissionsDeletePartial)}
 
-          {this.isAssignable(PERMISSIONS_CODENAMES.validate_submissions) &&
-            this.renderCheckbox(CHECKBOX_NAMES.submissionsValidate)
+          {this.isAssignable(PERMISSIONS_CODENAMES.manage_asset) &&
+            this.renderCheckbox(CHECKBOX_NAMES.formManage)
           }
-          {this.renderPartialRow(CHECKBOX_NAMES.submissionsValidatePartial)}
         </div>
 
         <div className='user-permissions-editor__row'>
