@@ -28,6 +28,7 @@ import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
 import TableMediaPreview from 'js/components/submissions/tableMediaPreview';
 import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
+import GalleryMediaModal from 'js/components/formGallery/galleryMediaModal';
 
 function getSubmissionTitle(props) {
   let title = t('Success!');
@@ -188,6 +189,14 @@ class BigModal extends React.Component {
         this.setState({
           modalClass: 'modal-media-preview'
         });
+        break;
+
+      case MODAL_TYPES.GALLERY_MEDIA:
+        this.setState({
+          modalClass: 'modal--blank modal--large modal--gallery'
+        });
+        break;
+
       case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
         // title is set by DataAttachmentColumnsForm
         break;
@@ -365,6 +374,8 @@ class BigModal extends React.Component {
                 duplicatedSubmission={this.props.params.duplicatedSubmission}
                 backgroundAudioUrl={this.props.params.backgroundAudioUrl}
                 tableInfo={this.props.params.tableInfo || false}
+                galleryIndex={this.props.params.galleryIndex}
+                mediaIndex={this.props.params.mediaIndex}
               />
             }
             { this.props.params.type === MODAL_TYPES.SUBMISSION && !this.state.sid &&
@@ -424,6 +435,11 @@ class BigModal extends React.Component {
               <DataAttachmentColumnsForm
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.GALLERY_MEDIA &&
+              <GalleryMediaModal
                 {...this.props.params}
               />
             }

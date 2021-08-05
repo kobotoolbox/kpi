@@ -20,6 +20,7 @@ import {
 } from 'js/constants';
 import SubmissionDataTable from './submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
+import {galleryActions} from 'js/components/formGallery/galleryInterface';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
 
@@ -222,6 +223,13 @@ class SubmissionModal extends React.Component {
     });
   }
 
+  showMediaModal() {
+    galleryActions.openMediaModal({
+      galleryIndex: parseInt(this.props.galleryIndex),
+      mediaIndex: parseInt(this.props.mediaIndex),
+    });
+  }
+
   prevTablePage() {
     this.setState({ loading: true});
 
@@ -327,6 +335,16 @@ class SubmissionModal extends React.Component {
 
           {this.props.asset.deployment__active &&
             <bem.FormModal__group>
+              {typeof this.props.galleryIndex !== 'undefined' &&
+                typeof this.props.mediaIndex !== 'undefined' &&
+                <button
+                  className='mdl-button mdl-button--raised mdl-button--colored'
+                  onClick={this.showMediaModal}
+                >
+                  {t('back')}
+                </button>
+              }
+
               {translationOptions.length > 1 &&
                 <div className='switch--label-language'>
                   <label>{t('Language:')}</label>
