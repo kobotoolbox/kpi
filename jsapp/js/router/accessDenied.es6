@@ -1,5 +1,4 @@
 import React from 'react';
-import {stores} from 'js/stores';
 import {bem} from 'js/bem';
 import {redirectToLogin} from 'js/router/routerUtils';
 import envStore from 'js/envStore';
@@ -10,17 +9,7 @@ bem.AccessDenied__body = bem.AccessDenied.__('body', 'section');
 bem.AccessDenied__header = bem.AccessDenied.__('header', 'header');
 bem.AccessDenied__text = bem.AccessDenied.__('text', 'section');
 
-/**
- * A generic component for rendering the route only for authorized user.
- *
- * NOTE: we assume stores.session is already initialized because of
- * a conditional statement in `allRoutes`.
- *
- * @prop {string} path - one of PATHS
- * @prop {object} route
- * @prop {object} route.unlockComponent - the target route commponent that should be displayed for authenticateed user
- */
-export default class AuthOnlyRoute extends React.Component {
+export default class AccessDenied extends React.Component {
   constructor(props) {
     super(props);
   }
@@ -31,9 +20,6 @@ export default class AuthOnlyRoute extends React.Component {
   }
 
   render() {
-    if (stores.session.isLoggedIn) {
-      return <this.props.route.unlockComponent/>;
-    }
     return (
       <bem.AccessDenied>
         <bem.AccessDenied__body>

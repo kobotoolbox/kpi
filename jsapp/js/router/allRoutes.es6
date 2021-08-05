@@ -35,7 +35,7 @@ import {
   isRootRoute,
   redirectToLogin,
 } from 'js/router/routerUtils';
-import AuthOnlyRoute from 'js/router/authOnlyRoute';
+import AuthProtectedRoute from 'js/router/authProtectedRoute';
 
 export default class AllRoutes extends React.Component {
   constructor(props) {
@@ -108,7 +108,7 @@ export default class AllRoutes extends React.Component {
         {/* LIBRARY */}
         <Route path={ROUTES.LIBRARY}>
           <IndexRedirect to={ROUTES.MY_LIBRARY}/>
-          <Route path={ROUTES.MY_LIBRARY} component={AuthOnlyRoute} unlockComponent={MyLibraryRoute}/>
+          <Route path={ROUTES.MY_LIBRARY} component={AuthProtectedRoute} unlockComponent={MyLibraryRoute}/>
           <Route path={ROUTES.PUBLIC_COLLECTIONS} component={PublicCollectionsRoute}/>
           <Route path={ROUTES.NEW_LIBRARY_ITEM} component={LibraryAssetEditor}/>
           <Route path={ROUTES.LIBRARY_ITEM} component={AssetRoute}/>
