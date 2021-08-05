@@ -26,6 +26,7 @@ class TextBox extends React.Component {
       'email',
       'password',
       'url',
+      'search',
     ];
     this.DEFAULT_TYPE = 'text';
     autoBind(this);
