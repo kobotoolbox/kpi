@@ -20,8 +20,14 @@ export default class AuthOnlyRoute extends React.Component {
 
   componentDidMount() {
     if (!stores.session.isLoggedIn) {
-      // setTimeout(stores.pageState.showModal.bind(this, {type: MODAL_TYPES.ACCESS_DENIED}), 0);
-      stores.pageState.showModal({type: MODAL_TYPES.ACCESS_DENIED});
+      // HACK: We need to wait for the App component Reflux.connect to start
+      // working correctly so it will display the modal.
+      setTimeout(
+        stores.pageState.showModal.bind(this, {
+          type: MODAL_TYPES.ACCESS_DENIED,
+        }),
+        0
+      );
     }
   }
 
