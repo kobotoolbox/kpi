@@ -10,7 +10,7 @@ import AccessDenied from 'js/router/accessDenied';
  *
  * @prop {string} path - one of PATHS
  * @prop {object} route
- * @prop {object} route.unlockComponent - the target route commponent that should be displayed for authenticateed user
+ * @prop {object} route.protectedComponent - the target route commponent that should be displayed for authenticateed user
  */
 export default class PermProtectedRoute extends React.Component {
   constructor(props) {
@@ -19,7 +19,7 @@ export default class PermProtectedRoute extends React.Component {
 
   render() {
     if (stores.session.isLoggedIn) {
-      return <this.props.route.unlockComponent/>;
+      return <this.props.route.protectedComponent/>;
     }
     return <AccessDenied/>;
   }

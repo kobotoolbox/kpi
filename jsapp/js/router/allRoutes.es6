@@ -108,7 +108,7 @@ export default class AllRoutes extends React.Component {
         {/* LIBRARY */}
         <Route path={ROUTES.LIBRARY}>
           <IndexRedirect to={ROUTES.MY_LIBRARY}/>
-          <Route path={ROUTES.MY_LIBRARY} component={AuthProtectedRoute} unlockComponent={MyLibraryRoute}/>
+          <Route path={ROUTES.MY_LIBRARY} component={AuthProtectedRoute} protectedComponent={MyLibraryRoute}/>
           <Route path={ROUTES.PUBLIC_COLLECTIONS} component={PublicCollectionsRoute}/>
           <Route path={ROUTES.NEW_LIBRARY_ITEM} component={LibraryAssetEditor}/>
           <Route path={ROUTES.LIBRARY_ITEM} component={AssetRoute}/>
@@ -125,17 +125,8 @@ export default class AllRoutes extends React.Component {
           <Route path={ROUTES.FORM}>
             <IndexRedirect to={ROUTES.FORM_LANDING} />
 
-            <Route path={ROUTES.FORM_JSON} component={FormJson} />
-            <Route path={ROUTES.FORM_XFORM} component={FormXform} />
-            <Route path={ROUTES.FORM_EDIT} component={FormPage} />
-
-            <Route path={ROUTES.FORM_SUMMARY}>
-              <IndexRoute component={FormSummary} />
-            </Route>
-
-            <Route path={ROUTES.FORM_LANDING}>
-              <IndexRoute component={FormLanding} />
-            </Route>
+            <Route path={ROUTES.FORM_SUMMARY} component={FormSummary}/>
+            <Route path={ROUTES.FORM_LANDING} component={FormLanding}/>
 
             <Route path={ROUTES.FORM_DATA}>
               <IndexRedirect to={ROUTES.FORM_TABLE} />
@@ -157,6 +148,10 @@ export default class AllRoutes extends React.Component {
               <Route path={ROUTES.FORM_REST_HOOK} component={FormSubScreens} />
               <Route path={ROUTES.FORM_KOBOCAT} component={FormSubScreens} />
             </Route>
+
+            <Route path={ROUTES.FORM_JSON} component={FormJson} />
+            <Route path={ROUTES.FORM_XFORM} component={FormXform} />
+            <Route path={ROUTES.FORM_EDIT} component={FormPage} />
 
             {/**
               * TODO change this HACKFIX to a better solution
