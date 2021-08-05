@@ -1,7 +1,14 @@
 import React from 'react';
 import {stores} from 'js/stores';
 import {bem} from 'js/bem';
-import {MODAL_TYPES} from 'js/constants';
+import {redirectToLogin} from 'js/router/routerUtils';
+import envStore from 'js/envStore';
+import './accessDenied.scss';
+
+bem.AccessDenied = bem.create('access-denied');
+bem.AccessDenied__body = bem.AccessDenied.__('body', 'section');
+bem.AccessDenied__header = bem.AccessDenied.__('header', 'header');
+bem.AccessDenied__text = bem.AccessDenied.__('text', 'section');
 
 /**
  * A generic component for rendering the route only for authorized user.
@@ -18,17 +25,9 @@ export default class AuthOnlyRoute extends React.Component {
     super(props);
   }
 
-  componentDidMount() {
-    if (!stores.session.isLoggedIn) {
-      // HACK: We need to wait for the App component Reflux.connect to start
-      // working correctly so it will display the modal.
-      setTimeout(
-        stores.pageState.showModal.bind(this, {
-          type: MODAL_TYPES.ACCESS_DENIED,
-        }),
-        0
-      );
-    }
+  goToLogin(evt) {
+    evt.preventDefault();
+    redirectToLogin();
   }
 
   render() {
@@ -36,12 +35,27 @@ export default class AuthOnlyRoute extends React.Component {
       return <this.props.route.unlockComponent/>;
     }
     return (
-      <bem.Loading>
-        <bem.Loading__inner>
-          <i className='k-icon k-icon-lock-alt'/>
-          {t('Access denied')}
-        </bem.Loading__inner>
-      </bem.Loading>
+      <bem.AccessDenied>
+        <bem.AccessDenied__body>
+          <bem.AccessDenied__header>
+            <i className='k-icon k-icon-lock-alt'/>
+            {t('Access denied')}
+          </bem.AccessDenied__header>
+
+          <bem.AccessDenied__text>
+            {t("Either you don't have access to this route or this route simply doesn't exist.")}
+
+            {t('You could either try logging in using the header button or ')}
+            {envStore.data.support_url
+              ?
+              <a href={envStore.data.support_url} target='_blank'>{t('contacting the support team')}</a>
+              :
+              t('contacting support')
+            }
+            {t(" if you think it's an error.")}
+          </bem.AccessDenied__text>
+        </bem.AccessDenied__body>
+      </bem.AccessDenied>
     );
   }
 }

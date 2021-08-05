@@ -116,7 +116,6 @@ export const MODAL_TYPES = {
   BULK_EDIT_SUBMISSIONS: 'bulk-edit-submissions',
   TABLE_MEDIA_PREVIEW: 'table-media-preview',
   DATA_ATTACHMENT_COLUMNS: 'data-attachment-columns',
-  ACCESS_DENIED: 'access-denied',
 };
 
 export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({

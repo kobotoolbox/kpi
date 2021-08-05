@@ -28,7 +28,6 @@ import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
 import TableMediaPreview from 'js/components/submissions/tableMediaPreview';
 import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
-import AccessDeniedModal from 'js/router/accessDeniedModal';
 
 function getSubmissionTitle(props) {
   let title = t('Success!');
@@ -192,10 +191,6 @@ class BigModal extends React.Component {
         break;
 
       case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
-        // title is set by DataAttachmentColumnsForm
-        break;
-
-      case MODAL_TYPES.ACCESS_DENIED:
         // title is set by DataAttachmentColumnsForm
         break;
 
@@ -431,12 +426,6 @@ class BigModal extends React.Component {
               <DataAttachmentColumnsForm
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
-                {...this.props.params}
-              />
-            }
-            { this.props.params.type === MODAL_TYPES.ACCESS_DENIED &&
-              <AccessDeniedModal
-                onSetModalTitle={this.setModalTitle}
                 {...this.props.params}
               />
             }
