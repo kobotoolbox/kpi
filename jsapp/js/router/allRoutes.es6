@@ -35,6 +35,7 @@ import {
   isRootRoute,
   redirectToLogin,
 } from 'js/router/routerUtils';
+import AuthOnlyRoute from 'js/router/authOnlyRoute';
 
 export default class AllRoutes extends React.Component {
   constructor(props) {
@@ -64,6 +65,10 @@ export default class AllRoutes extends React.Component {
   /**
    * This convoluted function wants to check if redirect should be made before
    * setting the state - which would cause an unwanted rerender.
+   *
+   * @param {object} data
+   * @param {boolean} [data.isPermsConfigReady]
+   * @param {boolean} [data.isSessionReady]
    */
   setReady(data) {
     const newStateObj = {
@@ -103,7 +108,7 @@ export default class AllRoutes extends React.Component {
         {/* LIBRARY */}
         <Route path={ROUTES.LIBRARY}>
           <IndexRedirect to={ROUTES.MY_LIBRARY}/>
-          <Route path={ROUTES.MY_LIBRARY} component={MyLibraryRoute}/>
+          <Route path={ROUTES.MY_LIBRARY} component={AuthOnlyRoute} unlockComponent={MyLibraryRoute}/>
           <Route path={ROUTES.PUBLIC_COLLECTIONS} component={PublicCollectionsRoute}/>
           <Route path={ROUTES.NEW_LIBRARY_ITEM} component={LibraryAssetEditor}/>
           <Route path={ROUTES.LIBRARY_ITEM} component={AssetRoute}/>

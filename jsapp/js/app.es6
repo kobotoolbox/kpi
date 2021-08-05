@@ -1,6 +1,5 @@
 /**
- * This is the application wrapper component. It renders all the common layout
- * parts (e.g. navigation)
+ * A component with common layout elements for all routes.
  */
 
 import React from 'react';
