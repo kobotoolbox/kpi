@@ -94,7 +94,6 @@ export class AssetTagsForm extends React.Component {
             type='submit'
             onClick={this.onSubmit}
             disabled={this.state.isPending}
-            className='mdl-js-button'
           >
             {this.getSubmitButtonLabel()}
           </bem.KoboButton>
