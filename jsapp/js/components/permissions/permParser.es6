@@ -75,6 +75,7 @@ function parseFormData(data) {
   [
     CHECKBOX_NAMES.formView,
     CHECKBOX_NAMES.formEdit,
+    CHECKBOX_NAMES.formManage,
     CHECKBOX_NAMES.submissionsAdd,
     CHECKBOX_NAMES.submissionsView,
     CHECKBOX_NAMES.submissionsEdit,
