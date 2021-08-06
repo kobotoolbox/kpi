@@ -522,7 +522,7 @@ export function isAssetPublic(permissions) {
       isDiscoverableByAnonymous = true;
     }
   });
-   return isDiscoverableByAnonymous;
+  return isDiscoverableByAnonymous;
 }
 
 /**
