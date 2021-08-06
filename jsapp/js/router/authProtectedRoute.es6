@@ -19,7 +19,7 @@ export default class AuthProtectedRoute extends React.Component {
 
   render() {
     if (stores.session.isLoggedIn) {
-      return <this.props.route.protectedComponent/>;
+      return <this.props.route.protectedComponent {...this.props.params}/>;
     }
     return <AccessDenied/>;
   }

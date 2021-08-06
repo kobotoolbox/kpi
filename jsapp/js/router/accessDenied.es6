@@ -1,6 +1,7 @@
 import React from 'react';
 import {bem} from 'js/bem';
 import {redirectToLogin} from 'js/router/routerUtils';
+import {stores} from 'js/stores';
 import envStore from 'js/envStore';
 import './accessDenied.scss';
 
@@ -31,12 +32,18 @@ export default class AccessDenied extends React.Component {
           <bem.AccessDenied__text>
             {t("Either you don't have access to this route or this route simply doesn't exist.")}
 
-            {t('You could either try logging in using the header button or ')}
-            {envStore.data.support_url
-              ?
-              <a href={envStore.data.support_url} target='_blank'>{t('contacting the support team')}</a>
+            <br/>
+
+            {stores.session.isLoggedIn ?
+              t('Please ')
               :
-              t('contacting support')
+              t('Please try logging in using the header button or ')
+            }
+
+            {envStore.data.support_url ?
+              <a href={envStore.data.support_url} target='_blank'>{t('contact the support team')}</a>
+              :
+              t('contact the support team')
             }
             {t(" if you think it's an error.")}
           </bem.AccessDenied__text>

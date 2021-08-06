@@ -36,6 +36,8 @@ import {
   redirectToLogin,
 } from 'js/router/routerUtils';
 import AuthProtectedRoute from 'js/router/authProtectedRoute';
+import PermProtectedRoute from 'js/router/permProtectedRoute';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
 
 export default class AllRoutes extends React.Component {
   constructor(props) {
@@ -126,7 +128,12 @@ export default class AllRoutes extends React.Component {
             <IndexRedirect to={ROUTES.FORM_LANDING} />
 
             <Route path={ROUTES.FORM_SUMMARY} component={FormSummary}/>
-            <Route path={ROUTES.FORM_LANDING} component={FormLanding}/>
+            <Route
+              path={ROUTES.FORM_LANDING}
+              component={PermProtectedRoute}
+              protectedComponent={FormLanding}
+              requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+            />
 
             <Route path={ROUTES.FORM_DATA}>
               <IndexRedirect to={ROUTES.FORM_TABLE} />
