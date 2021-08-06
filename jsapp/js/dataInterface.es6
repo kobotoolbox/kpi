@@ -623,15 +623,15 @@ export var dataInterface;
         }
       });
     },
-    loadMoreAttachments(assetUid, filter_by, index, page, page_size, sort='asc', all_versions=true){
+    loadMoreAttachments(uid, filter_by, index, page, page_size, sort='asc', all_versions=true){
       return $ajax({
-        url: `cassets/${assetUid}/attachments`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments`,
         method: 'GET',
         data: {
           type: 'image',
           group_by: filter_by,
           index: index,
-          page_size: page_size,
+          limit: page_size,
           page: page,
           sort: sort,
           all: all_versions
@@ -640,12 +640,12 @@ export var dataInterface;
     },
     loadMoreRecords(uid, filter_by, page, page_size, all_versions=true){
       return $ajax({
-        url: `${ROOT_URL}/api/v2/${uid}/attachments`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments`,
         method: 'GET',
         data: {
           type: 'image',
           group_by: filter_by,
-          page_size: page_size,
+          limit: page_size,
           page: page,
           all: all_versions
         }
