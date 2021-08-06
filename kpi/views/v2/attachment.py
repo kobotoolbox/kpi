@@ -21,16 +21,21 @@ from kpi.serializers.v2.gallery import (
     SubmissionSerializer,
     SubmissionPagination,
 )
+from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
-class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
+class AttachmentViewSet(
+    AssetNestedObjectViewsetMixin,
+    NestedViewSetMixin,
+    viewsets.ReadOnlyModelViewSet,
+):
     lookup_field = 'pk'
     serializer_class = AttachmentSerializer
     filter_backends = (AttachmentFilter,)
     renderer_classes = (
         renderers.JSONRenderer,
         renderers.BrowsableAPIRenderer,
-        MediaFileRenderer
+        MediaFileRenderer,
     )
 
     def _group_by(self):
@@ -49,21 +54,20 @@ class AttachmentViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
             return AttachmentSerializer
 
     def get_serializer_context(self):
-        _asset_uid = self.get_parents_query_dict()['asset']
-        return {'request': self.request,
-                'asset': _asset_uid,
-                'group_by': self._group_by()}
+        return {
+            'request': self.request,
+            'asset': self.asset,
+            'asset_uid': self.asset_uid,
+            'group_by': self._group_by(),
+        }
 
     def get_queryset(self):
-        _asset_uid = self.get_parents_query_dict()['asset']
-        try:
-            asset = Asset.objects.get(uid=_asset_uid)
-        except ObjectDoesNotExist:
-            asset = None
-        if not asset or not asset.has_deployment:
+        if not self.asset.has_deployment:
             raise Http404
-        xform_id = asset.deployment.identifier.split('/')[-1]
-        return ReadOnlyKobocatAttachment.objects.filter(instance__xform__id_string=xform_id)
+        xform_id = self.asset.deployment.identifier.split('/')[-1]
+        return ReadOnlyKobocatAttachment.objects.filter(
+            instance__xform__id_string=xform_id
+        )
 
     def get_paginator(self):
         if self._group_by() and self._group_by() == 'question':

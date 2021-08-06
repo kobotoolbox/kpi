@@ -100,8 +100,8 @@ class AttachmentFilter(filters.BaseFilterBackend):
             queryset = queryset.filter(mimetype__istartswith=attachments_type.lower())
 
         if order_by and order_by == 'question':
-            queryset = sorted(queryset.order_by(sort),
-                              key=lambda att: att.question_index)
+
+            queryset = sorted(queryset.order_by(sort), key=lambda att: att.question_index)
             if group_by and group_by == 'question':
                 result = []
                 for index, (qid, attachments) in \

@@ -183,14 +183,18 @@ class AttachmentSerializer(serializers.ModelSerializer):
         return obj.question
 
     def get_submission(self, obj):
-        return obj.instance.submission
+        asset = self.context['asset']
+        request = self.context['request']
+        return asset.deployment.get_submission(
+            submission_id=obj.instance.pk, user=request.user
+        )
 
     def get_can_view_submission(self, obj):
         return obj.can_view_submission
 
     def get_url(self, obj):
-        asset = self.context.get('asset', obj.instance.xform.id_string)
-        url = reverse('asset-attachment-detail', args=(asset, obj.id,),
+        asset_uid = self.context.get('asset_uid')
+        url = reverse('asset-attachment-detail', args=(asset_uid, obj.id,),
                        request=self.context.get('request', None))
         return url
 

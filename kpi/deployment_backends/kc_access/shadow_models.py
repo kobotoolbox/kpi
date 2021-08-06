@@ -19,7 +19,10 @@ from django.db import (
 )
 from django.utils import timezone
 from django_digest.models import PartialDigest
+from formpack.constants import UNTRANSLATED
+from jsonfield import JSONField
 
+from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException, ReadOnlyModelError
 from kpi.utils.hash import calculate_hash
@@ -503,6 +506,49 @@ class KobocatXForm(ShadowModel):
     num_of_submissions = models.IntegerField(default=0)
 
     @property
+    def questions(self):
+        try:
+            _questions = []
+            if self.pack:
+                versions = self.pack.versions
+                fields = self.pack.get_fields_for_versions(versions=versions.keys())
+                latest_version_uid = list(versions.keys())[-1]
+                latest_version_fields = self.pack.get_fields_for_versions(versions=[latest_version_uid])
+
+                for index, field in enumerate(fields):
+                    labels = field.get_labels(UNTRANSLATED)
+                    _questions.append({
+                        "type": field.data_type,
+                        "name": field.path,
+                        "number": index + 1,
+                        "label": labels[0],
+                        "in_latest_version": field in latest_version_fields
+                    })
+
+            return _questions
+        except ValueError:
+            return []
+
+    @property
+    def pack(self):
+        if not hasattr(self, "_pack") and self.asset:
+            pack, submission_stream = build_formpack(self.asset)
+            setattr(self, "_pack", pack)
+        return getattr(self, "_pack", None)
+
+    @property
+    def asset(self):
+        if not hasattr(self, "_asset"):
+            from kpi.models.asset import \
+                Asset  # Import here because of circular imports
+            try:
+                setattr(self, "_asset", Asset.objects.get(uid=self.id_string))
+            except Asset.DoesNotExist:
+                setattr(self, "_asset", None)
+
+        return self._asset
+
+    @property
     def md5_hash(self):
         return calculate_hash(self.xml)
 
@@ -528,8 +574,8 @@ class ReadOnlyModel(ShadowModel):
 
 
 class ReadOnlyKobocatAttachment(ReadOnlyModel):
-    class Meta:
-        managed = False
+
+    class Meta(ReadOnlyModel.Meta):
         db_table = 'logger_attachment'
         verbose_name = 'attachment'
         verbose_name_plural = 'attachments'
@@ -554,7 +600,7 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel):
         if self.filename not in qa_dict.values():
             return None
 
-        return qa_dict.keys()[qa_dict.values().index(self.filename)]
+        return list(qa_dict.keys())[list(qa_dict.values()).index(self.filename)]
 
     @property
     def question(self):
@@ -607,6 +653,7 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
         verbose_name_plural = 'Submissions by Country'
 
     xml = models.TextField()
+    json = JSONField(default={}, null=False)
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     xform = models.ForeignKey(KobocatXForm, related_name='instances',
                               on_delete=models.CASCADE)

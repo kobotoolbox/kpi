@@ -4,7 +4,7 @@
 // plus we fight the specificity battle because of too general styles of Form Builder
 
 label.text-box {
-  display: block; // TODO Validate merge beta-gallery-2
+  display: block;
   &.text-box--error {
     color: $kobo-red;
 
