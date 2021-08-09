@@ -745,7 +745,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
             submissions = self.__get_submissions_in_json(request, **params)
         elif format_type == SUBMISSION_FORMAT_TYPE_XML:
-            submissions = self.__get_submissions_in_xml(request, **params)
+            submissions = self.__get_submissions_in_xml(**params)
         else:
             raise BadFormatException(
                 "The format {} is not supported".format(format_type)
@@ -1285,7 +1285,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
     def __get_submissions_in_xml(
             self,
-            request: Optional['rest_framework.request.Request'] = None,
             **params
     ) -> Generator[str, None, None]:
         """
@@ -1334,7 +1333,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             limit = offset + params.get('limit')
             queryset = queryset[offset:limit]
 
-        # ToDo rewrite attachments in XML too
         return (lazy_instance.xml for lazy_instance in queryset)
 
     @staticmethod
