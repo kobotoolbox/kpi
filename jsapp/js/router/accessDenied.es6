@@ -30,7 +30,7 @@ export default class AccessDenied extends React.Component {
           </bem.AccessDenied__header>
 
           <bem.AccessDenied__text>
-            {t("Either you don't have access to this route or this route simply doesn't exist.")}
+            {t("Either you don't have access to this page or this page simply doesn't exist.")}
 
             <br/>
 

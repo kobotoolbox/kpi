@@ -114,8 +114,16 @@ export default class AllRoutes extends React.Component {
         <IndexRedirect to={ROUTES.FORMS} />
 
         {/* MISC */}
-        <Route path={ROUTES.ACCOUNT_SETTINGS} component={AccountSettings} />
-        <Route path={ROUTES.CHANGE_PASSWORD} component={ChangePassword} />
+        <Route
+          path={ROUTES.ACCOUNT_SETTINGS}
+          component={AuthProtectedRoute}
+          protectedComponent={AccountSettings}
+        />
+        <Route
+          path={ROUTES.CHANGE_PASSWORD}
+          component={AuthProtectedRoute}
+          protectedComponent={ChangePassword}
+        />
 
         {/* LIBRARY */}
         <Route path={ROUTES.LIBRARY}>
