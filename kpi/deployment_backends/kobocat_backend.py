@@ -8,16 +8,18 @@ import uuid
 from collections import defaultdict
 from datetime import datetime
 from typing import Generator, Optional, Union
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode
 from xml.etree import ElementTree as ET
 
 import pytz
 import requests
 from django.conf import settings
+from django.http import Http404
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.reverse import reverse
 
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
@@ -620,6 +622,60 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 pass
         return links
 
+    def get_signed_attachment_url_token(
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        media_size: str,
+        media_file: str,
+    ) -> str:
+        """
+        Get a signed KoBoCAT attachment url which is granted once with a
+        one time authentication token (sent through querystring parameters)
+        If `user` has full access on submissions, the url is returned as-is.
+        """
+        submission_ids = self.validate_write_access_with_partial_perms(
+            user=user,
+            perm=PERM_VIEW_SUBMISSIONS,
+            submission_ids=[submission_id],
+        )
+
+        url = (
+            f'{settings.KOBOCAT_MEDIA_URL}{media_size}'
+            f"?{urlencode({'media_file':media_file})}"
+        )
+        # If `submission_ids` is not empty, user has partial permissions.
+        # Otherwise, they have have full access.
+        if submission_ids:
+            # Validate that the attachment does really belong to the submission.
+            # We want to ensure the user is allowed to this media file.
+            submission = self.get_submission(submission_id, user)
+            try:
+                suffix = settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING[media_size]
+            except KeyError:
+                raise Http404
+
+            is_allowed = False
+            for attachment in submission['_attachments']:
+                try:
+                    kc_url = attachment[f'download{suffix}_url']
+                except KeyError:
+                    continue
+
+                if kc_url == url:
+                    is_allowed = True
+                    break
+
+            if not is_allowed:
+                raise Http404
+
+            token = KobocatOneTimeAuthToken.create_token(
+                user, method='GET', url=url, use_url_as_token=False
+            )
+            url += f'&{KobocatOneTimeAuthToken.QS_PARAM}={token.token}'
+
+        return url
+
     def get_submission_detail_url(self, submission_id: int) -> str:
         url = f'{self.submission_list_url}/{submission_id}'
         return url
@@ -635,6 +691,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         user: 'auth.User',
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
+        request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params
     ) -> Union[Generator[dict, None, None], list]:
         """
@@ -652,6 +709,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         If `format_type` is 'json', a generator of dictionaries is returned.
         Otherwise, if `format_type` is 'xml', a generator of strings is returned.
+
+        If `request` is provided, submission attachments url are rewritten to
+        point to KPI (instead of KoBoCAT). See TBC
         """
 
         mongo_query_params['submission_ids'] = submission_ids
@@ -660,9 +720,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                                                       **mongo_query_params)
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
-            submissions = self.__get_submissions_in_json(**params)
+            submissions = self.__get_submissions_in_json(request, **params)
         elif format_type == SUBMISSION_FORMAT_TYPE_XML:
-            submissions = self.__get_submissions_in_xml(**params)
+            submissions = self.__get_submissions_in_xml(request, **params)
         else:
             raise BadFormatException(
                 "The format {} is not supported".format(format_type)
@@ -1169,7 +1229,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         # Delete file in KPI if requested
         file_.delete(force=True)
 
-    def __get_submissions_in_json(self, **params):
+    def __get_submissions_in_json(
+        self,
+        request: Optional['rest_framework.request.Request'] = None,
+        **params
+    ) -> Generator[dict, None, None]:
         """
         Retrieve submissions directly from Mongo.
 
@@ -1183,7 +1247,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         self.current_submissions_count = total_count
 
         return (
-            MongoHelper.to_readable_dict(submission)
+            self.__rewrite_json_attachment_urls(
+                MongoHelper.to_readable_dict(submission),
+                request,
+            )
             for submission in mongo_cursor
         )
 
@@ -1372,6 +1439,25 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 'results': results,
             },
         }
+
+    def __rewrite_json_attachment_urls(
+        self, submission: dict, request
+    ) -> list:
+        if not request or '_attachments' not in submission:
+            return submission
+
+        for attachment in submission['_attachments']:
+            for size, suffix in settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING.items():
+                kpi_url = reverse(
+                    'submission-attachments',
+                    args=(self.asset.uid, submission['_id'], size),
+                    request=request
+                )
+                key = f'download{suffix}_url'
+                attachment[key] = attachment[key].replace(
+                    f'{settings.KOBOCAT_MEDIA_URL}{size}', kpi_url)
+
+        return submission
 
     def __save_kc_metadata(self, file_: SyncBackendMediaInterface):
         """

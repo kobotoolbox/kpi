@@ -2,7 +2,7 @@
 import abc
 import copy
 import json
-from typing import Union, Iterator
+from typing import Union, Iterator, Optional
 
 from bson import json_util
 from django.db.models.query import QuerySet
@@ -178,7 +178,8 @@ class BaseDeploymentBackend(abc.ABC):
         user: 'auth.User',
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
-        **mongo_query_params: dict
+        request: Optional['rest_framework.request.Request'] = None,
+        **mongo_query_params
     ) -> Union[Iterator[dict], Iterator[str]]:
         """
         Retrieve submissions that `user` is allowed to access.

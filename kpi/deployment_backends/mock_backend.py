@@ -3,6 +3,7 @@ import copy
 import time
 import uuid
 from datetime import datetime
+from typing import Optional
 
 import pytz
 from deepmerge import always_merger
@@ -263,6 +264,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         user: 'auth.User',
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
+        request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params
     ) -> list:
         """

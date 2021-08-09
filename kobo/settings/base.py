@@ -739,3 +739,11 @@ HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
 # add some mimetype
 add_type('application/wkt', '.wkt')
 add_type('application/geo+json', '.geojson')
+
+KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
+KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
+    'original': '',
+    'large': '_large',
+    'medium': '_medium',
+    'small': '_small',
+}

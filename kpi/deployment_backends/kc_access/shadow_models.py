@@ -201,6 +201,7 @@ class KobocatOneTimeAuthToken(ShadowModel):
     One time authenticated token
     """
     HEADER = 'X-KOBOCAT-OTA-TOKEN'
+    QS_PARAM = 'kc_ota_token'
 
     user = models.ForeignKey(
         'KobocatUser',
@@ -210,6 +211,7 @@ class KobocatOneTimeAuthToken(ShadowModel):
     token = models.CharField(max_length=50, default=token_urlsafe)
     expiration_time = models.DateTimeField()
     method = models.CharField(max_length=6)
+    url = models.CharField(max_length=1000)
 
     class Meta(ShadowModel.Meta):
         db_table = 'api_onetimeauthtoken'
@@ -222,14 +224,17 @@ class KobocatOneTimeAuthToken(ShadowModel):
             method: str = 'POST',
             expiration_time: Optional[datetime] = None,
             url: Optional[str] = None,
+            use_url_as_token: bool = True,
     ) -> 'KobocatOneTimeAuthToken':
         """
-        Create and return an instance of KobocatOneTimeAuthToken.
+        Get or create an instance of KobocatOneTimeAuthToken and return it.
 
         If `url` is specified, it generates the token based on the URL instead
-        of auto-generating it.
+        of auto-generating it if `use_url_as_token` is True.
         It's useful for Enketo Express to be granted when POSTing data to
         KoBoCAT from one specific url (e.g.: edit a submission).
+        Otherwise, the token is still auto-generated and the url is saved for
+        future matching process in KoBoCAT.
         """
         kc_user = KobocatUser.objects.get(id=user.pk)
         token_attrs = dict(
@@ -246,7 +251,17 @@ class KobocatOneTimeAuthToken(ShadowModel):
             # assure that the token will always be a consistent length (and,
             # for example, not overrun the size of the database column for long
             # URLs)
-            token_attrs['token'] = parts[-1]
+
+            # if `use_url_as_token` is True, KoBoCAT will look for a match
+            # with the HTTP referrer. It is done internally and the token is not
+            # exposed publicly.
+            # Otherwise, the token is passed to KoBoCAT through the querystring,
+            # so the url is saved too to be able to match the token and the url
+            # in KoBoCAT.
+            if use_url_as_token:
+                token_attrs['token'] = parts[-1]
+            else:
+                token_attrs['url'] = url
 
         auth_token, created = cls.objects.get_or_create(**token_attrs)
         if not created:
