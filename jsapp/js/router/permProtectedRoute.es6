@@ -1,17 +1,13 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import {stores} from 'js/stores';
 import {actions} from 'js/actions';
-import permConfig from 'js/components/permissions/permConfig';
+import mixins from 'js/mixins';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDenied from 'js/router/accessDenied';
 
 /**
  * A generic component for rendering the route only for a user who has
  * permission to view it. Should be used only for asset routes.
- *
- * NOTE: we assume stores.session is already initialized because of
- * a conditional statement in `allRoutes`.
  *
  * @prop {string} path - one of PATHS
  * @prop {object} route
@@ -22,9 +18,9 @@ export default class PermProtectedRoute extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isAssetReady: false,
-      isAssetExisting: null,
-      userHasPermission: null,
+      // Whether loadAsset call was made and ended, regardless of success or failure
+      isLoadAssetFinished: false,
+      userHasRequiredPermission: null,
     };
     autoBind(this);
   }
@@ -36,38 +32,36 @@ export default class PermProtectedRoute extends React.Component {
   }
 
   onLoadAssetCompleted(asset) {
-    let userHasPermission = false;
-    const userViewAssetPerm = asset.permissions.find((perm) => {
-      // Get permissions url related to current user
-      const permUserUrl = perm.user.split('/');
-      return (
-        permUserUrl[permUserUrl.length - 2] === stores.session.currentAccount.username &&
-        perm.permission === permConfig.getPermissionByCodename(this.props.route.protectedComponent).url
-      );
-    });
-    if (userViewAssetPerm !== 'unedfined') {
-      userHasPermission = true;
-    }
-
+    const requiredPermission = this.props.route.requiredPermission;
     this.setState({
-      isAssetReady: true,
-      userHasPermission: userHasPermission,
+      isLoadAssetFinished: true,
+      userHasRequiredPermission: (
+        // we are ok with either full or partial permission
+        mixins.permissions.userCan(requiredPermission, asset) ||
+        mixins.permissions.userCanPartially(requiredPermission, asset)
+      ),
     });
   }
 
   onLoadAssetFailed(response) {
     if (response.status === 404) {
       this.setState({
-        isAssetReady: true,
+        isLoadAssetFinished: true,
+        userHasRequiredPermission: false,
       });
     }
   }
 
   render() {
-    if (!this.state.isAssetReady) {
-      return (<LoadingSpinner/>);
-    } else if (this.state.userHasPermission) {
-      return <this.props.route.protectedComponent {...this.props.params}/>;
+    if (!this.state.isLoadAssetFinished) {
+      return <LoadingSpinner/>;
+    } else if (this.state.userHasRequiredPermission) {
+      return (
+        <this.props.route.protectedComponent
+          params={this.props.params}
+          initialAssetLoadNotNeeded
+        />
+      );
     } else {
       return <AccessDenied/>;
     }

@@ -127,7 +127,13 @@ export default class AllRoutes extends React.Component {
           <Route path={ROUTES.FORM}>
             <IndexRedirect to={ROUTES.FORM_LANDING} />
 
-            <Route path={ROUTES.FORM_SUMMARY} component={FormSummary}/>
+            <Route
+              path={ROUTES.FORM_SUMMARY}
+              component={PermProtectedRoute}
+              protectedComponent={FormSummary}
+              requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+            />
+
             <Route
               path={ROUTES.FORM_LANDING}
               component={PermProtectedRoute}
