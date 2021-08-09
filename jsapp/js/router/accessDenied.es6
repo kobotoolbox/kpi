@@ -10,6 +10,9 @@ bem.AccessDenied__body = bem.AccessDenied.__('body', 'section');
 bem.AccessDenied__header = bem.AccessDenied.__('header', 'header');
 bem.AccessDenied__text = bem.AccessDenied.__('text', 'section');
 
+/**
+ * @prop {string} [errorMessage]
+ */
 export default class AccessDenied extends React.Component {
   constructor(props) {
     super(props);
@@ -47,6 +50,14 @@ export default class AccessDenied extends React.Component {
             }
             {t(" if you think it's an error.")}
           </bem.AccessDenied__text>
+
+          {this.props.errorMessage &&
+            <bem.AccessDenied__text>
+              {t('Additional details:')}
+
+              <code>{this.props.errorMessage}</code>
+            </bem.AccessDenied__text>
+          }
         </bem.AccessDenied__body>
       </bem.AccessDenied>
     );
