@@ -92,12 +92,22 @@ export default class AllRoutes extends React.Component {
       !stores.session.isLoggedIn &&
       isRootRoute()
     ) {
+      // If all necessary data is obtained, and user is not logged in, and on
+      // the root route, redirect immediately to the login page outside
+      // the React app, and skip setting the state (so no content blink).
       redirectToLogin();
     } else {
       this.setState(newStateObj);
     }
   }
 
+  /**
+   * NOTE: For a new route, follow this guideline:
+   * - if route should be accessible to anyone, use `Route`
+   * - if route should be accessible only to logged in users, use `AuthProtectedRoute`
+   * - if route should be accessible only with given permission, use `PermProtectedRoute`
+   * @returns {Node} nested routes
+   */
   getRoutes() {
     return (
       <Route name='home' path={ROUTES.ROOT} component={App}>
@@ -186,7 +196,7 @@ export default class AllRoutes extends React.Component {
   render() {
     // This is the place that stops any app rendering until all necessary
     // backend calls are done.
-    if (this.state.isRedirecting || !this.state.isPermsConfigReady || !this.state.isSessionReady) {
+    if (!this.state.isPermsConfigReady || !this.state.isSessionReady) {
       return (<LoadingSpinner/>);
     }
 
