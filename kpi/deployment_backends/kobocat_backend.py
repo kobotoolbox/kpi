@@ -203,7 +203,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             headers = {}
             if partial_perms:
                 headers.update(
-                    KobocatOneTimeAuthToken.create_token(user, method='POST').get_header()
+                    KobocatOneTimeAuthToken.create_token(
+                        user,
+                        method='POST',
+                        request_identifier='bulk_update_submissions',
+                    ).get_header()
                 )
 
             kc_request = requests.Request(
@@ -354,7 +358,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         headers = {}
         if submission_ids:
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='DELETE').get_header()
+                KobocatOneTimeAuthToken.create_token(
+                    user,
+                    method='DELETE',
+                    request_identifier='delete_submission',
+                ).get_header()
             )
 
         kc_url = self.get_submission_detail_url(submission_id)
@@ -394,7 +402,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='DELETE').get_header()
+                KobocatOneTimeAuthToken.create_token(
+                    user,
+                    method='DELETE',
+                    request_identifier='delete_submissions',
+                ).get_header()
             )
 
         kc_url = self.submission_list_url
@@ -430,7 +442,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         headers = {}
         if submission_ids:
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='POST').get_header()
+                KobocatOneTimeAuthToken.create_token(
+                    user,
+                    method='POST',
+                    request_identifier='duplicate_submission',
+                ).get_header()
             )
 
         submission = self.get_submission(
@@ -557,7 +573,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if submission_ids:
             use_partial_perms = True
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='GET').get_header()
+                KobocatOneTimeAuthToken.create_token(
+                    user,
+                    method='GET',
+                    request_identifier=f'get_enketo_submission_url_{action_}',
+                ).get_header()
             )
         url = '{detail_url}/enketo_{action}'.format(
             detail_url=self.get_submission_detail_url(submission_id),
@@ -582,7 +602,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 # Give the token a longer life in case the edit takes longer
                 # than `KobocatOneTimeAuthToken` default expiration time
                 KobocatOneTimeAuthToken.create_token(
-                    user=user, url=url,
+                    user=user,
+                    method='POST',
+                    request_identifier=url,
+                    use_identifier_as_token=True,
                     expiration_time=several_minutes_from_now(24 * 60)
                 )
 
@@ -639,7 +662,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             perm=PERM_VIEW_SUBMISSIONS,
             submission_ids=[submission_id],
         )
-
+        print('SIGNED URL ATTACHMENT', flush=True)
         url = (
             f'{settings.KOBOCAT_MEDIA_URL}{media_size}'
             f"?{urlencode({'media_file':media_file})}"
@@ -670,7 +693,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 raise Http404
 
             token = KobocatOneTimeAuthToken.create_token(
-                user, method='GET', url=url, use_url_as_token=False
+                user, method='GET', request_identifier=url
             )
             url += f'&{KobocatOneTimeAuthToken.QS_PARAM}={token.token}'
 
@@ -948,7 +971,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         headers = {}
         if submission_ids:
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='PATCH').get_header()
+                KobocatOneTimeAuthToken.create_token(
+                    user,
+                    method='PATCH',
+                    request_identifier='set_validation_status',
+                ).get_header()
             )
 
         kc_request_params = {
@@ -992,7 +1019,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
             headers.update(
-                KobocatOneTimeAuthToken.create_token(user, method='PATCH').get_header()
+                KobocatOneTimeAuthToken.create_token(
+                    user,
+                    method='PATCH',
+                    request_identifier='set_validation_statuses',
+                ).get_header()
             )
 
         # `PATCH` KC even if KPI receives `DELETE`
@@ -1236,9 +1267,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     ) -> Generator[dict, None, None]:
         """
         Retrieve submissions directly from Mongo.
-
-        :param params: dict. Filter params
-        :return: generator<JSON>
+        Submissions can be filtered with `params`.
         """
         mongo_cursor, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params)
@@ -1254,12 +1283,14 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             for submission in mongo_cursor
         )
 
-    def __get_submissions_in_xml(self, **params):
+    def __get_submissions_in_xml(
+            self,
+            request: Optional['rest_framework.request.Request'] = None,
+            **params
+    ) -> Generator[str, None, None]:
         """
-        Retrieves submissions directly from PostgreSQL.
-
-        :param params: dict. Filter params
-        :return: list<XML>
+        Retrieve submissions directly from PostgreSQL.
+        Submissions can be filtered with `params`.
         """
 
         mongo_filters = ['query', 'permission_filters']
@@ -1303,6 +1334,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             limit = offset + params.get('limit')
             queryset = queryset[offset:limit]
 
+        # ToDo rewrite attachments in XML too
         return (lazy_instance.xml for lazy_instance in queryset)
 
     @staticmethod
