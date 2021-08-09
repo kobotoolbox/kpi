@@ -662,7 +662,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             perm=PERM_VIEW_SUBMISSIONS,
             submission_ids=[submission_id],
         )
-        print('SIGNED URL ATTACHMENT', flush=True)
+
         url = (
             f'{settings.KOBOCAT_MEDIA_URL}{media_size}'
             f"?{urlencode({'media_file':media_file})}"

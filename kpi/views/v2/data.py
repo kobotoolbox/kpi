@@ -409,6 +409,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 positive_int(pk),
                 user=request.user,
                 format_type=format_type,
+                request=request,
                 **filters,
             )
         except ValueError:
