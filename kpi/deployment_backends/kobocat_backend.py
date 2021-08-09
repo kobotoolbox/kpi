@@ -111,7 +111,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Returns:
             dict: formatted dict to be passed to a Response object
         """
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
             submission_ids=data['submission_ids'],
@@ -348,7 +348,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         It returns a dictionary which can used as Response object arguments
         """
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             submission_ids=[submission_id]
@@ -386,7 +386,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
              {"query": {"Question": "response"}
         """
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             submission_ids=data['submission_ids'],
@@ -431,7 +431,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         """
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
             submission_ids=[submission_id],
@@ -560,7 +560,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 "Only 'view' and 'edit' actions are currently supported"
             )
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=partial_perm,
             submission_ids=[submission_id],
@@ -657,7 +657,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         one time authentication token (sent through querystring parameters)
         If `user` has full access on submissions, the url is returned as-is.
         """
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_VIEW_SUBMISSIONS,
             submission_ids=[submission_id],
@@ -960,7 +960,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         It returns a dictionary which can used as Response object arguments
         """
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
             submission_ids=[submission_id],
@@ -1003,7 +1003,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             {"submission_ids": [1, 2, 3]}
             {"query":{"_validation_status.uid":"validation_status_not_approved"}
         """
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
             submission_ids=data['submission_ids'],
