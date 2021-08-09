@@ -3,7 +3,7 @@ import {stores} from 'js/stores';
 import AccessDenied from 'js/router/accessDenied';
 
 /**
- * A generic component for rendering the route only for authorized user.
+ * A gateway component for rendering the route only for authorized user.
  *
  * NOTE: we assume stores.session is already initialized because of
  * a conditional statement in `allRoutes`.
@@ -19,7 +19,7 @@ export default class AuthProtectedRoute extends React.Component {
 
   render() {
     if (stores.session.isLoggedIn) {
-      return <this.props.route.protectedComponent {...this.props.params}/>;
+      return <this.props.route.protectedComponent {...this.props}/>;
     }
     return <AccessDenied/>;
   }
