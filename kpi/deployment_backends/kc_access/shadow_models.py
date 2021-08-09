@@ -217,8 +217,11 @@ class KobocatOneTimeAuthToken(ShadowModel):
         db_table = 'api_onetimeauthtoken'
         unique_together = ('user', 'token', 'method')
 
+    def get_header(self) -> dict:
+        return {self.HEADER: self.token}
+
     @classmethod
-    def create_token(
+    def get_or_create_token(
             cls,
             user: 'auth.User',
             method: str,
@@ -261,9 +264,6 @@ class KobocatOneTimeAuthToken(ShadowModel):
             auth_token.save()
 
         return auth_token
-
-    def get_header(self) -> dict:
-        return {self.HEADER: self.token}
 
     def save(self, *args, **kwargs):
         if not self.expiration_time:

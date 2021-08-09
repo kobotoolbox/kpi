@@ -203,7 +203,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             headers = {}
             if partial_perms:
                 headers.update(
-                    KobocatOneTimeAuthToken.create_token(
+                    KobocatOneTimeAuthToken.get_or_create_token(
                         user,
                         method='POST',
                         request_identifier='bulk_update_submissions',
@@ -358,7 +358,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         headers = {}
         if submission_ids:
             headers.update(
-                KobocatOneTimeAuthToken.create_token(
+                KobocatOneTimeAuthToken.get_or_create_token(
                     user,
                     method='DELETE',
                     request_identifier='delete_submission',
@@ -402,7 +402,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
             headers.update(
-                KobocatOneTimeAuthToken.create_token(
+                KobocatOneTimeAuthToken.get_or_create_token(
                     user,
                     method='DELETE',
                     request_identifier='delete_submissions',
@@ -442,7 +442,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         headers = {}
         if submission_ids:
             headers.update(
-                KobocatOneTimeAuthToken.create_token(
+                KobocatOneTimeAuthToken.get_or_create_token(
                     user,
                     method='POST',
                     request_identifier='duplicate_submission',
@@ -573,7 +573,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         if submission_ids:
             use_partial_perms = True
             headers.update(
-                KobocatOneTimeAuthToken.create_token(
+                KobocatOneTimeAuthToken.get_or_create_token(
                     user,
                     method='GET',
                     request_identifier=f'get_enketo_submission_url_{action_}',
@@ -601,7 +601,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             else:
                 # Give the token a longer life in case the edit takes longer
                 # than `KobocatOneTimeAuthToken` default expiration time
-                KobocatOneTimeAuthToken.create_token(
+                KobocatOneTimeAuthToken.get_or_create_token(
                     user=user,
                     method='POST',
                     request_identifier=url,
@@ -692,7 +692,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             if not is_allowed:
                 raise Http404
 
-            token = KobocatOneTimeAuthToken.create_token(
+            token = KobocatOneTimeAuthToken.get_or_create_token(
                 user, method='GET', request_identifier=url
             )
             url += f'&{KobocatOneTimeAuthToken.QS_PARAM}={token.token}'
@@ -971,7 +971,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         headers = {}
         if submission_ids:
             headers.update(
-                KobocatOneTimeAuthToken.create_token(
+                KobocatOneTimeAuthToken.get_or_create_token(
                     user,
                     method='PATCH',
                     request_identifier='set_validation_status',
@@ -1019,7 +1019,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
             headers.update(
-                KobocatOneTimeAuthToken.create_token(
+                KobocatOneTimeAuthToken.get_or_create_token(
                     user,
                     method='PATCH',
                     request_identifier='set_validation_statuses',
