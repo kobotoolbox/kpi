@@ -7,7 +7,8 @@ import assetUtils from 'js/assetUtils';
 import {bem} from '../bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
-import ui from '../ui';
+import PopoverMenu from 'js/popoverMenu';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
@@ -280,7 +281,7 @@ export class FormLanding extends React.Component {
         <bem.FormView__cell m='box'>
           <bem.FormView__cell m={['columns', 'padding', 'collect-header']}>
             <bem.FormView__cell>
-              <ui.PopoverMenu
+              <PopoverMenu
                 type="collectData-menu"
                 triggerLabel={COLLECTION_METHODS[chosenMethod].label}
               >
@@ -297,7 +298,7 @@ export class FormLanding extends React.Component {
                     </bem.PopoverMenu__link>
                   );
                 })}
-              </ui.PopoverMenu>
+              </PopoverMenu>
             </bem.FormView__cell>
 
             <bem.FormView__cell>
@@ -464,10 +465,13 @@ export class FormLanding extends React.Component {
           </bem.FormView__link>
         }
 
-        <ui.PopoverMenu
+        <PopoverMenu
           type='formLanding-menu'
-          triggerLabel={<i className='k-icon k-icon-more' />}
-          triggerTip={t('More actions')}
+          triggerLabel={
+            <div data-tip={t('More actions')}>
+              <i className='k-icon k-icon-more'/>
+            </div>
+          }
         >
           {downloads.map((dl) => {
             return (
@@ -509,7 +513,7 @@ export class FormLanding extends React.Component {
               data-asset-uid={this.state.uid}
               data-asset-name={this.state.name}
             >
-              <i className='k-icon k-icon-template-new'/>
+              <i className='k-icon k-icon-template'/>
               {t('Create template')}
             </bem.PopoverMenu__link>
           }
@@ -526,7 +530,7 @@ export class FormLanding extends React.Component {
             {t('Manage Encryption')}
           </bem.PopoverMenu__link>
           */ }
-        </ui.PopoverMenu>
+        </PopoverMenu>
       </React.Fragment>
     );
   }
@@ -572,7 +576,7 @@ export class FormLanding extends React.Component {
     const isLoggedIn = stores.session.isLoggedIn;
 
     if (this.state.uid === undefined) {
-      return (<ui.LoadingSpinner/>);
+      return (<LoadingSpinner/>);
     }
 
     return (
