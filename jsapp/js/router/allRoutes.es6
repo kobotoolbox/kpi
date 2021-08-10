@@ -128,19 +128,59 @@ export default class AllRoutes extends React.Component {
         {/* LIBRARY */}
         <Route path={ROUTES.LIBRARY}>
           <IndexRedirect to={ROUTES.MY_LIBRARY}/>
-          <Route path={ROUTES.MY_LIBRARY} component={AuthProtectedRoute} protectedComponent={MyLibraryRoute}/>
-          <Route path={ROUTES.PUBLIC_COLLECTIONS} component={PublicCollectionsRoute}/>
-          <Route path={ROUTES.NEW_LIBRARY_ITEM} component={LibraryAssetEditor}/>
-          <Route path={ROUTES.LIBRARY_ITEM} component={AssetRoute}/>
-          <Route path={ROUTES.EDIT_LIBRARY_ITEM} component={LibraryAssetEditor}/>
-          <Route path={ROUTES.NEW_LIBRARY_CHILD} component={LibraryAssetEditor}/>
-          <Route path={ROUTES.LIBRARY_ITEM_JSON} component={FormJson}/>
-          <Route path={ROUTES.LIBRARY_ITEM_XFORM} component={FormXform}/>
+          <Route
+            path={ROUTES.MY_LIBRARY}
+            component={AuthProtectedRoute}
+            protectedComponent={MyLibraryRoute}
+          />
+          <Route
+            path={ROUTES.PUBLIC_COLLECTIONS}
+            component={AuthProtectedRoute}
+            protectedComponent={PublicCollectionsRoute}
+          />
+          <Route
+            path={ROUTES.NEW_LIBRARY_ITEM}
+            component={AuthProtectedRoute}
+            protectedComponent={LibraryAssetEditor}
+          />
+          <Route
+            path={ROUTES.LIBRARY_ITEM}
+            component={PermProtectedRoute}
+            protectedComponent={AssetRoute}
+            requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+          />
+          <Route
+            path={ROUTES.EDIT_LIBRARY_ITEM}
+            component={PermProtectedRoute}
+            protectedComponent={LibraryAssetEditor}
+            requiredPermission={PERMISSIONS_CODENAMES.change_asset}
+          />
+          <Route
+            path={ROUTES.NEW_LIBRARY_CHILD}
+            component={PermProtectedRoute}
+            protectedComponent={LibraryAssetEditor}
+            requiredPermission={PERMISSIONS_CODENAMES.change_asset}
+          />
+          <Route
+            path={ROUTES.LIBRARY_ITEM_JSON}
+            component={PermProtectedRoute}
+            protectedComponent={FormJson}
+            requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+          />
+          <Route
+            path={ROUTES.LIBRARY_ITEM_XFORM}
+            component={PermProtectedRoute}
+            protectedComponent={FormXform}
+            requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+          />
         </Route>
 
         {/* FORMS */}
         <Route path={ROUTES.FORMS} >
-          <IndexRoute component={FormsSearchableList} />
+          <IndexRoute
+            component={AuthProtectedRoute}
+            protectedComponent={FormsSearchableList}
+          />
 
           <Route path={ROUTES.FORM}>
             <IndexRedirect to={ROUTES.FORM_LANDING} />
@@ -161,28 +201,112 @@ export default class AllRoutes extends React.Component {
 
             <Route path={ROUTES.FORM_DATA}>
               <IndexRedirect to={ROUTES.FORM_TABLE} />
-              <Route path={ROUTES.FORM_REPORT} component={Reports} />
-              <Route path={ROUTES.FORM_REPORT_OLD} component={FormSubScreens} />
-              <Route path={ROUTES.FORM_TABLE} component={FormSubScreens} />
-              <Route path={ROUTES.FORM_DOWNLOADS} component={FormSubScreens} />
-              <Route path={ROUTES.FORM_GALLERY} component={FormSubScreens} />
-              <Route path={ROUTES.FORM_MAP} component={FormSubScreens} />
-              <Route path={ROUTES.FORM_MAP_BY} component={FormSubScreens} />
+              <Route
+                path={ROUTES.FORM_REPORT}
+                component={PermProtectedRoute}
+                protectedComponent={Reports}
+                requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+              />
+              <Route
+                path={ROUTES.FORM_REPORT_OLD}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+              />
+              <Route
+                path={ROUTES.FORM_TABLE}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+              />
+              <Route
+                path={ROUTES.FORM_DOWNLOADS}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+              />
+              <Route
+                path={ROUTES.FORM_GALLERY}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+              />
+              <Route
+                path={ROUTES.FORM_MAP}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+              />
+              <Route
+                path={ROUTES.FORM_MAP_BY}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+              />
             </Route>
 
             <Route path={ROUTES.FORM_SETTINGS}>
-              <IndexRoute component={FormSubScreens} />
-              <Route path={ROUTES.FORM_MEDIA} component={FormSubScreens} />
-              <Route path={ROUTES.FORM_SHARING} component={FormSubScreens} />
-              <Route path={ROUTES.FORM_RECORDS} component={FormSubScreens} />
-              <Route path={ROUTES.FORM_REST} component={FormSubScreens} />
-              <Route path={ROUTES.FORM_REST_HOOK} component={FormSubScreens} />
-              <Route path={ROUTES.FORM_KOBOCAT} component={FormSubScreens} />
+              <IndexRoute
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+              />
+              <Route
+                path={ROUTES.FORM_MEDIA}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+              />
+              <Route
+                path={ROUTES.FORM_SHARING}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+              />
+              <Route
+                path={ROUTES.FORM_RECORDS}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+              />
+              <Route
+                path={ROUTES.FORM_REST}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+              />
+              <Route
+                path={ROUTES.FORM_REST_HOOK}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+              />
+              <Route
+                path={ROUTES.FORM_KOBOCAT}
+                component={PermProtectedRoute}
+                protectedComponent={FormSubScreens}
+                requiredPermission={PERMISSIONS_CODENAMES.manage_asset}
+              />
             </Route>
 
-            <Route path={ROUTES.FORM_JSON} component={FormJson} />
-            <Route path={ROUTES.FORM_XFORM} component={FormXform} />
-            <Route path={ROUTES.FORM_EDIT} component={FormPage} />
+            <Route
+              path={ROUTES.FORM_JSON}
+              component={PermProtectedRoute}
+              protectedComponent={FormJson}
+              requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+            />
+            <Route
+              path={ROUTES.FORM_XFORM}
+              component={PermProtectedRoute}
+              protectedComponent={FormXform}
+              requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+            />
+            <Route
+              path={ROUTES.FORM_EDIT}
+              component={PermProtectedRoute}
+              protectedComponent={FormPage}
+              requiredPermission={PERMISSIONS_CODENAMES.view_asset}
+            />
 
             {/**
               * TODO change this HACKFIX to a better solution
@@ -190,7 +314,12 @@ export default class AllRoutes extends React.Component {
               * Used to force refresh form sub routes. It's some kine of a weird
               * way of introducing a loading screen during sub route refresh.
               **/}
-            <Route path={ROUTES.FORM_RESET} component={FormSubScreens} />
+            <Route
+              path={ROUTES.FORM_RESET}
+              component={PermProtectedRoute}
+              protectedComponent={FormSubScreens}
+              requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
+            />
           </Route>
 
           <Route path='*' component={FormNotFound} />

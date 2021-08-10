@@ -1,6 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import {actions} from 'js/actions';
+import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDenied from 'js/router/accessDenied';
@@ -17,13 +18,19 @@ import AccessDenied from 'js/router/accessDenied';
 export default class PermProtectedRoute extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
+    this.state = this.getInitialState();
+    this.unlisteners = [];
+    autoBind(this);
+  }
+
+  getInitialState() {
+    return {
       // Whether loadAsset call was made and ended, regardless of success or failure
       isLoadAssetFinished: false,
       userHasRequiredPermission: null,
+      errorMessage: null,
+      asset: null,
     };
-    this.unlisteners = [];
-    autoBind(this);
   }
 
   componentDidMount() {
@@ -38,14 +45,34 @@ export default class PermProtectedRoute extends React.Component {
     this.unlisteners.forEach((clb) => {clb();});
   }
 
+  componentWillReceiveProps(nextProps) {
+    if (this.props.params.uid !== nextProps.params.uid) {
+      this.setState(this.getInitialState());
+      actions.resources.loadAsset({id: nextProps.params.uid});
+    } else if (
+      this.props.route.requiredPermission !== nextProps.route.requiredPermission ||
+      this.props.route.protectedComponent !== nextProps.route.protectedComponent
+    ) {
+      this.setState({
+        userHasRequiredPermission: this.getUserHasRequiredPermission(
+          this.state.asset,
+          nextProps.route.requiredPermission
+        ),
+      });
+    }
+  }
+
   onLoadAssetCompleted(asset) {
-    const requiredPermission = this.props.route.requiredPermission;
+    if (asset.uid !== this.props.params.uid) {
+      return;
+    }
+
     this.setState({
+      asset: asset,
       isLoadAssetFinished: true,
-      userHasRequiredPermission: (
-        // we are ok with either full or partial permission
-        mixins.permissions.userCan(requiredPermission, asset) ||
-        mixins.permissions.userCanPartially(requiredPermission, asset)
+      userHasRequiredPermission: this.getUserHasRequiredPermission(
+        asset,
+        this.props.route.requiredPermission
       ),
     });
   }
@@ -58,6 +85,14 @@ export default class PermProtectedRoute extends React.Component {
         errorMessage: `${response.status.toString()}: ${response.responseJSON?.detail || response.statusText}`,
       });
     }
+  }
+
+  getUserHasRequiredPermission(asset, requiredPermission) {
+    return (
+      // we are ok with either full or partial permission
+      mixins.permissions.userCan(requiredPermission, asset) ||
+      mixins.permissions.userCanPartially(requiredPermission, asset)
+    );
   }
 
   render() {

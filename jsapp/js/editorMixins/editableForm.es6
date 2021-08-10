@@ -22,7 +22,6 @@ import {
 } from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import Modal from 'js/components/common/modal';
 import {bem} from '../bem';
 import {stores} from '../stores';
@@ -932,44 +931,31 @@ export default assign({
       );
     }
 
-    // Only allow user to edit form if they have "Edit Form" permission
-    var userCanEditForm = (
-      this.state.isNewAsset ||
-      assetUtils.isSelfOwned(this.state.asset) ||
-      this.userCan('change_asset', this.state.asset)
-    );
-
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.uiPanel m={['transparent', 'fixed']}>
           <bem.uiPanel__body>
             {this.renderAside()}
 
-            {userCanEditForm &&
-              <bem.FormBuilder>
-              {this.renderFormBuilderHeader()}
+            <bem.FormBuilder>
+            {this.renderFormBuilderHeader()}
 
-                <bem.FormBuilder__contents>
-                  {this.state.asset &&
-                    <FormLockedMessage asset={this.state.asset}/>
+              <bem.FormBuilder__contents>
+                {this.state.asset &&
+                  <FormLockedMessage asset={this.state.asset}/>
+                }
+
+                {this.hasBackgroundAudio() &&
+                  this.renderBackgroundAudioWarning()
+                }
+
+                <div ref='form-wrap' className='form-wrap'>
+                  {!this.state.surveyAppRendered &&
+                    this.renderNotLoadedMessage()
                   }
-
-                  {this.hasBackgroundAudio() &&
-                    this.renderBackgroundAudioWarning()
-                  }
-
-                  <div ref='form-wrap' className='form-wrap'>
-                    {!this.state.surveyAppRendered &&
-                      this.renderNotLoadedMessage()
-                    }
-                  </div>
-                </bem.FormBuilder__contents>
-              </bem.FormBuilder>
-            }
-
-            {(!userCanEditForm) &&
-              <AccessDeniedMessage/>
-            }
+                </div>
+              </bem.FormBuilder__contents>
+            </bem.FormBuilder>
 
             {this.state.enketopreviewOverlay &&
               <Modal
