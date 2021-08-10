@@ -26,7 +26,7 @@ import {
 } from 'js/constants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from './ownedCollectionsStore';
-import './AssetActionButtons.scss';
+import './assetActionButtons.scss';
 
 const assetActions = mixins.clickAssets.click.asset;
 
