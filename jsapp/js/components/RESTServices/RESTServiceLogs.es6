@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {bem} from '../../bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from '../../actions';
 import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
@@ -266,7 +266,7 @@ export default class RESTServiceLogs extends React.Component {
                     data-tip={t('Retry all submissions')}
                     disabled={!this.state.isHookActive}
                   >
-                    <i className='k-icon k-icon-replace-all'/>
+                    <i className='k-icon k-icon-replace'/>
                   </bem.ServiceRow__actionButton>
                 }
               </bem.ServiceRow__column>

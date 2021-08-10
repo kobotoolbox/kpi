@@ -1,0 +1,154 @@
+@import "scss/_colors";
+
+@mixin rangeTrack() {
+  -webkit-appearance: none;
+  border-radius: 10px;
+  background: $kobo-gray-92;
+  height: 8px;
+}
+
+// In order for the hack fix to work, we have to hard code the slider length
+$hack-fix-slider-length-int: 300;
+$hack-fix-slider-length: #{$hack-fix-slider-length-int}px;
+// Make it a bit smaller for mobile screens
+$hack-fix-slider-length-mobile-int: 150;
+$hack-fix-slider-length-mobile: #{$hack-fix-slider-length-mobile-int}px;
+
+
+/* HACK FIX: Chrome browsers et al don't have a `progress` pseudo class like
+ * Firefox or Edge, so we make our own
+ *
+ * Inspired by https://stackoverflow.com/questions/38095650/style-input-range-to-look-like-a-progress-bar
+ */
+@function makelongshadow() {
+  $val: 5px 0 0 0 $kobo-blue;
+
+  @for $i from 6 through $hack-fix-slider-length-int {
+    $val: #{$val}, #{$i}px 0 0 0px #{$kobo-gray-92};
+  }
+
+  @return $val;
+}
+
+@function makelongshadow-mobile() {
+  $val: 5px 0 0 0 $kobo-blue;
+
+  @for $i from 6 through $hack-fix-slider-length-mobile-int {
+    $val: #{$val}, #{$i}px 0 0 0px #{$kobo-gray-92};
+  }
+
+  @return $val;
+}
+
+.audio-player {
+  display: flex;
+  justify-content: center;
+
+  .audio-player__controls {
+    margin-right: 12px;
+    i.k-icon {
+      font-size: 48px;
+      border-radius: 4px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: $kobo-gray-92;
+      }
+    }
+
+    i.k-icon-caret-right, i.k-icon-pause {
+      color: $kobo-blue;
+    }
+  }
+
+  .audio-player__progress {
+    padding-top: 6px;
+    .audio-player__time {
+      display: flex;
+      justify-content: space-between;
+      width: $hack-fix-slider-length;
+      margin: auto;
+      padding-bottom: 3px;
+      font-weight: 600;
+      font-size: 18px;
+
+      .audio-player__time-current {
+        color: $kobo-blue;
+      }
+
+      .audio-player__time-total {
+        color: $kobo-gray-65;
+      }
+    }
+
+    input[type='range'] {
+      // General input styling across browsers
+      -webkit-appearance: none;
+      width: $hack-fix-slider-length;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 10px;
+
+      // Input 'thumb' styling
+      &::-webkit-slider-thumb {
+        appearance: none;
+        height: 8px;
+        width: 8px;
+        background: $kobo-blue;
+        box-shadow: makelongshadow();
+        border-radius: 10px;
+      }
+
+      &::-moz-range-thumb {
+        background-color: transparent;
+        height: 8px;
+        border-radius: 0 10px 10px 0;
+        border: none;
+      }
+
+      // Input 'track' styling
+      &::-webkit-slider-runnable-track {
+        @include rangeTrack;
+        overflow-x: hidden;
+        margin-bottom: 12px;
+        background: $kobo-blue;
+      }
+
+      &::-moz-range-track {
+        @include rangeTrack
+      }
+
+      &::-ms-track {
+        @include rangeTrack
+      }
+
+      // Input 'progress' styling
+      &::-moz-range-progress {
+        background-color: $kobo-blue;
+        height: 8px;
+        border-radius: 10px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .audio-player__controls {
+    margin-right: 3px !important;
+  }
+
+  .audio-player__progress {
+    width: $hack-fix-slider-length-mobile;
+    .audio-player__time {
+      width: $hack-fix-slider-length-mobile !important;
+    }
+  }
+
+  input[type='range'] {
+    width: $hack-fix-slider-length-mobile !important;
+
+    &::-webkit-slider-thumb {
+      box-shadow: makelongshadow-mobile();
+    }
+  }
+}

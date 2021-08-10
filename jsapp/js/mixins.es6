@@ -839,9 +839,12 @@ mixins.permissions = {
     if (!asset.permissions) {
       return false;
     }
-
     const currentUsername = stores.session.currentAccount.username;
-    if (asset.owner__username === currentUsername) {
+    // Ensure that `partialPermName` is not True when evaluating `userCan`
+    // with the owner.
+    // We want to be sure return `True` with userCan(owner) but `False` with
+    // userCanPartially(owner))
+    if (asset.owner__username === currentUsername && !partialPermName) {
       return true;
     }
 
