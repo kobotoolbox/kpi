@@ -40,7 +40,6 @@ import {
   VALIDATION_STATUS_ID_PROP,
   DATA_TABLE_SETTING,
   DATA_TABLE_SETTINGS,
-  EXCLUDED_COLUMNS,
   TABLE_MEDIA_TYPES,
 } from 'js/components/submissions/tableConstants';
 import {
@@ -185,7 +184,7 @@ export class DataTable extends React.Component {
     if (sortBy !== null) {
       sort.push({
         id: sortBy.fieldId,
-        desc: sortBy.value === SORT_VALUES.Z_TO_A,
+        desc: sortBy.value === SORT_VALUES.DESCENDING,
       });
     }
 
@@ -205,7 +204,6 @@ export class DataTable extends React.Component {
    */
   onGetSubmissionsCompleted(response, options) {
     let results = response.results;
-
     if (results && results.length > 0) {
       if (this.state.submissionPager === 'next') {
         this.submissionModalProcessing(results[0]._id, results);
@@ -951,7 +949,7 @@ export class DataTable extends React.Component {
   }
 
   /**
-   * Opens (or updates data in opened) submission modal
+   * Opens (or updates data in an opened) submission modal
    *
    * @param {string} sid
    * @param {object[]} submissions

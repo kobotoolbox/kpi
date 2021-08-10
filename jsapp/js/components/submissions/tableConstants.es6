@@ -26,8 +26,8 @@ export const EXCLUDED_COLUMNS = [
 ];
 
 export const SORT_VALUES = createEnum([
-  'A_TO_Z',
-  'Z_TO_A',
+  'ASCENDING',
+  'DESCENDING',
 ]);
 
 // This is the setting object name from `asset.settings`

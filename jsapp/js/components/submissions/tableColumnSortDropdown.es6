@@ -30,10 +30,10 @@ class TableColumnSortDropdown extends React.Component {
 
   renderTrigger() {
     let sortIcon = ['k-icon'];
-    if (this.props.sortValue && this.props.sortValue === SORT_VALUES.A_TO_Z) {
+    if (this.props.sortValue && this.props.sortValue === SORT_VALUES.ASCENDING) {
       sortIcon.push('k-icon-sort-down');
     }
-    if (this.props.sortValue && this.props.sortValue === SORT_VALUES.Z_TO_A) {
+    if (this.props.sortValue && this.props.sortValue === SORT_VALUES.DESCENDING) {
       sortIcon.push('k-icon-sort-up');
     }
 
@@ -79,13 +79,13 @@ class TableColumnSortDropdown extends React.Component {
         })}
         onClick={this.changeSort.bind(this, buttonSortValue)}
       >
-        {buttonSortValue === SORT_VALUES.A_TO_Z && [
+        {buttonSortValue === SORT_VALUES.ASCENDING && [
           <i key='0' className='k-icon k-icon-sort-down'/>,
-          <span key='1'>{t('Sort A → Z')}</span>,
+          <span key='1'>{t('Decending')}</span>,
         ]}
-        {buttonSortValue === SORT_VALUES.Z_TO_A && [
+        {buttonSortValue === SORT_VALUES.DESCENDING && [
           <i key='0' className='k-icon k-icon-sort-up'/>,
-          <span key='1'>{t('Sort A → Z')}</span>,
+          <span key='1'>{t('Ascending')}</span>,
         ]}
 
         {this.props.sortValue === buttonSortValue &&
@@ -109,8 +109,8 @@ class TableColumnSortDropdown extends React.Component {
         triggerContent={this.renderTrigger()}
         menuContent={
           <React.Fragment>
-            {this.renderSortButton(SORT_VALUES.A_TO_Z)}
-            {this.renderSortButton(SORT_VALUES.Z_TO_A)}
+            {this.renderSortButton(SORT_VALUES.ASCENDING)}
+            {this.renderSortButton(SORT_VALUES.DESCENDING)}
 
             {mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
               <bem.KoboDropdown__menuButton onClick={this.hideField}>
