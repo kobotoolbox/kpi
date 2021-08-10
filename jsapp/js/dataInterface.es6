@@ -234,6 +234,52 @@ export var dataInterface;
     },
 
     /*
+     * Dynamic data attachments
+     */
+    attachToSource(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+    detachSource(attachmentUrl) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'DELETE',
+      });
+    },
+    patchSource(attachmentUrl, data) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+    getAttachedSources(assetUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'GET',
+      });
+    },
+    getSharingEnabledAssets() {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/?q=data_sharing__enabled:true`,
+        method: 'GET',
+      });
+    },
+    patchDataSharing(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+
+    /*
      * permissions
      */
 
@@ -315,9 +361,6 @@ export var dataInterface;
           method: 'DELETE'
         });
       });
-    },
-    getAssetContent ({id}) {
-      return $.getJSON(`${ROOT_URL}/api/v2/assets/${id}/content/`);
     },
     getImportDetails ({uid}) {
       return $.getJSON(`${ROOT_URL}/api/v2/imports/${uid}/`);

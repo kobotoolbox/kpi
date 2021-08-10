@@ -1,6 +1,6 @@
 # coding: utf-8
 from kpi.constants import ASSET_TYPE_SURVEY
-from kpi.exceptions import BadAssetTypeException
+from kpi.exceptions import BadAssetTypeException, DeploymentNotFound
 from kpi.models.asset_file import AssetFile
 from kpi.tasks import sync_media_files
 from .backends import DEPLOYMENT_BACKENDS
@@ -16,9 +16,6 @@ class DeployableMixin:
         if force or self.asset_files.filter(
             file_type=AssetFile.FORM_MEDIA, synced_with_backend=False
         ).exists():
-            self.deployment.store_data(
-                {'status': self.deployment.STATUS_NOT_SYNCED}
-            )
             self.save(create_version=False, adjust_content=False)
             sync_media_files.delay(self.uid)
 
@@ -54,7 +51,7 @@ class DeployableMixin:
     @property
     def deployment(self):
         if not self.has_deployment:
-            raise Exception('must call asset.connect_deployment first')
+            raise DeploymentNotFound
 
         return self.__get_deployment_backend(self._deployment_data['backend'])
 

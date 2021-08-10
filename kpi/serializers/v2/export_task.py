@@ -17,7 +17,6 @@ from formpack.constants import (
     EXPORT_SETTING_SOURCE,
     EXPORT_SETTING_TYPE,
     EXPORT_SETTING_XLS_TYPES,
-    OPTIONAL_EXPORT_SETTINGS,
     REQUIRED_EXPORT_SETTINGS,
     VALID_DEFAULT_LANGUAGES,
     VALID_EXPORT_SETTINGS,
@@ -27,9 +26,9 @@ from formpack.constants import (
 
 from kpi.fields import ReadOnlyJSONField
 from kpi.models import ExportTask, Asset
-from kpi.models.object_permission import get_anonymous_user
 from kpi.tasks import export_in_background
 from kpi.utils.export_task import format_exception_values
+from kpi.utils.object_permission import get_database_user
 
 
 class ExportTaskSerializer(serializers.ModelSerializer):
@@ -58,9 +57,7 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data: dict) -> ExportTask:
         # Create a new export task
-        user = self._get_request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
+        user = get_database_user(self._get_request.user)
         export_task = ExportTask.objects.create(
             user=user, data=validated_data
         )

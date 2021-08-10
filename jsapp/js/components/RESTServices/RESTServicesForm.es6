@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import alertify from 'alertifyjs';
 import {bem} from '../../bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {dataInterface} from '../../dataInterface';
 import {actions} from '../../actions';
 import {stores} from '../../stores';

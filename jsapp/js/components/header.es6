@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
-import ui from '../ui';
+import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
 import Reflux from 'reflux';
 import {bem} from '../bem';
@@ -184,7 +184,7 @@ class MainHeader extends Reflux.Component {
 
       return (
         <bem.AccountBox>
-          <ui.PopoverMenu type='account-menu'
+          <PopoverMenu type='account-menu'
                           triggerLabel={accountMenuLabel}
                           buttonType='text'>
               <bem.AccountBox__menu>
@@ -235,7 +235,7 @@ class MainHeader extends Reflux.Component {
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
               </bem.AccountBox__menu>
-          </ui.PopoverMenu>
+          </PopoverMenu>
         </bem.AccountBox>
       );
     }

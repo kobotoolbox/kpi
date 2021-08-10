@@ -5,7 +5,7 @@ import autoBind from 'react-autobind';
 import { Link } from 'react-router';
 import {bem} from '../bem';
 import assetUtils from 'js/assetUtils';
-import ui from '../ui';
+import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
 import mixins from '../mixins';
 import {
@@ -13,6 +13,7 @@ import {
   ASSET_TYPES
 } from 'js/constants';
 import TagInput from 'js/components/tagInput';
+import AssetName from 'js/components/common/assetName';
 import {formatTime} from 'utils';
 
 class AssetRow extends React.Component {
@@ -141,7 +142,7 @@ class AssetRow extends React.Component {
                 <i className={`row-icon row-icon--${this.props.asset_type}`}>{_rc}</i>
               }
               <bem.AssetRow__cell m='name'>
-                <ui.AssetName {...this.props} />
+                <AssetName asset={this.props} />
               </bem.AssetRow__cell>
               { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.settings.description &&
                 <bem.AssetRow__description>
@@ -303,10 +304,13 @@ class AssetRow extends React.Component {
                     );
               })
             }
-            <ui.PopoverMenu
+            <PopoverMenu
               type='assetrow-menu'
-              triggerLabel={<i className='k-icon k-icon-more' />}
-              triggerTip={t('More actions')}
+              triggerLabel={
+                <div data-tip={t('More actions')}>
+                  <i className='k-icon k-icon-more'/>
+                </div>
+              }
               clearPopover={this.state.clearPopover}
               popoverSetVisible={this.popoverSetVisible}
             >
@@ -431,7 +435,7 @@ class AssetRow extends React.Component {
                   {t('Remove shared form')}
                 </bem.PopoverMenu__link>
               }
-            </ui.PopoverMenu>
+            </PopoverMenu>
           </bem.AssetRow__buttons>
         </bem.AssetRow>
       );

@@ -83,6 +83,8 @@ bem.FormMediaUploadUrl = BEM('form-media-upload-url');
 bem.FormMediaUploadUrl__label = bem.FormMediaUploadUrl.__('label', '<label>');
 bem.FormMediaUploadUrl__form = bem.FormMediaUploadUrl.__('form');
 
+bem.SearchInput = BEM('search-input', '<input>');
+
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
 bem.Search__cancel = bem.Search.__('cancel', '<i>');
@@ -156,7 +158,6 @@ bem.FormView__subs = bem.FormView.__('subs');
 // end used in header.es6
 bem.FormView__toptabs = bem.FormView.__('toptabs');
 bem.FormView__sidetabs = bem.FormView.__('sidetabs');
-bem.FormView__tab = bem.FormView.__('tab', '<a>');
 
 bem.FormView__label = bem.FormView.__('label');
 bem.FormView__group = bem.FormView.__('group');
