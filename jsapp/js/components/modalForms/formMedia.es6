@@ -5,7 +5,7 @@ import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import {
   ASSET_FILE_TYPES,

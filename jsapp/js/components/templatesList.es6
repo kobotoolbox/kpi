@@ -9,7 +9,7 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import {bem} from '../bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
 import {formatTime} from 'utils';
