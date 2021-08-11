@@ -87,54 +87,6 @@ $mdl-layout-width: 1440px;
   opacity: .75;
 }
 
-// Loading messages
-.loading {
-  display: table;
-  vertical-align: middle;
-  height: 100%;
-  width: 100%;
-  font-size: 18px;
-  opacity: 0.8;
-
-  i:first-child {
-    margin-right: 12px;
-    vertical-align: middle;
-    font-size: 28px;
-    display: inline-block;
-  }
-
-  &__inner {
-    display: table-cell;
-    vertical-align: middle;
-    text-align: center;
-    padding-left: 20px;
-    padding-right: 20px;
-    overflow: hidden; // avoids spinner icon overflowing scrollable areas
-
-    code {
-      margin: 20px;
-      padding: 15px;
-      font-size: 13px;
-      display: block;
-      background: $kobo-white;
-      width: 80%;
-      max-height: 300px;
-      overflow: auto;
-      word-wrap: break-word;
-      text-align: left;
-    }
-
-    .pro-tip {
-      font-size: 14px;
-      margin-top: 30px;
-    }
-  }
-
-  &__msg {
-    padding-top: 10px;
-  }
-}
-
 // Popover menu
 .popover-menu {
   position: relative;
@@ -209,7 +161,7 @@ $mdl-layout-width: 1440px;
 .popover-menu__item {
   background-color: $kobo-white;
   display: block;
-  padding: 6px 16px 6px 10px;
+  padding: 6px 12px 6px 6px;
   position: relative;
   color: $kobo-gray-40;
   cursor: pointer;
@@ -218,8 +170,8 @@ $mdl-layout-width: 1440px;
   text-overflow: ellipsis;
 
   > i:first-child {
-    margin-right: 4px;
-    font-size: 32px;
+    margin-right: 5px;
+    font-size: 28px;
     width: 28px;
     vertical-align: middle;
   }
@@ -245,7 +197,9 @@ $mdl-layout-width: 1440px;
 @media screen and (max-height: 475px) {
   .popover-menu__link,
   .popover-menu__item {
-    padding: 3px 8px 3px 5px;
+    i.k-icon:first-child {
+      font-size: 22px;
+    }
   }
 }
 

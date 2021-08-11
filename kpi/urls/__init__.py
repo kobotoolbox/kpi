@@ -7,7 +7,11 @@ from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
-from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
+from kobo.apps.superuser_stats.views import (
+    user_report,
+    country_report,
+    retrieve_reports,
+)
 from kpi.forms import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests
@@ -57,7 +61,9 @@ urlpatterns = [
     # Statistics for superusers
     path('superuser_stats/user_report/', user_report),
     re_path(r'^superuser_stats/user_report/(?P<base_filename>[^/]+)$',
-            retrieve_user_report),
+            retrieve_reports),
+    path('superuser_stats/country_report/', country_report),
+    re_path(r'^superuser_stats/country_report/(?P<base_filename>[^/]+)$', retrieve_reports),
 ]
 
 if settings.DEBUG and settings.ENV == 'dev':

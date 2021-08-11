@@ -7,7 +7,7 @@ import {bem} from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 /**
  * @param {Object} asset - Modal asset.

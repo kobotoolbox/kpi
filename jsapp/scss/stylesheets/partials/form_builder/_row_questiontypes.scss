@@ -23,6 +23,8 @@
   border-top: 1px solid $kobo-blue;
   padding: 3px;
   position: relative;
+  line-height: 20px;
+
   &:after, &:before {
     bottom: 100%;
     left: 50%;

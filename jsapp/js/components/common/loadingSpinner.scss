@@ -1,0 +1,49 @@
+@import "scss/_colors";
+
+// Loading messages
+.loading {
+  display: table;
+  vertical-align: middle;
+  height: 100%;
+  width: 100%;
+  font-size: 18px;
+  opacity: 0.8;
+
+  i:first-child {
+    margin-right: 12px;
+    vertical-align: middle;
+    font-size: 28px;
+    display: inline-block;
+  }
+
+  .loading__inner {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    padding-left: 20px;
+    padding-right: 20px;
+    overflow: hidden; // avoids spinner icon overflowing scrollable areas
+
+    code {
+      margin: 20px;
+      padding: 15px;
+      font-size: 13px;
+      display: block;
+      background: $kobo-white;
+      width: 80%;
+      max-height: 300px;
+      overflow: auto;
+      word-wrap: break-word;
+      text-align: left;
+    }
+
+    .pro-tip {
+      font-size: 14px;
+      margin-top: 30px;
+    }
+  }
+
+  .loading__msg {
+    padding-top: 10px;
+  }
+}

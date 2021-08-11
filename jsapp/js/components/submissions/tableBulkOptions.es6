@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
-import ui from 'js/ui';
+import PopoverMenu from 'js/popoverMenu';
 import mixins from 'js/mixins';
 import alertify from 'alertifyjs';
 import {
@@ -185,22 +185,23 @@ class TableBulkOptions extends React.Component {
         {selectedCount > 1 && <span>:</span>}
 
         {Object.keys(this.props.selectedRows).length > 0 &&
-          <ui.PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Change status')} >
-            {this.userCan('validate_submissions', this.props.asset) &&
-              VALIDATION_STATUSES_LIST.map((item, n) => (
+          <PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Change status')} >
+            {(this.userCan('validate_submissions', this.props.asset) || this.userCanPartially('validate_submissions', this.props.asset)) &&
+              VALIDATION_STATUSES_LIST.map((item, n) => {
+                return (
                   <bem.PopoverMenu__link
                     onClick={this.onUpdateStatus.bind(this, item.value)}
                     key={n}
                   >
                     {t('Set status: ##status##').replace('##status##', item.label)}
                   </bem.PopoverMenu__link>
-                )
-              )
+                );
+              })
             }
-          </ui.PopoverMenu>
+          </PopoverMenu>
         }
 
-        {Object.keys(this.props.selectedRows).length > 0 && this.userCan('change_submissions', this.props.asset) &&
+        {Object.keys(this.props.selectedRows).length > 0 && (this.userCan('change_submissions', this.props.asset) || this.userCanPartially('change_submissions', this.props.asset)) &&
           <bem.KoboLightButton
             m='blue'
             onClick={this.onEdit}
@@ -211,7 +212,7 @@ class TableBulkOptions extends React.Component {
           </bem.KoboLightButton>
         }
 
-        {Object.keys(this.props.selectedRows).length > 0 && this.userCan('change_submissions', this.props.asset) &&
+        {Object.keys(this.props.selectedRows).length > 0 && (this.userCan('delete_submissions', this.props.asset) || this.userCanPartially('delete_submissions', this.props.asset)) &&
           <bem.KoboLightButton
             m='red'
             onClick={this.onDelete}

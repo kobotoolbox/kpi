@@ -24,7 +24,7 @@ import {stores} from './stores';
 import {surveyCompanionStore} from './surveyCompanionStore'; // importing it so it exists
 import {dataInterface} from './dataInterface';
 import {bem} from './bem';
-import ui from './ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import mixins from './mixins';
 import MainHeader from './components/header';
 import Drawer from './components/drawer';
@@ -42,7 +42,7 @@ import FormSubScreens from './components/formSubScreens';
 import FormViewTabs from './components/formViewTabs';
 import IntercomHandler from './components/intercomHandler';
 import PermValidator from './components/permissions/permValidator';
-import Modal from './components/modal';
+import BigModal from 'js/components/bigModal/bigModal';
 import AccountSettings from './components/accountSettings';
 import ChangePassword from './components/changePassword';
 import {
@@ -90,7 +90,7 @@ class App extends React.Component {
   }
   render() {
     if (!this.state.isConfigReady) {
-      return (<ui.LoadingSpinner/>);
+      return (<LoadingSpinner/>);
     }
 
     var assetid = this.props.params.assetid || this.props.params.uid || null;
@@ -121,7 +121,7 @@ class App extends React.Component {
           <div className='header-stretch-bg'/>
           <bem.PageWrapper m={pageWrapperModifiers} className='mdl-layout mdl-layout--fixed-header'>
             { this.state.pageState.modal &&
-              <Modal params={this.state.pageState.modal} />
+              <BigModal params={this.state.pageState.modal} />
             }
 
             { !this.isFormBuilder() &&
@@ -169,17 +169,19 @@ class FormJson extends React.Component {
   }
   render() {
     return (
-        <ui.Panel>
-          <bem.FormView>
-            <pre>
-            <code>
-              { this.state.assetcontent ?
-                JSON.stringify(this.state.assetcontent, null, 4)
-                : null }
-            </code>
-            </pre>
-          </bem.FormView>
-        </ui.Panel>
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.FormView>
+              <pre>
+                <code>
+                  { this.state.assetcontent ?
+                    JSON.stringify(this.state.assetcontent, null, 4)
+                    : null }
+                  </code>
+                </pre>
+              </bem.FormView>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       );
   }
 }
@@ -203,23 +205,26 @@ class FormXform extends React.Component {
   render() {
     if (!this.state.xformLoaded) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              <p>XForm is loading</p>
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
-
-        );
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.Loading>
+              <bem.Loading__inner>
+                <p>XForm is loading</p>
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
+      );
     } else {
       return (
-        <ui.Panel>
-          <bem.FormView>
-            <div className='pygment' dangerouslySetInnerHTML={this.state.xformHtml} />
-          </bem.FormView>
-        </ui.Panel>
-        );
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.FormView>
+              <div className='pygment' dangerouslySetInnerHTML={this.state.xformHtml} />
+            </bem.FormView>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
+      );
     }
   }
 }
@@ -227,25 +232,29 @@ class FormXform extends React.Component {
 class FormNotFound extends React.Component {
   render() {
     return (
-        <ui.Panel>
+      <bem.uiPanel>
+        <bem.uiPanel__body>
           <bem.Loading>
             <bem.Loading__inner>
               {t('path not found / recognized')}
             </bem.Loading__inner>
           </bem.Loading>
-        </ui.Panel>
-      );
+        </bem.uiPanel__body>
+      </bem.uiPanel>
+    );
   }
 }
 
 class SectionNotFound extends React.Component {
   render() {
     return (
-        <ui.Panel className='k404'>
+      <bem.uiPanel className='k404'>
+        <bem.uiPanel__body>
           <i />
-          <em>section not found</em>
-        </ui.Panel>
-      );
+          <em>{t('Section not found')}</em>
+        </bem.uiPanel__body>
+      </bem.uiPanel>
+    );
   }
 }
 
@@ -298,6 +307,7 @@ export var routes = (
           <IndexRoute component={FormSubScreens} />
           <Route path={ROUTES.FORM_MEDIA} component={FormSubScreens} />
           <Route path={ROUTES.FORM_SHARING} component={FormSubScreens} />
+          <Route path={ROUTES.FORM_RECORDS} component={FormSubScreens} />
           <Route path={ROUTES.FORM_REST} component={FormSubScreens} />
           <Route path={ROUTES.FORM_REST_HOOK} component={FormSubScreens} />
           <Route path={ROUTES.FORM_KOBOCAT} component={FormSubScreens} />
