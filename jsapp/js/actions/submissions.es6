@@ -14,6 +14,24 @@ const submissionsActions = Reflux.createActions({
   bulkDelete: {children: ['completed', 'failed']},
 });
 
+/**
+ * @typedef SortObj
+ * @param {string} id - column name
+ * @param {boolean} desc - `true` for descending and `false` for ascending
+ */
+
+/**
+ * NOTE: all of the parameters have their default values defined for
+ * `dataInterface` function.
+ *
+ * @param {object} options
+ * @param {string} options.uid - the asset uid
+ * @param {number} [options.pageSize]
+ * @param {number} [options.page]
+ * @param {SortObj[]} [options.sort]
+ * @param {string[]} [options.fields]
+ * @param {string} [options.filter]
+ */
 submissionsActions.getSubmissions.listen((options) => {
   dataInterface.getSubmissions(
     options.uid,

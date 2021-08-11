@@ -745,8 +745,8 @@ export class DataTable extends React.Component {
 
     });
 
-    columnsToRender.sort(function (a, b) {
-      return a.index.localeCompare(b.index, 'en', {numeric: true});
+    columnsToRender.sort((columnA, columnB) => {
+      return columnA.index.localeCompare(columnB.index, 'en', {numeric: true});
     });
 
     let frozenColumn = tableStore.getFrozenColumn();

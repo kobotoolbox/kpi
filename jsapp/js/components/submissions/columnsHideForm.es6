@@ -11,6 +11,12 @@ import {FUSE_OPTIONS} from 'js/constants';
 import koboDropdownActions from 'js/components/common/koboDropdownActions';
 import './columnsHideDropdown.scss';
 
+bem.ColumnsHideForm = bem.create('columns-hide-form', 'section');
+bem.ColumnsHideForm__message = bem.ColumnsHideForm.__('message', 'p');
+bem.ColumnsHideForm__list = bem.ColumnsHideForm.__('list', 'ul');
+bem.ColumnsHideForm__listItem = bem.ColumnsHideForm.__('list-item', 'li');
+bem.ColumnsHideForm__footer = bem.ColumnsHideForm.__('footer', 'footer');
+
 /**
  * @prop {object} asset
  * @prop {object[]} submissions
@@ -105,10 +111,10 @@ class ColumnsHideForm extends React.Component {
   render() {
     const filteredFieldsList = this.getFilteredFieldsList();
     return (
-      <section className='columns-hide-form'>
-        <p className='columns-hide-form__message'>
+      <bem.ColumnsHideForm>
+        <bem.ColumnsHideForm__message>
           {t('These settings affects the experience for all project users.')}
-        </p>
+        </bem.ColumnsHideForm__message>
 
         <TextBox
           value={this.state.filterPhrase}
@@ -118,32 +124,32 @@ class ColumnsHideForm extends React.Component {
         />
 
         {filteredFieldsList.length !== 0 &&
-          <ul className='columns-hide-form__list'>
+          <bem.ColumnsHideForm__list>
             {filteredFieldsList.map((fieldObj) => {
               // fieldObj can be either one of allColumns or a fuse result object
               let fieldId = fieldObj.fieldId || fieldObj.item.fieldId;
               let label = fieldObj.label || fieldObj.item.label;
               return (
-                <li className='columns-hide-form__list-item' key={fieldId}>
+                <bem.ColumnsHideForm__listItem key={fieldId}>
                   <ToggleSwitch
                     checked={this.state.selectedColumns.includes(fieldId)}
                     onChange={this.onFieldToggleChange.bind(this, fieldId)}
                     disabled={this.state.isPending}
                     label={label}
                   />
-                </li>
+                </bem.ColumnsHideForm__listItem>
               );
             })}
-          </ul>
+          </bem.ColumnsHideForm__list>
         }
 
         {filteredFieldsList.length === 0 &&
-          <p className='columns-hide-form__message'>
+          <bem.ColumnsHideForm__message>
             {t('No results')}
-          </p>
+          </bem.ColumnsHideForm__message>
         }
 
-        <footer className='columns-hide-form__footer'>
+        <bem.ColumnsHideForm__footer>
           <bem.KoboLightButton
             m={['red', 'full-width']}
             onClick={this.onReset}
@@ -159,8 +165,8 @@ class ColumnsHideForm extends React.Component {
           >
             {t('Apply')}
           </bem.KoboLightButton>
-        </footer>
-      </section>
+        </bem.ColumnsHideForm__footer>
+      </bem.ColumnsHideForm>
     );
   }
 }
