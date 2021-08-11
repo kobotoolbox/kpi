@@ -84,6 +84,7 @@
     "zxcvbn": "^4.4.2"
   },
   "scripts": {
+    "postinstall": "npm run copy-fonts",
     "build": "webpack --config webpack/prod.config.js",
     "watch": "npm run generate-icons && webpack-dev-server --config webpack/dev.server.js",
     "test": "webpack --config webpack/test.config.js && mocha-chrome test/tests.html",
