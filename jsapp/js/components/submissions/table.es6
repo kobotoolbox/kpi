@@ -502,16 +502,16 @@ export class DataTable extends React.Component {
 
     const tableSettings = tableStore.getTableSettings();
 
-    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] !== null) {
+    if (tableSettings[DATA_TABLE_SETTINGS.TRANSLATION] !== undefined) {
       translationIndex = tableSettings[DATA_TABLE_SETTINGS.TRANSLATION];
       showLabels = translationIndex > -1;
     }
 
-    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] !== null) {
+    if (tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP] !== undefined) {
       showGroupName = tableSettings[DATA_TABLE_SETTINGS.SHOW_GROUP];
     }
 
-    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] !== null) {
+    if (tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL] !== undefined) {
       showHXLTags = tableSettings[DATA_TABLE_SETTINGS.SHOW_HXL];
     }
 
