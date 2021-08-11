@@ -247,7 +247,7 @@ const tableStore = Reflux.createStore({
   getFrozenColumn() {
     let frozenColumn = null;
     const tableSettings = this.getTableSettings();
-    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN]) {
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN] !== 'undefined') {
       frozenColumn = tableSettings[DATA_TABLE_SETTINGS.FROZEN_COLUMN];
     }
     return frozenColumn;
@@ -348,7 +348,7 @@ const tableStore = Reflux.createStore({
   getSortBy() {
     let sortBy = null;
     const tableSettings = this.getTableSettings();
-    if (tableSettings && tableSettings[DATA_TABLE_SETTINGS.SORT_BY]) {
+    if (typeof tableSettings[DATA_TABLE_SETTINGS.SORT_BY] !== 'undefined') {
       sortBy = tableSettings[DATA_TABLE_SETTINGS.SORT_BY];
     }
     return sortBy;
