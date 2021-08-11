@@ -1,0 +1,82 @@
+/* ==========================================================================
+ * Fonts
+ * ========================================================================== */
+
+@font-face {
+  font-family: 'Approach';
+  src:  local('ApproachLt'),
+        url('../fonts/ApproachLt-font.woff2') format('woff2'),
+        url('../fonts/ApproachLt-font.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Approach';
+  src:  local('Approach Lt'),
+        local('ApproachLt'),
+        url('../fonts/ApproachLt-font.woff2') format('woff2'),
+        url('../fonts/ApproachLt-font.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+}
+
+
+@font-face {
+  font-family: 'Approach';
+  src:  local('Approach LightItalic'),
+        local('ApproachLtIt'),
+        url('../fonts/ApproachLtIt-font.woff2') format('woff2'),
+        url('../fonts/ApproachLtIt-font.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Approach';
+  src:  local('Approach Regular'),
+        local('ApproachRg'),
+        url('../fonts/ApproachRg-font.woff2') format('woff2'),
+        url('../fonts/ApproachRg-font.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Approach';
+  src:  local('Approach RgIt'),
+        local('ApproachRgIt'),
+        url('../fonts/ApproachRgIt-font.woff2') format('woff2'),
+        url('../fonts/ApproachRgIt-font.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Approach';
+  src:  local('Approach Md'),
+        url('../fonts/ApproachMd-font.woff2') format('woff2'),
+        url('../fonts/ApproachMd-font.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Approach';
+  src:  local('Approach Bd'),
+        local('ApproachBd'),
+        url('../fonts/ApproachBd-font.woff2') format('woff2'),
+        url('../fonts/ApproachBd-font.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Approach';
+  src:  local('Approach BdIt'),
+        local('ApproachBdIt'),
+        url('../fonts/ApproachBdIt-font.woff2') format('woff2'),
+        url('../fonts/ApproachBdIt-font.woff') format('woff');
+  font-weight: 700;
+  font-style: italic;
+}

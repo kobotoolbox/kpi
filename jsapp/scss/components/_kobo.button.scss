@@ -36,7 +36,7 @@
   line-height: 30px;
   padding: 5px 30px;
   margin: 0;
-  border: none;
+  border: 1px solid $kobo-blue-pale;
 
   &[disabled] {
     pointer-events: none;

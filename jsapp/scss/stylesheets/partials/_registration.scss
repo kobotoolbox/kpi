@@ -9,7 +9,7 @@
   width: 100%;
   min-height: 100%;
   position: relative;
-  color: $kobo-white;
+  // color: $kobo-white;
   padding: 20px;
   padding-bottom: 5px;
 
@@ -26,8 +26,9 @@
     margin: 0 auto;
     position: relative;
     max-width: 400px;
-    background: rgba($kobo-gray-24, 0.75);
+    background: rgba($kobo-white, 1);
     padding: 20px 30px;
+    border-radius: 5px;
 
     a {
       color: lighten($kobo-blue, 20%);
@@ -42,6 +43,9 @@
         margin-bottom: 12px;
       }
     }
+    label {
+      color: $kobo-gray-14;
+    }
   }
 
   .registration--logo {
@@ -52,7 +56,7 @@
     max-width: 100%;
 
     img {
-      max-width: 170px;
+      max-width: 200px;
       height: auto;
     }
   }
@@ -69,6 +73,7 @@
   input[type=email],
   select {
     color: $layout-text-color;
+    
   }
 
   p.help {
@@ -93,16 +98,17 @@
   width: 100%;
   display: block;
   padding: 5px 8px;
-  border: none;
-  border-radius: 0px;
+  border: solid 1px $kobo-gray-14;
+  border-radius: 5px;
   font-size: 14px;
-  border-bottom: 3px solid transparent;
+  
   padding-bottom: 3px;
   margin-top: 1px;
   opacity: 0.9;
+  min-height: 3rem;
 
   &:focus {
-    border-bottom-color: $kobo-blue;
+    border-bottom: 3px solid $kobo-blue;
     opacity: 1;
   }
 
@@ -112,9 +118,10 @@
     color: $kobo-white;
     text-align: center;
     font-weight: 600;
-    background-color: $kobo-green;
-    border-bottom: 2px solid $kobo-green-dark;
-    text-shadow: -1px -1px $kobo-green-dark;
+    background-color: $kobo-blue;
+    border: 1px solid $kobo-blue-pale;
+    border-bottom: 2px solid $kobo-blue-dark;
+    text-shadow: -1px -1px $kobo-blue-dark;
     clear: both;
 
     &:hover {
@@ -128,7 +135,6 @@
 .registration {
   select {
     margin-top: 4px;
-    border-bottom: none;
   }
 
   label {
@@ -299,7 +305,9 @@
         float: right;
 
         > * {
-          padding-left: 60px;
+          // padding-left: 60px;
+          display: flex;
+          justify-content: center;
         }
       }
     }
@@ -324,7 +332,7 @@
     }
 
     .registration--logo img {
-      max-height: 100px;
+      max-height: 150px;
     }
   }
 
