@@ -115,19 +115,20 @@
   &.registration__action {
     font-size: 16px;
     padding: 10px;
-    color: $kobo-white;
+    color: $kobo-blue-pale;
     text-align: center;
     font-weight: 600;
     background-color: $kobo-blue;
     border: 1px solid $kobo-blue-pale;
-    border-bottom: 2px solid $kobo-blue-dark;
-    text-shadow: -1px -1px $kobo-blue-dark;
+    // text-shadow: -1px -1px $kobo-blue-dark;
     clear: both;
+    transition: background-color $transition-duration ease, color $transition-duration ease, border $transition-duration;
+
 
     &:hover {
-      background-color: $kobo-blue-light;
-      border-bottom-color: $kobo-blue-dark;
-      text-shadow: -1px -1px $kobo-blue-dark;
+      color: $kobo-blue;
+      background-color: $kobo-blue-pale;
+      // text-shadow: -1px -1px $kobo-blue-dark;
     }
   }
 }
