@@ -463,14 +463,24 @@
 
     i {
       color: $kobo-orange;
-      font-size: 32px;
-      margin-right: 5px;
+      font-size: 28px;
+      margin-right: 8px;
       vertical-align: -11px;
       display: inline-block;
     }
 
     p {
       margin: 0;
+    }
+
+    a {
+      color: inherit;
+      font-weight: bold;
+      text-decoration: underline;
+
+      &:hover {
+        text-decoration: none;
+      }
     }
   }
 
@@ -483,8 +493,8 @@
     align-items: center;
     i {
       color: $kobo-red;
-      font-size: 32px;
-      margin-right: 5px;
+      font-size: 28px;
+      margin-right: 8px;
       // If used in a dropzone, need to overwrite left margin
       margin-left: 0px;
     }
