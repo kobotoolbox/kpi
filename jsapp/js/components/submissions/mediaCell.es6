@@ -26,7 +26,7 @@ bem.MediaCell__duration = bem.MediaCell.__('duration', '<label>');
  * @prop {string} mediaURL - Backend stored media attachment URL
  * @prop {string} mediaName - Backend stored media attachment file name
  */
-class mediaCell extends React.Component {
+class MediaCell extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
@@ -122,4 +122,4 @@ class mediaCell extends React.Component {
   }
 }
 
-export default mediaCell;
+export default MediaCell;

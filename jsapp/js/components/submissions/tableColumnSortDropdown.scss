@@ -1,0 +1,70 @@
+@import "scss/_colors";
+
+// nested selector needed for specificity
+.kobo-dropdown[data-name='table-column-sort']  {
+  display: block;
+  width: 100%;
+
+  .kobo-dropdown__trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+
+    &:hover,
+    &:hover .k-icon {
+      color: $kobo-blue !important;
+    }
+  }
+
+  &.kobo-dropdown--menu-visible .table-column-sort-dropdown-trigger .k-icon.k-icon-caret-down {
+    display: none;
+  }
+
+  &.kobo-dropdown--menu-hidden .table-column-sort-dropdown-trigger .k-icon.k-icon-caret-up {
+    display: none;
+  }
+
+  .table-column-sort-dropdown-trigger {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    .column-header-title {
+      flex: 1;
+
+      &:not(:last-child) {
+        margin-right: 5px;
+      }
+
+      &:not(:first-child) {
+        margin-left: 5px;
+      }
+    }
+
+    .k-icon.k-icon-sort-up,
+    .k-icon.k-icon-sort-down {
+      color: $kobo-teal-pale;
+    }
+  }
+
+  .kobo-dropdown__menu {
+    .table-column-sort-dropdown-option {
+      &:not(:hover) .table-column-sort-dropdown-clear {
+        display: none;
+      }
+
+      .table-column-sort-dropdown-clear {
+        color: $kobo-white !important;
+        float: right;
+
+        &.k-icon {
+          font-size: 18px;
+        }
+      }
+
+      &.table-column-sort-dropdown-option--active {
+        color: $kobo-teal-pale;
+      }
+    }
+  }
+}
