@@ -17,6 +17,8 @@ label.text-box {
   &.text-box--on-white input.text-box__input,
   &.text-box--on-white textarea.text-box__input {
     border-color: $kobo-gray-92;
+    padding-left: 5px;
+    padding-right: 5px;
 
     &:focus {
       border-color: $kobo-blue;

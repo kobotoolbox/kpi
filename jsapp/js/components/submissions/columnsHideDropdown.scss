@@ -1,0 +1,71 @@
+@import "scss/_colors";
+
+// nested selector needed for specificity
+.kobo-dropdown[data-name='columns-hide-dropdown']  {
+  display: flex; // for alignment
+  margin-right: 10px;
+}
+
+.columns-hide-dropdown-trigger {
+  cursor: pointer;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  color: $kobo-gray-55;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+
+  &:hover {
+    color: $kobo-blue;
+  }
+
+  .k-icon {
+    font-size: 22px;
+    vertical-align: top;
+    margin-right: 5px;
+  }
+}
+
+.columns-hide-form {
+  padding: 6px 15px;
+  width: 360px;
+
+  .columns-hide-form__message {
+    margin: 0;
+    font-size: 12px;
+    line-height: 18px;
+    color: $kobo-gray-40;
+
+    &:not(:first-child) {
+      margin-top: 10px;
+    }
+
+    &:not(:last-child) {
+      margin-bottom: 10px;
+    }
+  }
+
+  .columns-hide-form__list {
+    max-height: 200px;
+    margin: 10px 0;
+    overflow-y: auto;
+
+    .columns-hide-form__list-item {
+      &:not(:first-child) {
+        margin-top: 10px;
+      }
+    }
+  }
+
+  .columns-hide-form__footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    > *:not(:first-child) {
+      margin-left: 10px;
+    }
+  }
+}
