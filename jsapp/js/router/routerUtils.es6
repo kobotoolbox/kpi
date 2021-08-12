@@ -173,6 +173,10 @@ export function isFormResetRoute(uid) {
  * Additional functions
  */
 
+export function isAnyFormsRoute() {
+  return getCurrentPath().startsWith(ROUTES.FORMS);
+}
+
 export function isAnyLibraryRoute() {
   return getCurrentPath().startsWith(ROUTES.LIBRARY);
 }
@@ -183,4 +187,25 @@ export function isAnyLibraryRoute() {
 export function isAnyLibraryItemRoute() {
   // disregard the `:uid` parameter in url, as we are interested in any asset uid
   return getCurrentPath().startsWith(ROUTES.LIBRARY_ITEM.replace(':uid', ''));
+}
+
+/**
+ * Checks if on any `/forms/…` route.
+ */
+export function isAnyFormRoute() {
+  // disregard the `:uid` parameter in url, as we are interested in any asset uid
+  return getCurrentPath().startsWith(ROUTES.FORM.replace(':uid', ''));
+}
+
+/**
+ * @returns {string|undefined} returns asset uid from path if there is any
+ */
+export function getRouteAssetUid() {
+  if (isAnyFormRoute()) {
+    return getCurrentPath().split('/')[2];
+  }
+
+  if (isAnyLibraryItemRoute()) {
+    return getCurrentPath().split('/')[3];
+  }
 }
