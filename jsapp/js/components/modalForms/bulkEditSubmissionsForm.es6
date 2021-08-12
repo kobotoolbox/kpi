@@ -7,21 +7,14 @@ import {
   getFlatQuestionsList,
   renderQuestionTypeIcon,
 } from 'js/assetUtils';
-import {QUESTION_TYPES} from 'js/constants';
+import {
+  QUESTION_TYPES,
+  FUSE_OPTIONS,
+} from 'js/constants';
 import {bem} from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
 import envStore from 'js/envStore';
-
-const FUSE_OPTIONS = {
-  isCaseSensitive: false,
-  includeScore: true,
-  minMatchCharLength: 1,
-  shouldSort: false,
-  ignoreFieldNorm: true,
-  threshold: 0.2,
-  ignoreLocation: true,
-};
 
 // we need a text to display when we need to say "this question has no answer"
 const EMPTY_VALUE_LABEL = t('n/d');
