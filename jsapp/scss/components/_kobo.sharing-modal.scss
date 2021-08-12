@@ -3,6 +3,9 @@ $s-flexed-row-select-width: 200px;
 $s-gray-row-spacing: 10px;
 
 .form-modal--sharing-form {
+  width: 600px;
+  max-width: 100%;
+
   h2 {
     margin: 0;
     font-size: 14px;

@@ -98,6 +98,8 @@ class UserAssetPermsEditor extends React.Component {
     if (this.props.username) {
       this.state.username = this.props.username;
     }
+
+    this.applySubmissionsAddRules(this.state);
   }
 
   componentDidMount() {
@@ -141,6 +143,7 @@ class UserAssetPermsEditor extends React.Component {
     Object.keys(CHECKBOX_PERM_PAIRS).forEach((checkboxName) => {
       stateObj[checkboxName + SUFFIX_DISABLED] = false;
     });
+    this.applySubmissionsAddRules(stateObj);
     // apply permissions configuration rules to checkboxes
     Object.keys(CHECKBOX_PERM_PAIRS).forEach((checkboxName) => {
       this.applyValidityRulesForCheckbox(checkboxName, stateObj);
@@ -155,6 +158,23 @@ class UserAssetPermsEditor extends React.Component {
       }
     });
     return stateObj;
+  }
+
+  /**
+   * For users with disabled `auth_required` we need to force check add
+   * submissions and don't allow unchecking it.
+   *
+   * @param {object} stateObj
+   */
+  applySubmissionsAddRules(stateObj) {
+    if (
+      this.isAssignable(PERMISSIONS_CODENAMES.add_submissions) &&
+      stores.session.currentAccount.extra_details?.require_auth !== true
+    ) {
+      stateObj[CHECKBOX_NAMES.submissionsAdd] = true;
+      stateObj[CHECKBOX_NAMES.submissionsAdd + SUFFIX_DISABLED] = true;
+      this.applyValidityRulesForCheckbox(CHECKBOX_NAMES.submissionsAdd, stateObj);
+    }
   }
 
   /**
