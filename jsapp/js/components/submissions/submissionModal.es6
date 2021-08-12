@@ -18,7 +18,7 @@ import {
   META_QUESTION_TYPES,
   ENKETO_ACTIONS,
 } from 'js/constants';
-import SubmissionDataTable from './submissionDataTable';
+import SubmissionDataTable from 'js/components/submissions/submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
