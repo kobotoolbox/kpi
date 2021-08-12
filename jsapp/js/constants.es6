@@ -107,7 +107,7 @@ export const MODAL_TYPES = {
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
-  TABLE_COLUMNS: 'table-columns',
+  TABLE_SETTINGS: 'table-settings',
   REST_SERVICES: 'rest-services',
   FORM_LANGUAGES: 'form-languages',
   FORM_TRANSLATIONS_TABLE: 'form-translation-table',
@@ -467,6 +467,16 @@ export const FUNCTION_TYPE = Object.freeze({
     id: 'function',
   },
 });
+
+export const FUSE_OPTIONS = {
+  isCaseSensitive: false,
+  includeScore: true,
+  minMatchCharLength: 1,
+  shouldSort: false,
+  ignoreFieldNorm: true,
+  threshold: 0.2,
+  ignoreLocation: true,
+};
 
 // NOTE: The default export is mainly for tests
 const constants = {
