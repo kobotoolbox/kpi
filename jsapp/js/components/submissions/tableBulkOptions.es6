@@ -10,6 +10,7 @@ import alertify from 'alertifyjs';
 import {
   MODAL_TYPES,
   VALIDATION_STATUSES_LIST,
+  PERMISSIONS_CODENAMES,
 } from 'js/constants';
 import {renderCheckbox} from 'utils';
 
@@ -186,7 +187,7 @@ class TableBulkOptions extends React.Component {
 
         {Object.keys(this.props.selectedRows).length > 0 &&
           <PopoverMenu type='bulkUpdate-menu' triggerLabel={t('Change status')} >
-            {(this.userCan('validate_submissions', this.props.asset) || this.userCanPartially('validate_submissions', this.props.asset)) &&
+            {(this.userCan(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset) || this.userCanPartially(PERMISSIONS_CODENAMES.validate_submissions, this.props.asset)) &&
               VALIDATION_STATUSES_LIST.map((item, n) => {
                 return (
                   <bem.PopoverMenu__link
@@ -201,7 +202,7 @@ class TableBulkOptions extends React.Component {
           </PopoverMenu>
         }
 
-        {Object.keys(this.props.selectedRows).length > 0 && (this.userCan('change_submissions', this.props.asset) || this.userCanPartially('change_submissions', this.props.asset)) &&
+        {Object.keys(this.props.selectedRows).length > 0 && (this.userCan(PERMISSIONS_CODENAMES.change_submissions, this.props.asset) || this.userCanPartially(PERMISSIONS_CODENAMES.change_submissions, this.props.asset)) &&
           <bem.KoboLightButton
             m='blue'
             onClick={this.onEdit}
@@ -212,7 +213,7 @@ class TableBulkOptions extends React.Component {
           </bem.KoboLightButton>
         }
 
-        {Object.keys(this.props.selectedRows).length > 0 && (this.userCan('delete_submissions', this.props.asset) || this.userCanPartially('delete_submissions', this.props.asset)) &&
+        {Object.keys(this.props.selectedRows).length > 0 && (this.userCan(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset) || this.userCanPartially(PERMISSIONS_CODENAMES.delete_submissions, this.props.asset)) &&
           <bem.KoboLightButton
             m='red'
             onClick={this.onDelete}

@@ -24,7 +24,7 @@ import RESTServicesForm from 'js/components/RESTServices/RESTServicesForm';
 import SharingForm from 'js/components/permissions/sharingForm';
 import DataAttachmentColumnsForm from 'js/components/dataAttachments/dataAttachmentColumnsForm.es6';
 import SubmissionModal from 'js/components/submissions/submissionModal';
-import TableColumnFilter from 'js/components/submissions/tableColumnFilter';
+import TableSettings from 'js/components/submissions/tableSettings';
 import TableMediaPreview from 'js/components/submissions/tableMediaPreview';
 import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
@@ -158,7 +158,7 @@ class BigModal extends React.Component {
         // title is set by formEditors
         break;
 
-      case MODAL_TYPES.TABLE_COLUMNS:
+      case MODAL_TYPES.TABLE_SETTINGS:
         this.setModalTitle(t('Table display options'));
         break;
 
@@ -377,11 +377,10 @@ class BigModal extends React.Component {
                 </bem.Loading>
               </div>
             }
-            { this.props.params.type === MODAL_TYPES.TABLE_COLUMNS &&
-              <TableColumnFilter asset={this.props.params.asset}
-                                 columns={this.props.params.columns}
-                                 getColumnLabel={this.props.params.getColumnLabel}
-                                 overrideLabelsAndGroups={this.props.params.overrideLabelsAndGroups} />
+            { this.props.params.type === MODAL_TYPES.TABLE_SETTINGS &&
+              <TableSettings
+                asset={this.props.params.asset}
+              />
             }
             { this.props.params.type === MODAL_TYPES.REST_SERVICES &&
               <RESTServicesForm

@@ -178,24 +178,36 @@ stores.snapshots = Reflux.createStore({
   },
 });
 
+/**
+ * This store keeps only full assets (i.e. ones with `content`)
+ */
 stores.asset = Reflux.createStore({
-  init: function () {
+  init() {
     this.data = {};
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
     this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
   },
 
-  onUpdateAssetCompleted: function (resp/*, req, jqhr*/){
+  onUpdateAssetCompleted(resp) {
     this.data[resp.uid] = parsed(resp);
     this.trigger(this.data, resp.uid, {asset_updated: true});
   },
-  onLoadAssetCompleted: function (resp/*, req, jqxhr*/) {
+
+  onLoadAssetCompleted(resp) {
     if (!resp.uid) {
       throw new Error('no uid found in response');
     }
     this.data[resp.uid] = parsed(resp);
     this.trigger(this.data, resp.uid);
-  }
+  },
+
+  /**
+   * @param {string} assetUid
+   * @returns {object|undefined} asset
+   */
+  getAsset(assetUid) {
+    return this.data[assetUid];
+  },
 });
 
 stores.session = Reflux.createStore({
@@ -254,6 +266,11 @@ stores.session = Reflux.createStore({
   },
 });
 
+/**
+ * NOTE: this is not a reliable source of complete assets (i.e. ones with
+ * `content`) as `onListAssetsCompleted` will overwrite asset-with-content with
+ * one without it.
+ */
 stores.allAssets = Reflux.createStore({
   init() {
     this.data = [];
@@ -268,7 +285,14 @@ stores.allAssets = Reflux.createStore({
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
     this.listenTo(actions.permissions.removeAssetPermission.completed, this.onDeletePermissionCompleted);
   },
-  whenLoaded (uid, cb) {
+  /**
+   * Either calls immediately if data already exists, or makes a call to get
+   * asset and then calls.
+   *
+   * @param {string} uid
+   * @param {function} cb
+   */
+  whenLoaded(uid, cb) {
     if (typeof uid !== 'string' || typeof cb !== 'function') {
       return;
     }
@@ -283,6 +307,15 @@ stores.allAssets = Reflux.createStore({
       actions.resources.loadAsset({id: uid});
     }
   },
+
+  /**
+   * @param {string} assetUid
+   * @returns {object|undefined}
+   */
+  getAsset(assetUid) {
+    return this.byUid[assetUid];
+  },
+
   onUpdateAssetCompleted (asset) {
     this.registerAsset(asset);
     this.data.forEach((dataAsset, index) => {
