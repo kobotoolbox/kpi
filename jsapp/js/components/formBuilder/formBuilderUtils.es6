@@ -24,7 +24,7 @@ export function surveyToValidJson(survey) {
   // to "survey.toFlatJSON()"
   survey.toFlatJSON();
   // returning the result of the second call to "toFlatJSON()"
-  return JSON.stringify(survey.toFlatJSON());
+  return survey.toFlatJSON();
 }
 
 /**
@@ -34,7 +34,7 @@ export function surveyToValidJson(survey) {
  * @return {string} fixed surveyDataJSON
  */
 export function unnullifyTranslations(surveyDataJSON, assetContent) {
-  let surveyData = JSON.parse(surveyDataJSON);
+  let surveyData = surveyDataJSON;
 
   let translatedProps = [];
   if (assetContent.translated) {
@@ -82,7 +82,7 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
     }
   }
 
-  return JSON.stringify(surveyData);
+  return surveyData;
 }
 
 /**
@@ -177,9 +177,9 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
 export function koboMatrixParser(params) {
   let content = {};
   if (params.content)
-    content = JSON.parse(params.content);
+    content = params.content;
   if (params.source)
-    content = JSON.parse(params.source);
+    content = params.source;
 
   if (!content.survey)
     return params;
@@ -222,9 +222,9 @@ export function koboMatrixParser(params) {
 
   if (hasMatrix) {
     if (params.content)
-      params.content = JSON.stringify(content);
+      params.content = content;
     if (params.source)
-      params.source = JSON.stringify(content);
+      params.source = content;
   }
   return params;
 }
