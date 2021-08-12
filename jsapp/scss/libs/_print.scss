@@ -100,6 +100,7 @@
   .page-wrapper {
     &.page-wrapper--is-modal-visible.page-wrapper--is-modal-submission {
       .form-view.form-view--table {
+        // hide table, when displaying submission modal and user is printing
         display: none;
       }
     }
