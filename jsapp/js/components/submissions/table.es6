@@ -667,12 +667,21 @@ export class DataTable extends React.Component {
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
-              var mediaURL = this.getMediaDownloadLink(row, row.value);
+              let mediaURL = null;
+              let textContent = null;
+
+              if (q.type !== QUESTION_TYPES.text.id) {
+                mediaURL = this.getMediaDownloadLink(row, row.value);
+              } else {
+                textContent = row.value;
+              }
+
               return (
                 <MediaCell
                   questionType={q.type}
                   mediaURL={mediaURL}
                   mediaName={row.value}
+                  textContent={textContent}
                 />
               );
             }

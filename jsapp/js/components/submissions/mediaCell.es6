@@ -25,6 +25,7 @@ bem.MediaCell__duration = bem.MediaCell.__('duration', '<label>');
  * @prop {string} questionType
  * @prop {string} mediaURL - Backend stored media attachment URL
  * @prop {string} mediaName - Backend stored media attachment file name
+ * @prop {string} textContent - Content of a text question
  */
 class MediaCell extends React.Component {
   constructor(props) {
@@ -56,18 +57,31 @@ class MediaCell extends React.Component {
             // Give the user a way to see the full file name
             title={mediaName}
           >
-            {truncatedFileName}
+            {mediaURL ? truncatedFileName : t('TODO!!')}
           </bem.TableMediaPreviewHeader__label>
         </bem.TableMediaPreviewHeader__title>
 
-        {/*TODO this doesn't start a `save as` but instead opens media in tab*/}
+        {this.props.mediaURL &&
+          // TODO: this doesn't start a `save as` but instead opens media in tab
+          <a
+            className='kobo-light-button kobo-light-button--blue'
+            href={mediaURL}
+            download=''
+          >
+            {t('download')}
+            <i className='k-icon k-icon-download'/>
+          </a>
+        }
+
         <a
-          className='kobo-light-button kobo-light-button--blue'
-          href={mediaURL}
+          className='kobo-light-button kobo-light-button--gray'
+          // TODO: point this to submissoin processing modal
+          href={'#'}
           download=''
         >
-          {t('download')}
-          <i className='k-icon k-icon-download'/>
+          {t('process')}
+          {/*TODO: Change this to arrow top right(?)*/}
+          <i className='k-icon k-icon-arrow-up'/>
         </a>
       </bem.TableMediaPreviewHeader>
     );
@@ -89,6 +103,9 @@ class MediaCell extends React.Component {
       case QUESTION_TYPES.video.id:
         iconClassNames.push('k-icon-qt-video');
         break;
+      case QUESTION_TYPES.text.id:
+        iconClassNames.push('k-icon-question');
+        break;
       default:
         iconClassNames.push('k-icon-media-files');
         break;
@@ -104,7 +121,7 @@ class MediaCell extends React.Component {
               this.props.questionType,
               iconClassNames,
               this.props.mediaURL,
-              this.props.mediaName
+              this.props.mediaName,
             )
           }
         />

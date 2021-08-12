@@ -12,6 +12,7 @@ bem.TableMediaPreview = bem('table-media-preview');
 bem.TableMediaPreview__image = bem.TableMediaPreview.__('image', '<img>');
 bem.TableMediaPreview__audio = bem.TableMediaPreview.__('audio', '<div>');
 bem.TableMediaPreview__video = bem.TableMediaPreview.__('video', '<video>');
+bem.TableMediaPreview__video = bem.TableMediaPreview.__('text', '<span>');
 
 
 /**
@@ -19,7 +20,8 @@ bem.TableMediaPreview__video = bem.TableMediaPreview.__('video', '<video>');
  *
  * @prop {string} questionType
  * @prop {string} mediaURL - Backend stored media attachment URL
- * @prop {string} mediaName - Backend stored media attachment file name
+ * @prop {string} mediaName - Backend stored media attachment file name or the
+                              content of a text question
  *
  */
 class TableMediaPreview extends React.Component {
@@ -59,6 +61,15 @@ class TableMediaPreview extends React.Component {
             controls
             autoPlay
           />
+        );
+      case QUESTION_TYPES.text.id:
+        return (
+          <label>
+            {t('Unsupported media type: ##QUESTION_TYPE##').replace(
+              '##QUESTION_TYPE##',
+              this.props.questionType
+            )}
+          </label>
         );
       default:
         return (
