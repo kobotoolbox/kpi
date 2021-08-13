@@ -270,6 +270,7 @@ export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   '_status',
   '_submitted_by',
   '_tags',
+  '_index',
 ]);
 
 /**

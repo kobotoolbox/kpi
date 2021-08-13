@@ -516,7 +516,7 @@ class MockDataExports(MockDataExportsBase):
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_filter_fields(self):
-        export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism"]}
+        export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism", "_index"]}
         expected_lines = [
             '"start";"end";"Do you descend from an ancestral unicellular organism?";"_index"',
             '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"1"',
@@ -582,12 +582,22 @@ class MockDataExports(MockDataExportsBase):
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_filter_fields(self):
-        export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism"]}
+        export_options = {'fields': ['start', 'end', 'Do_you_descend_from_unicellular_organism', '_index']}
         expected_data = {self.asset.name: [
-            [ "start", "end", "Do you descend from an ancestral unicellular organism?", "_index" ],
-            [ "2017-10-23T05:40:39.000-04:00", "2017-10-23T05:41:13.000-04:00", "No",  1.0  ],
-            [ "2017-10-23T05:41:14.000-04:00", "2017-10-23T05:41:32.000-04:00", "No",  2.0  ],
-            [ "2017-10-23T05:41:32.000-04:00", "2017-10-23T05:42:05.000-04:00", "Yes",  3.0  ],
+            ['start', 'end', 'Do you descend from an ancestral unicellular organism?', '_index'],
+            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'No',  1.0 ],
+            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'No',  2.0 ],
+            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Yes',  3.0 ],
+        ]}
+        self.run_xls_export_test(expected_data, export_options)
+
+    def test_xls_export_filter_fields_without_index(self):
+        export_options = {'fields': ['start', 'end', 'Do_you_descend_from_unicellular_organism']}
+        expected_data = {self.asset.name: [
+            ['start', 'end', 'Do you descend from an ancestral unicellular organism?'],
+            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'No'],
+            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'No'],
+            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Yes'],
         ]}
         self.run_xls_export_test(expected_data, export_options)
 
