@@ -29,6 +29,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import {actions} from 'js/actions';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import SingleProcessingView from 'js/components/processing/singleProcessingView';
 
 export default class AllRoutes extends React.Component {
   constructor(props) {
@@ -98,6 +99,7 @@ export default class AllRoutes extends React.Component {
               <Route path={ROUTES.FORM_GALLERY} component={FormSubScreens} />
               <Route path={ROUTES.FORM_MAP} component={FormSubScreens} />
               <Route path={ROUTES.FORM_MAP_BY} component={FormSubScreens} />
+              <Route path={ROUTES.FORM_PROCESSING} component={SingleProcessingView} />
             </Route>
 
             <Route path={ROUTES.FORM_SETTINGS}>
