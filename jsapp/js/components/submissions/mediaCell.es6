@@ -25,8 +25,10 @@ bem.MediaCell__duration = bem.MediaCell.__('duration', '<label>');
  *
  * @prop {string} questionType
  * @prop {string} mediaURL - Backend stored media attachment URL
- * @prop {string} mediaName - Backend stored media attachment file name
- * @prop {string} textContent - Content of a text question
+ * @prop {string} mediaName - Backend stored media attachment file name or the
+                              content of a text question
+ * @prop {string} submissionIndex - Index of the submission for text questions
+ * @prop {string} submissionTotal - Total submissions for text questions
  */
 class MediaCell extends React.Component {
   constructor(props) {
@@ -34,7 +36,14 @@ class MediaCell extends React.Component {
     autoBind(this);
   }
 
-  launchMediaModal(questionType, questionIcon, mediaURL, mediaName) {
+  launchMediaModal(
+    questionType,
+    questionIcon,
+    mediaURL,
+    mediaName,
+    submissionIndex,
+    submissionTotal,
+  ) {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
       questionType: questionType,
@@ -43,13 +52,31 @@ class MediaCell extends React.Component {
       customModalHeader: this.renderMediaModalCustomHeader(
         questionIcon,
         mediaURL,
-        mediaName
+        mediaName,
+        submissionIndex,
+        submissionTotal,
       ),
     });
   }
 
-  renderMediaModalCustomHeader(questionIcon, mediaURL, mediaName) {
-    const truncatedFileName = truncateString(mediaName, 30);
+  renderMediaModalCustomHeader(
+    questionIcon,
+    mediaURL,
+    mediaName,
+    submissionIndex,
+    submissionTotal,
+  ) {
+    let titleText = null;
+
+    // mediaURL only exists if there are attachments, otherwise assume only text
+    if (mediaURL) {
+      titleText = truncateString(mediaName, 30);
+    } else {
+      titleText = t('Submission ##submissionIndex## of ##submissionTotal##')
+        .replace('##submissionIndex##', submissionIndex)
+        .replace('##submissionTotal##', submissionTotal);
+    }
+
     return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
@@ -58,7 +85,7 @@ class MediaCell extends React.Component {
             // Give the user a way to see the full file name
             title={mediaName}
           >
-            {mediaURL ? truncatedFileName : t('TODO!!')}
+            {titleText}
           </bem.TableMediaPreviewHeader__label>
         </bem.TableMediaPreviewHeader__title>
 
@@ -71,6 +98,7 @@ class MediaCell extends React.Component {
               download=''
             >
               {t('download')}
+
               <i className='k-icon k-icon-download'/>
             </a>
           }
@@ -82,8 +110,10 @@ class MediaCell extends React.Component {
             download=''
           >
             {t('process')}
-            {/*TODO: Change this to arrow top right(?)*/}
-            <i className='k-icon k-icon-arrow-up'/>
+
+            <i className='k-icon k-icon-arrow-up'
+              //TODO: Need to add icon for top-right pointing arrow
+            />
           </a>
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
@@ -125,6 +155,8 @@ class MediaCell extends React.Component {
               iconClassNames,
               this.props.mediaURL,
               this.props.mediaName,
+              this.props.submissionIndex,
+              this.props.submissionTotal,
             )
           }
         />
