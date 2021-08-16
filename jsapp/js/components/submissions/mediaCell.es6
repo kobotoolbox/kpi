@@ -91,11 +91,11 @@ class MediaCell extends React.Component {
 
         <bem.TableMediaPreviewHeader__options>
           {this.props.mediaURL &&
-            // TODO: this doesn't start a `save as` but instead opens media in tab
             <a
               className='kobo-light-button kobo-light-button--blue'
+              // TODO: once we get this button to `save as`, remove this target
+              target='_blank'
               href={mediaURL}
-              download=''
             >
               {t('download')}
 
@@ -105,9 +105,8 @@ class MediaCell extends React.Component {
 
           <a
             className='kobo-light-button kobo-light-button--gray'
-            // TODO: point this to submissoin processing modal
+            // TODO: point this to submission processing modal
             href={'#'}
-            download=''
           >
             {t('process')}
 
