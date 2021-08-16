@@ -40,7 +40,6 @@ export default class AllRoutes extends React.Component {
 
   componentDidMount() {
     actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted.bind(this));
-    actions.misc.getServerEnvironment();
     actions.permissions.getConfig();
   }
 
