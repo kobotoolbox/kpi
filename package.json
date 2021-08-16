@@ -10,6 +10,7 @@
     "@fontsource/roboto": "^4.4.2",
     "@fontsource/roboto-mono": "^4.4.2",
     "@mapbox/leaflet-omnivore": "^0.3.4",
+    "@types/react-router": "^3.0.25",
     "alertifyjs": "^1.13.1",
     "autoprefixer": "^9.8.1",
     "babel-eslint": "^10.1.0",
