@@ -16,7 +16,7 @@ import AssetPublicButton from './assetPublicButton';
 import AssetBreadcrumbs from './assetBreadcrumbs';
 import AssetContentSummary from './assetContentSummary';
 import CollectionAssetsTable from './collectionAssetsTable';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 class AssetRoute extends React.Component {
   constructor(props) {

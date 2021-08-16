@@ -1,7 +1,6 @@
-import clonedeep from 'lodash.clonedeep';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import cloneDeep from 'lodash.clonedeep';
+import clonedeep from 'lodash.clonedeep';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
@@ -12,12 +11,7 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import {
-  surveyToValidJson,
-  unnullifyTranslations,
-  assign,
-  koboMatrixParser,
-} from '../utils';
+import {assign} from '../utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
@@ -27,7 +21,9 @@ import {
   ROUTES,
   META_QUESTION_TYPES,
 } from 'js/constants';
-import ui from '../ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
+import Modal from 'js/components/common/modal';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
@@ -45,7 +41,12 @@ import {
   LOCKING_RESTRICTIONS,
   LOCKING_UI_CLASSNAMES,
 } from 'js/components/locking/lockingConstants';
-import {getFormBuilderAssetType} from 'js/components/formBuilder/formBuilderUtils';
+import {
+  koboMatrixParser,
+  surveyToValidJson,
+  getFormBuilderAssetType,
+  unnullifyTranslations,
+} from 'js/components/formBuilder/formBuilderUtils';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -78,7 +79,7 @@ export default assign({
         // bugs that come from this fact. Form Builder code is already changing
         // the content of the object, so we want to cut all the bugs at the
         // very start of the process.
-        const asset = cloneDeep(originalAsset);
+        const asset = clonedeep(originalAsset);
 
         this.setState({asset: asset});
 
@@ -880,7 +881,7 @@ export default assign({
       );
     }
 
-    return (<ui.LoadingSpinner/>);
+    return (<LoadingSpinner/>);
   },
 
   renderAssetLabel() {
@@ -925,7 +926,7 @@ export default assign({
     if (!this.state.isNewAsset && !this.state.asset) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <ui.LoadingSpinner/>
+          <LoadingSpinner/>
         </DocumentTitle>
       );
     }
@@ -939,71 +940,73 @@ export default assign({
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <ui.Panel m={['transparent', 'fixed']}>
-          {this.renderAside()}
+        <bem.uiPanel m={['transparent', 'fixed']}>
+          <bem.uiPanel__body>
+            {this.renderAside()}
 
-          {userCanEditForm &&
-            <bem.FormBuilder>
-            {this.renderFormBuilderHeader()}
+            {userCanEditForm &&
+              <bem.FormBuilder>
+              {this.renderFormBuilderHeader()}
 
-              <bem.FormBuilder__contents>
-                {this.state.asset &&
-                  <FormLockedMessage asset={this.state.asset}/>
-                }
-
-                {this.hasBackgroundAudio() &&
-                  this.renderBackgroundAudioWarning()
-                }
-
-                <div ref='form-wrap' className='form-wrap'>
-                  {!this.state.surveyAppRendered &&
-                    this.renderNotLoadedMessage()
+                <bem.FormBuilder__contents>
+                  {this.state.asset &&
+                    <FormLockedMessage asset={this.state.asset}/>
                   }
-                </div>
-              </bem.FormBuilder__contents>
-            </bem.FormBuilder>
-          }
 
-          {(!userCanEditForm) &&
-            <ui.AccessDeniedMessage/>
-          }
+                  {this.hasBackgroundAudio() &&
+                    this.renderBackgroundAudioWarning()
+                  }
 
-          {this.state.enketopreviewOverlay &&
-            <ui.Modal
-              open
-              large
-              onClose={this.hidePreview}
-              title={t('Form Preview')}
-            >
-              <ui.Modal.Body>
-                <div className='enketo-holder'>
-                  <iframe src={this.state.enketopreviewOverlay} />
-                </div>
-              </ui.Modal.Body>
-            </ui.Modal>
-          }
+                  <div ref='form-wrap' className='form-wrap'>
+                    {!this.state.surveyAppRendered &&
+                      this.renderNotLoadedMessage()
+                    }
+                  </div>
+                </bem.FormBuilder__contents>
+              </bem.FormBuilder>
+            }
 
-          {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
-            <ui.Modal
-              open
-              error
-              onClose={this.clearPreviewError}
-              title={t('Error generating preview')}
-            >
-              <ui.Modal.Body>{this.state.enketopreviewError}</ui.Modal.Body>
-            </ui.Modal>
-          }
+            {(!userCanEditForm) &&
+              <AccessDeniedMessage/>
+            }
 
-          {this.state.showCascadePopup &&
-            <ui.Modal
-              open
-              onClose={this.hideCascade}
-              title={t('Import Cascading Select Questions')}
-            >
-              <ui.Modal.Body>{this.renderCascadePopup()}</ui.Modal.Body>
-            </ui.Modal>
-          }
-        </ui.Panel>
+            {this.state.enketopreviewOverlay &&
+              <Modal
+                open
+                large
+                onClose={this.hidePreview}
+                title={t('Form Preview')}
+              >
+                <Modal.Body>
+                  <div className='enketo-holder'>
+                    <iframe src={this.state.enketopreviewOverlay} />
+                  </div>
+                </Modal.Body>
+              </Modal>
+            }
+
+            {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
+              <Modal
+                open
+                error
+                onClose={this.clearPreviewError}
+                title={t('Error generating preview')}
+              >
+                <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
+              </Modal>
+            }
+
+            {this.state.showCascadePopup &&
+              <Modal
+                open
+                onClose={this.hideCascade}
+                title={t('Import Cascading Select Questions')}
+              >
+                <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
+              </Modal>
+            }
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       </DocumentTitle>
     );
   },

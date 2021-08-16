@@ -1,14 +1,13 @@
 # coding: utf-8
 import datetime
 
-from django.contrib.auth.decorators import login_required
-from django.template.response import TemplateResponse
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import resolve_url
+from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt

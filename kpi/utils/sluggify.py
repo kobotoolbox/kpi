@@ -2,7 +2,7 @@
 import xml.etree.ElementTree as ET
 import re
 
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 
 # an approximation of the max size.
 # actual max length will be 40 + len(join_with) + len("_001")
@@ -82,7 +82,7 @@ def sluggify(_str, _opts):
         attempt_base = _str
         if len(attempt_base) == 0:
             # empty string because arabic / cyrillic characters
-            _str = 'h{}'.format(get_hash(_initial[0:7])[0:7])
+            _str = 'h{}'.format(calculate_hash(_initial[0:7])[0:7])
         attempt = attempt_base
         incremented = 0
         while attempt.lower() in names_lc:
