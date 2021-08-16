@@ -356,6 +356,7 @@ $z-modal-x: 10;
 
   .modal__content {
     background-color: $kobo-gray-98;
+    overflow: hidden;
   }
 
   .modal__header {
@@ -388,6 +389,7 @@ $z-modal-x: 10;
         i.k-icon {
           color: $kobo-gray-65;
           margin-right: 6px;
+          font-size: 20px;
         }
       }
 
@@ -397,6 +399,10 @@ $z-modal-x: 10;
           font-weight: 800;
           margin-left: 3px;
         }
+
+        &:not(:last-child) {
+          margin-right: 12px;
+        }
       }
     }
   }
@@ -404,6 +410,8 @@ $z-modal-x: 10;
   .modal__body {
     padding: 0;
     margin: 0;
+    max-height: 600px;
+    overflow: scroll;
 
     .table-media-preview {
       padding: 32px 0 12px 0;
@@ -413,6 +421,11 @@ $z-modal-x: 10;
 
       .audio-player {
         margin-right: 12px;
+      }
+
+      .table-media-preview__text {
+        text-align: left;
+        padding: 0 32px 32px 32px;
       }
 
       img, video {

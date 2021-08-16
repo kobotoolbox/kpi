@@ -13,6 +13,7 @@ import './mediaCell.scss';
 bem.TableMediaPreviewHeader = bem('table-media-preview-header');
 bem.TableMediaPreviewHeader__title = bem.TableMediaPreviewHeader.__('title', '<div>');
 bem.TableMediaPreviewHeader__label = bem.TableMediaPreviewHeader.__('label', '<label>');
+bem.TableMediaPreviewHeader__options = bem.TableMediaPreviewHeader.__('options', '<div>');
 
 bem.MediaCell = bem('media-cell');
 bem.MediaCell__icon = bem.MediaCell.__('icon', '<i>');
@@ -48,7 +49,7 @@ class MediaCell extends React.Component {
   }
 
   renderMediaModalCustomHeader(questionIcon, mediaURL, mediaName) {
-    const truncatedFileName = truncateString(mediaName, 50);
+    const truncatedFileName = truncateString(mediaName, 30);
     return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
@@ -61,28 +62,30 @@ class MediaCell extends React.Component {
           </bem.TableMediaPreviewHeader__label>
         </bem.TableMediaPreviewHeader__title>
 
-        {this.props.mediaURL &&
-          // TODO: this doesn't start a `save as` but instead opens media in tab
+        <bem.TableMediaPreviewHeader__options>
+          {this.props.mediaURL &&
+            // TODO: this doesn't start a `save as` but instead opens media in tab
+            <a
+              className='kobo-light-button kobo-light-button--blue'
+              href={mediaURL}
+              download=''
+            >
+              {t('download')}
+              <i className='k-icon k-icon-download'/>
+            </a>
+          }
+
           <a
-            className='kobo-light-button kobo-light-button--blue'
-            href={mediaURL}
+            className='kobo-light-button kobo-light-button--gray'
+            // TODO: point this to submissoin processing modal
+            href={'#'}
             download=''
           >
-            {t('download')}
-            <i className='k-icon k-icon-download'/>
+            {t('process')}
+            {/*TODO: Change this to arrow top right(?)*/}
+            <i className='k-icon k-icon-arrow-up'/>
           </a>
-        }
-
-        <a
-          className='kobo-light-button kobo-light-button--gray'
-          // TODO: point this to submissoin processing modal
-          href={'#'}
-          download=''
-        >
-          {t('process')}
-          {/*TODO: Change this to arrow top right(?)*/}
-          <i className='k-icon k-icon-arrow-up'/>
-        </a>
+        </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
     );
   }
