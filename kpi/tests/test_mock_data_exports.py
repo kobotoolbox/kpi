@@ -604,9 +604,10 @@ class MockDataExports(MockDataExportsBase):
     def test_xls_export_filter_fields_repeat_groups(self):
         export_options = {
             'fields': [
-                "_uuid",
-                "_submission_time",
-                "person/name",
+                '_uuid',
+                '_submission_time',
+                'person/name',
+                '_index'
             ]
         }
         asset = self.assets['Simple repeat group']
