@@ -3,7 +3,7 @@ import clonedeep from 'lodash.clonedeep';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
-import {getRouteAssetUid} from 'js/routerUtils';
+import {getRouteAssetUid} from 'js/router/routerUtils';
 import {getSurveyFlatPaths} from 'js/assetUtils';
 import {
   PERMISSIONS_CODENAMES,
