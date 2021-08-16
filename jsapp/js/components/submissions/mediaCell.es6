@@ -24,7 +24,7 @@ bem.MediaCell__duration = bem.MediaCell.__('duration', '<label>');
  * Table cell replacement for media submissions
  *
  * @prop {string} questionType
- * @prop {string} mediaURL - Backend stored media attachment URL
+ * @prop {string} mediaAttachment - Backend stored media attachment
  * @prop {string} mediaName - Backend stored media attachment file name or the
                               content of a text question
  * @prop {string} submissionIndex - Index of the submission for text questions
@@ -39,7 +39,7 @@ class MediaCell extends React.Component {
   launchMediaModal(
     questionType,
     questionIcon,
-    mediaURL,
+    mediaAttachment,
     mediaName,
     submissionIndex,
     submissionTotal,
@@ -47,11 +47,11 @@ class MediaCell extends React.Component {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
       questionType: questionType,
-      mediaURL: mediaURL,
+      mediaAttachment: mediaAttachment,
       mediaName: mediaName,
       customModalHeader: this.renderMediaModalCustomHeader(
         questionIcon,
-        mediaURL,
+        mediaAttachment.download_url,
         mediaName,
         submissionIndex,
         submissionTotal,
@@ -152,7 +152,7 @@ class MediaCell extends React.Component {
             this.launchMediaModal(
               this.props.questionType,
               iconClassNames,
-              this.props.mediaURL,
+              this.props.mediaAttachment,
               this.props.mediaName,
               this.props.submissionIndex,
               this.props.submissionTotal,
