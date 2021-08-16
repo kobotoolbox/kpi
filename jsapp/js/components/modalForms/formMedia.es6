@@ -16,6 +16,7 @@ import {
   truncateString,
   truncateUrl,
 } from 'js/utils';
+import './formMedia.scss';
 
 const MAX_ITEM_LENGTH = 50;
 const DEFAULT_MEDIA_DESCRIPTION = 'default';

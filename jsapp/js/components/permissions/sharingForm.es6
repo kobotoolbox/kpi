@@ -13,6 +13,7 @@ import {
   ASSET_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
+import './sharingForm.scss';
 
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
