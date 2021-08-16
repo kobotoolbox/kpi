@@ -20,6 +20,14 @@ const postCssLoader = {
   }
 };
 
+const babelLoader = {
+  loader: 'babel-loader',
+  options: {
+    presets: ['@babel/preset-env', '@babel/preset-react'],
+    plugins: ['react-hot-loader/babel']
+  }
+}
+
 var commonOptions = {
   module: {
     rules: [
@@ -56,13 +64,17 @@ var commonOptions = {
       {
         test: /\.(js|jsx|es6)$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env', '@babel/preset-react'],
-            plugins: ['react-hot-loader/babel']
+        use: babelLoader
+      },
+      {
+        test: /\.(ts|tsx)$/,
+        exclude: /node_modules/,
+        use: [
+          babelLoader,
+          {
+            loader: 'ts-loader'
           }
-        }
+        ]
       },
       {
         test: /\.css$/,
@@ -90,7 +102,7 @@ var commonOptions = {
     ]
   },
   resolve: {
-    extensions: ['.jsx', '.js', '.es6', '.coffee'],
+    extensions: ['.jsx', '.js', '.es6', '.coffee', '.ts'],
     alias: {
       app: path.join(__dirname, '../app'),
       js: path.join(__dirname, '../jsapp/js'),
