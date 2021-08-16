@@ -3,7 +3,7 @@
   "compilerOptions": {
     "baseUrl": "./jsapp",
     "paths": {
-      "js/*": ["js/*"]
+      "js/*": ["js/*"],
       "scss/*": ["scss/*"],
       "test/*": ["test/*"],
     },
