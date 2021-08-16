@@ -26,8 +26,8 @@ import {
 import {
   NAME_MAX_LENGTH,
   PROJECT_SETTINGS_CONTEXTS,
-  ROUTES,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {LOCKING_RESTRICTIONS} from 'js/components/locking/lockingConstants';
 import {hasAssetRestriction} from 'js/components/locking/lockingUtils';
 import envStore from 'js/envStore';

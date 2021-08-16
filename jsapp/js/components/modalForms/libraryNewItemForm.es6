@@ -10,8 +10,8 @@ import {hashHistory} from 'react-router';
 import {
   MODAL_TYPES,
   ASSET_TYPES,
-  ROUTES,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
 
