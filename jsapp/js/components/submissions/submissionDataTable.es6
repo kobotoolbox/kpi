@@ -1,5 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
+import {hashHistory} from 'react-router';
 import {
   formatTimeDate,
   formatDate,
@@ -16,6 +17,7 @@ import {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import './submissionDataTable.scss';
 
 /**
@@ -28,6 +30,15 @@ class SubmissionDataTable extends React.Component {
   constructor(props){
     super(props);
     autoBind(this);
+  }
+
+  openProcessing(questionName) {
+    const submissionId = this.props.submissionData._uuid;
+    const wantedRoute = ROUTES.FORM_PROCESSING
+      .replace(':uid', this.props.asset.uid)
+      .replace(':questionName', questionName)
+      .replace(':submissionId', submissionId);
+    hashHistory.push(wantedRoute);
   }
 
   /**
@@ -105,6 +116,13 @@ class SubmissionDataTable extends React.Component {
 
         <bem.SubmissionDataTable__column m='data'>
           {this.renderResponseData(item.type, item.data, item.listName)}
+
+          <bem.KoboLightButton
+            m='red'
+            onClick={this.openProcessing.bind(this, item.name)}
+          >
+            {t('Process')}
+          </bem.KoboLightButton>
         </bem.SubmissionDataTable__column>
       </bem.SubmissionDataTable__row>
     );
