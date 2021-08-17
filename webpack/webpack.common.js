@@ -11,12 +11,11 @@ const postCssLoader = {
   loader: 'postcss-loader',
   options: {
     sourceMap: true,
-    config: {
-       path: path.resolve(__dirname, '../postcss.config.js')
-    },
-    plugins: [
-      require('autoprefixer')
-    ]
+    postcssOptions: {
+      plugins: [
+        'autoprefixer'
+      ]
+    }
   }
 };
 
