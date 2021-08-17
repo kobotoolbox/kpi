@@ -1,10 +1,8 @@
 # coding: utf-8
 import copy
 import json
-
 from collections import defaultdict, OrderedDict
 from operator import itemgetter
-from hashlib import md5
 
 from django.db.models import Count, Q
 from django.http import Http404
@@ -25,32 +23,43 @@ from kpi.constants import (
     PERM_FROM_KC_ONLY,
 )
 from kpi.deployment_backends.backends import DEPLOYMENT_BACKENDS
-from kpi.exceptions import BadAssetTypeException
+from kpi.exceptions import (
+    BadAssetTypeException,
+)
 from kpi.filters import (
     AssetOrderingFilter,
     KpiObjectPermissionsFilter,
-    SearchFilter
+    SearchFilter,
 )
 from kpi.highlighters import highlight_xform
-from kpi.models import Asset
-from kpi.models.object_permission import (
+from kpi.models import (
+    Asset,
     ObjectPermission,
-    get_anonymous_user,
-    get_objects_for_user
+    UserAssetSubscription,
 )
-from kpi.models.asset import UserAssetSubscription
 from kpi.paginators import AssetPagination
-from kpi.permissions import IsOwnerOrReadOnly, PostMappedToChangePermission, \
-    get_perm_name, ReportPermission
-from kpi.renderers import AssetJsonRenderer, SSJsonRenderer, XFormRenderer, \
-    XlsRenderer
+from kpi.permissions import (
+    get_perm_name,
+    IsOwnerOrReadOnly,
+    PostMappedToChangePermission,
+    ReportPermission,
+)
+from kpi.renderers import (
+    AssetJsonRenderer,
+    SSJsonRenderer,
+    XFormRenderer,
+    XlsRenderer,
+)
 from kpi.serializers import DeploymentSerializer
 from kpi.serializers.v2.asset import AssetListSerializer, AssetSerializer
-from kpi.utils.hash import get_hash
+from kpi.utils.hash import calculate_hash
 from kpi.serializers.v2.reports import ReportsDetailSerializer
-from kpi.utils.strings import hashable_str
 from kpi.utils.kobo_to_xlsform import to_xlsform_structure
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.utils.object_permission import (
+    get_database_user,
+    get_objects_for_user,
+)
 
 
 class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -244,6 +253,47 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     > Example
     >
     >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/reports/
+
+    ### Data sharing
+
+    Control sharing of submission data from this project to other projects
+
+    <pre class="prettyprint">
+    <b>PATCH</b> /api/v2/assets/{uid}/
+    </pre>
+
+    > Example
+    >
+    >       curl -X PATCH https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/
+    >
+    > **Payload**
+    >
+    >        {
+    >           "data_sharing": {
+    >              "enabled": true,
+    >              "fields": []"
+    >           }
+    >        }
+    >
+
+    * `fields`: Optional. List of questions whose responses will be shared. If
+        missing or empty, all responses will be shared. Questions must be
+        identified by full group path separated by slashes, e.g.
+        `group/subgroup/question_name`.
+
+    >
+    > Response
+    >
+    >       HTTP 200 Ok
+    >        {
+    >           ...
+    >           "data_sharing": {
+    >              "enabled": true,
+    >              "fields": []"
+    >           }
+    >        }
+    >
+
 
     ### CURRENT ENDPOINT
     """
@@ -527,8 +577,8 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         context_ = super().get_serializer_context()
         if self.action == 'list':
             # To avoid making a triple join-query for each asset in the list
-            # to retrieve related objects, we populated dicts key-ed by asset ids
-            # with the data needed by serializer.
+            # to retrieve related objects, we populated dicts key-ed by asset
+            # ids with the data needed by serializer.
             # We create one (big) query per dict instead of a separate query
             # for each asset in the list.
             # The serializer will be able to pick what it needs from that dict
@@ -630,14 +680,16 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 .order_by("uid")
             )
 
-            assets_version_ids = [asset.version_id
-                                  for asset in accessible_assets
-                                  if asset.version_id is not None]
+            assets_version_ids = [
+                asset.version_id
+                for asset in accessible_assets
+                if asset.version_id is not None
+            ]
             # Sort alphabetically
             assets_version_ids.sort()
 
             if len(assets_version_ids) > 0:
-                hash_ = get_hash(''.join(assets_version_ids))
+                hash_ = calculate_hash(''.join(assets_version_ids), algorithm='md5')
             else:
                 hash_ = ''
 
@@ -658,19 +710,16 @@ class AssetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if CLONE_ARG_NAME in request.data:
             serializer = self._get_clone_serializer(instance)
         else:
-            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer = self.get_serializer(instance,
+                                             data=request.data,
+                                             partial=True)
 
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
 
     def perform_create(self, serializer):
-        # Check if the user is anonymous. The
-        # django.contrib.auth.models.AnonymousUser object doesn't work for
-        # queries.
-        user = self.request.user
-        if user.is_anonymous:
-            user = get_anonymous_user()
+        user = get_database_user(self.request.user)
         serializer.save(owner=user)
 
     def perform_destroy(self, instance):

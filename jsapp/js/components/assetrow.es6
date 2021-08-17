@@ -57,14 +57,14 @@ class AssetRow extends React.Component {
     assetUtils.moveToCollection(this.props.uid, evt.currentTarget.dataset.collid);
   }
 
-  clearPopover () {
+  forceClosePopover () {
     if (this.state.popoverVisible) {
       this.setState({clearPopover: true, popoverVisible: false});
     }
   }
 
   popoverSetVisible () {
-    this.setState({popoverVisible: true});
+    this.setState({clearPopover: false, popoverVisible: true});
   }
 
   render () {
@@ -112,7 +112,7 @@ class AssetRow extends React.Component {
           }}
           className='mdl-grid'
           key={this.props.uid}
-          onMouseLeave={this.clearPopover}
+          onMouseLeave={this.forceClosePopover}
         >
           <bem.AssetRow__cell
             m={'asset-details'}

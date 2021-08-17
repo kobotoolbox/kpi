@@ -1,13 +1,26 @@
 # coding: utf-8
 import re
 
-from bson import ObjectId
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext as _
 
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
+
+
+def drop_mock_only(func):
+    """
+    This decorator should be used on every method that drop data in MongoDB
+    in a testing environment. It ensures that MockMongo is used and no prodction
+    data is deleted
+    """
+    def _inner(*args, **kwargs):
+        # Ensure we are using MockMongo before deleting data
+        mongo_db_driver__repr = repr(settings.MONGO_DB)
+        if 'mongomock' not in mongo_db_driver__repr:
+            raise Exception('Cannot run tests on a production database')
+        return func(*args, **kwargs)
+
+    return _inner
 
 
 class MongoHelper:
@@ -18,8 +31,23 @@ class MongoHelper:
     and KoBoCAT's ParseInstance class to query mongo.
     """
 
-    KEY_WHITELIST = ['$or', '$and', '$exists', '$in', '$gt', '$gte',
-                     '$lt', '$lte', '$regex', '$options', '$all']
+    OR_OPERATOR = '$or'
+    AND_OPERATOR = '$and'
+    IN_OPERATOR = '$in'
+
+    KEY_WHITELIST = [
+        OR_OPERATOR,
+        AND_OPERATOR,
+        IN_OPERATOR,
+        '$exists',
+        '$gt',
+        '$gte',
+        '$lt',
+        '$lte',
+        '$regex',
+        '$options',
+        '$all',
+    ]
 
     ENCODING_SUBSTITUTIONS = [
         (re.compile(r'^\$'), base64_encodestring('$').strip()),
@@ -49,13 +77,10 @@ class MongoHelper:
         return key
 
     @classmethod
-    def encode(cls, key):
+    def encode(cls, key: str) -> str:
         """
         Replace characters not allowed in Mongo keys with their base64-encoded
         representations
-
-        :param key: string
-        :return: string
         """
         for pattern, repl in cls.ENCODING_SUBSTITUTIONS:
             key = re.sub(pattern, repl, key)
@@ -63,29 +88,38 @@ class MongoHelper:
 
     @classmethod
     def get_count(
-            cls, mongo_userform_id, query=None, instance_ids=None,
-            permission_filters=None):
-
+        cls,
+        mongo_userform_id,
+        query=None,
+        submission_ids=None,
+        permission_filters=None,
+    ):
         _, total_count = cls._get_cursor_and_count(
             mongo_userform_id,
             fields={'_id': 1},
             query=query,
-            instance_ids=instance_ids,
+            submission_ids=submission_ids,
             permission_filters=permission_filters)
 
         return total_count
 
     @classmethod
     def get_instances(
-            cls, mongo_userform_id, start=None, limit=None,
-            sort=None, fields=None, query=None, instance_ids=None,
-            permission_filters=None
+        cls,
+        mongo_userform_id,
+        start=None,
+        limit=None,
+        sort=None,
+        fields=None,
+        query=None,
+        submission_ids=None,
+        permission_filters=None,
     ):
         cursor, total_count = cls._get_cursor_and_count(
             mongo_userform_id,
             fields=fields,
             query=query,
-            instance_ids=instance_ids,
+            submission_ids=submission_ids,
             permission_filters=permission_filters)
 
         cursor.skip(start)
@@ -104,24 +138,20 @@ class MongoHelper:
         return cursor, total_count
 
     @classmethod
-    def is_attribute_invalid(cls, key):
+    def is_attribute_invalid(cls, key: str) -> str:
         """
         Checks if an attribute can't be passed to Mongo as is.
-        :param key:
-        :return:
         """
-        return key not in cls.KEY_WHITELIST and\
-               (key.startswith('$') or key.count('.') > 0)
+        return key not in cls.KEY_WHITELIST and (
+            key.startswith('$') or key.count('.') > 0
+        )
 
     @classmethod
-    def to_readable_dict(cls, d):
+    def to_readable_dict(cls, d: dict) -> dict:
         """
         Updates encoded attributes of a dict with human-readable attributes.
         For example:
         { "myLg==attribute": True } => { "my.attribute": True }
-
-        :param d: dict
-        :return: dict
         """
 
         for key, value in list(d.items()):
@@ -246,28 +276,45 @@ class MongoHelper:
         :param key:
         :return:
         """
-        return key not in \
-               cls.KEY_WHITELIST and (key.startswith('$') or key.count('.') > 0)
+        return (
+            key not in cls.KEY_WHITELIST
+            and (key.startswith('$') or key.count('.') > 0)
+        )
 
     @classmethod
-    def _get_cursor_and_count(cls, mongo_userform_id,
-                              fields=None, query=None, instance_ids=None,
-                              permission_filters=None):
+    def _get_cursor_and_count(
+        cls,
+        mongo_userform_id,
+        fields=None,
+        query=None,
+        submission_ids=None,
+        permission_filters=None,
+    ):
 
-        if len(instance_ids) > 0:
+        if len(submission_ids) > 0:
             query.update({
-                '_id': {'$in': instance_ids}
+                '_id': {cls.IN_OPERATOR: submission_ids}
             })
 
         query.update({cls.USERFORM_ID: mongo_userform_id})
 
         # Narrow down query
         if permission_filters is not None:
-            permission_filters_query = {'$or': []}
-            for permission_filter in permission_filters:
-                permission_filters_query['$or'].append(permission_filter)
+            if len(permission_filters) == 1:
+                permission_filters_query = permission_filters[0]
+            else:
+                permission_filters_query = {cls.OR_OPERATOR: []}
+                for permission_filter in permission_filters:
+                    if isinstance(permission_filter, list):
+                        permission_filters_query[cls.OR_OPERATOR].append(
+                            {cls.OR_OPERATOR: permission_filter}
+                        )
+                    else:
+                        permission_filters_query[cls.OR_OPERATOR].append(
+                            permission_filter
+                        )
 
-            query = {'$and': [query, permission_filters_query]}
+            query = {cls.AND_OPERATOR: [query, permission_filters_query]}
 
         query = cls.to_safe_dict(query, reading=True)
 

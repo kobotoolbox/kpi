@@ -14,13 +14,13 @@ from django.test import TestCase
 from kobo.apps.reports import report_data
 from kpi.constants import (
     PERM_CHANGE_ASSET,
-    PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset, ExportTask
-from kpi.models.object_permission import get_anonymous_user
+from kpi.utils.object_permission import get_anonymous_user
+from kpi.utils.mongo_helper import drop_mock_only
 
 
 class MockDataExportsBase(TestCase):
@@ -299,9 +299,13 @@ class MockDataExportsBase(TestCase):
         },
     }
 
+    @drop_mock_only
     def setUp(self):
         self.user = User.objects.get(username='someuser')
         self.form_names = list(self.forms.keys())
+        # Clean up MongoDB documents
+        settings.MONGO_DB.instances.drop()
+
         self.assets = {
             name: self._create_asset_with_submissions(
                 user=self.user,
@@ -328,7 +332,7 @@ class MockDataExportsBase(TestCase):
             submission.update({
                 '__version__': v_uid
             })
-        asset.deployment.mock_submissions(submissions)
+        asset.deployment.mock_submissions(submissions, flush_db=False)
         return asset
 
 
@@ -352,7 +356,7 @@ class MockDataExports(MockDataExportsBase):
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,
             submission_stream=self.asset.deployment.get_submissions(
-                self.asset.owner.id
+                self.asset.owner
             ),
         )
 
@@ -387,7 +391,6 @@ class MockDataExports(MockDataExportsBase):
                 (line + '\r\n').encode('utf-8') for line in expected_lines
             ]
             result_lines = list(export_task.result)
-
             self.assertEqual(result_lines, expected_lines)
 
         self.assertFalse(messages)
@@ -1011,7 +1014,7 @@ class MockDataExports(MockDataExportsBase):
         # observe that `ignore` does not appear!
         expected_lines = [
             '"q";"_id";"_uuid";"_submission_time";"_validation_status";"_notes";"_status";"_submitted_by";"_tags";"_index"',
-            '"123";"";"";"";"";"";"";"";"";"1"',
+            '"123";"1";"";"";"";"";"";"";"";"1"',
         ]
         # fails with `KeyError` prior to fix for kobotoolbox/formpack#219
         self.run_csv_export_test(expected_lines, asset=asset)

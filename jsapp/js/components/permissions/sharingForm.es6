@@ -10,8 +10,9 @@ import {bem} from 'js/bem';
 import {LoadingSpinner} from 'js/ui';
 import {buildUserUrl} from 'utils';
 import {
+  ROUTES,
   ASSET_TYPES,
-  ANON_USERNAME
+  ANON_USERNAME,
 } from 'js/constants';
 
 // parts
@@ -27,7 +28,7 @@ class SharingForm extends React.Component {
     autoBind(this);
     this.state = {
       allAssetsCount: 0,
-      isAddUserEditorVisible: false
+      isAddUserEditorVisible: false,
     };
   }
 
@@ -61,7 +62,7 @@ class SharingForm extends React.Component {
     this.setState({
       permissions: parsedPerms,
       nonOwnerPerms: nonOwnerPerms,
-      publicPerms: publicPerms
+      publicPerms: publicPerms,
     });
   }
 
@@ -113,6 +114,21 @@ class SharingForm extends React.Component {
         <bem.Modal__subheader>
           {this.state.asset.name}
         </bem.Modal__subheader>
+
+        {stores.session.currentAccount.extra_details?.require_auth !== true &&
+          <bem.FormModal__item>
+            <bem.FormView__cell m='warning'>
+              <i className='k-icon k-icon-alert' />
+              <p>
+                {t('Anyone can see this blank form and add submissions to it because you have not set ')}
+                <a href={`/#${ROUTES.ACCOUNT_SETTINGS}`}>
+                  {t('your account')}
+                </a>
+                {t(' to require authentication.')}
+              </p>
+            </bem.FormView__cell>
+          </bem.FormModal__item>
+        }
 
         {/* list of users and their permissions */}
         <bem.FormModal__item>
@@ -199,9 +215,7 @@ class SharingForm extends React.Component {
   }
 }
 
-SharingForm.contextTypes = {
-  router: PropTypes.object
-};
+SharingForm.contextTypes = {router: PropTypes.object};
 
 reactMixin(SharingForm.prototype, mixins.permissions);
 reactMixin(SharingForm.prototype, mixins.contextRouter);

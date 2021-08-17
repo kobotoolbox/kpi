@@ -1,5 +1,10 @@
+// These are custom styles for Table View table.
+
+$data-table-border: 1px solid $kobo-gray-92;
+$data-table-row-height: 42px;
+
 .form-view--table {
-  padding: 0px 30px;
+  padding: 0px 15px;
   position: relative;
 
   .form-view__group--table-header {
@@ -21,216 +26,308 @@
       }
     }
   }
+}
 
-  .ReactTable {
-    border: none;
-    background: transparent;
-    height: calc(100% - 50px);
+// react table overrides
+.form-view--table .ReactTable {
+  border: none;
+  background: transparent;
+  height: calc(100% - 50px);
 
-    .rt-table {
-      border: 1px solid $kobo-gray-92;
-      background-color: $kobo-white;
-      font-size: 13px;
+  .rt-table {
+    border: $data-table-border;
+    background-color: $kobo-white;
+    color: $kobo-gray-24;
+    font-size: 14px;
+  }
+
+  // minimum body height so at least two rows are visible
+  .rt-tbody {
+    min-height: 72px;
+  }
+
+  .rt-tbody, .rt-thead {
+    overflow-x: hidden;
+  }
+
+  .rt-thead {
+    background: $kobo-gray-96;
+
+    .column-header-title {
+      font-weight: 600;
+
+      .k-icon {
+        font-size: 20px;
+        color: $kobo-gray-55;
+        vertical-align: top;
+        margin-right: 3px;
+      }
     }
 
-    .rt-tbody, .rt-thead {
-      overflow-x: hidden;
-    }
-
-    // minimum body height so at least two rows are visible
-    .rt-tbody {
-      min-height: 72px;
-    }
-
-    .rt-thead.-header {
+    // the first header row
+    &.-header {
       box-shadow: none;
-      border-bottom: 2px solid $kobo-gray-92;
       overflow-x: visible;
 
-      .table-bulk-checkbox-header {
+      .table-submission-actions-header {
         overflow: visible;
-      }
-    }
+        position: relative;
 
-    .rt-thead {
-      .rt-tr {
-        align-items: center;
-      }
-
-      .rt-resizable-header-content {
-        overflow: visible;
-        text-overflow: inherit;
-        line-height: 1.2;
-        padding: 5px 0;
-
-        .column-header-title,
-        .column-header-hxl-tags {
-          display: block;
-          width: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .column-header-hxl-tags {
-          color: $kobo-gray-40;
+        .table-header-results {
+          line-height: 21px;
+          text-align: left;
         }
       }
     }
 
-    .rt-thead {
-      &.-filters input {
-        padding: 2px 4px;
+    // the second header row
+    &.-filters {
+      overflow-x: visible;
+      // we want both header rows to look like one merged
+      border-bottom: $data-table-border;
+      border-bottom-width: 2px;
+
+      .rt-th,
+      .rt-td {
+        border-right: $data-table-border;
       }
 
-      &.-filters select {
+      .table-filter-input {
+        width: 100%;
+        border: 0;
+        background: $kobo-white;
+        border-radius: 3px;
+        height: 28px;
+        min-height: 28px;
+        vertical-align: top;
+        display: inline-block;
+        font-size: 12px;
+
+        &::placeholder {
+          color: $kobo-gray-55;
+        }
+      }
+
+      select {
         margin-top: 2px;
         margin-right: 2px;
       }
-
-      .rt-th:hover,
-      .rt-td:hover {
-        background: $kobo-teal-light;
-      }
-
-      .rt-th.-sort-desc,
-      .rt-td.-sort-desc {
-        box-shadow: inset 0 -3px 0 0 rgba($kobo-teal, 0.8);
-      }
-
-      .rt-th.-sort-asc,
-      .rt-td.-sort-asc {
-        box-shadow: inset 0 3px 0 0 rgba($kobo-teal, 0.8);
-      }
-    }
-
-    .rt-tr-group {
-      max-height: 36px;
     }
 
     .rt-tr {
-      align-items: stretch;
+      align-items: center;
     }
 
-    .rt-th, .rt-td {
-      padding: 2px;
-      padding-left: 6px;
-      border-right: 1px solid rgba($kobo-gray-24, 0.03);
-      line-height: 30px;
+    .rt-th.-sort-desc,
+    .rt-td.-sort-desc,
+    .rt-th.-sort-asc,
+    .rt-td.-sort-asc {
+      box-shadow: inset 0 3px 0 0 $kobo-teal;
     }
 
-    .rt-td.rt-status {
-      line-height: inherit;
+    .rt-resizable-header-content {
       overflow: visible;
+      text-overflow: inherit;
 
-      .kobo-select__control {
-        background: transparent;
-        height: 30px;
-        min-height: 30px;
-        border: none;
-        border-radius: 0px;
-        box-shadow: none;
-        cursor: pointer;
-
-        &:hover {
-          box-shadow: none;
-        }
-      }
-    }
-
-    .rt-link {
-      overflow: visible;
-
-      .table-link {
-        cursor: pointer;
-        display: inline-block;
-        min-height: 28px;
-
-        &:hover {
-          color: $kobo-blue;
-        }
-
-        i {
-          font-size: 24px;
-          margin: 0 3px;
-          vertical-align: middle;
-        }
-      }
-    }
-
-    .-pagination {
-      box-shadow: none;
-      border-top: none;
-
-      .-center {
-        flex: 2;
-      }
-
-      .-btn {
-        @extend .mdl-button, .mdl-button--colored;
-
-        &:hover {
-          background: transparent;
-        }
-      }
-    }
-
-    .pagination-bottom {
-      margin-top: 5px;
-      margin-bottom: 5px;
-    }
-
-    .-loading {
-      background: $kobo-gray-96;
-
-      .-loading-inner {
+      .column-header-title,
+      .column-header-hxl-tags {
         display: block;
-        text-align: center;
-        font-size: 18px;
-        opacity: 0.8;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .column-header-hxl-tags {
+        font-size: 12px;
         color: $kobo-gray-40;
+      }
+    }
+  }
 
-        i {
-          margin-right: 12px;
-          vertical-align: middle;
-          font-size: 24px;
-        }
+  .rt-tbody .rt-tr-group:last-child {
+    // undo react-table removing the border
+    border-bottom: $data-table-border;
+  }
+
+  .rt-tr {
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .rt-tr-group {
+    max-height: $data-table-row-height;
+    border-bottom: $data-table-border;
+    box-sizing: content-box; // to make the border be outside the cell for hover
+  }
+
+  .rt-th, .rt-td {
+    padding: 5px 8px;
+    border-right: $data-table-border;
+    line-height: $data-table-row-height - (2 * 5px);
+    height: $data-table-row-height;
+  }
+
+  .rt-td.rt-numerical-value {
+    font-family: $font_mono;
+  }
+
+  .rt-thead.-filters .rt-th.rt-status {
+    line-height: inherit;
+    overflow: visible;
+  }
+
+  .rt-td.rt-status {
+    // needed for dropdown
+    overflow: visible;
+  }
+
+  .rt-sub-actions {
+    // needed for tooltips
+    overflow: visible;
+  }
+
+  .table-submission-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+
+    .checkbox {
+      margin-right: 7px;
+    }
+
+    .checkbox__input {
+      display: block;
+    }
+
+    .table-link {
+      cursor: pointer;
+      min-height: 28px;
+      background: transparent;
+      border: 0;
+      padding: 0;
+
+      &:hover {
+        color: $kobo-blue;
+      }
+
+      i {
+        font-size: 24px;
+        margin: 0 3px;
+        vertical-align: middle;
+      }
+    }
+  }
+
+  .-pagination {
+    box-shadow: none;
+    border-top: none;
+    padding: 0;
+
+    .-center {
+      flex: 2;
+    }
+
+    .-btn {
+      color: $kobo-blue;
+      font-size: 12px;
+      line-height: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: transparent;
+
+      &[disabled] {
+        pointer-events: none;
+      }
+
+      .k-icon {
+        vertical-align: top;
+      }
+
+      &:hover {
+        color: $kobo-blue-dark;
+        background: transparent;
+      }
+
+      &:active {
+        transform: translateY(1px);
       }
     }
 
-    &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
-      background: $kobo-teal-light;
+    .-pageJump {
+      margin-left: 10px;
+      margin-right: 10px;
+
+      input {
+        appearance: none;
+      }
     }
 
-    &.has-frozen-column {
-      .frozen {
-        order: -1;
-        position: relative;
-        left: 0;
-        background: $kobo-gray-96;
-        height: 36px;
-        transition: left 0.2s;
-        margin-right: 6px;
+    select {
+      cursor: pointer;
+    }
 
-        &:not(.rt-status) {
-          z-index: 2;
+    input,
+    select {
+      border: 1px solid $kobo-gray-92;
+      background: $kobo-white;
+      height: 32px;
+      padding: 5px 7px;
+      font-size: 14px;
+      border-radius: 6px;
+      font-weight: 700;
+    }
+  }
 
-          &:hover {
-            z-index: 3;
-          }
-        }
+  .pagination-bottom {
+    margin-top: 5px;
+    margin-bottom: 20px;
+  }
+
+  .-loading {
+    background: $kobo-gray-96;
+
+    .-loading-inner {
+      display: block;
+      text-align: center;
+      font-size: 18px;
+      opacity: 0.8;
+      color: $kobo-gray-40;
+
+      i {
+        margin-right: 12px;
+        vertical-align: middle;
+        font-size: 24px;
       }
+    }
+  }
 
-      &.-striped .rt-tr.-odd .frozen {
-        background: $kobo-gray-96;
-      }
+  &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
+    background: $kobo-gray-98;
+  }
 
-      &.-striped .rt-tr:hover .frozen {
-        background: $kobo-teal-light;
-      }
+  &.has-frozen-column {
+    .rt-th.frozen,
+    .rt-td.frozen {
+      z-index: 100;
+      order: -1;
+      position: relative;
+      left: 0;
+      background: $kobo-gray-96;
+      height: $data-table-row-height;
+      margin-right: 6px;
+      border-right: $data-table-border;
+      border-right-width: 2px;
+      // to avoid a visual glitch when there is half a pixel space left to the
+      // frozen column and dark pixels of text below are visible
+      margin-left: -1px;
+    }
+  }
 
-      .rt-th.frozen {
-        height: 34px;
-      }
+  &.has-hxl-tags-visible {
+    .rt-thead.-header .rt-th {
+      height: $data-table-row-height * 2;
     }
   }
 }

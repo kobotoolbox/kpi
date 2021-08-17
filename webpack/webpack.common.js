@@ -94,6 +94,7 @@ var commonOptions = {
     alias: {
       app: path.join(__dirname, '../app'),
       js: path.join(__dirname, '../jsapp/js'),
+      scss: path.join(__dirname, '../jsapp/scss'),
       utils: path.join(__dirname, '../jsapp/js/utils'),
       test: path.join(__dirname, '../test'),
     }

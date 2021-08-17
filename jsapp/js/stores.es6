@@ -205,6 +205,7 @@ stores.session = Reflux.createStore({
   },
   isAuthStateKnown: false,
   init() {
+    actions.misc.updateProfile.completed.listen(this.onUpdateProfileCompleted);
     this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.verifyLogin.anonymous, (data) => {
@@ -216,6 +217,10 @@ stores.session = Reflux.createStore({
     });
     actions.auth.verifyLogin();
     actions.auth.getEnvironment();
+  },
+  onUpdateProfileCompleted(response) {
+    this.currentAccount = response;
+    this.trigger({currentAccount: this.currentAccount});
   },
   triggerEnv(environment) {
     const nestedArrToChoiceObjs = (i) => {
@@ -251,18 +256,6 @@ stores.session = Reflux.createStore({
       isLoggedIn: true,
       currentAccount: acct,
     });
-  },
-});
-
-stores.assetContent = Reflux.createStore({
-  init: function () {
-    this.data = {};
-    this.surveys = {};
-    this.listenTo(actions.resources.loadAssetContent.completed, this.onLoadAssetContentCompleted);
-  },
-  onLoadAssetContentCompleted: function(resp/*, req, jqxhr*/) {
-    this.data[resp.uid] = resp;
-    this.trigger(this.data, resp.uid);
   },
 });
 
@@ -358,7 +351,7 @@ stores.allAssets = Reflux.createStore({
     this.trigger(this.data);
   },
   onListAssetsFailed: function (searchData, response) {
-    notify(response.responseJSON.detail || t('failed to list assets'));
+    notify(response?.responseJSON?.detail || t('failed to list assets'));
   }
 });
 

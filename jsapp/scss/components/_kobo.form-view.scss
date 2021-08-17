@@ -29,6 +29,10 @@
   overflow-y: auto;
   background: $kobo-gray-96;
 
+  &.form-view--table {
+    background: $kobo-white;
+  }
+
   &.form-view--fullscreen {
     position: fixed;
     z-index: $z-fullscreen;
@@ -92,7 +96,8 @@
     color: $kobo-gray-40;
     font-weight: normal;
     letter-spacing: -0.01em;
-    display: block;
+    display: flex;
+    align-items: center;
     margin-left: 10px;
 
     &:hover,
@@ -458,14 +463,24 @@
 
     i {
       color: $kobo-orange;
-      font-size: 32px;
-      margin-right: 5px;
+      font-size: 28px;
+      margin-right: 8px;
       vertical-align: -11px;
       display: inline-block;
     }
 
     p {
       margin: 0;
+    }
+
+    a {
+      color: inherit;
+      font-weight: bold;
+      text-decoration: underline;
+
+      &:hover {
+        text-decoration: none;
+      }
     }
   }
 
@@ -478,8 +493,8 @@
     align-items: center;
     i {
       color: $kobo-red;
-      font-size: 32px;
-      margin-right: 5px;
+      font-size: 28px;
+      margin-right: 8px;
       // If used in a dropzone, need to overwrite left margin
       margin-left: 0px;
     }
@@ -826,13 +841,6 @@
     height: calc(100% - 39px);
   }
 
-  .form-view {
-    a.form-view__link {
-      font-size: 32px;
-      padding: 0 3px;
-    }
-  }
-
   .form-view__row {
     margin: 16px;
     margin-bottom: 24px;
@@ -886,6 +894,26 @@
   .modal__footer .footer-back-button {
     float: left;
   }
+}
+
+// Compensate for when sidebar(s) messes up modal a bit
+
+// TODO: Clean this up via PR changes
+@media
+  (min-width: 770px) and (max-width: 1020px),
+  (max-width: 560px) {
+    .bulk-options {
+      display: block !important;
+
+      .bulk-options__buttons {
+        margin-top: 6px;
+        text-align: center;
+      }
+    }
+
+    .multi-checkbox {
+      overflow-x: scroll !important;
+    }
 }
 
 .form-view--library-asset {

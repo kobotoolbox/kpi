@@ -2,28 +2,22 @@
 import contextlib
 import copy
 import re
+from abc import ABC
 from collections import defaultdict
 
+from django.apps import apps
+from django.db import models
 from taggit.models import Tag, TaggedItem
 
-'''
-This circular import will bite you if you don't import kpi.models before
-importing kpi.model_utils:
-  File "kpi/model_utils.py", line 6, in <module>
-    from .models import Asset
-  File "kpi/models/__init__.py", line 5, in <module>
-    from kpi.models.import_task import ImportTask
-  File "kpi/models/import_task.py", line 6, in <module>
-    from kpi.model_utils import create_assets
-'''
-from .constants import ASSET_TYPE_COLLECTION
-from .models import Asset
-
+from kpi.constants import ASSET_TYPE_COLLECTION
 
 TAG_RE = r'tag:(.*)'
 
 
 def _load_library_content(structure):
+
+    Asset = apps.get_model('kpi', 'Asset')  # noqa
+
     content = structure.get('content', {})
     if 'library' not in content:
         raise Exception('to load a library, you must have a sheet called "library"')
@@ -65,6 +59,7 @@ def _load_library_content(structure):
     collection_name = structure['name']
     if not collection_name:
         collection_name = 'Collection'
+
     collection = Asset.objects.create(
         asset_type=ASSET_TYPE_COLLECTION, owner=structure['owner'],
         name=collection_name
@@ -125,11 +120,13 @@ def _set_auto_field_update(kls, field_name, val):
 
 
 def create_assets(kls, structure, **options):
-    if kls == "collection":
+    Asset = apps.get_model('kpi', 'Asset')  # noqa
+
+    if kls == 'collection':
         obj = Asset.objects.create(
             asset_type=ASSET_TYPE_COLLECTION, **structure
         )
-    elif kls == "asset":
+    elif kls == 'asset':
         if 'library' in structure.get('content', {}):
             obj = _load_library_content(structure)
         else:
@@ -153,3 +150,12 @@ def disable_auto_field_update(kls, field_name):
 
 def remove_string_prefix(string, prefix):
     return string[len(prefix):] if string.startswith(prefix) else string
+
+
+class DjangoModelABCMetaclass(type(models.Model), type(ABC)):
+    """
+    This metaclass combines Django Model meta class and ABC meta class.
+    Needed to be passed as the meta class for classes that inherit from the
+    two others.
+    """
+    pass

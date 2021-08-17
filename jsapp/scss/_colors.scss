@@ -10,37 +10,37 @@
 */
 
 // (accessible) our black, very very rare, only use if necessary for contrast
-$kobo-gray-14: hsl(225, 16%, 14%);
+$kobo-gray-14: hsl(225, 16%, 14%); // #1e2129
 
 // (accessible) active text, important text, text on background, top navigation
 // background
-$kobo-gray-24: hsl(225, 16%, 24%);
+$kobo-gray-24: hsl(225, 16%, 24%); // #333847
 
 // (accessible) default text, inactive text, options text, buttons text,
 // tabs text, notifications background, hover for popups and dropdowns
-$kobo-gray-40: hsl(225, 16%, 40%);
+$kobo-gray-40: hsl(225, 16%, 40%); // #565e76
 
 // (readable) clickable icons on hover
-$kobo-gray-55: hsl(225, 16%, 55%);
+$kobo-gray-55: hsl(225, 16%, 55%); // #7a839f
 
 // icons default (clickable), arrows and indicators default
-$kobo-gray-65: hsl(225, 16%, 65%);
+$kobo-gray-65: hsl(225, 16%, 65%); // #979fb4
 
 // inactive icons, some decorative icons
-$kobo-gray-85: hsl(225, 16%, 85%);
+$kobo-gray-85: hsl(225, 16%, 85%); // #d3d6df
 
 // scroll bars, table lines, dividers, background of clickable icons on hover
 // when also in a highlighted table row
-$kobo-gray-92: hsl(225, 16%, 92%);
+$kobo-gray-92: hsl(225, 16%, 92%); // #e7e9ee
 
 // default light background, icons on hover, sidebar menu, table headings, …
-$kobo-gray-96: hsl(225, 16%, 96%);
+$kobo-gray-96: hsl(225, 16%, 96%); // #f3f4f6
 
 // table row highlight on hover
-$kobo-gray-98: hsl(225, 16%, 98%);
+$kobo-gray-98: hsl(225, 16%, 98%); // #f9f9fb
 
 // white background
-$kobo-white: hsl(225, 16%, 100%);
+$kobo-white: hsl(225, 16%, 100%); // #ffffff
 
 // DEPRACATED COLORS
 //
@@ -62,11 +62,10 @@ $kobo-blue-dark: hsl(206, 90%, 45%);
 $kobo-blue-light: hsl(206, 90%, 60%);
 $kobo-blue-pale: hsl(206, 90%, 80%);
 
-$kobo-teal: hsl(185, 70%, 45%);
-$kobo-teal-light: hsl(185, 70%, 95%); // the row hover color
-$kobo-teal-pale: hsl(185, 60%, 60%);
-// the row hover color
-$kobo-teal-light: hsl(185, 70%, 95%);
+$kobo-teal: hsl(187, 70%, 45%);
+$kobo-teal-light: hsl(187, 70%, 95%); // the row hover color
+$kobo-teal-pale: hsl(187, 60%, 60%);
+$kobo-teal-pale-dark: hsl(187, 58%, 33%);
 
 // positive colors
 $kobo-green: hsl(149, 65%, 45%);
@@ -77,8 +76,12 @@ $kobo-green-light: hsl(149, 65%, 90%);
 $kobo-red: hsl(352, 77%, 60%);
 $kobo-red-dark: hsl(352, 70%, 40%);
 $kobo-red-light: hsl(352, 70%, 90%);
+$kobo-red-pale: hsl(352, 100%, 92%);
+$kobo-red-pale-dark: hsl(352, 30%, 44%);
 
 // warning colors
 $kobo-orange: hsl(30, 80%, 50%);
 $kobo-orange-dark: hsl(30, 80%, 40%);
 $kobo-orange-light: hsl(30, 80%, 95%);
+$kobo-orange-pale: hsl(30, 100%, 89%);
+$kobo-orange-pale-dark: hsl(30, 20%, 35%);

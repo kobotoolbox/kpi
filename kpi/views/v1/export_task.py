@@ -7,9 +7,9 @@ from rest_framework.reverse import reverse
 
 from kpi.models import ExportTask
 from kpi.models.import_export_task import _resolve_url_to_asset
-from kpi.model_utils import remove_string_prefix
 from kpi.serializers import ExportTaskSerializer
 from kpi.tasks import export_in_background
+from kpi.utils.models import remove_string_prefix
 from kpi.views.no_update_model import NoUpdateModelViewSet
 
 

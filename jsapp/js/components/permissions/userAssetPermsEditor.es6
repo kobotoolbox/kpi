@@ -12,16 +12,27 @@ import permConfig from './permConfig';
 import {
   assign,
   notify,
-  buildUserUrl
+  buildUserUrl,
 } from 'utils';
 import {
   ANON_USERNAME,
   KEY_CODES,
-  PERMISSIONS_CODENAMES
+  PERMISSIONS_CODENAMES,
 } from 'js/constants';
+import {
+  SUFFIX_USERS,
+  SUFFIX_PARTIAL,
+  PARTIAL_CHECKBOX_PAIRS,
+  PARTIAL_PERM_PAIRS,
+  CHECKBOX_NAMES,
+  CHECKBOX_PERM_PAIRS,
+  PARTIAL_IMPLIED_CHECKBOX_PAIRS,
+} from './permConstants';
 
-const PARTIAL_PLACEHOLDER = t('Enter usernames separated by commas');
+const PARTIAL_PLACEHOLDER = t('Enter usernames separated by comma');
 const USERNAMES_SEPARATOR = ',';
+
+const SUFFIX_DISABLED = 'Disabled';
 
 /**
  * Form for adding/changing user permissions for surveys.
@@ -45,26 +56,34 @@ class UserAssetPermsEditor extends React.Component {
       isEditingUsername: false,
       // form user inputs
       username: '',
-      formView: false,
-      formViewDisabled: false,
-      formEditDisabled: false,
-      formEdit: false,
-      submissionsView: false,
-      submissionsViewDisabled: false,
-      submissionsViewPartial: false,
-      submissionsViewPartialDisabled: false,
-      submissionsViewPartialUsers: [],
-      submissionsAdd: false,
-      submissionsAddDisabled: false,
-      submissionsEdit: false,
-      submissionsEditDisabled: false,
-      submissionsDelete: false,
-      submissionsDeleteDisabled: false,
-      submissionsValidate: false,
-      submissionsValidateDisabled: false
+      // all other properties are defined by setupStateCheckbox
     };
 
+    this.setupStateCheckbox(CHECKBOX_NAMES.formView);
+    this.setupStateCheckbox(CHECKBOX_NAMES.formEdit);
+    this.setupStateCheckbox(CHECKBOX_NAMES.formManage);
+    this.setupStateCheckbox(CHECKBOX_NAMES.submissionsView);
+    this.setupStateCheckbox(CHECKBOX_NAMES.submissionsAdd);
+    this.setupStateCheckbox(CHECKBOX_NAMES.submissionsEdit);
+    this.setupStateCheckbox(CHECKBOX_NAMES.submissionsValidate);
+    this.setupStateCheckbox(CHECKBOX_NAMES.submissionsDelete);
+
     this.applyPropsData();
+  }
+
+  /**
+   * DRY function to be used in constructor
+   */
+  setupStateCheckbox(checkboxName) {
+    this.state[checkboxName] = false;
+    this.state[checkboxName + SUFFIX_DISABLED] = false;
+
+    // checks whether there is a partial permission checkbox for this checkbox
+    if (PARTIAL_CHECKBOX_PAIRS[checkboxName]) {
+      this.state[PARTIAL_CHECKBOX_PAIRS[checkboxName]] = false;
+      this.state[PARTIAL_CHECKBOX_PAIRS[checkboxName] + SUFFIX_DISABLED] = false;
+      this.state[PARTIAL_CHECKBOX_PAIRS[checkboxName] + SUFFIX_USERS] = [];
+    }
   }
 
   /**
@@ -79,6 +98,8 @@ class UserAssetPermsEditor extends React.Component {
     if (this.props.username) {
       this.state.username = this.props.username;
     }
+
+    this.applySubmissionsAddRules(this.state);
   }
 
   componentDidMount() {
@@ -107,25 +128,6 @@ class UserAssetPermsEditor extends React.Component {
   }
 
   /**
-   * Single callback for all checkboxes to keep the complex connections logic
-   * being up to date regardless which one changed.
-   */
-  onCheckboxChange(id, isChecked) {
-    // apply checked checkbox change to state
-    const newState = this.state;
-    newState[id] = isChecked;
-
-    // reset partial inputs when unchecking `submissionsView`
-    if (newState.submissionsView === false) {
-      newState.submissionsViewPartial = false;
-      newState.submissionsViewPartialUsers = [];
-    }
-
-    // needs to be called last
-    this.setState(this.applyValidityRules(newState));
-  }
-
-  /**
    * Helps to avoid users submitting invalid data.
    *
    * Checking some of the checkboxes implies that other are also checked
@@ -137,87 +139,93 @@ class UserAssetPermsEditor extends React.Component {
    * @returns {Object} updated state
    */
   applyValidityRules(stateObj) {
-    // reset disabling before checks
-    stateObj.formViewDisabled = false;
-    stateObj.formEditDisabled = false;
-    stateObj.submissionsViewDisabled = false;
-    stateObj.submissionsViewPartialDisabled = false;
-    stateObj.submissionsAddDisabled = false;
-    stateObj.submissionsDeleteDisabled = false;
-    stateObj.submissionsEditDisabled = false;
-    stateObj.submissionsValidateDisabled = false;
-
-    // checking these options implies having `formView` checked
-    if (
-      stateObj.formEdit ||
-      stateObj.submissionsView ||
-      stateObj.submissionsViewPartial ||
-      stateObj.submissionsAdd ||
-      stateObj.submissionsEdit ||
-      stateObj.submissionsValidate
-    ) {
-      stateObj.formView = true;
-      stateObj.formViewDisabled = true;
-    }
-
-    // checking `submissionsEdit` implies having `submissionsAdd` checked
-    if (stateObj.submissionsEdit) {
-      stateObj.submissionsAdd = true;
-      stateObj.submissionsAddDisabled = true;
-    }
-
-    // checking these options implies having `submissionsView` checked
-    if (
-      stateObj.submissionsDelete ||
-      stateObj.submissionsEdit ||
-      stateObj.submissionsValidate
-    ) {
-      stateObj.submissionsView = true;
-      stateObj.submissionsViewDisabled = true;
-    }
-
-    // checking `submissionsViewPartial` disallows checking two other options
-    if (stateObj.submissionsViewPartial) {
-      stateObj.submissionsDelete = false;
-      stateObj.submissionsDeleteDisabled = true;
-      stateObj.submissionsEdit = false;
-      stateObj.submissionsEditDisabled = true;
-      stateObj.submissionsValidate = false;
-      stateObj.submissionsValidateDisabled = true;
-    }
-
-    // checking these options disallows checking `submissionsViewPartial`
-    if (
-      stateObj.submissionsDelete ||
-      stateObj.submissionsEdit ||
-      stateObj.submissionsValidate
-    ) {
-      stateObj.submissionsViewPartial = false;
-      stateObj.submissionsViewPartialDisabled = true;
-      stateObj.submissionsViewPartialUsers = [];
-    }
-
-    // `formManage` implies every other permission (except partial permissions)
-    if (stateObj.formManage) {
-      stateObj.formView = true;
-      stateObj.formEdit = true;
-      stateObj.submissionsAdd = true;
-      stateObj.submissionsView = true;
-      stateObj.submissionsDelete = true;
-      stateObj.submissionsEdit = true;
-      stateObj.submissionsValidate = true;
-
-      stateObj.formViewDisabled = true;
-      stateObj.formEditDisabled = true;
-      stateObj.submissionsViewDisabled = true;
-      stateObj.submissionsViewPartialDisabled = true;
-      stateObj.submissionsAddDisabled = true;
-      stateObj.submissionsDeleteDisabled = true;
-      stateObj.submissionsEditDisabled = true;
-      stateObj.submissionsValidateDisabled = true;
-    }
-
+    // enable all checkboxes before applying rules
+    Object.keys(CHECKBOX_PERM_PAIRS).forEach((checkboxName) => {
+      stateObj[checkboxName + SUFFIX_DISABLED] = false;
+    });
+    this.applySubmissionsAddRules(stateObj);
+    // apply permissions configuration rules to checkboxes
+    Object.keys(CHECKBOX_PERM_PAIRS).forEach((checkboxName) => {
+      this.applyValidityRulesForCheckbox(checkboxName, stateObj);
+    });
+    // cleanup unchecked partial checkboxes users lists
+    Object.keys(CHECKBOX_PERM_PAIRS).forEach((checkboxName) => {
+      if (
+        checkboxName.endsWith(SUFFIX_PARTIAL) &&
+        stateObj[checkboxName] === false
+      ) {
+        stateObj[checkboxName + SUFFIX_USERS] = [];
+      }
+    });
     return stateObj;
+  }
+
+  /**
+   * For users with disabled `auth_required` we need to force check add
+   * submissions and don't allow unchecking it.
+   *
+   * @param {object} stateObj
+   */
+  applySubmissionsAddRules(stateObj) {
+    if (
+      this.isAssignable(PERMISSIONS_CODENAMES.add_submissions) &&
+      stores.session.currentAccount.extra_details?.require_auth !== true
+    ) {
+      stateObj[CHECKBOX_NAMES.submissionsAdd] = true;
+      stateObj[CHECKBOX_NAMES.submissionsAdd + SUFFIX_DISABLED] = true;
+      this.applyValidityRulesForCheckbox(CHECKBOX_NAMES.submissionsAdd, stateObj);
+    }
+  }
+
+  /**
+   * For given checkbox (permission) uses permissions config to fix all implied
+   * and contradictory checkboxes (permissions).
+   *
+   * Modifies passed state object.
+   */
+  applyValidityRulesForCheckbox(checkboxName, stateObj) {
+    // only applies the rules for checked checkboxes
+    if (stateObj[checkboxName] === false) {
+      return;
+    }
+
+    const permissionPair = CHECKBOX_PERM_PAIRS[checkboxName];
+    const impliedPerms = this.getImpliedPermissions(permissionPair, checkboxName);
+    const contradictoryPerms = this.getContradictoryPermissions(permissionPair);
+
+    // all implied will be checked and disabled
+    impliedPerms.forEach((permUrl) => {
+      const impliedPermDef = permConfig.getPermission(permUrl);
+      let impliedCheckboxes = this.getPermissionCheckboxPairs(impliedPermDef.codename);
+      if (PARTIAL_IMPLIED_CHECKBOX_PAIRS.hasOwnProperty(checkboxName)) {
+        impliedCheckboxes = impliedCheckboxes.concat(PARTIAL_IMPLIED_CHECKBOX_PAIRS[checkboxName]);
+      }
+      impliedCheckboxes.forEach((impliedCheckbox) => {
+        stateObj[impliedCheckbox] = true;
+        stateObj[impliedCheckbox + SUFFIX_DISABLED] = true;
+      });
+    });
+
+    // all contradictory will be unchecked and disabled
+    contradictoryPerms.forEach((permUrl) => {
+      const contradictoryPermDef = permConfig.getPermission(permUrl);
+      const contradictoryCheckboxes = this.getPermissionCheckboxPairs(contradictoryPermDef.codename);
+      contradictoryCheckboxes.forEach((contradictoryCheckbox) => {
+        stateObj[contradictoryCheckbox] = false;
+        stateObj[contradictoryCheckbox + SUFFIX_DISABLED] = true;
+      });
+    });
+  }
+
+  /**
+   * Single callback for all checkboxes to keep the complex connections logic
+   * being up to date regardless which one changed.
+   */
+  onCheckboxChange(id, isChecked) {
+    // apply checked checkbox change to state
+    const newState = this.state;
+    newState[id] = isChecked;
+    this.setState(this.applyValidityRules(newState));
   }
 
   /**
@@ -227,7 +235,7 @@ class UserAssetPermsEditor extends React.Component {
   onUsernameChange(username) {
     this.setState({
       username: username,
-      isEditingUsername: true
+      isEditingUsername: true,
     });
   }
 
@@ -250,9 +258,6 @@ class UserAssetPermsEditor extends React.Component {
     }
   }
 
-  /**
-   * Enables Enter key on input.
-   */
   onInputKeyPress(key, evt) {
     if (key === KEY_CODES.ENTER) {
       evt.currentTarget.blur();
@@ -260,8 +265,13 @@ class UserAssetPermsEditor extends React.Component {
     }
   }
 
-  onSubmissionsViewPartialUsersChange(users) {
-    this.setState({submissionsViewPartialUsers: users.trim().split(USERNAMES_SEPARATOR)});
+  /**
+   * Generic function for updating partial users text input
+   */
+  onPartialUsersChange(prop, users) {
+    const newState = this.state;
+    newState[prop] = users.split(USERNAMES_SEPARATOR).map((user) => user.trim());
+    this.setState(newState);
   }
 
   /**
@@ -292,16 +302,6 @@ class UserAssetPermsEditor extends React.Component {
    * Remove nonexistent usernames from TagsInput list and from username input.
    */
   onUserExistsStoreChange(result) {
-    // check partial view users
-    const submissionsViewPartialUsers = this.state.submissionsViewPartialUsers;
-    submissionsViewPartialUsers.forEach((username) => {
-      if (result[username] === false) {
-        submissionsViewPartialUsers.pop(submissionsViewPartialUsers.indexOf(username));
-        this.notifyUnknownUser(username);
-      }
-    });
-    this.setState({submissionsViewPartialUsers: submissionsViewPartialUsers});
-
     // check username
     if (result[this.state.username] === false) {
       this.notifyUnknownUser(this.state.username);
@@ -316,40 +316,84 @@ class UserAssetPermsEditor extends React.Component {
     });
   }
 
-  getLabel(permCodename) {
-    return this.props.assignablePerms.get(
-      permConfig.getPermissionByCodename(
-        PERMISSIONS_CODENAMES[permCodename]
-      ).url
+  /**
+   * Multiple checkboxes have `partial_submissions`, so this function returns
+   * an array of items
+   */
+  getPermissionCheckboxPairs(permCodename) {
+    const found = [];
+    Object.keys(CHECKBOX_PERM_PAIRS).forEach((checkboxName) => {
+      if (CHECKBOX_PERM_PAIRS[checkboxName] === permCodename) {
+        found.push(checkboxName);
+      }
+    });
+    return found;
+  }
+
+  getImpliedPermissions(permCodename) {
+    const permDef = permConfig.getPermissionByCodename(
+      PERMISSIONS_CODENAMES[permCodename]
     );
+    if (permDef) {
+      return permDef.implied;
+    } else {
+      return [];
+    }
+  }
+
+  getContradictoryPermissions(permCodename) {
+    const permDef = permConfig.getPermissionByCodename(
+      PERMISSIONS_CODENAMES[permCodename]
+    );
+    if (permDef) {
+      return permDef.contradictory;
+    } else {
+      return [];
+    }
+  }
+
+  getCheckboxLabel(checkboxName) {
+    let permName = CHECKBOX_PERM_PAIRS[checkboxName];
+    const permDef = permConfig.getPermissionByCodename(permName);
+    if (!permDef) {
+      return false;
+    } else if (PARTIAL_PERM_PAIRS.hasOwnProperty(checkboxName)) {
+      permName = PARTIAL_PERM_PAIRS[checkboxName];
+      const nestedPartialPermissions = this.props.assignablePerms.get(permDef.url);
+      return nestedPartialPermissions[permName];
+    } else {
+      return this.props.assignablePerms.get(permDef.url);
+    }
   }
 
   isAssignable(permCodename) {
-    return this.props.assignablePerms.has(
-      permConfig.getPermissionByCodename(
-        PERMISSIONS_CODENAMES[permCodename]
-      ).url
+    const permDef = permConfig.getPermissionByCodename(
+      PERMISSIONS_CODENAMES[permCodename]
     );
+    if (!permDef) {
+      return false;
+    } else {
+      return this.props.assignablePerms.has(permDef.url);
+    }
   }
 
   /**
    * Blocks submitting non-ready form.
    */
   isSubmitEnabled() {
-    const isAnyCheckboxChecked = (
-      this.state.formView ||
-      this.state.formEdit ||
-      this.state.submissionsView ||
-      this.state.submissionsViewPartial ||
-      this.state.submissionsAdd ||
-      this.state.submissionsDelete ||
-      this.state.submissionsEdit ||
-      this.state.submissionsValidate
-    );
-    const isPartialValid = this.state.submissionsViewPartial ? this.state.submissionsViewPartialUsers.length !== 0 : true;
+    let isAnyCheckboxChecked = false;
+    Object.keys(CHECKBOX_PERM_PAIRS).forEach((checkboxName) => {
+      if (this.state[checkboxName] === true) {
+        isAnyCheckboxChecked = true;
+      }
+    });
+
     return (
       isAnyCheckboxChecked &&
-      isPartialValid &&
+      this.isPartialValid(CHECKBOX_NAMES.submissionsViewPartial) &&
+      this.isPartialValid(CHECKBOX_NAMES.submissionsEditPartial) &&
+      this.isPartialValid(CHECKBOX_NAMES.submissionsDeletePartial) &&
+      this.isPartialValid(CHECKBOX_NAMES.submissionsValidatePartial) &&
       !this.state.isSubmitPending &&
       !this.state.isEditingUsername &&
       this.state.username.length > 0 &&
@@ -360,25 +404,31 @@ class UserAssetPermsEditor extends React.Component {
   }
 
   /**
+   * Partial can't be empty if checked
+   */
+  isPartialValid(partialCheckboxName) {
+    return this.state[partialCheckboxName] ? this.state[partialCheckboxName + SUFFIX_USERS].length !== 0 : true;
+  }
+
+  /**
    * Returns only the properties for assignable permissions
+   *
+   * @returns {FormData}
    */
   getFormData() {
     const output = {
       username: this.state.username,
     };
 
-    if (this.isAssignable('view_asset')) {output.formView = this.state.formView;}
-    if (this.isAssignable('change_asset')) {output.formEdit = this.state.formEdit;}
-    if (this.isAssignable('manage_asset')) {output.formManage = this.state.formManage;}
-    if (this.isAssignable('add_submissions')) {output.submissionsAdd = this.state.submissionsAdd;}
-    if (this.isAssignable('view_submissions')) {output.submissionsView = this.state.submissionsView;}
-    if (this.isAssignable('partial_submissions')) {
-      output.submissionsViewPartial = this.state.submissionsViewPartial;
-      output.submissionsViewPartialUsers = this.state.submissionsViewPartialUsers;
-    }
-    if (this.isAssignable('change_submissions')) {output.submissionsEdit = this.state.submissionsEdit;}
-    if (this.isAssignable('delete_submissions')) {output.submissionsDelete = this.state.submissionsDelete;}
-    if (this.isAssignable('validate_submissions')) {output.submissionsValidate = this.state.submissionsValidate;}
+    Object.keys(CHECKBOX_PERM_PAIRS).forEach((checkboxName) => {
+      if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
+        output[checkboxName] = this.state[checkboxName];
+        if (checkboxName.endsWith(SUFFIX_PARTIAL)) {
+          output[checkboxName + SUFFIX_USERS] = this.state[checkboxName + SUFFIX_USERS];
+        }
+      }
+    });
+
     return output;
   }
 
@@ -391,9 +441,9 @@ class UserAssetPermsEditor extends React.Component {
 
     const formData = this.getFormData();
 
-    const parsedUser = permParser.parseFormData(formData);
+    const parsedPerms = permParser.parseFormData(formData);
 
-    if (parsedUser.length > 0) {
+    if (parsedPerms.length > 0) {
       // bulk endpoint needs all other users permissions to be passed
       let otherUserPerms = this.props.nonOwnerPerms.filter((perm) => {
         return perm.user !== buildUserUrl(formData.username);
@@ -401,7 +451,7 @@ class UserAssetPermsEditor extends React.Component {
       this.setState({isSubmitPending: true});
       actions.permissions.bulkSetAssetPermissions(
         this.props.uid,
-        otherUserPerms.concat(parsedUser)
+        otherUserPerms.concat(parsedPerms)
       );
     } else {
       // if nothing changes but user submits, just notify parent we're good
@@ -409,6 +459,45 @@ class UserAssetPermsEditor extends React.Component {
     }
 
     return false;
+  }
+
+  renderCheckbox(checkboxName) {
+    return (
+      <Checkbox
+        checked={this.state[checkboxName]}
+        disabled={this.state[checkboxName + SUFFIX_DISABLED]}
+        onChange={this.onCheckboxChange.bind(this, checkboxName)}
+        label={this.getCheckboxLabel(checkboxName)}
+      />
+    );
+  }
+
+  renderTextbox(checkboxName) {
+    return (
+      <TextBox
+        placeholder={PARTIAL_PLACEHOLDER}
+        value={this.state[checkboxName + SUFFIX_USERS].join(USERNAMES_SEPARATOR)}
+        onChange={this.onPartialUsersChange.bind(this, checkboxName + SUFFIX_USERS)}
+        errors={this.state[checkboxName] && this.state[checkboxName + SUFFIX_USERS].length === 0}
+        onKeyPress={this.onInputKeyPress}
+      />
+    );
+  }
+
+  renderPartialRow(checkboxName) {
+    if (this.isAssignable(CHECKBOX_PERM_PAIRS[checkboxName])) {
+      return (
+        <div className='user-permissions-editor__sub-row'>
+          {this.renderCheckbox(checkboxName)}
+
+          {this.state[checkboxName] === true &&
+            this.renderTextbox(checkboxName)
+          }
+        </div>
+      );
+    } else {
+      return null;
+    }
   }
 
   render() {
@@ -440,96 +529,40 @@ class UserAssetPermsEditor extends React.Component {
         }
 
         <div className='user-permissions-editor__row'>
-          {this.isAssignable('view_asset') &&
-            <Checkbox
-              checked={this.state.formView}
-              disabled={this.state.formViewDisabled}
-              onChange={this.onCheckboxChange.bind(this, 'formView')}
-              label={this.getLabel('view_asset')}
-            />
+          {this.isAssignable(PERMISSIONS_CODENAMES.view_asset) &&
+            this.renderCheckbox(CHECKBOX_NAMES.formView)
           }
 
-          {this.isAssignable('change_asset') &&
-            <Checkbox
-              checked={this.state.formEdit}
-              disabled={this.state.formEditDisabled}
-              onChange={this.onCheckboxChange.bind(this, 'formEdit')}
-              label={this.getLabel('change_asset')}
-            />
+          {this.isAssignable(PERMISSIONS_CODENAMES.change_asset) &&
+            this.renderCheckbox(CHECKBOX_NAMES.formEdit)
           }
 
-          {this.isAssignable('view_submissions') &&
-            <Checkbox
-              checked={this.state.submissionsView}
-              disabled={this.state.submissionsViewDisabled}
-              onChange={this.onCheckboxChange.bind(this, 'submissionsView')}
-              label={this.getLabel('view_submissions')}
-            />
+          {this.isAssignable(PERMISSIONS_CODENAMES.view_submissions) &&
+            this.renderCheckbox(CHECKBOX_NAMES.submissionsView)
+          }
+          {this.renderPartialRow(CHECKBOX_NAMES.submissionsViewPartial)}
+
+          {this.isAssignable(PERMISSIONS_CODENAMES.add_submissions) &&
+            this.renderCheckbox(CHECKBOX_NAMES.submissionsAdd)
           }
 
-          {this.isAssignable('partial_submissions') && this.state.submissionsView === true &&
-            <div className='user-permissions-editor__sub-row'>
-              <Checkbox
-                checked={this.state.submissionsViewPartial}
-                disabled={this.state.submissionsViewPartialDisabled}
-                onChange={this.onCheckboxChange.bind(this, 'submissionsViewPartial')}
-                label={this.getLabel('partial_submissions')}
-              />
-
-              {this.state.submissionsViewPartial === true &&
-                <TextBox
-                  placeholder={PARTIAL_PLACEHOLDER}
-                  value={this.state.submissionsViewPartialUsers.join(USERNAMES_SEPARATOR)}
-                  onChange={this.onSubmissionsViewPartialUsersChange}
-                  errors={this.state.submissionsViewPartial && this.state.submissionsViewPartialUsers.length === 0}
-                  onKeyPress={this.onInputKeyPress}
-                />
-              }
-            </div>
+          {this.isAssignable(PERMISSIONS_CODENAMES.change_submissions) &&
+            this.renderCheckbox(CHECKBOX_NAMES.submissionsEdit)
           }
+          {this.renderPartialRow(CHECKBOX_NAMES.submissionsEditPartial)}
 
-          {this.isAssignable('add_submissions') &&
-            <Checkbox
-              checked={this.state.submissionsAdd}
-              disabled={this.state.submissionsAddDisabled}
-              onChange={this.onCheckboxChange.bind(this, 'submissionsAdd')}
-              label={this.getLabel('add_submissions')}
-            />
+          {this.isAssignable(PERMISSIONS_CODENAMES.validate_submissions) &&
+            this.renderCheckbox(CHECKBOX_NAMES.submissionsValidate)
           }
+          {this.renderPartialRow(CHECKBOX_NAMES.submissionsValidatePartial)}
 
-          {this.isAssignable('change_submissions') &&
-            <Checkbox
-              checked={this.state.submissionsEdit}
-              disabled={this.state.submissionsEditDisabled}
-              onChange={this.onCheckboxChange.bind(this, 'submissionsEdit')}
-              label={this.getLabel('change_submissions')}
-            />
+          {this.isAssignable(PERMISSIONS_CODENAMES.delete_submissions) &&
+            this.renderCheckbox(CHECKBOX_NAMES.submissionsDelete)
           }
+          {this.renderPartialRow(CHECKBOX_NAMES.submissionsDeletePartial)}
 
-          {this.isAssignable('delete_submissions') &&
-            <Checkbox
-              checked={this.state.submissionsDelete}
-              disabled={this.state.submissionsDeleteDisabled}
-              onChange={this.onCheckboxChange.bind(this, 'submissionsDelete')}
-              label={this.getLabel('delete_submissions')}
-            />
-          }
-
-          {this.isAssignable('validate_submissions') &&
-            <Checkbox
-              checked={this.state.submissionsValidate}
-              disabled={this.state.submissionsValidateDisabled}
-              onChange={this.onCheckboxChange.bind(this, 'submissionsValidate')}
-              label={this.getLabel('validate_submissions')}
-            />
-          }
-
-          {this.isAssignable('manage_asset') &&
-            <Checkbox
-              checked={this.state.formManage}
-              onChange={this.onCheckboxChange.bind(this, 'formManage')}
-              label={this.getLabel('manage_asset')}
-            />
+          {this.isAssignable(PERMISSIONS_CODENAMES.manage_asset) &&
+            this.renderCheckbox(CHECKBOX_NAMES.formManage)
           }
         </div>
 

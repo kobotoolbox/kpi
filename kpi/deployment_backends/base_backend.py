@@ -1,28 +1,33 @@
 # coding: utf-8
+import abc
 import copy
 import json
-from typing import Union
+from typing import Union, Iterator
 
 from bson import json_util
+from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import PermissionDenied
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
 
-from kpi.constants import INSTANCE_FORMAT_TYPE_XML, INSTANCE_FORMAT_TYPE_JSON
-from kpi.exceptions import AbstractMethodError
+from kpi.constants import (
+    SUBMISSION_FORMAT_TYPE_XML,
+    SUBMISSION_FORMAT_TYPE_JSON,
+    PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
+)
+from kpi.models.asset_file import AssetFile
+from kpi.models.paired_data import PairedData
 from kpi.utils.jsonbfield_helper import ReplaceValues
 
 
-class BaseDeploymentBackend:
+class BaseDeploymentBackend(abc.ABC):
     """
     Defines the interface for a deployment backend.
     """
-
-    INSTANCE_ID_FIELDNAME = '_id'
-    STATUS_SYNCED = 'synced'
-    STATUS_NOT_SYNCED = 'not-synced'
 
     def __init__(self, asset):
         self.asset = asset
@@ -42,15 +47,30 @@ class BaseDeploymentBackend:
     def backend_response(self):
         return self.get_data('backend_response', {})
 
-    def calculated_submission_count(self, requesting_user_id, **kwargs):
-        raise AbstractMethodError
+    @abc.abstractmethod
+    def bulk_assign_mapped_perms(self):
+        pass
+
+    @abc.abstractmethod
+    def bulk_update_submissions(
+        self, data: dict, user: 'auth.User'
+    ) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def calculated_submission_count(self, user: 'auth.User', **kwargs):
+        pass
+
+    @abc.abstractmethod
+    def connect(self, active=False):
+        pass
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
 
-    def get_data(self,
-                 dotted_path: str = None,
-                 default=None) -> Union[None, int, str, dict]:
+    def get_data(
+        self, dotted_path: str = None, default=None
+    ) -> Union[None, int, str, dict]:
         """
         Access `self.asset._deployment_data` and return corresponding value of
         `dotted_path` if it exists. Otherwise, it returns `default`.
@@ -78,33 +98,112 @@ class BaseDeploymentBackend:
 
         return value
 
-    def get_submission(self, pk, requesting_user_id,
-                       format_type=INSTANCE_FORMAT_TYPE_JSON, **kwargs):
+    @abc.abstractmethod
+    def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
+        pass
+
+    @abc.abstractmethod
+    def delete_submissions(self, data: dict, user: 'auth.User', **kwargs) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def duplicate_submission(
+        self,  submission_id: int, user: 'auth.User'
+    ) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def get_data_download_links(self):
+        pass
+
+    @abc.abstractmethod
+    def get_enketo_submission_url(
+        self, submission_id: int, user: 'auth.User', params: dict = None
+    ) -> dict:
         """
-        Returns submission if `pk` exists otherwise `None`
+        Return a formatted dict to be passed to a Response object
+        """
+        pass
 
-        Args:
-            pk (int): Submission's primary key
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            kwargs (dict): Filters to pass to MongoDB. See
-                https://docs.mongodb.com/manual/reference/operator/query/
+    @abc.abstractmethod
+    def get_enketo_survey_links(self):
+        pass
 
-        Returns:
-            (dict|str|`None`): Depending on `format_type`, it can return:
-                - Mongo JSON representation as a dict
-                - Instance's XML as string
-                - `None` if doesn't exist
+    def get_submission(self,
+                       submission_id: int,
+                       user: 'auth.User',
+                       format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
+                       **mongo_query_params: dict) -> Union[dict, str, None]:
+        """
+        Retrieve the corresponding submission whose id equals `submission_id`
+        and which `user` is allowed to access.
+
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON`)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML`)
+
+        MongoDB filters can be passed through `mongo_query_params` to narrow
+        down the result.
+
+        If `user` has no access to that submission or no matches are found,
+        `None` is returned.
+        If `format_type` is 'json', a dictionary is returned.
+        Otherwise, if `format_type` is 'xml', a string is returned.
         """
 
-        submissions = list(self.get_submissions(requesting_user_id,
-                                                format_type, [int(pk)],
-                                                **kwargs))
+        submissions = list(
+            self.get_submissions(
+                user, format_type, [int(submission_id)], **mongo_query_params
+            )
+        )
         try:
             return submissions[0]
         except IndexError:
             pass
         return None
+
+    @abc.abstractmethod
+    def get_submission_detail_url(self, submission_id: int) -> str:
+        pass
+
+    def get_submission_validation_status_url(self, submission_id: int) -> str:
+        url = '{detail_url}validation_status/'.format(
+            detail_url=self.get_submission_detail_url(submission_id)
+        )
+        return url
+
+    @abc.abstractmethod
+    def get_submissions(
+        self,
+        user: 'auth.User',
+        format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
+        submission_ids: list = [],
+        **mongo_query_params: dict
+    ) -> Union[Iterator[dict], Iterator[str]]:
+        """
+        Retrieve submissions that `user` is allowed to access.
+
+        The format `format_type` can be either:
+        - 'json' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_JSON`)
+        - 'xml' (See `kpi.constants.SUBMISSION_FORMAT_TYPE_XML`)
+
+        Results can be filtered by submission ids. Moreover MongoDB filters can
+        be passed through `mongo_query_params` to narrow down the results.
+
+        If `user` has no access to these submissions or no matches are found, an
+        empty iterator is returned.
+
+        If `format_type` is 'json', an iterator of dictionaries is returned.
+        Otherwise, if `format_type` is 'xml', an iterator of strings is returned.
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_validation_status(self, submission_id: int, user: 'auth.User') -> dict:
+        """
+        Return a formatted dict to be passed to a Response object
+        """
+        pass
 
     @property
     def identifier(self):
@@ -117,6 +216,10 @@ class BaseDeploymentBackend:
     @property
     def mongo_userform_id(self):
         return None
+
+    @abc.abstractmethod
+    def redeploy(self, active: bool = None):
+        pass
 
     def remove_from_kc_only_flag(self, *args, **kwargs):
         # TODO: This exists only to support KoBoCAT (see #1161) and should be
@@ -146,11 +249,32 @@ class BaseDeploymentBackend:
         self.store_data(updates)
         self.asset.date_modified = now
 
+    @abc.abstractmethod
+    def set_active(self, active: bool):
+        pass
+
+    @abc.abstractmethod
     def set_asset_uid(self, **kwargs) -> bool:
-        raise AbstractMethodError
+        pass
+
+    @abc.abstractmethod
+    def set_has_kpi_hooks(self):
+        pass
 
     def set_status(self, status):
         self.save_to_db({'status': status})
+
+    @abc.abstractmethod
+    def set_validation_status(self,
+                              submission_id: int,
+                              user: 'auth.User',
+                              data: dict,
+                              method: str) -> dict:
+        pass
+
+    @abc.abstractmethod
+    def set_validation_statuses(self, user: 'auth.User', data: dict) -> dict:
+        pass
 
     @property
     def status(self):
@@ -167,39 +291,44 @@ class BaseDeploymentBackend:
 
     @property
     def submission_count(self):
-        return self._submission_count()
+        return self.calculated_submission_count(self.asset.owner)
 
-    def sync_media_files(self):
-        raise AbstractMethodError
+    @property
+    @abc.abstractmethod
+    def submission_list_url(self):
+        pass
+
+    @abc.abstractmethod
+    def sync_media_files(self, file_type: str = AssetFile.FORM_MEDIA):
+        pass
 
     def validate_submission_list_params(
         self,
-        requesting_user_id,
-        format_type=INSTANCE_FORMAT_TYPE_JSON,
-        validate_count=False,
-        **kwargs
-    ):
+        user: 'auth.User',
+        format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
+        validate_count: bool = False,
+        partial_perm=PERM_VIEW_SUBMISSIONS,
+        **mongo_query_params
+    ) -> dict:
         """
-        Ensure types of query and each param.
-
-        Args:
-            requesting_user_id (int)
-            format_type (str): INSTANCE_FORMAT_TYPE_JSON|INSTANCE_FORMAT_TYPE_XML
-            validate_count (bool): If `True`, ignores `start`, `limit`, `fields` & `sort`
-            kwargs (dict): Can contain
-                - start
-                - limit
-                - sort
-                - fields
-                - query
-                - instance_ids
-
-
-        Returns:
-            dict
+        Validates parameters (`mongo_query_params`) to be passed to MongoDB.
+        parameters can be:
+            - start
+            - limit
+            - sort
+            - fields
+            - query
+            - submission_ids
+        If `validate_count` is True,`start`, `limit`, `fields` and `sort` are
+        ignored.
+        If `user` has partial permissions, conditions are
+        applied to the query to narrow down results to what they are allowed
+        to see. Partial permissions are validated with 'view_submissions' by
+        default. To check with another permission, pass a different permission
+        to `partial_perm`.
         """
 
-        if 'count' in kwargs:
+        if 'count' in mongo_query_params:
             raise serializers.ValidationError(
                 {
                     'count': _(
@@ -209,28 +338,28 @@ class BaseDeploymentBackend:
                 }
             )
 
-        if validate_count is False and format_type == INSTANCE_FORMAT_TYPE_XML:
-            if 'sort' in kwargs:
-                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order  # noqa
+        if validate_count is False and format_type == SUBMISSION_FORMAT_TYPE_XML:
+            if 'sort' in mongo_query_params:
+                # FIXME. Use Mongo to sort data and ask PostgreSQL to follow the order
                 # See. https://stackoverflow.com/a/867578
                 raise serializers.ValidationError({
                     'sort': _('This param is not supported in `XML` format')
                 })
 
-            if 'fields' in kwargs:
+            if 'fields' in mongo_query_params:
                 raise serializers.ValidationError({
                     'fields': _('This is not supported in `XML` format')
                 })
 
-        start = kwargs.get('start', 0)
-        limit = kwargs.get('limit')
-        sort = kwargs.get('sort', {})
-        fields = kwargs.get('fields', [])
-        query = kwargs.get('query', {})
-        instance_ids = kwargs.get('instance_ids', [])
+        start = mongo_query_params.get('start', 0)
+        limit = mongo_query_params.get('limit')
+        sort = mongo_query_params.get('sort', {})
+        fields = mongo_query_params.get('fields', [])
+        query = mongo_query_params.get('query', {})
+        submission_ids = mongo_query_params.get('submission_ids', [])
 
         # I've copied these `ValidationError` messages verbatim from DRF where
-        # possible. TODO: Should this validation be in (or called directly by)
+        # possible.TODO: Should this validation be in (or called directly by)
         # the view code? Does DRF have a validator for GET params?
 
         if isinstance(query, str):
@@ -241,23 +370,24 @@ class BaseDeploymentBackend:
                     {'query': _('Value must be valid JSON.')}
                 )
 
-        if not isinstance(instance_ids, list):
+        if not isinstance(submission_ids, list):
+
             raise serializers.ValidationError(
-                {'instance_ids': _('Value must be a list.')}
+                {'submission_ids': _('Value must be a list.')}
             )
 
         # This error should not be returned as `ValidationError` to user.
         # We want to return a 500.
         try:
             permission_filters = self.asset.get_filters_for_partial_perm(
-                requesting_user_id)
+                user.pk, perm=partial_perm)
         except ValueError:
-            raise ValueError('Invalid `requesting_user_id` param')
+            raise ValueError('Invalid `user_id` param')
 
         if validate_count:
             return {
                 'query': query,
-                'instance_ids': instance_ids,
+                'submission_ids': submission_ids,
                 'permission_filters': permission_filters
             }
 
@@ -296,7 +426,7 @@ class BaseDeploymentBackend:
             'start': start,
             'fields': fields,
             'sort': sort,
-            'instance_ids': instance_ids,
+            'submission_ids': submission_ids,
             'permission_filters': permission_filters
         }
 
@@ -304,6 +434,89 @@ class BaseDeploymentBackend:
             params['limit'] = limit
 
         return params
+
+    def validate_write_access_with_partial_perms(
+        self,
+        user: 'auth.User',
+        perm: str,
+        submission_ids: list = [],
+        query: dict = {},
+    ) -> list:
+        """
+        Validate whether `user` is allowed to perform write actions on
+        submissions with the permission `perm`.
+        It raises a `PermissionDenied` error if they cannot.
+
+        Return a list of valid submission ids to pass to back end
+
+        No validations are made whether `user` is granted with other permissions
+        than 'partial_submission' permission.
+        """
+        if PERM_PARTIAL_SUBMISSIONS not in self.asset.get_perms(user):
+            return
+
+        allowed_submission_ids = []
+
+        if not submission_ids:
+            # if no submission ids are provided, the back end must rebuild the
+            # query to retrieve the related submissions. Unfortunately, the
+            # current back end (KoBoCAT) does not support row level permissions.
+            # Thus, we need to fetch all the submissions the user is allowed to
+            # see in order to to compare the requested subset of submissions to
+            # all
+            all_submissions = self.get_submissions(
+                user=user,
+                partial_perm=perm,
+                fields=['_id'],
+            )
+            allowed_submission_ids = [r['_id'] for r in all_submissions]
+
+            # User should see at least one submission to be allowed to do
+            # something
+            if not allowed_submission_ids:
+                raise PermissionDenied
+
+            # if `query` is not provided, the action is performed on all
+            # submissions. There are no needs to go further.
+            if not query:
+                return allowed_submission_ids
+
+        submissions = self.get_submissions(
+            user=user,
+            partial_perm=perm,
+            fields=['_id'],
+            submission_ids=submission_ids,
+            query=query,
+        )
+
+        requested_submission_ids = [
+            r['_id'] for r in submissions
+        ]
+
+        if not requested_submission_ids:
+            raise PermissionDenied
+
+        submission_ids = [int(id_) for id_ in set(submission_ids)]
+        if (
+            (allowed_submission_ids
+             and set(requested_submission_ids).issubset(allowed_submission_ids))
+            or sorted(requested_submission_ids) == sorted(submission_ids)
+        ):
+            # Regardless of whether or not the request contained a query or a
+            # list of IDs, always return IDs here because the results of a
+            # query may contain submissions that the requesting user is not
+            # allowed to access. For example,
+            #   - In submissions 4, 5, and 6, the response to the "state"
+            #       question was "California"
+            #   - Bob is allowed to access only submissions made by Jerry
+            #   - Jerry uploaded submissions 5, 6, and 7
+            #   - Bob submits a query for all submissions where
+            #       `{"state": "California"}`
+            #   - Bob must only see submissions 5 and 6
+
+            return requested_submission_ids
+
+        raise PermissionDenied
 
     @property
     def version(self):
@@ -313,5 +526,18 @@ class BaseDeploymentBackend:
     def version_id(self):
         return self.get_data('version')
 
-
-
+    def _get_metadata_queryset(self, file_type: str) -> Union[QuerySet, list]:
+        """
+        Returns a list of objects, or a QuerySet to pass to Celery to
+        synchronize with the backend.
+        Can be used inside the implementation of `sync_media_files()`
+        """
+        if file_type == AssetFile.FORM_MEDIA:
+            # Order by `date_deleted` to process deleted files first in case
+            # two entries contain the same file but one is flagged as deleted
+            return self.asset.asset_files.filter(
+                file_type=AssetFile.FORM_MEDIA
+            ).order_by('date_deleted')
+        else:
+            queryset = PairedData.objects(self.asset).values()
+            return queryset
