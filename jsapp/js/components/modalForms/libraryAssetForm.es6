@@ -20,6 +20,7 @@ import {
 import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
+import envStore from 'js/envStore';
 
 /**
  * Modal for creating or updating library asset (collection or template)
@@ -197,12 +198,12 @@ export class LibraryAssetForm extends React.Component {
   }
 
   render() {
-    if (!this.state.isSessionLoaded) {
+    if (!this.state.isSessionLoaded || !envStore.isReady) {
       return (<LoadingSpinner/>);
     }
 
-    const SECTORS = stores.session.environment.available_sectors;
-    const COUNTRIES = stores.session.environment.available_countries;
+    const SECTORS = envStore.data.available_sectors;
+    const COUNTRIES = envStore.data.available_countries;
 
     return (
       <bem.FormModal__form className='project-settings'>

@@ -47,6 +47,7 @@ import {
   getFormBuilderAssetType,
   unnullifyTranslations,
 } from 'js/components/formBuilder/formBuilderUtils';
+import envStore from 'js/envStore';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -741,12 +742,12 @@ export default assign({
           {'.'}
         </p>
 
-        { stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url &&
+        { envStore.isReady &&
+          envStore.data.support_url &&
           <bem.TextBox__labelLink
             // TODO update support article to include background-audio
             href={
-              stores.serverEnvironment.state.support_url +
+              envStore.data.support_url +
               RECORDING_SUPPORT_URL
             }
             target='_blank'
@@ -778,10 +779,10 @@ export default assign({
               <bem.FormBuilderAside__header>
                 {t('Form style')}
 
-                { stores.serverEnvironment &&
-                  stores.serverEnvironment.state.support_url &&
+                { envStore.isReady &&
+                  envStore.data.support_url &&
                   <a
-                    href={stores.serverEnvironment.state.support_url + WEBFORM_STYLES_SUPPORT_URL}
+                    href={envStore.data.support_url + WEBFORM_STYLES_SUPPORT_URL}
                     target='_blank'
                     data-tip={t('Read more about form styles')}
                   >
@@ -905,10 +906,10 @@ export default assign({
 
           {lockedLabel}
 
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.support_url &&
+          { envStore.isReady &&
+            envStore.data.support_url &&
             <a
-              href={stores.serverEnvironment.state.support_url + LOCKING_SUPPORT_URL}
+              href={envStore.data.support_url + LOCKING_SUPPORT_URL}
               target='_blank'
               data-tip={t('Read more about Locking')}
             >
