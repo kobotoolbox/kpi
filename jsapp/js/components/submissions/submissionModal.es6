@@ -139,6 +139,8 @@ class SubmissionModal extends React.Component {
         promptRefresh: false,
       };
     }
+    // Return null to indicate no change to state.
+    return null;
   }
 
   componentDidUpdate(prevProps) {
