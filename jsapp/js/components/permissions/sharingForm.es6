@@ -10,11 +10,10 @@ import {bem} from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {buildUserUrl} from 'utils';
 import {
-  ROUTES,
   ASSET_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
-
+import {ROUTES} from 'js/router/routerConstants';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';
