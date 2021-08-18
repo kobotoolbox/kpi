@@ -18,6 +18,7 @@ bem.TableMediaPreviewHeader__options = bem.TableMediaPreviewHeader.__('options',
 bem.MediaCell = bem('media-cell');
 bem.MediaCell__icon = bem.MediaCell.__('icon', '<i>');
 bem.MediaCell__duration = bem.MediaCell.__('duration', '<label>');
+bem.MediaCell__text = bem.MediaCell.__('text', '<div>');
 
 /**
  * Backend stored media attachment
@@ -130,6 +131,7 @@ class MediaCell extends React.Component {
 
   render() {
     const iconClassNames = ['k-icon'];
+    const isTextQuestion = !this.props.mediaAttachment;
 
     // Different from renderQuestionTypeIcon as we need custom `title` and
     // event handling
@@ -153,10 +155,9 @@ class MediaCell extends React.Component {
     }
 
     return (
-      <bem.MediaCell>
+      <bem.MediaCell m={isTextQuestion ? 'text' : ''}>
         <bem.MediaCell__icon
           className={iconClassNames}
-          title={this.props.mediaName}
           onClick={() =>
             this.launchMediaModal(
               this.props.questionType,
@@ -168,6 +169,13 @@ class MediaCell extends React.Component {
             )
           }
         />
+
+        {isTextQuestion &&
+          // Show text as well if text question
+          <bem.MediaCell__text className='trimmed-text'>
+            {this.props.mediaName}
+          </bem.MediaCell__text>
+        }
 
         {/*
           TODO: backend needs to store metadata to get duration, see kpi#3304

@@ -1,6 +1,6 @@
  @import "scss/_colors";
 
- .media-cell {
+.media-cell {
   text-align: center;
 
   .media-cell__icon {
@@ -17,7 +17,12 @@
     }
   }
 
+
   .media-cell__duration {
     vertical-align: top;
   }
+}
+
+.media-cell--text {
+  display: flex;
 }
