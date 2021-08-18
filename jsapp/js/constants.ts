@@ -2,15 +2,16 @@
  * A list of all shareable constants for the application.
  */
 
+interface IEnum {
+  [val: string]: string;
+}
+
 /**
  * An enum creator function. Will create a frozen object of `foo: "foo"` pairs.
  * Will make sure the returned values are unique.
- *
- * @param {string[]} values
- * @returns {object}
  */
-export function createEnum(values) {
-  const newEnum = {};
+export function createEnum(values: string[]): IEnum {
+  const newEnum: IEnum = {};
   new Set(values).forEach((value) => {newEnum[value] = value;});
   return Object.freeze(newEnum);
 }
@@ -18,13 +19,14 @@ export function createEnum(values) {
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs
-  let rootPath = document.head.querySelector('meta[name=kpi-root-path]');
-  if (rootPath === null) {
+  let rootPathEl = document.head.querySelector<HTMLMetaElement>('meta[name=kpi-root-path]');
+  let rootPath = '';
+  if (rootPathEl === null) {
     console.error('no kpi-root-path meta tag set. defaulting to ""');
     rootPath = '';
   } else {
     // Strip trailing slashes
-    rootPath = rootPath.content.replace(/\/*$/, '');
+    rootPath = rootPathEl.content.replace(/\/*$/, '');
   }
   return `${window.location.protocol}//${window.location.host}${rootPath}`;
 })();
@@ -107,7 +109,7 @@ export const MODAL_TYPES = {
   ENKETO_PREVIEW: 'enketo-preview',
   SUBMISSION: 'submission',
   REPLACE_PROJECT: 'replace-project',
-  TABLE_COLUMNS: 'table-columns',
+  TABLE_SETTINGS: 'table-settings',
   REST_SERVICES: 'rest-services',
   FORM_LANGUAGES: 'form-languages',
   FORM_TRANSLATIONS_TABLE: 'form-translation-table',
@@ -270,6 +272,7 @@ export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   '_status',
   '_submitted_by',
   '_tags',
+  '_index',
 ]);
 
 /**
@@ -467,6 +470,16 @@ export const FUNCTION_TYPE = Object.freeze({
     id: 'function',
   },
 });
+
+export const FUSE_OPTIONS = {
+  isCaseSensitive: false,
+  includeScore: true,
+  minMatchCharLength: 1,
+  shouldSort: false,
+  ignoreFieldNorm: true,
+  threshold: 0.2,
+  ignoreLocation: true,
+};
 
 // NOTE: The default export is mainly for tests
 const constants = {

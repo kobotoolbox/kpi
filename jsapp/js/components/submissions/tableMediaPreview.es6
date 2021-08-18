@@ -18,7 +18,7 @@ bem.TableMediaPreview__video = bem.TableMediaPreview.__('video', '<video>');
  * The crossroads for selecting the skeletons of table media preview modals
  *
  * @prop {string} questionType
- * @prop {string} mediaURL - Backend stored media attachment URL
+ * @prop {string} mediaAttachment - Backend stored media attachment
  * @prop {string} mediaName - Backend stored media attachment file name
  *
  */
@@ -38,7 +38,7 @@ class TableMediaPreview extends React.Component {
       case QUESTION_TYPES.image.id:
         return (
           <bem.TableMediaPreview__image
-            src={this.props?.mediaURL}
+            src={this.props?.mediaAttachment?.download_medium_url}
           />
         );
       case QUESTION_TYPES.audio.id:
@@ -48,14 +48,14 @@ class TableMediaPreview extends React.Component {
             <i className='k-icon k-icon-file-audio'/>
 
             <AudioPlayer
-              mediaURL={this.props?.mediaURL}
+              mediaURL={this.props?.mediaAttachment?.download_url}
             />
           </bem.TableMediaPreview__audio>
         );
       case QUESTION_TYPES.video.id:
         return (
           <bem.TableMediaPreview__video
-            src={this.props?.mediaURL}
+            src={this.props?.mediaAttachment?.download_url}
             controls
             autoPlay
           />

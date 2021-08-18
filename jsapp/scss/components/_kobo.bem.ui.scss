@@ -277,10 +277,7 @@ $mdl-layout-width: 1440px;
 }
 
 .popover-menu--bulkUpdate-menu {
-  vertical-align: top;
-
   .popover-menu__toggle {
-    vertical-align: inherit;
     color: $kobo-blue;
 
     &:hover {
