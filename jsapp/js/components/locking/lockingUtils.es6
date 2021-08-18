@@ -1,5 +1,5 @@
-import {getRowName} from 'js/assetUtils.es6';
-import {ASSET_TYPES} from 'js/constants.es6';
+import {getRowName} from 'js/assetUtils';
+import {ASSET_TYPES} from 'js/constants';
 import {
   QUESTION_RESTRICTIONS,
   GROUP_RESTRICTIONS,

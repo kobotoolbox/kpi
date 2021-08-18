@@ -3,11 +3,15 @@ import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
-import {ASSET_FILE_TYPES} from 'js/constants';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
-import {stores} from 'js/stores';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import envStore from 'js/envStore';
+import {
+  ASSET_FILE_TYPES,
+  MAX_DISPLAYED_STRING_LENGTH,
+} from 'js/constants';
+
 import {
   truncateString,
   truncateUrl,
@@ -90,7 +94,8 @@ class FormMedia extends React.Component {
    * @namespace formMediaJSON
    * @param {string} description - can be anything, when in doubt use 'default'
    * @param {string} filetype - should be `ASSET_FILE_TYPES.form_media.id`
-   * @param {string} metadata - JSON stringified filename
+   * @param {string} metadata - Won't break if not included, but should contain
+   *                            the JSON stringified filename for downloading
    * @param {string} base64Encoded
    *
    * @param {formMediaJSON} formMediaJSON
@@ -184,13 +189,18 @@ class FormMedia extends React.Component {
     // Check if current item is uploaded via URL. `redirect_url` is the indicator
     var fileName = item.metadata.filename;
     if (item.metadata.redirect_url) {
-      fileName = truncateUrl(item.metadata.redirect_url, MAX_ITEM_LENGTH);
+      fileName = truncateUrl(item.metadata.redirect_url, MAX_DISPLAYED_STRING_LENGTH.form_media);
     } else {
-      fileName = truncateString(fileName, MAX_ITEM_LENGTH);
+      fileName = truncateString(fileName, MAX_DISPLAYED_STRING_LENGTH.form_media);
     }
 
     return (
-      <a href={item?.content} target='_blank'>
+      <a
+        href={item?.content}
+        target='_blank'
+        // Added manually by frontend, not backend. See uploadMedia()
+        download={item?.metadata?.filename}
+      >
         {fileName}
       </a>
     );
@@ -212,18 +222,25 @@ class FormMedia extends React.Component {
     return (
       <bem.FormView m='form-media'>
         <bem.FormMedia>
+          {this.props.asset.deployment__active &&
+            <bem.FormView__cell m='warning'>
+              <i className='k-icon k-icon-alert' />
+              <p>{t('You must redeploy this form to see media changes.')}</p>
+            </bem.FormView__cell>
+          }
+
           <bem.FormMedia__title>
             <bem.FormMedia__label>
               {t('Attach files')}
             </bem.FormMedia__label>
 
-            {stores.serverEnvironment &&
-              stores.serverEnvironment.state.support_url && (
+            {envStore.isReady &&
+              envStore.data.support_url && (
                 <a
                   className='title-help'
                   target='_blank'
                   href={
-                    stores.serverEnvironment.state.support_url +
+                    envStore.data.support_url +
                     MEDIA_SUPPORT_URL
                   }
                   data-tip={t('Learn more about form media')}

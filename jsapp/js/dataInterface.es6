@@ -46,7 +46,6 @@ export var dataInterface;
 
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${ROOT_URL}/me/` }),
-    serverEnvironment: ()=> $ajax({ url: `${ROOT_URL}/environment/` }),
     apiToken: () => {
       return $ajax({
         url: `${ROOT_URL}/token/?format=json`
@@ -234,6 +233,52 @@ export var dataInterface;
     },
 
     /*
+     * Dynamic data attachments
+     */
+    attachToSource(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+    detachSource(attachmentUrl) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'DELETE',
+      });
+    },
+    patchSource(attachmentUrl, data) {
+      return $ajax({
+        url: attachmentUrl,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+    getAttachedSources(assetUid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/paired-data/`,
+        method: 'GET',
+      });
+    },
+    getSharingEnabledAssets() {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/?q=data_sharing__enabled:true`,
+        method: 'GET',
+      });
+    },
+    patchDataSharing(assetUid, data) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${assetUid}/`,
+        method: 'PATCH',
+        data: JSON.stringify(data),
+        contentType: 'application/json'
+      });
+    },
+
+    /*
      * permissions
      */
 
@@ -315,9 +360,6 @@ export var dataInterface;
           method: 'DELETE'
         });
       });
-    },
-    getAssetContent ({id}) {
-      return $.getJSON(`${ROOT_URL}/api/v2/assets/${id}/content/`);
     },
     getImportDetails ({uid}) {
       return $.getJSON(`${ROOT_URL}/api/v2/imports/${uid}/`);
@@ -615,20 +657,31 @@ export var dataInterface;
       var assetType = assetMapping[id[0]];
       return $.getJSON(`${ROOT_URL}/${assetType}/${id}/`);
     },
-    getSubmissions(uid, pageSize=DEFAULT_PAGE_SIZE, page=0, sort=[], fields=[], filter='') {
+
+    getSubmissions(
+      uid,
+      pageSize = DEFAULT_PAGE_SIZE,
+      page = 0,
+      sort = [],
+      fields = [],
+      filter = ''
+    ) {
       const query = `limit=${pageSize}&start=${page}`;
       var s = '&sort={"_id":-1}'; // default sort
       var f = '';
-      if (sort.length)
+      if (sort.length) {
         s = sort[0].desc === true ? `&sort={"${sort[0].id}":-1}` : `&sort={"${sort[0].id}":1}`;
-      if (fields.length)
+      }
+      if (fields.length) {
         f = `&fields=${JSON.stringify(fields)}`;
+      }
 
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/?${query}${s}${f}${filter}`,
-        method: 'GET'
+        method: 'GET',
       });
     },
+
     getSubmission(uid, sid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
@@ -699,7 +752,13 @@ export var dataInterface;
     },
     getEnketoEditLink(uid, sid) {
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/edit/?return_url=false`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/edit/?return_url=false`,
+        method: 'GET'
+      });
+    },
+    getEnketoViewLink(uid, sid) {
+      return $ajax({
+        url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/enketo/view/`,
         method: 'GET'
       });
     },
@@ -754,7 +813,7 @@ export var dataInterface;
       });
     },
     environment() {
-      return $ajax({url: `${ROOT_URL}/environment/`,method: 'GET'});
+      return $ajax({url: `${ROOT_URL}/environment/`});
     },
     login: (creds)=> {
       return $ajax({ url: `${ROOT_URL}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});

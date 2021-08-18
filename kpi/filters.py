@@ -1,7 +1,4 @@
 # coding: utf-8
-import re
-from distutils.util import strtobool
-
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import FieldError
@@ -17,17 +14,20 @@ from kpi.constants import (
     ASSET_STATUS_PRIVATE,
     ASSET_STATUS_PUBLIC,
     PERM_DISCOVER_ASSET,
+    PERM_PARTIAL_SUBMISSIONS,
     PERM_VIEW_ASSET,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import SearchQueryTooShortException
 from kpi.models.asset import UserAssetSubscription
-from kpi.utils.query_parser import parse, ParseError
-from .models import Asset, ObjectPermission
-from .models.object_permission import (
+from kpi.utils.query_parser import get_parsed_parameters, parse, ParseError
+from kpi.utils.object_permission import (
     get_objects_for_user,
     get_anonymous_user,
-    get_perm_ids_from_code_names
+    get_perm_ids_from_code_names,
 )
+from kpi.utils.permissions import is_user_anonymous
+from .models import Asset, ObjectPermission
 
 
 class AssetOwnerFilterBackend(filters.BaseFilterBackend):
@@ -81,8 +81,11 @@ class AssetOrderingFilter(filters.OrderingFilter):
 
 class KpiObjectPermissionsFilter:
 
-    def filter_queryset(self, request, queryset, view):
+    STATUS_PARAMETER = 'status'
+    PARENT_UID_PARAMETER = 'parent__uid'
+    DATA_SHARING_PARAMETER = 'data_sharing__enabled'
 
+    def filter_queryset(self, request, queryset, view):
         user = request.user
         if user.is_superuser and view.action != 'list':
             # For a list, we won't deluge the superuser with everyone else's
@@ -90,6 +93,12 @@ class KpiObjectPermissionsFilter:
             return queryset
 
         queryset = self._get_queryset_for_collection_statuses(request, queryset)
+        if self._return_queryset:
+            return queryset.distinct()
+
+        queryset = self._get_queryset_for_data_sharing_enabled(
+            request, queryset
+        )
         if self._return_queryset:
             return queryset.distinct()
 
@@ -121,10 +130,49 @@ class KpiObjectPermissionsFilter:
                     # the assets themselves, we append children of subscribed
                     # collections to the queryset in order for `?q=parent__uid`
                     # queries to return the collection's children
-                    .union(queryset.filter(parent__in=subscribed).values("pk")
-                )
-            ).values_list("id", flat=True)
+                    .union(queryset.filter(parent__in=subscribed).values('pk'))
+            ).values_list('id', flat=True)
         )
+        return queryset.filter(pk__in=asset_ids)
+
+    def _get_queryset_for_data_sharing_enabled(
+        self, request: Request, queryset: QuerySet
+    ) -> QuerySet:
+        """
+        Returns a queryset containing the assets that the user is allowed
+        to view data.
+        I.e., user needs 'view_submissions' or 'partial_submissions'.
+        """
+
+        self._return_queryset = False
+        parameters = self.__get_parsed_parameters(request)
+        try:
+            data_sharing = parameters[self.DATA_SHARING_PARAMETER][0]
+        except KeyError:
+            return queryset
+
+        if not data_sharing:  # No reason to be False, but just in case
+            return queryset
+
+        self._return_queryset = True
+        required_perm_ids = get_perm_ids_from_code_names(
+            [PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS]
+        )
+        user = request.user
+        if is_user_anonymous(user):
+            # Avoid giving anonymous users special treatment when viewing
+            # public objects
+            perms = ObjectPermission.objects.none()
+        else:
+            perms = ObjectPermission.objects.filter(
+                deny=False,
+                user=user,
+                permission_id__in=required_perm_ids)
+
+        asset_ids = perms.values('asset')
+
+        # `SearchFilter` handles further filtering to include only assets with
+        # `data_sharing__enabled` (`self.DATA_SHARING_PARAMETER`) set to true
         return queryset.filter(pk__in=asset_ids)
 
     def _get_discoverable(self, queryset):
@@ -159,10 +207,9 @@ class KpiObjectPermissionsFilter:
         # `_get_queryset_for_collection_statuses()`
         self._return_queryset = False
         user = request.user
-        STATUS_PARAMETER = 'status'
 
         try:
-            status = request.query_params[STATUS_PARAMETER].strip()
+            status = request.query_params[self.STATUS_PARAMETER].strip()
         except KeyError:
             return queryset
 
@@ -194,44 +241,35 @@ class KpiObjectPermissionsFilter:
         Returns a queryset containing the children of publically discoverable
         assets based on the discoverability of the child's parent. The parent
         uid is passed in the request query string.
-
-        args:
-            request (Request)
-            queryset (QuerySet)
-
-        returns:
-            QuerySet
         """
 
         self._return_queryset = False
-        PARENT_UID_PARAMETER = 'parent__uid'
 
-        if 'q' not in request.query_params:
+        parameters = self.__get_parsed_parameters(request)
+        try:
+            parent_uids = parameters[self.PARENT_UID_PARAMETER]
+        except KeyError:
             return queryset
 
-        request_query = request.query_params['q']
-        parent_uid = re.search(
-            f'{PARENT_UID_PARAMETER}:([a-zA-Z0-9]*)', request_query
-        )
-
-        if parent_uid is None:
-            return queryset
-
-        parent_obj = queryset.get(uid=parent_uid.group(1))
+        # `self.__get_parsed_parameters()` returns a list for each parameters
+        # but we should only search only with one parent uid
+        parent_obj = queryset.get(uid=parent_uids[0])
 
         if not isinstance(parent_obj, Asset):
             return queryset
 
         if parent_obj.has_perm(get_anonymous_user(), PERM_DISCOVER_ASSET):
             self._return_queryset = True
-            return queryset.filter(pk__in=self._get_publics())
+            return queryset.filter(
+                pk__in=self._get_publics(), parent=parent_obj
+            )
 
         return queryset
 
     @staticmethod
     def _get_owned_and_explicitly_shared(user):
         view_asset_perm_id = get_perm_ids_from_code_names(PERM_VIEW_ASSET)
-        if user.is_anonymous:
+        if is_user_anonymous(user):
             # Avoid giving anonymous users special treatment when viewing
             # public objects
             perms = ObjectPermission.objects.none()
@@ -254,11 +292,33 @@ class KpiObjectPermissionsFilter:
     @classmethod
     def _get_subscribed(cls, user):
         # Of the public objects, determine to which the user has subscribed
-        if user.is_anonymous:
+        if is_user_anonymous(user):
             user = get_anonymous_user()
 
-        return UserAssetSubscription.objects.filter(asset__in=cls._get_publics(),
-                                                    user=user).values('asset')
+        return UserAssetSubscription.objects.filter(
+            asset__in=cls._get_publics(), user=user
+        ).values('asset')
+
+    def __get_parsed_parameters(self, request: Request) -> dict:
+        """
+        Returns the results of `get_parsed_parameters` utility.
+        Useful in this class to detect specific parameters and to return
+        according queryset
+        """
+        try:
+            q = request.query_params['q']
+        except KeyError:
+            return {}
+
+        try:
+            q_obj = parse(
+                q, default_field_lookups=ASSET_SEARCH_DEFAULT_FIELD_LOOKUPS
+            )
+        except (ParseError, SearchQueryTooShortException):
+            # Let's `SearchFilter` handle errors
+            return {}
+        else:
+            return get_parsed_parameters(q_obj)
 
 
 class RelatedAssetPermissionsFilter(KpiObjectPermissionsFilter):

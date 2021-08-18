@@ -50,7 +50,7 @@ class SubmissionDataTable extends React.Component {
           </bem.SubmissionDataTable__row>
         }
 
-        {item.type === DISPLAY_GROUP_TYPES.get('group_root') &&
+        {item.type === DISPLAY_GROUP_TYPES.group_root &&
           <bem.SubmissionDataTable__row m={['columns', 'column-names']}>
             <bem.SubmissionDataTable__column m='type'>
               {t('Type')}
@@ -68,7 +68,7 @@ class SubmissionDataTable extends React.Component {
 
         <bem.SubmissionDataTable__row m='group-children'>
           {item.children.map((child, index) => {
-            if (DISPLAY_GROUP_TYPES.has(child.type)) {
+            if (DISPLAY_GROUP_TYPES[child.type]) {
               return this.renderGroup(child, index);
             } else {
               return this.renderResponse(child, index);
@@ -264,13 +264,14 @@ class SubmissionDataTable extends React.Component {
    * @prop {string} filename
    */
   renderAttachment(type, filename) {
-    const attachment = this.findAttachmentData(filename);
+    const fileNameNoSpaces = filename.replace(/ /g, '_');
+    const attachment = this.findAttachmentData(fileNameNoSpaces);
 
     if (attachment) {
       if (type === QUESTION_TYPES.image.id) {
         return (
           <a href={attachment.download_url} target='_blank'>
-            <img src={attachment.download_small_url}/>
+            <img src={attachment.download_medium_url}/>
           </a>
         );
       } else {
@@ -290,7 +291,7 @@ class SubmissionDataTable extends React.Component {
     return (
       <bem.SubmissionDataTable__row m={['columns', 'response', 'metadata']}>
         <bem.SubmissionDataTable__column m='type'>
-          <i className='k-icon k-icon-qt-meta-default'/>
+          {renderQuestionTypeIcon(dataName)}
         </bem.SubmissionDataTable__column>
 
         <bem.SubmissionDataTable__column m='label'>

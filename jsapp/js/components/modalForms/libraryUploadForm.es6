@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 import Dropzone from 'react-dropzone';
 import Select from 'react-select';
 import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
 import {renderBackButton} from './modalHelpers';
@@ -98,7 +98,7 @@ class LibraryUploadForm extends React.Component {
                 rejectClassName='dropzone-reject'
                 accept={validFileTypes()}
               >
-                <i className='k-icon-xls-file' />
+                <i className='k-icon k-icon-xls-file' />
                 {this.state.currentFile &&
                   this.state.currentFile.name
                 }

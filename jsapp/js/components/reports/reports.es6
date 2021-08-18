@@ -6,7 +6,9 @@ import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import {stores} from 'js/stores';
-import ui from 'js/ui';
+import PopoverMenu from 'js/popoverMenu';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Modal from 'js/components/common/modal';
 import mixins from 'js/mixins';
 import DocumentTitle from 'react-document-title';
 import {txtid} from '../../../xlform/src/model.utils';
@@ -334,7 +336,7 @@ export default class Reports extends React.Component {
 
     return (
       <bem.FormView__reportButtons>
-        <ui.PopoverMenu type='custom-reports' triggerLabel={menuLabel}>
+        <PopoverMenu type='custom-reports' triggerLabel={menuLabel}>
           <bem.PopoverMenu__link
             key='default'
             data-name=''
@@ -370,7 +372,7 @@ export default class Reports extends React.Component {
               {t('Create New Report')}
             </bem.PopoverMenu__link>
           )}
-        </ui.PopoverMenu>
+        </PopoverMenu>
 
         {this.state.currentCustomReport && (
           <bem.Button
@@ -379,7 +381,7 @@ export default class Reports extends React.Component {
             onClick={this.editCustomReport}
             data-tip={t('Edit Report Questions')}
           >
-            <i className='k-icon-edit' />
+            <i className='k-icon k-icon-edit' />
           </bem.Button>
         )}
 
@@ -389,7 +391,7 @@ export default class Reports extends React.Component {
           onClick={this.toggleFullscreen}
           data-tip={t('Toggle fullscreen')}
         >
-          <i className='k-icon-expand' />
+          <i className='k-icon k-icon-expand' />
         </bem.Button>
 
         <bem.Button
@@ -398,7 +400,7 @@ export default class Reports extends React.Component {
           onClick={launchPrinting}
           data-tip={t('Print')}
         >
-          <i className='k-icon-print' />
+          <i className='k-icon k-icon-print' />
         </bem.Button>
 
         {this.userCan('change_asset', this.state.asset) && (
@@ -408,7 +410,7 @@ export default class Reports extends React.Component {
             onClick={this.toggleReportGraphSettings}
             data-tip={t('Configure Report Style')}
           >
-            <i className='k-icon-settings' />
+            <i className='k-icon k-icon-settings' />
           </bem.Button>
         )}
       </bem.FormView__reportButtons>
@@ -418,13 +420,13 @@ export default class Reports extends React.Component {
   renderCustomReportModal() {
     return (
       <bem.GraphSettings>
-        <ui.Modal.Body>
+        <Modal.Body>
           <CustomReportForm
             reportData={this.state.reportData}
             customReport={this.state.currentCustomReport}
             asset={this.state.asset}
           />
-        </ui.Modal.Body>
+        </Modal.Body>
       </bem.GraphSettings>
     );
   }
@@ -445,7 +447,7 @@ export default class Reports extends React.Component {
   renderQuestionSettings() {
     return (
       <bem.GraphSettings>
-        <ui.Modal.Body />
+        <Modal.Body />
       </bem.GraphSettings>
     );
   }
@@ -470,7 +472,7 @@ export default class Reports extends React.Component {
     } else {
       return (
         <bem.Loading>
-          <ui.LoadingSpinner />
+          <LoadingSpinner />
         </bem.Loading>
       );
     }
@@ -564,7 +566,7 @@ export default class Reports extends React.Component {
                   )}
 
                 <bem.FormView__cell m='warning'>
-                  <i className='k-icon-alert' />
+                  <i className='k-icon k-icon-alert' />
                   <p>
                     {t(
                       'This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page. '
@@ -581,27 +583,27 @@ export default class Reports extends React.Component {
             )}
 
             {this.state.showReportGraphSettings && (
-              <ui.Modal
+              <Modal
                 open
                 onClose={this.toggleReportGraphSettings}
                 title={t('Edit Report Style')}
               >
                 <ReportStyleSettings parentState={this.state} />
-              </ui.Modal>
+              </Modal>
             )}
 
             {this.state.showCustomReportModal && (
-              <ui.Modal
+              <Modal
                 open
                 onClose={this.toggleCustomReportModal}
                 title={t('Custom Report')}
               >
                 {this.renderCustomReportModal()}
-              </ui.Modal>
+              </Modal>
             )}
 
             {this.state.currentQuestionGraph && (
-              <ui.Modal
+              <Modal
                 open
                 onClose={this.closeQuestionSettings}
                 title={t('Question Style')}
@@ -610,7 +612,7 @@ export default class Reports extends React.Component {
                   question={this.state.currentQuestionGraph}
                   parentState={this.state}
                 />
-              </ui.Modal>
+              </Modal>
             )}
           </bem.ReportView>
         </bem.FormView>

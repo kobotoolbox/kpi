@@ -7,10 +7,46 @@ import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 
 const submissionsActions = Reflux.createActions({
+  getSubmissions: {children: ['completed', 'failed']},
   bulkDeleteStatus: {children: ['completed', 'failed']},
   bulkPatchStatus: {children: ['completed', 'failed']},
   bulkPatchValues: {children: ['completed', 'failed']},
   bulkDelete: {children: ['completed', 'failed']},
+});
+
+/**
+ * @typedef SortObj
+ * @param {string} id - column name
+ * @param {boolean} desc - `true` for descending and `false` for ascending
+ */
+
+/**
+ * NOTE: all of the parameters have their default values defined for
+ * `dataInterface` function.
+ *
+ * @param {object} options
+ * @param {string} options.uid - the asset uid
+ * @param {number} [options.pageSize]
+ * @param {number} [options.page]
+ * @param {SortObj[]} [options.sort]
+ * @param {string[]} [options.fields]
+ * @param {string} [options.filter]
+ */
+submissionsActions.getSubmissions.listen((options) => {
+  dataInterface.getSubmissions(
+    options.uid,
+    options.pageSize,
+    options.page,
+    options.sort,
+    options.fields,
+    options.filter
+  )
+    .done((response) => {
+      submissionsActions.getSubmissions.completed(response, options);
+    })
+    .fail((response) => {
+      submissionsActions.getSubmissions.failed(response, options);
+    });
 });
 
 submissionsActions.bulkDeleteStatus.listen((uid, data) => {

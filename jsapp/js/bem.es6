@@ -83,6 +83,8 @@ bem.FormMediaUploadUrl = BEM('form-media-upload-url');
 bem.FormMediaUploadUrl__label = bem.FormMediaUploadUrl.__('label', '<label>');
 bem.FormMediaUploadUrl__form = bem.FormMediaUploadUrl.__('form');
 
+bem.SearchInput = BEM('search-input', '<input>');
+
 bem.Search = BEM('search');
 bem.Search__icon = bem.Search.__('icon', '<i>');
 bem.Search__cancel = bem.Search.__('cancel', '<i>');
@@ -156,7 +158,6 @@ bem.FormView__subs = bem.FormView.__('subs');
 // end used in header.es6
 bem.FormView__toptabs = bem.FormView.__('toptabs');
 bem.FormView__sidetabs = bem.FormView.__('sidetabs');
-bem.FormView__tab = bem.FormView.__('tab', '<a>');
 
 bem.FormView__label = bem.FormView.__('label');
 bem.FormView__group = bem.FormView.__('group');
@@ -368,5 +369,9 @@ bem.ProjectDownloads__submitRow = bem.ProjectDownloads.__('submit-row', 'footer'
 bem.ProjectDownloads__definedExportsSelector = bem.ProjectDownloads.__('defined-exports-selector');
 bem.ProjectDownloads__deleteSettingsButton = bem.ProjectDownloads.__('delete-settings-button', 'button');
 bem.ProjectDownloads__exportsCreator = bem.ProjectDownloads.__('exports-creator');
+
+bem.BackgroundAudioPlayer = BEM('background-audio-player');
+bem.BackgroundAudioPlayer__label = bem.BackgroundAudioPlayer.__('label', '<label>');
+bem.BackgroundAudioPlayer__audio = bem.BackgroundAudioPlayer.__('audio', '<audio>');
 
 bem.create = BEM;

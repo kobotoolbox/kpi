@@ -1,0 +1,136 @@
+@import "scss/_colors";
+@import "scss/libs/_mdl";
+
+$z-kobo-dropdown-menu: 100;
+
+.kobo-dropdown {
+  display: inline-block;
+  position: relative;
+
+  &.kobo-dropdown--disabled .kobo-dropdown__trigger {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .kobo-dropdown__trigger {
+    display: inline-block;
+    vertical-align: top;
+    appearance: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+    color: inherit;
+    background-color: transparent;
+    cursor: pointer;
+  }
+
+  .kobo-dropdown__menu {
+    display: block;
+    position: absolute;
+    z-index: $z-kobo-dropdown-menu;
+    @include box-shadow;
+    border-radius: 4px;
+    min-width: 150px;
+    list-style: none;
+    margin: 0;
+    padding: 9px 0;
+    text-align: left;
+    line-height: 20px;
+
+    .kobo-dropdown__menu-button {
+      display: block;
+      width: 100%;
+      padding: 5px 10px;
+      appearance: none;
+      border: none;
+      margin: 0;
+      color: inherit;
+      background-color: transparent;
+      cursor: pointer;
+      text-align: left;
+      font-size: 12px;
+      line-height: inherit;
+
+      &[disabled] {
+        pointer-events: none;
+        opacity: 0.5;
+      }
+
+      .k-icon {
+        color: inherit;
+        font-size: 20px;
+        vertical-align: top;
+
+        &:first-child:not(:only-child) {
+          margin-right: 5px;
+        }
+
+        &:last-child:not(:only-child) {
+          margin-left: 5px;
+        }
+      }
+    }
+  }
+}
+
+/*
+ * THEMES
+ */
+
+.kobo-dropdown.kobo-dropdown--light {
+  .kobo-dropdown__menu {
+    color: $kobo-gray-40;
+    background-color: $kobo-white;
+
+    .kobo-dropdown__menu-button:hover {
+      background-color: $kobo-gray-96;
+    }
+  }
+}
+
+.kobo-dropdown.kobo-dropdown--dark {
+  .kobo-dropdown__menu {
+    color: $kobo-white;
+    background-color: $kobo-gray-40;
+
+    .kobo-dropdown__menu-button:hover {
+      background-color: $kobo-gray-24;
+    }
+  }
+}
+
+/*
+ * PLACEMENTS
+ */
+
+.kobo-dropdown.kobo-dropdown--up-left .kobo-dropdown__menu {
+  bottom: 100%;
+  left: 0;
+}
+
+.kobo-dropdown.kobo-dropdown--up-center .kobo-dropdown__menu {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.kobo-dropdown.kobo-dropdown--up-right .kobo-dropdown__menu {
+  bottom: 100%;
+  right: 0;
+}
+
+.kobo-dropdown.kobo-dropdown--down-left .kobo-dropdown__menu {
+  top: 100%;
+  left: 0;
+}
+
+.kobo-dropdown.kobo-dropdown--down-center .kobo-dropdown__menu {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.kobo-dropdown.kobo-dropdown--down-right .kobo-dropdown__menu {
+  top: 100%;
+  right: 0;
+}

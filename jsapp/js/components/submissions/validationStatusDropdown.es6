@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import {bem} from 'js/bem';
 import Select, {components} from 'react-select';
 import {VALIDATION_STATUSES_LIST} from 'js/constants';
+import './validationStatusDropdown.scss';
 
 export const SHOW_ALL_OPTION = Object.freeze({
   value: '',

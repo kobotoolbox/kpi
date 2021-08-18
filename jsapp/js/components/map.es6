@@ -7,7 +7,8 @@ import {hashHistory} from 'react-router';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
-import ui from '../ui';
+import PopoverMenu from 'js/popoverMenu';
+import Modal from 'js/components/common/modal';
 import classNames from 'classnames';
 import omnivore from '@mapbox/leaflet-omnivore';
 import JSZip from 'jszip';
@@ -538,7 +539,7 @@ export class FormMap extends React.Component {
   filterMap (evt) {
     // roundabout solution for https://github.com/kobotoolbox/kpi/issues/1678
     //
-    // when blurEventDisabled prop is set, no blur event takes place in ui.popovermenu
+    // when blurEventDisabled prop is set, no blur event takes place in PopoverMenu
     // hence, dropdown stays visible when invoking other click events (like filterLanguage below)
     // but when changing question, dropdown needs to be removed, clearDisaggregatedPopover does this via props
     this.setState({clearDisaggregatedPopover: true});
@@ -558,14 +559,23 @@ export class FormMap extends React.Component {
     let index = evt.target.getAttribute('data-index');
     this.setState({langIndex: index});
   }
-  componentWillReceiveProps (nextProps) {
-    if (this.props.viewby != undefined) {
-      this.setState({markersVisible: true});
+  static getDerivedStateFromProps(props, state) {
+    const newState = {
+      previousViewby: props.viewby
+    };
+    if (props.viewby !== undefined) {
+      newState.markersVisible = true;
     }
-    if (this.props.viewby != nextProps.viewby) {
-      this.setState({filteredByMarker: false, componentRefreshed: true});
+    if (state.previousViewby !== props.viewby) {
+      newState.filteredByMarker = false;
+      newState.componentRefreshed = true;
+    }
+    return newState;
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.viewby !== this.props.viewby) {
       let map = this.refreshMap();
-      this.requestData(map, nextProps.viewby);
+      this.requestData(map, this.props.viewby);
     }
   }
   refreshMap() {
@@ -658,13 +668,15 @@ export class FormMap extends React.Component {
   render () {
     if (this.state.error) {
       return (
-        <ui.Panel>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {this.state.error}
-            </bem.Loading__inner>
-          </bem.Loading>
-        </ui.Panel>
+        <bem.uiPanel>
+          <bem.uiPanel__body>
+            <bem.Loading>
+              <bem.Loading__inner>
+                {this.state.error}
+              </bem.Loading__inner>
+            </bem.Loading>
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       );
     }
 
@@ -699,36 +711,36 @@ export class FormMap extends React.Component {
           onClick={this.toggleFullscreen}
           data-tip={t('Toggle Fullscreen')}
           className={this.state.toggleFullscreen ? 'active': ''}>
-          <i className='k-icon-expand' />
+          <i className='k-icon k-icon-expand' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'markers'}
           onClick={this.showMarkers}
           data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active': ''}>
-          <i className='k-icon-pins' />
+          <i className='k-icon k-icon-pins' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton m={'layers'}
           onClick={this.showLayerControls}
           data-tip={t('Toggle layers')}>
-          <i className='k-icon-layer' />
+          <i className='k-icon k-icon-layer' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
           m={'map-settings'}
           onClick={this.toggleMapSettings}
           data-tip={t('Map display settings')}>
-          <i className='k-icon-settings' />
+          <i className='k-icon k-icon-settings' />
         </bem.FormView__mapButton>
         {!viewby &&
           <bem.FormView__mapButton m={'heatmap'}
             onClick={this.showHeatmap}
             data-tip={t('Show as heatmap')}
             className={!this.state.markersVisible ? 'active': ''}>
-            <i className='k-icon-heatmap' />
+            <i className='k-icon k-icon-heatmap' />
           </bem.FormView__mapButton>
         }
 
         { this.state.hasGeoPoint && !this.state.noData &&
-          <ui.PopoverMenu type='viewby-menu'
+          <PopoverMenu type='viewby-menu'
                         triggerLabel={label}
                         m={'above'}
                         clearPopover={this.state.clearDisaggregatedPopover}
@@ -763,7 +775,7 @@ export class FormMap extends React.Component {
                   </bem.PopoverMenu__link>
                 );
             })}
-          </ui.PopoverMenu>
+          </PopoverMenu>
 
         }
 
@@ -831,7 +843,7 @@ export class FormMap extends React.Component {
           </bem.Loading>
         }
         {this.state.showMapSettings && (
-          <ui.Modal
+          <Modal
             open
             onClose={this.toggleMapSettings}
             title={t('Map Settings')}>
@@ -841,7 +853,7 @@ export class FormMap extends React.Component {
               overrideStyles={this.overrideStyles}
               overridenStyles={this.state.overridenStyles}
             />
-          </ui.Modal>
+          </Modal>
         )}
 
         <div id='data-map' />

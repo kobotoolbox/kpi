@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
-import ui from '../ui';
+import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
 import Reflux from 'reflux';
 import {bem} from '../bem';
@@ -27,6 +27,7 @@ import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
+import envStore from 'js/envStore';
 
 class MainHeader extends Reflux.Component {
   constructor(props){
@@ -49,6 +50,7 @@ class MainHeader extends Reflux.Component {
     this.unlisteners = [];
     autoBind(this);
   }
+
   componentDidMount() {
     this.unlisteners.push(
       stores.asset.listen(this.onAssetLoad),
@@ -59,6 +61,13 @@ class MainHeader extends Reflux.Component {
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb();});
   }
+
+  /*
+   * NOTE: this should be updated to `getDerivedStateFromProps` but causes Error:
+   * Warning: Unsafe legacy lifecycles will not be called for components using new component APIs.
+   * MainHeader uses getDerivedStateFromProps() but also contains the following legacy lifecycles:
+   * componentWillMount
+   */
   componentWillUpdate(newProps) {
     if (this.props.assetid !== newProps.assetid) {
       this.setState({asset: false});
@@ -66,9 +75,17 @@ class MainHeader extends Reflux.Component {
       // action triggered by other component (route component)
     }
   }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.assetid !== this.props.assetid && this.props.assetid !== null) {
+      actions.resources.loadAsset({id: this.props.assetid});
+    }
+  }
+
   forceRender() {
     this.setState(this.state);
   }
+
   isSearchBoxDisabled() {
     if (this.isMyLibrary()) {
       // disable search when user has zero assets
@@ -77,22 +94,27 @@ class MainHeader extends Reflux.Component {
       return false;
     }
   }
+
   onAssetLoad(data) {
     const asset = data[this.props.assetid];
     this.setState(assign({asset: asset}));
   }
+
   logout() {
     actions.auth.logout();
   }
+
   toggleLanguageSelector() {
     this.setState({isLanguageSelectorVisible: !this.state.isLanguageSelectorVisible});
   }
+
   accountSettings() {
     // verifyLogin also refreshes stored profile data
     actions.auth.verifyLogin.triggerAsync().then(() => {
       hashHistory.push(ROUTES.ACCOUNT_SETTINGS);
     });
   }
+
   languageChange(evt) {
     evt.preventDefault();
     let langCode = $(evt.target).data('key');
@@ -134,25 +156,23 @@ class MainHeader extends Reflux.Component {
   renderAccountNavMenu() {
     let shouldDisplayUrls = false;
     if (
-      stores.session &&
-      stores.session.environment &&
-      typeof stores.session.environment.terms_of_service_url === 'string' &&
-      typeof stores.session.environment.terms_of_service_url.length >= 1
+      envStore.isReady &&
+      typeof envStore.data.terms_of_service_url === 'string' &&
+      typeof envStore.data.terms_of_service_url.length >= 1
     ) {
       shouldDisplayUrls = true;
     }
     if (
-      stores.session &&
-      stores.session.environment &&
-      typeof stores.session.environment.privacy_policy_url === 'string' &&
-      typeof stores.session.environment.privacy_policy_url.length >= 1
+      envStore.isReady &&
+      typeof envStore.data.privacy_policy_url === 'string' &&
+      typeof envStore.data.privacy_policy_url.length >= 1
     ) {
       shouldDisplayUrls = true;
     }
 
     let langs = [];
-    if (stores.session.environment) {
-      langs = stores.session.environment.interface_languages;
+    if (envStore.isReady && envStore.data.interface_languages) {
+      langs = envStore.data.interface_languages;
     }
     if (stores.session.isLoggedIn) {
       var accountName = stores.session.currentAccount.username;
@@ -163,7 +183,7 @@ class MainHeader extends Reflux.Component {
 
       return (
         <bem.AccountBox>
-          <ui.PopoverMenu type='account-menu'
+          <PopoverMenu type='account-menu'
                           triggerLabel={accountMenuLabel}
                           buttonType='text'>
               <bem.AccountBox__menu>
@@ -183,13 +203,13 @@ class MainHeader extends Reflux.Component {
                 </bem.AccountBox__menuLI>
                 {shouldDisplayUrls &&
                   <bem.AccountBox__menuLI key='2' className='environment-links'>
-                    {stores.session.environment.terms_of_service_url &&
-                      <a href={stores.session.environment.terms_of_service_url} target='_blank'>
+                    {envStore.data.terms_of_service_url &&
+                      <a href={envStore.data.terms_of_service_url} target='_blank'>
                         {t('Terms of Service')}
                       </a>
                     }
-                    {stores.session.environment.privacy_policy_url &&
-                      <a href={stores.session.environment.privacy_policy_url} target='_blank'>
+                    {envStore.data.privacy_policy_url &&
+                      <a href={envStore.data.privacy_policy_url} target='_blank'>
                         {t('Privacy Policy')}
                       </a>
                     }
@@ -197,7 +217,7 @@ class MainHeader extends Reflux.Component {
                 }
                 <bem.AccountBox__menuLI m={'lang'} key='3'>
                   <bem.AccountBox__menuLink onClick={this.toggleLanguageSelector} data-popover-menu-stop-blur tabIndex='0'>
-                    <i className='k-icon-language' />
+                    <i className='k-icon k-icon-language' />
                     {t('Language')}
                   </bem.AccountBox__menuLink>
 
@@ -209,18 +229,19 @@ class MainHeader extends Reflux.Component {
                 </bem.AccountBox__menuLI>
                 <bem.AccountBox__menuLI m={'logout'} key='4'>
                   <bem.AccountBox__menuLink onClick={this.logout}>
-                    <i className='k-icon-logout' />
+                    <i className='k-icon k-icon-logout' />
                     {t('Logout')}
                   </bem.AccountBox__menuLink>
                 </bem.AccountBox__menuLI>
               </bem.AccountBox__menu>
-          </ui.PopoverMenu>
+          </PopoverMenu>
         </bem.AccountBox>
       );
     }
 
     return null;
   }
+
   renderGitRevInfo() {
     if (stores.session.currentAccount && stores.session.currentAccount.git_rev) {
       var gitRev = stores.session.currentAccount.git_rev;
@@ -238,6 +259,7 @@ class MainHeader extends Reflux.Component {
 
     return false;
   }
+
   toggleFixedDrawer() {
     stores.pageState.toggleFixedDrawer();
   }

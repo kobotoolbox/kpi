@@ -1,7 +1,6 @@
-import clonedeep from 'lodash.clonedeep';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import cloneDeep from 'lodash.clonedeep';
+import clonedeep from 'lodash.clonedeep';
 import Select from 'react-select';
 import _ from 'underscore';
 import DocumentTitle from 'react-document-title';
@@ -12,12 +11,7 @@ import {hashHistory} from 'react-router';
 import alertify from 'alertifyjs';
 import ProjectSettings from '../components/modalForms/projectSettings';
 import MetadataEditor from 'js/components/metadataEditor';
-import {
-  surveyToValidJson,
-  unnullifyTranslations,
-  assign,
-  koboMatrixParser,
-} from '../utils';
+import {assign} from '../utils';
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
@@ -27,7 +21,9 @@ import {
   ROUTES,
   META_QUESTION_TYPES,
 } from 'js/constants';
-import ui from '../ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
+import Modal from 'js/components/common/modal';
 import {bem} from '../bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
@@ -45,7 +41,13 @@ import {
   LOCKING_RESTRICTIONS,
   LOCKING_UI_CLASSNAMES,
 } from 'js/components/locking/lockingConstants';
-import {getFormBuilderAssetType} from 'js/components/formBuilder/formBuilderUtils';
+import {
+  koboMatrixParser,
+  surveyToValidJson,
+  getFormBuilderAssetType,
+  unnullifyTranslations,
+} from 'js/components/formBuilder/formBuilderUtils';
+import envStore from 'js/envStore';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -78,7 +80,7 @@ export default assign({
         // bugs that come from this fact. Form Builder code is already changing
         // the content of the object, so we want to cut all the bugs at the
         // very start of the process.
-        const asset = cloneDeep(originalAsset);
+        const asset = clonedeep(originalAsset);
 
         this.setState({asset: asset});
 
@@ -635,7 +637,7 @@ export default assign({
               m={[{'close-warning': this.needsSave()}]}
               onClick={this.safeNavigateToAsset}
             >
-              <i className='k-icon-close'/>
+              <i className='k-icon k-icon-close'/>
             </bem.FormBuilderHeader__close>
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
@@ -648,7 +650,7 @@ export default assign({
               disabled={previewDisabled}
               data-tip={t('Preview form')}
             >
-              <i className='k-icon-view' />
+              <i className='k-icon k-icon-view' />
             </bem.FormBuilderHeader__button>
 
             { showAllAvailable &&
@@ -657,7 +659,7 @@ export default assign({
                   }]}
                   onClick={this.showAll}
                   data-tip={t('Expand / collapse questions')}>
-                <i className='k-icon-view-all' />
+                <i className='k-icon k-icon-view-all' />
               </bem.FormBuilderHeader__button>
             }
 
@@ -668,7 +670,7 @@ export default assign({
               className={this.isAddingGroupsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
               data-tip={groupable ? t('Create group with selected questions') : t('Grouping disabled. Please select at least one question.')}
             >
-              <i className='k-icon-group' />
+              <i className='k-icon k-icon-group' />
             </bem.FormBuilderHeader__button>
 
             { this.toggleCascade !== undefined &&
@@ -678,7 +680,7 @@ export default assign({
                 data-tip={t('Insert cascading select')}
                 className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
               >
-                <i className='k-icon-cascading' />
+                <i className='k-icon k-icon-cascading' />
               </bem.FormBuilderHeader__button>
             }
           </bem.FormBuilderHeader__cell>
@@ -740,12 +742,12 @@ export default assign({
           {'.'}
         </p>
 
-        { stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url &&
+        { envStore.isReady &&
+          envStore.data.support_url &&
           <bem.TextBox__labelLink
             // TODO update support article to include background-audio
             href={
-              stores.serverEnvironment.state.support_url +
+              envStore.data.support_url +
               RECORDING_SUPPORT_URL
             }
             target='_blank'
@@ -777,10 +779,10 @@ export default assign({
               <bem.FormBuilderAside__header>
                 {t('Form style')}
 
-                { stores.serverEnvironment &&
-                  stores.serverEnvironment.state.support_url &&
+                { envStore.isReady &&
+                  envStore.data.support_url &&
                   <a
-                    href={stores.serverEnvironment.state.support_url + WEBFORM_STYLES_SUPPORT_URL}
+                    href={envStore.data.support_url + WEBFORM_STYLES_SUPPORT_URL}
                     target='_blank'
                     data-tip={t('Read more about form styles')}
                   >
@@ -880,7 +882,7 @@ export default assign({
       );
     }
 
-    return (<ui.LoadingSpinner/>);
+    return (<LoadingSpinner/>);
   },
 
   renderAssetLabel() {
@@ -904,10 +906,10 @@ export default assign({
 
           {lockedLabel}
 
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.support_url &&
+          { envStore.isReady &&
+            envStore.data.support_url &&
             <a
-              href={stores.serverEnvironment.state.support_url + LOCKING_SUPPORT_URL}
+              href={envStore.data.support_url + LOCKING_SUPPORT_URL}
               target='_blank'
               data-tip={t('Read more about Locking')}
             >
@@ -925,7 +927,7 @@ export default assign({
     if (!this.state.isNewAsset && !this.state.asset) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <ui.LoadingSpinner/>
+          <LoadingSpinner/>
         </DocumentTitle>
       );
     }
@@ -939,71 +941,73 @@ export default assign({
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <ui.Panel m={['transparent', 'fixed']}>
-          {this.renderAside()}
+        <bem.uiPanel m={['transparent', 'fixed']}>
+          <bem.uiPanel__body>
+            {this.renderAside()}
 
-          {userCanEditForm &&
-            <bem.FormBuilder>
-            {this.renderFormBuilderHeader()}
+            {userCanEditForm &&
+              <bem.FormBuilder>
+              {this.renderFormBuilderHeader()}
 
-              <bem.FormBuilder__contents>
-                {this.state.asset &&
-                  <FormLockedMessage asset={this.state.asset}/>
-                }
-
-                {this.hasBackgroundAudio() &&
-                  this.renderBackgroundAudioWarning()
-                }
-
-                <div ref='form-wrap' className='form-wrap'>
-                  {!this.state.surveyAppRendered &&
-                    this.renderNotLoadedMessage()
+                <bem.FormBuilder__contents>
+                  {this.state.asset &&
+                    <FormLockedMessage asset={this.state.asset}/>
                   }
-                </div>
-              </bem.FormBuilder__contents>
-            </bem.FormBuilder>
-          }
 
-          {(!userCanEditForm) &&
-            <ui.AccessDeniedMessage/>
-          }
+                  {this.hasBackgroundAudio() &&
+                    this.renderBackgroundAudioWarning()
+                  }
 
-          {this.state.enketopreviewOverlay &&
-            <ui.Modal
-              open
-              large
-              onClose={this.hidePreview}
-              title={t('Form Preview')}
-            >
-              <ui.Modal.Body>
-                <div className='enketo-holder'>
-                  <iframe src={this.state.enketopreviewOverlay} />
-                </div>
-              </ui.Modal.Body>
-            </ui.Modal>
-          }
+                  <div ref='form-wrap' className='form-wrap'>
+                    {!this.state.surveyAppRendered &&
+                      this.renderNotLoadedMessage()
+                    }
+                  </div>
+                </bem.FormBuilder__contents>
+              </bem.FormBuilder>
+            }
 
-          {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
-            <ui.Modal
-              open
-              error
-              onClose={this.clearPreviewError}
-              title={t('Error generating preview')}
-            >
-              <ui.Modal.Body>{this.state.enketopreviewError}</ui.Modal.Body>
-            </ui.Modal>
-          }
+            {(!userCanEditForm) &&
+              <AccessDeniedMessage/>
+            }
 
-          {this.state.showCascadePopup &&
-            <ui.Modal
-              open
-              onClose={this.hideCascade}
-              title={t('Import Cascading Select Questions')}
-            >
-              <ui.Modal.Body>{this.renderCascadePopup()}</ui.Modal.Body>
-            </ui.Modal>
-          }
-        </ui.Panel>
+            {this.state.enketopreviewOverlay &&
+              <Modal
+                open
+                large
+                onClose={this.hidePreview}
+                title={t('Form Preview')}
+              >
+                <Modal.Body>
+                  <div className='enketo-holder'>
+                    <iframe src={this.state.enketopreviewOverlay} />
+                  </div>
+                </Modal.Body>
+              </Modal>
+            }
+
+            {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
+              <Modal
+                open
+                error
+                onClose={this.clearPreviewError}
+                title={t('Error generating preview')}
+              >
+                <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
+              </Modal>
+            }
+
+            {this.state.showCascadePopup &&
+              <Modal
+                open
+                onClose={this.hideCascade}
+                title={t('Import Cascading Select Questions')}
+              >
+                <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
+              </Modal>
+            }
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       </DocumentTitle>
     );
   },

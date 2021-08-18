@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import { Link } from 'react-router';
+import { Link, hashHistory } from 'react-router';
 import {stores} from '../stores';
 import {bem} from '../bem';
 import {searches} from '../searches';
@@ -20,6 +20,17 @@ import {
 } from '../constants';
 import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
+import envStore from 'js/envStore';
+
+const INITIAL_STATE = {
+  headerFilters: 'forms',
+  searchContext: searches.getSearchContext('forms', {
+    filterParams: {
+      assetType: COMMON_QUERIES.s,
+    },
+    filterTags: COMMON_QUERIES.s,
+  })
+};
 
 class FormSidebar extends Reflux.Component {
   constructor(props){
@@ -28,25 +39,22 @@ class FormSidebar extends Reflux.Component {
       currentAssetId: false,
       files: []
     }, stores.pageState.state);
+    this.state = assign(INITIAL_STATE, this.state);
+
     this.stores = [
       stores.session,
       stores.pageState
     ];
+    this.unlisteners = [];
     autoBind(this);
   }
-  componentWillMount() {
-    this.setStates();
+  componentDidMount() {
+    this.unlisteners.push(
+      hashHistory.listen(this.onRouteChange.bind(this))
+    );
   }
-  setStates() {
-    this.setState({
-      headerFilters: 'forms',
-      searchContext: searches.getSearchContext('forms', {
-        filterParams: {
-          assetType: COMMON_QUERIES.s,
-        },
-        filterTags: COMMON_QUERIES.s,
-      })
-    });
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
   newFormModal (evt) {
     evt.preventDefault();
@@ -68,11 +76,10 @@ class FormSidebar extends Reflux.Component {
       </React.Fragment>
     );
   }
-  componentWillReceiveProps() {
-    this.setStates();
+  onRouteChange() {
+    this.setState(INITIAL_STATE);
   }
-
-};
+}
 
 FormSidebar.contextTypes = {
   router: PropTypes.object
@@ -129,7 +136,6 @@ class Drawer extends Reflux.Component {
     this.stores = [
       stores.session,
       stores.pageState,
-      stores.serverEnvironment,
     ];
   }
   render() {
@@ -169,9 +175,9 @@ class Drawer extends Reflux.Component {
               <i className='k-icon k-icon-globe' />
             </a>
           }
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.source_code_url &&
-            <a href={stores.serverEnvironment.state.source_code_url}
+          { envStore.isReady &&
+            envStore.data.source_code_url &&
+            <a href={envStore.data.source_code_url}
               className='k-drawer__link' target='_blank' data-tip={t('Source')}>
               <i className='k-icon k-icon-logo-github' />
             </a>
