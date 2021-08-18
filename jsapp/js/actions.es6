@@ -96,7 +96,6 @@ actions.misc = Reflux.createActions({
   getUser: {children: ['completed', 'failed']},
   checkUsername: {asyncResult: true, children: ['completed', 'failed']},
   updateProfile: {children: ['completed', 'failed']},
-  getServerEnvironment: {children: ['completed', 'failed']},
 });
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
@@ -171,12 +170,6 @@ actions.misc.updateProfile.failed.listen(function(data) {
   } else {
     notify(t('failed to update profile'), 'error');
   }
-});
-
-actions.misc.getServerEnvironment.listen(function(){
-  dataInterface.serverEnvironment()
-    .done(actions.misc.getServerEnvironment.completed)
-    .fail(actions.misc.getServerEnvironment.failed);
 });
 
 actions.resources.createImport.listen((params, onCompleted, onFailed) => {

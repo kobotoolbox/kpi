@@ -20,6 +20,7 @@ import {
 } from '../constants';
 import {assign} from 'utils';
 import SidebarFormsList from '../lists/sidebarForms';
+import envStore from 'js/envStore';
 
 const INITIAL_STATE = {
   headerFilters: 'forms',
@@ -135,7 +136,6 @@ class Drawer extends Reflux.Component {
     this.stores = [
       stores.session,
       stores.pageState,
-      stores.serverEnvironment,
     ];
   }
   render() {
@@ -175,9 +175,9 @@ class Drawer extends Reflux.Component {
               <i className='k-icon k-icon-globe' />
             </a>
           }
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.source_code_url &&
-            <a href={stores.serverEnvironment.state.source_code_url}
+          { envStore.isReady &&
+            envStore.data.source_code_url &&
+            <a href={envStore.data.source_code_url}
               className='k-drawer__link' target='_blank' data-tip={t('Source')}>
               <i className='k-icon k-icon-logo-github' />
             </a>
