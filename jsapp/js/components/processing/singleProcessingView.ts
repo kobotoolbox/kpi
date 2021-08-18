@@ -22,7 +22,7 @@ export default class SingleProcessingView extends React.Component<Props, {}> {
     );
   }
   
-  onGetSubmissionCompleted(response): void {
+  onGetSubmissionCompleted(response: SubmissionResponse): void {
     console.log('onGetSubmissionCompleted response', response);
   }
   
