@@ -33,7 +33,7 @@ class SubmissionDataTable extends React.Component {
   }
 
   openProcessing(questionName) {
-    const submissionId = this.props.submissionData._uuid;
+    const submissionId = this.props.submissionData._id;
     const wantedRoute = ROUTES.FORM_PROCESSING
       .replace(':uid', this.props.asset.uid)
       .replace(':questionName', questionName)

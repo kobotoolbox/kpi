@@ -2,6 +2,9 @@ import React from 'react';
 import {RouteComponentProps} from 'react-router';
 import {actions} from 'js/actions';
 
+/**
+ * this.props.params properties
+ */
 type Props = RouteComponentProps<{
   uid: string,
   questionName: string,
@@ -11,19 +14,31 @@ type Props = RouteComponentProps<{
 export default class SingleProcessingView extends React.Component<Props, {}> {
   constructor(props: Props) {
     super(props);
+    this.state = {
+      isReady: false,
+      submissionData: null,
+      error: null,
+    }
   }
   
   componentDidMount() {
     actions.submissions.getSubmission.completed.listen(this.onGetSubmissionCompleted.bind(this))
-    console.log(
-      this.props.params.uid,
-      this.props.params.questionName,
-      this.props.params.submissionId
-    );
+    actions.submissions.getSubmission.failed.listen(this.onGetSubmissionFailed.bind(this))
+    actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId);
   }
   
   onGetSubmissionCompleted(response: SubmissionResponse): void {
-    console.log('onGetSubmissionCompleted response', response);
+    this.setState({
+      isReady: true,
+      submissionData: response,
+    });
+  }
+  
+  onGetSubmissionFailed(response: FailResponse): void {
+    this.setState({
+      isReady: true,
+      error: response.responseJSON?.detail || t('Failed to get submission.'),
+    });
   }
   
   render() {

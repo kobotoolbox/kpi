@@ -7,6 +7,7 @@ import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
 
 const submissionsActions = Reflux.createActions({
+  getSubmission: {children: ['completed', 'failed']},
   getSubmissions: {children: ['completed', 'failed']},
   bulkDeleteStatus: {children: ['completed', 'failed']},
   bulkPatchStatus: {children: ['completed', 'failed']},
@@ -47,6 +48,12 @@ submissionsActions.getSubmissions.listen((options) => {
     .fail((response) => {
       submissionsActions.getSubmissions.failed(response, options);
     });
+});
+
+submissionsActions.getSubmission.listen((assetUid, submissionId) => {
+  dataInterface.getSubmission(assetUid, submissionId)
+    .done(submissionsActions.getSubmission.completed)
+    .fail(submissionsActions.getSubmission.failed);
 });
 
 submissionsActions.bulkDeleteStatus.listen((uid, data) => {
