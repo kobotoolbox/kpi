@@ -217,6 +217,7 @@ stores.session = Reflux.createStore({
   },
   isAuthStateKnown: false,
   init() {
+    actions.misc.updateProfile.completed.listen(this.onUpdateProfileCompleted);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.verifyLogin.anonymous, (data) => {
       this.isAuthStateKnown = true;
@@ -226,6 +227,10 @@ stores.session = Reflux.createStore({
       log('login not verified', xhr.status, xhr.statusText);
     });
     actions.auth.verifyLogin();
+  },
+  onUpdateProfileCompleted(response) {
+    this.currentAccount = response;
+    this.trigger({currentAccount: this.currentAccount});
   },
   triggerLoggedIn(acct) {
     this.isAuthStateKnown = true;
