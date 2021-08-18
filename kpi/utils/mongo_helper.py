@@ -1,13 +1,26 @@
 # coding: utf-8
 import re
 
-from bson import ObjectId
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext as _
 
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
+
+
+def drop_mock_only(func):
+    """
+    This decorator should be used on every method that drop data in MongoDB
+    in a testing environment. It ensures that MockMongo is used and no prodction
+    data is deleted
+    """
+    def _inner(*args, **kwargs):
+        # Ensure we are using MockMongo before deleting data
+        mongo_db_driver__repr = repr(settings.MONGO_DB)
+        if 'mongomock' not in mongo_db_driver__repr:
+            raise Exception('Cannot run tests on a production database')
+        return func(*args, **kwargs)
+
+    return _inner
 
 
 class MongoHelper:
