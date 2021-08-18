@@ -1,6 +1,10 @@
-interface ActionDefinition extends Function {
-  [index: string]: {
-    listen: Function;
+interface GetSubmissionDefinition extends Function {
+  (assetUid: string, submissionId: string): void;
+  completed: {
+    listen: (callback: (response: SubmissionResponse) => void) => void
+  };
+  failed: {
+    listen: (callback: (response: FailResponse) => void) => void
   };
 }
 
@@ -20,12 +24,12 @@ export namespace actions {
     const help: any;
     const library: any;
     const submissions: {
-      getSubmission: ActionDefinition;
-      getSubmissions: ActionDefinition;
-      bulkDeleteStatus: ActionDefinition;
-      bulkPatchStatus: ActionDefinition;
-      bulkPatchValues: ActionDefinition;
-      bulkDelete: ActionDefinition;
+      getSubmission: GetSubmissionDefinition;
+      getSubmissions: any;
+      bulkDeleteStatus: any;
+      bulkPatchStatus: any;
+      bulkPatchValues: any;
+      bulkDelete: any;
     };
     const media: any;
     const exports: any;

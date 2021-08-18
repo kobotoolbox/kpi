@@ -23,5 +23,8 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "allowJs": true
-  }
+  },
+  "include": [
+    "jsapp/**/*.ts"
+  ]
 }
