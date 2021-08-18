@@ -466,6 +466,16 @@
     p {
       margin: 0;
     }
+
+    a {
+      color: inherit;
+      font-weight: bold;
+      text-decoration: underline;
+
+      &:hover {
+        text-decoration: none;
+      }
+    }
   }
 
   &.form-view__cell--error {
