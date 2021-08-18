@@ -3,6 +3,7 @@ import {hashHistory} from 'react-router';
 import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
+  getRouteAssetUid,
   isAnyLibraryItemRoute,
 } from 'js/routerUtils';
 import {actions} from 'js/actions';
@@ -77,16 +78,6 @@ const singleCollectionStore = Reflux.createStore({
     this.data.filterValue = null;
   },
 
-  getCurrentLibraryAssetUID() {
-    const path = getCurrentPath();
-    if (
-      path.split('/')[1] === 'library' &&
-      path.split('/')[2] === 'asset'
-    ) {
-      return (path.split('/')[3]);
-    }
-  },
-
   // methods for handling search and data fetch
 
   /**
@@ -96,7 +87,7 @@ const singleCollectionStore = Reflux.createStore({
     const params = {
       pageSize: this.PAGE_SIZE,
       page: this.data.currentPage,
-      uid: this.getCurrentLibraryAssetUID(),
+      uid: getRouteAssetUid(),
     };
 
     if (this.data.filterColumnId !== null) {
@@ -118,7 +109,7 @@ const singleCollectionStore = Reflux.createStore({
   fetchData(needsMetadata = false) {
     // Avoid triggering search if not on the collection route (e.g. subscribed
     // to a collection from Public Collections list) as it will cause 500 error
-    // caused by getCurrentLibraryAssetUID being `undefined` (rightfuly so)
+    // caused by getRouteAssetUid being `undefined` (rightfuly so)
     if (!isAnyLibraryItemRoute()) {
       return;
     }

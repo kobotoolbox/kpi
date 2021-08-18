@@ -96,7 +96,6 @@ actions.misc = Reflux.createActions({
   getUser: {children: ['completed', 'failed']},
   checkUsername: {asyncResult: true, children: ['completed', 'failed']},
   updateProfile: {children: ['completed', 'failed']},
-  getServerEnvironment: {children: ['completed', 'failed']},
 });
 
 // TODO move these callbacks to `actions/permissions.es6` after moving
@@ -171,12 +170,6 @@ actions.misc.updateProfile.failed.listen(function(data) {
   } else {
     notify(t('failed to update profile'), 'error');
   }
-});
-
-actions.misc.getServerEnvironment.listen(function(){
-  dataInterface.serverEnvironment()
-    .done(actions.misc.getServerEnvironment.completed)
-    .fail(actions.misc.getServerEnvironment.failed);
 });
 
 actions.resources.createImport.listen((params, onCompleted, onFailed) => {
@@ -336,16 +329,23 @@ actions.reports.setCustom.listen(function(assetId, details){
 });
 
 actions.table = Reflux.createActions({
-  updateSettings: {
-    children: [
-      'completed',
-      'failed',
-    ]
-  }
+  updateSettings: {children: ['completed', 'failed']},
 });
 
-actions.table.updateSettings.listen(function(assetId, settings){
-  dataInterface.patchAsset(assetId, {settings: JSON.stringify(settings)})
+/**
+ * @param {string} assetUid
+ * @param {object} settings
+ * @param {string[]} [settings.selected-columns]
+ * @param {string} [settings.frozen-column]
+ * @param {boolean} [settings.show-group-name]
+ * @param {number} [settings.translation-index]
+ * @param {boolean} [settings.show-hxl-tags]
+ * @param {object} [settings.sort-by]
+ * @param {string} [settings.sort-by.fieldId]
+ * @param {string} [settings.sort-by.sortValue]
+ */
+actions.table.updateSettings.listen((assetUid, settings) => {
+  dataInterface.patchAsset(assetUid, {settings: JSON.stringify(settings)})
     .done((asset) => {
       actions.table.updateSettings.completed(asset);
       actions.resources.updateAsset.completed(asset);
