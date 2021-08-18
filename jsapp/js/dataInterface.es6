@@ -46,7 +46,6 @@ export var dataInterface;
 
   assign(this, {
     selfProfile: ()=> $ajax({ url: `${ROOT_URL}/me/` }),
-    serverEnvironment: ()=> $ajax({ url: `${ROOT_URL}/environment/` }),
     apiToken: () => {
       return $ajax({
         url: `${ROOT_URL}/token/?format=json`
@@ -596,7 +595,9 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/`,
         method: 'PATCH',
-        data: data
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
       });
     },
     listTags (data) {
@@ -814,7 +815,7 @@ export var dataInterface;
       });
     },
     environment() {
-      return $ajax({url: `${ROOT_URL}/environment/`,method: 'GET'});
+      return $ajax({url: `${ROOT_URL}/environment/`});
     },
     login: (creds)=> {
       return $ajax({ url: `${ROOT_URL}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
