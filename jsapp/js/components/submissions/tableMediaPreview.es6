@@ -14,15 +14,23 @@ bem.TableMediaPreview__audio = bem.TableMediaPreview.__('audio', '<div>');
 bem.TableMediaPreview__video = bem.TableMediaPreview.__('video', '<video>');
 bem.TableMediaPreview__text = bem.TableMediaPreview.__('text', '<div>');
 
+/**
+ * Backend stored media attachment
+ *
+ * @namespace mediaAttachment
+ * @prop {string} download_url - full file size
+ * @prop {string} download_small_url - smallest file size
+ * @prop {string} download_medium_url
+ * @prop {string} download_large_url
+ */
 
 /**
- * The crossroads for selecting the skeletons of table media preview modals
+ * Table cell replacement for media submissions
  *
  * @prop {string} questionType
- * @prop {string} mediaAttachment - Backend stored media attachment
+ * @prop {mediaAttachment} mediaAttachment - `null` for text questions
  * @prop {string} mediaName - Backend stored media attachment file name or the
                               content of a text question
- *
  */
 class TableMediaPreview extends React.Component {
   constructor(props) {
@@ -47,11 +55,9 @@ class TableMediaPreview extends React.Component {
       case META_QUESTION_TYPES['background-audio']:
         return (
           <bem.TableMediaPreview__audio>
-            <i className='k-icon k-icon-file-audio'/>
+            <i className='k-icon k-icon-file-audio' />
 
-            <AudioPlayer
-              mediaURL={this.props?.mediaAttachment?.download_url}
-            />
+            <AudioPlayer mediaURL={this.props?.mediaAttachment?.download_url} />
           </bem.TableMediaPreview__audio>
         );
       case QUESTION_TYPES.video.id:

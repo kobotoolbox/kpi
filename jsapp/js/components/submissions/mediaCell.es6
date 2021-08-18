@@ -19,12 +19,21 @@ bem.MediaCell = bem('media-cell');
 bem.MediaCell__icon = bem.MediaCell.__('icon', '<i>');
 bem.MediaCell__duration = bem.MediaCell.__('duration', '<label>');
 
+/**
+ * Backend stored media attachment
+ *
+ * @namespace mediaAttachment
+ * @prop {string} download_url - full file size
+ * @prop {string} download_small_url - smallest file size
+ * @prop {string} download_medium_url
+ * @prop {string} download_large_url
+ */
 
 /**
  * Table cell replacement for media submissions
  *
  * @prop {string} questionType
- * @prop {string} mediaAttachment - Backend stored media attachment
+ * @prop {mediaAttachment} mediaAttachment - `null` for text questions
  * @prop {string} mediaName - Backend stored media attachment file name or the
                               content of a text question
  * @prop {string} submissionIndex - Index of the submission for text questions
@@ -51,7 +60,7 @@ class MediaCell extends React.Component {
       mediaName: mediaName,
       customModalHeader: this.renderMediaModalCustomHeader(
         questionIcon,
-        mediaAttachment.download_url,
+        mediaAttachment?.download_url,
         mediaName,
         submissionIndex,
         submissionTotal,
