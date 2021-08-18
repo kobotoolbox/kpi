@@ -271,7 +271,7 @@ class SubmissionDataTable extends React.Component {
       if (type === QUESTION_TYPES.image.id) {
         return (
           <a href={attachment.download_url} target='_blank'>
-            <img src={attachment.download_small_url}/>
+            <img src={attachment.download_medium_url}/>
           </a>
         );
       } else {

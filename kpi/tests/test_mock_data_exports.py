@@ -20,6 +20,7 @@ from kpi.constants import (
 )
 from kpi.models import Asset, ExportTask
 from kpi.utils.object_permission import get_anonymous_user
+from kpi.utils.mongo_helper import drop_mock_only
 
 
 class MockDataExportsBase(TestCase):
@@ -298,9 +299,13 @@ class MockDataExportsBase(TestCase):
         },
     }
 
+    @drop_mock_only
     def setUp(self):
         self.user = User.objects.get(username='someuser')
         self.form_names = list(self.forms.keys())
+        # Clean up MongoDB documents
+        settings.MONGO_DB.instances.drop()
+
         self.assets = {
             name: self._create_asset_with_submissions(
                 user=self.user,
@@ -327,7 +332,7 @@ class MockDataExportsBase(TestCase):
             submission.update({
                 '__version__': v_uid
             })
-        asset.deployment.mock_submissions(submissions)
+        asset.deployment.mock_submissions(submissions, flush_db=False)
         return asset
 
 
@@ -516,7 +521,7 @@ class MockDataExports(MockDataExportsBase):
         self.run_csv_export_test(expected_lines, export_options)
 
     def test_csv_export_filter_fields(self):
-        export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism"]}
+        export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism", "_index"]}
         expected_lines = [
             '"start";"end";"Do you descend from an ancestral unicellular organism?";"_index"',
             '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"1"',
@@ -580,21 +585,32 @@ class MockDataExports(MockDataExportsBase):
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_filter_fields(self):
-        export_options = {'fields': ["start", "end", "Do_you_descend_from_unicellular_organism"]}
+        export_options = {'fields': ['start', 'end', 'Do_you_descend_from_unicellular_organism', '_index']}
         expected_data = {self.asset.name: [
-            [ "start", "end", "Do you descend from an ancestral unicellular organism?", "_index" ],
-            [ "2017-10-23T05:40:39.000-04:00", "2017-10-23T05:41:13.000-04:00", "No",  1.0  ],
-            [ "2017-10-23T05:41:14.000-04:00", "2017-10-23T05:41:32.000-04:00", "No",  2.0  ],
-            [ "2017-10-23T05:41:32.000-04:00", "2017-10-23T05:42:05.000-04:00", "Yes",  3.0  ],
+            ['start', 'end', 'Do you descend from an ancestral unicellular organism?', '_index'],
+            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'No',  1.0 ],
+            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'No',  2.0 ],
+            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Yes',  3.0 ],
+        ]}
+        self.run_xls_export_test(expected_data, export_options)
+
+    def test_xls_export_filter_fields_without_index(self):
+        export_options = {'fields': ['start', 'end', 'Do_you_descend_from_unicellular_organism']}
+        expected_data = {self.asset.name: [
+            ['start', 'end', 'Do you descend from an ancestral unicellular organism?'],
+            ['2017-10-23T05:40:39.000-04:00', '2017-10-23T05:41:13.000-04:00', 'No'],
+            ['2017-10-23T05:41:14.000-04:00', '2017-10-23T05:41:32.000-04:00', 'No'],
+            ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Yes'],
         ]}
         self.run_xls_export_test(expected_data, export_options)
 
     def test_xls_export_filter_fields_repeat_groups(self):
         export_options = {
             'fields': [
-                "_uuid",
-                "_submission_time",
-                "person/name",
+                '_uuid',
+                '_submission_time',
+                'person/name',
+                '_index'
             ]
         }
         asset = self.assets['Simple repeat group']

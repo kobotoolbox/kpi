@@ -539,6 +539,7 @@ class ExportTask(ImportExportTask):
         lang = self.data.get('lang', None) or next(iter(translations), None)
         fields = self.data.get('fields', [])
         xls_types = self.data.get('xls_types', False)
+        force_index = True if not fields or '_index' in fields else False
         try:
             # If applicable, substitute the constants that formpack expects for
             # friendlier language strings used by the API
@@ -554,7 +555,7 @@ class ExportTask(ImportExportTask):
             'lang': lang,
             'hierarchy_in_labels': self._hierarchy_in_labels,
             'copy_fields': self.COPY_FIELDS,
-            'force_index': True,
+            'force_index': force_index,
             'tag_cols_for_header': tag_cols_for_header,
             'filter_fields': fields,
             'xls_types': xls_types,

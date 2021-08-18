@@ -12,6 +12,7 @@ import Checkbox from 'js/components/common/checkbox';
 import Radio from 'js/components/common/radio';
 import TextBox from 'js/components/common/textBox';
 import {KEY_CODES} from 'js/constants';
+import envStore from 'js/envStore';
 
 const EXPORT_TYPES = {
   json: {
@@ -412,8 +413,8 @@ export default class RESTServicesForm extends React.Component {
       return (<LoadingSpinner/>);
     } else {
       let submissionPlaceholder = '%SUBMISSION%';
-      if (stores.session.environment && stores.session.environment.submission_placeholder) {
-        submissionPlaceholder = stores.session.environment.submission_placeholder;
+      if (envStore.isReady && envStore.data.submission_placeholder) {
+        submissionPlaceholder = envStore.data.submission_placeholder;
       }
 
       return (
