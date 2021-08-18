@@ -2,15 +2,16 @@
  * A list of all shareable constants for the application.
  */
 
+interface IEnum {
+  [val: string]: string;
+}
+
 /**
  * An enum creator function. Will create a frozen object of `foo: "foo"` pairs.
  * Will make sure the returned values are unique.
- *
- * @param {string[]} values
- * @returns {object}
  */
-export function createEnum(values) {
-  const newEnum = {};
+export function createEnum(values: string[]): IEnum {
+  const newEnum: IEnum = {};
   new Set(values).forEach((value) => {newEnum[value] = value;});
   return Object.freeze(newEnum);
 }
@@ -18,13 +19,14 @@ export function createEnum(values) {
 export const ROOT_URL = (() => {
   // This is an "absolute path reference (a URL without the domain name)"
   // according to the Django docs
-  let rootPath = document.head.querySelector('meta[name=kpi-root-path]');
-  if (rootPath === null) {
+  let rootPathEl = document.head.querySelector<HTMLMetaElement>('meta[name=kpi-root-path]');
+  let rootPath = '';
+  if (rootPathEl === null) {
     console.error('no kpi-root-path meta tag set. defaulting to ""');
     rootPath = '';
   } else {
     // Strip trailing slashes
-    rootPath = rootPath.content.replace(/\/*$/, '');
+    rootPath = rootPathEl.content.replace(/\/*$/, '');
   }
   return `${window.location.protocol}//${window.location.host}${rootPath}`;
 })();
@@ -270,6 +272,7 @@ export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   '_status',
   '_submitted_by',
   '_tags',
+  '_index',
 ]);
 
 /**

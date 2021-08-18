@@ -17,7 +17,7 @@ import {
 import {
   hasRowRestriction,
   hasAssetRestriction,
-} from 'js/components/locking/lockingUtils.es6';
+} from 'js/components/locking/lockingUtils';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),
