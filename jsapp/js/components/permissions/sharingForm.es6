@@ -10,6 +10,7 @@ import {bem} from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {buildUserUrl} from 'utils';
 import {
+  ROUTES,
   ASSET_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
@@ -114,6 +115,21 @@ class SharingForm extends React.Component {
         <bem.Modal__subheader>
           {this.state.asset.name}
         </bem.Modal__subheader>
+
+        {stores.session.currentAccount.extra_details?.require_auth !== true &&
+          <bem.FormModal__item>
+            <bem.FormView__cell m='warning'>
+              <i className='k-icon k-icon-alert' />
+              <p>
+                {t('Anyone can see this blank form and add submissions to it because you have not set ')}
+                <a href={`/#${ROUTES.ACCOUNT_SETTINGS}`}>
+                  {t('your account')}
+                </a>
+                {t(' to require authentication.')}
+              </p>
+            </bem.FormView__cell>
+          </bem.FormModal__item>
+        }
 
         {/* list of users and their permissions */}
         <bem.FormModal__item>
