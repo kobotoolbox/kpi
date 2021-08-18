@@ -6,6 +6,7 @@ import {actions} from '../actions';
 import {stores} from '../stores';
 import {USE_CUSTOM_INTERCOM_LAUNCHER} from './intercomHandler';
 import {KEY_CODES} from 'js/constants';
+import envStore from 'js/envStore';
 import './helpBubbles.scss';
 
 const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';
@@ -370,12 +371,12 @@ export class SupportHelpBubble extends HelpBubble {
             {t('Help Resources')}
           </bem.HelpBubble__row>
 
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.support_url &&
+          { envStore.isReady &&
+            envStore.data.support_url &&
             <bem.HelpBubble__rowAnchor
               m='link'
               target='_blank'
-              href={stores.serverEnvironment.state.support_url}
+              href={envStore.data.support_url}
               onClick={this.close.bind(this)}
             >
               <i className='k-icon k-icon-help-articles'/>
@@ -384,12 +385,12 @@ export class SupportHelpBubble extends HelpBubble {
             </bem.HelpBubble__rowAnchor>
           }
 
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.community_url &&
+          { envStore.isReady &&
+            envStore.data.community_url &&
             <bem.HelpBubble__rowAnchor
               m='link'
               target='_blank'
-              href={stores.serverEnvironment.state.community_url}
+              href={envStore.data.community_url}
               onClick={this.close.bind(this)}
             >
               <i className='k-icon k-icon-forum'/>

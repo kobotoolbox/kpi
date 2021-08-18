@@ -6,7 +6,7 @@ import TextBox from 'js/components/common/textBox';
 import {actions} from 'js/actions';
 import {bem} from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {stores} from 'js/stores';
+import envStore from 'js/envStore';
 import {
   ASSET_FILE_TYPES,
   MAX_DISPLAYED_STRING_LENGTH,
@@ -95,7 +95,8 @@ class FormMedia extends React.Component {
    * @namespace formMediaJSON
    * @param {string} description - can be anything, when in doubt use 'default'
    * @param {string} filetype - should be `ASSET_FILE_TYPES.form_media.id`
-   * @param {string} metadata - JSON stringified filename
+   * @param {string} metadata - Won't break if not included, but should contain
+   *                            the JSON stringified filename for downloading
    * @param {string} base64Encoded
    *
    * @param {formMediaJSON} formMediaJSON
@@ -195,7 +196,12 @@ class FormMedia extends React.Component {
     }
 
     return (
-      <a href={item?.content} target='_blank'>
+      <a
+        href={item?.content}
+        target='_blank'
+        // Added manually by frontend, not backend. See uploadMedia()
+        download={item?.metadata?.filename}
+      >
         {fileName}
       </a>
     );
@@ -229,13 +235,13 @@ class FormMedia extends React.Component {
               {t('Attach files')}
             </bem.FormMedia__label>
 
-            {stores.serverEnvironment &&
-              stores.serverEnvironment.state.support_url && (
+            {envStore.isReady &&
+              envStore.data.support_url && (
                 <a
                   className='title-help'
                   target='_blank'
                   href={
-                    stores.serverEnvironment.state.support_url +
+                    envStore.data.support_url +
                     MEDIA_SUPPORT_URL
                   }
                   data-tip={t('Learn more about form media')}
