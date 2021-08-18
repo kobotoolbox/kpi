@@ -667,11 +667,11 @@ export class DataTable extends React.Component {
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
-              var mediaURL = this.getMediaDownloadLink(row, row.value);
+              var mediaAttachment = this.getMediaAttachment(row, row.value);
               return (
                 <MediaCell
                   questionType={q.type}
-                  mediaURL={mediaURL}
+                  mediaAttachment={mediaAttachment}
                   mediaName={row.value}
                 />
               );
@@ -1131,20 +1131,20 @@ export class DataTable extends React.Component {
    * @param {object} row
    * @param {string} fileName
    */
-  getMediaDownloadLink(row, fileName) {
+  getMediaAttachment(row, fileName) {
     const fileNameNoSpaces = fileName.replace(/ /g, '_');
-    let mediaURL = t('Could not find ##fileName##').replace(
+    let mediaAttachment = t('Could not find ##fileName##').replace(
       '##fileName##',
-      fileName
+      fileName,
     );
 
     row.original._attachments.forEach((attachment) => {
       if (attachment.filename.includes(fileNameNoSpaces)) {
-        mediaURL = attachment.download_url;
+        mediaAttachment = attachment;
       }
     });
 
-    return mediaURL;
+    return mediaAttachment;
   }
 
   // NOTE: Please avoid calling `setState` inside scroll callback, as it causes
