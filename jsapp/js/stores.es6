@@ -219,10 +219,16 @@ stores.session = Reflux.createStore({
   isLoggedIn: false,
 
   init() {
+    actions.misc.updateProfile.completed.listen(this.onUpdateProfileCompleted);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.onLoggedIn);
     this.listenTo(actions.auth.verifyLogin.anonymous, this.onNotLoggedIn);
     this.listenTo(actions.auth.verifyLogin.failed, this.onVerifyLoginFailed);
     actions.auth.verifyLogin();
+  },
+
+  onUpdateProfileCompleted(response) {
+    this.currentAccount = response;
+    this.trigger({currentAccount: this.currentAccount});
   },
 
   onLoggedIn(account) {
