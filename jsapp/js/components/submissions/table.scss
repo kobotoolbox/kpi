@@ -109,6 +109,7 @@ $z-table-frozen: 10;
           line-height: 21px;
           text-align: left;
         }
+<<<<<<< HEAD:jsapp/js/components/submissions/table.scss
       }
     }
 
@@ -269,11 +270,10 @@ $z-table-frozen: 10;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-around;
+    justify-content: flex-start;
 
     .checkbox {
-      margin-left: 5px;
-      margin-right: 5px;
+      margin-right: 7px;
     }
 
     .checkbox__input {

@@ -1,0 +1,86 @@
+.table-meta {
+  flex-grow: 1;
+  min-height: 30px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .bulk-clear-badge-icon {
+    margin-right: -5px;
+    cursor: pointer;
+    padding: 0 5px;
+    border-radius: 50%;
+    color: $kobo-gray-24;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-red;
+    }
+  }
+
+  .table-meta__bulk-options {
+    > *:not(:first-child) {
+      margin-left: 10px;
+    }
+  }
+
+  .table-meta__counter {
+    display: inline;
+    white-space: nowrap;
+  }
+
+  @media screen and (max-width: 1100px) {
+    .table-meta__additional-text {
+      display: none;
+    }
+  }
+}
+
+.table-meta__bulk-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .popover-menu .popover-menu__toggle {
+    // overriding 36px from jsapp/scss/components/_kobo.form-view.scss
+    height: auto;
+  }
+}
+
+.table-bulk-checkbox {
+  z-index: 1;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  height: $data-table-row-height;
+  display: block;
+  line-height: 20px;
+
+  > .checkbox {
+    position: absolute;
+    z-index: 1;
+    top: calc(50% - 10px);
+    left: 7px;
+
+    .checkbox__wrapper {
+      padding: 0;
+      display: block;
+    }
+  }
+
+  .popover-menu {
+    margin-top: 10px;
+
+    .popover-menu__toggle::after {
+      content: "\25BC";
+      font-size: 16px;
+      display: inline-block;
+      vertical-align: 1px;
+      padding: 0 5px 0 35px;
+    }
+
+    .popover-menu__content {
+      left: 5px;
+    }
+  }
+}

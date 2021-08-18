@@ -217,6 +217,7 @@ stores.session = Reflux.createStore({
   },
   isAuthStateKnown: false,
   init() {
+    actions.misc.updateProfile.completed.listen(this.onUpdateProfileCompleted);
     this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
     this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
     this.listenTo(actions.auth.verifyLogin.anonymous, (data) => {
@@ -228,6 +229,10 @@ stores.session = Reflux.createStore({
     });
     actions.auth.verifyLogin();
     actions.auth.getEnvironment();
+  },
+  onUpdateProfileCompleted(response) {
+    this.currentAccount = response;
+    this.trigger({currentAccount: this.currentAccount});
   },
   triggerEnv(environment) {
     const nestedArrToChoiceObjs = (i) => {
