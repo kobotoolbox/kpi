@@ -103,6 +103,10 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def delete_submissions(self, data: dict, user: 'auth.User', **kwargs) -> dict:
+        pass
+
+    @abc.abstractmethod
     def duplicate_submission(
         self,  submission_id: int, user: 'auth.User'
     ) -> dict:
