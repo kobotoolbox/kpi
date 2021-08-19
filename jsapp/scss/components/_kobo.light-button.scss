@@ -136,4 +136,14 @@
       border-color: $kobo-red;
     }
   }
+
+  &.kobo-light-button--gray {
+    color: $kobo-gray-65;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-gray-65;
+      border-color: $kobo-gray-65;
+    }
+  }
 }

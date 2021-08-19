@@ -5,7 +5,7 @@ import Reflux from 'reflux';
 import TextBox from 'js/components/common/textBox';
 
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
 import {stores} from 'js/stores';
 

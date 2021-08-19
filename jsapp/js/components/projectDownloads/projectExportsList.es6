@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import mixins from 'js/mixins';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import {formatTime} from 'js/utils';
 import {getLanguageIndex} from 'js/assetUtils';

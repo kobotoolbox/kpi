@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {stores} from 'js/stores';
 import PopoverMenu from 'js/popoverMenu';
 import mixins from 'js/mixins';

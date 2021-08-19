@@ -1,7 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import Select from 'react-select';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {EXPORT_TYPES} from 'js/components/projectDownloads/exportsConstants';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 

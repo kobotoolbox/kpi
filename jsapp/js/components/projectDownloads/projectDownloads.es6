@@ -1,6 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {stores} from 'js/stores';
 import DocumentTitle from 'react-document-title';
 import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';

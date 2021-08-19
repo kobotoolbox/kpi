@@ -6,7 +6,7 @@ import MultiCheckbox from 'js/components/common/multiCheckbox';
 import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import {formatTimeDate} from 'js/utils';
 import mixins from 'js/mixins';
