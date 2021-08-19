@@ -5,7 +5,7 @@ import autoBind from 'react-autobind';
 import {Link} from 'react-router';
 import Reflux from 'reflux';
 import mixins from '../mixins';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {searches} from '../searches';
 import {stores} from '../stores';

@@ -7,7 +7,7 @@ import {searches} from '../searches';
 import mixins from '../mixins';
 import {stores} from '../stores';
 import {dataInterface} from '../dataInterface';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
