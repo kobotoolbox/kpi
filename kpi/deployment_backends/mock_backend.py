@@ -21,7 +21,7 @@ from kpi.constants import (
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
-from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
 from .base_backend import BaseDeploymentBackend
 
 
@@ -94,6 +94,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             }
         })
 
+    @drop_mock_only
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
         """
         Delete a submission
@@ -113,7 +114,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 }
             }
 
-        self._check_mock_mongo()
         settings.MONGO_DB.instances.delete_one({'_id': submission_id})
 
         return {
@@ -317,12 +317,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             'data': submission.get('_validation_status')
         }
 
-    def mock_submissions(self, submissions: list):
+    @drop_mock_only
+    def mock_submissions(self, submissions: list, flush_db: bool = True):
         """
         Insert dummy submissions into deployment data
         """
-        self._check_mock_mongo()
-        settings.MONGO_DB.instances.drop()
+        if flush_db:
+            settings.MONGO_DB.instances.drop()
+        count = settings.MONGO_DB.instances.count_documents({})
+
         for idx, submission in enumerate(submissions):
             submission[MongoHelper.USERFORM_ID] = self.mongo_userform_id
             # Some data already provide `_id`. Use it if it is present.
@@ -330,7 +333,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             # or others do not.
             # MockMongo will raise a DuplicateKey error
             if '_id' not in submission:
-                submission['_id'] = idx + 1
+                submission['_id'] = count + idx + 1
             settings.MONGO_DB.instances.insert_one(submission)
             # Do not add `MongoHelper.USERFORM_ID` to original `submissions`
             del submission[MongoHelper.USERFORM_ID]
@@ -492,13 +495,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         queryset = self._get_metadata_queryset(file_type=file_type)
         for obj in queryset:
             assert issubclass(obj.__class__, SyncBackendMediaInterface)
-
-    @staticmethod
-    def _check_mock_mongo():
-        # Ensure we are using MockMongo before deleting data
-        mongo_db_driver__repr = repr(settings.MONGO_DB)
-        if 'mongomock' not in mongo_db_driver__repr:
-            raise Exception('Cannot run tests on a production database')
 
     @staticmethod
     def __prepare_bulk_update_response(kc_responses: list) -> dict:

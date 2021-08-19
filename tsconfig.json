@@ -1,0 +1,31 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./jsapp",
+    "paths": {
+      "js/*": ["js/*"],
+      "scss/*": ["scss/*"],
+      "test/*": ["test/*"],
+    },
+    "target": "es2016",
+    "module": "es2015",
+    "moduleResolution": "node",
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "noUnusedParameters": true,
+    "removeComments": false,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "jsx": "react"
+  },
+  "include": [
+    "jsapp/**/*.ts",
+    "jsapp/**/*.tsx"
+  ]
+}

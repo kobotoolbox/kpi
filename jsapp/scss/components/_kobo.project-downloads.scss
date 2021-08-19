@@ -46,14 +46,13 @@
 
   .kobo-select {
     .kobo-select__control {
-      border-width: 1px;
+      border: 1px solid $kobo-gray-92;
     }
   }
 
   .text-box {
     .text-box__input {
-      padding-top: 8px;
-      padding-bottom: 8px;
+      padding: 8px 16px;
     }
 
     &.text-box--group-separator {
