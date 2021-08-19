@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import LanguageForm from 'js/components/modalForms/languageForm';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';

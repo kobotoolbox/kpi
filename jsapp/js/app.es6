@@ -24,7 +24,7 @@ import {stores} from './stores';
 import {surveyCompanionStore} from './surveyCompanionStore'; // importing it so it exists
 import {envStore} from 'js/envStore'; // initializing it
 import {dataInterface} from './dataInterface';
-import {bem} from './bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import mixins from './mixins';
 import MainHeader from './components/header';
