@@ -216,12 +216,12 @@
 
   .project-downloads__anonymous-row {
     display: flex;
-    justify-content: space-between;
     align-items: flex-end;
     align-content: flex-end;
 
     .project-downloads__exports-selector {
       width: 33%;
+      margin-right: 20px;
     }
   }
 
