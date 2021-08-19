@@ -5,7 +5,7 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
-import {bem} from '../../bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from '../../actions';
 import mixins from '../../mixins';

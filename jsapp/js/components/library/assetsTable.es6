@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {
   hasVerticalScrollbar,
   getScrollbarWidth

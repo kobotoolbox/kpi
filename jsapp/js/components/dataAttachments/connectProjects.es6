@@ -9,7 +9,7 @@ import TextBox from 'js/components/common/textBox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {generateAutoname} from 'js/utils';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import envStore from 'js/envStore';

@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 
 export default class CustomReportForm extends React.Component {
   constructor(props) {
