@@ -2,7 +2,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import bem from '../bem';
+import bem from 'js/bem';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import _ from 'underscore';
 import envStore from 'js/envStore';
