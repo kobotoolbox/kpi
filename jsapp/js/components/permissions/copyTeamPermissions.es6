@@ -2,7 +2,7 @@ import React from 'react';
 import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
-import bem from '../../bem';
+import bem from 'js/bem';
 import classNames from 'classnames';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
