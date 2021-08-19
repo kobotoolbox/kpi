@@ -1,6 +1,6 @@
 import autoBind from 'react-autobind';
 import React from 'react';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {stores} from 'js/stores';
 import {
   MODAL_TYPES,
@@ -13,18 +13,34 @@ import './mediaCell.scss';
 bem.TableMediaPreviewHeader = bem('table-media-preview-header');
 bem.TableMediaPreviewHeader__title = bem.TableMediaPreviewHeader.__('title', '<div>');
 bem.TableMediaPreviewHeader__label = bem.TableMediaPreviewHeader.__('label', '<label>');
+bem.TableMediaPreviewHeader__options = bem.TableMediaPreviewHeader.__('options', '<div>');
 
 bem.MediaCell = bem('media-cell');
-bem.MediaCell__icon = bem.MediaCell.__('icon', '<i>');
 bem.MediaCell__duration = bem.MediaCell.__('duration', '<label>');
+bem.MediaCell__text = bem.MediaCell.__('text', '<div>');
 
+bem.MediaCellIconWrapper = bem('icon-wrapper');
+bem.MediaCellIconWrapper__icon = bem.MediaCellIconWrapper.__('icon', '<i>');
+
+/**
+ * Backend stored media attachment
+ *
+ * @namespace mediaAttachment
+ * @prop {string} download_url - full file size
+ * @prop {string} download_small_url - smallest file size
+ * @prop {string} download_medium_url
+ * @prop {string} download_large_url
+ */
 
 /**
  * Table cell replacement for media submissions
  *
  * @prop {string} questionType
- * @prop {string} mediaAttachment - Backend stored media attachment
- * @prop {string} mediaName - Backend stored media attachment file name
+ * @prop {mediaAttachment} mediaAttachment - `null` for text questions
+ * @prop {string} mediaName - Backend stored media attachment file name or the
+                              content of a text question
+ * @prop {string} submissionIndex - Index of the submission for text questions
+ * @prop {string} submissionTotal - Total submissions for text questions
  */
 class MediaCell extends React.Component {
   constructor(props) {
@@ -32,7 +48,14 @@ class MediaCell extends React.Component {
     autoBind(this);
   }
 
-  launchMediaModal(questionType, questionIcon, mediaAttachment, mediaName) {
+  launchMediaModal(
+    questionType,
+    questionIcon,
+    mediaAttachment,
+    mediaName,
+    submissionIndex,
+    submissionTotal,
+  ) {
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
       questionType: questionType,
@@ -40,14 +63,32 @@ class MediaCell extends React.Component {
       mediaName: mediaName,
       customModalHeader: this.renderMediaModalCustomHeader(
         questionIcon,
-        mediaAttachment.download_url,
-        mediaName
+        mediaAttachment?.download_url,
+        mediaName,
+        submissionIndex,
+        submissionTotal,
       ),
     });
   }
 
-  renderMediaModalCustomHeader(questionIcon, mediaURL, mediaName) {
-    const truncatedFileName = truncateString(mediaName, 50);
+  renderMediaModalCustomHeader(
+    questionIcon,
+    mediaURL,
+    mediaName,
+    submissionIndex,
+    submissionTotal,
+  ) {
+    let titleText = null;
+
+    // mediaURL only exists if there are attachments, otherwise assume only text
+    if (mediaURL) {
+      titleText = truncateString(mediaName, 30);
+    } else {
+      titleText = t('Submission ##submissionIndex## of ##submissionTotal##')
+        .replace('##submissionIndex##', submissionIndex)
+        .replace('##submissionTotal##', submissionTotal);
+    }
+
     return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
@@ -56,25 +97,44 @@ class MediaCell extends React.Component {
             // Give the user a way to see the full file name
             title={mediaName}
           >
-            {truncatedFileName}
+            {titleText}
           </bem.TableMediaPreviewHeader__label>
         </bem.TableMediaPreviewHeader__title>
 
-        {/*TODO this doesn't start a `save as` but instead opens media in tab*/}
-        <a
-          className='kobo-light-button kobo-light-button--blue'
-          href={mediaURL}
-          download=''
-        >
-          {t('download')}
-          <i className='k-icon k-icon-download'/>
-        </a>
+        <bem.TableMediaPreviewHeader__options>
+          {this.props.mediaURL &&
+            <a
+              className='kobo-light-button kobo-light-button--blue'
+              // TODO: once we get this button to `save as`, remove this target
+              target='_blank'
+              href={mediaURL}
+            >
+              {t('download')}
+
+              <i className='k-icon k-icon-download'/>
+            </a>
+          }
+
+          {/*
+            TODO: Uncomment this buttton after single processing view is done
+
+            <a
+              className='kobo-light-button kobo-light-button--gray'
+              href={'#'}
+            >
+              {t('process')}
+
+              <i className='k-icon k-icon-arrow-up-right'/>
+            </a>
+          */}
+        </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
     );
   }
 
   render() {
     const iconClassNames = ['k-icon'];
+    const isTextQuestion = !this.props.mediaAttachment;
 
     // Different from renderQuestionTypeIcon as we need custom `title` and
     // event handling
@@ -89,25 +149,38 @@ class MediaCell extends React.Component {
       case QUESTION_TYPES.video.id:
         iconClassNames.push('k-icon-qt-video');
         break;
+      case QUESTION_TYPES.text.id:
+        iconClassNames.push('k-icon-question');
+        break;
       default:
         iconClassNames.push('k-icon-media-files');
         break;
     }
 
     return (
-      <bem.MediaCell>
-        <bem.MediaCell__icon
-          className={iconClassNames}
-          title={this.props.mediaName}
-          onClick={() =>
-            this.launchMediaModal(
-              this.props.questionType,
-              iconClassNames,
-              this.props.mediaAttachment,
-              this.props.mediaName
-            )
-          }
-        />
+      <bem.MediaCell m={isTextQuestion ? 'text' : ''}>
+        <bem.MediaCellIconWrapper>
+          <bem.MediaCellIconWrapper__icon
+            className={iconClassNames}
+            onClick={() =>
+              this.launchMediaModal(
+                this.props.questionType,
+                iconClassNames,
+                this.props.mediaAttachment,
+                this.props.mediaName,
+                this.props.submissionIndex,
+                this.props.submissionTotal,
+              )
+            }
+          />
+        </bem.MediaCellIconWrapper>
+
+        {isTextQuestion &&
+          // Show text as well if text question
+          <bem.MediaCell__text className='trimmed-text'>
+            {this.props.mediaName}
+          </bem.MediaCell__text>
+        }
 
         {/*
           TODO: backend needs to store metadata to get duration, see kpi#3304

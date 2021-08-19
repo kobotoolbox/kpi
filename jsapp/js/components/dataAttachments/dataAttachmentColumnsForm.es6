@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import dataAttachmentsUtils from 'js/components/dataAttachments/dataAttachmentsUtils';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 

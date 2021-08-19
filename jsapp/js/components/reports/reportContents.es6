@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'underscore';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {QUESTION_TYPES} from 'js/constants';
 import ReportViewItem from './reportViewItem';
 

@@ -6,7 +6,7 @@ import Checkbox from 'js/components/common/checkbox';
 import TextBox from 'js/components/common/textBox';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {permParser} from './permParser';
 import permConfig from './permConfig';
 import {
