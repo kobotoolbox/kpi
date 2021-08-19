@@ -4,8 +4,9 @@
  * use `<bem.ModuleName__partial m={['modifier1', 'modifier2']}>` in your JSX.
  */
 
-import {BEM} from './libs/react-create-bem-element';
-export const bem = BEM.init();
+import {BEM} from './libs/reactCreateBemElement';
+
+const bem = BEM.init();
 
 bem.Button = BEM('mdl-button', '<button>');
 
@@ -55,7 +56,7 @@ bem.FormBuilderMessageBox = BEM('form-builder-message-box');
 bem.FormBuilderMessageBox__toggle = bem.FormBuilderMessageBox.__('toggle', 'button');
 bem.FormBuilderMessageBox__details = bem.FormBuilderMessageBox.__('details', 'section');
 
-bem.FormBuilderMeta = bem('form-builder-meta');
+bem.FormBuilderMeta = BEM('form-builder-meta');
 bem.FormBuilderMeta__columns = bem.FormBuilderMeta.__('columns');
 bem.FormBuilderMeta__column = bem.FormBuilderMeta.__('column');
 bem.FormBuilderMeta__row = bem.FormBuilderMeta.__('row');
@@ -113,20 +114,20 @@ bem.LibList__label = bem.LibList.__('label');
 bem.LibList__dragbox = bem.LibList.__('dragbox');
 bem.LibList__qtype = bem.LibList.__('qtype');
 
-bem.SubmissionDataTable = bem('submission-data-table');
+bem.SubmissionDataTable = BEM('submission-data-table');
 bem.SubmissionDataTable__row = bem.SubmissionDataTable.__('row');
 bem.SubmissionDataTable__column = bem.SubmissionDataTable.__('column');
 bem.SubmissionDataTable__XMLName = bem.SubmissionDataTable.__('xml-name');
 bem.SubmissionDataTable__value = bem.SubmissionDataTable.__('value');
 
-bem.TableMeta = bem('table-meta');
+bem.TableMeta = BEM('table-meta');
 bem.TableMeta__counter = bem.TableMeta.__('counter');
 bem.TableMeta__additionalText = bem.TableMeta.__('additional-text', 'span'); // generally text not needed on smaller screens
 bem.TableMeta__bulkOptions = bem.TableMeta.__('bulk-options');
 
-bem.CollectionsWrapper = bem('collections-wrapper');
+bem.CollectionsWrapper = BEM('collections-wrapper');
 
-bem.CollectionNav = bem('collection-nav');
+bem.CollectionNav = BEM('collection-nav');
 bem.CollectionNav__search = bem.CollectionNav.__('search');
 bem.CollectionNav__searchcriteria = bem.CollectionNav.__('searchcriteria', '<ul>');
 bem.CollectionNav__searchcriterion = bem.CollectionNav.__('searchcriterion', '<li>');
@@ -375,3 +376,5 @@ bem.BackgroundAudioPlayer__label = bem.BackgroundAudioPlayer.__('label', '<label
 bem.BackgroundAudioPlayer__audio = bem.BackgroundAudioPlayer.__('audio', '<audio>');
 
 bem.create = BEM;
+
+export default bem;
