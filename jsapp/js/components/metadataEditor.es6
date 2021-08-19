@@ -10,7 +10,7 @@ import {
   SURVEY_DETAIL_ATTRIBUTES,
   FUNCTION_TYPE,
 } from 'js/constants';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import envStore from 'js/envStore';
 
 const AUDIT_SUPPORT_URL = 'audit_logging.html';

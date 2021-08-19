@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Checkbox from 'js/components/common/checkbox';
 import Radio from 'js/components/common/radio';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
 import {notify} from 'utils';

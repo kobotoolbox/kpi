@@ -1,7 +1,7 @@
 import autoBind from 'react-autobind';
 import React from 'react';
 
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import AudioPlayer from 'js/components/common/audioPlayer';
 import {
   QUESTION_TYPES,

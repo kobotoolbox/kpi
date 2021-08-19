@@ -1,6 +1,6 @@
 import autoBind from 'react-autobind';
 import React from 'react';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {stores} from 'js/stores';
 import {
   MODAL_TYPES,

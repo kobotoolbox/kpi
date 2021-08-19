@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {actions} from '../actions';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {stores} from '../stores';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
