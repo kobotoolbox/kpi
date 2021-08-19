@@ -667,12 +667,19 @@ export class DataTable extends React.Component {
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
-              var mediaAttachment = this.getMediaAttachment(row, row.value);
+              let mediaAttachment = null;
+
+              if (q.type !== QUESTION_TYPES.text.id) {
+                mediaAttachment = this.getMediaAttachment(row, row.value);
+              }
+
               return (
                 <MediaCell
                   questionType={q.type}
                   mediaAttachment={mediaAttachment}
                   mediaName={row.value}
+                  submissionIndex={row.index + 1}
+                  submissionTotal={this.state.submissions.length}
                 />
               );
             }
