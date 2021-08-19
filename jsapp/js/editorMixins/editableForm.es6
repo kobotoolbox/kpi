@@ -24,7 +24,7 @@ import {
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import Modal from 'js/components/common/modal';
-import bem from '../bem';
+import bem from 'js/bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import { Link } from 'react-router';
-import bem from '../bem';
+import bem from 'js/bem';
 import assetUtils from 'js/assetUtils';
 import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
