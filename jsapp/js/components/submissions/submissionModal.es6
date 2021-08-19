@@ -8,7 +8,7 @@ import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {launchPrinting} from 'utils';
 import {stores} from 'js/stores';
@@ -139,6 +139,8 @@ class SubmissionModal extends React.Component {
         promptRefresh: false,
       };
     }
+    // Return null to indicate no change to state.
+    return null;
   }
 
   componentDidUpdate(prevProps) {

@@ -6,7 +6,7 @@ import KoboTagsInput from 'js/components/common/koboTagsInput';
 import Select from 'react-select';
 import PropTypes from 'prop-types';
 import TextBox from 'js/components/common/textBox';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';

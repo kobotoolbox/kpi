@@ -21,6 +21,11 @@
     "removeComments": false,
     "sourceMap": true,
     "skipLibCheck": true,
-    "allowJs": true
-  }
+    "allowJs": true,
+    "jsx": "react"
+  },
+  "include": [
+    "jsapp/**/*.ts",
+    "jsapp/**/*.tsx"
+  ]
 }

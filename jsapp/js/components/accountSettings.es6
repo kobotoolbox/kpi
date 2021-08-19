@@ -6,7 +6,7 @@ import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-autosize-textarea';
 import alertify from 'alertifyjs';
 import {actions} from '../actions';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from '../stores';
 import Select from 'react-select';
