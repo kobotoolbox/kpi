@@ -67,6 +67,9 @@ export default class AnonymousExports extends React.Component {
   onSubmit() {
     if (this.state.exportUrl) {
       // we remember the current type download to not make multiple calls
+      // TODO: try storing all the created export urls (for some amount of
+      // time?) so that whenever user switches between types, in each clicking
+      // "Export" button, we don't make unnecessary calls.
       this.downloadUrl(this.state.exportUrl);
     } else {
       this.setState({isPending: true});
