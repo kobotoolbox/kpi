@@ -104,7 +104,7 @@ $s-service-row-z-link: 10;
   padding: 0;
   width: $s-service-row-action-button;
   height: $s-service-row-action-button;
-  font-size: $s-service-row-action-button;
+  font-size: $s-service-row-action-button * 2/3;
   color: inherit;
   cursor: pointer;
   background: transparent;
