@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import {actions} from '../actions';
-import {bem} from '../bem';
+import bem from '../bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from '../stores';
 import TextBox from 'js/components/common/textBox';

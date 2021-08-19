@@ -6,7 +6,7 @@ import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
 import mixins from 'js/mixins';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {stores} from 'js/stores';
 import {validFileTypes} from 'utils';
 import {redirectToLogin} from 'js/router/routerUtils';

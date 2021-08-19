@@ -1,6 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from './bem';
+import bem from './bem';
 
 /**
  * NOTE: this is depracated, please try not to use it

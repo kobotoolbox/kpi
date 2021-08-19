@@ -6,7 +6,7 @@ import { hashHistory } from 'react-router';
 import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
 import Reflux from 'reflux';
-import {bem} from '../bem';
+import bem from '../bem';
 import {actions} from '../actions';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';

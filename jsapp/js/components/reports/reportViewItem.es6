@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
 import ReportTable from './reportTable';
 
