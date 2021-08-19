@@ -2,7 +2,7 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import Radio from 'js/components/common/radio';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import Modal from 'js/components/common/modal';
 import {assign} from 'utils';
 import ChartTypePicker from './chartTypePicker';

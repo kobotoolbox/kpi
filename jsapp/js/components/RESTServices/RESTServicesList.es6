@@ -5,7 +5,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
 import {actions} from '../../actions';
-import {bem} from '../../bem';
+import bem from '../../bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {MODAL_TYPES} from '../../constants';
 import envStore from 'js/envStore';

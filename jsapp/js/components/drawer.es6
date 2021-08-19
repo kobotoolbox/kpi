@@ -5,7 +5,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import { Link, hashHistory } from 'react-router';
 import {stores} from '../stores';
-import {bem} from '../bem';
+import bem from '../bem';
 import {searches} from '../searches';
 import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';

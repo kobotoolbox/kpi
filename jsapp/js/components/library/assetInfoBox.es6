@@ -2,7 +2,7 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
 import assetUtils from 'js/assetUtils';
