@@ -5,7 +5,7 @@ import reactMixin from 'react-mixin';
 import enketoHandler from 'js/enketoHandler';
 import Checkbox from 'js/components/common/checkbox';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
 import mixins from 'js/mixins';
@@ -667,12 +667,19 @@ export class DataTable extends React.Component {
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
-              var mediaAttachment = this.getMediaAttachment(row, row.value);
+              let mediaAttachment = null;
+
+              if (q.type !== QUESTION_TYPES.text.id) {
+                mediaAttachment = this.getMediaAttachment(row, row.value);
+              }
+
               return (
                 <MediaCell
                   questionType={q.type}
                   mediaAttachment={mediaAttachment}
                   mediaName={row.value}
+                  submissionIndex={row.index + 1}
+                  submissionTotal={this.state.submissions.length}
                 />
               );
             }

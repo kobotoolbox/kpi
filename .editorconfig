@@ -1,7 +1,7 @@
 root = true
 
 # only apply to frontend files
-[*.{es6,js,coffee,scss,css,html}]
+[*.{es6,js,jsx,ts,tsx,coffee,scss,css,html}]
 charset = utf-8
 end_of_line = lf
 indent_size = 2

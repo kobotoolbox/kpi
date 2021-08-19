@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {stores} from '../stores';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {searches} from '../searches';
 import AssetName from 'js/components/common/assetName';
 import {

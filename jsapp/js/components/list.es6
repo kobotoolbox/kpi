@@ -5,7 +5,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import Select from 'react-select';
 import Checkbox from 'js/components/common/checkbox';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {actions} from '../actions';
 import {searches} from '../searches';
 import {stores} from '../stores';

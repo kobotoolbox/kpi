@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {
   createEnum,
   KEY_CODES,
