@@ -3,7 +3,7 @@
  */
 
 interface IEnum {
-  [val: string]: string;
+  [val: string]: string
 }
 
 /**
@@ -11,9 +11,9 @@ interface IEnum {
  * Will make sure the returned values are unique.
  */
 export function createEnum(values: string[]): IEnum {
-  const newEnum: IEnum = {};
-  new Set(values).forEach((value) => {newEnum[value] = value;});
-  return Object.freeze(newEnum);
+  const newEnum: IEnum = {}
+  new Set(values).forEach((value) => {newEnum[value] = value})
+  return Object.freeze(newEnum)
 }
 
 export const ROOT_URL = (() => {
