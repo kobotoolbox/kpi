@@ -29,7 +29,8 @@ export function getFormDataTabs(assetUid) {
     },
     {
       label: t('Downloads'),
-      icon: 'k-icon-download', path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
+      icon: 'k-icon k-icon-download',
+      path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
     },
     {
       label: t('Map'),
