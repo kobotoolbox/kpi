@@ -4,26 +4,28 @@ import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 
-bem.SingleProcessingView = bem.create('single-processing-view', 'section');
-bem.SingleProcessingView__header = bem.SingleProcessingView.__('header', 'header');
+bem.SingleProcessing = bem.create('single-processing-view', 'section');
+bem.SingleProcessing__top = bem.SingleProcessing.__('top', 'section');
+bem.SingleProcessing__left = bem.SingleProcessing.__('left', 'section');
+bem.SingleProcessing__right = bem.SingleProcessing.__('right', 'section');
 
 /**
  * this.props.params properties
  */
-type SingleProcessingViewProps = RouteComponentProps<{
+type SingleProcessingProps = RouteComponentProps<{
   uid: string,
   questionName: string,
   submissionId: string,
 }, {}>;
 
-type SingleProcessingViewState = {
+type SingleProcessingState = {
   isReady: boolean
   submissionData: SubmissionResponse | null
   error: string | null
 }
 
-export default class SingleProcessingView extends React.Component<SingleProcessingViewProps, SingleProcessingViewState> {
-  constructor(props: SingleProcessingViewProps) {
+export default class SingleProcessing extends React.Component<SingleProcessingProps, SingleProcessingState> {
+  constructor(props: SingleProcessingProps) {
     super(props);
     this.state = {
       isReady: false,
@@ -56,6 +58,21 @@ export default class SingleProcessingView extends React.Component<SingleProcessi
     if (!this.state.isReady) {
       return <LoadingSpinner/>;
     }
-    return 'single processing view';
+    
+    return (
+      <bem.SingleProcessing>
+        <bem.SingleProcessing__top>
+          header
+        </bem.SingleProcessing__top>
+        
+        <bem.SingleProcessing__left>
+          left
+        </bem.SingleProcessing__left>
+        
+        <bem.SingleProcessing__right>
+          right
+        </bem.SingleProcessing__right>
+      </bem.SingleProcessing>
+    )
   }
 }
