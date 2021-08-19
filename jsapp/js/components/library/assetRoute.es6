@@ -5,7 +5,7 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';

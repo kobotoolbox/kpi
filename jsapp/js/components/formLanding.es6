@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import assetUtils from 'js/assetUtils';
-import {bem} from '../bem';
+import bem from '../bem';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import PopoverMenu from 'js/popoverMenu';
