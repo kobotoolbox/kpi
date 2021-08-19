@@ -11,7 +11,7 @@ import {
   QUESTION_TYPES,
   FUSE_OPTIONS,
 } from 'js/constants';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
 import envStore from 'js/envStore';
