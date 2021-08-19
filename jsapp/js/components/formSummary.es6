@@ -18,8 +18,12 @@ import {
   formatTime,
   formatDate,
   stringToColor,
+  getUsernameFromUrl,
 } from 'utils';
-import {MODAL_TYPES} from 'js/constants';
+import {
+  MODAL_TYPES,
+  ANON_USERNAME,
+} from 'js/constants';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -282,15 +286,23 @@ class FormSummary extends React.Component {
       assetid: this.state.uid
     });
   }
+
   renderTeam() {
-    var team = [];
-    this.state.permissions.forEach(function(p){
-      if (p.user__username && !team.includes(p.user__username) && p.user__username != 'AnonymousUser')
-        team.push(p.user__username);
+    const team = [];
+    this.state.permissions.forEach((perm) => {
+      let username = null;
+      if (perm.user) {
+        username = getUsernameFromUrl(perm.user);
+      }
+
+      if (username && !team.includes(username) && username !== ANON_USERNAME) {
+        team.push(username);
+      }
     });
 
-    if (team.length < 2)
+    if (team.length < 2) {
       return false;
+    }
 
     return (
       <bem.FormView__row m='team'>
