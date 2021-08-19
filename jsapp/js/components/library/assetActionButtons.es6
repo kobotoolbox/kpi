@@ -16,7 +16,7 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import _ from 'lodash';
 import PopoverMenu from 'js/popoverMenu';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {
