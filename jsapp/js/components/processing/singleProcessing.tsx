@@ -22,15 +22,21 @@ type SingleProcessingProps = RouteComponentProps<{
 type SingleProcessingState = {
   isReady: boolean
   submissionData: SubmissionResponse | null
+  asset: AssetResponse | null
   error: string | null
 }
 
+/**
+ * This route component is being loaded with PermProtectedRoute so we know that
+ * the call to backend to get asset was already made :happy_face:
+ */
 export default class SingleProcessing extends React.Component<SingleProcessingProps, SingleProcessingState> {
   constructor(props: SingleProcessingProps) {
     super(props);
     this.state = {
       isReady: false,
       submissionData: null,
+      asset: null,
       error: null,
     }
   }
