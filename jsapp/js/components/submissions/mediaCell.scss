@@ -3,17 +3,19 @@
 .media-cell {
   text-align: center;
 
-  .media-cell__icon {
-    font-size: 24px;
-    color: $kobo-blue-pale;
-    border-radius: 4px;
-    padding: 2px;
-    margin-right: 4px;
-    cursor: pointer;
+  .icon-wrapper {
+    .icon-wrapper__icon {
+      font-size: 24px;
+      color: $kobo-blue-pale;
+      border-radius: 4px;
+      padding: 2px;
+      margin-right: 4px;
+      cursor: pointer;
 
-    &:hover {
-      color: $kobo-blue;
-      background-color: $kobo-gray-92;
+      &:hover {
+        color: $kobo-blue;
+        background-color: $kobo-gray-92;
+      }
     }
   }
 
@@ -25,4 +27,6 @@
 
 .media-cell--text {
   display: flex;
+  text-align: left;
+  word-break: break-word;
 }

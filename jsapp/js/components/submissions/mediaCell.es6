@@ -16,9 +16,11 @@ bem.TableMediaPreviewHeader__label = bem.TableMediaPreviewHeader.__('label', '<l
 bem.TableMediaPreviewHeader__options = bem.TableMediaPreviewHeader.__('options', '<div>');
 
 bem.MediaCell = bem('media-cell');
-bem.MediaCell__icon = bem.MediaCell.__('icon', '<i>');
 bem.MediaCell__duration = bem.MediaCell.__('duration', '<label>');
 bem.MediaCell__text = bem.MediaCell.__('text', '<div>');
+
+bem.MediaCellIconWrapper = bem('icon-wrapper');
+bem.MediaCellIconWrapper__icon = bem.MediaCellIconWrapper.__('icon', '<i>');
 
 /**
  * Backend stored media attachment
@@ -113,17 +115,18 @@ class MediaCell extends React.Component {
             </a>
           }
 
-          <a
-            className='kobo-light-button kobo-light-button--gray'
-            // TODO: point this to submission processing modal
-            href={'#'}
-          >
-            {t('process')}
+          {/*
+            TODO: Uncomment this buttton after single processing view is done
 
-            <i className='k-icon k-icon-arrow-up'
-              //TODO: Need to add icon for top-right pointing arrow
-            />
-          </a>
+            <a
+              className='kobo-light-button kobo-light-button--gray'
+              href={'#'}
+            >
+              {t('process')}
+
+              <i className='k-icon k-icon-arrow-up-right'/>
+            </a>
+          */}
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
     );
@@ -156,19 +159,21 @@ class MediaCell extends React.Component {
 
     return (
       <bem.MediaCell m={isTextQuestion ? 'text' : ''}>
-        <bem.MediaCell__icon
-          className={iconClassNames}
-          onClick={() =>
-            this.launchMediaModal(
-              this.props.questionType,
-              iconClassNames,
-              this.props.mediaAttachment,
-              this.props.mediaName,
-              this.props.submissionIndex,
-              this.props.submissionTotal,
-            )
-          }
-        />
+        <bem.MediaCellIconWrapper>
+          <bem.MediaCellIconWrapper__icon
+            className={iconClassNames}
+            onClick={() =>
+              this.launchMediaModal(
+                this.props.questionType,
+                iconClassNames,
+                this.props.mediaAttachment,
+                this.props.mediaName,
+                this.props.submissionIndex,
+                this.props.submissionTotal,
+              )
+            }
+          />
+        </bem.MediaCellIconWrapper>
 
         {isTextQuestion &&
           // Show text as well if text question
