@@ -6,6 +6,8 @@ import {EXPORT_TYPES} from 'js/components/projectDownloads/exportsConstants';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 
 /**
+ * This is a selector that is handling the currently selected export type and
+ * is storing it in exportsStore.
  * @prop {boolean} [disabled]
  * @prop {boolean} [noLegacy] hides legacy options
  */

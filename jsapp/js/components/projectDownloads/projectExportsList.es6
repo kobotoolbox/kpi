@@ -17,6 +17,8 @@ import {
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 
 /**
+ * Component that displays all available downloads (for logged in user only).
+ *
  * @prop {object} asset
  */
 export default class ProjectExportsList extends React.Component {

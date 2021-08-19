@@ -31,6 +31,9 @@ import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelecto
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings');
 
 /**
+ * This is component responsible for creating and saving export settings. It can
+ * also request a new download from backend.
+ *
  * @prop {object} asset
  *
  * NOTE: we use a nameless export setting to keep last used export settings that

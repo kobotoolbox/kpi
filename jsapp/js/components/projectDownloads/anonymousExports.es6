@@ -12,6 +12,8 @@ import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
 
 /**
+ * A compontent that ROUTES.FORM_DOWNLOADS route is displayint for not logged in
+ * users. It allows to select an export type and download a file.
  * @prop {object} asset
  */
 export default class AnonymousExports extends React.Component {

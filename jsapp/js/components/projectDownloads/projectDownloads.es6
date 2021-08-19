@@ -10,6 +10,9 @@ import AnonymousExports from 'js/components/projectDownloads/anonymousExports';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 
 /**
+ * This is the ROUTES.FORM_DOWNLOADS route component. It will check whether the
+ * user is logged in or not and display proper child components.
+ *
  * @prop {object} asset
  */
 export default class ProjectDownloads extends React.Component {

@@ -6,6 +6,7 @@ import exportsStore from 'js/components/projectDownloads/exportsStore';
 import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
 
 /**
+ * A component for displaying the legacy exports iframe with an export type selector.
  * @prop {object} asset
  */
 export default class LegacyExports extends React.Component {
