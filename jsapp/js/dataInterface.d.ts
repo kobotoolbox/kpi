@@ -91,6 +91,23 @@ interface ExportSetting {
   }
 }
 
+interface AssetContentSettings {
+  name?: string
+  version?: string
+  id_string?: string
+  style?: string
+  form_id?: string
+  title?: string
+}
+
+interface AssetContent {
+  schema: string
+  survey: SurveyRow[]
+  settings: AssetContentSettings | AssetContentSettings[]
+  translated: string[]
+  translations: string[]
+}
+
 // NOTE: asset comes in different flavours: one with all the information and one without `content`
 interface AssetResponse {
   url: string
@@ -186,17 +203,7 @@ interface AssetResponse {
   }
   map_styles: {}
   map_custom: {}
-  content: {
-    schema: string
-    survey: SurveyRow[]
-    settings: {
-      name: string
-      version: string
-      id_string: string
-    }
-    translated: string[]
-    translations: string[]
-  }
+  content?: AssetContent
   downloads: {
     format: string
     url: string
