@@ -178,38 +178,6 @@ stores.snapshots = Reflux.createStore({
   },
 });
 
-/**
- * This store keeps only full assets (i.e. ones with `content`)
- */
-stores.asset = Reflux.createStore({
-  init() {
-    this.data = {};
-    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
-    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
-  },
-
-  onUpdateAssetCompleted(resp) {
-    this.data[resp.uid] = parsed(resp);
-    this.trigger(this.data, resp.uid, {asset_updated: true});
-  },
-
-  onLoadAssetCompleted(resp) {
-    if (!resp.uid) {
-      throw new Error('no uid found in response');
-    }
-    this.data[resp.uid] = parsed(resp);
-    this.trigger(this.data, resp.uid);
-  },
-
-  /**
-   * @param {string} assetUid
-   * @returns {object|undefined} asset
-   */
-  getAsset(assetUid) {
-    return this.data[assetUid];
-  },
-});
-
 stores.session = Reflux.createStore({
   // start up with "fake" current account
   currentAccount: {

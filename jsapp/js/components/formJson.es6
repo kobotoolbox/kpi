@@ -3,7 +3,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {actions} from 'js/actions';
-import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import bem from 'js/bem';
 
 export default class FormJson extends React.Component {
@@ -14,7 +14,7 @@ export default class FormJson extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.assetStoreTriggered);
+    this.listenTo(assetStore, this.assetStoreTriggered);
     const uid = this.props.params.assetid || this.props.params.uid;
     actions.resources.loadAsset({id: uid});
   }

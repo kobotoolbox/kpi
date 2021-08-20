@@ -26,6 +26,7 @@ import {
 import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
+import assetStore from 'js/assetStore';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -235,7 +236,7 @@ mixins.dmix = {
   },
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.dmixAssetStoreChange);
+    this.listenTo(assetStore, this.dmixAssetStoreChange);
 
     // TODO 2/2
     // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
@@ -243,7 +244,7 @@ mixins.dmix = {
     // this nice SSOT as described in TODO comment above.
     const uid = this._getAssetUid();
     if (uid && this.props.initialAssetLoadNotNeeded) {
-      this.setState(assign({}, stores.asset.data[uid]));
+      this.setState(assign({}, assetStore.data[uid]));
     } else if (uid) {
       actions.resources.loadAsset({id: uid});
     }
@@ -907,7 +908,7 @@ mixins.contextRouter = {
     return this.context.router.params.assetid || this.context.router.params.uid;
   },
   currentAsset() {
-    return stores.asset.data[this.currentAssetID()];
+    return assetStore.data[this.currentAssetID()];
   },
   isActiveRoute(path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);
