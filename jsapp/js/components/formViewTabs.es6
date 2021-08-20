@@ -11,7 +11,7 @@ import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 
-export function getFormDataTabs(assetUid, isLoggedIn) {
+export function getFormDataTabs(assetUid) {
   return [
     {
       label: t('Table'),
@@ -32,7 +32,6 @@ export function getFormDataTabs(assetUid, isLoggedIn) {
       label: t('Downloads'),
       icon: 'k-icon k-icon-download',
       path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
-      isDisabled: !isLoggedIn,
     },
     {
       label: t('Map'),
@@ -166,7 +165,7 @@ class FormViewTabs extends Reflux.Component {
       this.state.asset.has_deployment &&
       this.isActiveRoute(ROUTES.FORM_DATA.replace(':uid', this.state.assetid))
     ) {
-      sideTabs = getFormDataTabs(this.state.assetid, stores.session.isLoggedIn);
+      sideTabs = getFormDataTabs(this.state.assetid);
     }
 
     if (
@@ -247,7 +246,7 @@ class FormViewTabs extends Reflux.Component {
                 data-path={item.path}
                 onClick={this.triggerRefresh}
               >
-                <i className={item.icon} />
+                <i className={`k-icon ${item.icon}`} />
                 {item.label}
               </Link>
             );
