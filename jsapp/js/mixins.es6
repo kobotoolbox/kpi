@@ -235,7 +235,6 @@ mixins.dmix = {
   },
   componentDidMount() {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
-
     const uid = this._getAssetUid();
     if (uid) {
       actions.resources.loadAsset({id: uid});

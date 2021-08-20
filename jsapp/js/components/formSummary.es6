@@ -20,7 +20,6 @@ import {
   stringToColor,
   getUsernameFromUrl,
 } from 'utils';
-
 import {
   MODAL_TYPES,
   ANON_USERNAME,
@@ -252,7 +251,7 @@ class FormSummary extends React.Component {
     );
   }
   renderDataTabs() {
-    const sideTabs = getFormDataTabs(this.state.uid, stores.session.isLoggedIn);
+    const sideTabs = getFormDataTabs(this.state.uid);
 
     return (
       <bem.FormView__cell m='data-tabs'>
