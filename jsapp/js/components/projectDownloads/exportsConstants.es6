@@ -68,3 +68,5 @@ export const DEFAULT_EXPORT_SETTINGS = Object.freeze({
   // DEFAULT_EXPORT_SETTINGS is responsible to fill it up
   SELECTED_ROWS: new Set(),
 });
+
+export const EXPORT_REFRESH_TIME = 4000;
