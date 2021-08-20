@@ -24,7 +24,13 @@ from werkzeug.http import parse_options_header
 
 import formpack.constants
 from formpack.constants import KOBO_LOCK_SHEET
-from formpack.schema.fields import ValidationStatusCopyField
+from formpack.schema.fields import (
+    IdCopyField,
+    NotesCopyField,
+    SubmissionTimeCopyField,
+    TagsCopyField,
+    ValidationStatusCopyField,
+)
 from formpack.utils.string import ellipsize
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from kobo.apps.reports.report_data import build_formpack
@@ -430,17 +436,17 @@ class ExportTask(ImportExportTask):
     result = PrivateFileField(upload_to=export_upload_to, max_length=380)
 
     COPY_FIELDS = (
-        '_id',
+        IdCopyField,
         '_uuid',
-        '_submission_time',
+        SubmissionTimeCopyField,
         ValidationStatusCopyField,
-        '_notes',
+        NotesCopyField,
         # '_status' is always 'submitted_via_web' unless the submission was
         # made via KoBoCAT's bulk-submission-form; in that case, it's 'zip':
         # https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/logger/import_tools.py#L67
         '_status',
         '_submitted_by',
-        '_tags',
+        TagsCopyField,
     )
 
     # It's not very nice to ask our API users to submit `null` or `false`,
@@ -532,6 +538,7 @@ class ExportTask(ImportExportTask):
         translations = pack.available_translations
         lang = self.data.get('lang', None) or next(iter(translations), None)
         fields = self.data.get('fields', [])
+        xls_types = self.data.get('xls_types', False)
         force_index = True if not fields or '_index' in fields else False
         try:
             # If applicable, substitute the constants that formpack expects for
@@ -551,6 +558,7 @@ class ExportTask(ImportExportTask):
             'force_index': force_index,
             'tag_cols_for_header': tag_cols_for_header,
             'filter_fields': fields,
+            'xls_types': xls_types,
         }
 
     def _record_last_submission_time(self, submission_stream):

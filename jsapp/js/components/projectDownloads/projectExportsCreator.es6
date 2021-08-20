@@ -19,13 +19,21 @@ import {
   DEFAULT_EXPORT_SETTINGS,
   EXPORT_FORMATS,
   EXPORT_MULTIPLE_OPTIONS,
-} from './exportsConstants';
+} from 'js/components/projectDownloads/exportsConstants';
+import {
+  getContextualDefaultExportFormat,
+  getExportFormatOptions,
+} from 'js/components/projectDownloads/exportsUtils';
 import assetUtils from 'js/assetUtils';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
+import ExportTypeSelector from 'js/components/projectDownloads/exportTypeSelector';
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings');
 
 /**
+ * This is component responsible for creating and saving export settings. It can
+ * also request a new download from backend.
+ *
  * @prop {object} asset
  *
  * NOTE: we use a nameless export setting to keep last used export settings that
@@ -40,7 +48,7 @@ export default class ProjectExportsCreator extends React.Component {
       // selectedExportType is being handled by exportsStore to allow other
       // components to know it changed
       selectedExportType: exportsStore.getExportType(),
-      selectedExportFormat: this.getContextualDefaultExportFormat(),
+      selectedExportFormat: getContextualDefaultExportFormat(this.props.asset),
       groupSeparator: DEFAULT_EXPORT_SETTINGS.GROUP_SEPARATOR,
       selectedExportMultiple: DEFAULT_EXPORT_SETTINGS.EXPORT_MULTIPLE,
       isIncludeGroupsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_GROUPS,
@@ -50,6 +58,7 @@ export default class ProjectExportsCreator extends React.Component {
       customExportName: DEFAULT_EXPORT_SETTINGS.CUSTOM_EXPORT_NAME,
       isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
+      isXlsTypesEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES,
       selectedRows: new Set(),
       selectableRowsCount: 0,
       selectedDefinedExport: null,
@@ -87,7 +96,7 @@ export default class ProjectExportsCreator extends React.Component {
   setDefaultExportSettings() {
     exportsStore.setExportType(DEFAULT_EXPORT_SETTINGS.EXPORT_TYPE);
     this.setState({
-      selectedExportFormat: this.getContextualDefaultExportFormat(),
+      selectedExportFormat: getContextualDefaultExportFormat(this.props.asset),
       groupSeparator: DEFAULT_EXPORT_SETTINGS.GROUP_SEPARATOR,
       selectedExportMultiple: DEFAULT_EXPORT_SETTINGS.EXPORT_MULTIPLE,
       isIncludeGroupsEnabled: DEFAULT_EXPORT_SETTINGS.INCLUDE_GROUPS,
@@ -96,6 +105,7 @@ export default class ProjectExportsCreator extends React.Component {
       customExportName: DEFAULT_EXPORT_SETTINGS.CUSTOM_EXPORT_NAME,
       isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
+      isXlsTypesEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES,
       selectedRows: new Set(this.getAllSelectableRows()),
     });
   }
@@ -145,49 +155,6 @@ export default class ProjectExportsCreator extends React.Component {
   onDeleteExportSettingCompleted() {
     this.clearSelectedDefinedExport();
     this.fetchExportSettings();
-  }
-
-  getExportFormatOptions() {
-    const options = [];
-
-    // Step 1: add all defined languages as options (both named and unnamed)
-    if (this.props.asset.summary?.languages.length >= 1) {
-      this.props.asset.summary.languages.forEach((language, index) => {
-        // unnamed language gives the `_default` option
-        if (language === null) {
-          options.push(EXPORT_FORMATS._default);
-        } else {
-          options.push({
-            value: language,
-            label: language,
-            langIndex: index, // needed for later
-          });
-        }
-      });
-    }
-
-    // Step 2: if for some reason nothing was added yet, add `_default`
-    if (options.length === 0) {
-      options.push(EXPORT_FORMATS._default);
-    }
-
-    // Step 3: `_xml` is always available and always last
-    options.push(EXPORT_FORMATS._xml);
-
-    return options;
-  }
-
-  /**
-   * @returns one of export format options, either the asset's default language
-   * or `_default` (or more precisely: the first option)
-   */
-  getContextualDefaultExportFormat() {
-    const exportFormatOptions = this.getExportFormatOptions();
-    const defaultAssetLanguage = this.props.asset.summary?.default_translation;
-    const defaultAssetLanguageOption = exportFormatOptions.find((option) => {
-      return defaultAssetLanguage === option.value;
-    });
-    return defaultAssetLanguageOption || exportFormatOptions[0];
   }
 
   getAllSelectableRows() {
@@ -284,11 +251,6 @@ export default class ProjectExportsCreator extends React.Component {
     this.setState(newStateObj);
   }
 
-  onSelectedExportTypeChange(newValue) {
-    this.clearSelectedDefinedExport();
-    exportsStore.setExportType(newValue);
-  }
-
   onSelectedRowsChange(newRowsArray) {
     this.clearSelectedDefinedExport();
     const newSelectedRows = new Set();
@@ -321,14 +283,14 @@ export default class ProjectExportsCreator extends React.Component {
     // this silently sets exportsStore value to current one
     exportsStore.setExportType(EXPORT_TYPES[data.export_settings.type], false);
 
-    const exportFormatOptions = this.getExportFormatOptions();
-    let selectedExportFormat = exportFormatOptions.find((option) => {
-      return option.value === data.export_settings.lang;
-    });
+    const exportFormatOptions = getExportFormatOptions(this.props.asset);
+    let selectedExportFormat = exportFormatOptions.find((option) =>
+      option.value === data.export_settings.lang
+    );
 
     // If saved export lang option doesn't exist anymore select default one
     if (!selectedExportFormat) {
-      selectedExportFormat = this.getContextualDefaultExportFormat();
+      selectedExportFormat = getContextualDefaultExportFormat(this.props.asset);
     }
 
     // Select custom export toggle if not all rows are selected
@@ -350,6 +312,7 @@ export default class ProjectExportsCreator extends React.Component {
       customExportName: data.name,
       isCustomSelectionEnabled: customSelectionEnabled,
       isFlattenGeoJsonEnabled: data.export_settings.flatten,
+      isXlsTypesEnabled: data.export_settings.xls_types,
       selectedRows: new Set(data.export_settings.fields),
     };
 
@@ -389,6 +352,11 @@ export default class ProjectExportsCreator extends React.Component {
       payload.export_settings.flatten = this.state.isFlattenGeoJsonEnabled;
     }
 
+    // xls_types is only for xls
+    if (this.state.selectedExportType.value === EXPORT_TYPES.xls.value) {
+      payload.export_settings.xls_types = this.state.isXlsTypesEnabled;
+    }
+
     // if custom export is enabled, but there is no name provided
     // we generate a name for export ourselves
     if (this.state.isSaveCustomExportEnabled) {
@@ -401,9 +369,9 @@ export default class ProjectExportsCreator extends React.Component {
       payload.export_settings.fields = Array.from(this.state.selectedRows);
     }
 
-    const foundDefinedExport = this.state.definedExports.find((definedExport) => {
-      return definedExport.data.name === payload.name;
-    });
+    const foundDefinedExport = this.state.definedExports.find((definedExport) =>
+      definedExport.data.name === payload.name
+    );
 
     this.setState({isPending: true});
 
@@ -576,6 +544,16 @@ export default class ProjectExportsCreator extends React.Component {
             </bem.ProjectDownloads__columnRow>
           }
 
+          {this.state.selectedExportType.value === EXPORT_TYPES.xls.value &&
+            <bem.ProjectDownloads__columnRow>
+              <Checkbox
+                checked={this.state.isXlsTypesEnabled}
+                onChange={this.onAnyInputChange.bind(this, 'isXlsTypesEnabled')}
+                label={t('Use XLS date and number formats')}
+              />
+            </bem.ProjectDownloads__columnRow>
+          }
+
           <bem.ProjectDownloads__columnRow>
             <Checkbox
               checked={this.state.isSaveCustomExportEnabled}
@@ -646,176 +624,101 @@ export default class ProjectExportsCreator extends React.Component {
     );
   }
 
-  renderExportTypeSelector() {
-    // make xls topmost (as most popular), then with non-legacy and finish with legacy
-    const exportTypesOptions = [
-      EXPORT_TYPES.xls,
-      EXPORT_TYPES.csv,
-      EXPORT_TYPES.geojson,
-      EXPORT_TYPES.spss_labels,
-      EXPORT_TYPES.csv_legacy,
-      EXPORT_TYPES.kml_legacy,
-      EXPORT_TYPES.xls_legacy,
-      EXPORT_TYPES.zip_legacy,
-    ];
-
-    return (
-      <label>
-        <bem.ProjectDownloads__title>
-          {t('Select export type')}
-        </bem.ProjectDownloads__title>
-
-        <Select
-          value={this.state.selectedExportType}
-          options={exportTypesOptions}
-          onChange={this.onSelectedExportTypeChange}
-          className='kobo-select'
-          classNamePrefix='kobo-select'
-          menuPlacement='auto'
-          isSearchable={false}
-        />
-      </label>
-    );
-  }
-
-  renderLegacy() {
-    return (
-      <React.Fragment>
-        <bem.ProjectDownloads__selectorRow>
-          {this.renderExportTypeSelector()}
-        </bem.ProjectDownloads__selectorRow>
-
-        {this.state.selectedExportType.value !== EXPORT_TYPES.zip_legacy.value && (
-          <bem.FormView__cell m='warning'>
-            <i className='k-icon k-icon-alert' />
-            <p>{t('This export format will not be supported in the future. Please consider using one of the other export types available.')}</p>
-          </bem.FormView__cell>
-        )}
-
-        <div className='project-downloads__legacy-iframe-wrapper'>
-          <iframe src={
-            this.props.asset.deployment__data_download_links[this.state.selectedExportType.value]
-          } />
-        </div>
-      </React.Fragment>
-    );
-  }
-
-  renderNonLegacy() {
-    const exportFormatOptions = this.getExportFormatOptions();
-
-    return (
-      <React.Fragment>
-        <bem.ProjectDownloads__selectorRow>
-          {this.renderExportTypeSelector()}
-
-          <label>
-            <bem.ProjectDownloads__title>
-              {t('Value and header format')}
-            </bem.ProjectDownloads__title>
-
-            <Select
-              value={this.state.selectedExportFormat}
-              options={exportFormatOptions}
-              onChange={this.onAnyInputChange.bind(
-                this,
-                'selectedExportFormat'
-              )}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isSearchable={false}
-            />
-          </label>
-        </bem.ProjectDownloads__selectorRow>
-
-        <bem.ProjectDownloads__textButton onClick={this.toggleAdvancedView}>
-          {t('Advanced options')}
-          {this.state.isAdvancedViewVisible && (
-            <i className='k-icon k-icon-up' />
-          )}
-          {!this.state.isAdvancedViewVisible && (
-            <i className='k-icon k-icon-down' />
-          )}
-        </bem.ProjectDownloads__textButton>
-
-        <hr />
-
-        {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
-
-        <bem.ProjectDownloads__submitRow>
-          <bem.ProjectDownloads__definedExportsSelector>
-            {this.state.definedExports.length >= 1 &&
-              <React.Fragment>
-                <label>
-                  <bem.ProjectDownloads__title>
-                    {t('Apply saved export settings')}
-                  </bem.ProjectDownloads__title>
-
-                  <Select
-                    isLoading={this.state.isUpdatingDefinedExportsList}
-                    value={this.state.selectedDefinedExport}
-                    options={this.getSelectedDefinedExportOptions()}
-                    onChange={this.onSelectedDefinedExportChange}
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    menuPlacement='auto'
-                    placeholder={t('No export settings selected')}
-                  />
-                </label>
-
-                {this.state.selectedDefinedExport &&
-                  mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
-                  <bem.ProjectDownloads__deleteSettingsButton
-                    onClick={this.onDeleteExportSetting.bind(
-                      this,
-                      this.state.selectedDefinedExport.data.uid
-                    )}
-                  >
-                    <i className='k-icon k-icon-trash'/>
-                  </bem.ProjectDownloads__deleteSettingsButton>
-                }
-              </React.Fragment>
-            }
-          </bem.ProjectDownloads__definedExportsSelector>
-
-          <bem.KoboButton
-            m='blue'
-            type='submit'
-            onClick={this.onSubmit}
-            disabled={this.state.selectedRows.size === 0}
-          >
-            {t('Export')}
-          </bem.KoboButton>
-        </bem.ProjectDownloads__submitRow>
-      </React.Fragment>
-    );
-  }
-
   render() {
     let formClassNames = ['project-downloads__exports-creator'];
     if (!this.state.isComponentReady) {
       formClassNames.push('project-downloads__exports-creator--loading');
     }
 
+    const exportFormatOptions = getExportFormatOptions(this.props.asset);
+
     return (
-      <bem.FormView__row>
-        <bem.FormView__cell m={['page-title']}>
-          {t('Downloads')}
-        </bem.FormView__cell>
+      <bem.FormView__cell m={['box', 'padding']}>
+        <bem.FormView__form className={formClassNames.join(' ')}>
+          <bem.ProjectDownloads__selectorRow>
+            <ExportTypeSelector/>
 
-        <bem.FormView__cell m={['box', 'padding']}>
-          <bem.FormView__form className={formClassNames.join(' ')}>
-            {this.state.selectedExportType.isLegacy &&
-              this.renderLegacy()
-            }
+            <label>
+              <bem.ProjectDownloads__title>
+                {t('Value and header format')}
+              </bem.ProjectDownloads__title>
 
-            {!this.state.selectedExportType.isLegacy &&
-              this.renderNonLegacy()
-            }
+              <Select
+                value={this.state.selectedExportFormat}
+                options={exportFormatOptions}
+                onChange={this.onAnyInputChange.bind(
+                  this,
+                  'selectedExportFormat'
+                )}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+                isSearchable={false}
+              />
+            </label>
+          </bem.ProjectDownloads__selectorRow>
+
+          <bem.ProjectDownloads__textButton onClick={this.toggleAdvancedView}>
+            {t('Advanced options')}
+            {this.state.isAdvancedViewVisible && (
+              <i className='k-icon k-icon-up' />
+            )}
+            {!this.state.isAdvancedViewVisible && (
+              <i className='k-icon k-icon-down' />
+            )}
+          </bem.ProjectDownloads__textButton>
+
+          <hr />
+
+          {this.state.isAdvancedViewVisible && this.renderAdvancedView()}
+
+          <bem.ProjectDownloads__submitRow>
+            <bem.ProjectDownloads__exportsSelector>
+              {this.state.definedExports.length >= 1 &&
+                <React.Fragment>
+                  <label>
+                    <bem.ProjectDownloads__title>
+                      {t('Apply saved export settings')}
+                    </bem.ProjectDownloads__title>
+
+                    <Select
+                      isLoading={this.state.isUpdatingDefinedExportsList}
+                      value={this.state.selectedDefinedExport}
+                      options={this.getSelectedDefinedExportOptions()}
+                      onChange={this.onSelectedDefinedExportChange}
+                      className='kobo-select'
+                      classNamePrefix='kobo-select'
+                      menuPlacement='auto'
+                      placeholder={t('No export settings selected')}
+                    />
+                  </label>
+
+                  {this.state.selectedDefinedExport &&
+                    mixins.permissions.userCan(PERMISSIONS_CODENAMES.manage_asset, this.props.asset) &&
+                    <bem.ProjectDownloads__deleteSettingsButton
+                      onClick={this.onDeleteExportSetting.bind(
+                        this,
+                        this.state.selectedDefinedExport.data.uid
+                      )}
+                      >
+                        <i className='k-icon k-icon-trash'/>
+                      </bem.ProjectDownloads__deleteSettingsButton>
+                    }
+                  </React.Fragment>
+                }
+              </bem.ProjectDownloads__exportsSelector>
+
+              <bem.KoboButton
+                m='blue'
+                type='submit'
+                onClick={this.onSubmit}
+                disabled={this.state.selectedRows.size === 0}
+              >
+                {t('Export')}
+              </bem.KoboButton>
+            </bem.ProjectDownloads__submitRow>
           </bem.FormView__form>
-        </bem.FormView__cell>
-      </bem.FormView__row>
+      </bem.FormView__cell>
     );
   }
 }

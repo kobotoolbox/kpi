@@ -12,12 +12,13 @@ import {
   EXPORT_TYPES,
   EXPORT_FORMATS,
   EXPORT_STATUSES,
-} from './exportsConstants';
+  EXPORT_REFRESH_TIME,
+} from 'js/components/projectDownloads/exportsConstants';
 import exportsStore from 'js/components/projectDownloads/exportsStore';
 
-const EXPORT_REFRESH_TIME = 4000;
-
 /**
+ * Component that displays all available downloads (for logged in user only).
+ *
  * @prop {object} asset
  */
 export default class ProjectExportsList extends React.Component {
@@ -250,7 +251,7 @@ export default class ProjectExportsList extends React.Component {
       return null;
     } else {
       return (
-        <bem.FormView__row>
+        <React.Fragment>
           <bem.FormView__cell m={['page-subtitle']}>
             {t('Exports')}
           </bem.FormView__cell>
@@ -284,9 +285,16 @@ export default class ProjectExportsList extends React.Component {
 
             <bem.SimpleTable__body>
               {this.state.rows.map(this.renderRow)}
+              {this.state.rows.length === 0 &&
+                <bem.SimpleTable__messageRow>
+                  <bem.SimpleTable__cell colSpan='6'>
+                    {t('There is nothing to download yet.')}
+                  </bem.SimpleTable__cell>
+                </bem.SimpleTable__messageRow>
+              }
             </bem.SimpleTable__body>
           </bem.SimpleTable>
-        </bem.FormView__row>
+        </React.Fragment>
       );
     }
   }
