@@ -1,6 +1,7 @@
 import React from 'react';
 import {RouteComponentProps} from 'react-router';
 import {actions} from 'js/actions';
+import assetStore from 'js/assetStore';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import './singleProcessing.scss';
@@ -22,7 +23,7 @@ type SingleProcessingProps = RouteComponentProps<{
 type SingleProcessingState = {
   isReady: boolean
   submissionData: SubmissionResponse | null
-  asset: AssetResponse | null
+  asset: AssetResponse | undefined
   error: string | null
 }
 
@@ -36,7 +37,7 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     this.state = {
       isReady: false,
       submissionData: null,
-      asset: null,
+      asset: assetStore.getAsset(this.props.params.uid),
       error: null,
     }
   }
