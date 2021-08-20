@@ -5,6 +5,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import mixins from 'js/mixins';
 import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -33,7 +34,7 @@ class SharingForm extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetChange);
+    this.listenTo(assetStore, this.onAssetChange);
     this.listenTo(stores.allAssets, this.onAllAssetsChange);
     this.listenTo(actions.permissions.bulkSetAssetPermissions.completed, this.onAssetPermissionsUpdated);
     this.listenTo(actions.permissions.getAssetPermissions.completed, this.onAssetPermissionsUpdated);

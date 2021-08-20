@@ -5,6 +5,7 @@ import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
 import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
+import assetStore from 'js/assetStore';
 import Reflux from 'reflux';
 import bem from 'js/bem';
 import {actions} from '../actions';
@@ -53,7 +54,7 @@ class MainHeader extends Reflux.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      stores.asset.listen(this.onAssetLoad),
+      assetStore.listen(this.onAssetLoad),
       myLibraryStore.listen(this.forceRender)
     );
   }

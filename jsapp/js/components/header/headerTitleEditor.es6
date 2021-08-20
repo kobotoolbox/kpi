@@ -4,7 +4,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
 import bem from 'js/bem';
-import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import {removeInvalidChars, getAssetDisplayName} from 'js/assetUtils';
 import {
@@ -29,7 +29,7 @@ class HeaderTitleEditor extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetLoad);
+    this.listenTo(assetStore, this.onAssetLoad);
   }
 
   onAssetLoad() {

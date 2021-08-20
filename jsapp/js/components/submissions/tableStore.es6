@@ -1,6 +1,6 @@
 import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
-import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import mixins from 'js/mixins';
 import {actions} from 'js/actions';
 import {getRouteAssetUid} from 'js/routerUtils';
@@ -139,7 +139,7 @@ const tableStore = Reflux.createStore({
    * A shortcut method, to be deleted in future.
    */
   getCurrentAsset() {
-    return stores.asset.getAsset(getRouteAssetUid());
+    return assetStore.getAsset(getRouteAssetUid());
   },
 
   /**
