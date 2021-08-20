@@ -74,6 +74,11 @@
     .k-icon {
       font-size: 14px;
     }
+
+    &.kobo-button--pending .k-icon.k-icon-spinner.k-spin {
+      top: calc(50% - 11px);
+      left: calc(50% - 6px);
+    }
   }
 
   &.kobo-button--fullwidth {
@@ -107,6 +112,26 @@
 
     &[disabled] {
       color: rgba($kobo-gray-24, 0.75);
+    }
+
+    &.kobo-button--pending .k-icon.k-icon-spinner.k-spin {
+      color: $kobo-gray-24;
+    }
+  }
+
+  // NOTE: this requires `<i className='k-spin k-icon k-icon-spinner'/>` to be
+  // put inside the button
+  &.kobo-button--pending {
+    // hide button text
+    color: transparent;
+    position: relative;
+
+    .k-icon.k-icon-spinner.k-spin {
+      color: $kobo-white;
+      display: block;
+      position: absolute;
+      top: calc(50% - 15px);
+      left: calc(50% - 8px);
     }
   }
 }
