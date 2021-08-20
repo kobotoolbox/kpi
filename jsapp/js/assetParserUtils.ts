@@ -1,4 +1,4 @@
-import {assign} from 'utils';
+import {assign} from 'js/utils';
 
 interface ParsedTags {
   tags: string[]
