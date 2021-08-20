@@ -181,7 +181,7 @@
     align-content: flex-end;
     margin-top: 20px;
 
-    .project-downloads__defined-exports-selector {
+    .project-downloads__exports-selector {
       width: 33%;
       position: relative;
     }
@@ -214,6 +214,17 @@
     }
   }
 
+  .project-downloads__anonymous-row {
+    display: flex;
+    align-items: flex-end;
+    align-content: flex-end;
+
+    .project-downloads__exports-selector {
+      width: 33%;
+      margin-right: 20px;
+    }
+  }
+
   .form-view__cell.form-view__cell--warning {
     margin-bottom: 20px;
   }
@@ -235,7 +246,8 @@
   }
 
   .simple-table.simple-table--project-exports {
-    .simple-table__cell {
+    // __row selector to not include __message-row
+    .simple-table__row .simple-table__cell {
       &:last-child() {
         text-align: right;
       }
