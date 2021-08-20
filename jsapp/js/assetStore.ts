@@ -2,10 +2,14 @@ import Reflux from 'reflux';
 import {parsed} from './assetParserUtils';
 import {actions} from './actions';
 
+interface AssetStore extends Reflux.Store {
+  getAsset: (assetUid: string) => AssetResponse | undefined
+}
+
 /**
  * This store keeps only full assets (i.e. ones with `content`)
  */
-const assetStore = Reflux.createStore({
+const assetStore = <AssetStore>Reflux.createStore({
   init() {
     this.data = {};
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
