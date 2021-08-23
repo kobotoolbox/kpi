@@ -42,11 +42,7 @@ export function getAssetOwnerDisplayName(username: string) {
   }
 }
 
-/**
- * @param {Object} asset - BE asset data
- * @returns {string}
- */
-export function getOrganizationDisplayString(asset) {
+export function getOrganizationDisplayString(asset: AssetResponse) {
   if (asset.settings.organization) {
     return asset.settings.organization;
   } else {
@@ -55,14 +51,16 @@ export function getOrganizationDisplayString(asset) {
 }
 
 /**
- * @param {Object} asset - BE asset data
- * @param {string} langString - language string (the de facto "id")
- * @returns {number|null} the index of language or null if not found
+ * Note: `langString` is language string (the de facto "id").
+ * Returns the index of language or null if not found.
  */
-export function getLanguageIndex(asset, langString) {
+export function getLanguageIndex(asset: AssetResponse, langString: string) {
   let foundIndex = null;
 
-  if (asset.summary?.languages?.length >= 1) {
+  if (
+    Array.isArray(asset.summary?.languages) &&
+    asset.summary?.languages.length >= 1
+  ) {
     asset.summary.languages.forEach((language, index) => {
       if (language === langString) {
         foundIndex = index;
@@ -77,7 +75,7 @@ export function getLanguageIndex(asset, langString) {
  * @param {Object} asset - BE asset data
  * @returns {string}
  */
-export function getLanguagesDisplayString(asset) {
+export function getLanguagesDisplayString(asset: AssetResponse) {
   if (
     asset.summary &&
     asset.summary.languages &&
@@ -93,7 +91,7 @@ export function getLanguagesDisplayString(asset) {
  * @param {Object} asset - BE asset data
  * @returns {string}
  */
-export function getSectorDisplayString(asset) {
+export function getSectorDisplayString(asset: AssetResponse) {
   if (asset.settings.sector) {
     return asset.settings.sector.label;
   } else {
@@ -127,7 +125,7 @@ export function getCountryDisplayString(asset, showLongName = false) {
  * @param {Object} asset - BE asset data
  * @returns {DisplayNameObj} object containing final name and all useful data.
  */
-export function getAssetDisplayName(asset) {
+export function getAssetDisplayName(asset: AssetResponse) {
   const output = {};
   if (asset.name) {
     output.original = asset.name;
@@ -181,7 +179,7 @@ export function isLibraryAsset(assetType) {
  * @param {Object} asset - BE asset data
  * @returns {string} Contians two class names: Base `k-icon` class name and respective CSS class name
  */
-export function getAssetIcon(asset) {
+export function getAssetIcon(asset: AssetResponse) {
   switch (asset.asset_type) {
     case ASSET_TYPES.template.id:
       if (asset.summary?.lock_any) {
@@ -222,7 +220,7 @@ export function getAssetIcon(asset) {
  * Opens a modal for editing asset details.
  * @param {Object} asset - BE asset data
  */
-export function modifyDetails(asset) {
+export function modifyDetails(asset: AssetResponse) {
   let modalType;
   if (asset.asset_type === ASSET_TYPES.template.id) {
     modalType = MODAL_TYPES.LIBRARY_TEMPLATE;
@@ -239,7 +237,7 @@ export function modifyDetails(asset) {
  * Opens a modal for sharing asset.
  * @param {Object} asset - BE asset data
  */
-export function share(asset) {
+export function share(asset: AssetResponse) {
   stores.pageState.showModal({
     type: MODAL_TYPES.SHARING,
     assetid: asset.uid,
@@ -250,7 +248,7 @@ export function share(asset) {
  * Opens a modal for modifying asset languages and translation strings.
  * @param {Object} asset - BE asset data
  */
-export function editLanguages(asset) {
+export function editLanguages(asset: AssetResponse) {
   stores.pageState.showModal({
     type: MODAL_TYPES.FORM_LANGUAGES,
     asset: asset,
@@ -261,7 +259,7 @@ export function editLanguages(asset) {
  * Opens a modal for modifying asset tags (also editable in Details Modal).
  * @param {Object} asset - BE asset data
  */
-export function editTags(asset) {
+export function editTags(asset: AssetResponse) {
   stores.pageState.showModal({
     type: MODAL_TYPES.ASSET_TAGS,
     asset: asset,
@@ -272,7 +270,7 @@ export function editTags(asset) {
  * Opens a modal for replacing an asset using a file.
  * @param {Object} asset - BE asset data
  */
-export function replaceForm(asset) {
+export function replaceForm(asset: AssetResponse) {
   stores.pageState.showModal({
     type: MODAL_TYPES.REPLACE_PROJECT,
     asset: asset,
@@ -485,7 +483,7 @@ export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta =
  *
  * @returns {string[]} array of errors (empty array means no errors)
  */
-export function isAssetPublicReady(asset) {
+export function isAssetPublicReady(asset: AssetResponse) {
   const errors = [];
 
   if (asset.asset_type === ASSET_TYPES.collection.id) {
@@ -527,7 +525,7 @@ export function isAssetPublic(permissions) {
  * @param {Object} asset - BE asset data
  * @return {boolean}
  */
-export function isSelfOwned(asset) {
+export function isSelfOwned(asset: AssetResponse) {
   return (
     asset &&
     stores.session.currentAccount &&
