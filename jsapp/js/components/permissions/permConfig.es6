@@ -16,45 +16,45 @@ import Reflux from 'reflux';
  * otherwise expect `verifyReady` to throw
  */
 const permConfig = Reflux.createStore({
-  init() {
-    this.permissions = [];
-  },
+  permissions: [],
 
+  /**
+   * @param {PermDefinition[]} permissions
+   */
   setPermissions(permissions) {
     this.permissions = permissions;
   },
 
   /**
-   * @param {string} permCodename
-   * @returns {PermDefinition}
+   * @param {string} wantedCodename
+   * @returns {PermDefinition|undefined}
    */
-  getPermissionByCodename(permCodename) {
+  getPermissionByCodename(wantedCodename) {
     this.verifyReady();
-    const foundPerm = this.permissions.find((permission) => {
-      return permission.codename === permCodename;
-    });
-    return foundPerm;
+    return this.permissions.find((perm) => perm.codename === wantedCodename);
   },
 
   /**
-   * @param {string} permUrl
-   * @returns {PermDefinition}
+   * @param {string} wantedUrl
+   * @returns {PermDefinition|undefined}
    */
-  getPermission(permUrl) {
+  getPermission(wantedUrl) {
     this.verifyReady();
-    const foundPerm = this.permissions.find((permission) => {
-      return permission.url === permUrl;
-    });
-    return foundPerm;
+    return this.permissions.find((perm) => perm.url === wantedUrl);
   },
 
   /**
-   * Throws if trying to use permConfig before it fetches data from BE.
+   * Throws if trying to use permConfig before it fetches data from BE or if
+   * data given by `setPermissions` is not an array.
    */
   verifyReady() {
-    if (this.permissions.length === 0) {
+    if (!this.isReady()) {
       throw new Error(t('Permission config is not ready or failed to initialize!'));
     }
+  },
+
+  isReady() {
+    return Array.isArray(this.permissions) && this.permissions.length !== 0;
   },
 });
 
