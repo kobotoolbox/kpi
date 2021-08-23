@@ -16,8 +16,8 @@ import CopyToClipboard from 'react-copy-to-clipboard';
 import {
   MODAL_TYPES,
   COLLECTION_METHODS,
-  ROUTES,
 } from '../constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {
   formatTime,
   notify
@@ -491,7 +491,7 @@ export class FormLanding extends React.Component {
             </bem.PopoverMenu__link>
           }
 
-          {!assetUtils.isSelfOwned(this.state) &&
+          {isLoggedIn && !assetUtils.isSelfOwned(this.state) &&
             <bem.PopoverMenu__link
               onClick={this.nonOwnerSelfRemoval}
             >

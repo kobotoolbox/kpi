@@ -2,6 +2,9 @@ import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import {DEFAULT_EXPORT_SETTINGS} from './exportsConstants';
 
+/**
+ * It handles the selected export type.
+ */
 const exportsStore = Reflux.createStore({
   previousPath: hashHistory.getCurrentLocation().pathname,
   data: {

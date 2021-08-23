@@ -22,8 +22,8 @@ import {
   ASSET_TYPES,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
-  ROUTES,
 } from './constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
 import {actions} from './actions';
@@ -235,7 +235,6 @@ mixins.dmix = {
   },
   componentDidMount() {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
-
     const uid = this._getAssetUid();
     if (uid) {
       actions.resources.loadAsset({id: uid});
