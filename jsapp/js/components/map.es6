@@ -12,7 +12,8 @@ import Modal from 'js/components/common/modal';
 import classNames from 'classnames';
 import omnivore from '@mapbox/leaflet-omnivore';
 import JSZip from 'jszip';
-
+import './map.scss';
+import './map.marker-colors.scss';
 import L from 'leaflet/dist/leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat/dist/leaflet-heat';
