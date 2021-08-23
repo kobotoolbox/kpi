@@ -139,7 +139,6 @@ class LibraryUploadForm extends React.Component {
             type='submit'
             onClick={this.onSubmit}
             disabled={!this.isSubmitEnabled()}
-            className='mdl-js-button'
           >
             {t('Upload')}
           </bem.KoboButton>
