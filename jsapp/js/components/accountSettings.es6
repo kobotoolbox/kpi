@@ -15,7 +15,7 @@ import Checkbox from 'js/components/common/checkbox';
 import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
 import {stringToColor} from 'utils';
-import {ROUTES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import envStore from 'js/envStore';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');

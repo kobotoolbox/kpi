@@ -3,25 +3,23 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {searches} from '../searches';
-import mixins from '../mixins';
-import {stores} from '../stores';
-import {dataInterface} from '../dataInterface';
+import {searches} from 'js/searches';
+import mixins from 'js/mixins';
+import {stores} from 'js/stores';
+import {dataInterface} from 'js/dataInterface';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AssetRow from './assetrow';
 import DocumentTitle from 'react-document-title';
 import Dropzone from 'react-dropzone';
-import {
-  getLoginUrl,
-  validFileTypes
-} from 'utils';
+import {validFileTypes} from 'utils';
+import {redirectToLogin} from 'js/router/routerUtils';
 import {
   ASSET_TYPES,
   COMMON_QUERIES,
   ACCESS_TYPES,
-  DEPLOYMENT_CATEGORIES
-} from '../constants';
+  DEPLOYMENT_CATEGORIES,
+} from 'js/constants';
 
 class SearchCollectionList extends Reflux.Component {
   constructor(props) {
@@ -29,7 +27,7 @@ class SearchCollectionList extends Reflux.Component {
     this.state = {
       ownedCollections: [],
       fixedHeadings: '',
-      fixedHeadingsWidth: 'auto'
+      fixedHeadingsWidth: 'auto',
     };
     this.store = stores.selectedAsset;
     this.unlisteners = [];
@@ -198,7 +196,7 @@ class SearchCollectionList extends Reflux.Component {
 
   render() {
     if (!stores.session.isLoggedIn && stores.session.isAuthStateKnown) {
-      window.location.replace(getLoginUrl());
+      redirectToLogin();
       return null;
     }
 
