@@ -111,6 +111,10 @@ $s-service-row-z-link: 10;
   display: inline-block;
   vertical-align: top;
 
+  i.k-icon {
+    font-size: 26px;
+  }
+
   &[disabled] {
     opacity: 0.5;
     pointer-events: none;
