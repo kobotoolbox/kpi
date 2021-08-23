@@ -283,7 +283,6 @@ export class LibraryAssetForm extends React.Component {
             type='submit'
             onClick={this.onSubmit}
             disabled={!this.isSubmitEnabled()}
-            className='mdl-js-button'
           >
             {this.getSubmitButtonLabel()}
           </bem.KoboButton>
