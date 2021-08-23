@@ -116,6 +116,42 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
+    def test_import_duplicate_names(self):
+        survey_questions = [
+            ['type', 'name', 'label'],
+            ['text', 'fruit', 'Favourite Fruit'],
+            ['text', 'fruit', 'Least Favourite Fruit'],
+        ]
+
+        survey_settings = []
+        workbook_import = xlwt.Workbook()
+        for sheet_name, sheet_content in (
+            ('survey', survey_questions),
+            ('settings', survey_settings),
+        ):
+            worksheet = workbook_import.add_sheet(sheet_name)
+            for row_num, row_list in enumerate(sheet_content):
+                for col_num, cell_value in enumerate(row_list):
+                    if cell_value is not None:
+                        worksheet.write(row_num, col_num, cell_value)
+        xls_import_io = BytesIO()
+        workbook_import.save(xls_import_io)
+        xls_import_io.seek(0)
+
+        encoded_xls = base64.b64encode(xls_import_io.read())
+        task_data = {
+            'base64Encoded': f'base64:{to_str(encoded_xls)}',
+            'name': 'Duplicate Survey Question',
+        }
+        post_url = reverse('api_v2:importtask-list')
+        response = self.client.post(post_url, task_data)
+        assert response.status_code == status.HTTP_201_CREATED
+        detail_response = self.client.get(response.data['url'])
+        print(detail_response.data['messages'])
+        # assert detail_response.status_code == status.HTTP_500
+        assert detail_response.data['messages'].get('error') == "Duplicate Name Error"
+        assert detail_response.data['messages'].get('error_type') == ValueError
+
     def test_import_locking_xls_as_survey(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo--locking-profile'],
