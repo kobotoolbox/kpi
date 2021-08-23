@@ -11,18 +11,19 @@ interface FailResponse {
 interface SurveyRow {
   $autoname: string
   $kuid: string
-  calculation: string
-  label: string[]
+  calculation?: string
+  label?: string[]
   hint?: string[]
-  name: string
-  required: boolean
+  name?: string
+  required?: boolean
   type: string
   _isRepeat?: boolean
   appearance?: string
-  "kobo--matrix_list"?: string
-  "kobo--rank-constraint-message"?: string
-  "kobo--rank-items"?: string
-  "kobo--score-choices"?: string
+  parameters?: string
+  'kobo--matrix_list'?: string
+  'kobo--rank-constraint-message'?: string
+  'kobo--rank-items'?: string
+  'kobo--score-choices'?: string
 }
 
 interface AssignablePermission {
@@ -74,11 +75,19 @@ interface AssetContentSettings {
 }
 
 interface AssetContent {
-  schema: string
-  survey: SurveyRow[]
-  settings: AssetContentSettings | AssetContentSettings[]
-  translated: string[]
-  translations: string[]
+  schema?: string
+  survey?: SurveyRow[]
+  settings?: AssetContentSettings | AssetContentSettings[]
+  translated?: string[]
+  translations?: Array<string|null>
+}
+
+interface AssetReportStylesSpecified {
+  [name: string]: {}
+}
+
+interface AssetReportStylesKuidNames {
+  [name: string]: {}
 }
 
 // NOTE: asset comes in different flavours: one with all the information and one without `content`
@@ -88,31 +97,42 @@ interface AssetResponse {
   owner__username: string
   parent: string | null
   settings: {
-    "data-table"?: {
-      "frozen-column"?: string
-      "show-hxl-tags"?: boolean
-      "show-group-name"?: boolean
-      "translation-index"?: number
+    sector?: {
+      label: string
+      value: string
     }
+    country?: {
+      label: string
+      value: string
+    }
+    description?: string
+    'share-metadata'?: boolean
+    'data-table'?: {
+      'frozen-column'?: string
+      'show-hxl-tags'?: boolean
+      'show-group-name'?: boolean
+      'translation-index'?: number
+    }
+    organization?: string
   }
   asset_type: string
   date_created: string
   summary: {
-    geo: boolean
-    labels: string[]
-    columns: string[]
-    lock_all: boolean
-    lock_any: boolean
-    languages: string[]
-    row_count: number
-    default_translation: string
+    geo?: boolean
+    labels?: string[]
+    columns?: string[]
+    lock_all?: boolean
+    lock_any?: boolean
+    languages?: Array<string|null>
+    row_count?: number
+    default_translation?: string|null
   }
   date_modified: string
-  version_id: string
-  version__content_hash: string
+  version_id: string|null
+  version__content_hash: string|null
   version_count: number
   has_deployment: boolean
-  deployed_version_id: string
+  deployed_version_id: string|null
   deployed_versions: {
     count: number
     next: null | string
@@ -125,41 +145,31 @@ interface AssetResponse {
       date_modified: string
     }[]
   }
-  deployment__identifier: string
+  deployment__identifier: string|null
   deployment__links: {
-    url: string
-    single_url: string
-    single_once_url: string
-    offline_url: string
-    preview_url: string
-    iframe_url: string
-    single_iframe_url: string
-    single_once_iframe_url: string
+    url?: string
+    single_url?: string
+    single_once_url?: string
+    offline_url?: string
+    preview_url?: string
+    iframe_url?: string
+    single_iframe_url?: string
+    single_once_iframe_url?: string
   }
   deployment__active: boolean
   deployment__data_download_links: {
-    xls_legacy: string
-    csv_legacy: string
-    zip_legacy: string
-    kml_legacy: string
-    xls: string
-    csv: string
+    xls_legacy?: string
+    csv_legacy?: string
+    zip_legacy?: string
+    kml_legacy?: string
+    xls?: string
+    csv?: string
   }
   deployment__submission_count: number
   report_styles: {
-    default: {}
-    specified: {
-      end: {}
-      start: {}
-      Your_name: {}
-      __version__: {}
-    }
-    kuid_names: {
-      end: string
-      start: string
-      Your_name: string
-      __version__: string
-    }
+    default?: {}
+    specified?: AssetReportStylesSpecified
+    kuid_names?: AssetReportStylesKuidNames
   }
   report_custom: {
     [reportName: string]: {
