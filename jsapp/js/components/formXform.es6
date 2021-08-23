@@ -1,6 +1,6 @@
 import React from 'react';
 import {dataInterface} from 'js/dataInterface';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 
 export default class FormXform extends React.Component {
   constructor(props) {

@@ -23,6 +23,7 @@ import {
   MODAL_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
+import './formSummary.scss';
 
 class FormSummary extends React.Component {
   constructor(props) {

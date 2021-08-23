@@ -3,6 +3,7 @@ import autoBind from 'react-autobind';
 import DocumentTitle from 'react-document-title';
 import RESTServicesList from './RESTServices/RESTServicesList';
 import RESTServiceLogs from './RESTServices/RESTServiceLogs';
+import './RESTServices.scss';
 
 export default class RESTServices extends React.Component {
   constructor(props){
