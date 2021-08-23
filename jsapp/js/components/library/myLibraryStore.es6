@@ -9,13 +9,13 @@ import assetUtils from 'js/assetUtils';
 import {
   getCurrentPath,
   isAnyLibraryRoute,
-} from 'js/routerUtils';
+} from 'js/router/routerUtils';
 import {actions} from 'js/actions';
 import {
   ORDER_DIRECTIONS,
   ASSETS_TABLE_COLUMNS
 } from './libraryConstants';
-import {ROUTES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 
 const myLibraryStore = Reflux.createStore({
   /**

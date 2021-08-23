@@ -9,7 +9,25 @@
  */
 
 import {hashHistory} from 'react-router';
-import {ROUTES} from 'js/constants';
+import {
+  ROUTES,
+  PATHS,
+} from 'js/router/routerConstants';
+
+export function redirectToLogin() {
+  window.location.replace(getLoginUrl());
+}
+
+export function getLoginUrl() {
+  let url = PATHS.LOGIN;
+  const currentLoc = hashHistory.getCurrentLocation();
+  if (currentLoc?.pathname) {
+    const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
+    // add redirection after logging in to current page
+    url += `?next=${nextUrl}`;
+  }
+  return url;
+}
 
 export function getCurrentPath(): string {
   return hashHistory.getCurrentLocation().pathname;

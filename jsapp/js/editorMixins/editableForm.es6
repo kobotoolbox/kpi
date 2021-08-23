@@ -18,9 +18,9 @@ import {
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
   NAME_MAX_LENGTH,
-  ROUTES,
   META_QUESTION_TYPES,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import Modal from 'js/components/common/modal';
