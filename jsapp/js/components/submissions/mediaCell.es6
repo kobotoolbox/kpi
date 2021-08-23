@@ -47,7 +47,34 @@ class MediaCell extends React.Component {
     super(props);
     autoBind(this);
 
-    this.questionIcon = null;
+    this.questionIcon = this.getQuestionIcon();
+  }
+
+  getQuestionIcon() {
+    const iconClassNames = ['k-icon'];
+
+    // Different from renderQuestionTypeIcon as we need custom `title` and
+    // event handling
+    switch (this.props.questionType) {
+      case QUESTION_TYPES.image.id:
+        iconClassNames.push('k-icon-qt-photo');
+        break;
+      case QUESTION_TYPES.audio.id:
+      case META_QUESTION_TYPES['background-audio']:
+        iconClassNames.push('k-icon-qt-audio');
+        break;
+      case QUESTION_TYPES.video.id:
+        iconClassNames.push('k-icon-qt-video');
+        break;
+      case QUESTION_TYPES.text.id:
+        iconClassNames.push('k-icon-question');
+        break;
+      default:
+        iconClassNames.push('k-icon-media-files');
+        break;
+    }
+
+    return iconClassNames;
   }
 
   launchMediaModal(evt) {
@@ -130,37 +157,13 @@ class MediaCell extends React.Component {
   }
 
   render() {
-    const iconClassNames = ['k-icon'];
     const isTextQuestion = !this.props.mediaAttachment;
-
-    // Different from renderQuestionTypeIcon as we need custom `title` and
-    // event handling
-    switch (this.props.questionType) {
-      case QUESTION_TYPES.image.id:
-        iconClassNames.push('k-icon-qt-photo');
-        break;
-      case QUESTION_TYPES.audio.id:
-      case META_QUESTION_TYPES['background-audio']:
-        iconClassNames.push('k-icon-qt-audio');
-        break;
-      case QUESTION_TYPES.video.id:
-        iconClassNames.push('k-icon-qt-video');
-        break;
-      case QUESTION_TYPES.text.id:
-        iconClassNames.push('k-icon-question');
-        break;
-      default:
-        iconClassNames.push('k-icon-media-files');
-        break;
-    }
-
-    this.questionIcon = iconClassNames;
 
     return (
       <bem.MediaCell m={isTextQuestion ? 'text' : ''}>
         <bem.MediaCellIconWrapper>
           <bem.MediaCellIconWrapper__icon
-            className={iconClassNames}
+            className={this.questionIcon}
             onClick={this.launchMediaModal.bind(this)}
           />
         </bem.MediaCellIconWrapper>
