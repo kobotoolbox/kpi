@@ -680,6 +680,7 @@ class Asset(ObjectPermissionMixin,
         update_fields=None,
         adjust_content=True,
         create_version=True,
+        fail_duplicate_names=False,
         update_parent_languages=True,
         *args,
         **kwargs
@@ -701,6 +702,10 @@ class Asset(ObjectPermissionMixin,
 
         if self.content is None:
             self.content = {}
+
+        # if fail_duplicate_names is True:
+        # if 'naming_conflicts' in self.summary:
+        #     raise ValueError('There is an error in your question names')
 
         # in certain circumstances, we don't want content to
         # be altered on save. (e.g. on asset.deploy())
