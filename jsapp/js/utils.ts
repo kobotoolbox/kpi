@@ -53,17 +53,6 @@ export function formatDate(timeStr: string): string {
   return _m.format('ll');
 }
 
-export function getLoginUrl() {
-  let url = constants.PATHS.LOGIN;
-  const currentLoc = hashHistory.getCurrentLocation();
-  if (currentLoc?.pathname) {
-    const nextUrl = encodeURIComponent(`/#${currentLoc.pathname}`);
-    // add redirection after logging in to current page
-    url += `?next=${nextUrl}`;
-  }
-  return url;
-}
-
 // works universally for v1 and v2 urls
 export function getUsernameFromUrl(userUrl: string): string | null {
   const matched = userUrl.match(/\/users\/(.*)\//);
@@ -332,4 +321,9 @@ export function generateAutoname(str: string, startIndex: number = 0, endIndex: 
   .toLowerCase()
   .substring(startIndex, endIndex)
   .replace(/(\ |\.)/g, "_");
+}
+
+export function csrfSafeMethod(method) {
+  // these HTTP methods do not require CSRF protection
+  return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
 }

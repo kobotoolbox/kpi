@@ -4,10 +4,8 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import editableFormMixin from '../editorMixins/editableForm';
-import {
-  update_states,
-  ROUTES,
-} from 'js/constants';
+import {update_states} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import mixins from '../mixins';
 
 /**

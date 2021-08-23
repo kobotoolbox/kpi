@@ -20,7 +20,7 @@ import FormMap from './map';
 import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
-import {ROUTES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 
 export class FormSubScreens extends React.Component {
   constructor(props){

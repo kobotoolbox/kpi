@@ -8,7 +8,8 @@ import {stores} from '../stores';
 import assetStore from 'js/assetStore';
 import {Link, hashHistory} from 'react-router';
 import mixins from '../mixins';
-import {PERMISSIONS_CODENAMES, ROUTES} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 
 export function getFormDataTabs(assetUid) {
