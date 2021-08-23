@@ -111,8 +111,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             # Use Enketo API to create preview instead of `preview?form=`,
             # which does not load any form media files.
             response = requests.post(
-                f'{settings.ENKETO_SERVER}/'
-                f'{settings.ENKETO_PREVIEW_ENDPOINT}',
+                f'{settings.ENKETO_SERVER}/{settings.ENKETO_PREVIEW_ENDPOINT}',
                 # bare tuple implies basic auth
                 auth=(settings.ENKETO_API_TOKEN, ''),
                 data=data

@@ -382,13 +382,10 @@ else:
 
 ''' Enketo configuration '''
 ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
-ENKETO_SERVER = ENKETO_SERVER + '/' if not ENKETO_SERVER.endswith('/') else ENKETO_SERVER
+ENKETO_SERVER = ENKETO_SERVER.rstrip('/')  # Remove any trailing slashes
 ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
 ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
-
-# ToDo 2020-01-23 Verify if 2 lines below are still needed?
-assert ENKETO_VERSION in ['legacy', 'express']
-ENKETO_PREVIEW_URI = 'webform/preview' if ENKETO_VERSION == 'legacy' else 'preview'
+ENKETO_INTERNAL_URL = ENKETO_INTERNAL_URL.rstrip('/')  # Remove any trailing slashes
 
 # The number of hours to keep a kobo survey preview (generated for enketo)
 # around before purging it.
