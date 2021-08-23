@@ -1,9 +1,12 @@
 import React from 'react';
 import {RouteComponentProps} from 'react-router';
 import {actions} from 'js/actions';
+import {getTranslatedRowLabel} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
 import bem from 'js/bem';
+import {QuestionTypeName} from 'js/constants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
 import './singleProcessing.scss';
 
 bem.SingleProcessing = bem.create('single-processing', 'section');
@@ -62,15 +65,36 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     });
   }
 
+  getQuestionType(): QuestionTypeName | undefined {
+    if (this.state.asset?.content) {
+      const foundRow = this.state.asset.content.survey.find((row) => {
+        return [
+          row.name,
+          row.$autoname,
+          row.$kuid
+        ].includes(this.props.params.questionName)
+      });
+      if (foundRow) {
+        return foundRow.type;
+      }
+    }
+    return undefined;
+  }
+
   render() {
-    if (!this.state.isReady) {
+    if (!this.state.isReady || !this.state.asset || !this.state.asset.content) {
       return <LoadingSpinner/>;
     }
 
     return (
       <bem.SingleProcessing>
         <bem.SingleProcessing__top>
-          header
+          <SingleProcessingHeader
+            questionType={this.getQuestionType()}
+            questionName={getTranslatedRowLabel(this.props.params.questionName, this.state.asset.content.survey, 0)}
+            submissionId={this.props.params.submissionId}
+            totalSubmissions={this.state.asset.deployment__submission_count}
+          />
         </bem.SingleProcessing__top>
 
         <bem.SingleProcessing__left>
