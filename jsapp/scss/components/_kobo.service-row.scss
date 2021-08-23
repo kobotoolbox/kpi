@@ -1,4 +1,5 @@
 $s-service-row-action-button: 36px;
+$s-service-row-action-button-icon: 26px;
 $s-service-row-leading: 18px;
 $s-service-row-column-spacing: ($s-service-row-action-button - $s-service-row-leading) * 0.5;
 $s-service-row-z-link: 10;
@@ -112,7 +113,7 @@ $s-service-row-z-link: 10;
   vertical-align: top;
 
   i.k-icon {
-    font-size: 26px;
+    font-size: $s-service-row-action-button-icon;
   }
 
   &[disabled] {
