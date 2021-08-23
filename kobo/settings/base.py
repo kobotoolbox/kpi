@@ -381,10 +381,10 @@ else:
 
 
 ''' Enketo configuration '''
-ENKETO_SERVER = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
-ENKETO_SERVER = ENKETO_SERVER.rstrip('/')  # Remove any trailing slashes
+ENKETO_URL = os.environ.get('ENKETO_URL') or os.environ.get('ENKETO_SERVER', 'https://enketo.org')
+ENKETO_URL = ENKETO_URL.rstrip('/')  # Remove any trailing slashes
 ENKETO_VERSION = os.environ.get('ENKETO_VERSION', 'Legacy').lower()
-ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_SERVER)
+ENKETO_INTERNAL_URL = os.environ.get('ENKETO_INTERNAL_URL', ENKETO_URL)
 ENKETO_INTERNAL_URL = ENKETO_INTERNAL_URL.rstrip('/')  # Remove any trailing slashes
 
 # The number of hours to keep a kobo survey preview (generated for enketo)
