@@ -3,9 +3,9 @@ import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import {
   isSelfOwned,
-  getAssetDisplayName
+  getAssetDisplayName,
 } from 'js/assetUtils';
-import {isAnyLibraryRoute} from 'js/routerUtils';
+import {isAnyLibraryRoute} from 'js/router/routerUtils';
 import myLibraryStore from './myLibraryStore';
 import publicCollectionsStore from './publicCollectionsStore';
 import {ROOT_BREADCRUMBS} from './libraryConstants';
@@ -13,6 +13,7 @@ import {
   ACCESS_TYPES,
   ASSET_TYPES,
 } from 'js/constants';
+import './assetBreadcrumbs.scss';
 
 /**
  * @prop asset
@@ -117,14 +118,14 @@ class AssetBreadcrumbs extends React.Component {
         <bem.Breadcrumbs__crumb href={rootBreadcrumb.href}>
           {rootBreadcrumb.label}
         </bem.Breadcrumbs__crumb>
-        <bem.Breadcrumbs__divider/>
+        <i className='k-icon k-icon-next'/>
 
         {this.props.asset.parent !== null &&
           <React.Fragment>
           <bem.Breadcrumbs__crumb href={this.getParentHref()}>
             {this.getParentName()}
           </bem.Breadcrumbs__crumb>
-          <bem.Breadcrumbs__divider/>
+          <i className='k-icon k-icon-next'/>
           </React.Fragment>
         }
 

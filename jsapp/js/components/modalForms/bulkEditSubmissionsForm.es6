@@ -15,6 +15,7 @@ import bem from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
 import envStore from 'js/envStore';
+import './bulkEditSubmissionsForm.scss';
 
 // we need a text to display when we need to say "this question has no answer"
 const EMPTY_VALUE_LABEL = t('n/d');

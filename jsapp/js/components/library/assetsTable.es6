@@ -6,14 +6,15 @@ import LoadingSpinner from 'js/components/common/loadingSpinner';
 import bem from 'js/bem';
 import {
   hasVerticalScrollbar,
-  getScrollbarWidth
+  getScrollbarWidth,
 } from 'utils';
 import AssetsTableRow from './assetsTableRow';
 import {
   ASSETS_TABLE_CONTEXTS,
   ORDER_DIRECTIONS,
-  ASSETS_TABLE_COLUMNS
+  ASSETS_TABLE_COLUMNS,
 } from './libraryConstants';
+import './assetsTable.scss';
 
 /**
  * Displays a table of assets.

@@ -1,3 +1,6 @@
+@import "scss/_colors";
+@import "scss/_variables";
+
 .breadcrumbs {
   font-size: 24px;
   font-weight: 600;
@@ -24,9 +27,7 @@
     }
   }
 
-  .breadcrumbs__divider {
-    @extend .k-icon, .k-icon-next;
-
+  .k-icon.k-icon-next {
     font-size: 24px;
     margin: 0 3px;
   }
