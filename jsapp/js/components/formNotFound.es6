@@ -1,5 +1,5 @@
 import React from 'react';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 
 export default class FormNotFound extends React.Component {
   render() {
