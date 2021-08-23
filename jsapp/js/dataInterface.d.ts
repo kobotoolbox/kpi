@@ -34,7 +34,6 @@ interface SubmissionResponse {
   username?: string
 }
 
-// TODO: most of these could be changed into ENUMS from just strings (e.g. `type`)
 interface SurveyRow {
   $autoname: string
   $kuid: string
@@ -43,7 +42,7 @@ interface SurveyRow {
   hint?: string[]
   name: string
   required: boolean
-  type: string
+  type: QuestionTypeName
   _isRepeat?: boolean
   appearance?: string
   "kobo--matrix_list"?: string
