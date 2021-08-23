@@ -46,27 +46,24 @@ class MediaCell extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
+
+    this.questionIcon = null;
   }
 
-  launchMediaModal(
-    questionType,
-    questionIcon,
-    mediaAttachment,
-    mediaName,
-    submissionIndex,
-    submissionTotal,
-  ) {
+  launchMediaModal(evt) {
+    evt.preventDefault();
+
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
-      questionType: questionType,
-      mediaAttachment: mediaAttachment,
-      mediaName: mediaName,
+      questionType: this.props.questionType,
+      mediaAttachment: this.props.mediaAttachment,
+      mediaName: this.props.mediaName,
       customModalHeader: this.renderMediaModalCustomHeader(
-        questionIcon,
-        mediaAttachment?.download_url,
-        mediaName,
-        submissionIndex,
-        submissionTotal,
+        this.questionIcon,
+        this.props.mediaAttachment?.download_url,
+        this.props.mediaName,
+        this.props.submissionIndex,
+        this.props.submissionTotal,
       ),
     });
   }
@@ -157,21 +154,14 @@ class MediaCell extends React.Component {
         break;
     }
 
+    this.questionIcon = iconClassNames;
+
     return (
       <bem.MediaCell m={isTextQuestion ? 'text' : ''}>
         <bem.MediaCellIconWrapper>
           <bem.MediaCellIconWrapper__icon
             className={iconClassNames}
-            onClick={() =>
-              this.launchMediaModal(
-                this.props.questionType,
-                iconClassNames,
-                this.props.mediaAttachment,
-                this.props.mediaName,
-                this.props.submissionIndex,
-                this.props.submissionTotal,
-              )
-            }
+            onClick={this.launchMediaModal.bind(this)}
           />
         </bem.MediaCellIconWrapper>
 
