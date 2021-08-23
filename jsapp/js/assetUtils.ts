@@ -18,12 +18,10 @@ import {
 } from 'js/constants';
 
 /**
- * Removes whitespace from tags.
+ * Removes whitespace from tags. Returns list of cleaned up tags.
  * NOTE: Behavior should match KpiTaggableManager.add()
- * @param {Array<string>} tags - list of tags.
- * @return {Array<string>} list of cleaned up tags.
  */
-export function cleanupTags(tags) {
+export function cleanupTags(tags: string[]) {
   return tags.map(function(tag) {
     return tag.trim().replace(/ /g, '-');
   });
@@ -31,10 +29,8 @@ export function cleanupTags(tags) {
 
 /**
  * Returns nicer "me" label for your own assets.
- * @param {string} username
- * @returns {string} nice owner username.
  */
-export function getAssetOwnerDisplayName(username) {
+export function getAssetOwnerDisplayName(username: string) {
   if (
     stores.session.currentAccount &&
     stores.session.currentAccount.username &&
