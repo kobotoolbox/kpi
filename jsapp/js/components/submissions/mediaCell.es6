@@ -74,7 +74,7 @@ class MediaCell extends React.Component {
         break;
     }
 
-    return iconClassNames;
+    return iconClassNames.join(' ');
   }
 
   launchMediaModal(evt) {
@@ -116,7 +116,7 @@ class MediaCell extends React.Component {
     return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
-          <i className={questionIcon.join(' ')}/>
+          <i className={questionIcon}/>
           <bem.TableMediaPreviewHeader__label
             // Give the user a way to see the full file name
             title={mediaName}
