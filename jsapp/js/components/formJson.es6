@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {actions} from 'js/actions';
 import assetStore from 'js/assetStore';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 
 export default class FormJson extends React.Component {
   constructor(props) {
