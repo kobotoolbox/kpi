@@ -25,45 +25,53 @@ alertify.defaults.notifier.closeButton = true;
 
 const cookies = new Cookies();
 
-export function notify(msg, atype='success') {
+export function notify(msg: string, atype='success') {
   alertify.notify(msg, atype);
 }
 
 /**
- * @returns {string} something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
+ * Returns something like "Today at 4:06 PM", "Yesterday at 5:46 PM", "Last Saturday at 5:46 PM" or "February 11, 2021"
  */
-export function formatTime(timeStr) {
+export function formatTime(timeStr: string): string {
   var _m = moment(timeStr);
   return _m.calendar(null, {sameElse: 'LL'});
 }
 
 /**
- * @returns {string} something like "March 15, 2021 4:06 PM"
+ * Returns something like "March 15, 2021 4:06 PM"
  */
-export function formatTimeDate(timeStr) {
+export function formatTimeDate(timeStr: string): string {
   var _m = moment(timeStr);
   return _m.format('LLL');
 }
 
 /**
- * @returns {string} something like "Mar 15, 2021"
+ * Returns something like "Mar 15, 2021"
  */
-export function formatDate(timeStr) {
+export function formatDate(timeStr: string): string {
   var _m = moment(timeStr);
   return _m.format('ll');
 }
 
 // works universally for v1 and v2 urls
-export function getUsernameFromUrl(userUrl) {
-  return userUrl.match(/\/users\/(.*)\//)[1];
+export function getUsernameFromUrl(userUrl: string): string | null {
+  const matched = userUrl.match(/\/users\/(.*)\//);
+  if (matched !== null) {
+    return matched[1];
+  }
+  return null;
 }
 
 // TODO: Test if works for both form and library routes, if not make it more general
-export function getAssetUIDFromUrl(assetUrl) {
-  return assetUrl.match(/.*\/([^/]+)\//)[1];
+export function getAssetUIDFromUrl(assetUrl: string): string | null {
+  const matched = assetUrl.match(/.*\/([^/]+)\//);
+  if (matched !== null) {
+    return matched[1];
+  }
+  return null
 }
 
-export function buildUserUrl(username) {
+export function buildUserUrl(username: string): string {
   if (username.startsWith(window.location.protocol)) {
     console.error("buildUserUrl() called with URL instead of username (incomplete v2 migration)");
     return username;
@@ -71,8 +79,14 @@ export function buildUserUrl(username) {
   return `${constants.ROOT_URL}/api/v2/users/${username}/`;
 }
 
+declare global {
+  interface Window {
+    log: any
+  }
+}
+
 export var log = (function(){
-  var _log = function(...args) {
+  var _log: any = function(...args: any[]) {
     console.log.apply(console, args);
     return args[0];
   };
@@ -86,26 +100,31 @@ export var log = (function(){
 })();
 window.log = log;
 
-
-var __strings = [];
-
 const originalSupportEmail = 'help@kobotoolbox.org';
 
 // use this utility function to replace hardcoded email in transifex translations
-export function replaceSupportEmail(str) {
-  if (typeof supportDetails !== 'undefined') {
-    return str.replace(originalSupportEmail, supportDetails.email);
+//
+// TODO: make this use environment endpoint's `support_email` property.
+// Currently no place is using this correctly.
+export function replaceSupportEmail(str: string, newEmail?: string): string {
+  if (typeof newEmail === 'string') {
+    return str.replace(originalSupportEmail, newEmail);
   } else {
     return str;
   }
 }
 
-export function currentLang() {
+export function currentLang(): string {
   return cookies.get(LANGUAGE_COOKIE_NAME) || 'en';
 }
 
+interface LangObject {
+  code: string
+  name: string
+}
+
 // langString contains name and code e.g. "English (en)"
-export function getLangAsObject(langString) {
+export function getLangAsObject(langString: string): LangObject | undefined {
   const openingIndex = langString.indexOf('(');
   const closingIndex = langString.indexOf(')');
 
@@ -128,7 +147,7 @@ export function getLangAsObject(langString) {
   }
 }
 
-export function getLangString(obj) {
+export function getLangString(obj: LangObject): string | undefined {
   if (typeof obj === 'object' && obj.name && obj.code) {
     return `${obj.name} (${obj.code})`;
   } else {
@@ -136,34 +155,17 @@ export function getLangString(obj) {
   }
 }
 
-log.t = function () {
-  let _t = {};
-  __strings.forEach(function(str){ _t[str] = str; })
-  console.log(JSON.stringify(_t, null, 4));
-};
-
-// unique id for forms with inputs and labels
-let lastId = 0;
-export var newId = function(prefix='id') {
-  lastId++;
-  return `${prefix}${lastId}`;
-};
-
-export var randString = function () {
-  return Math.random().toString(36).match(/\.(\S{6}).*/)[1];
-};
-
-export function stringToColor(str, prc) {
+export function stringToColor(str: string, prc: number) {
   // Higher prc = lighter color, lower = darker
   prc = typeof prc === 'number' ? prc : -15;
-  var hash = function(word) {
+  var hash = function(word: string) {
       var h = 0;
       for (var i = 0; i < word.length; i++) {
           h = word.charCodeAt(i) + ((h << 5) - h);
       }
       return h;
   };
-  var shade = function(color, prc) {
+  var shade = function(color: string, prc: number) {
       var num = parseInt(color, 16),
           amt = Math.round(2.55 * prc),
           R = (num >> 16) + amt,
@@ -175,7 +177,7 @@ export function stringToColor(str, prc) {
           .toString(16)
           .slice(1);
   };
-  var int_to_rgba = function(i) {
+  var int_to_rgba = function(i: number) {
       var color = ((i >> 24) & 0xFF).toString(16) +
           ((i >> 16) & 0xFF).toString(16) +
           ((i >> 8) & 0xFF).toString(16) +
@@ -185,7 +187,7 @@ export function stringToColor(str, prc) {
   return shade(int_to_rgba(hash(str)), prc);
 }
 
-export function isAValidUrl(url) {
+export function isAValidUrl(url: string) {
   try {
     new URL(url);
     return true;
@@ -194,7 +196,7 @@ export function isAValidUrl(url) {
   }
 }
 
-export function checkLatLng(geolocation) {
+export function checkLatLng(geolocation: any[]) {
   if (geolocation && geolocation[0] && geolocation[1]) return true;
   else return false;
 }
@@ -214,13 +216,13 @@ export function validFileTypes() {
   return VALID_ASSET_UPLOAD_FILE_TYPES.join(',');
 }
 
-export function escapeHtml(str) {
+export function escapeHtml(str: string): string {
   const div = document.createElement('div');
   div.appendChild(document.createTextNode(str));
   return div.innerHTML;
 }
 
-export function renderCheckbox(id, label, isImportant) {
+export function renderCheckbox(id: string, label: string, isImportant: boolean) {
   let additionalClass = '';
   if (isImportant) {
     additionalClass += 'alertify-toggle-important';
@@ -228,30 +230,19 @@ export function renderCheckbox(id, label, isImportant) {
   return `<div class="alertify-toggle checkbox ${additionalClass}"><label class="checkbox__wrapper"><input type="checkbox" class="checkbox__input" id="${id}"><span class="checkbox__label">${label}</span></label></div>`;
 }
 
-/**
- * @param {string} text
- * @param {number} [limit] - how long the long word is
- * @return {boolean}
- */
-export function hasLongWords(text, limit = 25) {
+export function hasLongWords(text: string, limit: number = 25): boolean {
   const textArr = text.split(' ');
   const maxLength = Math.max(...(textArr.map((el) => {return el.length;})));
   return maxLength >= limit;
 }
 
-/**
- * @param {Node} element
- */
-export function hasVerticalScrollbar(element) {
+export function hasVerticalScrollbar(element: HTMLElement): boolean {
   return element.scrollHeight > element.offsetHeight;
 }
 
-/**
- * @returns {number}
- */
-export function getScrollbarWidth() {
+export function getScrollbarWidth(): number {
   // Creating invisible container
-  const outer = document.createElement('div');
+  const outer: any = document.createElement('div');
   outer.style.visibility = 'hidden';
   outer.style.overflow = 'scroll'; // forcing scrollbar to appear
   outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
@@ -265,16 +256,14 @@ export function getScrollbarWidth() {
   const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
 
   // Removing temporary elements from the DOM
-  outer.parentNode.removeChild(outer);
+  if (outer.parentNode !== null) {
+    outer.parentNode.removeChild(outer);
+  }
 
   return scrollbarWidth;
 }
 
-/**
- * @param {string} str
- * @returns {string}
- */
-export function toTitleCase(str) {
+export function toTitleCase(str: string): string {
   return str.replace(/(^|\s)\S/g, (t) => {return t.toUpperCase();});
 }
 
@@ -284,12 +273,8 @@ export function launchPrinting() {
 
 /**
  * Trunactes strings to specified length
- *
- * @param {string} str
- * @param {number} length - resultant length
- * @returns {string} truncatedString
  */
-export function truncateString(str, length, type='') {
+export function truncateString(str: string, length: number): string {
   let truncatedString = str;
   const halfway = Math.trunc(length / 2);
 
@@ -306,12 +291,8 @@ export function truncateString(str, length, type='') {
 
 /**
  * Removes protocol then calls truncateString()
- *
- * @param {string} str
- * @param {number} length - resultant length
- * @returns {string} truncatedString
  */
-export function truncateUrl(str, length) {
+export function truncateUrl(str: string, length: number): string {
   let truncatedString = str.replace('https://', '').replace('http://', '');
 
   return truncateString(truncatedString, length);
@@ -319,12 +300,8 @@ export function truncateUrl(str, length) {
 
 /**
  * Removes file extension then calls truncateString()
- *
- * @param {string} str
- * @param {number} length - resultant length
- * @returns {string} truncatedString
  */
-export function truncateFile(str, length) {
+export function truncateFile(str: string, length: number) {
   // Remove file extension with simple regex that truncates everything past
   // the last occurance of `.` inclusively
   let truncatedString = str.replace(/\.[^/.]+$/, '');
@@ -338,12 +315,8 @@ export function truncateFile(str, length) {
  *
  * Inspired by the way backend handles generating autonames for translations:
  * https://github.com/kobotoolbox/kpi/blob/27220c2e65b47a7f150c5bef64db97226987f8fc/kpi/utils/autoname.py#L132-L138
- *
- * @param {string} str
- * @param {number} [startIndex=0]
- * @param {number} [endIndex=str.length]
  */
-export function generateAutoname(str, startIndex=0, endIndex=str.length) {
+export function generateAutoname(str: string, startIndex: number = 0, endIndex: number = str.length) {
   return str
   .toLowerCase()
   .substring(startIndex, endIndex)

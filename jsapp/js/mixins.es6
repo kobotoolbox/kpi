@@ -26,6 +26,7 @@ import {
 import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
+import assetStore from 'js/assetStore';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -234,7 +235,8 @@ mixins.dmix = {
     }
   },
   componentDidMount() {
-    this.listenTo(stores.asset, this.dmixAssetStoreChange);
+    this.listenTo(assetStore, this.dmixAssetStoreChange);
+
     const uid = this._getAssetUid();
     if (uid) {
       actions.resources.loadAsset({id: uid});
@@ -898,7 +900,7 @@ mixins.contextRouter = {
     return this.context.router.params.assetid || this.context.router.params.uid;
   },
   currentAsset() {
-    return stores.asset.data[this.currentAssetID()];
+    return assetStore.data[this.currentAssetID()];
   },
   isActiveRoute(path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);
