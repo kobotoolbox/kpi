@@ -26,6 +26,7 @@ import {
 import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from './ownedCollectionsStore';
+import './assetActionButtons.scss';
 
 const assetActions = mixins.clickAssets.click.asset;
 
