@@ -17,6 +17,7 @@ import {hashHistory} from 'react-router';
 import {stringToColor} from 'utils';
 import {ROUTES} from 'js/router/routerConstants';
 import envStore from 'js/envStore';
+import './accountSettings.scss';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 

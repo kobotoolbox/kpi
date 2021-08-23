@@ -1,3 +1,5 @@
+@import "scss/_colors";
+
 @media screen and (min-width: 961px) {
   .report-view {
     padding: 0px 40px;
@@ -198,27 +200,27 @@
   }
 
   &--vertical {
-    background-image: url("~../img/chart-vertical.png");
+    background-image: url("~../../../img/chart-vertical.png");
   }
 
   &--horizontal {
-    background-image: url("~../img/chart-horizontal.png");
+    background-image: url("~../../../img/chart-horizontal.png");
   }
 
   &--donut {
-    background-image: url("~../img/chart-donut.png");
+    background-image: url("~../../../img/chart-donut.png");
   }
 
   &--area {
-    background-image: url("~../img/chart-area.png");
+    background-image: url("~../../../img/chart-area.png");
   }
 
   &--pie {
-    background-image: url("~../img/chart-pie.png");
+    background-image: url("~../../../img/chart-pie.png");
   }
 
   &--line {
-    background-image: url("~../img/chart-line.png");
+    background-image: url("~../../../img/chart-line.png");
   }
 }
 

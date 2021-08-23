@@ -4,3 +4,19 @@ $s-breadcrumbs-height: 70px;
 
 $s-fb-row-locking-icons-width: 25px;
 $s-fb-row-buttons-width: 25px;
+
+$drawer-background: $kobo-gray-96;
+$drawer-icons-width: 58px;
+$s-drawer-width: 270px;
+
+$mdl-layout-width: 1440px;
+
+// Form Builder variables
+
+$cardBorderColor: $kobo-gray-65;
+$cardInSortBorderColor: $kobo-blue-light;
+$linkColor: $kobo-blue-light;
+$cardBorderStyle: 1px solid $cardBorderColor;
+$cardInSortBorderStyle: 1px solid $cardInSortBorderColor;
+$cardInSortThinBorderStyle: 1px solid $cardInSortBorderColor;
+$thinBorderStyle: 1px solid $cardBorderColor;
