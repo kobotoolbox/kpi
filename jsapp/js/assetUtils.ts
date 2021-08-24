@@ -1,3 +1,4 @@
+import React from 'react'
 import {AssetTypeName} from 'js/constants'
 import {stores} from 'js/stores'
 import permConfig from 'js/components/permissions/permConfig'
@@ -15,7 +16,9 @@ import {
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
-  ANY_ROW_TYPE_NAMES,
+  QuestionTypeName,
+  MetaQuestionTypeName,
+  MiscRowTypeName,
 } from 'js/constants';
 
 /**
@@ -314,23 +317,22 @@ export function getSurveyFlatPaths(
   return output;
 }
 
-/**
- * @param {object} row
- * @returns {string}
- */
-export function getRowName(row) {
-  return row.name || row.$autoname || row.$kuid;
+export function getRowName(row: SurveyRow | SurveyChoice) {
+  return row.name || ('$autoname' in row && row.$autoname) || row.$kuid;
 }
 
 /**
- * @param {string} rowName - could be either a survey row name or choices row name
- * @param {Array<object>} data - should be either a survey or choices of asset
- * @param {number} translationIndex
- * @returns {string|null} null for not found
+ * @param rowName - could be either a survey row name or choices row name
+ * @param data - is either a survey or choices
+ * Returns null for not found
  */
-export function getTranslatedRowLabel(rowName, data, translationIndex) {
-  let foundRowIndex;
-  let foundRow;
+export function getTranslatedRowLabel(
+  rowName: string,
+  data: SurveyRow[] | SurveyChoice[],
+  translationIndex: number
+): string | null {
+  let foundRowIndex: number | undefined;
+  let foundRow: SurveyRow | SurveyChoice | undefined;
 
   data.forEach((row, rowIndex) => {
     if (getRowName(row) === rowName) {
@@ -339,9 +341,9 @@ export function getTranslatedRowLabel(rowName, data, translationIndex) {
     }
   });
 
-  if (Object.prototype.hasOwnProperty.call(foundRow, 'label')) {
+  if (typeof foundRow === 'object' && foundRow.hasOwnProperty('label')) {
     return getRowLabelAtIndex(foundRow, translationIndex);
-  } else {
+  } else if (typeof foundRow === 'object' && typeof foundRowIndex === 'number') {
     // that mysterious row always comes as a next row
     let possibleRow = data[foundRowIndex + 1];
     if (isRowSpecialLabelHolder(foundRow, possibleRow)) {
@@ -356,11 +358,11 @@ export function getTranslatedRowLabel(rowName, data, translationIndex) {
  * If a row doesn't have a label it is very possible that this is
  * a complex type of form item (e.g. ranking, matrix) that was constructed
  * as a group and a row by Backend. This function detects if this is the case.
- * @param {object} mainRow
- * @param {object} holderRow
- * @returns {boolean}
  */
-export function isRowSpecialLabelHolder(mainRow, holderRow) {
+export function isRowSpecialLabelHolder(
+  mainRow: SurveyRow | SurveyChoice,
+  holderRow: SurveyRow | SurveyChoice
+): boolean {
   if (!mainRow || !holderRow || !Object.prototype.hasOwnProperty.call(holderRow, 'label')) {
     return false;
   } else {
@@ -369,16 +371,19 @@ export function isRowSpecialLabelHolder(mainRow, holderRow) {
     return (
       (
         // this handles ranking questions
+        'type' in holderRow &&
         holderRowName === `${mainRowName}_label` &&
         holderRow.type === QUESTION_TYPES.note.id
       ) ||
       (
         // this handles matrix questions (partially)
+        'type' in holderRow &&
         holderRowName === `${mainRowName}_note` &&
         holderRow.type === QUESTION_TYPES.note.id
       ) ||
       (
         // this handles rating questions
+        'type' in holderRow &&
         holderRowName === `${mainRowName}_header` &&
         holderRow.type === QUESTION_TYPES.select_one.id // rating
       )
@@ -388,40 +393,45 @@ export function isRowSpecialLabelHolder(mainRow, holderRow) {
 
 /**
  * An internal helper function for DRY code
- * @param {object} row
- * @param {number} index
- * @returns {string} label
  */
-function getRowLabelAtIndex(row, index) {
+function getRowLabelAtIndex(
+  row: SurveyRow | SurveyChoice,
+  index: number
+): string | null {
   if (Array.isArray(row.label)) {
-    return row.label[index];
+    return row.label[index] || null;
   } else {
-    return row.label;
+    return row.label || null;
   }
 }
 
-/**
- * @param {string} type - one of QUESTION_TYPES
- * @returns {Node|null}
- */
-export function renderQuestionTypeIcon(type) {
-  let typeDef;
+export function renderQuestionTypeIcon(
+  type: QuestionTypeName | MetaQuestionTypeName | MiscRowTypeName
+): React.DetailedReactHTMLElement<{}, HTMLElement> | null {
+  let iconClassName: string = '';
+
   if (type === SCORE_ROW_TYPE) {
-    typeDef = QUESTION_TYPES.score;
+    iconClassName = QUESTION_TYPES.score.icon;
   } else if (type === RANK_LEVEL_TYPE) {
-    typeDef = QUESTION_TYPES.rank;
-  } else {
-    typeDef = QUESTION_TYPES[type];
+    iconClassName = QUESTION_TYPES.rank.icon;
+  } else if (QUESTION_TYPES.hasOwnProperty(type)) {
+    iconClassName = QUESTION_TYPES[type].icon;
   }
 
   if (type === META_QUESTION_TYPES['background-audio']) {
-    typeDef = {icon: 'k-icon-qt-audio'};
+    iconClassName = 'k-icon-qt-audio';
   } else if (META_QUESTION_TYPES[type]) {
-    typeDef = {icon: 'qt-meta-default'};
+    iconClassName = 'qt-meta-default';
   }
 
-  if (typeDef) {
-    return (<i className={`k-icon k-icon-${typeDef.icon}`} title={type}/>);
+  if (iconClassName) {
+    return React.createElement(
+      'i',
+      {
+        className: `k-icon k-icon-${iconClassName}`,
+        type: type
+      }
+    );
   } else {
     return null;
   }
