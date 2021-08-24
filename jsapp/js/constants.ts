@@ -457,19 +457,17 @@ export const SCORE_ROW_TYPE = MiscRowTypeName.score__row;
 // a custom question type for rank
 export const RANK_LEVEL_TYPE = MiscRowTypeName.rank__level;
 
-// We first define this merged const of all enums, so we can then have a merged
-// enum by using `type` with `typeof` trick.
 export const ANY_ROW_TYPE_NAMES = {
   ...QuestionTypeName,
   ...MetaQuestionTypeName,
   ...GroupTypeBeginName,
-  ... GroupTypeEndName,
-  ... MiscRowTypeName
+  ...GroupTypeEndName,
+  ...MiscRowTypeName
 };
 /**
  * These are all possible types of asset survey rows.
  */
-export type AnyRowTypeName = typeof ANY_ROW_TYPE_NAMES
+export type AnyRowTypeName = QuestionTypeName | MetaQuestionTypeName | GroupTypeBeginName | GroupTypeEndName | MiscRowTypeName
 
 export const CHOICE_LISTS = Object.freeze({
   SELECT: 'select_from_list_name',
