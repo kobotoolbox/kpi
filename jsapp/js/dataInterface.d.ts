@@ -7,25 +7,6 @@ interface FailResponse {
   statusText: string
 }
 
-// TODO: most of these could be changed into ENUMS from just strings (e.g. `type`)
-interface SurveyRow {
-  $autoname: string
-  $kuid: string
-  calculation?: string
-  label?: string[]
-  hint?: string[]
-  name?: string
-  required?: boolean
-  type: string
-  _isRepeat?: boolean
-  appearance?: string
-  parameters?: string
-  'kobo--matrix_list'?: string
-  'kobo--rank-constraint-message'?: string
-  'kobo--rank-items'?: string
-  'kobo--score-choices'?: string
-}
-
 interface AssignablePermission {
   url: string
   label: string
@@ -65,6 +46,39 @@ interface ExportSetting {
   }
 }
 
+// TODO: most of these could be changed into ENUMS from just strings (e.g. `type`)
+interface SurveyRow {
+  $autoname: string
+  $kuid: string
+  calculation?: string
+  label?: string[]
+  hint?: string[]
+  name?: string
+  required?: boolean
+  type: string
+  _isRepeat?: boolean
+  appearance?: string
+  parameters?: string
+  'kobo--matrix_list'?: string
+  'kobo--rank-constraint-message'?: string
+  'kobo--rank-items'?: string
+  'kobo--score-choices'?: string
+  'kobo--locking-profile'?: string
+}
+
+interface SurveyChoice {
+  $autovalue: string
+  $kuid: string
+  label: string[]
+  list_name: string
+  name: string
+}
+
+interface AssetLockingProfileDefinition {
+  name: string
+  restrictions: string[] // TODO use restrictions enum after it is added
+}
+
 interface AssetContentSettings {
   name?: string
   version?: string
@@ -72,14 +86,18 @@ interface AssetContentSettings {
   style?: string
   form_id?: string
   title?: string
+  'kobo--lock_all'?: boolean
+  'kobo--locking-profile'?: 'string'
 }
 
 interface AssetContent {
   schema?: string
   survey?: SurveyRow[]
+  choices?: SurveyChoice[]
   settings?: AssetContentSettings | AssetContentSettings[]
   translated?: string[]
   translations?: Array<string|null>
+  'kobo--locking-profiles'?: AssetLockingProfileDefinition[]
 }
 
 interface AssetReportStylesSpecified {
