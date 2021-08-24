@@ -1,4 +1,4 @@
-import React from 'react';
+
 import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import {buildUserUrl} from 'utils';
@@ -71,10 +71,6 @@ export function getLanguageIndex(asset: AssetResponse, langString: string) {
   return foundIndex;
 }
 
-/**
- * @param {Object} asset - BE asset data
- * @returns {string}
- */
 export function getLanguagesDisplayString(asset: AssetResponse) {
   if (
     asset.summary &&
@@ -87,10 +83,6 @@ export function getLanguagesDisplayString(asset: AssetResponse) {
   }
 }
 
-/**
- * @param {Object} asset - BE asset data
- * @returns {string}
- */
 export function getSectorDisplayString(asset: AssetResponse) {
   if (asset.settings.sector) {
     return asset.settings.sector.label;
@@ -99,12 +91,7 @@ export function getSectorDisplayString(asset: AssetResponse) {
   }
 }
 
-/**
- * @param {Object} asset - BE asset data
- * @param {boolean} showLongName - shoul display long name
- * @returns {string}
- */
-export function getCountryDisplayString(asset, showLongName = false) {
+export function getCountryDisplayString(asset: AssetResponse, showLongName: boolean = false) {
   if (asset.settings.country) {
     return showLongName ? asset.settings.country.label : asset.settings.country.value;
   } else {
@@ -112,21 +99,26 @@ export function getCountryDisplayString(asset, showLongName = false) {
   }
 }
 
-/**
- * @typedef DisplayNameObj
- * @prop {string} [original] - Name typed in by user.
- * @prop {string} [question] - First question name.
- * @prop {string} [empty] - Set when no other is available.
- * @prop {string} final - original, question or empty name - the one to be displayed.
- */
+interface DisplayNameObj {
+  original?: string // Name typed in by user.
+  question?: string // First question name.
+  empty?: string // Set when no other is available.
+  final: string // original, question or empty name - the one to be displayed.
+}
 
 /**
- * Returns a name to be displayed for asset (especially unnamed ones).
- * @param {Object} asset - BE asset data
- * @returns {DisplayNameObj} object containing final name and all useful data.
+ * Returns a name to be displayed for asset (especially unnamed ones) - an object
+ * containing final name and all useful data. Most of the times you should use
+ * `getAssetDisplayName(…).final`.
  */
-export function getAssetDisplayName(asset: AssetResponse) {
-  const output = {};
+export function getAssetDisplayName(asset: AssetResponse): DisplayNameObj {
+  const emptyName = t('untitled');
+
+  const output: DisplayNameObj = {
+    // empty name is a fallback
+    final: emptyName
+  };
+
   if (asset.name) {
     output.original = asset.name;
   }
@@ -135,18 +127,27 @@ export function getAssetDisplayName(asset: AssetResponse) {
     output.question = asset.summary.labels[0];
   }
   if (!output.original && !output.question) {
-    output.empty = t('untitled');
+    output.empty = emptyName;
   }
-  output.final = output.original || output.question || output.empty;
+
+  // We prefer original name over question name
+  if (output.original) {
+    output.final = output.original;
+  } else if (output.question) {
+    output.final = output.question;
+  }
+
   return output;
 }
 
 /**
- * @param {Object} questionOrChoice - Part of BE asset data
- * @param {number} [translationIndex] - defaults to first (default) language
- * @returns {string} usable name of the question or choice when possible, "Unlabelled" otherwise.
+ * Returns usable name of the question or choice when possible, fallbacks to
+ * "Unlabelled". `translationIndex` defaults to first (default) language.
  */
-export function getQuestionOrChoiceDisplayName(questionOrChoice, translationIndex = 0) {
+export function getQuestionOrChoiceDisplayName(
+  questionOrChoice: SurveyRow | SurveyChoice,
+  translationIndex: number = 0
+) {
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
     return questionOrChoice.label[translationIndex];
   } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
@@ -154,10 +155,11 @@ export function getQuestionOrChoiceDisplayName(questionOrChoice, translationInde
     return questionOrChoice.label;
   } else if (questionOrChoice.name) {
     return questionOrChoice.name;
-  } else if (questionOrChoice.$autoname) {
+  // the "string in obj" is needed because choice type doesn't have $autoname
+  } else if ('$autoname' in questionOrChoice && questionOrChoice.$autoname) {
     return questionOrChoice.$autoname;
   } else {
-    t('Unlabelled');
+    return t('Unlabelled');
   }
 }
 
