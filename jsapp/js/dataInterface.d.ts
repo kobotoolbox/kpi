@@ -55,7 +55,9 @@ interface SurveyRow {
   hint?: string[]
   name?: string
   required?: boolean
-  type: string
+  // We use dynamic import to avoid changing this ambient module to a normal
+  // module: see https://stackoverflow.com/a/51114250/2311247
+  type: import('js/constants').QuestionTypeName
   _isRepeat?: boolean
   appearance?: string
   parameters?: string
