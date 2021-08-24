@@ -169,25 +169,42 @@ export const VALIDATION_STATUSES_LIST = [
   VALIDATION_STATUSES.validation_status_on_hold,
 ];
 
-export const ASSET_TYPES = {
+export enum AssetTypeName {
+  question = 'question',
+  block = 'block',
+  template = 'template',
+  survey = 'survey',
+  collection = 'collection',
+}
+
+interface AssetTypeDefinition {
+  id: AssetTypeName
+  label: string
+}
+
+type AssetTypes = {
+  [P in AssetTypeName]: AssetTypeDefinition
+}
+
+export const ASSET_TYPES: AssetTypes = {
   question: {
-    id: 'question',
+    id: AssetTypeName.question,
     label: t('question'),
   },
   block: {
-    id: 'block',
+    id: AssetTypeName.block,
     label: t('block'),
   },
   template: {
-    id: 'template',
+    id: AssetTypeName.template,
     label: t('template'),
   },
   survey: {
-    id: 'survey',
+    id: AssetTypeName.survey,
     label: t('project'),
   },
   collection: {
-    id: 'collection',
+    id: AssetTypeName.collection,
     label: t('collection'),
   },
 };
