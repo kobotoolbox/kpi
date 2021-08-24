@@ -169,6 +169,9 @@ export const VALIDATION_STATUSES_LIST = [
   VALIDATION_STATUSES.validation_status_on_hold,
 ];
 
+/**
+ * All possible asset types.
+ */
 export enum AssetTypeName {
   question = 'question',
   block = 'block',
@@ -220,6 +223,10 @@ export const ASSET_FILE_TYPES = {
   },
 };
 
+/**
+ * These are the types of survey rows that users can create in FormBuilder and
+ * ones that require manual data submission.
+ */
 export enum QuestionTypeName {
   acknowledge = 'acknowledge',
   audio = 'audio',
@@ -301,18 +308,34 @@ export const QUESTION_TYPES: QuestionTypes = Object.freeze({
   video: {label: t('Video'), icon: 'qt-video', id: QuestionTypeName.video},
 });
 
+/**
+ * These are the types of survey rows that users can create in FormBuilder (as
+ * checkboxes) and ones that have data submitted automatically.
+ */
+export enum MetaQuestionTypeName {
+  start = 'start',
+  end = 'end',
+  today = 'today',
+  username = 'username',
+  simserial = 'simserial',
+  subscriberid = 'subscriberid',
+  deviceid = 'deviceid',
+  phonenumber = 'phonenumber',
+  audit = 'audit',
+  'background-audio' = 'background-audio',
+}
 export const META_QUESTION_TYPES = createEnum([
-  'start',
-  'end',
-  'today',
-  'username',
-  'simserial',
-  'subscriberid',
-  'deviceid',
-  'phonenumber',
-  'audit',
-  'background-audio',
-]);
+  MetaQuestionTypeName.start,
+  MetaQuestionTypeName.end,
+  MetaQuestionTypeName.today,
+  MetaQuestionTypeName.username,
+  MetaQuestionTypeName.simserial,
+  MetaQuestionTypeName.subscriberid,
+  MetaQuestionTypeName.deviceid,
+  MetaQuestionTypeName.phonenumber,
+  MetaQuestionTypeName.audit,
+  MetaQuestionTypeName['background-audio'],
+]) as {[P in MetaQuestionTypeName]: MetaQuestionTypeName};
 
 // submission data extras being added by backend. see both of these:
 // 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
@@ -382,27 +405,71 @@ export const ACCESS_TYPES = createEnum([
   'subscribed',
 ]);
 
+/**
+ * These are the types of survey rows that mark the beginning of a group. They
+ * don't carry any submission data.
+ */
+export enum GroupTypeBeginName {
+  begin_group = 'begin_group',
+  begin_score = 'begin_score',
+  begin_rank = 'begin_rank',
+  begin_kobomatrix = 'begin_kobomatrix',
+  begin_repeat = 'begin_repeat',
+}
 export const GROUP_TYPES_BEGIN = createEnum([
-  'begin_group',
-  'begin_score',
-  'begin_rank',
-  'begin_kobomatrix',
-  'begin_repeat',
-]);
+  GroupTypeBeginName.begin_group,
+  GroupTypeBeginName.begin_score,
+  GroupTypeBeginName.begin_rank,
+  GroupTypeBeginName.begin_kobomatrix,
+  GroupTypeBeginName.begin_repeat,
+]) as {[P in GroupTypeBeginName]: GroupTypeBeginName};
 
+/**
+ * These are the types of survey rows that mark the ending of a group. They
+ * don't carry any submission data.
+ */
+export enum GroupTypeEndName {
+  end_group = 'end_group',
+  end_score = 'end_score',
+  end_rank = 'end_rank',
+  end_kobomatrix = 'end_kobomatrix',
+  end_repeat = 'end_repeat',
+}
 export const GROUP_TYPES_END = createEnum([
   'end_group',
   'end_score',
   'end_rank',
   'end_kobomatrix',
   'end_repeat',
-]);
+]) as {[P in GroupTypeEndName]: GroupTypeEndName};
+
+/**
+ * These are some special types of survey rows.
+ */
+export enum MiscRowTypeName {
+  score__row = 'score__row',
+  rank__level = 'rank__level',
+}
 
 // a custom question type for score
-export const SCORE_ROW_TYPE = 'score__row';
+export const SCORE_ROW_TYPE = MiscRowTypeName.score__row;
 
 // a custom question type for rank
-export const RANK_LEVEL_TYPE = 'rank__level';
+export const RANK_LEVEL_TYPE = MiscRowTypeName.rank__level;
+
+// We first define this merged const of all enums, so we can then have a merged
+// enum by using `type` with `typeof` trick.
+export const ANY_ROW_TYPE_NAMES = {
+  ...QuestionTypeName,
+  ...MetaQuestionTypeName,
+  ...GroupTypeBeginName,
+  ... GroupTypeEndName,
+  ... MiscRowTypeName
+};
+/**
+ * These are all possible types of asset survey rows.
+ */
+export type AnyRowTypeName = typeof ANY_ROW_TYPE_NAMES
 
 export const CHOICE_LISTS = Object.freeze({
   SELECT: 'select_from_list_name',
