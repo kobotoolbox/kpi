@@ -57,7 +57,7 @@ interface SurveyRow {
   required?: boolean
   // We use dynamic import to avoid changing this ambient module to a normal
   // module: see https://stackoverflow.com/a/51114250/2311247
-  type: import('js/constants').QuestionTypeName
+  type: import('js/constants').AnyRowTypeName
   _isRepeat?: boolean
   appearance?: string
   parameters?: string

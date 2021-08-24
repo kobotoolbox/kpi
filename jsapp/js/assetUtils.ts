@@ -15,6 +15,7 @@ import {
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
+  ANY_ROW_TYPE_NAMES,
 } from 'js/constants';
 
 /**
@@ -287,20 +288,20 @@ export function getSurveyFlatPaths(
   const output: SurveyFlatPaths = {};
   const openedGroups: string[] = [];
 
-  survey.forEach((row: SurveyRow) => {
+  survey.forEach((row) => {
     const rowName = getRowName(row);
-    if (typeof GROUP_TYPES_BEGIN[row.type] !== 'undefined') {
+    if (GROUP_TYPES_BEGIN.hasOwnProperty(row.type)) {
       openedGroups.push(rowName);
       if (includeGroups) {
         output[rowName] = openedGroups.join('/');
       }
-    } else if (typeof GROUP_TYPES_END[row.type] !== 'undefined') {
+    } else if (GROUP_TYPES_END.hasOwnProperty(row.type)) {
       openedGroups.pop();
     } else if (
-      QUESTION_TYPES[row.type] ||
+      QUESTION_TYPES.hasOwnProperty(row.type) ||
       row.type === SCORE_ROW_TYPE ||
       row.type === RANK_LEVEL_TYPE ||
-      (includeMeta && META_QUESTION_TYPES[row.type])
+      (includeMeta && META_QUESTION_TYPES.hasOwnProperty(row.type))
     ) {
       let groupsPath = '';
       if (openedGroups.length >= 1) {
