@@ -1,7 +1,7 @@
-
-import {stores} from 'js/stores';
-import permConfig from 'js/components/permissions/permConfig';
-import {buildUserUrl} from 'utils';
+import {AssetTypeName} from 'js/constants'
+import {stores} from 'js/stores'
+import permConfig from 'js/components/permissions/permConfig'
+import {buildUserUrl} from 'utils'
 import {
   ASSET_TYPES,
   MODAL_TYPES,
@@ -163,11 +163,7 @@ export function getQuestionOrChoiceDisplayName(
   }
 }
 
-/**
- * @param {Object} asset - BE asset data
- * @returns {boolean}
- */
-export function isLibraryAsset(assetType) {
+export function isLibraryAsset(assetType: AssetTypeName) {
   return (
     assetType === ASSET_TYPES.question.id ||
     assetType === ASSET_TYPES.block.id ||
@@ -177,9 +173,8 @@ export function isLibraryAsset(assetType) {
 }
 
 /**
- * For getting the icon class name for given asset type.
- * @param {Object} asset - BE asset data
- * @returns {string} Contians two class names: Base `k-icon` class name and respective CSS class name
+ * For getting the icon class name for given asset type. Returned string always
+ * contains two class names: base `k-icon` and respective CSS class name.
  */
 export function getAssetIcon(asset: AssetResponse) {
   switch (asset.asset_type) {
@@ -220,7 +215,6 @@ export function getAssetIcon(asset: AssetResponse) {
 
 /**
  * Opens a modal for editing asset details.
- * @param {Object} asset - BE asset data
  */
 export function modifyDetails(asset: AssetResponse) {
   let modalType;
@@ -237,7 +231,6 @@ export function modifyDetails(asset: AssetResponse) {
 
 /**
  * Opens a modal for sharing asset.
- * @param {Object} asset - BE asset data
  */
 export function share(asset: AssetResponse) {
   stores.pageState.showModal({
@@ -248,7 +241,6 @@ export function share(asset: AssetResponse) {
 
 /**
  * Opens a modal for modifying asset languages and translation strings.
- * @param {Object} asset - BE asset data
  */
 export function editLanguages(asset: AssetResponse) {
   stores.pageState.showModal({
@@ -259,7 +251,6 @@ export function editLanguages(asset: AssetResponse) {
 
 /**
  * Opens a modal for modifying asset tags (also editable in Details Modal).
- * @param {Object} asset - BE asset data
  */
 export function editTags(asset: AssetResponse) {
   stores.pageState.showModal({
@@ -270,7 +261,6 @@ export function editTags(asset: AssetResponse) {
 
 /**
  * Opens a modal for replacing an asset using a file.
- * @param {Object} asset - BE asset data
  */
 export function replaceForm(asset: AssetResponse) {
   stores.pageState.showModal({
@@ -279,18 +269,25 @@ export function replaceForm(asset: AssetResponse) {
   });
 }
 
-/**
- * NOTE: this works based on a fact that all questions have unique names
- * @param {Array<object>} survey - from asset's `content.survey`
- * @param {boolean} [includeGroups] wheter to put groups into output
- * @param {boolean} [includeMeta] - whether to include meta question types (false on default)
- * @returns {object} a pair of quesion names and their full paths
- */
-export function getSurveyFlatPaths(survey, includeGroups = false, includeMeta = false) {
-  const output = {};
-  const openedGroups = [];
+type SurveyFlatPaths = {
+  [P in string]: string
+}
 
-  survey.forEach((row) => {
+/**
+ * NOTE: this works based on a fact that all questions have unique names.
+ * @param includeGroups - wheter to put groups into output
+ * @param includeMeta - whether to include meta question types (false on default)
+ * Returns object with pairs of quesion names and their full paths
+ */
+export function getSurveyFlatPaths(
+  survey: SurveyRow[],
+  includeGroups: boolean = false,
+  includeMeta: boolean = false
+): SurveyFlatPaths {
+  const output: SurveyFlatPaths = {};
+  const openedGroups: string[] = [];
+
+  survey.forEach((row: SurveyRow) => {
     const rowName = getRowName(row);
     if (typeof GROUP_TYPES_BEGIN[row.type] !== 'undefined') {
       openedGroups.push(rowName);
