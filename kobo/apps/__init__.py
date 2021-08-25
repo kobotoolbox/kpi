@@ -15,6 +15,9 @@ class KpiConfig(AppConfig):
         # autoscaling configuration for Celery workers
         from kobo.celery import update_concurrency_from_constance
         try:
+            # Push this onto the task queue with `delay()` instead of calling
+            # it directly because a direct call in the absence of any Celery
+            # workers hangs indefinitely
             update_concurrency_from_constance.delay()
         except kombu.exceptions.OperationalError as e:
             # It's normal for Django to start without access to a message
