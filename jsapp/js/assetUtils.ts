@@ -16,9 +16,8 @@ import {
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
+  AnyRowTypeName,
   QuestionTypeName,
-  MetaQuestionTypeName,
-  MiscRowTypeName,
 } from 'js/constants';
 
 /**
@@ -151,7 +150,7 @@ export function getAssetDisplayName(asset: AssetResponse): DisplayNameObj {
 export function getQuestionOrChoiceDisplayName(
   questionOrChoice: SurveyRow | SurveyChoice,
   translationIndex: number = 0
-) {
+): string {
   if (questionOrChoice.label && Array.isArray(questionOrChoice.label)) {
     return questionOrChoice.label[translationIndex];
   } else if (questionOrChoice.label && !Array.isArray(questionOrChoice.label)) {
@@ -406,21 +405,24 @@ function getRowLabelAtIndex(
 }
 
 export function renderQuestionTypeIcon(
-  type: QuestionTypeName | MetaQuestionTypeName | MiscRowTypeName
+  rowType: AnyRowTypeName
 ): React.DetailedReactHTMLElement<{}, HTMLElement> | null {
   let iconClassName: string = '';
 
-  if (type === SCORE_ROW_TYPE) {
+  if (rowType === SCORE_ROW_TYPE) {
     iconClassName = QUESTION_TYPES.score.icon;
-  } else if (type === RANK_LEVEL_TYPE) {
+  } else if (rowType === RANK_LEVEL_TYPE) {
     iconClassName = QUESTION_TYPES.rank.icon;
-  } else if (QUESTION_TYPES.hasOwnProperty(type)) {
-    iconClassName = QUESTION_TYPES[type].icon;
+  } else if (QUESTION_TYPES.hasOwnProperty(rowType)) {
+    // We need to cast with `as` operator to avoid typescript complaining that
+    // we can't use AnyRowTypeName as index for QuestionTypes.
+    const rowTypeAsQuestionType = rowType as QuestionTypeName;
+    iconClassName = QUESTION_TYPES[rowTypeAsQuestionType].icon;
   }
 
-  if (type === META_QUESTION_TYPES['background-audio']) {
+  if (rowType === META_QUESTION_TYPES['background-audio']) {
     iconClassName = 'k-icon-qt-audio';
-  } else if (META_QUESTION_TYPES[type]) {
+  } else if (META_QUESTION_TYPES.hasOwnProperty(rowType)) {
     iconClassName = 'qt-meta-default';
   }
 
@@ -429,12 +431,22 @@ export function renderQuestionTypeIcon(
       'i',
       {
         className: `k-icon k-icon-${iconClassName}`,
-        type: type
+        title: rowType
       }
     );
   } else {
     return null;
   }
+}
+
+interface FlatQuestion {
+  type: AnyRowTypeName
+  name: string
+  isRequired: boolean
+  label: string
+  path: string
+  parents: string[]
+  hasRepatParent: boolean
 }
 
 /**
@@ -446,11 +458,16 @@ export function renderQuestionTypeIcon(
  * @param {boolean} [includeMeta] - whether to include meta question types (false on default)
  * @returns {Array<object>} a list of parsed questions
  */
-export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta = false) {
+export function getFlatQuestionsList(
+  survey: SurveyRow[],
+  translationIndex: number = 0,
+  includeMeta: boolean = false
+): FlatQuestion[] {
   const flatPaths = getSurveyFlatPaths(survey, false, true);
-  const output = [];
-  const openedGroups = [];
+  const output: FlatQuestion[] = [];
+  const openedGroups: string[] = [];
   let openedRepeatGroupsCount = 0;
+
   survey.forEach((row) => {
     if (row.type === 'begin_group' || row.type === 'begin_repeat') {
       openedGroups.push(getQuestionOrChoiceDisplayName(row, translationIndex));
@@ -466,8 +483,8 @@ export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta =
     }
 
     if (
-      QUESTION_TYPES[row.type] ||
-      (includeMeta && META_QUESTION_TYPES[row.type])
+      QUESTION_TYPES.hasOwnProperty(row.type) ||
+      (includeMeta && META_QUESTION_TYPES.hasOwnProperty(row.type))
     ) {
       const rowName = getRowName(row);
       output.push({
@@ -489,11 +506,9 @@ export function getFlatQuestionsList(survey, translationIndex = 0, includeMeta =
  * Validates asset data to see if ready to be made public.
  * NOTE: currently we assume the asset type is `collection`.
  *
- * @param {object} asset
- *
- * @returns {string[]} array of errors (empty array means no errors)
+ * Returns an array of errors (empty array means no errors)
  */
-export function isAssetPublicReady(asset: AssetResponse) {
+export function isAssetPublicReady(asset: AssetResponse): string[] {
   const errors = [];
 
   if (asset.asset_type === ASSET_TYPES.collection.id) {
@@ -513,12 +528,8 @@ export function isAssetPublicReady(asset: AssetResponse) {
 /**
  * Checks whether the asset is public - i.e. visible and discoverable by anyone.
  * Note that `view_asset` is implied when you have `discover_asset`.
- *
- * @param {Object[]} permissions - Asset permissions.
- *
- * @returns {boolean} Is asset public.
  */
-export function isAssetPublic(permissions) {
+export function isAssetPublic(permissions: Permission[]) {
   let isDiscoverableByAnonymous = false;
   permissions.forEach((perm) => {
     if (
@@ -531,10 +542,6 @@ export function isAssetPublic(permissions) {
   return isDiscoverableByAnonymous;
 }
 
-/**
- * @param {Object} asset - BE asset data
- * @return {boolean}
- */
 export function isSelfOwned(asset: AssetResponse) {
   return (
     asset &&
@@ -543,11 +550,7 @@ export function isSelfOwned(asset: AssetResponse) {
   );
 }
 
-/**
- * @param {string} assetUid
- * @return {string} assetUrl
- */
-export function buildAssetUrl(assetUid) {
+export function buildAssetUrl(assetUid: string) {
   return `${ROOT_URL}/api/v2/assets/${assetUid}/`;
 }
 
@@ -556,7 +559,7 @@ export function buildAssetUrl(assetUid) {
 * Remove everything forbidden by XML 1.0 specifications, plus the unicode replacement character U+FFFD
 * @param {string} str
 */
-export function removeInvalidChars(str) {
+export function removeInvalidChars(str: string) {
   var regex = /((?:[\0-\x08\x0B\f\x0E-\x1F\uFFFD\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]))/g;
   return str = String(str || '').replace(regex, '');
 }
