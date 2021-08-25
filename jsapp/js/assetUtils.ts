@@ -532,9 +532,11 @@ export function isAssetPublicReady(asset: AssetResponse): string[] {
 export function isAssetPublic(permissions: Permission[]) {
   let isDiscoverableByAnonymous = false;
   permissions.forEach((perm) => {
+    const foundPerm = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset);
     if (
       perm.user === buildUserUrl(ANON_USERNAME) &&
-      perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.discover_asset).url
+      foundPerm !== undefined &&
+      perm.permission === foundPerm.url
     ) {
       isDiscoverableByAnonymous = true;
     }
