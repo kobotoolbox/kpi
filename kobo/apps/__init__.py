@@ -14,7 +14,6 @@ class KpiConfig(AppConfig):
         # Once it's okay to read from the database, apply the user-desired
         # autoscaling configuration for Celery workers
         from kobo.celery import update_concurrency_from_constance
-        # oh boy oberto
         try:
             update_concurrency_from_constance.delay()
         except kombu.exceptions.OperationalError as e:
