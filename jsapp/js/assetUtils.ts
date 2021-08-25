@@ -2,7 +2,7 @@ import React from 'react'
 import {AssetTypeName} from 'js/constants'
 import {stores} from 'js/stores'
 import permConfig from 'js/components/permissions/permConfig'
-import {buildUserUrl} from 'utils'
+import {buildUserUrl} from 'js/utils'
 import {
   ASSET_TYPES,
   MODAL_TYPES,
