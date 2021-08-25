@@ -46,27 +46,51 @@ class MediaCell extends React.Component {
   constructor(props) {
     super(props);
     autoBind(this);
+
+    this.questionIcon = this.getQuestionIcon();
   }
 
-  launchMediaModal(
-    questionType,
-    questionIcon,
-    mediaAttachment,
-    mediaName,
-    submissionIndex,
-    submissionTotal,
-  ) {
+  getQuestionIcon() {
+    const iconClassNames = ['k-icon'];
+
+    // Different from renderQuestionTypeIcon as we need custom `title` and
+    // event handling
+    switch (this.props.questionType) {
+      case QUESTION_TYPES.image.id:
+        iconClassNames.push('k-icon-qt-photo');
+        break;
+      case QUESTION_TYPES.audio.id:
+      case META_QUESTION_TYPES['background-audio']:
+        iconClassNames.push('k-icon-qt-audio');
+        break;
+      case QUESTION_TYPES.video.id:
+        iconClassNames.push('k-icon-qt-video');
+        break;
+      case QUESTION_TYPES.text.id:
+        iconClassNames.push('k-icon-question');
+        break;
+      default:
+        iconClassNames.push('k-icon-media-files');
+        break;
+    }
+
+    return iconClassNames.join(' ');
+  }
+
+  launchMediaModal(evt) {
+    evt.preventDefault();
+
     stores.pageState.showModal({
       type: MODAL_TYPES.TABLE_MEDIA_PREVIEW,
-      questionType: questionType,
-      mediaAttachment: mediaAttachment,
-      mediaName: mediaName,
+      questionType: this.props.questionType,
+      mediaAttachment: this.props.mediaAttachment,
+      mediaName: this.props.mediaName,
       customModalHeader: this.renderMediaModalCustomHeader(
-        questionIcon,
-        mediaAttachment?.download_url,
-        mediaName,
-        submissionIndex,
-        submissionTotal,
+        this.questionIcon,
+        this.props.mediaAttachment?.download_url,
+        this.props.mediaName,
+        this.props.submissionIndex,
+        this.props.submissionTotal,
       ),
     });
   }
@@ -92,7 +116,7 @@ class MediaCell extends React.Component {
     return (
       <bem.TableMediaPreviewHeader>
         <bem.TableMediaPreviewHeader__title>
-          <i className={questionIcon.join(' ')}/>
+          <i className={questionIcon}/>
           <bem.TableMediaPreviewHeader__label
             // Give the user a way to see the full file name
             title={mediaName}
@@ -133,45 +157,14 @@ class MediaCell extends React.Component {
   }
 
   render() {
-    const iconClassNames = ['k-icon'];
     const isTextQuestion = !this.props.mediaAttachment;
-
-    // Different from renderQuestionTypeIcon as we need custom `title` and
-    // event handling
-    switch (this.props.questionType) {
-      case QUESTION_TYPES.image.id:
-        iconClassNames.push('k-icon-qt-photo');
-        break;
-      case QUESTION_TYPES.audio.id:
-      case META_QUESTION_TYPES['background-audio']:
-        iconClassNames.push('k-icon-qt-audio');
-        break;
-      case QUESTION_TYPES.video.id:
-        iconClassNames.push('k-icon-qt-video');
-        break;
-      case QUESTION_TYPES.text.id:
-        iconClassNames.push('k-icon-question');
-        break;
-      default:
-        iconClassNames.push('k-icon-media-files');
-        break;
-    }
 
     return (
       <bem.MediaCell m={isTextQuestion ? 'text' : ''}>
         <bem.MediaCellIconWrapper>
           <bem.MediaCellIconWrapper__icon
-            className={iconClassNames}
-            onClick={() =>
-              this.launchMediaModal(
-                this.props.questionType,
-                iconClassNames,
-                this.props.mediaAttachment,
-                this.props.mediaName,
-                this.props.submissionIndex,
-                this.props.submissionTotal,
-              )
-            }
+            className={this.questionIcon}
+            onClick={this.launchMediaModal.bind(this)}
           />
         </bem.MediaCellIconWrapper>
 
