@@ -7,24 +7,6 @@ interface FailResponse {
   statusText: string
 }
 
-// TODO: most of these could be changed into ENUMS from just strings (e.g. `type`)
-interface SurveyRow {
-  $autoname: string
-  $kuid: string
-  calculation: string
-  label: string[]
-  hint?: string[]
-  name: string
-  required: boolean
-  type: string
-  _isRepeat?: boolean
-  appearance?: string
-  "kobo--matrix_list"?: string
-  "kobo--rank-constraint-message"?: string
-  "kobo--rank-items"?: string
-  "kobo--score-choices"?: string
-}
-
 interface AssignablePermission {
   url: string
   label: string
@@ -64,6 +46,41 @@ interface ExportSetting {
   }
 }
 
+// TODO: most of these could be changed into ENUMS from just strings (e.g. `type`)
+interface SurveyRow {
+  $autoname: string
+  $kuid: string
+  calculation?: string
+  label?: string[]
+  hint?: string[]
+  name?: string
+  required?: boolean
+  // We use dynamic import to avoid changing this ambient module to a normal
+  // module: see https://stackoverflow.com/a/51114250/2311247
+  type: import('js/constants').AnyRowTypeName
+  _isRepeat?: boolean
+  appearance?: string
+  parameters?: string
+  'kobo--matrix_list'?: string
+  'kobo--rank-constraint-message'?: string
+  'kobo--rank-items'?: string
+  'kobo--score-choices'?: string
+  'kobo--locking-profile'?: string
+}
+
+interface SurveyChoice {
+  $autovalue: string
+  $kuid: string
+  label: string[]
+  list_name: string
+  name: string
+}
+
+interface AssetLockingProfileDefinition {
+  name: string
+  restrictions: string[] // TODO use restrictions enum after it is added
+}
+
 interface AssetContentSettings {
   name?: string
   version?: string
@@ -71,14 +88,26 @@ interface AssetContentSettings {
   style?: string
   form_id?: string
   title?: string
+  'kobo--lock_all'?: boolean
+  'kobo--locking-profile'?: 'string'
 }
 
 interface AssetContent {
-  schema: string
-  survey: SurveyRow[]
-  settings: AssetContentSettings | AssetContentSettings[]
-  translated: string[]
-  translations: string[]
+  schema?: string
+  survey?: SurveyRow[]
+  choices?: SurveyChoice[]
+  settings?: AssetContentSettings | AssetContentSettings[]
+  translated?: string[]
+  translations?: Array<string|null>
+  'kobo--locking-profiles'?: AssetLockingProfileDefinition[]
+}
+
+interface AssetReportStylesSpecified {
+  [name: string]: {}
+}
+
+interface AssetReportStylesKuidNames {
+  [name: string]: {}
 }
 
 // NOTE: asset comes in different flavours: one with all the information and one without `content`
@@ -88,31 +117,42 @@ interface AssetResponse {
   owner__username: string
   parent: string | null
   settings: {
-    "data-table"?: {
-      "frozen-column"?: string
-      "show-hxl-tags"?: boolean
-      "show-group-name"?: boolean
-      "translation-index"?: number
+    sector?: {
+      label: string
+      value: string
     }
+    country?: {
+      label: string
+      value: string
+    }
+    description?: string
+    'share-metadata'?: boolean
+    'data-table'?: {
+      'frozen-column'?: string
+      'show-hxl-tags'?: boolean
+      'show-group-name'?: boolean
+      'translation-index'?: number
+    }
+    organization?: string
   }
   asset_type: string
   date_created: string
   summary: {
-    geo: boolean
-    labels: string[]
-    columns: string[]
-    lock_all: boolean
-    lock_any: boolean
-    languages: string[]
-    row_count: number
-    default_translation: string
+    geo?: boolean
+    labels?: string[]
+    columns?: string[]
+    lock_all?: boolean
+    lock_any?: boolean
+    languages?: Array<string|null>
+    row_count?: number
+    default_translation?: string|null
   }
   date_modified: string
-  version_id: string
-  version__content_hash: string
+  version_id: string|null
+  version__content_hash: string|null
   version_count: number
   has_deployment: boolean
-  deployed_version_id: string
+  deployed_version_id: string|null
   deployed_versions: {
     count: number
     next: null | string
@@ -125,41 +165,31 @@ interface AssetResponse {
       date_modified: string
     }[]
   }
-  deployment__identifier: string
+  deployment__identifier: string|null
   deployment__links: {
-    url: string
-    single_url: string
-    single_once_url: string
-    offline_url: string
-    preview_url: string
-    iframe_url: string
-    single_iframe_url: string
-    single_once_iframe_url: string
+    url?: string
+    single_url?: string
+    single_once_url?: string
+    offline_url?: string
+    preview_url?: string
+    iframe_url?: string
+    single_iframe_url?: string
+    single_once_iframe_url?: string
   }
   deployment__active: boolean
   deployment__data_download_links: {
-    xls_legacy: string
-    csv_legacy: string
-    zip_legacy: string
-    kml_legacy: string
-    xls: string
-    csv: string
+    xls_legacy?: string
+    csv_legacy?: string
+    zip_legacy?: string
+    kml_legacy?: string
+    xls?: string
+    csv?: string
   }
   deployment__submission_count: number
   report_styles: {
-    default: {}
-    specified: {
-      end: {}
-      start: {}
-      Your_name: {}
-      __version__: {}
-    }
-    kuid_names: {
-      end: string
-      start: string
-      Your_name: string
-      __version__: string
-    }
+    default?: {}
+    specified?: AssetReportStylesSpecified
+    kuid_names?: AssetReportStylesKuidNames
   }
   report_custom: {
     [reportName: string]: {
@@ -206,4 +236,52 @@ interface AssetResponse {
   access_types: string[]|null
   data_sharing: {}
   paired_data: string
+}
+
+interface PaginatedResponse {
+  count: number
+  next: null | string
+  previous: null | string
+  results: any[]
+}
+
+interface PermissionDefinition {
+  url: string
+  name: string
+  description: string
+  codename: string
+  implied: string[]
+  contradictory: string[]
+}
+
+interface PermissionsConfigResponse extends PaginatedResponse {
+  results: PermissionDefinition[]
+}
+
+interface AccountResponse {
+  username: string
+  first_name: string
+  last_name: string
+  email: string
+  server_time: string
+  date_joined: string
+  projects_url: string
+  is_superuser: boolean
+  gravatar: string
+  is_staff: boolean
+  last_login: string
+  extra_details: {
+    name: string
+    gender: string
+    sector: string
+    country: string
+    organization: string
+    require_auth: boolean
+  },
+  git_rev: {
+    short: string
+    long: string
+    branch: string
+    tag: boolean
+  }
 }

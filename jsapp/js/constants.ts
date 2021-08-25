@@ -265,7 +265,7 @@ type QuestionTypes = {
   [P in QuestionTypeName]: QuestionTypeDefinition
 }
 
-/**
+/*
  * When adding new question type please remember to update those places:
  * 1. Add question type here
  * 2. Add new SVG icon to jsapp/svg-icons
@@ -279,6 +279,10 @@ type QuestionTypes = {
  * 6. Update renderResponseData in submissionDataTable.es6
  * 7. Update getSubmissionDisplayData in submissionUtils.es6
  * 8. If it's media type update renderAttachment in submissionDataTable.es6
+ */
+
+/**
+ * Definitions of user oriented question types.
  */
 export const QUESTION_TYPES: QuestionTypes = Object.freeze({
   acknowledge: {label: t('Acknowledge'), icon: 'qt-acknowledge', id: QuestionTypeName.acknowledge},
