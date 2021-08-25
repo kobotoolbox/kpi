@@ -257,3 +257,31 @@ interface PermissionDefinition {
 interface PermissionsConfigResponse extends PaginatedResponse {
   results: PermissionDefinition[]
 }
+
+interface AccountResponse {
+  username: string
+  first_name: string
+  last_name: string
+  email: string
+  server_time: string
+  date_joined: string
+  projects_url: string
+  is_superuser: boolean
+  gravatar: string
+  is_staff: boolean
+  last_login: string
+  extra_details: {
+    name: string
+    gender: string
+    sector: string
+    country: string
+    organization: string
+    require_auth: boolean
+  },
+  git_rev: {
+    short: string
+    long: string
+    branch: string
+    tag: boolean
+  }
+}

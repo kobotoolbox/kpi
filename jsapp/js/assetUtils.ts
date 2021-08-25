@@ -226,10 +226,14 @@ export function modifyDetails(asset: AssetResponse) {
   } else if (asset.asset_type === ASSET_TYPES.collection.id) {
     modalType = MODAL_TYPES.LIBRARY_COLLECTION;
   }
-  stores.pageState.showModal({
-    type: modalType,
-    asset: asset,
-  });
+  if (modalType) {
+    stores.pageState.showModal({
+      type: modalType,
+      asset: asset,
+    });
+  } else {
+    throw new Error(`Unsupported asset type: ${asset.asset_type}.`)
+  }
 }
 
 /**
