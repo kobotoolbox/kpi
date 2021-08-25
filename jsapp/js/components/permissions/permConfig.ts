@@ -1,26 +1,21 @@
 import Reflux from 'reflux';
 
-/**
- * @typedef {Object} PermDefinition - A permission object from backend.
- * @property {string} url - Url of given permission type.
- * @property {string} name
- * @property {string} description
- * @property {string} codename
- * @property {string[]} implied - A list of implied permissions.
- * @property {string[]} contradictory - A list of contradictory permissions.
- */
+interface PermConfig extends Reflux.Store {
+  setPermissions: (permissions: PermissionDefinition[]) => void
+  getPermissionByCodename: () => PermissionDefinition
+  getPermission: () => PermissionDefinition
+  verifyReady: () => void | never
+  isReady: () => boolean
+}
 
 /**
- * NOTE: this relies on the app being initialized by calling
+ * NOTE: this store relies on the app being initialized by calling
  * `actions.permissions.getConfig()` and then manually setting results here,
  * otherwise expect `verifyReady` to throw
  */
-const permConfig = Reflux.createStore({
+const permConfig = <PermConfig>Reflux.createStore({
   permissions: [],
 
-  /**
-   * @param {PermDefinition[]} permissions
-   */
   setPermissions(permissions) {
     this.permissions = permissions;
   },

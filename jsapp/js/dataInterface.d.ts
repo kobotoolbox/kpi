@@ -237,3 +237,23 @@ interface AssetResponse {
   data_sharing: {}
   paired_data: string
 }
+
+interface PaginatedResponse {
+  count: number
+  next: null | string
+  previous: null | string
+  results: any[]
+}
+
+interface PermissionDefinition {
+  url: string
+  name: string
+  description: string
+  codename: string
+  implied: string[]
+  contradictory: string[]
+}
+
+interface PermissionsConfigResponse extends PaginatedResponse {
+  results: PermissionDefinition[]
+}
