@@ -323,7 +323,7 @@ export function generateAutoname(str: string, startIndex: number = 0, endIndex: 
   .replace(/(\ |\.)/g, "_");
 }
 
-export function csrfSafeMethod(method) {
+export function csrfSafeMethod(method: string) {
   // these HTTP methods do not require CSRF protection
   return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
 }
