@@ -8,15 +8,19 @@ interface FailResponse {
 }
 
 // TODO: most of these could be changed into ENUMS from just strings (e.g. `type`)
+/**
+ * It represents a question from the form, a group start/end or a piece of
+ * a more complex question type.
+ */
 interface SurveyRow {
   $autoname: string
   $kuid: string
+  type: string
   calculation?: string
   label?: string[]
   hint?: string[]
   name?: string
   required?: boolean
-  type: string
   _isRepeat?: boolean
   appearance?: string
   parameters?: string
@@ -41,6 +45,9 @@ interface AssignablePermissionPartial extends AssignablePermission {
   }
 }
 
+/**
+ * A single permission instance for a given user.
+ */
 interface Permission {
   url: string
   user: string
@@ -48,6 +55,9 @@ interface Permission {
   label: string
 }
 
+/**
+ * A saved export settings instance.
+ */
 interface ExportSetting {
   uid: string
   url: string
@@ -74,6 +84,11 @@ interface AssetContentSettings {
   title?: string
 }
 
+/**
+ * Represents parsed form (i.e. the spreadsheet file) contents.
+ * It is quite crucial for multiple places of UI, but is not always
+ * present in backend responses (performance reasons).
+ */
 interface AssetContent {
   schema?: string
   survey?: SurveyRow[]
@@ -90,7 +105,9 @@ interface AssetReportStylesKuidNames {
   [name: string]: {}
 }
 
-// NOTE: asset comes in different flavours: one with all the information and one without `content`
+/**
+ * This is the backend's asset.
+ */
 interface AssetResponse {
   url: string
   owner: string
