@@ -216,4 +216,12 @@ interface AssetResponse {
   access_types: string[]|null
   data_sharing: {}
   paired_data: string
+
+  // TODO: think about creating a new interface for asset that is being extended
+  // on frontend. Here are some properties we add to the response:
+  tags?: string[]
+  unparsed__settings?: AssetContentSettings
+  settings__style?: string
+  settings__form_id?: string
+  settings__title?: string
 }

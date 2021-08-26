@@ -29,5 +29,5 @@ export function parsed(asset: AssetResponse): AssetResponse {
     asset,
     parseSettings(asset),
     parseTags(asset)
-  );
+  ) as AssetResponse;
 }
