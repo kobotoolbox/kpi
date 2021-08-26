@@ -22,6 +22,9 @@ interface AssignablePermissionPartial extends AssignablePermission {
   }
 }
 
+/**
+ * A single permission instance for a given user.
+ */
 interface Permission {
   url: string
   user: string
@@ -29,6 +32,9 @@ interface Permission {
   label: string
 }
 
+/**
+ * A saved export settings instance.
+ */
 interface ExportSetting {
   uid: string
   url: string
@@ -47,17 +53,21 @@ interface ExportSetting {
 }
 
 // TODO: most of these could be changed into ENUMS from just strings (e.g. `type`)
+/**
+ * It represents a question from the form, a group start/end or a piece of
+ * a more complex question type.
+ */
 interface SurveyRow {
   $autoname: string
   $kuid: string
+  // We use dynamic import to avoid changing this ambient module to a normal
+  // module: see https://stackoverflow.com/a/51114250/2311247
+  type: import('js/constants').AnyRowTypeName
   calculation?: string
   label?: string[]
   hint?: string[]
   name?: string
   required?: boolean
-  // We use dynamic import to avoid changing this ambient module to a normal
-  // module: see https://stackoverflow.com/a/51114250/2311247
-  type: import('js/constants').AnyRowTypeName
   _isRepeat?: boolean
   appearance?: string
   parameters?: string
@@ -92,6 +102,11 @@ interface AssetContentSettings {
   'kobo--locking-profile'?: 'string'
 }
 
+/**
+ * Represents parsed form (i.e. the spreadsheet file) contents.
+ * It is quite crucial for multiple places of UI, but is not always
+ * present in backend responses (performance reasons).
+ */
 interface AssetContent {
   schema?: string
   survey?: SurveyRow[]
@@ -110,7 +125,9 @@ interface AssetReportStylesKuidNames {
   [name: string]: {}
 }
 
-// NOTE: asset comes in different flavours: one with all the information and one without `content`
+/**
+ * This is the backend's asset.
+ */
 interface AssetResponse {
   url: string
   owner: string
@@ -236,6 +253,14 @@ interface AssetResponse {
   access_types: string[]|null
   data_sharing: {}
   paired_data: string
+
+  // TODO: think about creating a new interface for asset that is being extended
+  // on frontend. Here are some properties we add to the response:
+  tags?: string[]
+  unparsed__settings?: AssetContentSettings
+  settings__style?: string
+  settings__form_id?: string
+  settings__title?: string
 }
 
 interface PaginatedResponse {
