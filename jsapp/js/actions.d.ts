@@ -1,21 +1,33 @@
+/**
+ * NOTE: all the actions groups definitions are both functions and objects with
+ * nested functions.
+ */
+
 interface LoadAssetDefinition extends Function {
   (params: {id: string}): void
-  completed: {
-    listen: (callback: (response: AssetResponse) => void) => void
-  }
-  failed: {
-    listen: (callback: (response: FailResponse) => void) => void
-  }
+  completed: LoadAssetCompletedDefinition
+  failed: GenericFailedDefinition
+}
+
+interface LoadAssetCompletedDefinition extends Function {
+  (response: AssetResponse): void
+  listen: (callback: (response: AssetResponse) => void) => void
+}
+
+interface GenericFailedDefinition extends Function {
+  (response: FailResponse): void
+  listen: (callback: (response: FailResponse) => void) => void
 }
 
 interface UpdateAssetDefinition extends Function {
   (uid: string, values: any, params: any): void
-  completed: {
-    listen: (callback: (response: AssetResponse) => void) => void
-  }
-  failed: {
-    listen: (callback: (response: FailResponse) => void) => void
-  }
+  completed: UpdateAssetCompletedDefinition
+  failed: GenericFailedDefinition
+}
+
+interface UpdateAssetCompletedDefinition extends Function {
+  (response: AssetResponse): void
+  listen: (callback: (response: AssetResponse) => void) => void
 }
 
 // TODO: as you use more actions in your ts files, please extend this namespace
