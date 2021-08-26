@@ -8,8 +8,8 @@ bem.SingleProcessingHeader = bem.create('single-processing-header', 'header');
  * this.props.params properties
  */
 type SingleProcessingHeaderProps = {
-  questionType: QuestionTypeName
-  questionName: string
+  questionType: QuestionTypeName | undefined
+  questionName: string | null
   submissionId: string
   totalSubmissions: number
 }

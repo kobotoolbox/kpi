@@ -66,7 +66,7 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
   }
 
   getQuestionType(): QuestionTypeName | undefined {
-    if (this.state.asset?.content) {
+    if (this.state.asset?.content?.survey) {
       const foundRow = this.state.asset.content.survey.find((row) => {
         return [
           row.name,
@@ -82,7 +82,12 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
   }
 
   render() {
-    if (!this.state.isReady || !this.state.asset || !this.state.asset.content) {
+    if (
+      !this.state.isReady ||
+      !this.state.asset ||
+      !this.state.asset.content ||
+      !this.state.asset.content.survey
+    ) {
       return <LoadingSpinner/>;
     }
 
