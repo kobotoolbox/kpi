@@ -122,6 +122,12 @@ $z-table-frozen: 10;
       .rt-th,
       .rt-td {
         border-right: $data-table-border;
+
+        // Remove ellipsis overflow from filters row, as it is useless for us and also
+        // causes Chrome to display it in weird situations :shrug:.
+        white-space: initial;
+        text-overflow: initial;
+        overflow: initial;
       }
 
       .rt-sub-actions {

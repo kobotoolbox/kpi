@@ -45,9 +45,11 @@ $hack-fix-slider-length-mobile: #{$hack-fix-slider-length-mobile-int}px;
   justify-content: center;
 
   .audio-player__controls {
-    margin-right: 12px;
+    margin-top: 8px;
+    margin-right: 8px;
+
     i.k-icon {
-      font-size: 48px;
+      font-size: 36px;
       border-radius: 4px;
       cursor: pointer;
 

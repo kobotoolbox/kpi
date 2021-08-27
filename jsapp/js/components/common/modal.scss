@@ -417,6 +417,7 @@ $z-modal-x: 10;
       padding: 32px 0 12px 0;
       text-align: center;
       max-width: 600px;
+      min-width: 400px;
       margin: auto;
 
       .audio-player {
@@ -899,5 +900,9 @@ $z-modal-x: 10;
       margin-left: 0px !important;
       margin-top: 12px;
     }
+  }
+
+  .table-media-preview {
+    min-width: 0px !important;
   }
 }
