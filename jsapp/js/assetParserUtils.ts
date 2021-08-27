@@ -1,10 +1,6 @@
 import {assign} from 'js/utils';
 
-interface ParsedTags {
-  tags: string[]
-}
-
-export function parseTags(asset: AssetResponse): ParsedTags {
+export function parseTags(asset: AssetResponse) {
   return {
     tags: asset.tag_string.split(',').filter((tg) => { return tg.length !== 0; })
   };
@@ -33,5 +29,5 @@ export function parsed(asset: AssetResponse): AssetResponse {
     asset,
     parseSettings(asset),
     parseTags(asset)
-  );
+  ) as AssetResponse;
 }

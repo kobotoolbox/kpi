@@ -7,7 +7,9 @@ export interface BemDefinition {
   create: (className: string, elementType?: string) => BemComponent
 }
 
-export const BEM: {
+interface BEMDefinition extends Function {
   (className: string, elementType?: string): BemComponent
   init: () => BemDefinition
 }
+
+export const BEM: BEMDefinition
