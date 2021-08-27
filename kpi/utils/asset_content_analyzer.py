@@ -86,5 +86,4 @@ class AssetContentAnalyzer:
         }
         if len(naming_conflicts) > 0:
             summary['naming_conflicts'] = naming_conflicts
-            # raise ValueError('Asset_Content_Analyzer: Duplicates')
         return summary
