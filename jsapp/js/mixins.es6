@@ -236,7 +236,7 @@ mixins.dmix = {
   },
 
   componentDidMount() {
-    this.listenTo(assetStore, this.dmixAssetStoreChange);
+    assetStore.listen(this.dmixAssetStoreChange);
 
     // TODO 2/2
     // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
