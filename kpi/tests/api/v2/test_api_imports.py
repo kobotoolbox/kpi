@@ -138,7 +138,6 @@ class AssetImportTaskTest(BaseTestCase):
         response = self.client.post(post_url, task_data)
         assert response.status_code == status.HTTP_201_CREATED
         detail_response = self.client.get(response.data['url'])
-        print(detail_response.data['messages'])
         assert detail_response.status_code == status.HTTP_200_OK
         assert detail_response.data['status'] == "error"
         assert detail_response.data['messages']['error'] == "There are duplicates in the name column"
