@@ -67,8 +67,7 @@ class MediaCell extends React.Component {
         iconClassNames.push('k-icon-qt-video');
         break;
       case QUESTION_TYPES.text.id:
-        // TODO: use k-icon-expand after it gets added
-        iconClassNames.push('k-icon-arrow-up-right');
+        iconClassNames.push('k-icon-expand-arrow');
         break;
       default:
         iconClassNames.push('k-icon-media-files');
