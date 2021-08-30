@@ -14,6 +14,23 @@ interface GetSubmissionCompletedDefinition extends Function {
   listen: (callback: (response: SubmissionResponse) => void) => void
 }
 
+interface GetSubmissionsIdsDefinition extends Function {
+  (assetUid: string): void
+  completed: GetSubmissionsIdsCompletedDefinition
+  failed: GenericFailedDefinition
+}
+
+interface GetSubmissionsIdsCompletedDefinition extends Function {
+  (response: GetSubmissionsIdsResponse): void
+  listen: (callback: (response: GetSubmissionsIdsResponse) => void) => void
+}
+
+interface GetSubmissionsIdsResponse extends PaginatedResponse {
+  results: {
+    _id: number
+  }[]
+}
+
 interface LoadAssetDefinition extends Function {
   (params: {id: string}): void
   completed: LoadAssetCompletedDefinition
@@ -76,6 +93,7 @@ export namespace actions {
     const submissions: {
       getSubmission: GetSubmissionDefinition
       getSubmissions: any
+      getSubmissionsIds: GetSubmissionsIdsDefinition
       bulkDeleteStatus: any
       bulkPatchStatus: any
       bulkPatchValues: any

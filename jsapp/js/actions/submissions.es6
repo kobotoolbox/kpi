@@ -5,6 +5,7 @@
 import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
+import {ROOT_URL} from 'js/constants';
 
 const submissionsActions = Reflux.createActions({
   getSubmission: {children: ['completed', 'failed']},
@@ -13,6 +14,7 @@ const submissionsActions = Reflux.createActions({
   bulkPatchStatus: {children: ['completed', 'failed']},
   bulkPatchValues: {children: ['completed', 'failed']},
   bulkDelete: {children: ['completed', 'failed']},
+  getSubmissionsIds: {children: ['completed', 'failed']},
 });
 
 /**
@@ -48,6 +50,20 @@ submissionsActions.getSubmissions.listen((options) => {
     .fail((response) => {
       submissionsActions.getSubmissions.failed(response, options);
     });
+});
+
+/**
+ * This gets an array of submission ids
+ * @param {string} assetUid
+ */
+submissionsActions.getSubmissionsIds.listen((assetUid) => {
+  $.ajax({
+    dataType: 'json',
+    method: 'GET',
+    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_id"]`,
+  })
+    .done(submissionsActions.getSubmissionsIds.completed)
+    .fail(submissionsActions.getSubmissionsIds.failed);
 });
 
 submissionsActions.getSubmission.listen((assetUid, submissionId) => {
