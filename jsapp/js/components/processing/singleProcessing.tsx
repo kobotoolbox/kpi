@@ -24,8 +24,10 @@ type SingleProcessingProps = RouteComponentProps<{
 }, {}>;
 
 type SingleProcessingState = {
-  isReady: boolean
+  isSubmissionCallDone: boolean
+  isIdsCallDone: boolean
   submissionData: SubmissionResponse | null
+  submissionsIds: string[]
   asset: AssetResponse | undefined
   error: string | null
 }
@@ -38,30 +40,52 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
   constructor(props: SingleProcessingProps) {
     super(props);
     this.state = {
-      isReady: false,
+      isSubmissionCallDone: false,
+      isIdsCallDone: false,
       submissionData: null,
+      submissionsIds: [],
       asset: assetStore.getAsset(this.props.params.uid),
       error: null,
     }
   }
 
   componentDidMount() {
+    // TODO: instead of using `getSubmission` we will use `getSubmissions` and paginate id by 1
+    // that way we always know what the total number is, what the current number is and we even get
+    // next and previous links for free :mindblown:
     actions.submissions.getSubmission.completed.listen(this.onGetSubmissionCompleted.bind(this))
     actions.submissions.getSubmission.failed.listen(this.onGetSubmissionFailed.bind(this))
+    actions.submissions.getSubmissionsIds.completed.listen(this.onGetSubmissionsIdsCompleted.bind(this))
+    actions.submissions.getSubmissionsIds.failed.listen(this.onGetSubmissionsIdsFailed.bind(this))
     actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId);
+    actions.submissions.getSubmissionsIds(this.props.params.uid);
   }
 
   onGetSubmissionCompleted(response: SubmissionResponse): void {
     this.setState({
-      isReady: true,
+      isSubmissionCallDone: true,
       submissionData: response,
     });
   }
 
   onGetSubmissionFailed(response: FailResponse): void {
     this.setState({
-      isReady: true,
+      isSubmissionCallDone: true,
       error: response.responseJSON?.detail || t('Failed to get submission.'),
+    });
+  }
+
+  onGetSubmissionsIdsCompleted(response: GetSubmissionsIdsResponse) {
+    this.setState({
+      isIdsCallDone: true,
+      submissionsIds: response.results.map((result) => String(result._id))
+    })
+  }
+
+  onGetSubmissionsIdsFailed(response: FailResponse): void {
+    this.setState({
+      isIdsCallDone: true,
+      error: response.responseJSON?.detail || t('Failed to get submissions IDs.'),
     });
   }
 
@@ -83,13 +107,19 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
 
   render() {
     if (
-      !this.state.isReady ||
+      !this.state.isSubmissionCallDone ||
+      !this.state.isIdsCallDone ||
       !this.state.asset ||
       !this.state.asset.content ||
       !this.state.asset.content.survey
     ) {
       return <LoadingSpinner/>;
     }
+
+    console.log(
+      this.state.submissionData,
+      this.state.submissionsIds
+    )
 
     return (
       <bem.SingleProcessing>
@@ -98,7 +128,7 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
             questionType={this.getQuestionType()}
             questionName={getTranslatedRowLabel(this.props.params.questionName, this.state.asset.content.survey, 0)}
             submissionId={this.props.params.submissionId}
-            totalSubmissions={this.state.asset.deployment__submission_count}
+            submissionsIds={this.state.submissionsIds}
           />
         </bem.SingleProcessing__top>
 

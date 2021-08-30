@@ -11,7 +11,7 @@ type SingleProcessingHeaderProps = {
   questionType: QuestionTypeName | undefined
   questionName: string | null
   submissionId: string
-  totalSubmissions: number
+  submissionsIds: string[]
 }
 
 /**
@@ -26,10 +26,10 @@ export default class SingleProcessing extends React.Component<SingleProcessingHe
   render() {
     return (
       <bem.SingleProcessingHeader>
-        <span>{this.props.questionType}</span>
-        <span>{this.props.questionName}</span>
-        <span>{this.props.submissionId}</span>
-        <span>{this.props.totalSubmissions}</span>
+        <div>type: {this.props.questionType}</div>
+        <div>name: {this.props.questionName}</div>
+        <div>id: {this.props.submissionId}</div>
+        <div>{this.props.submissionsIds.indexOf(this.props.submissionId) + 1} of {this.props.submissionsIds.length}</div>
       </bem.SingleProcessingHeader>
     )
   }
