@@ -1,5 +1,4 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import './textBox.scss';
@@ -29,7 +28,6 @@ class TextBox extends React.Component {
       'url',
     ];
     this.DEFAULT_TYPE = 'text';
-    autoBind(this);
   }
 
   onChange(evt) {
@@ -82,9 +80,9 @@ class TextBox extends React.Component {
     const inputProps = {
       value: this.props.value,
       placeholder: this.props.placeholder,
-      onChange: this.onChange,
-      onBlur: this.onBlur,
-      onKeyPress: this.onKeyPress,
+      onChange: this.onChange.bind(this),
+      onBlur: this.onBlur.bind(this),
+      onKeyPress: this.onKeyPress.bind(this),
       readOnly: this.props.readOnly,
       disabled: this.props.disabled,
     };
