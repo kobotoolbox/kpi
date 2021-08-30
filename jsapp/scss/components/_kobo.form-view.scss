@@ -60,7 +60,8 @@
   & + .form-view,
   & + .report-view,
   & + .loading,
-  & + .access-denied {
+  & + .access-denied,
+  & + .single-processing {
     width: calc(100% - 170px);
     height: calc(100% - 48px);
     overflow: auto;
