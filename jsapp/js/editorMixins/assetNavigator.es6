@@ -3,20 +3,20 @@ import ReactDOM from 'react-dom';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {stores} from '../stores';
+import {stores} from 'js/stores';
 import bem from 'js/bem';
-import {searches} from '../searches';
+import {searches} from 'js/searches';
 import AssetName from 'js/components/common/assetName';
 import {
   COMMON_QUERIES,
   ASSET_TYPES,
-} from '../constants';
+} from 'js/constants';
 import {
   ListSearch,
   ListTagFilter,
   ListCollectionFilter,
   ListExpandToggle,
-} from '../components/list';
+} from 'js/components/list';
 
 class AssetNavigatorListView extends React.Component {
   constructor(props) {
