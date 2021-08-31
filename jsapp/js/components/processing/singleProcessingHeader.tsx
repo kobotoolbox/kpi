@@ -1,7 +1,7 @@
 import React from 'react';
 import bem from 'js/bem';
 import {QuestionTypeName} from 'js/constants';
-import TextBox from 'js/components/common/textBox';
+import TextBox, {AvailableType} from 'js/components/common/textBox';
 
 bem.SingleProcessingHeader = bem.create('single-processing-header', 'header');
 
@@ -32,13 +32,20 @@ export default class SingleProcessingHeader extends React.Component<SingleProces
     console.log(newValue);
   }
 
+  /**
+   * Returns the natural number (first is 1, not 0)
+   */
+  getCurrentSubmissionNumber(): number {
+    return this.props.submissionsIds.indexOf(this.props.submissionId) + 1
+  }
+
   render() {
     return (
       <bem.SingleProcessingHeader>
         <div>icon in a colorful square: {this.props.questionType}</div>
 
         <div>
-          {this.props.submissionsIds.indexOf(this.props.submissionId) + 1} of {this.props.submissionsIds.length}
+          {this.getCurrentSubmissionNumber()} of {this.props.submissionsIds.length}
           {t('Q: ##question_name##').replace('##question_name', this.props.questionName)}
         </div>
 
@@ -48,8 +55,8 @@ export default class SingleProcessingHeader extends React.Component<SingleProces
           </bem.KoboLightButton>
 
           <TextBox
-            type={'number'}
-            value={this.props.submissionsIds.indexOf(this.props.submissionId) + 1}
+            type={AvailableType.number}
+            value={String(this.getCurrentSubmissionNumber())}
             onChange={this.onSubmissionIndexInputChange.bind(this)}
           />
 
