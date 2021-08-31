@@ -47,7 +47,10 @@ jobs:
     - name: Update Debian package lists
       run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
     - name: Install Debian dependencies
-      run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y install build-essential fontforge gettext git-core libpcre3 libpcre3-dev libpq-dev
+      # All about YAML line breaks: https://stackoverflow.com/a/21699210
+      run: >-
+        sudo DEBIAN_FRONTEND=noninteractive apt-get -y install
+        gdal-bin gettext libproj-dev postgresql-client
     - name: Install Python dependencies
       run: pip-sync dependencies/pip/dev_requirements.txt
     - name: Update translations
