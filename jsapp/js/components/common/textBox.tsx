@@ -31,7 +31,7 @@ type TextBoxProps = {
 /**
  * A text box generic component.
  */
-class TextBox extends React.Component<TextBoxProps, void> {
+class TextBox extends React.Component<TextBoxProps, {}> {
   constructor(props: TextBoxProps){
     super(props);
   }
