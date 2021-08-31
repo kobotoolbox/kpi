@@ -1,6 +1,6 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: test-build
+name: pytest
 
 on:
   push:
@@ -44,8 +44,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: browser-actions/setup-chrome@latest
-    - run: chrome --version
     - name: Upgrade pip
       run: python -m pip install --upgrade pip
     - name: Install pip-tools
@@ -63,10 +61,9 @@ jobs:
       run: npm install
     - name: Update translations
       run: git submodule init && git submodule update --remote && python manage.py compilemessages
+    # Intercom tests in Python fail if the front-end code has not been built
     - name: Build front-end code
       run: npm run copy-fonts && npm run build
-    - name: Test front-end code
-      run: npm run test
     - name: Test back-end code
       run: pytest --cov=. -ra
     - name: Run coveralls for back-end code
