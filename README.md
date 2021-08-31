@@ -1,7 +1,8 @@
 # KPI
 
-[![Build Status](https://github.com/kobotoolbox/kpi/workflows/pytest/badge.svg)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Apytest)
-[![Coverage Status](https://coveralls.io/repos/github/kobotoolbox/kpi/badge.svg?branch=master)](https://coveralls.io/github/kobotoolbox/kpi?branch=master)
+[![Python Build Status](https://github.com/kobotoolbox/kpi/workflows/pytest/badge.svg)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Apytest)
+[![Python Coverage Status](https://coveralls.io/repos/github/kobotoolbox/kpi/badge.svg?branch=master)](https://coveralls.io/github/kobotoolbox/kpi?branch=master)
+[![JS Build Status](https://github.com/kobotoolbox/kpi/workflows/npm-test/badge.svg)](https://github.com/kobotoolbox/kpi/actions?query=workflow%3Anpm-test)
 
 We're open for [contributions](./CONTRIBUTING.md)!
 
