@@ -1,6 +1,6 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: pytest
+name: test-build
 
 on:
   push:
@@ -36,10 +36,16 @@ jobs:
           - 6379:6379
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+        cache: 'npm'
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - uses: browser-actions/setup-chrome@latest
+    - run: chrome --version
     - name: Upgrade pip
       run: python -m pip install --upgrade pip
     - name: Install pip-tools
@@ -53,10 +59,15 @@ jobs:
         gdal-bin gettext libproj-dev postgresql-client
     - name: Install Python dependencies
       run: pip-sync dependencies/pip/dev_requirements.txt
+    - name: Install JavaScript dependencies
+      run: npm install
     - name: Update translations
       run: git submodule init && git submodule update --remote && python manage.py compilemessages
-    - name: Run pytest
-      run: pytest --cov=. -vvra
-    - name: Run coveralls
+    - name: Build front-end code
+      run: npm run copy-fonts && npm run build
+    - name: Test front-end code
+      run: npm run test
+    - name: Test back-end code
+      run: pytest --cov=. -ra
+    - name: Run coveralls for back-end code
       uses: AndreMiras/coveralls-python-action@develop
-    # TODO: npm install; npm run copy-fonts; npm run build; npm run test
