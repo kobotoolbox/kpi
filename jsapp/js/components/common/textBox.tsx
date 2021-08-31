@@ -3,23 +3,24 @@ import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import './textBox.scss';
 
-enum AvailableType {
+export enum AvailableType {
   'text-multiline' = 'text-multiline',
-  'text' = 'text',
-  'email' = 'email',
-  'password' = 'password',
-  'url' = 'url',
+  text = 'text',
+  email = 'email',
+  password = 'password',
+  url = 'url',
+  number = 'number',
 }
 
 const DefaultType = AvailableType.text;
 
 type TextBoxProps = {
-  type: AvailableType // one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
+  type?: AvailableType // one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
   value: string
   onChange: Function
   onBlur?: Function
   onKeyPress?: Function
-  errors: string[]|string|boolean // for visual error indication and displaying error messages
+  errors?: string[]|string|boolean // for visual error indication and displaying error messages
   label?: string
   placeholder?: string
   description?: string
