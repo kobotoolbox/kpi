@@ -50,3 +50,7 @@ export const TABLE_MEDIA_TYPES = createEnum([
   QUESTION_TYPES.text.id,
   META_QUESTION_TYPES['background-audio'],
 ]);
+
+export const DEFAULT_DATA_CELL_WIDTH = 160;
+
+export const DEFAULT_VALIDATION_CELL_WIDTH = 130;
