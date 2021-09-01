@@ -1,0 +1,14 @@
+.single-processing-header {
+  display: flex;
+  flex-direction: row;
+
+  .single-processing-header__column {
+    .single-processing-header__column--main {
+      flex: 1;
+    }
+  }
+
+  .single-processing-header__number {
+    font-style: italic;
+  }
+}

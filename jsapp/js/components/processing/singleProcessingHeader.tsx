@@ -1,9 +1,11 @@
 import React from 'react';
 import bem from 'js/bem';
 import {QuestionTypeName} from 'js/constants';
+import './SingleProcessingHeader.scss';
 
 bem.SingleProcessingHeader = bem.create('single-processing-header', 'header');
 bem.SingleProcessingHeader__column = bem.SingleProcessingHeader.__('column');
+bem.SingleProcessingHeader__number = bem.SingleProcessingHeader.__('number');
 
 /**
  * this.props.params properties
@@ -77,7 +79,7 @@ export default class SingleProcessingHeader extends React.Component<SingleProces
           icon in a colorful square: {this.props.questionType}
         </bem.SingleProcessingHeader__column>
 
-        <bem.SingleProcessingHeader__column>
+        <bem.SingleProcessingHeader__column m='main'>
           {this.getCurrentSubmissionNumber()} of {this.props.submissionsIds.length}
           {t('Q: ##question_name##').replace('##question_name##', this.props.questionName)}
         </bem.SingleProcessingHeader__column>
