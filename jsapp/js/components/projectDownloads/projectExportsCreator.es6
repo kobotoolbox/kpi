@@ -58,7 +58,7 @@ export default class ProjectExportsCreator extends React.Component {
       customExportName: DEFAULT_EXPORT_SETTINGS.CUSTOM_EXPORT_NAME,
       isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
-      isXlsTypesEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES,
+      isXlsTypesAsTextEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES_AS_TEXT,
       selectedRows: new Set(),
       selectableRowsCount: 0,
       selectedDefinedExport: null,
@@ -105,7 +105,7 @@ export default class ProjectExportsCreator extends React.Component {
       customExportName: DEFAULT_EXPORT_SETTINGS.CUSTOM_EXPORT_NAME,
       isCustomSelectionEnabled: DEFAULT_EXPORT_SETTINGS.CUSTOM_SELECTION,
       isFlattenGeoJsonEnabled: DEFAULT_EXPORT_SETTINGS.FLATTEN_GEO_JSON,
-      isXlsTypesEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES,
+      isXlsTypesAsTextEnabled: DEFAULT_EXPORT_SETTINGS.XLS_TYPES_AS_TEXT,
       selectedRows: new Set(this.getAllSelectableRows()),
     });
   }
@@ -312,7 +312,7 @@ export default class ProjectExportsCreator extends React.Component {
       customExportName: data.name,
       isCustomSelectionEnabled: customSelectionEnabled,
       isFlattenGeoJsonEnabled: data.export_settings.flatten,
-      isXlsTypesEnabled: data.export_settings.xls_types,
+      isXlsTypesAsTextEnabled: data.export_settings.xls_types_as_text,
       selectedRows: new Set(data.export_settings.fields),
     };
 
@@ -352,9 +352,9 @@ export default class ProjectExportsCreator extends React.Component {
       payload.export_settings.flatten = this.state.isFlattenGeoJsonEnabled;
     }
 
-    // xls_types is only for xls
+    // xls_types_as_text is only for xls
     if (this.state.selectedExportType.value === EXPORT_TYPES.xls.value) {
-      payload.export_settings.xls_types = this.state.isXlsTypesEnabled;
+      payload.export_settings.xls_types_as_text = this.state.isXlsTypesAsTextEnabled;
     }
 
     // if custom export is enabled, but there is no name provided
@@ -547,9 +547,9 @@ export default class ProjectExportsCreator extends React.Component {
           {this.state.selectedExportType.value === EXPORT_TYPES.xls.value &&
             <bem.ProjectDownloads__columnRow>
               <Checkbox
-                checked={this.state.isXlsTypesEnabled}
-                onChange={this.onAnyInputChange.bind(this, 'isXlsTypesEnabled')}
-                label={t('Use XLS date and number formats')}
+                checked={this.state.isXlsTypesAsTextEnabled}
+                onChange={this.onAnyInputChange.bind(this, 'isXlsTypesAsTextEnabled')}
+                label={t('Store date and number responses as text')}
               />
             </bem.ProjectDownloads__columnRow>
           }
