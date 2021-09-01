@@ -25,12 +25,6 @@ interface GetSubmissionsIdsCompletedDefinition extends Function {
   listen: (callback: (response: GetSubmissionsIdsResponse) => void) => void
 }
 
-interface GetSubmissionsIdsResponse extends PaginatedResponse {
-  results: {
-    _id: number
-  }[]
-}
-
 interface LoadAssetDefinition extends Function {
   (params: {id: string}): void
   completed: LoadAssetCompletedDefinition

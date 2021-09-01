@@ -1,9 +1,9 @@
 import React from 'react';
 import bem from 'js/bem';
 import {QuestionTypeName} from 'js/constants';
-import TextBox, {AvailableType} from 'js/components/common/textBox';
 
 bem.SingleProcessingHeader = bem.create('single-processing-header', 'header');
+bem.SingleProcessingHeader__column = bem.SingleProcessingHeader.__('column');
 
 /**
  * this.props.params properties
@@ -15,21 +15,26 @@ type SingleProcessingHeaderProps = {
   submissionsIds: string[]
 }
 
+type SingleProcessingHeaderState = {
+  prevSubmissionId: string | null
+  nextSubmissionId: string | null
+}
+
 /**
  * This route component is being loaded with PermProtectedRoute so we know that
  * the call to backend to get asset was already made :happy_face:
  */
-export default class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps, {}> {
+export default class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps, SingleProcessingHeaderState> {
   constructor(props: SingleProcessingHeaderProps) {
     super(props);
+    this.state = {
+      prevSubmissionId: this.getPrevSubmissionId(),
+      nextSubmissionId: this.getNextSubmissionId(),
+    }
   }
 
   onDone(evt: React.MouseEvent<HTMLButtonElement>) {
     console.log(evt)
-  }
-
-  onSubmissionIndexInputChange(newValue: string) {
-    console.log(newValue);
   }
 
   /**
@@ -39,37 +44,63 @@ export default class SingleProcessingHeader extends React.Component<SingleProces
     return this.props.submissionsIds.indexOf(this.props.submissionId) + 1
   }
 
+  getPrevSubmissionId(): string | null {
+    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId);
+    // if not found current submissionId in the array, we don't know what is next
+    if (currentIndex === -1) {
+      return null;
+    }
+    // if on first element already, there is no previous
+    if (currentIndex === 0) {
+      return null;
+    }
+    return this.props.submissionsIds[currentIndex - 1] || null;
+  }
+
+  getNextSubmissionId(): string | null {
+    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId);
+    // if not found current submissionId in the array, we don't know what is next
+    if (currentIndex === -1) {
+      return null;
+    }
+    // if on last element already, there is no next
+    if (currentIndex === this.props.submissionsIds.length - 1) {
+      return null;
+    }
+    return this.props.submissionsIds[currentIndex + 1] || null;
+  }
+
   render() {
     return (
       <bem.SingleProcessingHeader>
-        <div>icon in a colorful square: {this.props.questionType}</div>
+        <bem.SingleProcessingHeader__column>
+          icon in a colorful square: {this.props.questionType}
+        </bem.SingleProcessingHeader__column>
 
-        <div>
+        <bem.SingleProcessingHeader__column>
           {this.getCurrentSubmissionNumber()} of {this.props.submissionsIds.length}
-          {t('Q: ##question_name##').replace('##question_name', this.props.questionName)}
-        </div>
+          {t('Q: ##question_name##').replace('##question_name##', this.props.questionName)}
+        </bem.SingleProcessingHeader__column>
 
-        <div>
-          <bem.KoboLightButton>
+        <bem.SingleProcessingHeader__column>
+          <bem.KoboLightButton disabled={this.state.prevSubmissionId === null}>
             {t('< prev')}
           </bem.KoboLightButton>
 
-          <TextBox
-            type={AvailableType.number}
-            value={String(this.getCurrentSubmissionNumber())}
-            onChange={this.onSubmissionIndexInputChange.bind(this)}
-          />
+          <bem.SingleProcessingHeader__number>
+            {this.getCurrentSubmissionNumber()}
+          </bem.SingleProcessingHeader__number>
 
-          <bem.KoboLightButton>
+          <bem.KoboLightButton disabled={this.state.nextSubmissionId === null}>
             {t('next >')}
           </bem.KoboLightButton>
-        </div>
+        </bem.SingleProcessingHeader__column>
 
-        <div>
+        <bem.SingleProcessingHeader__column>
           <bem.KoboLightButton m='blue' onClick={this.onDone.bind(this)}>
             {t('Done')}
           </bem.KoboLightButton>
-        </div>
+        </bem.SingleProcessingHeader__column>
       </bem.SingleProcessingHeader>
     )
   }

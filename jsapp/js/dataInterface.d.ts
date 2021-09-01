@@ -7,6 +7,12 @@ interface FailResponse {
   statusText: string
 }
 
+interface GetSubmissionsIdsResponse extends PaginatedResponse {
+  results: {
+    _id: number
+  }[]
+}
+
 interface SubmissionResponse {
   [questionName: string]: any
   __version__: string

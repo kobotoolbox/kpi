@@ -105,6 +105,23 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     return undefined;
   }
 
+  /**
+   * Returns row label (for default language) with fallback to question name.
+   */
+  getQuestionName(): string {
+    if (this.state.asset?.content?.survey) {
+      const translatedRowLabel = getTranslatedRowLabel(
+        this.props.params.questionName,
+        this.state.asset.content.survey,
+        0
+      );
+      if (translatedRowLabel !== null) {
+        return translatedRowLabel;
+      }
+    }
+    return this.props.params.questionName
+  }
+
   render() {
     if (
       !this.state.isSubmissionCallDone ||
@@ -113,20 +130,31 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
       !this.state.asset.content ||
       !this.state.asset.content.survey
     ) {
-      return <LoadingSpinner/>;
+      return (
+        <bem.SingleProcessing>
+          <LoadingSpinner/>
+        </bem.SingleProcessing>
+      );
     }
 
-    console.log(
-      this.state.submissionData,
-      this.state.submissionsIds
-    )
+    if (this.state.error !== null) {
+      return (
+        <bem.SingleProcessing>
+          <bem.Loading>
+            <bem.Loading__inner>
+              {this.state.error}
+            </bem.Loading__inner>
+          </bem.Loading>
+        </bem.SingleProcessing>
+      )
+    }
 
     return (
       <bem.SingleProcessing>
         <bem.SingleProcessing__top>
           <SingleProcessingHeader
             questionType={this.getQuestionType()}
-            questionName={getTranslatedRowLabel(this.props.params.questionName, this.state.asset.content.survey, 0)}
+            questionName={this.getQuestionName()}
             submissionId={this.props.params.submissionId}
             submissionsIds={this.state.submissionsIds}
           />
