@@ -1,18 +1,18 @@
 import autoBind from 'react-autobind';
 import React from 'react';
 
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import AudioPlayer from 'js/components/common/audioPlayer';
 import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
 
-bem.TableMediaPreview = bem('table-media-preview');
-bem.TableMediaPreview__image = bem.TableMediaPreview.__('image', '<img>');
-bem.TableMediaPreview__audio = bem.TableMediaPreview.__('audio', '<div>');
-bem.TableMediaPreview__video = bem.TableMediaPreview.__('video', '<video>');
-bem.TableMediaPreview__text = bem.TableMediaPreview.__('text', '<div>');
+bem.TableMediaPreview = makeBem('table-media-preview');
+bem.TableMediaPreview__image = makeBem(bem.TableMediaPreview, 'image', '<img>');
+bem.TableMediaPreview__audio = makeBem(bem.TableMediaPreview, 'audio', '<div>');
+bem.TableMediaPreview__video = makeBem(bem.TableMediaPreview, 'video', '<video>');
+bem.TableMediaPreview__text = makeBem(bem.TableMediaPreview, 'text', '<div>');
 
 /**
  * Backend stored media attachment

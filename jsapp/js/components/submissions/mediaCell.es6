@@ -1,6 +1,6 @@
 import autoBind from 'react-autobind';
 import React from 'react';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {stores} from 'js/stores';
 import {
   MODAL_TYPES,
@@ -10,17 +10,17 @@ import {
 import {truncateString} from 'js/utils';
 import './mediaCell.scss';
 
-bem.TableMediaPreviewHeader = bem('table-media-preview-header');
-bem.TableMediaPreviewHeader__title = bem.TableMediaPreviewHeader.__('title', '<div>');
-bem.TableMediaPreviewHeader__label = bem.TableMediaPreviewHeader.__('label', '<label>');
-bem.TableMediaPreviewHeader__options = bem.TableMediaPreviewHeader.__('options', '<div>');
+bem.TableMediaPreviewHeader = makeBem('table-media-preview-header');
+bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', '<div>');
+bem.TableMediaPreviewHeader__label = makeBem(bem.TableMediaPreviewHeader, 'label', '<label>');
+bem.TableMediaPreviewHeader__options = makeBem(bem.TableMediaPreviewHeader, 'options', '<div>');
 
-bem.MediaCell = bem('media-cell');
-bem.MediaCell__duration = bem.MediaCell.__('duration', '<label>');
-bem.MediaCell__text = bem.MediaCell.__('text', '<div>');
+bem.MediaCell = makeBem('media-cell');
+bem.MediaCell__duration = makeBem(bem.MediaCell, 'duration', '<label>');
+bem.MediaCell__text = makeBem(bem.MediaCell, 'text', '<div>');
 
-bem.MediaCellIconWrapper = bem('icon-wrapper');
-bem.MediaCellIconWrapper__icon = bem.MediaCellIconWrapper.__('icon', '<i>');
+bem.MediaCellIconWrapper = makeBem('icon-wrapper');
+bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', '<i>');
 
 /**
  * Backend stored media attachment
