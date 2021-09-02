@@ -1,11 +1,11 @@
 import React from 'react';
-import bem from 'js/bem';
+import {bem, makeBem} from 'js/bem'
 import {QuestionTypeName} from 'js/constants';
 import './SingleProcessingHeader.scss';
 
-bem.SingleProcessingHeader = bem.create('single-processing-header', 'header');
-bem.SingleProcessingHeader__column = bem.SingleProcessingHeader.__('column');
-bem.SingleProcessingHeader__number = bem.SingleProcessingHeader.__('number');
+bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header')
+bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section')
+bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number')
 
 /**
  * this.props.params properties

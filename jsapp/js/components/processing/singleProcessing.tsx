@@ -3,16 +3,16 @@ import {RouteComponentProps} from 'react-router';
 import {actions} from 'js/actions';
 import {getTranslatedRowLabel} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
-import bem from 'js/bem';
+import {bem, makeBem} from 'js/bem';
 import {QuestionTypeName} from 'js/constants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
 import './singleProcessing.scss';
 
-bem.SingleProcessing = bem.create('single-processing', 'section');
-bem.SingleProcessing__top = bem.SingleProcessing.__('top', 'section');
-bem.SingleProcessing__left = bem.SingleProcessing.__('left', 'section');
-bem.SingleProcessing__right = bem.SingleProcessing.__('right', 'section');
+bem.SingleProcessing = makeBem(null, 'single-processing', 'section');
+bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section');
+bem.SingleProcessing__left = makeBem(bem.SingleProcessing, 'left', 'section');
+bem.SingleProcessing__right = makeBem(bem.SingleProcessing, 'right', 'section');
 
 /**
  * this.props.params properties
