@@ -1,7 +1,7 @@
 import React from 'react';
 import autoBind from 'react-autobind';
 import Fuse from 'fuse.js';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {actions} from 'js/actions';
 import ToggleSwitch from 'js/components/common/toggleSwitch';
 import TextBox from 'js/components/common/textBox';
@@ -11,11 +11,11 @@ import {FUSE_OPTIONS} from 'js/constants';
 import koboDropdownActions from 'js/components/common/koboDropdownActions';
 import './columnsHideDropdown.scss';
 
-bem.ColumnsHideForm = bem.create('columns-hide-form', 'section');
-bem.ColumnsHideForm__message = bem.ColumnsHideForm.__('message', 'p');
-bem.ColumnsHideForm__list = bem.ColumnsHideForm.__('list', 'ul');
-bem.ColumnsHideForm__listItem = bem.ColumnsHideForm.__('list-item', 'li');
-bem.ColumnsHideForm__footer = bem.ColumnsHideForm.__('footer', 'footer');
+bem.ColumnsHideForm = makeBem('columns-hide-form', 'section');
+bem.ColumnsHideForm__message = makeBem(bem.ColumnsHideForm, 'message', 'p');
+bem.ColumnsHideForm__list = makeBem(bem.ColumnsHideForm, 'list', 'ul');
+bem.ColumnsHideForm__listItem = makeBem(bem.ColumnsHideForm, 'list-item', 'li');
+bem.ColumnsHideForm__footer = makeBem(bem.ColumnsHideForm, 'footer', 'footer');
 
 /**
  * @prop {object} asset

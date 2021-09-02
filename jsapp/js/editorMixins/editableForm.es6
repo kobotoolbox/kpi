@@ -24,7 +24,7 @@ import {ROUTES} from 'js/router/routerConstants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import Modal from 'js/components/common/modal';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
@@ -49,8 +49,8 @@ import {
 } from 'js/components/formBuilder/formBuilderUtils';
 import envStore from 'js/envStore';
 
-const ErrorMessage = bem.create('error-message');
-const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
+const ErrorMessage = makeBem('error-message');
+const ErrorMessage__strong = makeBem('error-message__header', '<strong>');
 
 const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html';
 
