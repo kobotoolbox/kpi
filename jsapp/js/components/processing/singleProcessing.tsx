@@ -3,7 +3,7 @@ import {RouteComponentProps} from 'react-router';
 import {actions} from 'js/actions';
 import {getTranslatedRowLabel} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
-import {bem, makeBem} from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {QuestionTypeName} from 'js/constants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';

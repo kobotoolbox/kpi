@@ -1,5 +1,5 @@
 import React from 'react';
-import {bem, makeBem} from 'js/bem'
+import bem, {makeBem} from 'js/bem'
 import {QuestionTypeName} from 'js/constants';
 import './SingleProcessingHeader.scss';
 
