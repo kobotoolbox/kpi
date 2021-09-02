@@ -29,4 +29,10 @@
   display: flex;
   text-align: left;
   word-break: break-word;
+
+  .icon-wrapper {
+    .icon-wrapper__icon {
+      font-size: 12px;
+    }
+  }
 }

@@ -10,6 +10,7 @@ import Reflux from 'reflux';
 import {hashHistory} from 'react-router';
 import {stores} from 'js/stores';
 import {surveyCompanionStore} from 'js/surveyCompanionStore'; // importing it so it exists
+import {} from 'js/bemComponents'; // importing it so it exists
 import bem from 'js/bem';
 import mixins from 'js/mixins';
 import MainHeader from 'js/components/header';
