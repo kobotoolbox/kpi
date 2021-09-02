@@ -13,6 +13,13 @@ interface bemInstances {
   [bemName: string]: BemComponentType
 }
 
+/**
+ * Container for holding all BEM definitions.
+ */
+const bem: bemInstances = {}
+
+export default bem;
+
 interface BemComponentProps extends React.ComponentProps<any> {
   m?: string | string[]
 }
@@ -20,13 +27,6 @@ interface BemComponentProps extends React.ComponentProps<any> {
 interface BemComponentType extends React.ComponentClass<BemComponentProps, {}> {
   blockName: string
 }
-
-/**
- * Container for holding all BEM definitions.
- */
-const bem: bemInstances = {}
-
-export default bem;
 
 /**
  * Creates a BEM class for block or element. Please no angle brackets for `htmlTagName`.
