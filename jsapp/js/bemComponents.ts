@@ -1,10 +1,10 @@
 /**
- * A list of all our BEM components. It helps avoiding errors and code bloat.
- * Instead of writing BEM class names for `<div>`, please import this module and
- * use `<bem.ModuleName__partial m={['modifier1', 'modifier2']}>` in your JSX.
+ * A list of some of our BEM components. We used to define all of them here, but
+ * recently decided to define them inside their component files. Please don't
+ * add anything more here :kiss:
  */
 
-import {bem, makeBem} from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 
 bem.Button = makeBem(null, 'mdl-button', 'button');
 
