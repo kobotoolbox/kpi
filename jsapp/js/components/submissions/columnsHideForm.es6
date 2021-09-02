@@ -11,7 +11,7 @@ import {FUSE_OPTIONS} from 'js/constants';
 import koboDropdownActions from 'js/components/common/koboDropdownActions';
 import './columnsHideDropdown.scss';
 
-bem.ColumnsHideForm = makeBem('columns-hide-form', 'section');
+bem.ColumnsHideForm = makeBem(null, 'columns-hide-form', 'section');
 bem.ColumnsHideForm__message = makeBem(bem.ColumnsHideForm, 'message', 'p');
 bem.ColumnsHideForm__list = makeBem(bem.ColumnsHideForm, 'list', 'ul');
 bem.ColumnsHideForm__listItem = makeBem(bem.ColumnsHideForm, 'list-item', 'li');

@@ -5,7 +5,7 @@ import bem, {makeBem} from 'js/bem';
 
 import 'js/components/common/audioPlayer.scss';
 
-bem.AudioPlayer = makeBem('audio-player');
+bem.AudioPlayer = makeBem(null, 'audio-player');
 bem.AudioPlayer__controls = makeBem(bem.AudioPlayer, 'controls', '<div>');
 bem.AudioPlayer__progress = makeBem(bem.AudioPlayer, 'progress', '<div>');
 bem.AudioPlayer__time = makeBem(bem.AudioPlayer, 'time', '<div>');

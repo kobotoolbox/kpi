@@ -8,7 +8,7 @@ import {
   META_QUESTION_TYPES,
 } from 'js/constants';
 
-bem.TableMediaPreview = makeBem('table-media-preview');
+bem.TableMediaPreview = makeBem(null, 'table-media-preview');
 bem.TableMediaPreview__image = makeBem(bem.TableMediaPreview, 'image', '<img>');
 bem.TableMediaPreview__audio = makeBem(bem.TableMediaPreview, 'audio', '<div>');
 bem.TableMediaPreview__video = makeBem(bem.TableMediaPreview, 'video', '<video>');

@@ -23,7 +23,7 @@ export const KOBO_DROPDOWN_PLACEMENTS = createEnum([
   'down-right',
 ]);
 
-bem.KoboDropdown = makeBem('kobo-dropdown');
+bem.KoboDropdown = makeBem(null, 'kobo-dropdown');
 bem.KoboDropdown__trigger = makeBem(bem.KoboDropdown, 'trigger', 'button');
 bem.KoboDropdown__menu = makeBem(bem.KoboDropdown, 'menu', 'menu');
 bem.KoboDropdown__menuButton = makeBem(bem.KoboDropdown, 'menu-button', 'button');

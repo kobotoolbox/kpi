@@ -7,7 +7,7 @@ import dkobo_xlform from '../../xlform/src/_xlform.init';
 import _ from 'underscore';
 import envStore from 'js/envStore';
 
-bem.CascadePopup = makeBem('cascade-popup');
+bem.CascadePopup = makeBem(null, 'cascade-popup');
 bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message');
 bem.CascadePopup__buttonWrapper = makeBem(bem.CascadePopup, 'buttonWrapper');
 bem.CascadePopup__button = makeBem(bem.CascadePopup, 'button', '<button>');
