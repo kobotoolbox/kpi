@@ -74,6 +74,11 @@
   padding-bottom: 10px;
   margin-bottom: 20px;
   border-bottom: 1px solid $kobo-gray-92;
+
+  .lib-nav__expandedToggle {
+    flex: 1;
+    text-align: right;
+  }
 }
 
 .lib-nav__header .tag-select {

@@ -407,6 +407,7 @@ export const ACCESS_TYPES = createEnum([
   'shared',
   'public',
   'subscribed',
+  'superuser',
 ]);
 
 /**
