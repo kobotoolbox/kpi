@@ -1,14 +1,47 @@
+@import "scss/_colors";
+
 .single-processing-header {
   display: flex;
   flex-direction: row;
+  color: $kobo-gray-40;
+  background-color: $kobo-white;
 
   .single-processing-header__column {
-    .single-processing-header__column--main {
+    &.single-processing-header__column--main {
       flex: 1;
+      margin: 12px;
     }
   }
 
   .single-processing-header__number {
     font-style: italic;
+  }
+
+  .single-processing-header__type-icon {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    color: $kobo-white;
+    background-color: $kobo-teal;
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    margin: 12px;
+
+    .k-icon {
+      font-size: 24px;
+    }
+  }
+
+  .single-processing-header__count {
+    font-size: 16px;
+    margin-top: 3px;
+  }
+
+  .single-processing-header__question {
+    font-size: 21px;
+    font-weight: 500;
+    margin: 3px 0 0;
   }
 }

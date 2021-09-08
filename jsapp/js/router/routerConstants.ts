@@ -31,6 +31,7 @@ export const ROUTES = Object.freeze({
   FORM_GALLERY: '/forms/:uid/data/gallery',
   FORM_MAP: '/forms/:uid/data/map',
   FORM_MAP_BY: '/forms/:uid/data/map/:viewby',
+  /** Has: :uid, :questionName, :submissionId */
   FORM_PROCESSING: '/forms/:uid/data/processing/:questionName/:submissionId',
   FORM_SETTINGS: '/forms/:uid/settings',
   FORM_MEDIA: '/forms/:uid/settings/media',

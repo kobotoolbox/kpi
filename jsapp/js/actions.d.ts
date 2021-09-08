@@ -11,7 +11,7 @@ interface GetSubmissionDefinition extends Function {
 
 interface GetSubmissionCompletedDefinition extends Function {
   (response: SubmissionResponse): void
-  listen: (callback: (response: SubmissionResponse) => void) => void
+  listen: (callback: (response: SubmissionResponse) => void) => Function
 }
 
 interface GetSubmissionsIdsDefinition extends Function {
@@ -22,7 +22,7 @@ interface GetSubmissionsIdsDefinition extends Function {
 
 interface GetSubmissionsIdsCompletedDefinition extends Function {
   (response: GetSubmissionsIdsResponse): void
-  listen: (callback: (response: GetSubmissionsIdsResponse) => void) => void
+  listen: (callback: (response: GetSubmissionsIdsResponse) => void) => Function
 }
 
 interface LoadAssetDefinition extends Function {
@@ -33,12 +33,12 @@ interface LoadAssetDefinition extends Function {
 
 interface LoadAssetCompletedDefinition extends Function {
   (response: AssetResponse): void
-  listen: (callback: (response: AssetResponse) => void) => void
+  listen: (callback: (response: AssetResponse) => void) => Function
 }
 
 interface GenericFailedDefinition extends Function {
   (response: FailResponse): void
-  listen: (callback: (response: FailResponse) => void) => void
+  listen: (callback: (response: FailResponse) => void) => Function
 }
 
 interface UpdateAssetDefinition extends Function {
@@ -49,7 +49,7 @@ interface UpdateAssetDefinition extends Function {
 
 interface UpdateAssetCompletedDefinition extends Function {
   (response: AssetResponse): void
-  listen: (callback: (response: AssetResponse) => void) => void
+  listen: (callback: (response: AssetResponse) => void) => Function
 }
 
 // TODO: as you use more actions in your ts files, please extend this namespace

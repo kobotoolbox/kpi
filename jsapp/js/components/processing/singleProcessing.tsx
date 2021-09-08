@@ -49,16 +49,31 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     }
   }
 
+  private unlisteners: Function[] = []
+
   componentDidMount() {
-    // TODO: instead of using `getSubmission` we will use `getSubmissions` and paginate id by 1
-    // that way we always know what the total number is, what the current number is and we even get
-    // next and previous links for free :mindblown:
-    actions.submissions.getSubmission.completed.listen(this.onGetSubmissionCompleted.bind(this))
-    actions.submissions.getSubmission.failed.listen(this.onGetSubmissionFailed.bind(this))
-    actions.submissions.getSubmissionsIds.completed.listen(this.onGetSubmissionsIdsCompleted.bind(this))
-    actions.submissions.getSubmissionsIds.failed.listen(this.onGetSubmissionsIdsFailed.bind(this))
-    actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId);
-    actions.submissions.getSubmissionsIds(this.props.params.uid);
+    this.unlisteners.push(
+      actions.submissions.getSubmission.completed.listen(this.onGetSubmissionCompleted.bind(this)),
+      actions.submissions.getSubmission.failed.listen(this.onGetSubmissionFailed.bind(this)),
+      actions.submissions.getSubmissionsIds.completed.listen(this.onGetSubmissionsIdsCompleted.bind(this)),
+      actions.submissions.getSubmissionsIds.failed.listen(this.onGetSubmissionsIdsFailed.bind(this)),
+    )
+    actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
+    actions.submissions.getSubmissionsIds(this.props.params.uid)
+  }
+
+  componentDidUpdate(prevProps: any) {
+    if (prevProps.params.submissionId !== this.props.params.submissionId) {
+      this.getNewSubmissionData()
+    }
+  }
+
+  getNewSubmissionData(): void {
+    this.setState({
+      isSubmissionCallDone: false,
+      submissionData: null,
+    });
+    actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
   }
 
   onGetSubmissionCompleted(response: SubmissionResponse): void {
@@ -108,7 +123,7 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
   /**
    * Returns row label (for default language) with fallback to question name.
    */
-  getQuestionName(): string {
+  getQuestionLabel(): string {
     if (this.state.asset?.content?.survey) {
       const translatedRowLabel = getTranslatedRowLabel(
         this.props.params.questionName,
@@ -154,9 +169,11 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
         <bem.SingleProcessing__top>
           <SingleProcessingHeader
             questionType={this.getQuestionType()}
-            questionName={this.getQuestionName()}
+            questionName={this.props.params.questionName}
+            questionLabel={this.getQuestionLabel()}
             submissionId={this.props.params.submissionId}
             submissionsIds={this.state.submissionsIds}
+            assetUid={this.props.params.uid}
           />
         </bem.SingleProcessing__top>
 

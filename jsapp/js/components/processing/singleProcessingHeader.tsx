@@ -1,11 +1,17 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem'
 import {QuestionTypeName} from 'js/constants';
-import './SingleProcessingHeader.scss';
+import {renderQuestionTypeIcon} from 'js/assetUtils';
+import {ROUTES} from 'js/router/routerConstants';
+import {hashHistory} from 'react-router';
+import './singleProcessingHeader.scss';
 
 bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header')
 bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section')
 bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number')
+bem.SingleProcessingHeader__typeIcon = makeBem(bem.SingleProcessingHeader, 'type-icon')
+bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count')
+bem.SingleProcessingHeader__question = makeBem(bem.SingleProcessingHeader, 'question', 'h1')
 
 /**
  * this.props.params properties
@@ -13,8 +19,10 @@ bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number
 type SingleProcessingHeaderProps = {
   questionType: QuestionTypeName | undefined
   questionName: string
+  questionLabel: string
   submissionId: string
   submissionsIds: string[]
+  assetUid: string
 }
 
 type SingleProcessingHeaderState = {
@@ -35,8 +43,26 @@ export default class SingleProcessingHeader extends React.Component<SingleProces
     }
   }
 
-  onDone(evt: React.MouseEvent<HTMLButtonElement>) {
-    console.log(evt)
+  onDone() {
+    hashHistory.goBack();
+  }
+
+  goToSubmission(indexChange: number) {
+    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId);
+    const newSubmissionId = this.props.submissionsIds[currentIndex + indexChange];
+    const newRoute = ROUTES.FORM_PROCESSING
+      .replace(':uid', this.props.assetUid)
+      .replace(':questionName', this.props.questionName)
+      .replace(':submissionId', newSubmissionId)
+    hashHistory.push(newRoute);
+  }
+
+  goPrev() {
+    this.goToSubmission(-1)
+  }
+
+  goNext() {
+    this.goToSubmission(1)
   }
 
   /**
@@ -76,25 +102,42 @@ export default class SingleProcessingHeader extends React.Component<SingleProces
     return (
       <bem.SingleProcessingHeader>
         <bem.SingleProcessingHeader__column>
-          icon in a colorful square: {this.props.questionType}
+          <bem.SingleProcessingHeader__typeIcon>
+            {this.props.questionType && renderQuestionTypeIcon(this.props.questionType)}
+          </bem.SingleProcessingHeader__typeIcon>
         </bem.SingleProcessingHeader__column>
 
         <bem.SingleProcessingHeader__column m='main'>
-          {this.getCurrentSubmissionNumber()} of {this.props.submissionsIds.length}
-          {t('Q: ##question_name##').replace('##question_name##', this.props.questionName)}
+          <bem.SingleProcessingHeader__count>
+            <strong>{this.getCurrentSubmissionNumber()}</strong>
+            &nbsp;
+            {t('of ##total_count##').replace('##total_count##', String(this.props.submissionsIds.length))}
+          </bem.SingleProcessingHeader__count>
+
+          <bem.SingleProcessingHeader__question>
+            {t('Q: ##question_label##').replace('##question_label##', this.props.questionLabel)}
+          </bem.SingleProcessingHeader__question>
         </bem.SingleProcessingHeader__column>
 
         <bem.SingleProcessingHeader__column>
-          <bem.KoboLightButton disabled={this.state.prevSubmissionId === null}>
-            {t('< prev')}
+          <bem.KoboLightButton
+            onClick={this.goPrev.bind(this)}
+            disabled={this.state.prevSubmissionId === null}
+          >
+            <i className='k-icon k-icon-caret-left'/>
+            {t('prev')}
           </bem.KoboLightButton>
 
           <bem.SingleProcessingHeader__number>
             {this.getCurrentSubmissionNumber()}
           </bem.SingleProcessingHeader__number>
 
-          <bem.KoboLightButton disabled={this.state.nextSubmissionId === null}>
-            {t('next >')}
+          <bem.KoboLightButton
+            onClick={this.goNext.bind(this)}
+            disabled={this.state.nextSubmissionId === null}
+          >
+            {t('next')}
+            <i className='k-icon k-icon-caret-right'/>
           </bem.KoboLightButton>
         </bem.SingleProcessingHeader__column>
 
