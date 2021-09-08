@@ -8,7 +8,7 @@
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/jnm/django-storages@s3boto3_accurate_tell#egg=django_storages
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@55f3aa49a69669130e3368217ba7cfdbf19b911a#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@f964aa9a08734a95f46ba7a5243359935624b0ca#egg=formpack
     # via -r dependencies/pip/requirements.in
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
@@ -59,6 +59,13 @@ cffi==1.13.2
     #   pynacl
 chardet==3.0.4
     # via requests
+coverage==5.5
+    # via
+    #   -r dependencies/pip/dev_requirements.in
+    #   coveralls
+    #   pytest-cov
+coveralls==3.2.0
+    # via -r dependencies/pip/dev_requirements.in
 cryptography==2.8
     # via
     #   paramiko
@@ -147,6 +154,8 @@ djangorestframework==3.10.3
     #   drf-extensions
 djangorestframework-xml==1.4.0
     # via -r dependencies/pip/requirements.in
+docopt==0.6.2
+    # via coveralls
 docutils==0.15.2
     # via
     #   botocore
@@ -266,8 +275,11 @@ pyrsistent==0.15.5
 pytest==5.2.2
     # via
     #   -r dependencies/pip/dev_requirements.in
+    #   pytest-cov
     #   pytest-django
     #   pytest-env
+pytest-cov==2.12.1
+    # via -r dependencies/pip/dev_requirements.in
 pytest-django==3.7.0
     # via -r dependencies/pip/dev_requirements.in
 pytest-env==0.6.2
@@ -296,6 +308,7 @@ redis==3.3.11
 requests==2.22.0
     # via
     #   -r dependencies/pip/requirements.in
+    #   coveralls
     #   django-oauth-toolkit
     #   responses
 responses==0.10.6
@@ -337,6 +350,8 @@ statistics==1.0.3.5
     # via formpack
 tabulate==0.8.5
     # via -r dependencies/pip/requirements.in
+toml==0.10.2
+    # via pytest-cov
 traceback2==1.4.0
     # via unittest2
 traitlets==4.3.3
