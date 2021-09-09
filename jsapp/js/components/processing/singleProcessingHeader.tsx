@@ -1,6 +1,6 @@
 import React from 'react';
 import bem, {makeBem} from 'js/bem'
-import {QuestionTypeName} from 'js/constants';
+import {AnyRowTypeName} from 'js/constants';
 import {renderQuestionTypeIcon} from 'js/assetUtils';
 import {ROUTES} from 'js/router/routerConstants';
 import {hashHistory} from 'react-router';
@@ -14,11 +14,8 @@ bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count')
 bem.SingleProcessingHeader__question = makeBem(bem.SingleProcessingHeader, 'question', 'h1')
 bem.SingleProcessingHeader__button = makeBem(bem.SingleProcessingHeader, 'button', 'button')
 
-/**
- * this.props.params properties
- */
 type SingleProcessingHeaderProps = {
-  questionType: QuestionTypeName | undefined
+  questionType: AnyRowTypeName | undefined
   questionName: string
   questionLabel: string
   submissionId: string
@@ -31,10 +28,6 @@ type SingleProcessingHeaderState = {
   nextSubmissionId: string | null
 }
 
-/**
- * This route component is being loaded with PermProtectedRoute so we know that
- * the call to backend to get asset was already made :happy_face:
- */
 export default class SingleProcessingHeader extends React.Component<
   SingleProcessingHeaderProps,
   SingleProcessingHeaderState

@@ -4,7 +4,7 @@ import {actions} from 'js/actions';
 import {getTranslatedRowLabel} from 'js/assetUtils';
 import assetStore from 'js/assetStore';
 import bem, {makeBem} from 'js/bem';
-import {QuestionTypeName} from 'js/constants';
+import {AnyRowTypeName} from 'js/constants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
 import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails';
@@ -13,8 +13,9 @@ import './singleProcessing.scss';
 
 bem.SingleProcessing = makeBem(null, 'single-processing', 'section');
 bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section');
-bem.SingleProcessing__left = makeBem(bem.SingleProcessing, 'left', 'section');
-bem.SingleProcessing__right = makeBem(bem.SingleProcessing, 'right', 'section');
+bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section');
+bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section');
+bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section');
 
 /**
  * this.props.params properties
@@ -106,7 +107,7 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     });
   }
 
-  getQuestionType(): QuestionTypeName | undefined {
+  getQuestionType(): AnyRowTypeName | undefined {
     if (this.state.asset?.content?.survey) {
       const foundRow = this.state.asset.content.survey.find((row) => {
         return [
@@ -179,17 +180,20 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
           />
         </bem.SingleProcessing__top>
 
-        <bem.SingleProcessing__left>
-          {this.state.submissionData !== null &&
-            <SingleProcessingSubmissionDetails
-              submissionData={this.state.submissionData}
-            />
-          }
-        </bem.SingleProcessing__left>
+        <bem.SingleProcessing__bottom>
+          <bem.SingleProcessing__bottomLeft>
+            {this.state.submissionData !== null &&
+              <SingleProcessingSubmissionDetails
+                submissionData={this.state.submissionData}
+                assetContent={this.state.asset.content}
+              />
+            }
+          </bem.SingleProcessing__bottomLeft>
 
-        <bem.SingleProcessing__right>
-          <SingleProcessingContent/>
-        </bem.SingleProcessing__right>
+          <bem.SingleProcessing__bottomRight>
+            <SingleProcessingContent/>
+          </bem.SingleProcessing__bottomRight>
+        </bem.SingleProcessing__bottom>
       </bem.SingleProcessing>
     )
   }

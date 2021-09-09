@@ -2,9 +2,7 @@
 
 .single-processing {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
   align-items: stretch;
   width: 100%;
   height: 100%;
@@ -16,11 +14,20 @@
     height: 76px;
   }
 
-  .single-processing__left {
-    flex: 50;
-  }
+  .single-processing__bottom {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+    padding: 0 60px;
 
-  .single-processing__right {
-    flex: 50;
+    .single-processing__bottom-left {
+      flex: 39;
+    }
+
+    .single-processing__bottom-right {
+      flex: 61;
+    }
   }
 }
