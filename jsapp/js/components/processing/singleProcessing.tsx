@@ -7,6 +7,8 @@ import bem, {makeBem} from 'js/bem';
 import {QuestionTypeName} from 'js/constants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
+import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails';
+import SingleProcessingContent from 'js/components/processing/singleProcessingContent';
 import './singleProcessing.scss';
 
 bem.SingleProcessing = makeBem(null, 'single-processing', 'section');
@@ -178,11 +180,15 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
         </bem.SingleProcessing__top>
 
         <bem.SingleProcessing__left>
-          left
+          {this.state.submissionData !== null &&
+            <SingleProcessingSubmissionDetails
+              submissionData={this.state.submissionData}
+            />
+          }
         </bem.SingleProcessing__left>
 
         <bem.SingleProcessing__right>
-          right
+          <SingleProcessingContent/>
         </bem.SingleProcessing__right>
       </bem.SingleProcessing>
     )

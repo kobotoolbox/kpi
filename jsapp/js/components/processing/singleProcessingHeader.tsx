@@ -35,7 +35,10 @@ type SingleProcessingHeaderState = {
  * This route component is being loaded with PermProtectedRoute so we know that
  * the call to backend to get asset was already made :happy_face:
  */
-export default class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps, SingleProcessingHeaderState> {
+export default class SingleProcessingHeader extends React.Component<
+  SingleProcessingHeaderProps,
+  SingleProcessingHeaderState
+> {
   constructor(props: SingleProcessingHeaderProps) {
     super(props);
     this.state = {
