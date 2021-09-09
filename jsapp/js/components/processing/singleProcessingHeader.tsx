@@ -12,6 +12,7 @@ bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number
 bem.SingleProcessingHeader__typeIcon = makeBem(bem.SingleProcessingHeader, 'type-icon')
 bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count')
 bem.SingleProcessingHeader__question = makeBem(bem.SingleProcessingHeader, 'question', 'h1')
+bem.SingleProcessingHeader__button = makeBem(bem.SingleProcessingHeader, 'button', 'button')
 
 /**
  * this.props.params properties
@@ -101,7 +102,7 @@ export default class SingleProcessingHeader extends React.Component<SingleProces
   render() {
     return (
       <bem.SingleProcessingHeader>
-        <bem.SingleProcessingHeader__column>
+        <bem.SingleProcessingHeader__column m='icon'>
           <bem.SingleProcessingHeader__typeIcon>
             {this.props.questionType && renderQuestionTypeIcon(this.props.questionType)}
           </bem.SingleProcessingHeader__typeIcon>
@@ -119,32 +120,35 @@ export default class SingleProcessingHeader extends React.Component<SingleProces
           </bem.SingleProcessingHeader__question>
         </bem.SingleProcessingHeader__column>
 
-        <bem.SingleProcessingHeader__column>
-          <bem.KoboLightButton
+        <bem.SingleProcessingHeader__column m='navigation'>
+          <bem.SingleProcessingHeader__button
+            m='prev'
             onClick={this.goPrev.bind(this)}
             disabled={this.state.prevSubmissionId === null}
           >
             <i className='k-icon k-icon-caret-left'/>
             {t('prev')}
-          </bem.KoboLightButton>
+          </bem.SingleProcessingHeader__button>
 
           <bem.SingleProcessingHeader__number>
             {this.getCurrentSubmissionNumber()}
           </bem.SingleProcessingHeader__number>
 
-          <bem.KoboLightButton
+          <bem.SingleProcessingHeader__button
+            m='next'
             onClick={this.goNext.bind(this)}
             disabled={this.state.nextSubmissionId === null}
           >
             {t('next')}
             <i className='k-icon k-icon-caret-right'/>
-          </bem.KoboLightButton>
-        </bem.SingleProcessingHeader__column>
+          </bem.SingleProcessingHeader__button>
 
-        <bem.SingleProcessingHeader__column>
-          <bem.KoboLightButton m='blue' onClick={this.onDone.bind(this)}>
+          <bem.SingleProcessingHeader__button
+            m='done'
+            onClick={this.onDone.bind(this)}
+          >
             {t('Done')}
-          </bem.KoboLightButton>
+          </bem.SingleProcessingHeader__button>
         </bem.SingleProcessingHeader__column>
       </bem.SingleProcessingHeader>
     )
