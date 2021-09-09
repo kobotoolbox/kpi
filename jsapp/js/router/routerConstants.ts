@@ -26,6 +26,7 @@ export const ROUTES = Object.freeze({
   FORM_LANDING: '/forms/:uid/landing',
   FORM_DATA: '/forms/:uid/data',
   FORM_REPORT: '/forms/:uid/data/report',
+  /** Has: :uid */
   FORM_TABLE: '/forms/:uid/data/table',
   FORM_DOWNLOADS: '/forms/:uid/data/downloads',
   FORM_GALLERY: '/forms/:uid/data/gallery',

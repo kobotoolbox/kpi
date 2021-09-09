@@ -40,10 +40,17 @@ export default class SingleProcessingHeader extends React.Component<
     }
   }
 
+  /**
+   * Goes back to table view for given asset.
+   */
   onDone() {
-    hashHistory.goBack();
+    const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid)
+    hashHistory.push(newRoute);
   }
 
+  /**
+   * Goes to another submission (relatively to current one)
+   */
   goToSubmission(indexChange: number) {
     const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId);
     const newSubmissionId = this.props.submissionsIds[currentIndex + indexChange];
