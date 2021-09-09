@@ -40,23 +40,6 @@ interface SubmissionResponse {
   username?: string
 }
 
-interface SurveyRow {
-  $autoname: string
-  $kuid: string
-  calculation: string
-  label: string[]
-  hint?: string[]
-  name: string
-  required: boolean
-  type: QuestionTypeName
-  _isRepeat?: boolean
-  appearance?: string
-  "kobo--matrix_list"?: string
-  "kobo--rank-constraint-message"?: string
-  "kobo--rank-items"?: string
-  "kobo--score-choices"?: string
-}
-
 interface AssignablePermission {
   url: string
   label: string
