@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import mixins from 'js/mixins';
-import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {stringToColor} from 'utils';
@@ -27,7 +27,7 @@ class UserPermissionRow extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetChange);
+    this.listenTo(assetStore, this.onAssetChange);
   }
 
   onAssetChange() {

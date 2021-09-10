@@ -70,7 +70,6 @@ actions.resources = Reflux.createActions({
   cloneAsset: {children: ['completed', 'failed']},
   deleteAsset: {children: ['completed', 'failed']},
   listTags: {children: ['completed', 'failed']},
-  loadAssetSubResource: {children: ['completed', 'failed']},
   createResource: {asyncResult: true},
   updateAsset: {asyncResult: true},
   updateSubmissionValidationStatus: {children: ['completed', 'failed']},
@@ -79,7 +78,6 @@ actions.resources = Reflux.createActions({
   duplicateSubmission: {children: ['completed', 'failed',]},
   refreshTableSubmissions: {children: ['completed', 'failed',]},
   getAssetFiles: {children: ['completed', 'failed']},
-  notFound: {}
 });
 
 actions.hooks = Reflux.createActions({
