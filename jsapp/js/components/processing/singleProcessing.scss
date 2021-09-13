@@ -31,6 +31,9 @@
 
     .single-processing__bottom-left {
       flex: 39;
+      // used for details
+      display: flex;
+      flex-direction: column;
     }
 
     .single-processing__bottom-right {
