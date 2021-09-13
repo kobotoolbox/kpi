@@ -1,4 +1,5 @@
 import React from 'react';
+import SubmissionDataList from 'js/components/submissions/submissionDataList';
 import bem, {makeBem} from 'js/bem';
 import './singleProcessingSubmissionDetails.scss';
 
@@ -24,6 +25,11 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
     return (
       <bem.SingleProcessingSubmissionDetails>
         details hi!
+
+        <SubmissionDataList
+          assetContent={this.props.assetContent}
+          submissionData={this.props.submissionData}
+        />
       </bem.SingleProcessingSubmissionDetails>
     )
   }
