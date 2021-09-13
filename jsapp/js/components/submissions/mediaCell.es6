@@ -11,16 +11,16 @@ import {truncateString} from 'js/utils';
 import './mediaCell.scss';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
-bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', '<div>');
-bem.TableMediaPreviewHeader__label = makeBem(bem.TableMediaPreviewHeader, 'label', '<label>');
-bem.TableMediaPreviewHeader__options = makeBem(bem.TableMediaPreviewHeader, 'options', '<div>');
+bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
+bem.TableMediaPreviewHeader__label = makeBem(bem.TableMediaPreviewHeader, 'label', 'label');
+bem.TableMediaPreviewHeader__options = makeBem(bem.TableMediaPreviewHeader, 'options', 'div');
 
 bem.MediaCell = makeBem(null, 'media-cell');
-bem.MediaCell__duration = makeBem(bem.MediaCell, 'duration', '<label>');
-bem.MediaCell__text = makeBem(bem.MediaCell, 'text', '<div>');
+bem.MediaCell__duration = makeBem(bem.MediaCell, 'duration', 'label');
+bem.MediaCell__text = makeBem(bem.MediaCell, 'text', 'div');
 
 bem.MediaCellIconWrapper = makeBem(null, 'icon-wrapper');
-bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', '<i>');
+bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', 'i');
 
 /**
  * Backend stored media attachment

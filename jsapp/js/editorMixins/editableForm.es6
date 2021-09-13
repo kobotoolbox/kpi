@@ -50,7 +50,7 @@ import {
 import envStore from 'js/envStore';
 
 const ErrorMessage = makeBem(null, 'error-message');
-const ErrorMessage__strong = makeBem(null, 'error-message__header', '<strong>');
+const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
 
 const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html';
 
