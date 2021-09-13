@@ -67,7 +67,7 @@ class MediaCell extends React.Component {
         iconClassNames.push('k-icon-qt-video');
         break;
       case QUESTION_TYPES.text.id:
-        iconClassNames.push('k-icon-question');
+        iconClassNames.push('k-icon-expand-arrow');
         break;
       default:
         iconClassNames.push('k-icon-media-files');
@@ -161,19 +161,19 @@ class MediaCell extends React.Component {
 
     return (
       <bem.MediaCell m={isTextQuestion ? 'text' : ''}>
-        <bem.MediaCellIconWrapper>
-          <bem.MediaCellIconWrapper__icon
-            className={this.questionIcon}
-            onClick={this.launchMediaModal.bind(this)}
-          />
-        </bem.MediaCellIconWrapper>
-
         {isTextQuestion &&
           // Show text as well if text question
           <bem.MediaCell__text className='trimmed-text'>
             {this.props.mediaName}
           </bem.MediaCell__text>
         }
+
+        <bem.MediaCellIconWrapper>
+          <bem.MediaCellIconWrapper__icon
+            className={this.questionIcon}
+            onClick={this.launchMediaModal.bind(this)}
+          />
+        </bem.MediaCellIconWrapper>
 
         {/*
           TODO: backend needs to store metadata to get duration, see kpi#3304
