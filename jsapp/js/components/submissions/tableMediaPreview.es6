@@ -9,10 +9,10 @@ import {
 } from 'js/constants';
 
 bem.TableMediaPreview = makeBem(null, 'table-media-preview');
-bem.TableMediaPreview__image = makeBem(bem.TableMediaPreview, 'image', '<img>');
-bem.TableMediaPreview__audio = makeBem(bem.TableMediaPreview, 'audio', '<div>');
-bem.TableMediaPreview__video = makeBem(bem.TableMediaPreview, 'video', '<video>');
-bem.TableMediaPreview__text = makeBem(bem.TableMediaPreview, 'text', '<div>');
+bem.TableMediaPreview__image = makeBem(bem.TableMediaPreview, 'image', 'img');
+bem.TableMediaPreview__audio = makeBem(bem.TableMediaPreview, 'audio', 'div');
+bem.TableMediaPreview__video = makeBem(bem.TableMediaPreview, 'video', 'video');
+bem.TableMediaPreview__text = makeBem(bem.TableMediaPreview, 'text', 'div');
 
 /**
  * Backend stored media attachment

@@ -10,7 +10,7 @@ import envStore from 'js/envStore';
 bem.CascadePopup = makeBem(null, 'cascade-popup');
 bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message');
 bem.CascadePopup__buttonWrapper = makeBem(bem.CascadePopup, 'buttonWrapper');
-bem.CascadePopup__button = makeBem(bem.CascadePopup, 'button', '<button>');
+bem.CascadePopup__button = makeBem(bem.CascadePopup, 'button', 'button');
 
 const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html';
 
