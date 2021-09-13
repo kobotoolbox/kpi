@@ -591,9 +591,11 @@ class ExportTask(ImportExportTask):
         `PrivateFileField`. Should be called by the `run()` method of the
         superclass. The `submission_stream` method is provided for testing
         """
-        source_url = self.data.get('source', False)
         fields = self.data.get('fields', [])
         flatten = self.data.get('flatten', True)
+        query = self.data.get('query', {})
+        source_url = self.data.get('source', False)
+        submission_ids = self.data.get('submission_ids', [])
 
         if not source_url:
             raise Exception('no source specified for the export')
@@ -630,7 +632,9 @@ class ExportTask(ImportExportTask):
 
         submission_stream = source.deployment.get_submissions(
             user=self.user,
-            fields=fields
+            fields=fields,
+            submission_ids=submission_ids,
+            query=query,
         )
 
         pack, submission_stream = build_formpack(

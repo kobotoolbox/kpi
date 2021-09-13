@@ -12,9 +12,11 @@ from formpack.constants import (
     EXPORT_SETTING_GROUP_SEP,
     EXPORT_SETTING_HIERARCHY_IN_LABELS,
     EXPORT_SETTING_LANG,
-    EXPORT_SETTING_NAME,
     EXPORT_SETTING_MULTIPLE_SELECT,
+    EXPORT_SETTING_NAME,
+    EXPORT_SETTING_QUERY,
     EXPORT_SETTING_SOURCE,
+    EXPORT_SETTING_SUBMISSION_IDS,
     EXPORT_SETTING_TYPE,
     EXPORT_SETTING_XLS_TYPES_AS_TEXT,
     REQUIRED_EXPORT_SETTINGS,
@@ -88,6 +90,14 @@ class ExportTaskSerializer(serializers.ModelSerializer):
 
         if EXPORT_SETTING_FLATTEN in data_:
             attrs[EXPORT_SETTING_FLATTEN] = data_[EXPORT_SETTING_FLATTEN]
+
+        if EXPORT_SETTING_QUERY in data_:
+            attrs[EXPORT_SETTING_QUERY] = self.validate_query(data_)
+
+        if EXPORT_SETTING_SUBMISSION_IDS in data_:
+            attrs[EXPORT_SETTING_SUBMISSION_IDS] = self.validate_submission_ids(
+                data_
+            )
 
         if EXPORT_SETTING_XLS_TYPES_AS_TEXT in data_:
             attrs[EXPORT_SETTING_XLS_TYPES_AS_TEXT] = data_[
@@ -205,6 +215,33 @@ class ExportTaskSerializer(serializers.ModelSerializer):
                 {EXPORT_SETTING_NAME: _('The export name must be a string.')}
             )
         return name
+
+    def validate_query(self, data: dict) -> dict:
+        query = data[EXPORT_SETTING_QUERY]
+        if not isinstance(query, dict):
+            raise serializers.ValidationError(
+                {EXPORT_SETTING_QUERY: _('Must be a JSON object')}
+            )
+        return query
+
+    def validate_submission_ids(self, data: dict) -> list:
+        submission_ids = data[EXPORT_SETTING_SUBMISSION_IDS]
+        if not isinstance(submission_ids, list):
+            raise serializers.ValidationError(
+                {EXPORT_SETTING_SUBMISSION_IDS: _('Must be an array')}
+            )
+
+        if submission_ids and not all(
+            isinstance(_id, int) for _id in submission_ids
+        ):
+            raise serializers.ValidationError(
+                {
+                    EXPORT_SETTING_SUBMISSION_IDS: _(
+                        'All values in the array must be integers'
+                    )
+                }
+            )
+        return submission_ids
 
     def validate_type(self, data: dict) -> str:
         export_type = data[EXPORT_SETTING_TYPE]
