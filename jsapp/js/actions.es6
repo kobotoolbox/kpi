@@ -311,7 +311,7 @@ actions.reports = Reflux.createActions({
 });
 
 actions.reports.setStyle.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {report_styles: JSON.stringify(details)})
+  dataInterface.patchAsset(assetId, {report_styles: details})
     .done((asset) => {
       actions.reports.setStyle.completed(asset);
       actions.resources.updateAsset.completed(asset);
@@ -320,7 +320,7 @@ actions.reports.setStyle.listen(function(assetId, details){
 });
 
 actions.reports.setCustom.listen(function(assetId, details){
-  dataInterface.patchAsset(assetId, {report_custom: JSON.stringify(details)})
+  dataInterface.patchAsset(assetId, {report_custom: details})
     .done((asset) => {
       actions.reports.setCustom.completed(asset);
       actions.resources.updateAsset.completed(asset);
@@ -345,7 +345,7 @@ actions.table = Reflux.createActions({
  * @param {string} [settings.sort-by.sortValue]
  */
 actions.table.updateSettings.listen((assetUid, settings) => {
-  dataInterface.patchAsset(assetUid, {settings: JSON.stringify(settings)})
+  dataInterface.patchAsset(assetUid, {settings: settings})
     .done((asset) => {
       actions.table.updateSettings.completed(asset);
       actions.resources.updateAsset.completed(asset);
@@ -366,7 +366,7 @@ actions.map = Reflux.createActions({
  * @param {object} mapStyles
  */
 actions.map.setMapStyles.listen(function(assetUid, mapStyles) {
-  dataInterface.patchAsset(assetUid, {map_styles: JSON.stringify(mapStyles)})
+  dataInterface.patchAsset(assetUid, {map_styles: mapStyles})
     .done((asset) => {
       actions.map.setMapStyles.completed(asset);
       actions.resources.updateAsset.completed(asset);
