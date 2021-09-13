@@ -1,5 +1,7 @@
 @import "scss/_colors";
 
+$s-single-processing-header: 76px;
+
 .single-processing {
   // make it appear above everything
   position: fixed;
@@ -18,7 +20,7 @@
   // layout components
   .single-processing__top {
     width: 100%;
-    height: 76px;
+    height: $s-single-processing-header;
   }
 
   .single-processing__bottom {
@@ -26,7 +28,7 @@
     flex-direction: row;
     align-items: stretch;
     width: 100%;
-    height: 100%;
+    height: calc(100% - #{$s-single-processing-header});
     padding: 0 60px;
 
     .single-processing__bottom-left {
