@@ -5,6 +5,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import bem from 'js/bem';
 import {stores} from '../stores';
+import assetStore from 'js/assetStore';
 import {Link, hashHistory} from 'react-router';
 import mixins from '../mixins';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
@@ -49,7 +50,7 @@ class FormViewTabs extends Reflux.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.assetLoad);
+    this.listenTo(assetStore, this.assetLoad);
   }
 
   assetLoad(data) {
