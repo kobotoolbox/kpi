@@ -1,9 +1,12 @@
 -r requirements.in
 
 Fabric
+coverage
+coveralls
 ipython
-pytest-django
-pytest-env
-pytest
 mock
 mongomock
+pytest
+pytest-cov
+pytest-django
+pytest-env

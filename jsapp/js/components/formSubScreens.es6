@@ -6,6 +6,7 @@ import Reflux from 'reflux';
 import {actions} from '../actions';
 import bem from 'js/bem';
 import {stores} from '../stores';
+import assetStore from 'js/assetStore';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
@@ -27,7 +28,7 @@ export class FormSubScreens extends React.Component {
     autoBind(this);
   }
   componentDidMount () {
-    this.listenTo(stores.asset, this.dmixAssetStoreChange);
+    this.listenTo(assetStore, this.dmixAssetStoreChange);
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (uid) {
       actions.resources.loadAsset({id: uid});

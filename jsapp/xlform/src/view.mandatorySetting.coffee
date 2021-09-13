@@ -21,6 +21,13 @@ module.exports = do ->
     render: ->
       reqVal = @getChangedValue()
       template = $($viewTemplates.$$render("row.mandatorySettingSelector", "required_#{@model.cid}", reqVal))
+
+      # If the value is a custom value, we need to set it here just after the
+      # element is rendered.
+      customTextEl = template.find('.js-mandatory-setting-custom-text')
+      if reqVal isnt 'true' and reqVal isnt 'false' and customTextEl
+        customTextEl.val(reqVal)
+
       @$el.html(template)
       return @
 

@@ -3,7 +3,7 @@
  */
 
 interface IEnum {
-  [val: string]: string;
+  [val: string]: string
 }
 
 /**
@@ -11,9 +11,9 @@ interface IEnum {
  * Will make sure the returned values are unique.
  */
 export function createEnum(values: string[]): IEnum {
-  const newEnum: IEnum = {};
-  new Set(values).forEach((value) => {newEnum[value] = value;});
-  return Object.freeze(newEnum);
+  const newEnum: IEnum = {}
+  new Set(values).forEach((value) => {newEnum[value] = value})
+  return Object.freeze(newEnum)
 }
 
 export const ROOT_URL = (() => {
@@ -169,25 +169,45 @@ export const VALIDATION_STATUSES_LIST = [
   VALIDATION_STATUSES.validation_status_on_hold,
 ];
 
-export const ASSET_TYPES = {
+/**
+ * All possible asset types.
+ */
+export enum AssetTypeName {
+  question = 'question',
+  block = 'block',
+  template = 'template',
+  survey = 'survey',
+  collection = 'collection',
+}
+
+interface AssetTypeDefinition {
+  id: AssetTypeName
+  label: string
+}
+
+type AssetTypes = {
+  [P in AssetTypeName]: AssetTypeDefinition
+}
+
+export const ASSET_TYPES: AssetTypes = {
   question: {
-    id: 'question',
+    id: AssetTypeName.question,
     label: t('question'),
   },
   block: {
-    id: 'block',
+    id: AssetTypeName.block,
     label: t('block'),
   },
   template: {
-    id: 'template',
+    id: AssetTypeName.template,
     label: t('template'),
   },
   survey: {
-    id: 'survey',
+    id: AssetTypeName.survey,
     label: t('project'),
   },
   collection: {
-    id: 'collection',
+    id: AssetTypeName.collection,
     label: t('collection'),
   },
 };
@@ -204,6 +224,48 @@ export const ASSET_FILE_TYPES = {
 };
 
 /**
+ * These are the types of survey rows that users can create in FormBuilder and
+ * ones that require manual data submission.
+ */
+export enum QuestionTypeName {
+  acknowledge = 'acknowledge',
+  audio = 'audio',
+  barcode = 'barcode',
+  calculate = 'calculate',
+  date = 'date',
+  datetime = 'datetime',
+  decimal = 'decimal',
+  'xml-external' = 'xml-external',
+  file = 'file',
+  geopoint = 'geopoint',
+  geoshape = 'geoshape',
+  geotrace = 'geotrace',
+  hidden = 'hidden',
+  image = 'image',
+  integer = 'integer',
+  kobomatrix = 'kobomatrix',
+  note = 'note',
+  range = 'range',
+  rank = 'rank',
+  score = 'score',
+  select_multiple = 'select_multiple',
+  select_one = 'select_one',
+  text = 'text',
+  time = 'time',
+  video = 'video',
+}
+
+interface QuestionTypeDefinition {
+  label: string
+  icon: string
+  id: QuestionTypeName
+}
+
+type QuestionTypes = {
+  [P in QuestionTypeName]: QuestionTypeDefinition
+}
+
+/*
  * When adding new question type please remember to update those places:
  * 1. Add question type here
  * 2. Add new SVG icon to jsapp/svg-icons
@@ -218,46 +280,66 @@ export const ASSET_FILE_TYPES = {
  * 7. Update getSubmissionDisplayData in submissionUtils.es6
  * 8. If it's media type update renderAttachment in submissionDataTable.es6
  */
-export const QUESTION_TYPES = Object.freeze({
-  acknowledge: {label: t('Acknowledge'), icon: 'qt-acknowledge', id: 'acknowledge'},
-  audio: {label: t('Audio'), icon: 'qt-audio', id: 'audio'},
-  barcode: {label: t('Barcode / QR Code'), icon: 'qt-barcode', id: 'barcode'},
-  calculate: {label: t('Calculate'), icon: 'qt-calculate', id: 'calculate'},
-  date: {label: t('Date'), icon: 'qt-date', id: 'date'},
-  datetime: {label: t('Date & time'), icon: 'qt-date-time', id: 'datetime'},
-  decimal: {label: t('Decimal'), icon: 'qt-decimal', id: 'decimal'},
-  'xml-external': {label: t('External XML'), icon: 'qt-external-xml', id: 'xml-external'},
-  file: {label: t('File'), icon: 'qt-file', id: 'file'},
-  geopoint: {label: t('Point'), icon: 'qt-point', id: 'geopoint'},
-  geoshape: {label: t('Area'), icon: 'qt-area', id: 'geoshape'},
-  geotrace: {label: t('Line'), icon: 'qt-line', id: 'geotrace'},
-  hidden: {label: t('Hidden'), icon: 'qt-hidden', id: 'hidden'},
-  image: {label: t('Photo'), icon: 'qt-photo', id: 'image'},
-  integer: {label: t('Number'), icon: 'qt-number', id: 'integer'},
-  kobomatrix: {label: t('Question Matrix'), icon: 'qt-question-matrix', id: 'kobomatrix'},
-  note: {label: t('Note'), icon: 'qt-note', id: 'note'},
-  range: {label: t('Range'), icon: 'qt-range', id: 'range'},
-  rank: {label: t('Ranking'), icon: 'qt-ranking', id: 'rank'},
-  score: {label: t('Rating'), icon: 'qt-rating', id: 'score'},
-  select_multiple: {label: t('Select Many'), icon: 'qt-select-many', id: 'select_multiple'},
-  select_one: {label: t('Select One'), icon: 'qt-select-one', id: 'select_one'},
-  text: {label: t('Text'), icon: 'qt-text', id: 'text'},
-  time: {label: t('Time'), icon: 'qt-time', id: 'time'},
-  video: {label: t('Video'), icon: 'qt-video', id: 'video'},
+
+/**
+ * Definitions of user oriented question types.
+ */
+export const QUESTION_TYPES: QuestionTypes = Object.freeze({
+  acknowledge: {label: t('Acknowledge'), icon: 'qt-acknowledge', id: QuestionTypeName.acknowledge},
+  audio: {label: t('Audio'), icon: 'qt-audio', id: QuestionTypeName.audio},
+  barcode: {label: t('Barcode / QR Code'), icon: 'qt-barcode', id: QuestionTypeName.barcode},
+  calculate: {label: t('Calculate'), icon: 'qt-calculate', id: QuestionTypeName.calculate},
+  date: {label: t('Date'), icon: 'qt-date', id: QuestionTypeName.date},
+  datetime: {label: t('Date & time'), icon: 'qt-date-time', id: QuestionTypeName.datetime},
+  decimal: {label: t('Decimal'), icon: 'qt-decimal', id: QuestionTypeName.decimal},
+  'xml-external': {label: t('External XML'), icon: 'qt-external-xml', id: QuestionTypeName['xml-external']},
+  file: {label: t('File'), icon: 'qt-file', id: QuestionTypeName.file},
+  geopoint: {label: t('Point'), icon: 'qt-point', id: QuestionTypeName.geopoint},
+  geoshape: {label: t('Area'), icon: 'qt-area', id: QuestionTypeName.geoshape},
+  geotrace: {label: t('Line'), icon: 'qt-line', id: QuestionTypeName.geotrace},
+  hidden: {label: t('Hidden'), icon: 'qt-hidden', id: QuestionTypeName.hidden},
+  image: {label: t('Photo'), icon: 'qt-photo', id: QuestionTypeName.image},
+  integer: {label: t('Number'), icon: 'qt-number', id: QuestionTypeName.integer},
+  kobomatrix: {label: t('Question Matrix'), icon: 'qt-question-matrix', id: QuestionTypeName.kobomatrix},
+  note: {label: t('Note'), icon: 'qt-note', id: QuestionTypeName.note},
+  range: {label: t('Range'), icon: 'qt-range', id: QuestionTypeName.range},
+  rank: {label: t('Ranking'), icon: 'qt-ranking', id: QuestionTypeName.rank},
+  score: {label: t('Rating'), icon: 'qt-rating', id: QuestionTypeName.score},
+  select_multiple: {label: t('Select Many'), icon: 'qt-select-many', id: QuestionTypeName.select_multiple},
+  select_one: {label: t('Select One'), icon: 'qt-select-one', id: QuestionTypeName.select_one},
+  text: {label: t('Text'), icon: 'qt-text', id: QuestionTypeName.text},
+  time: {label: t('Time'), icon: 'qt-time', id: QuestionTypeName.time},
+  video: {label: t('Video'), icon: 'qt-video', id: QuestionTypeName.video},
 });
 
+/**
+ * These are the types of survey rows that users can create in FormBuilder (as
+ * checkboxes) and ones that have data submitted automatically.
+ */
+export enum MetaQuestionTypeName {
+  start = 'start',
+  end = 'end',
+  today = 'today',
+  username = 'username',
+  simserial = 'simserial',
+  subscriberid = 'subscriberid',
+  deviceid = 'deviceid',
+  phonenumber = 'phonenumber',
+  audit = 'audit',
+  'background-audio' = 'background-audio',
+}
 export const META_QUESTION_TYPES = createEnum([
-  'start',
-  'end',
-  'today',
-  'username',
-  'simserial',
-  'subscriberid',
-  'deviceid',
-  'phonenumber',
-  'audit',
-  'background-audio',
-]);
+  MetaQuestionTypeName.start,
+  MetaQuestionTypeName.end,
+  MetaQuestionTypeName.today,
+  MetaQuestionTypeName.username,
+  MetaQuestionTypeName.simserial,
+  MetaQuestionTypeName.subscriberid,
+  MetaQuestionTypeName.deviceid,
+  MetaQuestionTypeName.phonenumber,
+  MetaQuestionTypeName.audit,
+  MetaQuestionTypeName['background-audio'],
+]) as {[P in MetaQuestionTypeName]: MetaQuestionTypeName};
 
 // submission data extras being added by backend. see both of these:
 // 1. https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/viewer/models/parsed_instance.py#L242-L260
@@ -325,29 +407,72 @@ export const ACCESS_TYPES = createEnum([
   'shared',
   'public',
   'subscribed',
+  'superuser',
 ]);
 
+/**
+ * These are the types of survey rows that mark the beginning of a group. They
+ * don't carry any submission data.
+ */
+export enum GroupTypeBeginName {
+  begin_group = 'begin_group',
+  begin_score = 'begin_score',
+  begin_rank = 'begin_rank',
+  begin_kobomatrix = 'begin_kobomatrix',
+  begin_repeat = 'begin_repeat',
+}
 export const GROUP_TYPES_BEGIN = createEnum([
-  'begin_group',
-  'begin_score',
-  'begin_rank',
-  'begin_kobomatrix',
-  'begin_repeat',
-]);
+  GroupTypeBeginName.begin_group,
+  GroupTypeBeginName.begin_score,
+  GroupTypeBeginName.begin_rank,
+  GroupTypeBeginName.begin_kobomatrix,
+  GroupTypeBeginName.begin_repeat,
+]) as {[P in GroupTypeBeginName]: GroupTypeBeginName};
 
+/**
+ * These are the types of survey rows that mark the ending of a group. They
+ * don't carry any submission data.
+ */
+export enum GroupTypeEndName {
+  end_group = 'end_group',
+  end_score = 'end_score',
+  end_rank = 'end_rank',
+  end_kobomatrix = 'end_kobomatrix',
+  end_repeat = 'end_repeat',
+}
 export const GROUP_TYPES_END = createEnum([
   'end_group',
   'end_score',
   'end_rank',
   'end_kobomatrix',
   'end_repeat',
-]);
+]) as {[P in GroupTypeEndName]: GroupTypeEndName};
+
+/**
+ * These are some special types of survey rows.
+ */
+export enum MiscRowTypeName {
+  score__row = 'score__row',
+  rank__level = 'rank__level',
+}
 
 // a custom question type for score
-export const SCORE_ROW_TYPE = 'score__row';
+export const SCORE_ROW_TYPE = MiscRowTypeName.score__row;
 
 // a custom question type for rank
-export const RANK_LEVEL_TYPE = 'rank__level';
+export const RANK_LEVEL_TYPE = MiscRowTypeName.rank__level;
+
+export const ANY_ROW_TYPE_NAMES = {
+  ...QuestionTypeName,
+  ...MetaQuestionTypeName,
+  ...GroupTypeBeginName,
+  ...GroupTypeEndName,
+  ...MiscRowTypeName
+};
+/**
+ * These are all possible types of asset survey rows.
+ */
+export type AnyRowTypeName = QuestionTypeName | MetaQuestionTypeName | GroupTypeBeginName | GroupTypeEndName | MiscRowTypeName
 
 export const CHOICE_LISTS = Object.freeze({
   SELECT: 'select_from_list_name',
