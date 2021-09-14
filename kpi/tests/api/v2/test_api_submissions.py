@@ -776,20 +776,15 @@ class SubmissionEditApiTests(BaseSubmissionTestCase):
     def setUp(self):
         super().setUp()
         self.submission = self.get_random_submission(self.asset.owner)
-        self.submission_url = reverse(
-            self._get_endpoint('submission-enketo-edit'),
-            kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'pk': self.submission['_id'],
-                'action': 'edit',
-            },
-        )
         self.submission_url_legacy = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'parent_lookup_asset': self.asset.uid,
                 'pk': self.submission['_id'],
             },
+        )
+        self.submission_url = self.submission_url_legacy.replace(
+            'edit', 'enketo/edit'
         )
 
     def test_get_legacy_edit_link_submission_as_owner(self):
