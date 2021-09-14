@@ -2,15 +2,15 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import _ from 'underscore';
 import envStore from 'js/envStore';
 
-var CascadePopup = bem.create('cascade-popup'),
-    CascadePopup__message = bem.create('cascade-popup__message'),
-    CascadePopup__buttonWrapper = bem.create('cascade-popup__buttonWrapper'),
-    CascadePopup__button = bem.create('cascade-popup__button', '<button>');
+bem.CascadePopup = makeBem(null, 'cascade-popup');
+bem.CascadePopup__message = makeBem(bem.CascadePopup, 'message');
+bem.CascadePopup__buttonWrapper = makeBem(bem.CascadePopup, 'buttonWrapper');
+bem.CascadePopup__button = makeBem(bem.CascadePopup, 'button', 'button');
 
 const CHOICE_LIST_SUPPORT_URL = 'cascading_select.html';
 
@@ -79,21 +79,21 @@ export const cascadeMixin = {
   },
   renderCascadePopup () {
     return (
-          <CascadePopup>
+          <bem.CascadePopup>
             {this.state.cascadeMessage ?
-              <CascadePopup__message m={this.state.cascadeMessage.msgType}>
+              <bem.CascadePopup__message m={this.state.cascadeMessage.msgType}>
                 {this.state.cascadeMessage.message}
-              </CascadePopup__message>
+              </bem.CascadePopup__message>
             :
-              <CascadePopup__message m='instructions'>
+              <bem.CascadePopup__message m='instructions'>
                 {t('Paste your formatted table from excel in the box below.')}
-              </CascadePopup__message>
+              </bem.CascadePopup__message>
             }
 
             {this.state.cascadeReady ?
-              <CascadePopup__message m='ready'>
+              <bem.CascadePopup__message m='ready'>
                 {t('OK')}
-              </CascadePopup__message>
+              </bem.CascadePopup__message>
             : null}
 
             <textarea ref='cascade' onChange={this.cascadePopopChange}
@@ -110,8 +110,8 @@ export const cascadeMixin = {
               </div>
             }
 
-            <CascadePopup__buttonWrapper>
-              <CascadePopup__button disabled={!this.state.cascadeReady}
+            <bem.CascadePopup__buttonWrapper>
+              <bem.CascadePopup__button disabled={!this.state.cascadeReady}
                 onClick={()=>{
                   var survey = this.app.survey;
                   survey.insertSurvey(this.state.cascadeReadySurvey,
@@ -119,9 +119,9 @@ export const cascadeMixin = {
                   this.cancelCascade();
                 }}>
                 {t('DONE')}
-              </CascadePopup__button>
-            </CascadePopup__buttonWrapper>
-          </CascadePopup>
+              </bem.CascadePopup__button>
+            </bem.CascadePopup__buttonWrapper>
+          </bem.CascadePopup>
       );
   }
 };

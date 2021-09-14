@@ -7,6 +7,7 @@ import classNames from 'classnames';
 import Select from 'react-select';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
+import assetStore from 'js/assetStore';
 import {actions} from '../../actions';
 import {notify} from 'utils';
 
@@ -25,7 +26,7 @@ class CopyTeamPermissions extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetChange);
+    this.listenTo(assetStore, this.onAssetChange);
     this.listenTo(actions.permissions.copyPermissionsFrom.completed, this.onPermissionsCopied);
   }
 
