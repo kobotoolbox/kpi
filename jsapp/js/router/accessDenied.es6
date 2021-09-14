@@ -1,14 +1,14 @@
 import React from 'react';
-import bem from 'js/bem';
+import {bem, makeBem} from 'js/bem';
 import {redirectToLogin} from 'js/router/routerUtils';
 import {stores} from 'js/stores';
 import envStore from 'js/envStore';
 import './accessDenied.scss';
 
-bem.AccessDenied = bem.create('access-denied');
-bem.AccessDenied__body = bem.AccessDenied.__('body', 'section');
-bem.AccessDenied__header = bem.AccessDenied.__('header', 'header');
-bem.AccessDenied__text = bem.AccessDenied.__('text', 'section');
+bem.AccessDenied = makeBem(null, 'access-denied');
+bem.AccessDenied__body = makeBem(bem.AccessDenied, 'body', 'section');
+bem.AccessDenied__header = makeBem(bem.AccessDenied, 'header', 'header');
+bem.AccessDenied__text = makeBem(bem.AccessDenied, 'text', 'section');
 
 /**
  * @prop {string} [errorMessage]
