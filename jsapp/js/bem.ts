@@ -25,13 +25,14 @@ type BemModifiersObject = {
 
 interface BemComponentProps extends React.ComponentProps<any> {
   /**
-   * Pass a string, or array of strings. For complex modifiers, pass an object:
+   * Pass a string, or array of strings. Pass `null` for nothing. For complex
+   * modifiers, pass an object:
    * {
    *   'modifier-name': <boolean value whether the modifier should be applied>,
    *   'another-modifier': <boolean>,
    * }
    */
-  m?: string | string[] | BemModifiersObject
+  m?: null | string | string[] | BemModifiersObject
 }
 
 interface BemInstance extends React.ComponentClass<BemComponentProps, {}> {
@@ -81,7 +82,7 @@ export function makeBem(
             classNames.push(`${wholeName}--${modifier}`);
           }
         });
-      } else if (typeof this.props.m === 'object') {
+      } else if (typeof this.props.m === 'object' && this.props.m !== null) {
         // Case 3: object
         Object.entries(this.props.m).forEach((entry) => {
           if (entry[1] === true) {
