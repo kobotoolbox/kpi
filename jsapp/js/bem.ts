@@ -24,6 +24,13 @@ type BemModifiersObject = {
 }
 
 interface BemComponentProps extends React.ComponentProps<any> {
+  /**
+   * Pass a string, or array of strings. For complex modifiers, pass an object:
+   * {
+   *   'modifier-name': <boolean value whether the modifier should be applied>,
+   *   'another-modifier': <boolean>,
+   * }
+   */
   m?: string | string[] | BemModifiersObject
 }
 
