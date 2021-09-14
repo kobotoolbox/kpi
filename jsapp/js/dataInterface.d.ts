@@ -7,29 +7,6 @@ interface FailResponse {
   statusText: string
 }
 
-// TODO: most of these could be changed into ENUMS from just strings (e.g. `type`)
-/**
- * It represents a question from the form, a group start/end or a piece of
- * a more complex question type.
- */
-interface SurveyRow {
-  $autoname: string
-  $kuid: string
-  type: string
-  calculation?: string
-  label?: string[]
-  hint?: string[]
-  name?: string
-  required?: boolean
-  _isRepeat?: boolean
-  appearance?: string
-  parameters?: string
-  'kobo--matrix_list'?: string
-  'kobo--rank-constraint-message'?: string
-  'kobo--rank-items'?: string
-  'kobo--score-choices'?: string
-}
-
 interface AssignablePermission {
   url: string
   label: string
@@ -75,6 +52,35 @@ interface ExportSetting {
   }
 }
 
+interface SurveyRow {
+  $autoname: string
+  $kuid: string
+  calculation?: string
+  label?: string[]
+  hint?: string[]
+  name?: string
+  required?: boolean
+  // We use dynamic import to avoid changing this ambient module to a normal
+  // module: see https://stackoverflow.com/a/51114250/2311247
+  type: import('js/constants').QuestionTypeName
+  _isRepeat?: boolean
+  appearance?: string
+  parameters?: string
+  'kobo--matrix_list'?: string
+  'kobo--rank-constraint-message'?: string
+  'kobo--rank-items'?: string
+  'kobo--score-choices'?: string
+  'kobo--locking-profile'?: string
+}
+
+interface SurveyChoice {
+  $autovalue: string
+  $kuid: string
+  label: string[]
+  list_name: string
+  name: string
+}
+
 interface AssetContentSettings {
   name?: string
   version?: string
@@ -92,6 +98,7 @@ interface AssetContentSettings {
 interface AssetContent {
   schema?: string
   survey?: SurveyRow[]
+  choices?: SurveyChoice[]
   settings?: AssetContentSettings | AssetContentSettings[]
   translated?: string[]
   translations?: Array<string|null>
