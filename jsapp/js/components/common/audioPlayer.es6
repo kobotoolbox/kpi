@@ -1,17 +1,17 @@
 import autoBind from 'react-autobind';
 import React from 'react';
 
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 
 import 'js/components/common/audioPlayer.scss';
 
-bem.AudioPlayer = bem.create('audio-player');
-bem.AudioPlayer__controls = bem.AudioPlayer.__('controls', '<div>');
-bem.AudioPlayer__progress = bem.AudioPlayer.__('progress', '<div>');
-bem.AudioPlayer__time = bem.AudioPlayer.__('time', '<div>');
-bem.AudioPlayer__timeCurrent = bem.AudioPlayer.__('time-current', '<span>');
-bem.AudioPlayer__timeTotal = bem.AudioPlayer.__('time-total', '<span>');
-bem.AudioPlayer__seek = bem.AudioPlayer.__('seek', '<div>');
+bem.AudioPlayer = makeBem(null, 'audio-player');
+bem.AudioPlayer__controls = makeBem(bem.AudioPlayer, 'controls', 'div');
+bem.AudioPlayer__progress = makeBem(bem.AudioPlayer, 'progress', 'div');
+bem.AudioPlayer__time = makeBem(bem.AudioPlayer, 'time', 'div');
+bem.AudioPlayer__timeCurrent = makeBem(bem.AudioPlayer, 'time-current', 'span');
+bem.AudioPlayer__timeTotal = makeBem(bem.AudioPlayer, 'time-total', 'span');
+bem.AudioPlayer__seek = makeBem(bem.AudioPlayer, 'seek', 'div');
 
 /*
  * Custom audio player for viewing audio submissions in data table

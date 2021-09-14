@@ -7,6 +7,7 @@ import LanguageForm from 'js/components/modalForms/languageForm';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from 'js/stores';
+import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import {MODAL_TYPES} from 'js/constants';
 import {getLangString, notify} from 'utils';
@@ -40,7 +41,7 @@ export class TranslationSettings extends React.Component {
     autoBind(this);
   }
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetsChange);
+    this.listenTo(assetStore, this.onAssetsChange);
 
     if (this.state.asset && !this.state.asset.content) {
       stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
@@ -48,8 +49,8 @@ export class TranslationSettings extends React.Component {
     }
 
     if (!this.state.asset && this.state.assetUid) {
-      if (stores.asset.data[this.state.assetUid]) {
-        this.onAssetChange(stores.asset.data[this.state.assetUid]);
+      if (assetStore.data[this.state.assetUid]) {
+        this.onAssetChange(assetStore.data[this.state.assetUid]);
       } else {
         stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
       }
