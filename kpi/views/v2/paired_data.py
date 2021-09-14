@@ -254,9 +254,11 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
         parsed_submissions = []
 
         for submission in submissions:
-            # Use `rename_root_node_to='data'` to rename the root node of each
-            # submission to `data` so that form authors do not have to rewrite
+            # Use `rename_root_node_to='item'` to rename the root node of each
+            # submission to `item` so that form authors do not have to rewrite
             # their `xml-external` formulas any time the asset UID changes,
+            # and most importantly to integrate well with all pyxform xpath
+            # evaluations that are always prefixed by root/item
             # e.g. when cloning a form or creating a project from a template.
             # Set `use_xpath=True` because `paired_data.fields` uses full group
             # hierarchies, not just question names.
@@ -265,7 +267,7 @@ class PairedDataViewset(AssetNestedObjectViewsetMixin,
                     submission,
                     paired_data.allowed_fields,
                     use_xpath=True,
-                    rename_root_node_to='data',
+                    rename_root_node_to='item',
                 )
             )
 
