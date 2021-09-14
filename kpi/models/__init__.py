@@ -6,6 +6,7 @@ from .asset_version import AssetVersion
 from .asset_file import AssetFile
 from .asset_snapshot import AssetSnapshot
 from .asset_user_partial_permission import AssetUserPartialPermission
+from .draft_nlp import DraftNLPModel
 from .object_permission import ObjectPermission
 from .import_export_task import ImportTask, ExportTask
 from .tag_uid import TagUid
