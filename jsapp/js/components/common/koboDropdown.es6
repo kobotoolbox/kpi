@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import autoBind from 'react-autobind';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {
   createEnum,
   KEY_CODES,
@@ -23,10 +23,10 @@ export const KOBO_DROPDOWN_PLACEMENTS = createEnum([
   'down-right',
 ]);
 
-bem.KoboDropdown = bem.create('kobo-dropdown');
-bem.KoboDropdown__trigger = bem.KoboDropdown.__('trigger', 'button');
-bem.KoboDropdown__menu = bem.KoboDropdown.__('menu', 'menu');
-bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
+bem.KoboDropdown = makeBem(null, 'kobo-dropdown');
+bem.KoboDropdown__trigger = makeBem(bem.KoboDropdown, 'trigger', 'button');
+bem.KoboDropdown__menu = makeBem(bem.KoboDropdown, 'menu', 'menu');
+bem.KoboDropdown__menuButton = makeBem(bem.KoboDropdown, 'menu-button', 'button');
 
 /**
  * A generic dropdown component that accepts any content inside the menu and
