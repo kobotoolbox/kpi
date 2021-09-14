@@ -79,7 +79,6 @@ interface ExportSetting {
   }
 }
 
-// TODO: most of these could be changed into ENUMS from just strings (e.g. `type`)
 /**
  * It represents a question from the form, a group start/end or a piece of
  * a more complex question type.
