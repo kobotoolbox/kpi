@@ -298,6 +298,9 @@ module.exports = do ->
       </ul>
     </div>
     """
+
+  # NOTE: Textbox value is empty, as we set it in some other place to avoid
+  # problems with double quotes.
   mandatorySettingSelector = (uniqueName, currentValue) ->
     if currentValue is 'true' or currentValue is 'false'
       modifier = currentValue
@@ -339,7 +342,7 @@ module.exports = do ->
               <input
                 type="text"
                 class="text-box__input js-mandatory-setting-custom-text"
-                value="#{currentValue}"
+                value=""
                 placeholder="#{t('Mandatory when this formula is true')}"
               >
             </label>

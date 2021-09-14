@@ -49,10 +49,6 @@
 
   .kobo-dropdown__menu {
     .table-column-sort-dropdown-option {
-      &:not(:hover) .table-column-sort-dropdown-clear {
-        display: none;
-      }
-
       .table-column-sort-dropdown-clear {
         color: $kobo-white !important;
         float: right;
@@ -64,6 +60,7 @@
 
       &.table-column-sort-dropdown-option--active {
         color: $kobo-teal-pale;
+        background-color: $kobo-gray-24; // Assuming we are using `dark` option
       }
     }
   }
