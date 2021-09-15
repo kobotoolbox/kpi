@@ -1,5 +1,5 @@
 import React from 'react';
-import {bem, makeBem} from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {redirectToLogin} from 'js/router/routerUtils';
 import {stores} from 'js/stores';
 import envStore from 'js/envStore';
