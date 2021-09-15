@@ -1,4 +1,7 @@
+@import "./singleProcessingVariables";
+
 .single-processing-submission-details {
+  padding-top: $s-single-processing-tabs;
   height: 100%;
   display: flex;
   flex-direction: column;
