@@ -469,6 +469,22 @@ function getRowListName(row: SurveyRow | undefined): string | undefined {
   return undefined;
 }
 
+export function getMediaAttachment(submission: SubmissionResponse, fileName: string) {
+  const fileNameNoSpaces = fileName.replace(/ /g, '_');
+  let mediaAttachment = t('Could not find ##fileName##').replace(
+    '##fileName##',
+    fileName,
+  );
+
+  submission._attachments.forEach((attachment) => {
+    if (attachment.filename.includes(fileNameNoSpaces)) {
+      mediaAttachment = attachment;
+    }
+  });
+
+  return mediaAttachment;
+}
+
 export default {
   DISPLAY_GROUP_TYPES,
   getSubmissionDisplayData,
