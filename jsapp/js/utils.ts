@@ -115,8 +115,10 @@ export function replaceSupportEmail(str: string, newEmail?: string): string {
 }
 
 // returns an HTML string where [bracket] notation is replaced with a hyperlink
+const {escape} = require('lodash');
 export function replaceBracketsWithLink(str: string, url?: string): string {
   const bracketRegex = /\[([^\]]+)\]/g;
+  str = escape(str);
   if (!url) {
     return str.replace(bracketRegex, '$1');
   }
