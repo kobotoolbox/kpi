@@ -1,4 +1,5 @@
 @import "scss/_colors";
+@import "./singleProcessingVariables";
 
 .single-processing-content {
   display: flex;
@@ -14,49 +15,51 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  height: $s-single-processing-tabs;
+}
 
-  .single-processing-content__tab {
-    cursor: pointer;
-    color: $kobo-gray-55;
-    position: relative;
-    font-weight: 900;
-    font-size: 16px;
-    text-transform: uppercase;
-    padding: 16px 0;
+.single-processing-content__tab {
+  cursor: pointer;
+  color: $kobo-gray-55;
+  position: relative;
+  font-weight: 900;
+  font-size: 16px;
+  line-height: 22px;
+  text-transform: uppercase;
+  padding: 16px 0;
 
-    &:not(:first-of-type) {
-      margin-left: 42px;
-    }
+  &:not(:first-of-type) {
+    margin-left: 42px;
+  }
 
-    &:hover {
-      color: $kobo-gray-40;
-    }
+  &:hover {
+    color: $kobo-gray-40;
+  }
 
-    &:active:not(.single-processing-content__tab--active) {
-      transform: translateY(1px);
-    }
+  &:active:not(.single-processing-content__tab--active) {
+    transform: translateY(1px);
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+    height: 8px;
+  }
+
+  &.single-processing-content__tab--active {
+    color: $kobo-gray-24;
 
     &::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 100%;
-      width: 100%;
-      height: 8px;
+      background-color: $kobo-teal;
     }
+  }
 
-    &.single-processing-content__tab--active {
-      color: $kobo-gray-24;
-
-      &::after {
-        background-color: $kobo-teal;
-      }
-    }
-
-    &[disabled] {
-      pointer-events: none;
-      opacity: 0.5;
-    }
+  &[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
   }
 }
 

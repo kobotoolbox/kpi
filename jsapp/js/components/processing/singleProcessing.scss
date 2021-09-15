@@ -1,4 +1,5 @@
 @import "scss/_colors";
+@import "./singleProcessingVariables";
 
 $s-single-processing-header: 76px;
 
@@ -17,29 +18,32 @@ $s-single-processing-header: 76px;
   height: 100%;
   background-color: $kobo-gray-92;
 
-  // layout components
-  .single-processing__top {
-    width: 100%;
-    height: $s-single-processing-header;
-  }
+}
 
-  .single-processing__bottom {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    width: 100%;
-    height: calc(100% - #{$s-single-processing-header});
-    padding: 0 60px;
+.single-processing__top {
+  width: 100%;
+  height: $s-single-processing-header;
+}
 
-    .single-processing__bottom-left {
-      flex: 39;
-      // used for details
-      display: flex;
-      flex-direction: column;
-    }
+.single-processing__bottom {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  height: calc(100% - #{$s-single-processing-header});
+  padding: 0 60px;
 
-    .single-processing__bottom-right {
-      flex: 61;
-    }
-  }
+}
+
+.single-processing__bottom-left {
+  flex: 39;
+  // used for details
+  display: flex;
+  flex-direction: column;
+  padding-bottom: $s-single-processing-tabs;
+}
+
+.single-processing__bottom-right {
+  flex: 61;
+  margin-left: 16px;
 }

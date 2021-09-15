@@ -1,5 +1,29 @@
+@import "scss/_colors";
+
 .submission-data-list {
   list-style: none;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+.submission-data-list-question {
+  margin-top: 20px;
+}
+
+.submission-data-list-question__path {
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.submission-data-list-question__label {
+  font-weight: 500;
+  font-size: 14px;
+  color: $kobo-gray-40;
+  margin: 0;
+}
+
+.submission-data-list-question__response {
+  font-weight: 500;
+  font-size: 16px;
+  color: $kobo-gray-24;
 }

@@ -24,8 +24,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   render() {
     return (
       <bem.SingleProcessingSubmissionDetails>
-        details hi!
-
+        media
         <SubmissionDataList
           assetContent={this.props.assetContent}
           submissionData={this.props.submissionData}
