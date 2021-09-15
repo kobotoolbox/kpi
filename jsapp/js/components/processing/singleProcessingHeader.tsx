@@ -1,10 +1,10 @@
-import React from 'react';
+import React from 'react'
 import bem, {makeBem} from 'js/bem'
-import {AnyRowTypeName} from 'js/constants';
-import {renderQuestionTypeIcon} from 'js/assetUtils';
-import {ROUTES} from 'js/router/routerConstants';
-import {hashHistory} from 'react-router';
-import './singleProcessingHeader.scss';
+import {AnyRowTypeName} from 'js/constants'
+import {renderQuestionTypeIcon} from 'js/assetUtils'
+import {ROUTES} from 'js/router/routerConstants'
+import {hashHistory} from 'react-router'
+import './singleProcessingHeader.scss'
 
 bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header')
 bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section')
@@ -33,7 +33,7 @@ export default class SingleProcessingHeader extends React.Component<
   SingleProcessingHeaderState
 > {
   constructor(props: SingleProcessingHeaderProps) {
-    super(props);
+    super(props)
     this.state = {
       prevSubmissionId: this.getPrevSubmissionId(),
       nextSubmissionId: this.getNextSubmissionId(),
@@ -45,20 +45,20 @@ export default class SingleProcessingHeader extends React.Component<
    */
   onDone() {
     const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid)
-    hashHistory.push(newRoute);
+    hashHistory.push(newRoute)
   }
 
   /**
    * Goes to another submission (relatively to current one)
    */
   goToSubmission(indexChange: number) {
-    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId);
-    const newSubmissionId = this.props.submissionsIds[currentIndex + indexChange];
+    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId)
+    const newSubmissionId = this.props.submissionsIds[currentIndex + indexChange]
     const newRoute = ROUTES.FORM_PROCESSING
       .replace(':uid', this.props.assetUid)
       .replace(':questionName', this.props.questionName)
       .replace(':submissionId', newSubmissionId)
-    hashHistory.push(newRoute);
+    hashHistory.push(newRoute)
   }
 
   goPrev() {
@@ -77,29 +77,29 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   getPrevSubmissionId(): string | null {
-    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId);
+    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId)
     // if not found current submissionId in the array, we don't know what is next
     if (currentIndex === -1) {
-      return null;
+      return null
     }
     // if on first element already, there is no previous
     if (currentIndex === 0) {
-      return null;
+      return null
     }
-    return this.props.submissionsIds[currentIndex - 1] || null;
+    return this.props.submissionsIds[currentIndex - 1] || null
   }
 
   getNextSubmissionId(): string | null {
-    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId);
+    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId)
     // if not found current submissionId in the array, we don't know what is next
     if (currentIndex === -1) {
-      return null;
+      return null
     }
     // if on last element already, there is no next
     if (currentIndex === this.props.submissionsIds.length - 1) {
-      return null;
+      return null
     }
-    return this.props.submissionsIds[currentIndex + 1] || null;
+    return this.props.submissionsIds[currentIndex + 1] || null
   }
 
   render() {
@@ -114,7 +114,7 @@ export default class SingleProcessingHeader extends React.Component<
         <bem.SingleProcessingHeader__column m='main'>
           <bem.SingleProcessingHeader__count>
             <strong>{this.getCurrentSubmissionNumber()}</strong>
-            &nbsp;
+            &nbsp
             {t('of ##total_count##').replace('##total_count##', String(this.props.submissionsIds.length))}
           </bem.SingleProcessingHeader__count>
 

@@ -1,6 +1,6 @@
-import React from 'react';
-import bem, {makeBem} from 'js/bem';
-import './singleProcessingContent.scss';
+import React from 'react'
+import bem, {makeBem} from 'js/bem'
+import './singleProcessingContent.scss'
 
 bem.SingleProcessingContent = makeBem(null, 'single-processing-content', 'section')
 bem.SingleProcessingContent__tabs = makeBem(bem.SingleProcessingContent, 'tabs', 'ul')
@@ -43,7 +43,7 @@ export default class SingleProcessingContent extends React.Component<
       case SingleProcessingTab.Coding:
         return 'TODO coding tab content'
       default:
-        return null;
+        return null
     }
   }
 

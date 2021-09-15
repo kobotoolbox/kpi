@@ -1,21 +1,21 @@
-import React from 'react';
-import {RouteComponentProps} from 'react-router';
-import {actions} from 'js/actions';
-import {getTranslatedRowLabel} from 'js/assetUtils';
-import assetStore from 'js/assetStore';
-import bem, {makeBem} from 'js/bem';
-import {AnyRowTypeName} from 'js/constants';
-import LoadingSpinner from 'js/components/common/loadingSpinner';
-import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader';
-import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails';
-import SingleProcessingContent from 'js/components/processing/singleProcessingContent';
-import './singleProcessing.scss';
+import React from 'react'
+import {RouteComponentProps} from 'react-router'
+import {actions} from 'js/actions'
+import {getTranslatedRowLabel} from 'js/assetUtils'
+import assetStore from 'js/assetStore'
+import bem, {makeBem} from 'js/bem'
+import {AnyRowTypeName} from 'js/constants'
+import LoadingSpinner from 'js/components/common/loadingSpinner'
+import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader'
+import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails'
+import SingleProcessingContent from 'js/components/processing/singleProcessingContent'
+import './singleProcessing.scss'
 
-bem.SingleProcessing = makeBem(null, 'single-processing', 'section');
-bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section');
-bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section');
-bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section');
-bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section');
+bem.SingleProcessing = makeBem(null, 'single-processing', 'section')
+bem.SingleProcessing__top = makeBem(bem.SingleProcessing, 'top', 'section')
+bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section')
+bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section')
+bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section')
 
 /**
  * this.props.params properties
@@ -24,7 +24,7 @@ type SingleProcessingProps = RouteComponentProps<{
   uid: string,
   questionName: string,
   submissionId: string,
-}, {}>;
+}, {}>
 
 type SingleProcessingState = {
   isSubmissionCallDone: boolean
@@ -41,7 +41,7 @@ type SingleProcessingState = {
  */
 export default class SingleProcessing extends React.Component<SingleProcessingProps, SingleProcessingState> {
   constructor(props: SingleProcessingProps) {
-    super(props);
+    super(props)
     this.state = {
       isSubmissionCallDone: false,
       isIdsCallDone: false,
@@ -75,7 +75,7 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     this.setState({
       isSubmissionCallDone: false,
       submissionData: null,
-    });
+    })
     actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
   }
 
@@ -83,14 +83,14 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     this.setState({
       isSubmissionCallDone: true,
       submissionData: response,
-    });
+    })
   }
 
   onGetSubmissionFailed(response: FailResponse): void {
     this.setState({
       isSubmissionCallDone: true,
       error: response.responseJSON?.detail || t('Failed to get submission.'),
-    });
+    })
   }
 
   onGetSubmissionsIdsCompleted(response: GetSubmissionsIdsResponse) {
@@ -104,7 +104,7 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     this.setState({
       isIdsCallDone: true,
       error: response.responseJSON?.detail || t('Failed to get submissions IDs.'),
-    });
+    })
   }
 
   getQuestionType(): AnyRowTypeName | undefined {
@@ -115,12 +115,12 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
           row.$autoname,
           row.$kuid
         ].includes(this.props.params.questionName)
-      });
+      })
       if (foundRow) {
-        return foundRow.type;
+        return foundRow.type
       }
     }
-    return undefined;
+    return undefined
   }
 
   /**
@@ -132,9 +132,9 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
         this.props.params.questionName,
         this.state.asset.content.survey,
         0
-      );
+      )
       if (translatedRowLabel !== null) {
-        return translatedRowLabel;
+        return translatedRowLabel
       }
     }
     return this.props.params.questionName
@@ -152,7 +152,7 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
         <bem.SingleProcessing>
           <LoadingSpinner/>
         </bem.SingleProcessing>
-      );
+      )
     }
 
     if (this.state.error !== null) {
@@ -184,6 +184,8 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
           <bem.SingleProcessing__bottomLeft>
             {this.state.submissionData !== null &&
               <SingleProcessingSubmissionDetails
+                questionType={this.getQuestionType()}
+                questionName={this.props.params.questionName}
                 submissionData={this.state.submissionData}
                 assetContent={this.state.asset.content}
               />

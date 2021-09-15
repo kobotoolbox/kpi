@@ -1,11 +1,11 @@
-import React from 'react';
-import bem, {makeBem} from 'js/bem';
+import React from 'react'
+import bem, {makeBem} from 'js/bem'
 import {
   getFlatQuestionsList,
   FlatQuestion
 } from 'js/assetUtils'
 import {getRowData} from 'js/components/submissions/submissionUtils'
-import './submissionDataList.scss';
+import './submissionDataList.scss'
 
 bem.SubmissionDataList = makeBem(null, 'submission-data-list', 'ul')
 bem.SubmissionDataListQuestion = makeBem(null, 'submission-data-list-question', 'li')
@@ -27,7 +27,7 @@ export default class SubmissionDataList extends React.Component<
   SubmissionDataListState
 > {
   constructor(props: SubmissionDataListProps) {
-    super(props);
+    super(props)
     this.state = {}
   }
 
@@ -66,7 +66,7 @@ export default class SubmissionDataList extends React.Component<
       this.props.assetContent.survey,
       0,
       Boolean(this.props.includeMeta)
-    );
+    )
 
     return (
       <bem.SubmissionDataList>
