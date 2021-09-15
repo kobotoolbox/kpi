@@ -1,51 +1,61 @@
 import React from 'react';
-import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import './textBox.scss';
 
+export enum AvailableType {
+  'text-multiline' = 'text-multiline',
+  text = 'text',
+  email = 'email',
+  password = 'password',
+  url = 'url',
+  number = 'number',
+}
+
+const DefaultType = AvailableType.text;
+
+type TextBoxProps = {
+  type?: AvailableType // one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
+  value: string
+  onChange: Function
+  onBlur?: Function
+  onKeyPress?: Function
+  errors?: string[]|string|boolean // for visual error indication and displaying error messages
+  label?: string
+  placeholder?: string
+  description?: string
+  readOnly?: boolean
+  disabled?: boolean
+  customModifiers?: string[]|string
+};
+
 /**
  * A text box generic component.
- *
- * @prop {string} type one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
- * @prop {string} value required
- * @prop {function} onChange required
- * @prop {string[]|string|boolean} errors for visual error indication and displaying error messages
- * @prop {string} label
- * @prop {string} placeholder
- * @prop {string} description
- * @prop {boolean} readOnly
- * @prop {boolean} disabled
- * @prop {string[]|string} customModifiers
  */
-class TextBox extends React.Component {
-  constructor(props){
+class TextBox extends React.Component<TextBoxProps, {}> {
+  constructor(props: TextBoxProps){
     super(props);
-    this.AVAILABLE_TYPES = [
-      'text-multiline',
-      'text',
-      'email',
-      'password',
-      'url',
-    ];
-    this.DEFAULT_TYPE = 'text';
-    autoBind(this);
   }
 
-  onChange(evt) {
+  /**
+   * NOTE: I needed to set `| any` for `onChange`, `onBlur` and `onKeyPress`
+   * types to stop TextareaAutosize complaining.
+   */
+
+  onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
     if (this.props.readOnly) {
       return;
     }
     this.props.onChange(evt.currentTarget.value);
   }
 
-  onBlur(evt) {
+  onBlur(evt: React.FocusEvent<HTMLInputElement> | any) {
     if (typeof this.props.onBlur === 'function') {
       this.props.onBlur(evt.currentTarget.value);
     }
   }
 
-  onKeyPress(evt) {
+  onKeyPress(evt: React.KeyboardEvent<HTMLInputElement> | any) {
     if (typeof this.props.onKeyPress === 'function') {
       this.props.onKeyPress(evt.key, evt);
     }
@@ -72,8 +82,8 @@ class TextBox extends React.Component {
       modifiers.push('error');
     }
 
-    let type = this.DEFAULT_TYPE;
-    if (this.props.type && this.AVAILABLE_TYPES.indexOf(this.props.type) !== -1) {
+    let type = DefaultType;
+    if (this.props.type && Object.keys(AvailableType).indexOf(this.props.type) !== -1) {
       type = this.props.type;
     } else if (this.props.type) {
       throw new Error(`Unknown TextBox type: ${this.props.type}!`);
@@ -82,9 +92,9 @@ class TextBox extends React.Component {
     const inputProps = {
       value: this.props.value,
       placeholder: this.props.placeholder,
-      onChange: this.onChange,
-      onBlur: this.onBlur,
-      onKeyPress: this.onKeyPress,
+      onChange: this.onChange.bind(this),
+      onBlur: this.onBlur.bind(this),
+      onKeyPress: this.onKeyPress.bind(this),
       readOnly: this.props.readOnly,
       disabled: this.props.disabled,
     };
