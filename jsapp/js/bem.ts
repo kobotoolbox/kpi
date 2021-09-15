@@ -1,4 +1,5 @@
-import React from 'react';
+import React from 'react'
+import classnames from 'classnames'
 
 /**
  * USAGE:
@@ -17,7 +18,7 @@ interface bemInstances {
  */
 const bem: bemInstances = {}
 
-export default bem;
+export default bem
 
 type BemModifiersObject = {
   [modifierName: string]: boolean
@@ -43,15 +44,15 @@ export function compileModifierObject(
   bmo: BemModifiersObject,
   wholeName: string
 ): string {
-  let newModifier: string = '';
+  let newModifier: string = ''
 
   Object.entries(bmo).forEach((entry) => {
     if (entry[1] === true) {
-      newModifier = `${wholeName}--${entry[0]}`;
+      newModifier = `${wholeName}--${entry[0]}`
     }
-  });
+  })
 
-  return newModifier;
+  return newModifier
 }
 
 /**
@@ -69,40 +70,27 @@ export function makeBem(
     static blockName: string = parent ? parent.blockName : name
 
     constructor(props: BemComponentProps) {
-      super(props);
+      super(props)
     }
 
     render() {
-      let classNames: string[] = [];
+      let classNames: string[] = []
 
       // Keep existing className attribute if given (either string or array)
       if (typeof this.props.className === 'string') {
-        classNames.push(this.props.className);
+        classNames.push(this.props.className)
       } else if (Array.isArray(this.props.className)) {
-        classNames.push(this.props.className.join(' '));
+        classNames.push(this.props.className.join(' '))
       }
 
       // wholeName includes parent, e.g. `parent-block__child-element`
       const wholeName = parent ? `${parent.blockName}__${name}` : name
-      classNames.push(wholeName);
+      classNames.push(wholeName)
 
-      // modifiers could be a single string or array of strings or object with booleans
-      if (typeof this.props.m === 'string' && this.props.m.length >= 1) {
-        // Case 1: string
-        classNames.push(`${wholeName}--${this.props.m}`);
-      } else if (Array.isArray(this.props.m)) {
-        // Case 2: array
-        this.props.m.forEach((modifier) => {
-          if (typeof modifier === 'string' && modifier.length >= 1) {
-            classNames.push(`${wholeName}--${modifier}`);
-          } else if (modifier !== null && typeof modifier === 'object') {
-            classNames.push(compileModifierObject(modifier, wholeName))
-          }
-        });
-      } else if (typeof this.props.m === 'object' && this.props.m !== null) {
-        // Case 3: object
-        classNames.push(compileModifierObject(this.props.m, wholeName))
-      }
+      const modifiersList = classnames(this.props.m)
+      modifiersList.split(' ').forEach((modifier) => {
+        classNames.push(`${wholeName}--${modifier}`)
+      })
 
       const newProps: {[propName: string]: any} = {
         className: classNames.join(' ')
@@ -112,11 +100,11 @@ export function makeBem(
       // className (we use our own).
       Object.entries(this.props).forEach((propEntry) => {
         if (propEntry[0] !== 'm' && propEntry[0] !== 'className') {
-          newProps[propEntry[0]] = propEntry[1];
+          newProps[propEntry[0]] = propEntry[1]
         }
-      });
+      })
 
-      return React.createElement(htmlTagName, newProps);
+      return React.createElement(htmlTagName, newProps)
     }
   }
 
