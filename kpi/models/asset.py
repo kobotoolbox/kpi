@@ -713,9 +713,8 @@ class Asset(ObjectPermissionMixin,
         # populate summary
         self._populate_summary()
 
-        if fail_duplicate_names:
-            if 'naming_conflicts' in self.summary:
-                raise ValueError('There are duplicates in the name column')
+        if fail_duplicate_names and 'naming_conflicts' in self.summary:
+            raise ValueError('There are duplicates in the name column')
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
