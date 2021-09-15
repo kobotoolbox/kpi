@@ -236,8 +236,7 @@ mixins.dmix = {
   },
 
   componentDidMount() {
-    // assetStore.listen(this.dmixAssetStoreChange);
-    this.listenTo(stores.asset, this.dmixAssetStoreChange)
+    assetStore.listen(this.dmixAssetStoreChange);
 
     // TODO 2/2
     // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
@@ -245,7 +244,7 @@ mixins.dmix = {
     // this nice SSOT as described in TODO comment above.
     const uid = this._getAssetUid();
     if (uid && this.props.initialAssetLoadNotNeeded) {
-      this.setState(assign({}, stores.asset.data[uid]));
+      this.setState(assign({}, assetStore.data[uid]));
     } else if (uid) {
       actions.resources.loadAsset({id: uid});
     }
