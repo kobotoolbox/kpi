@@ -40,21 +40,6 @@ interface BemInstance extends React.ComponentClass<BemComponentProps, {}> {
   blockName: string
 }
 
-export function compileModifierObject(
-  bmo: BemModifiersObject,
-  wholeName: string
-): string {
-  let newModifier: string = ''
-
-  Object.entries(bmo).forEach((entry) => {
-    if (entry[1] === true) {
-      newModifier = `${wholeName}--${entry[0]}`
-    }
-  })
-
-  return newModifier
-}
-
 /**
  * Creates a BEM class for block or element.
  * For first parameter pass `null` to create a Block component,
