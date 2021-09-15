@@ -32,11 +32,26 @@ interface BemComponentProps extends React.ComponentProps<any> {
    *   'another-modifier': <boolean>,
    * }
    */
-  m?: null | string | string[] | BemModifiersObject
+  m?: null | string | string[] | BemModifiersObject | (string | BemModifiersObject)[]
 }
 
 interface BemInstance extends React.ComponentClass<BemComponentProps, {}> {
   blockName: string
+}
+
+export function compileModifierObject(
+  bmo: BemModifiersObject,
+  wholeName: string
+): string {
+  let newModifier: string = '';
+
+  Object.entries(bmo).forEach((entry) => {
+    if (entry[1] === true) {
+      newModifier = `${wholeName}--${entry[0]}`;
+    }
+  });
+
+  return newModifier;
 }
 
 /**
@@ -80,15 +95,13 @@ export function makeBem(
         this.props.m.forEach((modifier) => {
           if (typeof modifier === 'string' && modifier.length >= 1) {
             classNames.push(`${wholeName}--${modifier}`);
+          } else if (modifier !== null && typeof modifier === 'object') {
+            classNames.push(compileModifierObject(modifier, wholeName))
           }
         });
       } else if (typeof this.props.m === 'object' && this.props.m !== null) {
         // Case 3: object
-        Object.entries(this.props.m).forEach((entry) => {
-          if (entry[1] === true) {
-            classNames.push(`${wholeName}--${entry[0]}`);
-          }
-        });
+        classNames.push(compileModifierObject(this.props.m, wholeName))
       }
 
       const newProps: {[propName: string]: any} = {
