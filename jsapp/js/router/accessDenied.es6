@@ -2,7 +2,7 @@ import React from 'react';
 import bem, {makeBem} from 'js/bem';
 import {redirectToLogin} from 'js/router/routerUtils';
 import {stores} from 'js/stores';
-import {replaceBracketsWithLink} from 'utils';
+import {BracketLinkSpan} from 'js/components/common/bracketLinkSpan';
 
 import envStore from 'js/envStore';
 import './accessDenied.scss';
@@ -26,15 +26,21 @@ export default class AccessDenied extends React.Component {
   }
 
   render() {
-    let messageText;
 
+    let messageComponent;
     if (stores.session.isLoggedIn) {
-      messageText = t(`Please try logging in using the header button or [contact the support team] if you think it's an error.`);
+      messageComponent = (
+        <BracketLinkSpan url={envStore.data.support_url}>
+          {t(`Please try logging in using the header button or [contact the support team] if you think it's an error.`)}
+        </BracketLinkSpan>
+      );
     } else {
-      messageText = t(`Please [contact the support team] if you think it's an error.`);
+      messageComponent = (
+        <BracketLinkSpan url={envStore.data.support_url}>
+          {t(`Please [contact the support team] if you think it's an error.`)}
+        </BracketLinkSpan>
+      );
     }
-
-    let messageHtml = replaceBracketsWithLink(messageText, envStore.data.support_url);
 
     return (
       <bem.AccessDenied>
@@ -46,8 +52,8 @@ export default class AccessDenied extends React.Component {
 
           <bem.AccessDenied__text>
             {t("Either you don't have access to this page or this page simply doesn't exist.")}
-
-            <p dangerouslySetInnerHTML={{__html: messageHtml}} />
+            <br />
+            {messageComponent}
           </bem.AccessDenied__text>
 
           {this.props.errorMessage &&
