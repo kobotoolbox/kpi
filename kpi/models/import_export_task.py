@@ -275,7 +275,7 @@ class ImportTask(ImportExportTask):
                     # TODO: review and test carefully
                     asset = destination
                     asset.content = kontent
-                    asset.save()
+                    asset.save(fail_duplicate_names=True)
                     messages['updated'].append({
                             'uid': asset.uid,
                             'kind': 'asset',
@@ -357,6 +357,7 @@ class ImportTask(ImportExportTask):
                     content=survey_dict,
                     asset_type=asset_type,
                     summary={'filename': filename},
+                    fail_duplicate_names=True,
                 )
                 msg_key = 'created'
             else:
@@ -370,7 +371,7 @@ class ImportTask(ImportExportTask):
                         base64_encoded_upload, survey_dict
                     )
                 asset.content = survey_dict
-                asset.save()
+                asset.save(fail_duplicate_names=True)
                 msg_key = 'updated'
 
             messages[msg_key].append({
