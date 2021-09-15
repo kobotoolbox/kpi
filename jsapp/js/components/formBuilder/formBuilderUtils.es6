@@ -24,7 +24,7 @@ export function surveyToValidJson(survey) {
   // to "survey.toFlatJSON()"
   survey.toFlatJSON();
   // returning the result of the second call to "toFlatJSON()"
-  return survey.toFlatJSON();
+  return JSON.stringify(survey.toFlatJSON());
 }
 
 /**
