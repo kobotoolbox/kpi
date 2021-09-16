@@ -472,7 +472,10 @@ function getRowListName(row: SurveyRow | undefined): string | undefined {
 /**
  * Returns an attachment object or an error message.
  */
-export function getMediaAttachment(submission: SubmissionResponse, fileName: string) {
+export function getMediaAttachment(
+  submission: SubmissionResponse,
+  fileName: string
+): string | SubmissionAttachment {
   const fileNameNoSpaces = fileName.replace(/ /g, '_');
   let mediaAttachment: string | SubmissionAttachment = t('Could not find ##fileName##').replace(
     '##fileName##',
