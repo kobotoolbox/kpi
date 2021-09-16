@@ -21,7 +21,7 @@ class PermConfigStore extends Reflux.Store {
    * Throws if trying to use permConfig before it fetches data from BE or if
    * data given by `setPermissions` is not an array.
    */
-  verifyReady() {
+  private verifyReady() {
     if (!this.isReady()) {
       throw new Error(t('Permission config is not ready or failed to initialize!'));
     }
