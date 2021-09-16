@@ -54,9 +54,13 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
       )
     )
 
+    if (typeof attachment === 'string') {
+      return;
+    }
+
     return (
       <bem.SingleProcessingSubmissionDetails__mediaWrapper>
-        <AudioPlayer mediaURL={attachment} />
+        <AudioPlayer mediaURL={attachment.download_url} />
       </bem.SingleProcessingSubmissionDetails__mediaWrapper>
     )
   }
