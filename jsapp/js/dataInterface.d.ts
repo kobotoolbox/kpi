@@ -7,10 +7,22 @@ interface FailResponse {
   statusText: string
 }
 
+interface SubmissionAttachment {
+  download_url: string
+  download_large_url: string
+  download_medium_url: string
+  download_small_url: string
+  mimetype: string
+  filename: string
+  instance: number
+  xform: number
+  id: number
+}
+
 interface SubmissionResponse {
   [questionName: string]: any
   __version__: string
-  _attachments: any[]
+  _attachments: SubmissionAttachment[]
   _geolocation: any[]
   _id: number
   _notes: any[]
