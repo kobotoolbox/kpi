@@ -14,6 +14,7 @@ import AudioPlayer from 'js/components/common/audioPlayer'
 import './singleProcessingSubmissionDetails.scss'
 
 bem.SingleProcessingSubmissionDetails = makeBem(null, 'single-processing-submission-details', 'section')
+bem.SingleProcessingSubmissionDetails__mediaWrapper = makeBem(bem.SingleProcessingSubmissionDetails, 'media-wrapper', 'section')
 
 type SingleProcessingSubmissionDetailsProps = {
   questionType: AnyRowTypeName | undefined
@@ -54,14 +55,16 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
     )
 
     return (
-      <AudioPlayer mediaURL={attachment} />
+      <bem.SingleProcessingSubmissionDetails__mediaWrapper>
+        <AudioPlayer mediaURL={attachment} />
+      </bem.SingleProcessingSubmissionDetails__mediaWrapper>
     )
   }
 
   render() {
     return (
       <bem.SingleProcessingSubmissionDetails>
-        {this.renderMedia}
+        {this.renderMedia()}
         <SubmissionDataList
           assetContent={this.props.assetContent}
           submissionData={this.props.submissionData}

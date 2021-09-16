@@ -6,7 +6,7 @@
   overflow-y: auto;
 }
 
-.submission-data-list-question {
+.submission-data-list-question:not(:first-of-type) {
   margin-top: 20px;
 }
 
