@@ -943,10 +943,10 @@ export class DataTable extends React.Component {
         backgroundAudioName &&
         Object.keys(row.original).includes(backgroundAudioName)
       ) {
-        let backgroundAudioUrl = this.getMediaAttachment(
-          row,
+        let backgroundAudioUrl = getMediaAttachment(
+          row.original,
           row.original[backgroundAudioName]
-        );
+        )?.download_medium_url;
 
         this.submissionModalProcessing(
           sid,
