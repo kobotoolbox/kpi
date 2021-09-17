@@ -12,5 +12,6 @@
   background-color: $kobo-white;
   border-radius: 6px;
   margin-bottom: 20px;
-  padding: 6px 20px;
+  // right padding is for the audio player to appear centered
+  padding: 6px 12px 0 0;
 }

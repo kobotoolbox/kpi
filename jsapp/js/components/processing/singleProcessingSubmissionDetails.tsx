@@ -42,20 +42,23 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
         this.props.questionType !== META_QUESTION_TYPES['background-audio']
       )
     ) {
-      return null;
+      return null
     }
 
-    const attachment = getMediaAttachment(
-      this.props.submissionData,
-      getRowData(
-        this.props.questionName,
-        this.props.assetContent.survey,
-        this.props.submissionData
-      )
+    const rowData = getRowData(
+      this.props.questionName,
+      this.props.assetContent.survey,
+      this.props.submissionData
     )
 
+    if (rowData === null) {
+      return null
+    }
+
+    const attachment = getMediaAttachment(this.props.submissionData, rowData)
+
     if (typeof attachment === 'string') {
-      return;
+      return
     }
 
     return (

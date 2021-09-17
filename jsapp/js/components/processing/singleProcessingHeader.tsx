@@ -114,7 +114,7 @@ export default class SingleProcessingHeader extends React.Component<
         <bem.SingleProcessingHeader__column m='main'>
           <bem.SingleProcessingHeader__count>
             <strong>{this.getCurrentSubmissionNumber()}</strong>
-            &nbsp
+            &nbsp;
             {t('of ##total_count##').replace('##total_count##', String(this.props.submissionsIds.length))}
           </bem.SingleProcessingHeader__count>
 
