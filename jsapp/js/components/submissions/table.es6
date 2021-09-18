@@ -29,7 +29,10 @@ import {
   renderQuestionTypeIcon,
   getQuestionOrChoiceDisplayName,
 } from 'js/assetUtils';
-import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
+import {
+  getRepeatGroupAnswers,
+  getMediaAttachment,
+} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
 import TableColumnSortDropdown from 'js/components/submissions/tableColumnSortDropdown';
@@ -673,7 +676,7 @@ export class DataTable extends React.Component {
               let mediaAttachment = null;
 
               if (q.type !== QUESTION_TYPES.text.id) {
-                mediaAttachment = this.getMediaAttachment(row, row.value);
+                mediaAttachment = getMediaAttachment(row.original, row.value);
               }
 
               return (
@@ -940,10 +943,10 @@ export class DataTable extends React.Component {
         backgroundAudioName &&
         Object.keys(row.original).includes(backgroundAudioName)
       ) {
-        let backgroundAudioUrl = this.getMediaDownloadLink(
-          row,
+        let backgroundAudioUrl = getMediaAttachment(
+          row.original,
           row.original[backgroundAudioName]
-        );
+        )?.download_medium_url;
 
         this.submissionModalProcessing(
           sid,
@@ -1135,26 +1138,6 @@ export class DataTable extends React.Component {
         />
       </bem.TableMeta>
     );
-  }
-
-  /**
-   * @param {object} row
-   * @param {string} fileName
-   */
-  getMediaAttachment(row, fileName) {
-    const fileNameNoSpaces = fileName.replace(/ /g, '_');
-    let mediaAttachment = t('Could not find ##fileName##').replace(
-      '##fileName##',
-      fileName,
-    );
-
-    row.original._attachments.forEach((attachment) => {
-      if (attachment.filename.includes(fileNameNoSpaces)) {
-        mediaAttachment = attachment;
-      }
-    });
-
-    return mediaAttachment;
   }
 
   // NOTE: Please avoid calling `setState` inside scroll callback, as it causes
