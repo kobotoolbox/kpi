@@ -7,6 +7,45 @@ interface FailResponse {
   statusText: string
 }
 
+interface SubmissionAttachment {
+  download_url: string
+  download_large_url: string
+  download_medium_url: string
+  download_small_url: string
+  mimetype: string
+  filename: string
+  instance: number
+  xform: number
+  id: number
+}
+
+interface SubmissionResponse {
+  [questionName: string]: any
+  __version__: string
+  _attachments: SubmissionAttachment[]
+  _geolocation: any[]
+  _id: number
+  _notes: any[]
+  _status: string
+  _submission_time: string
+  _submitted_by: string|null
+  _tags: string[]
+  _uuid: string
+  _validation_status: object
+  _version_: string
+  _xform_id_string: string
+  deviceid?: string
+  end?: string
+  "formhub/uuid": string
+  "meta/instanceID": string
+  phonenumber?: string
+  simserial?: string
+  start?: string
+  subscriberid?: string
+  today?: string
+  username?: string
+}
+
 interface AssignablePermission {
   url: string
   label: string
