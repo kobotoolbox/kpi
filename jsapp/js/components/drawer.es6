@@ -153,8 +153,15 @@ class Drawer extends Reflux.Component {
 
         <bem.KDrawer__sidebar>
           { this.isLibrary()
-            ? <LibrarySidebar />
-            : <FormSidebar />
+            && <LibrarySidebar />
+          }
+
+          { this.isAccountSettings()
+              && <p> Account Settings </p>
+          }
+
+          { !this.isLibrary() && !this.isAccountSettings()
+            && <FormSidebar />
           }
         </bem.KDrawer__sidebar>
 

@@ -917,7 +917,10 @@ mixins.contextRouter = {
       this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
       this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
-  }
+  },
+  isAccountSettings() {
+    return this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS);
+  },
 };
 
 /*
