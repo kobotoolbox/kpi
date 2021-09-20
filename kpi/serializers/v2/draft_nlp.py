@@ -1,13 +1,14 @@
 from rest_framework import serializers
 
 from kpi.fields import (
+    ParentHyperlinkedRelated,
     RelativePrefixHyperlinkedRelatedField,
     WritableJSONField
 )
 from kpi.models.draft_nlp import DraftNLPModel
 
 
-class DraftNLPSerializer(serializers.Serializer):
+class DraftNLPSerializer(serializers.ModelSerializer):
     TRANSCRIPT = 'transcript'
     TRANSLATION = 'translation'
 
@@ -21,14 +22,13 @@ class DraftNLPSerializer(serializers.Serializer):
 
     uid = serializers.CharField(required=False, read_only=True)
     draft_nlp_type = serializers.ChoiceField(choices=TYPE_CHOICES)
-    asset = serializers.StringRelatedField(read_only=True)
-    # parent = RelativePrefixHyperlinkedRelatedField(
-    #     lookup_field='uid',
-    #     queryset=DraftNLPModel.objects.filter(),
-    #     view_name='data-nlp-list',
-    #     required=False,
-    #     allow_null=True,
-    # )
+    asset = RelativePrefixHyperlinkedRelatedField(
+        view_name='asset-detail', lookup_field='uid', read_only=True)
+    parent = ParentHyperlinkedRelated(
+        lookup_field='uid',
+        required=False,
+        allow_null=True,
+    )
     question_path = serializers.CharField(max_length=2048)
     submission_id = serializers.IntegerField()
     content = WritableJSONField()
@@ -52,5 +52,3 @@ class DraftNLPSerializer(serializers.Serializer):
             'uid',
         )
 
-    def update(self, draft_nlp, validated_data):
-        return super().update(draft_nlp, validated_data)
