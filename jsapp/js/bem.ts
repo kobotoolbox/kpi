@@ -72,7 +72,7 @@ export function makeBem(
       const wholeName = parent ? `${parent.blockName}__${name}` : name
       classNames.push(wholeName)
 
-      const modifiersList = classnames(this.props.m)
+      const modifiersList: string = classnames(this.props.m)
       modifiersList.split(' ').forEach((modifier) => {
         classNames.push(`${wholeName}--${modifier}`)
       })
