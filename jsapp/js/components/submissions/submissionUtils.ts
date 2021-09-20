@@ -393,7 +393,8 @@ function isRowFromCurrentGroupLevel(
   rowName: string,
   /** Null for root level rows. */
   groupPath: string|null,
-  survey: SurveyRow[]) {
+  survey: SurveyRow[]
+) {
   const flatPaths = getSurveyFlatPaths(survey, true);
   if (groupPath === null) {
     return flatPaths[rowName] === rowName;
