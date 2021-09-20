@@ -395,7 +395,10 @@ $z-modal-x: 10;
       }
 
       .kobo-light-button {
-        padding-right: 0px;
+        i.k-icon {
+          margin-right: -3px;
+        }
+
         i.k-icon-download {
           font-weight: 800;
           margin-left: 3px;

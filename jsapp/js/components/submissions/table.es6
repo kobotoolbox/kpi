@@ -26,6 +26,7 @@ import {
 } from 'js/constants';
 import {formatTimeDate} from 'utils';
 import {
+  getRowName,
   renderQuestionTypeIcon,
   getQuestionOrChoiceDisplayName,
 } from 'js/assetUtils';
@@ -686,6 +687,9 @@ export class DataTable extends React.Component {
                   mediaName={row.value}
                   submissionIndex={row.index + 1}
                   submissionTotal={this.state.submissions.length}
+                  assetUid={this.props.asset.uid}
+                  questionName={getRowName(q)}
+                  submissionId={row.original._id}
                 />
               );
             }
