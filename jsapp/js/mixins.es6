@@ -918,8 +918,8 @@ mixins.contextRouter = {
       this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
   },
-  isAccountSettings() {
-    return this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS);
+  isAccount() {
+    return this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS) || this.context.router.isActive(ROUTES.DATA_STORAGE);
   },
 };
 

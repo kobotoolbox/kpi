@@ -20,7 +20,7 @@ import Reports from 'js/components/reports/reports';
 import FormLanding from 'js/components/formLanding';
 import FormSummary from 'js/components/formSummary';
 import FormSubScreens from 'js/components/formSubScreens';
-import AccountSettings from 'js/components/accountSettings';
+import AccountSettings from 'js/components/account/accountSettings';
 import ChangePassword from 'js/components/changePassword';
 import SectionNotFound from 'js/components/sectionNotFound';
 import FormNotFound from 'js/components/formNotFound';
