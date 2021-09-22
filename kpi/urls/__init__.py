@@ -1,4 +1,5 @@
 # coding: utf-8
+from django.conf.urls import url
 import private_storage.urls
 from django.conf import settings
 from django.contrib.auth import logout
@@ -9,11 +10,13 @@ from hub.models import ConfigurationFile
 from hub.views import ExtraDetailRegistrationView
 from kobo.apps.superuser_stats.views import user_report, retrieve_user_report
 from kpi.forms import RegistrationForm
-from kpi.views import authorized_application_authenticate_user
+from kpi.views import authorized_application_authenticate_user, veritree_redirect
 from kpi.views import home, one_time_login, browser_tests
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.token import TokenView
+
+from veritree.views.org_views import veritree_org_asset_link, veritree_org_asset_unlink
 
 from .router_api_v1 import router_api_v1
 from .router_api_v2 import router_api_v2, URL_NAMESPACE
@@ -39,12 +42,16 @@ urlpatterns = [
     re_path(r'^accounts/logout/', logout, {'next_page': '/'}),
     re_path(r'^accounts/', include('registration.backends.default.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    url('social/', include('social_django.urls', namespace='social')),
     re_path(
         r'^authorized_application/authenticate_user/$',
         authorized_application_authenticate_user
     ),
     path('browser_tests/', browser_tests),
     path('authorized_application/one_time_login/', one_time_login),
+    path('veritree_redirect/', veritree_redirect),
+    path('veritree_org_asset/share', veritree_org_asset_link),
+    path('veritree_org_asset/unshare', veritree_org_asset_unlink),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
     path('jsi18n/', JavaScriptCatalog.as_view(),

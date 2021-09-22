@@ -101,6 +101,8 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'kobo.apps.usage_statistics.UsageStatisticsAppConfig',
+    'social_django',
+    'veritree'
 )
 
 MIDDLEWARE = [
@@ -199,8 +201,22 @@ MARKITUP_FILTER = ('markdown.markdown', {'safe_mode': False})
 # KoBoCAT also lists ModelBackend before
 # guardian.backends.ObjectPermissionBackend.
 AUTHENTICATION_BACKENDS = (
+    'veritree.models.VeritreeOAuth2',
     'django.contrib.auth.backends.ModelBackend',
     'kpi.backends.ObjectPermissionBackend',
+)
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.user.create_user',
+    'veritree.pipeline.veritree_org_sync',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
 )
 
 ROOT_URLCONF = 'kobo.urls'

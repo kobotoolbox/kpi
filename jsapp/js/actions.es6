@@ -126,6 +126,12 @@ permissionsActions.removeAssetPermission.completed.listen((uid, isNonOwner) => {
     actions.resources.loadAsset({id: uid});
   }
 });
+permissionsActions.shareAssetWithOrg.completed.listen((uid) => {
+  actions.resources.loadAsset({id: uid})
+})
+permissionsActions.unshareAssetWithOrg.completed.listen((uid) => {
+  actions.resources.loadAsset({id: uid})
+})
 
 actions.misc.getUser.listen((userUrl) => {
   dataInterface.getUser(userUrl)

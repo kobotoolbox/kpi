@@ -758,6 +758,12 @@ export var dataInterface;
     },
     login: (creds)=> {
       return $ajax({ url: `${ROOT_URL}/api-auth/login/?next=/me/`, data: creds, method: 'POST'});
+    },
+    shareAssetWithOrg: (assetUid, orgId)=> {
+      return $ajax({ url: `${ROOT_URL}/veritree_org_asset/share`, method: 'POST', data: { asset_uid: assetUid, org_id: orgId } })
+    },
+    unshareAssetWithOrg: (assetUid, orgId)=> {
+      return $ajax({ url: `${ROOT_URL}/veritree_org_asset/unshare`, method: 'POST', data: { asset_uid: assetUid, org_id: orgId } })
     }
   });
 }).call(dataInterface = {});

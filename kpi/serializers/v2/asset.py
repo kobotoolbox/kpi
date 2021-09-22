@@ -95,6 +95,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     subscribers_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     access_types = serializers.SerializerMethodField()
+    linked_orgs = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -145,6 +146,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                   'subscribers_count',
                   'status',
                   'access_types',
+                  'linked_orgs'
                   )
         extra_kwargs = {
             'parent': {
@@ -546,6 +548,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return reverse('asset-table-view',
                        args=(obj.uid,),
                        request=request)
+
+    def get_linked_orgs(self, obj):
+        organizations = obj.organizations.all().values('veritree_id', 'name')
+        return organizations
 
 
 class AssetListSerializer(AssetSerializer):

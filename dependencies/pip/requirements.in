@@ -85,3 +85,12 @@ XlsxWriter
 pyopenssl
 ndg-httpsclient
 pyasn1
+
+# Veritree Social Auth
+charset-normalizer
+PyJWT
+python3-openid
+requests-oauthlib
+social-auth-app-django
+social-auth-core
+ptvsd

@@ -12,7 +12,7 @@ from django.shortcuts import resolve_url
 from django.utils.http import is_safe_url
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from rest_framework import exceptions
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, authentication_classes
@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from kpi.models import AuthorizedApplication, OneTimeAuthenticationKey
 from kpi.models.authorized_application import ApplicationTokenAuthentication
 from kpi.serializers import AuthorizedApplicationUserSerializer
-
+from veritree.models import VeritreeOAuth2
 
 def home(request):
     return TemplateResponse(request, "index.html")
@@ -104,6 +104,56 @@ def one_time_login(request):
     # The request included a valid one-time key. Log in the associated user
     user = otak.user
     user.backend = settings.AUTHENTICATION_BACKENDS[0]
+    login(request, user)
+    return HttpResponseRedirect(next_)
+
+@require_GET
+@csrf_exempt
+def veritree_redirect(request):
+    """
+    Attempts to authenticate with a provided access_token
+    For usage from redirecting from veritree.com sites
+    """
+    try:
+        access_token = request.GET['access_token']
+    except KeyError:
+        return HttpResponseBadRequest(_('No access token provided'))
+    try:
+        next_ = request.POST['next']
+    except KeyError:
+        next_ = None
+    if not next_ or not is_safe_url(url=next_, host=request.get_host()):
+        next_ = resolve_url(settings.LOGIN_REDIRECT_URL)
+    
+    # check if there is existing session with the user
+    backend_class = VeritreeOAuth2()
+    user = request.user
+    if user and user.is_anonymous:
+        try:
+            user_data = backend_class.user_data(access_token)
+            data = backend_class.get_user_details(user_data)
+            username = data.get('username')
+            uid = data.get('id')
+        except AttributeError:
+            return HttpResponseBadRequest(_('Attribute error, format of data has changed'))
+        except:
+            return HttpResponseBadRequest(_('Failed to authenticate with provided access_token'))
+
+        is_existing_user = True
+        try:
+            user = User.objects.get(username=username, social_auth__provider=backend_class.name, social_auth__uid=uid)
+        except User.DoesNotExist:
+            is_existing_user = False
+        
+        if not is_existing_user:
+            # Create Social User
+            user = backend_class.authenticate_with_access_token_response(user_data, {'access_token': access_token}, request)
+
+        if not user.is_active:
+            raise exceptions.PermissionDenied()
+    
+        user.backend = settings.AUTHENTICATION_BACKENDS[0]
+    
     login(request, user)
     return HttpResponseRedirect(next_)
 

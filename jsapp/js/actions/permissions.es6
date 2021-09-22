@@ -20,13 +20,14 @@ export const permissionsActions = Reflux.createActions({
   assignAssetPermission: {children: ['completed', 'failed']},
   removeAssetPermission: {children: ['completed', 'failed']},
   setAssetPublic: {children: ['completed', 'failed']},
-  copyPermissionsFrom: {children: ['completed', 'failed']}
+  copyPermissionsFrom: {children: ['completed', 'failed']},
+  shareAssetWithOrg: { children: ['completed', 'failed']},
+  unshareAssetWithOrg: { children: ['completed', 'failed']}
 });
 
 /**
  * New actions
  */
-
 permissionsActions.getConfig.listen(() => {
   dataInterface.getPermissionsConfig()
     .done(permissionsActions.getConfig.completed)
@@ -55,7 +56,28 @@ permissionsActions.bulkSetAssetPermissions.listen((assetUid, perms) => {
       permissionsActions.bulkSetAssetPermissions.failed();
     });
 });
-
+permissionsActions.shareAssetWithOrg.listen((assetUid, org_id) => {
+  dataInterface.shareAssetWithOrg(assetUid, org_id)
+    .done(() =>{
+      permissionsActions.getAssetPermissions(assetUid)
+      permissionsActions.shareAssetWithOrg.completed(assetUid);
+    })
+    .fail(() => {
+      permissionsActions.getAssetPermissions(assetUid)
+      permissionsActions.shareAssetWithOrg.completed(assetUid);
+    })
+});
+permissionsActions.unshareAssetWithOrg.listen((assetUid, org_id) => {
+  dataInterface.unshareAssetWithOrg(assetUid, org_id)
+    .done(() =>{
+      permissionsActions.getAssetPermissions(assetUid)
+      permissionsActions.shareAssetWithOrg.completed(assetUid);
+    })
+    .fail(() => {
+      permissionsActions.getAssetPermissions(assetUid)
+      permissionsActions.shareAssetWithOrg.completed(assetUid);
+    })
+});
 /**
  * For adding single asset permission
  *
