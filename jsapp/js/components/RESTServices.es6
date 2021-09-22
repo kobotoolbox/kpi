@@ -6,6 +6,7 @@ import {PERMISSIONS_CODENAMES} from 'js/constants';
 import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import RESTServicesList from './RESTServices/RESTServicesList';
 import RESTServiceLogs from './RESTServices/RESTServiceLogs';
+import './RESTServices.scss';
 
 export default class RESTServices extends React.Component {
   constructor(props){

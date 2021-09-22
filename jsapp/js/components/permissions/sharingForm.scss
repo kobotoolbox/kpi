@@ -1,0 +1,213 @@
+@import "scss/_colors";
+@import "scss/_variables";
+@import "scss/libs/_mdl";
+
+$s-flexed-row-button-width: 100px;
+$s-flexed-row-select-width: 200px;
+$s-gray-row-spacing: 10px;
+
+.form-modal--sharing-form {
+  h2 {
+    margin: 0;
+    font-size: 14px;
+    color: $kobo-gray-24;
+    font-weight: 500;
+  }
+
+  .user-row + button {
+    margin-top: 15px;
+  }
+
+  .form-modal__item--share-settings {
+    h2 {
+      margin-bottom: 12px;
+    }
+  }
+}
+
+.copy-team-permissions {
+  margin-bottom: 30px;
+
+  &.copy-team-permissions--opened .copy-team-permissions-opener .k-icon::before {
+    transform: rotate(-90deg);
+  }
+
+  .kobo-select {
+    flex: 1;
+  }
+
+  .copy-team-permissions-opener {
+    cursor: pointer;
+    color: $kobo-blue;
+    border: 0;
+    background: transparent;
+    padding-left: 0;
+    padding-right: 0;
+    font-weight: 500;
+    height: 20px;
+    line-height: 20px;
+    min-height: 20px;
+    margin-bottom: 10px;
+
+    &:hover {
+      color: $kobo-blue-dark;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    .k-icon {
+      font-size: 14px;
+      margin: 0 3px;
+      vertical-align: middle;
+
+      &::before {
+        transform: rotate(90deg);
+      }
+    }
+  }
+}
+
+.user-row {
+  border-bottom: 1px solid $kobo-gray-92;
+  padding-bottom: 5px;
+  padding-top: 5px;
+
+  &.user-row--deleted {
+    display: none;
+  }
+
+  &.user-row--pending {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .user-row__info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    min-height: 50px;
+
+    > .mdl-button {
+      min-width: 32px;
+    }
+  }
+
+  .user-row__avatar {
+    margin-right: 12px;
+  }
+
+  .user-row__name {
+    flex: 2;
+    line-height: 2.2em;
+  }
+
+  .user-row__perms {
+    min-width: 160px;
+    text-align: right;
+    padding: 0 10px 0 15px;
+
+    .user-row__perm {
+      display: inline;
+
+      &:not(:last-of-type)::after {
+        content: ' · ';
+      }
+    }
+  }
+
+  .user-row__editor {
+    margin-top: 5px;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// UserAssetPermsEditor
+// -----------------------------------------------------------------------------
+
+.form-modal__item--copy-team-permissions {
+  position: relative;
+
+  .user-permissions-editor-closer {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+  }
+}
+
+.user-permissions-editor {
+  .react-tagsinput-input {
+    background-color: $kobo-white;
+  }
+
+  .user-permissions-editor__row {
+    &:not(:last-child) {
+      margin-bottom: 10px;
+    }
+
+    &.user-permissions-editor__row--username {
+      width: calc(100% - 32px);
+    }
+  }
+
+  .user-permissions-editor__sub-row {
+    padding-left: 30px;
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10px;
+      width: 15px;
+      height: 15px;
+      border-left: 1px solid $kobo-gray-92;
+      border-bottom: 1px solid $kobo-gray-92;
+      border-radius: 2px;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// common parts
+// -----------------------------------------------------------------------------
+
+.user-row__editor,
+.form-modal__item--gray-row {
+  background: $kobo-gray-96;
+  padding: 15px;
+}
+
+.form-modal__item--flexed-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  position: relative;
+
+  > *:not(:first-child) {
+    margin-left: $s-gray-row-spacing;
+  }
+
+  .kobo-select {
+    min-width: $s-flexed-row-select-width;
+
+    .kobo-select__control {
+      height: 40px;
+    }
+  }
+
+  > input[type="text"] {
+    flex: 1;
+    padding: $s-gray-row-spacing;
+    height: 40px;
+  }
+
+  button {
+    min-width: $s-flexed-row-button-width;
+  }
+}
+
+.form-modal__item--shareable-link {
+  margin-top: 10px;
+}

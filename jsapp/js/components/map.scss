@@ -1,0 +1,504 @@
+@import "scss/_colors";
+@import "scss/libs/_mdl";
+
+$z-map-overlay: 1001; // leaflet interface elements
+$z-map-list: 689;
+$z-map-settings: 699;
+$z-map-settings-2: 700;
+$z-map-settings-3: 701;
+
+#data-map {
+  height: 100%;
+  width: 100%;
+}
+
+.form-view--map {
+  position: relative;
+
+  .loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background: rgba($kobo-white, 0.8);
+  }
+
+  .form-view__map-button {
+    position: absolute;
+    right: 12px;
+    top: 65px;
+    padding: 2px 4px 0 4px;
+
+    @include box-shadow;
+
+    border-radius: 6px;
+    background: $kobo-white;
+    z-index: $z-map-settings-2;
+    cursor: pointer;
+    color: $kobo-gray-40;
+
+    &--heatmap {
+      top: 118px;
+      z-index: $z-map-settings;
+    }
+
+    &--layers {
+      top: 12px;
+      right: 65px;
+      z-index: $z-map-settings-3;
+    }
+
+    &--expand {
+      top: 12px;
+      z-index: $z-map-settings-3;
+    }
+
+    &--map-settings {
+      top: 12px;
+      z-index: $z-map-settings;
+      right: 120px;
+    }
+
+    &.active,
+    &:hover {
+      color: $kobo-gray-24;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    i {
+      font-size: 36px;
+      line-height: 1em;
+    }
+  }
+}
+
+.leaflet-top.leaflet-right {
+  margin-right: 56px;
+
+  // right margin plus icon size
+}
+
+.leaflet-control-layers-toggle {
+  display: none;
+
+  &.leaflet-control-layers-expanded {
+    display: block;
+  }
+}
+
+.leaflet-popup-content {
+  pre {
+    font-family: $font;
+    white-space: pre-line;
+    max-height: 200px;
+    overflow-x: auto;
+  }
+}
+
+.popover-menu--viewby-menu {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  z-index: $z-map-settings-2;
+
+  .popover-menu__toggle {
+    min-width: 180px;
+    background: $kobo-white;
+    max-width: 340px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    @include box-shadow;
+
+    border-radius: 6px;
+    padding: 12px;
+    text-align: left;
+    color: $kobo-gray-40;
+  }
+
+  .popover-menu__content {
+    right: auto;
+    left: 0px;
+    min-width: 180px;
+    max-width: 240px;
+    overflow: auto;
+    max-height: 300px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px 5px rgba($kobo-gray-24, 0.15);
+    bottom: calc(100% + 10px);
+
+    .popover-menu__link.see-all {
+      background: $kobo-gray-96;
+      border-top: 1px solid $kobo-gray-92;
+    }
+
+    .popover-menu__heading {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+  }
+}
+
+body .leaflet-control-layers,
+.leaflet-touch .leaflet-control-layers {
+  border: none;
+  border-radius: 6px !important;
+
+  @include box-shadow;
+
+  margin-right: 12px;
+  margin-top: 12px;
+}
+
+@media screen and (max-width: 767px) {
+  .popover-menu--viewby-menu {
+    max-width: 90%;
+
+    .popover-menu__toggle {
+      max-width: 90%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.form-view__map-list {
+  position: absolute;
+  bottom: 70px;
+  left: 15px;
+  z-index: $z-map-list;
+  height: 250px;
+  min-width: 180px;
+  max-width: 300px;
+  padding: 5px;
+  background: $kobo-white;
+  overflow: none;
+
+  @include box-shadow;
+
+  border-radius: 6px;
+
+  .maplist-legend {
+    padding: 2px 8px;
+    cursor: pointer;
+
+    .k-icon {
+      font-size: 21px;
+      margin-right: 8px;
+      margin-left: 3px;
+      vertical-align: bottom;
+      color: $kobo-blue;
+    }
+  }
+
+  .maplist-contents {
+    display: block;
+    margin-bottom: 5px;
+    height: calc(100% - 30px);
+    overflow: auto;
+  }
+
+  &.collapsed {
+    height: auto;
+
+    .maplist-contents {
+      display: none;
+    }
+  }
+
+  .map-marker-item {
+    padding: 4px 6px;
+    position: relative;
+
+    &::after {
+      position: absolute;
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 8px;
+      right: 6px;
+      top: 12px;
+    }
+
+    &.selected {
+      background: $kobo-gray-96;
+
+      &::after {
+        content: "";
+        background: $kobo-blue;
+      }
+    }
+
+    &.unselected {
+      opacity: 0.6;
+
+      &::after {
+        content: "";
+        background: $kobo-gray-65;
+      }
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+
+    &.map-marker-reset {
+      text-align: right;
+      font-size: 12px;
+      color: $kobo-blue;
+      opacity: 0.8;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  span {
+    vertical-align: middle;
+    display: inline-block;
+    font-size: 13px;
+  }
+
+  span.map-marker {
+    margin-right: 8px;
+    text-align: center;
+    line-height: 22px;
+    min-width: 24px;
+    max-width: 48px;
+    width: auto;
+    height: 24px;
+    padding: 0 3px;
+    position: relative;
+    text-shadow: 0 0 1px $kobo-white;
+    color: $kobo-gray-24;
+
+    &::after {
+      position: absolute;
+      width: 10px;
+      content: '';
+      height: 22px;
+      right: 1px;
+      top: 1px;
+      border-bottom-right-radius: 12px;
+      border-top-right-radius: 12px;
+      z-index: -1;
+    }
+  }
+
+  span.map-marker-label {
+    width: calc(100% - 56px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+}
+
+.form-view__map {
+  .loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba($kobo-white, 0.5);
+    z-index: $z-map-settings-3;
+  }
+}
+
+.map-settings {
+  .form-modal__item--layer-upload label {
+    display: block;
+    padding: 10px 0 20px;
+    position: relative;
+    font-size: 14px;
+  }
+
+  .form-modal__item--list-files {
+    border: 1px solid $kobo-gray-92;
+    padding: 10px;
+    max-width: 600px;
+    margin-bottom: 20px;
+
+    .list-file-row {
+      border-top: 1px solid $kobo-gray-92;
+      padding: 5px;
+
+      > span {
+        display: inline-block;
+        vertical-align: middle;
+      }
+
+      .file-type {
+        width: 15%;
+        text-transform: uppercase;
+      }
+
+      .file-layer-name {
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        width: 80%;
+        font-weight: 600;
+      }
+
+      .file-delete {
+        width: 5%;
+        text-align: right;
+        cursor: pointer;
+
+        i {
+          font-size: 24px;
+          color: $kobo-red;
+        }
+      }
+    }
+  }
+
+  .form-modal__item--layer-upload {
+    position: relative;
+
+    input {
+      width: calc(100% - 140px);
+    }
+
+    .dropzone {
+      // !important used because strangely, in some browsers, there is in an inline position: relative on the element
+      position: absolute !important;
+      right: 0;
+      width: 120px;
+      bottom: 0;
+      text-align: right;
+      min-height: 30px;
+    }
+  }
+}
+
+.map-settings__colors {
+  text-align: center;
+
+  .map-marker {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+  }
+
+  .form-modal__item--map-color-item {
+    margin-bottom: 0;
+  }
+}
+
+.map-settings__GeoQuestions {
+  label {
+    display: block;
+    margin-bottom: 10px;
+
+    input {
+      margin-right: 8px;
+    }
+  }
+}
+
+.change-limit-warning {
+  color: red;
+}
+
+.change-limit-slider {
+  width: 75%;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.change-limit-slider-value {
+  width: 10%;
+  margin-left: 10px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@media screen and (max-width: 1265px) {
+  .change-limit-slider {
+    width: 60%;
+  }
+
+  .change-limit-slider-value {
+    width: 30%;
+  }
+}
+
+.map-no-geopoint {
+  text-align: center;
+  font-weight: bold;
+  color: $kobo-white;
+}
+
+.map-no-geopoint-wrapper {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+}
+
+.map-transparent-background {
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: $z-map-overlay;
+  background: rgba(100, 100, 100, 0.7);
+}
+
+// ClusterMarker overrides
+
+.marker-cluster-small {
+  background-color: rgba(253, 187, 132, 0.4);
+}
+
+.marker-cluster-small div {
+  background-color: rgba(253, 187, 132, 0.5);
+}
+
+.marker-cluster-medium {
+  background-color: rgba(252, 141, 89, 0.4);
+}
+
+.marker-cluster-medium div {
+  background-color: rgba(252, 141, 89, 0.5);
+}
+
+.marker-cluster-large {
+  background-color: rgba(239, 101, 72, 0.4);
+}
+
+.marker-cluster-large div {
+  background-color: rgba(239, 101, 72, 0.5);
+}
+
+.marker-cluster {
+  background-clip: padding-box;
+  border-radius: 50%;
+}
+
+.marker-cluster div {
+  font-size: 12px;
+  font-family: $font;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-left: 5px;
+  margin-top: 5px;
+  text-align: center;
+  color: $kobo-gray-24;
+}
+
+.marker-cluster span {
+  line-height: 20px;
+}

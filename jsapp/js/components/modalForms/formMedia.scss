@@ -1,0 +1,148 @@
+@import "scss/_colors";
+
+.form-view--form-media {
+  background-color: $kobo-white;
+}
+
+.form-media {
+  padding: 30px 40px;
+
+  .form-view__cell--warning {
+    margin-bottom: 24px;
+  }
+
+  .form-media__title {
+    display: inline-block;
+    position: relative;
+    margin-bottom: 24px;
+
+    label.form-media__label {
+      float: left;
+      padding-right: 12px;
+    }
+
+    a.title-help {
+      position: absolute;
+      top: -2px;
+      font-size: 24px;
+      height: 24px;
+      color: $kobo-gray-40;
+      cursor: pointer;
+    }
+  }
+
+  .form-media__upload {
+    .form-media-upload-url {
+      color: $kobo-gray-40;
+      font-size: 18px;
+      font-weight: 500;
+      margin: auto;
+      margin-top: 36px;
+      display: block;
+      text-align: center;
+
+      .form-media-upload-url__label {
+        margin: 12px 0;
+      }
+
+      .form-media-upload-url__form {
+        .text-box__error {
+          padding-top: 6px;
+          font-size: 14px;
+        }
+
+        // Semi-hack: re-used formbuilder button but make it look like
+        // KoboLightButton here
+        .form-builder-header__button {
+          background: $kobo-white;
+          box-shadow: none;
+          color: $kobo-blue;
+          border: 1px solid;
+
+          &:hover {
+            color: $kobo-white;
+            background-color: $kobo-blue;
+            border-color: $kobo-blue;
+          }
+        }
+
+        label.text-box {
+          padding-top: 7px;
+          min-width: 77%;
+          display: inline-table;
+        }
+
+        button {
+          margin-left: 3%;
+          min-width: 20%;
+        }
+      }
+    }
+  }
+
+  .form-media__list {
+    margin-top: 64px;
+
+    label.form-media__label {
+      margin-bottom: 11px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid $kobo-gray-92;
+    }
+
+    .form-media__list-item {
+      font-size: 16px;
+      position: relative;
+      padding-bottom: 12px;
+      border-bottom: 1px solid $kobo-gray-92;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+
+      // TODO: Find a better way to implement button size without editing parent
+      button.kobo-light-button {
+        padding-bottom: 25px;
+
+        i.k-icon-trash {
+          font-size: 24px;
+        }
+      }
+
+      i.form-media__file-type {
+        position: absolute;
+        left: -5px;
+        top: 2px;
+        color: $kobo-gray-65;
+        font-size: 24px;
+      }
+
+      a {
+        font-weight: 400;
+        padding: 5px;
+        margin-left: 25px;
+        font-size: 18px;
+        display: inline-block;
+        min-width: 10px;
+        vertical-align: top;
+        height: auto;
+        position: relative;
+        min-height: 18px;
+        max-width: 70%;
+        overflow-x: hidden;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .form-media__label {
+    color: $kobo-gray-24;
+    font-weight: 500;
+    font-size: 22px;
+    display: block;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .media-settings--upload-file {
+    width: auto;
+  }
+}

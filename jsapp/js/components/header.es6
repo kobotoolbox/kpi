@@ -5,28 +5,27 @@ import autoBind from 'react-autobind';
 import { hashHistory } from 'react-router';
 import PopoverMenu from 'js/popoverMenu';
 import {stores} from '../stores';
+import assetStore from 'js/assetStore';
 import Reflux from 'reflux';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {actions} from '../actions';
 import mixins from '../mixins';
 import {dataInterface} from '../dataInterface';
 import {
   assign,
   currentLang,
-  getLoginUrl,
   stringToColor,
 } from 'utils';
+import {getLoginUrl} from 'js/router/routerUtils';
 import {getAssetIcon} from 'js/assetUtils';
-import {
-  COMMON_QUERIES,
-  PATHS,
-  ROUTES,
-} from 'js/constants';
+import {COMMON_QUERIES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {searches} from '../searches';
 import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
+import envStore from 'js/envStore';
 
 class MainHeader extends Reflux.Component {
   constructor(props){
@@ -52,7 +51,7 @@ class MainHeader extends Reflux.Component {
 
   componentDidMount() {
     this.unlisteners.push(
-      stores.asset.listen(this.onAssetLoad),
+      assetStore.listen(this.onAssetLoad),
       myLibraryStore.listen(this.forceRender)
     );
   }
@@ -155,25 +154,23 @@ class MainHeader extends Reflux.Component {
   renderAccountNavMenu() {
     let shouldDisplayUrls = false;
     if (
-      stores.session &&
-      stores.session.environment &&
-      typeof stores.session.environment.terms_of_service_url === 'string' &&
-      typeof stores.session.environment.terms_of_service_url.length >= 1
+      envStore.isReady &&
+      typeof envStore.data.terms_of_service_url === 'string' &&
+      typeof envStore.data.terms_of_service_url.length >= 1
     ) {
       shouldDisplayUrls = true;
     }
     if (
-      stores.session &&
-      stores.session.environment &&
-      typeof stores.session.environment.privacy_policy_url === 'string' &&
-      typeof stores.session.environment.privacy_policy_url.length >= 1
+      envStore.isReady &&
+      typeof envStore.data.privacy_policy_url === 'string' &&
+      typeof envStore.data.privacy_policy_url.length >= 1
     ) {
       shouldDisplayUrls = true;
     }
 
     let langs = [];
-    if (stores.session.environment) {
-      langs = stores.session.environment.interface_languages;
+    if (envStore.isReady && envStore.data.interface_languages) {
+      langs = envStore.data.interface_languages;
     }
     if (stores.session.isLoggedIn) {
       var accountName = stores.session.currentAccount.username;
@@ -204,13 +201,13 @@ class MainHeader extends Reflux.Component {
                 </bem.AccountBox__menuLI>
                 {shouldDisplayUrls &&
                   <bem.AccountBox__menuLI key='2' className='environment-links'>
-                    {stores.session.environment.terms_of_service_url &&
-                      <a href={stores.session.environment.terms_of_service_url} target='_blank'>
+                    {envStore.data.terms_of_service_url &&
+                      <a href={envStore.data.terms_of_service_url} target='_blank'>
                         {t('Terms of Service')}
                       </a>
                     }
-                    {stores.session.environment.privacy_policy_url &&
-                      <a href={stores.session.environment.privacy_policy_url} target='_blank'>
+                    {envStore.data.privacy_policy_url &&
+                      <a href={envStore.data.privacy_policy_url} target='_blank'>
                         {t('Privacy Policy')}
                       </a>
                     }

@@ -1,0 +1,126 @@
+@import "scss/_colors";
+@import "scss/libs/_mdl";
+
+$submission-data-table-space: 12px;
+
+.submission-data-table {
+  text-align: initial;
+
+  .checkbox + .submission-data-table__row {
+    margin-top: $submission-data-table-space;
+  }
+}
+
+.submission-data-table__row {
+  background-color: $kobo-gray-96;
+
+  &.submission-data-table__row--type-group_root + &.submission-data-table__row--metadata {
+    border-top: 3px solid $kobo-gray-92;
+  }
+
+  &.submission-data-table__row--response,
+  &.submission-data-table__row--group,
+  &.submission-data-table__row--group-label {
+    border-bottom: 1px solid $kobo-gray-92;
+  }
+
+  &.submission-data-table__row--response,
+  &.submission-data-table__row--group {
+    border-left: 1px solid $kobo-gray-92;
+    border-right: 1px solid $kobo-gray-92;
+  }
+
+  &.submission-data-table__row--columns {
+    display: flex;
+    flex-direction: row;
+  }
+
+  &.submission-data-table__row--column-names {
+    font-weight: bold;
+    background-color: $kobo-gray-40;
+    color: $kobo-white;
+  }
+
+  &.submission-data-table__row--group-label {
+    padding: $submission-data-table-space 0;
+  }
+
+  &.submission-data-table__row--group {
+    padding: 0 $submission-data-table-space $submission-data-table-space;
+  }
+
+  &.submission-data-table__row--type-group_root {
+    padding: 0;
+    border: none;
+  }
+
+  &.submission-data-table__row--type-select_multiple .submission-data-table__column--data {
+    ul {
+      list-style: disc;
+      padding-left: 1.25em;
+    }
+  }
+
+  &.submission-data-table__row--response,
+  &.submission-data-table__row--point {
+    background-color: $kobo-white;
+  }
+
+  &.submission-data-table__row--point {
+    & + & {
+      border-top: 1px dotted $kobo-gray-92;
+    }
+
+    &:first-child .submission-data-table__column {
+      padding-top: 0;
+    }
+
+    &:last-child .submission-data-table__column {
+      padding-bottom: 0;
+    }
+
+    .submission-data-table__column:first-child {
+      padding-left: 0;
+    }
+
+    .submission-data-table__column:last-child {
+      padding-right: 0;
+    }
+  }
+}
+
+.submission-data-table__column {
+  padding: $submission-data-table-space;
+
+  &.submission-data-table__column--type {
+    width: 15%;
+
+    .k-icon {
+      font-size: 20px;
+    }
+  }
+
+  &.submission-data-table__column--label {
+    width: 35%;
+  }
+
+  &.submission-data-table__column--data {
+    flex: 1;
+    font-family: $font_mono;
+  }
+}
+
+.submission-data-table__xml-name {
+  display: inline-block;
+  margin-left: 0.5em;
+  font-size: 0.8em;
+  line-height: 1;
+  color: $kobo-gray-40;
+  font-family: $font_mono;
+}
+
+.submission-data-table__value {
+  color: $kobo-gray-24;
+  display: inline-block;
+  font-family: $font_mono;
+}

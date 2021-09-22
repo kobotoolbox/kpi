@@ -4,7 +4,7 @@ import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import {dataInterface} from '../dataInterface';
 import {hashHistory} from 'react-router';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
 import PopoverMenu from 'js/popoverMenu';
@@ -12,7 +12,8 @@ import Modal from 'js/components/common/modal';
 import classNames from 'classnames';
 import omnivore from '@mapbox/leaflet-omnivore';
 import JSZip from 'jszip';
-
+import './map.scss';
+import './map.marker-colors.scss';
 import L from 'leaflet/dist/leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat/dist/leaflet-heat';

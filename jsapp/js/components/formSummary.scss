@@ -1,0 +1,242 @@
+@import "scss/_colors";
+
+.form-view__group.form-view__group--description-cols {
+  padding: 20px;
+  display: flex;
+
+  > .form-view__cell {
+    width: 50%;
+
+    .form-view__label {
+      font-size: 12px;
+      opacity: 0.6;
+    }
+  }
+}
+
+.form-view__row--summary-description {
+  .form-view__cell--description:not(:first-child) {
+    border-top: 1px solid $kobo-gray-92;
+  }
+}
+
+.form-view__group.form-view__group--summary-details-cols {
+  display: flex;
+  align-items: flex-start;
+
+  > .form-view__cell {
+    padding: 15px 20px;
+    flex-grow: 1;
+
+    &:first-child {
+      flex-grow: 2;
+    }
+
+    .form-view__label {
+      font-size: 12px;
+      opacity: 0.6;
+    }
+  }
+}
+
+.form-view__cell.form-view__cell--subs-graph {
+  padding: 30px;
+  padding-bottom: 0px;
+
+  .form-view__cell--subs-graph-toggle {
+    padding-bottom: 20px;
+
+    a + a {
+      margin-left: 15px;
+    }
+
+    a {
+      display: inline-block;
+      padding: 8px;
+      color: $kobo-teal;
+      cursor: pointer;
+      font-size: 16px;
+      background: transparent;
+
+      &.active {
+        color: $kobo-white;
+        background: $kobo-teal;
+        position: relative;
+
+        &::after {
+          width: 0;
+          height: 0;
+          border-left: 10px solid transparent;
+          border-right: 10px solid transparent;
+          border-top: 10px solid $kobo-teal;
+          content: '';
+          position: absolute;
+          bottom: -9px;
+          left: 50%;
+          margin-left: -10px;
+        }
+      }
+    }
+  }
+}
+
+.form-view__group.form-view__group--submission-stats {
+  padding: 30px;
+  display: flex;
+
+  .form-view__cell {
+    border: 1px solid $kobo-gray-92;
+    padding: 20px;
+    flex: 2;
+    margin-right: 10px;
+
+    &:last-child {
+      flex: 1;
+      margin-right: 0px;
+    }
+  }
+
+  .subs-graph-number {
+    font-size: 32px;
+    font-weight: 600;
+    color: $kobo-teal;
+  }
+}
+
+.form-view__cell.form-view__cell--data-tabs {
+  a,
+  button {
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 6px 10px;
+    color: $kobo-gray-40;
+    border-bottom: 1px solid $kobo-gray-92;
+    position: relative;
+    text-align: left;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      color: $kobo-gray-24;
+    }
+
+    .k-icon {
+      font-size: 24px;
+      width: 24px;
+      margin: 4px 10px 4px 4px;
+      display: inline-block;
+      vertical-align: middle;
+
+      &.k-icon-next {
+        position: absolute;
+        right: 4px;
+        top: 6px;
+      }
+    }
+  }
+}
+
+.form-view__row.form-view__row--team {
+  position: relative;
+
+  .form-view__cell--box {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .user-row {
+    margin: 0;
+    border-bottom: 0px;
+    margin-right: 0px;
+  }
+
+  a.team-sharing-button {
+    cursor: pointer;
+    color: $kobo-gray-40;
+    position: absolute;
+    right: 0px;
+    top: -2px;
+
+    .k-icon {
+      font-size: 24px;
+    }
+
+    &:hover {
+      color: $kobo-blue;
+    }
+  }
+}
+
+.form-view__cell.form-view__cell--summary-chart {
+  position: relative;
+  height: 0px;
+  overflow: hidden;
+
+  + .form-view__cell--chart-no-data {
+    height: 100px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    border: 1px solid $kobo-gray-92;
+
+    span {
+      font-size: 16px;
+      margin: 10px;
+    }
+  }
+
+  &.active {
+    height: 275px;
+    overflow: visible;
+
+    canvas {
+      height: 250px;
+    }
+
+    + .form-view__cell--chart-no-data {
+      height: 0px;
+      overflow: hidden;
+    }
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .form-view--summary {
+    display: flex;
+
+    .form-view__column--left {
+      width: 65%;
+
+      .form-view__row {
+        margin-right: 0px;
+      }
+    }
+
+    .form-view__column--right {
+      width: 35%;
+
+      .form-view__row {
+        margin-left: 30px;
+        margin-right: 40px;
+      }
+    }
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .form-view--summary {
+    .form-view__column--left {
+      width: 70%;
+    }
+
+    .form-view__column--right {
+      width: 30%;
+    }
+  }
+}

@@ -1,5 +1,4 @@
 # coding: utf-8
-import multiprocessing
 import os
 import subprocess
 from mimetypes import add_type
@@ -174,6 +173,20 @@ CONSTANCE_CONFIG = {
     'EXPOSE_GIT_REV': (
         False,
         'Display information about the running commit to non-superusers',
+    ),
+    'CELERY_WORKER_MAX_CONCURRENCY': (
+        '',
+        'Maximum number of asynchronous worker processes to run. When '
+        'unspecified, the default is the number of CPU cores on your server, '
+        'down to a minimum of 2 and up to a maximum of 6. You may override '
+        'here with larger values',
+        # Omit type specification because int doesn't allow an empty default
+    ),
+    'CELERY_WORKER_MIN_CONCURRENCY': (
+        2,
+        'Minimum number of asynchronous worker processes to run. If larger '
+        'than the maximum, the maximum will be ignored',
+        int
     ),
 }
 # Tell django-constance to use a database model instead of Redis
@@ -411,14 +424,6 @@ CELERY_TIMEZONE = "UTC"
 if os.environ.get('SKIP_CELERY', 'False') == 'True':
     # helpful for certain debugging
     CELERY_TASK_ALWAYS_EAGER = True
-
-# Celery defaults to having as many workers as there are cores. To avoid
-# excessive resource consumption, don't spawn more than 6 workers by default
-# even if there more than 6 cores.
-
-CELERYD_MAX_CONCURRENCY = int(os.environ.get('CELERYD_MAX_CONCURRENCY', 6))
-if multiprocessing.cpu_count() > CELERYD_MAX_CONCURRENCY:
-    CELERY_WORKER_CONCURRENCY = CELERYD_MAX_CONCURRENCY
 
 # Replace a worker after it completes 7 tasks by default. This allows the OS to
 # reclaim memory allocated during large tasks

@@ -105,7 +105,6 @@ describe('permParser', () => {
 
       chai.expect(built).to.deep.equal({
         formView: true,
-        submissionsView: true,
         submissionsViewPartial: true,
         submissionsViewPartialUsers: ['john', 'olivier']
       });

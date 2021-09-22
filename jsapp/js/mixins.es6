@@ -22,10 +22,11 @@ import {
   ASSET_TYPES,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
-  ROUTES,
 } from './constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
+import assetStore from 'js/assetStore';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -53,7 +54,7 @@ mixins.dmix = {
     let dialog = alertify.dialog('prompt');
     let opts = {
       title: `${t('Clone')} ${ASSET_TYPES.survey.label}`,
-      message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', ASSET_TYPES.survey.label),
+      message: t('Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.').replace('##ASSET_TYPE##', ASSET_TYPES.survey.label),
       value: name,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, value) => {
@@ -234,7 +235,7 @@ mixins.dmix = {
     }
   },
   componentDidMount() {
-    this.listenTo(stores.asset, this.dmixAssetStoreChange);
+    assetStore.listen(this.dmixAssetStoreChange);
 
     const uid = this._getAssetUid();
     if (uid) {
@@ -477,7 +478,7 @@ mixins.clickAssets = {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
           title: `${t('Clone')} ${assetTypeLabel}`,
-          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetTypeLabel),
+          message: t('Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.').replace('##ASSET_TYPE##', assetTypeLabel),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
@@ -902,7 +903,7 @@ mixins.contextRouter = {
     return this.context.router.params.assetid || this.context.router.params.uid;
   },
   currentAsset() {
-    return stores.asset.data[this.currentAssetID()];
+    return assetStore.data[this.currentAssetID()];
   },
   isActiveRoute(path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);

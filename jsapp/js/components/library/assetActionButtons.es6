@@ -16,16 +16,17 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import _ from 'lodash';
 import PopoverMenu from 'js/popoverMenu';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import assetUtils from 'js/assetUtils';
 import {
   ASSET_TYPES,
   ACCESS_TYPES,
-  ROUTES,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from './ownedCollectionsStore';
+import './assetActionButtons.scss';
 
 const assetActions = mixins.clickAssets.click.asset;
 

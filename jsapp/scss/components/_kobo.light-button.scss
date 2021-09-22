@@ -1,6 +1,13 @@
 /*
-  This is a smaller alternative to kobo-button
-*/
+ * This is a smaller alternative to kobo-button. Modifiers to use:
+ * - icon-only
+ * - full-width
+ * - blue
+ * - teal
+ * - green
+ * - orange
+ * - red
+ */
 
 .kobo-light-button,
 .kobo-light-badge {
@@ -40,6 +47,11 @@
     & .k-icon {
       margin-right: 0;
     }
+  }
+
+  &.kobo-light-button--full-width {
+    width: 100%;
+    text-align: center;
   }
 }
 
@@ -122,6 +134,16 @@
       color: $kobo-white;
       background-color: $kobo-red;
       border-color: $kobo-red;
+    }
+  }
+
+  &.kobo-light-button--gray {
+    color: $kobo-gray-65;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-gray-65;
+      border-color: $kobo-gray-65;
     }
   }
 }

@@ -3,14 +3,16 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {stores} from '../stores';
+import assetStore from 'js/assetStore';
 import {Link, hashHistory} from 'react-router';
 import mixins from '../mixins';
-import {PERMISSIONS_CODENAMES, ROUTES} from 'js/constants';
+import {PERMISSIONS_CODENAMES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 
-export function getFormDataTabs(assetUid, isLoggedIn, hasPartialView) {
+export function getFormDataTabs(assetUid, hasPartialView) {
   return [
     {
       label: t('Table'),
@@ -32,7 +34,6 @@ export function getFormDataTabs(assetUid, isLoggedIn, hasPartialView) {
       label: t('Downloads'),
       icon: 'k-icon k-icon-download',
       path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
-      isDisabled: !isLoggedIn,
     },
     {
       label: t('Map'),
@@ -50,7 +51,7 @@ class FormViewTabs extends Reflux.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.assetLoad);
+    this.listenTo(assetStore, this.assetLoad);
   }
 
   assetLoad(data) {
@@ -170,7 +171,7 @@ class FormViewTabs extends Reflux.Component {
         PERMISSIONS_CODENAMES.view_submissions,
         this.state.asset
       );
-      sideTabs = getFormDataTabs(this.state.assetid, stores.session.isLoggedIn, hasPartialView);
+      sideTabs = getFormDataTabs(this.state.assetid, hasPartialView);
     }
 
     if (
@@ -251,7 +252,7 @@ class FormViewTabs extends Reflux.Component {
                 data-path={item.path}
                 onClick={this.triggerRefresh}
               >
-                <i className={item.icon} />
+                <i className={`k-icon ${item.icon}`} />
                 {item.label}
               </Link>
             );

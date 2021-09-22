@@ -1,5 +1,5 @@
 import React from 'react';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 
 export default class AccessDeniedMessage extends React.Component {
   render() {

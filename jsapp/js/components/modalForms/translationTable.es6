@@ -3,7 +3,7 @@ import ReactTable from 'react-table';
 import TextareaAutosize from 'react-autosize-textarea';
 import LanguageForm from 'js/components/modalForms/languageForm';
 import alertify from 'alertifyjs';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
@@ -17,7 +17,7 @@ import {
 import {
   hasRowRestriction,
   hasAssetRestriction,
-} from 'js/components/locking/lockingUtils.es6';
+} from 'js/components/locking/lockingUtils';
 
 const SAVE_BUTTON_TEXT = {
   DEFAULT: t('Save Changes'),

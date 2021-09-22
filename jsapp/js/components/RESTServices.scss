@@ -1,0 +1,70 @@
+@import "scss/libs/_mdl";
+
+// RESTServices custom overrides
+
+.rest-services {
+  display: flex;
+  flex-direction: column;
+
+  // centers empty content message
+  &.rest-services--empty {
+    align-items: center;
+    justify-items: center;
+  }
+
+  .form-view__cell--rest-services-list {flex: 1;}
+
+  > button {
+    display: block;
+    align-self: flex-end;
+    margin-top: 30px;
+  }
+
+  .rest-services-list__header::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+
+  .rest-services-list__header-label {
+    display: inline-block;
+    font-size: inherit;
+    font-weight: 600;
+
+    &.rest-services-list__header-label--big {
+      display: block;
+      font-size: 1.5em;
+    }
+  }
+
+  .rest-services-list__header-label,
+  .rest-services-list__header-help-link {
+    margin: 0;
+    line-height: 20px;
+    padding: 10px 0;
+    min-height: 36px;
+
+    i {
+      font-size: 18px;
+      vertical-align: top;
+      display: inline-block;
+      margin: 0 3px;
+    }
+  }
+
+  .rest-services-list__header-right {float: right;}
+
+  .rest-services-list__header-back-button {
+    @extend .mdl-button, .mdl-button--icon;
+
+    i {
+      vertical-align: middle;
+    }
+  }
+}
+
+// custom styles for RESTServicesForm
+
+.form-modal__item.form-modal__item--rest-custom-wrapper textarea {
+  font-family: $font_mono;
+}

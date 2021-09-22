@@ -3,7 +3,8 @@ import autoBind from 'react-autobind';
 import ReactDOM from 'react-dom';
 import _ from 'underscore';
 import Chart from 'chart.js';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
+import {stores} from 'js/stores';
 import {REPORT_STYLES, REPORT_COLOR_SETS} from './reportsConstants';
 import ReportTable from './reportTable';
 
@@ -279,7 +280,7 @@ export default class ReportViewItem extends React.Component {
               {t('(# were without data.)').replace('#', d.not_provided)}
             </span>
           </bem.ReportView__headingMeta>
-          {d.show_graph && (
+          {d.show_graph && stores.session.isLoggedIn && (
             <bem.Button
               m='icon'
               className='report-button__question-settings'

@@ -1,0 +1,64 @@
+@import "scss/_colors";
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  line-height: 20px;
+
+  .toggle-switch__wrapper {
+    cursor: pointer;
+  }
+
+  input {
+    visibility: hidden;
+    position: absolute;
+  }
+
+  .toggle-switch__slider {
+    display: inline-block;
+    vertical-align: top;
+    position: relative;
+    width: 30px;
+    height: 20px;
+    background-color: $kobo-gray-65;
+    transition: 0.3s cubic-bezier(1, 0, 0.5, 1);
+    border-radius: 34px;
+
+    &[disabled] {
+      opacity: 0.5;
+    }
+
+    &::before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      top: 2px;
+      background-color: $kobo-white;
+      transition: inherit;
+      border-radius: 50%;
+    }
+  }
+
+  .toggle-switch__slider + .toggle-switch__label {
+    margin-left: 6px;
+  }
+
+  input:checked + .toggle-switch__slider {
+    background-color: $kobo-teal;
+
+    &::before {
+      transform: translateX(10px);
+    }
+  }
+
+  input:focus + .toggle-switch__slider {
+    box-shadow: 0 0 1px $kobo-teal;
+  }
+
+  .toggle-switch__label {
+    color: $kobo-gray-24;
+    font-size: 14px;
+  }
+}

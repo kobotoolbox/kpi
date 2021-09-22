@@ -4,7 +4,7 @@ import {
   getCurrentPath,
   isMyLibraryRoute,
   isPublicCollectionsRoute,
-} from 'js/routerUtils';
+} from 'js/router/routerUtils';
 import {createEnum} from 'js/constants';
 
 const DEFAULT_SEARCH_PHRASE = '';

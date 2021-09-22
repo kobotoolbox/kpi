@@ -29,10 +29,6 @@
   overflow-y: auto;
   background: $kobo-gray-96;
 
-  &.form-view--table {
-    background: $kobo-white;
-  }
-
   &.form-view--fullscreen {
     position: fixed;
     z-index: $z-fullscreen;
@@ -79,10 +75,6 @@
     .loading__inner code {
       margin: 20px auto;
     }
-  }
-
-  & + .form-view.form-view--table {
-    overflow: hidden;
   }
 
   a.form-view__tab {
@@ -182,8 +174,10 @@
 
   a.form-view__link--close {
     position: absolute;
-    right: 5px;
+    right: 10px;
     top: 10px;
+    padding: 5px;
+    font-size: 18px;
   }
 }
 
@@ -472,6 +466,16 @@
     p {
       margin: 0;
     }
+
+    a {
+      color: inherit;
+      font-weight: bold;
+      text-decoration: underline;
+
+      &:hover {
+        text-decoration: none;
+      }
+    }
   }
 
   &.form-view__cell--error {
@@ -547,11 +551,6 @@
 .form-view__group {
   .dropzone {
     display: inline;
-  }
-
-  .popover-menu .popover-menu__toggle {
-    // TODO: this is too generic, find out what was this really set for
-    height: 36px;
   }
 
   &.form-view__group--items {

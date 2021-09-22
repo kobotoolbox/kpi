@@ -1,0 +1,60 @@
+@import "scss/_colors";
+
+.asset-info-box {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid $kobo-gray-92;
+  padding-bottom: 5px;
+  line-height: 24px;
+
+  .asset-info-box__column {
+    display: flex;
+    flex-direction: column;
+
+    &:not(.asset-info-box__column--toggle) {
+      flex: 1;
+      padding-right: 10px;
+    }
+  }
+
+  .asset-info-box__cell {
+    flex: 1;
+
+    label {
+      color: $kobo-gray-40;
+
+      &::after {
+        content: ": ";
+      }
+    }
+  }
+
+  .asset-info-box__toggle {
+    cursor: pointer;
+    color: $kobo-blue;
+    background: transparent;
+    border: 0;
+    width: 100%;
+    text-align: center;
+
+    &:hover {
+      color: $kobo-blue-dark;
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    .k-icon {
+      font-size: 18px;
+      margin-right: 3px;
+      vertical-align: -5px;
+    }
+  }
+}
+
+.asset-info-box__cell {
+  & + & {
+    margin-top: 20px;
+  }
+}
