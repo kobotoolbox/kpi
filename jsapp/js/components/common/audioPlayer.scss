@@ -7,46 +7,16 @@
   height: 8px;
 }
 
-// In order for the hack fix to work, we have to hard code the slider length
-$hack-fix-slider-length-int: 300;
-$hack-fix-slider-length: #{$hack-fix-slider-length-int}px;
-// Make it a bit smaller for mobile screens
-$hack-fix-slider-length-mobile-int: 150;
-$hack-fix-slider-length-mobile: #{$hack-fix-slider-length-mobile-int}px;
-
-
-/* HACK FIX: Chrome browsers et al don't have a `progress` pseudo class like
- * Firefox or Edge, so we make our own
- *
- * Inspired by https://stackoverflow.com/questions/38095650/style-input-range-to-look-like-a-progress-bar
- */
-@function makelongshadow() {
-  $val: 5px 0 0 0 $kobo-blue;
-
-  @for $i from 6 through $hack-fix-slider-length-int {
-    $val: #{$val}, #{$i}px 0 0 0px #{$kobo-gray-92};
-  }
-
-  @return $val;
-}
-
-@function makelongshadow-mobile() {
-  $val: 5px 0 0 0 $kobo-blue;
-
-  @for $i from 6 through $hack-fix-slider-length-mobile-int {
-    $val: #{$val}, #{$i}px 0 0 0px #{$kobo-gray-92};
-  }
-
-  @return $val;
-}
-
 .audio-player {
   display: flex;
   justify-content: center;
+  padding: 0 20px;
 
   .audio-player__controls {
     margin-top: 8px;
-    margin-right: 8px;
+    // this % calculates to around 8px for regular modal size, will be a bit
+    // smaller on mobile
+    margin-right: 2.3%;
 
     i.k-icon {
       font-size: 36px;
@@ -65,10 +35,12 @@ $hack-fix-slider-length-mobile: #{$hack-fix-slider-length-mobile-int}px;
 
   .audio-player__progress {
     padding-top: 6px;
+    flex: 1;
+
     .audio-player__time {
       display: flex;
       justify-content: space-between;
-      width: $hack-fix-slider-length;
+      width: 100%;
       margin: auto;
       padding-bottom: 3px;
       font-weight: 600;
@@ -86,21 +58,12 @@ $hack-fix-slider-length-mobile: #{$hack-fix-slider-length-mobile-int}px;
     input[type='range'] {
       // General input styling across browsers
       -webkit-appearance: none;
-      width: $hack-fix-slider-length;
+      width: 100%;
       background: transparent;
       cursor: pointer;
       border-radius: 10px;
 
-      // Input 'thumb' styling
-      &::-webkit-slider-thumb {
-        appearance: none;
-        height: 8px;
-        width: 8px;
-        background: $kobo-blue;
-        box-shadow: makelongshadow();
-        border-radius: 10px;
-      }
-
+      // Firefox thumb is going to be hidden
       &::-moz-range-thumb {
         background-color: transparent;
         height: 8px;
@@ -108,12 +71,28 @@ $hack-fix-slider-length-mobile: #{$hack-fix-slider-length-mobile-int}px;
         border: none;
       }
 
-      // Input 'track' styling
+      // Firefox progress styles are easy peasy
+      &::-moz-range-progress {
+        background-color: $kobo-blue;
+        height: 8px;
+        border-radius: 10px;
+      }
+
+      // Chrome track is going to be gray
       &::-webkit-slider-runnable-track {
         @include rangeTrack;
         overflow-x: hidden;
         margin-bottom: 12px;
+      }
+
+      // Chrome slider is hacked by using shadow
+      &::-webkit-slider-thumb {
+        appearance: none;
+        height: 8px;
+        width: 8px;
         background: $kobo-blue;
+        box-shadow: -10005px 0 0 10000px $kobo-blue;
+        border-radius: 10px;
       }
 
       &::-moz-range-track {
@@ -123,34 +102,6 @@ $hack-fix-slider-length-mobile: #{$hack-fix-slider-length-mobile-int}px;
       &::-ms-track {
         @include rangeTrack
       }
-
-      // Input 'progress' styling
-      &::-moz-range-progress {
-        background-color: $kobo-blue;
-        height: 8px;
-        border-radius: 10px;
-      }
-    }
-  }
-}
-
-@media screen and (max-width: 480px) {
-  .audio-player__controls {
-    margin-right: 3px !important;
-  }
-
-  .audio-player__progress {
-    width: $hack-fix-slider-length-mobile;
-    .audio-player__time {
-      width: $hack-fix-slider-length-mobile !important;
-    }
-  }
-
-  input[type='range'] {
-    width: $hack-fix-slider-length-mobile !important;
-
-    &::-webkit-slider-thumb {
-      box-shadow: makelongshadow-mobile();
     }
   }
 }
