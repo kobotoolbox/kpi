@@ -3,6 +3,7 @@ import {RouteComponentProps} from 'react-router'
 import {ROUTES} from 'js/router/routerConstants';
 import bem from 'js/bem'
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import './accountSidebar.scss'
 
 type AccountSidebarProps = RouteComponentProps<{
   submissionsPerMonth: number,
@@ -40,7 +41,7 @@ export default class AccountSidebar extends React.Component<
   }
 
   isDataStorageSelected(): boolean {
-    return true
+    return location.hash.split('#')[1] === ROUTES.DATA_STORAGE
   }
 
 	render() {
