@@ -6,6 +6,7 @@ import Reflux from 'reflux';
 import {actions} from '../actions';
 import bem from 'js/bem';
 import {stores} from '../stores';
+import assetStore from 'js/assetStore';
 import mixins from '../mixins';
 import DocumentTitle from 'react-document-title';
 import SharingForm from './permissions/sharingForm';
@@ -13,14 +14,13 @@ import ProjectSettings from './modalForms/projectSettings';
 import ConnectProjects from 'js/components/dataAttachments/connectProjects';
 import FormMedia from './modalForms/formMedia';
 import DataTable from 'js/components/submissions/table';
-import ProjectExportsCreator from 'js/components/projectDownloads/projectExportsCreator';
-import ProjectExportsList from 'js/components/projectDownloads/projectExportsList';
+import ProjectDownloads from 'js/components/projectDownloads/projectDownloads';
 import {PROJECT_SETTINGS_CONTEXTS} from '../constants';
 import FormMap from './map';
 import RESTServices from './RESTServices';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
-import {ROUTES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 
 export class FormSubScreens extends React.Component {
   constructor(props){
@@ -29,7 +29,7 @@ export class FormSubScreens extends React.Component {
     autoBind(this);
   }
   componentDidMount () {
-    this.listenTo(stores.asset, this.dmixAssetStoreChange);
+    this.listenTo(assetStore, this.dmixAssetStoreChange);
     var uid = this.props.params.assetid || this.props.uid || this.props.params.uid;
     if (uid) {
       actions.resources.loadAsset({id: uid});
@@ -73,7 +73,7 @@ export class FormSubScreens extends React.Component {
             .replace(':viewby', this.props.params.viewby):
           return <FormMap asset={this.state} viewby={this.props.params.viewby}/>;
         case ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.uid):
-          return this.renderProjectDownloads();
+          return <ProjectDownloads asset={this.state}/>;
         case ROUTES.FORM_SETTINGS.replace(':uid', this.state.uid):
           return this.renderSettingsEditor();
         case ROUTES.FORM_MEDIA.replace(':uid', this.state.uid):
@@ -86,7 +86,7 @@ export class FormSubScreens extends React.Component {
           return <RESTServices asset={this.state} />;
         case ROUTES.FORM_REST_HOOK
             .replace(':uid', this.state.uid)
-            .replace(':hook', this.props.params.hookUid):
+            .replace(':hookUid', this.props.params.hookUid):
           return <RESTServices asset={this.state} hookUid={this.props.params.hookUid}/>;
         case ROUTES.FORM_KOBOCAT.replace(':uid', this.state.uid):
           iframeUrl = deployment__identifier+'/form_settings';
@@ -119,24 +119,6 @@ export class FormSubScreens extends React.Component {
             />
           </bem.FormView>
         </DocumentTitle>
-    );
-  }
-  renderProjectDownloads() {
-    var docTitle = this.state.name || t('Untitled');
-    return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <React.Fragment>
-          {!stores.session.isLoggedIn &&
-            <AccessDeniedMessage/>
-          }
-          {stores.session.isLoggedIn &&
-            <bem.FormView className='project-downloads'>
-              <ProjectExportsCreator asset={this.state} />
-              <ProjectExportsList asset={this.state} />
-            </bem.FormView>
-          }
-        </React.Fragment>
-      </DocumentTitle>
     );
   }
   renderSharing() {

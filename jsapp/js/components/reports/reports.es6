@@ -19,6 +19,7 @@ import CustomReportForm from './customReportForm';
 import QuestionGraphSettings from './questionGraphSettings';
 import ReportContents from './reportContents';
 import ReportStyleSettings from './reportStyleSettings';
+import './reports.scss';
 
 export default class Reports extends React.Component {
   constructor(props) {

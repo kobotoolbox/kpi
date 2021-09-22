@@ -1,0 +1,114 @@
+@import "scss/_colors";
+
+.asset-action-buttons {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  text-align: right;
+
+  &:not(:first-child) {
+    margin-left: 15px;
+  }
+
+  .popover-menu__toggle .k-icon {
+    display: block;
+  }
+}
+
+.asset-action-buttons .k-icon,
+.asset-action-buttons__button .k-icon,
+.asset-action-buttons__icon-button .k-icon {
+  font-size: 24px;
+  margin: 0 3px;
+  color: inherit;
+}
+
+.asset-action-buttons__button,
+.asset-action-buttons__icon-button {
+  display: block;
+  cursor: pointer;
+
+  .k-icon {
+    display: block;
+  }
+}
+
+.asset-action-buttons__button {
+  border-radius: 3px;
+  font-size: 0.9em;
+  font-weight: 500;
+  text-transform: uppercase;
+  overflow: hidden;
+  position: relative;
+  padding: 5px 8px 5px 30px;
+  color: $kobo-gray-40;
+  background-color: transparent;
+  border: 1px solid currentColor;
+
+  &:hover {
+    color: $kobo-white;
+    background-color: $kobo-gray-40;
+    border-color: $kobo-gray-40;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &[disabled] {
+    pointer-events: none;
+
+    &.asset-action-buttons__button--on,
+    &.asset-action-buttons__button--off {
+      color: $kobo-gray-65;
+    }
+  }
+
+  &.asset-action-buttons__button--pending {
+    &.asset-action-buttons__button--on,
+    &.asset-action-buttons__button--off {
+      padding-left: 8px;
+    }
+  }
+
+  .k-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+  }
+
+  &.asset-action-buttons__button--on {
+    color: $kobo-teal;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-teal;
+      border-color: $kobo-teal;
+    }
+  }
+
+  &.asset-action-buttons__button--off {
+    color: $kobo-red;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-red;
+      border-color: $kobo-red;
+    }
+  }
+}
+
+.asset-action-buttons__icon-button {
+  color: $kobo-gray-40;
+
+  &:hover {
+    color: $kobo-blue;
+  }
+}
+
+.asset-action-buttons__button + .asset-action-buttons__icon-button {
+  margin-left: 5px;
+}

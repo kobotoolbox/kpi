@@ -1,0 +1,407 @@
+@import "scss/_colors";
+@import "scss/_variables";
+@import "scss/libs/_mdl";
+
+/* ==========================================================================
+ * AssetsTable
+ * ========================================================================== */
+
+$assets-table-min-width: 820px;
+$assets-table-hover-bg: $kobo-teal-light;
+
+.form-view__cell--assets-table-wrapper {
+  min-width: $assets-table-min-width + 2px;
+}
+
+.assets-table {
+  width: 100%;
+  background-color: $kobo-white;
+  // for small screens we want the table to still be readable so we enable
+  // horizontal scroll
+  overflow-x: auto;
+
+  &.assets-table--fullscreen {
+    position: fixed;
+    z-index: $z-fullscreen;
+    border: 15px solid $root-background;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  &.assets-table--collection-content {
+    // we disable horizontal scrolling to make the popover menu appear outside the table
+    overflow-x: initial;
+    min-width: $assets-table-min-width;
+  }
+}
+
+.assets-table__header .assets-table-row .assets-table-row__column {
+  color: $kobo-gray-24;
+}
+
+.assets-table__header,
+.assets-table__body,
+.assets-table__footer {
+  min-width: 800px;
+}
+
+.assets-table__body > .loading {
+  margin: 40px auto;
+}
+
+.assets-table__scrollbar-padding {
+  // for taking the same space as scrollbar, width is being set in JS code
+  background-color: $kobo-gray-96;
+  align-self: stretch;
+}
+
+.assets-table__footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  color: $kobo-gray-40;
+  background-color: $kobo-gray-96;
+  height: 40px;
+
+  .mdl-button {
+    margin-left: 0;
+    margin-right: 0;
+    padding-right: 0;
+    padding-left: 12px;
+    line-height: 32px;
+    height: 32px;
+    min-height: 32px;
+
+    .k-icon {
+      font-size: 24px;
+      margin: 0 3px;
+      float: right;
+    }
+  }
+}
+
+.assets-table--MY_LIBRARY,
+.assets-table--PUBLIC_COLLECTIONS {
+  height: calc(100% - #{$s-breadcrumbs-height});
+  display: flex;
+  flex-direction: column;
+
+  .assets-table__body {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
+
+/* ==========================================================================
+ * AssetsTablePagination
+ * ========================================================================== */
+
+.assets-table-pagination {
+  display: inline-block;
+  color: inherit;
+}
+
+.assets-table-pagination__index {
+  display: inline;
+  margin: 0 10px;
+}
+
+.assets-table-pagination__button {
+  appearance: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+  height: 20px;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    opacity: 0.6;
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .k-icon {
+    font-size: 14px;
+    margin: 0 3px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+}
+
+/* ==========================================================================
+ * AssetsTableRow
+ * ========================================================================== */
+
+$z-assets-table-row-link: 10;
+$z-assets-table-row-buttons: 20;
+$z-assets-table-row-header: 30;
+
+.assets-table-row {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  align-items: flex-start;
+
+  &.assets-table-row--asset {
+    &:hover {
+      background-color: $assets-table-hover-bg;
+
+      .assets-table-row__buttons {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+    .assets-table-row__column--icon-status {
+      padding: 16px 0 0 0;
+
+      .k-icon {
+        font-size: 24px;
+      }
+    }
+  }
+
+  &.assets-table-row--type-collection {
+    .assets-table-row__column--name .asset-name {
+      font-weight: 700;
+    }
+
+    .assets-table-row__column--icon-status .k-icon {
+      position: relative;
+
+      &::before {
+        position: relative;
+        z-index: 1;
+        color: $kobo-white;
+      }
+
+      &::after {
+        content: "";
+        background-color: $kobo-teal;
+        position: absolute;
+        z-index: 0;
+        top: -3px;
+        left: -8px;
+        right: -8px;
+        height: calc(100% + 6px);
+        border-radius: 6px;
+      }
+    }
+  }
+
+  &:first-of-type .assets-table-row__column {
+    border-top-color: transparent;
+  }
+
+  &:first-of-type:hover .assets-table-row__column {
+    border-top-color: $kobo-gray-92;
+  }
+
+  // columns get very narrow
+  .assets-table-row__header-label,
+  &.assets-table-row--header .assets-table-row__column .popover-menu__toggle {
+    font-size: 0.9rem;
+  }
+
+  &.assets-table-row--header .assets-table-row__column {
+    border-top: 0;
+    cursor: pointer;
+    font-weight: 700;
+    white-space: nowrap;
+    height: 40px;
+    line-height: 20px;
+    background-color: $kobo-gray-96;
+    padding: 10px;
+
+    &:hover {
+      background-color: $kobo-gray-92;
+    }
+
+    .k-icon {
+      font-size: 14px;
+      // to take up space when empty
+      min-width: 14px;
+      width: 14px;
+      margin-left: 3px;
+      display: inline-block;
+
+      &.k-icon-filter-arrows {
+        font-size: 9px;
+        margin-left: 0px !important;
+      }
+    }
+
+    .popover-menu {
+      display: block;
+
+      .popover-menu__toggle {
+        display: block;
+        color: currentColor;
+
+        &:hover {
+          color: currentColor;
+        }
+
+        .k-icon {
+          margin: -2px;
+        }
+      }
+
+      .popover-menu__content {
+        top: 30px - 2px;
+        z-index: $z-assets-table-row-header;
+        padding: 10px;
+        max-width: calc(100% + 20px);
+        min-width: auto;
+        left: -10px;
+
+        .k-icon {
+          margin: 1px;
+        }
+      }
+    }
+  }
+
+  &.assets-table-row--empty-message {
+    padding: 40px;
+    font-size: 1.2rem;
+    justify-content: center;
+    text-align: center;
+
+    .pro-tip {
+      font-size: 1rem;
+      margin-top: 20px;
+    }
+  }
+
+  .assets-table-row__link {
+    cursor: pointer;
+    position: absolute;
+    z-index: $z-assets-table-row-link;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .assets-table-row__column {
+    border-top: 1px solid $kobo-gray-92;
+    padding: 20px 10px;
+    color: $kobo-gray-40;
+
+    &[disabled] {
+      pointer-events: none;
+    }
+
+    &.assets-table-row__column--icon-status {
+      width: 70px;
+      text-align: center;
+    }
+
+    &.assets-table-row__column--name {
+      flex: 1;
+      color: $kobo-gray-24;
+    }
+
+    &.assets-table-row__column--owner {
+      width: 10%;
+    }
+
+    &.assets-table-row__column--subscribers-count {
+      width: 10%;
+    }
+
+    &.assets-table-row__column--organization {
+      width: 10%;
+    }
+
+    &.assets-table-row__column--languages {
+      width: 12.5%;
+    }
+
+    &.assets-table-row__column--primary-sector {
+      width: 15%;
+    }
+
+    &.assets-table-row__column--country {
+      width: 7.5%;
+    }
+
+    &.assets-table-row__column--date-modified {
+      width: 17.5%;
+      text-align: right;
+    }
+
+    .k-icon {
+      vertical-align: middle;
+    }
+  }
+}
+
+/* ==========================================================================
+ * AssetsTableRow tags
+ * ========================================================================== */
+
+.assets-table-row__tags {
+  display: block;
+  margin-top: 5px;
+}
+
+.assets-table-row__tag {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 3px 5px;
+  font-size: 12px;
+  line-height: 1;
+  color: currentColor;
+  background: $kobo-gray-92;
+  border-radius: 2px;
+
+  &.assets-table-row__tag--gray-circle {
+    min-width: 18px;
+    border-radius: 1em;
+    text-align: center;
+  }
+}
+
+/* ==========================================================================
+ * AssetsTableRow buttons
+ * ========================================================================== */
+
+.assets-table-row__buttons {
+  position: absolute;
+  z-index: $z-assets-table-row-buttons;
+  top: 1px; // because of top border
+  right: 0;
+  bottom: 0; // stretch for whole row
+  opacity: 0;
+  visibility: hidden;
+  background-color: $assets-table-hover-bg;
+  padding: 13px 10px 0 0;
+
+  // for nicer blending in with the possible text underneath
+  &::before {
+    content: '';
+    position: absolute;
+    right: 100%;
+    top: 0;
+    height: 100%;
+    width: 15px;
+    background: linear-gradient(90deg, transparent, $assets-table-hover-bg);
+  }
+}

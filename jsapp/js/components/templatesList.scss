@@ -1,0 +1,75 @@
+@import "scss/_colors";
+
+.templates-list {
+  font-size: 14px;
+  width: 100%;
+
+  .templates-list__header {
+    font-weight: 600;
+  }
+
+  // HACK: because of stronger selectors in `_kobo.bem.ui.scss`
+  label.templates-list__row {
+    display: flex;
+  }
+
+  .templates-list__row {
+    display: flex;
+    box-shadow: 0 0 0 1px $kobo-gray-92;
+    padding: 10px;
+    align-items: center;
+
+    &:not(:first-child) {
+      margin-top: 1px;
+    }
+  }
+
+  .templates-list__column {
+    padding: 10px;
+    box-sizing: border-box;
+
+    &.templates-list__column--name {
+      flex: 1;
+    }
+
+    &.templates-list__column--owner {
+      width: 20%;
+    }
+
+    &.templates-list__column--date {
+      width: 25%;
+    }
+
+    &.templates-list__column--questions {
+      width: 15%;
+    }
+  }
+
+  .templates-list__template {
+    font-size: inherit;
+    position: relative;
+    color: $kobo-gray-40;
+    border: 1px solid transparent;
+
+    &:hover, &.selected {
+      background: rgba($kobo-gray-92, 0.3);
+      color: $kobo-blue;
+    }
+
+    &.selected {
+      border: 1px solid $kobo-blue;
+    }
+  }
+
+  .templates-list__template-radio {
+    appearance: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+    background: transparent;
+  }
+}

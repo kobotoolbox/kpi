@@ -595,7 +595,9 @@ export var dataInterface;
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/`,
         method: 'PATCH',
-        data: data
+        data: JSON.stringify(data),
+        dataType: 'json',
+        contentType: 'application/json'
       });
     },
     listTags (data) {

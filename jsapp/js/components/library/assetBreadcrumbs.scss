@@ -1,0 +1,34 @@
+@import "scss/_colors";
+@import "scss/_variables";
+
+.breadcrumbs {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 40px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+
+  &.breadcrumbs--gray-wrapper {
+    background: $kobo-gray-96;
+    padding: #{($s-breadcrumbs-height - 40px) * 0.5} 20px;
+    height: $s-breadcrumbs-height;
+  }
+
+  .breadcrumbs__crumb,
+  .breadcrumbs__divider {
+    color: $kobo-gray-40;
+  }
+
+  .breadcrumbs__crumb {
+    &:last-of-type {
+      color: $kobo-gray-24;
+    }
+  }
+
+  .k-icon.k-icon-next {
+    font-size: 24px;
+    margin: 0 3px;
+  }
+}

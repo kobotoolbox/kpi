@@ -1,0 +1,119 @@
+@import "scss/_colors";
+
+.radio,
+.checkbox {
+  .radio__row,
+  .checkbox__wrapper {
+    padding: 4px 0;
+    cursor: pointer;
+
+    &:hover .radio__input:not([disabled]),
+    &:hover .checkbox__input:not([disabled]) {
+      &:checked::after { opacity: 0.8; }
+      &:not(:checked)::after { opacity: 0.1; }
+    }
+
+    &:active .radio__input:not([disabled]),
+    &:active .checkbox__input:not([disabled]) {
+      &:checked::after { opacity: 0.6; }
+      &:not(:checked)::after { opacity: 0.3; }
+    }
+  }
+
+  &.checkbox--disabled .checkbox__wrapper {
+    cursor: default;
+  }
+
+  .radio__row {
+    display: block;
+  }
+
+  .radio__input,
+  .checkbox__input,
+  .radio__label,
+  .checkbox__label {
+    display: inline-block;
+    vertical-align: top;
+  }
+
+  .radio__label,
+  .checkbox__label {
+    // it's 28px plus whitespace between inline-blocks
+    max-width: calc(100% - 32px);
+    color: $kobo-gray-24;
+    font-size: 14px;
+  }
+
+  .radio__input + .radio__label,
+  .checkbox__input + .checkbox__label {
+    margin-left: 8px;
+  }
+
+  .radio__input {
+    border-radius: 50%;
+
+    &::after {
+      content: "";
+      top: 4px;
+      left: 4px;
+      border-radius: 50%;
+      width: 10px;
+      height: 10px;
+      background-color: $kobo-blue;
+    }
+  }
+
+  .checkbox__input {
+    border-radius: 2px;
+
+    &::after {
+      content: "✓";
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 18px;
+      height: 18px;
+      color: $kobo-white;
+      background-color: $kobo-blue;
+      text-align: center;
+      line-height: 18px;
+      font-size: 18px;
+    }
+  }
+
+  .radio__input,
+  .checkbox__input {
+    appearance: none;
+    position: relative;
+    margin: 0;
+    border: 1px solid $kobo-gray-40;
+    width: 20px;
+    height: 20px;
+    outline: 0;
+    background-color: $kobo-white;
+    color: $kobo-gray-40;
+    cursor: pointer;
+
+    &::after {
+      display: block;
+      position: absolute;
+      opacity: 0;
+    }
+
+    &:checked {
+      border-color: $kobo-blue;
+
+      &::after { opacity: 1; }
+    }
+
+    &[disabled] {
+      pointer-events: none;
+      opacity: 0.5;
+
+      & + .radio__label,
+      & + .checkbox__label {
+        opacity: 0.5;
+      }
+    }
+  }
+}

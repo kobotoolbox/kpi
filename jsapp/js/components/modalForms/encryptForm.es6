@@ -3,7 +3,7 @@ import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import TextBox from 'js/components/common/textBox';
-
+import assetStore from 'js/assetStore';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {MODAL_TYPES} from 'js/constants';
@@ -32,11 +32,11 @@ class EncryptForm extends React.Component {
   }
 
   componentDidMount() {
-    this.listenTo(stores.asset, this.onAssetsChange);
+    this.listenTo(assetStore, this.onAssetsChange);
 
     if (!this.state.asset && this.state.assetUid) {
-      if (stores.asset.data[this.state.assetUid]) {
-        this.onAssetChange(stores.asset.data[this.state.assetUid]);
+      if (assetStore.data[this.state.assetUid]) {
+        this.onAssetChange(assetStore.data[this.state.assetUid]);
       } else {
         stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange);
       }

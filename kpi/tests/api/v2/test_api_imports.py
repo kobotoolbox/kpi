@@ -116,6 +116,33 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
+    def test_import_duplicate_names(self):
+        survey_questions = [
+            ['type', 'name', 'label'],
+            ['text', 'fruit', 'Favourite Fruit'],
+            ['text', 'fruit', 'Least Favourite Fruit'],
+            ['integer', 'count', 'Count of fruits eaten'],
+            ['integer', 'count', 'Count of apples eaten'],
+        ]
+
+        survey_settings = []
+        content = (
+            ('survey', survey_questions),
+            ('settings', survey_settings),
+        )
+        task_data = self._construct_xls_for_import(
+            content, name='Duplicates Survey Names'
+        )
+
+        post_url = reverse('api_v2:importtask-list')
+        response = self.client.post(post_url, task_data)
+        assert response.status_code == status.HTTP_201_CREATED
+        detail_response = self.client.get(response.data['url'])
+        assert detail_response.status_code == status.HTTP_200_OK
+        assert detail_response.data['status'] == "error"
+        assert detail_response.data['messages']['error'] == "There are duplicates in the name column"
+        assert detail_response.data['messages']['error_type'] == "ValueError"
+
     def test_import_locking_xls_as_survey(self):
         survey_sheet_content = [
             ['type', 'name', 'label::English (en)', 'required', 'relevant', 'kobo--locking-profile'],

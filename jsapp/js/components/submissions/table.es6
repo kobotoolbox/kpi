@@ -29,7 +29,10 @@ import {
   renderQuestionTypeIcon,
   getQuestionOrChoiceDisplayName,
 } from 'js/assetUtils';
-import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
+import {
+  getRepeatGroupAnswers,
+  getMediaAttachment,
+} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
 import TableColumnSortDropdown from 'js/components/submissions/tableColumnSortDropdown';
@@ -41,6 +44,8 @@ import {
   DATA_TABLE_SETTING,
   DATA_TABLE_SETTINGS,
   TABLE_MEDIA_TYPES,
+  DEFAULT_DATA_CELL_WIDTH,
+  DEFAULT_VALIDATION_CELL_WIDTH,
 } from 'js/components/submissions/tableConstants';
 import {
   getColumnLabel,
@@ -460,7 +465,7 @@ export class DataTable extends React.Component {
       accessor: VALIDATION_STATUS_ID_PROP,
       index: '__2',
       id: VALIDATION_STATUS_ID_PROP,
-      width: 130,
+      width: DEFAULT_VALIDATION_CELL_WIDTH,
       className: elClassNames.join(' '),
       headerClassName: elClassNames.join(' '),
       Filter: ({ filter, onChange }) => {
@@ -664,13 +669,14 @@ export class DataTable extends React.Component {
         sortable: false,
         className: elClassNames.join(' '),
         headerClassName: elClassNames.join(' '),
+        width: DEFAULT_DATA_CELL_WIDTH,
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null;
 
               if (q.type !== QUESTION_TYPES.text.id) {
-                mediaAttachment = this.getMediaAttachment(row, row.value);
+                mediaAttachment = getMediaAttachment(row.original, row.value);
               }
 
               return (
@@ -937,10 +943,10 @@ export class DataTable extends React.Component {
         backgroundAudioName &&
         Object.keys(row.original).includes(backgroundAudioName)
       ) {
-        let backgroundAudioUrl = this.getMediaDownloadLink(
-          row,
+        let backgroundAudioUrl = getMediaAttachment(
+          row.original,
           row.original[backgroundAudioName]
-        );
+        )?.download_medium_url;
 
         this.submissionModalProcessing(
           sid,
@@ -1134,26 +1140,6 @@ export class DataTable extends React.Component {
     );
   }
 
-  /**
-   * @param {object} row
-   * @param {string} fileName
-   */
-  getMediaAttachment(row, fileName) {
-    const fileNameNoSpaces = fileName.replace(/ /g, '_');
-    let mediaAttachment = t('Could not find ##fileName##').replace(
-      '##fileName##',
-      fileName,
-    );
-
-    row.original._attachments.forEach((attachment) => {
-      if (attachment.filename.includes(fileNameNoSpaces)) {
-        mediaAttachment = attachment;
-      }
-    });
-
-    return mediaAttachment;
-  }
-
   // NOTE: Please avoid calling `setState` inside scroll callback, as it causes
   // a noticeable lag.
   onTableScroll(evt) {
@@ -1182,8 +1168,10 @@ export class DataTable extends React.Component {
     }
 
     return (
-      NUMERICAL_SUBMISSION_PROPS[questionType] ||
-      Object.keys(TABLE_MEDIA_TYPES).includes(questionType)
+      NUMERICAL_SUBMISSION_PROPS[questionType]
+      // TODO: apply monospace font to media cells EXCLUDING text questions
+      // after duration is implemented
+      // || Object.keys(TABLE_MEDIA_TYPES).includes(questionType)
     );
   }
 

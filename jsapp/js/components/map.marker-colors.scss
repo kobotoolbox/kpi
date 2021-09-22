@@ -1,0 +1,129 @@
+@import "scss/_colors";
+
+// map marker colors
+.map-marker[class*="map-marker-"] {
+  background: rgba(100, 100, 100, 0.8);
+  border-color: rgba($kobo-white, 0.75);
+}
+
+.map-marker {
+  border: 1px solid $kobo-white;
+  border-radius: 50%;
+
+  &.unselected {
+    visibility: hidden;
+  }
+
+  &.default-overlay-marker {
+    background: rgba($kobo-gray-24, 0.7);
+    border: none;
+    border-radius: 0;
+  }
+}
+
+/******************************************************/
+/* color sets defined in mapSettings.es6 (a, b, c, d) */
+/******************************************************/
+
+// set A generated with http://tools.medialab.sciences-po.fr/iwanthue/
+$colorsA: rgba(255, 50, 0, 0.5), rgba(125, 245, 46, 0.5), rgba(86, 0, 178, 0.5), rgba(0, 236, 118, 0.5), rgba(202, 0, 188, 0.5), rgba(104, 155, 0, 0.5), rgba(161, 107, 255, 0.5), rgba(191, 184, 0, 0.5), rgba(0, 66, 187, 0.5), rgba(197, 231, 113, 0.5), rgba(239, 0, 161, 0.5), rgba(2, 231, 203, 0.5), rgba(239, 0, 69, 0.5), rgba(2, 153, 148, 0.5), rgba(43, 130, 255, 0.5), rgba(183, 142, 0, 0.5), rgba(60, 46, 126, 0.5), rgba(35, 106, 0, 0.5), rgba(175, 158, 255, 0.4), rgba(198, 116, 0, 0.5), rgba(0, 140, 218, 0.5), rgba(255, 109, 60, 0.5), rgba(1, 76, 140, 0.5), rgba(184, 69, 0, 0.5), rgba(165, 228, 255, 0.5), rgba(112, 31, 9, 0.5), rgba(163, 231, 229, 0.5), rgba(133, 0, 75, 0.5), rgba(167, 234, 188, 0.5), rgba(96, 33, 97, 0.5), rgba(21, 70, 0, 0.5), rgba(255, 110, 148, 0.5), rgba(0, 87, 84, 0.5), rgba(255, 157, 210, 0.5), rgba(51, 64, 37, 0.5), rgba(255, 153, 153, 0.5), rgba(12, 64, 93, 0.5), rgba(255, 194, 186, 0.5), rgba(96, 42, 58, 0.5), rgba(134, 0, 40, 0.5);
+
+// sets B, C are from colorbrewer2.org sequential
+$colorsB: #7f0000, #B30000, #d7301f, #ef6548, #fc8d59, #fdbb84, #fdd49e, #fee8c8, #fff7ec;
+$colorsC: #084081, #0868ac, #2b8cbe, #4eb3d3, #7bccc4, #a8ddb5, #ccebc5, #e0f3db, #f7fcf0;
+
+// sets D, E are from colorbrewer2.org diverging
+$colorsD: #4d9221, #7fbc41, #b8e186, #e6f5d0, #f7f7f7, #fde0ef, #f1b6da, #de77ae, #c51b7d;
+$colorsE: #2166ac, #4393c3, #92c5de, #d1e5f0, #f7f7f7, #fddbc7, #f4a582, #d6604d, #b2182b;
+
+$class-slug: map-marker-a !default;
+$colorLength: length($colorsA);
+
+@for $i from 1 through $colorLength {
+  .map-marker.#{$class-slug}#{$i},
+  .map-marker.#{$class-slug}#{$i + $colorLength},
+  .map-marker.#{$class-slug}#{$i + $colorLength * 2},
+  .map-marker.#{$class-slug}#{$i + $colorLength * 3},
+  .map-marker.#{$class-slug}#{$i + $colorLength * 4} {
+    background: nth($colorsA, $i);
+  }
+
+  .map-marker.#{$class-slug}#{$i + $colorLength * 2} {
+    background-image: linear-gradient(90deg, rgba($kobo-white, 0.4) 50%, transparent 50%), linear-gradient(rgba($kobo-white, 0.4) 50%, transparent 50%);
+    background-size: 6px 6px;
+    background-position: center center;
+  }
+
+  .map-marker.#{$class-slug}#{$i + $colorLength} {
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba($kobo-white, 0.3) 3px, rgba($kobo-white, 0.3) 6px);
+  }
+
+  .map-marker.#{$class-slug}#{$i + $colorLength * 3} {
+    background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba($kobo-white, 0.3) 3px, rgba($kobo-white, 0.3) 6px);
+  }
+
+  .map-marker.#{$class-slug}#{$i + $colorLength * 4} {
+    background-image: linear-gradient(90deg, rgba($kobo-gray-24, 0.1) 50%, transparent 50%), linear-gradient(rgba($kobo-gray-24, 0.1) 50%, transparent 50%);
+    background-size: 6px 6px;
+  }
+}
+
+.map-marker.map-marker-a {
+  background: nth($colorsA, 1);
+}
+
+// B color set
+$class-slug-b: map-marker-b !default;
+$setBLength: length($colorsB);
+
+@for $i from 1 through $setBLength {
+  .map-marker.#{$class-slug-b}#{$i} {
+    background: nth($colorsB, $i);
+  }
+}
+
+.map-marker.map-marker-b {
+  background: nth($colorsB, 1);
+}
+
+// C color set
+$class-slug-c: map-marker-c !default;
+$setCLength: length($colorsC);
+
+@for $i from 1 through $setCLength {
+  .map-marker.#{$class-slug-c}#{$i} {
+    background: nth($colorsC, $i);
+  }
+}
+
+.map-marker.map-marker-c {
+  background: nth($colorsC, 1);
+}
+
+// D color set
+$class-slug-d: map-marker-d !default;
+$setDLength: length($colorsD);
+
+@for $i from 1 through $setDLength {
+  .map-marker.#{$class-slug-d}#{$i} {
+    background: nth($colorsD, $i);
+  }
+}
+
+.map-marker.map-marker-d {
+  background: nth($colorsD, 1);
+}
+
+// E color set
+$class-slug-e: map-marker-e !default;
+$setELength: length($colorsE);
+
+@for $i from 1 through $setELength {
+  .map-marker.#{$class-slug-e}#{$i} {
+    background: nth($colorsE, $i);
+  }
+}
+
+.map-marker.map-marker-e {
+  background: nth($colorsE, 1);
+}

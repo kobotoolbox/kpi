@@ -178,68 +178,42 @@ stores.snapshots = Reflux.createStore({
   },
 });
 
-/**
- * This store keeps only full assets (i.e. ones with `content`)
- */
-stores.asset = Reflux.createStore({
-  init() {
-    this.data = {};
-    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
-    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
-  },
-
-  onUpdateAssetCompleted(resp) {
-    this.data[resp.uid] = parsed(resp);
-    this.trigger(this.data, resp.uid, {asset_updated: true});
-  },
-
-  onLoadAssetCompleted(resp) {
-    if (!resp.uid) {
-      throw new Error('no uid found in response');
-    }
-    this.data[resp.uid] = parsed(resp);
-    this.trigger(this.data, resp.uid);
-  },
-
-  /**
-   * @param {string} assetUid
-   * @returns {object|undefined} asset
-   */
-  getAsset(assetUid) {
-    return this.data[assetUid];
-  },
-});
-
 stores.session = Reflux.createStore({
   // start up with "fake" current account
   currentAccount: {
     username: ANON_USERNAME,
   },
   isAuthStateKnown: false,
+  isLoggedIn: false,
+
   init() {
     actions.misc.updateProfile.completed.listen(this.onUpdateProfileCompleted);
-    this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
-    this.listenTo(actions.auth.verifyLogin.anonymous, (data) => {
-      this.isAuthStateKnown = true;
-      log('login confirmed anonymous', data.message);
-    });
-    this.listenTo(actions.auth.verifyLogin.failed, (xhr) => {
-      log('login not verified', xhr.status, xhr.statusText);
-    });
+    this.listenTo(actions.auth.verifyLogin.loggedin, this.onLoggedIn);
+    this.listenTo(actions.auth.verifyLogin.anonymous, this.onNotLoggedIn);
+    this.listenTo(actions.auth.verifyLogin.failed, this.onVerifyLoginFailed);
     actions.auth.verifyLogin();
   },
+
   onUpdateProfileCompleted(response) {
     this.currentAccount = response;
     this.trigger({currentAccount: this.currentAccount});
   },
-  triggerLoggedIn(acct) {
+
+  onLoggedIn(account) {
     this.isAuthStateKnown = true;
     this.isLoggedIn = true;
-    this.currentAccount = acct;
-    this.trigger({
-      isLoggedIn: true,
-      currentAccount: acct,
-    });
+    this.currentAccount = account;
+    this.trigger();
+  },
+
+  onNotLoggedIn(data) {
+    log('login confirmed anonymous', data.message);
+    this.isAuthStateKnown = true;
+    this.trigger();
+  },
+
+  onVerifyLoginFailed(xhr) {
+    log('login not verified', xhr.status, xhr.statusText);
   },
 });
 

@@ -1,0 +1,248 @@
+@import "scss/_colors";
+@import "scss/_variables";
+@import "scss/libs/_mdl";
+
+$z-help-bubble-popup: 801;
+$s-help-bubble-row-spacing: 20px;
+
+.help-bubble {
+  position: relative;
+}
+
+// -----------------------------------------------------------------------------
+// custom bubbles
+// -----------------------------------------------------------------------------
+
+// allows popups to take more space on bigger screens
+.help-bubble--list-with-header,
+.help-bubble--single-message {
+  @media screen and (max-height: 499px) {
+    .help-bubble__popup { height: 200px; }
+    .help-bubble__popup.help-bubble__popup--has-more-content { height: 300px; }
+  }
+
+  @media screen and (min-height: 500px) {
+    .help-bubble__popup { min-height: 200px; }
+    .help-bubble__popup.help-bubble__popup--has-more-content { min-height: 300px; }
+  }
+}
+
+.help-bubble--list-with-header {
+  .help-bubble__row.help-bubble__row--link {
+    padding-left: 60px;
+
+    .k-icon {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      font-size: 28px;
+      color: $kobo-gray-40;
+    }
+  }
+
+  .help-bubble__back,
+  .help-bubble__close {
+    background-color: rgba($kobo-gray-40, 0.5);
+    color: $kobo-white;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// trigger styles
+// -----------------------------------------------------------------------------
+
+.help-bubble__trigger {
+  cursor: pointer;
+  text-align: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin-bottom: 5px;
+  width: 100%;
+  display: block;
+  font-weight: normal;
+  color: $kobo-gray-40;
+  // mimic .k-drawer__link
+  border-left: 3px solid transparent;
+
+  .help-bubble--open & {
+    color: $kobo-teal;
+  }
+
+  &:hover {
+    color: $kobo-teal;
+
+    .help-bubble__trigger-counter {
+      background-color: $kobo-teal;
+    }
+  }
+
+  .k-icon {
+    font-size: 24px;
+    margin: 3px;
+    display: block;
+  }
+}
+
+.help-bubble__trigger-counter {
+  position: absolute;
+  left: 50%;
+  color: $kobo-white;
+  border-style: solid;
+  border-color: $drawer-background;
+  top: 2px;
+  border-width: 0 0 2px 2px;
+  background: $kobo-red;
+  border-radius: 50%;
+  font-size: 10px;
+  line-height: 1.3;
+  width: 1.6em;
+  height: 1.6em;
+}
+
+// -----------------------------------------------------------------------------
+// bubble styles
+// -----------------------------------------------------------------------------
+
+.help-bubble--intercom .help-bubble__popup {
+  bottom: 5px + 43px * 3;
+  max-height: calc(90vh - #{43px * 4});
+}
+
+.help-bubble--support .help-bubble__popup {
+  bottom: 5px + 43px * 2;
+  max-height: calc(90vh - #{43px * 3});
+}
+
+.help-bubble__popup {
+  @include box-shadow-mid;
+
+  display: flex;
+  flex-direction: row;
+  position: fixed;
+  z-index: $z-help-bubble-popup;
+  left: $drawer-icons-width - 1px;
+  background: $kobo-white;
+  width: 360px;
+  max-width: calc(100vw - #{$drawer-icons-width});
+  overflow: hidden;
+
+  @media screen and (min-width: #{$mdl-layout-width}) {
+    left: calc(50% - #{$mdl-layout-width * 0.5} + #{$drawer-icons-width - 1px});
+  }
+}
+
+.help-bubble__popup-content {
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.help-bubble__back,
+.help-bubble__close {
+  cursor: pointer;
+  position: absolute;
+  z-index: 1;
+  top: 4px;
+  border: 0;
+  border-radius: 50%;
+  padding: 5px;
+  background-color: rgba($kobo-white, 0.5);
+  color: $kobo-gray-40;
+  line-height: 1;
+  font-size: 1.5rem;
+
+  .k-icon {
+    display: block;
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    opacity: 0.6;
+  }
+}
+
+.help-bubble__back {
+  left: 5px;
+}
+
+.help-bubble__close {
+  right: 5px;
+}
+
+// -----------------------------------------------------------------------------
+// bubble content styles
+// -----------------------------------------------------------------------------
+
+.help-bubble__row,
+.help-bubble__row-wrapper {
+  position: relative;
+  display: block;
+
+  & + & {
+    border-top: 1px solid $kobo-gray-92;
+  }
+}
+
+.help-bubble__row {
+  padding: #{$s-help-bubble-row-spacing * 0.5} $s-help-bubble-row-spacing;
+
+  header {
+    margin: 0;
+    font-weight: bold;
+  }
+
+  p {
+    margin: 0.5em 0 0.25em;
+    line-height: 1.33;
+  }
+
+  img {
+    max-width: 100%;
+  }
+}
+
+.help-bubble__row.help-bubble__row--message-title {
+  margin-top: 40px;
+  border-top: 1px solid $kobo-gray-92;
+}
+
+.help-bubble__row.help-bubble__row--header {
+  background-color: $kobo-gray-40;
+  color: $kobo-white;
+  font-size: 1.25rem;
+}
+
+.help-bubble__row.help-bubble__row--link,
+.help-bubble__row.help-bubble__row--message-clickable {
+  cursor: pointer;
+  color: $kobo-gray-40;
+
+  &:hover {
+    color: $kobo-blue;
+
+    .k-icon {
+      color: inherit;
+    }
+  }
+
+  &:active {
+    color: $kobo-teal;
+  }
+}
+
+.help-bubble__row.help-bubble__row--message-clickable.help-bubble__row--message-unread {
+  border-left: 5px solid $kobo-red;
+  padding-left: $s-help-bubble-row-spacing - 5px;
+
+  &:hover {
+    border-left-color: $kobo-blue;
+  }
+
+  &:active {
+    border-left-color: $kobo-teal;
+  }
+}

@@ -1,0 +1,127 @@
+@import "scss/_colors";
+@import "scss/libs/_mdl";
+
+.account-settings {
+  width: 100%;
+  height: 100%;
+  background: $kobo-white;
+  overflow-y: auto;
+  position: relative;
+
+  .kobo-select {
+    font-size: 15px;
+  }
+
+  .form-modal__item--column {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 30px 20px;
+
+    .form-modal__item--fields {
+      height: calc(100% - 20px);
+      padding-right: 40px;
+      overflow: auto;
+
+       > *:last-child { margin-bottom: 20px; }
+    }
+
+    .form-modal__item--api-token {
+      input {
+        font-family: $font_mono;
+        width: 50%;
+      }
+    }
+
+    .form-modal__item--username {
+      min-height: 32px;
+
+      .account-box__initials {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 15px;
+      }
+
+      h4 {
+        display: inline-block;
+        vertical-align: middle;
+        font-size: 16px;
+      }
+    }
+  }
+
+  .account-settings__actions {
+    position: absolute;
+    top: 26px;
+    right: 0;
+
+    .account-settings-close {
+      padding: 0 12px;
+    }
+  }
+
+  .account-settings-link {
+    font-size: 0.85em;
+  }
+
+  h4 {
+    margin: 0;
+    font-weight: 400;
+    color: $kobo-gray-24;
+  }
+
+  .account-settings__desc {
+    color: $kobo-gray-40;
+  }
+
+  .form-modal__item--primary-sector {
+    width: 46%;
+    margin-right: 2%;
+    float: left;
+  }
+
+  .form-modal__item--gender {
+    width: 52%;
+    float: left;
+  }
+
+  .form-modal__item--bio {
+    clear: both;
+  }
+
+  .form-modal__item--city {
+    width: 46%;
+    margin-right: 2%;
+    float: left;
+
+    .text-box__input {
+      margin-top: 8px;
+    }
+  }
+
+  .form-modal__item--country {
+    width: 52%;
+    float: left;
+  }
+
+  .form-modal__item--social {
+    clear: both;
+
+    label {
+      position: relative;
+
+      i {
+        position: absolute;
+        font-size: 24px;
+        top: 10px;
+        left: 4px;
+      }
+
+      input {
+        margin-top: 8px;
+        padding-left: 40px;
+        max-width: 400px;
+      }
+    }
+  }
+}
