@@ -19,6 +19,7 @@ class UserViewSet(viewsets.GenericViewSet, mixins.RetrieveModelMixin):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
+    lookup_value_regex = '[\w.@]+'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

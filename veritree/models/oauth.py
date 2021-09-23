@@ -90,9 +90,7 @@ class VeritreeOAuth2(BaseOAuth2):
         # Purpose is to strip out the @ and . characters and replace with a character
         # that is not typically allowed in emails to prevent collisions in the off chance
         # Presence of the . character is causing lookups to fail
-        if isinstance(email, str):
-            return email.replace('.', ' ')
-        return None
+        return email
 
     def get_user_id(self, details, response):
         return details.get(self.ID_KEY)
