@@ -149,7 +149,12 @@ class AssetRow extends React.Component {
                 </bem.AssetRow__description>
               }
             </bem.AssetRow__cell>
-
+            {this.props.deployment__links && Object.keys(this.props.deployment__links).length > 0
+              && (
+              <bem.AssetRow__cell m={'open_form'} className={'mdl-cell'} key={'openForm'}>
+                  <a className="kobo-button kobo-button--blue" target="_blank" href={this.props.deployment__links['url']}>{t('Open')}</a>
+              </bem.AssetRow__cell>
+            )}
             {/* "type" column for library types */}
             { this.props.asset_type && (
                 this.props.asset_type == ASSET_TYPES.template.id ||

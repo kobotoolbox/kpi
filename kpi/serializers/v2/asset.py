@@ -579,6 +579,7 @@ class AssetListSerializer(AssetSerializer):
                   'deployment__identifier',
                   'deployment__active',
                   'deployment__submission_count',
+                  'deployment__links',
                   'permissions',
                   'export_settings',
                   'downloads',
