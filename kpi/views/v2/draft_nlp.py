@@ -23,6 +23,59 @@ class DraftNlpViewSet(
     AssetNestedObjectViewsetMixin,
     viewsets.ModelViewSet
 ):
+    """
+    Assign a transcript or a translation to a submission.
+
+    ## List of `draft_nlp` entries
+    <pre class="prettyprint">
+        <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/<code>{data_id}</code>/draft_nlp/
+    </pre>
+    * <code>asset_uid</code> is the unique ID for an asset
+    * <code>data_uid</code> is the unique ID for a submission
+
+    ## CRUD
+    * <code>asset_uid</code> is the unique ID for an asset
+    * <code>data_uid</code> is the unique ID for a submission
+    * <code>uid</code> is the unique ID for the draft_nlp entry
+    ### Create
+
+        <pre class="prettyprint">
+            <b>POST</b> /api/v2/assets/<code>{asset_uid}</code>/data/<code>{data_uid}</code>/draft_nlp/</code>{uid}</code>/
+        </pre>
+
+        > Example
+        >
+        >       curl -X POST https://[kpi]/api/v2/assets/{asset_uid}/data/{data_uid}/draft_nlp/
+
+        > **Payload to create a new Draft_NLP
+        >
+        >       {
+        >           "content": (json{})
+        >           "draft_nlp_type":
+        >           "question_path":
+        >           "":
+        >           "":
+        >           "":
+        >           "":
+        >       }
+
+    ### Read
+        <pre class="prettyprint">
+            <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/<code>{data_uid}</code>/draft_nlp/<code>{uid}</code>/
+        </pre>
+
+    ### Update
+
+        <pre class="prettyprint">
+            <b>PATCH</b> /api/v2/assets/<code>{asset_uid}</code>/data/<code>{data_uid}</code>/draft_nlp/<code>{uid}</code>/
+        </pre>
+
+    ### Destroy
+        <pre class="prettyprint">
+            <b>DELETE</b> /api/v2/assets/<code>{asset_uid}</code>/data/<code>{data_uid}</code>/draft_nlp/<code>{uid}</code>/
+        </pre>
+
+    """
     model = DraftNLPModel
     lookup_field = 'uid'
     renderer_classes = (
