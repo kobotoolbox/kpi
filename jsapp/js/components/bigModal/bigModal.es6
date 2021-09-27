@@ -188,6 +188,8 @@ class BigModal extends React.Component {
         this.setState({
           modalClass: 'modal-media-preview'
         });
+        break;
+
       case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
         // title is set by DataAttachmentColumnsForm
         break;
