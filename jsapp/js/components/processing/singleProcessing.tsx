@@ -1,7 +1,10 @@
 import React from 'react'
 import {RouteComponentProps} from 'react-router'
 import {actions} from 'js/actions'
-import {getTranslatedRowLabel} from 'js/assetUtils'
+import {
+  getSurveyFlatPaths,
+  getTranslatedRowLabel
+} from 'js/assetUtils'
 import assetStore from 'js/assetStore'
 import bem, {makeBem} from 'js/bem'
 import {AnyRowTypeName} from 'js/constants'
@@ -30,7 +33,11 @@ type SingleProcessingState = {
   isSubmissionCallDone: boolean
   isIdsCallDone: boolean
   submissionData: SubmissionResponse | null
-  submissionsIds: string[]
+  /**
+   * A list of all submissions ids, we store `null` for submissions that don't
+   * have a response for the question.
+   */
+  submissionsIds: (string | null)[]
   asset: AssetResponse | undefined
   error: string | null
 }
@@ -58,11 +65,11 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     this.unlisteners.push(
       actions.submissions.getSubmission.completed.listen(this.onGetSubmissionCompleted.bind(this)),
       actions.submissions.getSubmission.failed.listen(this.onGetSubmissionFailed.bind(this)),
-      actions.submissions.getSubmissionsIds.completed.listen(this.onGetSubmissionsIdsCompleted.bind(this)),
-      actions.submissions.getSubmissionsIds.failed.listen(this.onGetSubmissionsIdsFailed.bind(this)),
+      actions.submissions.getProcessingSubmissions.completed.listen(this.onGetProcessingSubmissionsCompleted.bind(this)),
+      actions.submissions.getProcessingSubmissions.failed.listen(this.onGetProcessingSubmissionsFailed.bind(this)),
     )
     actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
-    actions.submissions.getSubmissionsIds(this.props.params.uid)
+    this.getNewProcessingSubmissions()
   }
 
   componentDidUpdate(prevProps: any) {
@@ -93,18 +100,52 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     })
   }
 
-  onGetSubmissionsIdsCompleted(response: GetSubmissionsIdsResponse) {
+  getNewProcessingSubmissions(): void {
+    const questionFlatPath = this.getQuestionPath()
+
+    if (questionFlatPath === undefined) {
+      console.error(t('Insufficient data to fetch submissions for processing!'))
+      return
+    }
+
+    actions.submissions.getProcessingSubmissions(
+      this.props.params.uid,
+      questionFlatPath
+    )
+  }
+
+  onGetProcessingSubmissionsCompleted(response: GetProcessingSubmissionsResponse) {
+    const submissionsIds: (string|null)[] = []
+    response.results.forEach((result) => {
+      // As the returned result object could either be `{_id:1}` or
+      // `{_id:1, <quesiton>:any}`, checking the length is Good Enough™.
+      if (Object.keys(result).length === 2) {
+        submissionsIds.push(String(result._id))
+      } else {
+        submissionsIds.push(null)
+      }
+    })
+
     this.setState({
       isIdsCallDone: true,
-      submissionsIds: response.results.map((result) => String(result._id))
+      submissionsIds: submissionsIds
     })
   }
 
-  onGetSubmissionsIdsFailed(response: FailResponse): void {
+  onGetProcessingSubmissionsFailed(response: FailResponse): void {
     this.setState({
       isIdsCallDone: true,
       error: response.responseJSON?.detail || t('Failed to get submissions IDs.'),
     })
+  }
+
+  getQuestionPath() {
+    let questionFlatPath: string | undefined = undefined
+    if (this.state.asset?.content?.survey !== undefined) {
+      const flatPaths = getSurveyFlatPaths(this.state.asset.content.survey)
+      questionFlatPath = flatPaths[this.props.params.questionName]
+    }
+    return questionFlatPath
   }
 
   getQuestionType(): AnyRowTypeName | undefined {

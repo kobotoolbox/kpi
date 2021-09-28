@@ -14,15 +14,15 @@ interface GetSubmissionCompletedDefinition extends Function {
   listen: (callback: (response: SubmissionResponse) => void) => Function
 }
 
-interface GetSubmissionsIdsDefinition extends Function {
-  (assetUid: string): void
-  completed: GetSubmissionsIdsCompletedDefinition
+interface GetProcessingSubmissionsDefinition extends Function {
+  (assetUid: string, questionPath: string): void
+  completed: GetProcessingSubmissionsCompletedDefinition
   failed: GenericFailedDefinition
 }
 
-interface GetSubmissionsIdsCompletedDefinition extends Function {
-  (response: GetSubmissionsIdsResponse): void
-  listen: (callback: (response: GetSubmissionsIdsResponse) => void) => Function
+interface GetProcessingSubmissionsCompletedDefinition extends Function {
+  (response: GetProcessingSubmissionsResponse): void
+  listen: (callback: (response: GetProcessingSubmissionsResponse) => void) => Function
 }
 
 interface LoadAssetDefinition extends Function {
@@ -87,7 +87,7 @@ export namespace actions {
     const submissions: {
       getSubmission: GetSubmissionDefinition
       getSubmissions: any
-      getSubmissionsIds: GetSubmissionsIdsDefinition
+      getProcessingSubmissions: GetProcessingSubmissionsDefinition
       bulkDeleteStatus: any
       bulkPatchStatus: any
       bulkPatchValues: any
