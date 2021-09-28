@@ -114,6 +114,16 @@ export function replaceSupportEmail(str: string, newEmail?: string): string {
   }
 }
 
+// returns an HTML string where [bracket] notation is replaced with a hyperlink
+export function replaceBracketsWithLink(str: string, url?: string): string {
+  const bracketRegex = /\[([^\]]+)\]/g;
+  if (!url) {
+    return str.replace(bracketRegex, '$1');
+  }
+  const linkHtml = `<a href="${url}" target="_blank">$1</a>`;
+  return str.replace(bracketRegex, linkHtml);
+}
+
 export function currentLang(): string {
   return cookies.get(LANGUAGE_COOKIE_NAME) || 'en';
 }

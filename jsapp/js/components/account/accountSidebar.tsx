@@ -5,6 +5,9 @@ import bem from 'js/bem'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
 import './accountSidebar.scss'
 
+const ACCOUNT_SETTINGS_HREF = '#' + ROUTES.ACCOUNT_SETTINGS
+const DATA_STORAGE_HREF = '#' + ROUTES.DATA_STORAGE
+
 type AccountSidebarProps = RouteComponentProps<
   {
     submissionsPerMonth: number
@@ -39,7 +42,10 @@ export default class AccountSidebar extends React.Component<
   }
 
   isAccountSelected(): boolean {
-    return location.hash.split('#')[1] === ROUTES.ACCOUNT_SETTINGS
+    return (
+      location.hash.split('#')[1] === ROUTES.ACCOUNT_SETTINGS ||
+      location.hash.split('#')[1] === ROUTES.CHANGE_PASSWORD
+    )
   }
 
   isDataStorageSelected(): boolean {
@@ -56,7 +62,7 @@ export default class AccountSidebar extends React.Component<
         <bem.FormSidebar m={sidebarModifier}>
           <bem.FormSidebar__label
             m={{selected: this.isAccountSelected()}}
-            href='#/account-settings'
+            href={ACCOUNT_SETTINGS_HREF}
           >
             {/*TODO: get a regular user icon*/}
             <i className='k-icon k-icon-user-share' />
@@ -67,7 +73,7 @@ export default class AccountSidebar extends React.Component<
 
           <bem.FormSidebar__label
             m={{selected: this.isDataStorageSelected()}}
-            href='#/data-storage'
+            href={DATA_STORAGE_HREF}
           >
             {/*TODO: get the data usage icon*/}
             <i className='k-icon k-icon-projects' />

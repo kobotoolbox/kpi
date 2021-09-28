@@ -9,7 +9,6 @@ import {stores} from '../stores';
 import mixins from '../mixins';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
 import Chart from 'chart.js';
@@ -331,14 +330,9 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
-    let permAccess = this.userCan('view_submissions', this.state) || this.userCanPartially('view_submissions', this.state);
 
     if (!this.state.permissions) {
       return (<LoadingSpinner/>);
-    }
-
-    if (!permAccess) {
-      return (<AccessDeniedMessage/>);
     }
 
     return (

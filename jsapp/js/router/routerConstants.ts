@@ -5,9 +5,10 @@ export const PATHS = Object.freeze({
 
 // List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
-  ACCOUNT_SETTINGS: '/account-settings',
-  DATA_STORAGE: '/data-storage',
-  CHANGE_PASSWORD: '/change-password',
+  ROOT: '/',
+  ACCOUNT_SETTINGS: '/account/account-settings',
+  DATA_STORAGE: '/account/data-storage',
+  CHANGE_PASSWORD: '/account/change-password',
   LIBRARY: '/library',
   MY_LIBRARY: '/library/my-library',
   PUBLIC_COLLECTIONS: '/library/public-collections',
