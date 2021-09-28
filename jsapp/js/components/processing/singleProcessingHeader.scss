@@ -68,6 +68,7 @@
   min-width: 42px;
   text-align: center;
   border-color: $kobo-gray-92;
+  cursor: default;
 }
 
 .single-processing-header__number,
@@ -92,9 +93,7 @@
   }
 
   &:hover {
-    color: $kobo-white;
-    background-color: $kobo-blue;
-    border-color: $kobo-blue;
+    background-color: $kobo-gray-92;
   }
 
   &.single-processing-header__button--prev,
@@ -115,5 +114,10 @@
   &.single-processing-header__button--done {
     border-color: $kobo-blue;
     padding: 0 24px;
+
+    &:hover {
+      color: $kobo-white;
+      background-color: $kobo-blue;
+    }
   }
 }
