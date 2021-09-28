@@ -73,9 +73,11 @@ export function makeBem(
       classNames.push(wholeName)
 
       const modifiersList = classnames(this.props.m)
-      modifiersList.split(' ').forEach((modifier) => {
-        classNames.push(`${wholeName}--${modifier}`)
-      })
+      if (modifiersList !== '') {
+        modifiersList.split(' ').forEach((modifier) => {
+          classNames.push(`${wholeName}--${modifier}`)
+        })
+      }
 
       const newProps: {[propName: string]: any} = {
         className: classNames.join(' ')
