@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 class VeritreeOAuth2(BaseOAuth2):
     name = 'veritree'
     AUTHORIZATION_URL = None
-    ROOT_URL = 'https://api.veritree.com'
+    ROOT_URL = 'https://beta.veritree.org'
     ACCESS_TOKEN_URL = '{root_url}/oauth/token/'.format(root_url=ROOT_URL)
     ACCESS_TOKEN_METHOD = 'POST'
     SCOPE_SEPARATOR = ','
