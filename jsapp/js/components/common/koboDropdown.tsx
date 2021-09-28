@@ -7,12 +7,12 @@ import {
 import koboDropdownActions from './koboDropdownActions';
 import './koboDropdown.scss';
 
-export enum KOBO_DROPDOWN_THEMES {
+export enum KoboDropdownThemes {
   light = 'light',
   dark = 'dark',
 }
 
-export enum KOBO_DROPDOWN_PLACEMENTS {
+export enum KoboDropdownPlacements {
   'up-left' = 'up-left',
   'up-center' = 'up-center',
   'up-right' = 'up-right',
@@ -21,27 +21,22 @@ export enum KOBO_DROPDOWN_PLACEMENTS {
   'down-right' = 'down-right',
 }
 
-type KoboDropdownThemesType = 'light' | 'dark'
-
-type KoboDropdownPlacementsType =
-  'up-left' |
-  'up-center' |
-  'up-right' |
-  'down-left' |
-  'down-center' |
-  'down-right'
-
-
 type KoboDropdownProps = {
-  theme: KoboDropdownThemesType,
-  placement: KoboDropdownPlacementsType,
-  isDisabled: boolean, // disables the dropdowns trigger, thus disallowing opening dropdown
-  hideOnMenuClick: boolean, // hides menu whenever user clicks inside it, useful for simple menu with a list of actions
-  hideOnMenuOutsideClick: boolean, // hides menu when user clicks outside it
-  hideOnEsc: boolean, // hides menu when opened and user uses Escape key
+  theme: KoboDropdownThemes,
+  placement: KoboDropdownPlacements,
+  /** disables the dropdowns trigger, thus disallowing opening dropdown */
+  isDisabled: boolean,
+  /** hides menu whenever user clicks inside it, useful for simple menu with a list of actions */
+  hideOnMenuClick: boolean,
+  /** hides menu when user clicks outside it */
+  hideOnMenuOutsideClick: boolean,
+  /** hides menu when opened and user uses Escape key */
+  hideOnEsc: boolean,
   triggerContent: React.ReactNode,
-  menuContent: React.ReactNode, // the content of dropdown, anything's allowed
-  name?: string, // optional name value useful for styling, ends up in `data-name` attribute
+  /** the content of dropdown, anything's allowed */
+  menuContent: React.ReactNode,
+  /** optional name value useful for styling, ends up in `data-name` attribute */
+  name?: string,
 }
 
 type KoboDropdownState = {
@@ -188,16 +183,16 @@ export default class KoboDropdown extends React.Component<
     if (this.props.theme) {
       wrapperMods.push(this.props.theme);
     } else {
-      wrapperMods.push(KOBO_DROPDOWN_THEMES.light);
+      wrapperMods.push(KoboDropdownThemes.light);
     }
 
     if (
       this.props.placement &&
-      typeof KOBO_DROPDOWN_PLACEMENTS[this.props.placement] !== 'undefined'
+      typeof KoboDropdownPlacements[this.props.placement] !== 'undefined'
     ) {
       wrapperMods.push(this.props.placement);
     } else {
-      wrapperMods.push(KOBO_DROPDOWN_PLACEMENTS['down-center']);
+      wrapperMods.push(KoboDropdownPlacements['down-center']);
     }
 
     // These modifiers are for styling purposes only, i.e. they don't have
