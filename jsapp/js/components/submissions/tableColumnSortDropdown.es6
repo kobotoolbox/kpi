@@ -3,7 +3,7 @@ import autoBind from 'react-autobind';
 import classNames from 'classnames';
 import mixins from 'js/mixins';
 import bem from 'js/bem';
-import KoboDropdown, {KOBO_DROPDOWN_THEMES} from 'js/components/common/koboDropdown';
+import KoboDropdown, {KoboDropdownThemes} from 'js/components/common/koboDropdown';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {SORT_VALUES} from 'js/components/submissions/tableConstants';
 import './tableColumnSortDropdown.scss';
@@ -101,7 +101,7 @@ class TableColumnSortDropdown extends React.Component {
   render() {
     return (
       <KoboDropdown
-        theme={KOBO_DROPDOWN_THEMES.dark}
+        theme={KoboDropdownThemes.dark}
         hideOnEsc
         hideOnMenuClick
         hideOnMenuOutsideClick
