@@ -13,6 +13,7 @@ import {
   LibraryAssetEditor,
 } from 'js/components/formEditors';
 import {actions} from 'js/actions';
+import {stores} from 'js/stores';
 import {envStore} from 'js/envStore'; // initializing it
 import MyLibraryRoute from 'js/components/library/myLibraryRoute';
 import PublicCollectionsRoute from 'js/components/library/publicCollectionsRoute';
@@ -29,7 +30,6 @@ import FormXform from 'js/components/formXform';
 import FormJson from 'js/components/formJson';
 import FormsSearchableList from 'js/lists/forms';
 import {ROUTES} from 'js/router/routerConstants';
-import {stores} from 'js/stores';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {

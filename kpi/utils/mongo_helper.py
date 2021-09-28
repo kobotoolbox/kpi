@@ -114,13 +114,16 @@ class MongoHelper:
         query=None,
         submission_ids=None,
         permission_filters=None,
+        skip_count=False,
     ):
         cursor, total_count = cls._get_cursor_and_count(
             mongo_userform_id,
             fields=fields,
             query=query,
             submission_ids=submission_ids,
-            permission_filters=permission_filters)
+            permission_filters=permission_filters,
+            skip_count=skip_count,
+        )
 
         cursor.skip(start)
         if limit is not None:
@@ -289,6 +292,7 @@ class MongoHelper:
         query=None,
         submission_ids=None,
         permission_filters=None,
+        skip_count=False,
     ):
 
         if len(submission_ids) > 0:
@@ -334,7 +338,12 @@ class MongoHelper:
             fields_to_select,
             max_time_ms=settings.MONGO_DB_MAX_TIME_MS
         )
-        return cursor, cursor.count()
+        count = None
+        if not skip_count:
+            count = settings.MONGO_DB.instances.count_documents(
+                query, maxTimeMS=settings.MONGO_DB_MAX_TIME_MS
+            )
+        return cursor, count
 
     @classmethod
     def _is_attribute_encoded(cls, key):
