@@ -4,6 +4,7 @@ import pytz
 
 import constance
 from django.contrib.auth import update_session_auth_hash
+from social_django.models import UserSocialAuth
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils.translation import ugettext as _
@@ -50,7 +51,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         )
 
     def get_organization(self, obj):
-        return obj.social_auth.get(provider='veritree').extra_data['user_orgs']
+        try:
+            user_orgs = obj.social_auth.get(provider='veritree').extra_data['user_orgs']
+        except UserSocialAuth.DoesNotExist:
+            return {}
+        return user_orgs
 
     def get_server_time(self, obj):
         # Currently unused on the front end
