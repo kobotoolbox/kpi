@@ -4,6 +4,7 @@ import {
   AnyRowTypeName,
   QUESTION_TYPES,
   META_QUESTION_TYPES,
+  ADDITIONAL_SUBMISSION_PROPS,
 } from 'js/constants'
 import SubmissionDataList from 'js/components/submissions/submissionDataList'
 import {
@@ -35,6 +36,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   }
 
   renderMedia() {
+    // Only allow audio types for now
     if (
       !this.props.assetContent.survey ||
       (
@@ -68,14 +70,24 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
     )
   }
 
+  getQuestionsToHide(): string[] {
+    return [
+      this.props.questionName,
+      ...Object.keys(ADDITIONAL_SUBMISSION_PROPS),
+      ...Object.keys(META_QUESTION_TYPES)
+    ]
+  }
+
   render() {
+    console.log(this.getQuestionsToHide())
+
     return (
       <bem.SingleProcessingSubmissionDetails>
         {this.renderMedia()}
         <SubmissionDataList
           assetContent={this.props.assetContent}
           submissionData={this.props.submissionData}
-          hideQuestions={[this.props.questionName]}
+          hideQuestions={this.getQuestionsToHide()}
         />
       </bem.SingleProcessingSubmissionDetails>
     )

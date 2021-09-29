@@ -16,8 +16,6 @@ bem.SubmissionDataListQuestion__response = makeBem(bem.SubmissionDataListQuestio
 type SubmissionDataListProps = {
   assetContent: AssetContent
   submissionData: SubmissionResponse
-  /** Whether to include meta type questions in the rendered list. Default is `false`. */
-  includeMeta?: boolean
   /** A list of questions that should be omitted from display. */
   hideQuestions?: string[]
 }
@@ -72,11 +70,7 @@ export default class SubmissionDataList extends React.Component<
       return null
     }
 
-    const items = getFlatQuestionsList(
-      this.props.assetContent.survey,
-      0,
-      Boolean(this.props.includeMeta)
-    )
+    const items = getFlatQuestionsList(this.props.assetContent.survey, 0)
 
     return (
       <bem.SubmissionDataList>
