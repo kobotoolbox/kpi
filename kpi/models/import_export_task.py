@@ -773,6 +773,7 @@ def _b64_xls_to_dict(base64_encoded_upload):
 
     return _strip_header_keys(survey_dict)
 
+
 def _append_kobo_locking_profiles(
     base64_encoded_upload: BytesIO, survey_dict: dict
 ) -> None:
@@ -780,6 +781,7 @@ def _append_kobo_locking_profiles(
     kobo_locks = get_kobo_locking_profiles(BytesIO(decoded_bytes))
     if kobo_locks:
         survey_dict[KOBO_LOCK_SHEET] = kobo_locks
+
 
 def _strip_header_keys(survey_dict):
     survey_dict_copy = dict(survey_dict)

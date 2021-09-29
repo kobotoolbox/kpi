@@ -5,7 +5,6 @@ import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import {actions} from '../actions';
 import bem from 'js/bem';
-import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from '../stores';
 import TextBox from 'js/components/common/textBox';
 import {hashHistory} from 'react-router';
@@ -82,14 +81,8 @@ export default class ChangePassword extends React.Component {
   }
 
   render() {
-    if(!stores.session || !stores.session.isLoggedIn) {
-      return (
-        <bem.AccountSettings>
-          <bem.AccountSettings__item>
-            <LoadingSpinner/>
-          </bem.AccountSettings__item>
-        </bem.AccountSettings>
-      );
+    if(!stores.session.isLoggedIn) {
+      return null;
     }
 
     var accountName = stores.session.currentAccount.username;

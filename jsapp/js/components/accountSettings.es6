@@ -7,7 +7,6 @@ import TextareaAutosize from 'react-autosize-textarea';
 import alertify from 'alertifyjs';
 import {actions} from '../actions';
 import bem from 'js/bem';
-import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from '../stores';
 import Select from 'react-select';
 import TextBox from 'js/components/common/textBox';
@@ -218,17 +217,8 @@ export default class AccountSettings extends React.Component {
   metadataChange (e) {this.handleChange(e, 'metadata');}
 
   render() {
-    if(
-      !stores.session.isLoggedIn ||
-      !envStore.isReady
-    ) {
-      return (
-        <bem.AccountSettings>
-          <bem.AccountSettings__item>
-            <LoadingSpinner/>
-          </bem.AccountSettings__item>
-        </bem.AccountSettings>
-      );
+    if(!stores.session.isLoggedIn || !envStore.isReady) {
+      return null;
     }
 
     var accountName = stores.session.currentAccount.username;
