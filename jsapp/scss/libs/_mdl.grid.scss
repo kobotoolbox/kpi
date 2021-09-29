@@ -1,5 +1,7 @@
 /* GRID */
 
+@use "sass:math";
+
 $grid-desktop-columns: 12 !default;
 $grid-desktop-gutter: 16px !default;
 $grid-desktop-margin: 16px !default;
@@ -62,9 +64,9 @@ $grid-max-columns: $grid-desktop-columns !default;
 
 // Mixins for width calculation.
 @mixin partial-size($size, $columns, $gutter) {
-  width: calc(#{$size / $columns * 100 + "%"} - #{$gutter});
+  width: calc(#{math.div($size, $columns) * 100 + "%"} - #{$gutter});
   .mdl-grid--no-spacing > & {
-    width: #{$size / $columns * 100 + "%"};
+    width: #{math.div($size, $columns) * 100 + "%"};
   }
 }
 
@@ -73,9 +75,9 @@ $grid-max-columns: $grid-desktop-columns !default;
 }
 
 @mixin offset-size($size, $columns, $gutter) {
-  margin-left: calc(#{$size / $columns * 100 + "%"} + #{$gutter / 2});
+  margin-left: calc(#{math.div($size, $columns) * 100 + "%"} + #{$gutter * 0.5});
   .mdl-grid.mdl-grid--no-spacing > & {
-    margin-left: #{$size / $columns * 100 + "%"};
+    margin-left: #{math.div($size, $columns) * 100 + "%"};
   }
 }
 
@@ -83,10 +85,10 @@ $grid-max-columns: $grid-desktop-columns !default;
 
 @media (max-width: $grid-tablet-breakpoint - 1) {
   .mdl-grid {
-    padding: $grid-phone-margin - $grid-phone-gutter / 2;
+    padding: $grid-phone-margin - $grid-phone-gutter * 0.5;
   }
   .mdl-cell {
-    margin: $grid-phone-gutter / 2;
+    margin: $grid-phone-gutter * 0.5;
     @include partial-size($grid-cell-default-columns, $grid-phone-columns, $grid-phone-gutter);
   }
   .mdl-cell--hide-phone {
@@ -125,10 +127,10 @@ $grid-max-columns: $grid-desktop-columns !default;
 
 @media (min-width: $grid-tablet-breakpoint) and (max-width: $grid-desktop-breakpoint - 1) {
   .mdl-grid {
-    padding: $grid-tablet-margin - $grid-tablet-gutter / 2;
+    padding: $grid-tablet-margin - $grid-tablet-gutter * 0.5;
   }
   .mdl-cell {
-    margin: $grid-tablet-gutter / 2;
+    margin: $grid-tablet-gutter * 0.5;
     @include partial-size($grid-cell-default-columns, $grid-tablet-columns, $grid-tablet-gutter);
   }
   .mdl-cell--hide-tablet {
@@ -167,10 +169,10 @@ $grid-max-columns: $grid-desktop-columns !default;
 
 @media (min-width: $grid-desktop-breakpoint) {
   .mdl-grid {
-    padding: $grid-desktop-margin - $grid-desktop-gutter / 2;
+    padding: $grid-desktop-margin - $grid-desktop-gutter * 0.5;
   }
   .mdl-cell {
-    margin: $grid-desktop-gutter / 2;
+    margin: $grid-desktop-gutter * 0.5;
     @include partial-size($grid-cell-default-columns, $grid-desktop-columns, $grid-desktop-gutter);
   }
   .mdl-cell--hide-desktop {
