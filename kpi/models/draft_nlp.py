@@ -32,7 +32,7 @@ class AnalysisQuestions(models.Model):
     content = JSONBField(default=dict)
     date_created = models.DateTimeField(default=timezone.now)
     date_modified = models.DateTimeField(default=timezone.now)
-    uid = KpiUidField(uid_prefix='aq')
+    uid = KpiUidField(uid_prefix='aqxyz')  # maybe `aq` was fine, but it must differ from the uids inside `content`
     asset = models.ForeignKey('Asset', on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
