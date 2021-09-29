@@ -75,6 +75,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
         <SubmissionDataList
           assetContent={this.props.assetContent}
           submissionData={this.props.submissionData}
+          hideQuestions={[this.props.questionName]}
         />
       </bem.SingleProcessingSubmissionDetails>
     )
