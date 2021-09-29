@@ -17,6 +17,7 @@ from kpi.views.v2.paired_data import PairedDataViewset
 from kpi.views.v2.permission import PermissionViewSet
 from kpi.views.v2.user import UserViewSet
 from kpi.views.v2.user_asset_subscription import UserAssetSubscriptionViewSet
+from kpi.views.v2.service_usage import ServiceUsageViewSet
 
 
 URL_NAMESPACE = 'api_v2'
@@ -87,6 +88,7 @@ hook_routes.register(r'logs',
 router_api_v2.register(r'asset_snapshots', AssetSnapshotViewSet)
 router_api_v2.register(
     r'asset_subscriptions', UserAssetSubscriptionViewSet)
+router_api_v2.register(r'service_usage', ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet)
 router_api_v2.register(r'permissions', PermissionViewSet)
 router_api_v2.register(r'imports', ImportTaskViewSet)

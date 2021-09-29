@@ -543,6 +543,28 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
     uuid = models.CharField(max_length=249, default='')
 
 
+class ReadOnlyKobocatAttachments(ReadOnlyModel):
+
+    class Meta(ReadOnlyModel.Meta):
+        db_table = 'logger_attachment'
+
+    instance = models.ForeignKey(
+        ReadOnlyKobocatInstance,
+        related_name='kobocat_attachments',
+        on_delete=models.CASCADE,
+    )
+
+    media_file = models.FileField()
+    media_file_basename = models.CharField(
+        max_length=260,
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+    media_file_size = models.PositiveIntegerField(blank=True, null=True)
+    mimetype = models.CharField(max_length=100, null=False, blank=True, default='')
+
+
 def safe_kc_read(func):
     def _wrapper(*args, **kwargs):
         try:
