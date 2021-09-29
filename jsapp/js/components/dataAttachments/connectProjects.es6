@@ -9,10 +9,10 @@ import TextBox from 'js/components/common/textBox';
 import MultiCheckbox from 'js/components/common/multiCheckbox';
 import {actions} from 'js/actions';
 import {stores} from 'js/stores';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {generateAutoname} from 'js/utils';
-import {LoadingSpinner} from 'js/ui';
-
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import envStore from 'js/envStore';
 import {
   MODAL_TYPES,
   MAX_DISPLAYED_STRING_LENGTH,
@@ -534,7 +534,7 @@ class ConnectProjects extends React.Component {
               &nbsp;
               <a
                 href={
-                  stores.serverEnvironment.state.support_url +
+                  envStore.data.support_url +
                   DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL
                 }
                 target='_blank'
@@ -560,7 +560,7 @@ class ConnectProjects extends React.Component {
               &nbsp;
               <a
                 href={
-                  stores.serverEnvironment.state.support_url +
+                  envStore.data.support_url +
                   DYNAMIC_DATA_ATTACHMENTS_SUPPORT_URL
                 }
                 target='_blank'

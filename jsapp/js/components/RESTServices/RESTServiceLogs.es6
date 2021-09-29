@@ -5,8 +5,8 @@ import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import {stores} from '../../stores';
-import {bem} from '../../bem';
-import {LoadingSpinner} from 'js/ui';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {actions} from '../../actions';
 import mixins from '../../mixins';
 import {dataInterface} from '../../dataInterface';
@@ -167,7 +167,7 @@ export default class RESTServiceLogs extends React.Component {
   }
 
   showLogInfo(log) {
-    const title = t('Submission Failure Detail (##id##)').replace('##id##', log.instance_id);
+    const title = t('Submission Failure Detail (##id##)').replace('##id##', log.submission_id);
     const escapedMessage = $('<div/>').text(log.message).html();
     alertify.alert(title, `<pre>${escapedMessage}</pre>`);
   }
@@ -176,9 +176,9 @@ export default class RESTServiceLogs extends React.Component {
     const currentAsset = this.currentAsset();
     stores.pageState.switchModal({
       type: MODAL_TYPES.SUBMISSION,
-      sid: log.instance_id,
+      sid: log.submission_id,
       asset: currentAsset,
-      ids: [log.instance_id]
+      ids: [log.submission_id]
     });
   }
 
@@ -266,7 +266,7 @@ export default class RESTServiceLogs extends React.Component {
                     data-tip={t('Retry all submissions')}
                     disabled={!this.state.isHookActive}
                   >
-                    <i className='k-icon k-icon-replace-all'/>
+                    <i className='k-icon k-icon-replace'/>
                   </bem.ServiceRow__actionButton>
                 }
               </bem.ServiceRow__column>
@@ -301,7 +301,7 @@ export default class RESTServiceLogs extends React.Component {
               return (
                 <bem.ServiceRow {...rowProps}>
                   <bem.ServiceRow__column m='submission'>
-                    {log.instance_id}
+                    {log.submission_id}
                   </bem.ServiceRow__column>
 
                   <bem.ServiceRow__column

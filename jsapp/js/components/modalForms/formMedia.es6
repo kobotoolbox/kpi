@@ -4,9 +4,9 @@ import alertify from 'alertifyjs';
 import Dropzone from 'react-dropzone';
 import TextBox from 'js/components/common/textBox';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
-import {stores} from 'js/stores';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import envStore from 'js/envStore';
 import {
   ASSET_FILE_TYPES,
   MAX_DISPLAYED_STRING_LENGTH,
@@ -234,13 +234,13 @@ class FormMedia extends React.Component {
               {t('Attach files')}
             </bem.FormMedia__label>
 
-            {stores.serverEnvironment &&
-              stores.serverEnvironment.state.support_url && (
+            {envStore.isReady &&
+              envStore.data.support_url && (
                 <a
                   className='title-help'
                   target='_blank'
                   href={
-                    stores.serverEnvironment.state.support_url +
+                    envStore.data.support_url +
                     MEDIA_SUPPORT_URL
                   }
                   data-tip={t('Learn more about form media')}

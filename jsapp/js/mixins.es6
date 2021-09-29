@@ -53,7 +53,7 @@ mixins.dmix = {
     let dialog = alertify.dialog('prompt');
     let opts = {
       title: `${t('Clone')} ${ASSET_TYPES.survey.label}`,
-      message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', ASSET_TYPES.survey.label),
+      message: t('Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.').replace('##ASSET_TYPE##', ASSET_TYPES.survey.label),
       value: name,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, value) => {
@@ -235,7 +235,6 @@ mixins.dmix = {
   },
   componentDidMount() {
     this.listenTo(stores.asset, this.dmixAssetStoreChange);
-
     const uid = this._getAssetUid();
     if (uid) {
       actions.resources.loadAsset({id: uid});
@@ -477,7 +476,7 @@ mixins.clickAssets = {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
           title: `${t('Clone')} ${assetTypeLabel}`,
-          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetTypeLabel),
+          message: t('Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.').replace('##ASSET_TYPE##', assetTypeLabel),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {

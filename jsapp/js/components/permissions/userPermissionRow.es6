@@ -6,7 +6,7 @@ import alertify from 'alertifyjs';
 import mixins from 'js/mixins';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {stringToColor} from 'utils';
 import {
   ASSET_TYPES,

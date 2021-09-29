@@ -1,8 +1,8 @@
 import React from 'react';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import {bem} from '../bem';
-import ui from '../ui';
+import bem from 'js/bem';
+import Modal from 'js/components/common/modal';
 import autoBind from 'react-autobind';
 import {actions} from '../actions';
 import mixins from '../mixins';
@@ -283,8 +283,8 @@ class MapSettings extends React.Component {
     }, this);
     return (
       <bem.GraphSettings>
-        <ui.Modal.Tabs>{modalTabs}</ui.Modal.Tabs>
-        <ui.Modal.Body>
+        <Modal.Tabs>{modalTabs}</Modal.Tabs>
+        <Modal.Body>
           <div className='tabs-content map-settings'>
             {activeTab === TABS.get('geoquestion').id && (
               <div className='map-settings__GeoQuestions'>
@@ -398,7 +398,7 @@ class MapSettings extends React.Component {
               </bem.FormModal__item>
             )}
           </div>
-        </ui.Modal.Body>
+        </Modal.Body>
 
         {[TABS.get('geoquestion').id, TABS.get('colors').id, TABS.get('querylimit').id].includes(activeTab) &&
           <bem.Modal__footer>

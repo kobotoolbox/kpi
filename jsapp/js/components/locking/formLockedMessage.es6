@@ -1,6 +1,6 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {ASSET_TYPES} from 'js/constants';
 import {
   isAssetLocked,
@@ -66,7 +66,7 @@ class FormLockedMessage extends React.Component {
                   {features.cants.map((cant) => {
                     return (
                       <li key={cant.name}>
-                        <i className='k-icon k-icon-cancel'/>
+                        <i className='k-icon k-icon-close'/>
                         {cant.label}
                       </li>
                     );

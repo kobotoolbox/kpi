@@ -420,6 +420,12 @@ export function renderQuestionTypeIcon(type) {
     typeDef = QUESTION_TYPES[type];
   }
 
+  if (type === META_QUESTION_TYPES['background-audio']) {
+    typeDef = {icon: 'k-icon-qt-audio'};
+  } else if (META_QUESTION_TYPES[type]) {
+    typeDef = {icon: 'qt-meta-default'};
+  }
+
   if (typeDef) {
     return (<i className={`k-icon k-icon-${typeDef.icon}`} title={type}/>);
   } else {

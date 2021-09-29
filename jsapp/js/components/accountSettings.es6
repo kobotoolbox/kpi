@@ -6,8 +6,8 @@ import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-autosize-textarea';
 import alertify from 'alertifyjs';
 import {actions} from '../actions';
-import {bem} from '../bem';
-import {LoadingSpinner} from 'js/ui';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {stores} from '../stores';
 import Select from 'react-select';
 import TextBox from 'js/components/common/textBox';
@@ -16,6 +16,7 @@ import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
 import {stringToColor} from 'utils';
 import {ROUTES} from 'js/constants';
+import envStore from 'js/envStore';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 
@@ -33,13 +34,12 @@ export default class AccountSettings extends React.Component {
 
   rebuildState() {
     if (
-      stores.session &&
       stores.session.isLoggedIn &&
-      stores.session.environment
+      envStore.isReady
     ) {
       this.setStateFromSession(
         stores.session.currentAccount,
-        stores.session.environment
+        envStore.data
       );
     }
   }
@@ -218,9 +218,8 @@ export default class AccountSettings extends React.Component {
 
   render() {
     if(
-      !stores.session ||
       !stores.session.isLoggedIn ||
-      !stores.session.environment
+      !envStore.isReady
     ) {
       return (
         <bem.AccountSettings>

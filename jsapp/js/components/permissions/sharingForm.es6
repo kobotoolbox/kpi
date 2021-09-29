@@ -6,8 +6,8 @@ import Reflux from 'reflux';
 import mixins from 'js/mixins';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
-import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {buildUserUrl} from 'utils';
 import {
   ROUTES,

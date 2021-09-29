@@ -8,8 +8,8 @@ import enketoHandler from 'js/enketoHandler';
 import {dataInterface} from 'js/dataInterface';
 import {actions} from 'js/actions';
 import mixins from 'js/mixins';
-import {bem} from 'js/bem';
-import {LoadingSpinner} from 'js/ui';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {launchPrinting} from 'utils';
 import {stores} from 'js/stores';
 import {
@@ -18,7 +18,7 @@ import {
   META_QUESTION_TYPES,
   ENKETO_ACTIONS,
 } from 'js/constants';
-import SubmissionDataTable from './submissionDataTable';
+import SubmissionDataTable from 'js/components/submissions/submissionDataTable';
 import Checkbox from 'js/components/common/checkbox';
 
 const DETAIL_NOT_FOUND = '{\"detail\":\"Not found.\"}';
@@ -139,6 +139,8 @@ class SubmissionModal extends React.Component {
         promptRefresh: false,
       };
     }
+    // Return null to indicate no change to state.
+    return null;
   }
 
   componentDidUpdate(prevProps) {

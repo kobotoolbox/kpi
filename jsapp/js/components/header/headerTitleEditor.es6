@@ -3,7 +3,7 @@ import Reflux from 'reflux';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import alertify from 'alertifyjs';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {removeInvalidChars, getAssetDisplayName} from 'js/assetUtils';

@@ -7,21 +7,14 @@ import {
   getFlatQuestionsList,
   renderQuestionTypeIcon,
 } from 'js/assetUtils';
-import {QUESTION_TYPES} from 'js/constants';
-import {bem} from 'js/bem';
+import {
+  QUESTION_TYPES,
+  FUSE_OPTIONS,
+} from 'js/constants';
+import bem from 'js/bem';
 import {actions} from 'js/actions';
 import TextBox from 'js/components/common/textBox';
-import {stores} from 'js/stores';
-
-const FUSE_OPTIONS = {
-  isCaseSensitive: false,
-  includeScore: true,
-  minMatchCharLength: 1,
-  shouldSort: false,
-  ignoreFieldNorm: true,
-  threshold: 0.2,
-  ignoreLocation: true,
-};
+import envStore from 'js/envStore';
 
 // we need a text to display when we need to say "this question has no answer"
 const EMPTY_VALUE_LABEL = t('n/d');
@@ -204,10 +197,10 @@ class BulkEditSubmissionsForm extends React.Component {
   }
 
   renderSupportUrlLink() {
-    if (stores.serverEnvironment?.state?.support_url) {
+    if (envStore.isReady && envStore.data.support_url) {
       return (
         <a
-          href={stores.serverEnvironment.state.support_url + HELP_ARTICLE_URL}
+          href={envStore.data.support_url + HELP_ARTICLE_URL}
           target='_blank'
         >
           {t('in the help article')}

@@ -3,14 +3,14 @@ import PropTypes from 'prop-types';
 import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import {stores} from '../stores';
 import {Link, hashHistory} from 'react-router';
 import mixins from '../mixins';
 import {PERMISSIONS_CODENAMES, ROUTES} from 'js/constants';
 import {assign} from 'utils';
 
-export function getFormDataTabs(assetUid, isLoggedIn) {
+export function getFormDataTabs(assetUid) {
   return [
     {
       label: t('Table'),
@@ -31,7 +31,6 @@ export function getFormDataTabs(assetUid, isLoggedIn) {
       label: t('Downloads'),
       icon: 'k-icon k-icon-download',
       path: ROUTES.FORM_DOWNLOADS.replace(':uid', assetUid),
-      isDisabled: !isLoggedIn,
     },
     {
       label: t('Map'),
@@ -165,7 +164,7 @@ class FormViewTabs extends Reflux.Component {
       this.state.asset.has_deployment &&
       this.isActiveRoute(ROUTES.FORM_DATA.replace(':uid', this.state.assetid))
     ) {
-      sideTabs = getFormDataTabs(this.state.assetid, stores.session.isLoggedIn);
+      sideTabs = getFormDataTabs(this.state.assetid);
     }
 
     if (
@@ -246,7 +245,7 @@ class FormViewTabs extends Reflux.Component {
                 data-path={item.path}
                 onClick={this.triggerRefresh}
               >
-                <i className={item.icon} />
+                <i className={`k-icon ${item.icon}`} />
                 {item.label}
               </Link>
             );

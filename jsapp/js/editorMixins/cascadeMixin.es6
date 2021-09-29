@@ -2,10 +2,10 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
 import _ from 'underscore';
-import {stores} from '../stores';
+import envStore from 'js/envStore';
 
 var CascadePopup = bem.create('cascade-popup'),
     CascadePopup__message = bem.create('cascade-popup__message'),
@@ -99,10 +99,10 @@ export const cascadeMixin = {
             <textarea ref='cascade' onChange={this.cascadePopopChange}
               value={this.state.cascadeTextareaValue} />
 
-            { stores.serverEnvironment &&
-              stores.serverEnvironment.state.support_url &&
+            { envStore.isReady &&
+              envStore.data.support_url &&
               <div className='cascade-help right-tooltip'>
-                <a href={stores.serverEnvironment.state.support_url + CHOICE_LIST_SUPPORT_URL}
+                <a href={envStore.data.support_url + CHOICE_LIST_SUPPORT_URL}
                   target='_blank'
                   data-tip={t('Learn more about importing cascading lists from Excel')}>
                     <i className='k-icon k-icon-help' />

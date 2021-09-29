@@ -3,11 +3,11 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
-import {LoadingSpinner} from 'js/ui';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 
 /**
  * @param {Object} asset - Modal asset.

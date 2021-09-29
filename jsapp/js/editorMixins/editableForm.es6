@@ -21,8 +21,10 @@ import {
   ROUTES,
   META_QUESTION_TYPES,
 } from 'js/constants';
-import ui from '../ui';
-import {bem} from '../bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
+import Modal from 'js/components/common/modal';
+import bem from 'js/bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
@@ -45,6 +47,7 @@ import {
   getFormBuilderAssetType,
   unnullifyTranslations,
 } from 'js/components/formBuilder/formBuilderUtils';
+import envStore from 'js/envStore';
 
 const ErrorMessage = bem.create('error-message');
 const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
@@ -739,12 +742,12 @@ export default assign({
           {'.'}
         </p>
 
-        { stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url &&
+        { envStore.isReady &&
+          envStore.data.support_url &&
           <bem.TextBox__labelLink
             // TODO update support article to include background-audio
             href={
-              stores.serverEnvironment.state.support_url +
+              envStore.data.support_url +
               RECORDING_SUPPORT_URL
             }
             target='_blank'
@@ -776,10 +779,10 @@ export default assign({
               <bem.FormBuilderAside__header>
                 {t('Form style')}
 
-                { stores.serverEnvironment &&
-                  stores.serverEnvironment.state.support_url &&
+                { envStore.isReady &&
+                  envStore.data.support_url &&
                   <a
-                    href={stores.serverEnvironment.state.support_url + WEBFORM_STYLES_SUPPORT_URL}
+                    href={envStore.data.support_url + WEBFORM_STYLES_SUPPORT_URL}
                     target='_blank'
                     data-tip={t('Read more about form styles')}
                   >
@@ -879,7 +882,7 @@ export default assign({
       );
     }
 
-    return (<ui.LoadingSpinner/>);
+    return (<LoadingSpinner/>);
   },
 
   renderAssetLabel() {
@@ -903,10 +906,10 @@ export default assign({
 
           {lockedLabel}
 
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.support_url &&
+          { envStore.isReady &&
+            envStore.data.support_url &&
             <a
-              href={stores.serverEnvironment.state.support_url + LOCKING_SUPPORT_URL}
+              href={envStore.data.support_url + LOCKING_SUPPORT_URL}
               target='_blank'
               data-tip={t('Read more about Locking')}
             >
@@ -924,7 +927,7 @@ export default assign({
     if (!this.state.isNewAsset && !this.state.asset) {
       return (
         <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <ui.LoadingSpinner/>
+          <LoadingSpinner/>
         </DocumentTitle>
       );
     }
@@ -938,71 +941,73 @@ export default assign({
 
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <ui.Panel m={['transparent', 'fixed']}>
-          {this.renderAside()}
+        <bem.uiPanel m={['transparent', 'fixed']}>
+          <bem.uiPanel__body>
+            {this.renderAside()}
 
-          {userCanEditForm &&
-            <bem.FormBuilder>
-            {this.renderFormBuilderHeader()}
+            {userCanEditForm &&
+              <bem.FormBuilder>
+              {this.renderFormBuilderHeader()}
 
-              <bem.FormBuilder__contents>
-                {this.state.asset &&
-                  <FormLockedMessage asset={this.state.asset}/>
-                }
-
-                {this.hasBackgroundAudio() &&
-                  this.renderBackgroundAudioWarning()
-                }
-
-                <div ref='form-wrap' className='form-wrap'>
-                  {!this.state.surveyAppRendered &&
-                    this.renderNotLoadedMessage()
+                <bem.FormBuilder__contents>
+                  {this.state.asset &&
+                    <FormLockedMessage asset={this.state.asset}/>
                   }
-                </div>
-              </bem.FormBuilder__contents>
-            </bem.FormBuilder>
-          }
 
-          {(!userCanEditForm) &&
-            <ui.AccessDeniedMessage/>
-          }
+                  {this.hasBackgroundAudio() &&
+                    this.renderBackgroundAudioWarning()
+                  }
 
-          {this.state.enketopreviewOverlay &&
-            <ui.Modal
-              open
-              large
-              onClose={this.hidePreview}
-              title={t('Form Preview')}
-            >
-              <ui.Modal.Body>
-                <div className='enketo-holder'>
-                  <iframe src={this.state.enketopreviewOverlay} />
-                </div>
-              </ui.Modal.Body>
-            </ui.Modal>
-          }
+                  <div ref='form-wrap' className='form-wrap'>
+                    {!this.state.surveyAppRendered &&
+                      this.renderNotLoadedMessage()
+                    }
+                  </div>
+                </bem.FormBuilder__contents>
+              </bem.FormBuilder>
+            }
 
-          {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
-            <ui.Modal
-              open
-              error
-              onClose={this.clearPreviewError}
-              title={t('Error generating preview')}
-            >
-              <ui.Modal.Body>{this.state.enketopreviewError}</ui.Modal.Body>
-            </ui.Modal>
-          }
+            {(!userCanEditForm) &&
+              <AccessDeniedMessage/>
+            }
 
-          {this.state.showCascadePopup &&
-            <ui.Modal
-              open
-              onClose={this.hideCascade}
-              title={t('Import Cascading Select Questions')}
-            >
-              <ui.Modal.Body>{this.renderCascadePopup()}</ui.Modal.Body>
-            </ui.Modal>
-          }
-        </ui.Panel>
+            {this.state.enketopreviewOverlay &&
+              <Modal
+                open
+                large
+                onClose={this.hidePreview}
+                title={t('Form Preview')}
+              >
+                <Modal.Body>
+                  <div className='enketo-holder'>
+                    <iframe src={this.state.enketopreviewOverlay} />
+                  </div>
+                </Modal.Body>
+              </Modal>
+            }
+
+            {!this.state.enketopreviewOverlay && this.state.enketopreviewError &&
+              <Modal
+                open
+                error
+                onClose={this.clearPreviewError}
+                title={t('Error generating preview')}
+              >
+                <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
+              </Modal>
+            }
+
+            {this.state.showCascadePopup &&
+              <Modal
+                open
+                onClose={this.hideCascade}
+                title={t('Import Cascading Select Questions')}
+              >
+                <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
+              </Modal>
+            }
+          </bem.uiPanel__body>
+        </bem.uiPanel>
       </DocumentTitle>
     );
   },

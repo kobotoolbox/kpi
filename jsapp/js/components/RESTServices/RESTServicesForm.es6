@@ -2,8 +2,8 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
 import alertify from 'alertifyjs';
-import {bem} from '../../bem';
-import {LoadingSpinner} from 'js/ui';
+import bem from 'js/bem';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
 import {dataInterface} from '../../dataInterface';
 import {actions} from '../../actions';
 import {stores} from '../../stores';
@@ -12,6 +12,7 @@ import Checkbox from 'js/components/common/checkbox';
 import Radio from 'js/components/common/radio';
 import TextBox from 'js/components/common/textBox';
 import {KEY_CODES} from 'js/constants';
+import envStore from 'js/envStore';
 
 const EXPORT_TYPES = {
   json: {
@@ -412,8 +413,8 @@ export default class RESTServicesForm extends React.Component {
       return (<LoadingSpinner/>);
     } else {
       let submissionPlaceholder = '%SUBMISSION%';
-      if (stores.session.environment && stores.session.environment.submission_placeholder) {
-        submissionPlaceholder = stores.session.environment.submission_placeholder;
+      if (envStore.isReady && envStore.data.submission_placeholder) {
+        submissionPlaceholder = envStore.data.submission_placeholder;
       }
 
       return (

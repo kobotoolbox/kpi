@@ -102,12 +102,18 @@
 }
 
 .form-view__cell.form-view__cell--data-tabs {
-  a {
+  a,
+  button {
+    cursor: pointer;
     display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
     padding: 6px 10px;
     color: $kobo-gray-40;
     border-bottom: 1px solid $kobo-gray-92;
     position: relative;
+    text-align: left;
 
     &:last-child {
       border-bottom: none;
@@ -115,7 +121,6 @@
 
     &:hover {
       color: $kobo-gray-24;
-      background: $kobo-teal-light;
     }
 
     .k-icon {
@@ -128,8 +133,7 @@
       &.k-icon-next {
         position: absolute;
         right: 4px;
-        top: 50%;
-        margin-top: -9px;
+        top: 6px;
       }
     }
   }
@@ -155,10 +159,10 @@
     color: $kobo-gray-40;
     position: absolute;
     right: 0px;
-    top: -6px;
+    top: -2px;
 
-    i {
-      font-size: 32px;
+    .k-icon {
+      font-size: 24px;
     }
 
     &:hover {
