@@ -140,8 +140,9 @@ class AssetRow extends React.Component {
                 ) &&
                 <i className={`row-icon row-icon--${this.props.asset_type}`}>{_rc}</i>
               }
-              <bem.AssetRow__cell m='name'>
+              <bem.AssetRow__cell m='name' style={{'display': 'flex', 'justifyContent': 'space-between'}}>
                 <ui.AssetName {...this.props} />
+                {this.props.deployment__links && Object.keys(this.props.deployment__links).length > 0 ? <a className="kobo-button kobo-button--blue" target="_blank" href={this.props.deployment__links['url']}>{t('Open')}</a> : null }
               </bem.AssetRow__cell>
               { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.settings.description &&
                 <bem.AssetRow__description>
@@ -149,12 +150,6 @@ class AssetRow extends React.Component {
                 </bem.AssetRow__description>
               }
             </bem.AssetRow__cell>
-            {this.props.deployment__links && Object.keys(this.props.deployment__links).length > 0
-              && (
-              <bem.AssetRow__cell m={'open_form'} className={'mdl-cell'} key={'openForm'}>
-                  <a className="kobo-button kobo-button--blue" target="_blank" href={this.props.deployment__links['url']}>{t('Open')}</a>
-              </bem.AssetRow__cell>
-            )}
             {/* "type" column for library types */}
             { this.props.asset_type && (
                 this.props.asset_type == ASSET_TYPES.template.id ||
