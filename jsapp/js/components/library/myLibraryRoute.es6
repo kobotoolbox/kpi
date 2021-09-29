@@ -9,7 +9,6 @@ import mixins from 'js/mixins';
 import bem from 'js/bem';
 import {stores} from 'js/stores';
 import {validFileTypes} from 'utils';
-import {redirectToLogin} from 'js/router/routerUtils';
 import myLibraryStore from './myLibraryStore';
 import AssetsTable from './assetsTable';
 import {MODAL_TYPES} from 'js/constants';
@@ -83,11 +82,6 @@ class MyLibraryRoute extends React.Component {
   }
 
   render() {
-    if (!stores.session.isLoggedIn && stores.session.isAuthStateKnown) {
-      redirectToLogin();
-      return null;
-    }
-
     let contextualEmptyMessage = t('Your search returned no results.');
 
     if (myLibraryStore.data.totalUserAssets === 0) {

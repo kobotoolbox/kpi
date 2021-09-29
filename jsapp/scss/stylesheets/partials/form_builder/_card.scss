@@ -171,7 +171,7 @@ $cardIndicatorIconWidth: 21px;
 .card__indicator__icon {
     position: absolute;
     top: 50%;
-    margin-top: -($cardIndicatorIconHeight/2);
+    margin-top: -($cardIndicatorIconHeight*0.5);
     left: 8px;
     width: $cardIndicatorIconHeight;
     height: $cardIndicatorIconHeight;

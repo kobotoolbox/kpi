@@ -2,10 +2,11 @@ import React from 'react';
 import bem from 'js/bem';
 import './loadingSpinner.scss';
 
-/**
- * @prop {string} [message] optional message
- */
-export default class LoadingSpinner extends React.Component {
+type LoadingSpinnerProps = {
+  message?: string
+}
+
+export default class LoadingSpinner extends React.Component<LoadingSpinnerProps, {}> {
   render() {
     const message = this.props.message || t('loading…');
 

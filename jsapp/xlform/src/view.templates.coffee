@@ -7,7 +7,6 @@ row_templates = require './view.row.templates'
 rowDetail_templates = require './view.rowDetail.templates'
 rowSelector_templates = require './view.rowSelector.templates'
 surveyApp_templates = require './view.surveyApp.templates'
-surveyDetails_templates = require './view.surveyDetails.templates'
 
 module.exports = do ->
   templates =
@@ -17,13 +16,11 @@ module.exports = do ->
     rowDetail: rowDetail_templates
     rowSelector: rowSelector_templates
     surveyApp: surveyApp_templates
-    surveyDetails: surveyDetails_templates
 
   templates['AcceptedFilesView.input'] = accepted_files_templates.acceptedFilesInput
   templates['ParamsView.numberParam'] = params_templates.numberParam
   templates['ParamsView.booleanParam'] = params_templates.booleanParam
   templates['xlfListView.addOptionButton']  = choices_templates.addOptionButton
-  templates['xlfSurveyDetailView']          = surveyDetails_templates.xlfSurveyDetailView
   templates['row.mandatorySettingSelector'] = row_templates.mandatorySettingSelector
   templates['row.rowErrorView']             = row_templates.rowErrorView
   templates['row.xlfRowView']               = row_templates.xlfRowView

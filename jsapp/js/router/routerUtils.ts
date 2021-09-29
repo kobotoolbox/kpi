@@ -18,6 +18,10 @@ export function redirectToLogin() {
   window.location.replace(getLoginUrl());
 }
 
+/**
+ * @returns {string} login url with a `next` parameter - after logging in, the
+ * app will redirect to the next url
+ */
 export function getLoginUrl() {
   let url = PATHS.LOGIN;
   const currentLoc = hashHistory.getCurrentLocation();
@@ -36,6 +40,10 @@ export function getCurrentPath(): string {
 /*
  * A list of functions that match routes defined in constants
  */
+
+export function isRootRoute(): boolean {
+  return getCurrentPath() === ROUTES.ROOT;
+}
 
 export function isAccountSettingsRoute(): boolean {
   return getCurrentPath() === ROUTES.ACCOUNT_SETTINGS;
