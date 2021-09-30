@@ -1,15 +1,15 @@
-@import "scss/_colors";
-@import "./singleProcessingVariables";
+@use "scss/_colors";
+@use "./singleProcessingVariables";
 
 .single-processing-submission-details {
-  padding-top: $s-single-processing-tabs;
+  padding-top: singleProcessingVariables.$s-single-processing-tabs;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .single-processing-submission-details__media-wrapper {
-  background-color: $kobo-white;
+  background-color: colors.$kobo-white;
   border-radius: 6px;
   margin-bottom: 20px;
   // right padding is for the audio player to appear centered
