@@ -1,5 +1,5 @@
-@import "scss/_colors";
-@import "scss/libs/_mdl";
+@use "scss/_colors";
+@use "scss/libs/_mdl";
 
 $z-kobo-dropdown-menu: 100;
 
@@ -28,7 +28,7 @@ $z-kobo-dropdown-menu: 100;
     display: block;
     position: absolute;
     z-index: $z-kobo-dropdown-menu;
-    @include box-shadow;
+    @include mdl.box-shadow;
     border-radius: 4px;
     min-width: 150px;
     list-style: none;
@@ -79,22 +79,22 @@ $z-kobo-dropdown-menu: 100;
 
 .kobo-dropdown.kobo-dropdown--light {
   .kobo-dropdown__menu {
-    color: $kobo-gray-40;
-    background-color: $kobo-white;
+    color: colors.$kobo-gray-40;
+    background-color: colors.$kobo-white;
 
     .kobo-dropdown__menu-button:hover {
-      background-color: $kobo-gray-96;
+      background-color: colors.$kobo-gray-96;
     }
   }
 }
 
 .kobo-dropdown.kobo-dropdown--dark {
   .kobo-dropdown__menu {
-    color: $kobo-white;
-    background-color: $kobo-gray-40;
+    color: colors.$kobo-white;
+    background-color: colors.$kobo-gray-40;
 
     .kobo-dropdown__menu-button:hover {
-      background-color: $kobo-gray-24;
+      background-color: colors.$kobo-gray-24;
     }
   }
 }

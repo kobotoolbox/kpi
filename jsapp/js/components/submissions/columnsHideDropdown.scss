@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 // nested selector needed for specificity
 .kobo-dropdown[data-name='columns-hide-dropdown']  {
@@ -12,13 +12,13 @@
   border: none;
   margin: 0;
   padding: 0;
-  color: $kobo-gray-55;
+  color: colors.$kobo-gray-55;
   font-size: 14px;
   font-weight: 500;
   line-height: 24px;
 
   &:hover {
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
   }
 
   .k-icon {
@@ -36,7 +36,7 @@
     margin: 0;
     font-size: 12px;
     line-height: 18px;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
 
     &:not(:first-child) {
       margin-top: 10px;

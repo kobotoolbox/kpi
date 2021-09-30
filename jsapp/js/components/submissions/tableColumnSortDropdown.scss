@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 // nested selector needed for specificity
 .kobo-dropdown[data-name='table-column-sort']  {
@@ -12,7 +12,7 @@
 
     &:hover,
     &:hover .k-icon {
-      color: $kobo-blue !important;
+      color: colors.$kobo-blue !important;
     }
   }
 
@@ -43,14 +43,14 @@
 
     .k-icon.k-icon-sort-up,
     .k-icon.k-icon-sort-down {
-      color: $kobo-teal-pale;
+      color: colors.$kobo-teal-pale;
     }
   }
 
   .kobo-dropdown__menu {
     .table-column-sort-dropdown-option {
       .table-column-sort-dropdown-clear {
-        color: $kobo-white !important;
+        color: colors.$kobo-white !important;
         float: right;
 
         &.k-icon {
@@ -59,8 +59,8 @@
       }
 
       &.table-column-sort-dropdown-option--active {
-        color: $kobo-teal-pale;
-        background-color: $kobo-gray-24; // Assuming we are using `dark` option
+        color: colors.$kobo-teal-pale;
+        background-color: colors.$kobo-gray-24; // Assuming we are using `dark` option
       }
     }
   }

@@ -1,7 +1,7 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 .form-view--form-media {
-  background-color: $kobo-white;
+  background-color: colors.$kobo-white;
 }
 
 .form-media {
@@ -26,14 +26,14 @@
       top: -2px;
       font-size: 24px;
       height: 24px;
-      color: $kobo-gray-40;
+      color: colors.$kobo-gray-40;
       cursor: pointer;
     }
   }
 
   .form-media__upload {
     .form-media-upload-url {
-      color: $kobo-gray-40;
+      color: colors.$kobo-gray-40;
       font-size: 18px;
       font-weight: 500;
       margin: auto;
@@ -54,15 +54,15 @@
         // Semi-hack: re-used formbuilder button but make it look like
         // KoboLightButton here
         .form-builder-header__button {
-          background: $kobo-white;
+          background: colors.$kobo-white;
           box-shadow: none;
-          color: $kobo-blue;
+          color: colors.$kobo-blue;
           border: 1px solid;
 
           &:hover {
-            color: $kobo-white;
-            background-color: $kobo-blue;
-            border-color: $kobo-blue;
+            color: colors.$kobo-white;
+            background-color: colors.$kobo-blue;
+            border-color: colors.$kobo-blue;
           }
         }
 
@@ -86,14 +86,14 @@
     label.form-media__label {
       margin-bottom: 11px;
       padding-bottom: 16px;
-      border-bottom: 1px solid $kobo-gray-92;
+      border-bottom: 1px solid colors.$kobo-gray-92;
     }
 
     .form-media__list-item {
       font-size: 16px;
       position: relative;
       padding-bottom: 12px;
-      border-bottom: 1px solid $kobo-gray-92;
+      border-bottom: 1px solid colors.$kobo-gray-92;
       margin-bottom: 12px;
       display: flex;
       justify-content: space-between;
@@ -111,7 +111,7 @@
         position: absolute;
         left: -5px;
         top: 2px;
-        color: $kobo-gray-65;
+        color: colors.$kobo-gray-65;
         font-size: 24px;
       }
 
@@ -134,7 +134,7 @@
   }
 
   .form-media__label {
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
     font-weight: 500;
     font-size: 22px;
     display: block;

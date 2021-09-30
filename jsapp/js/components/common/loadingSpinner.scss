@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 // Loading messages
 .loading {
@@ -29,7 +29,7 @@
       padding: 15px;
       font-size: 13px;
       display: block;
-      background: $kobo-white;
+      background: colors.$kobo-white;
       width: 80%;
       max-height: 300px;
       overflow: auto;
