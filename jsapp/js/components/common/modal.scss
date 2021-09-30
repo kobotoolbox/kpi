@@ -118,7 +118,7 @@ $z-modal-x: 10;
 
 .modal__x {
   z-index: $z-modal-x;
-  color: $kobo-gray-55;
+  color: colors.$kobo-gray-55;
   background-color: inherit;
   padding: 8px;
   margin: 11px 15px 11px 11px;

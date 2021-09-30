@@ -116,8 +116,8 @@
     padding: 0 24px;
 
     &:hover {
-      color: $kobo-white;
-      background-color: $kobo-blue;
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-blue;
     }
   }
 }
