@@ -1,5 +1,4 @@
 @use "scss/_colors";
-@use "scss/libs/_mdl";
 @use "js/components/common/checkbox-and-radio";
 
 // These are custom styles for Table View table.
@@ -256,10 +255,6 @@ $z-table-frozen: 10;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .rt-td.rt-numerical-value {
-    font-family: mdl.$font_mono;
   }
 
   .rt-thead.-filters .rt-th.rt-status {

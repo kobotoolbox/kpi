@@ -21,7 +21,6 @@ import {
   GROUP_TYPES_BEGIN,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
-  NUMERICAL_SUBMISSION_PROPS,
   ENKETO_ACTIONS,
 } from 'js/constants';
 import {formatTimeDate} from 'utils';
@@ -620,9 +619,6 @@ export class DataTable extends React.Component {
       }
 
       const elClassNames = [];
-      if (this.cellDisplaysNumbers(q || key)) {
-        elClassNames.push('rt-numerical-value');
-      }
 
       if (tableStore.getFieldSortValue(key) !== null) {
         elClassNames.push('is-sorted');
@@ -1163,20 +1159,6 @@ export class DataTable extends React.Component {
     } else {
       this.tableScrollTop = evt.target.scrollTop;
     }
-  }
-
-  cellDisplaysNumbers(questionOrKey) {
-    let questionType = questionOrKey;
-    if (questionOrKey.type) {
-      questionType = questionOrKey.type;
-    }
-
-    return (
-      NUMERICAL_SUBMISSION_PROPS[questionType]
-      // TODO: apply monospace font to media cells EXCLUDING text questions
-      // after duration is implemented
-      // || Object.keys(TABLE_MEDIA_TYPES).includes(questionType)
-    );
   }
 
   render() {
