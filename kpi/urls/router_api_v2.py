@@ -4,6 +4,8 @@ from rest_framework_extensions.routers import ExtendedDefaultRouter
 from kobo.apps.hook.views.v2.hook import HookViewSet
 from kobo.apps.hook.views.v2.hook_log import HookLogViewSet
 from kobo.apps.hook.views.v2.hook_signal import HookSignalViewSet
+from kpi.views.v2.analysis_questions import AnalysisQuestionsViewSet
+from kpi.views.v2.analysis_responses import AnalysisResponsesViewSet
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
@@ -24,6 +26,12 @@ URL_NAMESPACE = 'api_v2'
 router_api_v2 = ExtendedDefaultRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
 
+asset_routes.register(r'analysis-questions',
+                      AnalysisQuestionsViewSet,
+                      basename='analysis-questions',
+                      parents_query_lookups=['asset'],
+                      )
+
 asset_routes.register(r'files',
                       AssetFileViewSet,
                       basename='asset-file',
@@ -39,12 +47,6 @@ asset_routes.register(r'permission-assignments',
 asset_routes.register(r'versions',
                       AssetVersionViewSet,
                       basename='asset-version',
-                      parents_query_lookups=['asset'],
-                      )
-
-asset_routes.register(r'data',
-                      DataViewSet,
-                      basename='submission',
                       parents_query_lookups=['asset'],
                       )
 
@@ -71,6 +73,20 @@ asset_routes.register(r'paired-data',
                       basename='paired-data',
                       parents_query_lookups=['asset'],
                       )
+
+
+data_routes = asset_routes.register(r'data',
+                                    DataViewSet,
+                                    basename='submission',
+                                    parents_query_lookups=['asset'],
+                                    )
+
+data_routes.register(r'analysis-responses',
+                     AnalysisResponsesViewSet,
+                     basename='analysis-responses',
+                     parents_query_lookups=['asset', 'data']
+                     )
+
 
 hook_routes = asset_routes.register(r'hooks',
                                     HookViewSet,

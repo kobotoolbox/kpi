@@ -1,4 +1,5 @@
 # coding: utf-8
+from .analysis import AnalysisQuestions, AnalysisResponses
 from .asset import Asset
 from .asset import UserAssetSubscription
 from .asset_export_settings import AssetExportSettings
