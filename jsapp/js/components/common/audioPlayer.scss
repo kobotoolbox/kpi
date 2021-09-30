@@ -1,9 +1,9 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 @mixin rangeTrack() {
   -webkit-appearance: none;
   border-radius: 10px;
-  background: $kobo-gray-92;
+  background: colors.$kobo-gray-92;
   height: 8px;
 }
 
@@ -24,12 +24,12 @@
       cursor: pointer;
 
       &:hover {
-        background-color: $kobo-gray-92;
+        background-color: colors.$kobo-gray-92;
       }
     }
 
     i.k-icon-caret-right, i.k-icon-pause {
-      color: $kobo-blue;
+      color: colors.$kobo-blue;
     }
   }
 
@@ -47,11 +47,11 @@
       font-size: 18px;
 
       .audio-player__time-current {
-        color: $kobo-blue;
+        color: colors.$kobo-blue;
       }
 
       .audio-player__time-total {
-        color: $kobo-gray-65;
+        color: colors.$kobo-gray-65;
       }
     }
 
@@ -73,7 +73,7 @@
 
       // Firefox progress styles are easy peasy
       &::-moz-range-progress {
-        background-color: $kobo-blue;
+        background-color: colors.$kobo-blue;
         height: 8px;
         border-radius: 10px;
       }
@@ -90,8 +90,8 @@
         appearance: none;
         height: 8px;
         width: 8px;
-        background: $kobo-blue;
-        box-shadow: -10005px 0 0 10000px $kobo-blue;
+        background: colors.$kobo-blue;
+        box-shadow: -10005px 0 0 10000px colors.$kobo-blue;
         border-radius: 10px;
       }
 

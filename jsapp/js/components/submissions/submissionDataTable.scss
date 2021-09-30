@@ -1,5 +1,5 @@
-@import "scss/_colors";
-@import "scss/libs/_mdl";
+@use "scss/_colors";
+@use "scss/libs/_mdl";
 
 $submission-data-table-space: 12px;
 
@@ -12,22 +12,22 @@ $submission-data-table-space: 12px;
 }
 
 .submission-data-table__row {
-  background-color: $kobo-gray-96;
+  background-color: colors.$kobo-gray-96;
 
   &.submission-data-table__row--type-group_root + &.submission-data-table__row--metadata {
-    border-top: 3px solid $kobo-gray-92;
+    border-top: 3px solid colors.$kobo-gray-92;
   }
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--group,
   &.submission-data-table__row--group-label {
-    border-bottom: 1px solid $kobo-gray-92;
+    border-bottom: 1px solid colors.$kobo-gray-92;
   }
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--group {
-    border-left: 1px solid $kobo-gray-92;
-    border-right: 1px solid $kobo-gray-92;
+    border-left: 1px solid colors.$kobo-gray-92;
+    border-right: 1px solid colors.$kobo-gray-92;
   }
 
   &.submission-data-table__row--columns {
@@ -37,8 +37,8 @@ $submission-data-table-space: 12px;
 
   &.submission-data-table__row--column-names {
     font-weight: bold;
-    background-color: $kobo-gray-40;
-    color: $kobo-white;
+    background-color: colors.$kobo-gray-40;
+    color: colors.$kobo-white;
   }
 
   &.submission-data-table__row--group-label {
@@ -63,12 +63,12 @@ $submission-data-table-space: 12px;
 
   &.submission-data-table__row--response,
   &.submission-data-table__row--point {
-    background-color: $kobo-white;
+    background-color: colors.$kobo-white;
   }
 
   &.submission-data-table__row--point {
     & + & {
-      border-top: 1px dotted $kobo-gray-92;
+      border-top: 1px dotted colors.$kobo-gray-92;
     }
 
     &:first-child .submission-data-table__column {
@@ -106,7 +106,7 @@ $submission-data-table-space: 12px;
 
   &.submission-data-table__column--data {
     flex: 1;
-    font-family: $font_mono;
+    font-family: mdl.$font_mono;
   }
 }
 
@@ -115,12 +115,12 @@ $submission-data-table-space: 12px;
   margin-left: 0.5em;
   font-size: 0.8em;
   line-height: 1;
-  color: $kobo-gray-40;
-  font-family: $font_mono;
+  color: colors.$kobo-gray-40;
+  font-family: mdl.$font_mono;
 }
 
 .submission-data-table__value {
-  color: $kobo-gray-24;
+  color: colors.$kobo-gray-24;
   display: inline-block;
-  font-family: $font_mono;
+  font-family: mdl.$font_mono;
 }
