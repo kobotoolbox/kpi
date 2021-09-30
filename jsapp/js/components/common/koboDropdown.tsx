@@ -73,7 +73,7 @@ export default class KoboDropdown extends React.Component<
 
   componentDidMount() {
     this.unlisteners.push(
-      koboDropdownActions.hideAnyDropdown.requested.listen(this.hideMenu)
+      koboDropdownActions.hideAnyDropdown.requested.listen(this.hideMenu.bind(this))
     );
   }
 
@@ -119,11 +119,11 @@ export default class KoboDropdown extends React.Component<
   }
 
   registerEscKeyListener() {
-    document.addEventListener('keydown', this.onAnyKeyWhileOpen);
+    document.addEventListener('keydown', this.onAnyKeyWhileOpen.bind(this));
   }
 
   cancelEscKeyListener() {
-    document.removeEventListener('keydown', this.onAnyKeyWhileOpen);
+    document.removeEventListener('keydown', this.onAnyKeyWhileOpen.bind(this));
   }
 
   onAnyKeyWhileOpen(evt: React.ChangeEvent<HTMLInputElement> | any) {
@@ -138,17 +138,17 @@ export default class KoboDropdown extends React.Component<
   }
 
   registerOutsideClickListener() {
-    window.addEventListener('click', this.checkOutsideClick);
-    window.addEventListener('touch', this.checkOutsideClick);
-    window.addEventListener('touchstart', this.checkOutsideClick);
-    window.addEventListener('contextmenu', this.checkOutsideClick);
+    window.addEventListener('click', this.checkOutsideClick.bind(this));
+    window.addEventListener('touch', this.checkOutsideClick.bind(this));
+    window.addEventListener('touchstart', this.checkOutsideClick.bind(this));
+    window.addEventListener('contextmenu', this.checkOutsideClick.bind(this));
   }
 
   cancelOutsideClickListener() {
-    window.removeEventListener('click', this.checkOutsideClick);
-    window.removeEventListener('touch', this.checkOutsideClick);
-    window.removeEventListener('touchstart', this.checkOutsideClick);
-    window.removeEventListener('contextmenu', this.checkOutsideClick);
+    window.removeEventListener('click', this.checkOutsideClick.bind(this));
+    window.removeEventListener('touch', this.checkOutsideClick.bind(this));
+    window.removeEventListener('touchstart', this.checkOutsideClick.bind(this));
+    window.removeEventListener('contextmenu', this.checkOutsideClick.bind(this));
   }
 
   checkOutsideClick(evt: React.ChangeEvent<HTMLInputElement> | any) {
