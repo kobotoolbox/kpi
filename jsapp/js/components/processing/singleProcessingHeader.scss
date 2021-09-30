@@ -1,11 +1,11 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 .single-processing-header {
   display: flex;
   flex-direction: row;
   align-items: center;
-  color: $kobo-gray-40;
-  background-color: $kobo-white;
+  color: colors.$kobo-gray-40;
+  background-color: colors.$kobo-white;
 }
 
 .single-processing-header__type-icon {
@@ -13,8 +13,8 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  color: $kobo-white;
-  background-color: $kobo-teal;
+  color: colors.$kobo-white;
+  background-color: colors.$kobo-teal;
   width: 52px;
   height: 52px;
   border-radius: 8px;
@@ -67,7 +67,7 @@
 .single-processing-header__number {
   min-width: 42px;
   text-align: center;
-  border-color: $kobo-gray-92;
+  border-color: colors.$kobo-gray-92;
   cursor: default;
 }
 
@@ -79,7 +79,7 @@
 
 .single-processing-header__button {
   cursor: pointer;
-  color: $kobo-blue;
+  color: colors.$kobo-blue;
   background-color: transparent;
   border: 0;
 
@@ -93,7 +93,7 @@
   }
 
   &:hover {
-    background-color: $kobo-gray-92;
+    background-color: colors.$kobo-gray-92;
   }
 
   &.single-processing-header__button--prev,
@@ -112,12 +112,12 @@
   }
 
   &.single-processing-header__button--done {
-    border-color: $kobo-blue;
+    border-color: colors.$kobo-blue;
     padding: 0 24px;
 
     &:hover {
-      color: $kobo-white;
-      background-color: $kobo-blue;
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-blue;
     }
   }
 }
