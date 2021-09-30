@@ -1,4 +1,4 @@
-@import "scss/libs/_mdl";
+@use "scss/libs/_mdl";
 
 // RESTServices custom overrides
 
@@ -66,5 +66,5 @@
 // custom styles for RESTServicesForm
 
 .form-modal__item.form-modal__item--rest-custom-wrapper textarea {
-  font-family: $font_mono;
+  font-family: mdl.$font_mono;
 }

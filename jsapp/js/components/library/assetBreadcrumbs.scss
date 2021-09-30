@@ -1,5 +1,5 @@
-@import "scss/_colors";
-@import "scss/_variables";
+@use "scss/_colors";
+@use "scss/_variables";
 
 .breadcrumbs {
   font-size: 24px;
@@ -11,19 +11,19 @@
   align-items: center;
 
   &.breadcrumbs--gray-wrapper {
-    background: $kobo-gray-96;
-    padding: #{($s-breadcrumbs-height - 40px) * 0.5} 20px;
-    height: $s-breadcrumbs-height;
+    background: colors.$kobo-gray-96;
+    padding: #{(variables.$s-breadcrumbs-height - 40px) * 0.5} 20px;
+    height: variables.$s-breadcrumbs-height;
   }
 
   .breadcrumbs__crumb,
   .breadcrumbs__divider {
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
   }
 
   .breadcrumbs__crumb {
     &:last-of-type {
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
   }
 

@@ -1,10 +1,10 @@
-@import "scss/_colors";
-@import "scss/libs/_mdl";
+@use "scss/_colors";
+@use "scss/libs/_mdl";
 
 .account-settings {
   width: 100%;
   height: 100%;
-  background: $kobo-white;
+  background: colors.$kobo-white;
   overflow-y: auto;
   position: relative;
 
@@ -28,7 +28,7 @@
 
     .form-modal__item--api-token {
       input {
-        font-family: $font_mono;
+        font-family: mdl.$font_mono;
         width: 50%;
       }
     }
@@ -67,11 +67,11 @@
   h4 {
     margin: 0;
     font-weight: 400;
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
   }
 
   .account-settings__desc {
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
   }
 
   .form-modal__item--primary-sector {

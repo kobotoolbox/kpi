@@ -1,6 +1,6 @@
-@import "scss/_colors";
-@import "scss/_variables";
-@import "scss/libs/_mdl";
+@use "scss/_colors";
+@use "scss/_variables";
+@use "scss/libs/_mdl";
 
 $s-flexed-row-button-width: 100px;
 $s-flexed-row-select-width: 200px;
@@ -10,7 +10,7 @@ $s-gray-row-spacing: 10px;
   h2 {
     margin: 0;
     font-size: 14px;
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
     font-weight: 500;
   }
 
@@ -38,7 +38,7 @@ $s-gray-row-spacing: 10px;
 
   .copy-team-permissions-opener {
     cursor: pointer;
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
     border: 0;
     background: transparent;
     padding-left: 0;
@@ -50,7 +50,7 @@ $s-gray-row-spacing: 10px;
     margin-bottom: 10px;
 
     &:hover {
-      color: $kobo-blue-dark;
+      color: colors.$kobo-blue-dark;
     }
 
     &:active {
@@ -70,7 +70,7 @@ $s-gray-row-spacing: 10px;
 }
 
 .user-row {
-  border-bottom: 1px solid $kobo-gray-92;
+  border-bottom: 1px solid colors.$kobo-gray-92;
   padding-bottom: 5px;
   padding-top: 5px;
 
@@ -138,7 +138,7 @@ $s-gray-row-spacing: 10px;
 
 .user-permissions-editor {
   .react-tagsinput-input {
-    background-color: $kobo-white;
+    background-color: colors.$kobo-white;
   }
 
   .user-permissions-editor__row {
@@ -162,8 +162,8 @@ $s-gray-row-spacing: 10px;
       left: 10px;
       width: 15px;
       height: 15px;
-      border-left: 1px solid $kobo-gray-92;
-      border-bottom: 1px solid $kobo-gray-92;
+      border-left: 1px solid colors.$kobo-gray-92;
+      border-bottom: 1px solid colors.$kobo-gray-92;
       border-radius: 2px;
     }
   }
@@ -175,7 +175,7 @@ $s-gray-row-spacing: 10px;
 
 .user-row__editor,
 .form-modal__item--gray-row {
-  background: $kobo-gray-96;
+  background: colors.$kobo-gray-96;
   padding: 15px;
 }
 
