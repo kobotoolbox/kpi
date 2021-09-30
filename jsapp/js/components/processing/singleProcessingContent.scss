@@ -1,5 +1,5 @@
-@import "scss/_colors";
-@import "./singleProcessingVariables";
+@use "scss/_colors";
+@use "./singleProcessingVariables";
 
 .single-processing-content {
   display: flex;
@@ -15,12 +15,12 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  height: $s-single-processing-tabs;
+  height: singleProcessingVariables.$s-single-processing-tabs;
 }
 
 .single-processing-content__tab {
   cursor: pointer;
-  color: $kobo-gray-55;
+  color: colors.$kobo-gray-55;
   position: relative;
   font-weight: 900;
   font-size: 16px;
@@ -33,7 +33,7 @@
   }
 
   &:hover {
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
   }
 
   &:active:not(.single-processing-content__tab--active) {
@@ -50,10 +50,10 @@
   }
 
   &.single-processing-content__tab--active {
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
 
     &::after {
-      background-color: $kobo-teal;
+      background-color: colors.$kobo-teal;
     }
   }
 
@@ -64,7 +64,7 @@
 }
 
 .single-processing-content__body {
-  background-color: $kobo-white;
+  background-color: colors.$kobo-white;
   border-radius: 6px 6px 0 0;
   flex: 1;
 }

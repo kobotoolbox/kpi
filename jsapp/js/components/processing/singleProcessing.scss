@@ -1,5 +1,5 @@
-@import "scss/_colors";
-@import "./singleProcessingVariables";
+@use "scss/_colors";
+@use "./singleProcessingVariables";
 
 $s-single-processing-header: 76px;
 
@@ -16,7 +16,7 @@ $s-single-processing-header: 76px;
   align-items: stretch;
   width: 100%;
   height: 100%;
-  background-color: $kobo-gray-92;
+  background-color: colors.$kobo-gray-92;
 
 }
 
@@ -40,7 +40,7 @@ $s-single-processing-header: 76px;
   // used for details
   display: flex;
   flex-direction: column;
-  padding-bottom: $s-single-processing-tabs;
+  padding-bottom: singleProcessingVariables.$s-single-processing-tabs;
 }
 
 .single-processing__bottom-right {
