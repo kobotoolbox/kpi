@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 @media screen and (min-width: 961px) {
   .report-view {
@@ -11,21 +11,21 @@
 }
 
 .report-view__item {
-  border: 1px solid $kobo-gray-92;
+  border: 1px solid colors.$kobo-gray-92;
   margin: 15px 0px;
-  background: $kobo-white;
+  background: colors.$kobo-white;
 }
 
 .report-view__itemHeading {
   padding: 10px 24px;
-  border-left: 5px solid $kobo-teal;
-  border-bottom: 1px solid $kobo-gray-92;
+  border-left: 5px solid colors.$kobo-teal;
+  border-bottom: 1px solid colors.$kobo-gray-92;
   position: relative;
 
   h2 {
     margin: 0px;
     margin-right: 60px;
-    color: $kobo-teal;
+    color: colors.$kobo-teal;
     font-size: 16px;
     font-weight: normal;
     line-height: 1.35em;
@@ -62,8 +62,8 @@
     thead th {
       margin: 0px;
       padding: 8px;
-      background-color: $kobo-gray-40;
-      color: $kobo-white;
+      background-color: colors.$kobo-gray-40;
+      color: colors.$kobo-white;
       text-align: right;
       font-weight: normal;
       font-size: 14px;
@@ -74,7 +74,7 @@
     }
 
     tbody tr td {
-      border-bottom: 1px solid $kobo-gray-65;
+      border-bottom: 1px solid colors.$kobo-gray-65;
       padding: 8px;
       text-align: right;
 
@@ -174,7 +174,7 @@
     margin-bottom: 20px;
     display: block;
     font-weight: 400;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
   }
 }
 
@@ -196,7 +196,7 @@
   }
 
   input:checked + label {
-    border: 2px solid $kobo-blue;
+    border: 2px solid colors.$kobo-blue;
   }
 
   &--vertical {

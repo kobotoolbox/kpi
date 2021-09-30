@@ -1,13 +1,13 @@
-@import "scss/_colors";
-@import "scss/_variables";
-@import "scss/libs/_mdl";
+@use "scss/_colors";
+@use "scss/_variables";
+@use "scss/libs/_mdl";
 
 /* ==========================================================================
  * AssetsTable
  * ========================================================================== */
 
 $assets-table-min-width: 820px;
-$assets-table-hover-bg: $kobo-teal-light;
+$assets-table-hover-bg: colors.$kobo-teal-light;
 
 .form-view__cell--assets-table-wrapper {
   min-width: $assets-table-min-width + 2px;
@@ -15,15 +15,15 @@ $assets-table-hover-bg: $kobo-teal-light;
 
 .assets-table {
   width: 100%;
-  background-color: $kobo-white;
+  background-color: colors.$kobo-white;
   // for small screens we want the table to still be readable so we enable
   // horizontal scroll
   overflow-x: auto;
 
   &.assets-table--fullscreen {
     position: fixed;
-    z-index: $z-fullscreen;
-    border: 15px solid $root-background;
+    z-index: mdl.$z-fullscreen;
+    border: 15px solid mdl.$root-background;
     top: 0;
     left: 0;
     bottom: 0;
@@ -40,7 +40,7 @@ $assets-table-hover-bg: $kobo-teal-light;
 }
 
 .assets-table__header .assets-table-row .assets-table-row__column {
-  color: $kobo-gray-24;
+  color: colors.$kobo-gray-24;
 }
 
 .assets-table__header,
@@ -55,7 +55,7 @@ $assets-table-hover-bg: $kobo-teal-light;
 
 .assets-table__scrollbar-padding {
   // for taking the same space as scrollbar, width is being set in JS code
-  background-color: $kobo-gray-96;
+  background-color: colors.$kobo-gray-96;
   align-self: stretch;
 }
 
@@ -65,8 +65,8 @@ $assets-table-hover-bg: $kobo-teal-light;
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  color: $kobo-gray-40;
-  background-color: $kobo-gray-96;
+  color: colors.$kobo-gray-40;
+  background-color: colors.$kobo-gray-96;
   height: 40px;
 
   .mdl-button {
@@ -88,7 +88,7 @@ $assets-table-hover-bg: $kobo-teal-light;
 
 .assets-table--MY_LIBRARY,
 .assets-table--PUBLIC_COLLECTIONS {
-  height: calc(100% - #{$s-breadcrumbs-height});
+  height: calc(100% - #{variables.$s-breadcrumbs-height});
   display: flex;
   flex-direction: column;
 
@@ -187,12 +187,12 @@ $z-assets-table-row-header: 30;
       &::before {
         position: relative;
         z-index: 1;
-        color: $kobo-white;
+        color: colors.$kobo-white;
       }
 
       &::after {
         content: "";
-        background-color: $kobo-teal;
+        background-color: colors.$kobo-teal;
         position: absolute;
         z-index: 0;
         top: -3px;
@@ -209,7 +209,7 @@ $z-assets-table-row-header: 30;
   }
 
   &:first-of-type:hover .assets-table-row__column {
-    border-top-color: $kobo-gray-92;
+    border-top-color: colors.$kobo-gray-92;
   }
 
   // columns get very narrow
@@ -225,11 +225,11 @@ $z-assets-table-row-header: 30;
     white-space: nowrap;
     height: 40px;
     line-height: 20px;
-    background-color: $kobo-gray-96;
+    background-color: colors.$kobo-gray-96;
     padding: 10px;
 
     &:hover {
-      background-color: $kobo-gray-92;
+      background-color: colors.$kobo-gray-92;
     }
 
     .k-icon {
@@ -300,9 +300,9 @@ $z-assets-table-row-header: 30;
   }
 
   .assets-table-row__column {
-    border-top: 1px solid $kobo-gray-92;
+    border-top: 1px solid colors.$kobo-gray-92;
     padding: 20px 10px;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
 
     &[disabled] {
       pointer-events: none;
@@ -315,7 +315,7 @@ $z-assets-table-row-header: 30;
 
     &.assets-table-row__column--name {
       flex: 1;
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
 
     &.assets-table-row__column--owner {
@@ -369,7 +369,7 @@ $z-assets-table-row-header: 30;
   font-size: 12px;
   line-height: 1;
   color: currentColor;
-  background: $kobo-gray-92;
+  background: colors.$kobo-gray-92;
   border-radius: 2px;
 
   &.assets-table-row__tag--gray-circle {

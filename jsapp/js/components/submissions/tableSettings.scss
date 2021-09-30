@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 .tableColumn-modal {
   .form-view__cell--label {
@@ -9,9 +9,9 @@
     margin-bottom: 20px;
 
     &--advanced-table-options {
-      border: 1px solid $kobo-gray-92;
+      border: 1px solid colors.$kobo-gray-92;
       padding: 20px;
-      background: $kobo-gray-96;
+      background: colors.$kobo-gray-96;
 
       .form-view__cell--note {
         padding-bottom: 20px;
@@ -34,9 +34,9 @@
   ul {
     max-height: 160px;
     overflow: auto;
-    border: 1px solid $kobo-gray-92;
+    border: 1px solid colors.$kobo-gray-92;
     padding: 10px;
-    background: $kobo-white;
+    background: colors.$kobo-white;
 
     li {
       margin-bottom: 5px;
