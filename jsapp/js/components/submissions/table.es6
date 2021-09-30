@@ -1014,30 +1014,27 @@ export class DataTable extends React.Component {
   }
 
   onPageStateUpdated(pageState) {
-    if (!pageState.modal) {
-      return false;
-    }
-
-    if (pageState.modal.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS) {
-      return false;
-    }
-
-    let params = pageState.modal;
-    let page = 0;
-
-    if (params.type !== MODAL_TYPES.TABLE_SETTINGS && !params.sid) {
+    // This function serves purpose only for Submission Modal and only when
+    // user reaches the end of currently loaded submissions in the table with
+    // the "next" button.
+    if (
+      pageState.modal &&
+      pageState.modal.type === MODAL_TYPES.SUBMISSION &&
+      !pageState.modal.sid
+    ) {
+      let page = 0;
       let fetchInstance = this.state.fetchInstance;
-      if (params.page === 'next') {
+      if (pageState.modal.page === 'next') {
         page = this.state.currentPage + 1;
       }
-      if (params.page === 'prev') {
+      if (pageState.modal.page === 'prev') {
         page = this.state.currentPage - 1;
       }
 
       fetchInstance.setState({ page: page });
       this.setState({
         fetchInstance: fetchInstance,
-        submissionPager: params.page,
+        submissionPager: pageState.modal.page,
       }, function () {
         this.fetchData(this.state.fetchState, this.state.fetchInstance);
       });
