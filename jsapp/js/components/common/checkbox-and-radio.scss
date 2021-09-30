@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 .radio,
 .checkbox {
@@ -40,7 +40,7 @@
   .checkbox__label {
     // it's 28px plus whitespace between inline-blocks
     max-width: calc(100% - 32px);
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
     font-size: 14px;
   }
 
@@ -59,7 +59,7 @@
       border-radius: 50%;
       width: 10px;
       height: 10px;
-      background-color: $kobo-blue;
+      background-color: colors.$kobo-blue;
     }
   }
 
@@ -73,8 +73,8 @@
       transform: translate(-50%, -50%);
       width: 18px;
       height: 18px;
-      color: $kobo-white;
-      background-color: $kobo-blue;
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-blue;
       text-align: center;
       line-height: 18px;
       font-size: 18px;
@@ -86,12 +86,12 @@
     appearance: none;
     position: relative;
     margin: 0;
-    border: 1px solid $kobo-gray-40;
+    border: 1px solid colors.$kobo-gray-40;
     width: 20px;
     height: 20px;
     outline: 0;
-    background-color: $kobo-white;
-    color: $kobo-gray-40;
+    background-color: colors.$kobo-white;
+    color: colors.$kobo-gray-40;
     cursor: pointer;
 
     &::after {
@@ -101,7 +101,7 @@
     }
 
     &:checked {
-      border-color: $kobo-blue;
+      border-color: colors.$kobo-blue;
 
       &::after { opacity: 1; }
     }

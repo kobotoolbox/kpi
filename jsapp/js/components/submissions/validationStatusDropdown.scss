@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 // A custom react-select for validation status
 .kobo-select.kobo-select--validation {
@@ -24,7 +24,7 @@
 
   .kobo-select__control {
     padding: 0;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
     background: transparent;
     height: 28px;
     min-height: 28px;
@@ -45,7 +45,7 @@
     position: relative;
 
     &:hover {
-      background-color: $kobo-gray-96;
+      background-color: colors.$kobo-gray-96;
     }
   }
 
@@ -71,12 +71,12 @@
 
   &.kobo-select--for-nonwhite-background {
     .kobo-select__control {
-      background: $kobo-white;
+      background: colors.$kobo-white;
       border-radius: 3px;
       padding-right: 5px;
 
       .kobo-select__option-badge {
-        background: $kobo-white !important;
+        background: colors.$kobo-white !important;
       }
     }
 
@@ -134,18 +134,18 @@
     }
 
     &.kobo-select__option-badge--validation_status_not_approved {
-      color: $kobo-red-pale-dark;
-      background-color: $kobo-red-pale;
+      color: colors.$kobo-red-pale-dark;
+      background-color: colors.$kobo-red-pale;
     }
 
     &.kobo-select__option-badge--validation_status_approved {
-      color: $kobo-teal-pale-dark;
-      background-color: $kobo-teal-pale;
+      color: colors.$kobo-teal-pale-dark;
+      background-color: colors.$kobo-teal-pale;
     }
 
     &.kobo-select__option-badge--validation_status_on_hold {
-      color: $kobo-orange-pale-dark;
-      background-color: $kobo-orange-pale;
+      color: colors.$kobo-orange-pale-dark;
+      background-color: colors.$kobo-orange-pale;
     }
   }
 }

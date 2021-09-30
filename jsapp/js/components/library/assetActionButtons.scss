@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 .asset-action-buttons {
   display: flex;
@@ -43,14 +43,14 @@
   overflow: hidden;
   position: relative;
   padding: 5px 8px 5px 30px;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
   background-color: transparent;
   border: 1px solid currentColor;
 
   &:hover {
-    color: $kobo-white;
-    background-color: $kobo-gray-40;
-    border-color: $kobo-gray-40;
+    color: colors.$kobo-white;
+    background-color: colors.$kobo-gray-40;
+    border-color: colors.$kobo-gray-40;
   }
 
   &:active {
@@ -62,7 +62,7 @@
 
     &.asset-action-buttons__button--on,
     &.asset-action-buttons__button--off {
-      color: $kobo-gray-65;
+      color: colors.$kobo-gray-65;
     }
   }
 
@@ -81,31 +81,31 @@
   }
 
   &.asset-action-buttons__button--on {
-    color: $kobo-teal;
+    color: colors.$kobo-teal;
 
     &:hover {
-      color: $kobo-white;
-      background-color: $kobo-teal;
-      border-color: $kobo-teal;
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-teal;
+      border-color: colors.$kobo-teal;
     }
   }
 
   &.asset-action-buttons__button--off {
-    color: $kobo-red;
+    color: colors.$kobo-red;
 
     &:hover {
-      color: $kobo-white;
-      background-color: $kobo-red;
-      border-color: $kobo-red;
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-red;
+      border-color: colors.$kobo-red;
     }
   }
 }
 
 .asset-action-buttons__icon-button {
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
 
   &:hover {
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
   }
 }
 
