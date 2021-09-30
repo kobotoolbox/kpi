@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 .connect-projects {
   i.k-icon {
@@ -43,7 +43,7 @@
       position: relative;
       padding-top: 12px;
       border-top: 1px solid;
-      border-color: $kobo-gray-92;
+      border-color: colors.$kobo-gray-92;
 
       .connect-projects__export-hint {
         width: 45%;
@@ -66,7 +66,7 @@
         width: 50%;
         margin-right: 50px;
         .kobo-select__placeholder {
-          color: $kobo-gray-24;
+          color: colors.$kobo-gray-24;
         }
       }
 
@@ -76,8 +76,8 @@
         margin-right: 24px;
         .text-box__input {
           padding: 9px 10px;
-          background-color: $kobo-white;
-          color: $kobo-gray-24;
+          background-color: colors.$kobo-white;
+          color: colors.$kobo-gray-24;
         }
       }
     }
@@ -89,7 +89,7 @@
       margin-top: 20px;
       font-size: 14px;
       font-weight: bold;
-      color: $kobo-gray-40;
+      color: colors.$kobo-gray-40;
     }
 
     .connect-projects__import-list-item,
@@ -100,12 +100,12 @@
       margin-top: 7px;
       margin-bottom: 10px;
       border-bottom: 1px solid;
-      border-color: $kobo-gray-92;
+      border-color: colors.$kobo-gray-92;
     }
 
     .connect-projects__import-list-item--no-imports {
       font-style: italic;
-      color: $kobo-gray-65;
+      color: colors.$kobo-gray-65;
       // Match vertial height of a regular list item
       padding: 11px 0 11px 11px;
     }
@@ -114,7 +114,7 @@
       padding-bottom: 10px;
 
       i.k-icon-check {
-        color: $kobo-blue;
+        color: colors.$kobo-blue;
       }
 
       .connect-projects__import-labels {
@@ -124,14 +124,14 @@
         font-weight: 500;
 
         i.k-icon-check {
-          color: $kobo-blue;
+          color: colors.$kobo-blue;
           font-weight: bold;
         }
 
         .connect-projects__import-labels-source {
           margin-left: 24px;
           font-weight: 400;
-          color: $kobo-gray-40;
+          color: colors.$kobo-gray-40;
         }
       }
 
@@ -162,7 +162,7 @@
 }
 
 .form-modal__form.form-modal__form--data-attachment-columns {
-   color: $kobo-gray-55;
+   color: colors.$kobo-gray-55;
 
   .bulk-options {
     margin-top: 14px;
