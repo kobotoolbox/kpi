@@ -79,8 +79,6 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   }
 
   render() {
-    console.log(this.getQuestionsToHide())
-
     return (
       <bem.SingleProcessingSubmissionDetails>
         {this.renderMedia()}
