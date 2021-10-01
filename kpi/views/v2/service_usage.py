@@ -1,14 +1,13 @@
 import copy
+import json
 from datetime import datetime
 
 from django.db.models import Sum
 from rest_framework import (
-    renderers,
     status,
     viewsets,
 )
 from rest_framework.response import Response
-from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatSubmissionCounter,
@@ -88,4 +87,5 @@ class ServiceUsageViewSet(viewsets.ViewSet):
                 'submissions_has_attachment': submission_with_attachments.count(),
             })
 
+        json.dumps(data, indent=4)
         return Response(data, status=status.HTTP_200_OK)
