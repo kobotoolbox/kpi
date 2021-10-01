@@ -96,5 +96,3 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
     )
   }
 }
-
-export default KoboRange
