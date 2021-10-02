@@ -364,8 +364,8 @@ class KoboMatrix extends React.Component {
 
     if (type === 'name') {
       val = this.autoName(val, false, kuid);
-      data = immutableUpdateChoice(data, rowKuid, 'name', val);
-      data = immutableUpdateChoice(data, rowKuid, '$autovalue', val);
+      data = immutableUpdateChoice(data, kuid, 'name', val);
+      data = immutableUpdateChoice(data, kuid, '$autovalue', val);
     }
 
     this.setState({data: data});
@@ -382,7 +382,7 @@ class KoboMatrix extends React.Component {
   }
 
   getChoiceField(kuid, field) {
-    return immutableGetChoiceFieldByKuid(data, kuid, field)
+    return immutableGetChoiceFieldByKuid(this.state.data, kuid, field);
   }
 
   getRequiredStatus(colKuid) {
