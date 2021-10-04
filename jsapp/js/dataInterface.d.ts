@@ -7,8 +7,9 @@ interface FailResponse {
   statusText: string
 }
 
-interface GetSubmissionsIdsResponse extends PaginatedResponse {
+interface GetProcessingSubmissionsResponse extends PaginatedResponse {
   results: {
+    [questionName: string]: any
     _id: number
   }[]
 }

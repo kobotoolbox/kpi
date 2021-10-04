@@ -14,7 +14,7 @@ const submissionsActions = Reflux.createActions({
   bulkPatchStatus: {children: ['completed', 'failed']},
   bulkPatchValues: {children: ['completed', 'failed']},
   bulkDelete: {children: ['completed', 'failed']},
-  getSubmissionsIds: {children: ['completed', 'failed']},
+  getProcessingSubmissions: {children: ['completed', 'failed']},
 });
 
 /**
@@ -56,14 +56,14 @@ submissionsActions.getSubmissions.listen((options) => {
  * This gets an array of submission ids
  * @param {string} assetUid
  */
-submissionsActions.getSubmissionsIds.listen((assetUid) => {
+submissionsActions.getProcessingSubmissions.listen((assetUid, questionPath) => {
   $.ajax({
     dataType: 'json',
     method: 'GET',
-    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_id"]`,
+    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_id", "${questionPath}"]`,
   })
-    .done(submissionsActions.getSubmissionsIds.completed)
-    .fail(submissionsActions.getSubmissionsIds.failed);
+    .done(submissionsActions.getProcessingSubmissions.completed)
+    .fail(submissionsActions.getProcessingSubmissions.failed);
 });
 
 submissionsActions.getSubmission.listen((assetUid, submissionId) => {

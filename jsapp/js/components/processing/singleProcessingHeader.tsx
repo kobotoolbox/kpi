@@ -19,7 +19,7 @@ type SingleProcessingHeaderProps = {
   questionName: string
   questionLabel: string
   submissionId: string
-  submissionsIds: string[]
+  submissionsIds: (string | null)[]
   assetUid: string
 }
 
@@ -49,24 +49,26 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   /**
-   * Goes to another submission (relatively to current one)
+   * Goes to another submission
    */
-  goToSubmission(indexChange: number) {
-    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId)
-    const newSubmissionId = this.props.submissionsIds[currentIndex + indexChange]
+  goToSubmission(targetSubmissionId: string) {
     const newRoute = ROUTES.FORM_PROCESSING
       .replace(':uid', this.props.assetUid)
       .replace(':questionName', this.props.questionName)
-      .replace(':submissionId', newSubmissionId)
+      .replace(':submissionId', targetSubmissionId)
     hashHistory.push(newRoute)
   }
 
   goPrev() {
-    this.goToSubmission(-1)
+    if (this.state.prevSubmissionId) {
+      this.goToSubmission(this.state.prevSubmissionId)
+    }
   }
 
   goNext() {
-    this.goToSubmission(1)
+    if (this.state.nextSubmissionId) {
+      this.goToSubmission(this.state.nextSubmissionId)
+    }
   }
 
   /**
@@ -76,6 +78,10 @@ export default class SingleProcessingHeader extends React.Component<
     return this.props.submissionsIds.indexOf(this.props.submissionId) + 1
   }
 
+  /**
+   * Looks for closest previous submissionId that has data. It omits all `null`s
+   * in submissionsIds array. Returns `null` if there is no such submissionId.
+   */
   getPrevSubmissionId(): string | null {
     const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId)
     // if not found current submissionId in the array, we don't know what is next
@@ -86,9 +92,23 @@ export default class SingleProcessingHeader extends React.Component<
     if (currentIndex === 0) {
       return null
     }
-    return this.props.submissionsIds[currentIndex - 1] || null
+
+    // finds the closest non-null submissionId going backwards from current one
+    const leftSubmissionsIds = this.props.submissionsIds.slice(0, currentIndex)
+    let foundId: string | null = null
+    leftSubmissionsIds.forEach((id) => {
+      if (id !== null) {
+        foundId = id
+      }
+    })
+
+    return foundId
   }
 
+  /**
+   * Looks for closest next submissionId that has data. It omits all `null`s
+   * in submissionsIds array. Returns `null` if there is no such submissionId.
+   */
   getNextSubmissionId(): string | null {
     const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId)
     // if not found current submissionId in the array, we don't know what is next
@@ -99,7 +119,19 @@ export default class SingleProcessingHeader extends React.Component<
     if (currentIndex === this.props.submissionsIds.length - 1) {
       return null
     }
-    return this.props.submissionsIds[currentIndex + 1] || null
+
+    // finds the closest non-null submissionId going forwards from current one
+    const rightSubmissionsIds = this.props.submissionsIds.slice(currentIndex + 1)
+    let foundId: string | null = null
+    rightSubmissionsIds.find((id) => {
+      if (id !== null) {
+        foundId = id
+        return true
+      }
+      return false
+    })
+
+    return foundId
   }
 
   render() {

@@ -150,14 +150,15 @@ class MediaCell extends React.Component {
             </a>
           }
 
-          <a
-            className='kobo-light-button kobo-light-button--gray'
-            href={this.getProcessingUrl()}
-          >
-            {t('process')}
-
-            <i className='k-icon k-icon-arrow-up-right'/>
-          </a>
+          {[QUESTION_TYPES.audio.id, META_QUESTION_TYPES['background-audio']].includes(this.props.questionType) &&
+            <a
+              className='kobo-light-button'
+              href={this.getProcessingUrl()}
+            >
+              {t('process')}
+              <i className='k-icon k-icon-arrow-up-right'/>
+            </a>
+          }
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
     );
