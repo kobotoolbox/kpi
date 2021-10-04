@@ -1,5 +1,5 @@
-@import "scss/_colors";
-@import "scss/libs/_mdl";
+@use "scss/_colors";
+@use "scss/libs/_mdl";
 
 $z-map-overlay: 1001; // leaflet interface elements
 $z-map-list: 689;
@@ -22,7 +22,7 @@ $z-map-settings-3: 701;
     width: 100%;
     height: 100%;
     z-index: 0;
-    background: rgba($kobo-white, 0.8);
+    background: rgba(colors.$kobo-white, 0.8);
   }
 
   .form-view__map-button {
@@ -31,13 +31,13 @@ $z-map-settings-3: 701;
     top: 65px;
     padding: 2px 4px 0 4px;
 
-    @include box-shadow;
+    @include mdl.box-shadow;
 
     border-radius: 6px;
-    background: $kobo-white;
+    background: colors.$kobo-white;
     z-index: $z-map-settings-2;
     cursor: pointer;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
 
     &--heatmap {
       top: 118px;
@@ -63,7 +63,7 @@ $z-map-settings-3: 701;
 
     &.active,
     &:hover {
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
 
     &:active {
@@ -93,7 +93,7 @@ $z-map-settings-3: 701;
 
 .leaflet-popup-content {
   pre {
-    font-family: $font;
+    font-family: mdl.$font;
     white-space: pre-line;
     max-height: 200px;
     overflow-x: auto;
@@ -108,18 +108,18 @@ $z-map-settings-3: 701;
 
   .popover-menu__toggle {
     min-width: 180px;
-    background: $kobo-white;
+    background: colors.$kobo-white;
     max-width: 340px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 
-    @include box-shadow;
+    @include mdl.box-shadow;
 
     border-radius: 6px;
     padding: 12px;
     text-align: left;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
   }
 
   .popover-menu__content {
@@ -130,12 +130,12 @@ $z-map-settings-3: 701;
     overflow: auto;
     max-height: 300px;
     border-radius: 5px;
-    box-shadow: 0 0 5px 5px rgba($kobo-gray-24, 0.15);
+    box-shadow: 0 0 5px 5px rgba(colors.$kobo-gray-24, 0.15);
     bottom: calc(100% + 10px);
 
     .popover-menu__link.see-all {
-      background: $kobo-gray-96;
-      border-top: 1px solid $kobo-gray-92;
+      background: colors.$kobo-gray-96;
+      border-top: 1px solid colors.$kobo-gray-92;
     }
 
     .popover-menu__heading {
@@ -150,7 +150,7 @@ body .leaflet-control-layers,
   border: none;
   border-radius: 6px !important;
 
-  @include box-shadow;
+  @include mdl.box-shadow;
 
   margin-right: 12px;
   margin-top: 12px;
@@ -178,10 +178,10 @@ body .leaflet-control-layers,
   min-width: 180px;
   max-width: 300px;
   padding: 5px;
-  background: $kobo-white;
+  background: colors.$kobo-white;
   overflow: none;
 
-  @include box-shadow;
+  @include mdl.box-shadow;
 
   border-radius: 6px;
 
@@ -194,7 +194,7 @@ body .leaflet-control-layers,
       margin-right: 8px;
       margin-left: 3px;
       vertical-align: bottom;
-      color: $kobo-blue;
+      color: colors.$kobo-blue;
     }
   }
 
@@ -228,11 +228,11 @@ body .leaflet-control-layers,
     }
 
     &.selected {
-      background: $kobo-gray-96;
+      background: colors.$kobo-gray-96;
 
       &::after {
         content: "";
-        background: $kobo-blue;
+        background: colors.$kobo-blue;
       }
     }
 
@@ -241,7 +241,7 @@ body .leaflet-control-layers,
 
       &::after {
         content: "";
-        background: $kobo-gray-65;
+        background: colors.$kobo-gray-65;
       }
 
       &:hover {
@@ -252,7 +252,7 @@ body .leaflet-control-layers,
     &.map-marker-reset {
       text-align: right;
       font-size: 12px;
-      color: $kobo-blue;
+      color: colors.$kobo-blue;
       opacity: 0.8;
       cursor: pointer;
 
@@ -278,8 +278,8 @@ body .leaflet-control-layers,
     height: 24px;
     padding: 0 3px;
     position: relative;
-    text-shadow: 0 0 1px $kobo-white;
-    color: $kobo-gray-24;
+    text-shadow: 0 0 1px colors.$kobo-white;
+    color: colors.$kobo-gray-24;
 
     &::after {
       position: absolute;
@@ -310,7 +310,7 @@ body .leaflet-control-layers,
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba($kobo-white, 0.5);
+    background: rgba(colors.$kobo-white, 0.5);
     z-index: $z-map-settings-3;
   }
 }
@@ -324,13 +324,13 @@ body .leaflet-control-layers,
   }
 
   .form-modal__item--list-files {
-    border: 1px solid $kobo-gray-92;
+    border: 1px solid colors.$kobo-gray-92;
     padding: 10px;
     max-width: 600px;
     margin-bottom: 20px;
 
     .list-file-row {
-      border-top: 1px solid $kobo-gray-92;
+      border-top: 1px solid colors.$kobo-gray-92;
       padding: 5px;
 
       > span {
@@ -358,7 +358,7 @@ body .leaflet-control-layers,
 
         i {
           font-size: 24px;
-          color: $kobo-red;
+          color: colors.$kobo-red;
         }
       }
     }
@@ -438,7 +438,7 @@ body .leaflet-control-layers,
 .map-no-geopoint {
   text-align: center;
   font-weight: bold;
-  color: $kobo-white;
+  color: colors.$kobo-white;
 }
 
 .map-no-geopoint-wrapper {
@@ -489,14 +489,14 @@ body .leaflet-control-layers,
 
 .marker-cluster div {
   font-size: 12px;
-  font-family: $font;
+  font-family: mdl.$font;
   width: 20px;
   height: 20px;
   border-radius: 50%;
   margin-left: 5px;
   margin-top: 5px;
   text-align: center;
-  color: $kobo-gray-24;
+  color: colors.$kobo-gray-24;
 }
 
 .marker-cluster span {

@@ -1,12 +1,12 @@
-@import "scss/_colors";
-@import "scss/libs/_mdl";
-@import "js/components/common/checkbox-and-radio";
+@use "scss/_colors";
+@use "scss/libs/_mdl";
+@use "js/components/common/checkbox-and-radio";
 
 // These are custom styles for Table View table.
 
-$data-table-border: 1px solid $kobo-gray-92;
+$data-table-border: 1px solid colors.$kobo-gray-92;
 $data-table-row-height: 42px;
-$c-header-bg: $kobo-gray-96;
+$c-header-bg: colors.$kobo-gray-96;
 
 $z-table-frozen: 10;
 
@@ -18,7 +18,7 @@ $z-table-frozen: 10;
 .form-view.form-view--table {
   padding: 0px 15px;
   position: relative;
-  background: $kobo-white;
+  background: colors.$kobo-white;
 
   .form-view__group--table-header {
     padding: 10px 0px 0px 0px;
@@ -58,8 +58,8 @@ $z-table-frozen: 10;
 
   .rt-table {
     border: $data-table-border;
-    background-color: $kobo-white;
-    color: $kobo-gray-24;
+    background-color: colors.$kobo-white;
+    color: colors.$kobo-gray-24;
     font-size: 14px;
   }
 
@@ -90,7 +90,7 @@ $z-table-frozen: 10;
 
       .k-icon {
         font-size: 20px;
-        color: $kobo-gray-55;
+        color: colors.$kobo-gray-55;
         vertical-align: top;
         margin-right: 3px;
       }
@@ -158,7 +158,7 @@ $z-table-frozen: 10;
       .table-filter-input {
         width: 100%;
         border: 0;
-        background: $kobo-white;
+        background: colors.$kobo-white;
         border-radius: 3px;
         height: 28px;
         min-height: 28px;
@@ -167,7 +167,7 @@ $z-table-frozen: 10;
         font-size: 12px;
 
         &::placeholder {
-          color: $kobo-gray-55;
+          color: colors.$kobo-gray-55;
         }
       }
 
@@ -190,7 +190,7 @@ $z-table-frozen: 10;
     .rt-td.-sort-desc,
     .rt-th.-sort-asc,
     .rt-td.-sort-asc {
-      box-shadow: inset 0 3px 0 0 $kobo-teal;
+      box-shadow: inset 0 3px 0 0 colors.$kobo-teal;
     }
 
     .rt-th.rt-resizable-header:last-child {
@@ -217,7 +217,7 @@ $z-table-frozen: 10;
 
       .column-header-hxl-tags {
         font-size: 12px;
-        color: $kobo-gray-40;
+        color: colors.$kobo-gray-40;
       }
     }
   }
@@ -258,7 +258,7 @@ $z-table-frozen: 10;
   }
 
   .rt-td.rt-numerical-value {
-    font-family: $font_mono;
+    font-family: mdl.$font_mono;
   }
 
   .rt-thead.-filters .rt-th.rt-status {
@@ -291,10 +291,10 @@ $z-table-frozen: 10;
       background: transparent;
       border: 0;
       padding: 0;
-      color: $kobo-gray-55;
+      color: colors.$kobo-gray-55;
 
       &:hover {
-        color: $kobo-blue;
+        color: colors.$kobo-blue;
       }
 
       .k-icon {
@@ -315,7 +315,7 @@ $z-table-frozen: 10;
     }
 
     .-btn {
-      color: $kobo-blue;
+      color: colors.$kobo-blue;
       font-size: 12px;
       line-height: 14px;
       font-weight: 700;
@@ -331,7 +331,7 @@ $z-table-frozen: 10;
       }
 
       &:hover {
-        color: $kobo-blue-dark;
+        color: colors.$kobo-blue-dark;
         background: transparent;
       }
 
@@ -355,8 +355,8 @@ $z-table-frozen: 10;
 
     input,
     select {
-      border: 1px solid $kobo-gray-92;
-      background: $kobo-white;
+      border: 1px solid colors.$kobo-gray-92;
+      background: colors.$kobo-white;
       height: 32px;
       padding: 5px 7px;
       font-size: 14px;
@@ -371,14 +371,14 @@ $z-table-frozen: 10;
   }
 
   .-loading {
-    background: $kobo-gray-96;
+    background: colors.$kobo-gray-96;
 
     .-loading-inner {
       display: block;
       text-align: center;
       font-size: 18px;
       opacity: 0.8;
-      color: $kobo-gray-40;
+      color: colors.$kobo-gray-40;
 
       i {
         margin-right: 12px;
@@ -389,7 +389,7 @@ $z-table-frozen: 10;
   }
 
   &.-highlight .rt-tbody .rt-tr:not(.-padRow):hover {
-    background: $kobo-gray-98;
+    background: colors.$kobo-gray-98;
 
     .rt-td.is-frozen {
       background-color: inherit;
@@ -454,7 +454,7 @@ $z-table-frozen: 10;
   }
 
   .rt-td.is-frozen {
-    background-color: $kobo-white;
+    background-color: colors.$kobo-white;
   }
 
   .rt-th.is-frozen.is-last-frozen,
@@ -467,11 +467,11 @@ $z-table-frozen: 10;
   }
 
   .rt-th.is-sorted {
-    background-color: $kobo-teal-white;
+    background-color: colors.$kobo-teal-white;
   }
 
   .rt-td.is-sorted {
-    background-color: $kobo-teal-white-light;
+    background-color: colors.$kobo-teal-white-light;
   }
 
   // NOTE: submissions actions column is always frozen as first column
@@ -509,11 +509,11 @@ $z-table-frozen: 10;
     cursor: pointer;
     padding: 0 5px;
     border-radius: 50%;
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
 
     &:hover {
-      color: $kobo-white;
-      background-color: $kobo-red;
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-red;
     }
   }
 

@@ -1,4 +1,4 @@
- @import "scss/_colors";
+ @use "scss/_colors";
 
 .media-cell {
   text-align: center;
@@ -6,15 +6,15 @@
   .icon-wrapper {
     .icon-wrapper__icon {
       font-size: 24px;
-      color: $kobo-blue-pale;
+      color: colors.$kobo-blue-pale;
       border-radius: 4px;
       padding: 2px;
       margin-right: 4px;
       cursor: pointer;
 
       &:hover {
-        color: $kobo-blue;
-        background-color: $kobo-gray-92;
+        color: colors.$kobo-blue;
+        background-color: colors.$kobo-gray-92;
       }
     }
   }

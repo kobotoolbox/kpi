@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 .templates-list {
   font-size: 14px;
@@ -15,7 +15,7 @@
 
   .templates-list__row {
     display: flex;
-    box-shadow: 0 0 0 1px $kobo-gray-92;
+    box-shadow: 0 0 0 1px colors.$kobo-gray-92;
     padding: 10px;
     align-items: center;
 
@@ -48,16 +48,16 @@
   .templates-list__template {
     font-size: inherit;
     position: relative;
-    color: $kobo-gray-40;
+    color: colors.$kobo-gray-40;
     border: 1px solid transparent;
 
     &:hover, &.selected {
-      background: rgba($kobo-gray-92, 0.3);
-      color: $kobo-blue;
+      background: rgba(colors.$kobo-gray-92, 0.3);
+      color: colors.$kobo-blue;
     }
 
     &.selected {
-      border: 1px solid $kobo-blue;
+      border: 1px solid colors.$kobo-blue;
     }
   }
 

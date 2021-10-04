@@ -1,9 +1,9 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 .asset-info-box {
   display: flex;
   flex-direction: row;
-  border-bottom: 1px solid $kobo-gray-92;
+  border-bottom: 1px solid colors.$kobo-gray-92;
   padding-bottom: 5px;
   line-height: 24px;
 
@@ -21,7 +21,7 @@
     flex: 1;
 
     label {
-      color: $kobo-gray-40;
+      color: colors.$kobo-gray-40;
 
       &::after {
         content: ": ";
@@ -31,14 +31,14 @@
 
   .asset-info-box__toggle {
     cursor: pointer;
-    color: $kobo-blue;
+    color: colors.$kobo-blue;
     background: transparent;
     border: 0;
     width: 100%;
     text-align: center;
 
     &:hover {
-      color: $kobo-blue-dark;
+      color: colors.$kobo-blue-dark;
     }
 
     &:active {
