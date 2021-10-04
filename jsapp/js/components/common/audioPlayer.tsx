@@ -140,29 +140,6 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
           isTime={true}
           onChange={this.onSeekChange}
         />
-
-        {/*
-        <bem.AudioPlayer__progress>
-          <bem.AudioPlayer__time>
-            <bem.AudioPlayer__timeCurrent>
-              {this.convertToClock(this.state.currentTime)}
-            </bem.AudioPlayer__timeCurrent>
-
-            <bem.AudioPlayer__timeTotal>
-              {this.convertToClock(this.state.totalTime)}
-            </bem.AudioPlayer__timeTotal>
-          </bem.AudioPlayer__time>
-
-          <bem.AudioPlayer__seek>
-            <input
-              type='range'
-              max={this.state.totalTime}
-              value={this.state.currentTime}
-              onChange={this.onSeekChange}
-            />
-          </bem.AudioPlayer__seek>
-        </bem.AudioPlayer__progress>
-          */}
       </bem.AudioPlayer>
     )
   }
