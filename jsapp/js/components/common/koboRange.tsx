@@ -46,9 +46,7 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
   /* We deal internally with un-converted time for easier computing. Only use
    * this if `props.isTime` and when it's time to display
    *
-   * @param {float} time - HTMLElementAudio.duration returns a float in seconds
    */
-
   convertToClock(time: number) {
     let minutes = Math.floor(time / 60)
     // The duration is given in decimal seconds, so we have to do ceiling here
@@ -65,8 +63,8 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
   }
 
   onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
-    const currentValue = evt.currentTarget.value
     if (this.props.onChange) {
+      const currentValue = evt.currentTarget.value
       this.props.onChange(currentValue)
 
       this.setState({currentValue: currentValue})
