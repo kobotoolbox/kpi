@@ -1,8 +1,8 @@
 import React from 'react'
 import bem, {makeBem} from 'js/bem'
 import KoboDropdown, {
-  KOBO_DROPDOWN_THEMES,
-  KOBO_DROPDOWN_PLACEMENTS,
+  KoboDropdownThemes,
+  KoboDropdownPlacements,
 } from 'js/components/common/koboDropdown';
 //import {ROUTES} from 'js/router/routerConstants'
 //import bem from 'js/bem'
@@ -52,13 +52,13 @@ export default class AccountSidebar extends React.Component<
               {/*TODO: Move audio play slider to a custom component and use it in both places*/}
               <input type='range' />
               <KoboDropdown
-                theme={KOBO_DROPDOWN_THEMES.light}
+                theme={KoboDropdownThemes.light}
                 isDisabled={false}
                 hideOnMenuClick={true}
                 menuContent={<p>hello</p>}
                 hideOnEsc
                 hideOnMenuOutsideClick
-                placement={KOBO_DROPDOWN_PLACEMENTS['down-left']}
+                placement={KoboDropdownPlacements['down-left']}
                 name='columns-hide-dropdown'
                 triggerContent={
                   <span className='columns-hide-dropdown-trigger'>
