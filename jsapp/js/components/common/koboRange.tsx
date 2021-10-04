@@ -1,6 +1,6 @@
 import React from 'react'
 import bem, {makeBem} from 'js/bem'
-import 'js/components/common/audioPlayer.scss'
+import './koboRange.scss'
 
 bem.KoboRange = makeBem(null, 'kobo-range')
 bem.KoboRange__values = makeBem(bem.KoboRange, 'values', 'div')
@@ -18,12 +18,9 @@ type KoboRangeProps = {
   max: number,
   value: number,
   /** uses time display for all required values */
-  isTime: boolean,
-  /** string displayed next to minimum value */
-  minString?: string,
-  /** string displayed next to maximum value */
-  maxString?: string,
-  onChange: Function,
+  isTime?: boolean,
+  /** assumes input is clickable and with move to where it is clicked */
+  onChange?: Function,
   /** defaults to $kobo-teal */
   color?: string,
 }
@@ -67,8 +64,16 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
     return minutes + ':' + finalSeconds
   }
 
-  render() {
+  onChange(evt: React.ChangeEvent<HTMLInputElement> | any) {
+    const currentValue = evt.currentTarget.value
+    if (this.props.onChange) {
+      this.props.onChange(currentValue)
 
+      this.setState({currentValue: currentValue})
+    }
+  }
+
+  render() {
     return (
       <bem.KoboRange>
         <bem.KoboRange__values>
@@ -85,11 +90,12 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
 
         <bem.KoboRange__progress>
           <bem.KoboRange__input
-            m={this.props?.color}
+            m={this.props?.color ? this.props.color : KoboRangeColours.default}
             type='range'
             max={this.props.max}
             value={this.state.currentValue}
-            onChange={this.props.onChange()}
+            disabled={!this.props.onChange}
+            onChange={this.props?.onChange && this.onChange.bind(this)}
           />
         </bem.KoboRange__progress>
       </bem.KoboRange>
