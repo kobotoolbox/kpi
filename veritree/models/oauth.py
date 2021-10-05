@@ -8,8 +8,6 @@ from social_core.utils import handle_http_errors, parse_qs
 from social_django.strategy import DjangoStrategy
 from social_core.pipeline.social_auth import *
 
-from django.contrib.auth.models import User
-
 class VeritreeOAuth2(BaseOAuth2):
     name = 'veritree'
     AUTHORIZATION_URL = None
@@ -76,20 +74,23 @@ class VeritreeOAuth2(BaseOAuth2):
         return self.get_json(url, headers=headers)
     
     def get_user_details(self, response):
-        data = response.get('data', {})
+        data = response
         return {
             'email': data.get('email'),
             'first_name': data.get('firstname'),
             'last_name': data.get('lastname'),
             'id': data.get('id'),
-            'username': self.get_stripped_username(data.get('email')),
+            'username': self.get_cleaned_username(data.get('email')),
             'user_orgs': data.get('user_orgs')
         }
 
-    def get_stripped_username(self, email):
+    def get_cleaned_username(self, email):
         # Purpose is to strip out the @ and . characters and replace with a character
         # that is not typically allowed in emails to prevent collisions in the off chance
         # Presence of the . character is causing lookups to fail
+        if email:
+            return email.lower()
+        
         return email
 
     def get_user_id(self, details, response):
