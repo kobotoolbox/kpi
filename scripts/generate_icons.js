@@ -107,13 +107,16 @@ webfontsGenerator(
   }
 );
 
+/**
+ * This makes a file with `export type IconName = 'one' | 'two' | …`
+ */
 function generateDefinitions(iconsList) {
   console.info('Generating definition file…');
-  const enumLines = [];
+  const typeParts = [];
   iconsList.forEach((iconName) => {
-    enumLines.push(`  '${iconName}' = '${iconName}'`);
+    typeParts.push(`'${iconName}'`);
   });
-  const fileContent = `export enum IconNames {\n${enumLines.join(',\n')}\n}`;
+  const fileContent = `export type IconName = ${typeParts.join(' | ')}`;
 
   fs.writeFile(`${destDir}/k-icons.ts`, fileContent, (err) => {
     if (err) {
