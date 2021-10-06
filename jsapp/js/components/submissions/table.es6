@@ -23,7 +23,7 @@ import {
   ADDITIONAL_SUBMISSION_PROPS,
   ENKETO_ACTIONS,
 } from 'js/constants';
-import {formatTimeDate} from 'utils';
+import {formatTimeDateShort} from 'utils';
 import {
   renderQuestionTypeIcon,
   getQuestionOrChoiceDisplayName,
@@ -732,7 +732,7 @@ export class DataTable extends React.Component {
             ) {
               return (
                 <span className='trimmed-text'>
-                  {formatTimeDate(row.value)}
+                  {formatTimeDateShort(row.value)}
                 </span>
               );
             }
