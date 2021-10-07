@@ -28,6 +28,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     new_password = serializers.CharField(write_only=True, required=False)
     git_rev = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
+    access_token = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -47,7 +48,8 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             'current_password',
             'new_password',
             'git_rev',
-            'organization'
+            'organization',
+            'access_token'
         )
 
     def get_organization(self, obj):
@@ -56,6 +58,13 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         except UserSocialAuth.DoesNotExist:
             return {}
         return user_orgs
+
+    def get_access_token(self, obj):
+        try:
+            access_token = obj.social_auth.get(provider='veritree').extra_data['access_token']
+        except UserSocialAuth.DoesNotExist:
+            return ''
+        return access_token
 
     def get_server_time(self, obj):
         # Currently unused on the front end

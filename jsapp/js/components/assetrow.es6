@@ -102,7 +102,7 @@ class AssetRow extends React.Component {
         };
       });
     }
-
+    const orgQueryParam = stores.session.currentAccount.organization && stores.session.currentAccount.organization.length && stores.session.currentAccount.organization[0].org_id
     return (
         <bem.AssetRow
           m={{
@@ -142,7 +142,8 @@ class AssetRow extends React.Component {
               }
               <bem.AssetRow__cell m='name' style={{'display': 'flex', 'justifyContent': 'space-between'}}>
                 <ui.AssetName {...this.props} />
-                {this.props.deployment__links && Object.keys(this.props.deployment__links).length > 0 ? <a className="kobo-button kobo-button--blue" target="_blank" href={this.props.deployment__links['url']}>{t('Open')}</a> : null }
+                {this.props.deployment__links && Object.keys(this.props.deployment__links).length > 0 ? <a className="kobo-button kobo-button--blue" target="_blank"
+                  href={`${this.props.deployment__links['url']}${orgQueryParam ? `?orgId=${orgQueryParam}`: ''}`}>{t('Open')}</a> : null }
               </bem.AssetRow__cell>
               { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.settings.description &&
                 <bem.AssetRow__description>

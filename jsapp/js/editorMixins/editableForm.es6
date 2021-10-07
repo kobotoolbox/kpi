@@ -924,7 +924,7 @@ export default assign({
 
     if (!this.state.isNewAsset && !this.state.asset) {
       return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+        <DocumentTitle title={`Monitoring | veritree`}>
           <ui.LoadingSpinner/>
         </DocumentTitle>
       );
@@ -938,7 +938,7 @@ export default assign({
     );
 
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`Monitoring | veritree`}>
         <ui.Panel m={['transparent', 'fixed']}>
           {this.renderAside()}
 

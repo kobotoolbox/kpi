@@ -102,7 +102,7 @@ class AssetRoute extends React.Component {
     const isUserSubscribed = this.state.asset.access_types && this.state.asset.access_types.includes(ACCESS_TYPES.subscribed);
 
     return (
-      <DocumentTitle title={`${assetName.final} | KoboToolbox`}>
+      <DocumentTitle title={`Monitoring | veritree`}>
         <bem.FormView m='library-asset'>
           <bem.FormView__row>
             <bem.FormView__cell m={['columns', 'columns-right', 'first']}>
