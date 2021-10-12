@@ -380,7 +380,7 @@ export class FormLanding extends React.Component {
         </CopyToClipboard>
       );
     }
-
+    const orgQueryParam = stores.session.currentAccount.organization && stores.session.currentAccount.organization.length && stores.session.currentAccount.organization[0].org_id
     return (
       <React.Fragment>
         <CopyToClipboard text={chosenMethodLink}
@@ -394,7 +394,7 @@ export class FormLanding extends React.Component {
 
         <a className='mdl-button mdl-button--colored'
           target='_blank'
-          href={chosenMethodLink}>
+          href={`${chosenMethodLink}${orgQueryParam ? `?orgId=${orgQueryParam}`: ''}`}>
           {t('Open')}
         </a>
       </React.Fragment>
