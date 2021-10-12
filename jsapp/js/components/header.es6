@@ -82,13 +82,14 @@ class MainHeader extends Reflux.Component {
   onAccountLoad() {
     if (stores.session && stores.session.currentAccount && stores.session.currentAccount.access_token) {
       if (!this.state.veritreeLogo && stores.session.currentAccount.organization && stores.session.currentAccount.organization.length) {
-        fetch(`https://beta.veritree.org/api/orgs/${stores.session.currentAccount.organization[0].org_id}`, {headers: {
-          'Authorization': `Bearer ${stores.session.currentAccount.access_token}`
-        }}).then(response => {
-          if (response.status > 200 && response.status <= 300) {
-            console.log('TODO: Handle good response')
-          } else {
-            console.log('TODO: Handle bad response')
+        const orgId = stores.session.currentAccount.organization[0].org_id
+        fetch(`https://beta.veritree.org/api/organizations/${orgId}`).then(response => {
+          if (response.status >= 200 && response.status < 300) {
+            response.json().then((content) => {
+              if (content.data && content.data.logo_url) {
+                this.setState({ veritreeLogo: content.data.logo_url })
+              }
+            })
           }
         })
       }
@@ -320,7 +321,7 @@ class MainHeader extends Reflux.Component {
                 }
               </React.Fragment>
             }
-            {accessToken ? '': null}
+            {this.state.veritreeLogo ? <img style={{ maxHeight: '45px', maxWidth:'150px', paddingRight: '10px'}} src={this.state.veritreeLogo} />: null}
             {this.renderAccountNavMenu()}
             { !isLoggedIn && this.renderLoginButton()}
           </div>
