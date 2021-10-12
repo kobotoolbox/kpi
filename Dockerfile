@@ -72,7 +72,7 @@ COPY . "${KPI_SRC_DIR}"
 
 RUN virtualenv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN pip install  --quiet --upgrade pip && \
+RUN pip install  --quiet --upgrade pip===21.2.4 && \
     pip install  --quiet pip-tools
 COPY ./dependencies/pip/external_services.txt /srv/tmp/pip_dependencies.txt
 RUN pip-sync /srv/tmp/pip_dependencies.txt 1>/dev/null && \
