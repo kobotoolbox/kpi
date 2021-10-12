@@ -3,7 +3,8 @@ import bem, {makeBem} from 'js/bem'
 import KoboDropdown, {
   KoboDropdownThemes,
   KoboDropdownPlacements,
-} from 'js/components/common/koboDropdown';
+} from 'js/components/common/koboDropdown'
+import './dataStorage.scss'
 //import {ROUTES} from 'js/router/routerConstants'
 //import bem from 'js/bem'
 //import LoadingSpinner from 'js/components/common/loadingSpinner'
@@ -16,7 +17,7 @@ bem.DataRow = makeBem(null, 'data-row')
 bem.DataRow__header = makeBem(bem.DataRow, 'header')
 bem.DataRow__data = makeBem(bem.DataRow, 'data')
 
-export default class AccountSidebar extends React.Component<
+export default class DataStorage extends React.Component<
   {}, {}
 > {
   constructor(props: any) {
@@ -45,7 +46,7 @@ export default class AccountSidebar extends React.Component<
             <bem.DataRow__header>
               {/*TODO: replace icon with proper one from mockups*/}
               <i className={'k-icon k-icon-form-overview'} />
-              <h4>{t('Submissions per month')}</h4>
+              <label>{t('Submissions per month')}</label>
             </bem.DataRow__header>
 
             <bem.DataRow__data>
