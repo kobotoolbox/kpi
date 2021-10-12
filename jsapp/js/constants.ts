@@ -357,34 +357,6 @@ export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   '_index',
 ]);
 
-/**
- * Submission data that has numerical values. Useful for displaying data with
- * monospaced font. This includes QUESTION_TYPES, META_QUESTION_TYPES and
- * ADDITIONAL_SUBMISSION_PROPS.
- */
-export const NUMERICAL_SUBMISSION_PROPS = createEnum([
-  QUESTION_TYPES.barcode.id,
-  QUESTION_TYPES.date.id,
-  QUESTION_TYPES.datetime.id,
-  QUESTION_TYPES.decimal.id,
-  QUESTION_TYPES.geopoint.id,
-  QUESTION_TYPES.geoshape.id,
-  QUESTION_TYPES.geotrace.id,
-  QUESTION_TYPES.integer.id,
-  QUESTION_TYPES.score.id,
-  QUESTION_TYPES.time.id,
-  META_QUESTION_TYPES.start,
-  META_QUESTION_TYPES.end,
-  META_QUESTION_TYPES.today,
-  META_QUESTION_TYPES.simserial,
-  META_QUESTION_TYPES.subscriberid,
-  META_QUESTION_TYPES.deviceid,
-  META_QUESTION_TYPES.phonenumber,
-  ADDITIONAL_SUBMISSION_PROPS._id,
-  ADDITIONAL_SUBMISSION_PROPS._uuid,
-  ADDITIONAL_SUBMISSION_PROPS._submission_time,
-]);
-
 export const NAME_MAX_LENGTH = 255;
 
 /**

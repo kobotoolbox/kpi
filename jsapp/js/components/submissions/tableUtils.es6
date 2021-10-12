@@ -39,7 +39,7 @@ export function getColumnLabel(
     return t('Multi-select checkboxes column');
   }
   if (key === VALIDATION_STATUS_ID_PROP) {
-    return t('Validation status');
+    return t('Validation');
   }
 
   var label = key;
