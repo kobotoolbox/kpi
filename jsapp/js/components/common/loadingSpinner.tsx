@@ -1,6 +1,7 @@
 import React from 'react';
 import bem from 'js/bem';
 import './loadingSpinner.scss';
+import Icon from 'js/components/common/icon'
 
 type LoadingSpinnerProps = {
   message?: string
@@ -13,7 +14,7 @@ export default class LoadingSpinner extends React.Component<LoadingSpinnerProps,
     return (
       <bem.Loading>
         <bem.Loading__inner>
-          <i className='k-spin k-icon k-icon-spinner'/>
+          <Icon name='spinner' size='xl' classNames={['k-spin']}/>
           {message}
         </bem.Loading__inner>
       </bem.Loading>
