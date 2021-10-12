@@ -17,7 +17,7 @@ class AnalysisResponsesViewSet(
     viewsets.ModelViewSet
 ):
     model = AnalysisResponses
-    lookup_field = 'uid'
+    lookup_field = 'id'
     renderer_classes = (
         renderers.BrowsableAPIRenderer,
         renderers.JSONRenderer,
@@ -28,25 +28,27 @@ class AnalysisResponsesViewSet(
     )
     pagination_class = DataPagination
     serializer_class = AnalysisResponseSerializer
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = AnalysisResponseSerializer(queryset, many=True)
-        if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            raise Http404
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def retrieve(self, request, *args, **kwargs):
-        queryset = self.get_queryset().filter(
-            uid=kwargs.get('uid')
-        )
-        serializer = self.get_serializer(
-            queryset,
-            context=self.get_serializer_context()
-        )
-        if serializer.is_valid(raise_exception=True):
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        if kwargs['id'].startswith('ar'):
+            queryset = self.get_queryset().get(
+                uid=kwargs['id']
+            )
+            serializer = self.get_serializer(
+                queryset,
+                context=self.get_serializer_context(),
+            )
+        else:
+            queryset = self.get_queryset().filter(
+                submission_id=kwargs['id']
+            )
+            serializer = self.get_serializer(
+                queryset,
+                context=self.get_serializer_context(),
+                many=True
+            )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -58,9 +60,9 @@ class AnalysisResponsesViewSet(
     def preform_destroy(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.delete()
+        serializer.save(content='{}')
 
     def get_queryset(self):
         return self.model.objects.filter(
-            submission_id=self.kwargs['parent_lookup_data'],
+            asset__uid=self.kwargs['parent_lookup_asset'],
         )

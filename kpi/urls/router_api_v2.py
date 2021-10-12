@@ -32,6 +32,13 @@ asset_routes.register(r'analysis-questions',
                       parents_query_lookups=['asset'],
                       )
 
+asset_routes.register(r'analysis-responses/',
+                      AnalysisResponsesViewSet,
+                      basename='analysis-responses',
+                      parents_query_lookups=['asset'],
+                      )
+
+
 asset_routes.register(r'files',
                       AssetFileViewSet,
                       basename='asset-file',
@@ -49,6 +56,14 @@ asset_routes.register(r'versions',
                       basename='asset-version',
                       parents_query_lookups=['asset'],
                       )
+
+
+asset_routes.register(r'data',
+                      DataViewSet,
+                      basename='submission',
+                      parents_query_lookups=['asset'],
+                      )
+
 
 asset_routes.register(r'export-settings',
                       AssetExportSettingsViewSet,
@@ -73,19 +88,6 @@ asset_routes.register(r'paired-data',
                       basename='paired-data',
                       parents_query_lookups=['asset'],
                       )
-
-
-data_routes = asset_routes.register(r'data',
-                                    DataViewSet,
-                                    basename='submission',
-                                    parents_query_lookups=['asset'],
-                                    )
-
-data_routes.register(r'analysis-responses',
-                     AnalysisResponsesViewSet,
-                     basename='analysis-responses',
-                     parents_query_lookups=['asset', 'data']
-                     )
 
 
 hook_routes = asset_routes.register(r'hooks',

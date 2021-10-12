@@ -11,18 +11,14 @@ class AnalysisResponseSerializer(serializers.ModelSerializer):
 
     content = WritableJSONField()
     uid = serializers.CharField(required=False, read_only=True)
-    asset = RelativePrefixHyperlinkedRelatedField(
-        view_name='asset_detail',
-        lookup_field='uid',
-        read_only=True,
-    )
+    asset = serializers.SlugRelatedField(read_only=True, slug_field='uid')
     submission_id = serializers.IntegerField()
-    date_created = serializers.DateTimeField(required=False)
-    date_modified = serializers.DateTimeField(required=False)
+    date_created = serializers.DateTimeField(read_only=True)
+    date_modified = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = AnalysisResponses
-        lookup_field = 'uid'
+        lookup_field = 'submission_id'
         fields = (
             'uid',
             'submission_id',
