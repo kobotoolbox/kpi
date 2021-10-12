@@ -4,6 +4,7 @@ from datetime import datetime
 
 from django.db.models import Sum
 from rest_framework import (
+    renderers,
     status,
     viewsets,
 )
@@ -15,15 +16,36 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatAttachments,
     ReadOnlyKobocatInstance
 )
+from kpi.permissions import IsOwnerOrReadOnly
 
 
 class ServiceUsageViewSet(viewsets.ViewSet):
+    """
+    ## Service Usage Tracker
+    Tracks the submissions for the current month
+    Tracks the current total storage used
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/service_usage/
+    </pre>
+
+    > Example
+    >
+    >       curl -X GET https://[kpi]/api/v2/service_usage/
+
+    ### CURRENT ENDPOINT
+    """
+    http_method_names = ['get']
+    renderer_classes = (
+        renderers.BrowsableAPIRenderer,
+        renderers.JSONRenderer,
+    )
 
     def list(self, request, *args, **kwargs):
         today = datetime.today()
         data = {
-            "attachments_usage_details": [],
             "forms_submissions": [],
+            "attachments_usage_details": [],
             "totals": [],
         }
         attachments_queryset = ReadOnlyKobocatAttachments.objects.filter(
@@ -46,7 +68,7 @@ class ServiceUsageViewSet(viewsets.ViewSet):
         )
         forms = []
         data.get('totals').append({
-            'media_stored_size': attachments_usage.get('count_sum'),
+            'total_storage_used': attachments_usage.get('count_sum'),
             'monthly_submissions': submission_counter_queryset.get('count_sum')
 
         })
@@ -65,26 +87,25 @@ class ServiceUsageViewSet(viewsets.ViewSet):
                 "submission_count": count_per_form,
             })
 
-        attachment_submission_ids = []
-        submission_form_ids = []
+        attachment_form_ids = []
 
         for attachment in attachments_queryset:
-            submission_id = attachment.instance.uuid
             form_id = attachment.instance.xform.id_string
-            if submission_id not in attachment_submission_ids:
-                attachment_submission_ids.append(submission_id)
-            if form_id not in submission_form_ids:
-                submission_form_ids.append(form_id)
+            if form_id not in attachment_form_ids:
+                attachment_form_ids.append(form_id)
 
-        forms = KobocatXForm.objects.filter(id_string__in=submission_form_ids)
-        for form in forms:
-            submission_with_attachments = submissions.filter(uuid__in=attachment_submission_ids, xform=form)
+        for form_id in attachment_form_ids:
+            form = KobocatXForm.objects.get(id_string=form_id)
             title = form.title
-            xform_id = form.id_string
+
+            attachments = attachments_queryset.filter(
+                instance__xform__id_string=form_id
+            ).aggregate(total_storage=Sum('media_file_size'))
+
             data.get('attachments_usage_details').append({
-                'form_id': xform_id,
-                'form_title': title,
-                'submissions_has_attachment': submission_with_attachments.count(),
+                'uid': form_id,
+                'title': title,
+                'storage_used': attachments.get('total_storage')
             })
 
         json.dumps(data, indent=4)
