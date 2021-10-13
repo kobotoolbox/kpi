@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 .toggle-switch {
   position: relative;
@@ -20,7 +20,7 @@
     position: relative;
     width: 30px;
     height: 20px;
-    background-color: $kobo-gray-65;
+    background-color: colors.$kobo-gray-65;
     transition: 0.3s cubic-bezier(1, 0, 0.5, 1);
     border-radius: 34px;
 
@@ -35,7 +35,7 @@
       width: 16px;
       left: 2px;
       top: 2px;
-      background-color: $kobo-white;
+      background-color: colors.$kobo-white;
       transition: inherit;
       border-radius: 50%;
     }
@@ -46,7 +46,7 @@
   }
 
   input:checked + .toggle-switch__slider {
-    background-color: $kobo-teal;
+    background-color: colors.$kobo-teal;
 
     &::before {
       transform: translateX(10px);
@@ -54,11 +54,11 @@
   }
 
   input:focus + .toggle-switch__slider {
-    box-shadow: 0 0 1px $kobo-teal;
+    box-shadow: 0 0 1px colors.$kobo-teal;
   }
 
   .toggle-switch__label {
-    color: $kobo-gray-24;
+    color: colors.$kobo-gray-24;
     font-size: 14px;
   }
 }

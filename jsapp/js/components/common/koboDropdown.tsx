@@ -1,32 +1,52 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import autoBind from 'react-autobind';
-import bem from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {
-  createEnum,
   KEY_CODES,
 } from 'js/constants';
 import koboDropdownActions from './koboDropdownActions';
 import './koboDropdown.scss';
 
-export const KOBO_DROPDOWN_THEMES = createEnum([
-  'light',
-  'dark',
-]);
+export enum KoboDropdownThemes {
+  light = 'light',
+  dark = 'dark',
+}
 
-export const KOBO_DROPDOWN_PLACEMENTS = createEnum([
-  'up-left',
-  'up-center',
-  'up-right',
-  'down-left',
-  'down-center',
-  'down-right',
-]);
+export enum KoboDropdownPlacements {
+  'up-left' = 'up-left',
+  'up-center' = 'up-center',
+  'up-right' = 'up-right',
+  'down-left' = 'down-left',
+  'down-center' = 'down-center',
+  'down-right' = 'down-right',
+}
 
-bem.KoboDropdown = bem.create('kobo-dropdown');
-bem.KoboDropdown__trigger = bem.KoboDropdown.__('trigger', 'button');
-bem.KoboDropdown__menu = bem.KoboDropdown.__('menu', 'menu');
-bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
+type KoboDropdownProps = {
+  theme: KoboDropdownThemes,
+  placement: KoboDropdownPlacements,
+  /** disables the dropdowns trigger, thus disallowing opening dropdown */
+  isDisabled: boolean,
+  /** hides menu whenever user clicks inside it, useful for simple menu with a list of actions */
+  hideOnMenuClick: boolean,
+  /** hides menu when user clicks outside it */
+  hideOnMenuOutsideClick: boolean,
+  /** hides menu when opened and user uses Escape key */
+  hideOnEsc: boolean,
+  triggerContent: React.ReactNode,
+  /** the content of dropdown, anything's allowed */
+  menuContent: React.ReactNode,
+  /** optional name value useful for styling, ends up in `data-name` attribute */
+  name?: string,
+}
+
+type KoboDropdownState = {
+  isMenuVisible: boolean,
+}
+
+bem.KoboDropdown = makeBem(null, 'kobo-dropdown');
+bem.KoboDropdown__trigger = makeBem(bem.KoboDropdown, 'trigger', 'button');
+bem.KoboDropdown__menu = makeBem(bem.KoboDropdown, 'menu', 'menu');
+bem.KoboDropdown__menuButton = makeBem(bem.KoboDropdown, 'menu-button', 'button');
 
 /**
  * A generic dropdown component that accepts any content inside the menu and
@@ -39,28 +59,21 @@ bem.KoboDropdown__menuButton = bem.KoboDropdown.__('menu-button', 'button');
  *
  * To close dropdown from outside the component use:
  * - koboDropdownActions.hideAnyDropdown
- *
- * @prop {string} [theme=light] - one of KOBO_DROPDOWN_THEMES
- * @prop {string} [placement=down-center] - one of KOBO_DROPDOWN_PLACEMENTS
- * @prop {boolean} [isDisabled=false] - disables the dropdowns trigger, thus disallowing opening dropdown
- * @prop {boolean} [hideOnMenuClick=false] - hides menu whenever user clicks inside it, useful for simple menu with a list of actions
- * @prop {boolean} [hideOnMenuOutsideClick=false] - hides menu when user clicks outside it
- * @prop {boolean} [hideOnEsc=false] - hides menu when opened and user uses Escape key
- * @prop {node} triggerContent
- * @prop {node} menuContent the content of dropdown, anything's allowed
- * @prop {string} [name] optional name value useful for styling, ends up in `data-name` attribute
  */
-export default class KoboDropdown extends React.Component {
-  constructor(props){
+export default class KoboDropdown extends React.Component<
+  KoboDropdownProps,
+  KoboDropdownState
+> {
+  constructor(props: KoboDropdownProps) {
     super(props);
     this.state = {isMenuVisible: false};
-    this.unlisteners = [];
-    autoBind(this);
   }
+
+  private unlisteners: Function[] = []
 
   componentDidMount() {
     this.unlisteners.push(
-      koboDropdownActions.hideAnyDropdown.requested.listen(this.hideMenu)
+      koboDropdownActions.hideAnyDropdown.requested.listen(this.hideMenu.bind(this))
     );
   }
 
@@ -70,7 +83,7 @@ export default class KoboDropdown extends React.Component {
     this.cancelOutsideClickListener();
   }
 
-  onTriggerClick(evt) {
+  onTriggerClick(evt: React.ChangeEvent<HTMLInputElement> | any) {
     evt.preventDefault();
     this.toggleMenu();
   }
@@ -106,14 +119,14 @@ export default class KoboDropdown extends React.Component {
   }
 
   registerEscKeyListener() {
-    document.addEventListener('keydown', this.onAnyKeyWhileOpen);
+    document.addEventListener('keydown', this.onAnyKeyWhileOpen.bind(this));
   }
 
   cancelEscKeyListener() {
-    document.removeEventListener('keydown', this.onAnyKeyWhileOpen);
+    document.removeEventListener('keydown', this.onAnyKeyWhileOpen.bind(this));
   }
 
-  onAnyKeyWhileOpen(evt) {
+  onAnyKeyWhileOpen(evt: React.ChangeEvent<HTMLInputElement> | any) {
     if (
       evt.key === 'Escape' ||
       evt.code === 'Escape' ||
@@ -125,20 +138,20 @@ export default class KoboDropdown extends React.Component {
   }
 
   registerOutsideClickListener() {
-    window.addEventListener('click', this.checkOutsideClick);
-    window.addEventListener('touch', this.checkOutsideClick);
-    window.addEventListener('touchstart', this.checkOutsideClick);
-    window.addEventListener('contextmenu', this.checkOutsideClick);
+    window.addEventListener('click', this.checkOutsideClick.bind(this));
+    window.addEventListener('touch', this.checkOutsideClick.bind(this));
+    window.addEventListener('touchstart', this.checkOutsideClick.bind(this));
+    window.addEventListener('contextmenu', this.checkOutsideClick.bind(this));
   }
 
   cancelOutsideClickListener() {
-    window.removeEventListener('click', this.checkOutsideClick);
-    window.removeEventListener('touch', this.checkOutsideClick);
-    window.removeEventListener('touchstart', this.checkOutsideClick);
-    window.removeEventListener('contextmenu', this.checkOutsideClick);
+    window.removeEventListener('click', this.checkOutsideClick.bind(this));
+    window.removeEventListener('touch', this.checkOutsideClick.bind(this));
+    window.removeEventListener('touchstart', this.checkOutsideClick.bind(this));
+    window.removeEventListener('contextmenu', this.checkOutsideClick.bind(this));
   }
 
-  checkOutsideClick(evt) {
+  checkOutsideClick(evt: React.ChangeEvent<HTMLInputElement> | any) {
     let isOutsideClick = true;
     const dropdownWrapperEl = ReactDOM.findDOMNode(this);
 
@@ -167,22 +180,19 @@ export default class KoboDropdown extends React.Component {
   getWrapperModifiers() {
     const wrapperMods = [];
 
-    if (
-      this.props.theme &&
-      typeof KOBO_DROPDOWN_THEMES[this.props.theme] !== 'undefined'
-    ) {
+    if (this.props.theme) {
       wrapperMods.push(this.props.theme);
     } else {
-      wrapperMods.push(KOBO_DROPDOWN_THEMES.light);
+      wrapperMods.push(KoboDropdownThemes.light);
     }
 
     if (
       this.props.placement &&
-      typeof KOBO_DROPDOWN_PLACEMENTS[this.props.placement] !== 'undefined'
+      typeof KoboDropdownPlacements[this.props.placement] !== 'undefined'
     ) {
       wrapperMods.push(this.props.placement);
     } else {
-      wrapperMods.push(KOBO_DROPDOWN_PLACEMENTS['down-center']);
+      wrapperMods.push(KoboDropdownPlacements['down-center']);
     }
 
     // These modifiers are for styling purposes only, i.e. they don't have
@@ -201,7 +211,8 @@ export default class KoboDropdown extends React.Component {
   }
 
   render() {
-    const additionalWrapperAttributes = {};
+    const additionalWrapperAttributes = {'data-name': ''}
+
     if (this.props.name) {
       // We use `data-name` attribute to allow any character in the name.
       additionalWrapperAttributes['data-name'] = this.props.name;
@@ -209,12 +220,12 @@ export default class KoboDropdown extends React.Component {
 
     return (
       <bem.KoboDropdown m={this.getWrapperModifiers()} {...additionalWrapperAttributes}>
-        <bem.KoboDropdown__trigger onClick={this.onTriggerClick}>
+        <bem.KoboDropdown__trigger onClick={this.onTriggerClick.bind(this)}>
           {this.props.triggerContent}
         </bem.KoboDropdown__trigger>
 
         {this.state.isMenuVisible &&
-          <bem.KoboDropdown__menu onClick={this.onMenuClick}>
+          <bem.KoboDropdown__menu onClick={this.onMenuClick.bind(this)}>
             {this.props.menuContent}
           </bem.KoboDropdown__menu>
         }

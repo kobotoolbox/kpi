@@ -12,35 +12,49 @@ import {
   GROUP_TYPES_BEGIN,
   QUESTION_TYPES,
   CHOICE_LISTS,
+  AnyRowTypeName,
 } from 'js/constants';
 
-export const DISPLAY_GROUP_TYPES = createEnum([
-  'group_root',
-  'group_repeat',
-  'group_regular',
-  'group_matrix',
-  'group_matrix_row',
-]);
+enum DisplayGroupTypeName {
+  group_root = 'group_root',
+  group_repeat = 'group_repeat',
+  group_regular = 'group_regular',
+  group_matrix = 'group_matrix',
+  group_matrix_row = 'group_matrix_row',
+}
 
-/**
- * @typedef {Object} DisplayGroup
- * @property {string} type - One of DISPLAY_GROUP_TYPES
- * @property {string} label - Localized display label
- * @property {string} name - Unique identifier
- * @property {Array<DisplayResponse|DisplayGroup>} children - List of groups and responses
- */
+export const DISPLAY_GROUP_TYPES = createEnum([
+  DisplayGroupTypeName.group_root,
+  DisplayGroupTypeName.group_repeat,
+  DisplayGroupTypeName.group_regular,
+  DisplayGroupTypeName.group_matrix,
+  DisplayGroupTypeName.group_matrix_row,
+]) as {[P in DisplayGroupTypeName]: DisplayGroupTypeName};;
+
 class DisplayGroup {
-  constructor(type, label = null, name = null) {
+  public type: DisplayGroupTypeName;
+  /** Localized display label */
+  public label: string | null = null;
+  /** Unique identifier */
+  public name: string | null = null;
+  /** List of groups and responses */
+  public children: Array<DisplayResponse|DisplayGroup> = [];
+
+  constructor(
+    type: DisplayGroupTypeName,
+    label?: string | null,
+    name?: string | null
+  ) {
     this.type = type;
-    this.label = label;
-    this.name = name;
-    this.children = [];
+    if (label) {
+      this.label = label;
+    }
+    if (name) {
+      this.name = name;
+    }
   }
 
-  /**
-   * @property {DisplayResponse|DisplayGroup} child
-   */
-  addChild(child) {
+  addChild(child: DisplayResponse|DisplayGroup) {
     this.children.push(child);
   }
 }
@@ -56,11 +70,32 @@ class DisplayGroup {
  * @property {string|null} data - User response, `null` for no response
  */
 class DisplayResponse {
-  constructor(type, label, name, listName, data = null) {
+  public type: AnyRowTypeName;
+  /** Localized display label */
+  public label: string | null;
+  /** Unique identifier */
+  public name: string;
+  /**
+   * Unique identifier of a choices list, only applicable for question types
+   * that uses choices lists.
+   */
+  public listName: string | undefined;
+  /** User response, `null` for no response */
+  public data: string | null = null;
+
+  constructor(
+    type: AnyRowTypeName,
+    label: string | null,
+    name: string,
+    listName: string | undefined,
+    data?: string | null
+  ) {
     this.type = type;
     this.label = label;
     this.name = name;
-    this.data = data;
+    if (data) {
+      this.data = data;
+    }
     if (listName) {
       this.listName = listName;
     }
@@ -68,25 +103,31 @@ class DisplayResponse {
 }
 
 /**
- * @param {object} submissionData
- * @param {Array<object>} survey
- * @param {Array<object>} choices
- * @param {number} translationIndex - for choosing label to display
- * @returns {DisplayGroup} - a root group with everything inside
+ * Returns a root group with everything inside
  */
-export function getSubmissionDisplayData(survey, choices, translationIndex, submissionData) {
+export function getSubmissionDisplayData(
+  survey: SurveyRow[],
+  choices: SurveyChoice[],
+  /** for choosing label to display */
+  translationIndex: number,
+  submissionData: SubmissionResponse
+) {
   const flatPaths = getSurveyFlatPaths(survey, true);
 
   // let's start with a root of survey being a group with special flag
   const output = new DisplayGroup(DISPLAY_GROUP_TYPES.group_root);
 
   /**
-   * recursively generates a nested architecture of survey with data
-   * @param {DisplayGroup} parentGroup - rows and groups will be added to it as children
-   * @param {object} parentData - submissionData scoped by parent (useful for repeat groups)
-   * @param {number} [repeatIndex] - inside a repeat group this is the current repeat submission index
+   * Recursively generates a nested architecture of survey with data.
    */
-  function traverseSurvey(parentGroup, parentData, repeatIndex = null) {
+  function traverseSurvey(
+    /** Rows and groups will be added to it as children. */
+    parentGroup: DisplayGroup,
+    /** The submissionData scoped by parent (useful for repeat groups). */
+    parentData: SubmissionResponse,
+    /** Inside a repeat group this is the current repeat submission index. */
+    repeatIndex: number | null = null
+  ) {
     for (let rowIndex = 0; rowIndex < survey.length; rowIndex++) {
       const row = survey[rowIndex];
 
@@ -159,7 +200,10 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
            * corresponds to a matrix item from choices.
            */
           choices.forEach((item) => {
-            if (item[MATRIX_PAIR_PROPS.inChoices] === row[MATRIX_PAIR_PROPS.inSurvey]) {
+            if (
+              item[MATRIX_PAIR_PROPS.inChoices as keyof SurveyChoice] ===
+              row[MATRIX_PAIR_PROPS.inSurvey as keyof SurveyRow]
+            ) {
               // Matrix is only one level deep, so we can use a "simpler"
               // non-recursive special function
               populateMatrixData(
@@ -191,7 +235,7 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
          */
         traverseSurvey(rowObj, rowData, repeatIndex);
       } else if (
-        QUESTION_TYPES[row.type] ||
+        Object.keys(QUESTION_TYPES).includes(row.type) ||
         row.type === SCORE_ROW_TYPE ||
         row.type === RANK_LEVEL_TYPE
       ) {
@@ -229,23 +273,25 @@ export function getSubmissionDisplayData(survey, choices, translationIndex, subm
  * It creates display data structure for a given choice-row of a Matrix.
  * As the data is bit different from all other question types, we need to use
  * a special function, not a great traverseSurvey one.
- * @param {Array<object>} survey
- * @param {Array<object>} choices
- * @param {object} submissionData
- * @param {number} translationIndex
- * @param {DisplayGroup} matrixGroup - a group you want to add a row of questions to
- * @param {string} matrixRowName - the row name
- * @param {object} parentData - submissionData scoped by parent (useful for repeat groups)
  */
 function populateMatrixData(
-  survey,
-  choices,
-  submissionData,
-  translationIndex,
-  matrixGroup,
-  matrixRowName,
-  parentData
+  survey: SurveyRow[],
+  choices: SurveyChoice[],
+  submissionData: SubmissionResponse,
+  translationIndex: number,
+  /** A group you want to add a row of questions to. */
+  matrixGroup: DisplayGroup,
+  /** The row name. */
+  matrixRowName: string,
+  /** The submissionData scoped by parent (useful for repeat groups). */
+  parentData: SubmissionResponse
 ) {
+  // This should not happen, as the only DisplayGroup with null name will be of
+  // the group_root type, but we need this for the types.
+  if (matrixGroup.name === null) {
+    return
+  }
+
   // create row display group and add it to matrix group
   const matrixRowLabel = getTranslatedRowLabel(matrixRowName, choices, translationIndex);
   let matrixRowGroupObj = new DisplayGroup(
@@ -268,6 +314,10 @@ function populateMatrixData(
       const questionSurveyObj = survey.find((row) =>
         getRowName(row) === questionName
       );
+      // We are only interested in going further if object was found.
+      if (typeof questionSurveyObj === 'undefined') {
+        return;
+      }
 
       /*
        * NOTE: Submission data for a Matrix question is kept in an unusal
@@ -301,14 +351,14 @@ function populateMatrixData(
 }
 
 /**
- * Returns data for given row, works for groups too.
- * @param {string} name - row name
- * @param {Array<object>} survey
- * @param {object} data - submission data
- * @returns {string|null|array<*>|object} row data, null is for identifying
- * no answer, array for repeat groups and object for regular groups
+ * Returns data for given row, works for groups too. Returns `null` for no
+ * answer, array for repeat groups and object for regular groups
  */
-function getRowData(name, survey, data) {
+function getRowData(
+  name: string,
+  survey: SurveyRow[],
+  data: SubmissionResponse
+) {
   if (data === null || typeof data !== 'object') {
     return null;
   }
@@ -323,12 +373,12 @@ function getRowData(name, survey, data) {
   } else if (path) {
     // we don't really know here if this is a repeat or a regular group
     // so we let the data be the guide (possibly not trustworthy)
-    let rowData = getRepeatGroupAnswers(data, path);
-    if (rowData.length >= 1) {
-      return rowData;
+    const repeatRowData = getRepeatGroupAnswers(data, path);
+    if (repeatRowData.length >= 1) {
+      return repeatRowData;
     }
 
-    rowData = getRegularGroupAnswers(data, path);
+    const rowData = getRegularGroupAnswers(data, path);
     if (Object.keys(rowData).length >= 1) {
       return rowData;
     }
@@ -338,12 +388,13 @@ function getRowData(name, survey, data) {
 
 /**
  * Tells if given row is an immediate child of given group
- * @param {string} rowName
- * @param {string|null} groupPath - null for root level rows
- * @param {Array<object>} survey
- * @returns {boolean}
  */
-function isRowFromCurrentGroupLevel(rowName, groupPath, survey) {
+function isRowFromCurrentGroupLevel(
+  rowName: string,
+  /** Null for root level rows. */
+  groupPath: string|null,
+  survey: SurveyRow[]
+) {
   const flatPaths = getSurveyFlatPaths(survey, true);
   if (groupPath === null) {
     return flatPaths[rowName] === rowName;
@@ -353,15 +404,17 @@ function isRowFromCurrentGroupLevel(rowName, groupPath, survey) {
 }
 
 /**
- * @param {object} data
- * @param {string} targetKey - with groups e.g. group_person/group_pets/group_pet/pet_name
- * @returns {array} of answers
+ * Returns an array of answers
  */
-export function getRepeatGroupAnswers(data, targetKey) {
-  const answers = [];
+export function getRepeatGroupAnswers(
+  data: SubmissionResponse,
+  /** With groups e.g. group_person/group_pets/group_pet/pet_name. */
+  targetKey: string
+) {
+  const answers: string[] = [];
 
   // Goes through nested groups from key, looking for answers.
-  const lookForAnswers = (data, levelIndex) => {
+  const lookForAnswers = (data: SubmissionResponse, levelIndex: number) => {
     const levelKey = targetKey.split('/').slice(0, levelIndex + 1).join('/');
     // Each level could be an array of repeat group answers or object with questions.
     if (levelKey === targetKey) {
@@ -369,7 +422,7 @@ export function getRepeatGroupAnswers(data, targetKey) {
         answers.push(data[targetKey]);
       }
     } else if (Array.isArray(data[levelKey])) {
-      data[levelKey].forEach((item) => {
+      data[levelKey].forEach((item: SubmissionResponse) => {
         lookForAnswers(item, levelIndex + 1);
       });
     }
@@ -382,12 +435,13 @@ export function getRepeatGroupAnswers(data, targetKey) {
 
 /**
  * Filters data for items inside the group
- * @param {object} data
- * @param {string} targetKey - with groups e.g. group_person/group_pets/group_pet
- * @returns {object} of answers
  */
-function getRegularGroupAnswers(data, targetKey) {
-  const answers = {};
+function getRegularGroupAnswers(
+  data: SubmissionResponse,
+  /** With groups e.g. group_person/group_pets/group_pet. */
+  targetKey: string
+) {
+  const answers: {[questionName: string]: any} = {};
   Object.keys(data).forEach((objKey) => {
     if (objKey.startsWith(`${targetKey}/`)) {
       answers[objKey] = data[objKey];
@@ -396,17 +450,46 @@ function getRegularGroupAnswers(data, targetKey) {
   return answers;
 }
 
+function getRowListName(row: SurveyRow | undefined): string | undefined {
+  let returnVal;
+  if (row && Object.keys(row).includes(CHOICE_LISTS.SELECT)) {
+    returnVal = row[CHOICE_LISTS.SELECT as keyof SurveyRow];
+  }
+  if (row && Object.keys(row).includes(CHOICE_LISTS.MATRIX)) {
+    returnVal = row[CHOICE_LISTS.MATRIX as keyof SurveyRow];
+  }
+  if (row && Object.keys(row).includes(CHOICE_LISTS.SCORE)) {
+    returnVal = row[CHOICE_LISTS.SCORE as keyof SurveyRow];
+  }
+  if (row && Object.keys(row).includes(CHOICE_LISTS.RANK)) {
+    returnVal = row[CHOICE_LISTS.RANK as keyof SurveyRow];
+  }
+  if (typeof returnVal === 'string') {
+    return returnVal;
+  }
+  return undefined;
+}
+
 /**
- * @param {object} row
- * @returns {string|undefiend}
+ * Returns an attachment object or an error message.
  */
-function getRowListName(row) {
-  return (
-    row[CHOICE_LISTS.SELECT] ||
-    row[CHOICE_LISTS.MATRIX] ||
-    row[CHOICE_LISTS.SCORE] ||
-    row[CHOICE_LISTS.RANK]
+export function getMediaAttachment(
+  submission: SubmissionResponse,
+  fileName: string
+): string | SubmissionAttachment {
+  const fileNameNoSpaces = fileName.replace(/ /g, '_');
+  let mediaAttachment: string | SubmissionAttachment = t('Could not find ##fileName##').replace(
+    '##fileName##',
+    fileName,
   );
+
+  submission._attachments.forEach((attachment) => {
+    if (attachment.filename.includes(fileNameNoSpaces)) {
+      mediaAttachment = attachment;
+    }
+  });
+
+  return mediaAttachment;
 }
 
 export default {

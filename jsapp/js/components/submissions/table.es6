@@ -21,15 +21,17 @@ import {
   GROUP_TYPES_BEGIN,
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
-  NUMERICAL_SUBMISSION_PROPS,
   ENKETO_ACTIONS,
 } from 'js/constants';
-import {formatTimeDate} from 'utils';
+import {formatTimeDateShort} from 'utils';
 import {
   renderQuestionTypeIcon,
   getQuestionOrChoiceDisplayName,
 } from 'js/assetUtils';
-import {getRepeatGroupAnswers} from 'js/components/submissions/submissionUtils';
+import {
+  getRepeatGroupAnswers,
+  getMediaAttachment,
+} from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
 import TableColumnSortDropdown from 'js/components/submissions/tableColumnSortDropdown';
@@ -42,7 +44,7 @@ import {
   DATA_TABLE_SETTINGS,
   TABLE_MEDIA_TYPES,
   DEFAULT_DATA_CELL_WIDTH,
-  DEFAULT_VALIDATION_CELL_WIDTH,
+  CELLS_WIDTH_OVERRIDES,
 } from 'js/components/submissions/tableConstants';
 import {
   getColumnLabel,
@@ -307,6 +309,10 @@ export class DataTable extends React.Component {
     tableStore.setFrozenColumn(fieldId, isFrozen);
   }
 
+  _getColumnWidth(columnId) {
+    return CELLS_WIDTH_OVERRIDES[columnId] || DEFAULT_DATA_CELL_WIDTH;
+  }
+
   /**
    * @param {number} maxPageRes
    * @returns {object} submission actions column for react-table
@@ -452,7 +458,7 @@ export class DataTable extends React.Component {
             onFrozenChange={this.onFieldFrozenChange}
             additionalTriggerContent={
               <span className='column-header-title'>
-                {t('Validation status')}
+                {t('Validation')}
               </span>
             }
           />
@@ -462,7 +468,7 @@ export class DataTable extends React.Component {
       accessor: VALIDATION_STATUS_ID_PROP,
       index: '__2',
       id: VALIDATION_STATUS_ID_PROP,
-      width: DEFAULT_VALIDATION_CELL_WIDTH,
+      width: this._getColumnWidth(VALIDATION_STATUS_ID_PROP),
       className: elClassNames.join(' '),
       headerClassName: elClassNames.join(' '),
       Filter: ({ filter, onChange }) => {
@@ -613,9 +619,6 @@ export class DataTable extends React.Component {
       }
 
       const elClassNames = [];
-      if (this.cellDisplaysNumbers(q || key)) {
-        elClassNames.push('rt-numerical-value');
-      }
 
       if (tableStore.getFieldSortValue(key) !== null) {
         elClassNames.push('is-sorted');
@@ -666,14 +669,14 @@ export class DataTable extends React.Component {
         sortable: false,
         className: elClassNames.join(' '),
         headerClassName: elClassNames.join(' '),
-        width: DEFAULT_DATA_CELL_WIDTH,
+        width: this._getColumnWidth(key),
         Cell: (row) => {
           if (showLabels && q && q.type && row.value) {
             if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null;
 
               if (q.type !== QUESTION_TYPES.text.id) {
-                mediaAttachment = this.getMediaAttachment(row, row.value);
+                mediaAttachment = getMediaAttachment(row.original, row.value);
               }
 
               return (
@@ -729,7 +732,7 @@ export class DataTable extends React.Component {
             ) {
               return (
                 <span className='trimmed-text'>
-                  {formatTimeDate(row.value)}
+                  {formatTimeDateShort(row.value)}
                 </span>
               );
             }
@@ -940,10 +943,10 @@ export class DataTable extends React.Component {
         backgroundAudioName &&
         Object.keys(row.original).includes(backgroundAudioName)
       ) {
-        let backgroundAudioUrl = this.getMediaDownloadLink(
-          row,
+        let backgroundAudioUrl = getMediaAttachment(
+          row.original,
           row.original[backgroundAudioName]
-        );
+        )?.download_medium_url;
 
         this.submissionModalProcessing(
           sid,
@@ -1011,30 +1014,27 @@ export class DataTable extends React.Component {
   }
 
   onPageStateUpdated(pageState) {
-    if (!pageState.modal) {
-      return false;
-    }
-
-    if (pageState.modal.type === MODAL_TYPES.BULK_EDIT_SUBMISSIONS) {
-      return false;
-    }
-
-    let params = pageState.modal;
-    let page = 0;
-
-    if (params.type !== MODAL_TYPES.TABLE_SETTINGS && !params.sid) {
+    // This function serves purpose only for Submission Modal and only when
+    // user reaches the end of currently loaded submissions in the table with
+    // the "next" button.
+    if (
+      pageState.modal &&
+      pageState.modal.type === MODAL_TYPES.SUBMISSION &&
+      !pageState.modal.sid
+    ) {
+      let page = 0;
       let fetchInstance = this.state.fetchInstance;
-      if (params.page === 'next') {
+      if (pageState.modal.page === 'next') {
         page = this.state.currentPage + 1;
       }
-      if (params.page === 'prev') {
+      if (pageState.modal.page === 'prev') {
         page = this.state.currentPage - 1;
       }
 
       fetchInstance.setState({ page: page });
       this.setState({
         fetchInstance: fetchInstance,
-        submissionPager: params.page,
+        submissionPager: pageState.modal.page,
       }, function () {
         this.fetchData(this.state.fetchState, this.state.fetchInstance);
       });
@@ -1137,26 +1137,6 @@ export class DataTable extends React.Component {
     );
   }
 
-  /**
-   * @param {object} row
-   * @param {string} fileName
-   */
-  getMediaAttachment(row, fileName) {
-    const fileNameNoSpaces = fileName.replace(/ /g, '_');
-    let mediaAttachment = t('Could not find ##fileName##').replace(
-      '##fileName##',
-      fileName,
-    );
-
-    row.original._attachments.forEach((attachment) => {
-      if (attachment.filename.includes(fileNameNoSpaces)) {
-        mediaAttachment = attachment;
-      }
-    });
-
-    return mediaAttachment;
-  }
-
   // NOTE: Please avoid calling `setState` inside scroll callback, as it causes
   // a noticeable lag.
   onTableScroll(evt) {
@@ -1176,20 +1156,6 @@ export class DataTable extends React.Component {
     } else {
       this.tableScrollTop = evt.target.scrollTop;
     }
-  }
-
-  cellDisplaysNumbers(questionOrKey) {
-    let questionType = questionOrKey;
-    if (questionOrKey.type) {
-      questionType = questionOrKey.type;
-    }
-
-    return (
-      NUMERICAL_SUBMISSION_PROPS[questionType]
-      // TODO: apply monospace font to media cells EXCLUDING text questions
-      // after duration is implemented
-      // || Object.keys(TABLE_MEDIA_TYPES).includes(questionType)
-    );
   }
 
   render() {

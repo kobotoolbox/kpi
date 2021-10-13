@@ -1,4 +1,4 @@
-@import "scss/_colors";
+@use "scss/_colors";
 
 // Loading messages
 .loading {
@@ -10,9 +10,8 @@
   opacity: 0.8;
 
   i:first-child {
-    margin-right: 12px;
-    vertical-align: middle;
-    font-size: 28px;
+    margin-right: 10px;
+    vertical-align: -7px;
     display: inline-block;
   }
 
@@ -29,7 +28,7 @@
       padding: 15px;
       font-size: 13px;
       display: block;
-      background: $kobo-white;
+      background: colors.$kobo-white;
       width: 80%;
       max-height: 300px;
       overflow: auto;

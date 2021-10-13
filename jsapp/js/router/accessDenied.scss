@@ -1,0 +1,31 @@
+.access-denied {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.access-denied__body {
+  max-width: 600px;
+}
+
+.access-denied__header {
+  font-size: 24px;
+  text-align: center;
+
+  .k-icon {
+    margin-right: 5px;
+    vertical-align: -5px;
+    font-size: 28px;
+    display: inline-block;
+  }
+}
+
+.access-denied__text {
+  margin-top: 20px;
+
+  code {
+    margin-left: 5px;
+  }
+}

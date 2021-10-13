@@ -7,27 +7,43 @@ interface FailResponse {
   statusText: string
 }
 
-// TODO: most of these could be changed into ENUMS from just strings (e.g. `type`)
-/**
- * It represents a question from the form, a group start/end or a piece of
- * a more complex question type.
- */
-interface SurveyRow {
-  $autoname: string
-  $kuid: string
-  type: string
-  calculation?: string
-  label?: string[]
-  hint?: string[]
-  name?: string
-  required?: boolean
-  _isRepeat?: boolean
-  appearance?: string
-  parameters?: string
-  'kobo--matrix_list'?: string
-  'kobo--rank-constraint-message'?: string
-  'kobo--rank-items'?: string
-  'kobo--score-choices'?: string
+interface SubmissionAttachment {
+  download_url: string
+  download_large_url: string
+  download_medium_url: string
+  download_small_url: string
+  mimetype: string
+  filename: string
+  instance: number
+  xform: number
+  id: number
+}
+
+interface SubmissionResponse {
+  [questionName: string]: any
+  __version__: string
+  _attachments: SubmissionAttachment[]
+  _geolocation: any[]
+  _id: number
+  _notes: any[]
+  _status: string
+  _submission_time: string
+  _submitted_by: string|null
+  _tags: string[]
+  _uuid: string
+  _validation_status: object
+  _version_: string
+  _xform_id_string: string
+  deviceid?: string
+  end?: string
+  "formhub/uuid": string
+  "meta/instanceID": string
+  phonenumber?: string
+  simserial?: string
+  start?: string
+  subscriberid?: string
+  today?: string
+  username?: string
 }
 
 interface AssignablePermission {
@@ -75,6 +91,44 @@ interface ExportSetting {
   }
 }
 
+/**
+ * It represents a question from the form, a group start/end or a piece of
+ * a more complex question type.
+ */
+interface SurveyRow {
+  $autoname: string
+  $kuid: string
+  // We use dynamic import to avoid changing this ambient module to a normal
+  // module: see https://stackoverflow.com/a/51114250/2311247
+  type: import('js/constants').AnyRowTypeName
+  calculation?: string
+  label?: string[]
+  hint?: string[]
+  name?: string
+  required?: boolean
+  _isRepeat?: boolean
+  appearance?: string
+  parameters?: string
+  'kobo--matrix_list'?: string
+  'kobo--rank-constraint-message'?: string
+  'kobo--rank-items'?: string
+  'kobo--score-choices'?: string
+  'kobo--locking-profile'?: string
+}
+
+interface SurveyChoice {
+  $autovalue: string
+  $kuid: string
+  label: string[]
+  list_name: string
+  name: string
+}
+
+interface AssetLockingProfileDefinition {
+  name: string
+  restrictions: string[] // TODO use restrictions enum after it is added
+}
+
 interface AssetContentSettings {
   name?: string
   version?: string
@@ -82,6 +136,8 @@ interface AssetContentSettings {
   style?: string
   form_id?: string
   title?: string
+  'kobo--lock_all'?: boolean
+  'kobo--locking-profile'?: 'string'
 }
 
 /**
@@ -92,9 +148,11 @@ interface AssetContentSettings {
 interface AssetContent {
   schema?: string
   survey?: SurveyRow[]
+  choices?: SurveyChoice[]
   settings?: AssetContentSettings | AssetContentSettings[]
   translated?: string[]
   translations?: Array<string|null>
+  'kobo--locking-profiles'?: AssetLockingProfileDefinition[]
 }
 
 interface AssetReportStylesSpecified {
@@ -241,4 +299,52 @@ interface AssetResponse {
   settings__style?: string
   settings__form_id?: string
   settings__title?: string
+}
+
+interface PaginatedResponse {
+  count: number
+  next: null | string
+  previous: null | string
+  results: any[]
+}
+
+interface PermissionDefinition {
+  url: string
+  name: string
+  description: string
+  codename: string
+  implied: string[]
+  contradictory: string[]
+}
+
+interface PermissionsConfigResponse extends PaginatedResponse {
+  results: PermissionDefinition[]
+}
+
+interface AccountResponse {
+  username: string
+  first_name: string
+  last_name: string
+  email: string
+  server_time: string
+  date_joined: string
+  projects_url: string
+  is_superuser: boolean
+  gravatar: string
+  is_staff: boolean
+  last_login: string
+  extra_details: {
+    name: string
+    gender: string
+    sector: string
+    country: string
+    organization: string
+    require_auth: boolean
+  },
+  git_rev: {
+    short: string
+    long: string
+    branch: string
+    tag: boolean
+  }
 }

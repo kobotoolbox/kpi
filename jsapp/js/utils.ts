@@ -46,6 +46,14 @@ export function formatTimeDate(timeStr: string): string {
 }
 
 /**
+ * Returns something like "Sep 4, 1986 8:30 PM"
+ */
+export function formatTimeDateShort(timeStr: string): string {
+  const _m = moment(timeStr)
+  return _m.format('lll')
+}
+
+/**
  * Returns something like "Mar 15, 2021"
  */
 export function formatDate(timeStr: string): string {
@@ -112,6 +120,16 @@ export function replaceSupportEmail(str: string, newEmail?: string): string {
   } else {
     return str;
   }
+}
+
+// returns an HTML string where [bracket] notation is replaced with a hyperlink
+export function replaceBracketsWithLink(str: string, url?: string): string {
+  const bracketRegex = /\[([^\]]+)\]/g;
+  if (!url) {
+    return str.replace(bracketRegex, '$1');
+  }
+  const linkHtml = `<a href="${url}" target="_blank">$1</a>`;
+  return str.replace(bracketRegex, linkHtml);
 }
 
 export function currentLang(): string {

@@ -1,42 +1,53 @@
-import autoBind from 'react-autobind';
-import React from 'react';
+import React from 'react'
+import autoBind from 'react-autobind'
+import bem, {makeBem} from 'js/bem'
+import 'js/components/common/audioPlayer.scss'
 
-import bem from 'js/bem';
+bem.AudioPlayer = makeBem(null, 'audio-player')
+bem.AudioPlayer__controls = makeBem(bem.AudioPlayer, 'controls', 'div')
+bem.AudioPlayer__progress = makeBem(bem.AudioPlayer, 'progress', 'div')
+bem.AudioPlayer__time = makeBem(bem.AudioPlayer, 'time', 'div')
+bem.AudioPlayer__timeCurrent = makeBem(bem.AudioPlayer, 'time-current', 'span')
+bem.AudioPlayer__timeTotal = makeBem(bem.AudioPlayer, 'time-total', 'span')
+bem.AudioPlayer__seek = makeBem(bem.AudioPlayer, 'seek', 'div')
 
-import 'js/components/common/audioPlayer.scss';
+type AudioPlayerProps = {
+  mediaURL: string
+}
 
-bem.AudioPlayer = bem.create('audio-player');
-bem.AudioPlayer__controls = bem.AudioPlayer.__('controls', '<div>');
-bem.AudioPlayer__progress = bem.AudioPlayer.__('progress', '<div>');
-bem.AudioPlayer__time = bem.AudioPlayer.__('time', '<div>');
-bem.AudioPlayer__timeCurrent = bem.AudioPlayer.__('time-current', '<span>');
-bem.AudioPlayer__timeTotal = bem.AudioPlayer.__('time-total', '<span>');
-bem.AudioPlayer__seek = bem.AudioPlayer.__('seek', '<div>');
+type AudioPlayerState = {
+  isLoading: boolean,
+  isPlaying: boolean,
+  currentTime: number,
+  totalTime: number,
+}
 
-/*
+/**
  * Custom audio player for viewing audio submissions in data table
  *
  * @param {string} mediaURL
  */
-class AudioPlayer extends React.Component {
-  constructor(props) {
-    super(props);
+class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
+  audioInterface: HTMLAudioElement
+
+  constructor(props: AudioPlayerProps) {
+    super(props)
 
     this.state = {
       isLoading: false,
       isPlaying: false,
       currentTime: 0,
       totalTime: 0,
-    };
+    }
 
-    this.audioInterface = new Audio(this.props.mediaURL);
+    this.audioInterface = new Audio(this.props.mediaURL)
 
     // Set up listeners for audio component
     this.audioInterface.onloadedmetadata = () => {
       this.setState({
         totalTime: this.audioInterface.duration,
-      });
-    };
+      })
+    }
 
     this.audioInterface.ontimeupdate = () => {
       // Pause the player when it reaches the end
@@ -44,41 +55,41 @@ class AudioPlayer extends React.Component {
         this.audioInterface.currentTime === this.state.totalTime &&
         this.state.isPlaying
       ) {
-        this.onPlayStatusChange();
+        this.onPlayStatusChange()
       }
 
       this.setState({
         currentTime: this.audioInterface.currentTime,
-      });
-    };
+      })
+    }
 
-    autoBind(this);
+    autoBind(this)
   }
 
   componentWillUnmount() {
-    this.audioInterface.pause();
+    this.audioInterface.pause()
   }
 
   onPlayStatusChange() {
     if (!this.state.isPlaying) {
-      this.audioInterface.play();
+      this.audioInterface.play()
     } else {
-      this.audioInterface.pause();
+      this.audioInterface.pause()
     }
 
     this.setState({
       isPlaying: !this.state.isPlaying,
-    });
+    })
   }
 
-  onSeekChange(newVal) {
-    const newTime = newVal.currentTarget.value;
+  onSeekChange(newVal: React.ChangeEvent<HTMLInputElement>) {
+    const newTime = newVal.currentTarget.value
 
-    this.audioInterface.currentTime = newTime;
+    this.audioInterface.currentTime = parseInt(newTime)
 
     this.setState({
       currentTime: parseInt(newTime),
-    });
+    })
   }
 
   /* We deal internally with un-converted time for easier computing. Only use
@@ -87,27 +98,31 @@ class AudioPlayer extends React.Component {
    * @param {float} time - HTMLElementAudio.duration returns a float in seconds
    */
 
-  convertToClock(time) {
-    let minutes = Math.floor(time / 60);
-    // The duration is given in decimal seconds, so we have to ceiling here
-    let seconds = Math.ceil(time - minutes * 60);
+  convertToClock(time: number) {
+    let minutes = Math.floor(time / 60)
+    // The duration is given in decimal seconds, so we have to do ceiling here
+    let seconds = Math.ceil(time - minutes * 60)
 
+    let finalSeconds: string;
     if (seconds < 10) {
-      seconds = '0' + seconds;
+      finalSeconds = '0' + seconds
+    } else {
+      finalSeconds = String(seconds)
     }
-    return minutes + ':' + seconds;
+
+    return minutes + ':' + finalSeconds
   }
 
-  getControlIcon(isPlaying) {
-    const iconClassNames = ['k-icon'];
+  getControlIcon(isPlaying: boolean) {
+    const iconClassNames = ['k-icon']
 
     if (isPlaying) {
-      iconClassNames.push('k-icon-pause');
+      iconClassNames.push('k-icon-pause')
     } else {
-      iconClassNames.push('k-icon-caret-right');
+      iconClassNames.push('k-icon-caret-right')
     }
 
-    return iconClassNames.join(' ');
+    return iconClassNames.join(' ')
   }
 
   render() {
@@ -141,8 +156,8 @@ class AudioPlayer extends React.Component {
           </bem.AudioPlayer__seek>
         </bem.AudioPlayer__progress>
       </bem.AudioPlayer>
-    );
+    )
   }
 }
 
-export default AudioPlayer;
+export default AudioPlayer

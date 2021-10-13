@@ -1,13 +1,14 @@
-@import "scss/_colors";
+@use "sass:list";
+@use "scss/_colors";
 
 // map marker colors
 .map-marker[class*="map-marker-"] {
   background: rgba(100, 100, 100, 0.8);
-  border-color: rgba($kobo-white, 0.75);
+  border-color: rgba(colors.$kobo-white, 0.75);
 }
 
 .map-marker {
-  border: 1px solid $kobo-white;
+  border: 1px solid colors.$kobo-white;
   border-radius: 50%;
 
   &.unselected {
@@ -15,7 +16,7 @@
   }
 
   &.default-overlay-marker {
-    background: rgba($kobo-gray-24, 0.7);
+    background: rgba(colors.$kobo-gray-24, 0.7);
     border: none;
     border-radius: 0;
   }
@@ -37,7 +38,7 @@ $colorsD: #4d9221, #7fbc41, #b8e186, #e6f5d0, #f7f7f7, #fde0ef, #f1b6da, #de77ae
 $colorsE: #2166ac, #4393c3, #92c5de, #d1e5f0, #f7f7f7, #fddbc7, #f4a582, #d6604d, #b2182b;
 
 $class-slug: map-marker-a !default;
-$colorLength: length($colorsA);
+$colorLength: list.length($colorsA);
 
 @for $i from 1 through $colorLength {
   .map-marker.#{$class-slug}#{$i},
@@ -45,85 +46,85 @@ $colorLength: length($colorsA);
   .map-marker.#{$class-slug}#{$i + $colorLength * 2},
   .map-marker.#{$class-slug}#{$i + $colorLength * 3},
   .map-marker.#{$class-slug}#{$i + $colorLength * 4} {
-    background: nth($colorsA, $i);
+    background: list.nth($colorsA, $i);
   }
 
   .map-marker.#{$class-slug}#{$i + $colorLength * 2} {
-    background-image: linear-gradient(90deg, rgba($kobo-white, 0.4) 50%, transparent 50%), linear-gradient(rgba($kobo-white, 0.4) 50%, transparent 50%);
+    background-image: linear-gradient(90deg, rgba(colors.$kobo-white, 0.4) 50%, transparent 50%), linear-gradient(rgba(colors.$kobo-white, 0.4) 50%, transparent 50%);
     background-size: 6px 6px;
     background-position: center center;
   }
 
   .map-marker.#{$class-slug}#{$i + $colorLength} {
-    background-image: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba($kobo-white, 0.3) 3px, rgba($kobo-white, 0.3) 6px);
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(colors.$kobo-white, 0.3) 3px, rgba(colors.$kobo-white, 0.3) 6px);
   }
 
   .map-marker.#{$class-slug}#{$i + $colorLength * 3} {
-    background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba($kobo-white, 0.3) 3px, rgba($kobo-white, 0.3) 6px);
+    background-image: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(colors.$kobo-white, 0.3) 3px, rgba(colors.$kobo-white, 0.3) 6px);
   }
 
   .map-marker.#{$class-slug}#{$i + $colorLength * 4} {
-    background-image: linear-gradient(90deg, rgba($kobo-gray-24, 0.1) 50%, transparent 50%), linear-gradient(rgba($kobo-gray-24, 0.1) 50%, transparent 50%);
+    background-image: linear-gradient(90deg, rgba(colors.$kobo-gray-24, 0.1) 50%, transparent 50%), linear-gradient(rgba(colors.$kobo-gray-24, 0.1) 50%, transparent 50%);
     background-size: 6px 6px;
   }
 }
 
 .map-marker.map-marker-a {
-  background: nth($colorsA, 1);
+  background: list.nth($colorsA, 1);
 }
 
 // B color set
 $class-slug-b: map-marker-b !default;
-$setBLength: length($colorsB);
+$setBLength: list.length($colorsB);
 
 @for $i from 1 through $setBLength {
   .map-marker.#{$class-slug-b}#{$i} {
-    background: nth($colorsB, $i);
+    background: list.nth($colorsB, $i);
   }
 }
 
 .map-marker.map-marker-b {
-  background: nth($colorsB, 1);
+  background: list.nth($colorsB, 1);
 }
 
 // C color set
 $class-slug-c: map-marker-c !default;
-$setCLength: length($colorsC);
+$setCLength: list.length($colorsC);
 
 @for $i from 1 through $setCLength {
   .map-marker.#{$class-slug-c}#{$i} {
-    background: nth($colorsC, $i);
+    background: list.nth($colorsC, $i);
   }
 }
 
 .map-marker.map-marker-c {
-  background: nth($colorsC, 1);
+  background: list.nth($colorsC, 1);
 }
 
 // D color set
 $class-slug-d: map-marker-d !default;
-$setDLength: length($colorsD);
+$setDLength: list.length($colorsD);
 
 @for $i from 1 through $setDLength {
   .map-marker.#{$class-slug-d}#{$i} {
-    background: nth($colorsD, $i);
+    background: list.nth($colorsD, $i);
   }
 }
 
 .map-marker.map-marker-d {
-  background: nth($colorsD, 1);
+  background: list.nth($colorsD, 1);
 }
 
 // E color set
 $class-slug-e: map-marker-e !default;
-$setELength: length($colorsE);
+$setELength: list.length($colorsE);
 
 @for $i from 1 through $setELength {
   .map-marker.#{$class-slug-e}#{$i} {
-    background: nth($colorsE, $i);
+    background: list.nth($colorsE, $i);
   }
 }
 
 .map-marker.map-marker-e {
-  background: nth($colorsE, 1);
+  background: list.nth($colorsE, 1);
 }
