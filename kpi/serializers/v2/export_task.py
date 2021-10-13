@@ -11,6 +11,7 @@ from formpack.constants import (
     EXPORT_SETTING_FLATTEN,
     EXPORT_SETTING_GROUP_SEP,
     EXPORT_SETTING_HIERARCHY_IN_LABELS,
+    EXPORT_SETTING_INCLUDE_MEDIA_URL,
     EXPORT_SETTING_LANG,
     EXPORT_SETTING_MULTIPLE_SELECT,
     EXPORT_SETTING_NAME,
@@ -102,6 +103,11 @@ class ExportTaskSerializer(serializers.ModelSerializer):
         if EXPORT_SETTING_XLS_TYPES_AS_TEXT in data_:
             attrs[EXPORT_SETTING_XLS_TYPES_AS_TEXT] = data_[
                 EXPORT_SETTING_XLS_TYPES_AS_TEXT
+            ]
+
+        if EXPORT_SETTING_INCLUDE_MEDIA_URL in data_:
+            attrs[EXPORT_SETTING_INCLUDE_MEDIA_URL] = data_[
+                EXPORT_SETTING_INCLUDE_MEDIA_URL
             ]
 
         return attrs
