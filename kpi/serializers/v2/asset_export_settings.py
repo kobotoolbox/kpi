@@ -120,7 +120,7 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
                 {EXPORT_SETTING_SUBMISSION_IDS: 'Must be an array'}
             )
         if submission_ids and not all(
-            isinstace(_id, int) for _id in submission_ids
+            isinstance(_id, int) for _id in submission_ids
         ):
             raise serializers.ValidationError(
                 {
