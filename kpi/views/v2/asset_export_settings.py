@@ -58,6 +58,7 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     >               "multiple_select": "both",
     >               "type": "csv",
     >               "fields": ["field_1", "field_2"],
+    >               "flatten": "true",
     >               "xls_types_as_text": "false",
     >               "submission_ids": [1, 2, 3, 4],
     >               "query": {
@@ -77,6 +78,7 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
             * An array containing any string value that matches the XML column name
             * An empty array which will result in all columns being included
             * If "fields" is not included in the "export_settings", all columns will be included in the export
+        * "flatten" (optional) is a boolean value and only relevant when exporting to "geojson" format.
         * "fields_from_all_versions" (required) is a boolean to specify whether fields from all form versions will be included in the export.
         * "group_sep" (required) is a value used to separate the names in a hierarchy of groups. Valid inputs include:
             * Non-empty value
