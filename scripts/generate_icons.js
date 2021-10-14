@@ -2,7 +2,7 @@
  * This scripts generates icon font from our SVG icons to be used in the app.
  */
 
-const webfontsGenerator = require('webfonts-generator');
+const webfontsGenerator = require('@vusion/webfonts-generator');
 const replaceInFile = require('replace-in-file');
 const fs = require('fs');
 const sourceDir = 'jsapp/svg-icons/';
