@@ -1,3 +1,22 @@
 .data-storage {
   padding: 30px 40px;
 }
+
+i.k-icon {
+  position: relative;
+  top: 3px;
+}
+
+// TODO: replace icon with proper one from mockups
+i.k-icon-spinner {
+  top: 2px;
+  margin-right: 1px !important;
+}
+
+label {
+  margin-right: 12px;
+}
+
+label.count {
+  font-size: 12px !important;
+}

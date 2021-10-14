@@ -28,6 +28,10 @@
   .kobo-range__max-value {
     color: colors.$kobo-gray-65;
   }
+
+  .kobo-range__unit {
+    margin-left: 4px;
+  }
 }
 
 input[type='range'].kobo-range__input--default {

@@ -4,6 +4,8 @@ import KoboDropdown, {
   KoboDropdownThemes,
   KoboDropdownPlacements,
 } from 'js/components/common/koboDropdown'
+import Icon from 'js/components/common/icon'
+import KoboRange from 'js/components/common/koboRange'
 import './dataStorage.scss'
 //import {ROUTES} from 'js/router/routerConstants'
 //import bem from 'js/bem'
@@ -16,6 +18,9 @@ bem.DataStorage__data = makeBem(bem.DataStorage, 'data')
 bem.DataRow = makeBem(null, 'data-row')
 bem.DataRow__header = makeBem(bem.DataRow, 'header')
 bem.DataRow__data = makeBem(bem.DataRow, 'data')
+
+const MAX_MONTHLY_SUBMISSIONS = 10000
+const PLACEHOLDER = 3407 // TODO remove this once endpoint exists
 
 export default class DataStorage extends React.Component<
   {}, {}
@@ -45,13 +50,25 @@ export default class DataStorage extends React.Component<
           <bem.DataRow>
             <bem.DataRow__header>
               {/*TODO: replace icon with proper one from mockups*/}
-              <i className={'k-icon k-icon-form-overview'} />
+              <Icon name='form-overview' size='m'/>
               <label>{t('Submissions per month')}</label>
+
+              {/*TODO: replace icon with proper one from mockups*/}
+              <Icon name='spinner' size='xs'/>
+              <label className='count'>
+                {/*TODO: change this placeholder when endpoint is done*/}
+                {t('Count will reset in ##DAYS_TO_RESET## days')
+                  .replace('##DAYS_TO_RESET##', '6')}
+              </label>
             </bem.DataRow__header>
 
             <bem.DataRow__data>
-              {/*TODO: Move audio play slider to a custom component and use it in both places*/}
-              <input type='range' />
+              <KoboRange
+                max={MAX_MONTHLY_SUBMISSIONS - PLACEHOLDER}
+                value={PLACEHOLDER}
+                currentUnits={t('submissions collected this month')}
+                maxUnits={t('submissions left')}
+              />
               <KoboDropdown
                 theme={KoboDropdownThemes.light}
                 isDisabled={false}
