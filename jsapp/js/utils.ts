@@ -46,6 +46,14 @@ export function formatTimeDate(timeStr: string): string {
 }
 
 /**
+ * Returns something like "Sep 4, 1986 8:30 PM"
+ */
+export function formatTimeDateShort(timeStr: string): string {
+  const _m = moment(timeStr)
+  return _m.format('lll')
+}
+
+/**
  * Returns something like "Mar 15, 2021"
  */
 export function formatDate(timeStr: string): string {
