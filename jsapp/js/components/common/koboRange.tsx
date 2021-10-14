@@ -3,9 +3,14 @@ import bem, {makeBem} from 'js/bem'
 import './koboRange.scss'
 
 bem.KoboRange = makeBem(null, 'kobo-range')
+
 bem.KoboRange__values = makeBem(bem.KoboRange, 'values', 'div')
 bem.KoboRange__maxValue = makeBem(bem.KoboRange, 'max-value', 'span')
 bem.KoboRange__currentValue = makeBem(bem.KoboRange, 'current-value', 'span')
+bem.KoboRange__number = makeBem(bem.KoboRange, 'number', 'span')
+bem.KoboRange__unit = makeBem(bem.KoboRange, 'unit', 'span')
+
+
 bem.KoboRange__progress = makeBem(bem.KoboRange, 'progress', 'div')
 bem.KoboRange__input = makeBem(bem.KoboRange, 'input', 'input')
 
@@ -23,6 +28,10 @@ type KoboRangeProps = {
   onChange?: Function,
   /** defaults to $kobo-teal */
   color?: string,
+  /** optional string to append to max */
+  maxUnits?: string,
+  /** optional string to append to value */
+  currentUnits?: string,
 }
 
 type KoboRangeState = {
@@ -76,13 +85,25 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
       <bem.KoboRange>
         <bem.KoboRange__values>
           <bem.KoboRange__currentValue>
-            {!this.props.isTime && this.state.currentValue}
-            {this.props.isTime && this.convertToClock(this.state.currentValue)}
+            <bem.KoboRange__number>
+              {!this.props.isTime && this.state.currentValue}
+              {this.props.isTime && this.convertToClock(this.state.currentValue)}
+            </bem.KoboRange__number>
+
+            <bem.KoboRange__unit>
+              {this.props.currentUnits}
+            </bem.KoboRange__unit>
           </bem.KoboRange__currentValue>
 
           <bem.KoboRange__maxValue>
-            {!this.props.isTime && this.props.max}
-            {this.props.isTime && this.convertToClock(this.props.max)}
+            <bem.KoboRange__number>
+              {!this.props.isTime && this.props.max}
+              {this.props.isTime && this.convertToClock(this.props.max)}
+            </bem.KoboRange__number>
+
+            <bem.KoboRange__unit>
+              {this.props.maxUnits}
+            </bem.KoboRange__unit>
           </bem.KoboRange__maxValue>
         </bem.KoboRange__values>
 
