@@ -50,16 +50,20 @@ export default class DataStorage extends React.Component<
           <bem.DataRow>
             <bem.DataRow__header>
               {/*TODO: replace icon with proper one from mockups*/}
-              <Icon name='form-overview' size='m'/>
-              <label>{t('Submissions per month')}</label>
+              <div className='submissions-title-wrapper'>
+                <Icon name='form-overview' size='m'/>
+                <label>{t('Submissions per month')}</label>
+              </div>
 
-              {/*TODO: replace icon with proper one from mockups*/}
-              <Icon name='spinner' size='xs'/>
-              <label className='count'>
-                {/*TODO: change this placeholder when endpoint is done*/}
-                {t('Count will reset in ##DAYS_TO_RESET## days')
-                  .replace('##DAYS_TO_RESET##', '6')}
-              </label>
+              <div className='submissions-hint-wrapper'>
+                {/*TODO: replace icon with proper one from mockups*/}
+                <Icon name='spinner' size='xs'/>
+                <label className='count'>
+                  {/*TODO: change this placeholder when endpoint is done*/}
+                  {t('Count will reset in ##DAYS_TO_RESET## days')
+                    .replace('##DAYS_TO_RESET##', '6')}
+                </label>
+              </div>
             </bem.DataRow__header>
 
             <bem.DataRow__data>
@@ -80,8 +84,7 @@ export default class DataStorage extends React.Component<
                 name='columns-hide-dropdown'
                 triggerContent={
                   <span className='columns-hide-dropdown-trigger'>
-                    <i className='k-icon k-icon-hide'/>
-                    {t('hide fields')}
+                    {t('see details')}
                   </span>
                 }
               />

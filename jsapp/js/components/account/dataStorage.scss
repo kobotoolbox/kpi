@@ -1,5 +1,42 @@
+@import "scss/_colors";
+
 .data-storage {
   padding: 30px 40px;
+}
+
+.data-row__data {
+  display: flex;
+}
+
+.kobo-range {
+  flex: 85;
+}
+
+.kobo-range__number {
+  font-size: 14px !important;
+}
+
+.kobo-range__unit {
+  font-size: 12px !important;
+}
+
+.kobo-dropdown {
+  flex: 15;
+  margin-left: 12px;
+  top: 10px;
+  font-size: 14px !important;
+}
+
+.submissions-title-wrapper {
+  display: inline;
+  margin-right: 12px;
+  color: $kobo-gray-40;
+  font-weight: 700;
+}
+
+.submissions-hint-wrapper {
+  display: inline;
+  color: $kobo-gray-24;
 }
 
 i.k-icon {
@@ -11,10 +48,6 @@ i.k-icon {
 i.k-icon-spinner {
   top: 2px;
   margin-right: 1px !important;
-}
-
-label {
-  margin-right: 12px;
 }
 
 label.count {
