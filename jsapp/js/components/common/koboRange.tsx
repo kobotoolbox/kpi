@@ -17,6 +17,7 @@ bem.KoboRange__input = makeBem(bem.KoboRange, 'input', 'input')
 export enum KoboRangeColours {
   'default' =  'default',
   'warning' = 'warning',
+  'teal' = 'teal',
 }
 
 type KoboRangeProps = {
@@ -26,7 +27,7 @@ type KoboRangeProps = {
   isTime?: boolean,
   /** assumes input is clickable and with move to where it is clicked */
   onChange?: Function,
-  /** defaults to $kobo-teal */
+  /** defaults to $kobo-blue */
   color?: string,
   /** optional string to append to max */
   maxUnits?: string,
