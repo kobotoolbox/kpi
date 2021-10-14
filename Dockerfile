@@ -1,4 +1,6 @@
-FROM nikolaik/python-nodejs:python3.8-nodejs10
+# TODO: use a multi-architecture base image
+# FROM nikolaik/python-nodejs:python3.8-nodejs10
+FROM s390x/node:16-bullseye
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=en_US.UTF-8
