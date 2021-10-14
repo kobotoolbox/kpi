@@ -56,6 +56,17 @@ input[type='range'].kobo-range__input--warning {
     box-shadow: -10005px 0 0 10000px colors.$kobo-red;
   }
 }
+input[type='range'].kobo-range__input--teal {
+  &::-moz-range-progress {
+    background-color: colors.$kobo-teal;
+  }
+
+  // Chrome slider is hacked by using shadow
+  &::-webkit-slider-thumb {
+    background-color: colors.$kobo-red;
+    box-shadow: -10005px 0 0 10000px colors.$kobo-teal;
+  }
+}
 
 input[type='range'] {
   // General input styling across browsers
