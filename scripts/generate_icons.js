@@ -17,12 +17,14 @@ console.warn(
 
 console.info('Reading files…');
 const files = [];
-fs.readdirSync(sourceDir).forEach(file => {
+const icons = [];
+fs.readdirSync(sourceDir).forEach((file) => {
   if (file.endsWith('.svg')) {
     files.push(`${sourceDir}${file}`);
+    icons.push(file.replace('.svg', ''));
   }
-})
-console.info(`${files.length} SVGs found.`)
+});
+console.info(`${files.length} SVGs found.`);
 
 console.info('Generating fonts…');
 webfontsGenerator(
@@ -40,7 +42,7 @@ webfontsGenerator(
     templateOptions: {
       classPrefix: 'k-icon-',
       baseSelector: '.k-icon',
-      baseClassName: 'k-icon'
+      baseClassName: 'k-icon',
     },
     formatOptions: {
       svg: {
@@ -52,15 +54,15 @@ webfontsGenerator(
         height: 10000,
         round: 0,
         descent: 0,
-        ascent: 0
+        ascent: 0,
       },
       ttf: {},
       woff2: {},
       woff: {},
-      eot: {}
-    }
+      eot: {},
+    },
   },
-  function(error) {
+  function (error) {
     if (error) {
       throw new Error('Fail!', error);
     } else {
@@ -81,7 +83,7 @@ webfontsGenerator(
             files: [`${destDir}k-icons.css`, `${destDir}k-icons.html`],
             // Use additional "?" to differentiate woff and woff2
             from: [`${oldName}?`],
-            to: [`${newName}?`]
+            to: [`${newName}?`],
           });
         });
 
@@ -91,6 +93,8 @@ webfontsGenerator(
          */
         console.info('Copying k-icons.css to SCSS file…');
         fs.copyFileSync(`${destDir}k-icons.css`, `${destDir}k-icons.scss`);
+
+        generateDefinitions(icons);
       } catch(e){
         console.warn(
           '\x1b[31m***\n',
@@ -102,3 +106,21 @@ webfontsGenerator(
     }
   }
 );
+
+/**
+ * This makes a file with `export type IconName = 'one' | 'two' | …`
+ */
+function generateDefinitions(iconsList) {
+  console.info('Generating definition file…');
+  const typeParts = [];
+  iconsList.forEach((iconName) => {
+    typeParts.push(`'${iconName}'`);
+  });
+  const fileContent = `export type IconName = ${typeParts.join(' | ')}`;
+
+  fs.writeFile(`${destDir}/k-icons.ts`, fileContent, (err) => {
+    if (err) {
+      throw new Error('Fail!', err);
+    }
+  });
+}
