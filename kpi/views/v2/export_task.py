@@ -73,6 +73,7 @@ class ExportTaskViewSet(
     >           "fields": ["field_1", "field_2"],
     >           "flatten": "true"
     >           "xls_types_as_text": "false",
+    >           "include_media_url": "false",
     >           "submission_ids": [1, 2, 3, 4],
     >           "query": {
     >              "$and": [
@@ -104,6 +105,7 @@ class ExportTaskViewSet(
         * If "fields" is not included in the "export_settings", all columns will be included in the export
     * "flatten" (optional) is a boolean value and only relevant when exporting to "geojson" format.
     * "xls_types_as_text" (optional) is a boolean value that defaults to "false" and only affects "xls" export types.
+    * "include_media_url" (optional) is a boolean value that defaults to "false" and only affects "xls" and "csv" export types. This will include an additional column for media-type questions ("question_name_URL") with the URL link to the hosted file.
     * "submission_ids" (optional) is an array of submission ids that will filter exported submissions to only the specified array of ids. Valid inputs include:
         * An array containing integer values
         * An empty array (no filtering)
