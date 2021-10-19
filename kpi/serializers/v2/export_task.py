@@ -237,8 +237,9 @@ class ExportTaskSerializer(serializers.ModelSerializer):
                 {EXPORT_SETTING_SUBMISSION_IDS: _('Must be an array')}
             )
 
-        if submission_ids and not all(
-            isinstance(_id, int) for _id in submission_ids
+        if (
+            submission_ids
+            and not all(isinstance(_id, int) for _id in submission_ids)
         ):
             raise serializers.ValidationError(
                 {

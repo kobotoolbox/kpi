@@ -107,8 +107,9 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
                 )
             )
 
-        if EXPORT_SETTING_QUERY in export_settings and not isinstance(
-            export_settings[EXPORT_SETTING_QUERY], dict
+        if (
+            EXPORT_SETTING_QUERY in export_settings
+            and not isinstance(export_settings[EXPORT_SETTING_QUERY], dict)
         ):
             raise serializers.ValidationError(
                 {EXPORT_SETTING_QUERY: _('Must be a JSON object')}
