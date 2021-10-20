@@ -220,6 +220,26 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         response = self.client.post(list_url, data=data)
         assert response.status_code == status.HTTP_201_CREATED
 
+    def test_create_export_task_extended(self):
+        self.client.login(username='someuser', password='someuser')
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+        )
+        data = {
+            'type': 'xls',
+            'lang': '_default',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'false',
+            'fields_from_all_versions': 'false',
+            'multiple_select': 'both',
+            'xls_types_as_text': False,
+            'submission_ids': [1, 2, 3],
+            'query': {'_submission_time': {'$gt': '2021-10-13'}},
+        }
+        response = self.client.post(list_url, data=data, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+
     def test_export_task_create_with_name(self):
         self.client.login(username='someuser', password='someuser')
         list_url = reverse(
