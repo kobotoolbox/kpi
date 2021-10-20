@@ -16,57 +16,57 @@
   align-items: center;
   color: colors.$kobo-white;
   background-color: colors.$kobo-teal;
-  width: sizes.$s52;
-  height: sizes.$s52;
-  border-radius: sizes.$s8;
+  width: sizes.$x52;
+  height: sizes.$x52;
+  border-radius: sizes.$x8;
 
   .k-icon {
-    font-size: sizes.$s24;
+    font-size: sizes.$x24;
   }
 }
 
 .single-processing-header__count {
-  font-size: sizes.$s16;
+  font-size: sizes.$x16;
 }
 
 .single-processing-header__question {
-  font-size: sizes.$s21;
+  font-size: sizes.$x21;
   font-weight: 500;
-  margin: sizes.$s4 0 0;
+  margin: sizes.$x4 0 0;
 }
 
 .single-processing-header__column {
   &.single-processing-header__column--icon {
-    margin: sizes.$s12;
+    margin: sizes.$x12;
   }
 
   &.single-processing-header__column--main {
     flex: 1;
-    margin: 0 sizes.$s12;
+    margin: 0 sizes.$x12;
   }
 
   &.single-processing-header__column--navigation {
     display: flex;
     flex-direction: row;
     align-items: center;
-    margin-right: sizes.$s18;
+    margin-right: sizes.$x18;
   }
 }
 
 .single-processing-header__button,
 .single-processing-header__number {
-  border-radius: sizes.$s8;
-  height: sizes.$s42;
-  line-height: sizes.$s42 - (2 * sizes.$s2); // minus the border
-  font-size: sizes.$s18;
+  border-radius: sizes.$x8;
+  height: sizes.$x42;
+  line-height: sizes.$x42 - (2 * sizes.$x2); // minus the border
+  font-size: sizes.$x18;
   text-transform: uppercase;
   font-weight: 700;
-  margin: 0 sizes.$s6;
-  padding: 0 sizes.$s6;
+  margin: 0 sizes.$x6;
+  padding: 0 sizes.$x6;
 }
 
 .single-processing-header__number {
-  min-width: sizes.$s42;
+  min-width: sizes.$x42;
   text-align: center;
   border-color: colors.$kobo-gray-92;
   cursor: default;
@@ -74,7 +74,7 @@
 
 .single-processing-header__number,
 .single-processing-header__button.single-processing-header__button--done {
-  border-width: sizes.$s2;
+  border-width: sizes.$x2;
   border-style: solid;
 }
 
@@ -90,7 +90,7 @@
   }
 
   &:active {
-    transform: translateY(sizes.$s1);
+    transform: translateY(sizes.$x1);
   }
 
   &:hover {
@@ -105,16 +105,16 @@
   }
 
   &.single-processing-header__button--prev {
-    padding-right: sizes.$s12;
+    padding-right: sizes.$x12;
   }
 
   &.single-processing-header__button--next {
-    padding-left: sizes.$s12;
+    padding-left: sizes.$x12;
   }
 
   &.single-processing-header__button--done {
     border-color: colors.$kobo-blue;
-    padding: 0 sizes.$s24;
+    padding: 0 sizes.$x24;
 
     &:hover {
       color: colors.$kobo-white;
