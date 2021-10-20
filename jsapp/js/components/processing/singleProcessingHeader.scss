@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/sizes";
 
 .single-processing-header {
   display: flex;
@@ -15,57 +16,57 @@
   align-items: center;
   color: colors.$kobo-white;
   background-color: colors.$kobo-teal;
-  width: 52px;
-  height: 52px;
-  border-radius: 8px;
+  width: sizes.$s52;
+  height: sizes.$s52;
+  border-radius: sizes.$s8;
 
   .k-icon {
-    font-size: 24px;
+    font-size: sizes.$s24;
   }
 }
 
 .single-processing-header__count {
-  font-size: 16px;
+  font-size: sizes.$s16;
 }
 
 .single-processing-header__question {
-  font-size: 21px;
+  font-size: sizes.$s21;
   font-weight: 500;
-  margin: 4px 0 0;
+  margin: sizes.$s4 0 0;
 }
 
 .single-processing-header__column {
   &.single-processing-header__column--icon {
-    margin: 12px;
+    margin: sizes.$s12;
   }
 
   &.single-processing-header__column--main {
     flex: 1;
-    margin: 0 12px;
+    margin: 0 sizes.$s12;
   }
 
   &.single-processing-header__column--navigation {
     display: flex;
     flex-direction: row;
     align-items: center;
-    margin-right: 18px;
+    margin-right: sizes.$s18;
   }
 }
 
 .single-processing-header__button,
 .single-processing-header__number {
-  border-radius: 8px;
-  height: 42px;
-  line-height: 38px;
-  font-size: 18px;
+  border-radius: sizes.$s8;
+  height: sizes.$s42;
+  line-height: sizes.$s42 - (2 * sizes.$s2); // minus the border
+  font-size: sizes.$s18;
   text-transform: uppercase;
   font-weight: 700;
-  margin: 0 6px;
-  padding: 0 6px;
+  margin: 0 sizes.$s6;
+  padding: 0 sizes.$s6;
 }
 
 .single-processing-header__number {
-  min-width: 42px;
+  min-width: sizes.$s42;
   text-align: center;
   border-color: colors.$kobo-gray-92;
   cursor: default;
@@ -73,7 +74,7 @@
 
 .single-processing-header__number,
 .single-processing-header__button.single-processing-header__button--done {
-  border-width: 2px;
+  border-width: sizes.$s2;
   border-style: solid;
 }
 
@@ -89,7 +90,7 @@
   }
 
   &:active {
-    transform: translateY(1px);
+    transform: translateY(sizes.$s1);
   }
 
   &:hover {
@@ -104,16 +105,16 @@
   }
 
   &.single-processing-header__button--prev {
-    padding-right: 12px;
+    padding-right: sizes.$s12;
   }
 
   &.single-processing-header__button--next {
-    padding-left: 12px;
+    padding-left: sizes.$s12;
   }
 
   &.single-processing-header__button--done {
     border-color: colors.$kobo-blue;
-    padding: 0 24px;
+    padding: 0 sizes.$s24;
 
     &:hover {
       color: colors.$kobo-white;
