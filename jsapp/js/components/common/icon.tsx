@@ -1,6 +1,6 @@
 import React from 'react'
 // Using this type ensures we only have existing icon names
-import {IconName} from '../../../fonts/k-icons'
+import {IconName} from 'jsapp/fonts/k-icons'
 import './icon.scss'
 
 /**
