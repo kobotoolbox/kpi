@@ -348,3 +348,17 @@ interface AccountResponse {
     tag: boolean
   }
 }
+
+interface EnvironmentResponse {
+  terms_of_service_url: string
+  privacy_policy_url: string
+  source_code_url: string
+  support_email: string
+  support_url: string
+  community_url: string
+  available_sectors: string[][]
+  available_countries: string[][]
+  all_languages: string[][]
+  interface_languages: string[][]
+  submission_placeholder: string
+}
