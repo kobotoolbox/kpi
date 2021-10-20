@@ -8,7 +8,7 @@ const nestedArrToChoiceObjs = (i: string[]): EnvStoreDataItem => {
   }
 }
 
-interface EnvStoreDataItem {
+export interface EnvStoreDataItem {
   value: string
   label: string
 }
@@ -37,6 +37,7 @@ class EnvStore extends Reflux.Store {
     community_url: '',
     available_sectors: [],
     available_countries: [],
+    /** languages come from `kobo/static_lists.py` */
     all_languages: [],
     interface_languages: [],
     submission_placeholder: ''
@@ -73,6 +74,12 @@ class EnvStore extends Reflux.Store {
 
     this.isReady = true
     this.trigger(this.data)
+  }
+
+  getLanguage(code: string): EnvStoreDataItem | undefined {
+    return this.data.all_languages.find(
+      (item: EnvStoreDataItem) => item.value === code
+    )
   }
 }
 
