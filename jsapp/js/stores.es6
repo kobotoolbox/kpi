@@ -232,6 +232,10 @@ stores.session = Reflux.createStore({
       environment.available_countries = environment.available_countries.map(
         nestedArrToChoiceObjs);
     }
+    if (environment.veritree_form_types) {
+      environment.veritree_form_types = environment.veritree_form_types.map(
+        nestedArrToChoiceObjs);
+    }
     if (environment.interface_languages) {
       environment.interface_languages = environment.interface_languages.map(
         nestedArrToChoiceObjs);

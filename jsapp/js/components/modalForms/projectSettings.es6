@@ -70,6 +70,7 @@ class ProjectSettings extends React.Component {
       description: formAsset ? formAsset.settings.description : '',
       sector: formAsset ? formAsset.settings.sector : null,
       country: formAsset ? formAsset.settings.country : null,
+      veritreeFormType: formAsset? formAsset.settings.veritree_form_type : null,
       'share-metadata': formAsset ? formAsset.settings['share-metadata'] : false,
       // steps
       currentStep: null,
@@ -205,6 +206,11 @@ class ProjectSettings extends React.Component {
   onCountryChange(val) {
     this.setState({country: val});
     this.onAnyDataChange('country', val);
+  }
+
+  onVeritreeFormTypeChange(val) {
+    this.setState({ veritreeFormType: val })
+    this.onAnyDataChange('veritreeFormType', val);
   }
 
   onSectorChange(val) {
@@ -414,6 +420,7 @@ class ProjectSettings extends React.Component {
         formAsset: asset,
         name: asset.name,
         description: asset.settings.description,
+        veritreeFormType: asset.settings.veritreeFormType,
         sector: asset.settings.sector,
         country: asset.settings.country,
         'share-metadata': asset.settings['share-metadata'] || false,
@@ -456,7 +463,8 @@ class ProjectSettings extends React.Component {
         description: this.state.description,
         sector: this.state.sector,
         country: this.state.country,
-        'share-metadata': this.state['share-metadata']
+        'share-metadata': this.state['share-metadata'],
+        veritree_form_type: this.state.veritreeFormType
       }),
       asset_type: 'survey',
     }).done((asset) => {
@@ -475,6 +483,7 @@ class ProjectSettings extends React.Component {
           description: this.state.description,
           sector: this.state.sector,
           country: this.state.country,
+          veritree_form_type: this.state.veritreeFormType,
           'share-metadata': this.state['share-metadata']
         }),
       }
@@ -535,6 +544,7 @@ class ProjectSettings extends React.Component {
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,
                     'share-metadata': finalAsset.settings['share-metadata'],
+                    veritreeFormType: finalAsset.settings.veritree_form_type,
                     isImportFromURLPending: false
                   });
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
@@ -593,6 +603,7 @@ class ProjectSettings extends React.Component {
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,
                     'share-metadata': finalAsset.settings['share-metadata'],
+                    veritree_form_type: finalAsset.settings.veritreeFormType,
                     isUploadFilePending: false
                   });
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
@@ -633,6 +644,10 @@ class ProjectSettings extends React.Component {
       return;
     }
 
+    if(!this.state.veritreeFormType) {
+      alertify.error(t('Please select a form type for this project'))
+      return
+    }
     this.setState({isSubmitPending: true});
 
     if (this.state.formAsset) {
@@ -799,6 +814,7 @@ class ProjectSettings extends React.Component {
   renderStepProjectDetails() {
     const sectors = stores.session.environment.available_sectors;
     const countries = stores.session.environment.available_countries;
+    const veritreeFormTypes = stores.session.environment.veritree_form_types;
     const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
 
     return (
@@ -851,7 +867,21 @@ class ProjectSettings extends React.Component {
               placeholder={t('Enter short description here')}
             />
           </bem.FormModal__item>
-
+          <bem.FormModal__item m='form_type'>
+            <label htmlFor='form_type'>
+              {t('Form Type')}
+            </label>
+            <Select
+              id='form_type'
+              value={this.state.veritreeFormType}
+              onChange={this.onVeritreeFormTypeChange}
+              options={veritreeFormTypes}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              menuPlacement='auto'
+              isClearable
+            />
+          </bem.FormModal__item>
           <bem.FormModal__item>
             <label className='long'>
               {t('Please specify the country and the sector where this project will be deployed. ')}

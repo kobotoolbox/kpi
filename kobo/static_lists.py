@@ -512,3 +512,9 @@ EXTRA_LANG_INFO = {
         'name_local': 'كوردی',
     },
 }
+
+VERITREE_FORM_TYPES = (
+    ('inventory', _('Inventory')),
+    ('socio-economic', _('Socio-Economic')),
+    ('none', _('None'))
+)
