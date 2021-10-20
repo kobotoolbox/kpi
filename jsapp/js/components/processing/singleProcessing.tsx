@@ -72,7 +72,7 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     this.getNewProcessingSubmissions()
   }
 
-  componentDidUpdate(prevProps: any) {
+  componentDidUpdate(prevProps: SingleProcessingProps) {
     if (prevProps.params.submissionId !== this.props.params.submissionId) {
       this.getNewSubmissionData()
     }
