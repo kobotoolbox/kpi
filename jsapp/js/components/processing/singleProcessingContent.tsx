@@ -35,7 +35,7 @@ export default class SingleProcessingContent extends React.Component<
     this.setState({activeTab: newTab})
   }
 
-  onLanguageChange(newVal: string) {
+  onLanguageChange(newVal: string | undefined) {
     console.log('language set', newVal)
   }
 
