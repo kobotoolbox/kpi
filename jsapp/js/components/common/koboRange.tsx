@@ -54,11 +54,7 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
     }
   }
 
-<<<<<<< HEAD
-  /* We deal internally with un-converted time for easier computing. Only use
-=======
   /* We deal internally with un-converted seconds for easier computing. Only use
->>>>>>> refactor-custom-input-range
    * this if `props.isTime` and when it's time to display
    *
    */

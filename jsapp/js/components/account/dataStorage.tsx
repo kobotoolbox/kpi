@@ -70,8 +70,8 @@ export default class DataStorage extends React.Component<
               <KoboRange
                 max={MAX_MONTHLY_SUBMISSIONS - PLACEHOLDER}
                 value={PLACEHOLDER}
-                currentUnits={t('submissions collected this month')}
-                maxUnits={t('submissions left')}
+                currentLabel={t('submissions collected this month')}
+                totalLabel={t('submissions left')}
                 // TODO: when endpoint exists, change this to warning after some percentage has passed
                 color='teal'
               />
