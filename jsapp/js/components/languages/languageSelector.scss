@@ -52,6 +52,10 @@
   background: transparent;
 }
 
+.language-selector__selected-language-label {
+  color: colors.$kobo-blue;
+}
+
 .language-selector__search-box-input {
   &::placeholder {
     opacity: 1;
@@ -79,13 +83,13 @@
  */
 
 .language-selector__list {
-  height: sizes.$x200;
+  max-height: sizes.$x200;
   overflow-y: auto;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   list-style: none;
-  margin: 0;
+  margin: sizes.$x16 0 0;
   padding: 0;
 
   > li {
@@ -100,11 +104,12 @@
 
 .language-selector__list-language {
   @include mixins.buttonReset();
-  padding: sizes.$x6 0;
+  padding: sizes.$x6 sizes.$x8;
   text-align: left;
+  border-radius: sizes.$x4;
 
   &:hover {
-    color: colors.$kobo-blue;
+    background-color: colors.$kobo-gray-92;
   }
 }
 

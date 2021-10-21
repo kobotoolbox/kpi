@@ -42,7 +42,8 @@ export default class SingleProcessingContent extends React.Component<
   renderTabContent() {
     switch (this.state.activeTab) {
       case SingleProcessingTab.Transcript:
-        return <div>
+        // TEMP content
+        return <div style={{padding: '40px'}}>
           <LanguageSelector onLanguageChange={this.onLanguageChange.bind(this)}/>
         </div>
       case SingleProcessingTab.Translations:

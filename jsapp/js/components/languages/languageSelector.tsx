@@ -54,6 +54,14 @@ class LanguageSelector extends React.Component<
     this.props.onLanguageChange(this.state.selectedLanguage)
   }
 
+  isCustomLanguageVisible() {
+    return (
+      !this.state.selectedLanguage &&
+      this.state.filterPhrase !== '' &&
+      envStore.getLanguage(this.state.filterPhrase) === undefined
+    )
+  }
+
   onFilterPhraseChange(evt: React.ChangeEvent<HTMLInputElement>) {
     this.setState({filterPhrase: evt.target.value})
   }
@@ -182,7 +190,7 @@ class LanguageSelector extends React.Component<
           </bem.LanguageSelector__notFoundMessage>
         }
 
-        {!this.state.selectedLanguage && filteredLanguages.length === 0 &&
+        {this.isCustomLanguageVisible() &&
           <bem.LanguageSelector__customLanguage
             onClick={this.selectLanguage.bind(this, this.state.filterPhrase)}
           >
