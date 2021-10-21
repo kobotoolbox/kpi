@@ -10,6 +10,8 @@ from formpack.constants import (
     EXPORT_SETTING_HIERARCHY_IN_LABELS,
     EXPORT_SETTING_LANG,
     EXPORT_SETTING_MULTIPLE_SELECT,
+    EXPORT_SETTING_QUERY,
+    EXPORT_SETTING_SUBMISSION_IDS,
     EXPORT_SETTING_TYPE,
     OPTIONAL_EXPORT_SETTINGS,
     REQUIRED_EXPORT_SETTINGS,
@@ -104,6 +106,32 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
                     format_exception_values(all_valid_languages)
                 )
             )
+
+        if (
+            EXPORT_SETTING_QUERY in export_settings
+            and not isinstance(export_settings[EXPORT_SETTING_QUERY], dict)
+        ):
+            raise serializers.ValidationError(
+                {EXPORT_SETTING_QUERY: _('Must be a JSON object')}
+            )
+
+        submission_ids = export_settings.get(EXPORT_SETTING_SUBMISSION_IDS, [])
+        if not isinstance(submission_ids, list):
+            raise serializers.ValidationError(
+                {EXPORT_SETTING_SUBMISSION_IDS: 'Must be an array'}
+            )
+        if (
+            submission_ids
+            and not all(isinstance(_id, int) for _id in submission_ids)
+        ):
+            raise serializers.ValidationError(
+                {
+                    EXPORT_SETTING_SUBMISSION_IDS: _(
+                        'All values in the array must be integers'
+                    )
+                }
+            )
+
 
         if EXPORT_SETTING_FIELDS not in export_settings:
             return export_settings

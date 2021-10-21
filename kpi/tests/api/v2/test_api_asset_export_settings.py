@@ -101,6 +101,29 @@ class AssetExportSettingsApiTest(BaseTestCase):
             data['export_settings'] == self.valid_export_settings
         )
 
+    def test_api_create_extended_asset_export_settings_for_owner(self):
+        export_settings = {
+            **self.valid_export_settings,
+            'type': 'xls',
+            'xls_types_as_text': True,
+            'submission_ids': [1, 2, 3],
+            'query': {'_submission_time': {'$gt': '2021-10-13'}},
+        }
+        response = self.client.post(
+            self.export_settings_list_url,
+            data={
+                'name': self.name,
+                'export_settings': export_settings,
+            },
+            format='json',
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert self.asset_export_settings.count() == 1
+
+        data = response.json()
+        assert data['name'] == self.name
+        assert data['export_settings'] == export_settings
+
     def test_api_create_invalid_asset_export_settings_for_owner(self):
         invalid_export_settings = {**self.valid_export_settings, 'type': 'pdf'}
         response = self.client.post(
