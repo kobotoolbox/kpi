@@ -1,13 +1,12 @@
 @use "scss/_colors";
-@use "scss/libs/_mdl";
 @use "js/components/common/checkbox-and-radio";
 
 // These are custom styles for Table View table.
 
 $data-table-border: 1px solid colors.$kobo-gray-92;
-$data-table-row-height: 42px;
+$data-table-row-height: 36px;
 $c-header-bg: colors.$kobo-gray-96;
-
+$s-data-table-font: 13px;
 $z-table-frozen: 10;
 
 .form-view__sidetabs + .form-view.form-view--table {
@@ -50,6 +49,7 @@ $z-table-frozen: 10;
   height: calc(100% - 50px);
   position: relative;
   z-index: 0; // To not interfere with UI elements outside the table, as contents of the table have many different z-index values - this makes them all irrelevant.
+  font-size: $s-data-table-font;
 
   .rt-resizer {
     width: 10px;
@@ -60,7 +60,6 @@ $z-table-frozen: 10;
     border: $data-table-border;
     background-color: colors.$kobo-white;
     color: colors.$kobo-gray-24;
-    font-size: 14px;
   }
 
   // minimum body height so at least two rows are visible
@@ -106,7 +105,8 @@ $z-table-frozen: 10;
         position: relative;
 
         .table-header-results {
-          line-height: 21px;
+          line-height: 15px;
+          padding-top: 1px;
           text-align: left;
         }
       }
@@ -257,10 +257,6 @@ $z-table-frozen: 10;
     white-space: nowrap;
   }
 
-  .rt-td.rt-numerical-value {
-    font-family: mdl.$font_mono;
-  }
-
   .rt-thead.-filters .rt-th.rt-status {
     line-height: inherit;
     overflow: visible;
@@ -359,7 +355,7 @@ $z-table-frozen: 10;
       background: colors.$kobo-white;
       height: 32px;
       padding: 5px 7px;
-      font-size: 14px;
+      font-size: $s-data-table-font;
       border-radius: 6px;
       font-weight: 700;
     }
@@ -461,7 +457,6 @@ $z-table-frozen: 10;
   .rt-td.is-frozen.is-last-frozen {
     order: -1;
     height: $data-table-row-height;
-    margin-right: 6px;
     border-right: $data-table-border;
     border-right-width: 2px !important; // important needed due to .-filters specificity
   }
