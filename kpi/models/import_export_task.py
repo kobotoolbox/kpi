@@ -540,6 +540,7 @@ class ExportTask(ImportExportTask):
         lang = self.data.get('lang', None) or next(iter(translations), None)
         fields = self.data.get('fields', [])
         xls_types_as_text = self.data.get('xls_types_as_text', True)
+        include_media_url = self.data.get('include_media_url', False)
         force_index = True if not fields or '_index' in fields else False
         try:
             # If applicable, substitute the constants that formpack expects for
@@ -560,6 +561,7 @@ class ExportTask(ImportExportTask):
             'tag_cols_for_header': tag_cols_for_header,
             'filter_fields': fields,
             'xls_types_as_text': xls_types_as_text,
+            'include_media_url': include_media_url,
         }
 
     def _record_last_submission_time(self, submission_stream):
@@ -592,9 +594,11 @@ class ExportTask(ImportExportTask):
         `PrivateFileField`. Should be called by the `run()` method of the
         superclass. The `submission_stream` method is provided for testing
         """
-        source_url = self.data.get('source', False)
         fields = self.data.get('fields', [])
         flatten = self.data.get('flatten', True)
+        query = self.data.get('query', {})
+        source_url = self.data.get('source', False)
+        submission_ids = self.data.get('submission_ids', [])
 
         if not source_url:
             raise Exception('no source specified for the export')
@@ -631,7 +635,9 @@ class ExportTask(ImportExportTask):
 
         submission_stream = source.deployment.get_submissions(
             user=self.user,
-            fields=fields
+            fields=fields,
+            submission_ids=submission_ids,
+            query=query,
         )
 
         pack, submission_stream = build_formpack(
