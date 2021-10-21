@@ -22,6 +22,7 @@ export enum KoboRangeColours {
 
 type KoboRangeProps = {
   max: number,
+  /** `value` should be un-converted seconds if using `isTime` */
   value: number,
   /** uses time display for all required values */
   isTime?: boolean,
@@ -30,9 +31,9 @@ type KoboRangeProps = {
   /** defaults to $kobo-blue */
   color?: string,
   /** optional string to append to max */
-  maxUnits?: string,
+  totalLabel?: string,
   /** optional string to append to value */
-  currentUnits?: string,
+  currentLabel?: string,
 }
 
 type KoboRangeState = {
@@ -53,7 +54,7 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
     }
   }
 
-  /* We deal internally with un-converted time for easier computing. Only use
+  /* We deal internally with un-converted seconds for easier computing. Only use
    * this if `props.isTime` and when it's time to display
    *
    */
@@ -92,7 +93,7 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
             </bem.KoboRange__number>
 
             <bem.KoboRange__unit>
-              {this.props.currentUnits}
+              {this.props.currentLabel}
             </bem.KoboRange__unit>
           </bem.KoboRange__currentValue>
 
@@ -103,7 +104,7 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
             </bem.KoboRange__number>
 
             <bem.KoboRange__unit>
-              {this.props.maxUnits}
+              {this.props.totalLabel}
             </bem.KoboRange__unit>
           </bem.KoboRange__maxValue>
         </bem.KoboRange__values>
