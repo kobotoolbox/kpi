@@ -87,7 +87,38 @@ class ObjectPermissionMixin:
         # We can only copy permissions between objects from the same type.
         if type(source_object) is type(self):
             # First delete all permissions of the target asset (except owner's).
-            self.permissions.exclude(user_id=self.owner_id).delete()
+            perm_queryset = self.permissions.exclude(user_id=self.owner_id)
+            codenames = []
+            current_user = None
+            # The bulk delete below (i.e.: `perm_queryset.delete()`) does not
+            # remove permissions in KoBoCAT.
+            # We could loop through `self.permissions` and call `remove_perm`
+            # for each permission but it would take longer with lots of
+            # permissions than grouping codenames and pass it directly to
+            # `remove_applicable_kc_permissions()`
+
+            # It relies on the fact that permissions are synced in KoBoCAT and KPI.
+            # If any permissions are present in KoBoCAT but not in KPI, these
+            # permissions will not be deleted and will have to be deleted manually
+            # with KoBoCAT.
+            for perm in perm_queryset.order_by('user_id'):
+                if current_user != perm.user:
+                    if current_user is not None:
+                        remove_applicable_kc_permissions(
+                            self, current_user, codenames
+                        )
+                    codenames = [perm.permission.codename]
+                else:
+                    codenames.append(perm.permission.codename)
+                current_user = perm.user
+
+            if codenames:
+                remove_applicable_kc_permissions(
+                    self, current_user, codenames
+                )
+
+            perm_queryset.delete()
+
             # Then copy all permissions from source to target asset
             source_permissions = list(source_object.permissions.all())
             for source_permission in source_permissions:
