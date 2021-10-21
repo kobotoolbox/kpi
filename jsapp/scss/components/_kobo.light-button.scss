@@ -7,6 +7,7 @@
  * - green
  * - orange
  * - red
+ * - gray
  */
 
 .kobo-light-button,
@@ -19,14 +20,15 @@
   text-decoration: none;
   text-align: center;
   border-radius: 4px;
-  height: 24px;
+  height: 28px;
   line-height: 14px;
-  padding: 4px 12px;
+  padding: 6px 12px;
   margin: 0;
   border-width: 1px;
   border-style: solid;
   white-space: nowrap; // for smaller screens
 
+  // TODO: this assumes that icon goes before button text
   // icon inside is bigger than the button, so we need cleverness to position it
   i,
   .k-icon {
@@ -82,8 +84,7 @@
   }
 
   &:active {
-    // makes the shadow smaller and moves button down by small bit
-    // to make it look pressed-in
+    // moves button down by small bit to make it look pressed-in
     transform: translateY(1px);
   }
 

@@ -1,0 +1,124 @@
+@use "scss/_colors";
+@use "scss/sizes";
+
+.single-processing-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: colors.$kobo-gray-40;
+  background-color: colors.$kobo-white;
+}
+
+.single-processing-header__type-icon {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  color: colors.$kobo-white;
+  background-color: colors.$kobo-teal;
+  width: sizes.$x52;
+  height: sizes.$x52;
+  border-radius: sizes.$x8;
+
+  .k-icon {
+    font-size: sizes.$x24;
+  }
+}
+
+.single-processing-header__count {
+  font-size: sizes.$x16;
+}
+
+.single-processing-header__question {
+  font-size: sizes.$x21;
+  font-weight: 500;
+  margin: sizes.$x4 0 0;
+}
+
+.single-processing-header__column {
+  &.single-processing-header__column--icon {
+    margin: sizes.$x12;
+  }
+
+  &.single-processing-header__column--main {
+    flex: 1;
+    margin: 0 sizes.$x12;
+  }
+
+  &.single-processing-header__column--navigation {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-right: sizes.$x18;
+  }
+}
+
+.single-processing-header__button,
+.single-processing-header__number {
+  border-radius: sizes.$x8;
+  height: sizes.$x42;
+  line-height: sizes.$x42 - (2 * sizes.$x2); // minus the border
+  font-size: sizes.$x18;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 0 sizes.$x6;
+  padding: 0 sizes.$x6;
+}
+
+.single-processing-header__number {
+  min-width: sizes.$x42;
+  text-align: center;
+  border-color: colors.$kobo-gray-92;
+  cursor: default;
+}
+
+.single-processing-header__number,
+.single-processing-header__button.single-processing-header__button--done {
+  border-width: sizes.$x2;
+  border-style: solid;
+}
+
+.single-processing-header__button {
+  cursor: pointer;
+  color: colors.$kobo-blue;
+  background-color: transparent;
+  border: 0;
+
+  &[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  &:active {
+    transform: translateY(sizes.$x1);
+  }
+
+  &:hover {
+    background-color: colors.$kobo-gray-92;
+  }
+
+  &.single-processing-header__button--prev,
+  &.single-processing-header__button--next {
+    .k-icon {
+      vertical-align: top;
+    }
+  }
+
+  &.single-processing-header__button--prev {
+    padding-right: sizes.$x12;
+  }
+
+  &.single-processing-header__button--next {
+    padding-left: sizes.$x12;
+  }
+
+  &.single-processing-header__button--done {
+    border-color: colors.$kobo-blue;
+    padding: 0 sizes.$x24;
+
+    &:hover {
+      color: colors.$kobo-white;
+      background-color: colors.$kobo-blue;
+    }
+  }
+}

@@ -443,7 +443,7 @@ export function renderQuestionTypeIcon(
   }
 }
 
-interface FlatQuestion {
+export interface FlatQuestion {
   type: AnyRowTypeName
   name: string
   isRequired: boolean
