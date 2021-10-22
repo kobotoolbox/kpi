@@ -81,6 +81,15 @@ class EnvStore extends Reflux.Store {
       (item: EnvStoreDataItem) => item.value === code
     )
   }
+
+  /**
+   * Case-insensitive lookup by localized name
+   */
+  getLanguageByName(label: string): EnvStoreDataItem | undefined {
+    return this.data.all_languages.find(
+      (item: EnvStoreDataItem) => item.label.toLocaleLowerCase() === label.toLocaleLowerCase()
+    )
+  }
 }
 
 /**

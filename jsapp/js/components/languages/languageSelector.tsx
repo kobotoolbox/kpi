@@ -16,8 +16,10 @@ bem.LanguageSelector__selectedLanguageLabel = makeBem(bem.LanguageSelector, 'sel
 bem.LanguageSelector__clearSelectedLanguage = makeBem(bem.LanguageSelector, 'clear-selected-language', 'button')
 bem.LanguageSelector__list = makeBem(bem.LanguageSelector, 'list', 'ol')
 bem.LanguageSelector__listLanguage = makeBem(bem.LanguageSelector, 'list-language', 'button')
-bem.LanguageSelector__notFoundMessage = makeBem(bem.LanguageSelector, 'not-found-message', 'p')
-bem.LanguageSelector__customLanguage = makeBem(bem.LanguageSelector, 'custom-language', 'button')
+bem.LanguageSelector__notFoundMessage = makeBem(bem.LanguageSelector, 'not-found-message', 'li')
+bem.LanguageSelector__helpBar = makeBem(bem.LanguageSelector, 'help-bar', 'footer')
+
+const LANGUAGE_SELECTOR_SUPPORT_URL = 'TODO.html';
 
 type LanguageSelectorProps = {
   /** replaces the title on top */
@@ -57,8 +59,12 @@ class LanguageSelector extends React.Component<
   isCustomLanguageVisible() {
     return (
       !this.state.selectedLanguage &&
+      // there is something typed in the search
       this.state.filterPhrase !== '' &&
-      envStore.getLanguage(this.state.filterPhrase) === undefined
+      // the typed thing is not a known language code
+      envStore.getLanguage(this.state.filterPhrase) === undefined &&
+      // the typed thing is not a known language label
+      envStore.getLanguageByName(this.state.filterPhrase) === undefined
     )
   }
 
@@ -109,7 +115,7 @@ class LanguageSelector extends React.Component<
         <bem.LanguageSelector__listLanguage
           onClick={this.selectLanguage.bind(this, value)}
         >
-          {label}
+          {label} <small>({value})</small>
         </bem.LanguageSelector__listLanguage>
       </li>
     )
@@ -165,9 +171,51 @@ class LanguageSelector extends React.Component<
     )
   }
 
-  render() {
+  renderSearchForm() {
     const filteredLanguages = this.getFilteredLanguagesList()
 
+    return (
+      <React.Fragment>
+        {this.renderSearchBox()}
+
+        <bem.LanguageSelector__list>
+          {filteredLanguages.length === 0 &&
+            <bem.LanguageSelector__notFoundMessage key='empty'>
+              {t("Sorry, didn't find any language…")}
+            </bem.LanguageSelector__notFoundMessage>
+          }
+
+          {filteredLanguages.length >= 1 &&
+            filteredLanguages.map(this.renderLanguageItem.bind(this))
+          }
+
+          {this.isCustomLanguageVisible() &&
+            <li key='custom'>
+              <bem.LanguageSelector__listLanguage
+                onClick={this.selectLanguage.bind(this, this.state.filterPhrase)}
+              >
+                {t('I want to use')}
+                &nbsp;
+                "<strong>{this.state.filterPhrase}</strong>"
+              </bem.LanguageSelector__listLanguage>
+            </li>
+          }
+        </bem.LanguageSelector__list>
+
+        <bem.LanguageSelector__helpBar>
+          <a
+            href={envStore.data.support_url + LANGUAGE_SELECTOR_SUPPORT_URL}
+            target='_blank'
+          >
+            <Icon name='information' size='s'/>
+            {t('I cannot find my language')}
+          </a>
+        </bem.LanguageSelector__helpBar>
+      </React.Fragment>
+    )
+  }
+
+  render() {
     return (
       <bem.LanguageSelector>
         <bem.LanguageSelector__title>
@@ -176,29 +224,7 @@ class LanguageSelector extends React.Component<
 
         {this.state.selectedLanguage && this.renderSelectedLanguage() }
 
-        {!this.state.selectedLanguage && this.renderSearchBox() }
-
-        {!this.state.selectedLanguage && filteredLanguages.length >= 1 &&
-          <bem.LanguageSelector__list>
-            {filteredLanguages.map(this.renderLanguageItem.bind(this))}
-          </bem.LanguageSelector__list>
-        }
-
-        {!this.state.selectedLanguage && filteredLanguages.length === 0 &&
-          <bem.LanguageSelector__notFoundMessage>
-            {t('Sorry, language not found…')}
-          </bem.LanguageSelector__notFoundMessage>
-        }
-
-        {this.isCustomLanguageVisible() &&
-          <bem.LanguageSelector__customLanguage
-            onClick={this.selectLanguage.bind(this, this.state.filterPhrase)}
-          >
-            {t('I want to proceed with')}
-            &nbsp;
-            <strong>{this.state.filterPhrase}</strong>
-          </bem.LanguageSelector__customLanguage>
-        }
+        {!this.state.selectedLanguage && this.renderSearchForm() }
       </bem.LanguageSelector>
     )
   }

@@ -23,7 +23,7 @@
   border: sizes.$x2 solid colors.$kobo-gray-92;
   border-radius: sizes.$x6;
   height: sizes.$x40;
-  line-height: sizes.$x40 - (2 * sizes.$x2);
+  line-height: sizes.$x40 - (2 * sizes.$x2); // minus the border
   display: flex;
   flex-direction: row;
   align-content: center;
@@ -83,23 +83,43 @@
  */
 
 .language-selector__list {
+  min-height: sizes.$x100;
   max-height: sizes.$x200;
   overflow-y: auto;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  align-content: flex-start;
   list-style: none;
   margin: sizes.$x16 0 0;
   padding: 0;
 
   > li {
-    width: calc(25% - #{sizes.$x20 * 0.75});
+    width: calc(25% - #{sizes.$x20});
+    min-width: sizes.$x150;
     margin-right: sizes.$x20;
 
-    &:nth-child(4n) {
+    &.language-selector__not-found-message {
+      width: 100%;
+      margin-right: 0;
+    }
+
+    &:last-child {
+      width: auto;
+      margin-right: 0;
+    }
+
+    &:only-child {
+      width: 100%;
       margin-right: 0;
     }
   }
+}
+
+.language-selector__not-found-message {
+  padding: sizes.$x6 sizes.$x8;
+  text-align: left;
+  font-style: italic;
 }
 
 .language-selector__list-language {
@@ -107,17 +127,33 @@
   padding: sizes.$x6 sizes.$x8;
   text-align: left;
   border-radius: sizes.$x4;
+  word-wrap: anywhere; // mostly for the custom language case
 
   &:hover {
     background-color: colors.$kobo-gray-92;
   }
 }
 
-.language-selector__custom-language {
-  @include mixins.buttonReset();
-  padding: sizes.$x6 0;
+.language-selector__help-bar {
+  border-top: sizes.$x2 solid colors.$kobo-gray-92;
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: center;
+  line-height: sizes.$x40 - (2 * sizes.$x2); // mimick the search box size
+  margin-top: sizes.$x16;
 
-  &:hover {
-    color: colors.$kobo-blue;
+  > a {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+
+    &:hover {
+      color: colors.$kobo-blue-dark;
+    }
+  }
+
+  .k-icon.k-icon-information {
+    margin-right: sizes.$x6;
   }
 }
