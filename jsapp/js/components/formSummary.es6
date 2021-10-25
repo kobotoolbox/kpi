@@ -13,6 +13,7 @@ import DocumentTitle from 'react-document-title';
 import moment from 'moment';
 import Chart from 'chart.js';
 import {getFormDataTabs} from './formViewTabs';
+import assetUtils from 'js/assetUtils';
 import {
   formatTime,
   formatDate,
@@ -348,15 +349,15 @@ class FormSummary extends React.Component {
                   {(this.state.settings.country || this.state.settings.sector) &&
                     <bem.FormView__group m={['items', 'description-cols']}>
                       {this.state.settings.country &&
-                        <bem.FormView__cell>
+                        <bem.FormView__cell m='padding'>
                           <bem.FormView__label m='country'>{t('Project country')}</bem.FormView__label>
-                          {this.state.settings.country.label}
+                          {assetUtils.getCountryDisplayString(this.state, true)}
                         </bem.FormView__cell>
                       }
                       {this.state.settings.sector &&
-                        <bem.FormView__cell>
+                        <bem.FormView__cell m='padding'>
                           <bem.FormView__label m='sector'>{t('Sector')}</bem.FormView__label>
-                          {this.state.settings.sector.label}
+                          {assetUtils.getSectorDisplayString(this.state)}
                         </bem.FormView__cell>
                       }
                     </bem.FormView__group>
