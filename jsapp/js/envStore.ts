@@ -1,13 +1,6 @@
 import Reflux from 'reflux'
 import {actions} from 'js/actions'
 
-const nestedArrToChoiceObjs = (i: string[]): EnvStoreDataItem => {
-  return {
-    value: i[0],
-    label: i[1],
-  }
-}
-
 export interface EnvStoreDataItem {
   value: string
   label: string
@@ -45,6 +38,13 @@ class EnvStore extends Reflux.Store {
 
   isReady: boolean = false
 
+  private nestedArrToChoiceObjs = (i: string[]): EnvStoreDataItem => {
+    return {
+      value: i[0],
+      label: i[1],
+    }
+  }
+
   init() {
     actions.auth.getEnvironment.completed.listen(this.onGetEnvCompleted.bind(this))
     actions.auth.getEnvironment()
@@ -60,16 +60,16 @@ class EnvStore extends Reflux.Store {
     this.data.submission_placeholder = response.submission_placeholder
 
     if (response.available_sectors) {
-      this.data.available_sectors = response.available_sectors.map(nestedArrToChoiceObjs)
+      this.data.available_sectors = response.available_sectors.map(this.nestedArrToChoiceObjs)
     }
     if (response.available_countries) {
-      this.data.available_countries = response.available_countries.map(nestedArrToChoiceObjs)
+      this.data.available_countries = response.available_countries.map(this.nestedArrToChoiceObjs)
     }
     if (response.interface_languages) {
-      this.data.interface_languages = response.interface_languages.map(nestedArrToChoiceObjs)
+      this.data.interface_languages = response.interface_languages.map(this.nestedArrToChoiceObjs)
     }
     if (response.all_languages) {
-      this.data.all_languages = response.all_languages.map(nestedArrToChoiceObjs)
+      this.data.all_languages = response.all_languages.map(this.nestedArrToChoiceObjs)
     }
 
     this.isReady = true
