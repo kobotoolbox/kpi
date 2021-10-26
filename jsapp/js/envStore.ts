@@ -38,6 +38,10 @@ class EnvStore extends Reflux.Store {
 
   isReady: boolean = false
 
+  /**
+   * A DRY utility function that turns an array of two items into an object with
+   * 'value' and 'label' properties.
+   */
   private nestedArrToChoiceObjs = (i: string[]): EnvStoreDataItem => {
     return {
       value: i[0],
