@@ -51,6 +51,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 }
 
+/** Handles content state and data for editors */
 const singleProcessingStore = new SingleProcessingStore();
 singleProcessingStore.init();
 

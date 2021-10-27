@@ -10,27 +10,24 @@ bem.SingleProcessingContent__tabs = makeBem(bem.SingleProcessingContent, 'tabs',
 bem.SingleProcessingContent__tab = makeBem(bem.SingleProcessingContent, 'tab', 'li')
 bem.SingleProcessingContent__body = makeBem(bem.SingleProcessingContent, 'body', 'section')
 
-type SingleProcessingContentProps = {}
-
-type SingleProcessingContentState = {}
-
-export default class SingleProcessingContent extends React.Component<
-  SingleProcessingContentProps,
-  SingleProcessingContentState
-> {
-  constructor(props: SingleProcessingContentProps) {
-    super(props)
-    this.state = {}
-  }
+/** This component is handling the tabs for switching the content. */
+export default class SingleProcessingContent extends React.Component<any> {
+  private unlisteners: Function[] = []
 
   componentDidMount() {
-    singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
+    this.unlisteners.push(
+      singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
+    )
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb()})
   }
 
   onSingleProcessingStoreChange() {
     /**
      * Don't want to store a duplicate of `activeTab` here, so we need to make
-     * the component re-render itself when the store changes :shrug:
+     * the component re-render itself when the store changes :shrug:.
      */
     this.forceUpdate()
   }

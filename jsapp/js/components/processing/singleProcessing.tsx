@@ -20,9 +20,6 @@ bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section'
 bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section')
 bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section')
 
-/**
- * this.props.params properties
- */
 type SingleProcessingProps = RouteComponentProps<{
   uid: string,
   questionName: string,
@@ -46,7 +43,10 @@ type SingleProcessingState = {
  * This route component is being loaded with PermProtectedRoute so we know that
  * the call to backend to get asset was already made :happy_face:
  */
-export default class SingleProcessing extends React.Component<SingleProcessingProps, SingleProcessingState> {
+export default class SingleProcessing extends React.Component<
+  SingleProcessingProps,
+  SingleProcessingState
+> {
   constructor(props: SingleProcessingProps) {
     super(props)
     this.state = {
@@ -70,6 +70,10 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     )
     actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
     this.getNewProcessingSubmissions()
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb()})
   }
 
   componentDidUpdate(prevProps: SingleProcessingProps) {
@@ -164,9 +168,7 @@ export default class SingleProcessing extends React.Component<SingleProcessingPr
     return undefined
   }
 
-  /**
-   * Returns row label (for default language) with fallback to question name.
-   */
+  /** Returns row label (for default language) with fallback to question name. */
   getQuestionLabel(): string {
     if (this.state.asset?.content?.survey) {
       const translatedRowLabel = getTranslatedRowLabel(
