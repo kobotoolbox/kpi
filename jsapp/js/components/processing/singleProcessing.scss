@@ -1,7 +1,8 @@
 @use "scss/_colors";
+@use "scss/sizes";
 @use "./singleProcessingVariables";
 
-$s-single-processing-header: 76px;
+$s-single-processing-header: sizes.$x76;
 
 .single-processing {
   // make it appear above everything
@@ -45,5 +46,5 @@ $s-single-processing-header: 76px;
 
 .single-processing__bottom-right {
   flex: 61;
-  margin-left: 16px;
+  margin-left: sizes.$x16;
 }

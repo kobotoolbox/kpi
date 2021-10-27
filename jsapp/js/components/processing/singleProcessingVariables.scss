@@ -1,1 +1,3 @@
-$s-single-processing-tabs: 54px;
+@use "scss/sizes";
+
+$s-single-processing-tabs: sizes.$x52;
