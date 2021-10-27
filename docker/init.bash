@@ -19,10 +19,10 @@ fi
 /bin/bash "${INIT_PATH}/wait_for_postgres.bash"
 
 echo 'Running migrations...'
-python manage.py migrate --noinput
+gosu "${UWSGI_USER}" python manage.py migrate --noinput
 
 echo 'Creating superuser...'
-python manage.py create_kobo_superuser
+gosu "${UWSGI_USER}" python manage.py create_kobo_superuser
 
 if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/check_kpi_prefix_outdated.py"; then
     if [[ "${FRONTEND_DEV_MODE}" == "host" ]]; then
@@ -51,7 +51,7 @@ if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" 
     echo "Fetching translations..."
     git submodule init && \
     git submodule update --remote && \
-    python manage.py compilemessages
+    gosu "${UWSGI_USER}" python manage.py compilemessages
 fi
 
 rm -rf /etc/profile.d/pydev_debugger.bash.sh
@@ -65,4 +65,4 @@ rm -rf /tmp/celery*.pid
 
 echo 'KoBoForm initialization completed.'
 
-exec /usr/bin/runsvdir /etc/service
+exec /usr/bin/runsvdir "${SERVICES_DIR}"

@@ -13,16 +13,12 @@ ENV KPI_LOGS_DIR=/srv/logs \
     NGINX_STATIC_DIR=/srv/static \
     KPI_SRC_DIR=/srv/src/kpi \
     KPI_NODE_PATH=/srv/src/kpi/node_modules \
-    TMP_PATH=/srv/tmp \
+    TMP_DIR=/srv/tmp \
+    UWSGI_USER=kobo \
+    UWSGI_GROUP=kobo \
+    SERVICES_DIR=/etc/service \
+    CELERY_PID_DIR=/var/run/celery \
     INIT_PATH=/srv/init
-
-# Install Dockerize.
-# TODO: Remove this after merging kobotoolbox/kobo-docker#322
-ENV DOCKERIZE_VERSION v0.6.1
-RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz -P /tmp \
-    && tar -C /usr/local/bin -xzvf /tmp/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    && rm /tmp/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-
 
 ##########################################
 # Create build directories               #
@@ -31,7 +27,12 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
 RUN mkdir -p "${NGINX_STATIC_DIR}" && \
     mkdir -p "${KPI_SRC_DIR}" && \
     mkdir -p "${KPI_NODE_PATH}" && \
-    mkdir -p "${TMP_PATH}" && \
+    mkdir -p "${TMP_DIR}" && \
+    mkdir -p ${CELERY_PID_DIR} && \
+    mkdir -p ${SERVICES_DIR}/uwsgi && \
+    mkdir -p ${SERVICES_DIR}/celery && \
+    mkdir -p ${SERVICES_DIR}/celery_beat && \
+    mkdir -p ${SERVICES_DIR}/celery_sync_kobocat_xforms && \
     mkdir -p "${INIT_PATH}"
 
 ##########################################
@@ -39,12 +40,11 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 ##########################################
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-
 RUN apt-get -qq update && \
     apt-get -qq -y install \
         gdal-bin \
         gettext \
+        gosu \
         less \
         libproj-dev \
         locales \
@@ -64,6 +64,11 @@ RUN apt-get -qq update && \
 RUN echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
 RUN locale-gen && dpkg-reconfigure locales -f noninteractive
 
+#################################
+# Create local user UWSGI_USER` #
+#################################
+RUN adduser --disabled-password --gecos '' "$UWSGI_USER"
+
 ###########################
 # Copy KPI directory      #
 ###########################
@@ -78,8 +83,8 @@ RUN virtualenv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip install  --quiet --upgrade pip && \
     pip install  --quiet pip-tools
-COPY ./dependencies/pip/external_services.txt /srv/tmp/pip_dependencies.txt
-RUN pip-sync /srv/tmp/pip_dependencies.txt 1>/dev/null && \
+COPY ./dependencies/pip/external_services.txt "${TMP_DIR}/pip_dependencies.txt"
+RUN pip-sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null && \
     rm -rf ~/.cache/pip
 
 ###########################
@@ -87,6 +92,7 @@ RUN pip-sync /srv/tmp/pip_dependencies.txt 1>/dev/null && \
 ###########################
 
 WORKDIR ${KPI_SRC_DIR}/
+
 RUN rm -rf ${KPI_NODE_PATH} && \
     npm install -g check-dependencies && \
     npm install --quiet && \
@@ -127,27 +133,29 @@ RUN mkdir -p "${KPI_LOGS_DIR}/" "${KPI_SRC_DIR}/emails"
 #################################################
 
 # Using `/etc/profile.d/` as a repository for non-hard-coded environment variable overrides.
-RUN echo "export PATH=${PATH}" >> /etc/profile
-RUN echo 'source /etc/profile' >> /root/.bashrc
-#
-# FIXME: Allow Celery to run as root ...for now.
-ENV C_FORCE_ROOT="true"
+RUN echo "export PATH=${PATH}" >> /etc/profile && \
+    echo 'source /etc/profile' >> /root/.bashrc && \
+    echo 'source /etc/profile' >> /home/${UWSGI_USER}/.bashrc
 
-# Do it even if we don't why yet.
-RUN useradd -s /bin/false -m wsgi
 
-# Prepare for execution.
-RUN rm -rf /etc/service/wsgi && \
-    # Remove getty* services
-    rm -rf /etc/runit/runsvdir/default/getty-tty* && \
-    mkdir -p /etc/service/uwsgi && \
-    ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" /etc/service/uwsgi/run && \
-    mkdir -p /etc/service/celery && \
-    ln -s "${KPI_SRC_DIR}/docker/run_celery.bash" /etc/service/celery/run && \
-    mkdir -p /etc/service/celery_beat && \
-    ln -s "${KPI_SRC_DIR}/docker/run_celery_beat.bash" /etc/service/celery_beat/run && \
-    mkdir -p /etc/service/celery_sync_kobocat_xforms && \
-    ln -s "${KPI_SRC_DIR}/docker/run_celery_sync_kobocat_xforms.bash" /etc/service/celery_sync_kobocat_xforms/run
+# Remove getty* services to avoid errors of absent tty at sv start-up
+RUN rm -rf /etc/runit/runsvdir/default/getty-tty*
+
+# Create symlinks for runsv services
+RUN ln -s "${KPI_SRC_DIR}/docker/run_uwsgi.bash" "${SERVICES_DIR}/uwsgi/run" && \
+    ln -s "${KPI_SRC_DIR}/docker/run_celery.bash" "${SERVICES_DIR}/celery/run" && \
+    ln -s "${KPI_SRC_DIR}/docker/run_celery_beat.bash" "${SERVICES_DIR}/celery_beat/run" && \
+    ln -s "${KPI_SRC_DIR}/docker/run_celery_sync_kobocat_xforms.bash" "${SERVICES_DIR}/celery_sync_kobocat_xforms/run"
+
+
+# Add/Restore `UWSGI_USER`'s permissions
+RUN chown -R ":${UWSGI_GROUP}" ${CELERY_PID_DIR} && \
+    chmod g+w ${CELERY_PID_DIR} && \
+    chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
+    chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_LOGS_DIR} && \
+    chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${TMP_DIR} && \
+    chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${VIRTUAL_ENV}
+
 
 EXPOSE 8000
 
