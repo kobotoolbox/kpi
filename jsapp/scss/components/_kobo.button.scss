@@ -1,5 +1,5 @@
 /*
-  This is a simple colored button. You can make it small or choose a color.
+  This is a simple colored button.
 
   The default color is gray, other available are:
   - blue
@@ -8,6 +8,11 @@
   - orange
   - red
   - whitegray
+
+  Other modifiers:
+  - fullwidth
+  - pending
+  - small
 
   NOTE: Please __do not @extend__ this component. If possible use
   `bem.KoboButton` or raw class names.
