@@ -1,13 +1,33 @@
+@use "scss/_colors";
+
 /*
  * This is a smaller alternative to kobo-button. Modifiers to use:
  * - icon-only
  * - full-width
+ * - pending
  * - blue
  * - teal
  * - green
  * - orange
  * - red
  */
+
+@mixin koboLightButtonVariant($mainColor) {
+  color: $mainColor;
+  border-color: $mainColor;
+
+  &:hover,
+  &.kobo-light-button--pending {
+    color: colors.$kobo-white;
+    background-color: $mainColor;
+    border-color: $mainColor;
+  }
+
+  // Note: `pending` modifier uses the same base look as hover state.
+  &.kobo-light-button--pending .k-icon.k-icon-spinner.k-spin {
+    color: colors.$kobo-white;
+  }
+}
 
 .kobo-light-button,
 .kobo-light-badge {
@@ -56,9 +76,9 @@
 }
 
 .kobo-light-badge {
-  color: $kobo-gray-24;
-  background-color: $kobo-gray-92;
-  border-color: $kobo-gray-92;
+  color: colors.$kobo-gray-24;
+  background-color: colors.$kobo-gray-92;
+  border-color: colors.$kobo-gray-92;
   white-space: nowrap;
   padding-left: 8px;
   padding-right: 8px;
@@ -66,7 +86,7 @@
 
 .kobo-light-button {
   cursor: pointer;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
   background-color: transparent;
   border-color: currentColor;
 
@@ -76,9 +96,9 @@
   }
 
   &:hover {
-    color: $kobo-white;
-    background-color: $kobo-gray-40;
-    border-color: $kobo-gray-40;
+    color: colors.$kobo-white;
+    background-color: colors.$kobo-gray-40;
+    border-color: colors.$kobo-gray-40;
   }
 
   &:active {
@@ -88,62 +108,44 @@
   }
 
   &.kobo-light-button--blue {
-    color: $kobo-blue;
-
-    &:hover {
-      color: $kobo-white;
-      background-color: $kobo-blue;
-      border-color: $kobo-blue;
-    }
+    @include koboLightButtonVariant(colors.$kobo-blue)
   }
 
   &.kobo-light-button--teal {
-    color: $kobo-teal;
-
-    &:hover {
-      color: $kobo-white;
-      background-color: $kobo-teal;
-      border-color: $kobo-teal;
-    }
+    @include koboLightButtonVariant(colors.$kobo-teal)
   }
 
   &.kobo-light-button--green {
-    color: $kobo-green;
-
-    &:hover {
-      color: $kobo-white;
-      background-color: $kobo-green;
-      border-color: $kobo-green;
-    }
+    @include koboLightButtonVariant(colors.$kobo-green)
   }
 
   &.kobo-light-button--orange {
-    color: $kobo-orange;
-
-    &:hover {
-      color: $kobo-white;
-      background-color: $kobo-orange;
-      border-color: $kobo-orange;
-    }
+    @include koboLightButtonVariant(colors.$kobo-orange)
   }
 
   &.kobo-light-button--red {
-    color: $kobo-red;
-
-    &:hover {
-      color: $kobo-white;
-      background-color: $kobo-red;
-      border-color: $kobo-red;
-    }
+    @include koboLightButtonVariant(colors.$kobo-red)
   }
 
   &.kobo-light-button--gray {
-    color: $kobo-gray-65;
+    @include koboLightButtonVariant(colors.$kobo-gray-65)
+  }
 
-    &:hover {
-      color: $kobo-white;
-      background-color: $kobo-gray-65;
-      border-color: $kobo-gray-65;
+  // NOTE: this requires `<Icon name='spinner' className='k-spin'/>` to
+  // be present inside the button (ideally rendered only when necessary).
+  &.kobo-light-button--pending {
+    // hide button text
+    color: transparent !important;
+    position: relative;
+
+    // Disable any interactions (and hover effects).
+    pointer-events: none;
+
+    .k-icon.k-icon-spinner.k-spin {
+      display: block;
+      position: absolute;
+      top: calc(50% - 9px);
+      left: calc(50% - 9px);
     }
   }
 }
