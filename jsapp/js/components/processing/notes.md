@@ -36,7 +36,8 @@ store
 - translations: []
   - translation.language
   - translation.content
-- a working version of translation
+  - a working version of translation
+- - currentTab
 
 translateTab:
 - step begin (no translations)

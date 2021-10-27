@@ -1,5 +1,11 @@
 import Reflux from 'reflux'
 
+export enum SingleProcessingTabs {
+  Transcript,
+  Translations,
+  Coding,
+}
+
 export interface TranscriptText {
   content: string
   languageCode: string
@@ -14,11 +20,13 @@ export interface TranscriptTranslation {
 interface SingleProcessingStoreData {
   transcript?: TranscriptText
   translations: TranscriptTranslation[]
+  activeTab: SingleProcessingTabs
 }
 
 class SingleProcessingStore extends Reflux.Store {
   data: SingleProcessingStoreData = {
-    translations: []
+    translations: [],
+    activeTab: SingleProcessingTabs.Transcript
   }
 
   isReady: boolean = false
@@ -31,6 +39,15 @@ class SingleProcessingStore extends Reflux.Store {
   onGetInitialData() {
     this.isReady = true
     this.trigger(this.data)
+  }
+
+  activateTab(tab: SingleProcessingTabs) {
+    this.data.activeTab = tab
+    this.trigger(this.data)
+  }
+
+  getActiveTab() {
+    return this.data.activeTab
   }
 }
 

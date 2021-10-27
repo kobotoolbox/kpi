@@ -1,6 +1,8 @@
 import React from 'react'
 import bem, {makeBem} from 'js/bem'
-import LanguageSelector from 'js/components/languages/languageSelector'
+import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore'
+import TranscriptTabContent from 'js/components/processing/transcribe/transcriptTabContent'
+import TranslationsTabContent from 'js/components/processing/translate/translationsTabContent'
 import './singleProcessingContent.scss'
 
 bem.SingleProcessingContent = makeBem(null, 'single-processing-content', 'section')
@@ -8,17 +10,9 @@ bem.SingleProcessingContent__tabs = makeBem(bem.SingleProcessingContent, 'tabs',
 bem.SingleProcessingContent__tab = makeBem(bem.SingleProcessingContent, 'tab', 'li')
 bem.SingleProcessingContent__body = makeBem(bem.SingleProcessingContent, 'body', 'section')
 
-enum SingleProcessingTab {
-  Transcript,
-  Translations,
-  Coding,
-}
-
 type SingleProcessingContentProps = {}
 
-type SingleProcessingContentState = {
-  activeTab: SingleProcessingTab
-}
+type SingleProcessingContentState = {}
 
 export default class SingleProcessingContent extends React.Component<
   SingleProcessingContentProps,
@@ -26,29 +20,28 @@ export default class SingleProcessingContent extends React.Component<
 > {
   constructor(props: SingleProcessingContentProps) {
     super(props)
-    this.state = {
-      activeTab: SingleProcessingTab.Transcript
-    }
+    this.state = {}
   }
 
-  switchTab(newTab: SingleProcessingTab) {
-    this.setState({activeTab: newTab})
+  componentDidMount() {
+    singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
   }
 
-  onLanguageChange(newVal: string | undefined) {
-    console.log('language set', newVal)
+  onSingleProcessingStoreChange() {
+    /**
+     * Don't want to store a duplicate of `activeTab` here, so we need to make
+     * the component re-render itself when the store changes :shrug:
+     */
+    this.forceUpdate()
   }
 
   renderTabContent() {
-    switch (this.state.activeTab) {
-      case SingleProcessingTab.Transcript:
-        // TEMP content
-        return <div style={{padding: '40px'}}>
-          <LanguageSelector onLanguageChange={this.onLanguageChange.bind(this)}/>
-        </div>
-      case SingleProcessingTab.Translations:
-        return 'TODO translations tab content'
-      case SingleProcessingTab.Coding:
+    switch (singleProcessingStore.getActiveTab()) {
+      case SingleProcessingTabs.Transcript:
+        return <TranscriptTabContent/>
+      case SingleProcessingTabs.Translations:
+        return <TranslationsTabContent/>
+      case SingleProcessingTabs.Coding:
         return 'TODO coding tab content'
       default:
         return null
@@ -60,22 +53,22 @@ export default class SingleProcessingContent extends React.Component<
       <bem.SingleProcessingContent>
         <bem.SingleProcessingContent__tabs>
           <bem.SingleProcessingContent__tab
-            m={{active: this.state.activeTab === SingleProcessingTab.Transcript}}
-            onClick={this.switchTab.bind(this, SingleProcessingTab.Transcript)}
+            m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Transcript}}
+            onClick={() => {singleProcessingStore.activateTab(SingleProcessingTabs.Transcript)}}
           >
             {t('Transcript')}
           </bem.SingleProcessingContent__tab>
 
           <bem.SingleProcessingContent__tab
-            m={{active: this.state.activeTab === SingleProcessingTab.Translations}}
-            onClick={this.switchTab.bind(this, SingleProcessingTab.Translations)}
+            m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Translations}}
+            onClick={() => {singleProcessingStore.activateTab(SingleProcessingTabs.Translations)}}
           >
             {t('Translations')}
           </bem.SingleProcessingContent__tab>
 
           <bem.SingleProcessingContent__tab
-            m={{active: this.state.activeTab === SingleProcessingTab.Coding}}
-            onClick={this.switchTab.bind(this, SingleProcessingTab.Coding)}
+            m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Coding}}
+            onClick={() => {singleProcessingStore.activateTab(SingleProcessingTabs.Coding)}}
           >
             {t('Coding')}
           </bem.SingleProcessingContent__tab>
