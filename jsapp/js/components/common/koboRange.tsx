@@ -26,7 +26,7 @@ type KoboRangeProps = {
   value: number,
   /** uses time display for all required values */
   isTime?: boolean,
-  /** assumes input is clickable and with move to where it is clicked */
+  /** required for input to be enabled (disabled without)*/
   onChange?: Function,
   /** defaults to $kobo-blue */
   color?: string,
@@ -36,15 +36,11 @@ type KoboRangeProps = {
   currentLabel?: string,
 }
 
-type KoboRangeState = {
-  currentValue: number,
-}
-
 /**
  * Extendable custom styled range input
  *
  */
-export default class KoboRange extends React.Component<KoboRangeProps, KoboRangeState> {
+export default class KoboRange extends React.Component<KoboRangeProps> {
 
   constructor(props: KoboRangeProps) {
     super(props)
@@ -88,8 +84,8 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
         <bem.KoboRange__values>
           <bem.KoboRange__currentValue>
             <bem.KoboRange__number>
-              {!this.props.isTime && this.state.currentValue}
-              {this.props.isTime && this.convertToClock(this.state.currentValue)}
+              {!this.props.isTime && this.props.value}
+              {this.props.isTime && this.convertToClock(this.props.value)}
             </bem.KoboRange__number>
 
             <bem.KoboRange__unit>
@@ -114,7 +110,7 @@ export default class KoboRange extends React.Component<KoboRangeProps, KoboRange
             m={this.props?.color ? this.props.color : KoboRangeColours.default}
             type='range'
             max={this.props.max}
-            value={this.state.currentValue}
+            value={this.props.value}
             disabled={!this.props.onChange}
             onChange={this.props?.onChange && this.onChange.bind(this)}
           />
