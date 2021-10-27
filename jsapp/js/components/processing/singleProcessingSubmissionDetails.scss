@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/sizes";
 @use "./singleProcessingVariables";
 
 .single-processing-submission-details {
@@ -10,8 +11,8 @@
 
 .single-processing-submission-details__media-wrapper {
   background-color: colors.$kobo-white;
-  border-radius: 6px;
-  margin-bottom: 20px;
+  border-radius: sizes.$x6;
+  margin-bottom: sizes.$x20;
   // right padding is for the audio player to appear centered
-  padding: 6px 12px 0 0;
+  padding: sizes.$x6 sizes.$x12 0 0;
 }

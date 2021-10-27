@@ -14,8 +14,16 @@ import {
 import AudioPlayer from 'js/components/common/audioPlayer'
 import './singleProcessingSubmissionDetails.scss'
 
-bem.SingleProcessingSubmissionDetails = makeBem(null, 'single-processing-submission-details', 'section')
-bem.SingleProcessingSubmissionDetails__mediaWrapper = makeBem(bem.SingleProcessingSubmissionDetails, 'media-wrapper', 'section')
+bem.SingleProcessingSubmissionDetails = makeBem(
+  null,
+  'single-processing-submission-details',
+  'section'
+)
+bem.SingleProcessingSubmissionDetails__mediaWrapper = makeBem(
+  bem.SingleProcessingSubmissionDetails,
+  'media-wrapper',
+  'section'
+)
 
 type SingleProcessingSubmissionDetailsProps = {
   questionType: AnyRowTypeName | undefined
@@ -24,15 +32,11 @@ type SingleProcessingSubmissionDetailsProps = {
   submissionData: SubmissionResponse
 }
 
-type SingleProcessingSubmissionDetailsState = {}
-
 export default class SingleProcessingSubmissionDetails extends React.Component<
-  SingleProcessingSubmissionDetailsProps,
-  SingleProcessingSubmissionDetailsState
+  SingleProcessingSubmissionDetailsProps
 > {
   constructor(props: SingleProcessingSubmissionDetailsProps) {
     super(props)
-    this.state = {}
   }
 
   renderMedia() {
@@ -70,6 +74,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
     )
   }
 
+  /** We want only the processing related data (the actual form questions) */
   getQuestionsToHide(): string[] {
     return [
       this.props.questionName,

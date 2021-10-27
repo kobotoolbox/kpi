@@ -28,6 +28,7 @@ type SingleProcessingHeaderState = {
   nextSubmissionId: string | null
 }
 
+/** Component with the question and UI for switching between submissions */
 export default class SingleProcessingHeader extends React.Component<
   SingleProcessingHeaderProps,
   SingleProcessingHeaderState
@@ -40,17 +41,13 @@ export default class SingleProcessingHeader extends React.Component<
     }
   }
 
-  /**
-   * Goes back to table view for given asset.
-   */
+  /** Goes back to table view for given asset. */
   onDone() {
     const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid)
     hashHistory.push(newRoute)
   }
 
-  /**
-   * Goes to another submission
-   */
+  /** Goes to another submission */
   goToSubmission(targetSubmissionId: string) {
     const newRoute = ROUTES.FORM_PROCESSING
       .replace(':uid', this.props.assetUid)
@@ -71,9 +68,7 @@ export default class SingleProcessingHeader extends React.Component<
     }
   }
 
-  /**
-   * Returns the natural number (first is 1, not 0)
-   */
+  /** Returns a natural number (first is 1, not 0) */
   getCurrentSubmissionNumber(): number {
     return this.props.submissionsIds.indexOf(this.props.submissionId) + 1
   }
