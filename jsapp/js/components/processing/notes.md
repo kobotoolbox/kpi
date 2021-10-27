@@ -5,7 +5,7 @@ transcriptTab:
   - action: set language
   - action: 
 - step mode selector
-- step pending automation
+  - substep pending automation
 - step edit/create transcription (cancel editing/creating or save)
 - step view transcription (edit or delete)
 - step automatic (TBD)
@@ -25,6 +25,8 @@ transcriptTab step identification:
 - edit:
   - transcript.language: string
   - transcript.content: string
+  
+- should view/edit be the same?
 
 store
 - transcript: undefined | object
