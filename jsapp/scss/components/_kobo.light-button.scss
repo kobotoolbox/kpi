@@ -1,3 +1,5 @@
+@use "scss/_colors";
+
 /*
  * This is a smaller alternative to kobo-button. Modifiers to use:
  * - icon-only
@@ -16,14 +18,14 @@
 
   &:hover,
   &.kobo-light-button--pending {
-    color: $kobo-white;
+    color: colors.$kobo-white;
     background-color: $mainColor;
     border-color: $mainColor;
   }
 
   // Note: `pending` modifier uses the same base look as hover state.
   &.kobo-light-button--pending .k-icon.k-icon-spinner.k-spin {
-    color: $kobo-white;
+    color: colors.$kobo-white;
   }
 }
 
@@ -74,9 +76,9 @@
 }
 
 .kobo-light-badge {
-  color: $kobo-gray-24;
-  background-color: $kobo-gray-92;
-  border-color: $kobo-gray-92;
+  color: colors.$kobo-gray-24;
+  background-color: colors.$kobo-gray-92;
+  border-color: colors.$kobo-gray-92;
   white-space: nowrap;
   padding-left: 8px;
   padding-right: 8px;
@@ -84,7 +86,7 @@
 
 .kobo-light-button {
   cursor: pointer;
-  color: $kobo-gray-40;
+  color: colors.$kobo-gray-40;
   background-color: transparent;
   border-color: currentColor;
 
@@ -94,9 +96,9 @@
   }
 
   &:hover {
-    color: $kobo-white;
-    background-color: $kobo-gray-40;
-    border-color: $kobo-gray-40;
+    color: colors.$kobo-white;
+    background-color: colors.$kobo-gray-40;
+    border-color: colors.$kobo-gray-40;
   }
 
   &:active {
@@ -106,27 +108,27 @@
   }
 
   &.kobo-light-button--blue {
-    @include koboLightButtonVariant($kobo-blue)
+    @include koboLightButtonVariant(colors.$kobo-blue)
   }
 
   &.kobo-light-button--teal {
-    @include koboLightButtonVariant($kobo-teal)
+    @include koboLightButtonVariant(colors.$kobo-teal)
   }
 
   &.kobo-light-button--green {
-    @include koboLightButtonVariant($kobo-green)
+    @include koboLightButtonVariant(colors.$kobo-green)
   }
 
   &.kobo-light-button--orange {
-    @include koboLightButtonVariant($kobo-orange)
+    @include koboLightButtonVariant(colors.$kobo-orange)
   }
 
   &.kobo-light-button--red {
-    @include koboLightButtonVariant($kobo-red)
+    @include koboLightButtonVariant(colors.$kobo-red)
   }
 
   &.kobo-light-button--gray {
-    @include koboLightButtonVariant($kobo-gray-65)
+    @include koboLightButtonVariant(colors.$kobo-gray-65)
   }
 
   // NOTE: this requires `<Icon name='spinner' className='k-spin'/>` to
