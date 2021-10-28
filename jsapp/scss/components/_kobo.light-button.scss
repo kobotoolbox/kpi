@@ -95,7 +95,8 @@
     opacity: 0.5;
   }
 
-  &:hover {
+  &:hover,
+  &.kobo-light-button--pending {
     color: colors.$kobo-white;
     background-color: colors.$kobo-gray-40;
     border-color: colors.$kobo-gray-40;
@@ -142,6 +143,7 @@
     pointer-events: none;
 
     .k-icon.k-icon-spinner.k-spin {
+      color: colors.$kobo-white;
       display: block;
       position: absolute;
       top: calc(50% - 9px);
