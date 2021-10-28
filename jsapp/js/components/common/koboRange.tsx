@@ -44,10 +44,6 @@ export default class KoboRange extends React.Component<KoboRangeProps> {
 
   constructor(props: KoboRangeProps) {
     super(props)
-
-    this.state = {
-      currentValue: props.value,
-    }
   }
 
   /* We deal internally with un-converted seconds for easier computing. Only use
@@ -73,37 +69,39 @@ export default class KoboRange extends React.Component<KoboRangeProps> {
     if (this.props.onChange) {
       const currentValue = evt.currentTarget.value
       this.props.onChange(currentValue)
-
-      this.setState({currentValue: currentValue})
     }
   }
 
   render() {
+    let IS_DATA_LOADED = !(this.props.max === 0)
+
     return (
       <bem.KoboRange>
-        <bem.KoboRange__values>
-          <bem.KoboRange__currentValue>
-            <bem.KoboRange__number>
-              {!this.props.isTime && this.props.value}
-              {this.props.isTime && this.convertToClock(this.props.value)}
-            </bem.KoboRange__number>
+        {IS_DATA_LOADED &&
+          <bem.KoboRange__values>
+            <bem.KoboRange__currentValue>
+              <bem.KoboRange__number>
+                {!this.props.isTime && this.props.value}
+                {this.props.isTime && this.convertToClock(this.props.value)}
+              </bem.KoboRange__number>
 
-            <bem.KoboRange__unit>
-              {this.props.currentLabel}
-            </bem.KoboRange__unit>
-          </bem.KoboRange__currentValue>
+              <bem.KoboRange__unit>
+                {this.props.currentLabel}
+              </bem.KoboRange__unit>
+            </bem.KoboRange__currentValue>
 
-          <bem.KoboRange__maxValue>
-            <bem.KoboRange__number>
-              {!this.props.isTime && this.props.max}
-              {this.props.isTime && this.convertToClock(this.props.max)}
-            </bem.KoboRange__number>
+            <bem.KoboRange__maxValue>
+              <bem.KoboRange__number>
+                {!this.props.isTime && this.props.max}
+                {this.props.isTime && this.convertToClock(this.props.max)}
+              </bem.KoboRange__number>
 
-            <bem.KoboRange__unit>
-              {this.props.totalLabel}
-            </bem.KoboRange__unit>
-          </bem.KoboRange__maxValue>
-        </bem.KoboRange__values>
+              <bem.KoboRange__unit>
+                {this.props.totalLabel}
+              </bem.KoboRange__unit>
+            </bem.KoboRange__maxValue>
+          </bem.KoboRange__values>
+        }
 
         <bem.KoboRange__progress>
           <bem.KoboRange__input
