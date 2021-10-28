@@ -59,6 +59,7 @@ export default class SingleProcessingContent extends React.Component<any> {
           <bem.SingleProcessingContent__tab
             m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Translations}}
             onClick={() => {singleProcessingStore.activateTab(SingleProcessingTabs.Translations)}}
+            disabled={singleProcessingStore.getTranscript() === undefined}
           >
             {t('Translations')}
           </bem.SingleProcessingContent__tab>
@@ -66,6 +67,8 @@ export default class SingleProcessingContent extends React.Component<any> {
           <bem.SingleProcessingContent__tab
             m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Coding}}
             onClick={() => {singleProcessingStore.activateTab(SingleProcessingTabs.Coding)}}
+            // TODO this is disabled until we build the feature.
+            disabled
           >
             {t('Coding')}
           </bem.SingleProcessingContent__tab>
