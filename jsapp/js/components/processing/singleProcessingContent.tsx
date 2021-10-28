@@ -1,8 +1,8 @@
 import React from 'react'
 import bem, {makeBem} from 'js/bem'
 import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore'
-import TranscriptTabContent from 'js/components/processing/transcribe/transcriptTabContent'
-import TranslationsTabContent from 'js/components/processing/translate/translationsTabContent'
+import TranscriptTabContent from 'js/components/processing/transcriptTabContent'
+import TranslationsTabContent from 'js/components/processing/translationsTabContent'
 import './singleProcessingContent.scss'
 
 bem.SingleProcessingContent = makeBem(null, 'single-processing-content', 'section')
