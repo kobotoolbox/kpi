@@ -9,12 +9,14 @@ export enum SingleProcessingTabs {
 export interface Transcript {
   content: string
   languageCode: string
+  dateCreated: string
 }
 
 export interface TranscriptTranslation {
   content: string
   languageCode: string
   transcriptUrl: string
+  dateCreated: string
 }
 
 interface SingleProcessingStoreData {
@@ -47,17 +49,17 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.transcript
   }
 
-  onSetTranscriptCompleted(transcript: Transcript) {
+  onSetTranscriptCompleted(transcript: Transcript | undefined) {
     this.isPending = false
     this.data.transcript = transcript
     this.trigger(this.data)
   }
 
-  setTranscript(newTranscript: Transcript) {
+  setTranscript(newTranscript: Transcript | undefined) {
     this.isPending = true
 
-    // TODO: call backend to store transcript
-    setTimeout(this.onSetTranscriptCompleted.bind(this, newTranscript), 10000)
+    // TODO: call backend to store transcript, for now we just wait 3 seconds :P
+    setTimeout(this.onSetTranscriptCompleted.bind(this, newTranscript), 3000)
 
     this.trigger(this.data)
   }

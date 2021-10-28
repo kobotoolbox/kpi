@@ -2,6 +2,7 @@ import React from 'react'
 import clonedeep from 'lodash.clonedeep';
 import bem, {makeBem} from 'js/bem'
 import envStore from 'js/envStore'
+import {formatTime} from 'js/utils'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import LanguageSelector from 'js/components/languages/languageSelector'
 import Icon from 'js/components/common/icon'
@@ -92,14 +93,47 @@ export default class TranscriptTabContent extends React.Component<
     ) {
       singleProcessingStore.setTranscript({
         languageCode: this.state.transcriptDraft.languageCode,
-        content: this.state.transcriptDraft.content
+        content: this.state.transcriptDraft.content,
+        dateCreated: String(new Date())
       })
     }
+  }
+
+  onOpenEditor() {
+    // Make new draft using existing transcript.
+    this.setState({transcriptDraft: singleProcessingStore.getTranscript()})
+  }
+
+  onDeleteTranscript() {
+    singleProcessingStore.setTranscript(undefined)
   }
 
   hasUnsavedDraftContent() {
     return (
       this.state.transcriptDraft?.content !== singleProcessingStore.getTranscript()?.content
+    )
+  }
+
+  renderLanguageAndDate() {
+    const storeTranscript = singleProcessingStore.getTranscript()
+    const contentLanguageCode = this.state.transcriptDraft?.languageCode || storeTranscript?.languageCode
+    if (contentLanguageCode === undefined) {
+      return null
+    }
+
+    // If the draft/transcript language is custom (i.e. not known to envStore),
+    // we just display the given value.
+    const knownLanguage = envStore.getLanguage(contentLanguageCode)
+    const languageLabel = knownLanguage?.label || contentLanguageCode
+
+    return (
+      <React.Fragment>
+        {t('Language')} {languageLabel}
+
+        {storeTranscript?.dateCreated &&
+          t('Created ##date##').replace('##date##', formatTime(storeTranscript.dateCreated))
+        }
+      </React.Fragment>
     )
   }
 
@@ -142,27 +176,14 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   renderStepEditor() {
-    if (
-      this.state.transcriptDraft?.languageCode === undefined ||
-      this.state.transcriptDraft?.content === undefined
-    ) {
-      // This scenario wouldn't happen, but needs to be here for TypeScript.
-      return null
-    }
-
-    // If the draft language is custom (i.e. not known to envStore), we just
-    // display the given value.
-    const knownLanguage = envStore.getLanguage(this.state.transcriptDraft.languageCode)
-    const languageLabel = knownLanguage?.label || this.state.transcriptDraft.languageCode
-
     return (
       <div style={{padding: '40px'}}>
         <div>
-          {t('Language')} {languageLabel}
+          {this.renderLanguageAndDate()}
 
           <bem.KoboLightButton
             onClick={this.onDiscardDraft.bind(this)}
-            disabled={!this.hasUnsavedDraftContent()}
+            disabled={!this.hasUnsavedDraftContent() || singleProcessingStore.isPending}
           >
             {t('Discard')}
           </bem.KoboLightButton>
@@ -183,8 +204,47 @@ export default class TranscriptTabContent extends React.Component<
         </div>
 
         <textarea
-          value={this.state.transcriptDraft.content}
+          value={this.state.transcriptDraft?.content}
           onChange={this.onDraftContentChange.bind(this)}
+          disabled={singleProcessingStore.isPending}
+        />
+      </div>
+    )
+  }
+
+  renderStepViewer() {
+    return (
+      <div style={{padding: '40px'}}>
+        <div>
+          {this.renderLanguageAndDate()}
+
+          <bem.KoboLightButton
+            m='icon-only'
+            onClick={this.onOpenEditor.bind(this)}
+            data-tip={t('Edit')}
+            disabled={singleProcessingStore.isPending}
+          >
+            <Icon name='edit' size='s'/>
+          </bem.KoboLightButton>
+
+          <bem.KoboLightButton
+            m={{
+              'icon-only': true,
+              pending: singleProcessingStore.isPending
+            }}
+            onClick={this.onDeleteTranscript.bind(this)}
+            data-tip={t('Delete')}
+          >
+            <Icon name='trash' size='s'/>
+            {singleProcessingStore.isPending &&
+              <Icon name='spinner' size='s' classNames={['k-spin']}/>
+            }
+          </bem.KoboLightButton>
+        </div>
+
+        <textarea
+          value={singleProcessingStore.getTranscript()?.content}
+          readOnly
         />
       </div>
     )
@@ -211,9 +271,17 @@ export default class TranscriptTabContent extends React.Component<
       return this.renderStepConfig()
     }
 
-    /** Step 3: Editor */
+    /** Step 3: Editor - display editor of draft transcript. */
     if (this.state.transcriptDraft !== undefined) {
       return this.renderStepEditor()
+    }
+
+    /** Step 4: Viewer - display existing (on backend) transcript. */
+    if (
+      singleProcessingStore.getTranscript() !== undefined &&
+      this.state.transcriptDraft === undefined
+    ) {
+      return this.renderStepViewer()
     }
 
     return (
