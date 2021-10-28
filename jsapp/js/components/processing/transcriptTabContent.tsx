@@ -3,6 +3,7 @@ import clonedeep from 'lodash.clonedeep';
 import bem, {makeBem} from 'js/bem'
 import envStore from 'js/envStore'
 import {formatTime} from 'js/utils'
+import {AnyRowTypeName} from 'js/constants'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import LanguageSelector from 'js/components/languages/languageSelector'
 import Icon from 'js/components/common/icon'
@@ -12,7 +13,9 @@ interface TranscriptDraft {
   languageCode?: string
 }
 
-type TranscriptTabContentProps = {}
+type TranscriptTabContentProps = {
+  questionType: AnyRowTypeName | undefined
+}
 
 type TranscriptTabContentState = {
   transcriptDraft?: TranscriptDraft
@@ -137,9 +140,16 @@ export default class TranscriptTabContent extends React.Component<
     )
   }
 
+  getLanguageSelectorTitle() {
+    let typeLabel = this.props.questionType || t('source file')
+    return t('Please selet the original language of the ##type##').replace('##type##', typeLabel)
+  }
+
   renderStepBegin() {
+    let typeLabel = this.props.questionType || t('source file')
     return (
       <div style={{padding: '40px'}}>
+        {t('This ##type## does not have a transcript yet').replace('##type##', typeLabel)}
         <bem.KoboButton
           m='blue'
           onClick={this.onBegin.bind(this)}
@@ -153,7 +163,10 @@ export default class TranscriptTabContent extends React.Component<
   renderStepConfig() {
     return (
       <div style={{padding: '40px'}}>
-        <LanguageSelector onLanguageChange={this.onLanguageChange.bind(this)}/>
+        <LanguageSelector
+          titleOverride={this.getLanguageSelectorTitle()}
+          onLanguageChange={this.onLanguageChange.bind(this)}
+        />
 
         <bem.KoboButton
           m='whitegray'

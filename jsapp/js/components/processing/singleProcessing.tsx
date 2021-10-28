@@ -236,7 +236,9 @@ export default class SingleProcessing extends React.Component<
           </bem.SingleProcessing__bottomLeft>
 
           <bem.SingleProcessing__bottomRight>
-            <SingleProcessingContent/>
+            <SingleProcessingContent
+              questionType={this.getQuestionType()}
+            />
           </bem.SingleProcessing__bottomRight>
         </bem.SingleProcessing__bottom>
       </bem.SingleProcessing>
