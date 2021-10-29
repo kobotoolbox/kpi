@@ -1,5 +1,6 @@
 # coding: utf-8
 from django.conf import settings
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
 
@@ -12,6 +13,7 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatUserObjectPermission
 )
 from kpi.management.commands.sync_kobocat_xforms import _sync_permissions
+from kpi.utils.object_permission import get_perm_ids_from_code_names
 
 
 class Command(BaseCommand):
@@ -27,14 +29,14 @@ class Command(BaseCommand):
             action='store',
             dest='asset_uid',
             default=None,
-            help="Sync only a specific asset's form-media",
+            help="Sync only a specific asset",
         )
         parser.add_argument(
             '--username',
             action='store',
             dest='username',
             default=None,
-            help="Sync only a specific user's form-media for assets that they own",
+            help="Sync only a specific user's assets",
         )
         parser.add_argument(
             "--chunks",
@@ -43,18 +45,11 @@ class Command(BaseCommand):
             help="Update records by batch of `chunks`.",
         )
         parser.add_argument(
-            '--quiet',
-            action='store_true',
-            dest='quiet',
-            default=False,
-            help='Do not output status messages',
-        )
-        parser.add_argument(
             '--mirror-kpi',
             action='store_true',
             dest='mirror_kpi',
             default=False,
-            help='Mirror KPI permissions only',
+            help='Remove all KoBoCAT permission assignments and repopulate them from KPI',
         )
 
         super().add_arguments(parser)
@@ -62,7 +57,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self._verbosity = options['verbosity']
         self._username = options['username']
-        self._quiet = options['quiet']
         self._asset_uid = options['asset_uid']
         self._chunks = options['chunks']
 
@@ -74,6 +68,9 @@ class Command(BaseCommand):
         self._sync_perms(**options)
 
     def _sync_perms(self, **options):
+        self._perm_from_kc_only_pk = get_perm_ids_from_code_names(
+            PERM_FROM_KC_ONLY
+        )
         assets = Asset.objects.only('id', 'uid', 'owner').filter(
             _deployment_data__active=True
         )
@@ -85,7 +82,7 @@ class Command(BaseCommand):
         assets = assets.order_by('owner__username')
 
         for asset in assets.iterator(chunk_size=self._chunks):
-            if not self._quiet:
+            if self._verbosity:
                 self.stdout.write('')
                 self.stdout.write(
                     f'Processing asset {asset.uid} (owner: {asset.owner.username})'
@@ -100,16 +97,16 @@ class Command(BaseCommand):
                     ).exclude(user_id=asset.owner_id)
                 )
                 if kc_user_obj_perm_qs.exists():
-                    if not self._quiet and self._verbosity >= 1:
+                    if self._verbosity >= 1:
                         self.stdout.write(
                             f'\tDeleting all KoBoCAT permissions...'
                         )
                     kc_user_obj_perm_qs.delete()
 
-                self._copy_perms_from_kpi_kc(asset)
+                self._copy_perms_from_kpi_to_kc(asset)
             else:
 
-                if not self._quiet and self._verbosity >= 1:
+                if self._verbosity >= 1:
                     self.stdout.write(
                         f'\tPulling permissions from KoBoCAT...'
                     )
@@ -119,9 +116,9 @@ class Command(BaseCommand):
                         f'\t\tAffected users: {affected_users}'
                     )
 
-                self._copy_perms_from_kpi_kc(asset)
+                self._copy_perms_from_kpi_to_kc(asset)
 
-        if not self._quiet and self._verbosity >= 1:
+        if self._verbosity >= 1:
             self.stdout.write('')
             self.stdout.write(
                 f'Deleting `{PERM_FROM_KC_ONLY}` permission from KPI...'
@@ -130,48 +127,34 @@ class Command(BaseCommand):
             permission__codename=PERM_FROM_KC_ONLY
         ).delete()
 
-        if not self._quiet and self._verbosity >= 2:
+        if self._verbosity >= 2:
             self.stdout.write(f'\t {deleted[0]} objects')
 
-        if not self._quiet:
+        if self._verbosity:
             self.stdout.write('Done!')
 
-    def _copy_perms_from_kpi_kc(self, asset: Asset):
-        codenames = []
-        current_user = None
-        kpi_perms = asset.permissions.exclude(
-            permission__codename=PERM_FROM_KC_ONLY
-        ).order_by('user_id')
-        for perm in kpi_perms:
-            # Skip the copy if user is the owner
-            if perm.user == asset.owner:
-                continue
+    def _copy_perms_from_kpi_to_kc(self, asset: Asset):
+        user_codenames = (
+            ObjectPermission.objects.filter(
+                asset_id=asset.pk, deny=False, inherited=False
+            )
+            .exclude(user_id=asset.owner_id)
+            .exclude(permission_id=self._perm_from_kc_only_pk)
+            .values('user_id')
+            .annotate(
+                all_codenames=ArrayAgg('permission__codename', distinct=True)
+            )
+        )
 
-            if current_user != perm.user:
-                if current_user is not None:
-                    self._copy_user_perms_from_kpi_kc(
-                        asset, current_user, codenames
-                    )
-                codenames = [perm.permission.codename]
-            else:
-                codenames.append(perm.permission.codename)
-            current_user = perm.user
-
-        if codenames:
-            self._copy_user_perms_from_kpi_kc(asset, current_user, codenames)
-
-    def _copy_user_perms_from_kpi_kc(
-        self, asset: Asset, user: 'auth.User', codenames: list
-    ):
-        if not self._quiet:
+        for uc in user_codenames:
             if self._verbosity >= 1:
                 self.stdout.write(
-                    f'\tPushing permissions for user `{user}` to KoBoCAT...'
+                    f"\tPushing permissions for user #{uc['user_id']} to KoBoCAT..."
                 )
             if self._verbosity >= 2:
                 self.stdout.write(
-                    f'\t\tPermissions: {codenames}'
+                    f"\t\tPermissions: {uc['all_codenames']}"
                 )
-        assign_applicable_kc_permissions(
-            asset, user, codenames
-        )
+            assign_applicable_kc_permissions(
+                asset, uc['user_id'], uc['all_codenames']
+            )
