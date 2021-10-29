@@ -3,14 +3,11 @@ import bem, {makeBem} from 'js/bem'
 import './koboRange.scss'
 
 bem.KoboRange = makeBem(null, 'kobo-range')
-
 bem.KoboRange__values = makeBem(bem.KoboRange, 'values', 'div')
 bem.KoboRange__maxValue = makeBem(bem.KoboRange, 'max-value', 'span')
 bem.KoboRange__currentValue = makeBem(bem.KoboRange, 'current-value', 'span')
 bem.KoboRange__number = makeBem(bem.KoboRange, 'number', 'span')
 bem.KoboRange__unit = makeBem(bem.KoboRange, 'unit', 'span')
-
-
 bem.KoboRange__progress = makeBem(bem.KoboRange, 'progress', 'div')
 bem.KoboRange__input = makeBem(bem.KoboRange, 'input', 'input')
 
@@ -41,14 +38,12 @@ type KoboRangeProps = {
  *
  */
 export default class KoboRange extends React.Component<KoboRangeProps> {
-
   constructor(props: KoboRangeProps) {
     super(props)
   }
 
-  /* We deal internally with un-converted seconds for easier computing. Only use
+  /** We deal internally with un-converted seconds for easier computing. Only use
    * this if `props.isTime` and when it's time to display
-   *
    */
   convertToClock(time: number) {
     let minutes = Math.floor(time / 60)
@@ -73,11 +68,11 @@ export default class KoboRange extends React.Component<KoboRangeProps> {
   }
 
   render() {
-    let IS_DATA_LOADED = !(this.props.max === 0)
+    let isDataLoaded = !(this.props.max === 0)
 
     return (
       <bem.KoboRange>
-        {IS_DATA_LOADED &&
+        {isDataLoaded &&
           <bem.KoboRange__values>
             <bem.KoboRange__currentValue>
               <bem.KoboRange__number>
