@@ -12,6 +12,7 @@ import LoadingSpinner from 'js/components/common/loadingSpinner'
 import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader'
 import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails'
 import SingleProcessingContent from 'js/components/processing/singleProcessingContent'
+import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore'
 import './singleProcessing.scss'
 
 bem.SingleProcessing = makeBem(null, 'single-processing', 'section')
@@ -183,13 +184,27 @@ export default class SingleProcessing extends React.Component<
     return this.props.params.questionName
   }
 
+  /** Displays transcript text on the left side for the translation */
+  renderTranslationSource() {
+    if (
+      singleProcessingStore.getTranscript() !== undefined &&
+      singleProcessingStore.getActiveTab() === SingleProcessingTabs.Translations
+    ) {
+      return (
+        <div>
+          {singleProcessingStore.getTranscript()?.content}
+        </div>
+      )
+    }
+
+    return null
+  }
+
   render() {
     if (
       !this.state.isSubmissionCallDone ||
       !this.state.isIdsCallDone ||
-      !this.state.asset ||
-      !this.state.asset.content ||
-      !this.state.asset.content.survey
+      !this.state.asset?.content?.survey
     ) {
       return (
         <bem.SingleProcessing>
@@ -225,6 +240,7 @@ export default class SingleProcessing extends React.Component<
 
         <bem.SingleProcessing__bottom>
           <bem.SingleProcessing__bottomLeft>
+            {this.renderTranslationSource()}
             {this.state.submissionData !== null &&
               <SingleProcessingSubmissionDetails
                 questionType={this.getQuestionType()}

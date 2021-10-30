@@ -265,7 +265,7 @@ export default class TranscriptTabContent extends React.Component<
 
   /** Identifies what step should be displayed based on data itself. */
   render() {
-    /** Step 1: Begin - the step where there is nothing yet. */
+    // Step 1: Begin - the step where there is nothing yet.
     if (
       singleProcessingStore.getTranscript() === undefined &&
       this.state.transcriptDraft === undefined
@@ -273,7 +273,7 @@ export default class TranscriptTabContent extends React.Component<
       return this.renderStepBegin()
     }
 
-    /** Step 2: Config - for selecting the transcript language and mode. */
+    // Step 2: Config - for selecting the transcript language and mode.
     if (
       this.state.transcriptDraft !== undefined &&
       (
@@ -284,12 +284,12 @@ export default class TranscriptTabContent extends React.Component<
       return this.renderStepConfig()
     }
 
-    /** Step 3: Editor - display editor of draft transcript. */
+    // Step 3: Editor - display editor of draft transcript.
     if (this.state.transcriptDraft !== undefined) {
       return this.renderStepEditor()
     }
 
-    /** Step 4: Viewer - display existing (on backend) transcript. */
+    // Step 4: Viewer - display existing (on backend) transcript.
     if (
       singleProcessingStore.getTranscript() !== undefined &&
       this.state.transcriptDraft === undefined
@@ -297,10 +297,7 @@ export default class TranscriptTabContent extends React.Component<
       return this.renderStepViewer()
     }
 
-    return (
-      <div style={{padding: '40px'}}>
-        todo
-      </div>
-    )
+    // Should not happen, but we need to return something.
+    return null
   }
 }
