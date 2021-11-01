@@ -74,7 +74,8 @@ class VeritreeOAuth2(BaseOAuth2):
         return self.get_json(url, headers=headers)
     
     def get_user_details(self, response):
-        data = response
+        data = response.get('data', response)
+        
         return {
             'email': data.get('email'),
             'first_name': data.get('firstname'),

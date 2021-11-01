@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from kpi.models import Asset
 from veritree.models import Organization
 from veritree.pipeline import veritree_org_asset_sync_with_all_active_members, veritree_org_asset_unlink_with_all_active_members
+from veritree.tasks import generate_org_csv_for_user_and_asset
 
 @api_view(('POST',))
 @action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer])
@@ -78,5 +79,30 @@ def veritree_org_asset_unlink(request, *args, **kwargs):
     
     return Response(status=status.HTTP_204_NO_CONTENT)
 
+@api_view(('POST',))
+@action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer])
+def generate_org_csv_view(request, *args, **kwargs):
+    if not request.user:
+        http_status = status.HTTP_404_NOT_FOUND
+        response = {'detail': ("user not found")}
+        return Response(response, status=http_status)
 
-        
+    data = request.POST
+    if 'asset_uid' not in data or 'org_id' not in data:
+        http_status = status.HTTP_400_BAD_REQUEST
+        response = {'detail': ("asset uid and org id not in request body")}
+        return Response(response, status=http_status)
+
+    try:
+        asset = Asset.objects.get(uid=data['asset_uid'])
+    except ObjectDoesNotExist:
+        http_status = status.HTTP_400_BAD_REQUEST
+        response = {'detail': ("asset with that uid does not exist")}
+        return Response(response, status=http_status)
+    
+    try:
+        generate_org_csv_for_user_and_asset(request.user, asset, data['org_id'])
+        return Response({'detail': ("Successfully generated CSV and attached to asset")}, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        response = {'detail': ("{}".format(e))}
+        return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

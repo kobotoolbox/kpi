@@ -48,6 +48,7 @@ class FormMedia extends React.Component {
 
     actions.media.loadMedia.completed.listen(this.onGetMediaCompleted);
     actions.media.uploadMedia.failed.listen(this.onUploadFailed);
+    actions.media.generateCSV.completed.listen(this.onGenerateCSVCompleted);
   }
 
   /*
@@ -70,7 +71,11 @@ class FormMedia extends React.Component {
       isUploadURLPending: false,
     });
   }
-
+  onGenerateCSVCompleted() {
+    this.setState({
+      isUploadFilePending: false
+    })
+  }
   /*
    * Utilities
    */
@@ -103,6 +108,11 @@ class FormMedia extends React.Component {
     // Reset error message before uploading again
     this.setState({fieldsErrors: {}});
     actions.media.uploadMedia(this.props.asset.uid, formMediaJSON);
+  }
+
+  generateCSV(orgId) {
+    this.setState({ isUploadFilePending: true })
+    actions.media.generateCSV(orgId, this.props.asset.uid)
   }
 
   /*
@@ -224,12 +234,10 @@ class FormMedia extends React.Component {
               <p>{t('You must redeploy this form to see media changes.')}</p>
             </bem.FormView__cell>
           }
-
           <bem.FormMedia__title>
             <bem.FormMedia__label>
               {t('Attach files')}
             </bem.FormMedia__label>
-
             {stores.serverEnvironment &&
               stores.serverEnvironment.state.support_url && (
                 <a
@@ -285,12 +293,23 @@ class FormMedia extends React.Component {
                   value={this.state.inputURL}
                   onChange={this.onInputURLChange}
                 />
-
                 {this.renderButton()}
               </bem.FormMediaUploadUrl__form>
             </bem.FormMediaUploadUrl>
           </bem.FormMedia__upload>
-
+          <bem.FormMedia__upload_org_data>
+              {stores.session.currentAccount.organization.map(org => (
+                <div style={{padding: '10px'}}>
+                   <bem.KoboLightButton
+                    m={['blue', 'icon-only']}
+                    onClick={(evt) => this.generateCSV(org?.org.id)}
+                  >
+                    <i className='k-icon k-icon-plus' />
+                  </bem.KoboLightButton>
+                  <span style={{'paddingLeft': '10px'}}>{`Generate org data csv for ${org?.org.name}`}</span>
+                </div>
+              ))}
+          </bem.FormMedia__upload_org_data>
           <bem.FormMedia__list>
             <bem.FormMedia__label>
               {t('Attached files')}

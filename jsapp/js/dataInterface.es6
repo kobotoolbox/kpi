@@ -232,6 +232,16 @@ export var dataInterface;
         url: url,
       });
     },
+    generateCSV(orgId, uid) {
+      return $ajax({
+        method: 'POST',
+        url: `${ROOT_URL}/generate-org-csv`,
+        data: {
+          org_id: orgId,
+          asset_uid: uid
+        }
+      })
+    },
 
     /*
      * permissions

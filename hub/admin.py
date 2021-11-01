@@ -2,11 +2,10 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from hub.actions import delete_related_objects
 
 from kpi.deployment_backends.kc_access.utils import delete_kc_users
 from .models import SitewideMessage, ConfigurationFile, PerUserSetting
-from .actions import delete_related_objects
+# from .actions import delete_related_objects
 
 class UserDeleteAdmin(UserAdmin):
     """
@@ -27,7 +26,7 @@ class UserDeleteAdmin(UserAdmin):
     """
     list_display = ('username', 'email', 'first_name', 'last_name', 'id')
     readonly_fields = ('id',)
-    actions = [delete_related_objects, delete_kc_users]
+    actions = [delete_kc_users]
     def delete_queryset(self, request, queryset):
         """
         Override `ModelAdmin.delete_queryset` to bulk delete users in KPI and KC

@@ -12,6 +12,7 @@ const formMediaActions = Reflux.createActions({
   loadMedia: {children: ['completed', 'failed']},
   uploadMedia: {children: ['completed', 'failed']},
   deleteMedia: {children: ['completed', 'failed']},
+  generateCSV: {children: ['completed', 'failed']}
 });
 
 formMediaActions.uploadMedia.listen((uid, formMediaJSON) => {
@@ -26,6 +27,22 @@ formMediaActions.uploadMedia.completed.listen((uid) => {
 });
 formMediaActions.uploadMedia.failed.listen(() => {
   alertify.error(t('Could not upload your media'));
+});
+
+formMediaActions.generateCSV.listen((orgId, uid) => {
+  dataInterface.generateCSV(orgId, uid)
+    .done(() => {
+      formMediaActions.generateCSV.completed(orgId, uid);
+    })
+    .fail(formMediaActions.generateCSV.failed);
+})
+
+formMediaActions.generateCSV.completed.listen((orgId, uid) => {
+  formMediaActions.loadMedia(uid);
+});
+
+formMediaActions.generateCSV.failed.listen(() => {
+  alertify.error(t('Could not generate CSV, contact developer'));
 });
 
 formMediaActions.loadMedia.listen((uid) => {
