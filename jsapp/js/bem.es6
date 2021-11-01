@@ -71,6 +71,7 @@ bem.FormBuilderHeader__close = bem.FormBuilderHeader.__('close', '<button>');
 bem.FormMedia = BEM('form-media');
 bem.FormMedia__title = bem.FormMedia.__('title');
 bem.FormMedia__upload = bem.FormMedia.__('upload');
+bem.FormMedia__upload_org_data = bem.FormMedia.__('upload-org-data');
 bem.FormMedia__list = bem.FormMedia.__('list');
 bem.FormMedia__label = bem.FormMedia.__('label', '<label>');
 bem.FormMedia__listItem = bem.FormMedia.__('list-item', '<li>');
