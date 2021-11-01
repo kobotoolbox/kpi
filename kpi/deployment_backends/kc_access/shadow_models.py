@@ -295,6 +295,7 @@ class KobocatSubmissionCounter(ShadowModel):
     class Meta(ShadowModel.Meta):
         app_label = 'superuser_stats'
         db_table = 'logger_submissioncounter'
+        unique_together = ('user', 'timestamp')
         verbose_name_plural = 'User Statistics'
 
     @classmethod
@@ -513,6 +514,17 @@ class KobocatXForm(ShadowModel):
         """
 
         return "md5:%s" % self.md5_hash
+
+
+class KobocatXFormSubmissionCounter(ShadowModel):
+    user = models.ForeignKey('shadow_model.KobocatUser', on_delete=models.CASCADE)
+    xform = models.ForeignKey(KobocatXForm, on_delete=models.CASCADE)
+    count = models.IntegerField(default=0)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    class Meta(ShadowModel.Meta):
+        db_table = 'logger_xformsubmissioncounter'
+        unique_together = (('xform', 'timestamp'),)
 
 
 class ReadOnlyModel(ShadowModel):

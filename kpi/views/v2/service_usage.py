@@ -3,19 +3,23 @@ import json
 from datetime import datetime
 
 from django.db.models import Sum
+from django.urls import reverse
 from rest_framework import (
     renderers,
+    serializers,
     status,
     viewsets,
 )
 from rest_framework.response import Response
 
+from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.deployment_backends.kc_access.shadow_models import (
     KobocatSubmissionCounter,
     KobocatXForm,
     ReadOnlyKobocatAttachments,
     ReadOnlyKobocatInstance
 )
+from kpi.models import Asset
 from kpi.permissions import IsOwnerOrReadOnly
 
 
@@ -41,72 +45,37 @@ class ServiceUsageViewSet(viewsets.ViewSet):
         renderers.JSONRenderer,
     )
 
+    def _get_deployment(self):
+        """
+        Returns the deployment for the asset specified by the request
+        """
+        if not self.asset.has_deployment:
+            raise ObjectDeploymentDoesNotExist(
+                _('The specified asset has not been deployed')
+            )
+
+        return self.asset.deployment
+
     def list(self, request, *args, **kwargs):
-        today = datetime.today()
-        data = {
-            "forms_submissions": [],
-            "attachments_usage_details": [],
-            "totals": [],
+        assets = Asset.objects.deployed().filter(owner=request.user)
+
+        # deployment.current_month_submission_count_all_projects
+        response_data = {
+            'current_month_submission_count_total': '',
+            # 'total_storage_bytes': '',
+            'per_asset_usage': [],
         }
-        attachments_queryset = ReadOnlyKobocatAttachments.objects.filter(
-            instance__xform__user__username=request.user
-        )
-        attachments_usage = copy.deepcopy(attachments_queryset)
-        attachments_usage = attachments_usage.aggregate(count_sum=Sum('media_file_size'))
-
-        submission_counter_queryset = KobocatSubmissionCounter.objects.filter(
-            user__username=request.user,
-            timestamp__month=today.month,
-            timestamp__year=today.year,
-            timestamp__day='01',
-        ).aggregate(count_sum=Sum('count'))
-
-        submissions = ReadOnlyKobocatInstance.objects.filter(
-            date_created__year=today.year,
-            date_created__month=today.month,
-            xform__user__username=request.user,
-        )
-        forms = []
-        data.get('totals').append({
-            'total_storage_used': attachments_usage.get('count_sum'),
-            'monthly_submissions': submission_counter_queryset.get('count_sum')
-
-        })
-        for form in submissions:
-            id_string = form.xform.id_string
-            if id_string not in forms:
-                forms.append(id_string)
-
-        for form_id in forms:
-            count_per_form = submissions.filter(xform__id_string=form_id).count()
-            xform = KobocatXForm.objects.get(id_string=form_id)
-            form_title = xform.title
-            data.get('forms_submissions').append({
-                "form_id": form_id,
-                "form_title": form_title,
-                "submission_count": count_per_form,
+        total_count = 0
+        for asset in assets:
+            response_data.get('per_asset_usage').append({
+                'asset': request.build_absolute_uri(
+                    reverse('api_v2:asset-detail', kwargs={'uid': asset.uid}),
+                ),
+                'asset__name': asset.name,
+                'submission_count': asset.deployment.current_month_submission_count,
+                # 'storage_bytes': 0,
             })
+            total_count += asset.deployment.current_month_submission_count
 
-        attachment_form_ids = []
-
-        for attachment in attachments_queryset:
-            form_id = attachment.instance.xform.id_string
-            if form_id not in attachment_form_ids:
-                attachment_form_ids.append(form_id)
-
-        for form_id in attachment_form_ids:
-            form = KobocatXForm.objects.get(id_string=form_id)
-            title = form.title
-
-            attachments = attachments_queryset.filter(
-                instance__xform__id_string=form_id
-            ).aggregate(total_storage=Sum('media_file_size'))
-
-            data.get('attachments_usage_details').append({
-                'uid': form_id,
-                'title': title,
-                'storage_used': attachments.get('total_storage')
-            })
-
-        json.dumps(data, indent=4)
-        return Response(data, status=status.HTTP_200_OK)
+        response_data['current_month_submission_count_total'] = total_count
+        return Response(response_data, status=status.HTTP_200_OK)

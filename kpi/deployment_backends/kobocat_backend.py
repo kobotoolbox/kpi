@@ -39,7 +39,10 @@ from kpi.utils.datetime import several_minutes_from_now
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
+    KobocatSubmissionCounter,
     KobocatXForm,
+    KobocatXFormSubmissionCounter,
+    ReadOnlyKobocatAttachments,
     ReadOnlyKobocatInstance,
 )
 from .kc_access.utils import (
@@ -779,6 +782,61 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             filters['user_id'] = user_id
 
         ObjectPermission.objects.filter(**filters).delete()
+
+    @staticmethod
+    def service_usage(request):
+        # should I do one function or break it up in to parts?
+        # how do I get the deployment data if I'm not looking for assets?
+        #
+        today = datetime.today()
+
+        data = {
+            "monthly_assets": [],
+            "form_storage_usage": [],
+            "usages": [],
+        }
+        attachments_queryset = ReadOnlyKobocatAttachments.objects.filter(
+            instance__xform__user__username=request.user
+        )
+        attachments_usage = attachments_queryset.aggregate(count_sum=Sum('media_file_size'))
+
+        attachment_form_ids = []
+
+        for attachment in attachments_queryset:
+            form_id = attachment.instance.xform.id_string
+            if form_id not in attachment_form_ids:
+                attachment_form_ids.append(form_id)
+
+        for form_id in attachment_form_ids:
+            form = KobocatXForm.objects.get(id_string=form_id)
+            title = form.title
+
+            attachments = attachments_queryset.filter(
+                instance__xform__id_string=form_id
+            ).aggregate(total_storage=Sum('media_file_size'))
+
+            data.get('attachments_usage_details').append({
+                'uid': form_id,
+                'name': title,
+                'storage_used': attachments.get('total_storage')
+            })
+
+        return data
+
+    @property
+    def current_month_submission_count(self):
+        today = datetime.today()
+        try:
+            monthly_counter = KobocatXFormSubmissionCounter.objects.get(
+                xform__id_string=str(self.asset.uid),
+                timestamp__year=today.year,
+                timestamp__month=today.month,
+            )
+            count = monthly_counter.count
+        except KobocatXFormSubmissionCounter.DoesNotExist:
+            count = 0
+        return count
+
 
     def set_active(self, active):
         """
