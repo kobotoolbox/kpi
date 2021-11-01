@@ -8,6 +8,7 @@ from kpi.models import AnalysisQuestions
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
+
 class AnalysisQuestionsTestCase(BaseTestCase):
     fixtures = ["test_data"]
 
@@ -35,9 +36,18 @@ class AnalysisQuestionsTestCase(BaseTestCase):
         analysis_questions_args = {
             'parent_lookup_asset': uid,
         }
-        analysis_questions_url = reverse(self._get_endpoint('analysis-questions-list'), kwargs=analysis_questions_args)
-        analysis_question_response = self.client.post(analysis_questions_url, analysis_questions_data)
-        self.assertEqual(analysis_question_response.status_code, status.HTTP_201_CREATED)
+        analysis_questions_url = reverse(
+            self._get_endpoint('analysis-questions-list'),
+            kwargs=analysis_questions_args
+        )
+        analysis_question_response = self.client.post(
+            analysis_questions_url,
+            analysis_questions_data,
+        )
+        self.assertEqual(
+            analysis_question_response.status_code,
+            status.HTTP_201_CREATED
+        )
         analysis_question_uid = analysis_question_response.data.get('uid')
 
         # update analysis questions
@@ -59,8 +69,12 @@ class AnalysisQuestionsTestCase(BaseTestCase):
         self.assertEqual(put_response.status_code, status.HTTP_200_OK)
 
         # delete analysis questions
-        analysis_questions_delete_response = self.client.delete(analysis_questions_detail_url)
-        self.assertEqual(analysis_questions_delete_response.status_code, status.HTTP_200_OK)
+        analysis_questions_delete_response = self.client.delete(
+            analysis_questions_detail_url)
+        self.assertEqual(
+            analysis_questions_delete_response.status_code,
+            status.HTTP_200_OK
+        )
 
     def test_api_db_content(self):
         data = {
@@ -77,12 +91,24 @@ class AnalysisQuestionsTestCase(BaseTestCase):
         analysis_questions_kwargs = {
             'parent_lookup_asset': asset_uid,
         }
-        analysis_questions_url = reverse(self._get_endpoint('analysis-questions-list'), kwargs=analysis_questions_kwargs)
-        analysis_questions_response = self.client.post(analysis_questions_url, analysis_questions_data)
-        self.assertEqual(analysis_questions_response.status_code, status.HTTP_201_CREATED)
+        analysis_questions_url = reverse(
+            self._get_endpoint('analysis-questions-list'),
+            kwargs=analysis_questions_kwargs
+        )
+        analysis_questions_response = self.client.post(
+            analysis_questions_url,
+            analysis_questions_data
+        )
+        self.assertEqual(
+            analysis_questions_response.status_code,
+            status.HTTP_201_CREATED
+        )
 
         analysis_questions_uid = analysis_questions_response.data.get('uid')
         analysis_question = AnalysisQuestions.objects.get(uid=analysis_questions_uid)
-        self.assertEqual(analysis_questions_data.get('content'), json.dumps(analysis_question.content))
+        self.assertEqual(
+            analysis_questions_data.get('content'),
+            json.dumps(analysis_question.content)
+        )
 
 

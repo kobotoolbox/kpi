@@ -1,5 +1,6 @@
 from django.http import Http404
 from rest_framework import renderers, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -28,26 +29,20 @@ class AnalysisResponsesViewSet(
     )
     pagination_class = DataPagination
     serializer_class = AnalysisResponseSerializer
-    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
+    # http_method_names = ['get', 'post', 'head', 'options']
+
+    # def list(self, request, *args, **kwargs):
+    #
 
     def retrieve(self, request, *args, **kwargs):
-        if kwargs['id'].startswith('ar'):
-            queryset = self.get_queryset().get(
-                uid=kwargs['id']
-            )
-            serializer = self.get_serializer(
-                queryset,
-                context=self.get_serializer_context(),
-            )
-        else:
-            queryset = self.get_queryset().filter(
-                submission_id=kwargs['id']
-            )
-            serializer = self.get_serializer(
-                queryset,
-                context=self.get_serializer_context(),
-                many=True
-            )
+        queryset = self.get_queryset().filter(
+            submission_id=kwargs['id']
+        )
+        serializer = self.get_serializer(
+            queryset,
+            context=self.get_serializer_context(),
+            many=True
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
@@ -66,3 +61,19 @@ class AnalysisResponsesViewSet(
         return self.model.objects.filter(
             asset__uid=self.kwargs['parent_lookup_asset'],
         )
+
+    @action(
+        detail=True,
+        methods=['GET', 'PUT', 'DELETE'],
+        url_path=r'(?P<analysis_question_id>[\d\w\-]+)?',
+    )
+    def question(self, request, analysis_question_id: str = None, **kwargs):
+        queryset = self.get_queryset().get(
+            submission_id=kwargs['id']
+        )
+        serializer = self.get_serializer(
+            queryset,
+            context=self.get_serializer_context(),
+        )
+        question_response = serializer.data.get('content').get(analysis_question_id)
+        return Response(question_response, status=status.HTTP_200_OK)

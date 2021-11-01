@@ -32,7 +32,7 @@ asset_routes.register(r'analysis-questions',
                       parents_query_lookups=['asset'],
                       )
 
-asset_routes.register(r'analysis-responses/',
+asset_routes.register(r'analysis-responses',
                       AnalysisResponsesViewSet,
                       basename='analysis-responses',
                       parents_query_lookups=['asset'],
