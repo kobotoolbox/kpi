@@ -1,7 +1,7 @@
 from io import BytesIO
 
 from xlutils.copy import copy
-from xlrd import open_workbook
+from excelrd import open_workbook
 
 
 class NoFromSheetError(Exception):

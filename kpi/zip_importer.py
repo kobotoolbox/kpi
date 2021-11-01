@@ -4,7 +4,7 @@ import re
 import zipfile
 from io import BytesIO
 
-from xlrd import open_workbook
+from excelrd import open_workbook
 
 from kpi.exceptions import ImportAssetException
 

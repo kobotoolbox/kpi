@@ -4,7 +4,7 @@ import json
 from collections import OrderedDict
 from copy import deepcopy
 
-import xlrd
+import excelrd as xlrd
 from django.contrib.auth.models import User, AnonymousUser
 from django.test import TestCase
 from rest_framework import serializers

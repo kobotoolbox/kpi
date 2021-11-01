@@ -5,7 +5,7 @@ from collections import defaultdict
 
 import datetime
 import mock
-import xlrd
+import excelrd as xlrd
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse

@@ -76,7 +76,7 @@ tabulate
 unicodecsv
 uWSGI
 Werkzeug
-xlrd
+excelrd
 xlwt
 xlutils
 XlsxWriter
