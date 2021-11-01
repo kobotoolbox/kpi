@@ -1,12 +1,5 @@
 @use "scss/_colors";
 
-@mixin rangeTrack() {
-  -webkit-appearance: none;
-  border-radius: 10px;
-  background: colors.$kobo-gray-92;
-  height: 8px;
-}
-
 .audio-player {
   display: flex;
   justify-content: center;
@@ -30,78 +23,6 @@
 
     i.k-icon-caret-right, i.k-icon-pause {
       color: colors.$kobo-blue;
-    }
-  }
-
-  .audio-player__progress {
-    padding-top: 6px;
-    flex: 1;
-
-    .audio-player__time {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      margin: auto;
-      padding-bottom: 3px;
-      font-weight: 600;
-      font-size: 18px;
-
-      .audio-player__time-current {
-        color: colors.$kobo-blue;
-      }
-
-      .audio-player__time-total {
-        color: colors.$kobo-gray-65;
-      }
-    }
-
-    input[type='range'] {
-      // General input styling across browsers
-      -webkit-appearance: none;
-      width: 100%;
-      background: transparent;
-      cursor: pointer;
-      border-radius: 10px;
-
-      // Firefox thumb is going to be hidden
-      &::-moz-range-thumb {
-        background-color: transparent;
-        height: 8px;
-        border-radius: 0 10px 10px 0;
-        border: none;
-      }
-
-      // Firefox progress styles are easy peasy
-      &::-moz-range-progress {
-        background-color: colors.$kobo-blue;
-        height: 8px;
-        border-radius: 10px;
-      }
-
-      // Chrome track is going to be gray
-      &::-webkit-slider-runnable-track {
-        @include rangeTrack;
-        overflow-x: hidden;
-        margin-bottom: 12px;
-      }
-
-      // Chrome slider is hacked by using shadow
-      &::-webkit-slider-thumb {
-        appearance: none;
-        height: 8px;
-        width: 8px;
-        background: colors.$kobo-blue;
-        box-shadow: -10005px 0 0 10000px colors.$kobo-blue;
-        border-radius: 10px;
-      }
-
-      &::-moz-range-track {
-        @include rangeTrack
-      }
-
-      &::-ms-track {
-        @include rangeTrack
-      }
     }
   }
 }

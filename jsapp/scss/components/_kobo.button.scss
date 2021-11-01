@@ -1,5 +1,8 @@
+@use "scss/_colors";
+@use "scss/sizes";
+
 /*
-  This is a simple colored button. You can make it small or choose a color.
+  This is a simple colored button.
 
   The default color is gray, other available are:
   - blue
@@ -8,6 +11,11 @@
   - orange
   - red
   - whitegray
+
+  Other modifiers:
+  - fullwidth
+  - pending
+  - small
 
   NOTE: Please __do not @extend__ this component. If possible use
   `bem.KoboButton` or raw class names.
@@ -22,25 +30,25 @@
   vertical-align: middle;
   position: relative; // needed for tooltips etc.
   cursor: pointer;
-  font-size: 14px;
+  font-size: sizes.$x14;
   font-weight: 600;
   text-transform: uppercase;
   text-decoration: none;
   text-align: center;
-  border-radius: 6px;
-  color: $kobo-white;
-  background-color: $kobo-gray-40;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+  border-radius: sizes.$x6;
+  color: colors.$kobo-white;
+  background-color: colors.$kobo-gray-40;
+  box-shadow: 0 sizes.$x2 sizes.$x4 0 rgba(0, 0, 0, 0.25);
   height: auto;
-  min-height: 40px;
-  line-height: 30px;
-  padding: 5px 30px;
+  min-height: sizes.$x40;
+  line-height: sizes.$x30;
+  padding: sizes.$x5 sizes.$x30;
   margin: 0;
   border: none;
 
   &[disabled] {
     pointer-events: none;
-    color: rgba($kobo-white, 0.75);
+    color: rgba(colors.$kobo-white, 0.75);
     background-image: $png-black-10;
   }
 
@@ -51,26 +59,25 @@
   &:active {
     // makes the shadow smaller and moves button down by small bit
     // to make it look pressed-in
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+    transform: translateY(sizes.$x1);
+    box-shadow: 0 #{sizes.$x2 - 1px} #{sizes.$x4 - 1px} 0 rgba(0, 0, 0, 0.25);
   }
 
   // icon inside button
   i,
   .k-icon {
     vertical-align: top;
-    font-size: 21px;
+    font-size: sizes.$x21;
   }
 
   &.kobo-button--small {
-    font-size: 13px;
-    line-height: 20px;
-    min-height: 30px;
-    padding: 5px 15px;
+    line-height: sizes.$x20;
+    min-height: sizes.$x30;
+    padding: sizes.$x5 sizes.$x16;
 
     i,
     .k-icon {
-      font-size: 14px;
+      font-size: sizes.$x14;
     }
 
     &.kobo-button--pending .k-icon.k-icon-spinner.k-spin {
@@ -85,35 +92,35 @@
   }
 
   &.kobo-button--blue {
-    background-color: $kobo-blue;
+    background-color: colors.$kobo-blue;
   }
 
   &.kobo-button--teal {
-    background-color: $kobo-teal;
+    background-color: colors.$kobo-teal;
   }
 
   &.kobo-button--green {
-    background-color: $kobo-green;
+    background-color: colors.$kobo-green;
   }
 
   &.kobo-button--orange {
-    background-color: $kobo-orange;
+    background-color: colors.$kobo-orange;
   }
 
   &.kobo-button--red {
-    background-color: $kobo-red;
+    background-color: colors.$kobo-red;
   }
 
   &.kobo-button--whitegray {
-    color: $kobo-gray-24;
-    background-color: $kobo-gray-96;
+    color: colors.$kobo-gray-24;
+    background-color: colors.$kobo-gray-96;
 
     &[disabled] {
-      color: rgba($kobo-gray-24, 0.75);
+      color: rgba(colors.$kobo-gray-24, 0.75);
     }
 
     &.kobo-button--pending .k-icon.k-icon-spinner.k-spin {
-      color: $kobo-gray-24;
+      color: colors.$kobo-gray-24;
     }
   }
 
@@ -125,7 +132,7 @@
     position: relative;
 
     .k-icon.k-icon-spinner.k-spin {
-      color: $kobo-white;
+      color: colors.$kobo-white;
       display: block;
       position: absolute;
       top: calc(50% - 15px);

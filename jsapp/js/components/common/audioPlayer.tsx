@@ -1,6 +1,7 @@
 import React from 'react'
 import autoBind from 'react-autobind'
 import bem, {makeBem} from 'js/bem'
+import KoboRange from 'js/components/common/koboRange'
 import 'js/components/common/audioPlayer.scss'
 
 bem.AudioPlayer = makeBem(null, 'audio-player')
@@ -82,9 +83,7 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
     })
   }
 
-  onSeekChange(newVal: React.ChangeEvent<HTMLInputElement>) {
-    const newTime = newVal.currentTarget.value
-
+  onSeekChange(newTime: string) {
     this.audioInterface.currentTime = parseInt(newTime)
 
     this.setState({
@@ -135,26 +134,12 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
           />
         </bem.AudioPlayer__controls>
 
-        <bem.AudioPlayer__progress>
-          <bem.AudioPlayer__time>
-            <bem.AudioPlayer__timeCurrent>
-              {this.convertToClock(this.state.currentTime)}
-            </bem.AudioPlayer__timeCurrent>
-
-            <bem.AudioPlayer__timeTotal>
-              {this.convertToClock(this.state.totalTime)}
-            </bem.AudioPlayer__timeTotal>
-          </bem.AudioPlayer__time>
-
-          <bem.AudioPlayer__seek>
-            <input
-              type='range'
-              max={this.state.totalTime}
-              value={this.state.currentTime}
-              onChange={this.onSeekChange}
-            />
-          </bem.AudioPlayer__seek>
-        </bem.AudioPlayer__progress>
+        <KoboRange
+          max={this.state.totalTime}
+          value={this.state.currentTime}
+          isTime={true}
+          onChange={this.onSeekChange}
+        />
       </bem.AudioPlayer>
     )
   }
