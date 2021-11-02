@@ -72,7 +72,7 @@ class Command(BaseCommand):
             PERM_FROM_KC_ONLY
         )
         assets = Asset.objects.only('id', 'uid', 'owner').filter(
-            _deployment_data__active=True
+            _deployment_data__backend='kobocat',
         )
         if self._username:
             assets = assets.filter(owner__username=self._username)
