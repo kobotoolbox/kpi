@@ -38,6 +38,7 @@ import {
 } from 'js/router/routerUtils';
 import AuthProtectedRoute from 'js/router/authProtectedRoute';
 import PermProtectedRoute from 'js/router/permProtectedRoute';
+import DesignSystemRoute from 'js/dev/designSystemRoute';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
 
 export default class AllRoutes extends React.Component {
@@ -124,6 +125,10 @@ export default class AllRoutes extends React.Component {
           path={ROUTES.CHANGE_PASSWORD}
           component={AuthProtectedRoute}
           protectedComponent={ChangePassword}
+        />
+        <Route
+          path={ROUTES.UI}
+          component={DesignSystemRoute}
         />
 
         {/* LIBRARY */}

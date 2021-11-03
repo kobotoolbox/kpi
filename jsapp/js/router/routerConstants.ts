@@ -39,4 +39,6 @@ export const ROUTES = Object.freeze({
   FORM_REST_HOOK: '/forms/:uid/settings/rest/:hookUid',
   FORM_KOBOCAT: '/forms/:uid/settings/kobocat',
   FORM_RESET: '/forms/:uid/reset',
+  /** This is a special route for displaying our UI elements. */
+  UI: '/ui',
 });
