@@ -88,6 +88,18 @@ class Button extends React.Component<ButtonProps, {}> {
       classNames.push('k-button--pending')
     }
 
+    if (this.props.startIcon) {
+      classNames.push('k-button--has-start-icon')
+    }
+
+    if (this.props.endIcon) {
+      classNames.push('k-button--has-end-icon')
+    }
+
+    if (this.props.label) {
+      classNames.push('k-button--has-label')
+    }
+
     // Optional size, with fallback to DefaultSize.
     let size = this.props.size || DefaultSize
     classNames.push(`k-button--size-${size}`)
@@ -110,7 +122,9 @@ class Button extends React.Component<ButtonProps, {}> {
           <Icon name={this.props.startIcon} size={size}/>
         }
 
-        {this.props.label}
+        {this.props.label &&
+          <label className='k-button__label'>{this.props.label}</label>
+        }
 
         {this.props.endIcon &&
           <Icon name={this.props.endIcon} size={size}/>

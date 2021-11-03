@@ -33,6 +33,55 @@ export default class DesignSystemRoute extends React.Component<{}> {
               label={`I'm ${buttonType} ${buttonColor} ${buttonSize}`}
             />
           ))
+          buttonNodes.push((
+            <Button
+              type={buttonType}
+              color={buttonColor}
+              size={buttonSize}
+              isDisabled={true}
+              onClick={this.onAnyClick.bind(this)}
+              label={`I'm ${buttonType} ${buttonColor} ${buttonSize} disabled`}
+            />
+          ))
+          buttonNodes.push((
+            <Button
+              type={buttonType}
+              color={buttonColor}
+              size={buttonSize}
+              isPending={true}
+              onClick={this.onAnyClick.bind(this)}
+              label={`I'm ${buttonType} ${buttonColor} ${buttonSize} pending`}
+            />
+          ))
+          buttonNodes.push((
+            <Button
+              type={buttonType}
+              color={buttonColor}
+              size={buttonSize}
+              onClick={this.onAnyClick.bind(this)}
+              startIcon='trash'
+            />
+          ))
+          buttonNodes.push((
+            <Button
+              type={buttonType}
+              color={buttonColor}
+              size={buttonSize}
+              onClick={this.onAnyClick.bind(this)}
+              startIcon='trash'
+              label={`I'm ${buttonType} ${buttonColor} ${buttonSize} with start icon`}
+            />
+          ))
+          buttonNodes.push((
+            <Button
+              type={buttonType}
+              color={buttonColor}
+              size={buttonSize}
+              onClick={this.onAnyClick.bind(this)}
+              endIcon='trash'
+              label={`I'm ${buttonType} ${buttonColor} ${buttonSize} with end icon`}
+            />
+          ))
         })
       })
     })
