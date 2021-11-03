@@ -1,7 +1,7 @@
 # coding: utf-8
-import json
 import requests
 import sys
+import time
 from typing import Optional
 
 from django.conf import settings
@@ -62,11 +62,7 @@ class Command(BaseCommand):
                 'Both KOBOCAT_URL and KOBOCAT_INTERNAL_URL must be '
                 'configured before using this command'
             )
-
-        stats = self._sync_media_files(**options)
-        if not options['quiet']:
-            sys.stdout.write(json.dumps(stats, indent=4) + '\n')
-            sys.stdout.flush()
+        self._sync_media_files(**options)
 
     def _get_asset_metadata(self, token: str, formid: int) -> Optional[dict]:
         url = self.URL_MEDIA_LIST.format(
@@ -120,30 +116,28 @@ class Command(BaseCommand):
         **kwargs,
     ) -> dict:
 
-        assets = Asset.objects.filter(_deployment_data__isnull=False)
+        assets = Asset.objects.filter(_deployment_data__isnull=False).only(
+            'id',
+            'uid',
+            'owner',
+            'parent_id',
+            'name',
+            '_deployment_data',
+        )
         if username is not None:
             assets = assets.filter(owner__username=username)
         if assets and asset_uid is not None:
             assets = assets.filter(uid=asset_uid)
 
-        sync_stats_all = []
-        assets_selected_count = 0
-        assets_modified_count = 0
         for asset in assets.iterator(chunk_size=chunks):
             if not asset.has_deployment:
                 continue
 
+            t_start = time.time()
             asset_xform_id = asset.deployment.backend_response['formid']
             user = asset.owner
             token = Token.objects.get(user=user)
             sync_stats = {}
-
-            # for logging stats
-            if not quiet:
-                kpi_before = asset.asset_files.filter(
-                    file_type=AssetFile.FORM_MEDIA,
-                    date_deleted__isnull=True,
-                ).count()
 
             media_files = self._get_asset_metadata(token, formid=asset_xform_id)
             if media_files is None:
@@ -159,14 +153,6 @@ class Command(BaseCommand):
                 media_from_kpi = media_file['from_kpi']
                 only_set_from_kpi = False
 
-                sync_data = {
-                    'data_value': media_filename,
-                    'id': media_id,
-                    'from_kpi_is_true': False,
-                    'synced_file': False,
-                    'renamed_existing_kpi_file': False,
-                }
-
                 # Already being handled by kpi
                 if media_from_kpi:
                     continue
@@ -174,7 +160,9 @@ class Command(BaseCommand):
                 # Ensure that we don't create duplicates of files or urls. We do
                 # want to set `from_kpi` to `True` on the kc object if the same
                 # file exists in both places
-                asset_files = asset.asset_files.filter(date_deleted__isnull=True)
+                asset_files = asset.asset_files.filter(
+                    date_deleted__isnull=True
+                )
                 q_filename_and_hash = Q(
                     metadata__filename=media_filename,
                     metadata__hash=media_file_hash,
@@ -194,21 +182,15 @@ class Command(BaseCommand):
                     _af_filename = _af.metadata['filename']
                     _af.metadata['filename'] = f'copy-of-{_af_filename}'
                     _af.save()
-                    sync_data.update({'renamed_existing_kpi_file': True})
 
-                sync_data.update(
-                    {
-                        'from_kpi_is_true': self._update_asset_metadata(
-                            token=token,
-                            metadata_id=media_id,
-                            data_value=media_filename,
-                        )
-                    }
+                # set `from_kpi` to `True` on kc metadata object
+                self._update_asset_metadata(
+                    token=token,
+                    metadata_id=media_id,
+                    data_value=media_filename,
                 )
 
                 if only_set_from_kpi:
-                    if not quiet and verbosity == 3:
-                        synced_files.append(sync_data)
                     continue
 
                 if media_data_file is None:
@@ -238,46 +220,17 @@ class Command(BaseCommand):
                         description='default',
                     )
 
-                sync_data.update({'synced_file': True})
-
-                if not quiet and verbosity == 3:
-                    synced_files.append(sync_data)
-
+            t_end = time.time()
             if not quiet:
-                kpi_after = asset.asset_files.filter(
-                    file_type=AssetFile.FORM_MEDIA,
-                    date_deleted__isnull=True,
-                ).count()
-                sync_stats = {
+                sync_stats.update({
                     'asset_uid': asset.uid,
                     'asset_name': asset.name,
                     'xform_id_string': asset.deployment.xform_id_string,
                     'xformid': asset_xform_id,
                     'asset_owner__username': asset.owner.username,
-                    'kobocat_form_media_count': len(
-                        [m for m in media_files if m['xform'] == asset_xform_id]
-                    ),
-                    'kpi_form_media_pre_sync_count': kpi_before,
-                    'kpi_form_media_post_sync_count': kpi_after,
-                    'kpi_form_media_count_difference': kpi_after - kpi_before,
-                }
-                if verbosity == 3:
-                    sync_stats['synced_files'] = synced_files
-                if verbosity > 1:
-                    sync_stats_all.append(sync_stats)
-
-            assets_selected_count += 1
-            if synced_files:
-                assets_modified_count += 1
-
-        stats_out = {
-            'assets_selected_count': assets_selected_count,
-            'assets_modified_count': assets_modified_count,
-        }
-        if not quiet and sync_stats_all and verbosity > 1:
-            stats_out['sync_stats'] = sync_stats_all
-
-        return stats_out
+                    'sync_time': '{:.4f}'.format(t_end- t_start),
+                })
+                self._write_to_stdout(sync_stats)
 
     def _update_asset_metadata(
         self,
@@ -303,3 +256,10 @@ class Command(BaseCommand):
             data=data,
         )
         return response.status_code == status.HTTP_200_OK
+
+    @staticmethod
+    def _write_to_stdout(data):
+        sys.stdout.write('-' * 50 + '\n')
+        for k, v in data.items():
+            sys.stdout.write(f'{k}: {str(v)}\n')
+        sys.stdout.flush()
