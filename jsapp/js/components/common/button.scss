@@ -1,0 +1,20 @@
+$s-button-s: 18px;
+$s-button-m: 20px;
+$s-button-l: 22px;
+
+.k-button {}
+
+.k-button--type-bare {}
+.k-button--type-frame {}
+.k-button--type-full {}
+
+.k-button--color-blue {}
+.k-button--color-teal {}
+.k-button--color-green {}
+.k-button--color-red {}
+.k-button--color-orange {}
+.k-button--color-gray {}
+
+.k-button--size-s { font-size: $s-button-s; }
+.k-button--size-m { font-size: $s-button-m; }
+.k-button--size-l { font-size: $s-button-l; }
