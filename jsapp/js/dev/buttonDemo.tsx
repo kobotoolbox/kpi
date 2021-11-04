@@ -63,9 +63,9 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
   constructor(props: {}) {
     super(props)
     this.state = {
-      currentType: buttonTypes[0],
-      currentColor: buttonColors[0],
-      currentSize: buttonSizes[0],
+      currentType: 'full',
+      currentColor: 'teal',
+      currentSize: 'l',
       currentStartIcon: null,
       currentEndIcon: null,
       currentLabel: defaultLabel,
@@ -148,10 +148,11 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
             <bem.SimpleTable__row>
               <bem.SimpleTable__cell>
                 <form>
+                  <label htmlFor='type'>type</label>
                   <Select
+                    id='type'
                     className='kobo-select'
                     classNamePrefix='kobo-select'
-                    label='type'
                     value={{
                       value: this.state.currentType,
                       label: this.state.currentType
@@ -162,10 +163,11 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                     )}
                     onChange={this.onTypeChange.bind(this)}
                   />
+                  <label htmlFor='color'>color</label>
                   <Select
+                    id='color'
                     className='kobo-select'
                     classNamePrefix='kobo-select'
-                    label='color'
                     value={{
                       value: this.state.currentColor,
                       label: this.state.currentColor
@@ -176,10 +178,11 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                     )}
                     onChange={this.onColorChange.bind(this)}
                   />
+                  <label htmlFor='size'>size</label>
                   <Select
+                    id='size'
                     className='kobo-select'
                     classNamePrefix='kobo-select'
-                    label='size'
                     value={{
                       value: this.state.currentSize,
                       label: this.state.currentSize
@@ -190,15 +193,21 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                     )}
                     onChange={this.onSizeChange.bind(this)}
                   />
+                  <label htmlFor='start-icon'>start icon</label>
                   <Select
-                    label='start icon'
+                    inputId='start-icon'
+                    className='kobo-select'
+                    classNamePrefix='kobo-select'
                     value={this.state.currentStartIcon}
                     isClearable={true}
                     options={iconNamesOptions}
                     onChange={this.onStartIconChange.bind(this)}
                   />
+                  <label htmlFor='end-icon'>end icon</label>
                   <Select
-                    label='end icon'
+                    inputId='end-icon'
+                    className='kobo-select'
+                    classNamePrefix='kobo-select'
                     value={this.state.currentEndIcon}
                     isClearable={true}
                     options={iconNamesOptions}
@@ -243,7 +252,7 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                   isDisabled={this.state.isDisabled}
                   isPending={this.state.isPending}
                   isFullWidth={this.state.isFullWidth}
-                  onClick={() => {alert('Clicked!')}}
+                  onClick={this.onIsPendingChange.bind(this, true)}
                 />
               </bem.SimpleTable__cell>
             </bem.SimpleTable__row>
