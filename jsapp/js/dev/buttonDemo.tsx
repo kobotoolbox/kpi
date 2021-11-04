@@ -1,10 +1,12 @@
-import React, {ReactElement} from 'react'
+import React from 'react'
 import Select from 'react-select'
 import bem from 'js/bem';
 import Checkbox from 'js/components/common/checkbox'
 import TextBox from 'js/components/common/textBox'
+import Radio from 'js/components/common/radio'
 import Button, {ButtonType, ButtonColor, ButtonSize} from 'js/components/common/button'
 import {IconNames} from 'jsapp/fonts/k-icons'
+import './buttonDemo.scss'
 
 const buttonTypes: ButtonType[] = ['bare', 'frame', 'full']
 const buttonColors: ButtonColor[] = ['blue', 'teal', 'green', 'red', 'orange', 'gray']
@@ -31,21 +33,6 @@ type ButtonDemoState = {
   isDisabled: boolean
   isPending: boolean
   isFullWidth: boolean
-}
-
-type SelectTypeOption = {
-  value: ButtonType,
-  label: ButtonType
-}
-
-type SelectColorOption = {
-  value: ButtonColor,
-  label: ButtonColor
-}
-
-type SelectSizeOption = {
-  value: ButtonSize,
-  label: ButtonSize
 }
 
 type IconNameOption = {
@@ -76,21 +63,21 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
     }
   }
 
-  onTypeChange(newType: SelectTypeOption | null) {
+  onTypeChange({}: any, newType: ButtonType) {
     this.setState({
-      currentType: newType === null ? buttonTypes[0] : newType.value
+      currentType: newType === null ? buttonTypes[0] : newType
     })
   }
 
-  onColorChange(newColor: SelectColorOption | null) {
+  onColorChange({}: any, newColor: ButtonColor) {
     this.setState({
-      currentColor: newColor === null ? buttonColors[0] : newColor.value
+      currentColor: newColor === null ? buttonColors[0] : newColor
     })
   }
 
-  onSizeChange(newSize: SelectSizeOption | null) {
+  onSizeChange({}: any, newSize: ButtonSize) {
     this.setState({
-      currentSize: newSize === null ? buttonSizes[0] : newSize.value
+      currentSize: newSize === null ? buttonSizes[0] : newSize
     })
   }
 
@@ -137,6 +124,8 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
   render() {
     return (
       <section>
+        <h1><code>&lt;Button&gt;</code> component</h1>
+
         <bem.SimpleTable>
           <bem.SimpleTable__header>
             <bem.SimpleTable__row>
@@ -148,112 +137,133 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
             <bem.SimpleTable__row>
               <bem.SimpleTable__cell>
                 <form>
-                  <label htmlFor='type'>type</label>
-                  <Select
-                    id='type'
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    value={{
-                      value: this.state.currentType,
-                      label: this.state.currentType
-                    }}
-                    isClearable={false}
-                    options={buttonTypes.map(
-                      (type: ButtonType) => {return {value: type, label: type}}
-                    )}
-                    onChange={this.onTypeChange.bind(this)}
-                  />
-                  <label htmlFor='color'>color</label>
-                  <Select
-                    id='color'
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    value={{
-                      value: this.state.currentColor,
-                      label: this.state.currentColor
-                    }}
-                    isClearable={false}
-                    options={buttonColors.map(
-                      (type: ButtonColor) => {return {value: type, label: type}}
-                    )}
-                    onChange={this.onColorChange.bind(this)}
-                  />
-                  <label htmlFor='size'>size</label>
-                  <Select
-                    id='size'
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    value={{
-                      value: this.state.currentSize,
-                      label: this.state.currentSize
-                    }}
-                    isClearable={false}
-                    options={buttonSizes.map(
-                      (type: ButtonSize) => {return {value: type, label: type}}
-                    )}
-                    onChange={this.onSizeChange.bind(this)}
-                  />
-                  <label htmlFor='start-icon'>start icon</label>
-                  <Select
-                    inputId='start-icon'
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    value={this.state.currentStartIcon}
-                    isClearable={true}
-                    options={iconNamesOptions}
-                    onChange={this.onStartIconChange.bind(this)}
-                  />
-                  <label htmlFor='end-icon'>end icon</label>
-                  <Select
-                    inputId='end-icon'
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    value={this.state.currentEndIcon}
-                    isClearable={true}
-                    options={iconNamesOptions}
-                    onChange={this.onEndIconChange.bind(this)}
-                  />
-                  <TextBox
-                    label='text'
-                    onChange={this.onLabelChange.bind(this)}
-                    value={this.state.currentLabel}
-                  />
-                  <TextBox
-                    label='tooltip'
-                    onChange={this.onTooltipChange.bind(this)}
-                    value={this.state.currentTooltip}
-                  />
-                  <Checkbox
-                    label='is disabled'
-                    onChange={this.onIsDisabledChange.bind(this)}
-                    checked={this.state.isDisabled}
-                  />
-                  <Checkbox
-                    label='is pending'
-                    onChange={this.onIsPendingChange.bind(this)}
-                    checked={this.state.isPending}
-                  />
-                  <Checkbox
-                    label='is full width'
-                    onChange={this.onIsFullWidthChange.bind(this)}
-                    checked={this.state.isFullWidth}
-                  />
+                  <div className='button-demo__form-row'>
+                    <div className='button-demo__form-config'>
+                      <Radio
+                        title='type'
+                        name='type'
+                        selected={this.state.currentType}
+                        options={buttonTypes.map(
+                          (type: ButtonType) => {return {value: type, label: type}}
+                        )}
+                        onChange={this.onTypeChange.bind(this)}
+                      />
+                    </div>
+
+                    <div className='button-demo__form-config'>
+                      <Radio
+                        title='color'
+                        name='color'
+                        selected={this.state.currentColor}
+                        options={buttonColors.map(
+                          (type: ButtonColor) => {return {value: type, label: type}}
+                        )}
+                        onChange={this.onColorChange.bind(this)}
+                      />
+                    </div>
+
+                    <div className='button-demo__form-config'>
+                      <Radio
+                        title='size'
+                        name='size'
+                        selected={this.state.currentSize}
+                        options={buttonSizes.map(
+                          (type: ButtonSize) => {return {value: type, label: type}}
+                        )}
+                        onChange={this.onSizeChange.bind(this)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='button-demo__form-row'>
+                    <div className='button-demo__form-config'>
+                      <label htmlFor='start-icon'>start icon</label>
+                      <Select
+                        inputId='start-icon'
+                        className='kobo-select'
+                        classNamePrefix='kobo-select'
+                        value={this.state.currentStartIcon}
+                        isClearable={true}
+                        options={iconNamesOptions}
+                        onChange={this.onStartIconChange.bind(this)}
+                      />
+                    </div>
+
+                    <div className='button-demo__form-config'>
+                      <label htmlFor='end-icon'>end icon</label>
+                      <Select
+                        inputId='end-icon'
+                        className='kobo-select'
+                        classNamePrefix='kobo-select'
+                        value={this.state.currentEndIcon}
+                        isClearable={true}
+                        options={iconNamesOptions}
+                        onChange={this.onEndIconChange.bind(this)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='button-demo__form-row'>
+                    <div className='button-demo__form-config'>
+                      <TextBox
+                        label='text'
+                        onChange={this.onLabelChange.bind(this)}
+                        value={this.state.currentLabel}
+                      />
+                    </div>
+
+                    <div className='button-demo__form-config'>
+                      <TextBox
+                        label='tooltip'
+                        onChange={this.onTooltipChange.bind(this)}
+                        value={this.state.currentTooltip}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='button-demo__form-row'>
+                    <div className='button-demo__form-config'>
+                      <Checkbox
+                        label='is disabled'
+                        onChange={this.onIsDisabledChange.bind(this)}
+                        checked={this.state.isDisabled}
+                      />
+                    </div>
+
+                    <div className='button-demo__form-config'>
+                      <Checkbox
+                        label='is pending'
+                        onChange={this.onIsPendingChange.bind(this)}
+                        checked={this.state.isPending}
+                      />
+                    </div>
+
+                    <div className='button-demo__form-config'>
+                      <Checkbox
+                        label='is full width'
+                        onChange={this.onIsFullWidthChange.bind(this)}
+                        checked={this.state.isFullWidth}
+                      />
+                    </div>
+                  </div>
                 </form>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
-                <Button
-                  type={this.state.currentType}
-                  color={this.state.currentColor}
-                  size={this.state.currentSize}
-                  startIcon={this.state.currentStartIcon?.value}
-                  endIcon={this.state.currentEndIcon?.value}
-                  label={this.state.currentLabel}
-                  tooltip={this.state.currentTooltip}
-                  isDisabled={this.state.isDisabled}
-                  isPending={this.state.isPending}
-                  isFullWidth={this.state.isFullWidth}
-                  onClick={() => void 0}
-                />
+                <div className='button-demo__preview'>
+                  <Button
+                    type={this.state.currentType}
+                    color={this.state.currentColor}
+                    size={this.state.currentSize}
+                    startIcon={this.state.currentStartIcon?.value}
+                    endIcon={this.state.currentEndIcon?.value}
+                    label={this.state.currentLabel}
+                    tooltip={this.state.currentTooltip}
+                    isDisabled={this.state.isDisabled}
+                    isPending={this.state.isPending}
+                    isFullWidth={this.state.isFullWidth}
+                    onClick={() => void 0}
+                  />
+                </div>
               </bem.SimpleTable__cell>
             </bem.SimpleTable__row>
           </bem.SimpleTable__body>

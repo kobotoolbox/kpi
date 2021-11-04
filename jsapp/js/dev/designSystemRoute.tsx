@@ -13,7 +13,6 @@ export default class DesignSystemRoute extends React.Component<{}> {
     return (
       <section className='form-view form-view--fullscreen'>
         <div className='form-view__cell form-view__cell--padding'>
-          <h1><code>Button</code> component</h1>
           <ButtonDemo/>
         </div>
       </section>

@@ -1,0 +1,22 @@
+@use "scss/sizes";
+
+.button-demo__form-row {
+  display: block;
+  margin-bottom: sizes.$x20;
+}
+
+.button-demo__form-config {
+  display: inline-block;
+  vertical-align: top;
+  min-width: 200px;
+
+  &:not(:last-child) {
+    margin-right: sizes.$x20;
+  }
+}
+
+.button-demo__preview {
+  min-width: 200px;
+  padding: 50px;
+  border: 1px dashed currentColor;
+}
