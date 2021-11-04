@@ -2,22 +2,22 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import bem from 'js/bem';
 
-/**
- * @namespace RadioOption
- * @property {string} label
- * @property {string} value
- */
+interface RadioOption {
+  label: string
+  value: string
+}
 
-/**
- * A radio input generic component.
- *
- * @prop {RadioOption[]} options required
- * @prop {string} name required
- * @prop {function} onChange required
- * @prop {value} selected selected option
- */
-class Radio extends React.Component {
-  constructor(props){
+type RadioProps = {
+  options: RadioOption[]
+  title?: string
+  name: string
+  onChange: Function
+  selected: string
+}
+
+/** A radio input generic component. */
+class Radio extends React.Component<RadioProps> {
+  constructor(props: RadioProps){
     if (typeof props.onChange !== 'function') {
       throw new Error('onChange callback missing!');
     }
@@ -25,7 +25,7 @@ class Radio extends React.Component {
     autoBind(this);
   }
 
-  onChange(evt) {
+  onChange(evt: React.ChangeEvent<HTMLInputElement>) {
     this.props.onChange(
       evt.currentTarget.name,
       evt.currentTarget.value
