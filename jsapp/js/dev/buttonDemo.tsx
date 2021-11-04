@@ -252,7 +252,7 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                   isDisabled={this.state.isDisabled}
                   isPending={this.state.isPending}
                   isFullWidth={this.state.isFullWidth}
-                  onClick={this.onIsPendingChange.bind(this, true)}
+                  onClick={() => void 0}
                 />
               </bem.SimpleTable__cell>
             </bem.SimpleTable__row>
