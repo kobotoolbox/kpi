@@ -3,16 +3,18 @@ import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import './checkbox-and-radio.scss';
 
-/**
- * A checkbox generic component.
- *
- * @prop {boolean} checked
- * @prop {boolean} [disabled]
- * @prop {function} onChange
- * @prop {string} label
- */
-class Checkbox extends React.Component {
-  constructor(props){
+type CheckboxProps = {
+  checked: boolean
+  disabled?: boolean
+  onChange: Function
+  label: string
+  name?: string
+  id?: string
+};
+
+/** A checkbox generic component. */
+class Checkbox extends React.Component<CheckboxProps, {}> {
+  constructor(props: CheckboxProps){
     if (typeof props.onChange !== 'function') {
       throw new Error('onChange callback missing!');
     }
@@ -20,7 +22,7 @@ class Checkbox extends React.Component {
     autoBind(this);
   }
 
-  onChange(evt) {
+  onChange(evt: React.ChangeEvent<HTMLInputElement>) {
     this.props.onChange(evt.currentTarget.checked);
   }
 
