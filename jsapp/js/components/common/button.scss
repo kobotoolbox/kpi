@@ -162,6 +162,10 @@ $button-icon-l: icon.$s-icon-l;
   }
 }
 
+.k-button.k-button--full-width {
+  width: 100%;
+}
+
 .k-button.k-button--color-blue {
   &.k-button--type-bare {@include buttonBare(colors.$kobo-blue);}
   &.k-button--type-frame {@include buttonFrame(colors.$kobo-blue);}

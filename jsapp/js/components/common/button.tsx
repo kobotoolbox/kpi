@@ -4,6 +4,11 @@ import Icon from 'js/components/common/icon'
 import './button.scss'
 
 /**
+ * Note: we use a simple TypeScript types here instead of enums, so we don't
+ * need to import them, just pass correct strings.
+ */
+
+/**
  * Button types are:
  * 1. bare - no border, no background, hover sets background
  * 2. frame - border, no background, hover sets background
@@ -41,6 +46,8 @@ type ButtonProps = {
   isPending?: boolean
   /** Sets the button HTML type to "submit". */
   isSubmit?: boolean
+  /** Simply changes the width. */
+  isFullWidth?: boolean
   /** Additional class names. */
   classNames?: string[]
   onClick: Function
@@ -98,6 +105,10 @@ class Button extends React.Component<ButtonProps, {}> {
 
     if (this.props.label) {
       classNames.push('k-button--has-label')
+    }
+
+    if (this.props.isFullWidth) {
+      classNames.push('k-button--full-width')
     }
 
     // Optional size, with fallback to DefaultSize.
