@@ -6,7 +6,6 @@ import TextBox from 'js/components/common/textBox'
 import Radio from 'js/components/common/radio'
 import Button, {ButtonType, ButtonColor, ButtonSize} from 'js/components/common/button'
 import {IconNames} from 'jsapp/fonts/k-icons'
-import './buttonDemo.scss'
 
 const buttonTypes: ButtonType[] = ['bare', 'frame', 'full']
 const buttonColors: ButtonColor[] = ['blue', 'teal', 'green', 'red', 'orange', 'gray']
@@ -46,7 +45,7 @@ const defaultIcon: IconNameOption = {
   value: IconNames.trash
 }
 
-export default class DesignSystemRoute extends React.Component<{}, ButtonDemoState> {
+export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
   constructor(props: {}) {
     super(props)
     this.state = {
@@ -64,21 +63,15 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
   }
 
   onTypeChange({}: any, newType: ButtonType) {
-    this.setState({
-      currentType: newType === null ? buttonTypes[0] : newType
-    })
+    this.setState({currentType: newType})
   }
 
   onColorChange({}: any, newColor: ButtonColor) {
-    this.setState({
-      currentColor: newColor === null ? buttonColors[0] : newColor
-    })
+    this.setState({currentColor: newColor})
   }
 
   onSizeChange({}: any, newSize: ButtonSize) {
-    this.setState({
-      currentSize: newSize === null ? buttonSizes[0] : newSize
-    })
+    this.setState({currentSize: newSize})
   }
 
   onStartIconChange(newStartIcon: IconNameOption | null) {
@@ -137,8 +130,8 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
             <bem.SimpleTable__row>
               <bem.SimpleTable__cell>
                 <form>
-                  <div className='button-demo__form-row'>
-                    <div className='button-demo__form-config'>
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
                       <Radio
                         title='type'
                         name='type'
@@ -150,7 +143,7 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                       />
                     </div>
 
-                    <div className='button-demo__form-config'>
+                    <div className='demo__form-config'>
                       <Radio
                         title='color'
                         name='color'
@@ -162,7 +155,7 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                       />
                     </div>
 
-                    <div className='button-demo__form-config'>
+                    <div className='demo__form-config'>
                       <Radio
                         title='size'
                         name='size'
@@ -175,13 +168,11 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                     </div>
                   </div>
 
-                  <div className='button-demo__form-row'>
-                    <div className='button-demo__form-config'>
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
                       <label htmlFor='start-icon'>start icon</label>
                       <Select
                         inputId='start-icon'
-                        className='kobo-select'
-                        classNamePrefix='kobo-select'
                         value={this.state.currentStartIcon}
                         isClearable={true}
                         options={iconNamesOptions}
@@ -189,12 +180,10 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                       />
                     </div>
 
-                    <div className='button-demo__form-config'>
+                    <div className='demo__form-config'>
                       <label htmlFor='end-icon'>end icon</label>
                       <Select
                         inputId='end-icon'
-                        className='kobo-select'
-                        classNamePrefix='kobo-select'
                         value={this.state.currentEndIcon}
                         isClearable={true}
                         options={iconNamesOptions}
@@ -203,44 +192,49 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                     </div>
                   </div>
 
-                  <div className='button-demo__form-row'>
-                    <div className='button-demo__form-config'>
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
                       <TextBox
                         label='text'
+                        customModifiers='on-white'
                         onChange={this.onLabelChange.bind(this)}
                         value={this.state.currentLabel}
                       />
                     </div>
 
-                    <div className='button-demo__form-config'>
+                    <div className='demo__form-config'>
                       <TextBox
                         label='tooltip'
+                        customModifiers='on-white'
                         onChange={this.onTooltipChange.bind(this)}
                         value={this.state.currentTooltip}
                       />
                     </div>
                   </div>
 
-                  <div className='button-demo__form-row'>
-                    <div className='button-demo__form-config'>
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
                       <Checkbox
                         label='is disabled'
+                        id='button-is-disabled'
                         onChange={this.onIsDisabledChange.bind(this)}
                         checked={this.state.isDisabled}
                       />
                     </div>
 
-                    <div className='button-demo__form-config'>
+                    <div className='demo__form-config'>
                       <Checkbox
                         label='is pending'
+                        id='button-is-pending'
                         onChange={this.onIsPendingChange.bind(this)}
                         checked={this.state.isPending}
                       />
                     </div>
 
-                    <div className='button-demo__form-config'>
+                    <div className='demo__form-config'>
                       <Checkbox
                         label='is full width'
+                        id='button-is-full-width'
                         onChange={this.onIsFullWidthChange.bind(this)}
                         checked={this.state.isFullWidth}
                       />
@@ -249,7 +243,7 @@ export default class DesignSystemRoute extends React.Component<{}, ButtonDemoSta
                 </form>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
-                <div className='button-demo__preview'>
+                <div className='demo__preview'>
                   <Button
                     type={this.state.currentType}
                     color={this.state.currentColor}
