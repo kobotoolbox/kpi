@@ -49,14 +49,14 @@ $.ajaxSetup({
   },
 });
 
-// Create the element for rendering the app into
-const el = (() => {
-  const $d = $('<div>', {class: 'kpiapp'});
-  $('body').prepend($d);
-  return $d.get(0);
-})();
-
 if (document.head.querySelector('meta[name=kpi-root-path]')) {
+  // Create the element for rendering the app into
+  const el = (() => {
+    const $d = $('<div>', {class: 'kpiapp'});
+    $('body').prepend($d);
+    return $d.get(0);
+  })();
+
   render(<AllRoutes/>, el);
 
   if (module.hot) {
