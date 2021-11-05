@@ -4,6 +4,7 @@ import {AnyRowTypeName} from 'js/constants'
 import {renderQuestionTypeIcon} from 'js/assetUtils'
 import {ROUTES} from 'js/router/routerConstants'
 import {hashHistory} from 'react-router'
+import Button from 'js/components/common/button'
 import './singleProcessingHeader.scss'
 
 bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header')
@@ -12,7 +13,6 @@ bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number
 bem.SingleProcessingHeader__typeIcon = makeBem(bem.SingleProcessingHeader, 'type-icon')
 bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count')
 bem.SingleProcessingHeader__question = makeBem(bem.SingleProcessingHeader, 'question', 'h1')
-bem.SingleProcessingHeader__button = makeBem(bem.SingleProcessingHeader, 'button', 'button')
 
 type SingleProcessingHeaderProps = {
   questionType: AnyRowTypeName | undefined
@@ -151,34 +151,37 @@ export default class SingleProcessingHeader extends React.Component<
         </bem.SingleProcessingHeader__column>
 
         <bem.SingleProcessingHeader__column m='navigation'>
-          <bem.SingleProcessingHeader__button
-            m='prev'
+          <Button
+            type='bare'
+            size='l'
+            color='blue'
+            startIcon='caret-left'
+            label={t('PREV')}
             onClick={this.goPrev.bind(this)}
-            disabled={this.state.prevSubmissionId === null}
-          >
-            <i className='k-icon k-icon-caret-left'/>
-            {t('prev')}
-          </bem.SingleProcessingHeader__button>
+            isDisabled={this.state.prevSubmissionId === null}
+          />
 
           <bem.SingleProcessingHeader__number>
             {this.getCurrentSubmissionNumber()}
           </bem.SingleProcessingHeader__number>
 
-          <bem.SingleProcessingHeader__button
-            m='next'
+          <Button
+            type='bare'
+            size='l'
+            color='blue'
+            endIcon='caret-right'
+            label={t('NEXT')}
             onClick={this.goNext.bind(this)}
-            disabled={this.state.nextSubmissionId === null}
-          >
-            {t('next')}
-            <i className='k-icon k-icon-caret-right'/>
-          </bem.SingleProcessingHeader__button>
+            isDisabled={this.state.nextSubmissionId === null}
+          />
 
-          <bem.SingleProcessingHeader__button
-            m='done'
+          <Button
+            type='frame'
+            size='l'
+            color='blue'
+            label={t('DONE')}
             onClick={this.onDone.bind(this)}
-          >
-            {t('Done')}
-          </bem.SingleProcessingHeader__button>
+          />
         </bem.SingleProcessingHeader__column>
       </bem.SingleProcessingHeader>
     )
