@@ -2,6 +2,7 @@ import React from 'react'
 import Fuse from 'fuse.js'
 import bem, {makeBem} from 'js/bem'
 import Icon from 'js/components/common/icon'
+import Button from 'js/components/common/button'
 import envStore, {EnvStoreDataItem} from 'js/envStore'
 import {FUSE_OPTIONS} from 'js/constants'
 import './languageSelector.scss'
@@ -15,7 +16,6 @@ bem.LanguageSelector__selectedLanguage = makeBem(bem.LanguageSelector, 'selected
 bem.LanguageSelector__selectedLanguageLabel = makeBem(bem.LanguageSelector, 'selected-language-label')
 bem.LanguageSelector__clearSelectedLanguage = makeBem(bem.LanguageSelector, 'clear-selected-language', 'button')
 bem.LanguageSelector__list = makeBem(bem.LanguageSelector, 'list', 'ol')
-bem.LanguageSelector__listLanguage = makeBem(bem.LanguageSelector, 'list-language', 'button')
 bem.LanguageSelector__notFoundMessage = makeBem(bem.LanguageSelector, 'not-found-message', 'li')
 bem.LanguageSelector__helpBar = makeBem(bem.LanguageSelector, 'help-bar', 'footer')
 
@@ -54,6 +54,10 @@ class LanguageSelector extends React.Component<
 
   notifyParentComponent() {
     this.props.onLanguageChange(this.state.selectedLanguage)
+  }
+
+  openSupportPage() {
+    window.open(envStore.data.support_url + LANGUAGE_SELECTOR_SUPPORT_URL, '_blank');
   }
 
   isCustomLanguageVisible() {
@@ -112,11 +116,13 @@ class LanguageSelector extends React.Component<
 
     return (
       <li key={value}>
-        <bem.LanguageSelector__listLanguage
+        <Button
+          type='bare'
+          color='gray'
+          size='s'
+          label={(<span>{label}&nbsp;<small>({value})</small></span>)}
           onClick={this.selectLanguage.bind(this, value)}
-        >
-          {label} <small>({value})</small>
-        </bem.LanguageSelector__listLanguage>
+        />
       </li>
     )
   }
@@ -191,25 +197,28 @@ class LanguageSelector extends React.Component<
 
           {this.isCustomLanguageVisible() &&
             <li key='custom'>
-              <bem.LanguageSelector__listLanguage
+              <Button
+                type='bare'
+                color='gray'
+                size='s'
+                label={(<span>
+                  {t('I want to use')}&nbsp;"<strong>{this.state.filterPhrase}</strong>"
+                </span>)}
                 onClick={this.selectLanguage.bind(this, this.state.filterPhrase)}
-              >
-                {t('I want to use')}
-                &nbsp;
-                "<strong>{this.state.filterPhrase}</strong>"
-              </bem.LanguageSelector__listLanguage>
+              />
             </li>
           }
         </bem.LanguageSelector__list>
 
         <bem.LanguageSelector__helpBar>
-          <a
-            href={envStore.data.support_url + LANGUAGE_SELECTOR_SUPPORT_URL}
-            target='_blank'
-          >
-            <Icon name='information' size='s'/>
-            {t('I cannot find my language')}
-          </a>
+          <Button
+            type='bare'
+            color='blue'
+            startIcon='information'
+            size='s'
+            onClick={this.openSupportPage.bind(this)}
+            label={t('I cannot find my language')}
+          />
         </bem.LanguageSelector__helpBar>
       </React.Fragment>
     )

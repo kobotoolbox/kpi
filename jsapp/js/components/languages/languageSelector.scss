@@ -122,18 +122,6 @@
   font-style: italic;
 }
 
-.language-selector__list-language {
-  @include mixins.buttonReset();
-  padding: sizes.$x6 sizes.$x8;
-  text-align: left;
-  border-radius: sizes.$x4;
-  word-wrap: anywhere; // mostly for the custom language case
-
-  &:hover {
-    background-color: colors.$kobo-gray-92;
-  }
-}
-
 .language-selector__help-bar {
   border-top: sizes.$x2 solid colors.$kobo-gray-92;
   display: flex;
@@ -142,18 +130,5 @@
   justify-content: center;
   line-height: sizes.$x40 - (2 * sizes.$x2); // mimick the search box size
   margin-top: sizes.$x16;
-
-  > a {
-    display: flex;
-    flex-direction: row;
-    align-content: center;
-
-    &:hover {
-      color: colors.$kobo-blue-dark;
-    }
-  }
-
-  .k-icon.k-icon-information {
-    margin-right: sizes.$x6;
-  }
+  padding-top: sizes.$x4;
 }
