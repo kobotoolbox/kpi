@@ -15,8 +15,8 @@ import './demo.scss'
 export default class DesignSystemApp extends React.Component {
   render() {
     return (
-      <section className='form-view form-view--fullscreen'>
-        <div className='form-view__cell form-view__cell--padding'>
+      <section className='design-system'>
+        <div className='design-system__demo-wrapper'>
           <IconDemo/>
           <ButtonDemo/>
           <KoboDropdownDemo/>

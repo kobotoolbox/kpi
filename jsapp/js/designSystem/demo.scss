@@ -1,4 +1,22 @@
+@use "scss/_colors";
 @use "scss/sizes";
+
+.design-system {
+  background-color: colors.$kobo-gray-92;
+}
+
+.design-system h1 {
+  font-size: sizes.$x24;
+  line-height: 1;
+  margin-top: sizes.$x30;
+  margin-bottom: sizes.$x20;
+}
+
+.design-system__demo-wrapper {
+  padding: sizes.$x40;
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
 .demo__form-row {
   display: block;
@@ -16,7 +34,7 @@
 }
 
 .demo__preview {
-  min-width: 200px;
+  min-width: 400px;
   padding: 50px;
   border: 1px dashed currentColor;
 }

@@ -125,7 +125,18 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
 
                     <div className='demo__form-config'>
                       <Checkbox
-                        label='should hide on inside menu click'
+                        label='hide with ESC key'
+                        id='kobo-dropdown-hide-on-esc'
+                        onChange={this.onHideOnEscChange.bind(this)}
+                        checked={this.state.hideOnEsc}
+                      />
+                    </div>
+                  </div>
+
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
+                      <Checkbox
+                        label='hide on inside menu click'
                         id='kobo-dropdown-hide-on-menu-click'
                         onChange={this.onHideOnMenuClickChange.bind(this)}
                         checked={this.state.hideOnMenuClick}
@@ -134,19 +145,10 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
 
                     <div className='demo__form-config'>
                       <Checkbox
-                        label='should hide on outside menu click'
+                        label='hide on outside menu click'
                         id='kobo-dropdown-hide-on-menu-outside-click'
                         onChange={this.onHideOnMenuOutsideClickChange.bind(this)}
                         checked={this.state.hideOnMenuOutsideClick}
-                      />
-                    </div>
-
-                    <div className='demo__form-config'>
-                      <Checkbox
-                        label='should hide with ESC key'
-                        id='kobo-dropdown-hide-on-esc'
-                        onChange={this.onHideOnEscChange.bind(this)}
-                        checked={this.state.hideOnEsc}
                       />
                     </div>
                   </div>
