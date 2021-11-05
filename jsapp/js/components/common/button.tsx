@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {ReactElement} from 'react'
 import {IconName} from 'jsapp/fonts/k-icons'
 import Icon from 'js/components/common/icon'
 import './button.scss'
@@ -35,7 +35,7 @@ type ButtonProps = {
   startIcon?: IconName
   endIcon?: IconName
   /** Label is optional, as sometimes we want an icon-only button. */
-  label?: string | Node
+  label?: string | ReactElement<any, any>
   /**
    * Setting this will make a tooltip appear when hovering over button. Useful
    * for icon-only buttons.
