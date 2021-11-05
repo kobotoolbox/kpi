@@ -146,6 +146,11 @@ $button-icon-l: icon.$s-icon-l;
   vertical-align: top;
 }
 
+.k-button.k-button--has-start-icon:not(.k-button--has-label),
+.k-button.k-button--has-end-icon:not(.k-button--has-label) {
+  justify-content: center;
+}
+
 .k-button[disabled] {
   pointer-events: none;
   opacity: 0.5;
