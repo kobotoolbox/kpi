@@ -66,7 +66,7 @@ $button-icon-l: icon.$s-icon-l;
 
 // Sets the different sizes for given size of a button.
 @mixin buttonSize($height, $radius, $icon) {
-  height: $height;
+  min-height: $height;
   min-width: $height; // Ensure we get at minimum a square.
   line-height: $height - 2 * sizes.$x2; // Subtracting the border.
   border-radius: $radius;
@@ -113,20 +113,22 @@ $button-icon-l: icon.$s-icon-l;
 .k-button {
   cursor: pointer;
   color: inherit;
-  display: inline-block;
-  vertical-align: middle;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+  justify-content: flex-start;
   position: relative; // Needed for tooltips, pending state etc.
   font-size: 14px;
   font-weight: 400;
   text-decoration: none;
-  text-align: center;
+  text-align: left;
   padding: 0;
   margin: 0;
   border-width: sizes.$x2;
   border-style: solid;
   border-color: transparent;
   background-color: transparent;
-  white-space: nowrap; // Assumption: we always want a single line button.
 }
 
 .k-button:active {
@@ -164,6 +166,7 @@ $button-icon-l: icon.$s-icon-l;
 
 .k-button.k-button--full-width {
   width: 100%;
+  justify-content: center;
 }
 
 .k-button.k-button--color-blue {
