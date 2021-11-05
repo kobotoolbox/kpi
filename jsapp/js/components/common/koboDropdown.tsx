@@ -71,6 +71,8 @@ export default class KoboDropdown extends React.Component<
 
   private checkOutsideClickBound = this.checkOutsideClick.bind(this)
 
+  private onAnyKeyWhileOpenBound = this.onAnyKeyWhileOpen.bind(this)
+
   private unlisteners: Function[] = []
 
   componentDidMount() {
@@ -121,11 +123,11 @@ export default class KoboDropdown extends React.Component<
   }
 
   registerEscKeyListener() {
-    document.addEventListener('keydown', this.onAnyKeyWhileOpen.bind(this));
+    document.addEventListener('keydown', this.onAnyKeyWhileOpenBound);
   }
 
   cancelEscKeyListener() {
-    document.removeEventListener('keydown', this.onAnyKeyWhileOpen.bind(this));
+    document.removeEventListener('keydown', this.onAnyKeyWhileOpenBound);
   }
 
   onAnyKeyWhileOpen(evt: React.ChangeEvent<HTMLInputElement> | any) {
