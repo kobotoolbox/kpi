@@ -3,14 +3,17 @@
 @use "js/components/common/icon";
 
 $button-height-s: sizes.$x30;
+$button-font-s: sizes.$x14;
 $button-radius-s: sizes.$x6;
 $button-icon-s: icon.$s-icon-s;
 
 $button-height-m: sizes.$x36;
+$button-font-m: sizes.$x16;
 $button-radius-m: sizes.$x8;
 $button-icon-m: icon.$s-icon-m;
 
 $button-height-l: sizes.$x42;
+$button-font-l: sizes.$x18;
 $button-radius-l: sizes.$x8;
 $button-icon-l: icon.$s-icon-l;
 
@@ -65,11 +68,12 @@ $button-icon-l: icon.$s-icon-l;
 }
 
 // Sets the different sizes for given size of a button.
-@mixin buttonSize($height, $radius, $icon) {
+@mixin buttonSize($height, $font, $radius, $icon) {
   min-height: $height;
   min-width: $height; // Ensure we get at minimum a square.
   line-height: $height - 2 * sizes.$x2; // Subtracting the border.
   border-radius: $radius;
+  font-size: $font;
 
   // Note: paddings and margins are based on the `$height` (the "size") variable
   // to scale with button sizes.
@@ -119,8 +123,7 @@ $button-icon-l: icon.$s-icon-l;
   align-content: center;
   justify-content: flex-start;
   position: relative; // Needed for tooltips, pending state etc.
-  font-size: 14px;
-  font-weight: 400;
+  font-weight: 500;
   text-decoration: none;
   text-align: left;
   padding: 0;
@@ -206,13 +209,13 @@ $button-icon-l: icon.$s-icon-l;
 }
 
 .k-button.k-button--size-s {
-  @include buttonSize($button-height-s, $button-radius-s, $button-icon-s);
+  @include buttonSize($button-height-s, $button-font-s, $button-radius-s, $button-icon-s);
 }
 
 .k-button.k-button--size-m {
-  @include buttonSize($button-height-m, $button-radius-m, $button-icon-m);
+  @include buttonSize($button-height-m, $button-font-m, $button-radius-m, $button-icon-m);
 }
 
 .k-button.k-button--size-l {
-  @include buttonSize($button-height-l, $button-radius-l, $button-icon-l);
+  @include buttonSize($button-height-l, $button-font-l, $button-radius-l, $button-icon-l);
 }
