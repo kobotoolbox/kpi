@@ -1,12 +1,11 @@
 import React from 'react'
 import clonedeep from 'lodash.clonedeep';
-import bem, {makeBem} from 'js/bem'
 import envStore from 'js/envStore'
 import {formatTime} from 'js/utils'
 import {AnyRowTypeName} from 'js/constants'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import LanguageSelector from 'js/components/languages/languageSelector'
-import Icon from 'js/components/common/icon'
+import Button from 'js/components/common/button'
 
 interface TranscriptDraft {
   content?: string
@@ -150,12 +149,13 @@ export default class TranscriptTabContent extends React.Component<
     return (
       <div style={{padding: '40px'}}>
         {t('This ##type## does not have a transcript yet').replace('##type##', typeLabel)}
-        <bem.KoboButton
-          m='blue'
+        <Button
+          type='full'
+          color='blue'
+          size='m'
+          label={t('begin')}
           onClick={this.onBegin.bind(this)}
-        >
-          {t('begin')}
-        </bem.KoboButton>
+        />
       </div>
     )
   }
@@ -168,22 +168,24 @@ export default class TranscriptTabContent extends React.Component<
           onLanguageChange={this.onLanguageChange.bind(this)}
         />
 
-        <bem.KoboButton
-          m='whitegray'
+        <Button
+          type='frame'
+          color='blue'
+          size='m'
+          label={t('manual')}
           onClick={this.onManualModeSelected.bind(this)}
-          disabled={this.state.transcriptDraft?.languageCode === undefined}
-        >
-          {t('manual')}
-        </bem.KoboButton>
+          isDisabled={this.state.transcriptDraft?.languageCode === undefined}
+        />
 
-        <bem.KoboButton
-          m='blue'
+        <Button
+          type='full'
+          color='blue'
+          size='m'
+          label={t('automatic')}
           onClick={this.onAutomaticModeSelected.bind(this)}
           // TODO: This is disabled until we actually work on automated services integration.
-          disabled
-        >
-          {t('automatic')}
-        </bem.KoboButton>
+          isDisabled
+        />
       </div>
     )
   }
@@ -194,26 +196,24 @@ export default class TranscriptTabContent extends React.Component<
         <div>
           {this.renderLanguageAndDate()}
 
-          <bem.KoboLightButton
+          <Button
+            type='frame'
+            color='blue'
+            size='s'
+            label={t('Discard')}
             onClick={this.onDiscardDraft.bind(this)}
-            disabled={!this.hasUnsavedDraftContent() || singleProcessingStore.isPending}
-          >
-            {t('Discard')}
-          </bem.KoboLightButton>
+            isDisabled={!this.hasUnsavedDraftContent() || singleProcessingStore.isPending}
+          />
 
-          <bem.KoboLightButton
-            m={{
-              blue: true,
-              pending: singleProcessingStore.isPending
-            }}
+          <Button
+            type='full'
+            color='blue'
+            size='s'
+            label={t('Save')}
             onClick={this.onSaveDraft.bind(this)}
-            disabled={!this.hasUnsavedDraftContent()}
-          >
-            {t('Save')}
-            {singleProcessingStore.isPending &&
-              <Icon name='spinner' size='s' classNames={['k-spin']}/>
-            }
-          </bem.KoboLightButton>
+            isPending={singleProcessingStore.isPending}
+            isDisabled={!this.hasUnsavedDraftContent()}
+          />
         </div>
 
         <textarea
@@ -231,28 +231,25 @@ export default class TranscriptTabContent extends React.Component<
         <div>
           {this.renderLanguageAndDate()}
 
-          <bem.KoboLightButton
-            m='icon-only'
+          <Button
+            type='bare'
+            color='gray'
+            size='s'
+            startIcon='edit'
             onClick={this.onOpenEditor.bind(this)}
-            data-tip={t('Edit')}
-            disabled={singleProcessingStore.isPending}
-          >
-            <Icon name='edit' size='s'/>
-          </bem.KoboLightButton>
+            tooltip={t('Edit')}
+            isDisabled={singleProcessingStore.isPending}
+          />
 
-          <bem.KoboLightButton
-            m={{
-              'icon-only': true,
-              pending: singleProcessingStore.isPending
-            }}
+          <Button
+            type='bare'
+            color='gray'
+            size='s'
+            startIcon='trash'
             onClick={this.onDeleteTranscript.bind(this)}
-            data-tip={t('Delete')}
-          >
-            <Icon name='trash' size='s'/>
-            {singleProcessingStore.isPending &&
-              <Icon name='spinner' size='s' classNames={['k-spin']}/>
-            }
-          </bem.KoboLightButton>
+            tooltip={t('Delete')}
+            isPending={singleProcessingStore.isPending}
+          />
         </div>
 
         <textarea
