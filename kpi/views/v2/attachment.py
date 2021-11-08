@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import viewsets, renderers
@@ -10,7 +9,6 @@ from kpi.deployment_backends.kc_access.shadow_models import (
     ReadOnlyKobocatAttachment,
 )
 from kpi.filters import AttachmentFilter
-from kpi.models.asset import Asset
 from kpi.renderers import MediaFileRenderer
 from kpi.serializers.v2.gallery import (
     AttachmentSerializer,
@@ -64,7 +62,7 @@ class AttachmentViewSet(
     def get_queryset(self):
         if not self.asset.has_deployment:
             raise Http404
-        xform_id = self.asset.deployment.identifier.split('/')[-1]
+        xform_id = self.asset.deployment.xform_id
         return ReadOnlyKobocatAttachment.objects.filter(
             instance__xform__id_string=xform_id
         )
@@ -104,8 +102,10 @@ class AttachmentViewSet(
         serializer = self.get_serializer(self.object)
 
         if hasattr(request, 'accepted_renderer'):
-            if isinstance(request.accepted_renderer, MediaFileRenderer) \
-                    and self.object.media_file is not None:
+            if (
+                isinstance(request.accepted_renderer, MediaFileRenderer)
+                and self.object.media_file is not None
+            ):
                 data = self.object.media_file.read()
 
                 return Response(data, content_type=self.object.mimetype)
@@ -113,8 +113,10 @@ class AttachmentViewSet(
         filename = request.query_params.get('filename')
         if filename:
             source = None
-            if filename == self.object.media_file.name \
-                    or filename == self.object.filename:
+            if (
+                filename == self.object.media_file.name
+                or filename == self.object.filename
+            ):
                 size = request.query_params.get('size')
                 if size == 'small':
                     source = serializer.get_small_download_url(self.object)
