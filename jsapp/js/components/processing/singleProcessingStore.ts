@@ -12,16 +12,15 @@ export interface Transcript {
   dateCreated: string
 }
 
-export interface TranscriptTranslation {
+export interface Translation {
   content: string
   languageCode: string
-  transcriptUrl: string
   dateCreated: string
 }
 
 interface SingleProcessingStoreData {
   transcript?: Transcript
-  translations: TranscriptTranslation[]
+  translations: Translation[]
   activeTab: SingleProcessingTabs
 }
 
@@ -49,9 +48,25 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.transcript
   }
 
+  getTranslation(languageCode: string | undefined) {
+    return this.data.translations.find(
+      (translation) => translation.languageCode === languageCode
+    )
+  }
+
+  getTranslations() {
+    return this.data.translations
+  }
+
   onSetTranscriptCompleted(transcript: Transcript | undefined) {
     this.isPending = false
     this.data.transcript = transcript
+    this.trigger(this.data)
+  }
+
+  onGetTranslationsCompleted(translations: Translation[]) {
+    this.isPending = false
+    this.data.translations = translations
     this.trigger(this.data)
   }
 
@@ -60,6 +75,46 @@ class SingleProcessingStore extends Reflux.Store {
 
     // TODO: call backend to store transcript, for now we just wait 3 seconds :P
     setTimeout(this.onSetTranscriptCompleted.bind(this, newTranscript), 3000)
+
+    this.trigger(this.data)
+  }
+
+  setTranslation(
+    newTranslationLanguageCode: string,
+    newTranslation: Translation | undefined
+  ) {
+    this.isPending = true
+
+    // TODO: call backend to store translation, for now we just wait 3 seconds :P
+    setTimeout(() => {
+      // we mock this flow:
+      // 1. send translation to backend
+      // 2. observe call finished
+      // 3. fetch all translations
+      // 4. replace all translations with new ones
+      // (this is needed for translations deletion)
+      const newTranslations: Translation[] = []
+      // this loop rewrites translations so it delete the given languageCode translation
+      // if undefined was passed or adds/replaces existing
+      let wasTranslationSet = false
+      this.data.translations.forEach((translation) => {
+        if (translation.languageCode === newTranslationLanguageCode) {
+          if (newTranslation) {
+            newTranslations.push(newTranslation)
+            wasTranslationSet = true
+          }
+        } else {
+          newTranslations.push(translation)
+        }
+      })
+      // if translation did not exist, then it wasn't replaced in the loop above
+      // we need to add it now
+      if (!wasTranslationSet && newTranslation) {
+        newTranslations.push(newTranslation)
+      }
+
+      this.onGetTranslationsCompleted(newTranslations)
+    }, 3000)
 
     this.trigger(this.data)
   }

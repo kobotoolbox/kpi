@@ -1,5 +1,5 @@
 import React from 'react'
-import clonedeep from 'lodash.clonedeep';
+import clonedeep from 'lodash.clonedeep'
 import envStore from 'js/envStore'
 import {formatTime} from 'js/utils'
 import {AnyRowTypeName} from 'js/constants'
@@ -41,12 +41,12 @@ export default class TranscriptTabContent extends React.Component<
     this.unlisteners.forEach((clb) => {clb()})
   }
 
+  /**
+  * Don't want to store a duplicate of store data here just for the sake of
+  * comparison, so we need to make the component re-render itself when the
+  * store changes :shrug:.
+  */
   onSingleProcessingStoreChange() {
-    /**
-     * Don't want to store a duplicate of store data here just for the sake of
-     * comparison, so we need to make the component re-render itself when the
-     * store changes :shrug:.
-     */
     this.forceUpdate()
   }
 
@@ -96,7 +96,7 @@ export default class TranscriptTabContent extends React.Component<
       singleProcessingStore.setTranscript({
         languageCode: this.state.transcriptDraft.languageCode,
         content: this.state.transcriptDraft.content,
-        dateCreated: String(new Date())
+        dateCreated: Date()
       })
     }
   }
@@ -260,7 +260,7 @@ export default class TranscriptTabContent extends React.Component<
     )
   }
 
-  /** Identifies what step should be displayed based on data itself. */
+  /** Identifies what step should be displayed based on the data itself. */
   render() {
     // Step 1: Begin - the step where there is nothing yet.
     if (
