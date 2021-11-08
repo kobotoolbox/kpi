@@ -664,6 +664,23 @@ class ReadOnlyKobocatInstance(ReadOnlyModel):
                               default='submitted_via_web')
     uuid = models.CharField(max_length=249, default='')
 
+    @property
+    def submission(self):
+        try:
+            username = self.xform.user.username
+        except:
+            username = None
+
+        return {
+            'xform_id': self.xform.id_string,
+            'id': self.id,
+            'instance_uuid': self.uuid,
+            'username': username,
+            'status': self.status,
+            'date_created': self.date_created,
+            'date_modified': self.date_modified
+        }
+
 
 def safe_kc_read(func):
     def _wrapper(*args, **kwargs):
