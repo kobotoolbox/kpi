@@ -72,10 +72,13 @@ class AssetOrderingFilter(filters.OrderingFilter):
             ordering.insert(0, '-ordering_priority')
 
         if ordering:
-            if 'subscribers_count' in ordering or \
-                    '-subscribers_count' in ordering:
-                queryset = queryset.annotate(subscribers_count=
-                                             Count('userassetsubscription__user'))
+            if (
+                'subscribers_count' in ordering
+                or '-subscribers_count' in ordering
+            ):
+                queryset = queryset.annotate(
+                    subscribers_count=Count('userassetsubscription__user')
+                )
             return queryset.order_by(*ordering)
 
         return queryset
@@ -97,15 +100,22 @@ class AttachmentFilter(filters.BaseFilterBackend):
             sort = '-pk'
 
         if attachments_type:
-            queryset = queryset.filter(mimetype__istartswith=attachments_type.lower())
+            queryset = queryset.filter(
+                mimetype__istartswith=attachments_type.lower()
+            )
 
         if order_by and order_by == 'question':
 
-            queryset = sorted(queryset.order_by(sort), key=lambda att: att.question_index)
+            queryset = sorted(
+                queryset.order_by(sort), key=lambda att: att.question_index
+            )
             if group_by and group_by == 'question':
                 result = []
-                for index, (qid, attachments) in \
-                        enumerate(groupby(queryset, lambda att: (att.question_index, att.question))):
+                for index, (qid, attachments) in enumerate(
+                    groupby(
+                        queryset, lambda att: (att.question_index, att.question)
+                    )
+                ):
                     question = qid[1] if qid[1] else {'number': qid[0]}
                     if all_ or (not all_ and question.get("in_latest_version")):
                         question['attachments'] = list(attachments)
@@ -114,12 +124,21 @@ class AttachmentFilter(filters.BaseFilterBackend):
                 return result
 
         elif order_by and order_by == 'submission':
-            queryset = sorted(queryset.order_by(sort),
-                              key=lambda att: (att.instance.id, att.question_index))
+            queryset = sorted(
+                queryset.order_by(sort),
+                key=lambda att: (att.instance.id, att.question_index),
+            )
             if group_by and group_by == 'submission':
                 result = []
-                for index, (sid, attachments) in \
-                        enumerate(groupby(queryset, lambda att: (att.instance.uuid, att.instance.submission))):
+                for index, (sid, attachments) in enumerate(
+                    groupby(
+                        queryset,
+                        lambda att: (
+                            att.instance.uuid,
+                            att.instance.submission,
+                        ),
+                    )
+                ):
                     submission = sid[1] if sid[1] else {'instance_uuid': sid[0]}
                     submission['attachments'] = list(attachments)
                     submission['index'] = index

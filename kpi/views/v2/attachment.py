@@ -62,9 +62,9 @@ class AttachmentViewSet(
     def get_queryset(self):
         if not self.asset.has_deployment:
             raise Http404
-        xform_id = self.asset.deployment.xform_id
+        xform_id_string = self.asset.deployment.xform_id_string
         return ReadOnlyKobocatAttachment.objects.filter(
-            instance__xform__id_string=xform_id
+            instance__xform__id_string=xform_id_string
         )
 
     def get_paginator(self):
