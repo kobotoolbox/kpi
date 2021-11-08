@@ -80,9 +80,30 @@ class EnvStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
+  getLanguages() {
+    return this.data.all_languages
+  }
+
   getLanguage(code: string): EnvStoreDataItem | undefined {
     return this.data.all_languages.find(
       (item: EnvStoreDataItem) => item.value === code
+    )
+  }
+
+  /** Returns a know language label or the provided code. */
+  getLanguageDisplayLabel(code: string): string {
+    let displayLabel = code
+    const envStoreLanguage = envStore.getLanguage(code)
+    if (envStoreLanguage) {
+      displayLabel = envStoreLanguage.label
+    }
+    return displayLabel
+  }
+
+  /** Case-insensitive lookup by localized name */
+  getLanguageByName(label: string): EnvStoreDataItem | undefined {
+    return this.data.all_languages.find(
+      (item: EnvStoreDataItem) => item.label.toLocaleLowerCase() === label.toLocaleLowerCase()
     )
   }
 }
