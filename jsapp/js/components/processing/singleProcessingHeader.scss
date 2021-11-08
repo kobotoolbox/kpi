@@ -1,19 +1,15 @@
 @use "scss/_colors";
 @use "scss/sizes";
+@use "scss/mixins";
 
 .single-processing-header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+  @include mixins.centerRowFlex;
   color: colors.$kobo-gray-40;
   background-color: colors.$kobo-white;
 }
 
 .single-processing-header__type-icon {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
+  @include mixins.centerRowFlex;
   color: colors.$kobo-white;
   background-color: colors.$kobo-teal;
   width: sizes.$x52;
@@ -46,9 +42,7 @@
   }
 
   &.single-processing-header__column--navigation {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+    @include mixins.centerRowFlex;
     margin-right: sizes.$x18;
   }
 }

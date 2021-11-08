@@ -1,0 +1,63 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "scss/mixins";
+
+.processing-body {
+  padding: sizes.$x30;
+
+  // The content of these steps is different.
+  &.processing-body--begin,
+  &.processing-body--config {
+    max-width: sizes.$x600;
+    padding-top: sizes.$x52;
+    margin: 0 auto;
+    box-sizing: content-box;
+  }
+}
+
+.processing-body__trans-header {
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
+  margin-bottom: sizes.$x12;
+}
+
+.processing-body__trans-header-language {
+  font-weight: 700;
+  margin-left: sizes.$x4;
+}
+
+.processing-body__trans-header-buttons {
+  @include mixins.centerRowFlex;
+
+  & > *:not(:last-child) {
+    margin-right: sizes.$x12;
+  }
+}
+
+.processing-body__text {
+  border-top: sizes.$x2 solid colors.$kobo-gray-96;
+  padding-top: sizes.$x16;
+  width: 100%;
+}
+
+.processing-body__textarea {
+  border: sizes.$x2 solid colors.$kobo-gray-96;
+  border-radius: sizes.$x6;
+  padding: sizes.$x16;
+  width: 100%;
+  min-height: sizes.$x200;
+}
+
+.processing-body.processing-body--begin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  p {
+    font-size: 18px;
+    font-weight: 400;
+    text-align: center;
+    line-height: 20px;
+    margin-bottom: sizes.$x24;
+  }
+}

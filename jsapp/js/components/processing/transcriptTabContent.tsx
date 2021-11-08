@@ -1,11 +1,13 @@
 import React from 'react'
 import clonedeep from 'lodash.clonedeep'
 import envStore from 'js/envStore'
+import bem from 'js/bem'
 import {formatTime} from 'js/utils'
 import {AnyRowTypeName} from 'js/constants'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import LanguageSelector from 'js/components/languages/languageSelector'
 import Button from 'js/components/common/button'
+import 'js/components/processing/processingBody'
 
 interface TranscriptDraft {
   content?: string
@@ -68,27 +70,27 @@ export default class TranscriptTabContent extends React.Component<
     this.setDraftContent(evt.target.value)
   }
 
-  onBegin() {
+  begin() {
     // Make an empty draft.
     this.setState({transcriptDraft: {}})
   }
 
-  onManualModeSelected() {
+  selectModeManual() {
     // Initialize draft content.
     this.setDraftContent('')
   }
 
-  onAutomaticModeSelected() {
+  selectModeAuto() {
     // TODO: this will display an automated service selector that will
     // ultimately produce a `transcriptDraft.content`.
   }
 
-  onDiscardDraft() {
+  discardDraft() {
     // Remove draft.
     this.setState({transcriptDraft: undefined})
   }
 
-  onSaveDraft() {
+  saveDraft() {
     if (
       this.state.transcriptDraft?.languageCode !== undefined &&
       this.state.transcriptDraft?.content !== undefined
@@ -101,12 +103,12 @@ export default class TranscriptTabContent extends React.Component<
     }
   }
 
-  onOpenEditor() {
+  openEditor() {
     // Make new draft using existing transcript.
     this.setState({transcriptDraft: singleProcessingStore.getTranscript()})
   }
 
-  onDeleteTranscript() {
+  deleteTranscript() {
     singleProcessingStore.setTranscript(undefined)
   }
 
@@ -130,10 +132,17 @@ export default class TranscriptTabContent extends React.Component<
 
     return (
       <React.Fragment>
-        {t('Language')} {languageLabel}
+        <div>
+          {t('Language')}
+          <bem.ProcessingBody__transHeaderLanguage>
+            {languageLabel}
+          </bem.ProcessingBody__transHeaderLanguage>
+        </div>
 
         {storeTranscript?.dateCreated &&
-          t('Created ##date##').replace('##date##', formatTime(storeTranscript.dateCreated))
+          <bem.ProcessingBody__transHeaderDate>
+            {t('Created ##date##').replace('##date##', formatTime(storeTranscript.dateCreated))}
+          </bem.ProcessingBody__transHeaderDate>
         }
       </React.Fragment>
     )
@@ -147,22 +156,23 @@ export default class TranscriptTabContent extends React.Component<
   renderStepBegin() {
     let typeLabel = this.props.questionType || t('source file')
     return (
-      <div style={{padding: '40px'}}>
-        {t('This ##type## does not have a transcript yet').replace('##type##', typeLabel)}
+      <bem.ProcessingBody m='begin'>
+        <p>{t('This ##type## does not have a transcript yet').replace('##type##', typeLabel)}</p>
+
         <Button
           type='full'
           color='blue'
-          size='m'
+          size='l'
           label={t('begin')}
-          onClick={this.onBegin.bind(this)}
+          onClick={this.begin.bind(this)}
         />
-      </div>
+      </bem.ProcessingBody>
     )
   }
 
   renderStepConfig() {
     return (
-      <div style={{padding: '40px'}}>
+      <bem.ProcessingBody m='config'>
         <LanguageSelector
           titleOverride={this.getLanguageSelectorTitle()}
           onLanguageChange={this.onLanguageChange.bind(this)}
@@ -173,7 +183,7 @@ export default class TranscriptTabContent extends React.Component<
           color='blue'
           size='m'
           label={t('manual')}
-          onClick={this.onManualModeSelected.bind(this)}
+          onClick={this.selectModeManual.bind(this)}
           isDisabled={this.state.transcriptDraft?.languageCode === undefined}
         />
 
@@ -182,81 +192,84 @@ export default class TranscriptTabContent extends React.Component<
           color='blue'
           size='m'
           label={t('automatic')}
-          onClick={this.onAutomaticModeSelected.bind(this)}
+          onClick={this.selectModeAuto.bind(this)}
           // TODO: This is disabled until we actually work on automated services integration.
           isDisabled
         />
-      </div>
+      </bem.ProcessingBody>
     )
   }
 
   renderStepEditor() {
     return (
-      <div style={{padding: '40px'}}>
-        <div>
+      <bem.ProcessingBody>
+        <bem.ProcessingBody__transHeader>
           {this.renderLanguageAndDate()}
 
-          <Button
-            type='frame'
-            color='blue'
-            size='s'
-            label={t('Discard')}
-            onClick={this.onDiscardDraft.bind(this)}
-            isDisabled={!this.hasUnsavedDraftContent() || singleProcessingStore.isPending}
-          />
+          <bem.ProcessingBody__transHeaderButtons>
+            <Button
+              type='frame'
+              color='blue'
+              size='s'
+              label={t('Discard')}
+              onClick={this.discardDraft.bind(this)}
+              isDisabled={!this.hasUnsavedDraftContent() || singleProcessingStore.isPending}
+            />
 
-          <Button
-            type='full'
-            color='blue'
-            size='s'
-            label={t('Save')}
-            onClick={this.onSaveDraft.bind(this)}
-            isPending={singleProcessingStore.isPending}
-            isDisabled={!this.hasUnsavedDraftContent()}
-          />
-        </div>
+            <Button
+              type='full'
+              color='blue'
+              size='s'
+              label={t('Save')}
+              onClick={this.saveDraft.bind(this)}
+              isPending={singleProcessingStore.isPending}
+              isDisabled={!this.hasUnsavedDraftContent()}
+            />
+          </bem.ProcessingBody__transHeaderButtons>
+        </bem.ProcessingBody__transHeader>
 
-        <textarea
+        <bem.ProcessingBody__textarea
           value={this.state.transcriptDraft?.content}
           onChange={this.onDraftContentChange.bind(this)}
           disabled={singleProcessingStore.isPending}
         />
-      </div>
+      </bem.ProcessingBody>
     )
   }
 
   renderStepViewer() {
     return (
-      <div style={{padding: '40px'}}>
-        <div>
+      <bem.ProcessingBody>
+        <bem.ProcessingBody__transHeader>
           {this.renderLanguageAndDate()}
 
-          <Button
-            type='bare'
-            color='gray'
-            size='s'
-            startIcon='edit'
-            onClick={this.onOpenEditor.bind(this)}
-            tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.isPending}
-          />
+          <bem.ProcessingBody__transHeaderButtons>
+            <Button
+              type='bare'
+              color='gray'
+              size='s'
+              startIcon='edit'
+              onClick={this.openEditor.bind(this)}
+              tooltip={t('Edit')}
+              isDisabled={singleProcessingStore.isPending}
+            />
 
-          <Button
-            type='bare'
-            color='gray'
-            size='s'
-            startIcon='trash'
-            onClick={this.onDeleteTranscript.bind(this)}
-            tooltip={t('Delete')}
-            isPending={singleProcessingStore.isPending}
-          />
-        </div>
+            <Button
+              type='bare'
+              color='gray'
+              size='s'
+              startIcon='trash'
+              onClick={this.deleteTranscript.bind(this)}
+              tooltip={t('Delete')}
+              isPending={singleProcessingStore.isPending}
+            />
+          </bem.ProcessingBody__transHeaderButtons>
+        </bem.ProcessingBody__transHeader>
 
-        <textarea
-          value={singleProcessingStore.getTranscript()?.content}
-          readOnly
-        />
-      </div>
+        <bem.ProcessingBody__text>
+          {singleProcessingStore.getTranscript()?.content}
+        </bem.ProcessingBody__text>
+      </bem.ProcessingBody>
     )
   }
 

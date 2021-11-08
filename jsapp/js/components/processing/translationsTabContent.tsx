@@ -2,10 +2,11 @@ import React from 'react'
 import clonedeep from 'lodash.clonedeep'
 import envStore from 'js/envStore'
 import {formatTime} from 'js/utils'
-import bem, {makeBem} from 'js/bem'
+import bem from 'js/bem'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import LanguageSelector from 'js/components/languages/languageSelector'
 import Button from 'js/components/common/button'
+import 'js/components/processing/processingBody'
 
 interface TranslationDraft {
   content?: string
@@ -85,27 +86,27 @@ export default class TranslationsTabContent extends React.Component<
     this.setDraftContent(evt.target.value)
   }
 
-  onBegin() {
+  begin() {
     // Make an empty draft.
     this.setState({translationDraft: {}})
   }
 
-  onManualModeSelected() {
+  selectModeManual() {
     // Initialize draft content.
     this.setDraftContent('')
   }
 
-  onAutomaticModeSelected() {
+  selectModeAuto() {
     // TODO: this will display an automated service selector that will
     // ultimately produce a `translationDraft.content`.
   }
 
-  onDiscardDraft() {
+  discardDraft() {
     // Remove draft.
     this.setState({translationDraft: undefined})
   }
 
-  onSaveDraft() {
+  saveDraft() {
     if (
       this.state.translationDraft?.languageCode !== undefined &&
       this.state.translationDraft?.content !== undefined
@@ -118,7 +119,7 @@ export default class TranslationsTabContent extends React.Component<
     }
   }
 
-  onOpenEditor(languageCode: string) {
+  openEditor(languageCode: string) {
     // Make new draft using existing translation.
     this.setState({
       translationDraft: singleProcessingStore.getTranslation(languageCode),
@@ -126,11 +127,11 @@ export default class TranslationsTabContent extends React.Component<
     })
   }
 
-  onDeleteTranslation(languageCode: string) {
+  deleteTranslation(languageCode: string) {
     singleProcessingStore.setTranslation(languageCode, undefined)
   }
 
-  onAddTranslation() {
+  addTranslation() {
     // Make an empty draft to make the language selector appear. Unselect the current translation.
     this.setState({
       translationDraft: {},
@@ -162,10 +163,17 @@ export default class TranslationsTabContent extends React.Component<
 
     return (
       <React.Fragment>
-        {t('Language')} {languageLabel}
+        <div>
+          {t('Language')}
+          <bem.ProcessingBody__transHeaderLanguage>
+            {languageLabel}
+          </bem.ProcessingBody__transHeaderLanguage>
+        </div>
 
         {storeTranslation?.dateCreated &&
-          t('Created ##date##').replace('##date##', formatTime(storeTranslation.dateCreated))
+          <bem.ProcessingBody__transHeaderDate>
+            {t('Created ##date##').replace('##date##', formatTime(storeTranslation.dateCreated))}
+          </bem.ProcessingBody__transHeaderDate>
         }
       </React.Fragment>
     )
@@ -173,22 +181,23 @@ export default class TranslationsTabContent extends React.Component<
 
   renderStepBegin() {
     return (
-      <div style={{padding: '40px'}}>
-        {t('This transcript does not have any translations yet')}
+      <bem.ProcessingBody m='begin'>
+        <p>{t('This transcript does not have any translations yet')}</p>
+
         <Button
           type='full'
           color='blue'
           size='m'
           label={t('begin')}
-          onClick={this.onBegin.bind(this)}
+          onClick={this.begin.bind(this)}
         />
-      </div>
+      </bem.ProcessingBody>
     )
   }
 
   renderStepConfig() {
     return (
-      <div style={{padding: '40px'}}>
+      <bem.ProcessingBody m='config'>
         <LanguageSelector
           titleOverride={t('Please selet the language you want to translate to')}
           onLanguageChange={this.onLanguageChange.bind(this)}
@@ -201,7 +210,7 @@ export default class TranslationsTabContent extends React.Component<
           color='blue'
           size='m'
           label={t('manual')}
-          onClick={this.onManualModeSelected.bind(this)}
+          onClick={this.selectModeManual.bind(this)}
           isDisabled={this.state.translationDraft?.languageCode === undefined}
         />
 
@@ -210,46 +219,48 @@ export default class TranslationsTabContent extends React.Component<
           color='blue'
           size='m'
           label={t('automatic')}
-          onClick={this.onAutomaticModeSelected.bind(this)}
+          onClick={this.selectModeAuto.bind(this)}
           // TODO: This is disabled until we actually work on automated services integration.
           isDisabled
         />
-      </div>
+      </bem.ProcessingBody>
     )
   }
 
   renderStepEditor() {
     return (
-      <div style={{padding: '40px'}}>
-        <div>
+      <bem.ProcessingBody>
+        <bem.ProcessingBody__transHeader>
           {this.renderLanguageAndDate()}
 
-          <Button
-            type='frame'
-            color='blue'
-            size='s'
-            label={t('Discard')}
-            onClick={this.onDiscardDraft.bind(this)}
-            isDisabled={!this.hasUnsavedDraftContent() || singleProcessingStore.isPending}
-          />
+          <bem.ProcessingBody__transHeaderButtons>
+            <Button
+              type='frame'
+              color='blue'
+              size='s'
+              label={t('Discard')}
+              onClick={this.discardDraft.bind(this)}
+              isDisabled={!this.hasUnsavedDraftContent() || singleProcessingStore.isPending}
+            />
 
-          <Button
-            type='full'
-            color='blue'
-            size='s'
-            label={t('Save')}
-            onClick={this.onSaveDraft.bind(this)}
-            isPending={singleProcessingStore.isPending}
-            isDisabled={!this.hasUnsavedDraftContent()}
-          />
-        </div>
+            <Button
+              type='full'
+              color='blue'
+              size='s'
+              label={t('Save')}
+              onClick={this.saveDraft.bind(this)}
+              isPending={singleProcessingStore.isPending}
+              isDisabled={!this.hasUnsavedDraftContent()}
+            />
+          </bem.ProcessingBody__transHeaderButtons>
+        </bem.ProcessingBody__transHeader>
 
-        <textarea
+        <bem.ProcessingBody__textarea
           value={this.state.translationDraft?.content}
           onChange={this.onDraftContentChange.bind(this)}
           disabled={singleProcessingStore.isPending}
         />
-      </div>
+      </bem.ProcessingBody>
     )
   }
 
@@ -260,46 +271,47 @@ export default class TranslationsTabContent extends React.Component<
     }
 
     return (
-      <div style={{padding: '40px'}}>
-        <div>
+      <bem.ProcessingBody>
+        <bem.ProcessingBody__transHeader>
           {this.renderLanguageAndDate()}
 
-          <Button
-            type='bare'
-            color='gray'
-            size='s'
-            startIcon='edit'
-            onClick={this.onOpenEditor.bind(this, this.state.selectedTranslation)}
-            tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.isPending}
-          />
+          <bem.ProcessingBody__transHeaderButtons>
+            <Button
+              type='bare'
+              color='gray'
+              size='s'
+              startIcon='edit'
+              onClick={this.openEditor.bind(this, this.state.selectedTranslation)}
+              tooltip={t('Edit')}
+              isDisabled={singleProcessingStore.isPending}
+            />
 
-          <Button
-            type='frame'
-            color='gray'
-            size='s'
-            startIcon='plus'
-            label={t('new translation')}
-            onClick={this.onAddTranslation.bind(this)}
-            isDisabled={singleProcessingStore.isPending}
-          />
+            <Button
+              type='frame'
+              color='gray'
+              size='s'
+              startIcon='plus'
+              label={t('new translation')}
+              onClick={this.addTranslation.bind(this)}
+              isDisabled={singleProcessingStore.isPending}
+            />
 
-          <Button
-            type='bare'
-            color='gray'
-            size='s'
-            startIcon='trash'
-            onClick={this.onDeleteTranslation.bind(this, this.state.selectedTranslation)}
-            tooltip={t('Delete')}
-            isPending={singleProcessingStore.isPending}
-          />
-        </div>
+            <Button
+              type='bare'
+              color='gray'
+              size='s'
+              startIcon='trash'
+              onClick={this.deleteTranslation.bind(this, this.state.selectedTranslation)}
+              tooltip={t('Delete')}
+              isPending={singleProcessingStore.isPending}
+            />
+          </bem.ProcessingBody__transHeaderButtons>
+        </bem.ProcessingBody__transHeader>
 
-        <textarea
-          value={singleProcessingStore.getTranslation(this.state.selectedTranslation)?.content}
-          readOnly
-        />
-      </div>
+        <bem.ProcessingBody__text>
+          {singleProcessingStore.getTranslation(this.state.selectedTranslation)?.content}
+        </bem.ProcessingBody__text>
+      </bem.ProcessingBody>
     )
   }
 
@@ -307,55 +319,69 @@ export default class TranslationsTabContent extends React.Component<
     const translations = singleProcessingStore.getTranslations()
 
     return (
-      <bem.SimpleTable>
-        <bem.SimpleTable__header>
-          <bem.SimpleTable__row>
-            <bem.SimpleTable__cell>
-              {t('language')}
-            </bem.SimpleTable__cell>
-            <bem.SimpleTable__cell>
-              {t('created date')}
-            </bem.SimpleTable__cell>
-            <bem.SimpleTable__cell>
-              {t('actions')}
-            </bem.SimpleTable__cell>
-          </bem.SimpleTable__row>
-        </bem.SimpleTable__header>
-
-        <bem.SimpleTable__body>
-          {translations.map((translation) => (
+      <bem.ProcessingBody>
+        <bem.SimpleTable>
+          <bem.SimpleTable__header>
             <bem.SimpleTable__row>
               <bem.SimpleTable__cell>
-                {envStore.getLanguageDisplayLabel(translation.languageCode)}
+                {t('language')}
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
-                {formatTime(translation.dateCreated)}
+                {t('created date')}
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
-                <Button
-                  type='bare'
-                  color='gray'
-                  size='s'
-                  startIcon='edit'
-                  onClick={this.onOpenEditor.bind(this, translation.languageCode)}
-                  tooltip={t('Edit')}
-                  isDisabled={singleProcessingStore.isPending}
-                />
-
-                <Button
-                  type='bare'
-                  color='gray'
-                  size='s'
-                  startIcon='trash'
-                  onClick={this.onDeleteTranslation.bind(this, translation.languageCode)}
-                  tooltip={t('Delete')}
-                  isPending={singleProcessingStore.isPending}
-                />
+                {t('actions')}
               </bem.SimpleTable__cell>
             </bem.SimpleTable__row>
-          ))}
-        </bem.SimpleTable__body>
-      </bem.SimpleTable>
+          </bem.SimpleTable__header>
+
+          <bem.SimpleTable__body>
+            {translations.map((translation) => (
+              <bem.SimpleTable__row>
+                <bem.SimpleTable__cell>
+                  {envStore.getLanguageDisplayLabel(translation.languageCode)}
+                </bem.SimpleTable__cell>
+                <bem.SimpleTable__cell>
+                  {formatTime(translation.dateCreated)}
+                </bem.SimpleTable__cell>
+                <bem.SimpleTable__cell>
+                  <bem.ProcessingBody__transHeaderButtons>
+                    <Button
+                      type='bare'
+                      color='gray'
+                      size='s'
+                      startIcon='view'
+                      onClick={this.selectTranslation.bind(this, translation.languageCode)}
+                      tooltip={t('View')}
+                      isDisabled={singleProcessingStore.isPending}
+                    />
+
+                    <Button
+                      type='bare'
+                      color='gray'
+                      size='s'
+                      startIcon='edit'
+                      onClick={this.openEditor.bind(this, translation.languageCode)}
+                      tooltip={t('Edit')}
+                      isDisabled={singleProcessingStore.isPending}
+                    />
+
+                    <Button
+                      type='bare'
+                      color='gray'
+                      size='s'
+                      startIcon='trash'
+                      onClick={this.deleteTranslation.bind(this, translation.languageCode)}
+                      tooltip={t('Delete')}
+                      isPending={singleProcessingStore.isPending}
+                    />
+                  </bem.ProcessingBody__transHeaderButtons>
+                </bem.SimpleTable__cell>
+              </bem.SimpleTable__row>
+            ))}
+          </bem.SimpleTable__body>
+        </bem.SimpleTable>
+      </bem.ProcessingBody>
     )
   }
 
