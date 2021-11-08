@@ -734,7 +734,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         Otherwise, if `format_type` is 'xml', a generator of strings is returned.
 
         If `request` is provided, submission attachments url are rewritten to
-        point to KPI (instead of KoBoCAT). See TBC
+        point to KPI (instead of KoBoCAT).
+        See `__rewrite_json_attachment_urls()`
         """
 
         mongo_query_params['submission_ids'] = submission_ids
