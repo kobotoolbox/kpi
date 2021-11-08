@@ -9,7 +9,13 @@ import './languageSelector.scss'
 
 bem.LanguageSelector = makeBem(null, 'language-selector', 'section')
 bem.LanguageSelector__title = makeBem(bem.LanguageSelector, 'title', 'h1')
+bem.LanguageSelector__source = makeBem(bem.LanguageSelector, 'source')
+bem.LanguageSelector__sourceLanguage = makeBem(bem.LanguageSelector, 'source-language')
+bem.LanguageSelector__sourceLabel = makeBem(bem.LanguageSelector, 'source-label', 'label')
+bem.LanguageSelector__searchBoxRow = makeBem(bem.LanguageSelector, 'search-box-row')
+bem.LanguageSelector__searchBoxWrapper = makeBem(bem.LanguageSelector, 'search-box-wrapper')
 bem.LanguageSelector__searchBox = makeBem(bem.LanguageSelector, 'search-box')
+bem.LanguageSelector__searchBoxLabel = makeBem(bem.LanguageSelector, 'search-box-label', 'label')
 bem.LanguageSelector__searchBoxInput = makeBem(bem.LanguageSelector, 'search-box-input', 'input')
 bem.LanguageSelector__clearSearchBox = makeBem(bem.LanguageSelector, 'clear-search-box', 'button')
 bem.LanguageSelector__selectedLanguage = makeBem(bem.LanguageSelector, 'selected-language')
@@ -22,11 +28,16 @@ bem.LanguageSelector__helpBar = makeBem(bem.LanguageSelector, 'help-bar', 'foote
 const LANGUAGE_SELECTOR_SUPPORT_URL = 'TODO.html';
 
 type LanguageSelectorProps = {
-  /** replaces the title on top */
+  /** Replaces the title on top. */
   titleOverride?: string
-  /** jumpstarts the selector with a pre-selected language */
+  /** Jumpstarts the selector with a pre-selected language. */
   preselectedLanguage?: string
-  /** triggered after language is selected or cleared */
+  /**
+   * Useful for translations (adds some UI). Also the source language is
+   * not selectable from the list.
+   */
+  sourceLanguage?: string
+  /** Triggered after language is selected or cleared. */
   onLanguageChange: (selectedLanguage: string | undefined) => void
 }
 
@@ -42,7 +53,7 @@ class LanguageSelector extends React.Component<
   LanguageSelectorProps,
   LanguageSelectorState
 > {
-  private allLanguages = envStore.data.all_languages
+  private allLanguages = envStore.getLanguages()
 
   constructor(props: LanguageSelectorProps){
     super(props)
@@ -92,11 +103,16 @@ class LanguageSelector extends React.Component<
   }
 
   getFilteredLanguagesList() {
+    // Filter out the source language first.
+    const languages = [...this.allLanguages].filter((language) => {
+      return language.value !== this.props.sourceLanguage
+    })
+
     if (this.state.filterPhrase !== '') {
-      let fuse = new Fuse(this.allLanguages, {...FUSE_OPTIONS, keys: ['value', 'label']})
+      let fuse = new Fuse(languages, {...FUSE_OPTIONS, keys: ['value', 'label']})
       return fuse.search(this.state.filterPhrase)
     }
-    return this.allLanguages
+    return languages
   }
 
   renderLanguageItem(languageObj: EnvStoreDataItem | Fuse.FuseResult<EnvStoreDataItem>) {
@@ -131,18 +147,13 @@ class LanguageSelector extends React.Component<
     if (!this.state.selectedLanguage) {
       return null
     }
-    let displayLanguage = this.state.selectedLanguage
-    const envStoreLanguage = envStore.getLanguage(this.state.selectedLanguage)
-    if (envStoreLanguage) {
-      displayLanguage = envStoreLanguage.label
-    }
 
     return (
       <bem.LanguageSelector__selectedLanguage>
-        <Icon name='check' size='m'/>
+        <Icon name='language-alt' size='m'/>
 
         <bem.LanguageSelector__selectedLanguageLabel>
-          {displayLanguage}
+          {envStore.getLanguageDisplayLabel(this.state.selectedLanguage)}
         </bem.LanguageSelector__selectedLanguageLabel>
 
         <bem.LanguageSelector__clearSelectedLanguage
@@ -154,26 +165,52 @@ class LanguageSelector extends React.Component<
     )
   }
 
+  renderSourceLanguage() {
+    if (!this.props.sourceLanguage) {
+      return null
+    }
+
+    return (
+      <bem.LanguageSelector__source>
+        <bem.LanguageSelector__sourceLabel>
+          {t('original')}
+        </bem.LanguageSelector__sourceLabel>
+
+        <bem.LanguageSelector__sourceLanguage>
+          <Icon name='language-alt' size='m'/>
+          <span>{envStore.getLanguageDisplayLabel(this.props.sourceLanguage)}</span>
+        </bem.LanguageSelector__sourceLanguage>
+      </bem.LanguageSelector__source>
+    )
+  }
+
   renderSearchBox() {
     return (
-      <bem.LanguageSelector__searchBox>
-        <Icon name='search' size='m'/>
-
-        <bem.LanguageSelector__searchBoxInput
-          type='text'
-          value={this.state.filterPhrase}
-          onChange={this.onFilterPhraseChange.bind(this)}
-          placeholder={t('Search for a language')}
-        />
-
-        {this.state.filterPhrase !== '' &&
-          <bem.LanguageSelector__clearSearchBox
-            onClick={this.clearFilterPhrase.bind(this)}
-          >
-            <Icon name='close' size='s'/>
-          </bem.LanguageSelector__clearSearchBox>
+      <bem.LanguageSelector__searchBoxWrapper>
+        {this.props.sourceLanguage &&
+          <bem.LanguageSelector__searchBoxLabel>
+            {t('translation')}
+          </bem.LanguageSelector__searchBoxLabel>
         }
-      </bem.LanguageSelector__searchBox>
+        <bem.LanguageSelector__searchBox>
+          <Icon name='search' size='m'/>
+
+          <bem.LanguageSelector__searchBoxInput
+            type='text'
+            value={this.state.filterPhrase}
+            onChange={this.onFilterPhraseChange.bind(this)}
+            placeholder={t('Search for a language')}
+          />
+
+          {this.state.filterPhrase !== '' &&
+            <bem.LanguageSelector__clearSearchBox
+              onClick={this.clearFilterPhrase.bind(this)}
+            >
+              <Icon name='close' size='s'/>
+            </bem.LanguageSelector__clearSearchBox>
+          }
+        </bem.LanguageSelector__searchBox>
+      </bem.LanguageSelector__searchBoxWrapper>
     )
   }
 
@@ -182,7 +219,15 @@ class LanguageSelector extends React.Component<
 
     return (
       <React.Fragment>
-        {this.renderSearchBox()}
+        <bem.LanguageSelector__searchBoxRow>
+          {this.props.sourceLanguage &&
+            this.renderSourceLanguage()
+          }
+          {this.props.sourceLanguage &&
+            <Icon name='arrow-right' size='l'/>
+          }
+          {this.renderSearchBox()}
+        </bem.LanguageSelector__searchBoxRow>
 
         <bem.LanguageSelector__list>
           {filteredLanguages.length === 0 &&
