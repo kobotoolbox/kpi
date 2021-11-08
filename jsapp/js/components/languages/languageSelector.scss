@@ -18,6 +18,55 @@
  * Search box and selected language
  */
 
+.language-selector__search-box-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+  justify-content: stretch;
+}
+
+// The arrow icon
+.language-selector__search-box-row > .k-icon {
+  margin: 0 sizes.$x20;
+  color: colors.$kobo-gray-85;
+  transform: translateY(11px);
+}
+
+.language-selector__search-box-wrapper {
+  flex: 1;
+}
+
+.language-selector__source-label,
+.language-selector__search-box-label {
+  color: colors.$kobo-gray-55;
+  font-size: sizes.$x12;
+  line-height: 1;
+  display: block;
+  margin-bottom: sizes.$x6;
+}
+
+.language-selector__source-language {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  line-height: sizes.$x40;
+  font-size: sizes.$x16;
+  font-weight: 500;
+
+  span {
+    // For multiline languages (long names).
+    display: block;
+    line-height: 1.2;
+  }
+}
+
+.language-selector__source-language > .k-icon {
+  margin-right: sizes.$x6;
+  color: colors.$kobo-gray-65;
+}
+
 .language-selector__selected-language,
 .language-selector__search-box {
   border: sizes.$x2 solid colors.$kobo-gray-92;
@@ -27,11 +76,12 @@
   display: flex;
   flex-direction: row;
   align-content: center;
+  align-items: center;
   position: relative;
 
   // we want the magnifying glass icon to click through to text input
   .k-icon.k-icon-search,
-  .k-icon.k-icon-check {
+  .k-icon.k-icon-language-alt {
     pointer-events: none;
     position: absolute;
     left: sizes.$x12;
@@ -128,6 +178,7 @@
   flex-direction: row;
   align-content: center;
   justify-content: center;
+  align-items: center;
   line-height: sizes.$x40 - (2 * sizes.$x2); // mimick the search box size
   margin-top: sizes.$x16;
   padding-top: sizes.$x4;
