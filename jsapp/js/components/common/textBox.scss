@@ -77,12 +77,12 @@ label.text-box {
     padding: 4px 10px;
     font-size: 15px;
     border: 1px solid transparent;
-    border-bottom-color: $divider-color;
+    border-bottom-color: colors.$kobo-gray-65;
     transition: border-color 0.3s;
 
     &:focus {
       transition: border-color 0.3s;
-      border-bottom-color: $cool-blue;
+      border-bottom-color: colors.$kobo-blue;
     }
   }
 }
