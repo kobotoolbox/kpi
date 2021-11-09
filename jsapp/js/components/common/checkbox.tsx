@@ -10,8 +10,6 @@ type CheckboxProps = {
   label: string
   /** Only needed if checkbox is in submittable form. */
   name?: string
-  /** Needed for label to work properly. */
-  id: string
 };
 
 /** A checkbox generic component. */
@@ -37,18 +35,21 @@ class Checkbox extends React.Component<CheckboxProps, {}> {
 
     return (
       <bem.Checkbox m={wrapperModifiers}>
+        {/*
+          * The wrapper element is `<label>` to make everything inside of it
+          * clickable, so we don't need `id`s.
+          */}
         <bem.Checkbox__wrapper>
           <bem.Checkbox__input
             type='checkbox'
             name={this.props.name}
-            id={this.props.id}
             onChange={this.onChange}
             checked={this.props.checked}
             disabled={this.props.disabled}
           />
 
-          {this.props.label && this.props.id &&
-            <bem.Checkbox__label htmlFor={this.props.id}>
+          {this.props.label &&
+            <bem.Checkbox__label>
               {this.props.label}
             </bem.Checkbox__label>
           }
