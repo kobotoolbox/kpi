@@ -1,3 +1,6 @@
+@use "scss/_colors";
+@use "sass:math";
+
 $s-gallery-spacing: 10px;
 $gallery-transition: 250ms ease-in-out;
 
@@ -8,7 +11,7 @@ $gallery-transition: 250ms ease-in-out;
     display: block;
     content: '';
     width: 100%;
-    padding-top: $height / $width * 100%;
+    padding-top: math.div($height, $width) * 100%;
   }
 
   > div, a {
@@ -46,7 +49,7 @@ $gallery-transition: 250ms ease-in-out;
   }
 
   > h2 {
-    color: $cool-gray;
+    color: colors.$kobo-gray-40;
     font-weight: normal;
     font-size: 18px;
     line-height: 1;
@@ -90,7 +93,7 @@ $gallery-transition: 250ms ease-in-out;
     }
 
     .asset-gallery__heading__count {
-      color: $layout-header-bg-color;
+      color: colors.$kobo-gray-24;
     }
 
     .text-box,
@@ -139,13 +142,13 @@ $gallery-transition: 250ms ease-in-out;
   }
 
   .asset-gallery__load-more__message {
-    color: $cool-gray;
+    color: colors.$kobo-gray-40;
     pointer-events: none;
   }
 }
 
 .asset-gallery__empty-message {
-  color: $cool-gray;
+  color: colors.$kobo-gray-40;
   text-align: center;
   padding: $s-gallery-spacing;
 }
@@ -192,13 +195,13 @@ $gallery-transition: 250ms ease-in-out;
   .asset-gallery-grid__item {
     display: inline-block;
     cursor: pointer;
-    background-color: lighten($cool-gray, 30%);
+    background-color: colors.$kobo-gray-65;
 
     .asset-gallery-grid__item__overlay {
       opacity: 0;
       visibility: hidden;
       transition: $gallery-transition;
-      background: rgba($black, 0.6666);
+      background: rgba(0, 0, 0, 0.6);
     }
 
     &:hover .asset-gallery-grid__item__overlay {
@@ -251,7 +254,7 @@ $gallery-transition: 250ms ease-in-out;
     height: 100%;
     flex: 1;
     position: relative;
-    background: $trueblack;
+    background: rgb(0, 0, 0);
     overflow: hidden;
 
     &:hover .gallery-media-modal__content-arrow {
@@ -274,7 +277,7 @@ $gallery-transition: 250ms ease-in-out;
       padding: 0;
       height: 100%;
       width: 60px;
-      background: rgba($trueblack, 0.6);
+      background: rgba(0, 0, 0, 0.6);
       z-index: 8;
       transition: $gallery-transition;
       transition-property: left, right;
@@ -290,7 +293,7 @@ $gallery-transition: 250ms ease-in-out;
       }
 
       &:hover {
-        background: rgba($trueblack, 0.8);
+        background: rgba(0, 0, 0, 0.8);
         .k-icon {opacity: 0.8;}
       }
 
@@ -345,7 +348,7 @@ $gallery-transition: 250ms ease-in-out;
     padding: $s-gallery-spacing 0;
 
     &:not(:last-of-type) {
-      border-bottom: 1px solid $divider-color;
+      border-bottom: 1px solid colors.$kobo-gray-65;
     }
   }
 

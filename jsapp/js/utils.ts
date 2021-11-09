@@ -11,7 +11,6 @@
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
-import { hashHistory } from 'react-router';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
 
@@ -24,6 +23,26 @@ alertify.defaults.notifier.position = 'bottom-left';
 alertify.defaults.notifier.closeButton = true;
 
 const cookies = new Cookies();
+
+interface StateObj {
+  [index: string]: any;
+}
+
+export function stateChanges(orig_obj: StateObj, new_obj: StateObj) {
+  let out: StateObj = {};
+  let anyChanges = false;
+
+  for (const key of Object.keys(new_obj)) {
+    if (orig_obj[key] !== new_obj[key]) {
+      out[key] = new_obj[key];
+      anyChanges = true;
+    }
+  };
+  if (!anyChanges) {
+    return false;
+  }
+  return out;
+}
 
 export function notify(msg: string, atype='success') {
   alertify.notify(msg, atype);

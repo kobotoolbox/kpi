@@ -2,13 +2,18 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import {bem} from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import FormGalleryGridItem from './formGalleryGridItem';
 import {
   GROUPBY_OPTIONS,
   galleryActions,
-  galleryStore
+  galleryStore,
 } from './galleryInterface';
+
+bem.AssetGallery__loadMore = makeBem(bem.AssetGallery, 'load-more');
+bem.AssetGallery__loadMoreMessage = makeBem(bem.AssetGallery, 'load-more-message');
+bem.AssetGallery__loadMoreButton = makeBem(bem.AssetGallery, 'load-more-button');
+bem.AssetGalleryGrid = makeBem(null, 'asset-gallery-grid');
 
 export default class FormGalleryGrid extends React.Component {
   constructor(props) {
@@ -17,7 +22,7 @@ export default class FormGalleryGrid extends React.Component {
     this.state = {
       gallery: galleryStore.state.galleries[this.props.galleryIndex],
       isFullscreen: galleryStore.state.isFullscreen,
-      filterGroupBy: galleryStore.state.filterGroupBy
+      filterGroupBy: galleryStore.state.filterGroupBy,
     };
   }
 

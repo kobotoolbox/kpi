@@ -5,13 +5,22 @@ import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
 import mixins from 'js/mixins';
-import {bem} from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {stores} from 'js/stores';
 import {
   galleryActions,
   galleryStore
 } from './galleryInterface';
 import {MODAL_TYPES} from 'js/constants';
+
+bem.GalleryMediaModal = makeBem(null, 'gallery-media-modal');
+bem.GalleryMediaModal__content = makeBem(bem.GalleryMediaModal, 'content', 'section');
+bem.GalleryMediaModal__contentArrow = makeBem(bem.GalleryMediaModal, 'content-arrow', 'button');
+bem.GalleryMediaModal__contentImage = makeBem(bem.GalleryMediaModal, 'content-image');
+bem.GalleryMediaModal__sidebar = makeBem(bem.GalleryMediaModal, 'sidebar', 'aside');
+bem.GalleryMediaModal__sidebarInfo = makeBem(bem.GalleryMediaModal, 'sidebar-info');
+bem.GalleryMediaModal__sidebarTitle = makeBem(bem.GalleryMediaModal, 'sidebar-title');
+bem.GalleryMediaModal__sidebarSubtitle = makeBem(bem.GalleryMediaModal, 'sidebar-subtitle');
 
 export default class GalleryMediaModal extends React.Component {
   constructor(props) {

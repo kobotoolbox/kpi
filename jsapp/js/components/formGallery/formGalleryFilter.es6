@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import Select from 'react-select';
@@ -8,23 +7,27 @@ import Reflux from 'reflux';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
 import mixins from 'js/mixins';
-import {bem} from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {
   ORDER_OPTIONS,
   GROUPBY_OPTIONS,
   galleryActions,
-  galleryStore
+  galleryStore,
 } from './galleryInterface';
 import {assign} from 'js/utils';
 
 const groupByOptions = [
   GROUPBY_OPTIONS.question,
-  GROUPBY_OPTIONS.submission
+  GROUPBY_OPTIONS.submission,
 ];
 const orderOptions = [
   ORDER_OPTIONS.asc,
-  ORDER_OPTIONS.desc
+  ORDER_OPTIONS.desc,
 ];
+
+bem.AssetGallery__heading = makeBem(bem.AssetGallery, 'heading');
+bem.AssetGallery__headingCount = makeBem(bem.AssetGallery, 'heading-count');
+bem.AssetGallery__headingIconButton = makeBem(bem.AssetGallery, 'heading-icon-button');
 
 export default class FormGalleryFilter extends React.Component {
   constructor(props){
@@ -55,7 +58,7 @@ export default class FormGalleryFilter extends React.Component {
     galleryActions.setFilters({filterAllVersions: newVal});
   }
 
-  toggleFullscreen () {
+  toggleFullscreen() {
     galleryActions.toggleFullscreen();
   }
 
@@ -116,11 +119,9 @@ export default class FormGalleryFilter extends React.Component {
       </bem.AssetGallery__heading>
     );
   }
-};
+}
 
 reactMixin(FormGalleryFilter.prototype, Reflux.ListenerMixin);
 reactMixin(FormGalleryFilter.prototype, mixins.contextRouter);
 
-FormGalleryFilter.contextTypes = {
-  router: PropTypes.object
-};
+FormGalleryFilter.contextTypes = {router: PropTypes.object};

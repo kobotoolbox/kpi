@@ -45,7 +45,7 @@ $z-modal-x: 10;
       position: static;
     }
     .modal__x {
-      color: $black;
+      color: colors.$kobo-gray-14;
     }
     .modal__body {
       padding: 0;
@@ -210,8 +210,8 @@ $z-modal-x: 10;
 
 .modal.modal--gallery {
   .modal__header {
-    background-color: #F8F8F8;
-    color: $layout-text-color;
+    background-color: colors.$kobo-gray-96;
+    color: mdl.$layout-text-color;
   }
 }
 

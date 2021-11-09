@@ -8,7 +8,7 @@ import {dataInterface} from 'js/dataInterface';
 import {
   assign,
   stateChanges,
-  formatTimeDate
+  formatTimeDate,
 } from 'js/utils';
 import {MODAL_TYPES} from 'js/constants';
 
@@ -16,22 +16,22 @@ export const PAGE_SIZE = 12;
 export const GROUPBY_OPTIONS = {
   question: {
     value: 'question',
-    label: t('Group by question')
+    label: t('Group by question'),
   },
   submission: {
     value: 'submission',
-    label: t('Group by record')
-  }
-}
+    label: t('Group by record'),
+  },
+};
 export const ORDER_OPTIONS = {
   asc: {
     label: t('Show oldest first'),
-    value: 'asc'
+    value: 'asc',
   },
   desc: {
     label: t('Show latest first'),
-    value: 'desc'
-  }
+    value: 'desc',
+  },
 };
 
 export const galleryActions = Reflux.createActions([
@@ -43,7 +43,7 @@ export const galleryActions = Reflux.createActions([
   'selectNextGalleryMedia',
   'setFilters',
   'loadMoreGalleries',
-  'loadMoreGalleryMedias'
+  'loadMoreGalleryMedias',
 ]);
 
 galleryActions.openMediaModal.listen(({galleryIndex, mediaIndex}) => {
@@ -67,7 +67,7 @@ class GalleryStore extends Reflux.Store {
   */
 
   getInitialState() {
-    const stateObj = {}
+    const stateObj = {};
     assign(stateObj, {
       formUid: null,
       isFullscreen: false,
@@ -75,7 +75,7 @@ class GalleryStore extends Reflux.Store {
       filterGroupBy: GROUPBY_OPTIONS.question,
       filterOrder: ORDER_OPTIONS.asc,
       filterAllVersions: true,
-      isLoadingGalleries: false
+      isLoadingGalleries: false,
     });
     assign(stateObj, this.getWipedGalleriesState());
     return stateObj;
@@ -88,8 +88,8 @@ class GalleryStore extends Reflux.Store {
       nextGalleriesPageUrl: null,
       totalMediaCount: null,
       filteredMediaCount: null,
-      selectedMedia: new SelectedMedia()
-    }
+      selectedMedia: new SelectedMedia(),
+    };
   }
 
   setState(newState) {
@@ -123,12 +123,12 @@ class GalleryStore extends Reflux.Store {
 
   onSelectGalleryMedia({galleryIndex, mediaIndex}) {
     this.setState({
-      selectedMedia: new SelectedMedia(galleryIndex, mediaIndex)
+      selectedMedia: new SelectedMedia(galleryIndex, mediaIndex),
     });
   }
 
   onSelectPreviousGalleryMedia() {
-    const currentMedia = this.state.selectedMedia
+    const currentMedia = this.state.selectedMedia;
 
     let targetGalleryIndex;
     let targetMediaIndex;
@@ -143,7 +143,7 @@ class GalleryStore extends Reflux.Store {
 
     galleryActions.selectGalleryMedia({
       galleryIndex: targetGalleryIndex,
-      mediaIndex: targetMediaIndex
+      mediaIndex: targetMediaIndex,
     });
   }
 
@@ -164,7 +164,7 @@ class GalleryStore extends Reflux.Store {
 
     galleryActions.selectGalleryMedia({
       galleryIndex: targetGalleryIndex,
-      mediaIndex: targetMediaIndex
+      mediaIndex: targetMediaIndex,
     });
   }
 
@@ -215,7 +215,7 @@ class GalleryStore extends Reflux.Store {
 
   onLoadMoreGalleryMedias(galleryIndex) {
     const targetGallery = this.state.galleries[galleryIndex];
-    const pageToLoad = targetGallery.guessNextPageToLoad()
+    const pageToLoad = targetGallery.guessNextPageToLoad();
 
     if (pageToLoad !== null) {
       this.loadNextGalleryMediasPage(galleryIndex, pageToLoad, this.state.filterOrder.value);
@@ -228,8 +228,8 @@ class GalleryStore extends Reflux.Store {
     // if selectedMedia is waiting for data reapply it
     if (this.state.selectedMedia.isLoading) {
       this.setState({
-        selectedMedia: new SelectedMedia(this.state.selectedMedia.galleryIndex, this.state.selectedMedia.mediaIndex)
-      })
+        selectedMedia: new SelectedMedia(this.state.selectedMedia.galleryIndex, this.state.selectedMedia.mediaIndex),
+      });
     }
     this.updateFilteredGalleries();
   }
@@ -246,7 +246,7 @@ class GalleryStore extends Reflux.Store {
     });
     this.setState({
       filteredGalleries,
-      filteredMediaCount
+      filteredMediaCount,
     });
   }
 
@@ -281,7 +281,7 @@ class GalleryStore extends Reflux.Store {
         this.setState({
           totalMediaCount: response.attachments_count,
           nextGalleriesPageUrl: response.next || null,
-          isLoadingGalleries: false
+          isLoadingGalleries: false,
         });
         this.onGalleriesUpdated();
       });
@@ -295,7 +295,7 @@ class GalleryStore extends Reflux.Store {
         this.setState({
           totalMediaCount: response.attachments_count,
           nextGalleriesPageUrl: response.next || null,
-          isLoadingGalleries: false
+          isLoadingGalleries: false,
         });
         this.onGalleriesUpdated();
       });
@@ -381,10 +381,10 @@ class Gallery {
   }
 
   findMedia(mediaIndex) {
-    return this.medias.find((media) => {return media.mediaIndex === mediaIndex}) || null;
+    return this.medias.find((media) => media.mediaIndex === mediaIndex) || null;
   }
 
-  addMedias(newMedias, pageOffset=0) {
+  addMedias(newMedias, pageOffset = 0) {
     newMedias.forEach((mediaData, index) => {
       // TODO we're guessing mediaIndex here, maybe backend can provide real value
       const mediaIndex = index + (pageOffset * PAGE_SIZE);
@@ -481,7 +481,7 @@ class SelectedMedia {
       this.isLastInGallery &&
       galleryStore.state.nextGalleriesPageUrl === null &&
       this.galleryIndex === galleryStore.state.galleries.length - 1
-    )
+    );
   }
 }
 

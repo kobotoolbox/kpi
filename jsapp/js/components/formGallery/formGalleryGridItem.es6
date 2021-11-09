@@ -1,12 +1,16 @@
 import React from 'react';
-import {bem} from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {galleryActions} from './galleryInterface';
+
+bem.AssetGalleryGrid__item = makeBem(bem.AssetGalleryGrid, 'item');
+bem.AssetGalleryGrid__itemOverlay = makeBem(bem.AssetGalleryGrid, 'item-overlay');
+bem.AssetGalleryGrid__itemOverlayText = makeBem(bem.AssetGalleryGrid, 'item-overlay-text');
 
 export default class FormGalleryGridItem extends React.Component {
   openMediaInModal() {
     galleryActions.openMediaModal({
       galleryIndex: parseInt(this.props.galleryIndex),
-      mediaIndex: parseInt(this.props.mediaIndex)
+      mediaIndex: parseInt(this.props.mediaIndex),
     });
   }
 
@@ -15,7 +19,7 @@ export default class FormGalleryGridItem extends React.Component {
       backgroundImage: `url(${this.props.url})`,
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'center center',
-      backgroundSize: 'cover'
+      backgroundSize: 'cover',
     };
     return (
       <bem.AssetGalleryGrid__item
@@ -32,4 +36,4 @@ export default class FormGalleryGridItem extends React.Component {
       </bem.AssetGalleryGrid__item>
     );
   }
-};
+}

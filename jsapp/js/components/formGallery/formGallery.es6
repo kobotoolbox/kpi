@@ -2,14 +2,21 @@ import React from 'react';
 import autoBind from 'react-autobind';
 import reactMixin from 'react-mixin';
 import Reflux from 'reflux';
-import {bem} from 'js/bem';
+import bem, {makeBem} from 'js/bem';
 import {
   galleryActions,
-  galleryStore
+  galleryStore,
 } from './galleryInterface';
 import FormGalleryFilter from './formGalleryFilter';
 import FormGalleryGrid from './formGalleryGrid';
 import {assign} from 'js/utils';
+import LoadingSpinner from 'js/components/common/loadingSpinner';
+
+bem.AssetGallery = makeBem(null, 'asset-gallery');
+bem.AssetGallery__emptyMessage = makeBem(bem.AssetGallery, 'empty-message');
+bem.AssetGallery__loadMore = makeBem(bem.AssetGallery, 'load-more');
+bem.AssetGallery__loadMoreMessage = makeBem(bem.AssetGallery, 'load-more-message');
+bem.AssetGallery__loadMoreButton = makeBem(bem.AssetGallery, 'load-more-button');
 
 export default class FormGallery extends React.Component {
   constructor(props) {
@@ -50,14 +57,10 @@ export default class FormGallery extends React.Component {
       return (
         <bem.FormView m={formViewModifiers}>
           <bem.AssetGallery>
-            <bem.Loading>
-              <bem.Loading__inner>
-                {t('This form does not have any media questions.')}
-              </bem.Loading__inner>
-            </bem.Loading>
+            <LoadingSpinner message={t('This form does not have any media questions.')}/>
           </bem.AssetGallery>
         </bem.FormView>
-      )
+      );
     }
 
     // CASE: loading data from the start
@@ -71,15 +74,10 @@ export default class FormGallery extends React.Component {
       return (
         <bem.FormView m={formViewModifiers}>
           <bem.AssetGallery>
-            <bem.Loading>
-              <bem.Loading__inner>
-                <i />
-                {t('Loading…')}
-              </bem.Loading__inner>
-            </bem.Loading>
+            <LoadingSpinner/>
           </bem.AssetGallery>
         </bem.FormView>
-        )
+      );
     }
 
     // CASE: some data already loaded and possibly loading more
@@ -90,14 +88,12 @@ export default class FormGallery extends React.Component {
             <FormGalleryFilter/>
 
             {this.state.filteredGalleries.map(
-              (gallery) => {
-                return (
-                  <FormGalleryGrid
-                    key={gallery.galleryIndex}
-                    galleryIndex={gallery.galleryIndex}
-                  />
-                );
-              }
+              (gallery) => (
+                <FormGalleryGrid
+                  key={gallery.galleryIndex}
+                  galleryIndex={gallery.galleryIndex}
+                />
+              )
             )}
 
             {this.state.filteredGalleries.length === 0 &&
@@ -126,6 +122,6 @@ export default class FormGallery extends React.Component {
       );
     }
   }
-};
+}
 
 reactMixin(FormGallery.prototype, Reflux.ListenerMixin);
