@@ -10,8 +10,8 @@ import {
   SURVEY_DETAIL_ATTRIBUTES,
   FUNCTION_TYPE,
 } from 'js/constants';
-import {bem} from 'js/bem';
-import {stores} from 'js/stores';
+import bem from 'js/bem';
+import envStore from 'js/envStore';
 
 const AUDIT_SUPPORT_URL = 'audit_logging.html';
 const RECORDING_SUPPORT_URL = 'recording-interviews.html';
@@ -141,11 +141,11 @@ export default class MetadataEditor extends React.Component {
       <React.Fragment>
         {t('Audit settings')}
 
-        {stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url && (
+        {envStore.isReady &&
+          envStore.data.support_url && (
             <bem.TextBox__labelLink
               href={
-                stores.serverEnvironment.state.support_url + AUDIT_SUPPORT_URL
+                envStore.data.support_url + AUDIT_SUPPORT_URL
               }
               target='_blank'
             >
@@ -161,12 +161,12 @@ export default class MetadataEditor extends React.Component {
       <React.Fragment>
         {t('Background audio')}
 
-        {stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url && (
+        {envStore.isReady &&
+          envStore.data.support_url && (
             <bem.TextBox__labelLink
               // TODO update support article to include background-audio
               href={
-                stores.serverEnvironment.state.support_url +
+                envStore.data.support_url +
                 RECORDING_SUPPORT_URL
               }
               target='_blank'

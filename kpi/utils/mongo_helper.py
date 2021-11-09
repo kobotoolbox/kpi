@@ -1,13 +1,26 @@
 # coding: utf-8
 import re
 
-from bson import ObjectId
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext as _
 
 from kpi.constants import NESTED_MONGO_RESERVED_ATTRIBUTES
 from kpi.utils.strings import base64_encodestring
+
+
+def drop_mock_only(func):
+    """
+    This decorator should be used on every method that drop data in MongoDB
+    in a testing environment. It ensures that MockMongo is used and no prodction
+    data is deleted
+    """
+    def _inner(*args, **kwargs):
+        # Ensure we are using MockMongo before deleting data
+        mongo_db_driver__repr = repr(settings.MONGO_DB)
+        if 'mongomock' not in mongo_db_driver__repr:
+            raise Exception('Cannot run tests on a production database')
+        return func(*args, **kwargs)
+
+    return _inner
 
 
 class MongoHelper:
@@ -101,13 +114,16 @@ class MongoHelper:
         query=None,
         submission_ids=None,
         permission_filters=None,
+        skip_count=False,
     ):
         cursor, total_count = cls._get_cursor_and_count(
             mongo_userform_id,
             fields=fields,
             query=query,
             submission_ids=submission_ids,
-            permission_filters=permission_filters)
+            permission_filters=permission_filters,
+            skip_count=skip_count,
+        )
 
         cursor.skip(start)
         if limit is not None:
@@ -276,6 +292,7 @@ class MongoHelper:
         query=None,
         submission_ids=None,
         permission_filters=None,
+        skip_count=False,
     ):
 
         if len(submission_ids) > 0:
@@ -321,7 +338,12 @@ class MongoHelper:
             fields_to_select,
             max_time_ms=settings.MONGO_DB_MAX_TIME_MS
         )
-        return cursor, cursor.count()
+        count = None
+        if not skip_count:
+            count = settings.MONGO_DB.instances.count_documents(
+                query, maxTimeMS=settings.MONGO_DB_MAX_TIME_MS
+            )
+        return cursor, count
 
     @classmethod
     def _is_attribute_encoded(cls, key):

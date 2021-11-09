@@ -3,7 +3,7 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {notify} from 'utils';
@@ -94,7 +94,6 @@ export class AssetTagsForm extends React.Component {
             type='submit'
             onClick={this.onSubmit}
             disabled={this.state.isPending}
-            className='mdl-js-button'
           >
             {this.getSubmitButtonLabel()}
           </bem.KoboButton>

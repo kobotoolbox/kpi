@@ -7,9 +7,8 @@ import { Link } from 'react-router';
 import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import mixins from '../mixins';
-import {bem} from '../bem';
+import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
 import Chart from 'chart.js';
@@ -18,9 +17,13 @@ import {
   formatTime,
   formatDate,
   stringToColor,
+  getUsernameFromUrl,
 } from 'utils';
-
-import {MODAL_TYPES} from 'js/constants';
+import {
+  MODAL_TYPES,
+  ANON_USERNAME,
+} from 'js/constants';
+import './formSummary.scss';
 
 class FormSummary extends React.Component {
   constructor(props) {
@@ -248,7 +251,7 @@ class FormSummary extends React.Component {
     );
   }
   renderDataTabs() {
-    const sideTabs = getFormDataTabs(this.state.uid, stores.session.isLoggedIn);
+    const sideTabs = getFormDataTabs(this.state.uid);
 
     return (
       <bem.FormView__cell m='data-tabs'>
@@ -283,15 +286,23 @@ class FormSummary extends React.Component {
       assetid: this.state.uid
     });
   }
+
   renderTeam() {
-    var team = [];
-    this.state.permissions.forEach(function(p){
-      if (p.user__username && !team.includes(p.user__username) && p.user__username != 'AnonymousUser')
-        team.push(p.user__username);
+    const team = [];
+    this.state.permissions.forEach((perm) => {
+      let username = null;
+      if (perm.user) {
+        username = getUsernameFromUrl(perm.user);
+      }
+
+      if (username && !team.includes(username) && username !== ANON_USERNAME) {
+        team.push(username);
+      }
     });
 
-    if (team.length < 2)
+    if (team.length < 2) {
       return false;
+    }
 
     return (
       <bem.FormView__row m='team'>
@@ -319,14 +330,9 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
-    let permAccess = this.userCan('view_submissions', this.state) || this.userCanPartially('view_submissions', this.state);
 
     if (!this.state.permissions) {
       return (<LoadingSpinner/>);
-    }
-
-    if (!permAccess) {
-      return (<AccessDeniedMessage/>);
     }
 
     return (

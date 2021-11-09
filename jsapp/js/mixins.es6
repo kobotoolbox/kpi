@@ -22,10 +22,11 @@ import {
   ASSET_TYPES,
   ANON_USERNAME,
   PERMISSIONS_CODENAMES,
-  ROUTES,
 } from './constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {dataInterface} from './dataInterface';
 import {stores} from './stores';
+import assetStore from 'js/assetStore';
 import {actions} from './actions';
 import permConfig from 'js/components/permissions/permConfig';
 import {
@@ -53,7 +54,7 @@ mixins.dmix = {
     let dialog = alertify.dialog('prompt');
     let opts = {
       title: `${t('Clone')} ${ASSET_TYPES.survey.label}`,
-      message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', ASSET_TYPES.survey.label),
+      message: t('Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.').replace('##ASSET_TYPE##', ASSET_TYPES.survey.label),
       value: name,
       labels: {ok: t('Ok'), cancel: t('Cancel')},
       onok: (evt, value) => {
@@ -218,9 +219,9 @@ mixins.dmix = {
       return this.props.uid;
     }
   },
-  // TODO
+  // TODO 1/2
   // Fix `componentWillUpdate` and `componentDidMount` asset loading flow.
-  // Ideally we should build a single overaching component that would
+  // Ideally we should build a single overaching component or store that would
   // handle loading of the asset in all necessary cases in a way that all
   // interested parties could use without duplication or confusion and with
   // indication when the loading starts and when ends.
@@ -233,14 +234,22 @@ mixins.dmix = {
       actions.resources.loadAsset({id: newProps.params.uid});
     }
   },
-  componentDidMount() {
-    this.listenTo(stores.asset, this.dmixAssetStoreChange);
 
+  componentDidMount() {
+    assetStore.listen(this.dmixAssetStoreChange);
+
+    // TODO 2/2
+    // HACK FIX: for when we use `PermProtectedRoute`, we don't need to make the
+    // call to get asset, as it is being already made. Ideally we want to have
+    // this nice SSOT as described in TODO comment above.
     const uid = this._getAssetUid();
-    if (uid) {
+    if (uid && this.props.initialAssetLoadNotNeeded) {
+      this.setState(assign({}, assetStore.data[uid]));
+    } else if (uid) {
       actions.resources.loadAsset({id: uid});
     }
   },
+
   removeSharing: function() {
     mixins.clickAssets.click.asset.removeSharing(this.props.params.uid);
   },
@@ -477,7 +486,7 @@ mixins.clickAssets = {
         let ok_button = dialog.elements.buttons.primary.firstChild;
         let opts = {
           title: `${t('Clone')} ${assetTypeLabel}`,
-          message: t('Enter the name of the cloned ##ASSET_TYPE##.').replace('##ASSET_TYPE##', assetTypeLabel),
+          message: t('Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the original name.').replace('##ASSET_TYPE##', assetTypeLabel),
           value: newName,
           labels: {ok: t('Ok'), cancel: t('Cancel')},
           onok: (evt, value) => {
@@ -899,7 +908,7 @@ mixins.contextRouter = {
     return this.context.router.params.assetid || this.context.router.params.uid;
   },
   currentAsset() {
-    return stores.asset.data[this.currentAssetID()];
+    return assetStore.data[this.currentAssetID()];
   },
   isActiveRoute(path, indexOnly = false) {
     return this.context.router.isActive(path, indexOnly);

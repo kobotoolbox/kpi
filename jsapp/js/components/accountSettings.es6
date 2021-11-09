@@ -6,8 +6,7 @@ import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-autosize-textarea';
 import alertify from 'alertifyjs';
 import {actions} from '../actions';
-import {bem} from '../bem';
-import LoadingSpinner from 'js/components/common/loadingSpinner';
+import bem from 'js/bem';
 import {stores} from '../stores';
 import Select from 'react-select';
 import TextBox from 'js/components/common/textBox';
@@ -15,7 +14,9 @@ import Checkbox from 'js/components/common/checkbox';
 import ApiTokenDisplay from './apiTokenDisplay';
 import {hashHistory} from 'react-router';
 import {stringToColor} from 'utils';
-import {ROUTES} from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
+import envStore from 'js/envStore';
+import './accountSettings.scss';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
 
@@ -33,13 +34,12 @@ export default class AccountSettings extends React.Component {
 
   rebuildState() {
     if (
-      stores.session &&
       stores.session.isLoggedIn &&
-      stores.session.environment
+      envStore.isReady
     ) {
       this.setStateFromSession(
         stores.session.currentAccount,
-        stores.session.environment
+        envStore.data
       );
     }
   }
@@ -217,18 +217,8 @@ export default class AccountSettings extends React.Component {
   metadataChange (e) {this.handleChange(e, 'metadata');}
 
   render() {
-    if(
-      !stores.session ||
-      !stores.session.isLoggedIn ||
-      !stores.session.environment
-    ) {
-      return (
-        <bem.AccountSettings>
-          <bem.AccountSettings__item>
-            <LoadingSpinner/>
-          </bem.AccountSettings__item>
-        </bem.AccountSettings>
-      );
+    if(!stores.session.isLoggedIn || !envStore.isReady) {
+      return null;
     }
 
     var accountName = stores.session.currentAccount.username;

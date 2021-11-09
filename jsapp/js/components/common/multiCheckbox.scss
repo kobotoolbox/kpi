@@ -1,0 +1,14 @@
+@use "scss/_colors";
+
+.multi-checkbox {
+  list-style: none;
+  height: auto;
+  width: 100%;
+  overflow: hidden auto;
+  border: 1px solid colors.$kobo-gray-92;
+  border-radius: 2px;
+
+  .multi-checkbox__item {
+    margin: 12px;
+  }
+}

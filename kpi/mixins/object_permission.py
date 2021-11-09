@@ -6,6 +6,7 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import models, transaction
 from django_request_cache import cache_for_request
 from rest_framework import serializers
@@ -87,7 +88,38 @@ class ObjectPermissionMixin:
         # We can only copy permissions between objects from the same type.
         if type(source_object) is type(self):
             # First delete all permissions of the target asset (except owner's).
-            self.permissions.exclude(user_id=self.owner_id).delete()
+            perm_queryset = self.permissions.exclude(user_id=self.owner_id)
+            # The bulk delete below (i.e.: `perm_queryset.delete()`) does not
+            # remove permissions in KoBoCAT.
+            # We could loop through `self.permissions` and call `remove_perm`
+            # for each permission but it would have probably a performance hit
+            # with assets with lots of permissions.
+            # Let's use PostgreSQL specific function `ArrayAgg` to retrieve all
+            # codenames at once.
+
+            # It relies on the fact that permissions are synced in KoBoCAT and KPI.
+            # If any permissions are present in KoBoCAT but not in KPI, these
+            # permissions will not be deleted and will have to be deleted manually
+            # with KoBoCAT.
+
+            user_codenames = (
+                ObjectPermission.objects.filter(asset_id=self.pk, deny=False)
+                .exclude(user_id=self.owner_id)
+                .values('user_id')
+                .annotate(
+                    all_codenames=ArrayAgg(
+                        'permission__codename', distinct=True
+                    )
+                )
+            )
+            for user_codename in user_codenames:
+                remove_applicable_kc_permissions(
+                    self, user_codename['user_id'], user_codename['all_codenames']
+                )
+
+            # Remove all permissions from the asset (except the owner's)
+            perm_queryset.delete()
+
             # Then copy all permissions from source to target asset
             source_permissions = list(source_object.permissions.all())
             for source_permission in source_permissions:

@@ -163,82 +163,50 @@ stores.snapshots = Reflux.createStore({
   },
 });
 
-stores.asset = Reflux.createStore({
-  init: function () {
-    this.data = {};
-    this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
-    this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted);
-  },
-
-  onUpdateAssetCompleted: function (resp/*, req, jqhr*/){
-    this.data[resp.uid] = parsed(resp);
-    this.trigger(this.data, resp.uid, {asset_updated: true});
-  },
-  onLoadAssetCompleted: function (resp/*, req, jqxhr*/) {
-    if (!resp.uid) {
-      throw new Error('no uid found in response');
-    }
-    this.data[resp.uid] = parsed(resp);
-    this.trigger(this.data, resp.uid);
-  }
-});
-
 stores.session = Reflux.createStore({
   // start up with "fake" current account
   currentAccount: {
     username: ANON_USERNAME,
   },
   isAuthStateKnown: false,
+  isLoggedIn: false,
+
   init() {
-    this.listenTo(actions.auth.getEnvironment.completed, this.triggerEnv);
-    this.listenTo(actions.auth.verifyLogin.loggedin, this.triggerLoggedIn);
-    this.listenTo(actions.auth.verifyLogin.anonymous, (data) => {
-      this.isAuthStateKnown = true;
-      log('login confirmed anonymous', data.message);
-    });
-    this.listenTo(actions.auth.verifyLogin.failed, (xhr) => {
-      log('login not verified', xhr.status, xhr.statusText);
-    });
+    actions.misc.updateProfile.completed.listen(this.onUpdateProfileCompleted);
+    this.listenTo(actions.auth.verifyLogin.loggedin, this.onLoggedIn);
+    this.listenTo(actions.auth.verifyLogin.anonymous, this.onNotLoggedIn);
+    this.listenTo(actions.auth.verifyLogin.failed, this.onVerifyLoginFailed);
     actions.auth.verifyLogin();
-    actions.auth.getEnvironment();
   },
-  triggerEnv(environment) {
-    const nestedArrToChoiceObjs = (i) => {
-      return {
-        value: i[0],
-        label: i[1],
-      };
-    };
-    if (environment.available_sectors) {
-      environment.available_sectors = environment.available_sectors.map(
-        nestedArrToChoiceObjs);
-    }
-    if (environment.available_countries) {
-      environment.available_countries = environment.available_countries.map(
-        nestedArrToChoiceObjs);
-    }
-    if (environment.interface_languages) {
-      environment.interface_languages = environment.interface_languages.map(
-        nestedArrToChoiceObjs);
-    }
-    if (environment.all_languages) {
-      environment.all_languages = environment.all_languages.map(
-        nestedArrToChoiceObjs);
-    }
-    this.environment = environment;
-    this.trigger({environment: environment});
+
+  onUpdateProfileCompleted(response) {
+    this.currentAccount = response;
+    this.trigger({currentAccount: this.currentAccount});
   },
-  triggerLoggedIn(acct) {
+
+  onLoggedIn(account) {
     this.isAuthStateKnown = true;
     this.isLoggedIn = true;
-    this.currentAccount = acct;
-    this.trigger({
-      isLoggedIn: true,
-      currentAccount: acct,
-    });
+    this.currentAccount = account;
+    this.trigger();
+  },
+
+  onNotLoggedIn(data) {
+    log('login confirmed anonymous', data.message);
+    this.isAuthStateKnown = true;
+    this.trigger();
+  },
+
+  onVerifyLoginFailed(xhr) {
+    log('login not verified', xhr.status, xhr.statusText);
   },
 });
 
+/**
+ * NOTE: this is not a reliable source of complete assets (i.e. ones with
+ * `content`) as `onListAssetsCompleted` will overwrite asset-with-content with
+ * one without it.
+ */
 stores.allAssets = Reflux.createStore({
   init() {
     this.data = [];
@@ -253,7 +221,14 @@ stores.allAssets = Reflux.createStore({
     this.listenTo(actions.resources.loadAsset.completed, this.onLoadAssetCompleted);
     this.listenTo(actions.permissions.removeAssetPermission.completed, this.onDeletePermissionCompleted);
   },
-  whenLoaded (uid, cb) {
+  /**
+   * Either calls immediately if data already exists, or makes a call to get
+   * asset and then calls.
+   *
+   * @param {string} uid
+   * @param {function} cb
+   */
+  whenLoaded(uid, cb) {
     if (typeof uid !== 'string' || typeof cb !== 'function') {
       return;
     }
@@ -268,6 +243,15 @@ stores.allAssets = Reflux.createStore({
       actions.resources.loadAsset({id: uid});
     }
   },
+
+  /**
+   * @param {string} assetUid
+   * @returns {object|undefined}
+   */
+  getAsset(assetUid) {
+    return this.byUid[assetUid];
+  },
+
   onUpdateAssetCompleted (asset) {
     this.registerAsset(asset);
     this.data.forEach((dataAsset, index) => {
@@ -384,52 +368,3 @@ stores.userExists = Reflux.createStore({
     this.trigger(this.checked, username);
   }
 });
-
-stores.serverEnvironment = Reflux.createStore({
-  init() {
-    this.state = {};
-    this.listenTo(actions.misc.getServerEnvironment.completed,
-                  this.updateEnvironment);
-  },
-  setState (state) {
-    var chz = stateChanges(this.state, state);
-    if (chz) {
-      assign(this.state, state);
-      this.trigger(chz);
-    }
-  },
-  updateEnvironment(response) {
-    this.setState(response);
-  },
-});
-
-if (window.Intercom) {
-  var IntercomStore = Reflux.createStore({
-    init () {
-      this.listenTo(actions.navigation.routeUpdate, this.routeUpdate);
-      this.listenTo(actions.auth.verifyLogin.loggedin, this.loggedIn);
-      this.listenTo(actions.auth.logout.completed, this.loggedOut);
-    },
-    routeUpdate (routes) {
-      window.Intercom('update');
-    },
-    loggedIn (acct) {
-      let name = acct.extra_details.name;
-      let legacyName = [
-        acct.first_name, acct.last_name].filter(val => val).join(' ');
-      let userData = {
-        'user_id': [acct.username, window.location.host].join('@'),
-        'username': acct.username,
-        'email': acct.email,
-        'name': name ? name : legacyName ? legacyName : acct.username,
-        'created_at': Math.floor(
-          (new Date(acct.date_joined)).getTime() / 1000),
-        'app_id': window.IntercomAppId
-      }
-      window.Intercom('boot', userData);
-    },
-    loggedOut () {
-      window.Intercom('shutdown');
-    }
-  });
-}

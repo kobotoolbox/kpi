@@ -1,9 +1,10 @@
 # coding: utf-8
-from celery import shared_task
 from django.core.management import call_command
 
+from kobo.celery import celery_app
 
-@shared_task
+
+@celery_app.task
 def import_in_background(import_task_uid):
     from kpi.models.import_export_task import ImportTask  # avoid circular imports
 
@@ -11,7 +12,7 @@ def import_in_background(import_task_uid):
     import_task.run()
 
 
-@shared_task
+@celery_app.task
 def export_in_background(export_task_uid):
     from kpi.models.import_export_task import ExportTask  # avoid circular imports
 
@@ -19,7 +20,7 @@ def export_in_background(export_task_uid):
     export_task.run()
 
 
-@shared_task
+@celery_app.task
 def sync_kobocat_xforms(
     username=None,
     quiet=True,
@@ -35,7 +36,7 @@ def sync_kobocat_xforms(
     )
 
 
-@shared_task
+@celery_app.task
 def sync_media_files(asset_uid):
     from kpi.models.asset import Asset  # avoid circular imports
 

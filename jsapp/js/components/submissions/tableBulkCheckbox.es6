@@ -1,8 +1,9 @@
 import React from 'react';
 import autoBind from 'react-autobind';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import PopoverMenu from 'js/popoverMenu';
 import Checkbox from 'js/components/common/checkbox';
+import './tableBulkCheckbox.scss';
 
 /**
  * @prop visibleRowsCount

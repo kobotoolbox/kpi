@@ -4,7 +4,7 @@ import {
   formatTimeDate,
   formatDate,
 } from 'utils';
-import {bem} from 'js/bem';
+import bem from 'js/bem';
 import {renderQuestionTypeIcon} from 'js/assetUtils';
 import {
   DISPLAY_GROUP_TYPES,
@@ -16,6 +16,7 @@ import {
   SCORE_ROW_TYPE,
   RANK_LEVEL_TYPE,
 } from 'js/constants';
+import './submissionDataTable.scss';
 
 /**
  * @prop {object} asset
@@ -271,7 +272,7 @@ class SubmissionDataTable extends React.Component {
       if (type === QUESTION_TYPES.image.id) {
         return (
           <a href={attachment.download_url} target='_blank'>
-            <img src={attachment.download_small_url}/>
+            <img src={attachment.download_medium_url}/>
           </a>
         );
       } else {

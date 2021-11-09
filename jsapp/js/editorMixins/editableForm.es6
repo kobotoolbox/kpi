@@ -18,13 +18,12 @@ import {
   PROJECT_SETTINGS_CONTEXTS,
   update_states,
   NAME_MAX_LENGTH,
-  ROUTES,
   META_QUESTION_TYPES,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import AccessDeniedMessage from 'js/components/common/accessDeniedMessage';
 import Modal from 'js/components/common/modal';
-import {bem} from '../bem';
+import bem, {makeBem} from 'js/bem';
 import {stores} from '../stores';
 import {actions} from '../actions';
 import dkobo_xlform from '../../xlform/src/_xlform.init';
@@ -47,9 +46,10 @@ import {
   getFormBuilderAssetType,
   unnullifyTranslations,
 } from 'js/components/formBuilder/formBuilderUtils';
+import envStore from 'js/envStore';
 
-const ErrorMessage = bem.create('error-message');
-const ErrorMessage__strong = bem.create('error-message__header', '<strong>');
+const ErrorMessage = makeBem(null, 'error-message');
+const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong');
 
 const WEBFORM_STYLES_SUPPORT_URL = 'alternative_enketo.html';
 
@@ -741,12 +741,12 @@ export default assign({
           {'.'}
         </p>
 
-        { stores.serverEnvironment &&
-          stores.serverEnvironment.state.support_url &&
+        { envStore.isReady &&
+          envStore.data.support_url &&
           <bem.TextBox__labelLink
             // TODO update support article to include background-audio
             href={
-              stores.serverEnvironment.state.support_url +
+              envStore.data.support_url +
               RECORDING_SUPPORT_URL
             }
             target='_blank'
@@ -778,10 +778,10 @@ export default assign({
               <bem.FormBuilderAside__header>
                 {t('Form style')}
 
-                { stores.serverEnvironment &&
-                  stores.serverEnvironment.state.support_url &&
+                { envStore.isReady &&
+                  envStore.data.support_url &&
                   <a
-                    href={stores.serverEnvironment.state.support_url + WEBFORM_STYLES_SUPPORT_URL}
+                    href={envStore.data.support_url + WEBFORM_STYLES_SUPPORT_URL}
                     target='_blank'
                     data-tip={t('Read more about form styles')}
                   >
@@ -905,10 +905,10 @@ export default assign({
 
           {lockedLabel}
 
-          { stores.serverEnvironment &&
-            stores.serverEnvironment.state.support_url &&
+          { envStore.isReady &&
+            envStore.data.support_url &&
             <a
-              href={stores.serverEnvironment.state.support_url + LOCKING_SUPPORT_URL}
+              href={envStore.data.support_url + LOCKING_SUPPORT_URL}
               target='_blank'
               data-tip={t('Read more about Locking')}
             >
@@ -931,44 +931,31 @@ export default assign({
       );
     }
 
-    // Only allow user to edit form if they have "Edit Form" permission
-    var userCanEditForm = (
-      this.state.isNewAsset ||
-      assetUtils.isSelfOwned(this.state.asset) ||
-      this.userCan('change_asset', this.state.asset)
-    );
-
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.uiPanel m={['transparent', 'fixed']}>
           <bem.uiPanel__body>
             {this.renderAside()}
 
-            {userCanEditForm &&
-              <bem.FormBuilder>
-              {this.renderFormBuilderHeader()}
+            <bem.FormBuilder>
+            {this.renderFormBuilderHeader()}
 
-                <bem.FormBuilder__contents>
-                  {this.state.asset &&
-                    <FormLockedMessage asset={this.state.asset}/>
+              <bem.FormBuilder__contents>
+                {this.state.asset &&
+                  <FormLockedMessage asset={this.state.asset}/>
+                }
+
+                {this.hasBackgroundAudio() &&
+                  this.renderBackgroundAudioWarning()
+                }
+
+                <div ref='form-wrap' className='form-wrap'>
+                  {!this.state.surveyAppRendered &&
+                    this.renderNotLoadedMessage()
                   }
-
-                  {this.hasBackgroundAudio() &&
-                    this.renderBackgroundAudioWarning()
-                  }
-
-                  <div ref='form-wrap' className='form-wrap'>
-                    {!this.state.surveyAppRendered &&
-                      this.renderNotLoadedMessage()
-                    }
-                  </div>
-                </bem.FormBuilder__contents>
-              </bem.FormBuilder>
-            }
-
-            {(!userCanEditForm) &&
-              <AccessDeniedMessage/>
-            }
+                </div>
+              </bem.FormBuilder__contents>
+            </bem.FormBuilder>
 
             {this.state.enketopreviewOverlay &&
               <Modal
