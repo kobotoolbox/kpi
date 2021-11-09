@@ -70,7 +70,7 @@ $gallery-transition: 250ms ease-in-out;
         width: 100%;
       }
 
-      .asset-gallery__heading__icon-button {
+      .asset-gallery__heading-icon-button {
         position: absolute;
         top: 0;
         right: 0;
@@ -82,7 +82,7 @@ $gallery-transition: 250ms ease-in-out;
       align-items: center;
       flex-wrap: wrap;
 
-      .asset-gallery__heading__count {
+      .asset-gallery__heading-count {
         flex: 1;
       }
 
@@ -92,17 +92,17 @@ $gallery-transition: 250ms ease-in-out;
       }
     }
 
-    .asset-gallery__heading__count {
+    .asset-gallery__heading-count {
       color: colors.$kobo-gray-24;
     }
 
     .text-box,
     .text-box__input,
-    .asset-gallery__heading__count {
+    .asset-gallery__heading-count {
       height: 38px;
     }
 
-    .asset-gallery__heading__count {
+    .asset-gallery__heading-count {
       line-height: 38px;
     }
 
@@ -111,7 +111,7 @@ $gallery-transition: 250ms ease-in-out;
       margin-right: $s-gallery-spacing;
     }
 
-    .asset-gallery__heading__icon-button {
+    .asset-gallery__heading-icon-button {
       @extend .mdl-button, .mdl-button--icon;
       overflow: visible;
     }
@@ -134,14 +134,14 @@ $gallery-transition: 250ms ease-in-out;
   width: 100%;
   margin-top: $s-gallery-spacing;
 
-  .asset-gallery__load-more__button,
-  .asset-gallery__load-more__message {
+  .asset-gallery__load-more-button,
+  .asset-gallery__load-more-message {
     @extend .mdl-button, .mdl-button--colored;
     width: 100%;
     background: white;
   }
 
-  .asset-gallery__load-more__message {
+  .asset-gallery__load-more-message {
     color: colors.$kobo-gray-40;
     pointer-events: none;
   }
@@ -197,19 +197,19 @@ $gallery-transition: 250ms ease-in-out;
     cursor: pointer;
     background-color: colors.$kobo-gray-65;
 
-    .asset-gallery-grid__item__overlay {
+    .asset-gallery-grid__item-overlay {
       opacity: 0;
       visibility: hidden;
       transition: $gallery-transition;
       background: rgba(0, 0, 0, 0.6);
     }
 
-    &:hover .asset-gallery-grid__item__overlay {
+    &:hover .asset-gallery-grid__item-overlay {
       opacity: 1;
       visibility: visible;
     }
 
-    .asset-gallery-grid__item__overlay-text {
+    .asset-gallery-grid__item-overlay-text {
       color: #fff;
       position: absolute;
       top: $s-gallery-spacing;

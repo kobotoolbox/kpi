@@ -18,6 +18,14 @@ bem.AssetGallery__loadMore = makeBem(bem.AssetGallery, 'load-more');
 bem.AssetGallery__loadMoreMessage = makeBem(bem.AssetGallery, 'load-more-message');
 bem.AssetGallery__loadMoreButton = makeBem(bem.AssetGallery, 'load-more-button');
 
+bem.AssetGallery__heading = makeBem(bem.AssetGallery, 'heading');
+bem.AssetGallery__headingCount = makeBem(bem.AssetGallery, 'heading-count');
+bem.AssetGallery__headingIconButton = makeBem(bem.AssetGallery, 'heading-icon-button');
+
+bem.AssetGallery__loadMore = makeBem(bem.AssetGallery, 'load-more');
+bem.AssetGallery__loadMoreMessage = makeBem(bem.AssetGallery, 'load-more-message');
+bem.AssetGallery__loadMoreButton = makeBem(bem.AssetGallery, 'load-more-button');
+
 export default class FormGallery extends React.Component {
   constructor(props) {
     super(props);

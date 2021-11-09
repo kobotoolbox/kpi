@@ -7,7 +7,7 @@ import Reflux from 'reflux';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
 import mixins from 'js/mixins';
-import bem, {makeBem} from 'js/bem';
+import bem from 'js/bem';
 import {
   ORDER_OPTIONS,
   GROUPBY_OPTIONS,
@@ -24,10 +24,6 @@ const orderOptions = [
   ORDER_OPTIONS.asc,
   ORDER_OPTIONS.desc,
 ];
-
-bem.AssetGallery__heading = makeBem(bem.AssetGallery, 'heading');
-bem.AssetGallery__headingCount = makeBem(bem.AssetGallery, 'heading-count');
-bem.AssetGallery__headingIconButton = makeBem(bem.AssetGallery, 'heading-icon-button');
 
 export default class FormGalleryFilter extends React.Component {
   constructor(props){
@@ -115,6 +111,7 @@ export default class FormGalleryFilter extends React.Component {
           onChange={this.onFilterAllVersionsChange}
           disabled={deployedVersionsCount < 2}
           label={t('Include submissions from all ##count## deployed versions').replace('##count##', deployedVersionsCount)}
+          id='filter-all-versions'
         />
       </bem.AssetGallery__heading>
     );

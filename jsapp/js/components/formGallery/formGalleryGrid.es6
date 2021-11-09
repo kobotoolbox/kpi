@@ -10,10 +10,10 @@ import {
   galleryStore,
 } from './galleryInterface';
 
-bem.AssetGallery__loadMore = makeBem(bem.AssetGallery, 'load-more');
-bem.AssetGallery__loadMoreMessage = makeBem(bem.AssetGallery, 'load-more-message');
-bem.AssetGallery__loadMoreButton = makeBem(bem.AssetGallery, 'load-more-button');
 bem.AssetGalleryGrid = makeBem(null, 'asset-gallery-grid');
+bem.AssetGalleryGrid__item = makeBem(bem.AssetGalleryGrid, 'item');
+bem.AssetGalleryGrid__itemOverlay = makeBem(bem.AssetGalleryGrid, 'item-overlay');
+bem.AssetGalleryGrid__itemOverlayText = makeBem(bem.AssetGalleryGrid, 'item-overlay-text');
 
 export default class FormGalleryGrid extends React.Component {
   constructor(props) {

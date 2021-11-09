@@ -1,10 +1,6 @@
 import React from 'react';
-import bem, {makeBem} from 'js/bem';
+import bem from 'js/bem';
 import {galleryActions} from './galleryInterface';
-
-bem.AssetGalleryGrid__item = makeBem(bem.AssetGalleryGrid, 'item');
-bem.AssetGalleryGrid__itemOverlay = makeBem(bem.AssetGalleryGrid, 'item-overlay');
-bem.AssetGalleryGrid__itemOverlayText = makeBem(bem.AssetGalleryGrid, 'item-overlay-text');
 
 export default class FormGalleryGridItem extends React.Component {
   openMediaInModal() {
