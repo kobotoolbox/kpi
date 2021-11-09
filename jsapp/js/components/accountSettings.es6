@@ -263,7 +263,6 @@ export default class AccountSettings extends React.Component {
                 </bem.AccountSettings__item>
 
                 <Checkbox
-                  id='requireAuth'
                   checked={this.state.requireAuth}
                   onChange={this.requireAuthChange}
                   label={t('Require authentication to see forms and submit data')}
