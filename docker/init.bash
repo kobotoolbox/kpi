@@ -66,6 +66,11 @@ rm -rf /tmp/celery*.pid
 echo 'Restore permissions on Celery logs folder'
 chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
 
+# This can take a while when starting a container with lots of media files.
+# Maybe we should add a disclaimer as we do in KoBoCAT to let the users
+# do it themselves
+chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_MEDIA_DIR}"
+
 echo 'KoBoForm initialization completed.'
 
 exec /usr/bin/runsvdir "${SERVICES_DIR}"
