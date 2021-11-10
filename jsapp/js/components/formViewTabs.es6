@@ -21,12 +21,12 @@ export function getFormDataTabs(assetUid) {
     },
     {
       label: t('Reports'),
-      icon: 'k-icon k-icon-report',
+      icon: 'k-icon k-icon-reports',
       path: ROUTES.FORM_REPORT.replace(':uid', assetUid),
     },
     {
       label: t('Gallery'),
-      icon: 'k-icon k-icon-photo-gallery',
+      icon: 'k-icon k-icon-gallery',
       path: ROUTES.FORM_GALLERY.replace(':uid', assetUid),
     },
     {
@@ -189,7 +189,7 @@ class FormViewTabs extends Reflux.Component {
       ) {
         sideTabs.push({
           label: t('Media'),
-          icon: 'k-icon k-icon-photo-gallery',
+          icon: 'k-icon k-icon-gallery',
           path: ROUTES.FORM_MEDIA.replace(':uid', this.state.assetid),
         });
       }
@@ -248,7 +248,9 @@ class FormViewTabs extends Reflux.Component {
                 onClick={this.triggerRefresh}
               >
                 <i className={`k-icon ${item.icon}`} />
-                {item.label}
+                <span className='form-view__tab-name'>
+                  {item.label}
+                </span>
               </Link>
             );
           })}

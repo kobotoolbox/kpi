@@ -89,7 +89,8 @@
   .k-drawer {
     position: fixed;
     z-index: 1050; // must be over leaflet
-    left: -274px;
+    // We need some pxs more as there is shadow on the drawer.
+    left: -1 * $s-drawer-width - 10px;
     transition: left 0.5s;
     background-color: $kobo-white;
 
@@ -98,7 +99,6 @@
 
   .page-wrapper--fixed-drawer .k-drawer {
     left: 0;
-    width: 340px;
   }
 
   .k-drawer + .mdl-layout__content {

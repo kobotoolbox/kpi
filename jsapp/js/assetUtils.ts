@@ -193,13 +193,13 @@ export function getAssetIcon(asset: AssetResponse) {
       return 'k-icon k-icon-block';
     case ASSET_TYPES.survey.id:
       if (asset.summary?.lock_any) {
-        return 'k-icon k-icon-form-locked';
+        return 'k-icon k-icon-project-locked';
       } else if (asset.has_deployment && !asset.deployment__active) {
-        return 'k-icon k-icon-form-archived';
+        return 'k-icon k-icon-project-archived';
       } else if (asset.has_deployment) {
-        return 'k-icon k-icon-form-deployed';
+        return 'k-icon k-icon-project-deployed';
       } else {
-        return 'k-icon k-icon-form-draft';
+        return 'k-icon k-icon-project-draft';
       }
     case ASSET_TYPES.collection.id:
       if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
@@ -212,7 +212,7 @@ export function getAssetIcon(asset: AssetResponse) {
         return 'k-icon k-icon-folder';
       }
     default:
-      return 'k-icon k-icon-form';
+      return 'k-icon k-icon-project';
   }
 }
 
@@ -425,7 +425,7 @@ export function renderQuestionTypeIcon(
   }
 
   if (rowType === META_QUESTION_TYPES['background-audio']) {
-    iconClassName = 'k-icon-qt-audio';
+    iconClassName = 'k-icon-background-rec';
   } else if (META_QUESTION_TYPES.hasOwnProperty(rowType)) {
     iconClassName = 'qt-meta-default';
   }
