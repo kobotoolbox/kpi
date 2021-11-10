@@ -270,7 +270,7 @@ class AssetRow extends React.Component {
                 data-asset-name={assetName}
                 data-disabled={false}
                 >
-              <i className='k-icon k-icon-clone' />
+              <i className='k-icon k-icon-duplicate' />
             </bem.AssetRow__actionIcon>
 
             { this.props.asset_type &&

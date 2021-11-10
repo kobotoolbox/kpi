@@ -228,7 +228,7 @@ export class FormLanding extends React.Component {
                           data-tip={t('Clone this version as a new project')}
                           onClick={this.saveCloneAs}
                         >
-                          <i className='k-icon k-icon-clone' />
+                          <i className='k-icon k-icon-duplicate' />
                         </bem.FormView__link>
                       </bem.FormView__label>
                     }
@@ -502,7 +502,7 @@ export class FormLanding extends React.Component {
 
           {isLoggedIn &&
             <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-              <i className='k-icon k-icon-clone'/>
+              <i className='k-icon k-icon-duplicate'/>
               {t('Clone this project')}
             </bem.PopoverMenu__link>
           }

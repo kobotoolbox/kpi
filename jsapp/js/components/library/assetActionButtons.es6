@@ -462,7 +462,7 @@ class AssetActionButtons extends React.Component {
             data-tip={t('Clone')}
             className='right-tooltip'
           >
-            <i className='k-icon k-icon-clone'/>
+            <i className='k-icon k-icon-duplicate'/>
           </bem.AssetActionButtons__iconButton>
         }
 
