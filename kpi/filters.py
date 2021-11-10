@@ -87,6 +87,16 @@ class AssetOrderingFilter(filters.OrderingFilter):
 class AttachmentFilter(filters.BaseFilterBackend):
 
     def filter_queryset(self, request, queryset, view):
+
+        # Add partial submissions support
+        submission_ids = view.asset.deployment.validate_write_access_with_partial_perms(
+            user=request.user,
+            perm=PERM_VIEW_SUBMISSIONS,
+        )
+
+        if submission_ids:
+            queryset = queryset.filter(instance_id__in=submission_ids)
+
         attachments_type = request.query_params.get('type')
         group_by = request.query_params.get('group_by')
         all_ = request.query_params.get('all', 'true') == 'true'

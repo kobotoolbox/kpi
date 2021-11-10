@@ -602,11 +602,24 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel):
 
     @property
     def question_name(self):
-        qa_dict = self.instance.json
-        if self.filename not in qa_dict.values():
-            return None
 
-        return list(qa_dict.keys())[list(qa_dict.values()).index(self.filename)]
+        qa_dict = self.instance.json
+        filename = self.filename
+        if filename in qa_dict.values():
+            return list(qa_dict)[
+                list(qa_dict.values()).index(filename)]
+
+        # Ugly hack to find a match when filename contains a space.
+        # Django saves the name without any spaces
+        # Need some optimizations.
+        questions = self.instance.xform.questions
+        for key, value in qa_dict.items():
+            for question in questions:
+                if key == question['name'] and question['type'] == 'image':
+                    if ' ' in value and value.replace(' ', '_') == filename:
+                        return key
+
+        return None
 
     @property
     def question(self):
@@ -614,6 +627,9 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel):
             return None
 
         for question in self.instance.xform.questions:
+            if question['type'] != 'image':
+                continue
+
             if question['name'] == self.question_name:
                 return question
 
@@ -625,29 +641,6 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel):
             return self.id
 
         return self.question['number']
-
-    @property
-    def can_view_submission(self):
-        # TODO: Only attachments synced to s3 should be viewable by other users
-        # Can determine this by looking at media_file upload properties
-        # Alternatively, can move this into User Profile or Asset permissions logic
-        return True
-
-    def secure_url(self, suffix='original'):
-        """
-        Returns image URL through KoBoCAT redirector.
-        :param suffix: str. original|large|medium|small
-        :return: str
-        """
-        if suffix != 'original' and suffix not in settings.THUMB_CONF.keys():
-            raise Exception("Invalid image thumbnail")
-
-        return '{kobocat_url}{media_url}{suffix}?media_file={filename}'.format(
-            kobocat_url=settings.KOBOCAT_URL,
-            media_url=settings.MEDIA_URL,
-            suffix=suffix,
-            filename=self.media_file.name
-        )
 
 
 class ReadOnlyKobocatInstance(ReadOnlyModel):

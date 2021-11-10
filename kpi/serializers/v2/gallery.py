@@ -194,14 +194,13 @@ class AttachmentSerializer(serializers.ModelSerializer):
         return obj.question
 
     def get_submission(self, obj):
-        asset = self.context['asset']
-        request = self.context['request']
-        return asset.deployment.get_submission(
-            submission_id=obj.instance.pk, user=request.user
-        )
+        return self._get_submission(obj)
 
     def get_can_view_submission(self, obj):
-        return obj.can_view_submission
+        # Kept for retro-compability with the front-end
+        # Attachments are narrowed down in the `AttachmentFilter` so
+        # submission should be visible all the time.
+        return True
 
     def get_url(self, obj):
         asset_uid = self.context.get('asset_uid')
@@ -228,9 +227,36 @@ class AttachmentSerializer(serializers.ModelSerializer):
         return self._get_download_url(obj, 'large')
 
     def _get_download_url(self, obj, size):
-        if obj.media_file:
-            return obj.media_file.instance.secure_url(suffix=size)
-        return None
+        if not obj.media_file:
+            return None
+
+        submission = self._get_submission(obj)
+        try:
+            attachments = submission['_attachments']
+        except KeyError:
+            return None
+
+        for attachment in attachments:
+            if int(attachment['id']) != int(obj.id):
+                continue
+            try:
+                return attachment[f'download_{size}_url']
+            except KeyError:
+                return None
+
+    def _get_submission(self, obj):
+        asset = self.context['asset']
+        request = self.context['request']
+
+        if not hasattr(obj, 'submission'):
+            submission = asset.deployment.get_submission(
+                submission_id=obj.instance.pk,
+                user=request.user,
+                request=request,
+            )
+            setattr(obj, 'submission', submission)
+
+        return obj.submission
 
 
 class AttachmentListSerializer(AttachmentSerializer):

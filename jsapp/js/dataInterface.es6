@@ -596,7 +596,7 @@ export var dataInterface;
     },
     filterGalleryImages(uid, filter_by, page_size, sort='asc', all_versions=true){
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments/`,
         method: 'GET',
         data: {
           type: 'image',
@@ -609,7 +609,7 @@ export var dataInterface;
     },
     loadMoreAttachments(uid, filter_by, index, page, page_size, sort='asc', all_versions=true){
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments/`,
         method: 'GET',
         data: {
           type: 'image',
@@ -624,7 +624,7 @@ export var dataInterface;
     },
     loadMoreRecords(uid, filter_by, page, page_size, all_versions=true){
       return $ajax({
-        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments`,
+        url: `${ROOT_URL}/api/v2/assets/${uid}/attachments/`,
         method: 'GET',
         data: {
           type: 'image',

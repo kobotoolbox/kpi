@@ -129,11 +129,14 @@ class BaseDeploymentBackend(abc.ABC):
     def get_enketo_survey_links(self):
         pass
 
-    def get_submission(self,
-                       submission_id: int,
-                       user: 'auth.User',
-                       format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
-                       **mongo_query_params: dict) -> Union[dict, str, None]:
+    def get_submission(
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
+        request: Optional['rest_framework.request.Request'] = None,
+        **mongo_query_params: dict
+    ) -> Union[dict, str, None]:
         """
         Retrieve the corresponding submission whose id equals `submission_id`
         and which `user` is allowed to access.
@@ -153,7 +156,11 @@ class BaseDeploymentBackend(abc.ABC):
 
         submissions = list(
             self.get_submissions(
-                user, format_type, [int(submission_id)], **mongo_query_params
+                user,
+                format_type,
+                [int(submission_id)],
+                request,
+                **mongo_query_params
             )
         )
         try:
