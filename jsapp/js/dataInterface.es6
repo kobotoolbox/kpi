@@ -232,10 +232,10 @@ export var dataInterface;
         url: url,
       });
     },
-    generateCSV(orgId, uid) {
+    pullOrgDataIntoAsset(orgId, uid) {
       return $ajax({
         method: 'POST',
-        url: `${ROOT_URL}/generate-org-csv`,
+        url: `${ROOT_URL}/pull-veritree-org-data`,
         data: {
           org_id: orgId,
           asset_uid: uid

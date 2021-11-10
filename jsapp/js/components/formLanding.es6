@@ -566,6 +566,28 @@ export class FormLanding extends React.Component {
       </bem.FormView__cell>
     );
   }
+
+  renderOrgSyncButtons() {
+    const orgs = stores.session.currentAccount?.organization || []
+
+    if (orgs && orgs.length) {
+      return (
+        orgs.map(org => (
+          <bem.FormView__cell m={['columns', 'padding', 'bordertop']}>
+            {`${t('Sync region and planting site data with')}: ${org.org.name}`}
+            <bem.Button
+              onClick={(evt) => {actions.resources.pullOrgDataIntoAsset(org.org.id, this.state.uid)}}
+              m='icon'
+            >
+              <i className={'k-icon k-icon-data-sync'} />
+            </bem.Button>
+          </bem.FormView__cell>
+        )) 
+      )
+    }
+    return null
+  }
+
   render () {
     var docTitle = this.state.name || t('Untitled');
     const userCanEdit = this.userCan('change_asset', this.state);
@@ -598,6 +620,7 @@ export class FormLanding extends React.Component {
               }
               {this.renderFormInfo(userCanEdit)}
               {this.renderLanguages(userCanEdit)}
+              {this.renderOrgSyncButtons()}
             </bem.FormView__cell>
           </bem.FormView__row>
           {this.state.deployed_versions.count > 0 &&

@@ -16,7 +16,7 @@ from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.token import TokenView
 
-from veritree.views.org_views import generate_org_csv_view, veritree_org_asset_link, veritree_org_asset_unlink
+from veritree.views.org_views import generate_org_data_for_asset, veritree_org_asset_link, veritree_org_asset_unlink
 
 from .router_api_v1 import router_api_v1
 from .router_api_v2 import router_api_v2, URL_NAMESPACE
@@ -67,7 +67,7 @@ urlpatterns = [
     path('veritree_redirect/', veritree_redirect),
     path('veritree_org_asset/share', veritree_org_asset_link),
     path('veritree_org_asset/unshare', veritree_org_asset_unlink),
-    path('generate-org-csv', generate_org_csv_view)
+    path('pull-veritree-org-data', generate_org_data_for_asset)
 ]
 
 if settings.DEBUG and settings.ENV == 'dev':
