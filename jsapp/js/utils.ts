@@ -11,7 +11,6 @@
 import moment from 'moment';
 import alertify from 'alertifyjs';
 import {Cookies} from 'react-cookie';
-import { hashHistory } from 'react-router';
 // importing whole constants, as we override ROOT_URL in tests
 import constants from 'js/constants';
 

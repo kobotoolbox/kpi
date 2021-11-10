@@ -7,6 +7,7 @@ import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
+import {ROUTES} from 'js/router/routerConstants';
 import {truncateString} from 'js/utils';
 import './mediaCell.scss';
 
@@ -41,6 +42,9 @@ bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', 'i');
                               content of a text question
  * @prop {string} submissionIndex - Index of the submission for text questions
  * @prop {string} submissionTotal - Total submissions for text questions
+ * @prop {string} assetUid
+ * @prop {string} questionName
+ * @prop {string} submissionId
  */
 class MediaCell extends React.Component {
   constructor(props) {
@@ -60,8 +64,10 @@ class MediaCell extends React.Component {
         iconClassNames.push('k-icon-qt-photo');
         break;
       case QUESTION_TYPES.audio.id:
-      case META_QUESTION_TYPES['background-audio']:
         iconClassNames.push('k-icon-qt-audio');
+        break;
+      case META_QUESTION_TYPES['background-audio']:
+        iconClassNames.push('k-icon-background-rec');
         break;
       case QUESTION_TYPES.video.id:
         iconClassNames.push('k-icon-qt-video');
@@ -75,6 +81,13 @@ class MediaCell extends React.Component {
     }
 
     return iconClassNames.join(' ');
+  }
+
+  getProcessingUrl() {
+    return '/#' + ROUTES.FORM_PROCESSING
+      .replace(':uid', this.props.assetUid)
+      .replace(':questionName', this.props.questionName)
+      .replace(':submissionId', this.props.submissionId);
   }
 
   launchMediaModal(evt) {
@@ -139,18 +152,15 @@ class MediaCell extends React.Component {
             </a>
           }
 
-          {/*
-            TODO: Uncomment this buttton after single processing view is done
-
+          {[QUESTION_TYPES.audio.id, META_QUESTION_TYPES['background-audio']].includes(this.props.questionType) &&
             <a
-              className='kobo-light-button kobo-light-button--gray'
-              href={'#'}
+              className='kobo-light-button'
+              href={this.getProcessingUrl()}
             >
               {t('process')}
-
               <i className='k-icon k-icon-arrow-up-right'/>
             </a>
-          */}
+          }
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>
     );

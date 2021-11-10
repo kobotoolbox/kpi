@@ -1,0 +1,72 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "./singleProcessingVariables";
+
+.single-processing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+}
+
+.single-processing-content__tabs {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: singleProcessingVariables.$s-single-processing-tabs;
+}
+
+.single-processing-content__tab {
+  cursor: pointer;
+  color: colors.$kobo-gray-55;
+  position: relative;
+  font-weight: 900;
+  font-size: sizes.$x16;
+  line-height: sizes.$x52;
+  text-transform: uppercase;
+  padding: 0;
+
+  &:not(:first-of-type) {
+    margin-left: sizes.$x42;
+  }
+
+  &:hover {
+    color: colors.$kobo-gray-40;
+  }
+
+  &:active:not(.single-processing-content__tab--active) {
+    transform: translateY(#{sizes.$x1});
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+    height: sizes.$x8;
+  }
+
+  &.single-processing-content__tab--active {
+    color: colors.$kobo-gray-24;
+
+    &::after {
+      background-color: colors.$kobo-teal;
+    }
+  }
+
+  &[disabled] {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
+
+.single-processing-content__body {
+  background-color: colors.$kobo-white;
+  border-radius: sizes.$x6 sizes.$x6 0 0;
+  flex: 1;
+  overflow-y: auto;
+}

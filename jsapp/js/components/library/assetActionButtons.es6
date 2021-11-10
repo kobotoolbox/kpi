@@ -181,7 +181,6 @@ class AssetActionButtons extends React.Component {
   viewContainingCollection() {
     const parentArr = this.props.asset.parent.split('/');
     const parentAssetUid = parentArr[parentArr.length - 2];
-    hashHistory.push(`/library/asset/${parentAssetUid}`);
     hashHistory.push(ROUTES.LIBRARY_ITEM.replace(':uid', parentAssetUid));
   }
 
@@ -271,7 +270,7 @@ class AssetActionButtons extends React.Component {
               href={dl.url}
               key={`dl-${dl.format}`}
             >
-              <i className={`k-icon k-icon-${dl.format}-file`}/>
+              <i className={`k-icon k-icon-file-${dl.format}`}/>
               {t('Download')}&nbsp;{dl.format.toString().toUpperCase()}
             </bem.PopoverMenu__link>
           );
@@ -462,7 +461,7 @@ class AssetActionButtons extends React.Component {
             data-tip={t('Clone')}
             className='right-tooltip'
           >
-            <i className='k-icon k-icon-clone'/>
+            <i className='k-icon k-icon-duplicate'/>
           </bem.AssetActionButtons__iconButton>
         }
 
