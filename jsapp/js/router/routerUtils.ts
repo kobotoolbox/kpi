@@ -14,15 +14,15 @@ import {
   PATHS,
 } from 'js/router/routerConstants';
 
-export function redirectToLogin(): void {
+export function redirectToLogin() {
   window.location.replace(getLoginUrl());
 }
 
 /**
- * Returns login url with a `next` parameter - after logging in, the
+ * @returns {string} login url with a `next` parameter - after logging in, the
  * app will redirect to the next url
  */
-export function getLoginUrl(): string {
+export function getLoginUrl() {
   let url = PATHS.LOGIN;
   const currentLoc = hashHistory.getCurrentLocation();
   if (currentLoc?.pathname) {

@@ -354,7 +354,7 @@ function populateMatrixData(
  * Returns data for given row, works for groups too. Returns `null` for no
  * answer, array for repeat groups and object for regular groups
  */
-export function getRowData(
+function getRowData(
   name: string,
   survey: SurveyRow[],
   data: SubmissionResponse

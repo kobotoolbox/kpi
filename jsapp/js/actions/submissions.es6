@@ -5,16 +5,13 @@
 import Reflux from 'reflux';
 import {dataInterface} from 'js/dataInterface';
 import {notify} from 'utils';
-import {ROOT_URL} from 'js/constants';
 
 const submissionsActions = Reflux.createActions({
-  getSubmission: {children: ['completed', 'failed']},
   getSubmissions: {children: ['completed', 'failed']},
   bulkDeleteStatus: {children: ['completed', 'failed']},
   bulkPatchStatus: {children: ['completed', 'failed']},
   bulkPatchValues: {children: ['completed', 'failed']},
   bulkDelete: {children: ['completed', 'failed']},
-  getProcessingSubmissions: {children: ['completed', 'failed']},
 });
 
 /**
@@ -50,26 +47,6 @@ submissionsActions.getSubmissions.listen((options) => {
     .fail((response) => {
       submissionsActions.getSubmissions.failed(response, options);
     });
-});
-
-/**
- * This gets an array of submission ids
- * @param {string} assetUid
- */
-submissionsActions.getProcessingSubmissions.listen((assetUid, questionPath) => {
-  $.ajax({
-    dataType: 'json',
-    method: 'GET',
-    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_id", "${questionPath}"]`,
-  })
-    .done(submissionsActions.getProcessingSubmissions.completed)
-    .fail(submissionsActions.getProcessingSubmissions.failed);
-});
-
-submissionsActions.getSubmission.listen((assetUid, submissionId) => {
-  dataInterface.getSubmission(assetUid, submissionId)
-    .done(submissionsActions.getSubmission.completed)
-    .fail(submissionsActions.getSubmission.failed);
 });
 
 submissionsActions.bulkDeleteStatus.listen((uid, data) => {

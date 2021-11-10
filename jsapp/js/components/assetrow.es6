@@ -270,7 +270,7 @@ class AssetRow extends React.Component {
                 data-asset-name={assetName}
                 data-disabled={false}
                 >
-              <i className='k-icon k-icon-duplicate' />
+              <i className='k-icon k-icon-clone' />
             </bem.AssetRow__actionIcon>
 
             { this.props.asset_type &&
@@ -365,7 +365,7 @@ class AssetRow extends React.Component {
                 return (
                     <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                         key={`dl-${dl.format}`}>
-                      <i className={`k-icon k-icon-file-${dl.format}`}/>
+                      <i className={`k-icon k-icon-${dl.format}-file`}/>
                       {t('Download')}&nbsp;
                       {dl.format.toString().toUpperCase()}
                     </bem.PopoverMenu__link>

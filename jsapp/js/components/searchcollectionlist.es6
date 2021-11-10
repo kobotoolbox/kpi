@@ -119,7 +119,7 @@ class SearchCollectionList extends Reflux.Component {
 
           {this.state.parentName &&
             <span>
-              <i className='k-icon k-icon-angle-right' />
+              <i className='k-icon k-icon-next' />
               <span>{this.state.parentName}</span>
             </span>
           }

@@ -7,7 +7,6 @@ require('jquery-ui/ui/widgets/sortable');
 import moment from 'moment';
 import AllRoutes from 'js/router/allRoutes';
 import RegistrationPasswordApp from './registrationPasswordApp';
-import DesignSystemApp from 'js/designSystem/designSystemApp';
 import {AppContainer} from 'react-hot-loader';
 import '@babel/polyfill'; // required to support Array.prototypes.includes in IE11
 import React from 'react';
@@ -49,14 +48,14 @@ $.ajaxSetup({
   },
 });
 
-if (document.head.querySelector('meta[name=kpi-root-path]')) {
-  // Create the element for rendering the app into
-  const el = (() => {
-    const $d = $('<div>', {class: 'kpiapp'});
-    $('body').prepend($d);
-    return $d.get(0);
-  })();
+// Create the element for rendering the app into
+const el = (() => {
+  const $d = $('<div>', {class: 'kpiapp'});
+  $('body').prepend($d);
+  return $d.get(0);
+})();
 
+if (document.head.querySelector('meta[name=kpi-root-path]')) {
   render(<AllRoutes/>, el);
 
   if (module.hot) {
@@ -85,21 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <RegistrationPasswordApp />
       </AppContainer>,
       registrationPasswordAppEl
-    );
-  }
-});
-
-// Handles rendering a dev app with design system.
-document.addEventListener('DOMContentLoaded', () => {
-  const designSystemAppEl = document.getElementById(
-    'design-system-app'
-  );
-  if (designSystemAppEl) {
-    render(
-      <AppContainer>
-        <DesignSystemApp/>
-      </AppContainer>,
-      designSystemAppEl
     );
   }
 });

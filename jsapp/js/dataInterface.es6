@@ -670,10 +670,9 @@ export var dataInterface;
     getSubmission(uid, sid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/`,
-        method: 'GET',
+        method: 'GET'
       });
     },
-
     duplicateSubmission(uid, sid) {
       return $ajax({
         url: `${ROOT_URL}/api/v2/assets/${uid}/data/${sid}/duplicate/`,

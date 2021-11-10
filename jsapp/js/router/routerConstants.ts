@@ -26,14 +26,11 @@ export const ROUTES = Object.freeze({
   FORM_LANDING: '/forms/:uid/landing',
   FORM_DATA: '/forms/:uid/data',
   FORM_REPORT: '/forms/:uid/data/report',
-  /** Has: :uid */
   FORM_TABLE: '/forms/:uid/data/table',
   FORM_DOWNLOADS: '/forms/:uid/data/downloads',
   FORM_GALLERY: '/forms/:uid/data/gallery',
   FORM_MAP: '/forms/:uid/data/map',
   FORM_MAP_BY: '/forms/:uid/data/map/:viewby',
-  /** Has: :uid, :questionName, :submissionId */
-  FORM_PROCESSING: '/forms/:uid/data/processing/:questionName/:submissionId',
   FORM_SETTINGS: '/forms/:uid/settings',
   FORM_MEDIA: '/forms/:uid/settings/media',
   FORM_SHARING: '/forms/:uid/settings/sharing',

@@ -14,8 +14,8 @@ import {
   ASSET_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
-import {ROUTES} from 'js/router/routerConstants';
 import './sharingForm.scss';
+import {ROUTES} from 'js/router/routerConstants';
 // parts
 import CopyTeamPermissions from './copyTeamPermissions';
 import UserAssetPermsEditor from './userAssetPermsEditor';

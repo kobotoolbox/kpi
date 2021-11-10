@@ -728,7 +728,7 @@ export default assign({
     return (
       <bem.FormBuilderMessageBox m='warning'>
         <span data-tip={t('background recording')}>
-          <i className='k-icon k-icon-project-overview'/>
+          <i className='k-icon k-icon-form-overview'/>
         </span>
 
         <p>

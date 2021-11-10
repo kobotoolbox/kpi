@@ -1,9 +1,4 @@
-// DEPRECATED: please don't use this component. From now on, we will only use
-// the `Button` component (from `js/components/common/button`) as it covers
-// all possible cases.
-
 @use "scss/_colors";
-@use "scss/sizes";
 
 /*
  * This is a smaller alternative to kobo-button. Modifiers to use:
@@ -15,7 +10,6 @@
  * - green
  * - orange
  * - red
- * - gray
  */
 
 @mixin koboLightButtonVariant($mainColor) {
@@ -40,35 +34,34 @@
   display: inline-block;
   vertical-align: middle;
   position: relative; // needed for tooltips etc.
-  font-size: sizes.$x14;
+  font-size: 14px;
   font-weight: 400;
   text-decoration: none;
   text-align: center;
-  border-radius: sizes.$x4;
-  height: sizes.$x28;
-  line-height: sizes.$x14;
-  padding: sizes.$x6 sizes.$x12;
+  border-radius: 4px;
+  height: 24px;
+  line-height: 14px;
+  padding: 4px 12px;
   margin: 0;
-  border-width: sizes.$x1;
+  border-width: 1px;
   border-style: solid;
   white-space: nowrap; // for smaller screens
 
-  // TODO: this assumes that icon goes before button text
   // icon inside is bigger than the button, so we need cleverness to position it
   i,
   .k-icon {
     vertical-align: top;
-    font-size: sizes.$x18;
+    font-size: 18px;
     position: relative;
     top: -2px;
-    margin-right: sizes.$x4;
+    margin-right: 3px;
   }
 
   &.kobo-light-button--icon-only,
   &.kobo-light-badge--icon-only {
     // ideally we want a square here
-    padding-left: sizes.$x4;
-    padding-right: sizes.$x4;
+    padding-left: 4px;
+    padding-right: 4px;
 
     & i,
     & .k-icon {
@@ -87,8 +80,8 @@
   background-color: colors.$kobo-gray-92;
   border-color: colors.$kobo-gray-92;
   white-space: nowrap;
-  padding-left: sizes.$x8;
-  padding-right: sizes.$x8;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .kobo-light-button {
@@ -110,8 +103,9 @@
   }
 
   &:active {
-    // moves button down by small bit to make it look pressed-in
-    transform: translateY(#{sizes.$x1});
+    // makes the shadow smaller and moves button down by small bit
+    // to make it look pressed-in
+    transform: translateY(1px);
   }
 
   &.kobo-light-button--blue {

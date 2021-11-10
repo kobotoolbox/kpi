@@ -12,9 +12,6 @@
 // 4. We should migrate form-view layout to flex box to avoid all those calc()
 //    and to make it context independent.
 
-$side-tabs-width: 180px;
-$side-tabs-width-mobile: 70px;
-
 ////////////////////////////////////////////////////////////////////////////////
 // Main parts
 ////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +48,7 @@ $side-tabs-width-mobile: 70px;
 
 // The additional side menu tabs on the left
 .form-view__sidetabs {
-  width: $side-tabs-width;
+  width: 170px;
   height: 100%;
   max-height: calc(100% - 48px);
   overflow-x: hidden;
@@ -64,7 +61,7 @@ $side-tabs-width-mobile: 70px;
   & + .report-view,
   & + .loading,
   & + .access-denied {
-    width: calc(100% - #{$side-tabs-width});
+    width: calc(100% - 170px);
     height: calc(100% - 48px);
     overflow: auto;
     overflow-x: hidden;
@@ -796,23 +793,19 @@ $side-tabs-width-mobile: 70px;
 
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
-    width: $side-tabs-width-mobile;
+    width: 50px;
 
     a.form-view__tab {
       padding-right: 3px;
       padding-left: 1px;
       font-size: 10px;
-      line-height: 1;
+      line-height: 1.5em;
       text-align: center;
       display: block;
       letter-spacing: -0.05em;
 
-      .k-icon {
-        margin: 0;
-      }
-
-      .form-view__tab-name {
-        display: block;
+      span {
+        display: none;
       }
     }
   }
@@ -821,12 +814,12 @@ $side-tabs-width-mobile: 70px;
     height: 39px;
 
     a.form-view__tab {
-      font-size: 14px;
+      font-size: 12px;
     }
   }
 
   .form-view__sidetabs + .form-view {
-    width: calc(100% - #{$side-tabs-width-mobile});
+    width: calc(100% - 50px);
     overflow-x: hidden;
   }
 

@@ -51,8 +51,8 @@ class FormLockedMessage extends React.Component {
       <React.Fragment>
         <bem.FormBuilderMessageBox__toggle onClick={this.toggleMoreInfo}>
           {t('see more')}
-          {this.state.isOpen && <i className='k-icon k-icon-angle-up'/>}
-          {!this.state.isOpen && <i className='k-icon k-icon-angle-down'/>}
+          {this.state.isOpen && <i className='k-icon k-icon-up'/>}
+          {!this.state.isOpen && <i className='k-icon k-icon-down'/>}
         </bem.FormBuilderMessageBox__toggle>
 
         {this.state.isOpen &&

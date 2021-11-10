@@ -740,7 +740,7 @@ class ProjectSettings extends React.Component {
             rejectClassName='dropzone-reject'
             accept={validFileTypes()}
           >
-            <i className='k-icon k-icon-file-xls' />
+            <i className='k-icon k-icon-xls-file' />
             {t(' Drag and drop the XLSForm file here or click to browse')}
           </Dropzone>
         }

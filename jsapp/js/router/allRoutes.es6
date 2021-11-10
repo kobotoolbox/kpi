@@ -29,7 +29,6 @@ import FormNotFound from 'js/components/formNotFound';
 import FormXform from 'js/components/formXform';
 import FormJson from 'js/components/formJson';
 import FormsSearchableList from 'js/lists/forms';
-import SingleProcessing from 'js/components/processing/singleProcessing';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -52,7 +51,7 @@ export default class AllRoutes extends React.Component {
   }
 
   componentDidMount() {
-    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted.bind(this));
+    actions.permissions.getConfig.completed.listen(this.onGetConfigCompleted);
     stores.session.listen(this.onSessionChange);
     actions.permissions.getConfig();
   }
@@ -243,12 +242,6 @@ export default class AllRoutes extends React.Component {
                 path={ROUTES.FORM_MAP_BY}
                 component={PermProtectedRoute}
                 protectedComponent={FormSubScreens}
-                requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
-              />
-              <Route
-                path={ROUTES.FORM_PROCESSING}
-                component={PermProtectedRoute}
-                protectedComponent={SingleProcessing}
                 requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
               />
             </Route>

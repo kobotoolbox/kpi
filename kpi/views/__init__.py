@@ -30,10 +30,6 @@ def browser_tests(request):
     return TemplateResponse(request, "browser_tests.html")
 
 
-def design_system(request):
-    return TemplateResponse(request, "design_system.html")
-
-
 @api_view(['POST'])
 @authentication_classes([ApplicationTokenAuthentication])
 def authorized_application_authenticate_user(request):

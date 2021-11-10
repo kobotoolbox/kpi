@@ -137,7 +137,7 @@ class AssetInfoBox extends React.Component {
 
         <bem.AssetInfoBox__column m='toggle'>
           <bem.AssetInfoBox__toggle onClick={this.toggleDetails}>
-            {this.state.areDetailsVisible ? <i className='k-icon k-icon-angle-up'/> : <i className='k-icon k-icon-angle-down'/>}
+            {this.state.areDetailsVisible ? <i className='k-icon k-icon-up'/> : <i className='k-icon k-icon-down'/>}
             {this.state.areDetailsVisible ? t('Hide full details') : t('Show full details')}
           </bem.AssetInfoBox__toggle>
         </bem.AssetInfoBox__column>

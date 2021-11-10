@@ -7,13 +7,6 @@ interface FailResponse {
   statusText: string
 }
 
-interface GetProcessingSubmissionsResponse extends PaginatedResponse {
-  results: {
-    [questionName: string]: any
-    _id: number
-  }[]
-}
-
 interface SubmissionAttachment {
   download_url: string
   download_large_url: string
