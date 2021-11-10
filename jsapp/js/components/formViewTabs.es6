@@ -21,7 +21,7 @@ export function getFormDataTabs(assetUid) {
     },
     {
       label: t('Reports'),
-      icon: 'k-icon k-icon-report',
+      icon: 'k-icon k-icon-reports',
       path: ROUTES.FORM_REPORT.replace(':uid', assetUid),
     },
     {
