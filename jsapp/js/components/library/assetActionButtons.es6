@@ -271,7 +271,7 @@ class AssetActionButtons extends React.Component {
               href={dl.url}
               key={`dl-${dl.format}`}
             >
-              <i className={`k-icon k-icon-${dl.format}-file`}/>
+              <i className={`k-icon k-icon-file-${dl.format}`}/>
               {t('Download')}&nbsp;{dl.format.toString().toUpperCase()}
             </bem.PopoverMenu__link>
           );

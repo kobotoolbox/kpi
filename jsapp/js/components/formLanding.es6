@@ -477,7 +477,7 @@ export class FormLanding extends React.Component {
             return (
                 <bem.PopoverMenu__link m={`dl-${dl.format}`} href={dl.url}
                     key={`dl-${dl.format}`}>
-                  <i className={`k-icon k-icon-${dl.format}-file`}/>
+                  <i className={`k-icon k-icon-file-${dl.format}`}/>
                   {t('Download')}&nbsp;
                   {dl.format.toString().toUpperCase()}
                 </bem.PopoverMenu__link>
