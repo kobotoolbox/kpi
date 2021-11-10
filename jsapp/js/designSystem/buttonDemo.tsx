@@ -216,7 +216,6 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                     <div className='demo__form-config'>
                       <Checkbox
                         label='is disabled'
-                        id='button-is-disabled'
                         onChange={this.onIsDisabledChange.bind(this)}
                         checked={this.state.isDisabled}
                       />
@@ -225,7 +224,6 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                     <div className='demo__form-config'>
                       <Checkbox
                         label='is pending'
-                        id='button-is-pending'
                         onChange={this.onIsPendingChange.bind(this)}
                         checked={this.state.isPending}
                       />
@@ -234,7 +232,6 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                     <div className='demo__form-config'>
                       <Checkbox
                         label='is full width'
-                        id='button-is-full-width'
                         onChange={this.onIsFullWidthChange.bind(this)}
                         checked={this.state.isFullWidth}
                       />
