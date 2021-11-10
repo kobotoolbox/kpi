@@ -61,7 +61,7 @@ class MediaCell extends React.Component {
         break;
       case QUESTION_TYPES.audio.id:
       case META_QUESTION_TYPES['background-audio']:
-        iconClassNames.push('k-icon-qt-audio');
+        iconClassNames.push('k-icon-background-rec');
         break;
       case QUESTION_TYPES.video.id:
         iconClassNames.push('k-icon-qt-video');

@@ -425,7 +425,7 @@ export function renderQuestionTypeIcon(
   }
 
   if (rowType === META_QUESTION_TYPES['background-audio']) {
-    iconClassName = 'k-icon-qt-audio';
+    iconClassName = 'k-icon-background-rec';
   } else if (META_QUESTION_TYPES.hasOwnProperty(rowType)) {
     iconClassName = 'qt-meta-default';
   }
