@@ -204,6 +204,7 @@ class KobocatOneTimeAuthToken(ShadowModel):
     One time authenticated token
     """
     HEADER = 'X-KOBOCAT-OTA-TOKEN'
+    QS_PARAM = 'kc_ota_token'
 
     user = models.ForeignKey(
         'KobocatUser',
@@ -213,6 +214,7 @@ class KobocatOneTimeAuthToken(ShadowModel):
     token = models.CharField(max_length=50, default=token_urlsafe)
     expiration_time = models.DateTimeField()
     method = models.CharField(max_length=6)
+    request_identifier = models.CharField(max_length=1000)
 
     class Meta(ShadowModel.Meta):
         db_table = 'api_onetimeauthtoken'
@@ -222,29 +224,33 @@ class KobocatOneTimeAuthToken(ShadowModel):
     def create_token(
             cls,
             user: 'auth.User',
-            method: str = 'POST',
+            method: str,
+            request_identifier: str,
+            use_identifier_as_token: bool = False,
             expiration_time: Optional[datetime] = None,
-            url: Optional[str] = None,
     ) -> 'KobocatOneTimeAuthToken':
         """
-        Create and return an instance of KobocatOneTimeAuthToken.
+        Get or create an instance of KobocatOneTimeAuthToken and return it.
 
-        If `url` is specified, it generates the token based on the URL instead
-        of auto-generating it.
-        It's useful for Enketo Express to be granted when POSTing data to
-        KoBoCAT from one specific url (e.g.: edit a submission).
+        If `use_identifier_as_token` is True, it generates the token based on
+        the `request_identifier` instead of auto-generating it.
         """
         kc_user = KobocatUser.objects.get(id=user.pk)
         token_attrs = dict(
-            user=kc_user, method=method,
+            user=kc_user, method=method, request_identifier=request_identifier,
             defaults={'expiration_time': expiration_time},
         )
 
-        if url is not None:
+        if use_identifier_as_token:
             # `Signer()` returns 'url:encoded-string'.
             # E.g: https://ee.kt.org/edit:a123bc'
-            # We only want the last part
-            parts = Signer().sign(url).split(':')
+            # We only want the last part.
+            # When KoBoCAT tries to get the token, it reads the headers, then
+            # the querystring parameters and finally uses the HTTP referrer if
+            # none of the others worked. The headers and querystring parameters
+            # cannot be transferred through Enketo Express, so we use its URL
+            # to generate the token and let KoBoCAT compare it to its referrer.
+            parts = Signer().sign(request_identifier).split(':')
             # TODO: consider removing Signer() as it's only value here is to
             # assure that the token will always be a consistent length (and,
             # for example, not overrun the size of the database column for long

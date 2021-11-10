@@ -848,8 +848,8 @@ mixins.permissions = {
     if (!asset.permissions) {
       return false;
     }
-
     const currentUsername = stores.session.currentAccount.username;
+
     if (asset.owner__username === currentUsername) {
       return true;
     }
@@ -878,6 +878,15 @@ mixins.permissions = {
    * @param {Object} asset
    */
   userCanPartially(permName, asset) {
+
+    const currentUsername = stores.session.currentAccount.username;
+
+    // Owners cannot have partial permissions because they have full permissions.
+    // Both are contradictory.
+    if (asset.owner__username === currentUsername) {
+      return false;
+    }
+
     return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
   },
 };

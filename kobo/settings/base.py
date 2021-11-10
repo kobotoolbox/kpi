@@ -743,23 +743,15 @@ HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
 add_type('application/wkt', '.wkt')
 add_type('application/geo+json', '.geojson')
 
+KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
 
-# TODO Get MEDIA_URL from `kc` endpoint
-# when this branch is merge with `two databases` related branches
-# Set MEDIA_URL to be Kobocat storage location
-MEDIA_URL = '/' + os.environ.get('KOBOCAT_MEDIA_URL', 'media').strip('/') + '/'
 if os.environ.get('KOBOCAT_ROOT_URI_PREFIX'):
-    KOBOCAT_ROOT_URI_PREFIX = '/' + os.environ['KOBOCAT_ROOT_URI_PREFIX'].strip('/') + '/'
-    MEDIA_URL = KOBOCAT_ROOT_URI_PREFIX + MEDIA_URL.lstrip('/')
+    KOBOCAT_ROOT_URI_PREFIX = os.environ['KOBOCAT_ROOT_URI_PREFIX'].strip('/')
+    KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/{KOBOCAT_ROOT_URI_PREFIX}/media/'
 
-MEDIA_ROOT = os.path.join(KOBOCAT_DIR, 'media/')
-
-# IMAGE TOOLS Variables
-THUMB_CONF = {
-    'large': {'size': 1280, 'suffix': '-large'},
-    'medium': {'size': 640, 'suffix': '-medium'},
-    'small': {'size': 240, 'suffix': '-small'},
+KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
+    'original': '',
+    'large': '_large',
+    'medium': '_medium',
+    'small': '_small',
 }
-# order of thumbnails from largest to smallest
-THUMB_ORDER = ['large', 'medium', 'small']
-IMG_FILE_TYPE = 'jpg'
