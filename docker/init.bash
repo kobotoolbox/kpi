@@ -63,6 +63,9 @@ fi
 echo 'Cleaning up Celery PIDs...'
 rm -rf /tmp/celery*.pid
 
+echo 'Restore permissions on Celery logs folder'
+chown -R "${UWSGI_USER}:${UWSGI_GROUP}" "${KPI_LOGS_DIR}"
+
 echo 'KoBoForm initialization completed.'
 
 exec /usr/bin/runsvdir "${SERVICES_DIR}"
