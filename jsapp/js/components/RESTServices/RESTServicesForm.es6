@@ -445,7 +445,6 @@ export default class RESTServicesForm extends React.Component {
             <bem.FormModal__item>
               <Checkbox
                 name='isActive'
-                id='active-checkbox'
                 onChange={this.handleActiveChange.bind(this)}
                 checked={this.state.isActive}
                 label={t('Enabled')}
@@ -455,7 +454,6 @@ export default class RESTServicesForm extends React.Component {
             <bem.FormModal__item>
               <Checkbox
                 name='emailNotification'
-                id='email-checkbox'
                 onChange={this.handleEmailNotificationChange.bind(this)}
                 checked={this.state.emailNotification}
                 label={t('Receive emails notifications')}
