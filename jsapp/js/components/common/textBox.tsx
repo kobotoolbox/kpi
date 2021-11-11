@@ -3,19 +3,12 @@ import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import './textBox.scss';
 
-export enum AvailableType {
-  'text-multiline' = 'text-multiline',
-  text = 'text',
-  email = 'email',
-  password = 'password',
-  url = 'url',
-  number = 'number',
-}
+type AvailableType = 'text-multiline' | 'text' | 'email' | 'password' | 'url' | 'number';
 
-const DefaultType = AvailableType.text;
+const DefaultType = 'text';
 
 type TextBoxProps = {
-  type?: AvailableType // one of AVAILABLE_TYPES, defaults to DEFAULT_TYPE
+  type?: AvailableType
   value: string
   onChange: Function
   onBlur?: Function
@@ -83,10 +76,8 @@ class TextBox extends React.Component<TextBoxProps, {}> {
     }
 
     let type = DefaultType;
-    if (this.props.type && Object.keys(AvailableType).indexOf(this.props.type) !== -1) {
+    if (this.props.type) {
       type = this.props.type;
-    } else if (this.props.type) {
-      throw new Error(`Unknown TextBox type: ${this.props.type}!`);
     }
 
     const inputProps = {
