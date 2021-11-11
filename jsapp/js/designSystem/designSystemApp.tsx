@@ -3,6 +3,7 @@ import ButtonDemo from 'js/designSystem/buttonDemo'
 import CheckboxDemo from 'js/designSystem/checkboxDemo'
 import IconDemo from 'js/designSystem/iconDemo'
 import KoboDropdownDemo from 'js/designSystem/koboDropdownDemo'
+import KoboRangeDemo from 'js/designSystem/koboRangeDemo'
 import RadioDemo from 'js/designSystem/radioDemo'
 import './demo.scss'
 
@@ -23,6 +24,7 @@ export default class DesignSystemApp extends React.Component {
           <CheckboxDemo/>
           <IconDemo/>
           <KoboDropdownDemo/>
+          <KoboRangeDemo/>
           <RadioDemo/>
         </div>
       </section>
