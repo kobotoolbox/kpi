@@ -89,7 +89,7 @@ class AttachmentFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
 
         # Add partial submissions support
-        submission_ids = view.asset.deployment.validate_write_access_with_partial_perms(
+        submission_ids = view.asset.deployment.validate_access_with_partial_perms(
             user=request.user,
             perm=PERM_VIEW_SUBMISSIONS,
         )
