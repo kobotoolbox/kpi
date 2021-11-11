@@ -5,15 +5,15 @@ import Radio, {RadioOption} from 'js/components/common/radio'
 import TextBox from 'js/components/common/textBox'
 
 type RadioDemoState = {
-  currentTitle: string
-  currentOptions: RadioOption[]
-  isDisabled: boolean
+  demoTitle: string
+  demoOptions: RadioOption[]
+  demoIsDisabled: boolean
   selectedOption: string
 }
 
 const defaultTitle = 'Pick your favourite food'
 
-const defaultOptions = [
+const defaultOptions: RadioOption[] = [
   {
     label: 'Pizza',
     value: 'pizza'
@@ -38,19 +38,19 @@ export default class RadioDemo extends React.Component<{}, RadioDemoState> {
     super(props)
     this.state = {
       // Not configurable right now
-      currentOptions: defaultOptions,
-      currentTitle: defaultTitle,
-      isDisabled: false,
+      demoOptions: defaultOptions,
+      demoTitle: defaultTitle,
+      demoIsDisabled: false,
       selectedOption: '',
     }
   }
 
   onTitleChange(newTitle: string) {
-    this.setState({currentTitle: newTitle})
+    this.setState({demoTitle: newTitle})
   }
 
   onIsDisabledChange(isChecked: boolean) {
-    this.setState({isDisabled: isChecked})
+    this.setState({demoIsDisabled: isChecked})
   }
 
   onSelectedOptionChange(radioName: string, selectedOption: string) {
@@ -81,7 +81,7 @@ export default class RadioDemo extends React.Component<{}, RadioDemoState> {
                         label='title'
                         customModifiers='on-white'
                         onChange={this.onTitleChange.bind(this)}
-                        value={this.state.currentTitle}
+                        value={this.state.demoTitle}
                       />
                     </div>
 
@@ -89,7 +89,7 @@ export default class RadioDemo extends React.Component<{}, RadioDemoState> {
                       <Checkbox
                         label='is disabled'
                         onChange={this.onIsDisabledChange.bind(this)}
-                        checked={this.state.isDisabled}
+                        checked={this.state.demoIsDisabled}
                       />
                     </div>
                   </div>
@@ -99,9 +99,9 @@ export default class RadioDemo extends React.Component<{}, RadioDemoState> {
                 <div className='demo__preview'>
                   <Radio
                     name='radio-demo'
-                    options={this.state.currentOptions}
-                    title={this.state.currentTitle}
-                    isDisabled={this.state.isDisabled}
+                    options={this.state.demoOptions}
+                    title={this.state.demoTitle}
+                    isDisabled={this.state.demoIsDisabled}
                     selected={this.state.selectedOption}
                     onChange={this.onSelectedOptionChange.bind(this)}
                   />

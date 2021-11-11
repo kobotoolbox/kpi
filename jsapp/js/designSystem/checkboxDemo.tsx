@@ -4,9 +4,9 @@ import Checkbox from 'js/components/common/checkbox'
 import TextBox from 'js/components/common/textBox'
 
 type CheckboxDemoState = {
-  currentLabel: string
-  isDisabled: boolean
-  isChecked: boolean
+  demoLabel: string
+  demoIsDisabled: boolean
+  demoIsChecked: boolean
 }
 
 const defaultLabel = 'I approve'
@@ -15,22 +15,22 @@ export default class CheckboxDemo extends React.Component<{}, CheckboxDemoState>
   constructor(props: {}) {
     super(props)
     this.state = {
-      currentLabel: defaultLabel,
-      isDisabled: false,
-      isChecked: false,
+      demoLabel: defaultLabel,
+      demoIsDisabled: false,
+      demoIsChecked: false,
     }
   }
 
   onLabelChange(newLabel: string) {
-    this.setState({currentLabel: newLabel})
+    this.setState({demoLabel: newLabel})
   }
 
   onIsDisabledChange(isChecked: boolean) {
-    this.setState({isDisabled: isChecked})
+    this.setState({demoIsDisabled: isChecked})
   }
 
   onIsCheckedChange(isChecked: boolean) {
-    this.setState({isChecked: isChecked})
+    this.setState({demoIsChecked: isChecked})
   }
 
   render() {
@@ -55,7 +55,7 @@ export default class CheckboxDemo extends React.Component<{}, CheckboxDemoState>
                         label='text'
                         customModifiers='on-white'
                         onChange={this.onLabelChange.bind(this)}
-                        value={this.state.currentLabel}
+                        value={this.state.demoLabel}
                       />
                     </div>
 
@@ -63,7 +63,7 @@ export default class CheckboxDemo extends React.Component<{}, CheckboxDemoState>
                       <Checkbox
                         label='is disabled'
                         onChange={this.onIsDisabledChange.bind(this)}
-                        checked={this.state.isDisabled}
+                        checked={this.state.demoIsDisabled}
                       />
                     </div>
 
@@ -71,7 +71,7 @@ export default class CheckboxDemo extends React.Component<{}, CheckboxDemoState>
                       <Checkbox
                         label='is checked'
                         onChange={this.onIsCheckedChange.bind(this)}
-                        checked={this.state.isChecked}
+                        checked={this.state.demoIsChecked}
                       />
                     </div>
                   </div>
@@ -80,9 +80,9 @@ export default class CheckboxDemo extends React.Component<{}, CheckboxDemoState>
               <bem.SimpleTable__cell>
                 <div className='demo__preview'>
                   <Checkbox
-                    label={this.state.currentLabel}
-                    disabled={this.state.isDisabled}
-                    checked={this.state.isChecked}
+                    label={this.state.demoLabel}
+                    disabled={this.state.demoIsDisabled}
+                    checked={this.state.demoIsChecked}
                     onChange={this.onIsCheckedChange.bind(this)}
                   />
                 </div>
