@@ -48,7 +48,7 @@ urlpatterns = [
         authorized_application_authenticate_user
     ),
     path('browser_tests/', browser_tests),
-    path('ui/', design_system),
+    path('design-system/', design_system),
     path('authorized_application/one_time_login/', one_time_login),
     re_path(r'^i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
