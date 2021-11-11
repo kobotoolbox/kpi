@@ -7,8 +7,10 @@ import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
+import Button from 'js/components/common/button';
 import {ROUTES} from 'js/router/routerConstants';
 import {truncateString} from 'js/utils';
+import {hashHistory} from 'react-router';
 import './mediaCell.scss';
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
@@ -83,11 +85,12 @@ class MediaCell extends React.Component {
     return iconClassNames.join(' ');
   }
 
-  getProcessingUrl() {
-    return '/#' + ROUTES.FORM_PROCESSING
+  openProcessing() {
+    const finalRoute = ROUTES.FORM_PROCESSING
       .replace(':uid', this.props.assetUid)
       .replace(':questionName', this.props.questionName)
       .replace(':submissionId', this.props.submissionId);
+    hashHistory.push(finalRoute);
   }
 
   launchMediaModal(evt) {
@@ -153,13 +156,14 @@ class MediaCell extends React.Component {
           }
 
           {[QUESTION_TYPES.audio.id, META_QUESTION_TYPES['background-audio']].includes(this.props.questionType) &&
-            <a
-              className='kobo-light-button'
-              href={this.getProcessingUrl()}
-            >
-              {t('process')}
-              <i className='k-icon k-icon-arrow-up-right'/>
-            </a>
+            <Button
+              type='frame'
+              size='s'
+              color='gray'
+              endIcon='arrow-up-right'
+              label={t('process')}
+              onClick={this.openProcessing.bind(this)}
+            />
           }
         </bem.TableMediaPreviewHeader__options>
       </bem.TableMediaPreviewHeader>

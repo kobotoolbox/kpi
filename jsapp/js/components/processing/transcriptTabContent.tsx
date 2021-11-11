@@ -91,6 +91,8 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   saveDraft() {
+    const existingTranscript = singleProcessingStore.getTranscript()
+
     if (
       this.state.transcriptDraft?.languageCode !== undefined &&
       this.state.transcriptDraft?.content !== undefined
@@ -98,7 +100,8 @@ export default class TranscriptTabContent extends React.Component<
       singleProcessingStore.setTranscript({
         languageCode: this.state.transcriptDraft.languageCode,
         content: this.state.transcriptDraft.content,
-        dateCreated: Date()
+        dateCreated: existingTranscript?.dateCreated || Date(),
+        dateModified: Date()
       })
     }
   }
@@ -125,23 +128,27 @@ export default class TranscriptTabContent extends React.Component<
       return null
     }
 
-    // If the draft/transcript language is custom (i.e. not known to envStore),
-    // we just display the given value.
-    const knownLanguage = envStore.getLanguage(contentLanguageCode)
-    const languageLabel = knownLanguage?.label || contentLanguageCode
+    let dateText = ''
+    if (storeTranscript) {
+      if (storeTranscript.dateCreated !== storeTranscript?.dateModified) {
+        dateText = t('Modified ##date##').replace('##date##', formatTime(storeTranscript.dateModified))
+      } else {
+        dateText = t('Created ##date##').replace('##date##', formatTime(storeTranscript.dateCreated))
+      }
+    }
 
     return (
       <React.Fragment>
         <div>
           {t('Language')}
           <bem.ProcessingBody__transHeaderLanguage>
-            {languageLabel}
+            {envStore.getLanguageDisplayLabel(contentLanguageCode)}
           </bem.ProcessingBody__transHeaderLanguage>
         </div>
 
-        {storeTranscript?.dateCreated &&
+        {dateText !== '' &&
           <bem.ProcessingBody__transHeaderDate>
-            {t('Created ##date##').replace('##date##', formatTime(storeTranscript.dateCreated))}
+            {dateText}
           </bem.ProcessingBody__transHeaderDate>
         }
       </React.Fragment>

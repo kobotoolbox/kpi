@@ -10,11 +10,13 @@ export interface Transcript {
   content: string
   languageCode: string
   dateCreated: string
+  dateModified: string
 }
 
 export interface Translation {
   content: string
   languageCode: string
+  dateModified: string
   dateCreated: string
 }
 
@@ -64,6 +66,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
+  // TODO: make sure we get/store the translations ordered by dateModified
   onGetTranslationsCompleted(translations: Translation[]) {
     this.isPending = false
     this.data.translations = translations
@@ -79,11 +82,19 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
+  /** Pass `undefined` to delete translation. */
   setTranslation(
     newTranslationLanguageCode: string,
     newTranslation: Translation | undefined
   ) {
     this.isPending = true
+
+    if (
+      newTranslation !== undefined &&
+      newTranslation.languageCode !== newTranslationLanguageCode
+    ) {
+      throw new Error('New translation language code mismatch!');
+    }
 
     // TODO: call backend to store translation, for now we just wait 3 seconds :P
     setTimeout(() => {

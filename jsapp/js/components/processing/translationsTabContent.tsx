@@ -1,9 +1,10 @@
 import React from 'react'
 import clonedeep from 'lodash.clonedeep'
+import Select from 'react-select'
 import envStore from 'js/envStore'
 import {formatTime} from 'js/utils'
 import bem from 'js/bem'
-import singleProcessingStore from 'js/components/processing/singleProcessingStore'
+import singleProcessingStore, {Translation} from 'js/components/processing/singleProcessingStore'
 import LanguageSelector from 'js/components/languages/languageSelector'
 import Button from 'js/components/common/button'
 import 'js/components/processing/processingBody'
@@ -28,11 +29,11 @@ export default class TranslationsTabContent extends React.Component<
   constructor(props: TranslationsTabContentProps) {
     super(props)
 
-    // We want to avoid displaying a list of translations if there is only one,
+    // We want to always have a translation selected when there is at least one
     // so we preselect it on the initialization.
     let selected;
     const storedTranslations = singleProcessingStore.getTranslations()
-    if (storedTranslations.length === 1) {
+    if (storedTranslations.length >= 1) {
       selected = storedTranslations[0].languageCode
     }
 
@@ -63,6 +64,22 @@ export default class TranslationsTabContent extends React.Component<
     // in the store.
     if (this.state.translationDraft?.languageCode) {
       this.selectTranslation(this.state.translationDraft.languageCode)
+    }
+
+    // When we delete a translation, we want to select another one.
+    if (
+      this.state.translationDraft === undefined &&
+      this.state.selectedTranslation !== undefined &&
+      singleProcessingStore.getTranslation(this.state.selectedTranslation) === undefined
+    ) {
+      // We want to always have a translation selected when there is at least one
+      // so we preselect it on the initialization.
+      let selected;
+      const storedTranslations = singleProcessingStore.getTranslations()
+      if (storedTranslations.length >= 1) {
+        selected = storedTranslations[0].languageCode
+      }
+      this.setState({selectedTranslation: selected})
     }
 
     this.forceUpdate()
@@ -107,6 +124,8 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   saveDraft() {
+    const existingTranslation = singleProcessingStore.getTranslation(this.state.translationDraft?.languageCode)
+
     if (
       this.state.translationDraft?.languageCode !== undefined &&
       this.state.translationDraft?.content !== undefined
@@ -114,7 +133,8 @@ export default class TranslationsTabContent extends React.Component<
       singleProcessingStore.setTranslation(this.state.translationDraft.languageCode, {
         languageCode: this.state.translationDraft.languageCode,
         content: this.state.translationDraft.content,
-        dateCreated: Date()
+        dateCreated: existingTranslation?.dateCreated || Date(),
+        dateModified: Date()
       })
     }
   }
@@ -151,32 +171,99 @@ export default class TranslationsTabContent extends React.Component<
 
   renderLanguageAndDate() {
     const storeTranslation = singleProcessingStore.getTranslation(this.state.selectedTranslation)
-    const contentLanguageCode = this.state.translationDraft?.languageCode || storeTranslation?.languageCode
-    if (contentLanguageCode === undefined) {
-      return null
-    }
 
-    // If the draft/translation language is custom (i.e. not known to envStore),
-    // we just display the given value.
-    const knownLanguage = envStore.getLanguage(contentLanguageCode)
-    const languageLabel = knownLanguage?.label || contentLanguageCode
+    let dateText = ''
+    if (storeTranslation) {
+      if (storeTranslation.dateCreated !== storeTranslation?.dateModified) {
+        dateText = t('Modified ##date##').replace('##date##', formatTime(storeTranslation.dateModified))
+      } else {
+        dateText = t('Created ##date##').replace('##date##', formatTime(storeTranslation.dateCreated))
+      }
+    }
 
     return (
       <React.Fragment>
-        <div>
-          {t('Language')}
-          <bem.ProcessingBody__transHeaderLanguage>
-            {languageLabel}
-          </bem.ProcessingBody__transHeaderLanguage>
-        </div>
+        {this.renderLanguage()}
 
-        {storeTranslation?.dateCreated &&
+        {dateText !== '' &&
           <bem.ProcessingBody__transHeaderDate>
-            {t('Created ##date##').replace('##date##', formatTime(storeTranslation.dateCreated))}
+            {dateText}
           </bem.ProcessingBody__transHeaderDate>
         }
       </React.Fragment>
     )
+  }
+
+  /** Renders a text or a selector of translations. */
+  renderLanguage() {
+    // When editing we want to display just a text
+    if (this.state.translationDraft?.languageCode) {
+      return (
+        <bem.ProcessingBody__transHeaderLanguageWrapper>
+          {t('Language')}
+          <bem.ProcessingBody__transHeaderLanguage>
+            {envStore.getLanguageDisplayLabel(this.state.translationDraft.languageCode)}
+          </bem.ProcessingBody__transHeaderLanguage>
+        </bem.ProcessingBody__transHeaderLanguageWrapper>
+      )
+    }
+
+    const translations = singleProcessingStore.getTranslations()
+
+    // When viewing the only translation we want to display just a text
+    if (!this.state.translationDraft && translations.length === 1) {
+      return (
+        <bem.ProcessingBody__transHeaderLanguageWrapper>
+          {t('Language')}
+          <bem.ProcessingBody__transHeaderLanguage>
+            {envStore.getLanguageDisplayLabel(translations[0].languageCode)}
+          </bem.ProcessingBody__transHeaderLanguage>
+        </bem.ProcessingBody__transHeaderLanguageWrapper>
+      )
+    }
+
+    // When viewing one of translations we want to have an option to select some
+    // other translation.
+    if (!this.state.translationDraft && translations.length >= 2) {
+      let selectValueLabel = this.state.selectedTranslation
+      if (this.state.selectedTranslation) {
+        selectValueLabel = envStore.getLanguageDisplayLabel(this.state.selectedTranslation)
+      }
+
+      const selectValue = {
+        value: this.state.selectedTranslation,
+        label: selectValueLabel
+      }
+
+      const selectOptions: {value: string, label: string}[] = []
+      translations.forEach((translation: Translation) => {
+        selectOptions.push({
+          value: translation.languageCode,
+          label: envStore.getLanguageDisplayLabel(translation.languageCode)
+        })
+      })
+
+      // TODO: don't use Select because of styles issues, use KoboDropdown
+      return (
+        <bem.ProcessingBody__transHeaderLanguageWrapper>
+          {t('Language')}
+          <bem.ProcessingBody__transHeaderLanguage>
+            <Select
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              isSearchable={false}
+              isClearable={false}
+              inputId='translations-languages'
+              value={selectValue}
+              options={selectOptions}
+              onChange={(newVal) => {newVal?.value && this.selectTranslation(newVal.value)}}
+            />
+          </bem.ProcessingBody__transHeaderLanguage>
+        </bem.ProcessingBody__transHeaderLanguageWrapper>
+      )
+    }
+
+    return null
   }
 
   renderStepBegin() {
@@ -315,76 +402,6 @@ export default class TranslationsTabContent extends React.Component<
     )
   }
 
-  renderStepList() {
-    const translations = singleProcessingStore.getTranslations()
-
-    return (
-      <bem.ProcessingBody>
-        <bem.SimpleTable>
-          <bem.SimpleTable__header>
-            <bem.SimpleTable__row>
-              <bem.SimpleTable__cell>
-                {t('language')}
-              </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
-                {t('created date')}
-              </bem.SimpleTable__cell>
-              <bem.SimpleTable__cell>
-                {t('actions')}
-              </bem.SimpleTable__cell>
-            </bem.SimpleTable__row>
-          </bem.SimpleTable__header>
-
-          <bem.SimpleTable__body>
-            {translations.map((translation) => (
-              <bem.SimpleTable__row>
-                <bem.SimpleTable__cell>
-                  {envStore.getLanguageDisplayLabel(translation.languageCode)}
-                </bem.SimpleTable__cell>
-                <bem.SimpleTable__cell>
-                  {formatTime(translation.dateCreated)}
-                </bem.SimpleTable__cell>
-                <bem.SimpleTable__cell>
-                  <bem.ProcessingBody__transHeaderButtons>
-                    <Button
-                      type='bare'
-                      color='gray'
-                      size='s'
-                      startIcon='view'
-                      onClick={this.selectTranslation.bind(this, translation.languageCode)}
-                      tooltip={t('View')}
-                      isDisabled={singleProcessingStore.isPending}
-                    />
-
-                    <Button
-                      type='bare'
-                      color='gray'
-                      size='s'
-                      startIcon='edit'
-                      onClick={this.openEditor.bind(this, translation.languageCode)}
-                      tooltip={t('Edit')}
-                      isDisabled={singleProcessingStore.isPending}
-                    />
-
-                    <Button
-                      type='bare'
-                      color='gray'
-                      size='s'
-                      startIcon='trash'
-                      onClick={this.deleteTranslation.bind(this, translation.languageCode)}
-                      tooltip={t('Delete')}
-                      isPending={singleProcessingStore.isPending}
-                    />
-                  </bem.ProcessingBody__transHeaderButtons>
-                </bem.SimpleTable__cell>
-              </bem.SimpleTable__row>
-            ))}
-          </bem.SimpleTable__body>
-        </bem.SimpleTable>
-      </bem.ProcessingBody>
-    )
-  }
-
   /** Identifies what step should be displayed based on the data itself. */
   render() {
     // Step 1: Begin - the step where there is nothing yet.
@@ -412,24 +429,14 @@ export default class TranslationsTabContent extends React.Component<
     }
 
     // Step 4: Viewer - display existing (on backend) and selected translation.
-
-    // Also to be used when there is only one translation on the backend to avoid displaying list with single item?
     if (
       (
         singleProcessingStore.getTranslation(this.state.selectedTranslation) !== undefined ||
-        singleProcessingStore.getTranslations().length === 1
+        singleProcessingStore.getTranslations().length >= 1
       ) &&
       this.state.translationDraft === undefined
     ) {
       return this.renderStepSingleViewer()
-    }
-
-    // Step 5: List - the step where there are multiple translations already.
-    if (
-      singleProcessingStore.getTranslations().length >= 2 &&
-      this.state.translationDraft === undefined
-    ) {
-      return this.renderStepList()
     }
 
     // Should not happen, but we need to return something.

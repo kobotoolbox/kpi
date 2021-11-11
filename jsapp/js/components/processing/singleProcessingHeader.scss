@@ -10,6 +10,7 @@
 
 .single-processing-header__type-icon {
   @include mixins.centerRowFlex;
+  justify-content: center;
   color: colors.$kobo-white;
   background-color: colors.$kobo-teal;
   width: sizes.$x52;

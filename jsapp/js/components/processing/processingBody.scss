@@ -21,6 +21,10 @@
   margin-bottom: sizes.$x12;
 }
 
+.processing-body__trans-header-language-wrapper {
+  @include mixins.centerRowFlex;
+}
+
 .processing-body__trans-header-language {
   font-weight: 700;
   margin-left: sizes.$x4;
