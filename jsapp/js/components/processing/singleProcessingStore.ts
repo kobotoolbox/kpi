@@ -144,25 +144,28 @@ class SingleProcessingStore extends Reflux.Store {
 const singleProcessingStore = new SingleProcessingStore()
 singleProcessingStore.init()
 
-singleProcessingStore.setTranscript({
-  languageCode: 'en',
-  content: 'This is some text in English language, please makre sure to translate it correctly or else I will be very much disappointed.',
-  dateCreated: 'Mon Nov 8 2021 12:01:16 GMT+0000 (Greenwich Mean Time)',
-  dateModified: 'Mon Nov 8 2021 19:00:00 GMT+0000 (Greenwich Mean Time)',
-})
+function mockData() {
+  singleProcessingStore.setTranscript({
+    languageCode: 'en',
+    content: 'This is some text in English language, please makre sure to translate it correctly or else I will be very much disappointed.',
+    dateCreated: 'Mon Nov 8 2021 12:01:16 GMT+0000 (Greenwich Mean Time)',
+    dateModified: 'Mon Nov 8 2021 19:00:00 GMT+0000 (Greenwich Mean Time)',
+  })
 
-singleProcessingStore.setTranslation('pl', {
-  languageCode: 'pl',
-  content: 'To jest tekst w języku angielskim, upewnij się, że przetłumaczysz go poprawnie, w przeciwnym razie będę bardzo rozczarowany.',
-  dateCreated: 'Tue Nov 9 2021 14:14:14 GMT+0000 (Greenwich Mean Time)',
-  dateModified: 'Wed Nov 9 2021 06:00:00 GMT+0000 (Greenwich Mean Time)'
-})
+  singleProcessingStore.setTranslation('pl', {
+    languageCode: 'pl',
+    content: 'To jest tekst w języku angielskim, upewnij się, że przetłumaczysz go poprawnie, w przeciwnym razie będę bardzo rozczarowany.',
+    dateCreated: 'Tue Nov 9 2021 14:14:14 GMT+0000 (Greenwich Mean Time)',
+    dateModified: 'Wed Nov 9 2021 06:00:00 GMT+0000 (Greenwich Mean Time)'
+  })
 
-singleProcessingStore.setTranslation('de', {
-  languageCode: 'de',
-  content: 'Dies ist ein englischer Text, stellen Sie sicher, dass Sie ihn richtig übersetzen, sonst werde ich sehr enttäuscht sein.',
-  dateCreated: 'Wed Nov 9 2021 11:01:00 GMT+0000 (Greenwich Mean Time)',
-  dateModified: 'Wed Nov 9 2021 11:45:00 GMT+0000 (Greenwich Mean Time)'
-})
+  singleProcessingStore.setTranslation('de', {
+    languageCode: 'de',
+    content: 'Dies ist ein englischer Text, stellen Sie sicher, dass Sie ihn richtig übersetzen, sonst werde ich sehr enttäuscht sein.',
+    dateCreated: 'Wed Nov 9 2021 11:01:00 GMT+0000 (Greenwich Mean Time)',
+    dateModified: 'Wed Nov 9 2021 11:45:00 GMT+0000 (Greenwich Mean Time)'
+  })
+}
+mockData()
 
 export default singleProcessingStore
