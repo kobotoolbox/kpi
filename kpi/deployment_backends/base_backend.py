@@ -445,7 +445,7 @@ class BaseDeploymentBackend(abc.ABC):
 
         return params
 
-    def validate_write_access_with_partial_perms(
+    def validate_access_with_partial_perms(
         self,
         user: 'auth.User',
         perm: str,
