@@ -8,7 +8,7 @@ import Button, {ButtonType, ButtonColor, ButtonSize} from 'js/components/common/
 import {IconNames} from 'jsapp/fonts/k-icons'
 
 const buttonTypes: ButtonType[] = ['bare', 'frame', 'full']
-const buttonColors: ButtonColor[] = ['blue', 'teal', 'green', 'red', 'orange', 'gray']
+const buttonColors: ButtonColor[] = ['blue', 'teal', 'red', 'gray']
 const buttonSizes: ButtonSize[] = ['s', 'm', 'l']
 
 const iconNamesOptions: IconNameOption[] = []
