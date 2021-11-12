@@ -75,7 +75,10 @@ export default class GalleryMediaModal extends React.Component {
       asset: currentAsset,
       ids: [this.state.selectedMedia.data.sid],
       galleryIndex: this.state.selectedMedia.galleryIndex,
-      mediaIndex: this.state.selectedMedia.mediaIndex
+      mediaIndex: this.state.selectedMedia.mediaIndex,
+      isDuplicated: false,
+      duplicatedSubmission: null,
+      backgroundAudioUrl: null
     });
   }
 
