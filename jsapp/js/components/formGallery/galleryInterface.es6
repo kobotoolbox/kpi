@@ -397,7 +397,7 @@ class ImageMedia {
   constructor(mediaData, mediaIndex, galleryIndex, galleryDate) {
     this.mediaIndex = mediaIndex;
     this.mediaId = mediaData.id;
-    this.sid = mediaData.submission.id;
+    this.sid = mediaData.submission._id;
     this.submissionLabel = this.buildSubmissionLabel(mediaIndex, galleryIndex);
     this.questionLabel = this.buildQuestionLabel(mediaData);
     this.date = this.buildMediaDate(mediaData, galleryDate);
