@@ -18,6 +18,7 @@ from django.db import (
     router,
 )
 from django.utils import timezone
+from django.utils.text import get_valid_filename
 from django_digest.models import PartialDigest
 from formpack.constants import UNTRANSLATED
 from jsonfield import JSONField
@@ -609,14 +610,14 @@ class ReadOnlyKobocatAttachment(ReadOnlyModel):
             return list(qa_dict)[
                 list(qa_dict.values()).index(filename)]
 
-        # Ugly hack to find a match when filename contains a space.
+        # Kludgy way to find a match when filename contains a space.
         # Django saves the name without any spaces
         # Need some optimizations.
         questions = self.instance.xform.questions
         for key, value in qa_dict.items():
             for question in questions:
                 if key == question['name'] and question['type'] == 'image':
-                    if ' ' in value and value.replace(' ', '_') == filename:
+                    if get_valid_filename(value) == filename:
                         return key
 
         return None
