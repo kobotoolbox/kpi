@@ -3,7 +3,7 @@ import bem from 'js/bem';
 import TextareaAutosize from 'react-autosize-textarea';
 import './textBox.scss';
 
-type AvailableType = 'text-multiline' | 'text' | 'email' | 'password' | 'url' | 'number';
+export type AvailableType = 'text-multiline' | 'text' | 'email' | 'password' | 'url' | 'number';
 
 const DefaultType = 'text';
 
@@ -119,7 +119,7 @@ class TextBox extends React.Component<TextBoxProps, {}> {
 
         {errors.length > 0 &&
           <bem.TextBox__error>
-            {errors.join('\n')}
+            {errors.map((message: string) => (<div>{message}</div>))}
           </bem.TextBox__error>
         }
       </bem.TextBox>
