@@ -1,6 +1,7 @@
 @use "scss/_colors";
 @use "scss/sizes";
 @use "scss/mixins";
+@use "js/components/common/button";
 
 .single-processing-header {
   @include mixins.centerRowFlex;
@@ -50,17 +51,17 @@
 
 .single-processing-header__number {
   border-radius: sizes.$x8;
-  height: sizes.$x42;
-  line-height: sizes.$x42 - (2 * sizes.$x2); // minus the border
-  font-size: sizes.$x18;
+  height: button.$button-height-l;
+  line-height: button.$button-height-l - (2 * sizes.$x1); // minus the border
+  font-size: button.$button-font-l;
   text-transform: uppercase;
   font-weight: 700;
   padding: 0 sizes.$x6;
-  min-width: sizes.$x42;
+  min-width: button.$button-height-l;
   text-align: center;
   border-color: colors.$kobo-gray-92;
   cursor: default;
-  border-width: sizes.$x2;
+  border-width: sizes.$x1;
   border-style: solid;
 }
 
