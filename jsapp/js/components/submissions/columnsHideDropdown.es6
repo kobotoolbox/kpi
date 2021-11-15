@@ -25,8 +25,6 @@ class ColumnsHideDropdown extends React.Component {
     return (
       <KoboDropdown
         theme={KoboDropdownThemes.light}
-        hideOnEsc
-        hideOnMenuOutsideClick
         placement={KoboDropdownPlacements['down-left']}
         name='columns-hide-dropdown'
         triggerContent={

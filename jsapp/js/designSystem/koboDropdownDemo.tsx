@@ -9,8 +9,6 @@ type KoboDropdownDemoState = {
   demoPlacement: KoboDropdownPlacements
   demoIsDisabled: boolean
   demoHideOnMenu: boolean
-  demoHideOnOutside: boolean
-  demoHideOnEsc: boolean
 }
 
 interface Option {
@@ -46,8 +44,6 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
       demoPlacement: KoboDropdownPlacements['down-center'],
       demoIsDisabled: false,
       demoHideOnMenu: true,
-      demoHideOnOutside: true,
-      demoHideOnEsc: true
     }
   }
 
@@ -65,14 +61,6 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
 
   onHideOnMenuClickChange(isChecked: boolean) {
     this.setState({demoHideOnMenu: isChecked})
-  }
-
-  onHideOnMenuOutsideClickChange(isChecked: boolean) {
-    this.setState({demoHideOnOutside: isChecked})
-  }
-
-  onHideOnEscChange(isChecked: boolean) {
-    this.setState({demoHideOnEsc: isChecked})
   }
 
   render() {
@@ -124,27 +112,9 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
 
                     <div className='demo__form-config'>
                       <Checkbox
-                        label='hide with ESC key'
-                        onChange={this.onHideOnEscChange.bind(this)}
-                        checked={this.state.demoHideOnEsc}
-                      />
-                    </div>
-                  </div>
-
-                  <div className='demo__form-row'>
-                    <div className='demo__form-config'>
-                      <Checkbox
                         label='hide on inside menu click'
                         onChange={this.onHideOnMenuClickChange.bind(this)}
                         checked={this.state.demoHideOnMenu}
-                      />
-                    </div>
-
-                    <div className='demo__form-config'>
-                      <Checkbox
-                        label='hide on outside menu click'
-                        onChange={this.onHideOnMenuOutsideClickChange.bind(this)}
-                        checked={this.state.demoHideOnOutside}
                       />
                     </div>
                   </div>
@@ -157,8 +127,6 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
                     placement={this.state.demoPlacement}
                     isDisabled={this.state.demoIsDisabled}
                     hideOnMenuClick={this.state.demoHideOnMenu}
-                    hideOnMenuOutsideClick={this.state.demoHideOnOutside}
-                    hideOnEsc={this.state.demoHideOnEsc}
                     triggerContent='click me'
                     menuContent={(
                       <ol>
