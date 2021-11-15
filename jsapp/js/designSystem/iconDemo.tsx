@@ -18,8 +18,8 @@ for (let iconName in IconNames) {
 }
 
 type IconDemoState = {
-  currentSize: IconSize
-  currentName: IconNameOption
+  demoSize: IconSize
+  demoName: IconNameOption
 }
 
 type IconNameOption = {
@@ -36,17 +36,17 @@ export default class DesignSystemRoute extends React.Component<{}, IconDemoState
   constructor(props: {}) {
     super(props)
     this.state = {
-      currentSize: 'l',
-      currentName: defaultIcon,
+      demoSize: 'l',
+      demoName: defaultIcon,
     }
   }
 
   onSizeChange({}: any, newSize: IconSize) {
-    this.setState({currentSize: newSize})
+    this.setState({demoSize: newSize})
   }
 
   onNameChange(newName: IconNameOption | null) {
-    this.setState({currentName: newName ? newName : defaultIcon})
+    this.setState({demoName: newName ? newName : defaultIcon})
   }
 
   render() {
@@ -70,7 +70,7 @@ export default class DesignSystemRoute extends React.Component<{}, IconDemoState
                       <Radio
                         title='size'
                         name='size'
-                        selected={this.state.currentSize}
+                        selected={this.state.demoSize}
                         options={iconSizes.map(
                           (type: IconSize) => {return {value: type, label: type}}
                         )}
@@ -82,7 +82,7 @@ export default class DesignSystemRoute extends React.Component<{}, IconDemoState
                       <label htmlFor='icon-name'>name</label>
                       <Select
                         inputId='icon-name'
-                        value={this.state.currentName}
+                        value={this.state.demoName}
                         isClearable={false}
                         options={iconNamesOptions}
                         onChange={this.onNameChange.bind(this)}
@@ -94,8 +94,8 @@ export default class DesignSystemRoute extends React.Component<{}, IconDemoState
               <bem.SimpleTable__cell>
                 <div className='demo__preview'>
                   <Icon
-                    size={this.state.currentSize}
-                    name={this.state.currentName?.value}
+                    size={this.state.demoSize}
+                    name={this.state.demoName?.value}
                   />
                 </div>
               </bem.SimpleTable__cell>

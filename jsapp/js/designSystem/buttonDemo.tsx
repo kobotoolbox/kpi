@@ -8,7 +8,7 @@ import Button, {ButtonType, ButtonColor, ButtonSize} from 'js/components/common/
 import {IconNames} from 'jsapp/fonts/k-icons'
 
 const buttonTypes: ButtonType[] = ['bare', 'frame', 'full']
-const buttonColors: ButtonColor[] = ['blue', 'teal', 'green', 'red', 'orange', 'gray']
+const buttonColors: ButtonColor[] = ['blue', 'teal', 'red', 'gray']
 const buttonSizes: ButtonSize[] = ['s', 'm', 'l']
 
 const iconNamesOptions: IconNameOption[] = []
@@ -22,16 +22,16 @@ for (let iconName in IconNames) {
 }
 
 type ButtonDemoState = {
-  currentType: ButtonType
-  currentColor: ButtonColor
-  currentSize: ButtonSize
-  currentStartIcon: IconNameOption | null
-  currentEndIcon: IconNameOption | null
-  currentLabel: string
-  currentTooltip: string
-  isDisabled: boolean
-  isPending: boolean
-  isFullWidth: boolean
+  demoType: ButtonType
+  demoColor: ButtonColor
+  demoSize: ButtonSize
+  demoStartIcon: IconNameOption | null
+  demoEndIcon: IconNameOption | null
+  demoLabel: string
+  demoTooltip: string
+  demoIsDisabled: boolean
+  demoIsPending: boolean
+  demoIsFullWidth: boolean
 }
 
 type IconNameOption = {
@@ -49,69 +49,69 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
   constructor(props: {}) {
     super(props)
     this.state = {
-      currentType: 'full',
-      currentColor: 'teal',
-      currentSize: 'l',
-      currentStartIcon: null,
-      currentEndIcon: null,
-      currentLabel: defaultLabel,
-      currentTooltip: '',
-      isDisabled: false,
-      isPending: false,
-      isFullWidth: false,
+      demoType: 'full',
+      demoColor: 'teal',
+      demoSize: 'l',
+      demoStartIcon: null,
+      demoEndIcon: null,
+      demoLabel: defaultLabel,
+      demoTooltip: '',
+      demoIsDisabled: false,
+      demoIsPending: false,
+      demoIsFullWidth: false,
     }
   }
 
   onTypeChange({}: any, newType: ButtonType) {
-    this.setState({currentType: newType})
+    this.setState({demoType: newType})
   }
 
   onColorChange({}: any, newColor: ButtonColor) {
-    this.setState({currentColor: newColor})
+    this.setState({demoColor: newColor})
   }
 
   onSizeChange({}: any, newSize: ButtonSize) {
-    this.setState({currentSize: newSize})
+    this.setState({demoSize: newSize})
   }
 
   onStartIconChange(newStartIcon: IconNameOption | null) {
     this.setState({
-      currentStartIcon: newStartIcon ? newStartIcon : null,
+      demoStartIcon: newStartIcon ? newStartIcon : null,
       // Only one of icons is allowed.
-      currentEndIcon: newStartIcon ? null : this.state.currentEndIcon
+      demoEndIcon: newStartIcon ? null : this.state.demoEndIcon
     })
   }
 
   onEndIconChange(newEndIcon: IconNameOption | null) {
     this.setState({
-      currentEndIcon: newEndIcon ? newEndIcon : null,
+      demoEndIcon: newEndIcon ? newEndIcon : null,
       // Only one of icons is allowed.
-      currentStartIcon: newEndIcon ? null : this.state.currentStartIcon
+      demoStartIcon: newEndIcon ? null : this.state.demoStartIcon
     })
   }
 
   onLabelChange(newLabel: string) {
     this.setState({
-      currentLabel: newLabel,
+      demoLabel: newLabel,
       // If there is no label, icon is required
-      currentStartIcon: newLabel === '' ? defaultIcon : this.state.currentStartIcon
+      demoStartIcon: newLabel === '' ? defaultIcon : this.state.demoStartIcon
     })
   }
 
   onTooltipChange(newTooltip: string) {
-    this.setState({currentTooltip: newTooltip})
+    this.setState({demoTooltip: newTooltip})
   }
 
   onIsDisabledChange(isChecked: boolean) {
-    this.setState({isDisabled: isChecked})
+    this.setState({demoIsDisabled: isChecked})
   }
 
   onIsPendingChange(isChecked: boolean) {
-    this.setState({isPending: isChecked})
+    this.setState({demoIsPending: isChecked})
   }
 
   onIsFullWidthChange(isChecked: boolean) {
-    this.setState({isFullWidth: isChecked})
+    this.setState({demoIsFullWidth: isChecked})
   }
 
   render() {
@@ -135,7 +135,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                       <Radio
                         title='type'
                         name='type'
-                        selected={this.state.currentType}
+                        selected={this.state.demoType}
                         options={buttonTypes.map(
                           (type: ButtonType) => {return {value: type, label: type}}
                         )}
@@ -147,7 +147,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                       <Radio
                         title='color'
                         name='color'
-                        selected={this.state.currentColor}
+                        selected={this.state.demoColor}
                         options={buttonColors.map(
                           (type: ButtonColor) => {return {value: type, label: type}}
                         )}
@@ -159,7 +159,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                       <Radio
                         title='size'
                         name='size'
-                        selected={this.state.currentSize}
+                        selected={this.state.demoSize}
                         options={buttonSizes.map(
                           (type: ButtonSize) => {return {value: type, label: type}}
                         )}
@@ -173,7 +173,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                       <label htmlFor='start-icon'>start icon</label>
                       <Select
                         inputId='start-icon'
-                        value={this.state.currentStartIcon}
+                        value={this.state.demoStartIcon}
                         isClearable={true}
                         options={iconNamesOptions}
                         onChange={this.onStartIconChange.bind(this)}
@@ -184,7 +184,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                       <label htmlFor='end-icon'>end icon</label>
                       <Select
                         inputId='end-icon'
-                        value={this.state.currentEndIcon}
+                        value={this.state.demoEndIcon}
                         isClearable={true}
                         options={iconNamesOptions}
                         onChange={this.onEndIconChange.bind(this)}
@@ -198,7 +198,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                         label='text'
                         customModifiers='on-white'
                         onChange={this.onLabelChange.bind(this)}
-                        value={this.state.currentLabel}
+                        value={this.state.demoLabel}
                       />
                     </div>
 
@@ -207,7 +207,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                         label='tooltip'
                         customModifiers='on-white'
                         onChange={this.onTooltipChange.bind(this)}
-                        value={this.state.currentTooltip}
+                        value={this.state.demoTooltip}
                       />
                     </div>
                   </div>
@@ -217,7 +217,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                       <Checkbox
                         label='is disabled'
                         onChange={this.onIsDisabledChange.bind(this)}
-                        checked={this.state.isDisabled}
+                        checked={this.state.demoIsDisabled}
                       />
                     </div>
 
@@ -225,7 +225,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                       <Checkbox
                         label='is pending'
                         onChange={this.onIsPendingChange.bind(this)}
-                        checked={this.state.isPending}
+                        checked={this.state.demoIsPending}
                       />
                     </div>
 
@@ -233,7 +233,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
                       <Checkbox
                         label='is full width'
                         onChange={this.onIsFullWidthChange.bind(this)}
-                        checked={this.state.isFullWidth}
+                        checked={this.state.demoIsFullWidth}
                       />
                     </div>
                   </div>
@@ -242,16 +242,16 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
               <bem.SimpleTable__cell>
                 <div className='demo__preview'>
                   <Button
-                    type={this.state.currentType}
-                    color={this.state.currentColor}
-                    size={this.state.currentSize}
-                    startIcon={this.state.currentStartIcon?.value}
-                    endIcon={this.state.currentEndIcon?.value}
-                    label={this.state.currentLabel}
-                    tooltip={this.state.currentTooltip}
-                    isDisabled={this.state.isDisabled}
-                    isPending={this.state.isPending}
-                    isFullWidth={this.state.isFullWidth}
+                    type={this.state.demoType}
+                    color={this.state.demoColor}
+                    size={this.state.demoSize}
+                    startIcon={this.state.demoStartIcon?.value}
+                    endIcon={this.state.demoEndIcon?.value}
+                    label={this.state.demoLabel}
+                    tooltip={this.state.demoTooltip}
+                    isDisabled={this.state.demoIsDisabled}
+                    isPending={this.state.demoIsPending}
+                    isFullWidth={this.state.demoIsFullWidth}
                     onClick={() => void 0}
                   />
                 </div>
