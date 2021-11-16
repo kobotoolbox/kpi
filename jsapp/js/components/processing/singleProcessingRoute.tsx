@@ -21,13 +21,13 @@ bem.SingleProcessing__bottom = makeBem(bem.SingleProcessing, 'bottom', 'section'
 bem.SingleProcessing__bottomLeft = makeBem(bem.SingleProcessing, 'bottom-left', 'section')
 bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right', 'section')
 
-type SingleProcessingProps = RouteComponentProps<{
+type SingleProcessingRouteProps = RouteComponentProps<{
   uid: string,
   questionName: string,
   submissionId: string,
 }, {}>
 
-type SingleProcessingState = {
+type SingleProcessingRouteState = {
   isSubmissionCallDone: boolean
   isIdsCallDone: boolean
   submissionData: SubmissionResponse | null
@@ -44,11 +44,11 @@ type SingleProcessingState = {
  * This route component is being loaded with PermProtectedRoute so we know that
  * the call to backend to get asset was already made :happy_face:
  */
-export default class SingleProcessing extends React.Component<
-  SingleProcessingProps,
-  SingleProcessingState
+export default class SingleProcessingRoute extends React.Component<
+  SingleProcessingRouteProps,
+  SingleProcessingRouteState
 > {
-  constructor(props: SingleProcessingProps) {
+  constructor(props: SingleProcessingRouteProps) {
     super(props)
     this.state = {
       isSubmissionCallDone: false,
@@ -77,7 +77,7 @@ export default class SingleProcessing extends React.Component<
     this.unlisteners.forEach((clb) => {clb()})
   }
 
-  componentDidUpdate(prevProps: SingleProcessingProps) {
+  componentDidUpdate(prevProps: SingleProcessingRouteProps) {
     if (prevProps.params.submissionId !== this.props.params.submissionId) {
       this.getNewSubmissionData()
     }

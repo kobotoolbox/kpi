@@ -29,7 +29,7 @@ import FormNotFound from 'js/components/formNotFound';
 import FormXform from 'js/components/formXform';
 import FormJson from 'js/components/formJson';
 import FormsSearchableList from 'js/lists/forms';
-import SingleProcessing from 'js/components/processing/singleProcessing';
+import SingleProcessingRoute from 'js/components/processing/singleProcessingRoute';
 import {ROUTES} from 'js/router/routerConstants';
 import permConfig from 'js/components/permissions/permConfig';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
@@ -248,7 +248,7 @@ export default class AllRoutes extends React.Component {
               <Route
                 path={ROUTES.FORM_PROCESSING}
                 component={PermProtectedRoute}
-                protectedComponent={SingleProcessing}
+                protectedComponent={SingleProcessingRoute}
                 requiredPermission={PERMISSIONS_CODENAMES.view_submissions}
               />
             </Route>
