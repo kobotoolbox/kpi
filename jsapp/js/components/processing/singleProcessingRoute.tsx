@@ -68,7 +68,9 @@ export default class SingleProcessingRoute extends React.Component<
       actions.submissions.getSubmission.failed.listen(this.onGetSubmissionFailed.bind(this)),
       actions.submissions.getProcessingSubmissions.completed.listen(this.onGetProcessingSubmissionsCompleted.bind(this)),
       actions.submissions.getProcessingSubmissions.failed.listen(this.onGetProcessingSubmissionsFailed.bind(this)),
+      singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
     )
+    this.props.router.setRouteLeaveHook(this.props.route, this.onRouterLeave.bind(this))
     actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
     this.getNewProcessingSubmissions()
   }
@@ -81,6 +83,19 @@ export default class SingleProcessingRoute extends React.Component<
     if (prevProps.params.submissionId !== this.props.params.submissionId) {
       this.getNewSubmissionData()
     }
+  }
+
+  /**
+  * Don't want to store a duplicate of store data here just for the sake of
+  * comparison, so we need to make the component re-render itself when the
+  * store changes :shrug:.
+  */
+  onSingleProcessingStoreChange() {
+    this.forceUpdate()
+  }
+
+  onRouterLeave() {
+    console.log('onRouterLeave')
   }
 
   getNewSubmissionData(): void {
@@ -239,23 +254,29 @@ export default class SingleProcessingRoute extends React.Component<
         </bem.SingleProcessing__top>
 
         <bem.SingleProcessing__bottom>
-          <bem.SingleProcessing__bottomLeft>
-            {this.renderTranslationSource()}
-            {this.state.submissionData !== null &&
-              <SingleProcessingSubmissionDetails
-                questionType={this.getQuestionType()}
-                questionName={this.props.params.questionName}
-                submissionData={this.state.submissionData}
-                assetContent={this.state.asset.content}
-              />
-            }
-          </bem.SingleProcessing__bottomLeft>
-
-          <bem.SingleProcessing__bottomRight>
-            <SingleProcessingContent
-              questionType={this.getQuestionType()}
-            />
-          </bem.SingleProcessing__bottomRight>
+          {!singleProcessingStore.isReady &&
+            <LoadingSpinner/>
+          }
+          {singleProcessingStore.isReady &&
+            [
+              <bem.SingleProcessing__bottomLeft>
+                {this.renderTranslationSource()}
+                {this.state.submissionData !== null &&
+                  <SingleProcessingSubmissionDetails
+                    questionType={this.getQuestionType()}
+                    questionName={this.props.params.questionName}
+                    submissionData={this.state.submissionData}
+                    assetContent={this.state.asset.content}
+                  />
+                }
+              </bem.SingleProcessing__bottomLeft>,
+              <bem.SingleProcessing__bottomRight>
+                <SingleProcessingContent
+                  questionType={this.getQuestionType()}
+                />
+              </bem.SingleProcessing__bottomRight>
+            ]
+          }
         </bem.SingleProcessing__bottom>
       </bem.SingleProcessing>
     )

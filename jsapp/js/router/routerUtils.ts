@@ -169,6 +169,17 @@ export function isFormKobocatRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_KOBOCAT.replace(':uid', uid);
 }
 
+export function isFormSingleProcessingRoute(
+  uid: string,
+  questionName: string,
+  submissionId: string
+): boolean {
+  return getCurrentPath() === ROUTES.FORM_PROCESSING
+    .replace(':uid', uid)
+    .replace(':questionName', questionName)
+    .replace(':submissionId', submissionId);
+}
+
 export function isFormResetRoute(uid: string): boolean {
   return getCurrentPath() === ROUTES.FORM_RESET.replace(':uid', uid);
 }
@@ -211,5 +222,19 @@ export function getRouteAssetUid(): string|void {
 
   if (isAnyLibraryItemRoute()) {
     return getCurrentPath().split('/')[3];
+  }
+}
+
+/** Returns parameters from path for single processing route. */
+export function getSingleProcessingRouteParameters(): {
+  uid: string,
+  questionName: string,
+  submissionId: string,
+} {
+  const splitPath = getCurrentPath().split('/');
+  return {
+    uid: splitPath[2],
+    questionName: splitPath[5],
+    submissionId: splitPath[6],
   }
 }

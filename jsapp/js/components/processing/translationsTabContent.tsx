@@ -10,11 +10,6 @@ import languageSelectorActions from 'js/components/languages/languageSelectorAct
 import Button from 'js/components/common/button'
 import 'js/components/processing/processingBody'
 
-interface TranslationDraft {
-  content?: string
-  languageCode?: string
-}
-
 type TranslationsTabContentProps = {}
 
 type TranslationsTabContentState = {
@@ -22,7 +17,6 @@ type TranslationsTabContentState = {
   selectedTranslation?: string
   /** Uses languageCode, useful for back button. */
   previousSelectedTranslation?: string
-  translationDraft?: TranslationDraft
 }
 
 export default class TranslationsTabContent extends React.Component<
@@ -63,15 +57,17 @@ export default class TranslationsTabContent extends React.Component<
   * store changes :shrug:.
   */
   onSingleProcessingStoreChange() {
+    const draft = singleProcessingStore.getTranslationDraft()
+
     // When we save a new translation, we can preselect it, as it already exist
     // in the store.
-    if (this.state.translationDraft?.languageCode) {
-      this.selectTranslation(this.state.translationDraft.languageCode)
+    if (draft?.languageCode) {
+      this.selectTranslation(draft.languageCode)
     }
 
     // When we delete a translation, we want to select another one.
     if (
-      this.state.translationDraft === undefined &&
+      draft === undefined &&
       this.state.selectedTranslation !== undefined &&
       singleProcessingStore.getTranslation(this.state.selectedTranslation) === undefined
     ) {
@@ -90,16 +86,16 @@ export default class TranslationsTabContent extends React.Component<
 
   /** Changes the draft language, preserving the other draft properties. */
   onLanguageChange(newVal: string | undefined) {
-    const newDraft = clonedeep(this.state.translationDraft) || {}
+    const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {}
     newDraft.languageCode = newVal
-    this.setState({translationDraft: newDraft})
+    singleProcessingStore.setTranslationDraft(newDraft)
   }
 
   /** Changes the draft content, preserving the other draft properties. */
   setDraftContent(newVal: string | undefined) {
-    const newDraft = clonedeep(this.state.translationDraft) || {}
+    const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {}
     newDraft.content = newVal
-    this.setState({translationDraft: newDraft})
+    singleProcessingStore.setTranslationDraft(newDraft)
   }
 
   onDraftContentChange(evt: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -108,7 +104,7 @@ export default class TranslationsTabContent extends React.Component<
 
   begin() {
     // Make an empty draft.
-    this.setState({translationDraft: {}})
+    singleProcessingStore.setTranslationDraft({})
   }
 
   selectModeManual() {
@@ -118,24 +114,27 @@ export default class TranslationsTabContent extends React.Component<
 
   selectModeAuto() {
     // TODO: this will display an automated service selector that will
-    // ultimately produce a `translationDraft.content`.
+    // ultimately produce a draft content.
   }
 
   back() {
+    const draft = singleProcessingStore.getTranslationDraft()
+
     if (
-      this.state.translationDraft !== undefined &&
-      this.state.translationDraft?.languageCode === undefined &&
-      this.state.translationDraft?.content === undefined
+      draft !== undefined &&
+      draft?.languageCode === undefined &&
+      draft?.content === undefined
     ) {
       this.discardDraft()
     }
 
     if (
-      this.state.translationDraft !== undefined &&
-      this.state.translationDraft?.languageCode !== undefined &&
-      this.state.translationDraft?.content === undefined
+      draft !== undefined &&
+      draft?.languageCode !== undefined &&
+      draft?.content === undefined
     ) {
-      this.setState({translationDraft: {}}, languageSelectorActions.resetAll)
+      singleProcessingStore.setTranslationDraft({})
+      languageSelectorActions.resetAll()
     }
   }
 
@@ -151,23 +150,25 @@ export default class TranslationsTabContent extends React.Component<
       }
     }
 
+    singleProcessingStore.setTranslationDraft(undefined)
+
     this.setState({
-      translationDraft: undefined,
       selectedTranslation: preselectedTranslation,
       previousSelectedTranslation: undefined
     })
   }
 
   saveDraft() {
-    const existingTranslation = singleProcessingStore.getTranslation(this.state.translationDraft?.languageCode)
+    const draft = singleProcessingStore.getTranslationDraft()
+    const existingTranslation = singleProcessingStore.getTranslation(draft?.languageCode)
 
     if (
-      this.state.translationDraft?.languageCode !== undefined &&
-      this.state.translationDraft?.content !== undefined
+      draft?.languageCode !== undefined &&
+      draft?.content !== undefined
     ) {
-      singleProcessingStore.setTranslation(this.state.translationDraft.languageCode, {
-        languageCode: this.state.translationDraft.languageCode,
-        content: this.state.translationDraft.content,
+      singleProcessingStore.setTranslation(draft.languageCode, {
+        languageCode: draft.languageCode,
+        content: draft.content,
         dateCreated: existingTranslation?.dateCreated || Date(),
         dateModified: Date()
       })
@@ -176,8 +177,10 @@ export default class TranslationsTabContent extends React.Component<
 
   openEditor(languageCode: string) {
     // Make new draft using existing translation.
+    singleProcessingStore.setTranslationDraft(
+      singleProcessingStore.getTranslation(languageCode)
+    )
     this.setState({
-      translationDraft: singleProcessingStore.getTranslation(languageCode),
       selectedTranslation: languageCode
     })
   }
@@ -188,16 +191,17 @@ export default class TranslationsTabContent extends React.Component<
 
   addTranslation() {
     // Make an empty draft to make the language selector appear. Unselect the current translation.
+    singleProcessingStore.setTranslationDraft({})
     this.setState({
-      translationDraft: {},
       selectedTranslation: undefined,
       previousSelectedTranslation: this.state.selectedTranslation
     })
   }
 
   hasUnsavedDraftContent() {
+    const draft = singleProcessingStore.getTranslationDraft()
     return (
-      this.state.translationDraft?.content !== singleProcessingStore.getTranslation(this.state.translationDraft?.languageCode)?.content
+      draft?.content !== singleProcessingStore.getTranslation(draft?.languageCode)?.content
     )
   }
 
@@ -232,13 +236,15 @@ export default class TranslationsTabContent extends React.Component<
 
   /** Renders a text or a selector of translations. */
   renderLanguage() {
+    const draft = singleProcessingStore.getTranslationDraft()
+
     // When editing we want to display just a text
-    if (this.state.translationDraft?.languageCode) {
+    if (draft?.languageCode) {
       return (
         <bem.ProcessingBody__transHeaderLanguageWrapper>
           {t('Language')}
           <bem.ProcessingBody__transHeaderLanguage>
-            {envStore.getLanguageDisplayLabel(this.state.translationDraft.languageCode)}
+            {envStore.getLanguageDisplayLabel(draft.languageCode)}
           </bem.ProcessingBody__transHeaderLanguage>
         </bem.ProcessingBody__transHeaderLanguageWrapper>
       )
@@ -247,7 +253,7 @@ export default class TranslationsTabContent extends React.Component<
     const translations = singleProcessingStore.getTranslations()
 
     // When viewing the only translation we want to display just a text
-    if (!this.state.translationDraft && translations.length === 1) {
+    if (!draft && translations.length === 1) {
       return (
         <bem.ProcessingBody__transHeaderLanguageWrapper>
           {t('Language')}
@@ -260,7 +266,7 @@ export default class TranslationsTabContent extends React.Component<
 
     // When viewing one of translations we want to have an option to select some
     // other translation.
-    if (!this.state.translationDraft && translations.length >= 2) {
+    if (!draft && translations.length >= 2) {
       let selectValueLabel = this.state.selectedTranslation
       if (this.state.selectedTranslation) {
         selectValueLabel = envStore.getLanguageDisplayLabel(this.state.selectedTranslation)
@@ -319,6 +325,8 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   renderStepConfig() {
+    const draft = singleProcessingStore.getTranslationDraft()
+
     return (
       <bem.ProcessingBody m='config'>
         <LanguageSelector
@@ -345,7 +353,7 @@ export default class TranslationsTabContent extends React.Component<
               size='m'
               label={t('manual')}
               onClick={this.selectModeManual.bind(this)}
-              isDisabled={this.state.translationDraft?.languageCode === undefined}
+              isDisabled={draft?.languageCode === undefined}
             />
 
             <Button
@@ -364,6 +372,14 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   renderStepEditor() {
+    const draft = singleProcessingStore.getTranslationDraft()
+
+    // The discard button will become a back button when there are no unsaved changes.
+    let discardLabel = t('Back')
+    if (this.hasUnsavedDraftContent()) {
+      discardLabel = t('Discard')
+    }
+
     return (
       <bem.ProcessingBody>
         <bem.ProcessingBody__transHeader>
@@ -374,9 +390,9 @@ export default class TranslationsTabContent extends React.Component<
               type='frame'
               color='blue'
               size='s'
-              label={t('Discard')}
+              label={discardLabel}
               onClick={this.discardDraft.bind(this)}
-              isDisabled={singleProcessingStore.isPending}
+              isDisabled={singleProcessingStore.isFetchingData}
             />
 
             <Button
@@ -385,16 +401,16 @@ export default class TranslationsTabContent extends React.Component<
               size='s'
               label={t('Save')}
               onClick={this.saveDraft.bind(this)}
-              isPending={singleProcessingStore.isPending}
+              isPending={singleProcessingStore.isFetchingData}
               isDisabled={!this.hasUnsavedDraftContent()}
             />
           </bem.ProcessingBody__transHeaderButtons>
         </bem.ProcessingBody__transHeader>
 
         <bem.ProcessingBody__textarea
-          value={this.state.translationDraft?.content}
+          value={draft?.content}
           onChange={this.onDraftContentChange.bind(this)}
-          disabled={singleProcessingStore.isPending}
+          disabled={singleProcessingStore.isFetchingData}
         />
       </bem.ProcessingBody>
     )
@@ -419,7 +435,7 @@ export default class TranslationsTabContent extends React.Component<
               startIcon='plus'
               label={t('new translation')}
               onClick={this.addTranslation.bind(this)}
-              isDisabled={singleProcessingStore.isPending}
+              isDisabled={singleProcessingStore.isFetchingData}
             />
 
             <Button
@@ -429,7 +445,7 @@ export default class TranslationsTabContent extends React.Component<
               startIcon='edit'
               onClick={this.openEditor.bind(this, this.state.selectedTranslation)}
               tooltip={t('Edit')}
-              isDisabled={singleProcessingStore.isPending}
+              isDisabled={singleProcessingStore.isFetchingData}
             />
 
             <Button
@@ -439,7 +455,7 @@ export default class TranslationsTabContent extends React.Component<
               startIcon='trash'
               onClick={this.deleteTranslation.bind(this, this.state.selectedTranslation)}
               tooltip={t('Delete')}
-              isPending={singleProcessingStore.isPending}
+              isPending={singleProcessingStore.isFetchingData}
             />
           </bem.ProcessingBody__transHeaderButtons>
         </bem.ProcessingBody__transHeader>
@@ -453,27 +469,29 @@ export default class TranslationsTabContent extends React.Component<
 
   /** Identifies what step should be displayed based on the data itself. */
   render() {
+    const draft = singleProcessingStore.getTranslationDraft()
+
     // Step 1: Begin - the step where there is nothing yet.
     if (
       singleProcessingStore.getTranslations().length === 0 &&
-      this.state.translationDraft === undefined
+      draft === undefined
     ) {
       return this.renderStepBegin()
     }
 
     // Step 2: Config - for selecting the translation language and mode.
     if (
-      this.state.translationDraft !== undefined &&
+      draft !== undefined &&
       (
-        this.state.translationDraft.languageCode === undefined ||
-        this.state.translationDraft.content === undefined
+        draft.languageCode === undefined ||
+        draft.content === undefined
       )
     ) {
       return this.renderStepConfig()
     }
 
     // Step 3: Editor - display editor of draft translation.
-    if (this.state.translationDraft !== undefined) {
+    if (draft !== undefined) {
       return this.renderStepEditor()
     }
 
@@ -483,7 +501,7 @@ export default class TranslationsTabContent extends React.Component<
         singleProcessingStore.getTranslation(this.state.selectedTranslation) !== undefined ||
         singleProcessingStore.getTranslations().length >= 1
       ) &&
-      this.state.translationDraft === undefined
+      draft === undefined
     ) {
       return this.renderStepSingleViewer()
     }

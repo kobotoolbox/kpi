@@ -10,28 +10,14 @@ import languageSelectorActions from 'js/components/languages/languageSelectorAct
 import Button from 'js/components/common/button'
 import 'js/components/processing/processingBody'
 
-interface TranscriptDraft {
-  content?: string
-  languageCode?: string
-}
-
 type TranscriptTabContentProps = {
   questionType: AnyRowTypeName | undefined
 }
 
-type TranscriptTabContentState = {
-  transcriptDraft?: TranscriptDraft
-}
-
 export default class TranscriptTabContent extends React.Component<
   TranscriptTabContentProps,
-  TranscriptTabContentState
+  {}
 > {
-  constructor(props: TranscriptTabContentProps) {
-    super(props)
-    this.state = {}
-  }
-
   private unlisteners: Function[] = []
 
   componentDidMount() {
@@ -55,16 +41,16 @@ export default class TranscriptTabContent extends React.Component<
 
   /** Changes the draft language, preserving the other draft properties. */
   onLanguageChange(newVal: string | undefined) {
-    const newDraft = clonedeep(this.state.transcriptDraft) || {}
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {}
     newDraft.languageCode = newVal
-    this.setState({transcriptDraft: newDraft})
+    singleProcessingStore.setTranscriptDraft(newDraft)
   }
 
   /** Changes the draft content, preserving the other draft properties. */
   setDraftContent(newVal: string | undefined) {
-    const newDraft = clonedeep(this.state.transcriptDraft) || {}
+    const newDraft = clonedeep(singleProcessingStore.getTranscriptDraft()) || {}
     newDraft.content = newVal
-    this.setState({transcriptDraft: newDraft})
+    singleProcessingStore.setTranscriptDraft(newDraft)
   }
 
   onDraftContentChange(evt: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -73,7 +59,7 @@ export default class TranscriptTabContent extends React.Component<
 
   begin() {
     // Make an empty draft.
-    this.setState({transcriptDraft: {}})
+    singleProcessingStore.setTranscriptDraft({})
   }
 
   selectModeManual() {
@@ -83,42 +69,45 @@ export default class TranscriptTabContent extends React.Component<
 
   selectModeAuto() {
     // TODO: this will display an automated service selector that will
-    // ultimately produce a `transcriptDraft.content`.
+    // ultimately produce a draft content.
   }
 
   back() {
+    const draft = singleProcessingStore.getTranscriptDraft()
     if (
-      this.state.transcriptDraft !== undefined &&
-      this.state.transcriptDraft?.languageCode === undefined &&
-      this.state.transcriptDraft?.content === undefined
+      draft !== undefined &&
+      draft?.languageCode === undefined &&
+      draft?.content === undefined
     ) {
       this.discardDraft()
     }
 
     if (
-      this.state.transcriptDraft !== undefined &&
-      this.state.transcriptDraft?.languageCode !== undefined &&
-      this.state.transcriptDraft?.content === undefined
+      draft !== undefined &&
+      draft?.languageCode !== undefined &&
+      draft?.content === undefined
     ) {
-      this.setState({transcriptDraft: {}}, languageSelectorActions.resetAll)
+      singleProcessingStore.setTranslationDraft({})
+      languageSelectorActions.resetAll()
     }
   }
 
   discardDraft() {
     // Remove draft.
-    this.setState({transcriptDraft: undefined})
+    singleProcessingStore.setTranscriptDraft(undefined)
   }
 
   saveDraft() {
     const existingTranscript = singleProcessingStore.getTranscript()
+    const draft = singleProcessingStore.getTranscriptDraft()
 
     if (
-      this.state.transcriptDraft?.languageCode !== undefined &&
-      this.state.transcriptDraft?.content !== undefined
+      draft?.languageCode !== undefined &&
+      draft?.content !== undefined
     ) {
       singleProcessingStore.setTranscript({
-        languageCode: this.state.transcriptDraft.languageCode,
-        content: this.state.transcriptDraft.content,
+        languageCode: draft.languageCode,
+        content: draft.content,
         dateCreated: existingTranscript?.dateCreated || Date(),
         dateModified: Date()
       })
@@ -127,7 +116,9 @@ export default class TranscriptTabContent extends React.Component<
 
   openEditor() {
     // Make new draft using existing transcript.
-    this.setState({transcriptDraft: singleProcessingStore.getTranscript()})
+    singleProcessingStore.setTranscriptDraft(
+      singleProcessingStore.getTranscript()
+    )
   }
 
   deleteTranscript() {
@@ -135,14 +126,16 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   hasUnsavedDraftContent() {
+    const draft = singleProcessingStore.getTranscriptDraft()
     return (
-      this.state.transcriptDraft?.content !== singleProcessingStore.getTranscript()?.content
+      draft?.content !== singleProcessingStore.getTranscript()?.content
     )
   }
 
   renderLanguageAndDate() {
     const storeTranscript = singleProcessingStore.getTranscript()
-    const contentLanguageCode = this.state.transcriptDraft?.languageCode || storeTranscript?.languageCode
+    const draft = singleProcessingStore.getTranscriptDraft()
+    const contentLanguageCode = draft?.languageCode || storeTranscript?.languageCode
     if (contentLanguageCode === undefined) {
       return null
     }
@@ -197,6 +190,8 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   renderStepConfig() {
+    const draft = singleProcessingStore.getTranscriptDraft()
+
     return (
       <bem.ProcessingBody m='config'>
         <LanguageSelector
@@ -221,7 +216,7 @@ export default class TranscriptTabContent extends React.Component<
               size='m'
               label={t('manual')}
               onClick={this.selectModeManual.bind(this)}
-              isDisabled={this.state.transcriptDraft?.languageCode === undefined}
+              isDisabled={draft?.languageCode === undefined}
             />
 
             <Button
@@ -240,6 +235,14 @@ export default class TranscriptTabContent extends React.Component<
   }
 
   renderStepEditor() {
+    const draft = singleProcessingStore.getTranscriptDraft()
+
+    // The discard button will become a back button when there are no unsaved changes.
+    let discardLabel = t('Back')
+    if (this.hasUnsavedDraftContent()) {
+      discardLabel = t('Discard')
+    }
+
     return (
       <bem.ProcessingBody>
         <bem.ProcessingBody__transHeader>
@@ -250,9 +253,9 @@ export default class TranscriptTabContent extends React.Component<
               type='frame'
               color='blue'
               size='s'
-              label={t('Discard')}
+              label={discardLabel}
               onClick={this.discardDraft.bind(this)}
-              isDisabled={singleProcessingStore.isPending}
+              isDisabled={singleProcessingStore.isFetchingData}
             />
 
             <Button
@@ -261,16 +264,16 @@ export default class TranscriptTabContent extends React.Component<
               size='s'
               label={t('Save')}
               onClick={this.saveDraft.bind(this)}
-              isPending={singleProcessingStore.isPending}
+              isPending={singleProcessingStore.isFetchingData}
               isDisabled={!this.hasUnsavedDraftContent()}
             />
           </bem.ProcessingBody__transHeaderButtons>
         </bem.ProcessingBody__transHeader>
 
         <bem.ProcessingBody__textarea
-          value={this.state.transcriptDraft?.content}
+          value={draft?.content}
           onChange={this.onDraftContentChange.bind(this)}
-          disabled={singleProcessingStore.isPending}
+          disabled={singleProcessingStore.isFetchingData}
         />
       </bem.ProcessingBody>
     )
@@ -290,7 +293,7 @@ export default class TranscriptTabContent extends React.Component<
               startIcon='edit'
               onClick={this.openEditor.bind(this)}
               tooltip={t('Edit')}
-              isDisabled={singleProcessingStore.isPending}
+              isDisabled={singleProcessingStore.isFetchingData}
             />
 
             <Button
@@ -300,7 +303,7 @@ export default class TranscriptTabContent extends React.Component<
               startIcon='trash'
               onClick={this.deleteTranscript.bind(this)}
               tooltip={t('Delete')}
-              isPending={singleProcessingStore.isPending}
+              isPending={singleProcessingStore.isFetchingData}
             />
           </bem.ProcessingBody__transHeaderButtons>
         </bem.ProcessingBody__transHeader>
@@ -314,34 +317,36 @@ export default class TranscriptTabContent extends React.Component<
 
   /** Identifies what step should be displayed based on the data itself. */
   render() {
+    const draft = singleProcessingStore.getTranscriptDraft()
+
     // Step 1: Begin - the step where there is nothing yet.
     if (
       singleProcessingStore.getTranscript() === undefined &&
-      this.state.transcriptDraft === undefined
+      draft === undefined
     ) {
       return this.renderStepBegin()
     }
 
     // Step 2: Config - for selecting the transcript language and mode.
     if (
-      this.state.transcriptDraft !== undefined &&
+      draft !== undefined &&
       (
-        this.state.transcriptDraft.languageCode === undefined ||
-        this.state.transcriptDraft.content === undefined
+        draft.languageCode === undefined ||
+        draft.content === undefined
       )
     ) {
       return this.renderStepConfig()
     }
 
     // Step 3: Editor - display editor of draft transcript.
-    if (this.state.transcriptDraft !== undefined) {
+    if (draft !== undefined) {
       return this.renderStepEditor()
     }
 
     // Step 4: Viewer - display existing (on backend) transcript.
     if (
       singleProcessingStore.getTranscript() !== undefined &&
-      this.state.transcriptDraft === undefined
+      draft === undefined
     ) {
       return this.renderStepViewer()
     }
