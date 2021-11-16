@@ -28,6 +28,12 @@
 .processing-body__trans-header-language {
   font-weight: 700;
   margin-left: sizes.$x4;
+  min-width: sizes.$x100;
+
+  .kobo-select .kobo-select__control .kobo-select__indicator {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
 }
 
 .processing-body__trans-header-buttons {
@@ -58,10 +64,19 @@
   align-items: center;
 
   p {
-    font-size: 18px;
+    font-size: sizes.$x18;
     font-weight: 400;
     text-align: center;
-    line-height: 20px;
+    line-height: sizes.$x20;
     margin-bottom: sizes.$x24;
+  }
+}
+
+.processing-body__footer {
+  @include mixins.centerRowFlex;
+  margin-top: sizes.$x20;
+
+  *:not(:first-child) {
+    margin-left: sizes.$x14;
   }
 }

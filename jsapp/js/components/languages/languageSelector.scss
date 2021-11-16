@@ -104,6 +104,10 @@
 
 .language-selector__selected-language-label {
   color: colors.$kobo-blue;
+  // Add ellipsis for long languages.
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .language-selector__search-box-input {

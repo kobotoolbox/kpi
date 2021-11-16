@@ -6,6 +6,7 @@ import {formatTime} from 'js/utils'
 import {AnyRowTypeName} from 'js/constants'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import LanguageSelector from 'js/components/languages/languageSelector'
+import languageSelectorActions from 'js/components/languages/languageSelectorActions';
 import Button from 'js/components/common/button'
 import 'js/components/processing/processingBody'
 
@@ -83,6 +84,24 @@ export default class TranscriptTabContent extends React.Component<
   selectModeAuto() {
     // TODO: this will display an automated service selector that will
     // ultimately produce a `transcriptDraft.content`.
+  }
+
+  back() {
+    if (
+      this.state.transcriptDraft !== undefined &&
+      this.state.transcriptDraft?.languageCode === undefined &&
+      this.state.transcriptDraft?.content === undefined
+    ) {
+      this.discardDraft()
+    }
+
+    if (
+      this.state.transcriptDraft !== undefined &&
+      this.state.transcriptDraft?.languageCode !== undefined &&
+      this.state.transcriptDraft?.content === undefined
+    ) {
+      this.setState({transcriptDraft: {}}, languageSelectorActions.resetAll)
+    }
   }
 
   discardDraft() {
@@ -185,24 +204,37 @@ export default class TranscriptTabContent extends React.Component<
           onLanguageChange={this.onLanguageChange.bind(this)}
         />
 
-        <Button
-          type='frame'
-          color='blue'
-          size='m'
-          label={t('manual')}
-          onClick={this.selectModeManual.bind(this)}
-          isDisabled={this.state.transcriptDraft?.languageCode === undefined}
-        />
+        <bem.ProcessingBody__footer>
+          <Button
+            type='bare'
+            color='blue'
+            size='m'
+            label={t('back')}
+            startIcon='caret-left'
+            onClick={this.back.bind(this)}
+          />
 
-        <Button
-          type='full'
-          color='blue'
-          size='m'
-          label={t('automatic')}
-          onClick={this.selectModeAuto.bind(this)}
-          // TODO: This is disabled until we actually work on automated services integration.
-          isDisabled
-        />
+          <div>
+            <Button
+              type='frame'
+              color='blue'
+              size='m'
+              label={t('manual')}
+              onClick={this.selectModeManual.bind(this)}
+              isDisabled={this.state.transcriptDraft?.languageCode === undefined}
+            />
+
+            <Button
+              type='full'
+              color='blue'
+              size='m'
+              label={t('automatic')}
+              onClick={this.selectModeAuto.bind(this)}
+              // TODO: This is disabled until we actually work on automated services integration.
+              isDisabled
+            />
+          </div>
+        </bem.ProcessingBody__footer>
       </bem.ProcessingBody>
     )
   }
@@ -220,7 +252,7 @@ export default class TranscriptTabContent extends React.Component<
               size='s'
               label={t('Discard')}
               onClick={this.discardDraft.bind(this)}
-              isDisabled={!this.hasUnsavedDraftContent() || singleProcessingStore.isPending}
+              isDisabled={singleProcessingStore.isPending}
             />
 
             <Button

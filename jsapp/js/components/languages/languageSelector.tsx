@@ -5,6 +5,7 @@ import Icon from 'js/components/common/icon'
 import Button from 'js/components/common/button'
 import envStore, {EnvStoreDataItem} from 'js/envStore'
 import {FUSE_OPTIONS} from 'js/constants'
+import languageSelectorActions from './languageSelectorActions';
 import './languageSelector.scss'
 
 bem.LanguageSelector = makeBem(null, 'language-selector', 'section')
@@ -61,6 +62,18 @@ class LanguageSelector extends React.Component<
       filterPhrase: '',
       selectedLanguage: props.preselectedLanguage
     }
+  }
+
+  private unlisteners: Function[] = []
+
+  componentDidMount() {
+    this.unlisteners.push(
+      languageSelectorActions.resetAll.requested.listen(this.clearSelectedLanguage.bind(this))
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb();});
   }
 
   notifyParentComponent() {

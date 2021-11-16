@@ -6,6 +6,7 @@ import {formatTime} from 'js/utils'
 import bem from 'js/bem'
 import singleProcessingStore, {Translation} from 'js/components/processing/singleProcessingStore'
 import LanguageSelector from 'js/components/languages/languageSelector'
+import languageSelectorActions from 'js/components/languages/languageSelectorActions';
 import Button from 'js/components/common/button'
 import 'js/components/processing/processingBody'
 
@@ -19,6 +20,8 @@ type TranslationsTabContentProps = {}
 type TranslationsTabContentState = {
   /** Uses languageCode. */
   selectedTranslation?: string
+  /** Uses languageCode, useful for back button. */
+  previousSelectedTranslation?: string
   translationDraft?: TranslationDraft
 }
 
@@ -118,9 +121,41 @@ export default class TranslationsTabContent extends React.Component<
     // ultimately produce a `translationDraft.content`.
   }
 
+  back() {
+    if (
+      this.state.translationDraft !== undefined &&
+      this.state.translationDraft?.languageCode === undefined &&
+      this.state.translationDraft?.content === undefined
+    ) {
+      this.discardDraft()
+    }
+
+    if (
+      this.state.translationDraft !== undefined &&
+      this.state.translationDraft?.languageCode !== undefined &&
+      this.state.translationDraft?.content === undefined
+    ) {
+      this.setState({translationDraft: {}}, languageSelectorActions.resetAll)
+    }
+  }
+
+  /** Removes the draft and preselects translations if possible. */
   discardDraft() {
-    // Remove draft.
-    this.setState({translationDraft: undefined})
+    let preselectedTranslation = undefined
+    if (this.state.previousSelectedTranslation) {
+      preselectedTranslation = this.state.previousSelectedTranslation
+    } else {
+      const storedTranslations = singleProcessingStore.getTranslations()
+      if (storedTranslations.length >= 1) {
+        preselectedTranslation = storedTranslations[0].languageCode
+      }
+    }
+
+    this.setState({
+      translationDraft: undefined,
+      selectedTranslation: preselectedTranslation,
+      previousSelectedTranslation: undefined
+    })
   }
 
   saveDraft() {
@@ -155,7 +190,8 @@ export default class TranslationsTabContent extends React.Component<
     // Make an empty draft to make the language selector appear. Unselect the current translation.
     this.setState({
       translationDraft: {},
-      selectedTranslation: undefined
+      selectedTranslation: undefined,
+      previousSelectedTranslation: this.state.selectedTranslation
     })
   }
 
@@ -292,24 +328,37 @@ export default class TranslationsTabContent extends React.Component<
           sourceLanguage={singleProcessingStore.getTranscript()?.languageCode}
         />
 
-        <Button
-          type='frame'
-          color='blue'
-          size='m'
-          label={t('manual')}
-          onClick={this.selectModeManual.bind(this)}
-          isDisabled={this.state.translationDraft?.languageCode === undefined}
-        />
+        <bem.ProcessingBody__footer>
+          <Button
+            type='bare'
+            color='blue'
+            size='m'
+            label={t('back')}
+            startIcon='caret-left'
+            onClick={this.back.bind(this)}
+          />
 
-        <Button
-          type='full'
-          color='blue'
-          size='m'
-          label={t('automatic')}
-          onClick={this.selectModeAuto.bind(this)}
-          // TODO: This is disabled until we actually work on automated services integration.
-          isDisabled
-        />
+          <div>
+            <Button
+              type='frame'
+              color='blue'
+              size='m'
+              label={t('manual')}
+              onClick={this.selectModeManual.bind(this)}
+              isDisabled={this.state.translationDraft?.languageCode === undefined}
+            />
+
+            <Button
+              type='full'
+              color='blue'
+              size='m'
+              label={t('automatic')}
+              onClick={this.selectModeAuto.bind(this)}
+              // TODO: This is disabled until we actually work on automated services integration.
+              isDisabled
+            />
+          </div>
+        </bem.ProcessingBody__footer>
       </bem.ProcessingBody>
     )
   }
@@ -327,7 +376,7 @@ export default class TranslationsTabContent extends React.Component<
               size='s'
               label={t('Discard')}
               onClick={this.discardDraft.bind(this)}
-              isDisabled={!this.hasUnsavedDraftContent() || singleProcessingStore.isPending}
+              isDisabled={singleProcessingStore.isPending}
             />
 
             <Button
@@ -364,22 +413,22 @@ export default class TranslationsTabContent extends React.Component<
 
           <bem.ProcessingBody__transHeaderButtons>
             <Button
-              type='bare'
-              color='gray'
-              size='s'
-              startIcon='edit'
-              onClick={this.openEditor.bind(this, this.state.selectedTranslation)}
-              tooltip={t('Edit')}
-              isDisabled={singleProcessingStore.isPending}
-            />
-
-            <Button
               type='frame'
               color='gray'
               size='s'
               startIcon='plus'
               label={t('new translation')}
               onClick={this.addTranslation.bind(this)}
+              isDisabled={singleProcessingStore.isPending}
+            />
+
+            <Button
+              type='bare'
+              color='gray'
+              size='s'
+              startIcon='edit'
+              onClick={this.openEditor.bind(this, this.state.selectedTranslation)}
+              tooltip={t('Edit')}
               isDisabled={singleProcessingStore.isPending}
             />
 
