@@ -12,7 +12,8 @@ import LoadingSpinner from 'js/components/common/loadingSpinner'
 import SingleProcessingHeader from 'js/components/processing/singleProcessingHeader'
 import SingleProcessingSubmissionDetails from 'js/components/processing/singleProcessingSubmissionDetails'
 import SingleProcessingContent from 'js/components/processing/singleProcessingContent'
-import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore'
+import SingleProcessingPreview from 'js/components/processing/singleProcessingPreview'
+import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import './singleProcessing.scss'
 
 bem.SingleProcessing = makeBem(null, 'single-processing', 'section')
@@ -199,22 +200,6 @@ export default class SingleProcessingRoute extends React.Component<
     return this.props.params.questionName
   }
 
-  /** Displays transcript text on the left side for the translation */
-  renderTranslationSource() {
-    if (
-      singleProcessingStore.getTranscript() !== undefined &&
-      singleProcessingStore.getActiveTab() === SingleProcessingTabs.Translations
-    ) {
-      return (
-        <div>
-          {singleProcessingStore.getTranscript()?.content}
-        </div>
-      )
-    }
-
-    return null
-  }
-
   render() {
     if (
       !this.state.isSubmissionCallDone ||
@@ -258,24 +243,25 @@ export default class SingleProcessingRoute extends React.Component<
             <LoadingSpinner/>
           }
           {singleProcessingStore.isReady &&
-            [
-              <bem.SingleProcessing__bottomLeft>
-                {this.renderTranslationSource()}
-                {this.state.submissionData !== null &&
-                  <SingleProcessingSubmissionDetails
-                    questionType={this.getQuestionType()}
-                    questionName={this.props.params.questionName}
-                    submissionData={this.state.submissionData}
-                    assetContent={this.state.asset.content}
-                  />
-                }
-              </bem.SingleProcessing__bottomLeft>,
-              <bem.SingleProcessing__bottomRight>
-                <SingleProcessingContent
+            <bem.SingleProcessing__bottomLeft>
+              <SingleProcessingPreview/>
+
+              {this.state.submissionData !== null &&
+                <SingleProcessingSubmissionDetails
                   questionType={this.getQuestionType()}
+                  questionName={this.props.params.questionName}
+                  submissionData={this.state.submissionData}
+                  assetContent={this.state.asset.content}
                 />
-              </bem.SingleProcessing__bottomRight>
-            ]
+              }
+            </bem.SingleProcessing__bottomLeft>
+          }
+          {singleProcessingStore.isReady &&
+            <bem.SingleProcessing__bottomRight>
+              <SingleProcessingContent
+                questionType={this.getQuestionType()}
+              />
+            </bem.SingleProcessing__bottomRight>
           }
         </bem.SingleProcessing__bottom>
       </bem.SingleProcessing>

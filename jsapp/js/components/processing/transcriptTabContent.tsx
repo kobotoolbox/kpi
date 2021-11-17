@@ -101,6 +101,9 @@ export default class TranscriptTabContent extends React.Component<
     const existingTranscript = singleProcessingStore.getTranscript()
     const draft = singleProcessingStore.getTranscriptDraft()
 
+    const dateNow = new Date()
+    const dateISO = dateNow.toISOString()
+
     if (
       draft?.languageCode !== undefined &&
       draft?.content !== undefined
@@ -108,8 +111,8 @@ export default class TranscriptTabContent extends React.Component<
       singleProcessingStore.setTranscript({
         languageCode: draft.languageCode,
         content: draft.content,
-        dateCreated: existingTranscript?.dateCreated || Date(),
-        dateModified: Date()
+        dateCreated: existingTranscript?.dateCreated || dateISO,
+        dateModified: dateISO
       })
     }
   }

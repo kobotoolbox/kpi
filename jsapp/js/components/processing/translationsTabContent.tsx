@@ -162,6 +162,9 @@ export default class TranslationsTabContent extends React.Component<
     const draft = singleProcessingStore.getTranslationDraft()
     const existingTranslation = singleProcessingStore.getTranslation(draft?.languageCode)
 
+    const dateNow = new Date()
+    const dateISO = dateNow.toISOString()
+
     if (
       draft?.languageCode !== undefined &&
       draft?.content !== undefined
@@ -169,8 +172,8 @@ export default class TranslationsTabContent extends React.Component<
       singleProcessingStore.setTranslation(draft.languageCode, {
         languageCode: draft.languageCode,
         content: draft.content,
-        dateCreated: existingTranslation?.dateCreated || Date(),
-        dateModified: Date()
+        dateCreated: existingTranslation?.dateCreated || dateISO,
+        dateModified: dateISO
       })
     }
   }

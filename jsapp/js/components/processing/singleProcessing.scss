@@ -42,6 +42,7 @@ $s-single-processing-header: sizes.$x76;
   display: flex;
   flex-direction: column;
   padding-bottom: singleProcessingVariables.$s-single-processing-tabs;
+  max-height: 100%;
 }
 
 .single-processing__bottom-right {

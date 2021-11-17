@@ -1,0 +1,12 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "./singleProcessingVariables";
+
+.single-processing-preview {
+  margin-top: singleProcessingVariables.$s-single-processing-tabs;
+  background-color: colors.$kobo-white;
+  border-radius: sizes.$x6;
+  overflow-y: auto;
+  min-height: 100px;
+  max-height: 50%;
+}

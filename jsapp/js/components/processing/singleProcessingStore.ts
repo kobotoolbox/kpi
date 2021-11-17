@@ -38,6 +38,8 @@ interface SingleProcessingStoreData {
   transcriptDraft?: TransDraft
   translations: Translation[]
   translationDraft?: TransDraft
+  /** Being displayed on the left side of the screen during translation editing. */
+  translationSource?: Translation | Transcript
   activeTab: SingleProcessingTabs
 }
 
@@ -80,6 +82,7 @@ class SingleProcessingStore extends Reflux.Store {
       transcriptDraft: undefined,
       translations: [],
       translationDraft: undefined,
+      translationSource: undefined,
       activeTab: SingleProcessingTabs.Transcript
     }
   }
@@ -169,6 +172,10 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.translationDraft
   }
 
+  getTranslationSource() {
+    return this.data.translationSource
+  }
+
   onSetTranscriptCompleted(transcript: Transcript | undefined) {
     this.isFetchingData = false
     this.data.transcript = transcript
@@ -250,6 +257,17 @@ class SingleProcessingStore extends Reflux.Store {
 
   setTranslationDraft(newTranslationDraft: TransDraft | undefined) {
     this.data.translationDraft = newTranslationDraft
+    if (newTranslationDraft === undefined) {
+      this.data.translationSource = undefined
+    } else {
+      // We use transcript as source by default
+      this.data.translationSource = this.data.transcript
+    }
+    this.trigger(this.data)
+  }
+
+  setTranslationSource(newTranslationSource: Transcript | Translation) {
+    this.data.translationSource = newTranslationSource
     this.trigger(this.data)
   }
 
