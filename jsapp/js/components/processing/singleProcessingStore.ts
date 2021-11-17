@@ -257,12 +257,18 @@ class SingleProcessingStore extends Reflux.Store {
 
   setTranslationDraft(newTranslationDraft: TransDraft | undefined) {
     this.data.translationDraft = newTranslationDraft
+
+    // If we clear the draft, we remove the source too.
     if (newTranslationDraft === undefined) {
       this.data.translationSource = undefined
-    } else {
-      // We use transcript as source by default
+    }
+
+    // We want the source when we open up translation editor.
+    if (newTranslationDraft?.content !== undefined) {
+      // We use transcript as source by default.
       this.data.translationSource = this.data.transcript
     }
+
     this.trigger(this.data)
   }
 
@@ -273,6 +279,12 @@ class SingleProcessingStore extends Reflux.Store {
 
   activateTab(tab: SingleProcessingTabs) {
     this.data.activeTab = tab
+
+    // When changing tab, discard all drafts and the selected source.
+    this.data.transcriptDraft = undefined
+    this.data.translationDraft = undefined
+    this.data.translationSource = undefined
+
     this.trigger(this.data)
   }
 

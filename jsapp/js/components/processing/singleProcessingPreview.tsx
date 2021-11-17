@@ -68,24 +68,24 @@ export default class SingleProcessingPreview extends React.Component {
     const source = singleProcessingStore.getTranslationSource()
 
     if (
-      !source ||
-      singleProcessingStore.getActiveTab() !== SingleProcessingTabs.Translations
+      source &&
+      singleProcessingStore.getActiveTab() === SingleProcessingTabs.Translations
     ) {
-      return null
+      return (
+        <bem.SingleProcessingPreview>
+          <bem.ProcessingBody>
+            <bem.ProcessingBody__transHeader>
+              {this.renderLanguageAndDate()}
+            </bem.ProcessingBody__transHeader>
+
+            <bem.ProcessingBody__text>
+              {singleProcessingStore.getTranslationSource()?.content}
+            </bem.ProcessingBody__text>
+          </bem.ProcessingBody>
+        </bem.SingleProcessingPreview>
+      )
     }
 
-    return (
-      <bem.SingleProcessingPreview>
-        <bem.ProcessingBody>
-          <bem.ProcessingBody__transHeader>
-            {this.renderLanguageAndDate()}
-          </bem.ProcessingBody__transHeader>
-
-          <bem.ProcessingBody__text>
-            {singleProcessingStore.getTranslationSource()?.content}
-          </bem.ProcessingBody__text>
-        </bem.ProcessingBody>
-      </bem.SingleProcessingPreview>
-    )
+    return null
   }
 }
