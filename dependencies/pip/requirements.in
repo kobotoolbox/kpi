@@ -88,3 +88,6 @@ pyasn1
 
 # This package is only needed for unit tests but MockBackend is loaded even on production environment
 deepmerge
+
+# MFA
+django-trench
