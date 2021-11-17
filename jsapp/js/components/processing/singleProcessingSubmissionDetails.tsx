@@ -14,14 +14,14 @@ import {
 import AudioPlayer from 'js/components/common/audioPlayer'
 import './singleProcessingSubmissionDetails.scss'
 
-bem.SingleProcessingSubmissionDetails = makeBem(
+bem.SingleProcessingMediaWrapper = makeBem(
   null,
-  'single-processing-submission-details',
+  'single-processing-media-wrapper',
   'section'
 )
-bem.SingleProcessingSubmissionDetails__mediaWrapper = makeBem(
-  bem.SingleProcessingSubmissionDetails,
-  'media-wrapper',
+bem.SingleProcessingDataListWrapper = makeBem(
+  null,
+  'single-processing-data-list-wrapper',
   'section'
 )
 
@@ -68,9 +68,9 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
     }
 
     return (
-      <bem.SingleProcessingSubmissionDetails__mediaWrapper>
+      <bem.SingleProcessingMediaWrapper key='media'>
         <AudioPlayer mediaURL={attachment.download_url} />
-      </bem.SingleProcessingSubmissionDetails__mediaWrapper>
+      </bem.SingleProcessingMediaWrapper>
     )
   }
 
@@ -85,14 +85,16 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
 
   render() {
     return (
-      <bem.SingleProcessingSubmissionDetails>
-        {this.renderMedia()}
-        <SubmissionDataList
-          assetContent={this.props.assetContent}
-          submissionData={this.props.submissionData}
-          hideQuestions={this.getQuestionsToHide()}
-        />
-      </bem.SingleProcessingSubmissionDetails>
+      [
+        this.renderMedia(),
+        <bem.SingleProcessingDataListWrapper key='data-list'>
+          <SubmissionDataList
+            assetContent={this.props.assetContent}
+            submissionData={this.props.submissionData}
+            hideQuestions={this.getQuestionsToHide()}
+          />
+        </bem.SingleProcessingDataListWrapper>
+      ]
     )
   }
 }

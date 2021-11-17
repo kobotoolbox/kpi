@@ -2,16 +2,25 @@
 @use "scss/sizes";
 @use "./singleProcessingVariables";
 
-.single-processing-submission-details {
-  padding-top: singleProcessingVariables.$s-single-processing-tabs;
-  display: flex;
-  flex-direction: column;
-}
-
-.single-processing-submission-details__media-wrapper {
+.single-processing-media-wrapper {
   background-color: colors.$kobo-white;
   border-radius: sizes.$x6;
   margin-bottom: sizes.$x20;
   // right padding is for the audio player to appear centered
   padding: sizes.$x6 sizes.$x12 0 0;
+
+  &:first-child {
+    margin-top: singleProcessingVariables.$s-single-processing-tabs;
+  }
+
+  &:not(:first-child) {
+    margin-top: sizes.$x20;
+  }
+}
+
+.single-processing-data-list-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: sizes.$x20;
+  min-height: sizes.$x100;
 }

@@ -4,6 +4,9 @@
 
 .processing-body {
   padding: sizes.$x30;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 
   // The content of these steps is different.
   &.processing-body--begin,
@@ -48,14 +51,17 @@
   border-top: sizes.$x2 solid colors.$kobo-gray-96;
   padding-top: sizes.$x16;
   width: 100%;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .processing-body__textarea {
   border: sizes.$x2 solid colors.$kobo-gray-96;
   border-radius: sizes.$x6;
   padding: sizes.$x16;
+  resize: none;
   width: 100%;
-  min-height: sizes.$x200;
+  flex: 1;
 }
 
 .processing-body.processing-body--begin {
