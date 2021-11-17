@@ -39,7 +39,7 @@ interface SingleProcessingStoreData {
   translations: Translation[]
   translationDraft?: TransDraft
   /** Being displayed on the left side of the screen during translation editing. */
-  translationSource?: Translation | Transcript
+  source?: string
   activeTab: SingleProcessingTabs
 }
 
@@ -82,7 +82,7 @@ class SingleProcessingStore extends Reflux.Store {
       transcriptDraft: undefined,
       translations: [],
       translationDraft: undefined,
-      translationSource: undefined,
+      source: undefined,
       activeTab: SingleProcessingTabs.Transcript
     }
   }
@@ -102,7 +102,7 @@ class SingleProcessingStore extends Reflux.Store {
       this.fetchData()
     }
 
-    this.previousPath = data.pathname;
+    this.previousPath = data.pathname
   }
 
   onFetchDataStarted(abort: Function) {
@@ -150,32 +150,6 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  getTranscript() {
-    return this.data.transcript
-  }
-
-  getTranscriptDraft() {
-    return this.data.transcriptDraft
-  }
-
-  getTranslation(languageCode: string | undefined) {
-    return this.data.translations.find(
-      (translation) => translation.languageCode === languageCode
-    )
-  }
-
-  getTranslations() {
-    return this.data.translations
-  }
-
-  getTranslationDraft() {
-    return this.data.translationDraft
-  }
-
-  getTranslationSource() {
-    return this.data.translationSource
-  }
-
   onSetTranscriptCompleted(transcript: Transcript | undefined) {
     this.isFetchingData = false
     this.data.transcript = transcript
@@ -189,6 +163,52 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
+  /**
+   * Returns a list of selectable language codes.
+   * Omits the one currently being edited.
+   */
+  getSources(): string[] {
+    const sources = []
+
+    if (this.data.transcript?.languageCode) {
+      sources.push(this.data.transcript?.languageCode)
+    }
+
+    this.data.translations.forEach((translation: Translation) => {
+      if (translation.languageCode !== this.data.translationDraft?.languageCode) {
+        sources.push(translation.languageCode)
+      }
+    })
+
+    return sources
+  }
+
+  /** Sets a new source (stores a `languageCode`). */
+  setSource(newSource: string) {
+    this.data.source = newSource
+    this.trigger(this.data)
+  }
+
+  /** Returns whole transcript/translation for selected source. */
+  getSourceData(): Transcript | Translation | undefined {
+    if (!this.data.source) {
+      return undefined
+    }
+
+    if (this.data.source === this.data.transcript?.languageCode) {
+      return this.data.transcript
+    } else {
+      const found = this.data.translations.find((translation) =>
+        translation.languageCode === this.data.source
+      )
+      return found
+    }
+  }
+
+  getTranscript() {
+    return this.data.transcript
+  }
+
   setTranscript(newTranscript: Transcript | undefined) {
     this.isFetchingData = true
 
@@ -196,6 +216,25 @@ class SingleProcessingStore extends Reflux.Store {
     setTimeout(this.onSetTranscriptCompleted.bind(this, newTranscript), 3000)
 
     this.trigger(this.data)
+  }
+
+  getTranscriptDraft() {
+    return this.data.transcriptDraft
+  }
+
+  setTranscriptDraft(newTranscriptDraft: TransDraft | undefined) {
+    this.data.transcriptDraft = newTranscriptDraft
+    this.trigger(this.data)
+  }
+
+  getTranslation(languageCode: string | undefined) {
+    return this.data.translations.find(
+      (translation) => translation.languageCode === languageCode
+    )
+  }
+
+  getTranslations() {
+    return this.data.translations
   }
 
   /**
@@ -250,9 +289,8 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  setTranscriptDraft(newTranscriptDraft: TransDraft | undefined) {
-    this.data.transcriptDraft = newTranscriptDraft
-    this.trigger(this.data)
+  getTranslationDraft() {
+    return this.data.translationDraft
   }
 
   setTranslationDraft(newTranslationDraft: TransDraft | undefined) {
@@ -260,20 +298,15 @@ class SingleProcessingStore extends Reflux.Store {
 
     // If we clear the draft, we remove the source too.
     if (newTranslationDraft === undefined) {
-      this.data.translationSource = undefined
+      this.data.source = undefined
     }
 
-    // We want the source when we open up translation editor.
-    if (newTranslationDraft?.content !== undefined) {
+    // We show the source when editing translation or creating a new draft.
+    if (newTranslationDraft !== undefined) {
       // We use transcript as source by default.
-      this.data.translationSource = this.data.transcript
+      this.data.source = this.data.transcript?.languageCode
     }
 
-    this.trigger(this.data)
-  }
-
-  setTranslationSource(newTranslationSource: Transcript | Translation) {
-    this.data.translationSource = newTranslationSource
     this.trigger(this.data)
   }
 
@@ -283,7 +316,7 @@ class SingleProcessingStore extends Reflux.Store {
     // When changing tab, discard all drafts and the selected source.
     this.data.transcriptDraft = undefined
     this.data.translationDraft = undefined
-    this.data.translationSource = undefined
+    this.data.source = undefined
 
     this.trigger(this.data)
   }

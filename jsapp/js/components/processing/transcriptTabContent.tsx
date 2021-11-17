@@ -212,7 +212,7 @@ export default class TranscriptTabContent extends React.Component<
             onClick={this.back.bind(this)}
           />
 
-          <div>
+          <bem.ProcessingBody__footerRightButtons>
             <Button
               type='frame'
               color='blue'
@@ -231,7 +231,7 @@ export default class TranscriptTabContent extends React.Component<
               // TODO: This is disabled until we actually work on automated services integration.
               isDisabled
             />
-          </div>
+          </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
       </bem.ProcessingBody>
     )

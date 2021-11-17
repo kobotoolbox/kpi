@@ -1,4 +1,5 @@
 import React from 'react'
+import Select from 'react-select'
 import envStore from 'js/envStore'
 import {formatTime} from 'js/utils'
 import bem, {makeBem} from 'js/bem'
@@ -30,7 +31,7 @@ export default class SingleProcessingPreview extends React.Component {
   }
 
   renderLanguageAndDate() {
-    const source = singleProcessingStore.getTranslationSource()
+    const source = singleProcessingStore.getSourceData()
 
     const contentLanguageCode = source?.languageCode
     if (contentLanguageCode === undefined) {
@@ -48,12 +49,7 @@ export default class SingleProcessingPreview extends React.Component {
 
     return (
       <React.Fragment>
-        <div>
-          {t('Language')}
-          <bem.ProcessingBody__transHeaderLanguage>
-            {envStore.getLanguageDisplayLabel(contentLanguageCode)}
-          </bem.ProcessingBody__transHeaderLanguage>
-        </div>
+        {this.renderLanguage()}
 
         {dateText !== '' &&
           <bem.ProcessingBody__transHeaderDate>
@@ -64,8 +60,66 @@ export default class SingleProcessingPreview extends React.Component {
     )
   }
 
+  /** Renders a text or a selector of translations. */
+  renderLanguage() {
+    const sources = singleProcessingStore.getSources()
+    const sourceData = singleProcessingStore.getSourceData()
+
+    if (sources.length === 0 || sourceData?.languageCode === undefined) {
+      return null
+    }
+
+    // If there is only one source, we display it as a text.
+    if (sources.length === 1) {
+      return (
+        <bem.ProcessingBody__transHeaderLanguageWrapper>
+          {t('Language')}
+          <bem.ProcessingBody__transHeaderLanguage>
+            {envStore.getLanguageDisplayLabel(sourceData.languageCode)}
+          </bem.ProcessingBody__transHeaderLanguage>
+        </bem.ProcessingBody__transHeaderLanguageWrapper>
+      )
+    }
+
+    if (sources.length >= 2) {
+      const selectValue = {
+        value: sourceData.languageCode,
+        label: envStore.getLanguageDisplayLabel(sourceData.languageCode)
+      }
+
+      const selectOptions: {value: string, label: string}[] = []
+      sources.forEach((source) => {
+        selectOptions.push({
+          value: source,
+          label: envStore.getLanguageDisplayLabel(source)
+        })
+      })
+
+      // TODO: don't use Select because of styles issues, use KoboDropdown
+      return (
+        <bem.ProcessingBody__transHeaderLanguageWrapper>
+          {t('Language')}
+          <bem.ProcessingBody__transHeaderLanguage>
+            <Select
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              isSearchable={false}
+              isClearable={false}
+              inputId='translations-languages'
+              value={selectValue}
+              options={selectOptions}
+              onChange={(newVal) => {newVal?.value && singleProcessingStore.setSource(newVal.value)}}
+            />
+          </bem.ProcessingBody__transHeaderLanguage>
+        </bem.ProcessingBody__transHeaderLanguageWrapper>
+      )
+    }
+
+    return null
+  }
+
   render() {
-    const source = singleProcessingStore.getTranslationSource()
+    const source = singleProcessingStore.getSourceData()
 
     if (
       source &&
@@ -79,7 +133,7 @@ export default class SingleProcessingPreview extends React.Component {
             </bem.ProcessingBody__transHeader>
 
             <bem.ProcessingBody__text>
-              {singleProcessingStore.getTranslationSource()?.content}
+              {singleProcessingStore.getSourceData()?.content}
             </bem.ProcessingBody__text>
           </bem.ProcessingBody>
         </bem.SingleProcessingPreview>

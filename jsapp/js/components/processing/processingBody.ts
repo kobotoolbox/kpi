@@ -12,6 +12,7 @@ bem.ProcessingBody__transHeaderDate = makeBem(bem.ProcessingBody, 'trans-header-
 bem.ProcessingBody__transHeaderButtons = makeBem(bem.ProcessingBody, 'trans-header-buttons', 'nav')
 
 bem.ProcessingBody__footer = makeBem(bem.ProcessingBody, 'footer', 'footer')
+bem.ProcessingBody__footerRightButtons = makeBem(bem.ProcessingBody, 'footer-right-buttons')
 
 bem.ProcessingBody__text = makeBem(bem.ProcessingBody, 'text', 'article')
 bem.ProcessingBody__textarea = makeBem(bem.ProcessingBody, 'textarea', 'textarea')

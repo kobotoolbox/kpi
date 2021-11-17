@@ -335,8 +335,7 @@ export default class TranslationsTabContent extends React.Component<
         <LanguageSelector
           titleOverride={t('Please selet the language you want to translate to')}
           onLanguageChange={this.onLanguageChange.bind(this)}
-          /* TODO this needs to be the selected aside content language, so might be other translation */
-          sourceLanguage={singleProcessingStore.getTranscript()?.languageCode}
+          sourceLanguage={singleProcessingStore.getSourceData()?.languageCode}
         />
 
         <bem.ProcessingBody__footer>
@@ -349,7 +348,7 @@ export default class TranslationsTabContent extends React.Component<
             onClick={this.back.bind(this)}
           />
 
-          <div>
+          <bem.ProcessingBody__footerRightButtons>
             <Button
               type='frame'
               color='blue'
@@ -368,7 +367,7 @@ export default class TranslationsTabContent extends React.Component<
               // TODO: This is disabled until we actually work on automated services integration.
               isDisabled
             />
-          </div>
+          </bem.ProcessingBody__footerRightButtons>
         </bem.ProcessingBody__footer>
       </bem.ProcessingBody>
     )
