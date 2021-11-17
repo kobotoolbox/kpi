@@ -1,5 +1,6 @@
 # coding: utf-8
 import os
+import string
 import subprocess
 from mimetypes import add_type
 from datetime import timedelta
@@ -80,7 +81,7 @@ INSTALLED_APPS = (
     'loginas',
     'webpack_loader',
     'registration',         # Order is important
-    'django.contrib.admin', # Must come AFTER registration
+    'django.contrib.admin',  # Must come AFTER registration
     'django_extensions',
     'taggit',
     'rest_framework',
@@ -99,6 +100,7 @@ INSTALLED_APPS = (
     'markdownx',
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
+    'trench',
 )
 
 MIDDLEWARE = [
@@ -748,4 +750,27 @@ KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
     'large': '_large',
     'medium': '_medium',
     'small': '_small',
+}
+
+TRENCH_AUTH = {
+    'USER_MFA_MODEL': 'trench.MFAMethod',
+    'USER_ACTIVE_FIELD': 'is_active',
+    'BACKUP_CODES_QUANTITY': 5,
+    'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200
+    'BACKUP_CODES_CHARACTERS': (string.ascii_letters + string.digits),
+    'DEFAULT_VALIDITY_PERIOD': 30,
+    'ENCRYPT_BACKUP_CODES': True,
+    'SECRET_KEY_LENGTH': 32,
+    'CONFIRM_DISABLE_WITH_CODE': False,
+    'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
+    'ALLOW_BACKUP_CODES_REGENERATION': True,
+    'APPLICATION_ISSUER_NAME': 'KoBoToolbox',
+    'MFA_METHODS': {
+        'app': {
+            'VERBOSE_NAME': 'app',
+            'VALIDITY_PERIOD': 30,
+            'USES_THIRD_PARTY_CLIENT': True,
+            'HANDLER': 'trench.backends.application.ApplicationBackend',
+        },
+    },
 }

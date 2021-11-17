@@ -12,11 +12,15 @@ from kobo.apps.superuser_stats.views import (
     country_report,
     retrieve_reports,
 )
-from kpi.forms import RegistrationForm
+from kpi.forms.registration import RegistrationForm
 from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
+from kpi.views.login import (
+    MFALoginView,
+    MFATokenView,
+)
 from kpi.views.token import TokenView
 
 from .router_api_v1 import router_api_v1
@@ -38,8 +42,12 @@ urlpatterns = [
     re_path(r'^api/v2/', include((router_api_v2.urls, URL_NAMESPACE))),
     re_path(r'^api-auth/', include('rest_framework.urls',
                                    namespace='rest_framework')),
+    re_path(r'^api/v2/auth/', include('trench.urls')),
+    # re_path(r'^api/v2/auth/', include('trench.urls.authtoken')),
     re_path(r'^accounts/register/$', ExtraDetailRegistrationView.as_view(
         form_class=RegistrationForm), name='registration_register'),
+    re_path(r'^accounts/login/mfa/', MFATokenView.as_view(), name='mfa_token'),
+    re_path(r'^accounts/login/', MFALoginView.as_view(), name='kobo_login'),
     re_path(r'^accounts/logout/', logout, {'next_page': '/'}),
     re_path(r'^accounts/', include('registration.backends.default.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
