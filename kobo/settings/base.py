@@ -81,7 +81,7 @@ INSTALLED_APPS = (
     'loginas',
     'webpack_loader',
     'registration',         # Order is important
-    'django.contrib.admin',  # Must come AFTER registration
+    'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration, replace `django.contrib.admin`
     'django_extensions',
     'taggit',
     'rest_framework',
@@ -761,7 +761,7 @@ TRENCH_AUTH = {
     'DEFAULT_VALIDITY_PERIOD': 30,
     'ENCRYPT_BACKUP_CODES': True,
     'SECRET_KEY_LENGTH': 32,
-    'CONFIRM_DISABLE_WITH_CODE': False,
+    'CONFIRM_DISABLE_WITH_CODE': True,
     'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
     'ALLOW_BACKUP_CODES_REGENERATION': True,
     'APPLICATION_ISSUER_NAME': 'KoBoToolbox',

@@ -1,6 +1,9 @@
 # coding: utf-8
-
+from django.conf import settings
 from django.contrib.auth.views import LoginView
+from django.shortcuts import resolve_url
+from django.urls import reverse
+from django.utils.http import is_safe_url
 
 from kpi.forms.mfa import (
     MFALoginForm,
@@ -29,6 +32,26 @@ class MFALoginView(LoginView):
             )
         else:
             return super().form_valid(form)
+
+    def get_redirect_url(self):
+        """
+        Overload parent method to validate `next` url
+        """
+        redirect_to = super().get_redirect_url()
+        # We do not want to redirect a regular user to `/admin/` whether they
+        # are not a superuser. Otherwise, they are successfully authenticated,
+        # redirected to the admin platform, then disconnected because of the
+        # lack of permissions.
+        if (
+            not redirect_to.startswith(reverse('admin:index'))
+            or self.request.user.is_anonymous
+        ):
+            return redirect_to
+
+        # If a regular (and authenticated) user tries to access the admin
+        # platform, return an empty string. Every method that calls
+        # `get_redirect_url()` will use `settings.LOGIN_REDIRECT_URL` instead.
+        return redirect_to if self.request.user.is_superuser else ''
 
 
 class MFATokenView(LoginView):
