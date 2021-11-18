@@ -55,13 +55,13 @@
 
 .single-processing-header__number {
   border-radius: sizes.$x8;
-  height: sizes.$x42;
-  line-height: sizes.$x42 - (2 * sizes.$x2); // minus the border
+  height: sizes.$x40;
+  line-height: sizes.$x40 - (2 * sizes.$x2); // minus the border
   font-size: sizes.$x18;
   text-transform: uppercase;
   font-weight: 700;
   padding: 0 sizes.$x6;
-  min-width: sizes.$x42;
+  min-width: sizes.$x40;
   text-align: center;
   border-color: colors.$kobo-gray-92;
   cursor: default;
