@@ -1,7 +1,11 @@
 import React from 'react';
-import IconDemo from 'js/designSystem/iconDemo'
 import ButtonDemo from 'js/designSystem/buttonDemo'
+import CheckboxDemo from 'js/designSystem/checkboxDemo'
+import IconDemo from 'js/designSystem/iconDemo'
 import KoboDropdownDemo from 'js/designSystem/koboDropdownDemo'
+import KoboRangeDemo from 'js/designSystem/koboRangeDemo'
+import RadioDemo from 'js/designSystem/radioDemo'
+import TextBoxDemo from 'js/designSystem/textboxDemo'
 import './demo.scss'
 
 /**
@@ -17,9 +21,13 @@ export default class DesignSystemApp extends React.Component {
     return (
       <section className='design-system'>
         <div className='design-system__demo-wrapper'>
-          <IconDemo/>
           <ButtonDemo/>
+          <CheckboxDemo/>
+          <IconDemo/>
           <KoboDropdownDemo/>
+          <KoboRangeDemo/>
+          <RadioDemo/>
+          <TextBoxDemo/>
         </div>
       </section>
     )

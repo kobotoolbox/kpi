@@ -12,7 +12,7 @@ import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 
-export function getFormDataTabs(assetUid) {
+export function getFormDataTabs(assetUid, hasPartialView) {
   return [
     {
       label: t('Table'),
@@ -21,13 +21,14 @@ export function getFormDataTabs(assetUid) {
     },
     {
       label: t('Reports'),
-      icon: 'k-icon k-icon-report',
+      icon: 'k-icon k-icon-reports',
       path: ROUTES.FORM_REPORT.replace(':uid', assetUid),
     },
     {
       label: t('Gallery'),
-      icon: 'k-icon k-icon-photo-gallery',
+      icon: 'k-icon k-icon-gallery',
       path: ROUTES.FORM_GALLERY.replace(':uid', assetUid),
+      isDisabled: hasPartialView,
     },
     {
       label: t('Downloads'),
@@ -166,7 +167,11 @@ class FormViewTabs extends Reflux.Component {
       this.state.asset.has_deployment &&
       this.isActiveRoute(ROUTES.FORM_DATA.replace(':uid', this.state.assetid))
     ) {
-      sideTabs = getFormDataTabs(this.state.assetid);
+      const hasPartialView = mixins.permissions.userCanPartially(
+        PERMISSIONS_CODENAMES.view_submissions,
+        this.state.asset
+      );
+      sideTabs = getFormDataTabs(this.state.assetid, hasPartialView);
     }
 
     if (
@@ -189,7 +194,7 @@ class FormViewTabs extends Reflux.Component {
       ) {
         sideTabs.push({
           label: t('Media'),
-          icon: 'k-icon k-icon-photo-gallery',
+          icon: 'k-icon k-icon-gallery',
           path: ROUTES.FORM_MEDIA.replace(':uid', this.state.assetid),
         });
       }
@@ -248,7 +253,9 @@ class FormViewTabs extends Reflux.Component {
                 onClick={this.triggerRefresh}
               >
                 <i className={`k-icon ${item.icon}`} />
-                {item.label}
+                <span className='form-view__tab-name'>
+                  {item.label}
+                </span>
               </Link>
             );
           })}

@@ -245,6 +245,10 @@
       padding: 0px;
       color: $kobo-white;
 
+      &:active {
+        transform: translateX(1px);
+      }
+
       .k-icon.k-icon-menu {
         font-size: 32px;
         line-height: 32px;

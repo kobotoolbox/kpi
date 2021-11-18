@@ -5,12 +5,10 @@ import Checkbox from 'js/components/common/checkbox'
 import Radio from 'js/components/common/radio'
 
 type KoboDropdownDemoState = {
-  currentTheme: KoboDropdownThemes
-  currentPlacement: KoboDropdownPlacements
-  isDisabled: boolean
-  hideOnMenuClick: boolean
-  hideOnMenuOutsideClick: boolean
-  hideOnEsc: boolean
+  demoTheme: KoboDropdownThemes
+  demoPlacement: KoboDropdownPlacements
+  demoIsDisabled: boolean
+  demoHideOnMenu: boolean
 }
 
 interface Option {
@@ -42,37 +40,27 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
   constructor(props: {}) {
     super(props)
     this.state = {
-      currentTheme: KoboDropdownThemes.dark,
-      currentPlacement: KoboDropdownPlacements['down-center'],
-      isDisabled: false,
-      hideOnMenuClick: true,
-      hideOnMenuOutsideClick: true,
-      hideOnEsc: true
+      demoTheme: KoboDropdownThemes.dark,
+      demoPlacement: KoboDropdownPlacements['down-center'],
+      demoIsDisabled: false,
+      demoHideOnMenu: true,
     }
   }
 
   onThemeChange({}: any, newTheme: KoboDropdownThemes) {
-    this.setState({currentTheme: newTheme})
+    this.setState({demoTheme: newTheme})
   }
 
   onPlacementChange({}: any, newPlacement: KoboDropdownPlacements) {
-    this.setState({currentPlacement: newPlacement})
+    this.setState({demoPlacement: newPlacement})
   }
 
   onIsDisabledChange(isChecked: boolean) {
-    this.setState({isDisabled: isChecked})
+    this.setState({demoIsDisabled: isChecked})
   }
 
   onHideOnMenuClickChange(isChecked: boolean) {
-    this.setState({hideOnMenuClick: isChecked})
-  }
-
-  onHideOnMenuOutsideClickChange(isChecked: boolean) {
-    this.setState({hideOnMenuOutsideClick: isChecked})
-  }
-
-  onHideOnEscChange(isChecked: boolean) {
-    this.setState({hideOnEsc: isChecked})
+    this.setState({demoHideOnMenu: isChecked})
   }
 
   render() {
@@ -96,7 +84,7 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
                       <Radio
                         title='type'
                         name='type'
-                        selected={this.state.currentTheme}
+                        selected={this.state.demoTheme}
                         options={themesOptions}
                         onChange={this.onThemeChange.bind(this)}
                       />
@@ -106,7 +94,7 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
                       <Radio
                         title='color'
                         name='color'
-                        selected={this.state.currentPlacement}
+                        selected={this.state.demoPlacement}
                         options={placementsOptions}
                         onChange={this.onPlacementChange.bind(this)}
                       />
@@ -117,38 +105,16 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
                     <div className='demo__form-config'>
                       <Checkbox
                         label='is disabled'
-                        id='kobo-dropdown-is-disabled'
                         onChange={this.onIsDisabledChange.bind(this)}
-                        checked={this.state.isDisabled}
+                        checked={this.state.demoIsDisabled}
                       />
                     </div>
 
-                    <div className='demo__form-config'>
-                      <Checkbox
-                        label='hide with ESC key'
-                        id='kobo-dropdown-hide-on-esc'
-                        onChange={this.onHideOnEscChange.bind(this)}
-                        checked={this.state.hideOnEsc}
-                      />
-                    </div>
-                  </div>
-
-                  <div className='demo__form-row'>
                     <div className='demo__form-config'>
                       <Checkbox
                         label='hide on inside menu click'
-                        id='kobo-dropdown-hide-on-menu-click'
                         onChange={this.onHideOnMenuClickChange.bind(this)}
-                        checked={this.state.hideOnMenuClick}
-                      />
-                    </div>
-
-                    <div className='demo__form-config'>
-                      <Checkbox
-                        label='hide on outside menu click'
-                        id='kobo-dropdown-hide-on-menu-outside-click'
-                        onChange={this.onHideOnMenuOutsideClickChange.bind(this)}
-                        checked={this.state.hideOnMenuOutsideClick}
+                        checked={this.state.demoHideOnMenu}
                       />
                     </div>
                   </div>
@@ -157,12 +123,10 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
               <bem.SimpleTable__cell>
                 <div className='demo__preview'>
                   <KoboDropdown
-                    theme={this.state.currentTheme}
-                    placement={this.state.currentPlacement}
-                    isDisabled={this.state.isDisabled}
-                    hideOnMenuClick={this.state.hideOnMenuClick}
-                    hideOnMenuOutsideClick={this.state.hideOnMenuOutsideClick}
-                    hideOnEsc={this.state.hideOnEsc}
+                    theme={this.state.demoTheme}
+                    placement={this.state.demoPlacement}
+                    isDisabled={this.state.demoIsDisabled}
+                    hideOnMenuClick={this.state.demoHideOnMenu}
                     triggerContent='click me'
                     menuContent={(
                       <ol>

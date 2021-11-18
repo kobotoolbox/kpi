@@ -1,6 +1,6 @@
 import React, {ReactElement} from 'react'
 import {IconName} from 'jsapp/fonts/k-icons'
-import Icon from 'js/components/common/icon'
+import Icon, {IconSize} from 'js/components/common/icon'
 import './button.scss'
 
 /**
@@ -15,19 +15,31 @@ import './button.scss'
  * 3. full - no border, background, hover dims background
  */
 export type ButtonType = 'bare' | 'frame' | 'full'
-export type ButtonColor = 'blue' | 'teal' | 'green' | 'red' | 'orange' | 'gray'
+export type ButtonColor = 'blue' | 'teal' | 'red' | 'gray'
 /**
  * The size is the height of the button, but it also influences the paddings.
  * Check out `button.scss` file for exact pixel values.
  */
 export type ButtonSize = 's' | 'm' | 'l'
-const DefaultSize = 's'
+const DefaultSize = 'm'
+
+/** To be used for buttons with both icon and text. */
+const ButtonToIconMap: Map<ButtonSize, IconSize> = new Map()
+ButtonToIconMap.set('s', 'xs')
+ButtonToIconMap.set('m', 's')
+ButtonToIconMap.set('l', 'm')
+
+/** To be used for icon-only buttons. */
+const ButtonToIconAloneMap: Map<ButtonSize, IconSize> = new Map()
+ButtonToIconAloneMap.set('s', 'm')
+ButtonToIconAloneMap.set('m', 'l')
+ButtonToIconAloneMap.set('l', 'l')
 
 type ButtonProps = {
   type: ButtonType
   color: ButtonColor
   /** Note: this size will also be carried over to the icon. */
-  size?: ButtonSize
+  size: ButtonSize
   /**
    * Setting this displays an icon - either before or after label. Please use
    * only one of the icons.
@@ -115,6 +127,12 @@ class Button extends React.Component<ButtonProps, {}> {
     let size = this.props.size || DefaultSize
     classNames.push(`k-button--size-${size}`)
 
+    // Size depends on label being there or not
+    let iconSize = ButtonToIconAloneMap.get(size)
+    if (this.props.label) {
+      iconSize = ButtonToIconMap.get(size)
+    }
+
     // For the attributes that don't have a falsy value.
     const additionalButtonAttributes: AdditionalButtonAttributes = {}
     if (this.props.tooltip) {
@@ -130,7 +148,7 @@ class Button extends React.Component<ButtonProps, {}> {
         {...additionalButtonAttributes}
       >
         {this.props.startIcon &&
-          <Icon name={this.props.startIcon} size={size}/>
+          <Icon name={this.props.startIcon} size={iconSize}/>
         }
 
         {this.props.label &&
@@ -138,11 +156,11 @@ class Button extends React.Component<ButtonProps, {}> {
         }
 
         {this.props.endIcon &&
-          <Icon name={this.props.endIcon} size={size}/>
+          <Icon name={this.props.endIcon} size={iconSize}/>
         }
 
         {this.props.isPending &&
-          <Icon name='spinner' size={size} classNames={['k-spin']}/>
+          <Icon name='spinner' size={iconSize } classNames={['k-spin']}/>
         }
       </button>
     )
