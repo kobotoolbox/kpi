@@ -6,12 +6,19 @@ from django.views.generic.base import RedirectView
 
 from kobo.apps.service_health.views import service_health
 
+# Placeholder for NLP
+from kobo.apps.subsequences.api_view import advanced_submission_post
+#
+
+
+
 admin.autodiscover()
 
 urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
     # https://github.com/stochastic-technologies/django-loginas
     re_path(r'^admin/', include('loginas.urls')),
+    re_path(r'^advanced_submission_post/', advanced_submission_post),
     re_path(r'^', include('kpi.urls')),
     re_path(r'^markdownx/', include('markdownx.urls')),
     re_path(r'^help/', include('kobo.apps.help.urls')),
