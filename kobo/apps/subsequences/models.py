@@ -15,6 +15,12 @@ class MockSubmission(models.Model):
     def run_action(self, action_instance):
         self.content = action_instance.run_change(self.content)
 
+    def patch_content(self, content):
+        '''
+        placeholder functionality
+        '''
+        self.content.update(**content)
+
     @property
     def full_content(self):
         _content = {}
