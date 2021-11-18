@@ -4,6 +4,8 @@
 # formpack
 -e git+https://github.com/kobotoolbox/formpack.git@ad78349d259dfce5f01e7dd308ee78f9b0e80315#egg=formpack
 
+-e git+https://github.com/dorey/a1d05eba1.git@e4db3ad1fd4#egg=a1d05eba1-dorey
+
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
 -e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
@@ -58,6 +60,7 @@ drf-extensions
 future
 geojson-rewind
 jsonfield
+jsonschema
 kombu
 lxml
 oauthlib
