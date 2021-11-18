@@ -6,6 +6,7 @@ import {
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
 } from 'js/constants'
+import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import SubmissionDataList from 'js/components/submissions/submissionDataList'
 import {
   getRowData,
@@ -37,6 +38,36 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
 > {
   constructor(props: SingleProcessingSubmissionDetailsProps) {
     super(props)
+  }
+
+  private unlisteners: Function[] = []
+
+  componentDidMount() {
+    this.unlisteners.push(
+      singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
+    )
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb()})
+  }
+
+  /**
+  * Don't want to store a duplicate of store data here just for the sake of
+  * comparison, so we need to make the component re-render itself when the
+  * store changes :shrug:.
+  */
+  onSingleProcessingStoreChange() {
+    this.forceUpdate()
+  }
+
+  /** We want only the processing related data (the actual form questions) */
+  getQuestionsToHide(): string[] {
+    return [
+      this.props.questionName,
+      ...Object.keys(ADDITIONAL_SUBMISSION_PROPS),
+      ...Object.keys(META_QUESTION_TYPES)
+    ]
   }
 
   renderMedia() {
@@ -74,26 +105,29 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
     )
   }
 
-  /** We want only the processing related data (the actual form questions) */
-  getQuestionsToHide(): string[] {
-    return [
-      this.props.questionName,
-      ...Object.keys(ADDITIONAL_SUBMISSION_PROPS),
-      ...Object.keys(META_QUESTION_TYPES)
-    ]
+  renderDataList() {
+    // If there is a source, we don't want to display these submission details,
+    // as we want the most space possible for the source text.
+    if (singleProcessingStore.getSourceData() !== undefined) {
+      return null
+    }
+
+    return (
+      <bem.SingleProcessingDataListWrapper key='data-list'>
+        <SubmissionDataList
+          assetContent={this.props.assetContent}
+          submissionData={this.props.submissionData}
+          hideQuestions={this.getQuestionsToHide()}
+        />
+      </bem.SingleProcessingDataListWrapper>
+    )
   }
 
   render() {
     return (
       [
         this.renderMedia(),
-        <bem.SingleProcessingDataListWrapper key='data-list'>
-          <SubmissionDataList
-            assetContent={this.props.assetContent}
-            submissionData={this.props.submissionData}
-            hideQuestions={this.getQuestionsToHide()}
-          />
-        </bem.SingleProcessingDataListWrapper>
+        this.renderDataList()
       ]
     )
   }

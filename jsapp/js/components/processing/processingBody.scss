@@ -80,7 +80,7 @@
 
 .processing-body__footer {
   @include mixins.centerRowFlex;
-  margin-top: sizes.$x20;
+  padding: sizes.$x20 0;
   justify-content: space-between;
 
   *:not(:first-child) {

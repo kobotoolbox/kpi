@@ -42,9 +42,11 @@ $s-single-processing-header: sizes.$x76;
   display: flex;
   flex-direction: column;
   height: 100%;
+  padding-bottom: singleProcessingVariables.$s-single-processing-bottom-space;
 }
 
 .single-processing__bottom-right {
   flex: 61;
   margin-left: sizes.$x16;
+  padding-bottom: singleProcessingVariables.$s-single-processing-bottom-space;
 }
