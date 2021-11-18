@@ -64,6 +64,6 @@ def get_jsonschema(action_instances=(), ):
                     'asset_uid': {'type': 'string'},
                     **properties,
                   },
-                  'required': ['submission_uuid'],
+                  'required': ['submission_uuid', 'asset_uid'],
               }
     return schema
