@@ -6,6 +6,8 @@ from functools import reduce
 from operator import add
 from typing import Optional, Union
 
+from jsonschema import validate as jsonschema_validate
+
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.postgres.fields import JSONField as JSONBField
@@ -18,6 +20,11 @@ from taggit.utils import require_instance_manager
 from formpack.utils.flatten_content import flatten_content
 from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
+
+from kobo.apps.subsequences.utils import advanced_submission_jsonschema
+from kobo.apps.subsequences.advanced_features_params_schema import (
+    ADVANCED_FEATURES_PARAMS_SCHEMA,
+)
 
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
@@ -145,6 +152,7 @@ class Asset(ObjectPermissionMixin,
     report_custom = JSONBField(default=dict)
     map_styles = LazyDefaultJSONBField(default=dict)
     map_custom = LazyDefaultJSONBField(default=dict)
+    advanced_features = LazyDefaultJSONBField(default=dict)
     asset_type = models.CharField(
         choices=ASSET_TYPES, max_length=20, default=ASSET_TYPE_SURVEY)
     parent = models.ForeignKey('Asset', related_name='children',
@@ -388,6 +396,14 @@ class Asset(ObjectPermissionMixin,
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
+
+    def validate_advanced_features(self):
+        jsonschema_validate(instance=self.advanced_features,
+                            schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
+
+    def get_advanced_submission_jsonschema(self):
+        return advanced_submission_jsonschema(self.content,
+                                              self.advanced_features)
 
     def adjust_content_on_save(self):
         """
@@ -709,6 +725,8 @@ class Asset(ObjectPermissionMixin,
         # be altered on save. (e.g. on asset.deploy())
         if adjust_content:
             self.adjust_content_on_save()
+
+        self.validate_advanced_features()
 
         # populate summary
         self._populate_summary()
