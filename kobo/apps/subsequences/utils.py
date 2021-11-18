@@ -61,6 +61,7 @@ def get_jsonschema(action_instances=(), ):
                   '$url': '/advanced_submission_post/',
                   'properties': {
                     'submission_uuid': {'type': 'string'},
+                    'asset_uid': {'type': 'string'},
                     **properties,
                   },
                   'required': ['submission_uuid'],
