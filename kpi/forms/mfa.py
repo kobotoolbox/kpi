@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import gettext_lazy as _
-from rest_framework.exceptions import ValidationError
 from trench.serializers import CodeLoginSerializer
 from trench.utils import (
     get_mfa_model,

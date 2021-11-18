@@ -108,9 +108,10 @@ def delete_related_objects(modeladmin, request, queryset):
         context)
 
 
-delete_related_objects.short_description =
+delete_related_objects.short_description = (
     "Remove related objects for these %(verbose_name_plural)s "
     "(deletion step 1)"
+)
 
 
 def remove_from_kobocat(modeladmin, kpi_request, queryset):
@@ -134,6 +135,7 @@ def remove_from_kobocat(modeladmin, kpi_request, queryset):
     return response
 
 
-remove_from_kobocat.short_description = 
+remove_from_kobocat.short_description = (
     "View these %(verbose_name_plural)s in the KoBoCAT admin interface "
     "(deletion step 2)"
+)

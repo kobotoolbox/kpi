@@ -61,6 +61,7 @@ DEBUG = (os.environ.get('DJANGO_DEBUG', 'False') == 'True')
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
 LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = 'kobo_login'  # Use URL pattern instead of hard-coded value
 
 # Application definition
 
