@@ -4,9 +4,14 @@ NOT_REQUESTED = 'NOT_REQUESTED'
 REQUESTED_BY_USER = 'REQUESTED_BY_USER'
 PENDING = 'PENDING'
 
+
+
 class AutomaticTranscriptionAction(BaseAction):
     ID = 'automatic_transcription'
-    TRANSCRIPTION_SERVICES = []
+    MANUAL = 'manual_transcription'
+    TRANSCRIPTION_SERVICES = (
+        'acme_transcription_svc',
+    )
 
     @classmethod
     def build_params(kls, survey_content):
@@ -17,26 +22,41 @@ class AutomaticTranscriptionAction(BaseAction):
                 possible_transcribed_fields.append(row['name'])
         params = {'values': possible_transcribed_fields, 'services': kls.TRANSCRIPTION_SERVICES}
         return params
-    
+
     def load_params(self, params):
         self.possible_transcribed_fields = params['values']
         self.available_services = params['services']
-    
+
+    @property
+    def jsonschema_properties(self):
+        '''
+        the schema of attributes which can be submitted to a submission
+        '''
+        properties = {}
+        for (field, service, fs_key) in self.field_service_matrix():
+            if field not in properties:
+                properties[field] = {}
+            properties[field][service] = {'type': 'string'}
+        return properties
+
     def check_submission_status(self, submission):
         if self._destination_field not in submission:
             return ACTION_NEEDED
         supp_data = submission[self._destination_field]
 
-        for (fiels, service, fs_key) in self.field_service_matrix():
+        for (field, service, fs_key) in self.field_service_matrix():
             if fs_key not in supp_data:
                 return ACTION_NEEDED
             status = supp_data.get(fs_key)
             if status == REQUESTED_BY_USER:
                 return ACTION_NEEDED
         return PASSES
-    
+
     def field_service_matrix(self):
         for field in self.possible_transcribed_fields:
+            yield (field,
+                   self.MANUAL,
+                   f'{field}_transcription_{self.MANUAL}')
             for service in self.available_services:
                 fs_key = f'{field}_transcription_{service}'
                 yield (field, service, fs_key)
@@ -53,8 +73,7 @@ class AutomaticTranscriptionAction(BaseAction):
                 supp_data[fs_key] = PENDING
                 continue
         return {**submission, self._destination_field: supp_data}
-            
+
     def initiate_async_request(self, submission, field, service):
         print(f'INITIATE ASYNC REQUEST for {field} and {service}')
         pass
-
