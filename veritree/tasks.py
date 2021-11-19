@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from veritree.models import VeritreeOAuth2
 from kpi.serializers.v2.asset_file import AssetFileSerializer
 
+from copy import deepcopy
 from django.contrib.auth.models import User
 from kpi.models import Asset
 
@@ -200,7 +201,8 @@ def modify_nation_group(org_data: dict, survey: list, group: dict, languages: "l
     
     return survey
 
-def modify_group(org_data: dict, survey: list, group: dict, languages: list, name_prefix: str, list_prefix: str) -> dict:
+def modify_group(org_data: dict, asset_survey: list, group: dict, languages: list, name_prefix: str, list_prefix: str) -> dict:
+    survey = deepcopy(asset_survey)
     if list_prefix in NATION_AFFIX_LIST_NAMES:
         return modify_nation_group(org_data, survey, group, languages, name_prefix, list_prefix)
     
@@ -210,7 +212,7 @@ def modify_group(org_data: dict, survey: list, group: dict, languages: list, nam
     has_select_one_question = False
     while (question.get('type', '') != 'end_group'):
         question_name = question.get('name', '')
-        if question_name == PLACEHOLDER_QUESTION or question.get('$autoname', '') == PLACEHOLDER_QUESTION:
+        if PLACEHOLDER_QUESTION in question_name or PLACEHOLDER_QUESTION in question.get('$autoname', ''):
             survey.remove(question)
             question = survey[group_index]
             continue
