@@ -191,6 +191,10 @@ CONSTANCE_CONFIG = {
         'than the maximum, the maximum will be ignored',
         int
     ),
+    'MFA_ISSUER_NAME': (
+        'KoBoToolbox',
+        'Issuer name displayed in multi-factor applications'
+    )
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -341,8 +345,8 @@ REST_FRAMEWORK = {
         # SessionAuthentication and BasicAuthentication would be included by
         # default
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
+        'kpi.authentication.BasicAuthentication',
+        'kpi.authentication.TokenAuthentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
@@ -765,13 +769,13 @@ TRENCH_AUTH = {
     'CONFIRM_DISABLE_WITH_CODE': True,
     'CONFIRM_BACKUP_CODES_REGENERATION_WITH_CODE': True,
     'ALLOW_BACKUP_CODES_REGENERATION': True,
-    'APPLICATION_ISSUER_NAME': 'KoBoToolbox',
     'MFA_METHODS': {
         'app': {
             'VERBOSE_NAME': 'app',
-            'VALIDITY_PERIOD': 30,
+            'VALIDITY_PERIOD': os.getenv('MFA_CODE_VALIDITY_PERIOD', 30),
             'USES_THIRD_PARTY_CLIENT': True,
-            'HANDLER': 'trench.backends.application.ApplicationBackend',
+            'HANDLER': 'kpi.utils.mfa.ApplicationBackend',
         },
     },
+    'CODE_LENGTH': os.getenv('MFA_CODE_LENGTH', 6),
 }
