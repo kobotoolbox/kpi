@@ -49,7 +49,7 @@ class MFATokenForm(forms.Form):
     username/password logins.
     """
     code = forms.CharField(
-        label=_("Insert your MFA code"),
+        label=_('Insert your MFA code'),
         strip=True,
         required=True,
     )
@@ -60,7 +60,7 @@ class MFATokenForm(forms.Form):
 
     error_messages = {
         'invalid_code': _(
-            "Invalid MFA code."
+            'Invalid MFA code.'
         )
     }
 
