@@ -1,9 +1,6 @@
 # coding: utf-8
-from django.conf import settings
 from django.contrib.auth.views import LoginView
-from django.shortcuts import resolve_url
 from django.urls import reverse
-from django.utils.http import is_safe_url
 
 from kpi.forms.mfa import (
     MFALoginForm,
