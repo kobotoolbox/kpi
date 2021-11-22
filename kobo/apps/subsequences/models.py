@@ -3,7 +3,7 @@ from kpi.models import Asset
 from django.contrib.postgres.fields import JSONField
 
 
-class MockSubmission(models.Model):
+class SubmissionExtras(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     uuid = models.CharField(max_length=40, null=True)

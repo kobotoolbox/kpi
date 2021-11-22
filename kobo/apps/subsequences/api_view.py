@@ -1,8 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-# from rest_framework.exceptions import NotFound
 
-from kobo.apps.subsequences.models import MockSubmission
+from kobo.apps.subsequences.models import SubmissionExtras
 
 from kpi.models import Asset
 
@@ -15,7 +14,7 @@ def advanced_submission_post(request):
     asset = Asset.objects.get(uid=asset_uid)
     try:
         submission = asset.submissions.get(uuid=submission_uuid)
-    except MockSubmission.DoesNotExist:
+    except SubmissionExtras.DoesNotExist:
         submission = asset.submissions.create(uuid=submission_uuid)
     submission.patch_content(request.data)
     # what does the front end want back?
