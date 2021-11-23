@@ -10,11 +10,11 @@ from kpi.models import Asset
 from kobo.apps.subsequences.models import SubmissionExtras
 
 
-@api_view(['POST', 'PATCH', 'GET'])
+@api_view(['POST', 'PATCH'])
 def advanced_submission_post(request, asset_uid=None):
     asset = Asset.objects.get(uid=asset_uid)
     posted_data = request.data
-    schema = asset.get_advanced_submission_jsonschema()
+    schema = asset.get_advanced_submission_schema()
     try:
         validate(posted_data, schema)
     except SchemaValidationError as err:
@@ -25,4 +25,5 @@ def advanced_submission_post(request, asset_uid=None):
     except SubmissionExtras.DoesNotExist:
         submission = asset.submissions.create(uuid=s_uuid)
     submission.patch_content(request.data)
+    submission.save()
     return Response(submission.content)

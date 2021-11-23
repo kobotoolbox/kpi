@@ -25,7 +25,6 @@ from kobo.apps.subsequences.utils import advanced_submission_jsonschema
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
 )
-
 from kobo.apps.reports.constants import (SPECIFIC_REPORTS_KEY,
                                          DEFAULT_REPORTS_KEY)
 from kpi.constants import (
@@ -403,7 +402,7 @@ class Asset(ObjectPermissionMixin,
         jsonschema_validate(instance=self.advanced_features,
                             schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
 
-    def get_advanced_submission_jsonschema(self, url=None):
+    def get_advanced_submission_schema(self, url=None):
         return advanced_submission_jsonschema(self.content,
                                               self.advanced_features,
                                               url=url)
