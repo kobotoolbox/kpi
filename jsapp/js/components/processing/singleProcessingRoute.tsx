@@ -14,6 +14,7 @@ import SingleProcessingSubmissionDetails from 'js/components/processing/singlePr
 import SingleProcessingContent from 'js/components/processing/singleProcessingContent'
 import SingleProcessingPreview from 'js/components/processing/singleProcessingPreview'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
+import WorkProtector from 'js/router/workProtector'
 import './singleProcessing.scss'
 
 bem.SingleProcessing = makeBem(null, 'single-processing', 'section')
@@ -71,7 +72,6 @@ export default class SingleProcessingRoute extends React.Component<
       actions.submissions.getProcessingSubmissions.failed.listen(this.onGetProcessingSubmissionsFailed.bind(this)),
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
     )
-    this.props.router.setRouteLeaveHook(this.props.route, this.onRouterLeave.bind(this))
     actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
     this.getNewProcessingSubmissions()
   }
@@ -93,10 +93,6 @@ export default class SingleProcessingRoute extends React.Component<
   */
   onSingleProcessingStoreChange() {
     this.forceUpdate()
-  }
-
-  onRouterLeave() {
-    console.log('onRouterLeave')
   }
 
   getNewSubmissionData(): void {
@@ -227,6 +223,11 @@ export default class SingleProcessingRoute extends React.Component<
 
     return (
       <bem.SingleProcessing>
+        <WorkProtector
+          shouldProtect={singleProcessingStore.hasAnyUnsavedWork()}
+          currentRoute={this.props.route}
+          router={this.props.router}
+        />
         <bem.SingleProcessing__top>
           <SingleProcessingHeader
             questionType={this.getQuestionType()}

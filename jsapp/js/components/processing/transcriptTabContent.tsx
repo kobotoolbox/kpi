@@ -128,13 +128,6 @@ export default class TranscriptTabContent extends React.Component<
     singleProcessingStore.setTranscript(undefined)
   }
 
-  hasUnsavedDraftContent() {
-    const draft = singleProcessingStore.getTranscriptDraft()
-    return (
-      draft?.content !== singleProcessingStore.getTranscript()?.content
-    )
-  }
-
   renderLanguageAndDate() {
     const storeTranscript = singleProcessingStore.getTranscript()
     const draft = singleProcessingStore.getTranscriptDraft()
@@ -242,7 +235,7 @@ export default class TranscriptTabContent extends React.Component<
 
     // The discard button will become a back button when there are no unsaved changes.
     let discardLabel = t('Back')
-    if (this.hasUnsavedDraftContent()) {
+    if (singleProcessingStore.hasUnsavedTranscriptDraftContent()) {
       discardLabel = t('Discard')
     }
 
@@ -268,7 +261,7 @@ export default class TranscriptTabContent extends React.Component<
               label={t('Save')}
               onClick={this.saveDraft.bind(this)}
               isPending={singleProcessingStore.isFetchingData}
-              isDisabled={!this.hasUnsavedDraftContent()}
+              isDisabled={!singleProcessingStore.hasUnsavedTranscriptDraftContent()}
             />
           </bem.ProcessingBody__transHeaderButtons>
         </bem.ProcessingBody__transHeader>

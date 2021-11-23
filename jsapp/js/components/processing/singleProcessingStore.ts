@@ -112,6 +112,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   onFetchDataCompleted(response: any) {
+    delete this.abortFetchData
     this.isReady = true
     this.isFetchingData = false
 
@@ -323,6 +324,31 @@ class SingleProcessingStore extends Reflux.Store {
 
   getActiveTab() {
     return this.data.activeTab
+  }
+
+  hasUnsavedTranscriptDraftContent() {
+    const draft = this.getTranscriptDraft()
+    return (
+      draft !== undefined &&
+      draft.content !== undefined &&
+      draft.content !== this.getTranscript()?.content
+    )
+  }
+
+  hasUnsavedTranslationDraftContent() {
+    const draft = this.getTranslationDraft()
+    return (
+      draft !== undefined &&
+      draft.content !== undefined &&
+      draft.content !== this.getTranslation(draft?.languageCode)?.content
+    )
+  }
+
+  hasAnyUnsavedWork() {
+    return (
+      this.hasUnsavedTranscriptDraftContent() ||
+      this.hasUnsavedTranslationDraftContent()
+    )
   }
 }
 

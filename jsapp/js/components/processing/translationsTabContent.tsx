@@ -201,13 +201,6 @@ export default class TranslationsTabContent extends React.Component<
     })
   }
 
-  hasUnsavedDraftContent() {
-    const draft = singleProcessingStore.getTranslationDraft()
-    return (
-      draft?.content !== singleProcessingStore.getTranslation(draft?.languageCode)?.content
-    )
-  }
-
   selectTranslation(languageCode: string) {
     this.setState({selectedTranslation: languageCode})
   }
@@ -378,7 +371,7 @@ export default class TranslationsTabContent extends React.Component<
 
     // The discard button will become a back button when there are no unsaved changes.
     let discardLabel = t('Back')
-    if (this.hasUnsavedDraftContent()) {
+    if (singleProcessingStore.hasUnsavedTranslationDraftContent()) {
       discardLabel = t('Discard')
     }
 
@@ -404,7 +397,7 @@ export default class TranslationsTabContent extends React.Component<
               label={t('Save')}
               onClick={this.saveDraft.bind(this)}
               isPending={singleProcessingStore.isFetchingData}
-              isDisabled={!this.hasUnsavedDraftContent()}
+              isDisabled={!singleProcessingStore.hasUnsavedTranslationDraftContent()}
             />
           </bem.ProcessingBody__transHeaderButtons>
         </bem.ProcessingBody__transHeader>
