@@ -398,12 +398,15 @@ class Asset(ObjectPermissionMixin,
         return '{} ({})'.format(self.name, self.uid)
 
     def validate_advanced_features(self):
+        if self.advanced_features is None:
+            self.advanced_features = {}
         jsonschema_validate(instance=self.advanced_features,
                             schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
 
-    def get_advanced_submission_jsonschema(self):
+    def get_advanced_submission_jsonschema(self, url=None):
         return advanced_submission_jsonschema(self.content,
-                                              self.advanced_features)
+                                              self.advanced_features,
+                                              url=url)
 
     def adjust_content_on_save(self):
         """

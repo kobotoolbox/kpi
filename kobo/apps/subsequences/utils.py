@@ -37,33 +37,36 @@ def discern_next_stage(action_instances, submission):
             return action
 
 
-def advanced_submission_jsonschema(content, actions):
+def advanced_submission_jsonschema(content, actions, url=None):
     action_instances = []
     for action_id, misc_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
         action_params = action_kls.build_params(content)
         action_instances.append(action_kls(action_params))
-    return get_jsonschema(action_instances)
+    return get_jsonschema(action_instances, url=url)
 
+def _empty_obj():
+    return {'properties': {}, 'additionalProperties': False}
 
-def get_jsonschema(action_instances=(), ):
+def get_jsonschema(action_instances=(), url=None):
     sub_props = {}
     for instance in action_instances:
         jp = instance.jsonschema_properties
         for prop, vals in jp.items():
-            sub_prop = sub_props.get(prop, {})
-            sub_prop.update(**vals)
+            sub_prop = sub_props.get(prop, _empty_obj())
+            sub_prop['properties'].update(**vals)
             sub_props[prop] = sub_prop
-    properties = {'submission_uuid': {'type': 'string'},
-                  'properties': sub_props}
+    if url is None:
+        url = '/advanced_submission_post/'
     schema = {'type': 'object',
                   '$description': FEATURE_JSONSCHEMA_DESCRIPTION,
-                  '$url': '/advanced_submission_post/',
+                  'url': url,
                   'properties': {
-                    'submission_uuid': {'type': 'string'},
-                    'asset_uid': {'type': 'string'},
-                    **properties,
+                    'submission': {'type': 'string',
+                                   'description': 'the uuid of the submission'},
+                    **sub_props,
                   },
-                  'required': ['submission_uuid', 'asset_uid'],
+                  'additionalProperties': False,
+                  'required': ['submission'],
               }
     return schema

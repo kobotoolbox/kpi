@@ -192,7 +192,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         return fields
 
     def get_advanced_submission_jsonschema(self, obj):
-        return obj.get_advanced_submission_jsonschema()
+        req = self.context.get('request')
+        url = req.build_absolute_uri('/advanced_submission_post/')
+        return obj.get_advanced_submission_jsonschema(url=url)
 
     def get_version_count(self, obj):
         return obj.asset_versions.count()
