@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('date_modified', models.DateTimeField(auto_now=True)),
                 ('uuid', models.CharField(max_length=40, null=True)),
                 ('content', django.contrib.postgres.fields.jsonb.JSONField(default=dict)),
-                ('asset', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='submissions', to='kpi.Asset')),
+                ('asset', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='submission_extras', to='kpi.Asset')),
             ],
         ),
     ]

@@ -640,6 +640,10 @@ class ExportTask(ImportExportTask):
             query=query,
         )
 
+        if source.has_advanced_features:
+            extr = dict(source.submission_extras.values_list('uuid', 'content'))
+            submission_stream = stream_with_extras(submission_stream, extr)
+
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions)
 

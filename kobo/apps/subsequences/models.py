@@ -9,7 +9,7 @@ class SubmissionExtras(models.Model):
     uuid = models.CharField(max_length=40, null=True)
     content = JSONField(default=dict)
 
-    asset = models.ForeignKey(Asset, related_name='submissions',
+    asset = models.ForeignKey(Asset, related_name='submission_extras',
                               on_delete=models.CASCADE, null=True)
 
     def run_action(self, action_instance):

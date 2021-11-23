@@ -70,3 +70,11 @@ def get_jsonschema(action_instances=(), url=None):
                   'required': ['submission'],
               }
     return schema
+
+SUPPLEMENTAL_DETAILS_KEY = '_supplementalDetails'
+
+def stream_with_extras(submission_stream, extras):
+    for submission in submission_stream:
+        uuid = submission['_uuid']
+        submission[SUPPLEMENTAL_DETAILS_KEY] = extras.get(uuid, {})
+        yield submission
