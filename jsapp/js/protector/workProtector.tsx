@@ -1,12 +1,17 @@
 import React from 'react'
 import alertify from 'alertifyjs'
 import {InjectedRouter, PlainRoute} from 'react-router'
-
-const UNSAVED_CHANGES_WARNING = t('Do you want to leave without saving?')
+import {UNSAVED_CHANGES_WARNING} from 'js/protector/protectorConstants'
 
 type TranslationsTabContentProps = {
+  /**
+   * This is a generic component, so it can't be hold responsible for any
+   * protection logic.
+   */
   shouldProtect: boolean
+  /** A `this.props.route` from a route component. */
   currentRoute: PlainRoute<any>
+  /** A `this.props.router` from a route component. */
   router: InjectedRouter
 }
 
@@ -14,7 +19,9 @@ type TranslationsTabContentState = {}
 
 /**
  * A generic component to be used with router components to avoid losing unsaved
- * work. It blocks (behind a prompt) switching routes or moving to different URL.
+ * work. It blocks navigation behind a confirm - switching routes or moving to
+ * different URL. If you need to safeguard something else, please use
+ * `protectorHelpers`.
  */
 export default class WorkProtector extends React.Component<
   TranslationsTabContentProps,

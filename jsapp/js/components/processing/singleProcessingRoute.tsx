@@ -14,7 +14,7 @@ import SingleProcessingSubmissionDetails from 'js/components/processing/singlePr
 import SingleProcessingContent from 'js/components/processing/singleProcessingContent'
 import SingleProcessingPreview from 'js/components/processing/singleProcessingPreview'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
-import WorkProtector from 'js/router/workProtector'
+import WorkProtector from 'js/protector/workProtector'
 import './singleProcessing.scss'
 
 bem.SingleProcessing = makeBem(null, 'single-processing', 'section')

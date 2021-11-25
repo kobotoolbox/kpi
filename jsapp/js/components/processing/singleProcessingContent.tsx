@@ -4,6 +4,7 @@ import {AnyRowTypeName} from 'js/constants'
 import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore'
 import TranscriptTabContent from 'js/components/processing/transcriptTabContent'
 import TranslationsTabContent from 'js/components/processing/translationsTabContent'
+import protectorHelpers from 'js/protector/protectorHelpers'
 import './singleProcessingContent.scss'
 
 bem.SingleProcessingContent = makeBem(null, 'single-processing-content', 'section')
@@ -44,6 +45,15 @@ export default class SingleProcessingContent extends React.Component<
     this.forceUpdate()
   }
 
+  /** DRY wrapper for protector function. */
+  safeExecute(callback: Function) {
+    protectorHelpers.safeExecute(singleProcessingStore.hasAnyUnsavedWork(), callback)
+  }
+
+  activateTab(tabName: SingleProcessingTabs) {
+    singleProcessingStore.activateTab(tabName)
+  }
+
   renderTabContent() {
     switch (singleProcessingStore.getActiveTab()) {
       case SingleProcessingTabs.Transcript:
@@ -67,14 +77,14 @@ export default class SingleProcessingContent extends React.Component<
         <bem.SingleProcessingContent__tabs>
           <bem.SingleProcessingContent__tab
             m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Transcript}}
-            onClick={() => {singleProcessingStore.activateTab(SingleProcessingTabs.Transcript)}}
+            onClick={this.safeExecute.bind(this, this.activateTab.bind(this, SingleProcessingTabs.Transcript))}
           >
             {t('Transcript')}
           </bem.SingleProcessingContent__tab>
 
           <bem.SingleProcessingContent__tab
             m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Translations}}
-            onClick={() => {singleProcessingStore.activateTab(SingleProcessingTabs.Translations)}}
+            onClick={this.safeExecute.bind(this, this.activateTab.bind(this, SingleProcessingTabs.Translations))}
             disabled={singleProcessingStore.getTranscript() === undefined}
           >
             {t('Translations')}
@@ -82,7 +92,7 @@ export default class SingleProcessingContent extends React.Component<
 
           <bem.SingleProcessingContent__tab
             m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Coding}}
-            onClick={() => {singleProcessingStore.activateTab(SingleProcessingTabs.Coding)}}
+            onClick={this.safeExecute.bind(this, this.activateTab.bind(this, SingleProcessingTabs.Coding))}
             // TODO this is disabled until we build the feature.
             disabled
           >
