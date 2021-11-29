@@ -24,6 +24,7 @@ import FormSummary from 'js/components/formSummary';
 import FormSubScreens from 'js/components/formSubScreens';
 import AccountSettings from 'js/components/account/accountSettings';
 import DataStorage from 'js/components/account/dataStorage';
+import Security from 'js/components/account/security';
 import ChangePassword from 'js/components/changePassword';
 import SectionNotFound from 'js/components/sectionNotFound';
 import FormNotFound from 'js/components/formNotFound';
@@ -116,6 +117,7 @@ export default class AllRoutes extends React.Component {
         <IndexRedirect to={ROUTES.FORMS} />
 
         {/* MISC */}
+        <Route path={ROUTES.SECURITY} component={Security} />
         <Route path={ROUTES.DATA_STORAGE} component={DataStorage} />
         <Route
           path={ROUTES.ACCOUNT_SETTINGS}

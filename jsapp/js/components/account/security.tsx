@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default class DataStorage extends React.Component<
+export default class Security extends React.Component<
   {}, {}
 > {
   constructor(props: any) {
@@ -18,8 +18,8 @@ export default class DataStorage extends React.Component<
 
   render() {
     return (
-      // TODO: Temporary placeholder to merge usage dashboard seprately from MFA
-      <h1>TBD Usage dash</h1>
+      // TODO: Temporary placeholder to merge security with MFA
+      <h1>TBD Security</h1>
     );
   }
 }
