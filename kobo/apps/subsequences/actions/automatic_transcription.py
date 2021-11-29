@@ -8,9 +8,9 @@ PENDING = 'PENDING'
 
 class AutomaticTranscriptionAction(BaseAction):
     ID = 'transcript'
-    MANUAL = 'manual_transcript'
+    MANUAL = 'transcript_manual'
     TRANSCRIPTION_SERVICES = (
-        'acme_transcript',
+        'transcript_acme',
     )
 
     @classmethod
