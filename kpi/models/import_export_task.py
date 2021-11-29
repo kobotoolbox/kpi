@@ -34,6 +34,8 @@ from formpack.schema.fields import (
 from formpack.utils.string import ellipsize
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.subsequences.utils import stream_with_extras
+
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -209,16 +211,16 @@ class ImportTask(ImportExportTask):
                 filename_from_header = parse_options_header(
                     response.headers['Content-Disposition']
                 )
-            
+
                 try:
                     filename = filename_from_header[1]['filename']
                 except (TypeError, IndexError, KeyError):
                     pass
-            
+
             self.data['base64Encoded'] = encoded_xls
 
         if 'base64Encoded' in self.data:
-            # When a file is uploaded as base64, 
+            # When a file is uploaded as base64,
             # no name is provided in the encoded string
             # We should rely on self.data.get(:filename:)
 
