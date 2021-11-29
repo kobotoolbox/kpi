@@ -934,7 +934,14 @@ mixins.contextRouter = {
       this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
       this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
-  }
+  },
+  isAccount() {
+    return (
+      this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS) ||
+      this.context.router.isActive(ROUTES.DATA_STORAGE) ||
+      this.context.router.isActive(ROUTES.CHANGE_PASSWORD)
+    );
+  },
 };
 
 /*

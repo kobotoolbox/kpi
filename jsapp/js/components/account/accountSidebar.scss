@@ -1,0 +1,22 @@
+@import "scss/_colors";
+
+// TODO: figure out why these need !important and do some abolute hacking
+// to set up the icon/border correctly
+
+.k-drawer__sidebar {
+  padding: 14px 20px 20px 0 !important;
+}
+
+.form-sidebar__label {
+  padding: 0 0 0 18px !important;
+  border-left: 3px solid transparent;
+  margin-bottom: 18px;
+}
+
+.form-sidebar__label--selected {
+  border-left: 3px solid $kobo-teal;
+}
+
+i.k-icon {
+  margin: 0 6px 0 1px !important;
+}
