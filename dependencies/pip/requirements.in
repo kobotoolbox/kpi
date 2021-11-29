@@ -66,7 +66,7 @@ psycopg2
 pymongo
 python-dateutil
 pytz
-pyxform
+pyxform==1.7.0
 requests
 responses
 shortuuid
