@@ -10,7 +10,7 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
     'type': 'object',
     'additionalProperties': False,
     'properties': {
-        'automatic_transcription': {
+        'transcript': {
             'type': 'object',
         },
         # translations example:

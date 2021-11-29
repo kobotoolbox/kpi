@@ -7,7 +7,7 @@ PENDING = 'PENDING'
 
 
 class AutomaticTranscriptionAction(BaseAction):
-    ID = 'automatic_transcription'
+    ID = 'transcript'
     MANUAL = 'manual_transcript'
     TRANSCRIPTION_SERVICES = (
         'acme_transcript',
@@ -56,9 +56,8 @@ class AutomaticTranscriptionAction(BaseAction):
         for (field, service, key) in self.field_service_matrix():
             yield {
                 'type': 'text',
-                'name': key,
+                'name': f'{field}/{service}',
                 'path': [field, service],
-                'pathstring': f'{field}/{service}',
                 'source': field,
                 'settings': {
                     'mode': 'auto',
