@@ -158,7 +158,8 @@ class Drawer extends Reflux.Component {
           }
 
           { this.isAccount()
-              && <AccountSidebar dataStoreage={2} />
+            // TODO: Temporary magic number for display purposes
+            && <AccountSidebar dataStoreage={2} />
           }
 
           { !this.isLibrary() && !this.isAccount()

@@ -3,10 +3,12 @@ import {RouteComponentProps} from 'react-router'
 import {ROUTES} from 'js/router/routerConstants'
 import bem from 'js/bem'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
+import Icon from 'js/components/common/icon'
 import './accountSidebar.scss'
 
 const ACCOUNT_SETTINGS_HREF = '#' + ROUTES.ACCOUNT_SETTINGS
 const DATA_STORAGE_HREF = '#' + ROUTES.DATA_STORAGE
+const SECURITY_HREF = '#' + ROUTES.SECURITY
 
 type AccountSidebarProps = RouteComponentProps<
   {
@@ -43,13 +45,16 @@ export default class AccountSidebar extends React.Component<
 
   isAccountSelected(): boolean {
     return (
-      location.hash.split('#')[1] === ROUTES.ACCOUNT_SETTINGS ||
-      location.hash.split('#')[1] === ROUTES.CHANGE_PASSWORD
+      location.hash.split('#')[1] === ROUTES.ACCOUNT_SETTINGS
     )
   }
 
   isDataStorageSelected(): boolean {
     return location.hash.split('#')[1] === ROUTES.DATA_STORAGE
+  }
+
+  isSecuritySelected(): boolean {
+    return location.hash.split('#')[1] === ROUTES.SECURITY
   }
 
   render() {
@@ -65,7 +70,7 @@ export default class AccountSidebar extends React.Component<
             href={ACCOUNT_SETTINGS_HREF}
           >
             {/*TODO: get a regular user icon*/}
-            <i className='k-icon k-icon-user-share' />
+            <Icon name='user-share' size='xl'/>
             <bem.FormSidebar__labelText>
               {t('Profile')}
             </bem.FormSidebar__labelText>
@@ -76,9 +81,20 @@ export default class AccountSidebar extends React.Component<
             href={DATA_STORAGE_HREF}
           >
             {/*TODO: get the data usage icon*/}
-            <i className='k-icon k-icon-projects' />
+            <Icon name='projects' size='xl'/>
             <bem.FormSidebar__labelText>
               {t('Data storage')}
+            </bem.FormSidebar__labelText>
+          </bem.FormSidebar__label>
+
+          <bem.FormSidebar__label
+            m={{selected: this.isSecuritySelected()}}
+            href={SECURITY_HREF}
+          >
+            {/*TODO: get the data usage icon*/}
+            <Icon name='lock' size='xl'/>
+            <bem.FormSidebar__labelText>
+              {t('Security')}
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
         </bem.FormSidebar>

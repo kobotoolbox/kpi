@@ -939,6 +939,7 @@ mixins.contextRouter = {
     return (
       this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS) ||
       this.context.router.isActive(ROUTES.DATA_STORAGE) ||
+      this.context.router.isActive(ROUTES.SECURITY) ||
       this.context.router.isActive(ROUTES.CHANGE_PASSWORD)
     );
   },

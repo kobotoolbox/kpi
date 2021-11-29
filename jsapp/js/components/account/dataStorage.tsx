@@ -40,6 +40,7 @@ export default class DataStorage extends React.Component<
 
   render() {
     return (
+<<<<<<< HEAD
       <bem.DataStorage>
         <bem.DataStorage__header>
           <h2>{t('Data storage')}</h2>
