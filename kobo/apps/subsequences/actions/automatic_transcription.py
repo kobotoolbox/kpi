@@ -54,9 +54,11 @@ class AutomaticTranscriptionAction(BaseAction):
 
     def addl_fields(self):
         for (field, service, key) in self.field_service_matrix():
+            label = f'{key} Transcript'
             yield {
                 'type': 'text',
                 'name': f'{field}/{service}',
+                'label': label,
                 'path': [field, service],
                 'source': field,
                 'settings': {
