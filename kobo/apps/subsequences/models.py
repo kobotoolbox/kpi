@@ -21,7 +21,12 @@ class SubmissionExtras(models.Model):
             if key not in self.content:
                 self.content[key] = val
             else:
-                self.content[key].update(val)
+                if not isinstance(self.content[key], dict):
+                    # override strings? How did strings get in here?
+                    # needs test
+                    self.content[key] = val
+                else:
+                    self.content[key].update(val)
 
     @property
     def full_content(self):
