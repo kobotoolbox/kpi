@@ -21,9 +21,9 @@ def advanced_submission_post(request, asset_uid=None):
         raise APIValidationError({'error': err})
     s_uuid = posted_data.get('submission')
     try:
-        submission = asset.submissions.get(uuid=s_uuid)
+        submission = asset.submission_extras.get(uuid=s_uuid)
     except SubmissionExtras.DoesNotExist:
-        submission = asset.submissions.create(uuid=s_uuid)
+        submission = asset.submission_extras.create(uuid=s_uuid)
     submission.patch_content(request.data)
     submission.save()
     return Response(submission.content)
