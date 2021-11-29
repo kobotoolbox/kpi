@@ -22,6 +22,9 @@ from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 
 from kobo.apps.subsequences.utils import advanced_submission_jsonschema
+from kobo.apps.subsequences.utils import get_additional_fields_data_xyz
+from kobo.apps.subsequences.utils import advanced_feature_instances
+
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
 )
@@ -395,6 +398,30 @@ class Asset(ObjectPermissionMixin,
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.uid)
+
+    def get_advanced_feature_instances(self):
+        return advanced_feature_instances(self.content, self.advanced_features)
+
+    @property
+    def has_advanced_features(self):
+        if self.advanced_features is None:
+            return False
+        return len(self.advanced_features) > 0
+
+    def _get_additional_fields(self):
+        for instance in self.get_advanced_feature_instances():
+            for field in instance.addl_fields():
+                yield field
+
+    def _get_engines(self):
+        for instance in self.get_advanced_feature_instances():
+            for key, val in instance.engines():
+                yield key, val
+
+    def get_analysis_form_json(self):
+        additional_fields = list(self._get_additional_fields())
+        engines = dict(self._get_engines())
+        return {'engines': engines, 'additional_fields': additional_fields}
 
     def validate_advanced_features(self):
         if self.advanced_features is None:

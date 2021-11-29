@@ -52,6 +52,32 @@ class AutomaticTranscriptionAction(BaseAction):
                 return ACTION_NEEDED
         return PASSES
 
+    def addl_fields(self):
+        for (field, service, key) in self.field_service_matrix():
+            yield {
+                'type': 'text',
+                'name': key,
+                'path': [field, service],
+                'pathstring': f'{field}/{service}',
+                'source': field,
+                'settings': {
+                    'mode': 'auto',
+                    'engine': f'engines/transcript_{service}',
+                }
+            }
+
+    def engines(self):
+        manual_name = f'engines/transcript_{self.MANUAL}'
+        manual_engine = {
+            'details': 'A human provided transcription'
+        }
+        yield (manual_name, manual_engine)
+        for service in self.available_services:
+            name = f'engines/transcript_{service}'
+            yield (name, {
+                'description': f'Transcription by {service}'
+            })
+
     def field_service_matrix(self):
         for field in self.possible_transcribed_fields:
             yield (field,
