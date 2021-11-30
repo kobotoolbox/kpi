@@ -14,11 +14,11 @@ from django.db import (
     ProgrammingError,
     connections,
     models,
-    IntegrityError,
     router,
 )
 from django.utils import timezone
 from django_digest.models import PartialDigest
+from trench.utils import get_mfa_model
 
 from kpi.constants import SHADOW_MODEL_APP_LABEL
 from kpi.exceptions import BadContentTypeException
@@ -460,6 +460,24 @@ class KobocatUserProfile(ShadowModel):
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
     metadata = JSONBField(default=dict, blank=True)
+    is_mfa_active = models.BooleanField(default=False)
+
+    @classmethod
+    def sync_mfa_status(cls, mfa_method: 'trench.MFAMethod'):
+
+        user_profile, created = cls.objects.get_or_create(user_id=mfa_method.user.pk)
+        user_profile.is_mfa_active = mfa_method.is_mfa_active
+        user_profile.save(update_fields=['is_mfa_active'])
+
+    @classmethod
+    def disable_mfa(cls, mfa_method: 'trench.MFAMethod'):
+        try:
+            user_profile = cls.objects(user_id=mfa_method.user.pk)
+        except get_mfa_model().DoesNotExist:
+            pass
+        else:
+            user_profile.is_mfa_active = False
+            user_profile.save(update_fields=['is_mfa_active'])
 
 
 class KobocatToken(ShadowModel):
