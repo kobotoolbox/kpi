@@ -8,16 +8,15 @@ from kpi.mixins.mfa import MFABlockerMixin
 
 
 class BasicAuthentication(MFABlockerMixin, DRFBasicAuthentication):
+    """
+    Extend DRF class to support MFA.
 
-    verbose_name = 'Basic authenfication'
+    Basic authentication should be deactivated if user has activated MFA
+    on their account (unless it has been add to `settings.MFA_SUPPORTED_AUTH_CLASSES`)
+    """
+    verbose_name = 'Basic authentication'
 
     def authenticate_credentials(self, userid, password, request=None):
-        """
-        Extend DRF class to support MFA.
-
-        Basic authentication must be deactivated if user has activated MFA
-        on their account.
-        """
         user, _ = super().authenticate_credentials(
             userid=userid, password=password, request=request
         )
@@ -26,8 +25,13 @@ class BasicAuthentication(MFABlockerMixin, DRFBasicAuthentication):
 
 
 class TokenAuthentication(MFABlockerMixin, DRFTokenAuthentication):
+    """
+    Extend DRF class to support MFA.
 
-    verbose_name = 'Token authenfication'
+    Token authentication should be deactivated if user has activated MFA
+    on their account (unless it has been add to `settings.MFA_SUPPORTED_AUTH_CLASSES`)
+    """
+    verbose_name = 'Token authentication'
 
     def authenticate_credentials(self, key):
         user, token = super().authenticate_credentials(key=key)
