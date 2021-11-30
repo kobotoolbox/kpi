@@ -827,3 +827,8 @@ TRENCH_AUTH = {
     },
     'CODE_LENGTH': os.getenv('MFA_CODE_LENGTH', 6),
 }
+
+# Session Authentication is supported by default.
+MFA_SUPPORTED_AUTH_CLASSES = [
+    'kpi.authentication.TokenAuthentication',
+]
