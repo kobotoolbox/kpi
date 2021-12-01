@@ -43,9 +43,11 @@
   &::after {
     content: "";
     position: absolute;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
     top: 100%;
-    width: 100%;
+    width: sizes.$x50;
+    max-width: 100%;
     height: sizes.$x8;
   }
 
