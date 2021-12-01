@@ -24,6 +24,10 @@
   margin-bottom: sizes.$x12;
 }
 
+.processing-body__trans-header-date {
+  color: colors.$kobo-gray-40;
+}
+
 .processing-body__trans-header-language-wrapper {
   @include mixins.centerRowFlex;
 }

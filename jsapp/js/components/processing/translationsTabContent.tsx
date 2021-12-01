@@ -211,9 +211,9 @@ export default class TranslationsTabContent extends React.Component<
     let dateText = ''
     if (storeTranslation) {
       if (storeTranslation.dateCreated !== storeTranslation?.dateModified) {
-        dateText = t('Modified ##date##').replace('##date##', formatTime(storeTranslation.dateModified))
+        dateText = t('last modified ##date##').replace('##date##', formatTime(storeTranslation.dateModified))
       } else {
-        dateText = t('Created ##date##').replace('##date##', formatTime(storeTranslation.dateCreated))
+        dateText = t('created ##date##').replace('##date##', formatTime(storeTranslation.dateCreated))
       }
     }
 

@@ -41,9 +41,9 @@ export default class SingleProcessingPreview extends React.Component {
     let dateText = ''
     if (source) {
       if (source.dateCreated !== source?.dateModified) {
-        dateText = t('Modified ##date##').replace('##date##', formatTime(source.dateModified))
+        dateText = t('last modified ##date##').replace('##date##', formatTime(source.dateModified))
       } else {
-        dateText = t('Created ##date##').replace('##date##', formatTime(source.dateCreated))
+        dateText = t('created ##date##').replace('##date##', formatTime(source.dateCreated))
       }
     }
 

@@ -139,9 +139,9 @@ export default class TranscriptTabContent extends React.Component<
     let dateText = ''
     if (storeTranscript) {
       if (storeTranscript.dateCreated !== storeTranscript?.dateModified) {
-        dateText = t('Modified ##date##').replace('##date##', formatTime(storeTranscript.dateModified))
+        dateText = t('last modified ##date##').replace('##date##', formatTime(storeTranscript.dateModified))
       } else {
-        dateText = t('Created ##date##').replace('##date##', formatTime(storeTranscript.dateCreated))
+        dateText = t('created ##date##').replace('##date##', formatTime(storeTranscript.dateCreated))
       }
     }
 
