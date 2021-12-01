@@ -792,7 +792,14 @@ def _strip_header_keys(survey_dict):
             del survey_dict[sheet_name]
     return survey_dict
 
+
 def _get_fields_and_groups(fields: list) -> list:
+    """
+    Ensure repeat groups are included when filtering for specific fields by
+    appending the path items. For example, a field with path of
+    `group1/group2/field` will be added to the list as:
+    ['group1/group2/field', 'group1/group2', 'group1']
+    """
     if not fields:
         return []
     field_groups = set()
