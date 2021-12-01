@@ -147,7 +147,8 @@
   > li {
     width: calc(25% - #{sizes.$x20});
     min-width: sizes.$x150;
-    margin-right: sizes.$x20;
+    margin-right: sizes.$x50;
+    margin-bottom: sizes.$x5;
 
     &.language-selector__not-found-message {
       width: 100%;
