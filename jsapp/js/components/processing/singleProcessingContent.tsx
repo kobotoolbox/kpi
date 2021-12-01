@@ -1,5 +1,6 @@
 import React from 'react'
 import bem, {makeBem} from 'js/bem'
+import LanguageSelector from 'js/components/languages/languageSelector'
 import './singleProcessingContent.scss'
 
 bem.SingleProcessingContent = makeBem(null, 'single-processing-content', 'section')
@@ -34,10 +35,17 @@ export default class SingleProcessingContent extends React.Component<
     this.setState({activeTab: newTab})
   }
 
+  onLanguageChange(newVal: string | undefined) {
+    console.log('language set', newVal)
+  }
+
   renderTabContent() {
     switch (this.state.activeTab) {
       case SingleProcessingTab.Transcript:
-        return 'TODO transcript tab content'
+        // TEMP content
+        return <div style={{padding: '40px'}}>
+          <LanguageSelector onLanguageChange={this.onLanguageChange.bind(this)}/>
+        </div>
       case SingleProcessingTab.Translations:
         return 'TODO translations tab content'
       case SingleProcessingTab.Coding:

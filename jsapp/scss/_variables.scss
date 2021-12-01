@@ -22,3 +22,11 @@ $cardBorderStyle: 1px solid $cardBorderColor;
 $cardInSortBorderStyle: 1px solid $cardInSortBorderColor;
 $cardInSortThinBorderStyle: 1px solid $cardInSortBorderColor;
 $thinBorderStyle: 1px solid $cardBorderColor;
+
+// base64 images
+
+// 1px black transparent png with 10% opacity (png-pixel.com)
+$png-black-10: url("data:image/png;base64,  iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkkAQAAB8AG7jymN8AAAAASUVORK5CYII= ");
+
+// 1px black transparent png with 6% opacity (png-pixel.com)
+$png-black-6: url("data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk4AcAABUAET9MVpIAAAAASUVORK5CYII=");

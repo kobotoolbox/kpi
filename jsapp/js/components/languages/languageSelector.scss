@@ -1,0 +1,185 @@
+@use "scss/_colors";
+@use "scss/sizes";
+@use "scss/mixins";
+
+.language-selector {
+  background: colors.$kobo-white;
+}
+
+.language-selector__title {
+  font-size: sizes.$x18;
+  font-weight: 400;
+  text-align: center;
+  line-height: sizes.$x20;
+  margin: 0 auto sizes.$x24;
+}
+
+/*
+ * Search box and selected language
+ */
+
+.language-selector__search-box-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-content: center;
+  justify-content: stretch;
+}
+
+// The arrow icon
+.language-selector__search-box-row > .k-icon {
+  margin: 0 sizes.$x20;
+  color: colors.$kobo-gray-85;
+  transform: translateY(11px);
+}
+
+.language-selector__search-box-wrapper {
+  flex: 1;
+}
+
+.language-selector__source-label,
+.language-selector__search-box-label {
+  color: colors.$kobo-gray-55;
+  font-size: sizes.$x12;
+  line-height: 1;
+  display: block;
+  margin-bottom: sizes.$x6;
+}
+
+.language-selector__source-language {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  line-height: sizes.$x40;
+  font-size: sizes.$x16;
+  font-weight: 500;
+
+  span {
+    // For multiline languages (long names).
+    display: block;
+    line-height: 1.2;
+  }
+}
+
+.language-selector__source-language > .k-icon {
+  margin-right: sizes.$x6;
+  color: colors.$kobo-gray-65;
+}
+
+.language-selector__selected-language,
+.language-selector__search-box {
+  border: sizes.$x2 solid colors.$kobo-gray-92;
+  border-radius: sizes.$x6;
+  height: sizes.$x40;
+  line-height: sizes.$x40 - (2 * sizes.$x2); // minus the border
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
+  position: relative;
+
+  // we want the magnifying glass icon to click through to text input
+  .k-icon.k-icon-search,
+  .k-icon.k-icon-language-alt {
+    pointer-events: none;
+    position: absolute;
+    left: sizes.$x12;
+    color: colors.$kobo-gray-85;
+  }
+}
+
+.language-selector__search-box:focus-within {
+  border-color: colors.$kobo-blue;
+}
+
+.language-selector__selected-language-label,
+.language-selector__search-box-input {
+  flex: 1;
+  border: 0;
+  padding: 0 sizes.$x40;
+  margin: 0;
+  background: transparent;
+}
+
+.language-selector__selected-language-label {
+  color: colors.$kobo-blue;
+}
+
+.language-selector__search-box-input {
+  &::placeholder {
+    opacity: 1;
+    color: colors.$kobo-gray-55;
+  }
+}
+
+.language-selector__clear-selected-language,
+.language-selector__clear-search-box {
+  @include mixins.buttonReset();
+  margin-right: sizes.$x12;
+  color: colors.$kobo-gray-85;
+
+  &:hover {
+    color: colors.$kobo-gray-24;
+  }
+
+  .k-icon.k-icon-close {
+    vertical-align: middle;
+  }
+}
+
+/*
+ * Languages list
+ */
+
+.language-selector__list {
+  min-height: sizes.$x100;
+  max-height: sizes.$x200;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  list-style: none;
+  margin: sizes.$x16 0 0;
+  padding: 0;
+
+  > li {
+    width: calc(25% - #{sizes.$x20});
+    min-width: sizes.$x150;
+    margin-right: sizes.$x20;
+
+    &.language-selector__not-found-message {
+      width: 100%;
+      margin-right: 0;
+    }
+
+    &:last-child {
+      width: auto;
+      margin-right: 0;
+    }
+
+    &:only-child {
+      width: 100%;
+      margin-right: 0;
+    }
+  }
+}
+
+.language-selector__not-found-message {
+  padding: sizes.$x6 sizes.$x8;
+  text-align: left;
+  font-style: italic;
+}
+
+.language-selector__help-bar {
+  border-top: sizes.$x2 solid colors.$kobo-gray-92;
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  line-height: sizes.$x40 - (2 * sizes.$x2); // mimick the search box size
+  margin-top: sizes.$x16;
+  padding-top: sizes.$x4;
+}
