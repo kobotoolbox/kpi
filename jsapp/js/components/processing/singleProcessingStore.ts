@@ -70,7 +70,15 @@ class SingleProcessingStore extends Reflux.Store {
     hashHistory.listen(this.onRouteChange.bind(this))
     processingActions.getProcessingData.started.listen(this.onFetchDataStarted.bind(this))
     processingActions.getProcessingData.completed.listen(this.onFetchDataCompleted.bind(this))
-    processingActions.getProcessingData.failed.listen(this.onFetchDataFailed.bind(this))
+    processingActions.getProcessingData.failed.listen(this.onAnyCallFailed.bind(this))
+    processingActions.setTranscript.completed.listen(this.onSetTranscriptCompleted.bind(this))
+    processingActions.setTranscript.failed.listen(this.onAnyCallFailed.bind(this))
+    processingActions.deleteTranscript.completed.listen(this.onDeleteTranscriptCompleted.bind(this))
+    processingActions.deleteTranscript.failed.listen(this.onAnyCallFailed.bind(this))
+    processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this))
+    processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this))
+    processingActions.deleteTranslation.completed.listen(this.onDeleteTranslationCompleted.bind(this))
+    processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this))
 
     this.fetchData()
   }
@@ -122,7 +130,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  onFetchDataFailed() {
+  onAnyCallFailed() {
     delete this.abortFetchData
     this.isFetchingData = false
     this.trigger(this.data)
@@ -151,9 +159,31 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  onSetTranscriptCompleted(transcript: Transcript | undefined) {
+  onSetTranscriptCompleted(transcript: Transcript) {
     this.isFetchingData = false
     this.data.transcript = transcript
+    // discard draft after saving (exit the editor)
+    this.data.transcriptDraft = undefined
+    this.trigger(this.data)
+  }
+
+  onDeleteTranscriptCompleted() {
+    this.isFetchingData = false
+    this.data.transcript = undefined
+    this.trigger(this.data)
+  }
+
+  onSetTranslationCompleted(newTranslations: Translation[]) {
+    this.isFetchingData = false
+    this.data.translations = newTranslations
+    // discard draft after saving (exit the editor)
+    this.data.translationDraft = undefined
+    this.trigger(this.data)
+  }
+
+  onDeleteTranslationCompleted(newTranslations: Translation[]) {
+    this.isFetchingData = false
+    this.data.translations = newTranslations
     this.trigger(this.data)
   }
 
@@ -213,8 +243,11 @@ class SingleProcessingStore extends Reflux.Store {
   setTranscript(newTranscript: Transcript | undefined) {
     this.isFetchingData = true
 
-    // TODO: call backend to store transcript, for now we just wait 3 seconds :P
-    setTimeout(this.onSetTranscriptCompleted.bind(this, newTranscript), 3000)
+    if (newTranscript === undefined) {
+      processingActions.deleteTranscript()
+    } else {
+      processingActions.setTranscript(newTranscript.languageCode, newTranscript.content)
+    }
 
     this.trigger(this.data)
   }
@@ -256,36 +289,14 @@ class SingleProcessingStore extends Reflux.Store {
       throw new Error('New translation language code mismatch!')
     }
 
-    // TODO: call backend to store translation, for now we just wait 3 seconds :P
-    setTimeout(() => {
-      // we mock this flow:
-      // 1. send translation to backend
-      // 2. observe call finished
-      // 3. fetch all translations
-      // 4. replace all translations with new ones
-      // (this is needed for translations deletion)
-      const newTranslations: Translation[] = []
-      // this loop rewrites translations so it delete the given languageCode translation
-      // if undefined was passed or adds/replaces existing
-      let wasTranslationSet = false
-      this.data.translations.forEach((translation) => {
-        if (translation.languageCode === newTranslationLanguageCode) {
-          if (newTranslation) {
-            newTranslations.push(newTranslation)
-            wasTranslationSet = true
-          }
-        } else {
-          newTranslations.push(translation)
-        }
-      })
-      // if translation did not exist, then it wasn't replaced in the loop above
-      // we need to add it now
-      if (!wasTranslationSet && newTranslation) {
-        newTranslations.push(newTranslation)
-      }
-
-      this.onGetTranslationsCompleted(newTranslations)
-    }, 3000)
+    if (newTranslation === undefined) {
+      processingActions.deleteTranslation(newTranslationLanguageCode)
+    } else {
+      processingActions.setTranslation(
+        newTranslation.languageCode,
+        newTranslation.content
+      )
+    }
 
     this.trigger(this.data)
   }
