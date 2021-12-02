@@ -6,8 +6,7 @@
   The default color is gray, other available are:
   - blue
   - teal
-  - green
-  - orange
+  - green DEPRECATED
   - red
   - whitegray
 
@@ -102,11 +101,7 @@
   }
 
   &.kobo-button--green {
-    background-color: colors.$kobo-green;
-  }
-
-  &.kobo-button--orange {
-    background-color: colors.$kobo-orange;
+    background-color: colors.$kobo-green__deprecated;
   }
 
   &.kobo-button--red {

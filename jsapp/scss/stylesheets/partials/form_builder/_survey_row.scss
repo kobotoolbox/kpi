@@ -70,7 +70,7 @@
   cursor: pointer;
 
   &:hover {
-    color: $kobo-red-dark;
+    color: $kobo-dark-red;
   }
 }
 
@@ -290,7 +290,7 @@ tr .scorecell__radio:hover {
 }
 
 .kobomatrix-warning {
-  color: $kobo-orange-dark;
+  color: $kobo-gray-55;
   position: absolute;
   top: 0;
   right: 5px + $s-fb-row-locking-icons-width + $s-fb-row-buttons-width;

@@ -105,24 +105,6 @@
     border-bottom-color: $kobo-blue;
     opacity: 1;
   }
-
-  &.registration__action {
-    font-size: 16px;
-    padding: 10px;
-    color: $kobo-white;
-    text-align: center;
-    font-weight: 600;
-    background-color: $kobo-green;
-    border-bottom: 2px solid $kobo-green-dark;
-    text-shadow: -1px -1px $kobo-green-dark;
-    clear: both;
-
-    &:hover {
-      background-color: $kobo-alt-blue;
-      border-bottom-color: $kobo-dark-blue;
-      text-shadow: -1px -1px $kobo-dark-blue;
-    }
-  }
 }
 
 .registration {
