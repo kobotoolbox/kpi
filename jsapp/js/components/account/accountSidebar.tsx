@@ -1,26 +1,18 @@
 import React from 'react'
-import {RouteComponentProps} from 'react-router'
 import {ROUTES} from 'js/router/routerConstants'
 import bem from 'js/bem'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
 import Icon from 'js/components/common/icon'
 import './accountSidebar.scss'
 
-const ACCOUNT_SETTINGS_HREF = '#' + ROUTES.ACCOUNT_SETTINGS
-const DATA_STORAGE_HREF = '#' + ROUTES.DATA_STORAGE
-const SECURITY_HREF = '#' + ROUTES.SECURITY
-
-type AccountSidebarProps = RouteComponentProps<
-  {
-    submissionsPerMonth: number
-    /* TODO: Placeholder from mockups, naming and typing subject to change
-      dataStoreage: any,
-      transcriptionMinutes: any,
-	    machineTranslation: any,
-	 */
-  },
-  {}
->
+type AccountSidebarProps = {
+  submissionsPerMonth: number
+  /* TODO: Placeholder from mockups, naming and typing subject to change
+    dataStoreage: any,
+    transcriptionMinutes: any,
+	  machineTranslation: any,
+	*/
+}
 
 type AccountSidebarState = {
 	isLoading: boolean
@@ -58,7 +50,7 @@ export default class AccountSidebar extends React.Component<
   }
 
   render() {
-    let sidebarModifier: string = 'account'
+    let sidebarModifier = 'account'
 
     if (this.state.isLoading) {
       return <LoadingSpinner />
@@ -67,7 +59,7 @@ export default class AccountSidebar extends React.Component<
         <bem.FormSidebar m={sidebarModifier}>
           <bem.FormSidebar__label
             m={{selected: this.isAccountSelected()}}
-            href={ACCOUNT_SETTINGS_HREF}
+            href={'#' + ROUTES.ACCOUNT_SETTINGS}
           >
             {/*TODO: get a regular user icon*/}
             <Icon name='user-share' size='xl'/>
@@ -78,7 +70,7 @@ export default class AccountSidebar extends React.Component<
 
           <bem.FormSidebar__label
             m={{selected: this.isDataStorageSelected()}}
-            href={DATA_STORAGE_HREF}
+            href={'#' + ROUTES.DATA_STORAGE}
           >
             {/*TODO: get the data usage icon*/}
             <Icon name='projects' size='xl'/>
@@ -89,7 +81,7 @@ export default class AccountSidebar extends React.Component<
 
           <bem.FormSidebar__label
             m={{selected: this.isSecuritySelected()}}
-            href={SECURITY_HREF}
+            href={'#' + ROUTES.SECURITY}
           >
             {/*TODO: get the data usage icon*/}
             <Icon name='lock' size='xl'/>
