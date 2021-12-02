@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "sass:color";
 
 /*
   This is a simple colored button.
@@ -101,7 +102,7 @@
   }
 
   &.kobo-button--green {
-    background-color: colors.$kobo-green__deprecated;
+    background-color: color.adjust(colors.$kobo-green, $lightness: -30%, $saturation: -25%);
   }
 
   &.kobo-button--red {

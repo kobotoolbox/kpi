@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // ==========================================================================
 // Card (incl. Header and Expanded)
 // ==========================================================================
@@ -272,7 +274,8 @@ $cardIndicatorIconWidth: 21px;
     }
 
     &.card__buttons__button--green {
-        color: $kobo-green;
+      // DEPRECATED green color use
+        color: color.adjust($kobo-green, $lightness: -30%, $saturation: -25%);
     }
 
     &.card__buttons__button--activated {
