@@ -118,6 +118,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
           assetContent={this.props.assetContent}
           submissionData={this.props.submissionData}
           hideQuestions={this.getQuestionsToHide()}
+          hideGroups
         />
       </bem.SingleProcessingDataListWrapper>
     )
