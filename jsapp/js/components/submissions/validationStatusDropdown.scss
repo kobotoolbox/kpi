@@ -139,8 +139,8 @@
     }
 
     &.kobo-select__option-badge--validation_status_approved {
-      color: colors.$kobo-teal-pale-dark;
-      background-color: colors.$kobo-teal-pale;
+      color: colors.$kobo-dark-teal;
+      background-color: colors.$kobo-teal;
     }
 
     &.kobo-select__option-badge--validation_status_on_hold {
