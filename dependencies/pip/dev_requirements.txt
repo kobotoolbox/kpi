@@ -296,6 +296,10 @@ pytz==2019.3
     #   django
     #   django-timezone-field
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    #   twilio
+>>>>>>> 8f8569934... Fix pip dependencies
 pyxform==1.7.0
 =======
     #   twilio
@@ -343,8 +347,11 @@ six==1.13.0
     #   ssrf-protect
     #   traitlets
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     #   unittest2
+=======
+>>>>>>> 8f8569934... Fix pip dependencies
 smsapi-client==2.5.0
     # via django-trench
 >>>>>>> f95fff0ef... Make login page work with MFA
@@ -406,5 +413,4 @@ zipp==0.6.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-# pip
 # setuptools
