@@ -16,6 +16,7 @@ import {hashHistory} from 'react-router';
 import {stringToColor} from 'utils';
 import {ROUTES} from 'js/router/routerConstants';
 import envStore from 'js/envStore';
+import QRCode from 'qrcode.react';
 import './accountSettings.scss';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
@@ -449,6 +450,14 @@ export default class AccountSettings extends React.Component {
                   value={this.state.metadata}
                   onChange={this.metadataChange}
                 />
+              </bem.AccountSettings__item>
+
+              <bem.AccountSettings__item>
+                <label>
+                  Security
+                </label>
+
+                <QRCode value='6SOANV5NPAU443I6P4CXAUXKH5JYVXM6'/>
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>
