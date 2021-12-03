@@ -22,6 +22,7 @@
     "lodash.merge": "^4.6.2",
     "lodash.orderby": "^4.6.0",
     "prop-types": "^15.7.2",
+    "qrcode.react": "^1.0.1",
     "react": "^16.13.1",
     "react-autobind": "^1.0.6",
     "react-autosize-textarea": "^7.0.0",
