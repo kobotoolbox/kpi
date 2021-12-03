@@ -291,7 +291,7 @@
     text-align: center;
 
     &:hover {
-      color: $kobo-blue-dark;
+      color: $kobo-dark-blue;
     }
 
     &:active {
@@ -442,22 +442,20 @@
     margin-left: 10px;
     display: inline-block;
     padding: 6px;
-    color: $kobo-white;
     background-color: $kobo-green;
     border-radius: 2px;
   }
 
   &.form-view__cell--warning {
-    background-color: $kobo-orange-light;
-    color: $kobo-orange-dark;
-    border: 1px solid $kobo-orange;
+    background-color: $kobo-light-amber;
+    color: $kobo-dark-amber;
     padding: 10px;
     display: flex;
     flex-direction: row;
     align-items: center;
 
     i {
-      color: $kobo-orange;
+      color: inherit;
       font-size: 28px;
       margin-right: 5px;
       vertical-align: -11px;
@@ -480,8 +478,8 @@
   }
 
   &.form-view__cell--error {
-    background-color: $kobo-red-light;
-    color: $kobo-red-dark;
+    background-color: $kobo-light-red;
+    color: $kobo-dark-red;
     border: 1px solid $kobo-red;
     display: flex;
     flex-direction: row;
@@ -727,7 +725,7 @@
 
 .form-view__cell--collect-header {
   .collect-link-missing {
-    color: $kobo-orange-dark;
+    color: $kobo-dark-amber;
     display: block;
     line-height: 24px;
 

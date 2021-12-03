@@ -42,8 +42,8 @@
     margin-left: -8px;
   }
   &:before {
-    border-color: rgba(217, 221, 225, 0);
-    border-bottom-color: $kobo-blue-light;
+    border-color: rgba($kobo-blue, 0);
+    border-bottom-color: $kobo-blue;
     border-width: 11px;
     margin-left: -11px;
   }
