@@ -466,7 +466,7 @@ class KobocatUserProfile(ShadowModel):
     def sync_mfa_status(cls, mfa_method: 'trench.MFAMethod'):
 
         user_profile, created = cls.objects.get_or_create(user_id=mfa_method.user.pk)
-        user_profile.is_mfa_active = mfa_method.is_mfa_active
+        user_profile.is_mfa_active = mfa_method.is_active
         user_profile.save(update_fields=['is_mfa_active'])
 
     @classmethod
