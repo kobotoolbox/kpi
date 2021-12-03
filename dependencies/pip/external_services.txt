@@ -253,7 +253,6 @@ six==1.13.0
     #   responses
     #   ssrf-protect
     #   transifex-client
-    #   unittest2
 smsapi-client==2.5.0
     # via django-trench
 sqlparse==0.3.0
@@ -309,5 +308,4 @@ zipp==0.6.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-# pip
 # setuptools

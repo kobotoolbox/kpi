@@ -295,6 +295,7 @@ pytz==2019.3
     #   celery
     #   django
     #   django-timezone-field
+    #   twilio
 pyxform==1.7.0
     # via
     #   -r dependencies/pip/requirements.in
@@ -337,7 +338,6 @@ six==1.13.0
     #   responses
     #   ssrf-protect
     #   traitlets
-    #   unittest2
 smsapi-client==2.5.0
     # via django-trench
 sqlparse==0.3.0
@@ -398,5 +398,4 @@ zipp==0.6.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-# pip
 # setuptools
