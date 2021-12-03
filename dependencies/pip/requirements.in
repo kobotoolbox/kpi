@@ -42,8 +42,6 @@ django-webpack-loader
 django-loginas
 django-markdownx
 
-# django-markitup # Not compatible with Django 2.0+ (see above ToDo²)
-
 django-markitup
 django-mptt
 
@@ -66,7 +64,7 @@ psycopg2
 pymongo
 python-dateutil
 pytz
-pyxform
+pyxform==1.7.0
 requests
 responses
 shortuuid

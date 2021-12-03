@@ -603,7 +603,7 @@ class AssetImportTaskTest(BaseTestCase):
             created_asset.content['survey']
         )
         assert expected_content_settings == created_asset.content['settings']
-        assert 'kobo--locking-profiles' not in created_asset.content
+        assert not created_asset.content['kobo--locking-profiles']
 
     def test_import_locking_xls_as_question(self):
         survey_sheet_content = [
@@ -686,7 +686,7 @@ class AssetImportTaskTest(BaseTestCase):
             created_asset.content['survey']
         )
         assert expected_content_settings == created_asset.content['settings']
-        assert 'kobo--locking-profiles' not in created_asset.content
+        assert not created_asset.content['kobo--locking-profiles']
 
     def test_import_library_bulk_xls(self):
         library_sheet_content = [
