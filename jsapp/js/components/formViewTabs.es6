@@ -12,7 +12,7 @@ import {PERMISSIONS_CODENAMES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {assign} from 'utils';
 
-export function getFormDataTabs(assetUid) {
+export function getFormDataTabs(assetUid, hasPartialView) {
   return [
     {
       label: t('Table'),
@@ -28,6 +28,7 @@ export function getFormDataTabs(assetUid) {
       label: t('Gallery'),
       icon: 'k-icon k-icon-photo-gallery',
       path: ROUTES.FORM_GALLERY.replace(':uid', assetUid),
+      isDisabled: hasPartialView,
     },
     {
       label: t('Downloads'),
@@ -166,7 +167,11 @@ class FormViewTabs extends Reflux.Component {
       this.state.asset.has_deployment &&
       this.isActiveRoute(ROUTES.FORM_DATA.replace(':uid', this.state.assetid))
     ) {
-      sideTabs = getFormDataTabs(this.state.assetid);
+      const hasPartialView = mixins.permissions.userCanPartially(
+        PERMISSIONS_CODENAMES.view_submissions,
+        this.state.asset
+      );
+      sideTabs = getFormDataTabs(this.state.assetid, hasPartialView);
     }
 
     if (

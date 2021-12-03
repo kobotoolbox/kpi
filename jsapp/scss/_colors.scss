@@ -2,12 +2,12 @@
 //
 // It should be the only source of colors in styles (i.e. no one-shot colors,
 // all `color`, `background-color` etc. should use variables defined here).
-//
-// NOTE: the hue and saturation is identical in all grays, keep it this way
 
 /*
-  Group 1: Blueish grays
-*/
+ * The KoBo gray scale
+ *
+ * NOTE: the list constist of colors with same hue (225) and saturation (16).
+ */
 
 // (accessible) our black, very very rare, only use if necessary for contrast
 $kobo-gray-14: hsl(225, 16%, 14%); // #1e2129
@@ -42,19 +42,9 @@ $kobo-gray-98: hsl(225, 16%, 98%); // #f9f9fb
 // white background
 $kobo-white: hsl(225, 16%, 100%); // #ffffff
 
-// DEPRACATED COLORS
-//
-// please use this migration guide if your PR uses one of them:
-//
-// $kobo-black --> $kobo-gray-24;
-// $kobo-darkgray --> $kobo-gray-40;
-// $kobo-midgray --> $kobo-gray-65;
-// $kobo-lightgray --> $kobo-gray-92;
-// $kobo-whitegray --> $kobo-gray-96;
-
 /*
-  Group 2: Accent colors
-*/
+ * Primary colours & shades
+ */
 
 $kobo-blue: hsl(206, 90%, 55%);
 $kobo-blue-darker: hsl(206, 90%, 33%);
@@ -63,12 +53,20 @@ $kobo-blue-light: hsl(206, 90%, 60%);
 $kobo-blue-pale: hsl(206, 90%, 80%);
 
 $kobo-teal: hsl(187, 70%, 45%);
-$kobo-teal-light: hsl(187, 70%, 95%); // the row hover color
+// the row hover color
+$kobo-teal-light: hsl(187, 70%, 95%);
 $kobo-teal-pale: hsl(187, 60%, 60%);
 $kobo-teal-pale-dark: hsl(187, 58%, 33%);
+// the table sorted column colors
+$kobo-teal-white: hsl(193, 35%, 92%);
+$kobo-teal-white-light: hsl(189, 64%, 98%);
 
-$kobo-teal-white: hsl(193, 35%, 92%); // the table sorted column color
-$kobo-teal-white-light: hsl(189, 64%, 98%); // the table sorted column color
+/*
+ * Secondary & tertiary colors
+ */
+
+// For big general backgrounds as an alternative to desaturated grays.
+$kobo-cloud: hsl(225, 65%, 97%); // #f1f4fc
 
 // positive colors
 $kobo-green: hsl(149, 65%, 45%);
@@ -88,3 +86,17 @@ $kobo-orange-dark: hsl(30, 80%, 40%);
 $kobo-orange-light: hsl(30, 80%, 95%);
 $kobo-orange-pale: hsl(30, 100%, 89%);
 $kobo-orange-pale-dark: hsl(30, 20%, 35%);
+
+// DEPRACATED COLORS GUIDE
+//
+// please use this migration guide if your PR uses one of them:
+//
+// $kobo-black --> $kobo-gray-24;
+// $kobo-darkgray --> $kobo-gray-40;
+// $kobo-midgray --> $kobo-gray-65;
+// $kobo-lightgray --> $kobo-gray-92;
+// $kobo-whitegray --> $kobo-gray-96;
+//
+// NOTE: should definitely be deleted around may 2022
+//
+// ENDGUIDE
