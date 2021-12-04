@@ -7,6 +7,7 @@ import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
 } from 'js/constants';
+import './tableMediaPreview.scss';
 
 bem.TableMediaPreview = makeBem(null, 'table-media-preview');
 bem.TableMediaPreview__image = makeBem(bem.TableMediaPreview, 'image', 'img');

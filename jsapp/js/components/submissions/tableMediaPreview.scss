@@ -1,0 +1,35 @@
+@use "scss/_colors";
+@use "scss/sizes";
+
+.table-media-preview {
+  padding: sizes.$x32 0 sizes.$x12 0;
+  text-align: center;
+  max-width: sizes.$x600;
+  min-width: sizes.$x400;
+  margin: auto;
+
+  .audio-player {
+    margin-right: sizes.$x12;
+  }
+
+  .table-media-preview__text {
+    text-align: left;
+    padding: 0 sizes.$x32 sizes.$x32 sizes.$x32;
+  }
+
+  img, video {
+    width: 100%;
+  }
+
+  i.k-icon-file-audio {
+    // TODO: try to come with up and use some general "icon as illustration" size
+    font-size: 128px;
+    color: colors.$kobo-gray-92
+  }
+}
+
+@media screen and (max-width: 597px) {
+  .table-media-preview {
+    min-width: 0px !important;
+  }
+}
