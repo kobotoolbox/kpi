@@ -11,9 +11,6 @@
  * - full-width
  * - pending
  * - blue
- * - teal
- * - green
- * - orange
  * - red
  * - gray
  */
@@ -118,24 +115,8 @@
     @include koboLightButtonVariant(colors.$kobo-blue)
   }
 
-  &.kobo-light-button--teal {
-    @include koboLightButtonVariant(colors.$kobo-teal)
-  }
-
-  &.kobo-light-button--green {
-    @include koboLightButtonVariant(colors.$kobo-green)
-  }
-
-  &.kobo-light-button--orange {
-    @include koboLightButtonVariant(colors.$kobo-orange)
-  }
-
   &.kobo-light-button--red {
     @include koboLightButtonVariant(colors.$kobo-red)
-  }
-
-  &.kobo-light-button--gray {
-    @include koboLightButtonVariant(colors.$kobo-gray-65)
   }
 
   // NOTE: this requires `<Icon name='spinner' className='k-spin'/>` to

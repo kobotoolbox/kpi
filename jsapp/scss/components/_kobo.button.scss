@@ -10,10 +10,9 @@
 
   The default color is gray, other available are:
   - blue
-  - teal
-  - green
-  - orange
   - red
+  - storm
+  - teal
   - whitegray
 
   Other modifiers:
@@ -99,20 +98,16 @@
     background-color: colors.$kobo-blue;
   }
 
-  &.kobo-button--teal {
-    background-color: colors.$kobo-teal;
-  }
-
-  &.kobo-button--green {
-    background-color: colors.$kobo-green;
-  }
-
-  &.kobo-button--orange {
-    background-color: colors.$kobo-orange;
+  &.kobo-button--storm {
+    background-color: colors.$kobo-storm;
   }
 
   &.kobo-button--red {
     background-color: colors.$kobo-red;
+  }
+
+  &.kobo-button--teal {
+    background-color: colors.$kobo-teal;
   }
 
   &.kobo-button--whitegray {
