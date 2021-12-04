@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/mixins";
 
 .audio-player {
   display: flex;
@@ -11,18 +12,20 @@
     // smaller on mobile
     margin-right: 2.3%;
 
-    i.k-icon {
-      font-size: 36px;
+    // TODO: Temporary button, until the Button component is merged
+    // https://github.com/kobotoolbox/kpi/pull/3532
+    > button {
+      @include mixins.buttonReset;
+      color: colors.$kobo-blue;
       border-radius: 4px;
-      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      text-align: center;
 
       &:hover {
         background-color: colors.$kobo-gray-92;
       }
-    }
-
-    i.k-icon-caret-right, i.k-icon-pause {
-      color: colors.$kobo-blue;
     }
   }
 }
