@@ -190,34 +190,16 @@ $button-border-width: sizes.$x1;
   &.k-button--type-full {@include buttonFull(colors.$kobo-blue);}
 }
 
-.k-button.k-button--color-teal {
-  &.k-button--type-bare {@include buttonBare(colors.$kobo-teal);}
-  &.k-button--type-frame {@include buttonFrame(colors.$kobo-teal);}
-  &.k-button--type-full {@include buttonFull(colors.$kobo-teal);}
-}
-
-.k-button.k-button--color-green {
-  &.k-button--type-bare {@include buttonBare(colors.$kobo-green);}
-  &.k-button--type-frame {@include buttonFrame(colors.$kobo-green);}
-  &.k-button--type-full {@include buttonFull(colors.$kobo-green);}
-}
-
 .k-button.k-button--color-red {
   &.k-button--type-bare {@include buttonBare(colors.$kobo-red);}
   &.k-button--type-frame {@include buttonFrame(colors.$kobo-red);}
   &.k-button--type-full {@include buttonFull(colors.$kobo-red);}
 }
 
-.k-button.k-button--color-orange {
-  &.k-button--type-bare {@include buttonBare(colors.$kobo-orange);}
-  &.k-button--type-frame {@include buttonFrame(colors.$kobo-orange);}
-  &.k-button--type-full {@include buttonFull(colors.$kobo-orange);}
-}
-
-.k-button.k-button--color-gray {
-  &.k-button--type-bare {@include buttonBare(colors.$kobo-gray-40);}
-  &.k-button--type-frame {@include buttonFrame(colors.$kobo-gray-40);}
-  &.k-button--type-full {@include buttonFull(colors.$kobo-gray-40);}
+.k-button.k-button--color-storm {
+  &.k-button--type-bare {@include buttonBare(colors.$kobo-storm);}
+  &.k-button--type-frame {@include buttonFrame(colors.$kobo-storm);}
+  &.k-button--type-full {@include buttonFull(colors.$kobo-storm);}
 }
 
 .k-button.k-button--size-s {
