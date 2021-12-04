@@ -2,6 +2,7 @@ import React from 'react'
 import autoBind from 'react-autobind'
 import bem, {makeBem} from 'js/bem'
 import KoboRange from 'js/components/common/koboRange'
+import Icon from 'js/components/common/icon'
 import 'js/components/common/audioPlayer.scss'
 
 bem.AudioPlayer = makeBem(null, 'audio-player')
@@ -112,26 +113,20 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
     return minutes + ':' + finalSeconds
   }
 
-  getControlIcon(isPlaying: boolean) {
-    const iconClassNames = ['k-icon']
-
-    if (isPlaying) {
-      iconClassNames.push('k-icon-pause')
-    } else {
-      iconClassNames.push('k-icon-caret-right')
-    }
-
-    return iconClassNames.join(' ')
-  }
-
   render() {
     return (
       <bem.AudioPlayer>
         <bem.AudioPlayer__controls>
-          <i
-            className={this.getControlIcon(this.state.isPlaying)}
-            onClick={this.onPlayStatusChange}
-          />
+          {/*
+            TODO: use button until the Button component is merged
+            https://github.com/kobotoolbox/kpi/pull/3532
+          */}
+          <button onClick={this.onPlayStatusChange}>
+            <Icon
+              name={this.state.isPlaying ? 'pause' : 'caret-right'}
+              size='xl'
+            />
+          </button>
         </bem.AudioPlayer__controls>
 
         <KoboRange
