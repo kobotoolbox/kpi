@@ -37,10 +37,10 @@ class KoboImage extends React.Component<KoboImageProps, KoboImageState> {
     this.setState({isLoading: true})
     const tempImg = new Image()
     tempImg.src = this.props.src
-    tempImg.onload = this.onImageLoad.bind(this)
+    tempImg.onload = this.onImageLoaded.bind(this)
   }
 
-  onImageLoad() {
+  onImageLoaded() {
     this.setState({isLoading: false})
   }
 

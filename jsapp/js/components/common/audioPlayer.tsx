@@ -1,7 +1,7 @@
 import React from 'react'
-import autoBind from 'react-autobind'
 import bem, {makeBem} from 'js/bem'
 import KoboRange from 'js/components/common/koboRange'
+import LoadingSpinner from 'js/components/common/loadingSpinner'
 import Icon from 'js/components/common/icon'
 import 'js/components/common/audioPlayer.scss'
 
@@ -24,52 +24,57 @@ type AudioPlayerState = {
   totalTime: number,
 }
 
-/**
- * Custom audio player for viewing audio submissions in data table
- *
- * @param {string} mediaURL
- */
+/** Custom audio player for viewing audio submissions in data table */
 class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
-  audioInterface: HTMLAudioElement
+  audioInterface: HTMLAudioElement = new Audio()
 
   constructor(props: AudioPlayerProps) {
     super(props)
 
     this.state = {
-      isLoading: false,
+      isLoading: true,
       isPlaying: false,
       currentTime: 0,
       totalTime: 0,
     }
+  }
 
-    this.audioInterface = new Audio(this.props.mediaURL)
-
-    // Set up listeners for audio component
-    this.audioInterface.onloadedmetadata = () => {
-      this.setState({
-        totalTime: this.audioInterface.duration,
-      })
-    }
-
-    this.audioInterface.ontimeupdate = () => {
-      // Pause the player when it reaches the end
-      if (
-        this.audioInterface.currentTime === this.state.totalTime &&
-        this.state.isPlaying
-      ) {
-        this.onPlayStatusChange()
-      }
-
-      this.setState({
-        currentTime: this.audioInterface.currentTime,
-      })
-    }
-
-    autoBind(this)
+  componentDidMount() {
+    this.prepareAudio()
   }
 
   componentWillUnmount() {
     this.audioInterface.pause()
+  }
+
+  prepareAudio() {
+    this.setState({isLoading: true})
+
+    this.audioInterface = new Audio(this.props.mediaURL)
+
+    // Set up listeners for audio component
+    this.audioInterface.onloadedmetadata = this.onAudioLoaded.bind(this)
+
+    this.audioInterface.ontimeupdate = this.onAudioTimeUpdated.bind(this)
+  }
+
+  onAudioLoaded() {
+    this.setState({
+      isLoading: false,
+      totalTime: this.audioInterface.duration,
+    })
+  }
+
+  onAudioTimeUpdated() {
+    // Pause the player when it reaches the end
+    if (
+      this.audioInterface.currentTime === this.state.totalTime &&
+      this.state.isPlaying
+    ) {
+      this.onPlayStatusChange()
+    }
+
+    this.setState({currentTime: this.audioInterface.currentTime})
   }
 
   onPlayStatusChange() {
@@ -92,49 +97,35 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
     })
   }
 
-  /* We deal internally with un-converted time for easier computing. Only use
-   * this when it's time to display
-   *
-   * @param {float} time - HTMLElementAudio.duration returns a float in seconds
-   */
-
-  convertToClock(time: number) {
-    let minutes = Math.floor(time / 60)
-    // The duration is given in decimal seconds, so we have to do ceiling here
-    let seconds = Math.ceil(time - minutes * 60)
-
-    let finalSeconds: string;
-    if (seconds < 10) {
-      finalSeconds = '0' + seconds
-    } else {
-      finalSeconds = String(seconds)
-    }
-
-    return minutes + ':' + finalSeconds
-  }
-
   render() {
     return (
       <bem.AudioPlayer>
-        <bem.AudioPlayer__controls>
-          {/*
-            TODO: use button until the Button component is merged
-            https://github.com/kobotoolbox/kpi/pull/3532
-          */}
-          <button onClick={this.onPlayStatusChange}>
-            <Icon
-              name={this.state.isPlaying ? 'pause' : 'caret-right'}
-              size='xl'
-            />
-          </button>
-        </bem.AudioPlayer__controls>
+        {this.state.isLoading &&
+          <LoadingSpinner/>
+        }
+        {!this.state.isLoading &&
+          <bem.AudioPlayer__controls>
+            {/*
+              TODO: use this temporary button until the Button component is merged
+              https://github.com/kobotoolbox/kpi/pull/3532
+            */}
+            <button onClick={this.onPlayStatusChange.bind(this)}>
+              <Icon
+                name={this.state.isPlaying ? 'pause' : 'caret-right'}
+                size='xl'
+              />
+            </button>
+          </bem.AudioPlayer__controls>
+        }
 
-        <KoboRange
-          max={this.state.totalTime}
-          value={this.state.currentTime}
-          isTime={true}
-          onChange={this.onSeekChange}
-        />
+        {!this.state.isLoading &&
+          <KoboRange
+            max={this.state.totalTime}
+            value={this.state.currentTime}
+            isTime={true}
+            onChange={this.onSeekChange.bind(this)}
+          />
+        }
       </bem.AudioPlayer>
     )
   }
