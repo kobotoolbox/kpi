@@ -1,10 +1,7 @@
 @import "scss/_colors";
 
-// TODO: figure out why these need !important and do some abolute hacking
-// to set up the icon/border correctly
-
-.k-drawer__sidebar {
-  padding: 14px 20px 20px 0 !important;
+.form-sidebar.form-sidebar--account {
+  padding: 14px 20px 20px 0;
 }
 
 .form-sidebar__label {
