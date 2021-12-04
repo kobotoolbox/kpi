@@ -147,7 +147,7 @@ class LanguageSelector extends React.Component<
       <li key={value}>
         <Button
           type='bare'
-          color='gray'
+          color='storm'
           size='m'
           label={(<span>{label}&nbsp;<small>({value})</small></span>)}
           onClick={this.selectLanguage.bind(this, value)}
@@ -257,7 +257,7 @@ class LanguageSelector extends React.Component<
             <li key='custom'>
               <Button
                 type='bare'
-                color='gray'
+                color='storm'
                 size='m'
                 label={(<span>
                   {t('I want to use')}&nbsp;"<strong>{this.state.filterPhrase}</strong>"

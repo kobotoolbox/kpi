@@ -159,7 +159,7 @@ class MediaCell extends React.Component {
             <Button
               type='frame'
               size='s'
-              color='gray'
+              color='storm'
               endIcon='arrow-up-right'
               label={t('process')}
               onClick={this.openProcessing.bind(this)}

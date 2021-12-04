@@ -284,7 +284,7 @@ export default class TranscriptTabContent extends React.Component<
           <bem.ProcessingBody__transHeaderButtons>
             <Button
               type='bare'
-              color='gray'
+              color='storm'
               size='s'
               startIcon='edit'
               onClick={this.openEditor.bind(this)}
@@ -294,7 +294,7 @@ export default class TranscriptTabContent extends React.Component<
 
             <Button
               type='bare'
-              color='gray'
+              color='storm'
               size='s'
               startIcon='trash'
               onClick={this.deleteTranscript.bind(this)}

@@ -425,7 +425,7 @@ export default class TranslationsTabContent extends React.Component<
           <bem.ProcessingBody__transHeaderButtons>
             <Button
               type='frame'
-              color='gray'
+              color='storm'
               size='s'
               startIcon='plus'
               label={t('new translation')}
@@ -435,7 +435,7 @@ export default class TranslationsTabContent extends React.Component<
 
             <Button
               type='bare'
-              color='gray'
+              color='storm'
               size='s'
               startIcon='edit'
               onClick={this.openEditor.bind(this, this.state.selectedTranslation)}
@@ -445,7 +445,7 @@ export default class TranslationsTabContent extends React.Component<
 
             <Button
               type='bare'
-              color='gray'
+              color='storm'
               size='s'
               startIcon='trash'
               onClick={this.deleteTranslation.bind(this, this.state.selectedTranslation)}
