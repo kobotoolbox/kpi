@@ -934,7 +934,7 @@ class ProjectSettings extends React.Component {
 
                 {!this.isArchived() &&
                   <bem.KoboButton
-                    m='orange'
+                    m='red'
                     onClick={this.archiveProject}
                   >
                     {t('Archive Project')}

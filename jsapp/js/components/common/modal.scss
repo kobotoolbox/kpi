@@ -328,26 +328,6 @@ $z-modal-x: 10;
     background: colors.$kobo-gray-96;
     text-align: center;
     line-height: 1em;
-
-    i {
-      color: colors.$kobo-orange;
-      font-size: 28px;
-      margin-right: 13px;
-      vertical-align: middle;
-      display: inline-block;
-    }
-
-    span {
-      line-height: 1.4em;
-      display: inline-block;
-      vertical-align: middle;
-      width: calc(100% - 60px);
-    }
-
-    + .submission--warning {
-      margin-top: -30px;
-      border-top: 1px solid colors.$kobo-gray-92;
-    }
   }
 }
 
@@ -457,7 +437,7 @@ $z-modal-x: 10;
     }
 
     .k-icon {
-      color: colors.$kobo-blue-light;
+      color: colors.$kobo-blue;
       font-size: 24px;
     }
   }
@@ -825,7 +805,7 @@ $z-modal-x: 10;
         padding: 0px;
         color: colors.$kobo-gray-40;
         textarea {
-          background: colors.$kobo-green-light;
+          background: colors.$kobo-lime;
           display: block;
           padding: 10px;
           border: none;

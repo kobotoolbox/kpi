@@ -8,7 +8,7 @@ import Button, {ButtonType, ButtonColor, ButtonSize} from 'js/components/common/
 import {IconNames} from 'jsapp/fonts/k-icons'
 
 const buttonTypes: ButtonType[] = ['bare', 'frame', 'full']
-const buttonColors: ButtonColor[] = ['blue', 'teal', 'red', 'gray']
+const buttonColors: ButtonColor[] = ['blue', 'red', 'storm']
 const buttonSizes: ButtonSize[] = ['s', 'm', 'l']
 
 const iconNamesOptions: IconNameOption[] = []
@@ -50,7 +50,7 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
     super(props)
     this.state = {
       demoType: 'full',
-      demoColor: 'teal',
+      demoColor: 'blue',
       demoSize: 'l',
       demoStartIcon: null,
       demoEndIcon: null,
