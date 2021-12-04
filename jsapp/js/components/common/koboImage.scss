@@ -1,0 +1,16 @@
+@use "scss/sizes";
+@use "scss/mixins";
+
+.kobo-image {
+  @include mixins.centerRowFlex;
+  padding: 0;
+  margin: 0;
+  min-width: sizes.$x200;
+  min-height: sizes.$x200;
+  width: 100%;
+  height: 100%;
+
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}

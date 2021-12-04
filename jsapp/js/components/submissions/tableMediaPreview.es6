@@ -3,6 +3,7 @@ import React from 'react';
 
 import bem, {makeBem} from 'js/bem';
 import AudioPlayer from 'js/components/common/audioPlayer';
+import KoboImage from 'js/components/common/koboImage';
 import {
   QUESTION_TYPES,
   META_QUESTION_TYPES,
@@ -48,7 +49,7 @@ class TableMediaPreview extends React.Component {
     switch (this.props.questionType) {
       case QUESTION_TYPES.image.id:
         return (
-          <bem.TableMediaPreview__image
+          <KoboImage
             src={this.props?.mediaAttachment?.download_medium_url}
           />
         );

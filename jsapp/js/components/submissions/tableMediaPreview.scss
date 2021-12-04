@@ -5,7 +5,6 @@
   padding: sizes.$x32 0 sizes.$x12 0;
   text-align: center;
   max-width: sizes.$x600;
-  min-width: sizes.$x400;
   margin: auto;
 
   .audio-player {
@@ -28,8 +27,8 @@
   }
 }
 
-@media screen and (max-width: 597px) {
+@media screen and (min-width: 600px) {
   .table-media-preview {
-    min-width: 0px !important;
+    min-width: sizes.$x400;
   }
 }
