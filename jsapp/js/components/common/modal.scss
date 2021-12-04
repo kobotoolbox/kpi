@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/sizes";
 @use "scss/libs/_mdl";
 
 $z-modal-backdrop: 1101;
@@ -351,6 +352,8 @@ $z-modal-x: 10;
   }
 }
 
+$modal-media-preview-header-height: sizes.$x60;
+
 .modal.modal-media-preview {
   border-radius: 6px;
   min-width: 25%;
@@ -365,6 +368,7 @@ $z-modal-x: 10;
     padding: 16px;
     background-color: colors.$kobo-white;
     color: colors.$kobo-gray-24;
+    height: $modal-media-preview-header-height;
 
     .modal__x {
       padding: 0;
@@ -412,6 +416,7 @@ $z-modal-x: 10;
     padding: 0;
     margin: 0;
     max-height: 600px;
+    height: calc(100% - #{$modal-media-preview-header-height});
     overflow: auto;
   }
 }

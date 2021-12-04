@@ -3,7 +3,8 @@ import bem, {makeBem} from 'js/bem'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
 import './koboImage.scss'
 
-bem.Image = makeBem(null, 'kobo-image', 'figure')
+bem.KoboImage = makeBem(null, 'kobo-image', 'figure')
+bem.KoboImage__image = makeBem(bem.KoboImage, 'image', 'img')
 
 type KoboImageProps = {
   src: string
@@ -14,7 +15,7 @@ type KoboImageState = {
 }
 
 /**
- * An image component that handles loading spinner.
+ * An image component that handles loading the image with a spinner.
  */
 class KoboImage extends React.Component<KoboImageProps, KoboImageState> {
   constructor(props: KoboImageProps){
@@ -25,11 +26,11 @@ class KoboImage extends React.Component<KoboImageProps, KoboImageState> {
   }
 
   componentDidMount() {
-    // this.preloadImage()
+    this.preloadImage()
   }
 
   componentWillReceiveProps() {
-    // this.preloadImage()
+    this.preloadImage()
   }
 
   preloadImage() {
@@ -43,23 +44,17 @@ class KoboImage extends React.Component<KoboImageProps, KoboImageState> {
     this.setState({isLoading: false})
   }
 
-  getImageStyle() {
-    if (this.state.isLoading) {
-      return {}
-    } else {
-      return {
-        backgroundImage: `url(${this.props.src})`
-      }
-    }
-  }
-
   render() {
     return (
-      <bem.Image style={this.getImageStyle()}>
+      <bem.KoboImage>
         {this.state.isLoading &&
           <LoadingSpinner hideMessage/>
         }
-      </bem.Image>
+
+        {!this.state.isLoading &&
+          <bem.KoboImage__image src={this.props.src}/>
+        }
+      </bem.KoboImage>
     )
   }
 }
