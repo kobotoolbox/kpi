@@ -23,3 +23,10 @@
     transform: translateY(sizes.$x1);
   }
 }
+
+@mixin centerRowFlex() {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
+}
