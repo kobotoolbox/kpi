@@ -6,7 +6,7 @@ export const PATHS = Object.freeze({
 // List of React app routes (the # ones)
 export const ROUTES = Object.freeze({
   ROOT: '/',
-  ACCOUNT_SETTINGS: '/account/account-settings',
+  ACCOUNT_SETTINGS: '/account/settings',
   DATA_STORAGE: '/account/data-storage',
   SECURITY: '/account/security',
   CHANGE_PASSWORD: '/account/change-password',
