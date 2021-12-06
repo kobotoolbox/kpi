@@ -1,4 +1,4 @@
-FROM nikolaik/python-nodejs:python3.8-nodejs10
+FROM python:3.8
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=en_US.UTF-8
@@ -50,10 +50,11 @@ RUN apt-get -qq update && \
         libproj-dev \
         locales \
         postgresql-client \
-        python3-virtualenv \
         rsync \
         runit-init \
         vim \
+        nodejs \
+        npm \
         wait-for-it && \
     apt-get clean && \
         rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -80,7 +81,7 @@ COPY . "${KPI_SRC_DIR}"
 # Install `pip` packages. #
 ###########################
 
-RUN virtualenv "$VIRTUAL_ENV"
+RUN python3 -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip install  --quiet --upgrade pip && \
     pip install  --quiet pip-tools
