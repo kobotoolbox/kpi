@@ -1,7 +1,6 @@
 # coding: utf-8
 import json
 import re
-import tempfile
 from io import StringIO, BytesIO
 
 from dicttoxml import dicttoxml
