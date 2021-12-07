@@ -9,9 +9,9 @@ import './singleProcessingHeader.scss'
 
 bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header')
 bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column', 'section')
-bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number')
-bem.SingleProcessingHeader__typeIcon = makeBem(bem.SingleProcessingHeader, 'type-icon')
+bem.SingleProcessingHeader__submissions = makeBem(bem.SingleProcessingHeader, 'submissions', 'nav')
 bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count')
+bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number')
 bem.SingleProcessingHeader__question = makeBem(bem.SingleProcessingHeader, 'question', 'h1')
 
 type SingleProcessingHeaderProps = {
@@ -132,49 +132,46 @@ export default class SingleProcessingHeader extends React.Component<
   render() {
     return (
       <bem.SingleProcessingHeader>
-        <bem.SingleProcessingHeader__column m='icon'>
-          <bem.SingleProcessingHeader__typeIcon>
-            {this.props.questionType && renderQuestionTypeIcon(this.props.questionType)}
-          </bem.SingleProcessingHeader__typeIcon>
-        </bem.SingleProcessingHeader__column>
-
         <bem.SingleProcessingHeader__column m='main'>
-          <bem.SingleProcessingHeader__count>
-            <strong>{this.getCurrentSubmissionNumber()}</strong>
-            &nbsp;
-            {t('of ##total_count##').replace('##total_count##', String(this.props.submissionsIds.length))}
-          </bem.SingleProcessingHeader__count>
-
           <bem.SingleProcessingHeader__question>
-            {t('Q: ##question_label##').replace('##question_label##', this.props.questionLabel)}
+            {this.props.questionType && renderQuestionTypeIcon(this.props.questionType)}
+            {this.props.questionLabel}
           </bem.SingleProcessingHeader__question>
         </bem.SingleProcessingHeader__column>
 
-        <bem.SingleProcessingHeader__column m='navigation'>
-          <Button
-            type='bare'
-            size='l'
-            color='blue'
-            startIcon='caret-left'
-            label={t('PREV')}
-            onClick={this.goPrev.bind(this)}
-            isDisabled={this.state.prevSubmissionId === null}
-          />
+        <bem.SingleProcessingHeader__column>
+          <bem.SingleProcessingHeader__submissions>
+            <Button
+              type='bare'
+              size='s'
+              color='storm'
+              startIcon='caret-left'
+              onClick={this.goPrev.bind(this)}
+              isDisabled={this.state.prevSubmissionId === null}
+            />
 
-          <bem.SingleProcessingHeader__number>
-            {this.getCurrentSubmissionNumber()}
-          </bem.SingleProcessingHeader__number>
+            <bem.SingleProcessingHeader__count>
+              <strong>
+                {t('Submission')}
+                &nbsp;
+                {this.getCurrentSubmissionNumber()}
+              </strong>
+              &nbsp;
+              {t('of ##total_count##').replace('##total_count##', String(this.props.submissionsIds.length))}
+            </bem.SingleProcessingHeader__count>
 
-          <Button
-            type='bare'
-            size='l'
-            color='blue'
-            endIcon='caret-right'
-            label={t('NEXT')}
-            onClick={this.goNext.bind(this)}
-            isDisabled={this.state.nextSubmissionId === null}
-          />
+            <Button
+              type='bare'
+              size='s'
+              color='storm'
+              endIcon='caret-right'
+              onClick={this.goNext.bind(this)}
+              isDisabled={this.state.nextSubmissionId === null}
+            />
+          </bem.SingleProcessingHeader__submissions>
+        </bem.SingleProcessingHeader__column>
 
+        <bem.SingleProcessingHeader__column>
           <Button
             type='frame'
             size='l'
