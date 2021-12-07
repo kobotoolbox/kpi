@@ -1,9 +1,11 @@
 # coding: utf-8
 import json
 import re
-from io import StringIO
+import tempfile
+from io import StringIO, BytesIO
 
 from dicttoxml import dicttoxml
+from django.contrib.auth.models import User
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers
 from rest_framework import status
@@ -14,6 +16,8 @@ import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 from kpi.utils.xml import add_xml_declaration
+from kpi.models.import_export_task import ExportTask
+from kpi.models.asset_export_settings import AssetExportSettings
 
 
 class AssetJsonRenderer(renderers.JSONRenderer):
@@ -120,6 +124,92 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
                 geo_question_name=geo_question_name,
             )
         )
+
+
+class SubmissionRendererExportBase(renderers.BaseRenderer):
+    def _get_export_settings(self, view):
+        uid = view.kwargs.get('uid')
+        es = AssetExportSettings.objects.get(uid=uid)
+        return es.export_settings
+
+    def _get_export_options(self, pack, export_settings):
+        translations = pack.available_translations
+        lang = export_settings.pop('lang', None) or next(
+            iter(translations), None
+        )
+        fields = export_settings.pop('fields', [])
+        force_index = True if not fields or '_index' in fields else False
+        try:
+            lang = ExportTask.API_LANGUAGE_TO_FORMPACK_LANGUAGE[lang]
+        except KeyError:
+            pass
+        return {
+            'versions': pack.versions.keys(),
+            'copy_fields': ExportTask.COPY_FIELDS,
+            'lang': lang,
+            'filter_fields': fields,
+            'force_index': force_index,
+            **export_settings,
+        }
+
+    def _get_submission_stream(self, view, request, export_settings):
+        _type = export_settings.pop('type', [])
+        fields = export_settings.get('fields', [])
+        query = export_settings.pop('query', {})
+        submission_ids = export_settings.pop('submission_ids', [])
+        fields_from_all_versions = export_settings.pop(
+            'fields_from_all_versions'
+        )
+        asset = view.asset
+        submission_stream = asset.deployment.get_submissions(
+            user=request.user,
+            fields=fields,
+            query=query,
+            submission_ids=submission_ids,
+        )
+        return build_formpack(
+            asset, submission_stream, fields_from_all_versions
+        )
+
+
+class SubmissionXLSXRenderer(SubmissionRendererExportBase):
+    media_type = (
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    format = 'xlsx'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        view = renderer_context['view']
+        request = renderer_context['request']
+        export_settings = self._get_export_settings(view)
+        pack, submission_stream = self._get_submission_stream(
+            view, request, export_settings
+        )
+        options = self._get_export_options(pack, export_settings)
+        export = pack.export(**options)
+        output = BytesIO()
+        export.to_xlsx(output, submission_stream)
+        output.seek(0)
+        return output
+
+
+class SubmissionCSVRenderer(SubmissionRendererExportBase):
+    media_type = 'text/csv'
+    format = 'csv'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        view = renderer_context['view']
+        request = renderer_context['request']
+        export_settings = self._get_export_settings(view)
+        pack, submission_stream = self._get_submission_stream(
+            view, request, export_settings
+        )
+        options = self._get_export_options(pack, export_settings)
+        export = pack.export(**options)
+        stream = StringIO()
+        for line in export.to_csv(submission_stream):
+            stream.write(line + '\r\n')
+        return stream.getvalue()
 
 
 class SubmissionXMLRenderer(DRFXMLRenderer):

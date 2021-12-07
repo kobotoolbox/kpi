@@ -12,6 +12,7 @@ from kpi.serializers.v2.asset_export_settings import (
     AssetExportSettingsSerializer,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.renderers import SubmissionXLSXRenderer, SubmissionCSVRenderer
 
 
 class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
@@ -170,6 +171,8 @@ class AssetExportSettingsViewSet(AssetNestedObjectViewsetMixin,
     renderer_classes = (
         renderers.BrowsableAPIRenderer,
         renderers.JSONRenderer,
+        SubmissionCSVRenderer,
+        SubmissionXLSXRenderer,
     )
     permission_classes = (AssetExportSettingsPermission,)
 
