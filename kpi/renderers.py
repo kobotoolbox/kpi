@@ -5,7 +5,6 @@ import tempfile
 from io import StringIO, BytesIO
 
 from dicttoxml import dicttoxml
-from django.contrib.auth.models import User
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers
 from rest_framework import status
