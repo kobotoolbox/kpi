@@ -127,11 +127,6 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
 
 
 class SubmissionRendererExportBase(renderers.BaseRenderer):
-    def _get_export_settings(self, view):
-        uid = view.kwargs.get('uid')
-        es = AssetExportSettings.objects.get(uid=uid)
-        return es.export_settings
-
     def _get_export_options(self, pack, export_settings):
         translations = pack.available_translations
         lang = export_settings.pop('lang', None) or next(
@@ -181,7 +176,7 @@ class SubmissionXLSXRenderer(SubmissionRendererExportBase):
     def render(self, data, media_type=None, renderer_context=None):
         view = renderer_context['view']
         request = renderer_context['request']
-        export_settings = self._get_export_settings(view)
+        export_settings = view.get_object().export_settings
         pack, submission_stream = self._get_submission_stream(
             view, request, export_settings
         )
@@ -200,7 +195,7 @@ class SubmissionCSVRenderer(SubmissionRendererExportBase):
     def render(self, data, media_type=None, renderer_context=None):
         view = renderer_context['view']
         request = renderer_context['request']
-        export_settings = self._get_export_settings(view)
+        export_settings = view.get_object().export_settings
         pack, submission_stream = self._get_submission_stream(
             view, request, export_settings
         )
