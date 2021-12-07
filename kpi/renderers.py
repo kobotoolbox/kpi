@@ -153,7 +153,7 @@ class SubmissionRendererExportBase(renderers.BaseRenderer):
         }
 
     def _get_submission_stream(self, view, request, export_settings):
-        _type = export_settings.pop('type', [])
+        _type = export_settings.pop('type')
         fields = export_settings.get('fields', [])
         query = export_settings.pop('query', {})
         submission_ids = export_settings.pop('submission_ids', [])
