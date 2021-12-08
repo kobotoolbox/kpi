@@ -17,6 +17,7 @@ import {stringToColor} from 'utils';
 import {ROUTES} from 'js/router/routerConstants';
 import envStore from 'js/envStore';
 import QRCode from 'qrcode.react';
+import mfaActions from 'js/actions/mfaActions';
 import './accountSettings.scss';
 
 const UNSAVED_CHANGES_WARNING = t('You have unsaved changes. Leave settings without saving?');
@@ -46,13 +47,20 @@ export default class AccountSettings extends React.Component {
   }
 
   componentDidMount() {
+    mfaActions.isActive()
+
     this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
     this.listenTo(stores.session, this.rebuildState);
+    this.listenTo(mfaActions.isActive.completed, this.isMfaActive);
     this.rebuildState();
   }
 
   componentWillUnmount () {
     this.unpreventClosingTab();
+  }
+
+  isMfaActive(response) {
+    console.log(response)
   }
 
   routerWillLeave() {
