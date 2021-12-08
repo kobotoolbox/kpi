@@ -15,7 +15,6 @@ from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 from kpi.utils.xml import add_xml_declaration
 from kpi.models.import_export_task import ExportTask
-from kpi.models.asset_export_settings import AssetExportSettings
 
 
 class AssetJsonRenderer(renderers.JSONRenderer):
@@ -125,7 +124,8 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
 
 
 class SubmissionRendererExportBase(renderers.BaseRenderer):
-    def _get_export_options(self, pack, export_settings):
+    @staticmethod
+    def _get_export_options(pack, export_settings):
         translations = pack.available_translations
         lang = export_settings.pop('lang', None) or next(
             iter(translations), None
@@ -145,7 +145,8 @@ class SubmissionRendererExportBase(renderers.BaseRenderer):
             **export_settings,
         }
 
-    def _get_submission_stream(self, view, request, export_settings):
+    @staticmethod
+    def _get_submission_stream(view, request, export_settings):
         _type = export_settings.pop('type')
         fields = export_settings.get('fields', [])
         query = export_settings.pop('query', {})
@@ -164,6 +165,16 @@ class SubmissionRendererExportBase(renderers.BaseRenderer):
             asset, submission_stream, fields_from_all_versions
         )
 
+    def get_export_object(self, renderer_context):
+        view = renderer_context['view']
+        request = renderer_context['request']
+        export_settings = view.get_object().export_settings
+        pack, submission_stream = self._get_submission_stream(
+            view, request, export_settings
+        )
+        options = self._get_export_options(pack, export_settings)
+        return pack.export(**options), submission_stream
+
 
 class SubmissionXLSXRenderer(SubmissionRendererExportBase):
     media_type = (
@@ -172,18 +183,11 @@ class SubmissionXLSXRenderer(SubmissionRendererExportBase):
     format = 'xlsx'
 
     def render(self, data, media_type=None, renderer_context=None):
-        view = renderer_context['view']
-        request = renderer_context['request']
-        export_settings = view.get_object().export_settings
-        pack, submission_stream = self._get_submission_stream(
-            view, request, export_settings
-        )
-        options = self._get_export_options(pack, export_settings)
-        export = pack.export(**options)
-        output = BytesIO()
-        export.to_xlsx(output, submission_stream)
-        output.seek(0)
-        return output
+        export, submission_stream = self.get_export_object(renderer_context)
+        stream = BytesIO()
+        export.to_xlsx(stream, submission_stream)
+        stream.seek(0)
+        return stream
 
 
 class SubmissionCSVRenderer(SubmissionRendererExportBase):
@@ -191,14 +195,7 @@ class SubmissionCSVRenderer(SubmissionRendererExportBase):
     format = 'csv'
 
     def render(self, data, media_type=None, renderer_context=None):
-        view = renderer_context['view']
-        request = renderer_context['request']
-        export_settings = view.get_object().export_settings
-        pack, submission_stream = self._get_submission_stream(
-            view, request, export_settings
-        )
-        options = self._get_export_options(pack, export_settings)
-        export = pack.export(**options)
+        export, submission_stream = self.get_export_object(renderer_context)
         stream = StringIO()
         for line in export.to_csv(submission_stream):
             stream.write(line + '\r\n')
