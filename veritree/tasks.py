@@ -7,6 +7,7 @@ from kpi.serializers.v2.asset_file import AssetFileSerializer
 from copy import deepcopy
 from django.contrib.auth.models import User
 from kpi.models import Asset
+from veritree.utils import parse_veritree_response
 
 NATION_GROUP_NAME = 'group_nations' # It seems to be the case that the word after group_ has to be 7 characters long in order to properly save with kobo
 FOREST_TYPES_BY_NATION_GROUP_NAME = 'group_forestN'
@@ -94,14 +95,9 @@ def get_org_planting_site_and_region_data(access_token: str, org_id: int):
     params = {'org_id': org_id, 'org_type': 'orgAccount', 'page_size': 10000, 'include[]': 'planting_site.country', 'fields': 'forest_type.name'} 
     
     response = requests.get(regions_url, params=params, headers=get_headers_for_veritree_request(access_token))
-    
+    content = parse_veritree_response(response)
     # TODO: Follow the pagination here instead of just requesting a very large amount of regions
-    if response.status_code == 200:
-        try:
-            content = response.json()['data']
-        except KeyError:
-            raise KeyError('KeyError shape of response is not as expected')
-        
+    if content:
         country_dict = {}
         for planting_site in content:
             try:

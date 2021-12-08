@@ -8,6 +8,8 @@ from social_core.utils import handle_http_errors, parse_qs
 from social_django.strategy import DjangoStrategy
 from social_core.pipeline.social_auth import *
 
+from veritree.utils import parse_veritree_response
+
 class VeritreeOAuth2(BaseOAuth2):
     name = 'veritree'
     AUTHORIZATION_URL = None
@@ -74,7 +76,8 @@ class VeritreeOAuth2(BaseOAuth2):
         return self.get_json(url, headers=headers)
     
     def get_user_details(self, response):
-        data = response.get('data', response)
+
+        data = response
         
         return {
             'email': data.get('email'),
@@ -96,3 +99,6 @@ class VeritreeOAuth2(BaseOAuth2):
 
     def get_user_id(self, details, response):
         return details.get(self.ID_KEY)
+    
+    def get_json(self, url, *args, **kwargs):
+        return parse_veritree_response(self.request(url, *args, **kwargs))
