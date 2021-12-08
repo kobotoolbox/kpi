@@ -153,17 +153,21 @@ class Drawer extends Reflux.Component {
         </bem.KDrawer__primaryIcons>
 
         <bem.KDrawer__sidebar>
-          { this.isLibrary()
-            && <LibrarySidebar />
+          { this.isLibrary() &&
+            <bem.FormSidebarWrapper>
+              <LibrarySidebar/>
+            </bem.FormSidebarWrapper>
           }
 
-          { this.isAccount()
+          { this.isAccount() &&
             // TODO: Temporary magic number for display purposes
-            && <AccountSidebar dataStoreage={2} />
+            <AccountSidebar dataStoreage={2} />
           }
 
-          { !this.isLibrary() && !this.isAccount()
-            && <FormSidebar />
+          { !this.isLibrary() && !this.isAccount() &&
+            <bem.FormSidebarWrapper>
+              <FormSidebar/>
+            </bem.FormSidebarWrapper>
           }
         </bem.KDrawer__sidebar>
 

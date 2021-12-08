@@ -22,9 +22,7 @@ bem.DataRow__data = makeBem(bem.DataRow, 'data')
 const MAX_MONTHLY_SUBMISSIONS = 10000
 const PLACEHOLDER = 3407 // TODO remove this once endpoint exists
 
-export default class DataStorage extends React.Component<
-  {}, {}
-> {
+export default class DataStorage extends React.Component {
   constructor(props: any) {
     super(props)
     this.state = {
