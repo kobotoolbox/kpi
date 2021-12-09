@@ -472,8 +472,8 @@ class KobocatUserProfile(ShadowModel):
     @classmethod
     def disable_mfa(cls, mfa_method: 'trench.MFAMethod'):
         try:
-            user_profile = cls.objects(user_id=mfa_method.user.pk)
-        except get_mfa_model().DoesNotExist:
+            user_profile = cls.objects.get(user_id=mfa_method.user.pk)
+        except cls.DoesNotExist:
             pass
         else:
             user_profile.is_mfa_active = False
