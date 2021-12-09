@@ -21,7 +21,7 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset
+from kpi.models import Asset, AssetExportSettings
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
@@ -30,7 +30,12 @@ from kpi.permissions import (
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
 )
-from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
+from kpi.renderers import (
+    SubmissionCSVRenderer,
+    SubmissionGeoJsonRenderer,
+    SubmissionXLSXRenderer,
+    SubmissionXMLRenderer,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
@@ -279,11 +284,14 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     """
 
     parent_model = Asset
-    renderer_classes = (renderers.BrowsableAPIRenderer,
-                        renderers.JSONRenderer,
-                        SubmissionGeoJsonRenderer,
-                        SubmissionXMLRenderer,
-                        )
+    renderer_classes = (
+        renderers.BrowsableAPIRenderer,
+        renderers.JSONRenderer,
+        SubmissionGeoJsonRenderer,
+        SubmissionXMLRenderer,
+        SubmissionXLSXRenderer,
+        SubmissionCSVRenderer,
+    )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
 
@@ -362,6 +370,19 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     )
     def enketo_view(self, request, pk, *args, **kwargs):
         return self._enketo_request(request, pk, action_='view', *args, **kwargs)
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='exports/(?P<uid>[a-zA-Z0-9]*)',
+        renderer_classes=[SubmissionXLSXRenderer, SubmissionCSVRenderer],
+    )
+    def exports(self, request, uid, *args, **kwargs):
+        try:
+            obj = AssetExportSettings.objects.get(uid=uid)
+        except AssetExportSettings.DoesNotExist:
+            raise Http404
+        return Response(obj.export_settings)
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is

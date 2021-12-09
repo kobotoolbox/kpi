@@ -395,7 +395,7 @@ def export_upload_to(self, filename):
     return posixpath.join(self.user.username, 'exports', filename)
 
 
-class ExportMixin:
+class ExportBase:
     COPY_FIELDS = (
         IdCopyField,
         '_uuid',
@@ -530,7 +530,7 @@ class ExportMixin:
         return pack.export(**options), submission_stream
 
 
-class ExportTask(ImportExportTask, ExportMixin):
+class ExportTask(ImportExportTask, ExportBase):
     """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:

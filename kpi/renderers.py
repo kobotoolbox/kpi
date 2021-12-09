@@ -14,7 +14,7 @@ import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 from kpi.utils.xml import add_xml_declaration
-from kpi.models.import_export_task import ExportMixin
+from kpi.models.import_export_task import ExportBase
 
 
 class AssetJsonRenderer(renderers.JSONRenderer):
@@ -123,14 +123,12 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         )
 
 
-class SubmissionRendererExportBase(renderers.BaseRenderer, ExportMixin):
-    def get_export_object(self, renderer_context):
+class SubmissionRendererExportBase(renderers.BaseRenderer, ExportBase):
+    def get_export_object(self, renderer_context, data):
         view = renderer_context['view']
-        request = renderer_context['request']
-        export_settings = view.get_object().export_settings
         return super().get_export_object(
-            data=export_settings,
-            user=request.user,
+            data=data,
+            user=view.request.user,
             source=view.asset,
             _async=False,
         )
@@ -143,7 +141,10 @@ class SubmissionXLSXRenderer(SubmissionRendererExportBase):
     format = 'xlsx'
 
     def render(self, data, media_type=None, renderer_context=None):
-        export, submission_stream = self.get_export_object(renderer_context)
+        export, submission_stream = self.get_export_object(
+            renderer_context,
+            data,
+        )
         stream = BytesIO()
         export.to_xlsx(stream, submission_stream)
         stream.seek(0)
@@ -155,7 +156,10 @@ class SubmissionCSVRenderer(SubmissionRendererExportBase):
     format = 'csv'
 
     def render(self, data, media_type=None, renderer_context=None):
-        export, submission_stream = self.get_export_object(renderer_context)
+        export, submission_stream = self.get_export_object(
+            renderer_context,
+            data,
+        )
         stream = StringIO()
         for line in export.to_csv(submission_stream):
             stream.write(line + '\r\n')
