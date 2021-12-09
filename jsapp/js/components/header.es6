@@ -50,6 +50,9 @@ class MainHeader extends Reflux.Component {
   }
 
   componentDidMount() {
+    // On initial load use the possibly stored asset.
+    this.setState({asset: assetStore.getAsset(this.currentAssetID())})
+
     this.unlisteners.push(
       assetStore.listen(this.onAssetLoad),
       myLibraryStore.listen(this.forceRender)

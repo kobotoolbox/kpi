@@ -116,7 +116,7 @@ django-js-asset==1.2.2
     # via django-mptt
 django-loginas==0.3.6
     # via -r dependencies/pip/requirements.in
-django-markdownx==2.0.28
+django-markdownx==3.0.1
     # via -r dependencies/pip/requirements.in
 django-markitup==4.0.0
     # via -r dependencies/pip/requirements.in
