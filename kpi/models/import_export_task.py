@@ -395,7 +395,142 @@ def export_upload_to(self, filename):
     return posixpath.join(self.user.username, 'exports', filename)
 
 
-class ExportTask(ImportExportTask):
+class ExportMixin:
+    COPY_FIELDS = (
+        IdCopyField,
+        '_uuid',
+        SubmissionTimeCopyField,
+        ValidationStatusCopyField,
+        NotesCopyField,
+        # '_status' is always 'submitted_via_web' unless the submission was
+        # made via KoBoCAT's bulk-submission-form; in that case, it's 'zip':
+        # https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/logger/import_tools.py#L67
+        '_status',
+        '_submitted_by',
+        TagsCopyField,
+    )
+
+    # It's not very nice to ask our API users to submit `null` or `false`,
+    # so replace friendlier language strings with the constants that formpack
+    # expects
+    API_LANGUAGE_TO_FORMPACK_LANGUAGE = {
+        '_default': formpack.constants.UNTRANSLATED,
+        '_xml': formpack.constants.UNSPECIFIED_TRANSLATION,
+    }
+
+    TIMESTAMP_KEY = '_submission_time'
+    # Above 244 seems to cause 'Download error' in Chrome 64/Linux
+    MAXIMUM_FILENAME_LENGTH = 240
+
+    @staticmethod
+    def _hierarchy_in_labels(data):
+        hierarchy_in_labels = data.get('hierarchy_in_labels', False)
+        # v1 exports expects a string
+        if isinstance(hierarchy_in_labels, str):
+            return hierarchy_in_labels.lower() == 'true'
+        return hierarchy_in_labels
+
+    @staticmethod
+    def _fields_from_all_versions(data):
+        fields_from_versions = data.get('fields_from_all_versions', True)
+        # v1 exports expects a string
+        if isinstance(fields_from_versions, str):
+            return fields_from_versions.lower() == 'true'
+        return fields_from_versions
+
+    def _build_export_options(self, pack, data):
+        """
+        Internal method to build formpack `Export` constructor arguments based
+        on the options set in `self.data`
+        """
+        group_sep = data.get('group_sep', '/')
+        multiple_select = data.get('multiple_select', 'both')
+        translations = pack.available_translations
+        lang = data.get('lang', None) or next(iter(translations), None)
+        fields = data.get('fields', [])
+        xls_types_as_text = data.get('xls_types_as_text', True)
+        include_media_url = data.get('include_media_url', False)
+        force_index = True if not fields or '_index' in fields else False
+        try:
+            # If applicable, substitute the constants that formpack expects for
+            # friendlier language strings used by the API
+            lang = self.API_LANGUAGE_TO_FORMPACK_LANGUAGE[lang]
+        except KeyError:
+            pass
+        tag_cols_for_header = data.get('tag_cols_for_header', ['hxl'])
+
+        return {
+            'versions': pack.versions.keys(),
+            'group_sep': group_sep,
+            'multiple_select': multiple_select,
+            'lang': lang,
+            'hierarchy_in_labels': self._hierarchy_in_labels(data),
+            'copy_fields': self.COPY_FIELDS,
+            'force_index': force_index,
+            'tag_cols_for_header': tag_cols_for_header,
+            'filter_fields': fields,
+            'xls_types_as_text': xls_types_as_text,
+            'include_media_url': include_media_url,
+        }
+
+    def get_export_object(self, data, user, source=None, _async=True):
+        fields = data.get('fields', [])
+        query = data.get('query', {})
+        submission_ids = data.get('submission_ids', [])
+
+        if source is None:
+            source_url = data.get('source', False)
+            if not source_url:
+                raise Exception('no source specified for the export')
+            source = _resolve_url_to_asset(source_url)
+
+        source_perms = source.get_perms(user)
+        if (
+            PERM_VIEW_SUBMISSIONS not in source_perms
+            and PERM_PARTIAL_SUBMISSIONS not in source_perms
+        ):
+            # Unsure if DRF exceptions make sense here since we're not
+            # returning a HTTP response
+            raise exceptions.PermissionDenied(
+                '{user} cannot export {source}'.format(user=user, source=source)
+            )
+
+        if not source.has_deployment:
+            raise Exception('the source must be deployed prior to export')
+
+        if _async:
+            # Take this opportunity to do some housekeeping
+            self.log_and_mark_stuck_as_errored(user, source_url)
+
+        # Include the group name in `fields` for Mongo to correctly filter
+        # for repeat groups
+        if fields:
+            field_groups = set(f.split('/')[0] for f in fields if '/' in f)
+            fields += list(field_groups)
+
+        submission_stream = source.deployment.get_submissions(
+            user=user,
+            fields=fields,
+            submission_ids=submission_ids,
+            query=query,
+        )
+
+        pack, submission_stream = build_formpack(
+            source, submission_stream, self._fields_from_all_versions(data)
+        )
+
+        # Wrap the submission stream in a generator that records the most
+        # recent timestamp
+        if _async:
+            submission_stream = self._record_last_submission_time(
+                submission_stream
+            )
+
+        options = self._build_export_options(pack, data)
+        return pack.export(**options), submission_stream
+
+
+class ExportTask(ImportExportTask, ExportMixin):
     """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:
@@ -435,50 +570,8 @@ class ExportTask(ImportExportTask):
     last_submission_time = models.DateTimeField(null=True)
     result = PrivateFileField(upload_to=export_upload_to, max_length=380)
 
-    COPY_FIELDS = (
-        IdCopyField,
-        '_uuid',
-        SubmissionTimeCopyField,
-        ValidationStatusCopyField,
-        NotesCopyField,
-        # '_status' is always 'submitted_via_web' unless the submission was
-        # made via KoBoCAT's bulk-submission-form; in that case, it's 'zip':
-        # https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/logger/import_tools.py#L67
-        '_status',
-        '_submitted_by',
-        TagsCopyField,
-    )
-
-    # It's not very nice to ask our API users to submit `null` or `false`,
-    # so replace friendlier language strings with the constants that formpack
-    # expects
-    API_LANGUAGE_TO_FORMPACK_LANGUAGE = {
-        '_default': formpack.constants.UNTRANSLATED,
-        '_xml': formpack.constants.UNSPECIFIED_TRANSLATION,
-    }
-
-    TIMESTAMP_KEY = '_submission_time'
-    # Above 244 seems to cause 'Download error' in Chrome 64/Linux
-    MAXIMUM_FILENAME_LENGTH = 240
-
     class Meta:
         ordering = ['-date_created']
-
-    @property
-    def _hierarchy_in_labels(self):
-        hierarchy_in_labels = self.data.get('hierarchy_in_labels', False)
-        # v1 exports expects a string
-        if isinstance(hierarchy_in_labels, str):
-            return hierarchy_in_labels.lower() == 'true'
-        return hierarchy_in_labels
-
-    @property
-    def _fields_from_all_versions(self):
-        fields_from_versions = self.data.get('fields_from_all_versions', True)
-        # v1 exports expects a string
-        if isinstance(fields_from_versions, str):
-            return fields_from_versions.lower() == 'true'
-        return fields_from_versions
 
     def _build_export_filename(self, export, export_type):
         """
@@ -504,7 +597,7 @@ class ExportTask(ImportExportTask):
             lang = export.lang
 
         # TODO: translate this? Would we have to delegate to the front end?
-        if self._fields_from_all_versions:
+        if self._fields_from_all_versions(self.data):
             version = 'all versions'
         else:
             version = 'latest version'
@@ -527,41 +620,6 @@ class ExportTask(ImportExportTask):
         title = ellipsize(title, len(title) - overrun)
         filename = filename_template.format(title=title, lang=lang)
         return filename
-
-    def _build_export_options(self, pack):
-        """
-        Internal method to build formpack `Export` constructor arguments based
-        on the options set in `self.data`
-        """
-        group_sep = self.data.get('group_sep', '/')
-        multiple_select = self.data.get('multiple_select', 'both')
-        translations = pack.available_translations
-        lang = self.data.get('lang', None) or next(iter(translations), None)
-        fields = self.data.get('fields', [])
-        xls_types_as_text = self.data.get('xls_types_as_text', True)
-        include_media_url = self.data.get('include_media_url', False)
-        force_index = True if not fields or '_index' in fields else False
-        try:
-            # If applicable, substitute the constants that formpack expects for
-            # friendlier language strings used by the API
-            lang = self.API_LANGUAGE_TO_FORMPACK_LANGUAGE[lang]
-        except KeyError:
-            pass
-        tag_cols_for_header = self.data.get('tag_cols_for_header', ['hxl'])
-
-        return {
-            'versions': pack.versions.keys(),
-            'group_sep': group_sep,
-            'multiple_select': multiple_select,
-            'lang': lang,
-            'hierarchy_in_labels': self._hierarchy_in_labels,
-            'copy_fields': self.COPY_FIELDS,
-            'force_index': force_index,
-            'tag_cols_for_header': tag_cols_for_header,
-            'filter_fields': fields,
-            'xls_types_as_text': xls_types_as_text,
-            'include_media_url': include_media_url,
-        }
 
     def _record_last_submission_time(self, submission_stream):
         """
@@ -593,29 +651,9 @@ class ExportTask(ImportExportTask):
         `PrivateFileField`. Should be called by the `run()` method of the
         superclass. The `submission_stream` method is provided for testing
         """
-        fields = self.data.get('fields', [])
-        flatten = self.data.get('flatten', True)
-        query = self.data.get('query', {})
+
         source_url = self.data.get('source', False)
-        submission_ids = self.data.get('submission_ids', [])
-
-        if not source_url:
-            raise Exception('no source specified for the export')
-        source = _resolve_url_to_asset(source_url)
-        source_perms = source.get_perms(self.user)
-
-        if (PERM_VIEW_SUBMISSIONS not in source_perms and
-                PERM_PARTIAL_SUBMISSIONS not in source_perms):
-            # Unsure if DRF exceptions make sense here since we're not
-            # returning a HTTP response
-            raise exceptions.PermissionDenied(
-                '{user} cannot export {source}'.format(
-                    user=self.user, source=source)
-            )
-
-        if not source.has_deployment:
-            raise Exception('the source must be deployed prior to export')
-
+        flatten = self.data.get('flatten', True)
         export_type = self.data.get('type', '').lower()
         if export_type not in ('xls', 'csv', 'geojson', 'spss_labels'):
             raise NotImplementedError(
@@ -623,32 +661,7 @@ class ExportTask(ImportExportTask):
                 'are valid export types'
             )
 
-        # Take this opportunity to do some housekeeping
-        self.log_and_mark_stuck_as_errored(self.user, source_url)
-
-        # Include the group name in `fields` for Mongo to correctly filter
-        # for repeat groups
-        if fields:
-            field_groups = set(f.split('/')[0] for f in fields if '/' in f)
-            fields += list(field_groups)
-
-        submission_stream = source.deployment.get_submissions(
-            user=self.user,
-            fields=fields,
-            submission_ids=submission_ids,
-            query=query,
-        )
-
-        pack, submission_stream = build_formpack(
-            source, submission_stream, self._fields_from_all_versions)
-
-        # Wrap the submission stream in a generator that records the most
-        # recent timestamp
-        submission_stream = self._record_last_submission_time(
-            submission_stream)
-
-        options = self._build_export_options(pack)
-        export = pack.export(**options)
+        export, submission_stream = self.get_export_object(self.data, self.user)
         filename = self._build_export_filename(export, export_type)
         self.result.save(filename, ContentFile(''))
         # FileField files are opened read-only by default and must be

@@ -14,7 +14,7 @@ import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
 from kpi.utils.xml import add_xml_declaration
-from kpi.models.import_export_task import ExportTask
+from kpi.models.import_export_task import ExportMixin
 
 
 class AssetJsonRenderer(renderers.JSONRenderer):
@@ -123,57 +123,17 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         )
 
 
-class SubmissionRendererExportBase(renderers.BaseRenderer):
-    @staticmethod
-    def _get_export_options(pack, export_settings):
-        translations = pack.available_translations
-        lang = export_settings.pop('lang', None) or next(
-            iter(translations), None
-        )
-        fields = export_settings.pop('fields', [])
-        force_index = True if not fields or '_index' in fields else False
-        try:
-            lang = ExportTask.API_LANGUAGE_TO_FORMPACK_LANGUAGE[lang]
-        except KeyError:
-            pass
-        return {
-            'versions': pack.versions.keys(),
-            'copy_fields': ExportTask.COPY_FIELDS,
-            'lang': lang,
-            'filter_fields': fields,
-            'force_index': force_index,
-            **export_settings,
-        }
-
-    @staticmethod
-    def _get_submission_stream(view, request, export_settings):
-        _type = export_settings.pop('type')
-        fields = export_settings.get('fields', [])
-        query = export_settings.pop('query', {})
-        submission_ids = export_settings.pop('submission_ids', [])
-        fields_from_all_versions = export_settings.pop(
-            'fields_from_all_versions'
-        )
-        asset = view.asset
-        submission_stream = asset.deployment.get_submissions(
-            user=request.user,
-            fields=fields,
-            query=query,
-            submission_ids=submission_ids,
-        )
-        return build_formpack(
-            asset, submission_stream, fields_from_all_versions
-        )
-
+class SubmissionRendererExportBase(renderers.BaseRenderer, ExportMixin):
     def get_export_object(self, renderer_context):
         view = renderer_context['view']
         request = renderer_context['request']
         export_settings = view.get_object().export_settings
-        pack, submission_stream = self._get_submission_stream(
-            view, request, export_settings
+        return super().get_export_object(
+            data=export_settings,
+            user=request.user,
+            source=view.asset,
+            _async=False,
         )
-        options = self._get_export_options(pack, export_settings)
-        return pack.export(**options), submission_stream
 
 
 class SubmissionXLSXRenderer(SubmissionRendererExportBase):
