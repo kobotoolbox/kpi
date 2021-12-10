@@ -10,7 +10,7 @@ import processingActions from 'js/components/processing/processingActions'
 export enum SingleProcessingTabs {
   Transcript,
   Translations,
-  Coding,
+  Analysis,
 }
 
 export interface Transcript {

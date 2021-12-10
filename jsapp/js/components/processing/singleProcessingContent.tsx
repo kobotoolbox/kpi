@@ -64,8 +64,8 @@ export default class SingleProcessingContent extends React.Component<
         )
       case SingleProcessingTabs.Translations:
         return <TranslationsTabContent/>
-      case SingleProcessingTabs.Coding:
-        return 'TODO coding tab content'
+      case SingleProcessingTabs.Analysis:
+        return 'TODO analysis tab content'
       default:
         return null
     }
@@ -91,12 +91,12 @@ export default class SingleProcessingContent extends React.Component<
           </bem.SingleProcessingContent__tab>
 
           <bem.SingleProcessingContent__tab
-            m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Coding}}
-            onClick={this.safeExecute.bind(this, this.activateTab.bind(this, SingleProcessingTabs.Coding))}
+            m={{active: singleProcessingStore.getActiveTab() === SingleProcessingTabs.Analysis}}
+            onClick={this.safeExecute.bind(this, this.activateTab.bind(this, SingleProcessingTabs.Analysis))}
             // TODO this is disabled until we build the feature.
             disabled
           >
-            {t('Coding')}
+            {t('Analysis')}
           </bem.SingleProcessingContent__tab>
         </bem.SingleProcessingContent__tabs>
 
