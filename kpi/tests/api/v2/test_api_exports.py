@@ -325,7 +325,9 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             self._get_endpoint('asset-export-list'),
             kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
         )
-        exports_list_response = self.client.post(list_url, data=export_settings)
+        exports_list_response = self.client.post(
+            exports_list_url, data=export_settings
+        )
         assert exports_list_response.status_code == status.HTTP_201_CREATED
 
         exports_detail_response = self.client.get(
