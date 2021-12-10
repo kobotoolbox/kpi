@@ -335,6 +335,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.Paginated',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
         # SessionAuthentication and BasicAuthentication would be included by
         # default
         'rest_framework.authentication.SessionAuthentication',
