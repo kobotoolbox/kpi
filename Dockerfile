@@ -52,11 +52,16 @@ RUN apt-get -qq update && \
         rsync \
         runit-init \
         vim \
-        nodejs \
-        npm \
         wait-for-it && \
     apt-get clean && \
         rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+###########################
+# Install NodeJS          #
+###########################
+
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt-get install -y nodejs
 
 ###########################
 # Install locales         #
