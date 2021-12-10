@@ -38,6 +38,8 @@ type LanguageSelectorProps = {
    * not selectable from the list.
    */
   sourceLanguage?: string
+  /** A list of languages that should be omitted from display. */
+  hideLanguages?: string[]
   /** Triggered after language is selected or cleared. */
   onLanguageChange: (selectedLanguage: string | undefined) => void
 }
@@ -116,9 +118,14 @@ class LanguageSelector extends React.Component<
   }
 
   getFilteredLanguagesList() {
-    // Filter out the source language first.
+    let hiddenLanguages = this.props.hideLanguages || []
+
+    // Filter out the source language and hidden languages first.
     const languages = [...this.allLanguages].filter((language) => {
-      return language.value !== this.props.sourceLanguage
+      return (
+        language.value !== this.props.sourceLanguage &&
+        !hiddenLanguages.includes(language.value)
+      )
     })
 
     if (this.state.filterPhrase !== '') {

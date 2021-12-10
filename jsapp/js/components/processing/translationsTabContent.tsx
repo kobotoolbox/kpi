@@ -205,6 +205,15 @@ export default class TranslationsTabContent extends React.Component<
     this.setState({selectedTranslation: languageCode})
   }
 
+  getTranslationsLanguages() {
+    const translations = singleProcessingStore.getTranslations()
+    const languages: string[] = []
+    translations.forEach((translation: Translation) => {
+      languages.push(translation.languageCode)
+    })
+    return languages
+  }
+
   renderLanguageAndDate() {
     const storeTranslation = singleProcessingStore.getTranslation(this.state.selectedTranslation)
 
@@ -329,6 +338,7 @@ export default class TranslationsTabContent extends React.Component<
           titleOverride={t('Please selet the language you want to translate to')}
           onLanguageChange={this.onLanguageChange.bind(this)}
           sourceLanguage={singleProcessingStore.getSourceData()?.languageCode}
+          hideLanguages={this.getTranslationsLanguages()}
         />
 
         <bem.ProcessingBody__footer>
