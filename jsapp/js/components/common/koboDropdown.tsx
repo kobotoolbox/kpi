@@ -22,7 +22,7 @@ export enum KoboDropdownPlacements {
 }
 
 type KoboDropdownProps = {
-  theme: KoboDropdownThemes,
+  theme?: KoboDropdownThemes,
   placement: KoboDropdownPlacements,
   /** disables the dropdowns trigger, thus disallowing opening dropdown */
   isDisabled: boolean,
@@ -48,7 +48,7 @@ bem.KoboDropdown__menuButton = makeBem(bem.KoboDropdown, 'menu-button', 'button'
  * A generic dropdown component that accepts any content inside the menu and
  * inside the trigger.
  *
- * NOTE: If you need a select-type dropdown, please use `react-select`.
+ * NOTE: If you need a select-type dropdown, please use `react-select` for now.
  *
  * You can use some existing content elements:
  * - bem.KoboDropdown__menuButton - a generic dropdown row button
