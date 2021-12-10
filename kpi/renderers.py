@@ -2,6 +2,7 @@
 import json
 import re
 from io import StringIO, BytesIO
+from typing import Dict, Generator, Tuple, Optional
 
 from dicttoxml import dicttoxml
 from django.utils.xmlutils import SimplerXMLGenerator
@@ -124,27 +125,29 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
 
 
 class SubmissionRendererExportBase(renderers.BaseRenderer, ExportBase):
-    def get_export_object(self, renderer_context, data):
+    def get_export_object(
+        self, renderer_context: Dict
+    ) -> Tuple[formpack.reporting.Export, Generator]:
         view = renderer_context['view']
+        self.user = view.request.user
         return super().get_export_object(
-            data=data,
-            user=view.request.user,
             source=view.asset,
             _async=False,
         )
 
 
 class SubmissionXLSXRenderer(SubmissionRendererExportBase):
-    media_type = (
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
+    media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # noqa
     format = 'xlsx'
 
-    def render(self, data, media_type=None, renderer_context=None):
-        export, submission_stream = self.get_export_object(
-            renderer_context,
-            data,
-        )
+    def render(
+        self,
+        data: Dict,
+        media_type: Optional[str] = None,
+        renderer_context: Optional[Dict] = None,
+    ) -> BytesIO:
+        self.data = data
+        export, submission_stream = self.get_export_object(renderer_context)
         stream = BytesIO()
         export.to_xlsx(stream, submission_stream)
         stream.seek(0)
@@ -155,11 +158,14 @@ class SubmissionCSVRenderer(SubmissionRendererExportBase):
     media_type = 'text/csv'
     format = 'csv'
 
-    def render(self, data, media_type=None, renderer_context=None):
-        export, submission_stream = self.get_export_object(
-            renderer_context,
-            data,
-        )
+    def render(
+        self,
+        data: Dict,
+        media_type: Optional[str] = None,
+        renderer_context: Optional[Dict] = None,
+    ) -> str:
+        self.data = data
+        export, submission_stream = self.get_export_object(renderer_context)
         stream = StringIO()
         for line in export.to_csv(submission_stream):
             stream.write(line + '\r\n')
