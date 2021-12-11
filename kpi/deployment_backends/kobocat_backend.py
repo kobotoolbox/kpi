@@ -510,6 +510,49 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         _uuid = str(uuid.uuid4())
         return _uuid, f'uuid:{_uuid}'
 
+    def get_attachment_content(self, user, submission_uuid, response_xpath):
+
+        try:
+            submission_xml = next(
+                self.get_submissions(
+                    user, format_type='xml', query={'_uuid': submission_uuid}
+                )
+            )
+        except StopIteration:
+            raise Http404
+
+        # add exception handling for element/id not found - check expection.py
+        submission_tree = ET.ElementTree(
+            ET.fromstring(submission_xml)
+        )
+        response_element = submission_tree.find(response_xpath)
+        try:
+            response_filename = response_element.text
+        except AttributeError:
+            raise Exception(_('XPath not found'))
+
+        try:
+            submission_json = next(
+                self.get_submissions(
+                    user, format_type='json', query={'_uuid': submission_uuid}
+                )
+            )
+        except StopIteration:
+            raise Exception('No matching submission')
+
+        attachments = submission_json['_attachments']
+        for attachment in attachments:
+            filename = posixpath.split(attachment['filename'])[1]
+            if response_filename == filename:
+                file_response = self.__kobocat_proxy_request(
+                    requests.Request(
+                        method='GET', url=attachment['download_url']
+                    ),
+                    self.asset.owner
+                )
+                file_response.raise_for_status()
+                return file_response.content, file_response.headers['content-type']
+
     def get_data_download_links(self):
         exports_base_url = '/'.join((
             settings.KOBOCAT_URL.rstrip('/'),
