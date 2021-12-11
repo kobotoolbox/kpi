@@ -3,16 +3,18 @@ import autoBind from 'react-autobind';
 import bem from 'js/bem';
 import './checkbox-and-radio.scss';
 
-/**
- * A checkbox generic component.
- *
- * @prop {boolean} checked
- * @prop {boolean} [disabled]
- * @prop {function} onChange
- * @prop {string} label
- */
-class Checkbox extends React.Component {
-  constructor(props){
+type CheckboxProps = {
+  checked: boolean
+  disabled?: boolean
+  onChange: Function
+  label: string
+  /** Only needed if checkbox is in submittable form. */
+  name?: string
+};
+
+/** A checkbox generic component. */
+class Checkbox extends React.Component<CheckboxProps, {}> {
+  constructor(props: CheckboxProps){
     if (typeof props.onChange !== 'function') {
       throw new Error('onChange callback missing!');
     }
@@ -20,7 +22,7 @@ class Checkbox extends React.Component {
     autoBind(this);
   }
 
-  onChange(evt) {
+  onChange(evt: React.ChangeEvent<HTMLInputElement>) {
     this.props.onChange(evt.currentTarget.checked);
   }
 
@@ -33,18 +35,21 @@ class Checkbox extends React.Component {
 
     return (
       <bem.Checkbox m={wrapperModifiers}>
+        {/*
+          * The wrapper element is `<label>` to make everything inside of it
+          * clickable, so we don't need `id`s.
+          */}
         <bem.Checkbox__wrapper>
           <bem.Checkbox__input
             type='checkbox'
             name={this.props.name}
-            id={this.props.id}
             onChange={this.onChange}
             checked={this.props.checked}
             disabled={this.props.disabled}
           />
 
           {this.props.label &&
-            <bem.Checkbox__label htmlFor={this.props.id}>
+            <bem.Checkbox__label>
               {this.props.label}
             </bem.Checkbox__label>
           }

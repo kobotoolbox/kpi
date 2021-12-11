@@ -3,6 +3,7 @@ import copy
 import time
 import uuid
 from datetime import datetime
+from typing import Optional
 
 import pytz
 from deepmerge import always_merger
@@ -37,7 +38,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         self, data: dict, user: 'auth.User'
     ) -> dict:
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
             submission_ids=data['submission_ids'],
@@ -99,7 +100,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         """
         Delete a submission
         """
-        self.validate_write_access_with_partial_perms(
+        self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             submission_ids=[submission_id],
@@ -132,7 +133,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
              or
              {"query": {"Question": "response"}
         """
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_DELETE_SUBMISSIONS,
             submission_ids=data['submission_ids'],
@@ -176,7 +177,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         # TODO: Make this operate on XML somehow and reuse code from
         # KobocatDeploymentBackend, to catch issues like #3054
 
-        self.validate_write_access_with_partial_perms(
+        self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_CHANGE_SUBMISSIONS,
             submission_ids=[submission_id],
@@ -222,7 +223,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                 "Only 'view' and 'edit' actions are currently supported"
             )
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=partial_perm,
             submission_ids=[submission_id],
@@ -263,6 +264,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         user: 'auth.User',
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
+        request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params
     ) -> list:
         """
@@ -393,7 +395,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                               data: dict,
                               method: str) -> dict:
 
-        self.validate_write_access_with_partial_perms(
+        self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
             submission_ids=[submission_id],
@@ -433,7 +435,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         
         """
 
-        submission_ids = self.validate_write_access_with_partial_perms(
+        submission_ids = self.validate_access_with_partial_perms(
             user=user,
             perm=PERM_VALIDATE_SUBMISSIONS,
             submission_ids=data['submission_ids'],

@@ -1,13 +1,6 @@
 import Reflux from 'reflux'
 import {actions} from 'js/actions'
 
-const nestedArrToChoiceObjs = (i: string[]): EnvStoreDataItem => {
-  return {
-    value: i[0],
-    label: i[1],
-  }
-}
-
 export interface EnvStoreDataItem {
   value: string
   /** Note: the labels are always localized in the current UI language */
@@ -46,6 +39,17 @@ class EnvStore extends Reflux.Store {
 
   isReady: boolean = false
 
+  /**
+   * A DRY utility function that turns an array of two items into an object with
+   * 'value' and 'label' properties.
+   */
+  private nestedArrToChoiceObjs = (i: string[]): EnvStoreDataItem => {
+    return {
+      value: i[0],
+      label: i[1],
+    }
+  }
+
   init() {
     actions.auth.getEnvironment.completed.listen(this.onGetEnvCompleted.bind(this))
     actions.auth.getEnvironment()
@@ -61,20 +65,24 @@ class EnvStore extends Reflux.Store {
     this.data.submission_placeholder = response.submission_placeholder
 
     if (response.available_sectors) {
-      this.data.available_sectors = response.available_sectors.map(nestedArrToChoiceObjs)
+      this.data.available_sectors = response.available_sectors.map(this.nestedArrToChoiceObjs)
     }
     if (response.available_countries) {
-      this.data.available_countries = response.available_countries.map(nestedArrToChoiceObjs)
+      this.data.available_countries = response.available_countries.map(this.nestedArrToChoiceObjs)
     }
     if (response.interface_languages) {
-      this.data.interface_languages = response.interface_languages.map(nestedArrToChoiceObjs)
+      this.data.interface_languages = response.interface_languages.map(this.nestedArrToChoiceObjs)
     }
     if (response.all_languages) {
-      this.data.all_languages = response.all_languages.map(nestedArrToChoiceObjs)
+      this.data.all_languages = response.all_languages.map(this.nestedArrToChoiceObjs)
     }
 
     this.isReady = true
     this.trigger(this.data)
+  }
+
+  getLanguages() {
+    return this.data.all_languages
   }
 
   getLanguage(code: string): EnvStoreDataItem | undefined {
@@ -101,6 +109,23 @@ class EnvStore extends Reflux.Store {
       return foundCountry.label
     }
     return undefined
+  }
+
+  /** Returns a know language label or the provided code. */
+  getLanguageDisplayLabel(code: string): string {
+    let displayLabel = code
+    const envStoreLanguage = envStore.getLanguage(code)
+    if (envStoreLanguage) {
+      displayLabel = envStoreLanguage.label
+    }
+    return displayLabel
+  }
+
+  /** Case-insensitive lookup by localized name */
+  getLanguageByName(label: string): EnvStoreDataItem | undefined {
+    return this.data.all_languages.find(
+      (item: EnvStoreDataItem) => item.label.toLocaleLowerCase() === label.toLocaleLowerCase()
+    )
   }
 }
 

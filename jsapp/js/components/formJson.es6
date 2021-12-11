@@ -19,8 +19,9 @@ export default class FormJson extends React.Component {
     actions.resources.loadAsset({id: uid});
   }
 
-  assetStoreTriggered(data, uid) {
-    this.setState({assetContent: data[uid].content});
+  assetStoreTriggered(response) {
+    const { content } = Object.values(response)[0];
+    this.setState({assetContent: content});
   }
 
   render() {

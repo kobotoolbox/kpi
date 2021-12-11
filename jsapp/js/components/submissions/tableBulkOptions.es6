@@ -113,9 +113,9 @@ class TableBulkOptions extends React.Component {
     }
     let msg;
     let onshow;
-    msg = t('You are about to permanently delete ##count## data entries.').replace('##count##', selectedCount);
-    msg += `${renderCheckbox('dt1', t('All selected data associated with this form will be deleted.'))}`;
-    msg += `${renderCheckbox('dt2', t('I understand that if I delete the selected entries I will not be able to recover them.'))}`;
+    msg = t('You are about to permanently delete ##count## submissions. It is not possible to recover deleted submissions.')
+      .replace('##count##', selectedCount);
+    msg = `${renderCheckbox('dt1', msg)}`;
 
     this.closeCurrentDialog(); // just for safety sake
     this.currentDialog = alertify.dialog('confirm');

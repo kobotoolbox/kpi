@@ -2,7 +2,7 @@
 # https://github.com/bndr/pipreqs is a handy utility, too.
 
 # formpack
--e git+https://github.com/kobotoolbox/formpack.git@d8c273feb12efddf89399331176c6564424ac396#egg=formpack
+-e git+https://github.com/kobotoolbox/formpack.git@ad78349d259dfce5f01e7dd308ee78f9b0e80315#egg=formpack
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
@@ -66,7 +66,7 @@ psycopg2
 pymongo
 python-dateutil
 pytz
-pyxform
+pyxform==1.7.0
 requests
 responses
 shortuuid
