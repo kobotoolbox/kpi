@@ -1,10 +1,12 @@
 # coding: utf-8
 import json
 import re
-from io import StringIO
+from io import StringIO, BytesIO
+from tempfile import NamedTemporaryFile
 
 from dicttoxml import dicttoxml
 from django.utils.xmlutils import SimplerXMLGenerator
+from pydub import AudioSegment
 from rest_framework import renderers
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -19,6 +21,29 @@ from kpi.utils.xml import add_xml_declaration
 class AssetJsonRenderer(renderers.JSONRenderer):
     media_type = 'application/json'
     format = 'json'
+
+
+class MediaFileRenderer(renderers.BaseRenderer):
+    media_type = '*/*'
+    format = None
+    charset = None
+    render_style = 'binary'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return data
+
+
+class MP3ConversionRenderer(MediaFileRenderer):
+    media_type = 'audio/mpeg'
+    format = 'mp3'
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        audio = AudioSegment.from_file(BytesIO(data))
+
+        with NamedTemporaryFile(suffix='.mp3') as f:
+            export = audio.export(f, format='mp3')
+            content = export.read()
+        return content
 
 
 class OpenRosaRenderer(DRFXMLRenderer):

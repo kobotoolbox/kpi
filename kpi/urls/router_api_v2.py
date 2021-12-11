@@ -10,6 +10,7 @@ from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
+from kpi.views.v2.audio_conversions import AudioConversionViewSet
 from kpi.views.v2.data import DataViewSet
 from kpi.views.v2.export_task import ExportTaskViewSet
 from kpi.views.v2.import_task import ImportTaskViewSet
@@ -42,12 +43,6 @@ asset_routes.register(r'versions',
                       parents_query_lookups=['asset'],
                       )
 
-asset_routes.register(r'data',
-                      DataViewSet,
-                      basename='submission',
-                      parents_query_lookups=['asset'],
-                      )
-
 asset_routes.register(r'export-settings',
                       AssetExportSettingsViewSet,
                       basename='asset-export-settings',
@@ -71,6 +66,18 @@ asset_routes.register(r'paired-data',
                       basename='paired-data',
                       parents_query_lookups=['asset'],
                       )
+
+data_routes = asset_routes.register(r'data',
+                                    DataViewSet,
+                                    basename='submission',
+                                    parents_query_lookups=['asset'],
+                                    )
+
+data_routes.register(r'audio-conversion',
+                     AudioConversionViewSet,
+                     basename='audio',
+                     parents_query_lookups=['asset', 'data'],
+                     )
 
 hook_routes = asset_routes.register(r'hooks',
                                     HookViewSet,
