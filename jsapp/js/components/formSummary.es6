@@ -344,7 +344,7 @@ class FormSummary extends React.Component {
                 <bem.FormView__cell m={['label', 'first']}>
                   {t('Description')}
                 </bem.FormView__cell>
-                <bem.FormView__cell m={['box']}>
+                <bem.FormView__cell m={['box', 'padding']}>
                   {(this.state.settings.country || this.state.settings.sector) &&
                     <bem.FormView__group m={['items', 'description-cols']}>
                       {this.state.settings.country &&

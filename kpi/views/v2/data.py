@@ -1,8 +1,7 @@
 # coding: utf-8
-import json
-
 from django.conf import settings
 from django.http import Http404
+from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import (
     renderers,
@@ -299,6 +298,21 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
 
         return self.asset.deployment
 
+    @action(detail=True, methods=['GET'],
+            url_path='attachments/(?P<size>.*)')
+    def attachments(self, request, pk, size, *args, **kwargs):
+        deployment = self._get_deployment()
+        submission_id = positive_int(pk)
+        media_file = request.query_params['media_file']
+        return redirect(
+            deployment.get_signed_attachment_url_token(
+                submission_id,
+                request.user,
+                size,
+                media_file
+            )
+        )
+
     @action(detail=False, methods=['PATCH', 'DELETE'],
             renderer_classes=[renderers.JSONRenderer])
     def bulk(self, request, *args, **kwargs):
@@ -367,12 +381,14 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 deployment.get_submissions(
                     user=request.user,
                     format_type=SUBMISSION_FORMAT_TYPE_JSON,
+                    request=request,
                     **filters
                 )
             )
 
         submissions = deployment.get_submissions(request.user,
                                                  format_type=format_type,
+                                                 request=request,
                                                  **filters)
         # Create a dummy list to let the Paginator do all the calculation
         # for pagination because it does not need the list of real objects.
@@ -393,6 +409,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
                 positive_int(pk),
                 user=request.user,
                 format_type=format_type,
+                request=request,
                 **filters,
             )
         except ValueError:

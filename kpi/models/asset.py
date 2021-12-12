@@ -73,7 +73,6 @@ from .asset_version import AssetVersion
 class AssetManager(models.Manager):
     def create(self, *args, children_to_create=None, tag_string=None, **kwargs):
         update_parent_languages = kwargs.pop('update_parent_languages', True)
-        fail_duplicate_names = kwargs.pop('fail_duplicate_names', False)
 
         # 3 lines below are copied from django.db.models.query.QuerySet.create()
         # because we need to pass an argument to save()
@@ -81,7 +80,6 @@ class AssetManager(models.Manager):
         created = self.model(**kwargs)
         self._for_write = True
         created.save(force_insert=True, using=self.db,
-                     fail_duplicate_names=fail_duplicate_names,
                      update_parent_languages=update_parent_languages)
 
         if tag_string:
@@ -682,7 +680,6 @@ class Asset(ObjectPermissionMixin,
         update_fields=None,
         adjust_content=True,
         create_version=True,
-        fail_duplicate_names=False,
         update_parent_languages=True,
         *args,
         **kwargs
@@ -712,9 +709,6 @@ class Asset(ObjectPermissionMixin,
 
         # populate summary
         self._populate_summary()
-
-        if fail_duplicate_names and 'naming_conflicts' in self.summary:
-            raise ValueError('There are duplicates in the name column')
 
         # infer asset_type only between question and block
         if self.asset_type in [ASSET_TYPE_QUESTION, ASSET_TYPE_BLOCK]:
