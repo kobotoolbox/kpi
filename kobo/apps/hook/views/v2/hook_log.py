@@ -39,10 +39,10 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     * `uid` - is the unique identifier of a specific log
 
     Use `status` query parameter to filter logs by numeric status:
-    * `status=0` - is the default value, means that the log is not yet processed
-    * `status=1` - means that the log is processed successfully
-    * `status=2` - means that the log is processed with errors
-    * `status=3` - means that the log is processed with warnings
+
+    * `status=0`: hook has failed after exhausting all retries
+    * `status=1`: hook is still pending
+    * `status=2`: hook has succeeded
 
     #### Retrieves a log
     <pre class="prettyprint">
