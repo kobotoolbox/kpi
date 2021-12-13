@@ -740,6 +740,13 @@ export class DataTable extends React.Component {
           if (typeof(row.value) === 'object' || row.value === undefined) {
             const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
 
+            // Partial bug fix for a case when form used to have a repeat group
+            // in older version, but it was changed into regular group in latest
+            // version. It will display an empty cell instead of "[Object, object]".
+            if (typeof repeatGroupAnswers[0] === 'object') {
+              return '';
+            }
+
             if (repeatGroupAnswers) {
               // display a list of answers from a repeat group question
               return (
