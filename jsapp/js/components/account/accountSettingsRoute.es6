@@ -85,8 +85,8 @@ export default class AccountSettings extends React.Component {
       metadata: currentAccount.extra_details.metadata,
 
       languageChoices: environment.all_languages,
-      countryChoices: environment.available_countries,
-      sectorChoices: environment.available_sectors,
+      countryChoices: environment.country_choices,
+      sectorChoices: environment.sector_choices,
       genderChoices: [
         {
           value: 'male',
@@ -398,6 +398,7 @@ export default class AccountSettings extends React.Component {
                   {t('Country')}
 
                   <Select
+                    isMulti
                     value={this.state.country}
                     options={this.state.countryChoices}
                     onChange={this.countryChange}

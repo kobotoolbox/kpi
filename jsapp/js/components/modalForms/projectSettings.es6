@@ -213,6 +213,16 @@ class ProjectSettings extends React.Component {
     this.onAnyDataChange('sector', val);
   }
 
+  onOperationalPurposeChange(val) {
+    this.setState({operationalPurpose: val});
+    this.onAnyDataChange('operational-purpose', val);
+  }
+
+  onCollectsPIIChange(val) {
+    this.setState({collectsPII: val});
+    this.onAnyDataChange('collects-pii', val);
+  }
+
   onShareMetadataChange(isChecked) {
     this.setState({'share-metadata': isChecked});
     this.onAnyDataChange('share-metadata', isChecked);
@@ -476,7 +486,9 @@ class ProjectSettings extends React.Component {
           description: this.state.description,
           sector: this.state.sector,
           country: this.state.country,
-          'share-metadata': this.state['share-metadata']
+          'share-metadata': this.state['share-metadata'],
+          operationalPurpose: this.state.operationalPurpose,
+          collectsPII: this.state.collectsPII,
         }),
       }
     );
@@ -798,8 +810,9 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
-    const sectors = envStore.data.available_sectors;
-    const countries = envStore.data.available_countries;
+    const sectors = envStore.data.sector_choices;
+    const operationalPurposes = envStore.data.operational_purpose_choices;
+    const countries = envStore.data.country_choices;
     const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
 
     return (
@@ -881,10 +894,46 @@ class ProjectSettings extends React.Component {
               {t('Country')}
             </label>
             <Select
+              isMulti
               id='country'
               value={this.state.country}
               onChange={this.onCountryChange}
               options={countries}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              menuPlacement='auto'
+              isClearable
+            />
+          </bem.FormModal__item>
+
+          <bem.FormModal__item m='operational-purpose'>
+            <label htmlFor='operational-purpose'>
+              {t('Operational Purpose of Data')}
+            </label>
+            <Select
+              id='operational-purpose'
+              value={this.state.operationalPurpose}
+              onChange={this.onOperationalPurposeChange}
+              options={operationalPurposes}
+              className='kobo-select'
+              classNamePrefix='kobo-select'
+              menuPlacement='auto'
+              isClearable
+            />
+          </bem.FormModal__item>
+
+          <bem.FormModal__item m='collects-pii'>
+            <label htmlFor='collects-pii'>
+              {t('Does this project collect personally identifiable information?')}
+            </label>
+            <Select
+              id='collects-pii'
+              value={this.state.collectsPII}
+              onChange={this.onCollectsPIIChange}
+              options={[
+                {value: 'Yes', label: t('Yes')},
+                {value: 'No', label: t('No')},
+              ]}
               className='kobo-select'
               classNamePrefix='kobo-select'
               menuPlacement='auto'

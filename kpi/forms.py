@@ -1,10 +1,13 @@
 # coding: utf-8
+import json
+
+import constance
 from django import forms
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from registration import forms as registration_forms
 
-from kobo.static_lists import SECTORS, COUNTRIES
+from kobo.static_lists import COUNTRIES
 
 USERNAME_REGEX = r'^[a-z][a-z0-9_]+$'
 USERNAME_MAX_LENGTH = 30
@@ -13,7 +16,13 @@ USERNAME_INVALID_MESSAGE = _(
     'and may only consist of lowercase letters, numbers, '
     'and underscores, where the first character must be a letter.'
 )
-
+# Only these fields can be controlled by constance.config.USER_METADATA_FIELDS
+CONFIGURABLE_METADATA_FIELDS = (
+    'organization',
+    'gender',
+    'sector',
+    'country',
+)
 
 class RegistrationForm(registration_forms.RegistrationForm):
     username = forms.RegexField(
@@ -43,8 +52,8 @@ class RegistrationForm(registration_forms.RegistrationForm):
     sector = forms.ChoiceField(
         label=_('Sector'),
         required=False,
-        choices=(('', ''),
-            ) + SECTORS,
+        # Don't set choices here; set them in the constructor so that changes
+        # made in the Django admin interface do not require a server restart
     )
     country = forms.ChoiceField(
         label=_('Country'),
@@ -65,3 +74,31 @@ class RegistrationForm(registration_forms.RegistrationForm):
             # The 'password' field appears without adding it here; adding it
             # anyway results in a duplicate
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Intentional _() call on dynamic string because the default choices
+        # are translated (see static_lists.py)
+        self.fields['sector'].choices = (('', ''),) + tuple(
+            (s, _(s)) for s in constance.config.SECTOR_CHOICES.split('\n')
+        )
+
+        # It's easier to _remove_ unwanted fields here in the constructor
+        # than to add a new fields *shrug*
+        desired_metadata_fields = json.loads(
+            constance.config.USER_METADATA_FIELDS
+        )
+        desired_metadata_fields = {
+            field['name']: field for field in desired_metadata_fields
+        }
+        for field_name in list(self.fields.keys()):
+            if field_name not in CONFIGURABLE_METADATA_FIELDS:
+                continue
+            if field_name not in desired_metadata_fields:
+                self.fields.pop(field_name)
+                continue
+            else:
+                self.fields[field_name].required = desired_metadata_fields[
+                    field_name
+                ].get('required', False)

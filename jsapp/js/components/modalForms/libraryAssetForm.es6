@@ -202,8 +202,9 @@ export class LibraryAssetForm extends React.Component {
       return (<LoadingSpinner/>);
     }
 
-    const SECTORS = envStore.data.available_sectors;
-    const COUNTRIES = envStore.data.available_countries;
+    const SECTORS = envStore.data.sector_choices;
+    const OPERATIONAL_PURPOSES = envStore.data.operational_purpose_choices;
+    const COUNTRIES = envStore.data.country_choices;
 
     return (
       <bem.FormModal__form className='project-settings'>
@@ -230,6 +231,7 @@ export class LibraryAssetForm extends React.Component {
             </label>
 
             <Select
+              isMulti
               id='country'
               value={this.state.data.country}
               onChange={this.onCountryChange}

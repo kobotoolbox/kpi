@@ -24,6 +24,7 @@ import {
   MODAL_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
+import {getCountryDisplayString} from 'js/assetUtils';
 import './formSummary.scss';
 
 class FormSummary extends React.Component {
@@ -331,6 +332,7 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
+    let hasCountry = this.state.settings?.country && (!Array.isArray(this.state.settings?.country) || !!this.state.settings?.country.length);
 
     if (!this.state.permissions) {
       return (<LoadingSpinner/>);
@@ -340,18 +342,18 @@ class FormSummary extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='summary'>
           <bem.FormView__column m='left'>
-            {(this.state.settings && (this.state.settings.country || this.state.settings.sector || this.state.settings.description)) &&
+            {(this.state.settings && (hasCountry || this.state.settings.sector || this.state.settings.description)) &&
               <bem.FormView__row m='summary-description'>
                 <bem.FormView__cell m={['label', 'first']}>
                   {t('Description')}
                 </bem.FormView__cell>
                 <bem.FormView__cell m={['box', 'padding']}>
-                  {(this.state.settings.country || this.state.settings.sector) &&
+                  {(hasCountry || this.state.settings.sector) &&
                     <bem.FormView__group m={['items', 'description-cols']}>
-                      {this.state.settings.country &&
+                      {hasCountry &&
                         <bem.FormView__cell m='padding'>
                           <bem.FormView__label m='country'>{t('Project country')}</bem.FormView__label>
-                          {assetUtils.getCountryDisplayString(this.state, true)}
+                          {assetUtils.getCountryDisplayString(this.state)}
                         </bem.FormView__cell>
                       }
                       {this.state.settings.sector &&

@@ -14,8 +14,9 @@ interface EnvStoreData {
   support_email: string
   support_url: string
   community_url: string
-  available_sectors: EnvStoreDataItem[]
-  available_countries: EnvStoreDataItem[]
+  sector_choices: EnvStoreDataItem[]
+  operational_purpose_choices: EnvStoreDataItem[]
+  country_choices: EnvStoreDataItem[]
   all_languages: EnvStoreDataItem[]
   interface_languages: EnvStoreDataItem[]
   submission_placeholder: string
@@ -29,8 +30,9 @@ class EnvStore extends Reflux.Store {
     support_email: '',
     support_url: '',
     community_url: '',
-    available_sectors: [],
-    available_countries: [],
+    sector_choices: [],
+    operational_purpose_choices: [],
+    country_choices: [],
     /** languages come from `kobo/static_lists.py` */
     all_languages: [],
     interface_languages: [],
@@ -64,11 +66,14 @@ class EnvStore extends Reflux.Store {
     this.data.community_url = response.community_url
     this.data.submission_placeholder = response.submission_placeholder
 
-    if (response.available_sectors) {
-      this.data.available_sectors = response.available_sectors.map(this.nestedArrToChoiceObjs)
+    if (response.sector_choices) {
+      this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs)
     }
-    if (response.available_countries) {
-      this.data.available_countries = response.available_countries.map(this.nestedArrToChoiceObjs)
+    if (response.operational_purpose_choices) {
+      this.data.operational_purpose_choices = response.operational_purpose_choices.map(this.nestedArrToChoiceObjs)
+    }
+    if (response.country_choices) {
+      this.data.country_choices = response.country_choices.map(this.nestedArrToChoiceObjs)
     }
     if (response.interface_languages) {
       this.data.interface_languages = response.interface_languages.map(this.nestedArrToChoiceObjs)
@@ -92,7 +97,7 @@ class EnvStore extends Reflux.Store {
   }
 
   getSectorLabel(sectorName: string): string | undefined {
-    const foundSector = this.data.available_sectors.find(
+    const foundSector = this.data.sector_choices.find(
       (item: EnvStoreDataItem) => item.value === sectorName
     )
     if (foundSector) {
@@ -102,7 +107,7 @@ class EnvStore extends Reflux.Store {
   }
 
   getCountryLabel(code: string): string | undefined {
-    const foundCountry = this.data.available_countries.find(
+    const foundCountry = this.data.country_choices.find(
       (item: EnvStoreDataItem) => item.value === code
     )
     if (foundCountry) {

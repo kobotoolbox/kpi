@@ -22,13 +22,13 @@ class EnvironmentTests(BaseTestCase):
             'support_email': constance.config.SUPPORT_EMAIL,
             'support_url': constance.config.SUPPORT_URL,
             'community_url': constance.config.COMMUNITY_URL,
-            'available_sectors': lambda x: \
+            'sector_choices': lambda x: \
                 self.assertGreater(len(x), 10) and self.assertIn(
                     ("Humanitarian - Sanitation, Water & Hygiene",
                      "Humanitarian - Sanitation, Water & Hygiene"),
                     x
                 ),
-            'available_countries': lambda x: \
+            'country_choices': lambda x: \
                 self.assertGreater(len(x), 200) and self.assertIn(
                     ('KEN', 'Kenya'), x
                 ),
