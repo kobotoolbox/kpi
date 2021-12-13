@@ -4,11 +4,13 @@ import time
 import uuid
 from datetime import datetime
 from typing import Optional
+from xml.etree import ElementTree as ET
 
 import pytz
 from deepmerge import always_merger
 from dicttoxml import dicttoxml
 from django.conf import settings
+from django.http import Http404
 from django.urls import reverse
 from rest_framework import status
 
@@ -200,6 +202,45 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         
         settings.MONGO_DB.instances.insert_one(duplicated_submission)
         return duplicated_submission
+
+    def get_attachment_content(self, user, submission_uuid, response_xpath):
+
+        try:
+            submission_xml = next(
+                iter(
+                    self.get_submissions(
+                        user, format_type='xml', query={'_uuid': submission_uuid}
+                    )
+                )
+            )
+        except StopIteration:
+            raise Http404
+
+        submission_tree = ET.ElementTree(
+            ET.fromstring(submission_xml)
+        )
+        response_element = submission_tree.find(response_xpath)
+        try:
+            response_filename = response_element.text
+        except AttributeError:
+            raise Exception('XPath not found')
+
+        try:
+            submission_json = next(
+                iter(
+                    self.get_submissions(
+                        user, format_type='json', query={'_uuid': submission_uuid}
+                    )
+                )
+            )
+        except StopIteration:
+            raise Exception('No matching submission')
+
+        with open('kpi/tests/audio_conversion_test_clip.mp4', 'rb') as f:
+            file_response = f.read()
+
+        content_type = 'video/mp4'
+        return file_response, content_type
 
     def get_data_download_links(self):
         return {}
