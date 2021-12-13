@@ -3,6 +3,7 @@ import {actions} from 'js/actions'
 
 export interface EnvStoreDataItem {
   value: string
+  /** Note: the labels are always localized in the current UI language */
   label: string
 }
 
@@ -88,6 +89,26 @@ class EnvStore extends Reflux.Store {
     return this.data.all_languages.find(
       (item: EnvStoreDataItem) => item.value === code
     )
+  }
+
+  getSectorLabel(sectorName: string): string | undefined {
+    const foundSector = this.data.available_sectors.find(
+      (item: EnvStoreDataItem) => item.value === sectorName
+    )
+    if (foundSector) {
+      return foundSector.label
+    }
+    return undefined
+  }
+
+  getCountryLabel(code: string): string | undefined {
+    const foundCountry = this.data.available_countries.find(
+      (item: EnvStoreDataItem) => item.value === code
+    )
+    if (foundCountry) {
+      return foundCountry.label
+    }
+    return undefined
   }
 
   /** Returns a know language label or the provided code. */
