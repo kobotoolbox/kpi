@@ -51,6 +51,7 @@ from .kc_access.utils import (
 )
 from ..exceptions import (
     BadFormatException,
+    InvalidXPathException,
     KobocatBulkUpdateSubmissionsClientException,
     KobocatDeploymentException,
     KobocatDuplicateSubmissionException,
@@ -521,7 +522,6 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except StopIteration:
             raise Http404
 
-        # add exception handling for element/id not found - check expection.py
         submission_tree = ET.ElementTree(
             ET.fromstring(submission_xml)
         )
@@ -529,7 +529,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         try:
             response_filename = response_element.text
         except AttributeError:
-            raise Exception(_('XPath not found'))
+            raise InvalidXPathException
 
         try:
             submission_json = next(
