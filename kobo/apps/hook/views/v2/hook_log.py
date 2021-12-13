@@ -75,7 +75,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     permission_classes = (AssetEditorSubmissionViewerPermission,)
     pagination_class = TinyPaginated
 
-    def get_queryset(self):
+    def get_queryset(self, request):
         hook_uid = self.get_parents_query_dict().get("hook")
         queryset = self.model.objects.filter(hook__uid=hook_uid,
                                              hook__asset__uid=self.asset_uid)
@@ -85,7 +85,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         # nested relations."
         queryset = queryset.select_related('hook__asset')
 
-        status = self.get_parents_query_dict().get("status")
+        status = request.GET.get('status')
         if status is not None:
           queryset = queryset.filter(status=status)
         return queryset
