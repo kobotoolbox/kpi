@@ -39,16 +39,17 @@ class MFALoginView(LoginView):
         # are not a superuser. Otherwise, they are successfully authenticated,
         # redirected to the admin platform, then disconnected because of the
         # lack of permissions.
-        if (
-            not redirect_to.startswith(reverse('admin:index'))
-            or self.request.user.is_anonymous
-        ):
-            return redirect_to
 
-        # If a regular (and authenticated) user tries to access the admin
-        # platform, return an empty string. Every method that calls
-        # `get_redirect_url()` will use `settings.LOGIN_REDIRECT_URL` instead.
-        return redirect_to if self.request.user.is_superuser else ''
+        user = self.request.user
+        if (
+            user.is_authenticated
+            and self.redirect_field_name in self.request.POST
+            and not user.is_superuser
+            and redirect_to.startswith(reverse('admin:index'))
+        ):
+            return ''
+
+        return redirect_to
 
 
 class MFATokenView(LoginView):
