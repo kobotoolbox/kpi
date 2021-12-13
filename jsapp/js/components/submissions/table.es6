@@ -742,7 +742,7 @@ export class DataTable extends React.Component {
 
             // Partial bug fix for a case when form used to have a repeat group
             // in older version, but it was changed into regular group in latest
-            // version. It will display an empty cell instead of "[Object, object]".
+            // version. It will display an empty cell instead of "[object Object]".
             if (typeof repeatGroupAnswers[0] === 'object') {
               return '';
             }
