@@ -38,6 +38,12 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     * `hook_uid` - is the unique identifier of a specific external service
     * `uid` - is the unique identifier of a specific log
 
+    Use `status` query parameter to filter logs by numeric status:
+    * `status=0` - is the default value, means that the log is not yet processed
+    * `status=1` - means that the log is processed successfully
+    * `status=2` - means that the log is processed with errors
+    * `status=3` - means that the log is processed with warnings
+
     #### Retrieves a log
     <pre class="prettyprint">
     <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/hooks/<code>{hook_uid}</code>/logs/<code>{uid}</code>/
@@ -78,6 +84,10 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         # Django 1.9+, "select_related() prohibits non-relational fields for
         # nested relations."
         queryset = queryset.select_related('hook__asset')
+
+        status = self.get_parents_query_dict().get("status")
+        if status is not None:
+          queryset = queryset.filter(status=status)
         return queryset
 
     @action(detail=True, methods=["PATCH"])
