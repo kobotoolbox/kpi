@@ -347,6 +347,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
