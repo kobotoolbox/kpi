@@ -1,6 +1,3 @@
-@use "scss/_colors";
-@use "scss/libs/_mdl";
-
 $z-kobo-dropdown-menu: 100;
 
 .kobo-dropdown {
@@ -28,74 +25,11 @@ $z-kobo-dropdown-menu: 100;
     display: block;
     position: absolute;
     z-index: $z-kobo-dropdown-menu;
-    @include mdl.box-shadow;
     border-radius: 4px;
     min-width: 150px;
     list-style: none;
     margin: 0;
-    padding: 9px 0;
-    text-align: left;
-    line-height: 20px;
-
-    .kobo-dropdown__menu-button {
-      display: block;
-      width: 100%;
-      padding: 5px 10px;
-      appearance: none;
-      border: none;
-      margin: 0;
-      color: inherit;
-      background-color: transparent;
-      cursor: pointer;
-      text-align: left;
-      font-size: 12px;
-      line-height: inherit;
-
-      &[disabled] {
-        pointer-events: none;
-        opacity: 0.5;
-      }
-
-      .k-icon {
-        color: inherit;
-        font-size: 20px;
-        vertical-align: top;
-
-        &:first-child:not(:only-child) {
-          margin-right: 5px;
-        }
-
-        &:last-child:not(:only-child) {
-          margin-left: 5px;
-        }
-      }
-    }
-  }
-}
-
-/*
- * THEMES
- */
-
-.kobo-dropdown.kobo-dropdown--light {
-  .kobo-dropdown__menu {
-    color: colors.$kobo-gray-40;
-    background-color: colors.$kobo-white;
-
-    .kobo-dropdown__menu-button:hover {
-      background-color: colors.$kobo-gray-96;
-    }
-  }
-}
-
-.kobo-dropdown.kobo-dropdown--dark {
-  .kobo-dropdown__menu {
-    color: colors.$kobo-white;
-    background-color: colors.$kobo-gray-40;
-
-    .kobo-dropdown__menu-button:hover {
-      background-color: colors.$kobo-gray-24;
-    }
+    padding: 0;
   }
 }
 

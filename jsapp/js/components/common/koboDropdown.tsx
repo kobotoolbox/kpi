@@ -7,11 +7,6 @@ import {
 import koboDropdownActions from './koboDropdownActions';
 import './koboDropdown.scss';
 
-export enum KoboDropdownThemes {
-  light = 'light',
-  dark = 'dark',
-}
-
 export enum KoboDropdownPlacements {
   'up-left' = 'up-left',
   'up-center' = 'up-center',
@@ -22,7 +17,6 @@ export enum KoboDropdownPlacements {
 }
 
 type KoboDropdownProps = {
-  theme?: KoboDropdownThemes,
   placement: KoboDropdownPlacements,
   /** disables the dropdowns trigger, thus disallowing opening dropdown */
   isDisabled: boolean,
@@ -177,12 +171,6 @@ export default class KoboDropdown extends React.Component<
 
   getWrapperModifiers() {
     const wrapperMods = [];
-
-    if (this.props.theme) {
-      wrapperMods.push(this.props.theme);
-    } else {
-      wrapperMods.push(KoboDropdownThemes.light);
-    }
 
     if (
       this.props.placement &&
