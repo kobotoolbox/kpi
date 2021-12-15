@@ -279,6 +279,38 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     "group_1/sub_group_1/.../sub_group_n/question_1": "new value"
     </pre>
 
+    ## Synchronous data export
+
+    The use of synchronous exports requires an existing export setting for the
+    current asset, accessible at:
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
+    </pre>
+
+    The export settings associated with the `export_setting_uid` is used to
+    configure the output of the synchronous export. It is advisable to create
+    specific export settings to be used for synchronous exports, tailored to
+    the desired output format.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/
+    </pre>
+
+    By default, XLSX format is used, but CSV is also available:
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.xlsx
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.csv
+    </pre>
+
+    or
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=xlsx
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=csv
+    </pre>
+
 
     ### CURRENT ENDPOINT
     """
