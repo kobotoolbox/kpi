@@ -7,6 +7,7 @@ import tempfile
 from collections import defaultdict
 from io import BytesIO
 from os.path import splitext, split
+from typing import List
 from urllib.parse import urlparse
 
 import dateutil.parser
@@ -793,7 +794,7 @@ def _strip_header_keys(survey_dict):
     return survey_dict
 
 
-def _get_fields_and_groups(fields: list) -> list:
+def _get_fields_and_groups(fields: List[str]) -> List[str]:
     """
     Ensure repeat groups are included when filtering for specific fields by
     appending the path items. For example, a field with path of
