@@ -149,13 +149,16 @@ class AssetSnapshot(
         _settings = _source.get('settings', {})
         form_title = _settings.get('form_title')
         id_string = _settings.get('id_string')
-
-        self.xml, self.details = \
-            self.generate_xml_from_source(_source,
-                                          include_note=_note,
-                                          root_node_name='data',
-                                          form_title=form_title,
-                                          id_string=id_string)
+        # ToDo Figure out whether we need to persist `root_node_name` in
+        #  settings?
+        root_node_name = _settings.pop('root_node_name', 'data')
+        self.xml, self.details = self.generate_xml_from_source(
+            _source,
+            include_note=_note,
+            root_node_name=root_node_name,
+            form_title=form_title,
+            id_string=id_string,
+        )
         self.source = _source
         return super().save(*args, **kwargs)
 
@@ -165,6 +168,7 @@ class AssetSnapshot(
                                  root_node_name='snapshot_xml',
                                  form_title=None,
                                  id_string=None):
+
         if form_title is None:
             form_title = 'Snapshot XML'
         if id_string is None:

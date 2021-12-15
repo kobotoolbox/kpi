@@ -463,6 +463,14 @@ class Asset(ObjectPermissionMixin,
         return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
                                        user_id=settings.ANONYMOUS_USER_ID).exists()
 
+    @property
+    def form_title(self):
+        if self.name != '':
+            return self.name
+        else:
+            _settings = self.version.get('settings', {})
+            return _settings.get('id_string', 'Untitled')
+
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
     ) -> Union[list, None]:
@@ -898,6 +906,9 @@ class Asset(ObjectPermissionMixin,
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
 
+    def versioned_snapshot(self, version_uid: str) -> str:
+        return self._snapshot(regenerate=True, version_uid=version_uid)
+
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
         specifieds = self.report_styles.get(SPECIFIC_REPORTS_KEY, {})
@@ -927,8 +938,13 @@ class Asset(ObjectPermissionMixin,
         self.summary = analyzer.summary
 
     @transaction.atomic
-    def _snapshot(self, regenerate=True):
-        asset_version = self.latest_version
+    def _snapshot(
+        self, regenerate: bool = True, version_uid: Optional[str] = None
+    ) -> AssetSnapshot:
+        if version_uid:
+            asset_version = self.asset_versions.get(uid=version_uid)
+        else:
+            asset_version = self.latest_version
 
         try:
             snapshot = AssetSnapshot.objects.get(asset=self,
@@ -946,19 +962,41 @@ class Asset(ObjectPermissionMixin,
             snapshot = False
 
         if not snapshot:
-            if self.name != '':
-                form_title = self.name
-            else:
-                _settings = self.content.get('settings', {})
-                form_title = _settings.get('id_string', 'Untitled')
+            try:
+                form_title = asset_version.form_title
+                content = asset_version.version_content
+            except AttributeError:
+                form_title = self.form_title
+                content = self.content
 
-            self._append(self.content, settings={
-                'form_title': form_title,
-            })
-            snapshot = AssetSnapshot.objects.create(asset=self,
-                                                    asset_version=asset_version,
-                                                    source=self.content)
+            settings_ = {'form_title': form_title}
+            # When `version_uid` is not None, we are creating a snapshot
+            # for Enketo in view/edit mode. When the XML is created, it used
+            # 'data' as the instance root node name and 'snapshot.xml' as `id_string`
+            # (if none is provided) by default.
+            # See AssetSnapShot.save() and AssetSnapShot.generate_xml_from_source().
+            # We want to avoid this behaviour because Enketo refuses to open a
+            # submission if nodes do not match between the instance and its form.
+            if version_uid:
+                settings_.update({
+                    'root_node_name': self.uid,
+                    'id_string': self.uid,
+                })
+
+            self._append(content, settings=settings_)
+
+            snapshot = AssetSnapshot.objects.create(
+                asset=self, asset_version=asset_version, source=content
+            )
+
         return snapshot
+
+    def _get_versioned_name(self, name: str, content: str) -> str:
+        if name != '':
+            return name
+        else:
+            _settings = content.get('settings', {})
+            return _settings.get('id_string', 'Untitled')
 
     def _update_partial_permissions(
         self,

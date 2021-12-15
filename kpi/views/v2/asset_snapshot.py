@@ -60,7 +60,7 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
             url_path='formList')
     def form_list(self, request, *args, **kwargs):
         """
-        This route is used by enketo when it fetches external resources.
+        This route is used by Enketo when it fetches external resources.
         It let us specify manifests for preview
         """
         snapshot = self.get_object()
@@ -72,9 +72,9 @@ class AssetSnapshotViewSet(OpenRosaViewSetMixin, NoUpdateModelViewSet):
     @action(detail=True, renderer_classes=[OpenRosaManifestRenderer])
     def manifest(self, request, *args, **kwargs):
         """
-        This route is used by enketo when it fetches external resources.
+        This route is used by Enketo when it fetches external resources.
         It returns form media files location in order to display them within
-        enketo preview
+        Enketo preview
         """
         snapshot = self.get_object()
         asset = snapshot.asset
