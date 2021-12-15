@@ -12,16 +12,18 @@ from rest_framework import (
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
+    SUBMISSION_FORMAT_TYPE_XML,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset, AssetExportSettings
+from kpi.models import Asset, AssetVersion, AssetExportSettings
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
@@ -386,7 +388,56 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         url_path='enketo/view',
     )
     def enketo_view(self, request, pk, *args, **kwargs):
-        return self._enketo_request(request, pk, action_='view', *args, **kwargs)
+
+        deployment = self._get_deployment()
+        submission_id = positive_int(pk)
+        submission = deployment.get_submission(submission_id, request.user)
+        submission_xml = deployment.get_submission(
+            submission_id, request.user, SUBMISSION_FORMAT_TYPE_XML
+        )
+
+        import requests
+        from kobo.apps.reports.report_data import build_formpack
+
+        _, submissions_stream = build_formpack(
+            self.asset,
+            submission_stream=[submission],
+            use_all_form_versions=True
+        )
+        version_uid = list(submissions_stream)[0]['__inferred_version__']
+
+        try:
+            snapshot = self.asset.versioned_snapshot(version_uid=version_uid)
+        except AssetVersion.DoesNotExist:
+            raise serializers.ValidationError(
+                {'version': gettext_lazy('Version not found')}
+            )
+
+        # ToDo support attachments
+        data = {
+            'server_url': reverse(
+                viewname='assetsnapshot-detail',
+                kwargs={'uid': snapshot.uid},
+                request=request,
+            ),
+            'instance': submission_xml,
+            'instance_id': submission['_uuid'],
+            'form_id': snapshot.uid,
+            'return_url': False
+        }
+
+        response = requests.post(
+            f'{settings.ENKETO_URL}/api/v2/instance/view',
+            # bare tuple implies basic auth
+            auth=(settings.ENKETO_API_TOKEN, ''),
+            data=data
+        )
+        response.raise_for_status()
+
+        json_response = response.json()
+        view_url = json_response.get('view_url')
+
+        return Response({'url': view_url})
 
     @action(
         detail=False,
