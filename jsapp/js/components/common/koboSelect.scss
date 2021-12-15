@@ -1,0 +1,104 @@
+@use "scss/colors";
+@use "scss/mixins";
+@use "scss/sizes";
+@use "js/components/common/button";
+
+.k-select {
+  font-size: sizes.$x13;
+
+  .kobo-dropdown__menu {
+    width: 100%;
+  }
+}
+
+.k-select__trigger {
+  @include mixins.centerRowFlex;
+  font-weight: 400;
+  text-align: left;
+  border-width: button.$button-border-width;
+  border-style: solid;
+  border-color: transparent;
+  border-radius: button.$button-border-radius;
+  background-color: transparent;
+
+  label {
+    cursor: inherit;
+  }
+}
+
+.k-select__menu {
+  display: block;
+  width: 100%;
+  margin: sizes.$x2 0 0;
+  padding: button.$button-border-radius 0;
+  border-radius: button.$button-border-radius;
+  background-color: colors.$kobo-white;
+  box-shadow: 0 0 sizes.$x6 rgba(colors.$kobo-storm, 0.3);
+}
+
+.k-select__option {
+  @include mixins.buttonReset;
+  display: block;
+  width: 100%;
+  height: sizes.$x36;
+  font-weight: 500;
+
+  &:hover ,
+  &.k-select__option--active {
+    background-color: colors.$kobo-gray-96;
+  }
+}
+
+.k-select--type-blue .k-select__trigger {
+  background-color: colors.$kobo-light-blue;
+}
+
+.k-select--type-gray .k-select__trigger {
+  background-color: colors.$kobo-cloud;
+}
+
+.k-select--type-outline .k-select__trigger {}
+
+// Sets the different sizes for given size of a trigger button.
+@mixin triggerSize($height, $font, $icon) {
+  min-height: $height;
+  line-height: $height - 2 * button.$button-border-width; // Subtracting the border.
+  font-size: $font;
+
+  // Note: paddings and margins are based on the `$height` (the "size") variable
+  // to scale with button sizes.
+
+  // We don't need as much padding near the icon as near the text.
+  padding-left: $height * 0.4;
+  padding-right: $height * 0.3;
+
+  // Position the spinner icon in the center;
+  .k-icon.k-icon-spinner.k-spin {
+    top: calc(50% - #{$icon * 0.5});
+    left: calc(50% - #{$icon * 0.5});
+  }
+}
+
+.k-select--size-s .k-select__trigger {
+  @include triggerSize(
+    button.$button-height-s,
+    button.$button-font-s,
+    button.$button-icon-s
+  );
+}
+
+.k-select--size-m .k-select__trigger {
+  @include triggerSize(
+    button.$button-height-m,
+    button.$button-font-m,
+    button.$button-icon-m
+  );
+}
+
+.k-select--size-l .k-select__trigger {
+  @include triggerSize(
+    button.$button-height-l,
+    button.$button-font-l,
+    button.$button-icon-l
+  );
+}

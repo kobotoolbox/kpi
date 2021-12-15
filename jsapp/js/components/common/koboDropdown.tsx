@@ -18,14 +18,14 @@ export enum KoboDropdownPlacements {
 
 type KoboDropdownProps = {
   placement: KoboDropdownPlacements,
-  /** disables the dropdowns trigger, thus disallowing opening dropdown */
+  /** Disables the dropdowns trigger, thus disallowing opening dropdow. */
   isDisabled: boolean,
-  /** hides menu whenever user clicks inside it, useful for simple menu with a list of actions */
+  /** Hides menu whenever user clicks inside it, useful for simple menu with a list of actions. */
   hideOnMenuClick: boolean,
   triggerContent: React.ReactNode,
-  /** the content of dropdown, anything's allowed */
+  /** The content of dropdown, anything's allowed. */
   menuContent: React.ReactNode,
-  /** optional name value useful for styling, ends up in `data-name` attribute */
+  /** Optional name value useful for styling, ends up in `data-name` attribut.e */
   name?: string,
 }
 

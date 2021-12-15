@@ -8,7 +8,7 @@ import './koboSelect.scss'
 
 // We can't use "kobo-select" as it is already being used for custom styling of `react-select`.
 bem.KoboSelect = makeBem(null, 'k-select')
-bem.KoboSelect__trigger = makeBem(bem.KoboSelect, 'trigger', 'button')
+bem.KoboSelect__trigger = makeBem(bem.KoboSelect, 'trigger')
 bem.KoboSelect__menu = makeBem(bem.KoboSelect, 'menu', 'menu')
 bem.KoboSelect__option = makeBem(bem.KoboSelect, 'option', 'button')
 
@@ -70,22 +70,46 @@ class KoboSelect extends React.Component<KoboSelectProps, {}> {
   }
 
   renderTrigger() {
-    return 'trigger'
+    return (
+      <bem.KoboSelect__trigger>
+        <label>Click me</label>
+        <Icon name='caret-down' size={ButtonToIconMap.get(this.props.size)}/>
+      </bem.KoboSelect__trigger>
+    )
   }
 
   renderMenu() {
-    return 'menu'
+    return (
+      <bem.KoboSelect__menu>
+        <bem.KoboSelect__option>
+          option 1
+        </bem.KoboSelect__option>
+        <bem.KoboSelect__option>
+          option 2
+        </bem.KoboSelect__option>
+        <bem.KoboSelect__option>
+          option 3
+        </bem.KoboSelect__option>
+      </bem.KoboSelect__menu>
+    )
   }
 
   render() {
+    const modifiers = [
+      `size-${this.props.size}`,
+      `type-${this.props.type}`
+    ];
+
     return (
-      <KoboDropdown
-        placement={KoboDropdownPlacements['down-center']}
-        isDisabled={Boolean(this.props.isDisabled)}
-        hideOnMenuClick
-        triggerContent={this.renderTrigger()}
-        menuContent={this.renderMenu()}
-      />
+      <bem.KoboSelect m={modifiers}>
+        <KoboDropdown
+          placement={KoboDropdownPlacements['down-center']}
+          isDisabled={Boolean(this.props.isDisabled)}
+          hideOnMenuClick
+          triggerContent={this.renderTrigger()}
+          menuContent={this.renderMenu()}
+        />
+      </bem.KoboSelect>
     )
   }
 }
