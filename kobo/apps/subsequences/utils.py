@@ -68,7 +68,7 @@ def get_jsonschema(action_instances=(), url=None):
             sub_prop['properties'].update(**vals)
             sub_props[prop] = sub_prop
     if url is None:
-        url = '/advanced_submission_post/'
+        url = '/advanced_submission_post/<asset_uid>'
     schema = {'type': 'object',
                   '$description': FEATURE_JSONSCHEMA_DESCRIPTION,
                   'url': url,
