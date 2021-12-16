@@ -75,6 +75,13 @@ class KoboSelect extends React.Component<KoboSelectProps, {}> {
     this.props.onChange(newSelectedOption)
   }
 
+  onClear(evt: Event) {
+    // We don't want it to trigger opening
+    evt.preventDefault()
+    evt.stopPropagation()
+    this.props.onChange(null)
+  }
+
   renderTrigger() {
     const foundSelectedOption = this.props.options.find((option) => (
       this.props.selectedOption !== null &&
@@ -95,7 +102,7 @@ class KoboSelect extends React.Component<KoboSelectProps, {}> {
           <label>{foundSelectedOption.label}</label>
 
           {this.props.isClearable &&
-            <bem.KoboSelect__clear>
+            <bem.KoboSelect__clear onClick={this.onClear.bind(this)}>
               <Icon
                 name='close'
                 size={ButtonToIconMap.get(this.props.size)}
@@ -124,6 +131,12 @@ class KoboSelect extends React.Component<KoboSelectProps, {}> {
           <bem.KoboSelect__option
             key={option.id}
             onClick={this.onOptionClick.bind(this, option.id)}
+            m={{
+              'selected': (
+                this.props.selectedOption !== null &&
+                this.props.selectedOption === option.id
+              )
+            }}
           >
             {option.icon && <Icon name={option.icon}/>}
             <label>{option.label}</label>

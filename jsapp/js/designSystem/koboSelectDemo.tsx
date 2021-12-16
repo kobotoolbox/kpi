@@ -43,7 +43,10 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
   }
 
   onIsClearableChange(isChecked: boolean) {
-    this.setState({demoIsClearable: isChecked})
+    this.setState({
+      demoSelectedOption: isChecked === false ? 'one' : this.state.demoSelectedOption,
+      demoIsClearable: isChecked
+    })
   }
 
   onIsSearchableChange(isChecked: boolean) {

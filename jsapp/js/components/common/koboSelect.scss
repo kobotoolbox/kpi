@@ -21,6 +21,7 @@
   border-color: transparent;
   border-radius: button.$button-border-radius;
   background-color: transparent;
+  color: colors.$kobo-gray-40;
 
   label {
     cursor: inherit;
@@ -28,8 +29,12 @@
   }
 }
 
-.k-select__clear {
+.k-select .kobo-dropdown--menu-visible .k-select__trigger {
+  color: colors.$kobo-gray-24;
+}
 
+.k-select__clear {
+  @include mixins.centerRowFlex;
 }
 
 .k-select__menu {
@@ -43,14 +48,17 @@
 }
 
 .k-select__option {
+  @include mixins.buttonReset;
   @include mixins.centerRowFlex;
   justify-content: space-between;
   width: 100%;
   height: sizes.$x36;
   font-weight: 500;
+  color: colors.$kobo-gray-40;
 
   &:hover ,
-  &.k-select__option--active {
+  &.k-select__option--selected {
+    color: colors.$kobo-gray-24;
     background-color: colors.$kobo-gray-96;
   }
 
@@ -71,13 +79,29 @@
 
 .k-select--type-blue .k-select__trigger {
   background-color: colors.$kobo-light-blue;
+
+  &:hover {
+    color: colors.$kobo-gray-24;
+    background-color: darken(colors.$kobo-light-blue, 2);
+  }
 }
 
 .k-select--type-gray .k-select__trigger {
   background-color: colors.$kobo-cloud;
+
+  &:hover {
+    color: colors.$kobo-gray-24;
+    background-color: darken(colors.$kobo-cloud, 2);
+  }
 }
 
-.k-select--type-outline .k-select__trigger {}
+.k-select--type-outline .k-select__trigger {
+  border-color: currentColor;
+
+  &:hover {
+    color: colors.$kobo-gray-24;
+  }
+}
 
 // Sets the different sizes for given size of a trigger button.
 @mixin triggerSize($height, $font, $icon) {
