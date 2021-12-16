@@ -247,28 +247,25 @@ class MockDataExportsBase(TestCase):
                 'schema': '1',
                 'survey': [
                     {
-                        'name': 'person',
+                        'type': 'begin_group',
+                        'name': 'people',
+                        'label': ['People'],
+                    },
+                    {
                         'type': 'begin_repeat',
-                        '$kuid': 'yl4hr30',
+                        'name': 'person',
                         'label': ['person'],
-                        'required': False,
-                        '$autoname': 'person',
                     },
                     {
                         'type': 'text',
-                        '$kuid': 'ij1cs76',
                         'label': ['name'],
-                        'required': False,
-                        '$autoname': 'name',
                     },
                     {
                         'type': 'integer',
-                        '$kuid': 'xj9fr84',
                         'label': ['age'],
-                        'required': False,
-                        '$autoname': 'age',
                     },
-                    {'type': 'end_repeat', '$kuid': '/yl4hr30'},
+                    {'type': 'end_repeat'},
+                    {'type': 'end_group'},
                 ],
                 'settings': {},
                 'translated': ['label'],
@@ -278,9 +275,15 @@ class MockDataExportsBase(TestCase):
                 {
                     '_id': 9999,
                     'formhub/uuid': 'cfb562511e8e44d1998de69002b492d9',
-                    'person': [
-                        {'person/name': 'Julius Caesar', 'person/age': '55'},
-                        {'person/name': 'Augustus', 'person/age': '75'},
+                    'people/person': [
+                        {
+                            'people/person/name': 'Julius Caesar',
+                            'people/person/age': '55',
+                        },
+                        {
+                            'people/person/name': 'Augustus',
+                            'people/person/age': '75',
+                        },
                     ],
                     '__version__': 'vbKavWWCpgBCZms6hQX4FN',
                     'meta/instanceID': 'uuid:f80be949-89b5-4af1-a29d-7d292b2bc0cd',
@@ -609,7 +612,7 @@ class MockDataExports(MockDataExportsBase):
             'fields': [
                 '_uuid',
                 '_submission_time',
-                'person/name',
+                'people/person/name',
                 '_index'
             ]
         }
