@@ -7,13 +7,13 @@ import kpi.fields.lazy_default_jsonb
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0040_auto_20211014_1707'),
+        ('kpi', '0039_add_support_paired_data_to_asset_file'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='asset',
             name='advanced_features',
-            field=kpi.fields.lazy_default_jsonb.LazyDefaultJSONBField(default=list),
+            field=kpi.fields.lazy_default_jsonb.LazyDefaultJSONBField(default=dict),
         ),
     ]
