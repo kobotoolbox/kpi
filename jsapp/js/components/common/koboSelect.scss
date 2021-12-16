@@ -13,6 +13,7 @@
 
 .k-select__trigger {
   @include mixins.centerRowFlex;
+  justify-content: space-between;
   font-weight: 400;
   text-align: left;
   border-width: button.$button-border-width;
@@ -23,7 +24,12 @@
 
   label {
     cursor: inherit;
+    flex: 1;
   }
+}
+
+.k-select__clear {
+
 }
 
 .k-select__menu {
@@ -37,8 +43,8 @@
 }
 
 .k-select__option {
-  @include mixins.buttonReset;
-  display: block;
+  @include mixins.centerRowFlex;
+  justify-content: space-between;
   width: 100%;
   height: sizes.$x36;
   font-weight: 500;
@@ -46,6 +52,20 @@
   &:hover ,
   &.k-select__option--active {
     background-color: colors.$kobo-gray-96;
+  }
+
+  label {
+    cursor: inherit;
+    flex: 1;
+  }
+}
+
+.k-select--is-full-width {
+  width: 100%;
+
+  .kobo-dropdown,
+  .kobo-dropdown__trigger {
+    width: 100%;
   }
 }
 
