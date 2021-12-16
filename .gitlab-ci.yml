@@ -8,7 +8,7 @@ build:
   services:
     - docker:dind
   before_script:
-    - echo "$DOCKER_REGISTRY_PASS" | docker login $DOCKER_REGISTRY --username $DOCKER_REGISTRY_USER --password-stdin
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN registry.gitlab.com
   script:
     - docker pull $CI_REGISTRY_IMAGE:CI_COMMIT_REF_NAME || true
     - docker build --cache-from $CI_REGISTRY_IMAGE:CI_COMMIT_REF_NAME --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:CI_COMMIT_REF_NAME .
