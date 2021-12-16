@@ -15,6 +15,7 @@ from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
+from kpi.exceptions import InvalidXPathException
 from kpi.utils.xml import add_xml_declaration
 
 
@@ -38,7 +39,11 @@ class MP3ConversionRenderer(MediaFileRenderer):
     format = 'mp3'
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        audio = AudioSegment.from_file(BytesIO(data))
+        try:
+            audio = AudioSegment.from_file(BytesIO(data))
+        except:
+            if data.get('detail').code == 'xpath_not_found':
+                return None
 
         with NamedTemporaryFile(suffix='.mp3') as f:
             export = audio.export(f, format='mp3')

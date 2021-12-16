@@ -22,6 +22,7 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import InvalidXPathException
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
@@ -223,7 +224,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         try:
             response_filename = response_element.text
         except AttributeError:
-            raise Exception('XPath not found')
+            raise InvalidXPathException
 
         try:
             submission_json = next(

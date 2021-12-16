@@ -79,3 +79,27 @@ class AudioConversionApiTests(BaseAssetTestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert response['Content-Type'] == 'audio/mpeg'
+
+    def test_bad_xpath(self):
+        self.__add_submissions()
+        query_dict = QueryDict('', mutable=True)
+        query_dict.update(
+            {
+                'xpath': 'q0',
+                'format': 'mp3',
+            }
+        )
+        url = '{baseurl}?{querystring}'.format(
+            baseurl=reverse(
+                'api_v2:audio-list',
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'parent_lookup_data': 1,
+                },
+            ),
+            querystring=query_dict.urlencode()
+        )
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data['detail'].code == 'xpath_not_found'

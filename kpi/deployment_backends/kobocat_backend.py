@@ -30,6 +30,7 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import InvalidXPathException
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
@@ -51,7 +52,6 @@ from .kc_access.utils import (
 )
 from ..exceptions import (
     BadFormatException,
-    InvalidXPathException,
     KobocatBulkUpdateSubmissionsClientException,
     KobocatDeploymentException,
     KobocatDuplicateSubmissionException,
@@ -551,7 +551,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     self.asset.owner
                 )
                 file_response.raise_for_status()
-                return file_response.content, file_response.headers['content-type']
+                return file_response.content, file_response['Content-Type']
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((
