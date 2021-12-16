@@ -22,4 +22,30 @@ mfaActions.isActive.listen(() => {
   })
 })
 
+mfaActions.activate.listen(() => {
+  $.ajax({
+    dataType: 'json',
+    method: 'POST',
+    url: `${ROOT_URL}/api/v2/auth/app/activate/`,
+  }).done((response) => {
+    mfaActions.activate.completed(response)
+  }).fail((response) => {
+    notify(response.responseJSON, 'error')
+  })
+})
+
+mfaActions.confirm.listen((mfaCode: string) => {
+  $.ajax({
+    data: {code: mfaCode},
+    dataType: 'json',
+    method: 'POST',
+    url: `${ROOT_URL}/api/v2/auth/app/activate/confirm/`,
+  }).done((response) => {
+    mfaActions.confirm.completed(response)
+  }).fail((response) => {
+    notify(response.responseJSON, 'error')
+  })
+})
+
+
 export default mfaActions

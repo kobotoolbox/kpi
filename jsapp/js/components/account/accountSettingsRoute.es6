@@ -10,6 +10,7 @@ import bem from 'js/bem';
 import {stores} from 'js/stores';
 import Select from 'react-select';
 import TextBox from 'js/components/common/textBox';
+import ToggleSwitch from 'js/components/common/toggleSwitch';
 import Checkbox from 'js/components/common/checkbox';
 import ApiTokenDisplay from 'js/components/apiTokenDisplay';
 import {hashHistory} from 'react-router';
@@ -27,6 +28,7 @@ export default class AccountSettings extends React.Component {
     super(props);
     let state = {
       isPristine: true,
+      isMfaActive: false,
       requireAuth: false,
       fieldsErrors: {}
     };
@@ -51,7 +53,11 @@ export default class AccountSettings extends React.Component {
 
     this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave);
     this.listenTo(stores.session, this.rebuildState);
+
     this.listenTo(mfaActions.isActive.completed, this.isMfaActive);
+    this.listenTo(mfaActions.activate.completed, this.mfaActivated);
+    this.listenTo(mfaActions.confirm.completed, this.mfaConfirmed);
+
     this.rebuildState();
   }
 
@@ -59,8 +65,41 @@ export default class AccountSettings extends React.Component {
     this.unpreventClosingTab();
   }
 
+  // MFA Actions WIP
+
   isMfaActive(response) {
-    console.log(response)
+    if (response && response?.length >= 1) {
+      this.setState({isMfaActive: true});
+    }
+  }
+
+  mfaChanged(response) {
+    if (response) {
+      mfaActions.activate();
+    } else {
+      console.log('deactivate');
+      // TODO Launch modal to enter code
+    }
+  }
+
+  mfaActivated(response) {
+    if (response && response.details) {
+      this.setState({qrcode: response.details});
+    }
+  }
+
+  qrInputChange(response) {
+    this.setState({mfaCode: response.currentTarget.value});
+  }
+
+  mfaConfirm() {
+    mfaActions.confirm(this.state.mfaCode);
+  }
+
+  mfaConfirmed(response) {
+    if (response && response.backup_codes) {
+      this.setState({backupCodes: response.backup_codes});
+    }
   }
 
   routerWillLeave() {
@@ -465,7 +504,28 @@ export default class AccountSettings extends React.Component {
                   Security
                 </label>
 
-                <QRCode value='6SOANV5NPAU443I6P4CXAUXKH5JYVXM6'/>
+                <ToggleSwitch
+                  checked={this.state.isMfaActive}
+                  onChange={this.mfaChanged.bind(this)}
+                />
+                {this.state.qrcode &&
+                  <div>
+                    <QRCode value={this.state.qrcode}/>
+                    <input type='text' onChange={this.qrInputChange.bind(this)}/>
+                    <button onClick={this.mfaConfirm}/>
+                  </div>
+                }
+                {this.state.backupCodes &&
+                  <ol>
+                    {this.state.backupCodes.map((t) => {
+                      return(
+                        <h2>
+                          {t}
+                        </h2>
+                      );
+                    })}
+                  </ol>
+                }
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>
           </bem.AccountSettings__item>
