@@ -26,12 +26,6 @@ bem.KoboSelect__option = makeBem(bem.KoboSelect, 'option', 'button')
  */
 export type KoboSelectType = 'blue' | 'gray' | 'outline'
 
-/**
- * The size is the height of the trigger, but it also influences its paddings.
- * Sizes are generally the same as in button component so we use same type.
- */
-const DefaultSize: ButtonSize = 'm'
-
 interface KoboSelectOption {
   icon?: IconName
   label: string
@@ -41,7 +35,10 @@ interface KoboSelectOption {
 
 type KoboSelectProps = {
   type: KoboSelectType
-  /** Note: this size will also be carried over to the icon. */
+  /**
+   * The size is the height of the trigger, but it also influences its paddings.
+   * Sizes are generally the same as in button component so we use same type.
+   */
   size: ButtonSize
   /** Without this option select always need the `selectedOption`. */
   isClearable?: boolean
@@ -110,6 +107,14 @@ class KoboSelect extends React.Component<KoboSelectProps, {}> {
             </bem.KoboSelect__clear>
           }
 
+          {this.props.isPending &&
+            <Icon
+              name='spinner'
+              size={ButtonToIconMap.get(this.props.size)}
+              classNames={['k-spin']}
+            />
+          }
+
           <Icon name='caret-down' size={ButtonToIconMap.get(this.props.size)}/>
         </bem.KoboSelect__trigger>
       )
@@ -154,6 +159,10 @@ class KoboSelect extends React.Component<KoboSelectProps, {}> {
 
     if (this.props.isFullWidth) {
       modifiers.push('is-full-width')
+    }
+
+    if (this.props.isPending) {
+      modifiers.push('is-pending')
     }
 
     return (
