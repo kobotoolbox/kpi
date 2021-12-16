@@ -428,6 +428,9 @@ class Asset(ObjectPermissionMixin,
                             schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
 
     def get_advanced_submission_schema(self, url=None):
+        if len(self.advanced_features) == 0:
+            NO_FEATURES_MSG = 'no advanced features activated for this form'
+            return {'type': 'object', '$description': NO_FEATURES_MSG}
         return advanced_submission_jsonschema(self.content,
                                               self.advanced_features,
                                               url=url)
