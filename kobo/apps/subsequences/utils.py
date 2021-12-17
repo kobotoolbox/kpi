@@ -1,10 +1,12 @@
 from .actions.automatic_transcription import AutomaticTranscriptionAction
+from .actions.translation import TranslationAction
 
 from .actions.unknown_action import UnknownAction
 
 
 AVAILABLE_ACTIONS = (
     AutomaticTranscriptionAction,
+    TranslationAction,
 )
 
 ACTIONS_BY_ID = dict([
@@ -57,7 +59,7 @@ def advanced_submission_jsonschema(content, actions, url=None):
     return get_jsonschema(action_instances, url=url)
 
 def _empty_obj():
-    return {'properties': {}, 'additionalProperties': False}
+    return {'type': 'object', 'properties': {}, 'additionalProperties': False}
 
 def get_jsonschema(action_instances=(), url=None):
     sub_props = {}

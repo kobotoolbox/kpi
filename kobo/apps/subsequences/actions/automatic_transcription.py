@@ -36,7 +36,27 @@ class AutomaticTranscriptionAction(BaseAction):
         for (field, service, fs_key) in self.field_service_matrix():
             if field not in properties:
                 properties[field] = {}
-            properties[field][service] = {'type': 'string'}
+            properties[field][service] = {
+                'type': 'object',
+                'properties': {
+                    'value': {
+                        'type': 'string',
+                    },
+                    'languageCode': {
+                        'type': 'string',
+                    },
+                    'dateCreated': {
+                        'type': 'string',
+                        'format': 'date-time',
+                    },
+                    'dateModified': {
+                        'type': 'string',
+                        'format': 'date-time',
+                    },
+                },
+                'required': ['value'],
+                'additionalProperties': False,
+            }
         return properties
 
     def check_submission_status(self, submission):

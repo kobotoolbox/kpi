@@ -14,13 +14,8 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
             'type': 'object',
         },
         # translations example:
-        # 'translations': {
-        #     'type': 'object',
-        #     'properties': {
-        #         'destination_lang': {
-        #             'type': 'string'
-        #         }
-        #     }
-        # }
+        'translation': {
+            'type': 'object',
+        }
     }
 }
