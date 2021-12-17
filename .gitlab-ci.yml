@@ -14,3 +14,21 @@ build:
     - docker build --cache-from $CI_REGISTRY_IMAGE:CI_COMMIT_REF_NAME --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
+deploy-beta:
+  stage: deploy
+  image:
+    name: alpine/helm:3.7.2
+    entrypoint: [""]
+  script:
+    - helm repo add kobo https://gitlab.com/api/v4/projects/32216873/packages/helm/stable
+    - helm -n beta upgrade kobo-beta kobo/kobo --set-string kpi.image.tag=${CI_COMMIT_SHORT_SHA} --reuse-values
+  environment:
+    name: beta
+    url: https://kf.beta.kobotoolbox.org
+  only:
+    refs:
+      - master
+      - gitlab-ci-build
+    variables:
+      - $CI_COMMIT_REF_PROTECTED
