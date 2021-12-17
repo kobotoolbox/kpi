@@ -57,6 +57,8 @@ export default class AccountSettings extends React.Component {
     this.listenTo(mfaActions.isActive.completed, this.isMfaActive);
     this.listenTo(mfaActions.activate.completed, this.mfaActivated);
     this.listenTo(mfaActions.confirm.completed, this.mfaConfirmed);
+    this.listenTo(mfaActions.regenerate.completed, this.mfaConfirmed);
+    this.listenTo(mfaActions.deactivate.completed, this.mfaDeactivated);
 
     this.rebuildState();
   }
@@ -66,6 +68,10 @@ export default class AccountSettings extends React.Component {
   }
 
   // MFA Actions WIP
+  // TODO:
+  // - Refactor profile vs security
+  // - Set up modals
+  // - Find a good naming scheme
 
   isMfaActive(response) {
     if (response && response?.length >= 1) {
@@ -77,8 +83,7 @@ export default class AccountSettings extends React.Component {
     if (response) {
       mfaActions.activate();
     } else {
-      console.log('deactivate');
-      // TODO Launch modal to enter code
+      this.setState({mfaDeactivating: true});
     }
   }
 
@@ -98,8 +103,31 @@ export default class AccountSettings extends React.Component {
 
   mfaConfirmed(response) {
     if (response && response.backup_codes) {
-      this.setState({backupCodes: response.backup_codes});
+      this.setState({
+        backupCodes: response.backup_codes,
+        isMfaActive: true,
+      });
     }
+  }
+
+  mfaDeactivating(response) {
+    this.setState({mfaCode: response.currentTarget.value});
+  }
+
+  mfaDeactivate() {
+    mfaActions.deactivate(this.state.mfaCode);
+  }
+
+  mfaDeactivated() {
+    this.setState({isMfaActive: false});
+  }
+
+  mfaRegenerating(response) {
+    this.setState({mfaCode: response.currentTarget.value});
+  }
+
+  mfaRegenerate() {
+    mfaActions.regenerate(this.state.mfaCode);
   }
 
   routerWillLeave() {
@@ -525,6 +553,16 @@ export default class AccountSettings extends React.Component {
                       );
                     })}
                   </ol>
+                }
+
+                {this.state.isMfaActive &&
+                  <div>
+                    <input type='text' onChange={this.mfaDeactivating.bind(this)}/>
+                    <button onClick={this.mfaDeactivate.bind(this)}/>
+                    <p>reset</p>
+                    <input type='text' onChange={this.mfaRegenerating.bind(this)}/>
+                    <button onClick={this.mfaRegenerate.bind(this)}/>
+                  </div>
                 }
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>

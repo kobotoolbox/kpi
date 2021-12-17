@@ -7,7 +7,7 @@ const mfaActions = Reflux.createActions({
   deactivate: {children: ['completed', 'failed']},
   isActive: {children: ['completed', 'failed']},
   confirm: {children: ['completed', 'failed']},
-  reset: {children: ['completed', 'failed']},
+  regenerate: {children: ['completed', 'failed']},
 })
 
 mfaActions.isActive.listen(() => {
@@ -47,5 +47,30 @@ mfaActions.confirm.listen((mfaCode: string) => {
   })
 })
 
+mfaActions.deactivate.listen((mfaCode: string) => {
+  $.ajax({
+    data: {code: mfaCode},
+    dataType: 'json',
+    method: 'POST',
+    url: `${ROOT_URL}/api/v2/auth/app/deactivate/`,
+  }).done((response) => {
+    mfaActions.deactivate.completed(response)
+  }).fail((response) => {
+    notify(response.responseJSON, 'error')
+  })
+})
+
+mfaActions.regenerate.listen((mfaCode: string) => {
+  $.ajax({
+    data: {code: mfaCode},
+    dataType: 'json',
+    method: 'POST',
+    url: `${ROOT_URL}/api/v2/auth/app/codes/regenerate/`,
+  }).done((response) => {
+    mfaActions.deactivate.completed(response)
+  }).fail((response) => {
+    notify(response.responseJSON, 'error')
+  })
+})
 
 export default mfaActions
