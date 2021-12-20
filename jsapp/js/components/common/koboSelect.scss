@@ -174,7 +174,7 @@
   &.k-select--is-menu-visible {
     .k-select__trigger {
       border-color: colors.$kobo-alt-blue;
-      box-shadow: 0 0 0 sizes.$x2 colors.$kobo-light-alt-blue;
+      box-shadow: 0 0 0 sizes.$x2 rgba(colors.$kobo-alt-blue, 0.5);
 
       .k-icon.k-icon-caret-down,
       .k-icon.k-icon-caret-up {
@@ -226,7 +226,7 @@
   &.k-select--is-menu-visible {
     .k-select__trigger {
       border-color: colors.$kobo-blue;
-      box-shadow: 0 0 0 sizes.$x2 colors.$kobo-light-alt-blue;
+      box-shadow: 0 0 0 sizes.$x2 rgba(colors.$kobo-alt-blue, 0.5);
 
       .k-icon.k-icon-caret-down,
       .k-icon.k-icon-caret-up {
