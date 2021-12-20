@@ -37,7 +37,10 @@ type KoboDropdownState = {
 }
 
 bem.KoboDropdown = makeBem(null, 'kobo-dropdown');
-bem.KoboDropdown__trigger = makeBem(bem.KoboDropdown, 'trigger', 'button');
+// NOTE: we can't use `button` element here, as sometimes (see `koboSelect.tsx`)
+// we want to have an `input` inside the trigger, and then pressing "spacebar"
+// caused the `onTriggerClick` to be fired while simply typing inside the input.
+bem.KoboDropdown__trigger = makeBem(bem.KoboDropdown, 'trigger');
 bem.KoboDropdown__menu = makeBem(bem.KoboDropdown, 'menu', 'menu');
 bem.KoboDropdown__menuButton = makeBem(bem.KoboDropdown, 'menu-button', 'button');
 
@@ -62,9 +65,9 @@ export default class KoboDropdown extends React.Component<
     this.state = {isMenuVisible: false};
   }
 
-  private checkOutsideClickBound = this.checkOutsideClick.bind(this)
+  private checkOutsideClickBound: (evt: MouseEvent | TouchEvent) => void = this.checkOutsideClick.bind(this)
 
-  private onAnyKeyWhileOpenBound = this.onAnyKeyWhileOpen.bind(this)
+  private onAnyKeyWhileOpenBound: (evt: KeyboardEvent) => void = this.onAnyKeyWhileOpen.bind(this)
 
   private unlisteners: Function[] = []
 
@@ -80,9 +83,9 @@ export default class KoboDropdown extends React.Component<
     this.cancelOutsideClickListener();
   }
 
-  onTriggerClick(evt: React.ChangeEvent<HTMLInputElement> | any) {
-    evt.preventDefault();
-    this.toggleMenu();
+  onTriggerClick(evt: React.KeyboardEvent<Node>) {
+    evt.preventDefault()
+    this.toggleMenu()
   }
 
   onMenuClick() {
@@ -123,10 +126,9 @@ export default class KoboDropdown extends React.Component<
     document.removeEventListener('keydown', this.onAnyKeyWhileOpenBound);
   }
 
-  onAnyKeyWhileOpen(evt: React.ChangeEvent<HTMLInputElement> | any) {
+  onAnyKeyWhileOpen(evt: KeyboardEvent) {
     if (
       evt.key === 'Escape' ||
-      evt.code === 'Escape' ||
       evt.keyCode === KEY_CODES.ESC ||
       evt.which === KEY_CODES.ESC
     ) {
@@ -136,23 +138,21 @@ export default class KoboDropdown extends React.Component<
 
   registerOutsideClickListener() {
     window.addEventListener('click', this.checkOutsideClickBound);
-    window.addEventListener('touch', this.checkOutsideClickBound);
     window.addEventListener('touchstart', this.checkOutsideClickBound);
     window.addEventListener('contextmenu', this.checkOutsideClickBound);
   }
 
   cancelOutsideClickListener() {
     window.removeEventListener('click', this.checkOutsideClickBound);
-    window.removeEventListener('touch', this.checkOutsideClickBound);
     window.removeEventListener('touchstart', this.checkOutsideClickBound);
     window.removeEventListener('contextmenu', this.checkOutsideClickBound);
   }
 
-  checkOutsideClick(evt: React.ChangeEvent<HTMLInputElement> | any) {
+  checkOutsideClick(evt: MouseEvent | TouchEvent) {
     let isOutsideClick = true;
     const dropdownWrapperEl = ReactDOM.findDOMNode(this);
 
-    let loopEl = evt.target;
+    let loopEl = evt.target as Node;
     // If we check too much parents going upward looking for dropdown then we
     // assume it is not a dropdown.
     let parentsLookupLimit = 10;
