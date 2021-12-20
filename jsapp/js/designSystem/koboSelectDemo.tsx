@@ -16,6 +16,7 @@ type KoboSelectDemoState = {
   demoIsDisabled: boolean
   demoIsPending: boolean
   demoSelectedOption: string | null
+  demoOptionsWithIcons: boolean
 }
 
 export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoState> {
@@ -24,11 +25,12 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
     this.state = {
       demoType: 'blue',
       demoSize: 'm',
-      demoIsClearable: false,
-      demoIsSearchable: false,
+      demoIsClearable: true,
+      demoIsSearchable: true,
       demoIsDisabled: false,
       demoIsPending: false,
-      demoSelectedOption: 'two'
+      demoSelectedOption: 'two',
+      demoOptionsWithIcons: false
     }
   }
 
@@ -57,6 +59,10 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
 
   onIsPendingChange(isChecked: boolean) {
     this.setState({demoIsPending: isChecked})
+  }
+
+  onOptionsWithIconsChange(isChecked: boolean) {
+    this.setState({demoOptionsWithIcons: isChecked})
   }
 
   onSelectChange(newSelectedOption: string | null) {
@@ -140,6 +146,15 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
                       />
                     </div>
                   </div>
+                  <div className='demo__form-row'>
+                    <div className='demo__form-config'>
+                      <Checkbox
+                        label='options with icons'
+                        onChange={this.onOptionsWithIconsChange.bind(this)}
+                        checked={this.state.demoOptionsWithIcons}
+                      />
+                    </div>
+                  </div>
                 </form>
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
@@ -156,17 +171,17 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
                       {
                         id: 'one',
                         label: 'One',
-                        icon: 'alert'
+                        icon: this.state.demoOptionsWithIcons ? 'alert' : undefined
                       },
                       {
                         id: 'two',
                         label: 'Two',
-                        icon: 'information'
+                        icon: this.state.demoOptionsWithIcons ? 'information' : undefined
                       },
                       {
                         id: 'three',
                         label: 'Three',
-                        icon: 'information'
+                        icon: this.state.demoOptionsWithIcons ? 'information' : undefined
                       }
                     ]}
                     selectedOption={this.state.demoSelectedOption}

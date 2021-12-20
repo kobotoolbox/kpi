@@ -1,15 +1,13 @@
 // TODO
 // 1. searchbox needs an icon and some default text - "Search" or selected option label for nothing typed
-// 2. searchbox should auto focus when opened
-// 3. a text for when filter returns 0 results
 // 4. finish up styles for caret icon (smaller and color, ?)
 // 5. blue glow for opened/active
 
-
+import $ from 'jquery'
 import React, {ReactElement} from 'react'
-import Fuse from 'fuse.js';
-import {FUSE_OPTIONS} from 'js/constants';
-import bem, {makeBem} from 'js/bem';
+import Fuse from 'fuse.js'
+import {FUSE_OPTIONS} from 'js/constants'
+import bem, {makeBem} from 'js/bem'
 import {IconName} from 'jsapp/fonts/k-icons'
 import Icon, {IconSize} from 'js/components/common/icon'
 import Button, {ButtonSize, ButtonToIconMap} from 'js/components/common/button'
@@ -21,10 +19,13 @@ import './koboSelect.scss'
 bem.KoboSelect = makeBem(null, 'k-select')
 bem.KoboSelect__trigger = makeBem(bem.KoboSelect, 'trigger')
 bem.KoboSelect__triggerSelectedOption = makeBem(bem.KoboSelect, 'trigger-selected-option', 'span')
+bem.KoboSelect__searchBox = makeBem(bem.KoboSelect, 'search-box', 'input')
 bem.KoboSelect__clear = makeBem(bem.KoboSelect, 'clear')
 bem.KoboSelect__menu = makeBem(bem.KoboSelect, 'menu', 'menu')
 bem.KoboSelect__option = makeBem(bem.KoboSelect, 'option', 'button')
-bem.KoboSelect__searchbox = makeBem(bem.KoboSelect, 'searchbox', 'input')
+bem.KoboSelect__menuMessage = makeBem(bem.KoboSelect, 'menu-message', 'p')
+
+const SEARCHBOX_NAME = 'kobo-select-search-box'
 
 /**
  * KoboSelect types are:
@@ -91,7 +92,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   componentDidMount() {
     this.unlisteners.push(
       koboDropdownActions.menuVisibilityChange.done.listen(this.onMenuVisibilityChange.bind(this))
-    );
+    )
   }
 
   componentWillUnmount() {
@@ -99,12 +100,19 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   }
 
   onMenuVisibilityChange(name: string, isVisible: boolean) {
-    console.log('onMenuVisibilityChange', name, isVisible)
     if (name === this.props.name) {
       this.setState({
         isMenuVisible: isVisible,
+        // Clear filter phrase when closing menu.
         filterPhrase: isVisible === false ? '' : this.state.filterPhrase
       })
+    }
+
+    // When opening the menu, make sure search box input is focused.
+    if (isVisible) {
+      setTimeout(() => {
+        $(`input[name="${SEARCHBOX_NAME}"]`).last().trigger('focus')
+      }, 0)
     }
   }
 
@@ -131,18 +139,21 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
    */
   getFilteredOptionsList() {
     if (this.state.filterPhrase !== '') {
-      let fuse = new Fuse(this.props.options, {...FUSE_OPTIONS, keys: ['id', 'label']});
-      const fuseSearch = fuse.search(this.state.filterPhrase);
+      let fuse = new Fuse(this.props.options, {...FUSE_OPTIONS, keys: ['id', 'label']})
+      const fuseSearch = fuse.search(this.state.filterPhrase)
       return fuseSearch.map((result) => result.item)
     }
-    return this.props.options;
+    return this.props.options
   }
 
-  onSearchBoxChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    this.setFilterPhrase(evt.target.value)
+  onSearchBoxChange(evt: InputEvent) {
+    const searchBox = evt.target as HTMLInputElement
+    if (searchBox !== null) {
+      this.setFilterPhrase(searchBox.value)
+    }
   }
 
-  onSearchBoxClick(evt: React.ChangeEvent<HTMLInputElement>) {
+  onSearchBoxClick(evt: MouseEvent | TouchEvent) {
     // We don't want it to trigger closing.
     evt.preventDefault()
     evt.stopPropagation()
@@ -215,11 +226,15 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
 
   renderSearchBox() {
     return (
-      <bem.KoboSelect__searchbox
-        value={this.state.filterPhrase}
-        onChange={this.onSearchBoxChange.bind(this)}
-        onClick={this.onSearchBoxClick.bind(this)}
-      />
+      <React.Fragment>
+        <Icon name='search' size={ButtonToIconMap.get(this.props.size)}/>
+        <bem.KoboSelect__searchBox
+          name={SEARCHBOX_NAME}
+          value={this.state.filterPhrase}
+          onChange={this.onSearchBoxChange.bind(this)}
+          onClick={this.onSearchBoxClick.bind(this)}
+        />
+      </React.Fragment>
     )
   }
 
@@ -243,6 +258,15 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
             <label>{option.label}</label>
           </bem.KoboSelect__option>
         ))}
+
+        {(
+          typeof this.state.filterPhrase === 'string' &&
+          this.state.filterPhrase.length >= 1
+        ) &&
+          <bem.KoboSelect__menuMessage>
+            {t('No options found')}
+          </bem.KoboSelect__menuMessage>
+        }
       </bem.KoboSelect__menu>
     )
   }
@@ -251,7 +275,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
     const modifiers = [
       `size-${this.props.size}`,
       `type-${this.props.type}`
-    ];
+    ]
 
     if (this.props.isPending) {
       modifiers.push('is-pending')

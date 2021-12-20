@@ -69,14 +69,26 @@
 
 .k-select__option {
   @include mixins.buttonReset;
+}
+
+.k-select__option,
+.k-select__menu-message {
   @include mixins.centerRowFlex;
   justify-content: space-between;
   width: 100%;
   height: sizes.$x36;
-  font-weight: 500;
   color: colors.$kobo-gray-40;
   padding: 0 #{sizes.$x16 - sizes.$x2};
   text-align: left;
+}
+
+.k-select__menu-message {
+  font-style: italic;
+  margin: 0;
+}
+
+.k-select__option {
+  font-weight: 500;
 
   &:hover ,
   &.k-select__option--selected {
@@ -90,7 +102,7 @@
   }
 }
 
-.k-select__searchbox {
+.k-select__search-box {
   width: 100%;
   background-color: transparent;
   border: 0;
@@ -179,7 +191,7 @@
 .k-select.k-select--type-outline {
   .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
-    border-color: colors.$kobo-gray-24;
+    border-color: colors.$kobo-gray-85;
     color: colors.$kobo-gray-24;
 
     .k-icon.k-icon-spinner {
@@ -188,7 +200,7 @@
   }
 
   .k-select__trigger {
-    border-color: currentColor;
+    border-color: colors.$kobo-gray-92;
   }
 }
 
