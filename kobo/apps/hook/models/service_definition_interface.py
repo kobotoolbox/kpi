@@ -6,7 +6,9 @@ from abc import ABCMeta, abstractmethod
 
 import constance
 import requests
+from requests.api import request
 from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
+from kpi.models import asset
 
 from kpi.utils.log import logging
 from .hook import Hook
@@ -16,7 +18,8 @@ from ..constants import (
     HOOK_LOG_FAILED,
     KOBO_INTERNAL_ERROR_STATUS_CODE,
 )
-
+from veritree.models import VeritreeOAuth2
+from veritree.hooks import FIELD_UPDATE_API, METATADATA_FORM_API, get_metadata_from_submission
 
 class ServiceDefinitionInterface(metaclass=ABCMeta):
 
@@ -101,6 +104,49 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                         "auth": (self._hook.settings.get("username"),
                                  self._hook.settings.get("password"))
                     })
+
+                if self._hook.auth_level == Hook.VERITREE_AUTH:
+                    oauth = VeritreeOAuth2()
+                    try:
+                        user = oauth.authenticate(request=requests.Request(), username=self._hook.settings.get("username"), password=self._hook.settings.get("password"))
+                    except Exception:
+                        raise Exception("Error with provided user credentials")
+                
+                    logging.error("Custom Logging thing - "
+                              "Hook #{} - Data #{}".format(self._hook.uid,
+                                                                self._instance_id),
+                              exc_info=True)
+                    # TODO: get this info from the included username and password
+                    try:
+                        veritree_token = user.social_auth.get(provider=VeritreeOAuth2.name).extra_data['access_token']
+                    except (KeyError):
+                        pass
+                    if veritree_token:
+                        request_kwargs.get("headers").update({
+                            "Authorization": f"Bearer {veritree_token}"
+                        })
+
+                if self._hook.veritree_type == Hook.FORM_METADATA:
+                    try:
+                        asset_orgs = self._hook.asset.organizations.all()
+                        if not asset_orgs.exists():
+                            raise TypeError('This asset does not have any organizations associated with it')
+                        elif asset_orgs.count() > 1:
+                            raise TypeError('This asset is associated to more than one org, this hook cannot function properly')
+                            #TODO: Change this so this is not even possible. Change to the REST Services Form and Hook
+                        org_id = asset_orgs[0].veritree_id
+                    except (KeyError):
+                        raise KeyError('Asset does not have any organizations associated with it')
+                    self._hook.endpoint = f"{METATADATA_FORM_API}/?org_type=orgAccount&org_id={org_id}" # set endpoint
+                    self._hook.save()
+                    request_kwargs['json'] = get_metadata_from_submission(request_kwargs['json'], self._hook.asset.name, org_id)
+                    logging.error("service_json.ServiceDefinition.send - "
+                              "Hook #{} - {}".format(self._hook.endpoint, request_kwargs),
+                              exc_info=True)
+                elif self._hook.veritree_type == Hook.FIELD_UPDATE:
+                    org_id = self._hook.asset()
+                    self._hook.endpoint = FIELD_UPDATE_API
+                    #TODO: Get the json for a field update from the form
 
                 ssrf_protect_options = {}
                 if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():

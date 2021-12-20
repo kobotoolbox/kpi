@@ -32,9 +32,35 @@ const AUTH_OPTIONS = {
   basic_auth: {
     value: 'basic_auth',
     label: t('Basic Authorization')
+  },
+  veritree_auth: {
+    value: 'veritree_auth',
+    label: t('Veritree Authorization')
   }
 };
 
+const VERITREE_HOOK_TYPES = {
+  none: {
+    value: 'none',
+    label: t('None')
+  },
+  form_metadata: {
+    value: 'form_metadata',
+    label: t('Form Metadata'),
+    authLevel: AUTH_OPTIONS.veritree_auth.value,
+    customHeaders: false,
+    subset: false,
+    customWrapper: false
+  },
+  field_update: {
+    value: 'field_update',
+    label: t('Field Update'),
+    authLevel: AUTH_OPTIONS.veritree_auth.value,
+    customHeaders: false,
+    subset: false,
+    customWrapper: false
+  }
+}
 export default class RESTServicesForm extends React.Component {
   constructor(props){
     super(props);
@@ -46,6 +72,12 @@ export default class RESTServicesForm extends React.Component {
       hookUid: props.hookUid,
       name: '',
       nameError: null,
+      veritreeType: VERITREE_HOOK_TYPES.none.value,
+      veritreeTypeOptions: [
+        VERITREE_HOOK_TYPES.none,
+        VERITREE_HOOK_TYPES.form_metadata,
+        VERITREE_HOOK_TYPES.field_update
+      ],
       endpoint: '',
       endpointError: null,
       type: EXPORT_TYPES.json.value,
@@ -58,7 +90,8 @@ export default class RESTServicesForm extends React.Component {
       authLevel: null,
       authOptions: [
         AUTH_OPTIONS.no_auth,
-        AUTH_OPTIONS.basic_auth
+        AUTH_OPTIONS.basic_auth,
+        AUTH_OPTIONS.veritree_auth
       ],
       authUsername: '',
       authPassword: '',
@@ -86,7 +119,8 @@ export default class RESTServicesForm extends React.Component {
             type: data.export_type,
             authLevel: AUTH_OPTIONS[data.auth_level] || null,
             customHeaders: this.headersObjToArr(data.settings.custom_headers),
-            payloadTemplate: data.payload_template
+            payloadTemplate: data.payload_template,
+            veritreeType: data.veritree_type
           };
 
           if (stateUpdate.customHeaders.length === 0) {
@@ -172,6 +206,15 @@ export default class RESTServicesForm extends React.Component {
   }
 
   handleTypeRadioChange(name, value) {this.setState({[name]: value});}
+  handleVeritreeTypeRadioChange(name, value) {
+    let url = this.state.endpoint
+    let authLevel = this.state.authLevel
+    if (value === VERITREE_HOOK_TYPES.form_metadata.value || value === VERITREE_HOOK_TYPES.field_update.value) {
+      url = 'https://placeholder'
+      authLevel = AUTH_OPTIONS.veritree_auth
+    }
+    this.setState({[name]: value, 'endpoint': url, authLevel })
+  }
 
   handleCustomHeaderChange(evt) {
     const propName = evt.target.name;
@@ -215,7 +258,8 @@ export default class RESTServicesForm extends React.Component {
       settings: {
         custom_headers: this.headersArrToObj(this.state.customHeaders)
       },
-      payload_template: this.state.payloadTemplate
+      payload_template: this.state.payloadTemplate,
+      veritree_type: this.state.veritreeType
     };
 
     if (this.state.authUsername) {
@@ -389,6 +433,10 @@ export default class RESTServicesForm extends React.Component {
   }
 
   renderFieldsSelector() {
+    if (this.state.veritreeType === VERITREE_HOOK_TYPES.field_update.value || 
+        this.state.veritreeType === VERITREE_HOOK_TYPES.form_metadata.value) {
+      return null
+    }
     return (
       <bem.FormModal__item>
         <KoboTagsInput
@@ -429,7 +477,16 @@ export default class RESTServicesForm extends React.Component {
                 onChange={this.handleNameChange.bind(this)}
               />
             </bem.FormModal__item>
-
+            <bem.FormModal__item>
+            <Radio
+                name='veritreeType'
+                options={this.state.veritreeTypeOptions}
+                onChange={this.handleVeritreeTypeRadioChange.bind(this)}
+                selected={this.state.veritreeType}
+                title={t('Veritree Type')}
+              />
+            </bem.FormModal__item>
+            {this.state.veritreeType === VERITREE_HOOK_TYPES.none.value && 
             <bem.FormModal__item>
               <TextBox
                 label={t('Endpoint URL')}
@@ -439,7 +496,7 @@ export default class RESTServicesForm extends React.Component {
                 errors={this.state.endpointError}
                 onChange={this.handleEndpointChange.bind(this)}
               />
-            </bem.FormModal__item>
+            </bem.FormModal__item>}
 
             <bem.FormModal__item>
               <Checkbox
@@ -470,8 +527,7 @@ export default class RESTServicesForm extends React.Component {
                 title={t('Type')}
               />
             </bem.FormModal__item>
-
-            <bem.FormModal__item>
+            {<bem.FormModal__item>
               <label htmlFor='rest-service-form--security'>
                 {t('Security')}
               </label>
@@ -486,10 +542,12 @@ export default class RESTServicesForm extends React.Component {
                 name='authLevel'
                 menuPlacement='auto'
                 isSearchable={false}
+                isDisabled={VERITREE_HOOK_TYPES?.[this.state.veritreeType]?.authLevel}
               />
-            </bem.FormModal__item>
+            </bem.FormModal__item>}
 
-            {this.state.authLevel && this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value &&
+            {this.state.authLevel && (this.state.authLevel.value === AUTH_OPTIONS.basic_auth.value
+                || this.state.authLevel.value === AUTH_OPTIONS.veritree_auth.value) &&
               <bem.FormModal__item>
                 <TextBox
                   label={t('Username')}
@@ -511,7 +569,8 @@ export default class RESTServicesForm extends React.Component {
 
             {this.renderCustomHeaders()}
 
-            {this.state.type === EXPORT_TYPES.json.value &&
+            {this.state.type === EXPORT_TYPES.json.value && this.state.veritreeType !== VERITREE_HOOK_TYPES.field_update.value
+                && this.state.veritreeType !== VERITREE_HOOK_TYPES.form_metadata.value &&
               <bem.FormModal__item m='rest-custom-wrapper'>
                 <TextBox
                   label={t('Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by JSON)').replace('%SUBMISSION%', submissionPlaceholder)}

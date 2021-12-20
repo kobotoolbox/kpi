@@ -516,5 +516,6 @@ EXTRA_LANG_INFO = {
 VERITREE_FORM_TYPES = (
     ('inventory', _('Inventory')),
     ('socio-economic', _('Socio-Economic')),
+    ('planting', _('Planting')),
     ('none', _('None'))
 )

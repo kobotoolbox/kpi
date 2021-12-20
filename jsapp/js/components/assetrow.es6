@@ -272,6 +272,17 @@ class AssetRow extends React.Component {
                 >
               <i className='k-icon k-icon-clone' />
             </bem.AssetRow__actionIcon>
+            {isSelfOwned && <bem.AssetRow__actionIcon
+                m='delete'
+                key='delete'
+                data-action='delete'
+                data-tip={t('Delete')}
+                data-asset-type={this.props.kind}
+                data-asset-name={assetName}
+                data-disabled={false}
+                >
+              <i className='k-icon k-icon-trash' />
+            </bem.AssetRow__actionIcon>}
 
             { this.props.asset_type &&
               this.props.asset_type === ASSET_TYPES.template.id &&
