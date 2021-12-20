@@ -97,6 +97,7 @@ export default class KoboDropdownDemo extends React.Component<{}, KoboDropdownDe
               <bem.SimpleTable__cell>
                 <div className='demo__preview'>
                   <KoboDropdown
+                    name='kobo-dropdown-demo'
                     placement={this.state.demoPlacement}
                     isDisabled={this.state.demoIsDisabled}
                     hideOnMenuClick={this.state.demoHideOnMenu}

@@ -1,9 +1,12 @@
 import React, {ReactElement} from 'react'
+import Fuse from 'fuse.js';
+import {FUSE_OPTIONS} from 'js/constants';
 import bem, {makeBem} from 'js/bem';
 import {IconName} from 'jsapp/fonts/k-icons'
 import Icon, {IconSize} from 'js/components/common/icon'
 import Button, {ButtonSize, ButtonToIconMap} from 'js/components/common/button'
 import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown'
+import koboDropdownActions from 'js/components/common/koboDropdownActions'
 import './koboSelect.scss'
 
 // We can't use "kobo-select" as it is already being used for custom styling of `react-select`.
@@ -12,11 +15,7 @@ bem.KoboSelect__trigger = makeBem(bem.KoboSelect, 'trigger')
 bem.KoboSelect__clear = makeBem(bem.KoboSelect, 'clear')
 bem.KoboSelect__menu = makeBem(bem.KoboSelect, 'menu', 'menu')
 bem.KoboSelect__option = makeBem(bem.KoboSelect, 'option', 'button')
-
-/**
- * Note: we use a simple TypeScript types here instead of enums, so we don't
- * need to import them, just pass correct strings.
- */
+bem.KoboSelect__searchbox = makeBem(bem.KoboSelect, 'searchbox', 'input')
 
 /**
  * KoboSelect types are:
@@ -34,6 +33,8 @@ interface KoboSelectOption {
 }
 
 type KoboSelectProps = {
+  /** Unique name. */
+  name: string
   type: KoboSelectType
   /**
    * The size is the height of the trigger, but it also influences its paddings.
@@ -59,12 +60,45 @@ type KoboSelectProps = {
   onChange: Function
 }
 
+type KoboSelectState = {
+  /** Used with the `isSearchable` option. */
+  filterPhrase: string,
+  /** Keeps data from `menuVisibilityChange`. */
+  isMenuVisible: boolean
+}
+
 /**
  * A select component. Uses `KoboDropdown` as base.
  */
-class KoboSelect extends React.Component<KoboSelectProps, {}> {
+class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   constructor(props: KoboSelectProps){
     super(props)
+    this.state = {
+      filterPhrase: '',
+      isMenuVisible: false
+    }
+  }
+
+  private unlisteners: Function[] = []
+
+  componentDidMount() {
+    this.unlisteners.push(
+      koboDropdownActions.menuVisibilityChange.done.listen(this.onMenuVisibilityChange.bind(this))
+    );
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb()})
+  }
+
+  onMenuVisibilityChange(name: string, isVisible: boolean) {
+    console.log('onMenuVisibilityChange', name, isVisible)
+    if (name === this.props.name) {
+      this.setState({
+        isMenuVisible: isVisible,
+        filterPhrase: isVisible === false ? '' : this.state.filterPhrase
+      })
+    }
   }
 
   /** Please make sure to pass the `selectedOption` prop back here. */
@@ -76,7 +110,35 @@ class KoboSelect extends React.Component<KoboSelectProps, {}> {
     // We don't want it to trigger opening
     evt.preventDefault()
     evt.stopPropagation()
+    koboDropdownActions.hideAnyDropdown()
     this.props.onChange(null)
+  }
+
+  setFilterPhrase(newPhrase: string) {
+    this.setState({filterPhrase: newPhrase})
+  }
+
+  /**
+   * Returns the filtered list of options. We butcher the fuse return value a bit
+   * as we don't need any of it here.
+   */
+  getFilteredOptionsList() {
+    if (this.state.filterPhrase !== '') {
+      let fuse = new Fuse(this.props.options, {...FUSE_OPTIONS, keys: ['id', 'label']});
+      const fuseSearch = fuse.search(this.state.filterPhrase);
+      return fuseSearch.map((result) => result.item)
+    }
+    return this.props.options;
+  }
+
+  onSearchBoxChange(evt: React.ChangeEvent<HTMLInputElement>) {
+    this.setFilterPhrase(evt.target.value)
+  }
+
+  onSearchBoxClick(evt: React.ChangeEvent<HTMLInputElement>) {
+    // We don't want it to trigger closing
+    evt.preventDefault()
+    evt.stopPropagation()
   }
 
   renderTrigger() {
@@ -116,6 +178,10 @@ class KoboSelect extends React.Component<KoboSelectProps, {}> {
           }
 
           <Icon name='caret-down' size={ButtonToIconMap.get(this.props.size)}/>
+
+          {this.props.isSearchable && this.state.isMenuVisible &&
+            this.renderSearchBox()
+          }
         </bem.KoboSelect__trigger>
       )
     }
@@ -129,10 +195,22 @@ class KoboSelect extends React.Component<KoboSelectProps, {}> {
     )
   }
 
+  renderSearchBox() {
+    return (
+      <bem.KoboSelect__searchbox
+        value={this.state.filterPhrase}
+        onChange={this.onSearchBoxChange.bind(this)}
+        onClick={this.onSearchBoxClick.bind(this)}
+      />
+    )
+  }
+
   renderMenu() {
+    const filteredOptions = this.getFilteredOptionsList()
+
     return (
       <bem.KoboSelect__menu>
-        {this.props.options.map((option) => (
+        {filteredOptions.map((option) => (
           <bem.KoboSelect__option
             key={option.id}
             onClick={this.onOptionClick.bind(this, option.id)}
@@ -168,6 +246,7 @@ class KoboSelect extends React.Component<KoboSelectProps, {}> {
     return (
       <bem.KoboSelect m={modifiers}>
         <KoboDropdown
+          name={this.props.name}
           placement={KoboDropdownPlacements['down-center']}
           isDisabled={Boolean(this.props.isDisabled)}
           hideOnMenuClick

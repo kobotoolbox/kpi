@@ -25,8 +25,11 @@ type KoboDropdownProps = {
   triggerContent: React.ReactNode,
   /** The content of dropdown, anything's allowed. */
   menuContent: React.ReactNode,
-  /** Optional name value useful for styling, ends up in `data-name` attribut.e */
-  name?: string,
+  /**
+   * Optional name value useful for styling and `menuVisibilityChange` action,
+   * ends up in `data-name` attribut.e
+   */
+  name: string,
 }
 
 type KoboDropdownState = {
@@ -98,6 +101,7 @@ export default class KoboDropdown extends React.Component<
 
   showMenu() {
     this.setState({isMenuVisible: true});
+    koboDropdownActions.menuVisibilityChange(this.props.name, true);
     // Hides menu when user clicks outside it.
     this.registerEscKeyListener();
     // Hides menu when opened and user uses Escape key.
@@ -106,6 +110,7 @@ export default class KoboDropdown extends React.Component<
 
   hideMenu() {
     this.setState({isMenuVisible: false});
+    koboDropdownActions.menuVisibilityChange(this.props.name, false);
     this.cancelEscKeyListener();
     this.cancelOutsideClickListener();
   }

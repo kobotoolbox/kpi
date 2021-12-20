@@ -159,6 +159,7 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
               <bem.SimpleTable__cell>
                 <div className='demo__preview'>
                   <KoboSelect
+                    name='kobo-select-demo'
                     type={this.state.demoType}
                     size={this.state.demoSize}
                     isClearable={this.state.demoIsClearable}
