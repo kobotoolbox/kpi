@@ -217,6 +217,14 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
 
         {this.isSearchboxVisible() && this.renderSearchBox()}
 
+        {this.props.isPending &&
+          <Icon
+            name='spinner'
+            size={ButtonToIconMap.get(this.props.size)}
+            classNames={['k-spin']}
+          />
+        }
+
         <Icon
           name={this.state.isMenuVisible ? 'caret-up' : 'caret-down'}
           size='xxs'
