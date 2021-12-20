@@ -1,16 +1,11 @@
-// TODO
-// 1. searchbox needs an icon and some default text - "Search" or selected option label for nothing typed
-// 4. finish up styles for caret icon (smaller and color, ?)
-// 5. blue glow for opened/active
-
 import $ from 'jquery'
-import React, {ReactElement} from 'react'
+import React from 'react'
 import Fuse from 'fuse.js'
 import {FUSE_OPTIONS} from 'js/constants'
 import bem, {makeBem} from 'js/bem'
 import {IconName} from 'jsapp/fonts/k-icons'
-import Icon, {IconSize} from 'js/components/common/icon'
-import Button, {ButtonSize, ButtonToIconMap} from 'js/components/common/button'
+import Icon from 'js/components/common/icon'
+import {ButtonSize, ButtonToIconMap} from 'js/components/common/button'
 import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown'
 import koboDropdownActions from 'js/components/common/koboDropdownActions'
 import './koboSelect.scss'
@@ -205,7 +200,10 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
             />
           }
 
-          <Icon name='caret-down' size={ButtonToIconMap.get(this.props.size)}/>
+          <Icon
+            name={this.state.isMenuVisible ? 'caret-up' : 'caret-down'}
+            size='xxs'
+          />
         </bem.KoboSelect__trigger>
       )
     }
@@ -219,12 +217,20 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
 
         {this.isSearchboxVisible() && this.renderSearchBox()}
 
-        <Icon name='caret-down' size={ButtonToIconMap.get(this.props.size)}/>
+        <Icon
+          name={this.state.isMenuVisible ? 'caret-up' : 'caret-down'}
+          size='xxs'
+        />
       </bem.KoboSelect__trigger>
     )
   }
 
   renderSearchBox() {
+    const foundSelectedOption = this.props.options.find((option) => (
+      this.props.selectedOption !== null &&
+      option.id === this.props.selectedOption
+    ))
+
     return (
       <React.Fragment>
         <Icon name='search' size={ButtonToIconMap.get(this.props.size)}/>
@@ -233,6 +239,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
           value={this.state.filterPhrase}
           onChange={this.onSearchBoxChange.bind(this)}
           onClick={this.onSearchBoxClick.bind(this)}
+          placeholder={foundSelectedOption ? foundSelectedOption.label : t('Select…')}
         />
       </React.Fragment>
     )

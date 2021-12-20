@@ -34,6 +34,7 @@
   }
 }
 
+.k-select__trigger .k-icon + input,
 .k-select__trigger .k-icon + label,
 .k-select__option .k-icon + label {
   margin-left: sizes.$x6;
@@ -69,6 +70,10 @@
 
 .k-select__option {
   @include mixins.buttonReset;
+
+  .k-icon {
+    color: colors.$kobo-gray-85;
+  }
 }
 
 .k-select__option,
@@ -106,6 +111,7 @@
   width: 100%;
   background-color: transparent;
   border: 0;
+  padding: 0;
 }
 
 // When menu is opened and searchable, we replace the trigger with text input.
@@ -140,6 +146,13 @@
     // Hide button text.
     color: transparent !important;
 
+    .k-select__clear .k-icon,
+    .k-icon.k-icon-caret-down,
+    .k-icon.k-icon-caret-up,
+    .k-select__trigger-selected-option .k-icon {
+      color: transparent !important;
+    }
+
     // Disable any interactions (and hover effects).
     pointer-events: none;
 
@@ -156,51 +169,74 @@
   }
 }
 
-.k-select.k-select--type-blue {
-  .k-select__trigger:hover,
-  &.k-select--is-pending .k-select__trigger {
-    color: colors.$kobo-gray-24;
-    background-color: darken(colors.$kobo-light-blue, 2);
+.k-select.k-select--type-blue,
+.k-select.k-select--type-gray {
+  &.k-select--is-menu-visible {
+    .k-select__trigger {
+      border-color: colors.$kobo-alt-blue;
+      box-shadow: 0 0 0 sizes.$x2 colors.$kobo-light-alt-blue;
 
-    .k-icon.k-icon-spinner {
-      color: colors.$kobo-gray-24;
+      .k-icon.k-icon-caret-down,
+      .k-icon.k-icon-caret-up {
+        color: colors.$kobo-blue;
+      }
     }
   }
 
+  .k-select__trigger .k-icon {
+    color: colors.$kobo-gray-65;
+  }
+}
+
+.k-select.k-select--type-blue {
   .k-select__trigger {
     background-color: colors.$kobo-light-blue;
+  }
+
+  &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
+  &.k-select--is-pending .k-select__trigger {
+    color: colors.$kobo-gray-24;
+    background-color: darken(colors.$kobo-light-blue, 2);
   }
 }
 
 .k-select.k-select--type-gray {
-  .k-select__trigger:hover,
+  .k-select__trigger {
+    background-color: colors.$kobo-cloud;
+  }
+
+  &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
     color: colors.$kobo-gray-24;
     background-color: darken(colors.$kobo-cloud, 2);
-
-    .k-icon.k-icon-spinner {
-      color: colors.$kobo-gray-24;
-    }
-  }
-
-  .k-select__trigger {
-    background-color: colors.$kobo-cloud;
   }
 }
 
 .k-select.k-select--type-outline {
-  .k-select__trigger:hover,
+  .k-select__trigger {
+    border-color: colors.$kobo-gray-92;
+  }
+
+  &:not(.k-select--is-menu-visible) .k-select__trigger:hover,
   &.k-select--is-pending .k-select__trigger {
     border-color: colors.$kobo-gray-85;
     color: colors.$kobo-gray-24;
+  }
 
-    .k-icon.k-icon-spinner {
-      color: colors.$kobo-gray-24;
+  &.k-select--is-menu-visible {
+    .k-select__trigger {
+      border-color: colors.$kobo-blue;
+      box-shadow: 0 0 0 sizes.$x2 colors.$kobo-light-alt-blue;
+
+      .k-icon.k-icon-caret-down,
+      .k-icon.k-icon-caret-up {
+        color: colors.$kobo-blue;
+      }
     }
   }
 
-  .k-select__trigger {
-    border-color: colors.$kobo-gray-92;
+  .k-select__trigger .k-icon {
+    color: colors.$kobo-gray-85;
   }
 }
 
