@@ -1,2 +1,0 @@
-- make KoboDropdown themeless - move theme option outside
-- 
