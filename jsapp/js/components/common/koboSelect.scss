@@ -50,6 +50,10 @@
   @include mixins.centerRowFlex;
 }
 
+.k-select__trigger-selected-option {
+  @include mixins.centerRowFlex;
+}
+
 .k-select__menu {
   display: block;
   width: 100%;
@@ -84,16 +88,24 @@
 }
 
 .k-select__searchbox {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
-  background-color: inherit;
+  background-color: transparent;
   border: 0;
 }
 
-.k-select.k-select--is-full-width {
+// When menu is opened and searchable, we replace the trigger with text input.
+.k-select.k-select--is-searchable.k-select--is-menu-visible {
+  // We need it to disappear, but also to be still a child node for the opening
+  // functionality to work.
+  .k-select__trigger-selected-option {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+  }
+}
+
+// The always takes all the available space.
+.k-select {
   width: 100%;
 
   .kobo-dropdown,

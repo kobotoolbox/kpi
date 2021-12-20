@@ -12,6 +12,7 @@ import './koboSelect.scss'
 // We can't use "kobo-select" as it is already being used for custom styling of `react-select`.
 bem.KoboSelect = makeBem(null, 'k-select')
 bem.KoboSelect__trigger = makeBem(bem.KoboSelect, 'trigger')
+bem.KoboSelect__triggerSelectedOption = makeBem(bem.KoboSelect, 'trigger-selected-option', 'span')
 bem.KoboSelect__clear = makeBem(bem.KoboSelect, 'clear')
 bem.KoboSelect__menu = makeBem(bem.KoboSelect, 'menu', 'menu')
 bem.KoboSelect__option = makeBem(bem.KoboSelect, 'option', 'button')
@@ -48,8 +49,6 @@ type KoboSelectProps = {
   isDisabled?: boolean
   /** Changes the appearance to display spinner. */
   isPending?: boolean
-  /** Simply changes the width. */
-  isFullWidth?: boolean
   options: KoboSelectOption[]
   /** Pass the id or null for no selection. */
   selectedOption: string | null
@@ -136,9 +135,13 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
   }
 
   onSearchBoxClick(evt: React.ChangeEvent<HTMLInputElement>) {
-    // We don't want it to trigger closing
+    // We don't want it to trigger closing.
     evt.preventDefault()
     evt.stopPropagation()
+  }
+
+  isSearchboxVisible() {
+    return this.props.isSearchable && this.state.isMenuVisible
   }
 
   renderTrigger() {
@@ -151,14 +154,20 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
     if (foundSelectedOption) {
       return (
         <bem.KoboSelect__trigger>
-          {foundSelectedOption.icon &&
-            <Icon
-              name={foundSelectedOption.icon}
-              size={ButtonToIconMap.get(this.props.size)}
-            />
-          }
+          <bem.KoboSelect__triggerSelectedOption>
+            {foundSelectedOption.icon &&
+              <Icon
+                name={foundSelectedOption.icon}
+                size={ButtonToIconMap.get(this.props.size)}
+              />
+            }
 
-          <label>{foundSelectedOption.label}</label>
+            <label>{foundSelectedOption.label}</label>
+          </bem.KoboSelect__triggerSelectedOption>
+
+          {this.isSearchboxVisible() &&
+            this.renderSearchBox()
+          }
 
           {this.props.isClearable &&
             <bem.KoboSelect__clear onClick={this.onClear.bind(this)}>
@@ -178,10 +187,6 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
           }
 
           <Icon name='caret-down' size={ButtonToIconMap.get(this.props.size)}/>
-
-          {this.props.isSearchable && this.state.isMenuVisible &&
-            this.renderSearchBox()
-          }
         </bem.KoboSelect__trigger>
       )
     }
@@ -189,7 +194,12 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
     // The default trigger for nothing selected.
     return (
       <bem.KoboSelect__trigger>
-        <label>{t('Select…')}</label>
+        <bem.KoboSelect__triggerSelectedOption>
+          <label>{t('Select…')}</label>
+        </bem.KoboSelect__triggerSelectedOption>
+
+        {this.isSearchboxVisible() && this.renderSearchBox()}
+
         <Icon name='caret-down' size={ButtonToIconMap.get(this.props.size)}/>
       </bem.KoboSelect__trigger>
     )
@@ -235,12 +245,16 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
       `type-${this.props.type}`
     ];
 
-    if (this.props.isFullWidth) {
-      modifiers.push('is-full-width')
-    }
-
     if (this.props.isPending) {
       modifiers.push('is-pending')
+    }
+
+    if (this.props.isSearchable) {
+      modifiers.push('is-searchable')
+    }
+
+    if (this.state.isMenuVisible) {
+      modifiers.push('is-menu-visible')
     }
 
     return (

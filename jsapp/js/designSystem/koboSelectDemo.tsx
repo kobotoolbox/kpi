@@ -15,7 +15,6 @@ type KoboSelectDemoState = {
   demoIsSearchable: boolean
   demoIsDisabled: boolean
   demoIsPending: boolean
-  demoIsFullWidth: boolean
   demoSelectedOption: string | null
 }
 
@@ -29,7 +28,6 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
       demoIsSearchable: false,
       demoIsDisabled: false,
       demoIsPending: false,
-      demoIsFullWidth: false,
       demoSelectedOption: 'two'
     }
   }
@@ -44,7 +42,7 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
 
   onIsClearableChange(isChecked: boolean) {
     this.setState({
-      demoSelectedOption: isChecked === false ? 'one' : this.state.demoSelectedOption,
+      demoSelectedOption: isChecked === false ? this.state.demoSelectedOption || 'one' : this.state.demoSelectedOption,
       demoIsClearable: isChecked
     })
   }
@@ -59,10 +57,6 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
 
   onIsPendingChange(isChecked: boolean) {
     this.setState({demoIsPending: isChecked})
-  }
-
-  onIsFullWidthChange(isChecked: boolean) {
-    this.setState({demoIsFullWidth: isChecked})
   }
 
   onSelectChange(newSelectedOption: string | null) {
@@ -145,14 +139,6 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
                         checked={this.state.demoIsPending}
                       />
                     </div>
-
-                    <div className='demo__form-config'>
-                      <Checkbox
-                        label='is full width'
-                        onChange={this.onIsFullWidthChange.bind(this)}
-                        checked={this.state.demoIsFullWidth}
-                      />
-                    </div>
                   </div>
                 </form>
               </bem.SimpleTable__cell>
@@ -166,7 +152,6 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
                     isSearchable={this.state.demoIsSearchable}
                     isDisabled={this.state.demoIsDisabled}
                     isPending={this.state.demoIsPending}
-                    isFullWidth={this.state.demoIsFullWidth}
                     options={[
                       {
                         id: 'one',
