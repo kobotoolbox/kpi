@@ -803,6 +803,11 @@ def _get_fields_and_groups(fields: List[str]) -> List[str]:
     """
     if not fields:
         return []
+
+    # Some fields are attached to the submission and must be included in
+    # addition to the user-selected fields
+    additional_fields = ['_attachments']
+
     field_groups = set()
     for field in fields:
         if '/' not in field:
@@ -814,5 +819,5 @@ def _get_fields_and_groups(fields: List[str]) -> List[str]:
                 items.append(_path)
             field = _path
         field_groups.update(items)
-    fields += list(field_groups)
+    fields += list(field_groups) + additional_fields
     return fields
