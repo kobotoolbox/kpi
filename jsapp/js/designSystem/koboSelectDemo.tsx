@@ -74,6 +74,8 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
       <section>
         <h1><code>&lt;KoboSelect&gt;</code> component</h1>
 
+        <p>This component always take 100% of available space, so you need to constrain in the places you'd use it.</p>
+
         <bem.SimpleTable>
           <bem.SimpleTable__header>
             <bem.SimpleTable__row>
