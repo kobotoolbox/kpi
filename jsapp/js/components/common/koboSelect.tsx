@@ -1,3 +1,11 @@
+// TODO
+// 1. searchbox needs an icon and some default text - "Search" or selected option label for nothing typed
+// 2. searchbox should auto focus when opened
+// 3. a text for when filter returns 0 results
+// 4. finish up styles for caret icon (smaller and color, ?)
+// 5. blue glow for opened/active
+
+
 import React, {ReactElement} from 'react'
 import Fuse from 'fuse.js';
 import {FUSE_OPTIONS} from 'js/constants';
