@@ -13,8 +13,7 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
         'transcript': {
             'type': 'object',
         },
-        # translations example:
-        'translation': {
+        'translated': {
             'type': 'object',
         }
     }

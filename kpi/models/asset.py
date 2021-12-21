@@ -22,8 +22,9 @@ from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 
 from kobo.apps.subsequences.utils import advanced_submission_jsonschema
-from kobo.apps.subsequences.utils import get_additional_fields_data_xyz
 from kobo.apps.subsequences.utils import advanced_feature_instances
+
+from django.core.exceptions import ObjectDoesNotExist
 
 from kobo.apps.subsequences.advanced_features_params_schema import (
     ADVANCED_FEATURES_PARAMS_SCHEMA,
@@ -426,6 +427,21 @@ class Asset(ObjectPermissionMixin,
             self.advanced_features = {}
         jsonschema_validate(instance=self.advanced_features,
                             schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
+
+    def update_submission_extra(self, content, user=None):
+        uuid = content.pop('submission')
+        try:
+            sub = self.submission_extras.get(uuid=uuid)
+        except ObjectDoesNotExist:
+            sub = self.submission_extras.model(asset=self, uuid=uuid)
+        instances = self.get_advanced_feature_instances()
+        compiled_content = {**sub.content}
+        for instance in instances:
+            compiled_content = instance.compile_revised_record(compiled_content,
+                                                               edits=content)
+        sub.content = compiled_content
+        sub.save()
+        return sub
 
     def get_advanced_submission_schema(self, url=None):
         if len(self.advanced_features) == 0:

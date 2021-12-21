@@ -25,13 +25,7 @@ def advanced_submission_post(request, asset_uid=None):
         validate(posted_data, schema)
     except SchemaValidationError as err:
         raise APIValidationError({'error': err})
-    s_uuid = posted_data.get('submission')
-    try:
-        submission = asset.submission_extras.get(uuid=s_uuid)
-    except SubmissionExtras.DoesNotExist:
-        submission = asset.submission_extras.create(uuid=s_uuid)
-    submission.patch_content(request.data)
-    submission.save()
+    submission = asset.update_submission_extra(posted_data)
     return Response(submission.content)
 
 

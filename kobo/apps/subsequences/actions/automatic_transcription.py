@@ -5,10 +5,11 @@ REQUESTED_BY_USER = 'REQUESTED_BY_USER'
 PENDING = 'PENDING'
 
 
+DT_MOD = BaseAction.DATE_MODIFIED_FIELD
+DT_CREATED = BaseAction.DATE_CREATED_FIELD
 
 class AutomaticTranscriptionAction(BaseAction):
     ID = 'transcript'
-    MANUAL = 'transcript_manual'
     TRANSCRIPTION_SERVICES = (
         'transcript_acme',
     )
@@ -27,37 +28,49 @@ class AutomaticTranscriptionAction(BaseAction):
         self.possible_transcribed_fields = params['values']
         self.available_services = params['services']
 
-    @property
-    def jsonschema_properties(self):
-        '''
-        the schema of attributes which can be submitted to a submission
-        '''
-        properties = {}
-        for (field, service, fs_key) in self.field_service_matrix():
-            if field not in properties:
-                properties[field] = {}
-            properties[field][service] = {
+    def modify_jsonschema(self, schema):
+        defs = schema.get('definitions', {})
+        defs['transcript'] = {
+            'type': 'object',
+            'properties': {
+                'value': {'type': 'string'},
+                'engine': {'type': 'string'},
+                self.DATE_CREATED_FIELD: {'type': 'string',
+                                          'format': 'date-time'},
+                self.DATE_MODIFIED_FIELD: {'type': 'string',
+                                           'format': 'date-time'},
+                'languageCode': {'type': 'string'},
+                'revisions': {'type': 'array', 'items': {
+                    '$ref': '#/definitions/transcriptRevision'
+                }}
+            },
+            'additionalProperties': False,
+            'required': ['value'],
+        }
+        defs['transcriptRevision'] = {
+            'type': 'object',
+            'properties': {
+                'value': {'type': 'string'},
+                'engine': {'type': 'string'},
+                self.DATE_MODIFIED_FIELD: {'type': 'string',
+                                           'format': 'date-time'},
+                'languageCode': {'type': 'string'},
+            },
+            'additionalProperties': False,
+            'required': ['value'],
+        }
+        for field in self.possible_transcribed_fields:
+            field_def = schema['properties'].get(field, {
                 'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'string',
-                    },
-                    'languageCode': {
-                        'type': 'string',
-                    },
-                    'dateCreated': {
-                        'type': 'string',
-                        'format': 'date-time',
-                    },
-                    'dateModified': {
-                        'type': 'string',
-                        'format': 'date-time',
-                    },
-                },
-                'required': ['value'],
+                'properties': {},
                 'additionalProperties': False,
+            })
+            field_def['properties'][self.ID] = {
+                '$ref': '#/definitions/transcript'
             }
-        return properties
+            schema['properties'][field] = field_def
+        schema['definitions'] = defs
+        return schema
 
     def check_submission_status(self, submission):
         if self._destination_field not in submission:
@@ -120,7 +133,3 @@ class AutomaticTranscriptionAction(BaseAction):
                 supp_data[fs_key] = PENDING
                 continue
         return {**submission, self._destination_field: supp_data}
-
-    def initiate_async_request(self, submission, field, service):
-        print(f'INITIATE ASYNC REQUEST for {field} and {service}')
-        pass
