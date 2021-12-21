@@ -14,6 +14,7 @@ urlpatterns = [
     re_path(r'^admin/', include('loginas.urls')),
     re_path(r'^', include('kpi.urls')),
     re_path(r'^markdownx/', include('markdownx.urls')),
+    re_path(r'^markitup/', include('markitup.urls')),
     re_path(r'^help/', include('kobo.apps.help.urls')),
     path('service_health/', service_health),
     re_path(r'kobocat/', RedirectView.as_view(url=settings.KOBOCAT_URL, permanent=True)),
