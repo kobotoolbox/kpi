@@ -1,7 +1,9 @@
 # coding: utf-8
+import os
 import re
 from typing import Optional, Union
 from lxml import etree
+from xml.etree import ElementTree as ET
 
 
 def strip_nodes(
@@ -154,3 +156,33 @@ def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
     if use_bytes:
         return xml_.encode()
     return xml_
+
+
+def edit_submission_xml(
+    xml_parsed: etree._Element,
+    path: str,
+    value: str,
+) -> None:
+    if '/' in path:
+        accumulated_elements = []
+        for i, element in enumerate(path.split('/')):
+            if i == 0:
+                if xml_parsed.find(element) is None:
+                    etree.SubElement(xml_parsed, element)
+                accumulated_elements.append(element)
+            else:
+                updated_xml_path = '/'.join(accumulated_elements)
+                if (
+                    xml_parsed.find(os.path.join(updated_xml_path, element))
+                    is None
+                ):
+                    etree.SubElement(xml_parsed.find(updated_xml_path), element)
+                accumulated_elements.append(element)
+
+    element_to_update = xml_parsed.find(path)
+    element_to_update_or_new = (
+        element_to_update
+        if element_to_update is not None
+        else etree.SubElement(xml_parsed, path)
+    )
+    element_to_update_or_new.text = value

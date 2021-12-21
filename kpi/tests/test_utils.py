@@ -2,6 +2,7 @@
 import os
 import re
 from copy import deepcopy
+from lxml import etree
 
 from django.conf import settings
 from django.db.models import Q
@@ -12,7 +13,7 @@ from kpi.utils.autoname import autoname_fields, autoname_fields_to_field
 from kpi.utils.autoname import autovalue_choices_in_place
 from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
-from kpi.utils.xml import strip_nodes
+from kpi.utils.xml import strip_nodes, edit_submission_xml
 
 
 class UtilsTestCase(TestCase):
@@ -400,6 +401,46 @@ class XmlUtilsTestCase(TestCase):
             expected,
 
         )
+
+    def test_edit_submission_xml(self):
+        xml_parsed = etree.fromstring(self.__submission)
+        update_data = {
+            'group1/subgroup1/question_1': 'Edit 1',
+            'group1/subgroup11/question_3': 'Edit 2',
+            'group11/question_66': 'Edit 3',
+            'group11/question_666': 'Answer 666',
+            'group111/subgroup111/subsubgroup1/question_7': 'Answer 7',
+        }
+        for k, v in update_data.items():
+            edit_submission_xml(xml_parsed, k, v)
+        xml_expected = '''
+            <root>
+                <group1>
+                    <subgroup1>
+                        <question_1>Edit 1</question_1>
+                        <question_2>Answer 2</question_2>
+                    </subgroup1>
+                    <subgroup11>
+                        <question_3>Edit 2</question_3>
+                        <question_4>Answer 4</question_4>
+                    </subgroup11>
+                    <question_5>Answer 5</question_5>
+                </group1>
+                <group11>
+                    <question_6>Answer 6</question_6>
+                    <question_66>Edit 3</question_66>
+                    <question_666>Answer 666</question_666>
+                </group11>
+                <group111>
+                    <subgroup111>
+                        <subsubgroup1>
+                            <question_7>Answer 7</question_7>
+                        </subsubgroup1>
+                    </subgroup111>
+                </group111>
+            </root>
+        '''
+        self.__compare_xml(etree.tostring(xml_parsed).decode(), xml_expected)
 
     def __compare_xml(self, source: str, target: str) -> bool:
         """ Attempts to standardize XML by removing whitespace between tags """
