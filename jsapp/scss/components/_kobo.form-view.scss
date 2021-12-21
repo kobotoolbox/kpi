@@ -49,6 +49,18 @@ $side-tabs-width-mobile: 70px;
   }
 }
 
+@media not print {
+  .form-view__sidetabs + .form-view,
+  .form-view__sidetabs + .report-view,
+  .form-view__sidetabs + .loading,
+  .form-view__sidetabs + .access-denied {
+    width: calc(100% - 170px);
+    height: calc(100% - 48px);
+    overflow: auto;
+    overflow-x: hidden;
+  }
+}
+
 // The additional side menu tabs on the left
 .form-view__sidetabs {
   width: $side-tabs-width;
@@ -59,16 +71,6 @@ $side-tabs-width-mobile: 70px;
   float: left;
   background: $kobo-white;
   border-right: 1px solid $kobo-gray-92;
-
-  & + .form-view,
-  & + .report-view,
-  & + .loading,
-  & + .access-denied {
-    width: calc(100% - #{$side-tabs-width});
-    height: calc(100% - 48px);
-    overflow: auto;
-    overflow-x: hidden;
-  }
 
   & + .loading {
     display: flex;
