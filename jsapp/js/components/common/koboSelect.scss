@@ -25,10 +25,7 @@
   position: relative; // Needed for pending state.
   padding: 0 sizes.$x16;
 
-  label {
-    cursor: inherit;
-  }
-
+  .k-select__search-box,
   .k-select__trigger-selected-option {
     flex: 1;
   }
@@ -54,8 +51,15 @@
   @include mixins.centerRowFlex;
 }
 
+.k-select__search-box,
 .k-select__trigger-selected-option {
   @include mixins.centerRowFlex;
+  max-width: 80%;
+  margin-right: auto;
+}
+
+.k-select__search-box {
+  max-width: 70%;
 }
 
 .k-select__menu {
@@ -100,21 +104,23 @@
     color: colors.$kobo-gray-24;
     background-color: colors.$kobo-gray-96;
   }
+}
 
-  label {
-    cursor: inherit;
-    flex: 1;
-  }
+.k-select__option label,
+.k-select__trigger label {
+  @include mixins.textEllipsis;
+  cursor: inherit;
+  flex: 1;
 }
 
 .k-select__search-box {
-  width: 100%;
   background-color: transparent;
   border: 0;
   padding: 0;
   font-size: inherit;
 
   &::placeholder {
+    @include mixins.textEllipsis;
     color: inherit;
     opacity: 1;
   }

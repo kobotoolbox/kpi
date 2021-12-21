@@ -161,6 +161,7 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
               </bem.SimpleTable__cell>
               <bem.SimpleTable__cell>
                 <div className='demo__preview'>
+                  <div style={{maxWidth: '300px'}}>
                   <KoboSelect
                     name='kobo-select-demo'
                     type={this.state.demoType}
@@ -178,17 +179,18 @@ export default class KoboSelectDemo extends React.Component<{}, KoboSelectDemoSt
                       {
                         id: 'two',
                         label: 'Two',
-                        icon: this.state.demoOptionsWithIcons ? 'information' : undefined
+                        icon: this.state.demoOptionsWithIcons ? 'qt-audio' : undefined
                       },
                       {
-                        id: 'three',
-                        label: 'Three',
-                        icon: this.state.demoOptionsWithIcons ? 'information' : undefined
+                        id: 'last',
+                        label: 'The last one here with a very long label',
+                        icon: this.state.demoOptionsWithIcons ? 'globe-alt' : undefined
                       }
                     ]}
                     selectedOption={this.state.demoSelectedOption}
                     onChange={this.onSelectChange.bind(this)}
                   />
+                  </div>
                 </div>
               </bem.SimpleTable__cell>
             </bem.SimpleTable__row>
