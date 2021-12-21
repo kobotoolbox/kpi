@@ -63,12 +63,6 @@ def _empty_obj():
 
 def get_jsonschema(action_instances=(), url=None):
     sub_props = {}
-    for instance in action_instances:
-        jp = instance.jsonschema_properties
-        for prop, vals in jp.items():
-            sub_prop = sub_props.get(prop, _empty_obj())
-            sub_prop['properties'].update(**vals)
-            sub_props[prop] = sub_prop
     if url is None:
         url = '/advanced_submission_post/<asset_uid>'
     schema = {'type': 'object',
@@ -77,11 +71,12 @@ def get_jsonschema(action_instances=(), url=None):
                   'properties': {
                     'submission': {'type': 'string',
                                    'description': 'the uuid of the submission'},
-                    **sub_props,
                   },
                   'additionalProperties': False,
                   'required': ['submission'],
               }
+    for instance in action_instances:
+        schema = instance.modify_jsonschema(schema)
     return schema
 
 SUPPLEMENTAL_DETAILS_KEY = '_supplementalDetails'
