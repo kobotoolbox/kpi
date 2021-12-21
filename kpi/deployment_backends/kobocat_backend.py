@@ -2,6 +2,7 @@
 import copy
 import io
 import json
+import os
 import posixpath
 import re
 import uuid
@@ -177,20 +178,17 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 if '/' in k:
                     accumulated_elements = []
                     for i, element in enumerate(k.split('/')):
-                        if i == 0:
-                            if xml_parsed.find(element) is None:
-                                ET.SubElement(xml_parsed, element)
-                            accumulated_elements.append(element)
-                        else:
-                            updated_xml_path = '/'.join(accumulated_elements)
-                            if (
-                                xml_parsed.find(f'{updated_xml_path}/{element}')
-                                is None
-                            ):
-                                ET.SubElement(
-                                    xml_parsed.find(updated_xml_path), element
-                                )
-                            accumulated_elements.append(element)
+                        updated_xml_path = '/'.join(accumulated_elements)
+                        if (
+                            xml_parsed.find(
+                                os.path.join(updated_xml_path, element)
+                            )
+                            is None
+                        ):
+                            ET.SubElement(
+                                xml_parsed.find(updated_xml_path), element
+                            )
+                        accumulated_elements.append(element)
 
                 element_to_update = xml_parsed.find(k)
                 element_to_update_or_new = (
