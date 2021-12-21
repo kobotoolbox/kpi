@@ -24,7 +24,7 @@ export type ButtonSize = 's' | 'm' | 'l'
 const DefaultSize = 'm'
 
 /** To be used for buttons with both icon and text. */
-const ButtonToIconMap: Map<ButtonSize, IconSize> = new Map()
+export const ButtonToIconMap: Map<ButtonSize, IconSize> = new Map()
 ButtonToIconMap.set('s', 'xs')
 ButtonToIconMap.set('m', 's')
 ButtonToIconMap.set('l', 'm')

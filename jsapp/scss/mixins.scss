@@ -30,3 +30,9 @@
   align-content: center;
   align-items: center;
 }
+
+@mixin textEllipsis() {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
