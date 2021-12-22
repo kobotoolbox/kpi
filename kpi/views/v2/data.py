@@ -383,7 +383,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         url_path='(enketo\/)?edit',
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
-        #return self._enketo_request(request, pk, action_='edit', *args, **kwargs)
         submission_id = positive_int(pk)
         return self._get_enketo_link(request, submission_id, 'edit')
 
@@ -395,7 +394,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         url_path='enketo/view',
     )
     def enketo_view(self, request, pk, *args, **kwargs):
-
         submission_id = positive_int(pk)
         return self._get_enketo_link(request, submission_id, 'view')
 
@@ -519,17 +517,6 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         json_response = deployment.set_validation_statuses(
             request.user, bulk_actions_validator.data)
 
-        return Response(**json_response)
-
-    def _enketo_request(self, request, pk, action_, *args, **kwargs):
-        deployment = self._get_deployment()
-        submission_id = positive_int(pk)
-        json_response = deployment.get_enketo_submission_url(
-            submission_id,
-            user=request.user,
-            action_=action_,
-            params=request.GET
-        )
         return Response(**json_response)
 
     def _filter_mongo_query(self, request):
