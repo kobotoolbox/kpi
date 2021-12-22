@@ -163,6 +163,10 @@ def edit_submission_xml(
     path: str,
     value: str,
 ) -> None:
+    """
+    Edit submission XML with an XPath and new value, creating a new tree
+    element if the path doesn't yet exist.
+    """
     if '/' in path:
         accumulated_elements = []
         for i, element in enumerate(path.split('/')):
