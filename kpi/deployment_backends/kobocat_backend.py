@@ -2,7 +2,6 @@
 import copy
 import io
 import json
-import os
 import posixpath
 import re
 import uuid

@@ -1,5 +1,4 @@
 # coding: utf-8
-import os
 import re
 from typing import Optional, Union, List
 from lxml import etree
