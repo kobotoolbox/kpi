@@ -169,15 +169,17 @@ def edit_submission_xml(
     Edit submission XML with an XPath and new value, creating a new tree
     element if the path doesn't yet exist.
     """
-    path_parts = path.split('/')
-    for i, node in enumerate(path_parts):
-        element = xml_parsed.find(get_path(path_parts, end=i + 1))
+    element = xml_parsed.find(path)
+    if element is None:
+        path_parts = path.split('/')
         # Construct the tree of elements, one node at a time
-        if element is None:
-            if i == 0:
-                element = etree.SubElement(xml_parsed, node)
-            else:
-                element = etree.SubElement(
-                    xml_parsed.find(get_path(path_parts, end=i)), node
+        for i, node in enumerate(path_parts):
+            element = xml_parsed.find(get_path(path_parts, end=i + 1))
+            if element is None:
+                parent = (
+                    xml_parsed
+                    if i == 0
+                    else xml_parsed.find(get_path(path_parts, end=i))
                 )
+                element = etree.SubElement(parent, node)
     element.text = value
