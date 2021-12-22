@@ -91,15 +91,15 @@ export default class TranslationsTabContent extends React.Component<
     singleProcessingStore.setTranslationDraft(newDraft)
   }
 
-  /** Changes the draft content, preserving the other draft properties. */
-  setDraftContent(newVal: string | undefined) {
+  /** Changes the draft value, preserving the other draft properties. */
+  setDraftValue(newVal: string | undefined) {
     const newDraft = clonedeep(singleProcessingStore.getTranslationDraft()) || {}
-    newDraft.content = newVal
+    newDraft.value = newVal
     singleProcessingStore.setTranslationDraft(newDraft)
   }
 
-  onDraftContentChange(evt: React.ChangeEvent<HTMLTextAreaElement>) {
-    this.setDraftContent(evt.target.value)
+  onDraftValueChange(evt: React.ChangeEvent<HTMLTextAreaElement>) {
+    this.setDraftValue(evt.target.value)
   }
 
   begin() {
@@ -108,13 +108,13 @@ export default class TranslationsTabContent extends React.Component<
   }
 
   selectModeManual() {
-    // Initialize draft content.
-    this.setDraftContent('')
+    // Initialize draft value.
+    this.setDraftValue('')
   }
 
   selectModeAuto() {
     // TODO: this will display an automated service selector that will
-    // ultimately produce a draft content.
+    // ultimately produce a draft value.
   }
 
   back() {
@@ -123,7 +123,7 @@ export default class TranslationsTabContent extends React.Component<
     if (
       draft !== undefined &&
       draft?.languageCode === undefined &&
-      draft?.content === undefined
+      draft?.value === undefined
     ) {
       this.discardDraft()
     }
@@ -131,7 +131,7 @@ export default class TranslationsTabContent extends React.Component<
     if (
       draft !== undefined &&
       draft?.languageCode !== undefined &&
-      draft?.content === undefined
+      draft?.value === undefined
     ) {
       singleProcessingStore.setTranslationDraft({})
       languageSelectorActions.resetAll()
@@ -167,11 +167,11 @@ export default class TranslationsTabContent extends React.Component<
 
     if (
       draft?.languageCode !== undefined &&
-      draft?.content !== undefined
+      draft?.value !== undefined
     ) {
       singleProcessingStore.setTranslation(draft.languageCode, {
         languageCode: draft.languageCode,
-        content: draft.content,
+        value: draft.value,
         dateCreated: existingTranslation?.dateCreated || dateISO,
         dateModified: dateISO
       })
@@ -381,7 +381,7 @@ export default class TranslationsTabContent extends React.Component<
 
     // The discard button will become a back button when there are no unsaved changes.
     let discardLabel = t('Back')
-    if (singleProcessingStore.hasUnsavedTranslationDraftContent()) {
+    if (singleProcessingStore.hasUnsavedTranslationDraftValue()) {
       discardLabel = t('Discard')
     }
 
@@ -407,14 +407,14 @@ export default class TranslationsTabContent extends React.Component<
               label={t('Save')}
               onClick={this.saveDraft.bind(this)}
               isPending={singleProcessingStore.isFetchingData}
-              isDisabled={!singleProcessingStore.hasUnsavedTranslationDraftContent()}
+              isDisabled={!singleProcessingStore.hasUnsavedTranslationDraftValue()}
             />
           </bem.ProcessingBody__transHeaderButtons>
         </bem.ProcessingBody__transHeader>
 
         <bem.ProcessingBody__textarea
-          value={draft?.content}
-          onChange={this.onDraftContentChange.bind(this)}
+          value={draft?.value}
+          onChange={this.onDraftValueChange.bind(this)}
           disabled={singleProcessingStore.isFetchingData}
         />
       </bem.ProcessingBody>
@@ -466,7 +466,7 @@ export default class TranslationsTabContent extends React.Component<
         </bem.ProcessingBody__transHeader>
 
         <bem.ProcessingBody__text>
-          {singleProcessingStore.getTranslation(this.state.selectedTranslation)?.content}
+          {singleProcessingStore.getTranslation(this.state.selectedTranslation)?.value}
         </bem.ProcessingBody__text>
       </bem.ProcessingBody>
     )
@@ -489,7 +489,7 @@ export default class TranslationsTabContent extends React.Component<
       draft !== undefined &&
       (
         draft.languageCode === undefined ||
-        draft.content === undefined
+        draft.value === undefined
       )
     ) {
       return this.renderStepConfig()

@@ -14,14 +14,14 @@ export enum SingleProcessingTabs {
 }
 
 export interface Transcript {
-  content: string
+  value: string
   languageCode: string
   dateCreated: string
   dateModified: string
 }
 
 export interface Translation {
-  content: string
+  value: string
   languageCode: string
   dateModified: string
   dateCreated: string
@@ -29,7 +29,7 @@ export interface Translation {
 
 /** Transcript or translation draft. */
 interface TransDraft {
-  content?: string
+  value?: string
   languageCode?: string
 }
 
@@ -246,7 +246,7 @@ class SingleProcessingStore extends Reflux.Store {
     if (newTranscript === undefined) {
       processingActions.deleteTranscript()
     } else {
-      processingActions.setTranscript(newTranscript.languageCode, newTranscript.content)
+      processingActions.setTranscript(newTranscript.languageCode, newTranscript.value)
     }
 
     this.trigger(this.data)
@@ -294,7 +294,7 @@ class SingleProcessingStore extends Reflux.Store {
     } else {
       processingActions.setTranslation(
         newTranslation.languageCode,
-        newTranslation.content
+        newTranslation.value
       )
     }
 
@@ -337,28 +337,28 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.activeTab
   }
 
-  hasUnsavedTranscriptDraftContent() {
+  hasUnsavedTranscriptDraftValue() {
     const draft = this.getTranscriptDraft()
     return (
       draft !== undefined &&
-      draft.content !== undefined &&
-      draft.content !== this.getTranscript()?.content
+      draft.value !== undefined &&
+      draft.value !== this.getTranscript()?.value
     )
   }
 
-  hasUnsavedTranslationDraftContent() {
+  hasUnsavedTranslationDraftValue() {
     const draft = this.getTranslationDraft()
     return (
       draft !== undefined &&
-      draft.content !== undefined &&
-      draft.content !== this.getTranslation(draft?.languageCode)?.content
+      draft.value !== undefined &&
+      draft.value !== this.getTranslation(draft?.languageCode)?.value
     )
   }
 
   hasAnyUnsavedWork() {
     return (
-      this.hasUnsavedTranscriptDraftContent() ||
-      this.hasUnsavedTranslationDraftContent()
+      this.hasUnsavedTranscriptDraftValue() ||
+      this.hasUnsavedTranslationDraftValue()
     )
   }
 }

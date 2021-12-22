@@ -36,12 +36,12 @@ processingActions.getProcessingData.failed.listen(() => {
 
 processingActions.setTranscript.listen((
   languageCode: string,
-  content: string
+  value: string
 ) => {
   // TODO: call backend to store transcript, for now we just wait 3 seconds :P
   window.setTimeout(() => {
     processingActions.setTranscript.completed({
-      content: content,
+      value: value,
       languageCode: languageCode,
       dateCreated: '2021-11-08T12:01:16.000Z',
       dateModified: '2021-12-01T20:05:20.970Z',
@@ -64,7 +64,7 @@ processingActions.deleteTranscript.failed.listen(() => {
 
 processingActions.setTranslation.listen((
   languageCode: string,
-  content: string
+  value: string
 ) => {
   // TODO: call backend
   window.setTimeout(() => {
@@ -72,7 +72,7 @@ processingActions.setTranslation.listen((
     let wasTranslationSet = false
     memoizedTranslations.forEach((translation) => {
       if (translation.languageCode === languageCode) {
-        translation.content = content
+        translation.value = value
         translation.dateModified = '2021-12-01T20:05:20.970Z'
         wasTranslationSet = true
       }
@@ -81,7 +81,7 @@ processingActions.setTranslation.listen((
     // we need to add it now
     if (!wasTranslationSet) {
       memoizedTranslations.push({
-        content: content,
+        value: value,
         languageCode: languageCode,
         dateCreated: '2021-12-01T20:05:20.970Z',
         dateModified: '2021-12-01T20:05:20.970Z',
@@ -121,20 +121,20 @@ function getMockData() {
   return {
     transcript: {
       languageCode: 'en',
-      content: 'This is some text in English language, please makre sure to translate it correctly or else I will be very much disappointed.',
+      value: 'This is some text in English language, please makre sure to translate it correctly or else I will be very much disappointed.',
       dateCreated: '2021-11-08T12:01:16.000Z',
       dateModified: '2021-11-16T23:05:20.970Z',
     },
     translations: [
       {
         languageCode: 'pl',
-        content: 'To jest tekst w języku angielskim, upewnij się, że przetłumaczysz go poprawnie, w przeciwnym razie będę bardzo rozczarowany.',
+        value: 'To jest tekst w języku angielskim, upewnij się, że przetłumaczysz go poprawnie, w przeciwnym razie będę bardzo rozczarowany.',
         dateCreated: '2021-11-09T14:14:14.000Z',
         dateModified: '2021-11-10T06:00:00.000Z'
       },
       {
         languageCode: 'de',
-        content: 'Dies ist ein englischer Text, stellen Sie sicher, dass Sie ihn richtig übersetzen, sonst werde ich sehr enttäuscht sein.',
+        value: 'Dies ist ein englischer Text, stellen Sie sicher, dass Sie ihn richtig übersetzen, sonst werde ich sehr enttäuscht sein.',
         dateCreated: '2021-11-10T11:01:00.000Z',
         dateModified: '2021-11-10T11:45:00.000Z'
       }
