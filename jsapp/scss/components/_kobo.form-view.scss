@@ -54,7 +54,7 @@ $side-tabs-width-mobile: 70px;
   .form-view__sidetabs + .report-view,
   .form-view__sidetabs + .loading,
   .form-view__sidetabs + .access-denied {
-    width: calc(100% - 170px);
+    width: calc(100% - $side-tabs-width);
     height: calc(100% - 48px);
     overflow: auto;
     overflow-x: hidden;
