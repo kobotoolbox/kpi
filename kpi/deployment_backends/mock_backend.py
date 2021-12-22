@@ -204,38 +204,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def get_data_download_links(self):
         return {}
 
-    def get_enketo_submission_url(
-        self,
-        submission_id: int,
-        user: 'auth.User',
-        params: dict = None,
-        action_: str = 'edit',
-    ) -> dict:
-        """
-        Gets URL of the submission in a format FE can understand
-        """
-        if action_ == 'edit':
-            partial_perm = PERM_CHANGE_SUBMISSIONS
-        elif action_ == 'view':
-            partial_perm = PERM_VIEW_SUBMISSIONS
-        else:
-            raise NotImplementedError(
-                "Only 'view' and 'edit' actions are currently supported"
-            )
-
-        submission_ids = self.validate_access_with_partial_perms(
-            user=user,
-            perm=partial_perm,
-            submission_ids=[submission_id],
-        )
-
-        return {
-            'content_type': 'application/json',
-            'data': {
-                'url': f'http://server.mock/enketo/{action_}/{submission_id}'
-            }
-        }
-
     def get_enketo_survey_links(self):
         # `self` is a demo Enketo form, but there's no guarantee it'll be
         # around forever.

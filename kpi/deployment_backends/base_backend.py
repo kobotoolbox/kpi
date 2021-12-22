@@ -117,15 +117,6 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_enketo_submission_url(
-        self, submission_id: int, user: 'auth.User', params: dict = None
-    ) -> dict:
-        """
-        Return a formatted dict to be passed to a Response object
-        """
-        pass
-
-    @abc.abstractmethod
     def get_enketo_survey_links(self):
         pass
 
