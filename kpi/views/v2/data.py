@@ -1,4 +1,5 @@
 # coding: utf-8
+import requests
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
@@ -11,16 +12,20 @@ from rest_framework import (
 )
 from rest_framework.decorators import action
 from rest_framework.pagination import _positive_int as positive_int
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kobo.apps.reports.constants import INFERRED_VERSION_ID_KEY
+from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     SUBMISSION_FORMAT_TYPE_JSON,
     SUBMISSION_FORMAT_TYPE_XML,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_VALIDATE_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
 from kpi.models import Asset, AssetVersion, AssetExportSettings
@@ -378,7 +383,9 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         url_path='(enketo\/)?edit',
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
-        return self._enketo_request(request, pk, action_='edit', *args, **kwargs)
+        #return self._enketo_request(request, pk, action_='edit', *args, **kwargs)
+        submission_id = positive_int(pk)
+        return self._get_enketo_link(request, submission_id, 'edit')
 
     @action(
         detail=True,
@@ -389,55 +396,8 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     )
     def enketo_view(self, request, pk, *args, **kwargs):
 
-        deployment = self._get_deployment()
         submission_id = positive_int(pk)
-        submission = deployment.get_submission(submission_id, request.user)
-        submission_xml = deployment.get_submission(
-            submission_id, request.user, SUBMISSION_FORMAT_TYPE_XML
-        )
-
-        import requests
-        from kobo.apps.reports.report_data import build_formpack
-
-        _, submissions_stream = build_formpack(
-            self.asset,
-            submission_stream=[submission],
-            use_all_form_versions=True
-        )
-        version_uid = list(submissions_stream)[0]['__inferred_version__']
-
-        try:
-            snapshot = self.asset.versioned_snapshot(version_uid=version_uid)
-        except AssetVersion.DoesNotExist:
-            raise serializers.ValidationError(
-                {'version': gettext_lazy('Version not found')}
-            )
-
-        # ToDo support attachments
-        data = {
-            'server_url': reverse(
-                viewname='assetsnapshot-detail',
-                kwargs={'uid': snapshot.uid},
-                request=request,
-            ),
-            'instance': submission_xml,
-            'instance_id': submission['_uuid'],
-            'form_id': snapshot.uid,
-            'return_url': False
-        }
-
-        response = requests.post(
-            f'{settings.ENKETO_URL}/api/v2/instance/view',
-            # bare tuple implies basic auth
-            auth=(settings.ENKETO_API_TOKEN, ''),
-            data=data
-        )
-        response.raise_for_status()
-
-        json_response = response.json()
-        view_url = json_response.get('view_url')
-
-        return Response({'url': view_url})
+        return self._get_enketo_link(request, submission_id, 'view')
 
     @action(
         detail=False,
@@ -600,3 +560,78 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
 
         return filters
+
+    def _get_enketo_link(
+        self, request: Request, submission_id: int, action_: str
+    ) -> Response:
+
+        deployment = self._get_deployment()
+        user = request.user
+
+        if action_ == 'edit':
+            partial_perm = PERM_CHANGE_SUBMISSIONS
+        elif action_ == 'view':
+            partial_perm = PERM_VIEW_SUBMISSIONS
+
+        # User's permissions are validated by the permission class. This extra step
+        # is needed to validate at a row level for users with partial permissions.
+        # A `PermissionDenied` error will be raised if it is not the case.
+        # `validate_access_with_partial_perms()` is called no matter what are the
+        # user's permissions. The first check inside the method is the user's
+        # permissions. `submission_ids` should be equal to `None` if user has
+        # regular permissions.
+        deployment.validate_access_with_partial_perms(
+            user=user,
+            perm=partial_perm,
+            submission_ids=submission_id,
+        )
+
+        # The XML version is needed for Enketo
+        submission_xml = deployment.get_submission(
+            submission_id, user, SUBMISSION_FORMAT_TYPE_XML
+        )
+        # The JSON version is needed to detect its version
+        submission_json = deployment.get_submission(submission_id, user)
+
+        _, submissions_stream = build_formpack(
+            self.asset,
+            submission_stream=[submission_json],
+            use_all_form_versions=True
+        )
+        version_uid = list(submissions_stream)[0][INFERRED_VERSION_ID_KEY]
+
+        try:
+            snapshot = self.asset.versioned_snapshot(version_uid=version_uid)
+        except AssetVersion.DoesNotExist:
+            raise serializers.ValidationError(
+                {'version': gettext_lazy('Version not found')}
+            )
+
+        # ToDo support attachments
+        data = {
+            'server_url': reverse(
+                viewname='assetsnapshot-detail',
+                kwargs={'uid': snapshot.uid},
+                request=request,
+            ),
+            'instance': submission_xml,
+            'instance_id': submission_json['_uuid'],
+            'form_id': snapshot.uid,
+            'return_url': 'false'  # String to be parsed by EE as a boolean
+        }
+
+        enketo_endpoint = getattr(
+            settings, f'ENKETO_{action_}_INSTANCE_ENDPOINT'.upper()
+        )
+        response = requests.post(
+            f'{settings.ENKETO_URL}/{enketo_endpoint}',
+            # bare tuple implies basic auth
+            auth=(settings.ENKETO_API_TOKEN, ''),
+            data=data
+        )
+        response.raise_for_status()
+
+        json_response = response.json()
+        enketo_url = json_response.get(f'{action_}_url')
+
+        return Response({'url': enketo_url})
