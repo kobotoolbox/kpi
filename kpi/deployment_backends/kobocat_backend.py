@@ -38,6 +38,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.datetime import several_minutes_from_now
+from kpi.utils.xml import strip_nodes
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
@@ -486,6 +487,57 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             return next(self.get_submissions(user, query={'_uuid': _uuid}))
         else:
             raise KobocatDuplicateSubmissionException
+
+    def edit_submission(self, submission_xml: str, user: 'auth.User'):
+        """
+        Edit a submission through KoBoCAT proxy.
+        The returned Response should be in XML (expected format by Enketo Express)
+        """
+        submission_xml_str = submission_xml.read().decode()
+        # Keep only relevant nodes before parsing with regex.
+        stripped_xml = strip_nodes(
+            submission_xml_str, ['meta/deprecatedID', 'formhub/uuid'], use_xpath=True
+        )
+        instance_uuid_matches = re.search(r'uuid:([^<]+)', stripped_xml)
+        xform_uuid_matches = re.search(r'uuid>([^<]+)', stripped_xml)
+        if not instance_uuid_matches and not xform_uuid_matches:
+            raise Exception('NO UUID FOUNDS')
+
+        try:
+            deprecated_uuid = instance_uuid_matches.groups()[0]
+            xform_uuid = xform_uuid_matches.groups()[0]
+        except IndexError:
+            raise Exception('NO UUID FOUNDS')
+
+        try:
+            instance = ReadOnlyKobocatInstance.objects.get(
+                uuid=deprecated_uuid,
+                xform__uuid=xform_uuid,
+                xform__kpi_asset_uid=self.asset.uid,
+            )
+        except ReadOnlyKobocatInstance.DoesNotExist:
+            raise Exception('Invalid INSTANCE')
+
+        # Validate write access for users with partial permissions
+        self.validate_access_with_partial_perms(
+            user=user,
+            perm=PERM_CHANGE_SUBMISSIONS,
+            submission_ids=[instance.pk]
+        )
+
+        # Set the In-Memory file’s current position to 0 before passing it to
+        # Request.
+        submission_xml.seek(0)
+        kc_request = requests.Request(
+            method='POST', url=self.submission_url, files={
+                'xml_submission_file': submission_xml
+            }
+        )
+        # ToDo use system account instead of asset.owner
+        kc_response = self.__kobocat_proxy_request(kc_request, self.asset.owner)
+        return self.__prepare_as_drf_response_signature(
+            kc_response, expected_response_format='xml'
+        )
 
     @staticmethod
     def external_to_internal_url(url):
@@ -1363,7 +1415,9 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         return server, parsed_identifier.path
 
     @staticmethod
-    def __prepare_as_drf_response_signature(requests_response):
+    def __prepare_as_drf_response_signature(
+        requests_response, expected_response_format='json'
+    ):
         """
         Prepares a dict from `Requests` response.
         Useful to get response from KoBoCAT and use it as a dict or pass it to
@@ -1388,7 +1442,10 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             prepared_drf_response['data'] = json.loads(
                 requests_response.content)
         except ValueError as e:
-            if not requests_response.status_code == status.HTTP_204_NO_CONTENT:
+            if (
+                not requests_response.status_code == status.HTTP_204_NO_CONTENT
+                and expected_response_format == 'json'
+            ):
                 prepared_drf_response['data'] = {
                     'detail': _(
                         'KoBoCAT returned an unexpected response: {}'.format(

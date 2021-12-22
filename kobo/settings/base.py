@@ -416,6 +416,8 @@ ENKETO_API_TOKEN = os.environ.get('ENKETO_API_TOKEN', 'enketorules')
 # http://apidocs.enketo.org/v2/
 ENKETO_SURVEY_ENDPOINT = 'api/v2/survey/all'
 ENKETO_PREVIEW_ENDPOINT = 'api/v2/survey/preview/iframe'
+ENKETO_EDIT_INSTANCE_ENDPOINT = 'api/v2/instance'
+ENKETO_VIEW_INSTANCE_ENDPOINT = 'api/v2/instance/view'
 
 
 ''' Celery configuration '''

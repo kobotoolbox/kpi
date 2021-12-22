@@ -3,9 +3,21 @@ from datetime import datetime
 
 import pytz
 from django.conf import settings
+from django.utils.decorators import classonlymethod
 
 
 class OpenRosaViewSetMixin:
+
+    @classonlymethod
+    def as_view(cls, actions=None, **initkwargs):
+        """
+        Allow `trailing_slash` as an argument of `action()` DRF decorator.
+        Useful to override behaviour of `trailing_slash` argument passed to
+        `kpi.urls.router_api_v2.OptionalSlashRouter()` to create routes
+        without trailing slashes
+        """
+        cls.trailing_slash = None
+        return super().as_view(actions=actions, **initkwargs)
 
     @staticmethod
     def get_headers():
