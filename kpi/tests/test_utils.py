@@ -410,6 +410,7 @@ class XmlUtilsTestCase(TestCase):
             'group11/question_66': 'Edit 3',
             'group11/question_666': 'Answer 666',
             'group111/subgroup111/subsubgroup1/question_7': 'Answer 7',
+            'question8': 'Answer 8',
         }
         for k, v in update_data.items():
             edit_submission_xml(xml_parsed, k, v)
@@ -438,6 +439,7 @@ class XmlUtilsTestCase(TestCase):
                         </subsubgroup1>
                     </subgroup111>
                 </group111>
+                <question8>Answer 8</question8>
             </root>
         '''
         self.__compare_xml(etree.tostring(xml_parsed).decode(), xml_expected)

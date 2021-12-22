@@ -1,7 +1,7 @@
 # coding: utf-8
 import os
 import re
-from typing import Optional, Union
+from typing import Optional, Union, List
 from lxml import etree
 
 
@@ -157,6 +157,10 @@ def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
     return xml_
 
 
+def get_path(parts: List[str], start: int = 0, end: int = None) -> str:
+    return '/'.join(parts[start:end])
+
+
 def edit_submission_xml(
     xml_parsed: etree._Element,
     path: str,
@@ -166,26 +170,15 @@ def edit_submission_xml(
     Edit submission XML with an XPath and new value, creating a new tree
     element if the path doesn't yet exist.
     """
-    if '/' in path:
-        accumulated_elements = []
-        for i, element in enumerate(path.split('/')):
+    path_parts = path.split('/')
+    for i, node in enumerate(path_parts):
+        element = xml_parsed.find(get_path(path_parts, end=i + 1))
+        # Construct the tree of elements, one node at a time
+        if element is None:
             if i == 0:
-                if xml_parsed.find(element) is None:
-                    etree.SubElement(xml_parsed, element)
-                accumulated_elements.append(element)
+                element = etree.SubElement(xml_parsed, node)
             else:
-                updated_xml_path = '/'.join(accumulated_elements)
-                if (
-                    xml_parsed.find(os.path.join(updated_xml_path, element))
-                    is None
-                ):
-                    etree.SubElement(xml_parsed.find(updated_xml_path), element)
-                accumulated_elements.append(element)
-
-    element_to_update = xml_parsed.find(path)
-    element_to_update_or_new = (
-        element_to_update
-        if element_to_update is not None
-        else etree.SubElement(xml_parsed, path)
-    )
-    element_to_update_or_new.text = value
+                element = etree.SubElement(
+                    xml_parsed.find(get_path(path_parts, end=i)), node
+                )
+    element.text = value
