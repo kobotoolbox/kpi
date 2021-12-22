@@ -3,7 +3,6 @@ import os
 import re
 from typing import Optional, Union
 from lxml import etree
-from xml.etree import ElementTree as ET
 
 
 def strip_nodes(
