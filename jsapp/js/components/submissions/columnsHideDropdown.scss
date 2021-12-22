@@ -1,9 +1,10 @@
+@use "scss/mixins";
 @use "scss/_colors";
 @use "scss/libs/_mdl";
 
 // nested selector needed for specificity
 .kobo-dropdown[data-name='columns-hide-dropdown']  {
-  display: flex; // for alignment
+  @include mixins.centerRowFlex;
   margin-right: 10px;
 
   .kobo-dropdown__menu {
