@@ -114,3 +114,7 @@ def post_delete_asset(sender, instance, **kwargs):
     else:
         if parent:
             parent.update_languages()
+                user_id=instance.user.pk, is_active=instance.is_active
+            )
+            user_id=instance.user.pk, is_active=False
+        )
