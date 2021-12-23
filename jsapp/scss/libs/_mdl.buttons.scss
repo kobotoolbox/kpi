@@ -57,22 +57,6 @@
     }
   }
 
-  &.mdl-button--colored.mdl-button--orange {
-    color: $kobo-orange;
-
-    &:hover {
-      color: darken($kobo-orange, 10%);
-    }
-  }
-
-  &.mdl-button--colored.mdl-button--green {
-    color: $kobo-green;
-
-    &:hover {
-      color: darken($kobo-green, 10%);
-    }
-  }
-
   &.mdl-button--colored.mdl-button--gray {
     color: $kobo-gray-40;
 
@@ -127,26 +111,6 @@ input.mdl-button[type="submit"] {
 
     &:hover {
       background-color: darken($kobo-red, 5%);
-      color: $kobo-white;
-    }
-  }
-
-  &.mdl-button--colored.mdl-button--orange {
-    background-color: $kobo-orange;
-    color: $kobo-white;
-
-    &:hover {
-      background-color: darken($kobo-orange, 5%);
-      color: $kobo-white;
-    }
-  }
-
-  &.mdl-button--colored.mdl-button--green {
-    background-color: $kobo-green;
-    color: $kobo-white;
-
-    &:hover {
-      background-color: darken($kobo-green, 5%);
       color: $kobo-white;
     }
   }

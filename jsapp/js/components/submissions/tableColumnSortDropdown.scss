@@ -44,7 +44,7 @@
 
     .k-icon.k-icon-sort-up,
     .k-icon.k-icon-sort-down {
-      color: colors.$kobo-teal-pale;
+      color: colors.$kobo-teal;
     }
   }
 
@@ -60,7 +60,7 @@
       }
 
       &.table-column-sort-dropdown-option--active {
-        color: colors.$kobo-teal-pale;
+        color: colors.$kobo-teal;
         background-color: colors.$kobo-gray-24; // Assuming we are using `dark` option
       }
     }
