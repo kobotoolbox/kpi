@@ -124,20 +124,20 @@ def post_delete_asset(sender, instance, **kwargs):
 def post_save_mfa_model(instance, created, **kwargs):
     """
     Update user's profile in KoBoCAT database.
-
-    Not ideal to use a signal but it avoids overloading `trench` views.
     """
     if not settings.TESTING:
         if not created:
-            KobocatUserProfile.sync_mfa_status(instance)
+            KobocatUserProfile.set_mfa_status(
+                user_id=instance.user.pk, is_active=instance.is_active
+            )
 
 
 @receiver(post_delete, sender=MFAMethod)
 def post_delete_mfa_model(instance, **kwargs):
     """
     Update user's profile in KoBoCAT database.
-
-    Not ideal to use a signal but it avoids overloading `trench` views.
     """
     if not settings.TESTING:
-        KobocatUserProfile.disable_mfa(instance)
+        KobocatUserProfile.set_mfa_status(
+            user_id=instance.user.pk, is_active=False
+        )

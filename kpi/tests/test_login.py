@@ -54,12 +54,15 @@ class LoginTests(KpiTestCase):
         response = self.client.post(reverse('kobo_login'), data=data, follow=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # ToDo This assertion is not bullet proof that user is logged in.
-        #   Maybe search for a Dom element?
         self.assertFalse(
             'Insert your MFA code'
             in response.content.decode()
         )
+
+        self.assertEqual(len(response.redirect_chain), 1)
+        redirection, status_code = response.redirect_chain[0]
+        self.assertEqual(status_code, status.HTTP_302_FOUND)
+        self.assertEqual(reverse('kpi-root'), redirection)
 
     def test_admin_login(self):
         """
