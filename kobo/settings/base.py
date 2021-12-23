@@ -60,7 +60,7 @@ DEBUG = (os.environ.get('DJANGO_DEBUG', 'False') == 'True')
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'kpi-root'
 LOGOUT_REDIRECT_URL = 'kobo_login'  # Use URL pattern instead of hard-coded value
 
 # Application definition
@@ -83,7 +83,7 @@ INSTALLED_APPS = (
     'loginas',
     'webpack_loader',
     'registration',         # Order is important
-    'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration, replace `django.contrib.admin`
+    'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration; replace `django.contrib.admin`
     'django_extensions',
     'taggit',
     'rest_framework',

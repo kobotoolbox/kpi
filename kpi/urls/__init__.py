@@ -1,7 +1,6 @@
 # coding: utf-8
 import private_storage.urls
 from django.conf import settings
-from django.contrib.auth import logout
 from django.urls import include, re_path, path
 from django.views.i18n import JavaScriptCatalog
 
