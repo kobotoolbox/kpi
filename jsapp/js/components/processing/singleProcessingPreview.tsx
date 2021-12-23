@@ -133,7 +133,7 @@ export default class SingleProcessingPreview extends React.Component {
             </bem.ProcessingBody__transHeader>
 
             <bem.ProcessingBody__text>
-              {singleProcessingStore.getSourceData()?.content}
+              {singleProcessingStore.getSourceData()?.value}
             </bem.ProcessingBody__text>
           </bem.ProcessingBody>
         </bem.SingleProcessingPreview>

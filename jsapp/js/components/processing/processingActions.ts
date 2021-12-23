@@ -1,5 +1,8 @@
 import Reflux from 'reflux'
 import {notify} from 'alertifyjs'
+import {getAssetProcessingUrl} from 'js/assetUtils'
+
+const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabled!')
 
 const processingActions = Reflux.createActions({
   getProcessingData: {
@@ -20,124 +23,127 @@ processingActions.getProcessingData.listen((
   questionName: string,
   submissionId: string
 ) => {
-  const xhr = {
-    abort: () => {console.log('abort called!', assetUid, questionName, submissionId)}
+  console.log('processingActionsgetProcessingData', assetUid, questionName, submissionId)
+
+  const processingUrl = getAssetProcessingUrl(assetUid)
+  if (processingUrl === undefined) {
+    processingActions.getProcessingData.failed(NO_FEATURE_ERROR)
+  } else {
+    const xhr = $.ajax({
+      dataType: 'json',
+      method: 'GET',
+      url: processingUrl
+    })
+      .done(processingActions.getProcessingData.completed)
+      .fail(processingActions.getProcessingData.failed)
+
+    processingActions.getProcessingData.started(xhr.abort)
   }
-
-  window.setTimeout(() => {
-    processingActions.getProcessingData.completed(getMockData())
-  }, 2000)
-
-  processingActions.getProcessingData.started(xhr.abort)
 })
 processingActions.getProcessingData.failed.listen(() => {
   notify(t('Failed to get processing data.'), 'error')
 })
 
 processingActions.setTranscript.listen((
+  assetUid: string,
   languageCode: string,
   value: string
 ) => {
-  // TODO: call backend to store transcript, for now we just wait 3 seconds :P
-  window.setTimeout(() => {
-    processingActions.setTranscript.completed({
-      value: value,
-      languageCode: languageCode,
-      dateCreated: '2021-11-08T12:01:16.000Z',
-      dateModified: '2021-12-01T20:05:20.970Z',
+  const processingUrl = getAssetProcessingUrl(assetUid)
+  if (processingUrl === undefined) {
+    processingActions.setTranscript.failed(NO_FEATURE_ERROR)
+  } else {
+    $.ajax({
+      dataType: 'json',
+      method: 'POST',
+      url: processingUrl,
+      data: {
+        type: 'transcript',
+        value: value,
+        languageCode: languageCode,
+      }
     })
-  }, 3000)
+      .done(processingActions.setTranscript.completed)
+      .fail(processingActions.setTranscript.failed)
+  }
 })
 processingActions.setTranscript.failed.listen(() => {
   notify(t('Failed to set transcript.'), 'error')
 })
 
-processingActions.deleteTranscript.listen(() => {
-  // TODO: call backend
-  window.setTimeout(() => {
-    processingActions.deleteTranscript.completed()
-  }, 3000)
+processingActions.deleteTranscript.listen((
+  assetUid: string,
+  languageCode: string
+) => {
+  const processingUrl = getAssetProcessingUrl(assetUid)
+  if (processingUrl === undefined) {
+    processingActions.deleteTranscript.failed(NO_FEATURE_ERROR)
+  } else {
+    $.ajax({
+      dataType: 'json',
+      method: 'DELETE',
+      url: processingUrl,
+      data: {
+        languageCode: languageCode,
+      }
+    })
+      .done(processingActions.deleteTranscript.completed)
+      .fail(processingActions.deleteTranscript.failed)
+  }
 })
 processingActions.deleteTranscript.failed.listen(() => {
   notify(t('Failed to delete transcript.'), 'error')
 })
 
 processingActions.setTranslation.listen((
+  assetUid: string,
   languageCode: string,
   value: string
 ) => {
-  // TODO: call backend
-  window.setTimeout(() => {
-    // PRETEND BACKEND
-    let wasTranslationSet = false
-    memoizedTranslations.forEach((translation) => {
-      if (translation.languageCode === languageCode) {
-        translation.value = value
-        translation.dateModified = '2021-12-01T20:05:20.970Z'
-        wasTranslationSet = true
-      }
-    })
-    // if translation did not exist, then it wasn't replaced in the loop above
-    // we need to add it now
-    if (!wasTranslationSet) {
-      memoizedTranslations.push({
+  const processingUrl = getAssetProcessingUrl(assetUid)
+  if (processingUrl === undefined) {
+    processingActions.setTranslation.failed(NO_FEATURE_ERROR)
+  } else {
+    $.ajax({
+      dataType: 'json',
+      method: 'POST',
+      url: processingUrl,
+      data: {
+        type: 'translation',
         value: value,
         languageCode: languageCode,
-        dateCreated: '2021-12-01T20:05:20.970Z',
-        dateModified: '2021-12-01T20:05:20.970Z',
-      })
-    }
-    // END PRETEND BACKEND
-    processingActions.setTranslation.completed(memoizedTranslations)
-  }, 3000)
+      }
+    })
+      .done(processingActions.setTranslation.completed)
+      .fail(processingActions.setTranslation.failed)
+  }
 })
 processingActions.setTranslation.failed.listen(() => {
   notify(t('Failed to set translation.'), 'error')
 })
 
 processingActions.deleteTranslation.listen((
+  assetUid: string,
   languageCode: string
 ) => {
-  // TODO: call backend
-  window.setTimeout(() => {
-    memoizedTranslations = memoizedTranslations.filter((translation) => translation.languageCode !== languageCode)
-    processingActions.deleteTranslation.completed(memoizedTranslations)
-  }, 3000)
+  const processingUrl = getAssetProcessingUrl(assetUid)
+  if (processingUrl === undefined) {
+    processingActions.deleteTranslation.failed(NO_FEATURE_ERROR)
+  } else {
+    $.ajax({
+      dataType: 'json',
+      method: 'POST',
+      url: processingUrl,
+      data: {
+        languageCode: languageCode,
+      }
+    })
+      .done(processingActions.deleteTranslation.completed)
+      .fail(processingActions.deleteTranslation.failed)
+  }
 })
 processingActions.deleteTranslation.failed.listen(() => {
   notify(t('Failed to delete translation.'), 'error')
 })
 
 export default processingActions
-
-
-
-/// MOCKING BELOW
-
-// keeping it just for demo
-let memoizedTranslations = getMockData().translations
-
-function getMockData() {
-  return {
-    transcript: {
-      languageCode: 'en',
-      value: 'This is some text in English language, please makre sure to translate it correctly or else I will be very much disappointed.',
-      dateCreated: '2021-11-08T12:01:16.000Z',
-      dateModified: '2021-11-16T23:05:20.970Z',
-    },
-    translations: [
-      {
-        languageCode: 'pl',
-        value: 'To jest tekst w języku angielskim, upewnij się, że przetłumaczysz go poprawnie, w przeciwnym razie będę bardzo rozczarowany.',
-        dateCreated: '2021-11-09T14:14:14.000Z',
-        dateModified: '2021-11-10T06:00:00.000Z'
-      },
-      {
-        languageCode: 'de',
-        value: 'Dies ist ein englischer Text, stellen Sie sicher, dass Sie ihn richtig übersetzen, sonst werde ich sehr enttäuscht sein.',
-        dateCreated: '2021-11-10T11:01:00.000Z',
-        dateModified: '2021-11-10T11:45:00.000Z'
-      }
-    ]
-  }
-}

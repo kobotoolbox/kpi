@@ -170,6 +170,26 @@ interface AssetReportStylesKuidNames {
   [name: string]: {}
 }
 
+interface AdvancedSubmissionSchema {
+  type: 'string' | 'object'
+  $description: string
+  url?: string
+  properties?: AdvancedSubmissionSchemaDefinition
+  additionalProperties?: boolean
+  required?: string[]
+  definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition}
+}
+
+interface AdvancedSubmissionSchemaDefinition {
+  [name: string]: {
+    type: 'string' | 'object'
+    description: string
+    properties?: {[name: string]: {}}
+    additionalProperties?: boolean
+    required?: string[]
+  }
+}
+
 /**
  * This is the backend's asset.
  */
@@ -298,6 +318,9 @@ interface AssetResponse {
   access_types: string[]|null
   data_sharing: {}
   paired_data: string
+
+  advanced_features: {}
+  advanced_submission_schema: AdvancedSubmissionSchema
 
   // TODO: think about creating a new interface for asset that is being extended
   // on frontend. Here are some properties we add to the response:

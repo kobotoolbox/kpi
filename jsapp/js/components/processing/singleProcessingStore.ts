@@ -236,6 +236,7 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
+  /** Returns a local cached transcript data. */
   getTranscript() {
     return this.data.transcript
   }
@@ -243,10 +244,12 @@ class SingleProcessingStore extends Reflux.Store {
   setTranscript(newTranscript: Transcript | undefined) {
     this.isFetchingData = true
 
+    const transcript = this.getTranscript()
+    const routeParams = getSingleProcessingRouteParameters()
     if (newTranscript === undefined) {
-      processingActions.deleteTranscript()
+      processingActions.deleteTranscript(routeParams.uid, transcript?.languageCode)
     } else {
-      processingActions.setTranscript(newTranscript.languageCode, newTranscript.value)
+      processingActions.setTranscript(routeParams.uid, newTranscript.languageCode, newTranscript.value)
     }
 
     this.trigger(this.data)
@@ -261,12 +264,14 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
+  /** Returns a local cached translation data. */
   getTranslation(languageCode: string | undefined) {
     return this.data.translations.find(
       (translation) => translation.languageCode === languageCode
     )
   }
 
+  /** Returns a local cached translations list. */
   getTranslations() {
     return this.data.translations
   }
@@ -282,6 +287,8 @@ class SingleProcessingStore extends Reflux.Store {
   ) {
     this.isFetchingData = true
 
+    const routeParams = getSingleProcessingRouteParameters()
+
     if (
       newTranslation !== undefined &&
       newTranslation.languageCode !== newTranslationLanguageCode
@@ -290,9 +297,10 @@ class SingleProcessingStore extends Reflux.Store {
     }
 
     if (newTranslation === undefined) {
-      processingActions.deleteTranslation(newTranslationLanguageCode)
+      processingActions.deleteTranslation(routeParams.uid, newTranslationLanguageCode)
     } else {
       processingActions.setTranslation(
+        routeParams.uid,
         newTranslation.languageCode,
         newTranslation.value
       )

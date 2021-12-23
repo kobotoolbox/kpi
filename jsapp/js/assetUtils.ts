@@ -4,6 +4,7 @@ import {stores} from 'js/stores'
 import permConfig from 'js/components/permissions/permConfig'
 import {buildUserUrl} from 'js/utils'
 import envStore from 'js/envStore'
+import assetStore from 'js/assetStore'
 import {
   ASSET_TYPES,
   MODAL_TYPES,
@@ -602,6 +603,14 @@ export function removeInvalidChars(str: string) {
   return str = String(str || '').replace(regex, '');
 }
 
+export function getAssetProcessingUrl(assetUid: string): string | undefined {
+  const foundAsset = assetStore.getAsset(assetUid)
+  if (foundAsset) {
+    return foundAsset.advanced_submission_schema.url
+  }
+  return undefined
+}
+
 export default {
   buildAssetUrl,
   cleanupTags,
@@ -630,4 +639,5 @@ export default {
   replaceForm,
   share,
   removeInvalidChars,
+  getAssetProcessingUrl,
 };
