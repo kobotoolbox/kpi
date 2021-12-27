@@ -9,6 +9,7 @@ import {ROOT_URL} from 'js/constants';
 
 const submissionsActions = Reflux.createActions({
   getSubmission: {children: ['completed', 'failed']},
+  getSubmissionByUuid: {children: ['completed', 'failed']},
   getSubmissions: {children: ['completed', 'failed']},
   bulkDeleteStatus: {children: ['completed', 'failed']},
   bulkPatchStatus: {children: ['completed', 'failed']},
@@ -60,7 +61,7 @@ submissionsActions.getProcessingSubmissions.listen((assetUid, questionPath) => {
   $.ajax({
     dataType: 'json',
     method: 'GET',
-    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_id", "${questionPath}"]`,
+    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_uuid", "${questionPath}"]`,
   })
     .done(submissionsActions.getProcessingSubmissions.completed)
     .fail(submissionsActions.getProcessingSubmissions.failed);
@@ -69,6 +70,20 @@ submissionsActions.getProcessingSubmissions.listen((assetUid, questionPath) => {
 submissionsActions.getSubmission.listen((assetUid, submissionId) => {
   dataInterface.getSubmission(assetUid, submissionId)
     .done(submissionsActions.getSubmission.completed)
+    .fail(submissionsActions.getSubmission.failed);
+});
+
+// There is no shortcut endpoint to get submission using uuid, so we have to
+// make a queried call over all submissions.
+submissionsActions.getSubmissionByUuid.listen((assetUid, submissionUuid) => {
+  $.ajax({
+    dataType: 'json',
+    method: 'GET',
+    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?query={"_uuid":"${submissionUuid}"}`,
+  })
+    .done((response) => {
+      submissionsActions.getSubmissionByUuid.completed(response.results[0]);
+    })
     .fail(submissionsActions.getSubmission.failed);
 });
 

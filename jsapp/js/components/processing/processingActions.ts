@@ -4,6 +4,44 @@ import {getAssetProcessingUrl} from 'js/assetUtils'
 
 const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabled!')
 
+interface TranscriptRequest {
+  [questionName: string]: TranscriptRequestQuestion | string | undefined
+  submission?: string
+}
+
+interface TranscriptRequestQuestion {
+  transcript: {
+    languageCode: string
+    value: string
+  }
+}
+
+export interface TranscriptResponse {
+  [key: string]: TranscriptQuestion
+}
+
+interface TranscriptQuestion {
+  transcript: {
+    dateCreated: string
+    dateModified: string
+    engine?: string
+    languageCode: string
+    revisions?: TranscriptRevision[]
+    value: string
+  }
+}
+
+interface TranscriptRevision {
+  dateModified: string
+  engine?: string
+  languageCode: string
+  value: string
+}
+
+export interface ProcessingDataResponse {
+  [key: string]: TranscriptQuestion
+}
+
 const processingActions = Reflux.createActions({
   getProcessingData: {
     children: [
@@ -20,21 +58,22 @@ const processingActions = Reflux.createActions({
 
 processingActions.getProcessingData.listen((
   assetUid: string,
-  questionName: string,
-  submissionId: string
+  submissionUuid: string
 ) => {
-  console.log('processingActionsgetProcessingData', assetUid, questionName, submissionId)
-
   const processingUrl = getAssetProcessingUrl(assetUid)
   if (processingUrl === undefined) {
     processingActions.getProcessingData.failed(NO_FEATURE_ERROR)
   } else {
     const xhr = $.ajax({
       dataType: 'json',
+      contentType: 'application/json',
       method: 'GET',
-      url: processingUrl
+      url: processingUrl,
+      data: {submission: submissionUuid}
     })
-      .done(processingActions.getProcessingData.completed)
+      .done((response: ProcessingDataResponse) => {
+        processingActions.getProcessingData.completed(response)
+      })
       .fail(processingActions.getProcessingData.failed)
 
     processingActions.getProcessingData.started(xhr.abort)
@@ -46,6 +85,8 @@ processingActions.getProcessingData.failed.listen(() => {
 
 processingActions.setTranscript.listen((
   assetUid: string,
+  questionName: string,
+  submissionUuid: string,
   languageCode: string,
   value: string
 ) => {
@@ -53,17 +94,26 @@ processingActions.setTranscript.listen((
   if (processingUrl === undefined) {
     processingActions.setTranscript.failed(NO_FEATURE_ERROR)
   } else {
+    const data: TranscriptRequest = {
+      submission: submissionUuid
+    }
+    data[questionName] = {
+      transcript: {
+        value: value,
+        languageCode: languageCode
+      }
+    }
+
     $.ajax({
       dataType: 'json',
+      contentType: 'application/json',
       method: 'POST',
       url: processingUrl,
-      data: {
-        type: 'transcript',
-        value: value,
-        languageCode: languageCode,
-      }
+      data: JSON.stringify(data)
     })
-      .done(processingActions.setTranscript.completed)
+      .done((response: TranscriptResponse) => {
+        processingActions.setTranscript.completed(response)
+      })
       .fail(processingActions.setTranscript.failed)
   }
 })
@@ -81,6 +131,7 @@ processingActions.deleteTranscript.listen((
   } else {
     $.ajax({
       dataType: 'json',
+      contentType: 'application/json',
       method: 'DELETE',
       url: processingUrl,
       data: {

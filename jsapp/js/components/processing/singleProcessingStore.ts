@@ -5,7 +5,12 @@ import {
   isFormSingleProcessingRoute,
   getSingleProcessingRouteParameters,
 } from 'js/router/routerUtils'
-import processingActions from 'js/components/processing/processingActions'
+import {getAssetProcessingUrl} from 'js/assetUtils'
+import {actions} from 'js/actions'
+import processingActions, {
+  TranscriptResponse,
+  ProcessingDataResponse
+} from 'js/components/processing/processingActions'
 
 export enum SingleProcessingTabs {
   Transcript,
@@ -50,6 +55,7 @@ class SingleProcessingStore extends Reflux.Store {
    */
   private abortFetchData: Function | undefined
   private previousPath: string | undefined
+  private isInitialised: boolean = false
 
   // We want to give access to this only through methods.
   private data: SingleProcessingStoreData = {
@@ -80,7 +86,34 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.deleteTranslation.completed.listen(this.onDeleteTranslationCompleted.bind(this))
     processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this))
 
-    this.fetchData()
+    // We need the asset to be loaded for the store to work (we get the
+    // processing endpoint url from asset JSON). We try to startup store
+    // immediately and also listen to asset loads.
+    this.startupStore()
+    actions.resources.loadAsset.completed.listen(this.startupStore.bind(this))
+  }
+
+  /**
+   * This initialisation is mainly needed because in the case when user loads
+   * the processing route URL directly the asset data might not be here yet.
+   */
+  startupStore() {
+    const routeParams = getSingleProcessingRouteParameters()
+    const processingUrl = getAssetProcessingUrl(routeParams.uid)
+
+    if (
+      !this.isInitialised &&
+      isFormSingleProcessingRoute(
+        routeParams.uid,
+        routeParams.questionName,
+        routeParams.submissionUuid,
+      ) &&
+      !this.isFetchingData &&
+      processingUrl !== undefined
+    ) {
+      this.fetchData()
+      this.isInitialised = true
+    }
   }
 
   setDefaultData() {
@@ -103,7 +136,7 @@ class SingleProcessingStore extends Reflux.Store {
       isFormSingleProcessingRoute(
         routeParams.uid,
         routeParams.questionName,
-        routeParams.submissionId,
+        routeParams.submissionUuid,
       )
     ) {
       this.setDefaultData()
@@ -119,13 +152,16 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  onFetchDataCompleted(response: any) {
+  onFetchDataCompleted(response: ProcessingDataResponse) {
+    const routeParams = getSingleProcessingRouteParameters()
+    const transcriptResponse = response[routeParams.questionName]?.transcript
+
     delete this.abortFetchData
     this.isReady = true
     this.isFetchingData = false
 
-    this.data.translations = response.translations || []
-    this.data.transcript = response.transcript
+    this.data.translations = []
+    this.data.transcript = transcriptResponse
 
     this.trigger(this.data)
   }
@@ -144,24 +180,19 @@ class SingleProcessingStore extends Reflux.Store {
     const routeParams = getSingleProcessingRouteParameters()
     processingActions.getProcessingData(
       routeParams.uid,
-      routeParams.questionName,
-      routeParams.submissionId
+      routeParams.submissionUuid
     )
   }
 
-  onGetInitialData(newData: any) {
-    this.isReady = true
+  onSetTranscriptCompleted(response: TranscriptResponse) {
+    const routeParams = getSingleProcessingRouteParameters()
+    const transcriptResponse = response[routeParams.questionName]?.transcript
+
     this.isFetchingData = false
 
-    this.data.translations = newData.translations || []
-    this.data.transcript = newData.transcript
-
-    this.trigger(this.data)
-  }
-
-  onSetTranscriptCompleted(transcript: Transcript) {
-    this.isFetchingData = false
-    this.data.transcript = transcript
+    if (transcriptResponse) {
+      this.data.transcript = transcriptResponse
+    }
     // discard draft after saving (exit the editor)
     this.data.transcriptDraft = undefined
     this.trigger(this.data)
@@ -249,7 +280,13 @@ class SingleProcessingStore extends Reflux.Store {
     if (newTranscript === undefined) {
       processingActions.deleteTranscript(routeParams.uid, transcript?.languageCode)
     } else {
-      processingActions.setTranscript(routeParams.uid, newTranscript.languageCode, newTranscript.value)
+      processingActions.setTranscript(
+        routeParams.uid,
+        routeParams.questionName,
+        routeParams.submissionUuid,
+        newTranscript.languageCode,
+        newTranscript.value
+      )
     }
 
     this.trigger(this.data)

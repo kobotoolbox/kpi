@@ -689,7 +689,7 @@ export class DataTable extends React.Component {
                   submissionTotal={this.state.submissions.length}
                   assetUid={this.props.asset.uid}
                   questionName={getRowName(q)}
-                  submissionId={row.original._id}
+                  submissionUuid={row.original._uuid}
                 />
               );
             }

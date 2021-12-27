@@ -46,7 +46,7 @@ bem.MediaCellIconWrapper__icon = makeBem(bem.MediaCellIconWrapper, 'icon', 'i');
  * @prop {string} submissionTotal - Total submissions for text questions
  * @prop {string} assetUid
  * @prop {string} questionName
- * @prop {string} submissionId
+ * @prop {string} submissionUuid
  */
 class MediaCell extends React.Component {
   constructor(props) {
@@ -89,7 +89,7 @@ class MediaCell extends React.Component {
     const finalRoute = ROUTES.FORM_PROCESSING
       .replace(':uid', this.props.assetUid)
       .replace(':questionName', this.props.questionName)
-      .replace(':submissionId', this.props.submissionId);
+      .replace(':submissionUuid', this.props.submissionUuid);
     hashHistory.push(finalRoute);
   }
 

@@ -18,14 +18,14 @@ type SingleProcessingHeaderProps = {
   questionType: AnyRowTypeName | undefined
   questionName: string
   questionLabel: string
-  submissionId: string
-  submissionsIds: (string | null)[]
+  submissionUuid: string
+  submissionsUuids: (string | null)[]
   assetUid: string
 }
 
 type SingleProcessingHeaderState = {
-  prevSubmissionId: string | null
-  nextSubmissionId: string | null
+  prevSubmissionUuid: string | null
+  nextSubmissionUuid: string | null
 }
 
 /** Component with the question and UI for switching between submissions */
@@ -36,8 +36,8 @@ export default class SingleProcessingHeader extends React.Component<
   constructor(props: SingleProcessingHeaderProps) {
     super(props)
     this.state = {
-      prevSubmissionId: this.getPrevSubmissionId(),
-      nextSubmissionId: this.getNextSubmissionId(),
+      prevSubmissionUuid: this.getPrevSubmissionUuid(),
+      nextSubmissionUuid: this.getNextSubmissionUuid(),
     }
   }
 
@@ -48,38 +48,38 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   /** Goes to another submission */
-  goToSubmission(targetSubmissionId: string) {
+  goToSubmission(targetSubmissionUuid: string) {
     const newRoute = ROUTES.FORM_PROCESSING
       .replace(':uid', this.props.assetUid)
       .replace(':questionName', this.props.questionName)
-      .replace(':submissionId', targetSubmissionId)
+      .replace(':submissionUuid', targetSubmissionUuid)
     hashHistory.push(newRoute)
   }
 
   goPrev() {
-    if (this.state.prevSubmissionId) {
-      this.goToSubmission(this.state.prevSubmissionId)
+    if (this.state.prevSubmissionUuid) {
+      this.goToSubmission(this.state.prevSubmissionUuid)
     }
   }
 
   goNext() {
-    if (this.state.nextSubmissionId) {
-      this.goToSubmission(this.state.nextSubmissionId)
+    if (this.state.nextSubmissionUuid) {
+      this.goToSubmission(this.state.nextSubmissionUuid)
     }
   }
 
   /** Returns a natural number (first is 1, not 0) */
   getCurrentSubmissionNumber(): number {
-    return this.props.submissionsIds.indexOf(this.props.submissionId) + 1
+    return this.props.submissionsUuids.indexOf(this.props.submissionUuid) + 1
   }
 
   /**
-   * Looks for closest previous submissionId that has data. It omits all `null`s
-   * in submissionsIds array. Returns `null` if there is no such submissionId.
+   * Looks for closest previous submissionUuid that has data. It omits all `null`s
+   * in submissionsUuids array. Returns `null` if there is no such submissionUuid.
    */
-  getPrevSubmissionId(): string | null {
-    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId)
-    // if not found current submissionId in the array, we don't know what is next
+  getPrevSubmissionUuid(): string | null {
+    const currentIndex = this.props.submissionsUuids.indexOf(this.props.submissionUuid)
+    // if not found current submissionUuid in the array, we don't know what is next
     if (currentIndex === -1) {
       return null
     }
@@ -88,8 +88,8 @@ export default class SingleProcessingHeader extends React.Component<
       return null
     }
 
-    // finds the closest non-null submissionId going backwards from current one
-    const leftSubmissionsIds = this.props.submissionsIds.slice(0, currentIndex)
+    // finds the closest non-null submissionUuid going backwards from current one
+    const leftSubmissionsIds = this.props.submissionsUuids.slice(0, currentIndex)
     let foundId: string | null = null
     leftSubmissionsIds.forEach((id) => {
       if (id !== null) {
@@ -101,22 +101,22 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   /**
-   * Looks for closest next submissionId that has data. It omits all `null`s
-   * in submissionsIds array. Returns `null` if there is no such submissionId.
+   * Looks for closest next submissionUuid that has data. It omits all `null`s
+   * in submissionsUuids array. Returns `null` if there is no such submissionUuid.
    */
-  getNextSubmissionId(): string | null {
-    const currentIndex = this.props.submissionsIds.indexOf(this.props.submissionId)
-    // if not found current submissionId in the array, we don't know what is next
+  getNextSubmissionUuid(): string | null {
+    const currentIndex = this.props.submissionsUuids.indexOf(this.props.submissionUuid)
+    // if not found current submissionUuid in the array, we don't know what is next
     if (currentIndex === -1) {
       return null
     }
     // if on last element already, there is no next
-    if (currentIndex === this.props.submissionsIds.length - 1) {
+    if (currentIndex === this.props.submissionsUuids.length - 1) {
       return null
     }
 
-    // finds the closest non-null submissionId going forwards from current one
-    const rightSubmissionsIds = this.props.submissionsIds.slice(currentIndex + 1)
+    // finds the closest non-null submissionUuid going forwards from current one
+    const rightSubmissionsIds = this.props.submissionsUuids.slice(currentIndex + 1)
     let foundId: string | null = null
     rightSubmissionsIds.find((id) => {
       if (id !== null) {
@@ -147,7 +147,7 @@ export default class SingleProcessingHeader extends React.Component<
               color='storm'
               startIcon='caret-left'
               onClick={this.goPrev.bind(this)}
-              isDisabled={this.state.prevSubmissionId === null}
+              isDisabled={this.state.prevSubmissionUuid === null}
             />
 
             <bem.SingleProcessingHeader__count>
@@ -157,7 +157,7 @@ export default class SingleProcessingHeader extends React.Component<
                 {this.getCurrentSubmissionNumber()}
               </strong>
               &nbsp;
-              {t('of ##total_count##').replace('##total_count##', String(this.props.submissionsIds.length))}
+              {t('of ##total_count##').replace('##total_count##', String(this.props.submissionsUuids.length))}
             </bem.SingleProcessingHeader__count>
 
             <Button
@@ -166,7 +166,7 @@ export default class SingleProcessingHeader extends React.Component<
               color='storm'
               endIcon='caret-right'
               onClick={this.goNext.bind(this)}
-              isDisabled={this.state.nextSubmissionId === null}
+              isDisabled={this.state.nextSubmissionUuid === null}
             />
           </bem.SingleProcessingHeader__submissions>
         </bem.SingleProcessingHeader__column>

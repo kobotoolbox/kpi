@@ -26,7 +26,7 @@ bem.SingleProcessing__bottomRight = makeBem(bem.SingleProcessing, 'bottom-right'
 type SingleProcessingRouteProps = RouteComponentProps<{
   uid: string,
   questionName: string,
-  submissionId: string,
+  submissionUuid: string,
 }, {}>
 
 type SingleProcessingRouteState = {
@@ -37,7 +37,7 @@ type SingleProcessingRouteState = {
    * A list of all submissions ids, we store `null` for submissions that don't
    * have a response for the question.
    */
-  submissionsIds: (string | null)[]
+  submissionsUuids: (string | null)[]
   asset: AssetResponse | undefined
   error: string | null
 }
@@ -56,7 +56,7 @@ export default class SingleProcessingRoute extends React.Component<
       isSubmissionCallDone: false,
       isIdsCallDone: false,
       submissionData: null,
-      submissionsIds: [],
+      submissionsUuids: [],
       asset: assetStore.getAsset(this.props.params.uid),
       error: null,
     }
@@ -66,13 +66,13 @@ export default class SingleProcessingRoute extends React.Component<
 
   componentDidMount() {
     this.unlisteners.push(
-      actions.submissions.getSubmission.completed.listen(this.onGetSubmissionCompleted.bind(this)),
-      actions.submissions.getSubmission.failed.listen(this.onGetSubmissionFailed.bind(this)),
+      actions.submissions.getSubmissionByUuid.completed.listen(this.onGetSubmissionByUuidCompleted.bind(this)),
+      actions.submissions.getSubmissionByUuid.failed.listen(this.onGetSubmissionByUuidFailed.bind(this)),
       actions.submissions.getProcessingSubmissions.completed.listen(this.onGetProcessingSubmissionsCompleted.bind(this)),
       actions.submissions.getProcessingSubmissions.failed.listen(this.onGetProcessingSubmissionsFailed.bind(this)),
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
     )
-    actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
+    actions.submissions.getSubmissionByUuid(this.props.params.uid, this.props.params.submissionUuid)
     this.getNewProcessingSubmissions()
   }
 
@@ -81,7 +81,7 @@ export default class SingleProcessingRoute extends React.Component<
   }
 
   componentDidUpdate(prevProps: SingleProcessingRouteProps) {
-    if (prevProps.params.submissionId !== this.props.params.submissionId) {
+    if (prevProps.params.submissionUuid !== this.props.params.submissionUuid) {
       this.getNewSubmissionData()
     }
   }
@@ -100,17 +100,17 @@ export default class SingleProcessingRoute extends React.Component<
       isSubmissionCallDone: false,
       submissionData: null,
     })
-    actions.submissions.getSubmission(this.props.params.uid, this.props.params.submissionId)
+    actions.submissions.getSubmissionByUuid(this.props.params.uid, this.props.params.submissionUuid)
   }
 
-  onGetSubmissionCompleted(response: SubmissionResponse): void {
+  onGetSubmissionByUuidCompleted(response: SubmissionResponse): void {
     this.setState({
       isSubmissionCallDone: true,
       submissionData: response,
     })
   }
 
-  onGetSubmissionFailed(response: FailResponse): void {
+  onGetSubmissionByUuidFailed(response: FailResponse): void {
     this.setState({
       isSubmissionCallDone: true,
       error: response.responseJSON?.detail || t('Failed to get submission.'),
@@ -132,20 +132,20 @@ export default class SingleProcessingRoute extends React.Component<
   }
 
   onGetProcessingSubmissionsCompleted(response: GetProcessingSubmissionsResponse) {
-    const submissionsIds: (string|null)[] = []
+    const submissionsUuids: (string|null)[] = []
     response.results.forEach((result) => {
-      // As the returned result object could either be `{_id:1}` or
-      // `{_id:1, <quesiton>:any}`, checking the length is Good Enough™.
+      // As the returned result object could either be `{_uuid:1}` or
+      // `{_uuid:1, <question>:any}`, checking the length is Good Enough™.
       if (Object.keys(result).length === 2) {
-        submissionsIds.push(String(result._id))
+        submissionsUuids.push(String(result._uuid))
       } else {
-        submissionsIds.push(null)
+        submissionsUuids.push(null)
       }
     })
 
     this.setState({
       isIdsCallDone: true,
-      submissionsIds: submissionsIds
+      submissionsUuids: submissionsUuids
     })
   }
 
@@ -233,8 +233,8 @@ export default class SingleProcessingRoute extends React.Component<
             questionType={this.getQuestionType()}
             questionName={this.props.params.questionName}
             questionLabel={this.getQuestionLabel()}
-            submissionId={this.props.params.submissionId}
-            submissionsIds={this.state.submissionsIds}
+            submissionUuid={this.props.params.submissionUuid}
+            submissionsUuids={this.state.submissionsUuids}
             assetUid={this.props.params.uid}
           />
         </bem.SingleProcessing__top>

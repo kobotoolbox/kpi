@@ -4,7 +4,7 @@
  */
 
 interface GetSubmissionDefinition extends Function {
-  (assetUid: string, submissionId: string): void
+  (assetUid: string, submissionIdOrUuid: string): void
   completed: GetSubmissionCompletedDefinition
   failed: GenericFailedDefinition
 }
@@ -86,6 +86,7 @@ export namespace actions {
     const library: any
     const submissions: {
       getSubmission: GetSubmissionDefinition
+      getSubmissionByUuid: GetSubmissionDefinition
       getSubmissions: any
       getProcessingSubmissions: GetProcessingSubmissionsDefinition
       bulkDeleteStatus: any
