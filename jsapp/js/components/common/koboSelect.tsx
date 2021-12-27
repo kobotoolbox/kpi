@@ -1,15 +1,10 @@
-// REVIEW TODO
-// 1. it is true it feels a bit strange to have the magnifying glass appearing on click. (…) Once something is selected, it's better not to have the magnifying glass there, it can feel that you didn't select anything
-// 2. make "x" smaller (one size smaller in relation to icon)
-// 3. once an item is selected, the color of the text should change to a darker grey. The light great text is just for whatever text we have indicating that nothing has been selected, but once something is selected it should have more contrast.
-
 import $ from 'jquery'
 import React from 'react'
 import Fuse from 'fuse.js'
 import {FUSE_OPTIONS} from 'js/constants'
 import bem, {makeBem} from 'js/bem'
 import {IconName} from 'jsapp/fonts/k-icons'
-import Icon from 'js/components/common/icon'
+import Icon, {IconSize} from 'js/components/common/icon'
 import {ButtonSize, ButtonToIconMap} from 'js/components/common/button'
 import KoboDropdown, {KoboDropdownPlacements} from 'js/components/common/koboDropdown'
 import koboDropdownActions from 'js/components/common/koboDropdownActions'
@@ -26,6 +21,11 @@ bem.KoboSelect__option = makeBem(bem.KoboSelect, 'option', 'button')
 bem.KoboSelect__menuMessage = makeBem(bem.KoboSelect, 'menu-message', 'p')
 
 const SEARCHBOX_NAME = 'kobo-select-search-box'
+
+const ButtonToCloseIconMap: Map<ButtonSize, IconSize> = new Map()
+ButtonToCloseIconMap.set('s', 'xxs')
+ButtonToCloseIconMap.set('m', 'xs')
+ButtonToCloseIconMap.set('l', 's')
 
 /**
  * KoboSelect types are:
@@ -192,7 +192,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
             <bem.KoboSelect__clear onClick={this.onClear.bind(this)}>
               <Icon
                 name='close'
-                size={ButtonToIconMap.get(this.props.size)}
+                size={ButtonToCloseIconMap.get(this.props.size)}
               />
             </bem.KoboSelect__clear>
           }
@@ -216,7 +216,7 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
     // The default trigger for nothing selected.
     return (
       <bem.KoboSelect__trigger>
-        <bem.KoboSelect__triggerSelectedOption>
+        <bem.KoboSelect__triggerSelectedOption m='empty'>
           <label>{t('Select…')}</label>
         </bem.KoboSelect__triggerSelectedOption>
 
@@ -246,7 +246,12 @@ class KoboSelect extends React.Component<KoboSelectProps, KoboSelectState> {
 
     return (
       <React.Fragment>
-        <Icon name='search' size={ButtonToIconMap.get(this.props.size)}/>
+        {foundSelectedOption?.icon &&
+          <Icon name={foundSelectedOption.icon} size={ButtonToIconMap.get(this.props.size)}/>
+        }
+        {!foundSelectedOption?.icon &&
+          <Icon name='search' size={ButtonToIconMap.get(this.props.size)}/>
+        }
         <bem.KoboSelect__searchBox
           name={SEARCHBOX_NAME}
           value={this.state.filterPhrase}
