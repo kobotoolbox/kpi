@@ -1,3 +1,8 @@
+// REVIEW TODO
+// 1. it is true it feels a bit strange to have the magnifying glass appearing on click. (…) Once something is selected, it's better not to have the magnifying glass there, it can feel that you didn't select anything
+// 2. make "x" smaller (one size smaller in relation to icon)
+// 3. once an item is selected, the color of the text should change to a darker grey. The light great text is just for whatever text we have indicating that nothing has been selected, but once something is selected it should have more contrast.
+
 import $ from 'jquery'
 import React from 'react'
 import Fuse from 'fuse.js'
