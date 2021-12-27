@@ -58,6 +58,10 @@
   margin-right: auto;
 }
 
+.k-select__trigger-selected-option:not(.k-select__trigger-selected-option--empty) label {
+  color: colors.$kobo-gray-24;
+}
+
 .k-select__search-box {
   max-width: 70%;
 }
@@ -161,6 +165,7 @@
     .k-select__clear .k-icon,
     .k-icon.k-icon-caret-down,
     .k-icon.k-icon-caret-up,
+    .k-select__trigger-selected-option label,
     .k-select__trigger-selected-option .k-icon {
       color: transparent !important;
     }
