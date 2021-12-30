@@ -309,7 +309,7 @@ export function replaceForm(asset: AssetResponse) {
   });
 }
 
-type SurveyFlatPaths = {
+export type SurveyFlatPaths = {
   [P in string]: string
 }
 
