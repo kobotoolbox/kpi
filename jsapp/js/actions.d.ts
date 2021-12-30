@@ -15,7 +15,7 @@ interface GetSubmissionCompletedDefinition extends Function {
 }
 
 interface GetProcessingSubmissionsDefinition extends Function {
-  (assetUid: string, questionPath: string): void
+  (assetUid: string, questionsPaths: string[]): void
   completed: GetProcessingSubmissionsCompletedDefinition
   failed: GenericFailedDefinition
 }

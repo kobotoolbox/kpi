@@ -10,7 +10,7 @@ interface FailResponse {
 interface GetProcessingSubmissionsResponse extends PaginatedResponse {
   results: {
     [questionName: string]: any
-    _uuid: number
+    _uuid: string
   }[]
 }
 
