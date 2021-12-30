@@ -11,21 +11,6 @@
   padding: 0 sizes.$x18;
 }
 
-.single-processing-header__question {
-  @include mixins.centerRowFlex;
-  height: button.$button-height-l;
-  border-radius: button.$button-border-radius;
-  background-color: colors.$kobo-gray-96;
-  font-size: sizes.$x21;
-  font-weight: 500;
-  padding: 0 sizes.$x16;
-
-  .k-icon {
-    color: colors.$kobo-storm;
-    margin-right: sizes.$x8;
-  }
-}
-
 .single-processing-header__submissions {
   @include mixins.centerRowFlex;
   height: button.$button-height-l;

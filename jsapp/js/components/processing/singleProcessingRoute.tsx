@@ -134,6 +134,7 @@ export default class SingleProcessingRoute extends React.Component<
             questionLabel={this.getQuestionLabel()}
             submissionUuid={this.props.params.submissionUuid}
             assetUid={this.props.params.uid}
+            assetContent={this.state.asset.content}
           />
         </bem.SingleProcessing__top>
 

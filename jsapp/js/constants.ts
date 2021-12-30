@@ -1,3 +1,5 @@
+import {IconName} from 'jsapp/fonts/k-icons'
+
 /**
  * A list of all shareable constants for the application.
  */
@@ -257,7 +259,7 @@ export enum QuestionTypeName {
 
 interface QuestionTypeDefinition {
   label: string
-  icon: string
+  icon: IconName
   id: QuestionTypeName
 }
 

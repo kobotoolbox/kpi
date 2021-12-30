@@ -35,7 +35,7 @@ ButtonToCloseIconMap.set('l', 's')
  */
 export type KoboSelectType = 'blue' | 'gray' | 'outline'
 
-interface KoboSelectOption {
+export interface KoboSelectOption {
   icon?: IconName
   label: string
   /** Needs to be unique! */

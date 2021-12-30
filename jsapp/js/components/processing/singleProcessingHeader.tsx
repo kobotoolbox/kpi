@@ -1,11 +1,16 @@
 import React from 'react'
 import bem, {makeBem} from 'js/bem'
 import {AnyRowTypeName} from 'js/constants'
-import {renderQuestionTypeIcon} from 'js/assetUtils'
+import {
+  getRowType,
+  getRowTypeIcon,
+  getTranslatedRowLabel
+} from 'js/assetUtils'
 import {ROUTES} from 'js/router/routerConstants'
 import {hashHistory} from 'react-router'
 import Button from 'js/components/common/button'
 import singleProcessingStore from 'js/components/processing/singleProcessingStore'
+import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect'
 import './singleProcessingHeader.scss'
 
 bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header')
@@ -13,7 +18,6 @@ bem.SingleProcessingHeader__column = makeBem(bem.SingleProcessingHeader, 'column
 bem.SingleProcessingHeader__submissions = makeBem(bem.SingleProcessingHeader, 'submissions', 'nav')
 bem.SingleProcessingHeader__count = makeBem(bem.SingleProcessingHeader, 'count')
 bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number')
-bem.SingleProcessingHeader__question = makeBem(bem.SingleProcessingHeader, 'question', 'h1')
 
 type SingleProcessingHeaderProps = {
   questionType: AnyRowTypeName | undefined
@@ -21,6 +25,7 @@ type SingleProcessingHeaderProps = {
   questionLabel: string
   submissionUuid: string
   assetUid: string
+  assetContent: AssetContent
 }
 
 /** Component with the question and UI for switching between submissions */
@@ -49,6 +54,48 @@ export default class SingleProcessingHeader extends React.Component<
     this.forceUpdate()
   }
 
+  onQuestionSelectChange(newQuestionName: string) {
+    const uuids = singleProcessingStore.getSubmissionsUuids()
+    if (uuids) {
+      const questionUuids = uuids[newQuestionName]
+      // We use the first available one as the default one. User can select
+      // other submission after question is loaded.
+      const firstUuid = questionUuids.find((uuidOrNull) => uuidOrNull !== null)
+      if (firstUuid) {
+        this.goToSubmission(newQuestionName, firstUuid)
+      }
+    }
+  }
+
+  getQuestionSelectorOptions() {
+    const options: KoboSelectOption[] = []
+    const uuids = singleProcessingStore.getSubmissionsUuids()
+    if (uuids) {
+      Object.keys(uuids).forEach((questionName) => {
+        // At this point we want to find out whether the question has at least
+        // one uuid (i.e. there is at least one transcriptable response to
+        // the question). Otherwise there's no point in having the question as
+        // selectable option.
+        const questionUuids = uuids[questionName]
+        const hasAtLeastOneUuid = Boolean(questionUuids.find((uuidOrNull) => uuidOrNull !== null))
+        if (hasAtLeastOneUuid) {
+          const questionType = getRowType(this.props.assetContent, questionName)
+          const translatedLabel = getTranslatedRowLabel(
+            questionName,
+            this.props.assetContent.survey,
+            0
+          )
+          options.push({
+            id: questionName,
+            label: translatedLabel !== null ? translatedLabel : questionName,
+            icon: getRowTypeIcon(questionType)
+          })
+        }
+      })
+    }
+    return options
+  }
+
   /** Goes back to table view for given asset. */
   onDone() {
     const newRoute = ROUTES.FORM_TABLE.replace(':uid', this.props.assetUid)
@@ -56,10 +103,10 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   /** Goes to another submission */
-  goToSubmission(targetSubmissionUuid: string) {
+  goToSubmission(questionName: string, targetSubmissionUuid: string) {
     const newRoute = ROUTES.FORM_PROCESSING
       .replace(':uid', this.props.assetUid)
-      .replace(':questionName', this.props.questionName)
+      .replace(':questionName', questionName)
       .replace(':submissionUuid', targetSubmissionUuid)
     hashHistory.push(newRoute)
   }
@@ -67,14 +114,14 @@ export default class SingleProcessingHeader extends React.Component<
   goPrev() {
     const prevUuid = this.getPrevSubmissionUuid()
     if (prevUuid !== null) {
-      this.goToSubmission(prevUuid)
+      this.goToSubmission(this.props.questionName, prevUuid)
     }
   }
 
   goNext() {
     const nextUuid = this.getNextSubmissionUuid()
     if (nextUuid !== null) {
-      this.goToSubmission(nextUuid)
+      this.goToSubmission(this.props.questionName, nextUuid)
     }
   }
 
@@ -162,10 +209,14 @@ export default class SingleProcessingHeader extends React.Component<
     return (
       <bem.SingleProcessingHeader>
         <bem.SingleProcessingHeader__column m='main'>
-          <bem.SingleProcessingHeader__question>
-            {this.props.questionType && renderQuestionTypeIcon(this.props.questionType)}
-            {this.props.questionLabel}
-          </bem.SingleProcessingHeader__question>
+          <KoboSelect
+            name='single-processing-question-selector'
+            type='gray'
+            size='l'
+            options={this.getQuestionSelectorOptions()}
+            selectedOption={this.props.questionName}
+            onChange={this.onQuestionSelectChange.bind(this)}
+          />
         </bem.SingleProcessingHeader__column>
 
         <bem.SingleProcessingHeader__column>

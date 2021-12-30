@@ -1,5 +1,6 @@
 import React from 'react'
 import {AssetTypeName} from 'js/constants'
+import {IconName} from 'jsapp/fonts/k-icons'
 import {stores} from 'js/stores'
 import permConfig from 'js/components/permissions/permConfig'
 import {buildUserUrl} from 'js/utils'
@@ -364,11 +365,15 @@ export function getRowName(row: SurveyRow | SurveyChoice) {
  */
 export function getTranslatedRowLabel(
   rowName: string,
-  data: SurveyRow[] | SurveyChoice[],
+  data: SurveyRow[] | SurveyChoice[] | undefined,
   translationIndex: number
 ): string | null {
   let foundRowIndex: number | undefined;
   let foundRow: SurveyRow | SurveyChoice | undefined;
+
+  if (data === undefined) {
+    return null
+  }
 
   data.forEach((row, rowIndex) => {
     if (getRowName(row) === rowName) {
@@ -430,10 +435,7 @@ export function isRowSpecialLabelHolder(
 /**
  * An internal helper function for DRY code
  */
-function getRowLabelAtIndex(
-  row: SurveyRow | SurveyChoice,
-  index: number
-): string | null {
+function getRowLabelAtIndex(row: SurveyRow | SurveyChoice, index: number) {
   if (Array.isArray(row.label)) {
     return row.label[index] || null;
   } else {
@@ -441,33 +443,46 @@ function getRowLabelAtIndex(
   }
 }
 
-export function renderQuestionTypeIcon(
-  rowType: AnyRowTypeName
-): React.DetailedReactHTMLElement<{}, HTMLElement> | null {
-  let iconClassName: string = '';
+export function getRowType(assetContent: AssetContent, rowName: string) {
+  const foundRow = assetContent.survey?.find((row) => getRowName(row) === rowName)
+  if (foundRow) {
+    return foundRow.type
+  }
+  return undefined
+}
 
+export function getRowTypeIcon(rowType: AnyRowTypeName | undefined) {
   if (rowType === SCORE_ROW_TYPE) {
-    iconClassName = QUESTION_TYPES.score.icon;
+    return QUESTION_TYPES.score.icon;
   } else if (rowType === RANK_LEVEL_TYPE) {
-    iconClassName = QUESTION_TYPES.rank.icon;
-  } else if (QUESTION_TYPES.hasOwnProperty(rowType)) {
+    return QUESTION_TYPES.rank.icon;
+  } else if (rowType && QUESTION_TYPES.hasOwnProperty(rowType)) {
     // We need to cast with `as` operator to avoid typescript complaining that
     // we can't use AnyRowTypeName as index for QuestionTypes.
     const rowTypeAsQuestionType = rowType as QuestionTypeName;
-    iconClassName = QUESTION_TYPES[rowTypeAsQuestionType].icon;
+    return QUESTION_TYPES[rowTypeAsQuestionType].icon;
   }
 
   if (rowType === META_QUESTION_TYPES['background-audio']) {
-    iconClassName = 'k-icon-background-rec';
-  } else if (META_QUESTION_TYPES.hasOwnProperty(rowType)) {
-    iconClassName = 'qt-meta-default';
+    return 'background-rec';
+  } else if (rowType && META_QUESTION_TYPES.hasOwnProperty(rowType)) {
+    return 'qt-meta-default';
   }
 
-  if (iconClassName) {
+  return undefined
+}
+
+export function renderQuestionTypeIcon(
+  rowType: AnyRowTypeName
+): React.DetailedReactHTMLElement<{}, HTMLElement> | null {
+  const rowTypeIcon = getRowTypeIcon(rowType)
+  if (rowTypeIcon) {
+    // TODO: use Icon component here, but please check out all usages first.
+    // Also make sure the icon size is right.
     return React.createElement(
       'i',
       {
-        className: `k-icon k-icon-${iconClassName}`,
+        className: `k-icon k-icon-${rowTypeIcon}`,
         title: rowType
       }
     );
