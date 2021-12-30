@@ -12,9 +12,30 @@ ADVANCED_FEATURES_PARAMS_SCHEMA = {
     'properties': {
         'transcript': {
             'type': 'object',
+            'properties': {
+                'values': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                },
+                'services': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                },
+            }
         },
         'translated': {
             'type': 'object',
+            'properties': {
+                'languages': {
+                    'type': 'array',
+                    'items': {'type': 'string'}
+                },
+                'values': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                },
+            },
+            'required': ['languages']
         }
     }
 }

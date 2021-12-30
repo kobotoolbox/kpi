@@ -10,23 +10,31 @@ DT_CREATED = BaseAction.DATE_CREATED_FIELD
 
 class AutomaticTranscriptionAction(BaseAction):
     ID = 'transcript'
+    MANUAL = 'user_transcribed'
     TRANSCRIPTION_SERVICES = (
         'transcript_acme',
     )
 
     @classmethod
-    def build_params(kls, survey_content):
-        audio_questions = []
+    def build_params(kls, params, content):
         possible_transcribed_fields = []
-        for row in survey_content.get('survey', []):
+        for row in content.get('survey', []):
             if row['type'] in ['audio', 'video']:
                 possible_transcribed_fields.append(row['name'])
         params = {'values': possible_transcribed_fields, 'services': kls.TRANSCRIPTION_SERVICES}
         return params
 
+    @classmethod
+    def get_values_for_content(kls, content):
+        possible_transcribed_fields = []
+        for row in content.get('survey', []):
+            if row['type'] in ['audio', 'video']:
+                possible_transcribed_fields.append(row['name'])
+        return possible_transcribed_fields
+
     def load_params(self, params):
         self.possible_transcribed_fields = params['values']
-        self.available_services = params['services']
+        self.available_services = params.get('services', [])
 
     def modify_jsonschema(self, schema):
         defs = schema.get('definitions', {})
@@ -86,8 +94,9 @@ class AutomaticTranscriptionAction(BaseAction):
         return PASSES
 
     def addl_fields(self):
-        for (field, service, key) in self.field_service_matrix():
-            label = f'{key} Transcript'
+        # for (field, service, key) in self.field_service_matrix():
+        for field in self.possible_transcribed_fields:
+            label = f'{field} Transcript (en)'
             yield {
                 'type': 'text',
                 'name': f'{field}/{service}',
@@ -100,8 +109,16 @@ class AutomaticTranscriptionAction(BaseAction):
                 }
             }
 
+    '''
+    {"value": "My translation", "languageCode": "en", "date": "12today"}
+
+    AQ1 Translation (FR)	AQ1 Translation (XZ)
+    --------------------    --------------------
+    "My translation"
+    '''
+
     def engines(self):
-        manual_name = f'engines/transcript_{self.MANUAL}'
+        manual_name = f'engines/transcript_manual'
         manual_engine = {
             'details': 'A human provided transcription'
         }
@@ -115,8 +132,8 @@ class AutomaticTranscriptionAction(BaseAction):
     def field_service_matrix(self):
         for field in self.possible_transcribed_fields:
             yield (field,
-                   self.MANUAL,
-                   f'{field}_transcription_{self.MANUAL}')
+                   'manual',
+                   f'{field}_transcription_manual')
             for service in self.available_services:
                 fs_key = f'{field}_transcription_{service}'
                 yield (field, service, fs_key)
@@ -129,7 +146,7 @@ class AutomaticTranscriptionAction(BaseAction):
                 continue
             field_service_status = supp_data[fs_key]
             if field_service_status == REQUESTED_BY_USER:
-                self.initiate_async_request(submission, field, service)
+                # self.initiate_async_request(submission, field, service)
                 supp_data[fs_key] = PENDING
                 continue
         return {**submission, self._destination_field: supp_data}
