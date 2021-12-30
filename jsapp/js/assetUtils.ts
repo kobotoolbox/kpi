@@ -309,7 +309,7 @@ export function replaceForm(asset: AssetResponse) {
   });
 }
 
-type SurveyFlatPaths = {
+export type SurveyFlatPaths = {
   [P in string]: string
 }
 
@@ -607,6 +607,26 @@ export function getAssetProcessingUrl(assetUid: string): string | undefined {
   const foundAsset = assetStore.getAsset(assetUid)
   if (foundAsset) {
     return foundAsset.advanced_submission_schema.url
+  }
+  return undefined
+}
+
+export function getAssetProcessingRows(assetUid: string) {
+  const foundAsset = assetStore.getAsset(assetUid)
+  if (foundAsset?.advanced_submission_schema.properties) {
+    const rows: string[] = []
+    Object.keys(foundAsset.advanced_submission_schema.properties).forEach((propertyName) => {
+      if (foundAsset.advanced_submission_schema.properties !== undefined) {
+        const propertyObj = foundAsset.advanced_submission_schema.properties[propertyName]
+        // NOTE: we assume that the properties will hold only a special string
+        // "submission" property and one object property for each
+        // processing-enabled row.
+        if (propertyObj.type === 'object') {
+          rows.push(propertyName)
+        }
+      }
+    })
+    return rows
   }
   return undefined
 }

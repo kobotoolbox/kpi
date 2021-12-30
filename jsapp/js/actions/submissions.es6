@@ -57,14 +57,22 @@ submissionsActions.getSubmissions.listen((options) => {
  * This gets an array of submission ids
  * @param {string} assetUid
  */
-submissionsActions.getProcessingSubmissions.listen((assetUid, questionPath) => {
+submissionsActions.getProcessingSubmissions.listen((assetUid, questionsPaths) => {
+  let fields = '';
+  questionsPaths.forEach((questionPath) => {
+    fields += `,"${questionPath}"`;
+  });
+
   $.ajax({
     dataType: 'json',
     method: 'GET',
-    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_uuid", "${questionPath}"]`,
+    url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/?sort={"_submission_time":-1}&fields=["_uuid" ${fields}]`,
   })
     .done(submissionsActions.getProcessingSubmissions.completed)
     .fail(submissionsActions.getProcessingSubmissions.failed);
+});
+submissionsActions.getProcessingSubmissions.failed.listen(() => {
+  notify(t('Failed to get submissions uuids.'), 'error');
 });
 
 submissionsActions.getSubmission.listen((assetUid, submissionId) => {
@@ -84,7 +92,10 @@ submissionsActions.getSubmissionByUuid.listen((assetUid, submissionUuid) => {
     .done((response) => {
       submissionsActions.getSubmissionByUuid.completed(response.results[0]);
     })
-    .fail(submissionsActions.getSubmission.failed);
+    .fail(submissionsActions.getSubmissionByUuid.failed);
+});
+submissionsActions.getSubmissionByUuid.failed.listen(() => {
+  notify(t('Failed to get submission.'), 'error');
 });
 
 submissionsActions.bulkDeleteStatus.listen((uid, data) => {

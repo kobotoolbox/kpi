@@ -30,7 +30,6 @@ type SingleProcessingSubmissionDetailsProps = {
   questionType: AnyRowTypeName | undefined
   questionName: string
   assetContent: AssetContent
-  submissionData: SubmissionResponse
 }
 
 export default class SingleProcessingSubmissionDetails extends React.Component<
@@ -71,8 +70,11 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   }
 
   renderMedia() {
+    const submissionData = singleProcessingStore.getSubmissionData()
+
     // Only allow audio types for now
     if (
+      !submissionData ||
       !this.props.assetContent.survey ||
       (
         this.props.questionType !== QUESTION_TYPES.audio.id &&
@@ -85,14 +87,14 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
     const rowData = getRowData(
       this.props.questionName,
       this.props.assetContent.survey,
-      this.props.submissionData
+      submissionData
     )
 
     if (rowData === null) {
       return null
     }
 
-    const attachment = getMediaAttachment(this.props.submissionData, rowData)
+    const attachment = getMediaAttachment(submissionData, rowData)
 
     if (typeof attachment === 'string') {
       return
@@ -106,6 +108,13 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   }
 
   renderDataList() {
+    const submissionData = singleProcessingStore.getSubmissionData()
+
+    // If submission data is not ready yet, just don't render the list.
+    if (!submissionData) {
+      return null
+    }
+
     // If there is a source, we don't want to display these submission details,
     // as we want the most space possible for the source text.
     if (singleProcessingStore.getSourceData() !== undefined) {
@@ -116,7 +125,7 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
       <bem.SingleProcessingDataListWrapper key='data-list'>
         <SubmissionDataList
           assetContent={this.props.assetContent}
-          submissionData={this.props.submissionData}
+          submissionData={submissionData}
           hideQuestions={this.getQuestionsToHide()}
           hideGroups
         />

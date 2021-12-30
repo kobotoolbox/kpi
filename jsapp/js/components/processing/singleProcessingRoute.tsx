@@ -1,6 +1,5 @@
 import React from 'react'
 import {RouteComponentProps} from 'react-router'
-import {actions} from 'js/actions'
 import {
   getSurveyFlatPaths,
   getTranslatedRowLabel
@@ -30,16 +29,7 @@ type SingleProcessingRouteProps = RouteComponentProps<{
 }, {}>
 
 type SingleProcessingRouteState = {
-  isSubmissionCallDone: boolean
-  isIdsCallDone: boolean
-  submissionData: SubmissionResponse | null
-  /**
-   * A list of all submissions ids, we store `null` for submissions that don't
-   * have a response for the question.
-   */
-  submissionsUuids: (string | null)[]
   asset: AssetResponse | undefined
-  error: string | null
 }
 
 /**
@@ -53,12 +43,7 @@ export default class SingleProcessingRoute extends React.Component<
   constructor(props: SingleProcessingRouteProps) {
     super(props)
     this.state = {
-      isSubmissionCallDone: false,
-      isIdsCallDone: false,
-      submissionData: null,
-      submissionsUuids: [],
-      asset: assetStore.getAsset(this.props.params.uid),
-      error: null,
+      asset: assetStore.getAsset(this.props.params.uid)
     }
   }
 
@@ -66,24 +51,12 @@ export default class SingleProcessingRoute extends React.Component<
 
   componentDidMount() {
     this.unlisteners.push(
-      actions.submissions.getSubmissionByUuid.completed.listen(this.onGetSubmissionByUuidCompleted.bind(this)),
-      actions.submissions.getSubmissionByUuid.failed.listen(this.onGetSubmissionByUuidFailed.bind(this)),
-      actions.submissions.getProcessingSubmissions.completed.listen(this.onGetProcessingSubmissionsCompleted.bind(this)),
-      actions.submissions.getProcessingSubmissions.failed.listen(this.onGetProcessingSubmissionsFailed.bind(this)),
       singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
     )
-    actions.submissions.getSubmissionByUuid(this.props.params.uid, this.props.params.submissionUuid)
-    this.getNewProcessingSubmissions()
   }
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb()})
-  }
-
-  componentDidUpdate(prevProps: SingleProcessingRouteProps) {
-    if (prevProps.params.submissionUuid !== this.props.params.submissionUuid) {
-      this.getNewSubmissionData()
-    }
   }
 
   /**
@@ -93,67 +66,6 @@ export default class SingleProcessingRoute extends React.Component<
   */
   onSingleProcessingStoreChange() {
     this.forceUpdate()
-  }
-
-  getNewSubmissionData(): void {
-    this.setState({
-      isSubmissionCallDone: false,
-      submissionData: null,
-    })
-    actions.submissions.getSubmissionByUuid(this.props.params.uid, this.props.params.submissionUuid)
-  }
-
-  onGetSubmissionByUuidCompleted(response: SubmissionResponse): void {
-    this.setState({
-      isSubmissionCallDone: true,
-      submissionData: response,
-    })
-  }
-
-  onGetSubmissionByUuidFailed(response: FailResponse): void {
-    this.setState({
-      isSubmissionCallDone: true,
-      error: response.responseJSON?.detail || t('Failed to get submission.'),
-    })
-  }
-
-  getNewProcessingSubmissions(): void {
-    const questionFlatPath = this.getQuestionPath()
-
-    if (questionFlatPath === undefined) {
-      console.error(t('Insufficient data to fetch submissions for processing!'))
-      return
-    }
-
-    actions.submissions.getProcessingSubmissions(
-      this.props.params.uid,
-      questionFlatPath
-    )
-  }
-
-  onGetProcessingSubmissionsCompleted(response: GetProcessingSubmissionsResponse) {
-    const submissionsUuids: (string|null)[] = []
-    response.results.forEach((result) => {
-      // As the returned result object could either be `{_uuid:1}` or
-      // `{_uuid:1, <question>:any}`, checking the length is Good Enough™.
-      if (Object.keys(result).length === 2) {
-        submissionsUuids.push(String(result._uuid))
-      } else {
-        submissionsUuids.push(null)
-      }
-    })
-
-    this.setState({
-      isIdsCallDone: true,
-      submissionsUuids: submissionsUuids
-    })
-  }
-
-  onGetProcessingSubmissionsFailed(response: FailResponse): void {
-    this.setState({
-      isIdsCallDone: true,
-      error: response.responseJSON?.detail || t('Failed to get submissions IDs.'),
-    })
   }
 
   getQuestionPath() {
@@ -198,25 +110,12 @@ export default class SingleProcessingRoute extends React.Component<
 
   render() {
     if (
-      !this.state.isSubmissionCallDone ||
-      !this.state.isIdsCallDone ||
+      !singleProcessingStore.isReady() ||
       !this.state.asset?.content?.survey
     ) {
       return (
         <bem.SingleProcessing>
           <LoadingSpinner/>
-        </bem.SingleProcessing>
-      )
-    }
-
-    if (this.state.error !== null) {
-      return (
-        <bem.SingleProcessing>
-          <bem.Loading>
-            <bem.Loading__inner>
-              {this.state.error}
-            </bem.Loading__inner>
-          </bem.Loading>
         </bem.SingleProcessing>
       )
     }
@@ -234,30 +133,26 @@ export default class SingleProcessingRoute extends React.Component<
             questionName={this.props.params.questionName}
             questionLabel={this.getQuestionLabel()}
             submissionUuid={this.props.params.submissionUuid}
-            submissionsUuids={this.state.submissionsUuids}
             assetUid={this.props.params.uid}
           />
         </bem.SingleProcessing__top>
 
         <bem.SingleProcessing__bottom>
-          {!singleProcessingStore.isReady &&
+          {!singleProcessingStore.isReady() &&
             <LoadingSpinner/>
           }
-          {singleProcessingStore.isReady &&
+          {singleProcessingStore.isReady() &&
             <bem.SingleProcessing__bottomLeft>
               <SingleProcessingPreview/>
 
-              {this.state.submissionData !== null &&
-                <SingleProcessingSubmissionDetails
-                  questionType={this.getQuestionType()}
-                  questionName={this.props.params.questionName}
-                  submissionData={this.state.submissionData}
-                  assetContent={this.state.asset.content}
-                />
-              }
+              <SingleProcessingSubmissionDetails
+                questionType={this.getQuestionType()}
+                questionName={this.props.params.questionName}
+                assetContent={this.state.asset.content}
+              />
             </bem.SingleProcessing__bottomLeft>
           }
-          {singleProcessingStore.isReady &&
+          {singleProcessingStore.isReady() &&
             <bem.SingleProcessing__bottomRight>
               <SingleProcessingContent
                 questionType={this.getQuestionType()}

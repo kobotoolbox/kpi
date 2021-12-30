@@ -5,6 +5,7 @@ import {renderQuestionTypeIcon} from 'js/assetUtils'
 import {ROUTES} from 'js/router/routerConstants'
 import {hashHistory} from 'react-router'
 import Button from 'js/components/common/button'
+import singleProcessingStore from 'js/components/processing/singleProcessingStore'
 import './singleProcessingHeader.scss'
 
 bem.SingleProcessingHeader = makeBem(null, 'single-processing-header', 'header')
@@ -19,26 +20,33 @@ type SingleProcessingHeaderProps = {
   questionName: string
   questionLabel: string
   submissionUuid: string
-  submissionsUuids: (string | null)[]
   assetUid: string
-}
-
-type SingleProcessingHeaderState = {
-  prevSubmissionUuid: string | null
-  nextSubmissionUuid: string | null
 }
 
 /** Component with the question and UI for switching between submissions */
 export default class SingleProcessingHeader extends React.Component<
   SingleProcessingHeaderProps,
-  SingleProcessingHeaderState
+  {}
 > {
-  constructor(props: SingleProcessingHeaderProps) {
-    super(props)
-    this.state = {
-      prevSubmissionUuid: this.getPrevSubmissionUuid(),
-      nextSubmissionUuid: this.getNextSubmissionUuid(),
-    }
+  private unlisteners: Function[] = []
+
+  componentDidMount() {
+    this.unlisteners.push(
+      singleProcessingStore.listen(this.onSingleProcessingStoreChange, this)
+    )
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb()})
+  }
+
+  /**
+  * Don't want to store a duplicate of store data here just for the sake of
+  * comparison, so we need to make the component re-render itself when the
+  * store changes :shrug:.
+  */
+  onSingleProcessingStoreChange() {
+    this.forceUpdate()
   }
 
   /** Goes back to table view for given asset. */
@@ -57,20 +65,29 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   goPrev() {
-    if (this.state.prevSubmissionUuid) {
-      this.goToSubmission(this.state.prevSubmissionUuid)
+    const prevUuid = this.getPrevSubmissionUuid()
+    if (prevUuid !== null) {
+      this.goToSubmission(prevUuid)
     }
   }
 
   goNext() {
-    if (this.state.nextSubmissionUuid) {
-      this.goToSubmission(this.state.nextSubmissionUuid)
+    const nextUuid = this.getNextSubmissionUuid()
+    if (nextUuid !== null) {
+      this.goToSubmission(nextUuid)
     }
   }
 
-  /** Returns a natural number (first is 1, not 0) */
-  getCurrentSubmissionNumber(): number {
-    return this.props.submissionsUuids.indexOf(this.props.submissionUuid) + 1
+  /**
+   * Returns a natural number (beginning with 1, not 0) or `null` when store
+   * is not ready yet.
+   */
+  getCurrentSubmissionNumber(): number | null {
+    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids()
+    if (Array.isArray(uuids)) {
+      return uuids.indexOf(this.props.submissionUuid) + 1
+    }
+    return null
   }
 
   /**
@@ -78,18 +95,23 @@ export default class SingleProcessingHeader extends React.Component<
    * in submissionsUuids array. Returns `null` if there is no such submissionUuid.
    */
   getPrevSubmissionUuid(): string | null {
-    const currentIndex = this.props.submissionsUuids.indexOf(this.props.submissionUuid)
-    // if not found current submissionUuid in the array, we don't know what is next
+    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids()
+    if (!Array.isArray(uuids)) {
+      return null
+    }
+    const currentIndex = uuids.indexOf(this.props.submissionUuid)
+
+    // If not found current submissionUuid in the array, we don't know what is next.
     if (currentIndex === -1) {
       return null
     }
-    // if on first element already, there is no previous
+    // If on first element already, there is no previous.
     if (currentIndex === 0) {
       return null
     }
 
-    // finds the closest non-null submissionUuid going backwards from current one
-    const leftSubmissionsIds = this.props.submissionsUuids.slice(0, currentIndex)
+    // Finds the closest non-null submissionUuid going backwards from current one.
+    const leftSubmissionsIds = uuids.slice(0, currentIndex)
     let foundId: string | null = null
     leftSubmissionsIds.forEach((id) => {
       if (id !== null) {
@@ -105,18 +127,23 @@ export default class SingleProcessingHeader extends React.Component<
    * in submissionsUuids array. Returns `null` if there is no such submissionUuid.
    */
   getNextSubmissionUuid(): string | null {
-    const currentIndex = this.props.submissionsUuids.indexOf(this.props.submissionUuid)
-    // if not found current submissionUuid in the array, we don't know what is next
+    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids()
+    if (!Array.isArray(uuids)) {
+      return null
+    }
+    const currentIndex = uuids.indexOf(this.props.submissionUuid)
+
+    // If not found current submissionUuid in the array, we don't know what is next.
     if (currentIndex === -1) {
       return null
     }
-    // if on last element already, there is no next
-    if (currentIndex === this.props.submissionsUuids.length - 1) {
+    // If on last element already, there is no next.
+    if (currentIndex === uuids.length - 1) {
       return null
     }
 
-    // finds the closest non-null submissionUuid going forwards from current one
-    const rightSubmissionsIds = this.props.submissionsUuids.slice(currentIndex + 1)
+    // Finds the closest non-null submissionUuid going forwards from current one.
+    const rightSubmissionsIds = uuids.slice(currentIndex + 1)
     let foundId: string | null = null
     rightSubmissionsIds.find((id) => {
       if (id !== null) {
@@ -130,6 +157,8 @@ export default class SingleProcessingHeader extends React.Component<
   }
 
   render() {
+    const uuids = singleProcessingStore.getCurrentQuestionSubmissionsUuids()
+
     return (
       <bem.SingleProcessingHeader>
         <bem.SingleProcessingHeader__column m='main'>
@@ -147,7 +176,7 @@ export default class SingleProcessingHeader extends React.Component<
               color='storm'
               startIcon='caret-left'
               onClick={this.goPrev.bind(this)}
-              isDisabled={this.state.prevSubmissionUuid === null}
+              isDisabled={this.getPrevSubmissionUuid() === null}
             />
 
             <bem.SingleProcessingHeader__count>
@@ -157,7 +186,9 @@ export default class SingleProcessingHeader extends React.Component<
                 {this.getCurrentSubmissionNumber()}
               </strong>
               &nbsp;
-              {t('of ##total_count##').replace('##total_count##', String(this.props.submissionsUuids.length))}
+              {Array.isArray(uuids) &&
+                t('of ##total_count##').replace('##total_count##', String(uuids.length))
+              }
             </bem.SingleProcessingHeader__count>
 
             <Button
@@ -166,7 +197,7 @@ export default class SingleProcessingHeader extends React.Component<
               color='storm'
               endIcon='caret-right'
               onClick={this.goNext.bind(this)}
-              isDisabled={this.state.nextSubmissionUuid === null}
+              isDisabled={this.getNextSubmissionUuid() === null}
             />
           </bem.SingleProcessingHeader__submissions>
         </bem.SingleProcessingHeader__column>
