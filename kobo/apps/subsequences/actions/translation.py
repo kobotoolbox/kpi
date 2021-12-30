@@ -16,28 +16,46 @@ class TranslationAction(BaseAction):
         params = {'values': translatable_fields}
         return params
 
+    @classmethod
+    def get_values_for_content(kls, content):
+        translatable_fields = []
+        for row in content.get('survey', []):
+            if row['type'] in ['audio', 'video', 'text']:
+                translatable_fields.append(row['name'])
+        return translatable_fields
+
     def load_params(self, params):
-        self.translatable_fields = params['values']
+        self.translatable_fields = params.get('values', [])
+        self.languages = params['languages']
         self.available_services = params.get('services', [])
 
     def modify_jsonschema(self, schema):
         defs = schema.get('definitions', {})
+        translation_properties = {
+            'value': {'type': 'string'},
+            'engine': {'type': 'string'},
+            self.DATE_CREATED_FIELD: {'type': 'string',
+                                      'format': 'date-time'},
+            self.DATE_MODIFIED_FIELD: {'type': 'string',
+                                       'format': 'date-time'},
+            'languageCode': {'type': 'string'},
+            'revisions': {'type': 'array', 'items': {
+                '$ref': '#/definitions/translationRevision'
+            }}
+        }
+        defs['xtranslation'] = {
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': translation_properties,
+        }
+        indiv_tx_ref = {'$ref': '#/definitions/xtranslation'}
+        lang_code_props = {}
+        for language_code in self.languages:
+            lang_code_props[language_code] = indiv_tx_ref
         defs['translation'] = {
             'type': 'object',
-            'properties': {
-                'value': {'type': 'string'},
-                'engine': {'type': 'string'},
-                self.DATE_CREATED_FIELD: {'type': 'string',
-                                          'format': 'date-time'},
-                self.DATE_MODIFIED_FIELD: {'type': 'string',
-                                           'format': 'date-time'},
-                'languageCode': {'type': 'string'},
-                'revisions': {'type': 'array', 'items': {
-                    '$ref': '#/definitions/translationRevision'
-                }}
-            },
+            'properties': lang_code_props,
             'additionalProperties': False,
-            'required': ['value'],
         }
         defs['translationRevision'] = {
             'type': 'object',

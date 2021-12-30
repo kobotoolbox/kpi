@@ -45,16 +45,22 @@ def get_additional_fields_data_xyz(content, actions):
 
 def advanced_feature_instances(content, actions):
     action_instances = []
-    for action_id, misc_params in actions.items():
+    for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
-        action_params = action_kls.build_params(content)
+        if action_params == True:
+            action_params = action_kls.build_params(content)
         yield action_kls(action_params)
 
 def advanced_submission_jsonschema(content, actions, url=None):
     action_instances = []
-    for action_id, misc_params in actions.items():
+    if 'translated' in actions:
+        assert 'languages' in actions['translated']
+    for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
-        action_params = action_kls.build_params(content)
+        if action_params == True:
+            action_params = action_kls.build_params(content)
+        if 'values' not in action_params:
+            action_params['values'] = action_kls.get_values_for_content(content)
         action_instances.append(action_kls(action_params))
     return get_jsonschema(action_instances, url=url)
 
