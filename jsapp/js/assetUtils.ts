@@ -1,6 +1,5 @@
 import React from 'react'
 import {AssetTypeName} from 'js/constants'
-import {IconName} from 'jsapp/fonts/k-icons'
 import {stores} from 'js/stores'
 import permConfig from 'js/components/permissions/permConfig'
 import {buildUserUrl} from 'js/utils'

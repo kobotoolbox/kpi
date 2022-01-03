@@ -15,6 +15,11 @@ import {
 import AudioPlayer from 'js/components/common/audioPlayer'
 import './singleProcessingSubmissionDetails.scss'
 
+bem.SingleProcessingVideoPreview = makeBem(
+  null,
+  'single-processing-video-preview',
+  'video'
+)
 bem.SingleProcessingMediaWrapper = makeBem(
   null,
   'single-processing-media-wrapper',
@@ -70,41 +75,53 @@ export default class SingleProcessingSubmissionDetails extends React.Component<
   }
 
   renderMedia() {
+    // We need submission data.
     const submissionData = singleProcessingStore.getSubmissionData()
-
-    // Only allow audio types for now
-    if (
-      !submissionData ||
-      !this.props.assetContent.survey ||
-      (
-        this.props.questionType !== QUESTION_TYPES.audio.id &&
-        this.props.questionType !== META_QUESTION_TYPES['background-audio']
-      )
-    ) {
+    if (!submissionData) {
       return null
     }
 
+    // We need asset with content.
+    if (!this.props.assetContent.survey) {
+      return null
+    }
+
+    // We need row data.
     const rowData = getRowData(
       this.props.questionName,
       this.props.assetContent.survey,
       submissionData
     )
-
     if (rowData === null) {
       return null
     }
 
+    // Attachment needs to be object with urls.
     const attachment = getMediaAttachment(submissionData, rowData)
-
     if (typeof attachment === 'string') {
       return
     }
 
-    return (
-      <bem.SingleProcessingMediaWrapper key='media'>
-        <AudioPlayer mediaURL={attachment.download_url} />
-      </bem.SingleProcessingMediaWrapper>
-    )
+    switch (this.props.questionType) {
+      case QUESTION_TYPES.audio.id:
+      case META_QUESTION_TYPES['background-audio']:
+        return (
+          <bem.SingleProcessingMediaWrapper m='audio' key='audio'>
+            <AudioPlayer mediaURL={attachment.download_url} />
+          </bem.SingleProcessingMediaWrapper>
+        )
+      case QUESTION_TYPES.video.id:
+        return (
+          <bem.SingleProcessingMediaWrapper m='video' key='video'>
+            <bem.SingleProcessingVideoPreview
+              src={attachment.download_url}
+              controls
+            />
+          </bem.SingleProcessingMediaWrapper>
+        )
+      default:
+        return null
+    }
   }
 
   renderDataList() {

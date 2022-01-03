@@ -95,7 +95,7 @@ export default class SingleProcessingPreview extends React.Component {
         })
       })
 
-      // TODO: don't use Select because of styles issues, use KoboDropdown
+      // TODO: don't use Select because of styles issues, use KoboSelect
       return (
         <bem.ProcessingBody__transHeaderLanguageWrapper>
           {t('Language')}
