@@ -5,6 +5,7 @@ import {
   getTranslatedRowLabel
 } from 'js/assetUtils'
 import assetStore from 'js/assetStore'
+import {getAssetProcessingRows} from 'js/assetUtils'
 import bem, {makeBem} from 'js/bem'
 import {AnyRowTypeName} from 'js/constants'
 import LoadingSpinner from 'js/components/common/loadingSpinner'
@@ -108,6 +109,26 @@ export default class SingleProcessingRoute extends React.Component<
     return this.props.params.questionName
   }
 
+  /** Whether the question and submission uuid pair make sense for processing. */
+  isDataValid() {
+    // To prepare UI for questions that are not processing-enabled.
+    const processingRows = getAssetProcessingRows(this.props.params.uid)
+    const isQuestionProcessingEnabled = (
+      Array.isArray(processingRows) &&
+      processingRows.includes(this.props.params.questionName)
+    )
+
+    // To prepare UI for submissions (uuids) that don't contain any processable data.
+    const uuids = singleProcessingStore.getSubmissionsUuids()
+    const hasSubmissionAnyProcessableData = (
+      uuids &&
+      uuids[this.props.params.questionName] &&
+      uuids[this.props.params.questionName].includes(this.props.params.submissionUuid)
+    )
+
+    return isQuestionProcessingEnabled && hasSubmissionAnyProcessableData
+  }
+
   render() {
     if (
       !singleProcessingStore.isReady() ||
@@ -142,7 +163,7 @@ export default class SingleProcessingRoute extends React.Component<
           {!singleProcessingStore.isReady() &&
             <LoadingSpinner/>
           }
-          {singleProcessingStore.isReady() &&
+          {this.isDataValid() && singleProcessingStore.isReady() &&
             <bem.SingleProcessing__bottomLeft>
               <SingleProcessingPreview/>
 
@@ -153,12 +174,19 @@ export default class SingleProcessingRoute extends React.Component<
               />
             </bem.SingleProcessing__bottomLeft>
           }
-          {singleProcessingStore.isReady() &&
+          {this.isDataValid() && singleProcessingStore.isReady() &&
             <bem.SingleProcessing__bottomRight>
               <SingleProcessingContent
                 questionType={this.getQuestionType()}
               />
             </bem.SingleProcessing__bottomRight>
+          }
+          {!this.isDataValid() &&
+            <bem.Loading>
+              <bem.Loading__inner>
+                {t('Processing feature is not available for current question and submission pair.')}
+              </bem.Loading__inner>
+            </bem.Loading>
           }
         </bem.SingleProcessing__bottom>
       </bem.SingleProcessing>
