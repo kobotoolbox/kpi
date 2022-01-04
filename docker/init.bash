@@ -14,6 +14,7 @@ if [[ -z $DATABASE_URL ]]; then
 fi
 
 # Handle Python dependencies BEFORE attempting any `manage.py` commands
+KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
 if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
     # `diff` returns exit code 1 if it finds a difference between the files
     DIFF=$(diff "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt" || true)
