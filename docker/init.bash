@@ -17,15 +17,15 @@ fi
 KPI_WEB_SERVER="${KPI_WEB_SERVER:-uWSGI}"
 if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
     # `diff` returns exit code 1 if it finds a difference between the files
-    DIFF=$(diff "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt" || true)
-    if [[ -n "$DIFF" ]]; then
+    if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt"
+    then
         echo "Syncing production pip dependencies..."
         pip-sync dependencies/pip/external_services.txt 1>/dev/null
         cp "dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt"
     fi
 else
-    DIFF=$(diff "${KPI_SRC_DIR}/dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt" || true)
-    if [[ -n "$DIFF" ]]; then
+    if ! diff -q "${KPI_SRC_DIR}/dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt"
+    then
         echo "Syncing development pip dependencies..."
         pip-sync dependencies/pip/dev_requirements.txt 1>/dev/null
         cp "dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt"
