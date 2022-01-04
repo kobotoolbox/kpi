@@ -13,6 +13,27 @@ if [[ -z $DATABASE_URL ]]; then
     exit 1
 fi
 
+# Handle Python dependencies BEFORE attempting any `manage.py` commands
+if [[ "${KPI_WEB_SERVER,,}" == 'uwsgi' ]]; then
+    # `diff` returns exit code 1 if it finds a difference between the files
+    DIFF=$(diff "${KPI_SRC_DIR}/dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt" || true)
+    if [[ -n "$DIFF" ]]; then
+        echo "Syncing production pip dependencies..."
+        pip-sync dependencies/pip/external_services.txt 1>/dev/null
+        cp "dependencies/pip/external_services.txt" "/srv/tmp/pip_dependencies.txt"
+    fi
+else
+    DIFF=$(diff "${KPI_SRC_DIR}/dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt" || true)
+    if [[ -n "$DIFF" ]]; then
+        echo "Syncing development pip dependencies..."
+        pip-sync dependencies/pip/dev_requirements.txt 1>/dev/null
+        cp "dependencies/pip/dev_requirements.txt" "/srv/tmp/pip_dependencies.txt"
+    fi
+    if [[ -n "$RAVEN_DSN" ]]; then
+        echo "Sentry detected. Installing \`raven\` pip dependency..."
+        pip install raven
+    fi
+fi
 
 # Wait for databases to be up & running before going further
 /bin/bash "${INIT_PATH}/wait_for_mongo.bash"
