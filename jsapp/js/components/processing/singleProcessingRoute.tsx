@@ -1,9 +1,6 @@
 import React from 'react'
 import {RouteComponentProps} from 'react-router'
-import {
-  getSurveyFlatPaths,
-  getTranslatedRowLabel
-} from 'js/assetUtils'
+import {getSurveyFlatPaths} from 'js/assetUtils'
 import assetStore from 'js/assetStore'
 import {getAssetProcessingRows} from 'js/assetUtils'
 import bem, {makeBem} from 'js/bem'
@@ -94,21 +91,6 @@ export default class SingleProcessingRoute extends React.Component<
     return undefined
   }
 
-  /** Returns row label (for default language) with fallback to question name. */
-  getQuestionLabel(): string {
-    if (this.state.asset?.content?.survey) {
-      const translatedRowLabel = getTranslatedRowLabel(
-        this.props.params.questionName,
-        this.state.asset.content.survey,
-        0
-      )
-      if (translatedRowLabel !== null) {
-        return translatedRowLabel
-      }
-    }
-    return this.props.params.questionName
-  }
-
   /** Whether the question and submission uuid pair make sense for processing. */
   isDataValid() {
     // To prepare UI for questions that are not processing-enabled.
@@ -152,7 +134,6 @@ export default class SingleProcessingRoute extends React.Component<
           <SingleProcessingHeader
             questionType={this.getQuestionType()}
             questionName={this.props.params.questionName}
-            questionLabel={this.getQuestionLabel()}
             submissionUuid={this.props.params.submissionUuid}
             assetUid={this.props.params.uid}
             assetContent={this.state.asset.content}

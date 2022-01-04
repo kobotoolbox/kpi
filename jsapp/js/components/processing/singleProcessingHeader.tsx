@@ -22,7 +22,6 @@ bem.SingleProcessingHeader__number = makeBem(bem.SingleProcessingHeader, 'number
 type SingleProcessingHeaderProps = {
   questionType: AnyRowTypeName | undefined
   questionName: string
-  questionLabel: string
   submissionUuid: string
   assetUid: string
   assetContent: AssetContent

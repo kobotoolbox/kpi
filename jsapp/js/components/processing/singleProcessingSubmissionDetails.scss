@@ -10,6 +10,11 @@
     padding: sizes.$x6 sizes.$x12 0 0;
   }
 
+  &.single-processing-media-wrapper--video {
+    border-radius: sizes.$x6;
+    overflow: hidden;
+  }
+
   &:first-child {
     margin-top: singleProcessingVariables.$s-single-processing-tabs;
   }
