@@ -68,13 +68,18 @@ input[type='range'].kobo-range__input--teal {
   }
 }
 
-input[type='range'] {
+input[type='range'].kobo-range__input {
   // General input styling across browsers
   -webkit-appearance: none;
   width: 100%;
   background: transparent;
   cursor: pointer;
   border-radius: 10px;
+
+  &[disabled] {
+    cursor: default;
+    opacity: 0.5;
+  }
 
   // Firefox thumb is going to be hidden
   &::-moz-range-thumb {
