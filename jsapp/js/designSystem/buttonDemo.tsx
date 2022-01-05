@@ -94,7 +94,8 @@ export default class ButtonDemo extends React.Component<{}, ButtonDemoState> {
     this.setState({
       demoLabel: newLabel,
       // If there is no label, icon is required
-      demoStartIcon: newLabel === '' ? defaultIcon : this.state.demoStartIcon
+      demoStartIcon: newLabel === '' ? defaultIcon : this.state.demoStartIcon,
+      demoEndIcon: null
     })
   }
 

@@ -91,10 +91,7 @@ class Button extends React.Component<ButtonProps, {}> {
     let classNames: string[] = []
 
     // Additional class names.
-    if (
-      Array.isArray(this.props.classNames) &&
-      typeof this.props.classNames[0] === 'string'
-    ) {
+    if (this.props.classNames) {
       classNames = this.props.classNames
     }
 
@@ -111,7 +108,8 @@ class Button extends React.Component<ButtonProps, {}> {
       classNames.push('k-button--has-start-icon')
     }
 
-    if (this.props.endIcon) {
+    // Ensures only one icon is being displayed.
+    if (!this.props.startIcon && this.props.endIcon) {
       classNames.push('k-button--has-end-icon')
     }
 
@@ -155,7 +153,8 @@ class Button extends React.Component<ButtonProps, {}> {
           <label className='k-button__label'>{this.props.label}</label>
         }
 
-        {this.props.endIcon &&
+        {/* Ensures only one icon is being displayed.*/}
+        {!this.props.startIcon && this.props.endIcon &&
           <Icon name={this.props.endIcon} size={iconSize}/>
         }
 
