@@ -2,11 +2,13 @@ import React from 'react'
 import bem, {makeBem} from 'js/bem'
 import ToggleSwitch from 'js/components/common/toggleSwitch'
 import QRCode from 'qrcode.react'
+import {stores} from 'js/stores'
 import mfaActions, {
   mfaActiveResponse,
   mfaActivatedResponse,
   mfaBackupCodesResponse,
 } from 'js/actions/mfaActions'
+import {MODAL_TYPES} from 'jsapp/js/constants'
 
 bem.Security = makeBem(null, 'security')
 
@@ -67,7 +69,10 @@ export default class Security extends React.Component<
   }
 
   mfaActivated(response: mfaActivatedResponse) {
-    this.setState({qrCode: response.details})
+    stores.pageState.showModal({
+      type: MODAL_TYPES.MFA_SETUP,
+      qrCode: response.details
+    })
   }
 
   mfaConfirm() {
@@ -101,7 +106,7 @@ export default class Security extends React.Component<
     if (response) {
       mfaActions.activate();
     } else {
-      console.log('now we show the modal')
+      console.log('now we show the deactivate modal')
     }
   }
 
@@ -116,13 +121,7 @@ export default class Security extends React.Component<
           checked={this.state.mfaActive}
           onChange={this.onToggleChange.bind(this)}
         />
-        {this.state.qrCode &&
-          <div>
-            <QRCode value={this.state.qrCode}/>
-            <input type='text' onChange={this.onInputChange.bind(this)}/>
-            <button onClick={this.mfaConfirm.bind(this)}/>
-          </div>
-        }
+
         {this.state.backupCodes &&
           <ol>
             {this.state.backupCodes.map((t) => {

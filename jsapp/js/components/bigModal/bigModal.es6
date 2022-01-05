@@ -28,6 +28,7 @@ import TableSettings from 'js/components/submissions/tableSettings';
 import TableMediaPreview from 'js/components/submissions/tableMediaPreview';
 import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
+import MFASetup from 'js/components/account/mfaSetup';
 
 function getSubmissionTitle(props) {
   let title = t('Success!');
@@ -425,6 +426,11 @@ class BigModal extends React.Component {
               <DataAttachmentColumnsForm
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.MFA_SETUP &&
+              <MFASetup
                 {...this.props.params}
               />
             }
