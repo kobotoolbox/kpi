@@ -184,15 +184,24 @@ class BigModal extends React.Component {
         });
         break;
 
+      // TODO: Make a better generic modal component
       case MODAL_TYPES.TABLE_MEDIA_PREVIEW:
         // Size and title will depend on its props
         this.setState({
-          modalClass: 'modal-media-preview'
+          modalClass: 'modal-custom-header modal-media-preview'
         });
         break;
 
       case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
         // title is set by DataAttachmentColumnsForm
+        break;
+
+      // TODO: Make a better generic modal component
+      case MODAL_TYPES.MFA_SETUP:
+        // Size and title will depend on its props
+        this.setState({
+          modalClass: 'modal-custom-header modal-mfa-setup'
+        });
         break;
 
       default:

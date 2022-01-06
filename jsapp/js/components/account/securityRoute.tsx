@@ -18,6 +18,9 @@ bem.SecurityRow__title = makeBem(bem.SecurityRow, 'title')
 bem.SecurityRow__buttons = makeBem(bem.SecurityRow, 'buttons')
 bem.SecurityRow__description = makeBem(bem.SecurityRow, 'description')
 
+bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
+bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title', 'div');
+
 type SecurityState = {
   isLoading: boolean,
   mfaCode: null | string,
@@ -71,7 +74,8 @@ export default class Security extends React.Component<
   mfaActivated(response: mfaActivatedResponse) {
     stores.pageState.showModal({
       type: MODAL_TYPES.MFA_SETUP,
-      qrCode: response.details
+      qrCode: response.details,
+      customModalHeader: this.renderCustomHeader(),
     })
   }
 
@@ -108,6 +112,16 @@ export default class Security extends React.Component<
     } else {
       console.log('now we show the deactivate modal')
     }
+  }
+
+  renderCustomHeader() {
+    return(
+      <bem.TableMediaPreviewHeader>
+        <bem.TableMediaPreviewHeader__title>
+          {t('Two-factor authentication')}
+        </bem.TableMediaPreviewHeader__title>
+      </bem.TableMediaPreviewHeader>
+    )
   }
 
   render() {

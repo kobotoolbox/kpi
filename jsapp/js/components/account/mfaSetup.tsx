@@ -73,7 +73,7 @@ export default class MFASetup extends React.Component<
 
  /**
   * TODO:
-  * - Remove old modal styling (headers, padding etc)
+  * $ Remove old modal styling (headers, padding etc)
   * - Add transition to showing backup codes
   * - add transition to manually entering key
   * - use custom button merged into beta
@@ -82,15 +82,9 @@ export default class MFASetup extends React.Component<
   render() {
     return (
       <bem.MFASetup>
-        <bem.MFASetup__header>
-          <bem.MFASetup__title>
-            {t('Two-factor Authentication')}
-          </bem.MFASetup__title>
-
-          <bem.MFASetup__description>
-            {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We reccomend enabling Two-factor Authenication for an additional layer of protection*.')}
-          </bem.MFASetup__description>
-        </bem.MFASetup__header>
+        <bem.MFASetup__description>
+          {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We reccomend enabling Two-factor Authenication for an additional layer of protection*.')}
+        </bem.MFASetup__description>
 
         <bem.MFASetup__body>
           <bem.MFASetup__qr>

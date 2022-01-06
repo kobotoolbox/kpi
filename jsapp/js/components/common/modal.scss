@@ -331,19 +331,17 @@ $z-modal-x: 10;
   }
 }
 
-.modal.modal-media-preview {
+// TODO: Make a better generic modal component
+
+.modal.modal-custom-header {
   border-radius: 6px;
-  min-width: 25%;
 
   .modal__content {
-    background-color: colors.$kobo-gray-98;
     overflow: hidden;
   }
 
   .modal__header {
     min-height: 0;
-    padding: 16px;
-    background-color: colors.$kobo-white;
     color: colors.$kobo-gray-24;
 
     .modal__x {
@@ -355,14 +353,56 @@ $z-modal-x: 10;
       width: 100%;
       display: flex;
       justify-content: space-between;
-      font-size: 14px;
       font-weight: 600;
       margin-right: 12px;
 
       .table-media-preview-header__title {
         padding-top: 3px;
         margin-right: 6px;
+      }
+    }
+  }
+  .modal__body {
+    padding: 0;
+    margin: 0;
+    overflow: auto;
+  }
+}
 
+.modal.modal-mfa-setup {
+  .modal__header {
+    background-color: colors.$kobo-white;
+    font-size: 24px;
+    padding: 32px;
+
+    .modal__x {
+      font-size: 12px;
+      color: rgba(colors.$kobo-gray-24, 0.4)
+    }
+  }
+  .modal__body {
+    .mfa-setup {
+      padding: 0 32px 32px 32px;
+      margin: auto;
+    }
+  }
+}
+
+.modal.modal-media-preview {
+  min-width: 25%;
+
+  .modal__content {
+    background-color: colors.$kobo-gray-98;
+  }
+
+  .modal__header {
+    background-color: colors.$kobo-white;
+    padding: 16px;
+
+    .table-media-preview-header {
+      font-size: 14px;
+
+      .table-media-preview-header__title {
         .table-media-preview-header__label {
           vertical-align: top;
         }
@@ -389,10 +429,7 @@ $z-modal-x: 10;
   }
 
   .modal__body {
-    padding: 0;
-    margin: 0;
     max-height: 600px;
-    overflow: auto;
 
     .table-media-preview {
       padding: 32px 0 12px 0;
