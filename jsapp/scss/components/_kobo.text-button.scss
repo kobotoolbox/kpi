@@ -1,3 +1,7 @@
+// DEPRECATED: please don't use this component. From now on, we will only use
+// the `Button` component (from `js/components/common/button`) as it covers
+// all possible cases.
+
 /*
   This is a text looking alternative to kobo-light-button
 */
@@ -34,18 +38,6 @@
 
   &.kobo-text-button--blue {
     color: $kobo-blue;
-  }
-
-  &.kobo-text-button--teal {
-    color: $kobo-teal;
-  }
-
-  &.kobo-text-button--green {
-    color: $kobo-green;
-  }
-
-  &.kobo-text-button--orange {
-    color: $kobo-orange;
   }
 
   &.kobo-text-button--red {

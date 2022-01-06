@@ -102,9 +102,7 @@ class TableColumnSortDropdown extends React.Component {
     return (
       <KoboDropdown
         theme={KoboDropdownThemes.dark}
-        hideOnEsc
         hideOnMenuClick
-        hideOnMenuOutsideClick
         name='table-column-sort'
         triggerContent={this.renderTrigger()}
         menuContent={
