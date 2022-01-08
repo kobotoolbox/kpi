@@ -645,6 +645,10 @@ export function getAssetProcessingRows(assetUid: string) {
   return undefined
 }
 
+export function isAssetProcessingActivated(assetUid: string) {
+  return getAssetProcessingUrl(assetUid) !== undefined
+}
+
 export default {
   buildAssetUrl,
   cleanupTags,

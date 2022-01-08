@@ -42,7 +42,7 @@ interface GenericFailedDefinition extends Function {
 }
 
 interface UpdateAssetDefinition extends Function {
-  (uid: string, values: any, params: any): void
+  (uid: string, values: any, params?: any): void
   completed: UpdateAssetCompletedDefinition
   failed: GenericFailedDefinition
 }

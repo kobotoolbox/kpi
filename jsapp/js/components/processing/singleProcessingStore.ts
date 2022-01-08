@@ -7,12 +7,12 @@ import {
   getSingleProcessingRouteParameters,
 } from 'js/router/routerUtils'
 import {
-  getAssetProcessingUrl,
   getSurveyFlatPaths,
-  getAssetProcessingRows
+  getAssetProcessingRows,
+  isAssetProcessingActivated,
 } from 'js/assetUtils'
 import {SurveyFlatPaths} from 'js/assetUtils'
-import assetStore from 'js/assetStore'
+import assetStore, {AssetStoreData} from 'js/assetStore'
 import {actions} from 'js/actions'
 import processingActions, {
   TranscriptResponse,
@@ -84,8 +84,8 @@ class SingleProcessingStore extends Reflux.Store {
    */
   private abortFetchData: Function | undefined
   private previousPath: string | undefined
-  // For the store to work we need all three: asset, submission, and uuids.
-  private isInitialised: boolean = false
+  // For the store to work we need all three: asset, submission, and uuids. The
+  // (ability to fetch) processing data is being unlocked by having'em all.
   private areUuidsLoaded: boolean = false
   private isSubmissionLoaded: boolean = false
   private isProcessingDataLoaded: boolean = false
@@ -97,6 +97,29 @@ class SingleProcessingStore extends Reflux.Store {
   }
   /** Marks some backend calls being in progress. */
   public isFetchingData: boolean = false
+
+  private resetProcessingData() {
+    this.isProcessingDataLoaded = false
+
+    this.data.transcript = undefined
+    this.data.transcriptDraft = undefined
+    this.data.translations = []
+    this.data.translationDraft = undefined
+    this.data.source = undefined
+    this.data.activeTab = SingleProcessingTabs.Transcript
+  }
+
+  private get currentAssetUid(): string {
+    return getSingleProcessingRouteParameters().uid
+  }
+
+  private get currentQuestionName(): string {
+    return getSingleProcessingRouteParameters().questionName
+  }
+
+  private get currentSubmissionUuid(): string {
+    return getSingleProcessingRouteParameters().submissionUuid
+  }
 
   init() {
     this.resetProcessingData()
@@ -124,7 +147,36 @@ class SingleProcessingStore extends Reflux.Store {
     // processing endpoint url from asset JSON). We try to startup store
     // immediately and also listen to asset loads.
     this.startupStore()
-    actions.resources.loadAsset.completed.listen(this.startupStore.bind(this))
+
+    assetStore.listen(this.onAssetLoad.bind(this), this)
+  }
+
+  /** This is making sure the asset processing features are activated. */
+  onAssetLoad(data: AssetStoreData) {
+    const asset = data[this.currentAssetUid]
+    if (
+      isFormSingleProcessingRoute(
+        this.currentAssetUid,
+        this.currentQuestionName,
+        this.currentSubmissionUuid,
+      ) &&
+      this.currentAssetUid === asset.uid
+    ) {
+      if (!isAssetProcessingActivated(this.currentAssetUid)) {
+        this.activateAsset()
+      } else {
+        this.fetchAllInitialDataForAsset()
+      }
+    }
+  }
+
+  activateAsset() {
+    actions.resources.updateAsset(this.currentAssetUid, {
+      advanced_features: {
+        translated: {languages: []},
+        transcript: {},
+      }
+    })
   }
 
   /**
@@ -132,34 +184,41 @@ class SingleProcessingStore extends Reflux.Store {
    * the processing route URL directly the asset data might not be here yet.
    */
   private startupStore() {
-    const routeParams = getSingleProcessingRouteParameters()
-    const processingUrl = getAssetProcessingUrl(routeParams.uid)
-
     if (
-      !this.isInitialised &&
       isFormSingleProcessingRoute(
-        routeParams.uid,
-        routeParams.questionName,
-        routeParams.submissionUuid,
-      ) &&
-      processingUrl !== undefined
+        this.currentAssetUid,
+        this.currentQuestionName,
+        this.currentSubmissionUuid,
+      )
     ) {
-      this.fetchSubmissionData()
-      this.fetchUuids()
-      this.fetchProcessingData()
-      this.isInitialised = true
+      this.fetchAllInitialDataForAsset()
     }
   }
 
-  private resetProcessingData() {
-    this.isProcessingDataLoaded = false
+  /**
+   * This does a few things:
+   * 1. checks if asset is processing-activated and activates if not
+   * 2. fetches all data needed when processing view is opened (in comparison to
+   *    fetching data needed when switching processing question or submission)
+   */
+  private fetchAllInitialDataForAsset() {
+    // JUST A NOTE: we don't need to load asset ourselves, as it is already
+    // taken care of in PermProtectedRoute. It can happen so that this method
+    // is being called sooner than the mentioned component does its thing.
+    const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid))
 
-    this.data.transcript = undefined
-    this.data.transcriptDraft = undefined
-    this.data.translations = []
-    this.data.translationDraft = undefined
-    this.data.source = undefined
-    this.data.activeTab = SingleProcessingTabs.Transcript
+    // Without asset we can't do anything yet.
+    if (!isAssetLoaded) {
+      return
+    }
+
+    if (!isAssetProcessingActivated(this.currentAssetUid)) {
+      this.activateAsset()
+    } else {
+      this.fetchSubmissionData()
+      this.fetchUuids()
+      this.fetchProcessingData()
+    }
   }
 
   private onRouteChange(data: Location) {
@@ -167,9 +226,7 @@ class SingleProcessingStore extends Reflux.Store {
       return
     }
 
-    const routeParams = getSingleProcessingRouteParameters()
-
-    const baseProcessingRoute = FORM_PROCESSING_BASE.replace(':uid', routeParams.uid)
+    const baseProcessingRoute = FORM_PROCESSING_BASE.replace(':uid', this.currentAssetUid)
 
     // Case 1: switching from a processing route to a processing route.
     // This means that we are changing either the question and the submission
@@ -189,14 +246,12 @@ class SingleProcessingStore extends Reflux.Store {
     else if (
       this.previousPath !== data.pathname &&
       isFormSingleProcessingRoute(
-        routeParams.uid,
-        routeParams.questionName,
-        routeParams.submissionUuid,
+        this.currentAssetUid,
+        this.currentQuestionName,
+        this.currentSubmissionUuid,
       )
     ) {
-      this.fetchProcessingData()
-      this.fetchSubmissionData()
-      this.fetchUuids()
+      this.fetchAllInitialDataForAsset()
     }
 
     this.previousPath = data.pathname
@@ -207,8 +262,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.submissionData = undefined
     this.trigger(this.data)
 
-    const routeParams = getSingleProcessingRouteParameters()
-    actions.submissions.getSubmissionByUuid(routeParams.uid, routeParams.submissionUuid)
+    actions.submissions.getSubmissionByUuid(this.currentAssetUid, this.currentSubmissionUuid)
   }
 
   private onGetSubmissionByUuidCompleted(response: SubmissionResponse): void {
@@ -228,9 +282,8 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.submissionsUuids = undefined
     this.trigger(this.data)
 
-    const routeParams = getSingleProcessingRouteParameters()
-    const processingRows = getAssetProcessingRows(routeParams.uid)
-    const asset = assetStore.getAsset(routeParams.uid)
+    const processingRows = getAssetProcessingRows(this.currentAssetUid)
+    const asset = assetStore.getAsset(this.currentAssetUid)
     let flatPaths: SurveyFlatPaths = {}
 
     if (asset?.content?.survey) {
@@ -247,15 +300,14 @@ class SingleProcessingStore extends Reflux.Store {
     }
 
     actions.submissions.getProcessingSubmissions(
-      routeParams.uid,
+      this.currentAssetUid,
       processingRowsPaths
     )
   }
 
   private onGetProcessingSubmissionsCompleted(response: GetProcessingSubmissionsResponse) {
-    const routeParams = getSingleProcessingRouteParameters()
     const submissionsUuids: SubmissionsUuids = {}
-    const processingRows = getAssetProcessingRows(routeParams.uid)
+    const processingRows = getAssetProcessingRows(this.currentAssetUid)
 
     if (processingRows !== undefined) {
       processingRows.forEach((processingRow) => {
@@ -290,10 +342,9 @@ class SingleProcessingStore extends Reflux.Store {
 
     this.resetProcessingData()
 
-    const routeParams = getSingleProcessingRouteParameters()
     processingActions.getProcessingData(
-      routeParams.uid,
-      routeParams.submissionUuid
+      this.currentAssetUid,
+      this.currentSubmissionUuid
     )
   }
 
@@ -304,8 +355,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onFetchProcessingDataCompleted(response: ProcessingDataResponse) {
-    const routeParams = getSingleProcessingRouteParameters()
-    const transcriptResponse = response[routeParams.questionName]?.transcript
+    const transcriptResponse = response[this.currentQuestionName]?.transcript
 
     delete this.abortFetchData
     this.isProcessingDataLoaded = true
@@ -324,8 +374,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onSetTranscriptCompleted(response: TranscriptResponse) {
-    const routeParams = getSingleProcessingRouteParameters()
-    const transcriptResponse = response[routeParams.questionName]?.transcript
+    const transcriptResponse = response[this.currentQuestionName]?.transcript
 
     this.isFetchingData = false
 
@@ -415,14 +464,13 @@ class SingleProcessingStore extends Reflux.Store {
     this.isFetchingData = true
 
     const transcript = this.getTranscript()
-    const routeParams = getSingleProcessingRouteParameters()
     if (newTranscript === undefined) {
-      processingActions.deleteTranscript(routeParams.uid, transcript?.languageCode)
+      processingActions.deleteTranscript(this.currentAssetUid, transcript?.languageCode)
     } else {
       processingActions.setTranscript(
-        routeParams.uid,
-        routeParams.questionName,
-        routeParams.submissionUuid,
+        this.currentAssetUid,
+        this.currentQuestionName,
+        this.currentSubmissionUuid,
         newTranscript.languageCode,
         newTranscript.value
       )
@@ -463,8 +511,6 @@ class SingleProcessingStore extends Reflux.Store {
   ) {
     this.isFetchingData = true
 
-    const routeParams = getSingleProcessingRouteParameters()
-
     if (
       newTranslation !== undefined &&
       newTranslation.languageCode !== newTranslationLanguageCode
@@ -473,10 +519,10 @@ class SingleProcessingStore extends Reflux.Store {
     }
 
     if (newTranslation === undefined) {
-      processingActions.deleteTranslation(routeParams.uid, newTranslationLanguageCode)
+      processingActions.deleteTranslation(this.currentAssetUid, newTranslationLanguageCode)
     } else {
       processingActions.setTranslation(
-        routeParams.uid,
+        this.currentAssetUid,
         newTranslation.languageCode,
         newTranslation.value
       )
@@ -523,9 +569,8 @@ class SingleProcessingStore extends Reflux.Store {
 
   /** NOTE: Returns uuids for current question name, not for all of them. */
   getCurrentQuestionSubmissionsUuids() {
-    const routeParams = getSingleProcessingRouteParameters()
     if (this.data.submissionsUuids !== undefined) {
-      return this.data.submissionsUuids[routeParams.questionName]
+      return this.data.submissionsUuids[this.currentQuestionName]
     }
     return undefined
   }
@@ -565,6 +610,7 @@ class SingleProcessingStore extends Reflux.Store {
 
   isReady() {
     return (
+      isAssetProcessingActivated(this.currentAssetUid) &&
       this.areUuidsLoaded &&
       this.isSubmissionLoaded &&
       this.isProcessingDataLoaded

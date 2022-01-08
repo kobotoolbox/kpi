@@ -2,8 +2,10 @@ import Reflux from 'reflux';
 import {parsed} from './assetParserUtils';
 import {actions} from './actions';
 
+export interface AssetStoreData {[uid: string]: AssetResponse}
+
 class AssetStore extends Reflux.Store {
-  data: {[uid: string]: AssetResponse} = {};
+  data: AssetStoreData = {};
 
   init() {
     actions.resources.loadAsset.completed.listen(this.onLoadAssetCompleted.bind(this));
