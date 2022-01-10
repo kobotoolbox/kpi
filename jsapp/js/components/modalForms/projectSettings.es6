@@ -60,6 +60,8 @@ class ProjectSettings extends React.Component {
 
     this.unlisteners = [];
 
+    this.validationAlerts = [];
+
     const formAsset = this.props.formAsset;
 
     this.state = {
@@ -218,8 +220,8 @@ class ProjectSettings extends React.Component {
     this.onAnyDataChange('operational-purpose', val);
   }
 
-  onCollectsPIIChange(val) {
-    this.setState({collectsPII: val});
+  onCollectsPiiChange(val) {
+    this.setState({collectsPii: val});
     this.onAnyDataChange('collects-pii', val);
   }
 
@@ -488,7 +490,7 @@ class ProjectSettings extends React.Component {
           country: this.state.country,
           'share-metadata': this.state['share-metadata'],
           operationalPurpose: this.state.operationalPurpose,
-          collectsPII: this.state.collectsPII,
+          collectsPii: this.state.collectsPii,
         }),
       }
     );
@@ -640,9 +642,37 @@ class ProjectSettings extends React.Component {
   handleSubmit(evt) {
     evt.preventDefault();
 
+    // remove stale validation errors
+    while (this.validationAlerts.length) {
+      const oldAlert = this.validationAlerts.pop();
+      oldAlert.dismiss();
+    }
+
+    const error = (message) => {
+      this.validationAlerts.push(alertify.error(message));
+    }
+
     // simple non-empty name validation
     if (!this.state.name.trim()) {
-      alertify.error(t('Please enter a title for your project!'));
+      error(t('Please enter a title for your project!'));
+      return;
+    }
+
+    // superuser-configured metadata
+    if (envStore.data.getProjectMetadataField('sector').required && !this.state.sector) {
+      error(t('Please choose a sector for your project'));
+      return;
+    }
+    if (envStore.data.getProjectMetadataField('country').required && !this.state.country?.length) {
+      error(t('Please specify at least one country for your project'));
+      return;
+    }
+    if (envStore.data.getProjectMetadataField('operational_purpose').required && !this.state.operationalPurpose) {
+      error(t('Please specify the operational purpose of your project'));
+      return;
+    }
+    if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.collectsPii) {
+      error(t('Please indicate whether or not your project collects personally identifiable information'));
       return;
     }
 
@@ -810,9 +840,14 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
+    const sectorField = envStore.data.getProjectMetadataField('sector')
     const sectors = envStore.data.sector_choices;
-    const operationalPurposes = envStore.data.operational_purpose_choices;
+    const countryField = envStore.data.getProjectMetadataField('country')
     const countries = envStore.data.country_choices;
+    const bothCountryAndSector = sectorField && countryField;
+    const operationalPurposeField = envStore.data.getProjectMetadataField('operational_purpose')
+    const operationalPurposes = envStore.data.operational_purpose_choices;
+    const collectsPiiField = envStore.data.getProjectMetadataField('collects_pii')
     const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
 
     return (
@@ -866,80 +901,93 @@ class ProjectSettings extends React.Component {
             />
           </bem.FormModal__item>
 
-          <bem.FormModal__item>
-            <label className='long'>
-              {t('Please specify the country and the sector where this project will be deployed. ')}
-              {/*t('This information will be used to help you filter results on the project list page.')*/}
-            </label>
-          </bem.FormModal__item>
+          {bothCountryAndSector &&
+            <bem.FormModal__item>
+              <label className='long'>
+                // TODO: move trailing space outside translated string(?) as it seems error-prone for translators
+                {countryField && sectorField && t('Please specify the country and the sector where this project will be deployed. ')}
+                {countryField && !sectorField && t('Please specify the country where this project will be deployed.')}
+                {sectorField && !countryField && t('Please specify the sector where this project will be deployed.')}
+                {/*t('This information will be used to help you filter results on the project list page.')*/}
+              </label>
+            </bem.FormModal__item>
+          }
 
-          <bem.FormModal__item m='sector'>
-            <label htmlFor='sector'>
-              {t('Sector')}
-            </label>
-            <Select
-              id='sector'
-              value={this.state.sector}
-              onChange={this.onSectorChange}
-              options={sectors}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
+          {sectorField &&
+            <bem.FormModal__item m={bothCountryAndSector ? 'sector' : null}>
+              <label htmlFor='sector'>
+                {t('Sector')}
+              </label>
+              <Select
+                id='sector'
+                value={this.state.sector}
+                onChange={this.onSectorChange}
+                options={sectors}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+                isClearable
+              />
+            </bem.FormModal__item>
+          }
 
-          <bem.FormModal__item m='country'>
-            <label htmlFor='country'>
-              {t('Country')}
-            </label>
-            <Select
-              isMulti
-              id='country'
-              value={this.state.country}
-              onChange={this.onCountryChange}
-              options={countries}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
+          {countryField &&
+            <bem.FormModal__item m={bothCountryAndSector ? 'country' : null}>
+              <label htmlFor='country'>
+                {t('Country')}
+              </label>
+              <Select
+                isMulti
+                id='country'
+                value={this.state.country}
+                onChange={this.onCountryChange}
+                options={countries}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+                isClearable
+              />
+            </bem.FormModal__item>
+          }
 
-          <bem.FormModal__item m='operational-purpose'>
-            <label htmlFor='operational-purpose'>
-              {t('Operational Purpose of Data')}
-            </label>
-            <Select
-              id='operational-purpose'
-              value={this.state.operationalPurpose}
-              onChange={this.onOperationalPurposeChange}
-              options={operationalPurposes}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
+          {operationalPurposeField &&
+            <bem.FormModal__item>
+              <label htmlFor='operational-purpose'>
+                {t('Operational Purpose of Data')}
+              </label>
+              <Select
+                id='operational-purpose'
+                value={this.state.operationalPurpose}
+                onChange={this.onOperationalPurposeChange}
+                options={operationalPurposes}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+                isClearable
+              />
+            </bem.FormModal__item>
+          }
 
-          <bem.FormModal__item m='collects-pii'>
-            <label htmlFor='collects-pii'>
-              {t('Does this project collect personally identifiable information?')}
-            </label>
-            <Select
-              id='collects-pii'
-              value={this.state.collectsPII}
-              onChange={this.onCollectsPIIChange}
-              options={[
-                {value: 'Yes', label: t('Yes')},
-                {value: 'No', label: t('No')},
-              ]}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
+          {collectsPiiField &&
+            <bem.FormModal__item>
+              <label htmlFor='collects-pii'>
+                {t('Does this project collect personally identifiable information?')}
+              </label>
+              <Select
+                id='collects-pii'
+                value={this.state.collectsPii}
+                onChange={this.onCollectsPiiChange}
+                options={[
+                  {value: 'Yes', label: t('Yes')},
+                  {value: 'No', label: t('No')},
+                ]}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+                isClearable
+              />
+            </bem.FormModal__item>
+          }
 
           <bem.FormModal__item m='metadata-share'>
             <Checkbox

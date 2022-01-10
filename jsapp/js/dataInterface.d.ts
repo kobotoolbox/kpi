@@ -358,6 +358,8 @@ interface EnvironmentResponse {
   support_email: string
   support_url: string
   community_url: string
+  project_metadata_fields: EnvStoreFieldItem[]
+  user_metadata_fields: EnvStoreFieldItem[]
   sector_choices: string[][]
   operational_purpose_choices: string[][]
   country_choices: string[][]

@@ -192,12 +192,25 @@ CONSTANCE_CONFIG = {
     'USER_METADATA_FIELDS': (
         json.dumps([
             {'name': 'organization', 'required': False},
+            {'name': 'organization_website', 'required': False},
+            {'name': 'primary_sector', 'required': False},
             {'name': 'gender', 'required': False},
-            {'name': 'sector', 'required': False},
+            {'name': 'bio', 'required': False},
+            {'name': 'phone_number', 'required': False},
+            {'name': 'address', 'required': False},
+            {'name': 'city', 'required': False},
             {'name': 'country', 'required': False},
+            {'name': 'twitter', 'required': False},
+            {'name': 'linkedin', 'required': False},
+            {'name': 'instagram', 'required': False},
         ]),
+        # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users. '
-        "Possible fields are 'organization', 'gender', 'sector', and 'country'."
+        "Possible fields are 'organization', 'organization_website', "
+        "'primary_sector', 'gender', 'bio', 'phone_number', 'address', 'city', "
+        "'country', 'twitter', 'linkedin', and 'instagram'",
+        # Use custom field for schema validation
+        'metadata_fields_jsonschema'
     ),
     'PROJECT_METADATA_FIELDS': (
         json.dumps([
@@ -206,9 +219,12 @@ CONSTANCE_CONFIG = {
             # {'name': 'operational_purpose', 'required': False},
             # {'name': 'collects_pii', 'required': False},
         ]),
+        # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects. '
         "Possible fields are 'sector', 'country', 'operational_purpose', and "
-        "'collects_pii'."
+        "'collects_pii'.",
+        # Use custom field for schema validation
+        'metadata_fields_jsonschema'
     ),
     'SECTOR_CHOICES': (
         '\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
@@ -219,6 +235,12 @@ CONSTANCE_CONFIG = {
         "Options available for the 'operational purpose of data' metadata "
         'field, one per line.'
     ),
+}
+CONSTANCE_ADDITIONAL_FIELDS = {
+    'metadata_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+        {'widget': 'django.forms.Textarea'},
+    ]
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'

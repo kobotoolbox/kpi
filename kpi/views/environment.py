@@ -29,11 +29,11 @@ class EnvironmentView(APIView):
             'SECTOR_CHOICES',
             # Intentional _() call on dynamic string because the default
             # choices are translated (see static_lists.py)
-            lambda text: tuple((line, _(line)) for line in text.split('\n')),
+            lambda text: tuple((line, _(line)) for line in text.split('\r\n')),
         ),
         (
             'OPERATIONAL_PURPOSE_CHOICES',
-            lambda text: tuple((line, line) for line in text.split('\n')),
+            lambda text: tuple((line, line) for line in text.split('\r\n')),
         ),
     ]
 
