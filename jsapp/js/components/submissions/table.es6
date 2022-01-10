@@ -839,6 +839,12 @@ export class DataTable extends React.Component {
         if (el.id === SUBMISSION_ACTIONS_ID) {
           return true;
         }
+
+        // Always include validation status column.
+        if (el.id === VALIDATION_STATUS_ID_PROP) {
+          return true;
+        }
+
         return selectedColumnsIds.includes(el.id) !== false;
       });
     }

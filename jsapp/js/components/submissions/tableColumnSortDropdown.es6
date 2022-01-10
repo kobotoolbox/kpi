@@ -5,7 +5,10 @@ import mixins from 'js/mixins';
 import bem from 'js/bem';
 import KoboDropdown, {KoboDropdownThemes} from 'js/components/common/koboDropdown';
 import {PERMISSIONS_CODENAMES} from 'js/constants';
-import {SORT_VALUES} from 'js/components/submissions/tableConstants';
+import {
+  SORT_VALUES,
+  VALIDATION_STATUS_ID_PROP,
+} from 'js/components/submissions/tableConstants';
 import './tableColumnSortDropdown.scss';
 
 const CLEAR_BUTTON_CLASS_NAME = 'table-column-sort-dropdown-clear';
@@ -110,7 +113,10 @@ class TableColumnSortDropdown extends React.Component {
             {this.renderSortButton(SORT_VALUES.ASCENDING)}
             {this.renderSortButton(SORT_VALUES.DESCENDING)}
 
-            {mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+            {(
+              mixins.permissions.userCan(PERMISSIONS_CODENAMES.change_asset, this.props.asset) &&
+              this.props.fieldId !== VALIDATION_STATUS_ID_PROP
+            ) &&
               <bem.KoboDropdown__menuButton onClick={this.hideField}>
                 <i className='k-icon k-icon-hide'/>
                 <span>{t('Hide field')}</span>

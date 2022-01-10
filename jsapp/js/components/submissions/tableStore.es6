@@ -275,6 +275,11 @@ const tableStore = Reflux.createStore({
       return true;
     }
 
+    // validation status is never hidden
+    if (fieldId === VALIDATION_STATUS_ID_PROP) {
+      return true;
+    }
+
     const selectedColumns = this.getSelectedColumns();
     // nothing is selected, so all columns are visible
     if (selectedColumns === null) {
@@ -396,7 +401,12 @@ const tableStore = Reflux.createStore({
    */
   hideField(submissions, fieldId) {
     const selectedColumns = this.getSelectedColumns();
-    const hideableColumns = this.getHideableColumns(submissions);
+    const hideableColumns = this.getAllColumns(submissions);
+
+    if (!hideableColumns.includes(fieldId)) {
+      console.error('Trying to hide a field that is not hideable!');
+      return;
+    }
 
     let newSelectedColumns = [];
 
@@ -420,7 +430,7 @@ const tableStore = Reflux.createStore({
    * @param {string[]} columnsToBeVisible
    */
   setFieldsVisibility(submissions, columnsToBeVisible) {
-    const hideableColumns = this.getHideableColumns(submissions);
+    const hideableColumns = this.getAllColumns(submissions);
     let newSelectedColumns = columnsToBeVisible;
 
     // If we make all possible columns visible, we save `null` value
