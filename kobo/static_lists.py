@@ -1231,3 +1231,1109 @@ transcription_languages = {[
     "options": ["Google"],
   }
 ]}
+
+translation_languages = {[
+  {
+    "name": "Afrikaans",
+    "language_code": "af",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Albanian",
+    "language_code": "sq",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Amharic",
+    "language_code": "am",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Arabic",
+    "language_code": "ar",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Armenian",
+    "language_code": "hy",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Assamese",
+    "language_code": "as",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Azerbaijani",
+    "language_code": "az",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Bangla",
+    "language_code": "bn",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Bashkir",
+    "language_code": "ba",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Basque",
+    "language_code": "eu",
+    "options": [
+      "Google",
+      "IBM"
+    ]
+  },
+  {
+    "name": "Belarusian",
+    "language_code": "be",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Bengali",
+    "language_code": "bn",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM"
+    ]
+  },
+  {
+    "name": "Bosnian",
+    "language_code": "bs",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Bulgarian",
+    "language_code": "bg",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Cantonese",
+    "language_code": "yue",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Catalan",
+    "language_code": "ca",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Cebuano",
+    "language_code": "ceb (ISO-639-2)",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Chinese (Simplified)",
+    "language_code": "zh",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ],
+    "alternate_code": "zh-Hans"
+  },
+  {
+    "name": "Chinese (Traditional)",
+    "language_code": "zh-TW",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ],
+    "alternate_code": "zh-Hant"
+  },
+  {
+    "name": "Corsican",
+    "language_code": "co",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Croatian",
+    "language_code": "hr",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Czech",
+    "language_code": "cs",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ],
+    "alternate_code": "prs"
+  },
+  {
+    "name": "Dari",
+    "language_code": "fa-Af",
+    "options": [
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Danish",
+    "language_code": "da",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Divehi",
+    "language_code": "dv"
+  },
+  {
+    "name": "Dutch",
+    "language_code": "nl",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "English",
+    "language_code": "en",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Esperanto",
+    "language_code": "eo",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Estonian",
+    "language_code": "et",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Fijian",
+    "language_code": "fj",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Finnish",
+    "language_code": "fi",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "French",
+    "language_code": "fr",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "French (Canada)",
+    "language_code": "fr-CA",
+    "options": [
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Frisian",
+    "language_code": "fy",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Galician",
+    "language_code": "gl",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Georgian",
+    "language_code": "ka",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "German",
+    "language_code": "de",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Greek",
+    "language_code": "el",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Gujarati",
+    "language_code": "gu",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Haitian Creole",
+    "language_code": "ht",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Hausa",
+    "language_code": "ha",
+    "options": [
+      "Google",
+      "Amazon"
+    ]
+  },
+  {
+    "name": "Hawaiian",
+    "language_code": "haw (ISO-639-2)",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Hebrew",
+    "language_code": "he or iw",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Hindi",
+    "language_code": "hi",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Hmong",
+    "language_code": "hmn (ISO-639-2)",
+    "options": [
+      "Google",
+      "Microsoft"
+    ],
+    "alternate_code": "mww"
+  },
+  {
+    "name": "Hungarian",
+    "language_code": "hu",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Icelandic",
+    "language_code": "is",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Igbo",
+    "language_code": "ig",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Indonesian",
+    "language_code": "id",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Inuktitut",
+    "language_code": "iu",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Irish",
+    "language_code": "ga",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Italian",
+    "language_code": "it",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Japanese",
+    "language_code": "ja",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Javanese",
+    "language_code": "jv",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Kannada",
+    "language_code": "kn",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Kazakh",
+    "language_code": "kk",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Khmer",
+    "language_code": "km",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Kinyarwanda",
+    "language_code": "rw",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Korean",
+    "language_code": "ko",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Kurdish",
+    "language_code": "ku",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Kurdish (Northern)",
+    "language_code": "kmr",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Kyrgyz",
+    "language_code": "ky",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Lao",
+    "language_code": "lo",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Latvian",
+    "language_code": "lv",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Lithuanian",
+    "language_code": "lt",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Luxembourgish",
+    "language_code": "lb",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Macedonian",
+    "language_code": "mk",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Malagasy",
+    "language_code": "mg",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Malay",
+    "language_code": "ms",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Malayalam",
+    "language_code": "ml",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Maltese",
+    "language_code": "mt",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Maori",
+    "language_code": "mi",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Marathi",
+    "language_code": "mr",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Mongolian",
+    "language_code": "mn",
+    "options": [
+      "Google",
+      "Amazon"
+    ]
+  },
+  {
+    "name": "Mongolian (Cyrillic)",
+    "language_code": "mn-Cyrl",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Mongolian (Traditional)",
+    "language_code": "mn-Mong",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Montenegrin",
+    "language_code": "cnr",
+    "options": [
+      "IBM"
+    ]
+  },
+  {
+    "name": "Myanmar (Burmese)",
+    "language_code": "my",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Nepali",
+    "language_code": "ne",
+    "options": [
+      "Google",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Norwegian",
+    "language_code": "no",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Nyanja (Chichewa)",
+    "language_code": "ny",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Odia (Oriya)",
+    "language_code": "or",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Pashto",
+    "language_code": "ps",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Persian",
+    "language_code": "fa",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Polish",
+    "language_code": "pl",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Portuguese (Portugal, Brazil)",
+    "language_code": "pt",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Portuguese (Portugal)",
+    "language_code": "pt-pt",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Punjabi",
+    "language_code": "pa",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Queretaru Otomi",
+    "language_code": "otq",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Romanian",
+    "language_code": "ro",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Russian",
+    "language_code": "ru",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Samoan",
+    "language_code": "sm",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Scots Gaelic",
+    "language_code": "gd",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Serbian",
+    "language_code": "sr",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM"
+    ]
+  },
+  {
+    "name": "Serbian (Cryllic)",
+    "language_code": "sr-Cyrl",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Serbian (Latin)",
+    "language_code": "sr-Latn",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Sesotho",
+    "language_code": "st",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Shona",
+    "language_code": "sn",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Sindhi",
+    "language_code": "sd",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Sinhala (Sinhalese)",
+    "language_code": "si",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM"
+    ]
+  },
+  {
+    "name": "Slovak",
+    "language_code": "sk",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Slovenian",
+    "language_code": "sl",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Somali",
+    "language_code": "so",
+    "options": [
+      "Google",
+      "Amazon"
+    ]
+  },
+  {
+    "name": "Spanish",
+    "language_code": "es",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Sundanese",
+    "language_code": "su",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Swahili",
+    "language_code": "sw",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Swedish",
+    "language_code": "sv",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Tagalog (Filipino)",
+    "language_code": "tl",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ],
+    "alternate_code": "fil"
+  },
+  {
+    "name": "Tajik",
+    "language_code": "tg",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Tamil",
+    "language_code": "ta",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Tatar",
+    "language_code": "tt",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Telugu",
+    "language_code": "te",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Thai",
+    "language_code": "th",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Tibetan",
+    "language_code": "bo",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Tigrinya",
+    "language_code": "ti",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Turkish",
+    "language_code": "tr",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Turkmen",
+    "language_code": "tk",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Ukrainian",
+    "language_code": "uk",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Urdu",
+    "language_code": "ur",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Uyghur",
+    "language_code": "ug",
+    "options": [
+      "Google",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Uzbek",
+    "language_code": "uz",
+    "options": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Vietnamese",
+    "language_code": "vi",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Welsh",
+    "language_code": "cy",
+    "options": [
+      "Google",
+      "Amazon",
+      "IBM",
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Xhosa",
+    "language_code": "xh",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Yiddish",
+    "language_code": "yi",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Yoruba",
+    "language_code": "yo",
+    "options": [
+      "Google"
+    ]
+  },
+  {
+    "name": "Yucatec Maya",
+    "language_code": "yua",
+    "options": [
+      "Microsoft"
+    ]
+  },
+  {
+    "name": "Zulu",
+    "language_code": "zu",
+    "options": [
+      "Google"
+    ]
+  }
+]}
