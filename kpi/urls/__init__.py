@@ -18,6 +18,7 @@ from kpi.views import home, one_time_login, browser_tests, design_system
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.transcription_languages import TranscriptionLanguagesView
+from kpi.views.translation_languages import TranslationLanguagesView
 from kpi.views.token import TokenView
 
 from .router_api_v1 import router_api_v1
@@ -59,6 +60,8 @@ urlpatterns = [
     path('environment/', EnvironmentView.as_view(), name='environment'),
     path('environment/transcription_languages/', TranscriptionLanguagesView.as_view(),
          name='transcription_languages'),
+    path('environment/translation_languages/', TranslationLanguagesView.as_view(),
+         name='translation_languages'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.redirect_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
