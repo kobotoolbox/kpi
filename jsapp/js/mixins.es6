@@ -848,8 +848,8 @@ mixins.permissions = {
     if (!asset.permissions) {
       return false;
     }
-
     const currentUsername = stores.session.currentAccount.username;
+
     if (asset.owner__username === currentUsername) {
       return true;
     }
@@ -878,6 +878,15 @@ mixins.permissions = {
    * @param {Object} asset
    */
   userCanPartially(permName, asset) {
+
+    const currentUsername = stores.session.currentAccount.username;
+
+    // Owners cannot have partial permissions because they have full permissions.
+    // Both are contradictory.
+    if (asset.owner__username === currentUsername) {
+      return false;
+    }
+
     return this.userCan(PERMISSIONS_CODENAMES.partial_submissions, asset, permName);
   },
 };
@@ -925,7 +934,15 @@ mixins.contextRouter = {
       this.context.router.isActive(ROUTES.NEW_LIBRARY_ITEM.replace(':uid', uid)) ||
       this.context.router.isActive(ROUTES.FORM_EDIT.replace(':uid', uid))
     );
-  }
+  },
+  isAccount() {
+    return (
+      this.context.router.isActive(ROUTES.ACCOUNT_SETTINGS) ||
+      this.context.router.isActive(ROUTES.DATA_STORAGE) ||
+      this.context.router.isActive(ROUTES.SECURITY) ||
+      this.context.router.isActive(ROUTES.CHANGE_PASSWORD)
+    );
+  },
 };
 
 /*

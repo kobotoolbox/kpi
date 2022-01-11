@@ -5,13 +5,13 @@ import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
 import TextareaAutosize from 'react-autosize-textarea';
 import alertify from 'alertifyjs';
-import {actions} from '../actions';
+import {actions} from 'js/actions';
 import bem from 'js/bem';
-import {stores} from '../stores';
+import {stores} from 'js/stores';
 import Select from 'react-select';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
-import ApiTokenDisplay from './apiTokenDisplay';
+import ApiTokenDisplay from 'js/components/apiTokenDisplay';
 import {hashHistory} from 'react-router';
 import {stringToColor} from 'utils';
 import {ROUTES} from 'js/router/routerConstants';
@@ -292,7 +292,7 @@ export default class AccountSettings extends React.Component {
               <bem.AccountSettings__item m='password'>
                 <a
                   href={`/#${ROUTES.CHANGE_PASSWORD}`}
-                  className='kobo-button kobo-button--teal'
+                  className='kobo-button kobo-button--blue'
                 >
                   {t('Modify Password')}
                 </a>

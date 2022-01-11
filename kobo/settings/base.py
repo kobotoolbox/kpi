@@ -340,6 +340,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ],
     'DEFAULT_RENDERER_CLASSES': [
        'rest_framework.renderers.JSONRenderer',
@@ -741,3 +742,11 @@ HASH_BIG_FILE_CHUNK = 16 * 1024  # 16 kB
 # add some mimetype
 add_type('application/wkt', '.wkt')
 add_type('application/geo+json', '.geojson')
+
+KOBOCAT_MEDIA_URL = f'{KOBOCAT_URL}/media/'
+KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
+    'original': '',
+    'large': '_large',
+    'medium': '_medium',
+    'small': '_small',
+}

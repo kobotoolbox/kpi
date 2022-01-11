@@ -3,6 +3,7 @@ import {AssetTypeName} from 'js/constants'
 import {stores} from 'js/stores'
 import permConfig from 'js/components/permissions/permConfig'
 import {buildUserUrl} from 'js/utils'
+import envStore from 'js/envStore'
 import {
   ASSET_TYPES,
   MODAL_TYPES,
@@ -86,20 +87,51 @@ export function getLanguagesDisplayString(asset: AssetResponse) {
   }
 }
 
-export function getSectorDisplayString(asset: AssetResponse) {
-  if (asset.settings.sector) {
-    return asset.settings.sector.label;
-  } else {
-    return '-';
+/**
+ * Returns `-` for assets without sector and localized label otherwise
+ */
+export function getSectorDisplayString(asset: AssetResponse): string {
+  let output = '-'
+
+  if (asset.settings.sector?.value) {
+    /**
+     * We don't want to use labels from asset's settings, as these are localized
+     * and thus prone to not be true (e.g. creating form in spanish UI language
+     * and then switching to french would result in seeing spanish labels)
+     */
+    const sectorLabel = envStore.getSectorLabel(asset.settings.sector.value)
+    if (sectorLabel !== undefined) {
+      output = sectorLabel
+    } else {
+      output = asset.settings.sector.value
+    }
   }
+
+  return output
 }
 
-export function getCountryDisplayString(asset: AssetResponse, showLongName: boolean = false) {
-  if (asset.settings.country) {
-    return showLongName ? asset.settings.country.label : asset.settings.country.value;
-  } else {
-    return '-';
+export function getCountryDisplayString(
+  asset: AssetResponse,
+  showLongName: boolean = false
+): string {
+  let output = '-'
+
+  if (asset.settings.country?.value) {
+    /**
+     * We don't want to use labels from asset's settings, as these are localized
+     * and thus prone to not be true (e.g. creating form in spanish UI language
+     * and then switching to french would result in seeing spanish labels)
+     */
+    const countryLabel = envStore.getCountryLabel(asset.settings.country.value)
+
+    if (showLongName && countryLabel !== undefined) {
+      output = countryLabel
+    } else {
+      output = asset.settings.country.value
+    }
   }
+
+  return output
 }
 
 interface DisplayNameObj {

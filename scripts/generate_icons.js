@@ -2,7 +2,7 @@
  * This scripts generates icon font from our SVG icons to be used in the app.
  */
 
-const webfontsGenerator = require('webfonts-generator');
+const webfontsGenerator = require('@vusion/webfonts-generator');
 const replaceInFile = require('replace-in-file');
 const fs = require('fs');
 const sourceDir = 'jsapp/svg-icons/';
@@ -108,15 +108,19 @@ webfontsGenerator(
 );
 
 /**
- * This makes a file with `export type IconName = 'one' | 'two' | …`
+ * This makes a file with `export type IconName = 'one' | 'two' | …` and an
+ * array of all names.
  */
 function generateDefinitions(iconsList) {
   console.info('Generating definition file…');
   const typeParts = [];
+  const enumParts = [];
   iconsList.forEach((iconName) => {
     typeParts.push(`'${iconName}'`);
+    enumParts.push(`'${iconName}' = '${iconName}'`);
   });
-  const fileContent = `export type IconName = ${typeParts.join(' | ')}`;
+  const fileContent = `export type IconName = ${typeParts.join(' | ')}
+export enum IconNames {${enumParts.join(', ')}}`;
 
   fs.writeFile(`${destDir}/k-icons.ts`, fileContent, (err) => {
     if (err) {
