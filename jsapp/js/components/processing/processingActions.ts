@@ -1,3 +1,8 @@
+// TODO
+// 1. we need to activate translated language before we create a translation - this will require making one call before the other
+// 2. we need to wait for backend to fix response and use the data from translations properly
+// 3. handle deleting translations (unactivate language)
+
 import Reflux from 'reflux'
 import {notify} from 'alertifyjs'
 import {getAssetProcessingUrl} from 'js/assetUtils'
@@ -36,6 +41,22 @@ interface TranscriptRevision {
   engine?: string
   languageCode: string
   value: string
+}
+
+interface TranslationRequest {
+  [questionName: string]: TranslationRequestQuestion | string | undefined
+  submission?: string
+}
+
+interface TranslationRequestQuestion {
+  translated: TranslationsObject
+}
+
+interface TranslationsObject {
+  [languageCode: string]: {
+    languageCode: string
+    value: string
+  }
 }
 
 export interface ProcessingDataResponse {
@@ -148,29 +169,44 @@ processingActions.deleteTranscript.failed.listen(() => {
 
 processingActions.setTranslation.listen((
   assetUid: string,
+  questionName: string,
+  submissionUuid: string,
   languageCode: string,
   value: string
 ) => {
   const processingUrl = getAssetProcessingUrl(assetUid)
   if (processingUrl === undefined) {
-    processingActions.setTranslation.failed(NO_FEATURE_ERROR)
+    processingActions.setTranscript.failed(NO_FEATURE_ERROR)
   } else {
+    // Sorry for this object being built in such a lengthy way, but it is needed
+    // so for typings.
+    const translationsObj: TranslationsObject = {}
+    translationsObj[languageCode] = {
+      value: value,
+      languageCode: languageCode
+    }
+    const data: TranslationRequest = {
+      submission: submissionUuid
+    }
+    data[questionName] = {
+      translated: translationsObj
+    }
+
     $.ajax({
       dataType: 'json',
+      contentType: 'application/json',
       method: 'POST',
       url: processingUrl,
-      data: {
-        type: 'translation',
-        value: value,
-        languageCode: languageCode,
-      }
+      data: JSON.stringify(data)
     })
-      .done(processingActions.setTranslation.completed)
-      .fail(processingActions.setTranslation.failed)
+      .done((response: TranscriptResponse) => {
+        processingActions.setTranscript.completed(response)
+      })
+      .fail(processingActions.setTranscript.failed)
   }
 })
 processingActions.setTranslation.failed.listen(() => {
-  notify(t('Failed to set translation.'), 'error')
+  notify(t('Failed to set transcript.'), 'error')
 })
 
 processingActions.deleteTranslation.listen((

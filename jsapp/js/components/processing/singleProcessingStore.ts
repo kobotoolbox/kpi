@@ -523,6 +523,8 @@ class SingleProcessingStore extends Reflux.Store {
     } else {
       processingActions.setTranslation(
         this.currentAssetUid,
+        this.currentQuestionName,
+        this.currentSubmissionUuid,
         newTranslation.languageCode,
         newTranslation.value
       )
