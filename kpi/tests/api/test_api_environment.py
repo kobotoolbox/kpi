@@ -1,5 +1,7 @@
 # coding: utf-8
 # 😇
+import json
+
 import constance
 from django.urls import reverse
 from django.http import HttpRequest
@@ -22,12 +24,20 @@ class EnvironmentTests(BaseTestCase):
             'support_email': constance.config.SUPPORT_EMAIL,
             'support_url': constance.config.SUPPORT_URL,
             'community_url': constance.config.COMMUNITY_URL,
+            'project_metadata_fields': lambda x: \
+                self.assertEqual(len(x), len(json.loads(constance.config.PROJECT_METADATA_FIELDS))) \
+                and self.assertIn({'name': 'organization', 'required': False}, x),
+            'user_metadata_fields': lambda x: \
+                self.assertEqual(
+                    len(x), len(json.loads(constance.config.USER_METADATA_FIELDS))
+                ) and self.assertIn({'name': 'sector', 'required': False}, x),
             'sector_choices': lambda x: \
                 self.assertGreater(len(x), 10) and self.assertIn(
                     ("Humanitarian - Sanitation, Water & Hygiene",
                      "Humanitarian - Sanitation, Water & Hygiene"),
                     x
                 ),
+            'operational_purpose_choices': (('', ''),),
             'country_choices': lambda x: \
                 self.assertGreater(len(x), 200) and self.assertIn(
                     ('KEN', 'Kenya'), x
