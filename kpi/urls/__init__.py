@@ -17,6 +17,7 @@ from kpi.views import authorized_application_authenticate_user
 from kpi.views import home, one_time_login, browser_tests, design_system
 from kpi.views.environment import EnvironmentView
 from kpi.views.current_user import CurrentUserViewSet
+from kpi.views.transcription_languages import TranscriptionLanguagesView
 from kpi.views.token import TokenView
 
 from .router_api_v1 import router_api_v1
@@ -56,6 +57,8 @@ urlpatterns = [
          name='javascript-catalog'),
     path('token/', TokenView.as_view(), name='token'),
     path('environment/', EnvironmentView.as_view(), name='environment'),
+    path('environment/transcription_languages/', TranscriptionLanguagesView.as_view(),
+         name='transcription_languages'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.redirect_view, name='configurationfile'),
     re_path(r'^private-media/', include(private_storage.urls)),
