@@ -682,10 +682,10 @@ export default class ProjectExportsCreator extends React.Component {
           <bem.ProjectDownloads__textButton onClick={this.toggleAdvancedView}>
             {t('Advanced options')}
             {this.state.isAdvancedViewVisible && (
-              <i className='k-icon k-icon-up' />
+              <i className='k-icon k-icon-angle-up' />
             )}
             {!this.state.isAdvancedViewVisible && (
-              <i className='k-icon k-icon-down' />
+              <i className='k-icon k-icon-angle-down' />
             )}
           </bem.ProjectDownloads__textButton>
 
