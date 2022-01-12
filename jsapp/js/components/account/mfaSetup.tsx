@@ -20,17 +20,11 @@ bem.MFASetup__token__input = makeBem(bem.MFASetup__token, 'token__input', 'input
 bem.MFASetup__manual = makeBem(bem.MFASetup, 'manual')
 bem.MFASetup__manual__link = makeBem(bem.MFASetup__token, 'manual__link', 'a')
 bem.MFASetup__codes = makeBem(bem.MFASetup, 'codes')
+bem.MFASetup__codes__item = makeBem(bem.MFASetup__codes, 'item', 'strong')
 
 bem.MFASetup__foooter = makeBem(bem.MFASetup, 'footer', 'footer')
 
-enum MODAL_STEPS {
-  'QR' = 'qr',
-  'BACKUPS' = 'backups',
-  'MANUAL' = 'manual',
-
-}
-
-type modalSteps = MODAL_STEPS.QR | MODAL_STEPS.BACKUPS | MODAL_STEPS.MANUAL
+type modalSteps = 'qr' | 'backups' | 'manual'
 
 type MFASetupProps = {
   qrCode: string,
@@ -51,7 +45,7 @@ export default class MFASetup extends React.Component<
     super(props)
     this.state = {
       isLoading: true,
-      currentStep: MODAL_STEPS.QR,
+      currentStep: 'qr',
       // Currently input code, used for confirm
       inputString: null,
       backupCodes: null,
@@ -81,6 +75,7 @@ export default class MFASetup extends React.Component<
   mfaBackupCodes(response: mfaBackupCodesResponse) {
     this.setState({
       backupCodes: response.backup_codes,
+      currentStep: 'backups',
     })
   }
 
@@ -97,6 +92,11 @@ export default class MFASetup extends React.Component<
     this.setState({currentStep: nextStep})
   }
 
+  getSecretKey(): string {
+    // We expect backend to not change the way the secret key is returned
+    return this.props.qrCode.split('=')[1].split('&')[0]
+  }
+
   renderQRCodeStep() {
     return (
       <bem.MFASetup__qrstep>
@@ -110,14 +110,24 @@ export default class MFASetup extends React.Component<
           </bem.MFASetup__qr>
 
           <bem.MFASetup__token>
+            <strong>
+              {t('Scan QR code and enter the six-digit token from the application')}
+            </strong>
+
+            {t('After scanning the QR code image, the app will display a six-digit code that you can display below.')}
+
             <bem.MFASetup__token__input
               type='text'
               onChange={this.onInputChange.bind(this)}
             />
             <bem.MFASetup__manual>
+              {t('No QR code?')}
+
+              &nbsp;
+
               <bem.MFASetup__manual__link
                 onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                  this.changeStep(evt, MODAL_STEPS.MANUAL)
+                  this.changeStep(evt, 'manual')
                 }}
               >
                 {t('Enter key manually')}
@@ -137,19 +147,25 @@ export default class MFASetup extends React.Component<
     return(
       <bem.MFASetup__backupstep>
         <bem.MFASetup__description>
-          {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We reccomend enabling Two-factor Authenication for an additional layer of protection*.')}
+          {t('The following recovery codes will help you access your account in case your authenticator fails. These codes are unique and fill not be stored in your KoBo account. Please download the file and keep it somewhere safe.')}
         </bem.MFASetup__description>
 
         <bem.MFASetup__body>
-          <bem.MFASetup__codes>
-          </bem.MFASetup__codes>
-
-          <bem.MFASetup__token>
-            <input type='text' onChange={this.onInputChange.bind(this)}/>
-          </bem.MFASetup__token>
+          {this.state.backupCodes &&
+            <bem.MFASetup__codes>
+              {this.state.backupCodes.map((t) => {
+                return (
+                  <bem.MFASetup__codes__item>
+                    {t}
+                  </bem.MFASetup__codes__item>
+                )
+              })}
+            </bem.MFASetup__codes>
+          }
         </bem.MFASetup__body>
 
         <bem.MFASetup__foooter>
+          <button onClick={this.mfaConfirm.bind(this)}/>
           <button onClick={this.mfaConfirm.bind(this)}/>
         </bem.MFASetup__foooter>
       </bem.MFASetup__backupstep>
@@ -165,11 +181,12 @@ export default class MFASetup extends React.Component<
 
         <bem.MFASetup__body>
           <bem.MFASetup__codes>
+            {this.getSecretKey()}
           </bem.MFASetup__codes>
-
         </bem.MFASetup__body>
 
         <bem.MFASetup__foooter>
+          <button onClick={this.mfaConfirm.bind(this)}/>
           <button onClick={this.mfaConfirm.bind(this)}/>
         </bem.MFASetup__foooter>
       </bem.MFASetup__manualstep>
@@ -187,15 +204,15 @@ export default class MFASetup extends React.Component<
   render() {
     return (
       <bem.MFASetup>
-        {(this.state.currentStep === MODAL_STEPS.QR) &&
+        {(this.state.currentStep === 'qr') &&
             this.renderQRCodeStep()
         }
 
-        {(this.state.currentStep === MODAL_STEPS.BACKUPS) &&
+        {(this.state.currentStep === 'backups') &&
           this.renderBackupStep()
         }
 
-        {(this.state.currentStep === MODAL_STEPS.MANUAL) &&
+        {(this.state.currentStep === 'manual') &&
           this.renderManualStep()
         }
       </bem.MFASetup>
