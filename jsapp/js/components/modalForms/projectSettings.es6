@@ -643,40 +643,48 @@ class ProjectSettings extends React.Component {
     }
   }
 
-  handleSubmit(evt) {
-    evt.preventDefault();
-
+  /**
+   * This is needed because validation alerts are `alertify` instances, so we
+   * need to dismiss them all and clear the array.
+   */
+  clearErrors() {
     // remove stale validation errors
     while (this.validationAlerts.length) {
       const oldAlert = this.validationAlerts.pop();
       oldAlert.dismiss();
     }
+  }
 
-    const error = (message) => {
-      this.validationAlerts.push(alertify.error(message));
-    }
+  displayError(message) {
+    this.validationAlerts.push(alertify.error(message));
+  }
+
+  handleSubmit(evt) {
+    evt.preventDefault();
+
+    this.clearErrors();
 
     // simple non-empty name validation
     if (!this.state.name.trim()) {
-      error(t('Please enter a title for your project!'));
+      this.displayError(t('Please enter a title for your project!'));
       return;
     }
 
     // superuser-configured metadata
     if (envStore.data.getProjectMetadataField('sector').required && !this.state.sector) {
-      error(t('Please choose a sector for your project'));
+      this.displayError(t('Please choose a sector for your project'));
       return;
     }
     if (envStore.data.getProjectMetadataField('country').required && !this.state.country?.length) {
-      error(t('Please specify at least one country for your project'));
+      this.displayError(t('Please specify at least one country for your project'));
       return;
     }
     if (envStore.data.getProjectMetadataField('operational_purpose').required && !this.state.operational_purpose) {
-      error(t('Please specify the operational purpose of your project'));
+      this.displayError(t('Please specify the operational purpose of your project'));
       return;
     }
     if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.collects_pii) {
-      error(t('Please indicate whether or not your project collects personally identifiable information'));
+      this.displayError(t('Please indicate whether or not your project collects personally identifiable information'));
       return;
     }
 
@@ -908,11 +916,9 @@ class ProjectSettings extends React.Component {
           {bothCountryAndSector &&
             <bem.FormModal__item>
               <label className='long'>
-                {/* TODO: move trailing space outside translated string(?) as it seems error-prone for translators */}
-                {countryField && sectorField && t('Please specify the country and the sector where this project will be deployed. ')}
+                {countryField && sectorField && t('Please specify the country and the sector where this project will be deployed.')}
                 {countryField && !sectorField && t('Please specify the country where this project will be deployed.')}
                 {sectorField && !countryField && t('Please specify the sector where this project will be deployed.')}
-                {/*t('This information will be used to help you filter results on the project list page.')*/}
               </label>
             </bem.FormModal__item>
           }

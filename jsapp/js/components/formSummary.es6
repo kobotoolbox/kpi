@@ -332,8 +332,22 @@ class FormSummary extends React.Component {
   }
   render () {
     let docTitle = this.state.name || t('Untitled');
-    let hasCountry = this.state.settings?.country && (!Array.isArray(this.state.settings?.country) || !!this.state.settings?.country.length);
-    let hasProjectInfo = this.state.settings && (hasCountry || this.state.settings.sector || this.state.settings.operational_purpose || this.state.settings.collects_pii);
+    let hasCountry = (
+      this.state.settings?.country &&
+      (
+        !Array.isArray(this.state.settings?.country) ||
+        !!this.state.settings?.country.length
+      )
+    );
+    let hasProjectInfo = (
+      this.state.settings &&
+      (
+        hasCountry ||
+        this.state.settings.sector ||
+        this.state.settings.operational_purpose ||
+        this.state.settings.collects_pii
+      )
+    );
 
     if (!this.state.permissions) {
       return (<LoadingSpinner/>);

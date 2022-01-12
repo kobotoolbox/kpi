@@ -203,7 +203,6 @@ export class LibraryAssetForm extends React.Component {
     }
 
     const SECTORS = envStore.data.sector_choices;
-    const OPERATIONAL_PURPOSES = envStore.data.operational_purpose_choices;
     const COUNTRIES = envStore.data.country_choices;
 
     return (
