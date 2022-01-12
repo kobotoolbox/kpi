@@ -1,3 +1,4 @@
+# coding: utf-8
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -11,11 +12,26 @@ class TranslationLanguagesView(APIView):
         data = []
 
         for key in keys:
-            data.append({translation_languages[key]['name']: key})
+            data.append({"name": translation_languages[key]['name'], "language_code": key})
 
         return Response(data)
 
     def post(self, request):
-        language_code = request.data['language_code']
-        data = translation_languages.get(language_code)['options']
-        return Response(data)
+
+        if "language_code" in request.data:
+
+            data = translation_languages.get(
+                request.data['language_code'])['options']
+            return Response(data)
+
+        elif "engine" in request.data:
+            data = []
+            for key in translation_languages:
+                language = translation_languages.get(key)
+                if request.data['engine'] in language['options']:
+                    data.append({"name": language['name'], "language_code": key})
+
+            return Response(data)
+
+        else:
+            raise Exception('Missing required data')

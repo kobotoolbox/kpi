@@ -1715,7 +1715,8 @@ translation_languages = {
     ]
   },
   "dv": {
-    "name": "Divehi"
+    "name": "Divehi",
+    "options": ["Microsoft"]
   },
   "nl": {
     "name": "Dutch",
