@@ -74,6 +74,8 @@ class ProjectSettings extends React.Component {
       sector: formAsset ? formAsset.settings.sector : null,
       country: formAsset ? formAsset.settings.country : null,
       'share-metadata': formAsset ? formAsset.settings['share-metadata'] : false,
+      operational_purpose: formAsset ? formAsset.settings.operational_purpose : null,
+      collects_pii: formAsset ? formAsset.settings.collects_pii : null,
       // steps
       currentStep: null,
       previousStep: null,
@@ -216,13 +218,13 @@ class ProjectSettings extends React.Component {
   }
 
   onOperationalPurposeChange(val) {
-    this.setState({operationalPurpose: val});
-    this.onAnyDataChange('operational-purpose', val);
+    this.setState({operational_purpose: val});
+    this.onAnyDataChange('operational_purpose', val);
   }
 
   onCollectsPiiChange(val) {
-    this.setState({collectsPii: val});
-    this.onAnyDataChange('collects-pii', val);
+    this.setState({collects_pii: val});
+    this.onAnyDataChange('collects_pii', val);
   }
 
   onShareMetadataChange(isChecked) {
@@ -430,6 +432,8 @@ class ProjectSettings extends React.Component {
         sector: asset.settings.sector,
         country: asset.settings.country,
         'share-metadata': asset.settings['share-metadata'] || false,
+        operational_purpose: asset.settings.operational_purpose,
+        collects_pii: asset.settings.collects_pii,
       });
       this.resetApplyTemplateButton();
       this.displayStep(this.STEPS.PROJECT_DETAILS);
@@ -489,8 +493,8 @@ class ProjectSettings extends React.Component {
           sector: this.state.sector,
           country: this.state.country,
           'share-metadata': this.state['share-metadata'],
-          operationalPurpose: this.state.operationalPurpose,
-          collectsPii: this.state.collectsPii,
+          operational_purpose: this.state.operational_purpose,
+          collects_pii: this.state.collects_pii,
         }),
       }
     );
@@ -667,11 +671,11 @@ class ProjectSettings extends React.Component {
       error(t('Please specify at least one country for your project'));
       return;
     }
-    if (envStore.data.getProjectMetadataField('operational_purpose').required && !this.state.operationalPurpose) {
+    if (envStore.data.getProjectMetadataField('operational_purpose').required && !this.state.operational_purpose) {
       error(t('Please specify the operational purpose of your project'));
       return;
     }
-    if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.collectsPii) {
+    if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.collects_pii) {
       error(t('Please indicate whether or not your project collects personally identifiable information'));
       return;
     }
@@ -904,7 +908,7 @@ class ProjectSettings extends React.Component {
           {bothCountryAndSector &&
             <bem.FormModal__item>
               <label className='long'>
-                // TODO: move trailing space outside translated string(?) as it seems error-prone for translators
+                {/* TODO: move trailing space outside translated string(?) as it seems error-prone for translators */}
                 {countryField && sectorField && t('Please specify the country and the sector where this project will be deployed. ')}
                 {countryField && !sectorField && t('Please specify the country where this project will be deployed.')}
                 {sectorField && !countryField && t('Please specify the sector where this project will be deployed.')}
@@ -957,7 +961,7 @@ class ProjectSettings extends React.Component {
               </label>
               <Select
                 id='operational-purpose'
-                value={this.state.operationalPurpose}
+                value={this.state.operational_purpose}
                 onChange={this.onOperationalPurposeChange}
                 options={operationalPurposes}
                 className='kobo-select'
@@ -975,7 +979,7 @@ class ProjectSettings extends React.Component {
               </label>
               <Select
                 id='collects-pii'
-                value={this.state.collectsPii}
+                value={this.state.collects_pii}
                 onChange={this.onCollectsPiiChange}
                 options={[
                   {value: 'Yes', label: t('Yes')},

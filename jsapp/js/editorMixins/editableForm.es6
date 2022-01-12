@@ -294,11 +294,11 @@ export default assign({
       if (this.state.settingsNew.country) {
         settings.country = this.state.settingsNew.country;
       }
-      if (this.state.settingsNew.operationalPurpose) {
-        settings.operationalPurpose = this.state.settingsNew.operationalPurpose;
+      if (this.state.settingsNew.operational_purpose) {
+        settings.operational_purpose = this.state.settingsNew.operational_purpose;
       }
-      if (this.state.settingsNew.collectsPII) {
-        settings.collectsPII = this.state.settingsNew.collectsPII;
+      if (this.state.settingsNew.collects_pii) {
+        settings.collects_pii = this.state.settingsNew.collects_pii;
       }
       if (this.state.settingsNew['share-metadata']) {
         settings['share-metadata'] = this.state.settingsNew['share-metadata'];

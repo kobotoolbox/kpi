@@ -333,6 +333,7 @@ class FormSummary extends React.Component {
   render () {
     let docTitle = this.state.name || t('Untitled');
     let hasCountry = this.state.settings?.country && (!Array.isArray(this.state.settings?.country) || !!this.state.settings?.country.length);
+    let hasProjectInfo = this.state.settings && (hasCountry || this.state.settings.sector || this.state.settings.operational_purpose || this.state.settings.collects_pii);
 
     if (!this.state.permissions) {
       return (<LoadingSpinner/>);
@@ -342,17 +343,17 @@ class FormSummary extends React.Component {
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m='summary'>
           <bem.FormView__column m='left'>
-            {(this.state.settings && (hasCountry || this.state.settings.sector || this.state.settings.description)) &&
+            {hasProjectInfo &&
               <bem.FormView__row m='summary-description'>
                 <bem.FormView__cell m={['label', 'first']}>
-                  {t('Description')}
+                  {t('Project information')}
                 </bem.FormView__cell>
                 <bem.FormView__cell m={['box', 'padding']}>
                   {(hasCountry || this.state.settings.sector) &&
                     <bem.FormView__group m={['items', 'description-cols']}>
                       {hasCountry &&
                         <bem.FormView__cell m='padding'>
-                          <bem.FormView__label m='country'>{t('Project country')}</bem.FormView__label>
+                          <bem.FormView__label m='country'>{t('Country')}</bem.FormView__label>
                           {assetUtils.getCountryDisplayString(this.state)}
                         </bem.FormView__cell>
                       }
@@ -364,10 +365,29 @@ class FormSummary extends React.Component {
                       }
                     </bem.FormView__group>
                   }
+                  {(this.state.settings.operational_purpose || this.state.settings.collects_pii) &&
+                    <bem.FormView__group m={['items', 'description-cols']}>
+                      {this.state.settings.operational_purpose &&
+                        <bem.FormView__cell m='padding'>
+                          <bem.FormView__label m='operational-purpose'>{t('Operational purpose of data')}</bem.FormView__label>
+                          {this.state.settings.operational_purpose.label}
+                        </bem.FormView__cell>
+                      }
+                      {this.state.settings.collects_pii &&
+                        <bem.FormView__cell m='padding'>
+                          <bem.FormView__label m='collects-pii'>{t('Collects personally identifiable information')}</bem.FormView__label>
+                          {this.state.settings.collects_pii.label}
+                        </bem.FormView__cell>
+                      }
+                    </bem.FormView__group>
+                  }
                   {this.state.settings.description &&
-                    <bem.FormView__cell m={['padding', 'description']}>
-                      {this.state.settings.description}
-                    </bem.FormView__cell>
+                    <bem.FormView__group m='items'>
+                      <bem.FormView__cell m={['padding', 'description']}>
+                        <bem.FormView__label m='description'>{t('Description')}</bem.FormView__label>
+                        {this.state.settings.description}
+                      </bem.FormView__cell>
+                    </bem.FormView__group>
                   }
                 </bem.FormView__cell>
               </bem.FormView__row>
