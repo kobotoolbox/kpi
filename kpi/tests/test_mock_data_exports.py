@@ -300,6 +300,45 @@ class MockDataExportsBase(TestCase):
                 }
             ],
         },
+        'Simple media': {
+            'content': {
+                'schema': '1',
+                'survey': [
+                    {
+                        'type': 'image',
+                        'name': 'an_image',
+                        'label': ['Submit an image'],
+                    },
+                ],
+                'settings': {},
+                'translated': ['label'],
+                'translations': [None],
+            },
+            'submissions': [
+                {
+                    '_id': 99999,
+                    'formhub/uuid': 'cfb562511e8e44d1998de69002b49299',
+                    'an_image': 'image.png',
+                    '__version__': 'vbKavWWCpgBCZms6hQX4FB',
+                    'meta/instanceID': 'uuid:f80be949-89b5-4af1-a42d-7d292b2bc0cd',
+                    '_xform_id_string': 'aaURCfR8mYe8pzc5h3YiZz',
+                    '_uuid': 'f80be949-89b5-4af1-a42d-7d292b2bc0cd',
+                    '_attachments': [
+                        {
+                            'download_url': 'http://testserver/image.png',
+                            'filename': 'path/to/image.png',
+                            }
+                        ],
+                    '_status': 'submitted_via_web',
+                    '_geolocation': [None, None],
+                    '_submission_time': '2021-06-30T22:12:56',
+                    '_tags': [],
+                    '_notes': [],
+                    '_validation_status': {},
+                    '_submitted_by': None,
+                }
+            ],
+        },
     }
 
     @drop_mock_only
@@ -606,6 +645,19 @@ class MockDataExports(MockDataExportsBase):
             ['2017-10-23T05:41:32.000-04:00', '2017-10-23T05:42:05.000-04:00', 'Yes'],
         ]}
         self.run_xls_export_test(expected_data, export_options)
+
+    def test_xls_export_filter_fields_with_media_url(self):
+        asset_name = 'Simple media'
+        export_options = {'fields': ['an_image'], 'include_media_url': True}
+        expected_data = {
+            asset_name: [
+                ['Submit an image', 'Submit an image_URL'],
+                ['image.png', 'http://testserver/image.png'],
+            ]
+        }
+        self.run_xls_export_test(
+            expected_data, export_options, asset=self.assets[asset_name]
+        )
 
     def test_xls_export_filter_fields_repeat_groups(self):
         export_options = {
