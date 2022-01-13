@@ -432,13 +432,6 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  // // TODO: make sure we get/store the translations ordered by dateModified
-  // private onGetTranslationsCompleted(translations: Translation[]) {
-  //   this.isFetchingData = false
-  //   this.data.translations = translations
-  //   this.trigger(this.data)
-  // }
-
   /**
    * Returns a list of selectable language codes.
    * Omits the one currently being edited.
