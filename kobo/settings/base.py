@@ -194,7 +194,11 @@ CONSTANCE_CONFIG = {
     'MFA_ISSUER_NAME': (
         'KoBoToolbox',
         'Issuer name displayed in multi-factor applications'
-    )
+    ),
+    'MFA_ENABLED': (
+        True,
+        'Enable two-factor authentication',
+    ),
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -378,6 +382,7 @@ TEMPLATES = [
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
                 'kpi.context_processors.config',
+                'kpi.context_processors.mfa',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'False') == 'True',
         },

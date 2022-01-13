@@ -55,6 +55,9 @@
       window.IntercomAppId = '{{ intercom_app_id|safe }}';
     </script>
     {% endif %}
+    <script>
+      window.MFAEnabled = {{ mfa_enabled|safe }};
+    </script>
   </head>
   <body>
     <!--[if lt IE 8]>
