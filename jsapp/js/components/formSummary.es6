@@ -219,14 +219,14 @@ class FormSummary extends React.Component {
           onClick={this.triggerRefresh}>
             <i className='k-icon k-icon-projects' />
             {t('Collect data')}
-            <i className='k-icon k-icon-next' />
+            <i className='k-icon k-icon-angle-right' />
         </Link>
 
         {this.userCan('change_asset', this.state) &&
           <button onClick={this.sharingModal}>
             <i className='k-icon k-icon-user-share'/>
             {t('Share project')}
-            <i className='k-icon k-icon-next' />
+            <i className='k-icon k-icon-angle-right' />
           </button>
         }
 
@@ -239,14 +239,14 @@ class FormSummary extends React.Component {
           >
             <i className='k-icon k-icon-edit' />
             {t('Edit form')}
-            <i className='k-icon k-icon-next' />
+            <i className='k-icon k-icon-angle-right' />
           </Link>
         }
 
         <button onClick={this.enketoPreviewModal}>
           <i className='k-icon k-icon-view' />
           {t('Preview form')}
-          <i className='k-icon k-icon-next' />
+          <i className='k-icon k-icon-angle-right' />
         </button>
       </bem.FormView__cell>
     );
@@ -267,7 +267,7 @@ class FormSummary extends React.Component {
           >
             <i className={`k-icon ${item.icon}`} />
             {item.label}
-            <i className='k-icon k-icon-next' />
+            <i className='k-icon k-icon-angle-right' />
           </Link>
         )}
       </bem.FormView__cell>
