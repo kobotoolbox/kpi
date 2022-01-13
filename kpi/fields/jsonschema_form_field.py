@@ -3,7 +3,7 @@ import json
 import jsonschema
 from django.forms import ValidationError
 from django.forms.fields import CharField
-from django.utils.translation import gettext_lazy as t
+from django.utils.translation import gettext as t
 
 class JsonSchemaFormField(CharField):
     def __init__(self, *args, schema, **kwargs):

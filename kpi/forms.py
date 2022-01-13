@@ -4,14 +4,14 @@ import json
 import constance
 from django import forms
 from django.contrib.auth.models import User
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from registration import forms as registration_forms
 
 from kobo.static_lists import COUNTRIES
 
 USERNAME_REGEX = r'^[a-z][a-z0-9_]+$'
 USERNAME_MAX_LENGTH = 30
-USERNAME_INVALID_MESSAGE = _(
+USERNAME_INVALID_MESSAGE = t(
     'Usernames must be between 2 and 30 characters in length, '
     'and may only consist of lowercase letters, numbers, '
     'and underscores, where the first character must be a letter.'
@@ -28,35 +28,35 @@ class RegistrationForm(registration_forms.RegistrationForm):
     username = forms.RegexField(
         regex=USERNAME_REGEX,
         max_length=USERNAME_MAX_LENGTH,
-        label=_("Username"),
+        label=t("Username"),
         error_messages={'invalid': USERNAME_INVALID_MESSAGE}
     )
     name = forms.CharField(
-        label=_('Name'),
+        label=t('Name'),
         required=False,
     )
     organization = forms.CharField(
-        label=_('Organization name'),
+        label=t('Organization name'),
         required=False,
     )
     gender = forms.ChoiceField(
-        label=_('Gender'),
+        label=t('Gender'),
         required=False,
         widget=forms.RadioSelect,
         choices=(
-                 ('male', _('Male')),
-                 ('female', _('Female')),
-                 ('other', _('Other')),
+                 ('male', t('Male')),
+                 ('female', t('Female')),
+                 ('other', t('Other')),
                 )
     )
     sector = forms.ChoiceField(
-        label=_('Sector'),
+        label=t('Sector'),
         required=False,
         # Don't set choices here; set them in the constructor so that changes
         # made in the Django admin interface do not require a server restart
     )
     country = forms.ChoiceField(
-        label=_('Country'),
+        label=t('Country'),
         required=False,
         choices=(('', ''),) + COUNTRIES,
     )
@@ -78,10 +78,10 @@ class RegistrationForm(registration_forms.RegistrationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Intentional _() call on dynamic string because the default choices
+        # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
         self.fields['sector'].choices = (('', ''),) + tuple(
-            (s, _(s)) for s in constance.config.SECTOR_CHOICES.split('\n')
+            (s, t(s)) for s in constance.config.SECTOR_CHOICES.split('\n')
         )
 
         # It's easier to _remove_ unwanted fields here in the constructor
