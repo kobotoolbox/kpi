@@ -5,6 +5,7 @@ import IconDemo from 'js/designSystem/iconDemo'
 import KoboDropdownDemo from 'js/designSystem/koboDropdownDemo'
 import KoboRangeDemo from 'js/designSystem/koboRangeDemo'
 import KoboSelectDemo from 'js/designSystem/koboSelectDemo'
+import LanguageSelectorDemo from 'js/designSystem/languageSelectorDemo'
 import RadioDemo from 'js/designSystem/radioDemo'
 import TextBoxDemo from 'js/designSystem/textboxDemo'
 import './demo.scss'
@@ -28,6 +29,7 @@ export default class DesignSystemApp extends React.Component {
           <KoboDropdownDemo/>
           <KoboRangeDemo/>
           <KoboSelectDemo/>
+          <LanguageSelectorDemo/>
           <RadioDemo/>
           <TextBoxDemo/>
         </div>

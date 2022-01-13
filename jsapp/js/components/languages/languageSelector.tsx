@@ -44,6 +44,7 @@ type LanguageSelectorProps = {
 type LanguageSelectorState = {
   filterPhrase: string
   selectedLanguage?: string
+  allLanguages: EnvStoreDataItem[]
 }
 
 /**
@@ -53,14 +54,31 @@ class LanguageSelector extends React.Component<
   LanguageSelectorProps,
   LanguageSelectorState
 > {
-  private allLanguages = envStore.getLanguages()
+  private unlisteners: Function[] = []
 
   constructor(props: LanguageSelectorProps){
     super(props)
     this.state = {
       filterPhrase: '',
-      selectedLanguage: props.preselectedLanguage
+      selectedLanguage: props.preselectedLanguage,
+      allLanguages: envStore.getLanguages()
     }
+  }
+
+  componentDidMount() {
+    this.unlisteners.push(envStore.listen(this.onEnvStoreChange.bind(this), this))
+  }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {clb()})
+  }
+
+  /**
+   * Ensures we have languages if this component renders faster than envStore
+   * gets its languages.
+   */
+  onEnvStoreChange() {
+    this.setState({allLanguages: envStore.getLanguages()})
   }
 
   notifyParentComponent() {
@@ -68,7 +86,7 @@ class LanguageSelector extends React.Component<
   }
 
   openSupportPage() {
-    window.open(envStore.data.support_url + LANGUAGE_SELECTOR_SUPPORT_URL, '_blank');
+    window.open(envStore.data.support_url + LANGUAGE_SELECTOR_SUPPORT_URL, '_blank')
   }
 
   isCustomLanguageVisible() {
@@ -104,7 +122,7 @@ class LanguageSelector extends React.Component<
 
   getFilteredLanguagesList() {
     // Filter out the source language first.
-    const languages = [...this.allLanguages].filter((language) => {
+    const languages = [...this.state.allLanguages].filter((language) => {
       return language.value !== this.props.sourceLanguage
     })
 
