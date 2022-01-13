@@ -72,6 +72,16 @@ $side-tabs-width-mobile: 70px;
   background: $kobo-white;
   border-right: 1px solid $kobo-gray-92;
 
+  & + .form-view,
+  & + .report-view,
+  & + .loading,
+  & + .access-denied {
+    width: calc(100% - #{$side-tabs-width});
+    height: calc(100% - 48px);
+    overflow: auto;
+    overflow-x: hidden;
+  }
+
   & + .loading {
     display: flex;
     justify-content: center;
