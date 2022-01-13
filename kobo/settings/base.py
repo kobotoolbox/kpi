@@ -195,11 +195,11 @@ CONSTANCE_CONFIG = {
     'MFA_ISSUER_NAME': (
         'KoBoToolbox',
         'Issuer name displayed in multi-factor applications'
-    )
-            {'name': 'sector', 'required': False},
-            {'name': 'gender', 'required': False},
-            {'name': 'bio', 'required': False},
-            {'name': 'city', 'required': False},
+    ),
+    'MFA_ENABLED': (
+        True,
+        'Enable two-factor authentication',
+    ),
             {'name': 'country', 'required': False},
             {'name': 'twitter', 'required': False},
             {'name': 'linkedin', 'required': False},
@@ -425,6 +425,7 @@ TEMPLATES = [
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
                 'kpi.context_processors.config',
+                'kpi.context_processors.mfa',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'False') == 'True',
         },
