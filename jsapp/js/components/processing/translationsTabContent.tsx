@@ -1,6 +1,5 @@
 import React from 'react'
 import clonedeep from 'lodash.clonedeep'
-import Select from 'react-select'
 import envStore from 'js/envStore'
 import {formatTime} from 'js/utils'
 import bem from 'js/bem'
@@ -8,6 +7,7 @@ import singleProcessingStore, {Translation} from 'js/components/processing/singl
 import LanguageSelector from 'js/components/languages/languageSelector'
 import languageSelectorActions from 'js/components/languages/languageSelectorActions';
 import Button from 'js/components/common/button'
+import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect'
 import 'js/components/processing/processingBody'
 
 type TranslationsTabContentProps = {}
@@ -272,20 +272,10 @@ export default class TranslationsTabContent extends React.Component<
     // When viewing one of translations we want to have an option to select some
     // other translation.
     if (!draft && translations.length >= 2) {
-      let selectValueLabel = this.state.selectedTranslation
-      if (this.state.selectedTranslation) {
-        selectValueLabel = envStore.getLanguageDisplayLabel(this.state.selectedTranslation)
-      }
-
-      const selectValue = {
-        value: this.state.selectedTranslation,
-        label: selectValueLabel
-      }
-
-      const selectOptions: {value: string, label: string}[] = []
+      const selectOptions: KoboSelectOption[] = []
       translations.forEach((translation: Translation) => {
         selectOptions.push({
-          value: translation.languageCode,
+          id: translation.languageCode,
           label: envStore.getLanguageDisplayLabel(translation.languageCode)
         })
       })
@@ -295,15 +285,15 @@ export default class TranslationsTabContent extends React.Component<
         <bem.ProcessingBody__transHeaderLanguageWrapper>
           {t('Language')}
           <bem.ProcessingBody__transHeaderLanguage>
-            <Select
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              isSearchable={false}
-              isClearable={false}
-              inputId='translations-languages'
-              value={selectValue}
+            <KoboSelect
+              name='translation-header-language-switcher'
+              type='blue'
+              size='s'
+              selectedOption={this.state.selectedTranslation ? this.state.selectedTranslation : null}
               options={selectOptions}
-              onChange={(newVal) => {newVal?.value && this.selectTranslation(newVal.value)}}
+              onChange={(newSelectedOption: string) => {
+                this.selectTranslation(newSelectedOption)
+              }}
             />
           </bem.ProcessingBody__transHeaderLanguage>
         </bem.ProcessingBody__transHeaderLanguageWrapper>

@@ -1,9 +1,9 @@
 import React from 'react'
-import Select from 'react-select'
 import envStore from 'js/envStore'
 import {formatTime} from 'js/utils'
 import bem, {makeBem} from 'js/bem'
 import singleProcessingStore, {SingleProcessingTabs} from 'js/components/processing/singleProcessingStore'
+import KoboSelect, {KoboSelectOption} from 'js/components/common/koboSelect'
 import './singleProcessingPreview.scss'
 
 bem.SingleProcessingPreview = makeBem(null, 'single-processing-preview', 'section')
@@ -82,15 +82,10 @@ export default class SingleProcessingPreview extends React.Component {
     }
 
     if (sources.length >= 2) {
-      const selectValue = {
-        value: sourceData.languageCode,
-        label: envStore.getLanguageDisplayLabel(sourceData.languageCode)
-      }
-
-      const selectOptions: {value: string, label: string}[] = []
+      const selectOptions: KoboSelectOption[] = []
       sources.forEach((source) => {
         selectOptions.push({
-          value: source,
+          id: source,
           label: envStore.getLanguageDisplayLabel(source)
         })
       })
@@ -100,15 +95,15 @@ export default class SingleProcessingPreview extends React.Component {
         <bem.ProcessingBody__transHeaderLanguageWrapper>
           {t('Language')}
           <bem.ProcessingBody__transHeaderLanguage>
-            <Select
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              isSearchable={false}
-              isClearable={false}
-              inputId='translations-languages'
-              value={selectValue}
+            <KoboSelect
+              name='single-processing-preview-language-switcher'
+              type='blue'
+              size='s'
+              selectedOption={sourceData.languageCode}
               options={selectOptions}
-              onChange={(newVal) => {newVal?.value && singleProcessingStore.setSource(newVal.value)}}
+              onChange={(newSelectedOption: string) => {
+                singleProcessingStore.setSource(newSelectedOption)
+              }}
             />
           </bem.ProcessingBody__transHeaderLanguage>
         </bem.ProcessingBody__transHeaderLanguageWrapper>

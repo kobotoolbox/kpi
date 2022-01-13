@@ -356,12 +356,38 @@ class SingleProcessingStore extends Reflux.Store {
 
   private onFetchProcessingDataCompleted(response: ProcessingDataResponse) {
     const transcriptResponse = response[this.currentQuestionName]?.transcript
+    const translationsResponse = response[this.currentQuestionName]?.translated
+
+    const translationsArray: Translation[] = []
+    Object.keys(translationsResponse).forEach((languageCode: string) => {
+      // TODO uncomment after translations are fixed on backend
+      // return translationsResponse[languageCode]
+
+      // TEMP CODE BELOW
+      const translation = translationsResponse[languageCode]
+      if (translation.languageCode) {
+        translationsArray.push({
+          value: translation.value,
+          languageCode: translation.languageCode,
+          dateModified: '',
+          dateCreated: ''
+        })
+
+        translationsArray.push({
+          value: 'Je suis Zefir Efemera',
+          languageCode: 'fr',
+          dateCreated: '',
+          dateModified: ''
+        })
+      }
+      // END TEMP CODE
+    })
 
     delete this.abortFetchData
     this.isProcessingDataLoaded = true
     this.isFetchingData = false
 
-    this.data.translations = []
+    this.data.translations = translationsArray
     this.data.transcript = transcriptResponse
 
     this.trigger(this.data)

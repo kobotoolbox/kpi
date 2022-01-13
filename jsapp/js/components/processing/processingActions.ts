@@ -44,11 +44,11 @@ interface TranscriptRevision {
 }
 
 interface TranslationRequest {
-  [questionName: string]: TranslationRequestQuestion | string | undefined
+  [questionName: string]: TranslationQuestion | string | undefined
   submission?: string
 }
 
-interface TranslationRequestQuestion {
+interface TranslationQuestion {
   translated: TranslationsObject
 }
 
@@ -59,8 +59,10 @@ interface TranslationsObject {
   }
 }
 
+interface ProcessingDataQuestion extends TranscriptQuestion, TranslationQuestion {}
+
 export interface ProcessingDataResponse {
-  [key: string]: TranscriptQuestion
+  [key: string]: ProcessingDataQuestion
 }
 
 const processingActions = Reflux.createActions({
