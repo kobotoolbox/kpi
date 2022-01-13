@@ -1,5 +1,6 @@
 # coding: utf-8
 import datetime
+import json
 import pytz
 
 import constance
@@ -77,6 +78,11 @@ class CurrentUserSerializer(serializers.ModelSerializer):
         rep = super().to_representation(obj)
         if not rep['extra_details']:
             rep['extra_details'] = {}
+        elif rep.get('primarySector'):
+            # the front end used to set this with camelCase but has since
+            # been fixed
+            rep['primary_sector'] = rep['primarySector']
+            del rep['primarySector']
         # `require_auth` needs to be read from KC every time
         if settings.KOBOCAT_URL and settings.KOBOCAT_INTERNAL_URL:
             rep['extra_details']['require_auth'] = get_kc_profile_data(
@@ -108,6 +114,20 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 })
 
         return attrs
+
+    def validate_extra_details(self, value):
+        desired_metadata_fields = json.loads(
+            constance.config.USER_METADATA_FIELDS
+        )
+        errors = {}
+        for field in desired_metadata_fields:
+            if field['required'] and not value.get(field['name']):
+                # Use verbatim message from DRF to avoid giving translators
+                # more busy work
+                errors[field['name']] = _('This field may not be blank.')
+        if errors:
+            raise serializers.ValidationError(errors)
+        return value
 
     def update(self, instance, validated_data):
 

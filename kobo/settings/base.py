@@ -1,4 +1,5 @@
 # coding: utf-8
+import json
 import os
 import subprocess
 from mimetypes import add_type
@@ -14,7 +15,7 @@ from django.utils.translation import get_language_info
 from pymongo import MongoClient
 
 from kpi.utils.redis_helper import RedisHelper
-from ..static_lists import EXTRA_LANG_INFO
+from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 settings_dirname = os.path.dirname(os.path.abspath(__file__))
@@ -188,6 +189,58 @@ CONSTANCE_CONFIG = {
         'than the maximum, the maximum will be ignored',
         int
     ),
+    'USER_METADATA_FIELDS': (
+        json.dumps([
+            {'name': 'organization', 'required': False},
+            {'name': 'organization_website', 'required': False},
+            {'name': 'primary_sector', 'required': False},
+            {'name': 'gender', 'required': False},
+            {'name': 'bio', 'required': False},
+            {'name': 'phone_number', 'required': False},
+            {'name': 'address', 'required': False},
+            {'name': 'city', 'required': False},
+            {'name': 'country', 'required': False},
+            {'name': 'twitter', 'required': False},
+            {'name': 'linkedin', 'required': False},
+            {'name': 'instagram', 'required': False},
+        ]),
+        # The available fields are hard-coded in the front end
+        'Display (and optionally require) these metadata fields for users. '
+        "Possible fields are 'organization', 'organization_website', "
+        "'primary_sector', 'gender', 'bio', 'phone_number', 'address', 'city', "
+        "'country', 'twitter', 'linkedin', and 'instagram'",
+        # Use custom field for schema validation
+        'metadata_fields_jsonschema'
+    ),
+    'PROJECT_METADATA_FIELDS': (
+        json.dumps([
+            {'name': 'sector', 'required': False},
+            {'name': 'country', 'required': False},
+            # {'name': 'operational_purpose', 'required': False},
+            # {'name': 'collects_pii', 'required': False},
+        ]),
+        # The available fields are hard-coded in the front end
+        'Display (and optionally require) these metadata fields for projects. '
+        "Possible fields are 'sector', 'country', 'operational_purpose', and "
+        "'collects_pii'.",
+        # Use custom field for schema validation
+        'metadata_fields_jsonschema'
+    ),
+    'SECTOR_CHOICES': (
+        '\r\n'.join((s[0] for s in SECTOR_CHOICE_DEFAULTS)),
+        "Options available for the 'sector' metadata field, one per line."
+    ),
+    'OPERATIONAL_PURPOSE_CHOICES': (
+        '',
+        "Options available for the 'operational purpose of data' metadata "
+        'field, one per line.'
+    ),
+}
+CONSTANCE_ADDITIONAL_FIELDS = {
+    'metadata_fields_jsonschema': [
+        'kpi.fields.jsonschema_form_field.MetadataFieldsListField',
+        {'widget': 'django.forms.Textarea'},
+    ]
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
