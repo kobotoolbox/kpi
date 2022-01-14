@@ -193,7 +193,7 @@ CONSTANCE_CONFIG = {
         json.dumps([
             {'name': 'organization', 'required': False},
             {'name': 'organization_website', 'required': False},
-            {'name': 'primary_sector', 'required': False},
+            {'name': 'sector', 'required': False},
             {'name': 'gender', 'required': False},
             {'name': 'bio', 'required': False},
             {'name': 'phone_number', 'required': False},
@@ -207,7 +207,7 @@ CONSTANCE_CONFIG = {
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users. '
         "Possible fields are 'organization', 'organization_website', "
-        "'primary_sector', 'gender', 'bio', 'phone_number', 'address', 'city', "
+        "'sector', 'gender', 'bio', 'phone_number', 'address', 'city', "
         "'country', 'twitter', 'linkedin', and 'instagram'",
         # Use custom field for schema validation
         'metadata_fields_jsonschema'

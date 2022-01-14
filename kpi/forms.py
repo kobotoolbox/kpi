@@ -81,7 +81,7 @@ class RegistrationForm(registration_forms.RegistrationForm):
         # Intentional t() call on dynamic string because the default choices
         # are translated (see static_lists.py)
         self.fields['sector'].choices = (('', ''),) + tuple(
-            (s, t(s)) for s in constance.config.SECTOR_CHOICES.split('\n')
+            (s, t(s)) for s in constance.config.SECTOR_CHOICES.split('\r\n')
         )
 
         # It's easier to _remove_ unwanted fields here in the constructor

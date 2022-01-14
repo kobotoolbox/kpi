@@ -75,18 +75,47 @@ class CurrentUserSerializer(serializers.ModelSerializer):
     def to_representation(self, obj):
         if obj.is_anonymous:
             return {'message': 'user is not logged in'}
+
         rep = super().to_representation(obj)
-        if not rep['extra_details']:
+        if not rep['extra_details'] or not isinstance(
+            rep['extra_details'], dict
+        ):
             rep['extra_details'] = {}
-        elif rep.get('primarySector'):
-            # the front end used to set this with camelCase but has since
-            # been fixed
-            rep['primary_sector'] = rep['primarySector']
-            del rep['primarySector']
+        extra_details = rep['extra_details']
+
+        # the front end used to set `primarySector` but has since been changed
+        # to `sector`, which matches the registration form
+        if extra_details.get('primarySector') and not extra_details.get(
+            'sector'
+        ):
+            extra_details['sector'] = extra_details['primarySector']
+
+        # remove `primarySector` to avoid confusion
+        try:
+            del extra_details['primarySector']
+        except KeyError:
+            pass
+
+        # the registration form records only the value, but the front end
+        # expects an object with both the label and the value.
+        # TODO: store and load the value *only*
+        for field in 'sector', 'country':
+            if isinstance(extra_details.get(field), str):
+                extra_details[field] = {
+                    'label': extra_details[field],
+                    'value': extra_details[field],
+                }
+
         # `require_auth` needs to be read from KC every time
-        if settings.KOBOCAT_URL and settings.KOBOCAT_INTERNAL_URL:
-            rep['extra_details']['require_auth'] = get_kc_profile_data(
-                obj.pk).get('require_auth', False)
+        # except during testing, when KC's database is not available
+        if (
+            settings.KOBOCAT_URL
+            and settings.KOBOCAT_INTERNAL_URL
+            and not settings.TESTING
+        ):
+            extra_details['require_auth'] = get_kc_profile_data(obj.pk).get(
+                'require_auth', False
+            )
 
         return rep
 
