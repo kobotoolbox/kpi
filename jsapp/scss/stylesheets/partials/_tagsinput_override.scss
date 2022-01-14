@@ -14,7 +14,7 @@ Overrides to jquery tags input CSS
 }
 
 div.tagsinput span.tag {
-  background: $kobo-blue-light;
+  background: $kobo-alt-blue;
   border: none;
   color: $kobo-white;
   font-family: $font;
@@ -39,7 +39,7 @@ div.tagsinput input {
 }
 
 div.tagsinput span.tag a {
-  color: $kobo-blue-light;
+  color: $kobo-alt-blue;
   font-size: 1px;
   font-weight: normal;
   text-decoration: none;

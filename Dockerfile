@@ -1,4 +1,4 @@
-FROM nikolaik/python-nodejs:python3.8-nodejs10
+FROM python:3.8
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=en_US.UTF-8
@@ -39,7 +39,6 @@ RUN mkdir -p "${NGINX_STATIC_DIR}" && \
 ##########################################
 # Install `apt` packages.                #
 ##########################################
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 
 RUN apt-get -qq update && \
     apt-get -qq -y install \
@@ -51,13 +50,19 @@ RUN apt-get -qq update && \
         libproj-dev \
         locales \
         postgresql-client \
-        python3-virtualenv \
         rsync \
         runit-init \
         vim \
         wait-for-it && \
     apt-get clean && \
         rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+###########################
+# Install NodeJS          #
+###########################
+
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt-get install -y nodejs
 
 ###########################
 # Install locales         #
@@ -81,7 +86,7 @@ COPY . "${KPI_SRC_DIR}"
 # Install `pip` packages. #
 ###########################
 
-RUN virtualenv "$VIRTUAL_ENV"
+RUN python3 -m venv "$VIRTUAL_ENV"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip install  --quiet --upgrade pip && \
     pip install  --quiet pip-tools

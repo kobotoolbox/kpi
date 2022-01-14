@@ -12,6 +12,9 @@
 // 4. We should migrate form-view layout to flex box to avoid all those calc()
 //    and to make it context independent.
 
+$side-tabs-width: 180px;
+$side-tabs-width-mobile: 70px;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Main parts
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,9 +49,21 @@
   }
 }
 
+@media not print {
+  .form-view__sidetabs + .form-view,
+  .form-view__sidetabs + .report-view,
+  .form-view__sidetabs + .loading,
+  .form-view__sidetabs + .access-denied {
+    width: calc(100% - 170px);
+    height: calc(100% - 48px);
+    overflow: auto;
+    overflow-x: hidden;
+  }
+}
+
 // The additional side menu tabs on the left
 .form-view__sidetabs {
-  width: 170px;
+  width: $side-tabs-width;
   height: 100%;
   max-height: calc(100% - 48px);
   overflow-x: hidden;
@@ -61,7 +76,7 @@
   & + .report-view,
   & + .loading,
   & + .access-denied {
-    width: calc(100% - 170px);
+    width: calc(100% - #{$side-tabs-width});
     height: calc(100% - 48px);
     overflow: auto;
     overflow-x: hidden;
@@ -291,7 +306,7 @@
     text-align: center;
 
     &:hover {
-      color: $kobo-blue-dark;
+      color: $kobo-dark-blue;
     }
 
     &:active {
@@ -442,22 +457,20 @@
     margin-left: 10px;
     display: inline-block;
     padding: 6px;
-    color: $kobo-white;
     background-color: $kobo-green;
     border-radius: 2px;
   }
 
   &.form-view__cell--warning {
-    background-color: $kobo-orange-light;
-    color: $kobo-orange-dark;
-    border: 1px solid $kobo-orange;
+    background-color: $kobo-light-amber;
+    color: $kobo-dark-amber;
     padding: 10px;
     display: flex;
     flex-direction: row;
     align-items: center;
 
     i {
-      color: $kobo-orange;
+      color: inherit;
       font-size: 28px;
       margin-right: 5px;
       vertical-align: -11px;
@@ -480,8 +493,8 @@
   }
 
   &.form-view__cell--error {
-    background-color: $kobo-red-light;
-    color: $kobo-red-dark;
+    background-color: $kobo-light-red;
+    color: $kobo-dark-red;
     border: 1px solid $kobo-red;
     display: flex;
     flex-direction: row;
@@ -727,7 +740,7 @@
 
 .form-view__cell--collect-header {
   .collect-link-missing {
-    color: $kobo-orange-dark;
+    color: $kobo-dark-amber;
     display: block;
     line-height: 24px;
 
@@ -793,19 +806,23 @@
 
 @media screen and (max-width: 767px) {
   .form-view__sidetabs {
-    width: 50px;
+    width: $side-tabs-width-mobile;
 
     a.form-view__tab {
       padding-right: 3px;
       padding-left: 1px;
       font-size: 10px;
-      line-height: 1.5em;
+      line-height: 1;
       text-align: center;
       display: block;
       letter-spacing: -0.05em;
 
-      span {
-        display: none;
+      .k-icon {
+        margin: 0;
+      }
+
+      .form-view__tab-name {
+        display: block;
       }
     }
   }
@@ -814,12 +831,12 @@
     height: 39px;
 
     a.form-view__tab {
-      font-size: 12px;
+      font-size: 14px;
     }
   }
 
   .form-view__sidetabs + .form-view {
-    width: calc(100% - 50px);
+    width: calc(100% - #{$side-tabs-width-mobile});
     overflow-x: hidden;
   }
 
