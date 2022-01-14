@@ -57,7 +57,6 @@ class AudioConversionApiTests(BaseAssetTestCase):
         self.submissions = submissions
 
     def test_get_endpoint(self):
-        self.__add_submissions()
         query_dict = QueryDict('', mutable=True)
         query_dict.update(
             {
@@ -67,7 +66,7 @@ class AudioConversionApiTests(BaseAssetTestCase):
         )
         url = '{baseurl}?{querystring}'.format(
             baseurl=reverse(
-                'api_v2:audio-list',
+                self._get_endpoint('audio-list'),
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
                     'parent_lookup_data': 1,

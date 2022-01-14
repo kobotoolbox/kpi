@@ -1,5 +1,6 @@
 # coding: utf-8
 import copy
+import os
 import time
 import uuid
 from datetime import datetime
@@ -210,7 +211,9 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             submission_xml = next(
                 iter(
                     self.get_submissions(
-                        user, format_type='xml', query={'_uuid': submission_uuid}
+                        user, format_type=SUBMISSION_FORMAT_TYPE_XML, query={
+                            '_uuid': submission_uuid
+                        }
                     )
                 )
             )
@@ -230,14 +233,16 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             submission_json = next(
                 iter(
                     self.get_submissions(
-                        user, format_type='json', query={'_uuid': submission_uuid}
+                        user, format_type=SUBMISSION_FORMAT_TYPE_JSON, query={
+                            '_uuid': submission_uuid
+                        }
                     )
                 )
             )
         except StopIteration:
             raise Exception('No matching submission')
 
-        with open('kpi/tests/audio_conversion_test_clip.mp4', 'rb') as f:
+        with open(os.path.join(settings.BASE_DIR, 'kpi/tests/audio_conversion_test_clip.mp4'), 'rb') as f:
             file_response = f.read()
 
         content_type = 'video/mp4'
