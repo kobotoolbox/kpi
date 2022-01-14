@@ -1,6 +1,6 @@
 # coding: utf-8
 import re
-from typing import Optional, Union
+from typing import Optional, Union, List
 from lxml import etree
 
 
@@ -154,3 +154,32 @@ def add_xml_declaration(xml_content: Union[str, bytes]) -> Union[str, bytes]:
     if use_bytes:
         return xml_.encode()
     return xml_
+
+
+def get_path(parts: List[str], start: int = 0, end: int = None) -> str:
+    return '/'.join(parts[start:end])
+
+
+def edit_submission_xml(
+    xml_parsed: etree._Element,
+    path: str,
+    value: str,
+) -> None:
+    """
+    Edit submission XML with an XPath and new value, creating a new tree
+    element if the path doesn't yet exist.
+    """
+    element = xml_parsed.find(path)
+    if element is None:
+        path_parts = path.split('/')
+        # Construct the tree of elements, one node at a time
+        for i, node in enumerate(path_parts):
+            element = xml_parsed.find(get_path(path_parts, end=i + 1))
+            if element is None:
+                parent = (
+                    xml_parsed
+                    if i == 0
+                    else xml_parsed.find(get_path(path_parts, end=i))
+                )
+                element = etree.SubElement(parent, node)
+    element.text = value

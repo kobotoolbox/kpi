@@ -6,7 +6,11 @@
 
   > .form-view__cell {
     width: 50%;
+  }
+}
 
+.form-view__group.form-view__group--items {
+  > .form-view__cell {
     .form-view__label {
       font-size: 12px;
       opacity: 0.6;
@@ -132,7 +136,7 @@
       display: inline-block;
       vertical-align: middle;
 
-      &.k-icon-next {
+      &.k-icon-angle-right {
         position: absolute;
         right: 4px;
         top: 6px;

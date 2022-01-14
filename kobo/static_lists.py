@@ -4,7 +4,11 @@ from django.utils.translation import ugettext_lazy as _
 
 # This file is a place to store static, translatable strings
 
-SECTORS = (
+SECTOR_CHOICE_DEFAULTS = (
+    # This does not solve the problem of translating custom sector choices
+    # entered through the Django admin interface, but it does allow the default
+    # choices to be translated
+
     # (value, human-readable label)
     ("Public Administration", _("Public Administration")),
     ("Arts, Entertainment, and Recreation", _("Arts, Entertainment, and Recreation")),
@@ -35,7 +39,7 @@ SECTORS = (
 
 # You might generate such a list of countries with code like this:
 #
-#     #     import sys
+#     import sys
 #
 #     url = 'https://www.humanitarianresponse.info/api/v1.0/locations?filter[admin_level]=0'
 #     while url:

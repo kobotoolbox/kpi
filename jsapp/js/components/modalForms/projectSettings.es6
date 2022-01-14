@@ -60,6 +60,8 @@ class ProjectSettings extends React.Component {
 
     this.unlisteners = [];
 
+    this.validationAlerts = [];
+
     const formAsset = this.props.formAsset;
 
     this.state = {
@@ -72,6 +74,8 @@ class ProjectSettings extends React.Component {
       sector: formAsset ? formAsset.settings.sector : null,
       country: formAsset ? formAsset.settings.country : null,
       'share-metadata': formAsset ? formAsset.settings['share-metadata'] : false,
+      operational_purpose: formAsset ? formAsset.settings.operational_purpose : null,
+      collects_pii: formAsset ? formAsset.settings.collects_pii : null,
       // steps
       currentStep: null,
       previousStep: null,
@@ -211,6 +215,16 @@ class ProjectSettings extends React.Component {
   onSectorChange(val) {
     this.setState({sector: val});
     this.onAnyDataChange('sector', val);
+  }
+
+  onOperationalPurposeChange(val) {
+    this.setState({operational_purpose: val});
+    this.onAnyDataChange('operational_purpose', val);
+  }
+
+  onCollectsPiiChange(val) {
+    this.setState({collects_pii: val});
+    this.onAnyDataChange('collects_pii', val);
   }
 
   onShareMetadataChange(isChecked) {
@@ -418,6 +432,8 @@ class ProjectSettings extends React.Component {
         sector: asset.settings.sector,
         country: asset.settings.country,
         'share-metadata': asset.settings['share-metadata'] || false,
+        operational_purpose: asset.settings.operational_purpose,
+        collects_pii: asset.settings.collects_pii,
       });
       this.resetApplyTemplateButton();
       this.displayStep(this.STEPS.PROJECT_DETAILS);
@@ -476,7 +492,9 @@ class ProjectSettings extends React.Component {
           description: this.state.description,
           sector: this.state.sector,
           country: this.state.country,
-          'share-metadata': this.state['share-metadata']
+          'share-metadata': this.state['share-metadata'],
+          operational_purpose: this.state.operational_purpose,
+          collects_pii: this.state.collects_pii,
         }),
       }
     );
@@ -625,12 +643,48 @@ class ProjectSettings extends React.Component {
     }
   }
 
+  /**
+   * This is needed because validation alerts are `alertify` instances, so we
+   * need to dismiss them all and clear the array.
+   */
+  clearErrors() {
+    // remove stale validation errors
+    while (this.validationAlerts.length) {
+      const oldAlert = this.validationAlerts.pop();
+      oldAlert.dismiss();
+    }
+  }
+
+  displayError(message) {
+    this.validationAlerts.push(alertify.error(message));
+  }
+
   handleSubmit(evt) {
     evt.preventDefault();
 
+    this.clearErrors();
+
     // simple non-empty name validation
     if (!this.state.name.trim()) {
-      alertify.error(t('Please enter a title for your project!'));
+      this.displayError(t('Please enter a title for your project!'));
+      return;
+    }
+
+    // superuser-configured metadata
+    if (envStore.data.getProjectMetadataField('sector').required && !this.state.sector) {
+      this.displayError(t('Please choose a sector for your project'));
+      return;
+    }
+    if (envStore.data.getProjectMetadataField('country').required && !this.state.country?.length) {
+      this.displayError(t('Please specify at least one country for your project'));
+      return;
+    }
+    if (envStore.data.getProjectMetadataField('operational_purpose').required && !this.state.operational_purpose) {
+      this.displayError(t('Please specify the operational purpose of your project'));
+      return;
+    }
+    if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.collects_pii) {
+      this.displayError(t('Please indicate whether or not your project collects personally identifiable information'));
       return;
     }
 
@@ -740,7 +794,7 @@ class ProjectSettings extends React.Component {
             rejectClassName='dropzone-reject'
             accept={validFileTypes()}
           >
-            <i className='k-icon k-icon-xls-file' />
+            <i className='k-icon k-icon-file-xls' />
             {t(' Drag and drop the XLSForm file here or click to browse')}
           </Dropzone>
         }
@@ -798,8 +852,14 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
-    const sectors = envStore.data.available_sectors;
-    const countries = envStore.data.available_countries;
+    const sectorField = envStore.data.getProjectMetadataField('sector')
+    const sectors = envStore.data.sector_choices;
+    const countryField = envStore.data.getProjectMetadataField('country')
+    const countries = envStore.data.country_choices;
+    const bothCountryAndSector = sectorField && countryField;
+    const operationalPurposeField = envStore.data.getProjectMetadataField('operational_purpose')
+    const operationalPurposes = envStore.data.operational_purpose_choices;
+    const collectsPiiField = envStore.data.getProjectMetadataField('collects_pii')
     const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
 
     return (
@@ -853,44 +913,91 @@ class ProjectSettings extends React.Component {
             />
           </bem.FormModal__item>
 
-          <bem.FormModal__item>
-            <label className='long'>
-              {t('Please specify the country and the sector where this project will be deployed. ')}
-              {/*t('This information will be used to help you filter results on the project list page.')*/}
-            </label>
-          </bem.FormModal__item>
+          {bothCountryAndSector &&
+            <bem.FormModal__item>
+              <label className='long'>
+                {countryField && sectorField && t('Please specify the country and the sector where this project will be deployed.')}
+                {countryField && !sectorField && t('Please specify the country where this project will be deployed.')}
+                {sectorField && !countryField && t('Please specify the sector where this project will be deployed.')}
+              </label>
+            </bem.FormModal__item>
+          }
 
-          <bem.FormModal__item m='sector'>
-            <label htmlFor='sector'>
-              {t('Sector')}
-            </label>
-            <Select
-              id='sector'
-              value={this.state.sector}
-              onChange={this.onSectorChange}
-              options={sectors}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
+          {sectorField &&
+            <bem.FormModal__item m={bothCountryAndSector ? 'sector' : null}>
+              <label htmlFor='sector'>
+                {t('Sector')}
+              </label>
+              <Select
+                id='sector'
+                value={this.state.sector}
+                onChange={this.onSectorChange}
+                options={sectors}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+                isClearable
+              />
+            </bem.FormModal__item>
+          }
 
-          <bem.FormModal__item m='country'>
-            <label htmlFor='country'>
-              {t('Country')}
-            </label>
-            <Select
-              id='country'
-              value={this.state.country}
-              onChange={this.onCountryChange}
-              options={countries}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
-              isClearable
-            />
-          </bem.FormModal__item>
+          {countryField &&
+            <bem.FormModal__item m={bothCountryAndSector ? 'country' : null}>
+              <label htmlFor='country'>
+                {t('Country')}
+              </label>
+              <Select
+                isMulti
+                id='country'
+                value={this.state.country}
+                onChange={this.onCountryChange}
+                options={countries}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+                isClearable
+              />
+            </bem.FormModal__item>
+          }
+
+          {operationalPurposeField &&
+            <bem.FormModal__item>
+              <label htmlFor='operational-purpose'>
+                {t('Operational Purpose of Data')}
+              </label>
+              <Select
+                id='operational-purpose'
+                value={this.state.operational_purpose}
+                onChange={this.onOperationalPurposeChange}
+                options={operationalPurposes}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+                isClearable
+              />
+            </bem.FormModal__item>
+          }
+
+          {collectsPiiField &&
+            <bem.FormModal__item>
+              <label htmlFor='collects-pii'>
+                {t('Does this project collect personally identifiable information?')}
+              </label>
+              <Select
+                id='collects-pii'
+                value={this.state.collects_pii}
+                onChange={this.onCollectsPiiChange}
+                options={[
+                  {value: 'Yes', label: t('Yes')},
+                  {value: 'No', label: t('No')},
+                ]}
+                className='kobo-select'
+                classNamePrefix='kobo-select'
+                menuPlacement='auto'
+                isClearable
+              />
+            </bem.FormModal__item>
+          }
 
           <bem.FormModal__item m='metadata-share'>
             <Checkbox
@@ -934,7 +1041,7 @@ class ProjectSettings extends React.Component {
 
                 {!this.isArchived() &&
                   <bem.KoboButton
-                    m='orange'
+                    m='red'
                     onClick={this.archiveProject}
                   >
                     {t('Archive Project')}
