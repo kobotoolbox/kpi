@@ -38,6 +38,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.datetime import several_minutes_from_now
+from kpi.utils.xml import edit_submission_xml
 from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
@@ -168,32 +169,8 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             # a new element has to be created before a value can be set.
             # However, with this new power, arbitrary fields can be added
             # to the XML tree through the API.
-            for k, v in update_data.items():
-                # A potentially clunky way of taking groups and nested groups
-                # into account when the elements don't exist on the XML tree
-                # (which could be the case if the form has been updated). They
-                # are iteratively attached to the tree since we can only
-                # append one element deep per iteration
-                if '/' in k:
-                    accumulated_elements = []
-                    for i, element in enumerate(k.split('/')):
-                        if i == 0:
-                            ET.SubElement(xml_parsed, element)
-                            accumulated_elements.append(element)
-                        else:
-                            updated_xml_path = '/'.join(accumulated_elements)
-                            ET.SubElement(
-                                xml_parsed.find(updated_xml_path), element
-                            )
-                            accumulated_elements.append(element)
-
-                element_to_update = xml_parsed.find(k)
-                element_to_update_or_new = (
-                    element_to_update
-                    if element_to_update is not None
-                    else ET.SubElement(xml_parsed, k)
-                )
-                element_to_update_or_new.text = v
+            for path, value in update_data.items():
+                edit_submission_xml(xml_parsed, path, value)
 
             # TODO: Might be worth refactoring this as it is also used when
             # duplicating a submission

@@ -6,7 +6,8 @@ import re
 import tempfile
 from collections import defaultdict
 from io import BytesIO
-from os.path import splitext
+from os.path import splitext, split
+from typing import List
 from urllib.parse import urlparse
 
 import dateutil.parser
@@ -626,12 +627,9 @@ class ExportTask(ImportExportTask):
         # Take this opportunity to do some housekeeping
         self.log_and_mark_stuck_as_errored(self.user, source_url)
 
-        # Include the group name in `fields` for Mongo to correctly filter
-        # for repeat groups
-        if fields:
-            field_groups = set(f.split('/')[0] for f in fields if '/' in f)
-            fields += list(field_groups)
-
+        # Include the group name in `fields` for Mongo to correctly filter for
+        # repeat groups
+        fields = _get_fields_and_groups(fields)
         submission_stream = source.deployment.get_submissions(
             user=self.user,
             fields=fields,
@@ -794,3 +792,32 @@ def _strip_header_keys(survey_dict):
         if re.search(r'_header$', sheet_name):
             del survey_dict[sheet_name]
     return survey_dict
+
+
+def _get_fields_and_groups(fields: List[str]) -> List[str]:
+    """
+    Ensure repeat groups are included when filtering for specific fields by
+    appending the path items. For example, a field with path of
+    `group1/group2/field` will be added to the list as:
+    ['group1/group2/field', 'group1/group2', 'group1']
+    """
+    if not fields:
+        return []
+
+    # Some fields are attached to the submission and must be included in
+    # addition to the user-selected fields
+    additional_fields = ['_attachments']
+
+    field_groups = set()
+    for field in fields:
+        if '/' not in field:
+            continue
+        items = []
+        while field:
+            _path = split(field)[0]
+            if _path:
+                items.append(_path)
+            field = _path
+        field_groups.update(items)
+    fields += list(field_groups) + additional_fields
+    return fields
