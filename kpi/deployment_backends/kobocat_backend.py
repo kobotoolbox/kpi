@@ -547,7 +547,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         attachments = submission_json['_attachments']
         for attachment in attachments:
-            filename = os.path.split(attachment['filename'])[1]
+            filename = os.path.basename(attachment['filename'])
             if response_filename == filename:
                 file_response = self.__kobocat_proxy_request(
                     requests.Request(

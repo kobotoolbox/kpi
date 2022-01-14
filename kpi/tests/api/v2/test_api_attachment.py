@@ -12,7 +12,7 @@ from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
-class AudioConversionApiTests(BaseAssetTestCase):
+class AttachmentApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
@@ -66,7 +66,7 @@ class AudioConversionApiTests(BaseAssetTestCase):
         )
         url = '{baseurl}?{querystring}'.format(
             baseurl=reverse(
-                self._get_endpoint('audio-list'),
+                self._get_endpoint('attachment-list'),
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
                     'parent_lookup_data': 1,
@@ -90,7 +90,7 @@ class AudioConversionApiTests(BaseAssetTestCase):
         )
         url = '{baseurl}?{querystring}'.format(
             baseurl=reverse(
-                'api_v2:audio-list',
+                self._get_endpoint('attachment-list'),
                 kwargs={
                     'parent_lookup_asset': self.asset.uid,
                     'parent_lookup_data': 1,

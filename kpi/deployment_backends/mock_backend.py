@@ -242,7 +242,14 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         except StopIteration:
             raise Exception('No matching submission')
 
-        with open(os.path.join(settings.BASE_DIR, 'kpi/tests/audio_conversion_test_clip.mp4'), 'rb') as f:
+        audio_file = os.path.join(
+            settings.BASE_DIR,
+            'kpi',
+            'tests',
+            'audio_conversion_test_clip.mp4'
+        )
+
+        with open(audio_file, 'rb') as f:
             file_response = f.read()
 
         content_type = 'video/mp4'
