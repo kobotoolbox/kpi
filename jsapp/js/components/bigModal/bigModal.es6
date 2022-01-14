@@ -28,7 +28,7 @@ import TableSettings from 'js/components/submissions/tableSettings';
 import TableMediaPreview from 'js/components/submissions/tableMediaPreview';
 import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
-import MFASetup from 'js/components/account/mfaSetup';
+import MFAModals from 'js/components/account/mfaModals';
 
 function getSubmissionTitle(props) {
   let title = t('Success!');
@@ -197,7 +197,7 @@ class BigModal extends React.Component {
         break;
 
       // TODO: Make a better generic modal component
-      case MODAL_TYPES.MFA_SETUP:
+      case MODAL_TYPES.MFA_MODALS:
         // Size and title will depend on its props
         this.setState({
           modalClass: 'modal-custom-header modal-mfa-setup'
@@ -438,8 +438,8 @@ class BigModal extends React.Component {
                 {...this.props.params}
               />
             }
-            { this.props.params.type === MODAL_TYPES.MFA_SETUP &&
-              <MFASetup
+            { this.props.params.type === MODAL_TYPES.MFA_MODALS &&
+              <MFAModals
                 onModalClose={this.onModalClose}
                 {...this.props.params}
               />
