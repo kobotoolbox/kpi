@@ -48,8 +48,8 @@ class AuthenticationApiTests(BaseAssetTestCase):
         # DRF looks at the first authentication class to expose
         # a `WWW-authenticate` header. If the first one does not implement a
         # `authenticate_header()` method, it coerces exceptions to 403
-        # Because SessionAuthenticate is the first one, a 403 is returned.
-        # If it had been BasicAuthenticate, it would have been a 401 response
+        # Because SessionAuthentication is the first one, a 403 is returned.
+        # If it had been BasicAuthentication, it would have been a 401 response
         # instead.
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertTrue(
@@ -81,8 +81,8 @@ class AuthenticationApiTests(BaseAssetTestCase):
         # DRF looks at the first authentication class to expose
         # a `WWW-authenticate` header. If the first one does not implement a
         # `authenticate_header()` method, it coerces exceptions to 403
-        # Because SessionAuthenticate is the first one, a 403 is returned.
-        # If it had been BasicAuthenticate, it would have been a 401 response
+        # Because SessionAuthentication is the first one, a 403 is returned.
+        # If it had been BasicAuthentication, it would have been a 401 response
         # instead.
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertTrue(

@@ -79,7 +79,7 @@ export default class AccountSidebar extends React.Component<
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
 
-          <bem.FormSidebar__label
+          {window.MFAEnabled && <bem.FormSidebar__label
             m={{selected: this.isSecuritySelected()}}
             href={'#' + ROUTES.SECURITY}
           >
@@ -89,6 +89,7 @@ export default class AccountSidebar extends React.Component<
               {t('Security')}
             </bem.FormSidebar__labelText>
           </bem.FormSidebar__label>
+          }
         </bem.FormSidebar>
       )
     }

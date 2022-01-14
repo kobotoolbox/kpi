@@ -59,7 +59,7 @@ DEBUG = (os.environ.get('DJANGO_DEBUG', 'False') == 'True')
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(' ')
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'kpi-root'
 LOGOUT_REDIRECT_URL = 'kobo_login'  # Use URL pattern instead of hard-coded value
 
 # Application definition
@@ -82,7 +82,7 @@ INSTALLED_APPS = (
     'loginas',
     'webpack_loader',
     'registration',         # Order is important
-    'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration, replace `django.contrib.admin`
+    'kobo.apps.admin.NoLoginAdminConfig',  # Must come AFTER registration; replace `django.contrib.admin`
     'django_extensions',
     'taggit',
     'rest_framework',
@@ -194,7 +194,11 @@ CONSTANCE_CONFIG = {
     'MFA_ISSUER_NAME': (
         'KoBoToolbox',
         'Issuer name displayed in multi-factor applications'
-    )
+    ),
+    'MFA_ENABLED': (
+        True,
+        'Enable two-factor authentication',
+    ),
 }
 # Tell django-constance to use a database model instead of Redis
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
@@ -378,6 +382,7 @@ TEMPLATES = [
                 'kpi.context_processors.email',
                 'kpi.context_processors.sitewide_messages',
                 'kpi.context_processors.config',
+                'kpi.context_processors.mfa',
             ],
             'debug': os.environ.get('TEMPLATE_DEBUG', 'False') == 'True',
         },

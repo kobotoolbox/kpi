@@ -28,6 +28,7 @@ import TableSettings from 'js/components/submissions/tableSettings';
 import TableMediaPreview from 'js/components/submissions/tableMediaPreview';
 import TranslationSettings from 'js/components/modalForms/translationSettings';
 import TranslationTable from 'js/components/modalForms/translationTable';
+import MFASetup from 'js/components/account/mfaSetup';
 
 function getSubmissionTitle(props) {
   let title = t('Success!');
@@ -183,15 +184,24 @@ class BigModal extends React.Component {
         });
         break;
 
+      // TODO: Make a better generic modal component
       case MODAL_TYPES.TABLE_MEDIA_PREVIEW:
         // Size and title will depend on its props
         this.setState({
-          modalClass: 'modal-media-preview'
+          modalClass: 'modal-custom-header modal-media-preview'
         });
         break;
 
       case MODAL_TYPES.DATA_ATTACHMENT_COLUMNS:
         // title is set by DataAttachmentColumnsForm
+        break;
+
+      // TODO: Make a better generic modal component
+      case MODAL_TYPES.MFA_SETUP:
+        // Size and title will depend on its props
+        this.setState({
+          modalClass: 'modal-custom-header modal-mfa-setup'
+        });
         break;
 
       default:
@@ -425,6 +435,11 @@ class BigModal extends React.Component {
               <DataAttachmentColumnsForm
                 onSetModalTitle={this.setModalTitle}
                 onModalClose={this.onModalClose}
+                {...this.props.params}
+              />
+            }
+            { this.props.params.type === MODAL_TYPES.MFA_SETUP &&
+              <MFASetup
                 {...this.props.params}
               />
             }

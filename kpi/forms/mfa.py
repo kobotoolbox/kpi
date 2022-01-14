@@ -12,32 +12,32 @@ from trench.utils import (
 
 
 class MFALoginForm(AuthenticationForm):
+    """
+    Authenticating users.
+    If 2FA is activated, first step (of two) of the login process.
+    """
 
     def __init__(self, request=None, *args, **kwargs):
         self.ephemeral_token_cache = None
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        username = self.cleaned_data.get('username')
-        password = self.cleaned_data.get('password')
-
-        if username is not None and password:
-            self.user_cache = authenticate(
-                self.request, username=username, password=password
+        cleaned_data = super().clean()
+        # `super().clean()` initialize the object `self.user_cache` with
+        # the user object retrieved from authentication (if any)
+        auth_method = get_mfa_model().objects.filter(
+            is_active=True, user=self.user_cache
+        ).first()
+        # Because we only support one 2FA method, we do not filter on
+        # `is_primary` too (as django_trench does).
+        # ToDo Figure out why `is_primary` is False sometimes after reactivating
+        #  2FA
+        if auth_method:
+            self.ephemeral_token_cache = (
+                user_token_generator.make_token(self.user_cache)
             )
-            if self.user_cache is None:
-                raise self.get_invalid_login_error()
-            else:
-                self.confirm_login_allowed(self.user_cache)
-                auth_method = get_mfa_model().objects.filter(
-                    is_primary=True, is_active=True, user=self.user_cache
-                ).first()
-                if auth_method:
-                    self.ephemeral_token_cache = (
-                        user_token_generator.make_token(self.user_cache)
-                    )
 
-        return self.cleaned_data
+        return cleaned_data
 
     def get_ephemeral_token(self):
         return self.ephemeral_token_cache
@@ -45,8 +45,8 @@ class MFALoginForm(AuthenticationForm):
 
 class MFATokenForm(forms.Form):
     """
-    Base class for authenticating users. Extend this to get a form that accepts
-    username/password logins.
+    Validate 2FA token.
+    Second (and last) step of login process when MFA is activated.
     """
     code = forms.CharField(
         label=_('Insert your MFA code'),
@@ -74,6 +74,11 @@ class MFATokenForm(forms.Form):
             raise self.get_invalid_mfa_error()
 
         self.user_cache = code_login_serializer.user
+        # When login is successful, `django.contrib.auth.login()` expects the
+        # authentication backend class to be attached to user object.
+        # See https://github.com/django/django/blob/b87820668e7bd519dbc05f6ee46f551858fb1d6d/django/contrib/auth/__init__.py#L111
+        # Since we do not have a bullet-proof way to detect which authentication
+        # class is the good one, we use the first element of the list
         self.user_cache.backend = settings.AUTHENTICATION_BACKENDS[0]
 
         return self.cleaned_data

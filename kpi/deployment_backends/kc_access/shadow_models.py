@@ -460,23 +460,20 @@ class KobocatUserProfile(ShadowModel):
                                    on_delete=models.CASCADE)
     num_of_submissions = models.IntegerField(default=0)
     metadata = JSONBField(default=dict, blank=True)
-    is_mfa_active = models.BooleanField(default=False)
+    # We need to cast `is_active` to an (positive small) integer because KoBoCAT
+    # is using `LazyBooleanField` which is an integer behind the scene.
+    # We do not want to port this class to KPI only for one line of code.
+    is_mfa_active = models.PositiveSmallIntegerField(default=False)
 
     @classmethod
-    def sync_mfa_status(cls, mfa_method: 'trench.MFAMethod'):
+    def set_mfa_status(cls, user_id: int, is_active: bool):
 
-        user_profile, created = cls.objects.get_or_create(user_id=mfa_method.user.pk)
-        user_profile.is_mfa_active = mfa_method.is_active
-        user_profile.save(update_fields=['is_mfa_active'])
-
-    @classmethod
-    def disable_mfa(cls, mfa_method: 'trench.MFAMethod'):
         try:
-            user_profile = cls.objects.get(user_id=mfa_method.user.pk)
+            user_profile, created = cls.objects.get_or_create(user_id=user_id)
         except cls.DoesNotExist:
             pass
         else:
-            user_profile.is_mfa_active = False
+            user_profile.is_mfa_active = int(is_active)
             user_profile.save(update_fields=['is_mfa_active'])
 
 
