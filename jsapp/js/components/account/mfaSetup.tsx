@@ -1,6 +1,8 @@
 import React from 'react'
 import bem, {makeBem} from 'js/bem'
+import { stores } from 'jsapp/js/stores'
 import QRCode from 'qrcode.react'
+import Button from 'js/components/common/button'
 import mfaActions, {
   mfaBackupCodesResponse,
 } from 'js/actions/mfaActions'
@@ -22,7 +24,9 @@ bem.MFASetup__manual__link = makeBem(bem.MFASetup__token, 'manual__link', 'a')
 bem.MFASetup__codes = makeBem(bem.MFASetup, 'codes')
 bem.MFASetup__codes__item = makeBem(bem.MFASetup__codes, 'item', 'strong')
 
-bem.MFASetup__foooter = makeBem(bem.MFASetup, 'footer', 'footer')
+bem.MFASetup__footer = makeBem(bem.MFASetup, 'footer', 'footer')
+bem.MFASetup__footer__left = makeBem(bem.MFASetup__footer, 'footer-left')
+bem.MFASetup__footer__right = makeBem(bem.MFASetup__footer, 'footer-right')
 
 type modalSteps = 'qr' | 'backups' | 'manual'
 
@@ -97,6 +101,30 @@ export default class MFASetup extends React.Component<
     return this.props.qrCode.split('=')[1].split('&')[0]
   }
 
+  isTokenValid(): boolean {
+    return this.state.inputString !== null && this.state.inputString.length === 6
+  }
+
+  downloadCodes() {
+    if (this.state.backupCodes) {
+      const USERNAME = stores.session.currentAccount.username
+      // gets date in yyyymmdd
+      const DATE = new Date().toJSON().slice(0,10).replace(/-/g,'')
+
+      const formatedCodes = this.state.backupCodes.map((t)  => {
+        return t + '\n'
+      })
+      const codesLink = document.createElement('a')
+      const codesFile = new Blob(formatedCodes)
+
+      codesLink.href = URL.createObjectURL(codesFile)
+      codesLink.download = 'backups_' + USERNAME + '_' + DATE + '.txt'
+
+      document.body.appendChild(codesLink)
+      codesLink.click()
+    }
+  }
+
   renderQRCodeStep() {
     return (
       <bem.MFASetup__qrstep>
@@ -136,9 +164,19 @@ export default class MFASetup extends React.Component<
           </bem.MFASetup__token>
         </bem.MFASetup__body>
 
-        <bem.MFASetup__foooter>
-          <button onClick={this.mfaConfirm.bind(this)}/>
-        </bem.MFASetup__foooter>
+        <bem.MFASetup__footer>
+          <bem.MFASetup__footer__right>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isFullWidth={true}
+              label={t('Next')}
+              onClick={this.mfaConfirm.bind(this)}
+              isDisabled={!this.isTokenValid()}
+            />
+          </bem.MFASetup__footer__right>
+        </bem.MFASetup__footer>
       </bem.MFASetup__qrstep>
     )
   }
@@ -164,10 +202,35 @@ export default class MFASetup extends React.Component<
           }
         </bem.MFASetup__body>
 
-        <bem.MFASetup__foooter>
-          <button onClick={this.mfaConfirm.bind(this)}/>
-          <button onClick={this.mfaConfirm.bind(this)}/>
-        </bem.MFASetup__foooter>
+        <bem.MFASetup__footer>
+          <bem.MFASetup__footer__left>
+            <Button
+              type='frame'
+              color='blue'
+              size='l'
+              isFullWidth={true}
+              label={t('Download codes')}
+              onClick={this.downloadCodes.bind(this)}
+              //onClick={this.mfaConfirm.bind(this)}
+              //isDisabled={!this.isTokenValid()}
+            />
+          </bem.MFASetup__footer__left>
+
+          <bem.MFASetup__footer__right>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isFullWidth={true}
+              label={t('Next')}
+              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.changeStep(evt, 'backups')
+              }}
+              //onClick={this.mfaConfirm.bind(this)}
+              //isDisabled={!this.isTokenValid()}
+            />
+          </bem.MFASetup__footer__right>
+        </bem.MFASetup__footer>
       </bem.MFASetup__backupstep>
     )
   }
@@ -185,10 +248,20 @@ export default class MFASetup extends React.Component<
           </bem.MFASetup__codes>
         </bem.MFASetup__body>
 
-        <bem.MFASetup__foooter>
-          <button onClick={this.mfaConfirm.bind(this)}/>
-          <button onClick={this.mfaConfirm.bind(this)}/>
-        </bem.MFASetup__foooter>
+        <bem.MFASetup__footer>
+          <bem.MFASetup__footer__right>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isFullWidth={true}
+              label={t('OK')}
+              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.changeStep(evt, 'qr')
+              }}
+            />
+          </bem.MFASetup__footer__right>
+        </bem.MFASetup__footer>
       </bem.MFASetup__manualstep>
     )
   }
