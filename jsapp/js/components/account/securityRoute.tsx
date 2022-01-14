@@ -55,7 +55,6 @@ export default class Security extends React.Component<
     this.unlisteners.push(
       mfaActions.isActive.completed.listen(this.mfaActive.bind(this)),
       mfaActions.activate.completed.listen(this.mfaActivated.bind(this)),
-      mfaActions.confirm.completed.listen(this.mfaBackupCodes.bind(this)),
       mfaActions.regenerate.completed.listen(this.mfaBackupCodes.bind(this)),
       mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
     )
