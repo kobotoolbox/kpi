@@ -933,7 +933,7 @@ class ProjectSettings extends React.Component {
                 value={this.state.sector}
                 onChange={this.onSectorChange}
                 options={sectors}
-                className='kobo-select'
+                className='kobo-select kobo-select--limited-height'
                 classNamePrefix='kobo-select'
                 menuPlacement='auto'
                 isClearable
@@ -952,7 +952,7 @@ class ProjectSettings extends React.Component {
                 value={this.state.country}
                 onChange={this.onCountryChange}
                 options={countries}
-                className='kobo-select'
+                className='kobo-select kobo-select--limited-height'
                 classNamePrefix='kobo-select'
                 menuPlacement='auto'
                 isClearable
@@ -970,7 +970,7 @@ class ProjectSettings extends React.Component {
                 value={this.state.operational_purpose}
                 onChange={this.onOperationalPurposeChange}
                 options={operationalPurposes}
-                className='kobo-select'
+                className='kobo-select kobo-select--limited-height'
                 classNamePrefix='kobo-select'
                 menuPlacement='auto'
                 isClearable
