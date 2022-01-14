@@ -832,7 +832,7 @@ export class FormMap extends React.Component {
               })}
             </div>
             <div className='maplist-legend' onClick={this.toggleLegend}>
-              <i className={classNames('k-icon', this.state.showExpandedLegend ? 'k-icon-down' : 'k-icon-up')} /> {t('Legend')}
+              <i className={classNames('k-icon', this.state.showExpandedLegend ? 'k-icon-angle-down' : 'k-icon-angle-up')} /> {t('Legend')}
             </div>
           </bem.FormView__mapList>
         }

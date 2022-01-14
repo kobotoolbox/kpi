@@ -28,10 +28,6 @@ type KoboDropdownProps = {
   isDisabled: boolean,
   /** hides menu whenever user clicks inside it, useful for simple menu with a list of actions */
   hideOnMenuClick: boolean,
-  /** hides menu when user clicks outside it */
-  hideOnMenuOutsideClick: boolean,
-  /** hides menu when opened and user uses Escape key */
-  hideOnEsc: boolean,
   triggerContent: React.ReactNode,
   /** the content of dropdown, anything's allowed */
   menuContent: React.ReactNode,
@@ -108,12 +104,10 @@ export default class KoboDropdown extends React.Component<
 
   showMenu() {
     this.setState({isMenuVisible: true});
-    if (this.props.hideOnEsc) {
-      this.registerEscKeyListener();
-    }
-    if (this.props.hideOnMenuOutsideClick) {
-      this.registerOutsideClickListener();
-    }
+    // Hides menu when user clicks outside it.
+    this.registerEscKeyListener();
+    // Hides menu when opened and user uses Escape key.
+    this.registerOutsideClickListener();
   }
 
   hideMenu() {

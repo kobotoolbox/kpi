@@ -20,6 +20,8 @@
     }
   }
 
+  .radio__row.radio__row--title,
+  &.radio--disabled .radio__row,
   &.checkbox--disabled .checkbox__wrapper {
     cursor: default;
   }
