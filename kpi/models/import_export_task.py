@@ -514,10 +514,7 @@ class ExportBase:
 
         # Include the group name in `fields` for Mongo to correctly filter
         # for repeat groups
-        if fields:
-            field_groups = set(f.split('/')[0] for f in fields if '/' in f)
-            fields += list(field_groups)
-
+        fields = _get_fields_and_groups(fields)
         submission_stream = source.deployment.get_submissions(
             user=self.user,
             fields=fields,
