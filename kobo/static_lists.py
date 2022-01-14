@@ -1977,6 +1977,20 @@ translation_languages = {
       "Google"
     ]
   },
+  "tlh-Latn": {
+      "name": "Klingon",
+      "options": [
+          "Microsoft"
+      ]
+  },
+  {
+    "tlh-Piqd": {
+        "name": "Klingon (plqaD)",
+        "options": [
+            "Microsoft"
+        ]
+    }
+  },
   "ko": {
     "name": "Korean",
     "options": [
