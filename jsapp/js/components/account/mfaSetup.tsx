@@ -28,10 +28,12 @@ bem.MFASetup__footer = makeBem(bem.MFASetup, 'footer', 'footer')
 bem.MFASetup__footer__left = makeBem(bem.MFASetup__footer, 'footer-left')
 bem.MFASetup__footer__right = makeBem(bem.MFASetup__footer, 'footer-right')
 
-type modalSteps = 'qr' | 'backups' | 'manual'
+type modalSteps = 'qr' | 'backups' | 'manual' | 'token'
 
 type MFASetupProps = {
-  qrCode: string,
+  onModalClose: Function,
+  qrCode?: string,
+  modalType?: 'regenerate' | 'deactivate'
 }
 
 type MFASetupState = {
@@ -49,7 +51,7 @@ export default class MFASetup extends React.Component<
     super(props)
     this.state = {
       isLoading: true,
-      currentStep: 'qr',
+      currentStep: this.props.qrCode ? 'qr' : 'token',
       // Currently input code, used for confirm
       inputString: null,
       backupCodes: null,
@@ -65,6 +67,8 @@ export default class MFASetup extends React.Component<
 
     this.unlisteners.push(
       mfaActions.confirm.completed.listen(this.mfaBackupCodes.bind(this)),
+      mfaActions.regenerate.completed.listen(this.mfaBackupCodes.bind(this)),
+      mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
     )
   }
 
@@ -83,6 +87,18 @@ export default class MFASetup extends React.Component<
     })
   }
 
+  mfaDeactivate() {
+    mfaActions.deactivate(this.state.inputString)
+  }
+
+  mfaDeactivated() {
+    this.props.onModalClose()
+  }
+
+  mfaRegenerate() {
+    mfaActions.regenerate(this.state.inputString)
+  }
+
   onInputChange(response: React.FormEvent<HTMLInputElement>) {
     this.setState({inputString: response.currentTarget.value})
   }
@@ -98,7 +114,10 @@ export default class MFASetup extends React.Component<
 
   getSecretKey(): string {
     // We expect backend to not change the way the secret key is returned
-    return this.props.qrCode.split('=')[1].split('&')[0]
+    return (
+      this.props?.qrCode?.split('=')[1].split('&')[0] ||
+      t('Could not generate secret key')
+    )
   }
 
   isTokenValid(): boolean {
@@ -134,7 +153,7 @@ export default class MFASetup extends React.Component<
 
         <bem.MFASetup__body>
           <bem.MFASetup__qr>
-            <QRCode value={this.props.qrCode}/>
+            <QRCode value={this.props.qrCode || ''}/>
           </bem.MFASetup__qr>
 
           <bem.MFASetup__token>
@@ -266,6 +285,51 @@ export default class MFASetup extends React.Component<
     )
   }
 
+  renderTokenStep() {
+    return (
+      <bem.MFASetup__tokenstep>
+        <bem.MFASetup__body>
+          <bem.MFASetup__token>
+            <strong>
+              {/*This is safe as this step only shows if not on qr step*/}
+              {t(
+                'Please enter your six-digit authenticator token to ##ACTION##'
+              ).replace(
+                '##ACTION##',
+                this.props.modalType === 'regenerate'
+                  ? t('regenerate your backup codes.')
+                  : t('deactivate two-factor authentication.')
+              )}
+            </strong>
+
+            <bem.MFASetup__token__input
+              type='text'
+              onChange={this.onInputChange.bind(this)}
+            />
+          </bem.MFASetup__token>
+        </bem.MFASetup__body>
+
+        <bem.MFASetup__footer>
+          <bem.MFASetup__footer__right>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isFullWidth={true}
+              label={t('Next')}
+              onClick={
+                (this.props.modalType === 'regenerate')
+                  ? this.mfaRegenerate.bind(this)
+                  : this.mfaDeactivate.bind(this)
+              }
+              isDisabled={!this.isTokenValid()}
+            />
+          </bem.MFASetup__footer__right>
+        </bem.MFASetup__footer>
+      </bem.MFASetup__tokenstep>
+    );
+  }
+
  /**
   * TODO:
   * $ Remove old modal styling (headers, padding etc)
@@ -287,6 +351,10 @@ export default class MFASetup extends React.Component<
 
         {(this.state.currentStep === 'manual') &&
           this.renderManualStep()
+        }
+
+        {(this.state.currentStep === 'token') &&
+          this.renderTokenStep()
         }
       </bem.MFASetup>
     )

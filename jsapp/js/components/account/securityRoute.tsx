@@ -109,7 +109,10 @@ export default class Security extends React.Component<
     if (response) {
       mfaActions.activate();
     } else {
-      console.log('now we show the deactivate modal')
+      stores.pageState.showModal({
+        type: MODAL_TYPES.MFA_SETUP,
+        modalType: 'deactivate',
+      })
     }
   }
 

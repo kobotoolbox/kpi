@@ -440,6 +440,7 @@ class BigModal extends React.Component {
             }
             { this.props.params.type === MODAL_TYPES.MFA_SETUP &&
               <MFASetup
+                onModalClose={this.onModalClose}
                 {...this.props.params}
               />
             }
