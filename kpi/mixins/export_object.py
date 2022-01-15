@@ -1,8 +1,6 @@
 # coding: utf-8
-from typing import List, Dict, Optional, Tuple, Generator
 from os.path import split
-
-from rest_framework import exceptions
+from typing import List, Dict, Optional, Tuple, Generator
 
 import formpack
 from formpack.schema.fields import (
@@ -12,10 +10,12 @@ from formpack.schema.fields import (
     TagsCopyField,
     ValidationStatusCopyField,
 )
+from rest_framework import exceptions
+
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
-    PERM_VIEW_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
+    PERM_VIEW_SUBMISSIONS,
 )
 from kpi.models import Asset
 from kpi.utils.models import resolve_url_to_asset
