@@ -14,8 +14,8 @@ from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
+from kpi.mixins.export_object import ExportObjectMixin
 from kpi.utils.xml import add_xml_declaration
-from kpi.models.import_export_task import ExportBase
 
 
 class AssetJsonRenderer(renderers.JSONRenderer):
@@ -124,19 +124,7 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         )
 
 
-class SubmissionRendererExportBase(renderers.BaseRenderer, ExportBase):
-    def get_export_object(
-        self, renderer_context: Dict
-    ) -> Tuple[formpack.reporting.Export, Generator]:
-        view = renderer_context['view']
-        self.user = view.request.user
-        return super().get_export_object(
-            source=view.asset,
-            _async=False,
-        )
-
-
-class SubmissionXLSXRenderer(SubmissionRendererExportBase):
+class SubmissionXLSXRenderer(renderers.BaseRenderer, ExportObjectMixin):
     media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # noqa
     format = 'xlsx'
 
@@ -146,15 +134,22 @@ class SubmissionXLSXRenderer(SubmissionRendererExportBase):
         media_type: Optional[str] = None,
         renderer_context: Optional[Dict] = None,
     ) -> BytesIO:
+        view = renderer_context['view']
+        # `self.user` required to check for valid (partial) permissions before
+        # allowing an export to succeed
+        self.user = view.request.user
         self.data = data
-        export, submission_stream = self.get_export_object(renderer_context)
+        export, submission_stream = self.get_export_object(
+            source=view.asset,
+            _async=False,
+        )
         stream = BytesIO()
         export.to_xlsx(stream, submission_stream)
         stream.seek(0)
         return stream
 
 
-class SubmissionCSVRenderer(SubmissionRendererExportBase):
+class SubmissionCSVRenderer(renderers.BaseRenderer, ExportObjectMixin):
     media_type = 'text/csv'
     format = 'csv'
 
@@ -164,8 +159,15 @@ class SubmissionCSVRenderer(SubmissionRendererExportBase):
         media_type: Optional[str] = None,
         renderer_context: Optional[Dict] = None,
     ) -> str:
+        view = renderer_context['view']
+        # `self.user` required to check for valid (partial) permissions before
+        # allowing an export to succeed
+        self.user = view.request.user
         self.data = data
-        export, submission_stream = self.get_export_object(renderer_context)
+        export, submission_stream = self.get_export_object(
+            source=view.asset,
+            _async=False,
+        )
         stream = StringIO()
         for line in export.to_csv(submission_stream):
             stream.write(line + '\r\n')

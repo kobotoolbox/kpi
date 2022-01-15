@@ -6,10 +6,7 @@ import re
 import tempfile
 from collections import defaultdict
 from io import BytesIO
-from os.path import splitext, split
-from typing import List
-from urllib.parse import urlparse
-from typing import Dict, Optional, Tuple, Generator
+from os.path import splitext
 
 import dateutil.parser
 import pytz
@@ -17,7 +14,6 @@ import requests
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField as JSONBField
 from django.core.files.base import ContentFile
-from django.urls import Resolver404, resolve
 from django.db import models, transaction
 from private_storage.fields import PrivateFileField
 from pyxform import xls2json_backends
@@ -35,16 +31,14 @@ from formpack.schema.fields import (
 )
 from formpack.utils.string import ellipsize
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
-from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
     ASSET_TYPE_TEMPLATE,
     PERM_CHANGE_ASSET,
-    PERM_VIEW_SUBMISSIONS,
-    PERM_PARTIAL_SUBMISSIONS,
 )
+from kpi.mixins.export_object import ExportObjectMixin
 from kpi.utils.log import logging
 from kpi.utils.strings import to_str
 from kpi.utils.rename_xls_sheet import (
@@ -52,8 +46,12 @@ from kpi.utils.rename_xls_sheet import (
 )
 
 from ..fields import KpiUidField
-from kpi.utils.models import create_assets, _load_library_content, \
-    remove_string_prefix
+from kpi.utils.models import (
+    _load_library_content,
+    create_assets,
+    remove_string_prefix,
+    resolve_url_to_asset,
+)
 from ..models import Asset
 from ..zip_importer import HttpContentParse
 
@@ -64,21 +62,6 @@ def utcnow(*args, **kwargs):
     If you know of a better way, please remove this.
     """
     return datetime.datetime.utcnow()
-
-
-def _resolve_url_to_asset(item_path):
-    # TODO: is this still necessary now that `Collection` has been removed?
-    if item_path.startswith(('http', 'https')):
-        item_path = urlparse(item_path).path
-    try:
-        match = resolve(item_path)
-    except Resolver404:
-        # If the app is mounted in uWSGI with a path prefix, try to resolve
-        # again after removing the prefix
-        match = resolve(remove_string_prefix(item_path, settings.KPI_PREFIX))
-
-    uid = match.kwargs.get('uid')
-    return Asset.objects.get(uid=uid)
 
 
 class ImportExportTask(models.Model):
@@ -174,7 +157,7 @@ class ImportTask(ImportExportTask):
 
         if 'destination' in self.data and self.data['destination']:
             _d = self.data.get('destination')
-            dest_item = _resolve_url_to_asset(_d)
+            dest_item = resolve_url_to_asset(_d)
             if not dest_item.has_perm(self.user, PERM_CHANGE_ASSET):
                 raise exceptions.PermissionDenied('user cannot update asset')
             else:
@@ -397,147 +380,7 @@ def export_upload_to(self, filename):
     return posixpath.join(self.user.username, 'exports', filename)
 
 
-class ExportBase:
-    COPY_FIELDS = (
-        IdCopyField,
-        '_uuid',
-        SubmissionTimeCopyField,
-        ValidationStatusCopyField,
-        NotesCopyField,
-        # '_status' is always 'submitted_via_web' unless the submission was
-        # made via KoBoCAT's bulk-submission-form; in that case, it's 'zip':
-        # https://github.com/kobotoolbox/kobocat/blob/78133d519f7b7674636c871e3ba5670cd64a7227/onadata/apps/logger/import_tools.py#L67
-        '_status',
-        '_submitted_by',
-        TagsCopyField,
-    )
-
-    # It's not very nice to ask our API users to submit `null` or `false`,
-    # so replace friendlier language strings with the constants that formpack
-    # expects
-    API_LANGUAGE_TO_FORMPACK_LANGUAGE = {
-        '_default': formpack.constants.UNTRANSLATED,
-        '_xml': formpack.constants.UNSPECIFIED_TRANSLATION,
-    }
-
-    TIMESTAMP_KEY = '_submission_time'
-    # Above 244 seems to cause 'Download error' in Chrome 64/Linux
-    MAXIMUM_FILENAME_LENGTH = 240
-
-    @property
-    def _hierarchy_in_labels(self) -> bool:
-        hierarchy_in_labels = self.data.get('hierarchy_in_labels', False)
-        # v1 exports expects a string
-        if isinstance(hierarchy_in_labels, str):
-            return hierarchy_in_labels.lower() == 'true'
-        return hierarchy_in_labels
-
-    @property
-    def _fields_from_all_versions(self) -> bool:
-        fields_from_versions = self.data.get('fields_from_all_versions', True)
-        # v1 exports expects a string
-        if isinstance(fields_from_versions, str):
-            return fields_from_versions.lower() == 'true'
-        return fields_from_versions
-
-    def _build_export_options(self, pack: formpack.FormPack) -> Dict:
-        """
-        Internal method to build formpack `Export` constructor arguments based
-        on the options set in `self.data`
-        """
-        group_sep = self.data.get('group_sep', '/')
-        multiple_select = self.data.get('multiple_select', 'both')
-        translations = pack.available_translations
-        lang = self.data.get('lang', None) or next(iter(translations), None)
-        fields = self.data.get('fields', [])
-        xls_types_as_text = self.data.get('xls_types_as_text', True)
-        include_media_url = self.data.get('include_media_url', False)
-        force_index = True if not fields or '_index' in fields else False
-        try:
-            # If applicable, substitute the constants that formpack expects for
-            # friendlier language strings used by the API
-            lang = self.API_LANGUAGE_TO_FORMPACK_LANGUAGE[lang]
-        except KeyError:
-            pass
-        tag_cols_for_header = self.data.get('tag_cols_for_header', ['hxl'])
-
-        return {
-            'versions': pack.versions.keys(),
-            'group_sep': group_sep,
-            'multiple_select': multiple_select,
-            'lang': lang,
-            'hierarchy_in_labels': self._hierarchy_in_labels,
-            'copy_fields': self.COPY_FIELDS,
-            'force_index': force_index,
-            'tag_cols_for_header': tag_cols_for_header,
-            'filter_fields': fields,
-            'xls_types_as_text': xls_types_as_text,
-            'include_media_url': include_media_url,
-        }
-
-    def get_export_object(
-        self, source: Optional[Asset] = None, _async: bool = True
-    ) -> Tuple[formpack.reporting.Export, Generator]:
-        """
-        Get the formpack Export object and submission stream for processing.
-        """
-
-        fields = self.data.get('fields', [])
-        query = self.data.get('query', {})
-        submission_ids = self.data.get('submission_ids', [])
-
-        if source is None:
-            source_url = self.data.get('source', False)
-            if not source_url:
-                raise Exception('no source specified for the export')
-            source = _resolve_url_to_asset(source_url)
-
-        source_perms = source.get_perms(self.user)
-        if (
-            PERM_VIEW_SUBMISSIONS not in source_perms
-            and PERM_PARTIAL_SUBMISSIONS not in source_perms
-        ):
-            # Unsure if DRF exceptions make sense here since we're not
-            # returning a HTTP response
-            raise exceptions.PermissionDenied(
-                '{user} cannot export {source}'.format(
-                    user=self.user, source=source
-                )
-            )
-
-        if not source.has_deployment:
-            raise Exception('the source must be deployed prior to export')
-
-        if _async:
-            # Take this opportunity to do some housekeeping
-            self.log_and_mark_stuck_as_errored(self.user, source_url)
-
-        # Include the group name in `fields` for Mongo to correctly filter
-        # for repeat groups
-        fields = _get_fields_and_groups(fields)
-        submission_stream = source.deployment.get_submissions(
-            user=self.user,
-            fields=fields,
-            submission_ids=submission_ids,
-            query=query,
-        )
-
-        pack, submission_stream = build_formpack(
-            source, submission_stream, self._fields_from_all_versions
-        )
-
-        # Wrap the submission stream in a generator that records the most
-        # recent timestamp
-        if _async:
-            submission_stream = self._record_last_submission_time(
-                submission_stream
-            )
-
-        options = self._build_export_options(pack)
-        return pack.export(**options), submission_stream
-
-
-class ExportTask(ImportExportTask, ExportBase):
+class ExportTask(ImportExportTask, ExportObjectMixin):
     """
     An (asynchronous) submission data export job. The instantiator must set the
     `data` attribute to a dictionary with the following keys:
@@ -814,32 +657,3 @@ def _strip_header_keys(survey_dict):
         if re.search(r'_header$', sheet_name):
             del survey_dict[sheet_name]
     return survey_dict
-
-
-def _get_fields_and_groups(fields: List[str]) -> List[str]:
-    """
-    Ensure repeat groups are included when filtering for specific fields by
-    appending the path items. For example, a field with path of
-    `group1/group2/field` will be added to the list as:
-    ['group1/group2/field', 'group1/group2', 'group1']
-    """
-    if not fields:
-        return []
-
-    # Some fields are attached to the submission and must be included in
-    # addition to the user-selected fields
-    additional_fields = ['_attachments']
-
-    field_groups = set()
-    for field in fields:
-        if '/' not in field:
-            continue
-        items = []
-        while field:
-            _path = split(field)[0]
-            if _path:
-                items.append(_path)
-            field = _path
-        field_groups.update(items)
-    fields += list(field_groups) + additional_fields
-    return fields

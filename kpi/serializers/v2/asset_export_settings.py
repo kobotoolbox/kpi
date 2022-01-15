@@ -47,7 +47,6 @@ class AssetExportSettingsSerializer(serializers.ModelSerializer):
         read_only_fields = (
             'uid',
             'url',
-            'exports_url',
             'date_modified',
         )
 
