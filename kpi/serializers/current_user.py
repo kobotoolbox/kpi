@@ -77,16 +77,18 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             return {'message': 'user is not logged in'}
 
         rep = super().to_representation(obj)
-        if not rep['extra_details'] or not isinstance(
-            rep['extra_details'], dict
+        if (
+            not rep['extra_details']
+            or not isinstance(rep['extra_details'], dict)
         ):
             rep['extra_details'] = {}
         extra_details = rep['extra_details']
 
         # the front end used to set `primarySector` but has since been changed
         # to `sector`, which matches the registration form
-        if extra_details.get('primarySector') and not extra_details.get(
-            'sector'
+        if (
+            extra_details.get('primarySector')
+            and not extra_details.get('sector')
         ):
             extra_details['sector'] = extra_details['primarySector']
 

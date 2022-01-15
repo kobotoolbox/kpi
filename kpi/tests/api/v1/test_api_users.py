@@ -10,6 +10,8 @@ class UserListTests(test_api_users.UserListTests):
     URL_NAMESPACE = None
 
     def test_current_user_extra_details_kludges(self):
+        endpoint = reverse(self._get_endpoint('currentuser-detail'))
+
         self.client.login(username='someuser', password='someuser')
         user = User.objects.get(username='someuser')
         xtradata = user.extra_details.data
@@ -18,28 +20,28 @@ class UserListTests(test_api_users.UserListTests):
         # `primarySector` should be renamed to `sector`
         xtradata['primarySector'] = 'camelCase Administration'
         user.extra_details.save()
-        response = self.client.get(reverse('currentuser-detail'))
+        response = self.client.get(endpoint)
         # lone string should be transformed to object with label and value
         assert response.data['extra_details']['sector'] == {
             'label': 'camelCase Administration',
             'value': 'camelCase Administration',
         }
-        assert not 'primarySector' in response.data['extra_details']
+        assert 'primarySector' not in response.data['extra_details']
 
         # …but only if `sector` doesn't already exist
         xtradata['sector'] = 'Head Honchoing'
         user.extra_details.save()
-        response = self.client.get(reverse('currentuser-detail'))
+        response = self.client.get(endpoint)
         assert response.data['extra_details']['sector'] == {
             'label': 'Head Honchoing',
             'value': 'Head Honchoing',
         }
-        assert not 'primarySector' in response.data['extra_details']
+        assert 'primarySector' not in response.data['extra_details']
 
         # lone `country` string should also be transformed
         xtradata['country'] = 'KoBoLand'
         user.extra_details.save()
-        response = self.client.get(reverse('currentuser-detail'))
+        response = self.client.get(endpoint)
         assert response.data['extra_details']['country'] == {
             'label': 'KoBoLand',
             'value': 'KoBoLand',
