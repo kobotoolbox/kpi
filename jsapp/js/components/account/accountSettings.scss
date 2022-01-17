@@ -27,9 +27,23 @@
     }
 
     .form-modal__item--api-token {
-      input {
-        font-family: mdl.$font_mono;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      flex-wrap: wrap;
+
+      > label {
+        width: 100%;
+      }
+
+      .text-box {
+        display: inline-block;
+        vertical-align: top;
         width: 50%;
+
+        .text-box__input {
+          font-family: mdl.$font_mono;
+        }
       }
     }
 
