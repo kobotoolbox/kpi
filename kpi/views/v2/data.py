@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as t
 from rest_framework import (
     renderers,
     serializers,
@@ -293,7 +293,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         if not self.asset.has_deployment:
             raise ObjectDeploymentDoesNotExist(
-                _('The specified asset has not been deployed')
+                t('The specified asset has not been deployed')
             )
 
         return self.asset.deployment
@@ -507,7 +507,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
         except ValueError:
             raise serializers.ValidationError(
-                {'limit': _('A positive integer is required')}
+                {'limit': t('A positive integer is required')}
             )
 
         return filters

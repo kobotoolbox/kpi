@@ -7,7 +7,7 @@ import constance
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.models import User
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 
 from hub.models import ExtraUserDetail
@@ -99,7 +99,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             if all((current_password, new_password)):
                 if not self.instance.check_password(current_password):
                     raise serializers.ValidationError({
-                        'current_password': _('Incorrect current password.')
+                        'current_password': t('Incorrect current password.')
                     })
             elif any((current_password, new_password)):
                 not_empty_field_name = 'current_password' \
@@ -107,7 +107,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
                 empty_field_name = 'current_password' \
                     if new_password else 'new_password'
                 raise serializers.ValidationError({
-                    empty_field_name: _('`current_password` and `new_password` '
+                    empty_field_name: t('`current_password` and `new_password` '
                                         'must both be sent together; '
                                         f'`{not_empty_field_name}` cannot be '
                                         'sent individually.')
@@ -124,7 +124,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
             if field['required'] and not value.get(field['name']):
                 # Use verbatim message from DRF to avoid giving translators
                 # more busy work
-                errors[field['name']] = _('This field may not be blank.')
+                errors[field['name']] = t('This field may not be blank.')
         if errors:
             raise serializers.ValidationError(errors)
         return value
