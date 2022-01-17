@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.utils.translation import ugettext as _
-from rest_framework import viewsets, mixins, status
+from rest_framework import viewsets, mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -11,6 +11,13 @@ from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
 from kpi.paginators import TinyPaginated
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+
+from constants import (
+    HOOK_LOG_FAILED,
+    HOOK_LOG_PENDING,
+    HOOK_LOG_SUCCESS,
+)
+VALID_STATUSES = [HOOK_LOG_FAILED, HOOK_LOG_PENDING, HOOK_LOG_SUCCESS]
 
 
 class HookLogViewSet(AssetNestedObjectViewsetMixin,
@@ -87,7 +94,13 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
 
         status = self.request.GET.get('status')
         if status is not None:
-          queryset = queryset.filter(status=status)
+            if status not in VALID_STATUSES:
+                raise serializers.ValidationError(
+                    {'status': _('Value must be one of: ' +
+                                 ', '.join(VALID_STATUSES))}
+                )
+            else:
+                queryset = queryset.filter(status=status)
         return queryset
 
     @action(detail=True, methods=["PATCH"])
@@ -112,10 +125,12 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                 response["detail"] = hook_log.message
                 response["status_code"] = hook_log.status_code
             else:
-                response["detail"] = _("An error has occurred when sending the data. Please try again later.")
+                response["detail"] = _(
+                    "An error has occurred when sending the data. Please try again later.")
                 status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
-            response["detail"] = _("Data is being or has already been processed")
+            response["detail"] = _(
+                "Data is being or has already been processed")
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)
