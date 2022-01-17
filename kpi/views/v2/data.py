@@ -3,7 +3,7 @@ import requests
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext as t
 from rest_framework import (
     renderers,
     serializers,
@@ -300,7 +300,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
         """
         if not self.asset.has_deployment:
             raise ObjectDeploymentDoesNotExist(
-                gettext_lazy('The specified asset has not been deployed')
+                t('The specified asset has not been deployed')
             )
 
         return self.asset.deployment
@@ -505,7 +505,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             )
         except ValueError:
             raise serializers.ValidationError(
-                {'limit': gettext_lazy('A positive integer is required')}
+                {'limit': t('A positive integer is required')}
             )
 
         return filters
@@ -535,7 +535,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             submission_ids=submission_id,
         )
 
-        # The XML version is needed for Enketo
+        # The XML version is needed for Enketo Express
         submission_xml = deployment.get_submission(
             submission_id, user, SUBMISSION_FORMAT_TYPE_XML
         )
@@ -553,7 +553,7 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
             snapshot = self.asset.versioned_snapshot(version_uid=version_uid)
         except AssetVersion.DoesNotExist:
             raise serializers.ValidationError(
-                {'version': gettext_lazy('Version not found')}
+                {'version': t('Version not found')}
             )
 
         # ToDo support attachments
