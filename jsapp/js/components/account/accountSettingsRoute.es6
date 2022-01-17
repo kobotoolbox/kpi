@@ -328,9 +328,6 @@ export default class AccountSettings extends React.Component {
                     value={this.state.primarySector}
                     options={this.state.sectorChoices}
                     onChange={this.primarySectorChange}
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    menuPlacement='auto'
                   />
 
                   <bem.AccountSettings__desc>
@@ -348,9 +345,6 @@ export default class AccountSettings extends React.Component {
                     options={this.state.genderChoices}
                     onChange={this.genderChange}
                     isSearchable={false}
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    menuPlacement='auto'
                   />
                 </bem.AccountSettings__item>
               }
@@ -410,9 +404,6 @@ export default class AccountSettings extends React.Component {
                     value={this.state.country}
                     options={this.state.countryChoices}
                     onChange={this.countryChange}
-                    className='kobo-select'
-                    classNamePrefix='kobo-select'
-                    menuPlacement='auto'
                   />
                 </bem.AccountSettings__item>
               }

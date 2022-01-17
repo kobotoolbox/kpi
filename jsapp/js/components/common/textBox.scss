@@ -9,6 +9,7 @@ label.text-box {
   &.text-box--error {
     color: colors.$kobo-red;
 
+    textarea.text-box__input,
     input.text-box__input {
       // Don't type red if there is an error
       color: colors.$kobo-gray-40;
@@ -19,15 +20,17 @@ label.text-box {
   &.text-box--on-white input.text-box__input,
   &.text-box--on-white textarea.text-box__input {
     border-color: colors.$kobo-gray-92;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 6px;
 
     &:focus {
       border-color: colors.$kobo-blue;
     }
   }
 
-  &.text-box--on-white.text-box--error input.text-box__input {
+  &.text-box--on-white.text-box--error input.text-box__input,
+  &.text-box--on-white.text-box--error textarea.text-box__input {
     border-color: colors.$kobo-red;
   }
 
@@ -42,6 +45,7 @@ label.text-box {
     }
   }
 
+  textarea.text-box__input,
   input.text-box__input {
     width: 100%;
     padding: 5px 0px;
@@ -69,5 +73,11 @@ label.text-box {
     &::placeholder {
       color: colors.$kobo-gray-40;
     }
+  }
+
+  .text-box__error {
+    font-size: 12px;
+    font-weight: 400;
+    font-style: normal;
   }
 }

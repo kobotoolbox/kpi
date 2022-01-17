@@ -6,8 +6,9 @@ import bem from 'js/bem';
 // https://github.com/JedWatson/react-select/issues/4327
 
 type WrappedSelectProps = {
-  label: string
-  error: string
+  label?: string
+  error?: string
+  isLimitedHeight?: boolean
 } & Props
 
 /**
@@ -16,18 +17,30 @@ type WrappedSelectProps = {
  */
 class WrappedSelect extends React.Component<WrappedSelectProps> {
   render() {
+    const classNames = ['kobo-select'];
+    if (this.props.isLimitedHeight) {
+      classNames.push('kobo-select--limited-height');
+    }
+
     return(
       <bem.KoboSelect__wrapper m={{
         'error': Boolean(this.props.error)
       }}>
         <label>
-          {this.props.label}
-          <Select {...this.props}/>
+          <bem.KoboSelect__label>
+            {this.props.label}
+          </bem.KoboSelect__label>
+          <Select
+            className={classNames.join(' ')}
+            classNamePrefix='kobo-select'
+            menuPlacement='auto'
+            {...this.props}
+          />
         </label>
         {this.props.error &&
-          <bem.KoboSelect__errors>
+          <bem.KoboSelect__error>
           {this.props.error}
-          </bem.KoboSelect__errors>
+          </bem.KoboSelect__error>
         }
       </bem.KoboSelect__wrapper>
     );
