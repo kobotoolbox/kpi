@@ -291,7 +291,7 @@ class MainHeader extends Reflux.Component {
                 <i className='k-icon k-icon-menu' />
               </bem.Button>
             }
-            <span className='mdl-layout-title'>
+            <span className='mdl-layout__title'>
               <a href='/'>
                 <bem.Header__logo />
               </a>
