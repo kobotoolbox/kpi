@@ -2,6 +2,7 @@
 
 .kobo-select__wrapper {
   &.kobo-select__wrapper--error {
+    .kobo-select__errors,
     > label,
     .kobo-select-label,
     .kobo-select-error,

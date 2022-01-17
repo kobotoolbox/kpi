@@ -347,17 +347,14 @@ class ConnectProjects extends React.Component {
    * Rendering
    */
 
-  //TODO: Use BEM elements instead
-
   renderSelect() {
     if (this.state.sharingEnabledAssets !== null) {
       let sharingEnabledAssets = this.generateFilteredAssetList();
-      const selectClassNames = ['kobo-select__wrapper'];
-      if (this.state.fieldsErrors?.source) {
-        selectClassNames.push('kobo-select__wrapper--error');
-      }
+
       return(
-        <div className={selectClassNames.join(' ')}>
+        <bem.KoboSelect__wrapper m={{
+          'error': Boolean(this.state.fieldsErrors?.source),
+        }}>
           <Select
             placeholder={t('Select a different project to import data from')}
             options={sharingEnabledAssets}
@@ -371,10 +368,12 @@ class ConnectProjects extends React.Component {
             classNamePrefix='kobo-select'
           />
 
-          <label className='select-errors'>
-            {this.state.fieldsErrors?.source}
-          </label>
-        </div>
+          {this.state.fieldsErrors?.source &&
+            <bem.KoboSelect__errors>
+              {this.state.fieldsErrors?.source}
+            </bem.KoboSelect__errors>
+          }
+        </bem.KoboSelect__wrapper>
       );
     }
   }
