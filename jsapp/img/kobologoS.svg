@@ -1,17 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="320px" height="320px" viewBox="0 0 320 320" enable-background="new 0 0 320 320" xml:space="preserve">
-<g>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#2196F3" d="M162.229,268.843H44.398c-11.46,0-20.751-9.291-20.751-20.751
-		V60.928c0-11.461,9.291-20.752,20.751-20.752h117.831c11.461,0,20.751,9.291,20.751,20.752v187.164
-		C182.98,259.552,173.69,268.843,162.229,268.843"/>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#FFFFFF" d="M125.25,221.51H82.044c-11.265,0-20.397-9.132-20.397-20.396
-		v-93.207c0-11.265,9.132-20.397,20.397-20.397h43.206c11.265,0,20.397,9.132,20.397,20.397v93.207
-		C145.647,212.378,136.515,221.51,125.25,221.51"/>
-	<path fill-rule="evenodd" clip-rule="evenodd" fill="#2196F3" d="M110.811,196.843H96.483c-10.771,0-19.503-8.731-19.503-19.503
-		v-44.994c0-10.771,8.732-19.503,19.503-19.503h14.327c10.771,0,19.503,8.732,19.503,19.503v44.994
-		C130.313,188.111,121.582,196.843,110.811,196.843"/>
+<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 75.6 75.6" style="enable-background:new 0 0 75.6 75.6;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#222A35;}
+	.st1{opacity:0.3;}
+	.st2{fill:#478DCB;}
+	.st3{fill:#CACDD6;}
+	.st4{fill:#9499B4;}
+	.st5{fill:#F4F4F6;}
+	.st6{fill:#414554;}
+	.st7{fill:#37A5FB;}
+	.st8{fill:url(#SVGID_1_);}
+	.st9{opacity:0.4;fill:#37A5FB;}
+	.st10{fill:#62ACDF;}
+	.st11{fill:#FFFFFF;}
+	.st12{fill:none;stroke:#B3B3B3;stroke-miterlimit:10;}
+	.st13{fill:none;stroke:#37A5FB;stroke-width:9;stroke-linecap:round;stroke-miterlimit:10;}
+	.st14{opacity:0.6;fill:#37A5FB;}
+	.st15{fill:none;stroke:#8DD1FF;stroke-width:7.5271;stroke-linecap:round;stroke-miterlimit:10;}
+	.st16{fill:none;stroke:#FFFFFF;stroke-width:1.0753;stroke-miterlimit:10;}
+	.st17{fill:#8DD1FF;}
+	.st18{fill:#1A4E8B;}
+	.st19{fill:none;stroke:#FFFFFF;stroke-linecap:round;stroke-miterlimit:10;}
+	.st20{fill:none;stroke:#FFFFFF;stroke-linecap:round;stroke-miterlimit:10;stroke-dasharray:0.9992,2.9977;}
+	.st21{fill:none;stroke:#FFFFFF;stroke-linecap:round;stroke-miterlimit:10;stroke-dasharray:1.0108,3.0323;}
+	.st22{fill:none;stroke:#FFFFFF;stroke-linecap:round;stroke-miterlimit:10;stroke-dasharray:0.9878,2.9634;}
+	.st23{fill:none;stroke:#FFFFFF;stroke-linecap:round;stroke-miterlimit:10;stroke-dasharray:0.999,2.9969;}
+	.st24{fill:none;stroke:#FFFFFF;stroke-linecap:round;stroke-miterlimit:10;stroke-dasharray:1.0009,3.0027;}
+	.st25{clip-path:url(#SVGID_3_);}
+	.st26{fill:none;stroke:#37A5FB;stroke-width:2.1695;stroke-miterlimit:10;}
+	.st27{fill:#25A9E0;}
+	.st28{fill:none;stroke:#FFFFFF;stroke-width:4.3673;stroke-miterlimit:10;}
+	.st29{fill:#4B5766;}
+	.st30{fill:url(#SVGID_4_);}
+	.st31{fill:#2195F2;}
+	.st32{fill:url(#SVGID_5_);}
+	.st33{fill:url(#SVGID_6_);}
+	.st34{fill:url(#SVGID_7_);}
+	.st35{fill:#FF6680;}
+	.st36{fill:#FFA983;}
+	.st37{fill:#00A99D;}
+	.st38{fill:#F2F2F2;stroke:#CCCCCC;stroke-width:0.7902;stroke-miterlimit:10;}
+	.st39{fill:#CED3D8;}
+	.st40{fill:none;stroke:#CCCCCC;stroke-width:0.7902;stroke-miterlimit:10;}
+	.st41{fill:#F2F2F2;}
+	.st42{fill:none;stroke:#2195F2;stroke-width:3.9508;stroke-linecap:round;stroke-miterlimit:10;}
+	.st43{fill:#B7EDE4;}
+	.st44{fill:#DD97AC;}
+	.st45{fill:#FCEE21;}
+	.st46{fill:#F4BDBD;}
+	.st47{fill:#08316D;}
+	.st48{fill:#F7D0DE;}
+	.st49{fill:#3E4F60;}
+	.st50{fill:none;stroke:#37A5FB;stroke-width:6;stroke-linecap:round;stroke-miterlimit:10;}
+	.st51{fill:none;stroke:#FFFFFF;stroke-width:6;stroke-miterlimit:10;}
+	.st52{fill:url(#SVGID_8_);}
+	.st53{fill:url(#SVGID_9_);}
+	.st54{fill:url(#SVGID_10_);}
+	.st55{fill:url(#SVGID_11_);}
+	.st56{fill:#AEE2FF;}
+	.st57{fill:url(#SVGID_12_);}
+	.st58{fill:url(#SVGID_13_);}
+	.st59{fill:url(#SVGID_14_);}
+	.st60{fill:url(#SVGID_15_);}
+	.st61{fill:url(#SVGID_16_);}
+	.st62{fill:url(#SVGID_17_);}
+	.st63{fill:url(#SVGID_18_);}
+	.st64{fill:url(#SVGID_19_);}
+	.st65{fill:url(#SVGID_20_);}
+	.st66{fill:url(#SVGID_21_);}
+	.st67{fill:url(#SVGID_22_);}
+	.st68{fill:url(#SVGID_23_);}
+	.st69{fill:#71D0FF;}
+	.st70{fill:url(#SVGID_24_);}
+	.st71{fill:none;stroke:#4B5766;stroke-width:4;stroke-linecap:round;stroke-miterlimit:10;}
+	.st72{fill:none;}
+	.st73{fill:none;stroke:#8DD1FF;stroke-width:6;stroke-miterlimit:10;}
+	.st74{opacity:0.7;fill:url(#SVGID_27_);}
+	.st75{fill:none;stroke:#ACB8C6;stroke-width:0.4761;stroke-miterlimit:10;stroke-dasharray:1.31,0.8734;}
+	.st76{fill:none;stroke:#ACB8C6;stroke-width:0.3349;stroke-miterlimit:10;stroke-dasharray:0.9213,0.6142;}
+	.st77{fill:none;stroke:#ACB8C6;stroke-width:0.3834;stroke-miterlimit:10;stroke-dasharray:1.0547,0.7032;}
+	.st78{fill:none;stroke:#B8CFE0;stroke-miterlimit:10;}
+	.st79{fill:#64C0FF;}
+	.st80{fill:url(#SVGID_28_);}
+	.st81{fill:#37A5FF;}
+</style>
+<g id="Layer_1">
+</g>
+<g id="Layer_2">
+</g>
+<g id="Layer_3">
+</g>
+<g id="Layer_4">
+	<g>
+		<path class="st7" d="M48,46.6v4.9c0,2.7-2.2,4.9-4.9,4.9H32.4c-2.7,0-4.9-2.2-4.9-4.9V24.1c0-2.7,2.2-4.9,4.9-4.9h10.7
+			c2.7,0,4.9,2.2,4.9,4.9v0.7c0.9-0.3,1.9-0.5,3-0.5c1.2,0,2.4,0.2,3.5,0.7v-0.8c0-6.3-5.1-11.4-11.4-11.4H32.4
+			c-6.3,0-11.4,5.1-11.4,11.4v27.3c0,6.3,5.1,11.4,11.4,11.4h10.7c6.3,0,11.4-5.1,11.4-11.4V39.1L48,46.6z"/>
+		<path class="st7" d="M42.8,45l11.5-13.2c0.4-0.4,0.3-1-0.1-1.4l0,0c-2-1.8-5.1-1.5-6.9,0.5l-7.1,8.2c-0.2,0.2-0.4,0.2-0.6,0
+			L37,35.9c-0.5-0.6-1.5-0.7-2-0.1l0,0c-1.7,1.8-1.8,4.5-0.3,6.4l2.2,2.7C38.4,46.8,41.2,46.9,42.8,45z"/>
+	</g>
 </g>
 </svg>
