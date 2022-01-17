@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
-from rest_framework import viewsets, mixins, status
+from rest_framework import viewsets, mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -11,6 +11,13 @@ from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
 from kpi.paginators import TinyPaginated
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+
+from constants import (
+    HOOK_LOG_FAILED,
+    HOOK_LOG_PENDING,
+    HOOK_LOG_SUCCESS,
+)
+VALID_STATUSES = [HOOK_LOG_FAILED, HOOK_LOG_PENDING, HOOK_LOG_SUCCESS]
 
 
 class HookLogViewSet(AssetNestedObjectViewsetMixin,
@@ -87,7 +94,13 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
 
         status = self.request.GET.get('status')
         if status is not None:
-          queryset = queryset.filter(status=status)
+            if status not in VALID_STATUSES:
+                raise serializers.ValidationError(
+                    {'status': _('Value must be one of: ' +
+                                 ', '.join(VALID_STATUSES))}
+                )
+            else:
+                queryset = queryset.filter(status=status)
         return queryset
 
     @action(detail=True, methods=["PATCH"])
