@@ -136,6 +136,8 @@ class ConnectProjects extends React.Component {
   }
 
   onGetSharingEnabledAssetsCompleted(response) {
+    // NOTE: it is completely valid to connect a project back to itself, so
+    // don't be alarmed about seeing your current project in this list.
     this.setState({sharingEnabledAssets: response});
   }
 
