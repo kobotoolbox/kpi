@@ -23,7 +23,6 @@ class WrappedSelect extends React.Component<WrappedSelectProps> {
         <label>
           {this.props.label}
           <Select {...this.props}/>
-          {super.render()}
         </label>
         <label className='select-errors'>
           {this.props.error}
