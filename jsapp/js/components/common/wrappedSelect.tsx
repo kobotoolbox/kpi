@@ -23,11 +23,12 @@ class WrappedSelect extends React.Component<WrappedSelectProps> {
         <label>
           {this.props.label}
           <Select {...this.props}/>
-          {super.render()}
         </label>
-        <label className='select-errors'>
+        {this.props.error &&
+          <bem.KoboSelect__errors>
           {this.props.error}
-        </label>
+          </bem.KoboSelect__errors>
+        }
       </bem.KoboSelect__wrapper>
     );
   }
