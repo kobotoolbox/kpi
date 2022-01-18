@@ -121,7 +121,7 @@ class SharingForm extends React.Component {
             <bem.FormView__cell m='warning'>
               <i className='k-icon k-icon-alert' />
               <p>
-                {t('Anyone can see this blank form and add submissions to it because you have not set ')}
+                {t('Anyone with the link can see this blank form and add submissions to it because you have not set ')}
                 <a href={`/#${ROUTES.ACCOUNT_SETTINGS}`}>
                   {t('your account')}
                 </a>

@@ -48,6 +48,7 @@ label.text-box {
   }
 
   .text-box__label {
+    font-size: sizes.$x13;
     line-height: sizes.$x16;
   }
 
@@ -89,7 +90,7 @@ label.text-box {
   }
 
   .text-box__error {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 400;
     font-style: normal;
   }
