@@ -44,7 +44,8 @@ export default class ProjectExportsCreator extends React.Component {
     super(props);
     this.state = {
       isComponentReady: false,
-      isPending: false, // is either saving setting or creating export
+      // is either saving setting or creating export
+      isPending: false,
       // selectedExportType is being handled by exportsStore to allow other
       // components to know it changed
       selectedExportType: exportsStore.getExportType(),
@@ -382,6 +383,16 @@ export default class ProjectExportsCreator extends React.Component {
     const foundDefinedExport = this.state.definedExports.find((definedExport) =>
       definedExport.data.name === payload.name
     );
+
+    // API allows for more options than our UI is handling at this moment, so we
+    // need to make sure we are not losing some settings when patching.
+    if (foundDefinedExport) {
+      Object.entries(foundDefinedExport.data.export_settings).forEach(([key, value]) => {
+        if (!Object.prototype.hasOwnProperty.call(payload.export_settings, key)) {
+          payload.export_settings[key] = value;
+        }
+      });
+    }
 
     this.setState({isPending: true});
 
