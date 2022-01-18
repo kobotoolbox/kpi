@@ -219,9 +219,7 @@ export default class AccountSettings extends React.Component {
 
             <bem.AccountSettings__item m='fields'>
               <bem.AccountSettings__item>
-                <bem.AccountSettings__item>
-                  <label htmlFor='requireAuth'>{t('Privacy')}</label>
-                </bem.AccountSettings__item>
+                <label>{t('Privacy')}</label>
 
                 <Checkbox
                   checked={this.state.requireAuth}
@@ -237,7 +235,7 @@ export default class AccountSettings extends React.Component {
                   errors={this.state.fieldsWithErrors.name}
                   value={this.state.name}
                   onChange={this.nameChange}
-                  description={t('Use this to display your real name to other users')}
+                  placeholder={t('Use this to display your real name to other users')}
                 />
               </bem.AccountSettings__item>
 
