@@ -1461,8 +1461,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     request=request
                 )
                 key = f'download{suffix}_url'
-                attachment[key] = attachment[key].replace(
-                    f'{settings.KOBOCAT_MEDIA_URL}{size}', kpi_url)
+                try:
+                    attachment[key] = attachment[key].replace(
+                        f'{settings.KOBOCAT_MEDIA_URL}{size}', kpi_url)
+                except KeyError:
+                    continue
 
         return submission
 
