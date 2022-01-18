@@ -3,20 +3,17 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import KoboTagsInput from 'js/components/common/koboTagsInput';
-import Select from 'react-select';
+import WrappedSelect from 'js/components/common/wrappedSelect';
 import PropTypes from 'prop-types';
 import TextBox from 'js/components/common/textBox';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
-import TextareaAutosize from 'react-autosize-textarea';
 import {stores} from 'js/stores';
 import {actions} from 'js/actions';
 import {hashHistory} from 'react-router';
 import {notify} from 'utils';
 import assetUtils from 'js/assetUtils';
-import {
-  renderBackButton
-} from './modalHelpers';
+import {renderBackButton} from './modalHelpers';
 import {ASSET_TYPES} from 'js/constants';
 import mixins from 'js/mixins';
 import ownedCollectionsStore from 'js/components/library/ownedCollectionsStore';
@@ -39,9 +36,9 @@ export class LibraryAssetForm extends React.Component {
         country: null,
         sector: null,
         tags: '',
-        description: ''
+        description: '',
       },
-      isPending: false
+      isPending: false,
     };
     autoBind(this);
     if (this.props.asset) {
@@ -125,7 +122,7 @@ export class LibraryAssetForm extends React.Component {
             organization: this.state.data.organization,
             country: this.state.data.country,
             sector: this.state.data.sector,
-            description: this.state.data.description
+            description: this.state.data.description,
           }),
           tag_string: this.state.data.tags,
         }
@@ -138,7 +135,7 @@ export class LibraryAssetForm extends React.Component {
           organization: this.state.data.organization,
           country: this.state.data.country,
           sector: this.state.data.sector,
-          description: this.state.data.description
+          description: this.state.data.description,
         }),
         tag_string: this.state.data.tags,
       };
@@ -159,18 +156,24 @@ export class LibraryAssetForm extends React.Component {
     }
   }
 
-  onPropertyChange(property, newValue) {
+  onAnyDataChange(property, newValue) {
     const data = this.state.data;
     data[property] = newValue;
     this.setState({data: data});
   }
 
-  onNameChange(newValue) {this.onPropertyChange('name', assetUtils.removeInvalidChars(newValue));}
-  onOrganizationChange(newValue) {this.onPropertyChange('organization', newValue);}
-  onCountryChange(newValue) {this.onPropertyChange('country', newValue);}
-  onSectorChange(newValue) {this.onPropertyChange('sector', newValue);}
-  onTagsChange(newValue) {this.onPropertyChange('tags', newValue);}
-  onDescriptionChange(evt) {this.onPropertyChange('description', assetUtils.removeInvalidChars(evt.target.value));}
+  onNameChange(newValue) {
+    this.onAnyDataChange('name', assetUtils.removeInvalidChars(newValue));
+  }
+
+  onDescriptionChange(newValue) {
+    this.onAnyDataChange('description', assetUtils.removeInvalidChars(newValue));
+  }
+
+  onOrganizationChange(newValue) {this.onAnyDataChange('organization', newValue);}
+  onCountryChange(newValue) {this.onAnyDataChange('country', newValue);}
+  onSectorChange(newValue) {this.onAnyDataChange('sector', newValue);}
+  onTagsChange(newValue) {this.onAnyDataChange('tags', newValue);}
 
   /**
    * @returns existing asset type or desired asset type
@@ -210,14 +213,28 @@ export class LibraryAssetForm extends React.Component {
         <bem.FormModal__item m='wrapper' disabled={this.state.isPending}>
           <bem.FormModal__item>
             <TextBox
+              customModifiers='on-white'
               value={this.state.data.name}
-              onChange={this.onNameChange}
+              onChange={this.onNameChange.bind(this)}
               label={t('Name')}
+              placeholder={t('Enter title of ##type## here').replace('##type##', this.getFormAssetType())}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
             <TextBox
+              customModifiers='on-white'
+              type='text-multiline'
+              value={this.state.data.description}
+              onChange={this.onDescriptionChange.bind(this)}
+              label={t('Description')}
+              placeholder={t('Enter short description here')}
+            />
+          </bem.FormModal__item>
+
+          <bem.FormModal__item>
+            <TextBox
+              customModifiers='on-white'
               value={this.state.data.organization}
               onChange={this.onOrganizationChange}
               label={t('Organization')}
@@ -225,37 +242,27 @@ export class LibraryAssetForm extends React.Component {
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <label htmlFor='country'>
-              {t('Country')}
-            </label>
-
-            <Select
-              isMulti
-              id='country'
-              value={this.state.data.country}
-              onChange={this.onCountryChange}
-              options={COUNTRIES}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
+            <WrappedSelect
+              label={t('Primary Sector')}
+              value={this.state.data.sector}
+              onChange={this.onAnyDataChange.bind(this, 'sector')}
+              options={SECTORS}
+              isLimitedHeight
               isClearable
+              placeholder={t('Select a sector for your ##type##').replace('##type##', this.getFormAssetType())}
             />
           </bem.FormModal__item>
 
           <bem.FormModal__item>
-            <label htmlFor='sector'>
-              {t('Primary Sector')}
-            </label>
-
-            <Select
-              id='sector'
-              value={this.state.data.sector}
-              onChange={this.onSectorChange}
-              options={SECTORS}
-              className='kobo-select'
-              classNamePrefix='kobo-select'
-              menuPlacement='auto'
+            <WrappedSelect
+              label={t('Country')}
+              isMulti
+              value={this.state.data.country}
+              onChange={this.onAnyDataChange.bind(this, 'country')}
+              options={COUNTRIES}
+              isLimitedHeight
               isClearable
+              placeholder={t('Select countries')}
             />
           </bem.FormModal__item>
 
@@ -264,14 +271,6 @@ export class LibraryAssetForm extends React.Component {
               tags={this.state.data.tags}
               onChange={this.onTagsChange}
               label={t('Tags')}
-            />
-          </bem.FormModal__item>
-
-          <bem.FormModal__item>
-            <TextareaAutosize
-              onChange={this.onDescriptionChange}
-              value={this.state.data.description}
-              placeholder={t('Enter short description here')}
             />
           </bem.FormModal__item>
         </bem.FormModal__item>
@@ -296,6 +295,4 @@ export class LibraryAssetForm extends React.Component {
 reactMixin(LibraryAssetForm.prototype, Reflux.ListenerMixin);
 reactMixin(LibraryAssetForm.prototype, mixins.contextRouter);
 
-LibraryAssetForm.contextTypes = {
-  router: PropTypes.object
-};
+LibraryAssetForm.contextTypes = {router: PropTypes.object};

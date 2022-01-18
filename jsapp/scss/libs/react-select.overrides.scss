@@ -101,7 +101,7 @@
     height: button.$button-height-m - 8px;
   }
 
-  .kobo-select__multi-value-label {
+  .kobo-select__multi-value__label {
     line-height: button.$button-height-m - 8px;
     padding: 0 3px 0 6px;
   }
@@ -113,11 +113,11 @@
 
   .kobo-select__indicator {
     height: 100%;
-    padding: 0 6px
+    padding: 0 6px;
     display: flex;
     flex-direction: row;
     align-content: center;
-    align-items: center;;
+    align-items: center;
   }
 
   .kobo-select__control > * {
