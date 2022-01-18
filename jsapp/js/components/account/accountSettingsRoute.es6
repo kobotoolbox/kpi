@@ -326,18 +326,6 @@ export default class AccountSettings extends React.Component {
                 </bem.AccountSettings__item>
               }
 
-              {envStore.data.getUserMetadataField('city') &&
-                <bem.AccountSettings__item m='city'>
-                  <TextBox
-                    customModifiers='on-white'
-                    label={t('City')}
-                    errors={this.state.fieldsWithErrors.extra_details?.city}
-                    value={this.state.city}
-                    onChange={this.cityChange}
-                  />
-                </bem.AccountSettings__item>
-              }
-
               {envStore.data.getUserMetadataField('country') &&
                 <bem.AccountSettings__item m='country'>
                   <WrappedSelect
@@ -347,6 +335,18 @@ export default class AccountSettings extends React.Component {
                     value={this.state.country}
                     options={this.state.countryChoices}
                     onChange={this.countryChange}
+                  />
+                </bem.AccountSettings__item>
+              }
+
+              {envStore.data.getUserMetadataField('city') &&
+                <bem.AccountSettings__item m='city'>
+                  <TextBox
+                    customModifiers='on-white'
+                    label={t('City')}
+                    errors={this.state.fieldsWithErrors.extra_details?.city}
+                    value={this.state.city}
+                    onChange={this.cityChange}
                   />
                 </bem.AccountSettings__item>
               }
