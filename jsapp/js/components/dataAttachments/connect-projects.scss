@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/_variables";
 
 .connect-projects {
   i.k-icon {
@@ -7,7 +8,7 @@
   }
 
   .form-view__cell--page-title {
-    font-size: 14px !important;
+    font-size: variables.$base-font-size !important;
     display: flex;
     margin-top: 20px !important;
     i {
@@ -87,7 +88,7 @@
 
     label {
       margin-top: 20px;
-      font-size: 14px;
+      font-size: variables.$base-font-size;
       font-weight: bold;
       color: colors.$kobo-gray-40;
     }

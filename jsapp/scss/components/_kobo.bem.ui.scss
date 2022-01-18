@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 .kpiapp,
 .mdl-wrapper,
 .mdl-layout {
@@ -445,7 +447,7 @@ iframe {
     &.long {
       padding-top: 5px;
       margin-bottom: 10px;
-      font-size: 14px;
+      font-size: variables.$base-font-size;
     }
   }
 

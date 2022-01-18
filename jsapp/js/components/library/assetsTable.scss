@@ -136,7 +136,7 @@ $assets-table-hover-bg: colors.$kobo-gray-98;
   }
 
   .k-icon {
-    font-size: 14px;
+    font-size: variables.$base-font-size;
     margin: 0 3px;
     display: inline-block;
     vertical-align: middle;
@@ -233,7 +233,7 @@ $z-assets-table-row-header: 30;
     }
 
     .k-icon {
-      font-size: 14px;
+      font-size: variables.$base-font-size;
       // to take up space when empty
       min-width: 14px;
       width: 14px;

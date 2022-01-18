@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/_variables";
 
 // TODO: cleanup the other places
 // this copies a lot of global styles defined in _kobo.bem.ui.scss
@@ -12,7 +13,7 @@ label.text-box {
     textarea.text-box__input,
     input.text-box__input {
       // Don't type red if there is an error
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-24;
       border-bottom-color: colors.$kobo-red;
     }
   }
@@ -49,8 +50,8 @@ label.text-box {
   input.text-box__input {
     width: 100%;
     padding: 5px 0px;
-    font-size: 14px;
-    color: inherit;
+    font-size: variables.$base-font-size;
+    color: colors.$kobo-gray-24;
     background-color: transparent;
     border: 1px solid transparent;
     border-bottom-color: colors.$kobo-gray-85;
@@ -71,7 +72,8 @@ label.text-box {
     }
 
     &::placeholder {
-      color: colors.$kobo-gray-40;
+      color: colors.$kobo-gray-65;
+      opacity: 1;
     }
   }
 
