@@ -70,7 +70,7 @@ export default class AccountSettings extends React.Component {
       email: currentAccount.email,
       organization: currentAccount.extra_details.organization,
       organizationWebsite: currentAccount.extra_details.organization_website,
-      primarySector: currentAccount.extra_details.primary_sector,
+      primarySector: currentAccount.extra_details.sector,
       gender: currentAccount.extra_details.gender,
       bio: currentAccount.extra_details.bio,
       phoneNumber: currentAccount.extra_details.phone_number,
@@ -145,7 +145,7 @@ export default class AccountSettings extends React.Component {
           name: this.state.name,
           organization: this.state.organization,
           organization_website: this.state.organizationWebsite,
-          primary_sector: this.state.primarySector,
+          sector: this.state.primarySector,
           gender: this.state.gender,
           bio: this.state.bio,
           phone_number: this.state.phoneNumber,
@@ -320,11 +320,11 @@ export default class AccountSettings extends React.Component {
                 </bem.AccountSettings__item>
               }
 
-              {envStore.data.getUserMetadataField('primary_sector') &&
+              {envStore.data.getUserMetadataField('sector') &&
                 <bem.AccountSettings__item m='primary-sector'>
                   <WrappedSelect
                     label={t('Primary Sector')}
-                    error={this.state.fieldsErrors.extra_details?.primary_sector}
+                    error={this.state.fieldsErrors.extra_details?.sector}
                     value={this.state.primarySector}
                     options={this.state.sectorChoices}
                     onChange={this.primarySectorChange}

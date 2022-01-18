@@ -55,7 +55,7 @@ class ProjectSettings extends React.Component {
       CHOOSE_TEMPLATE: 'choose-template',
       UPLOAD_FILE: 'upload-file',
       IMPORT_URL: 'import-url',
-      PROJECT_DETAILS: 'project-details'
+      PROJECT_DETAILS: 'project-details',
     };
 
     this.unlisteners = [];
@@ -92,7 +92,7 @@ class ProjectSettings extends React.Component {
       isUploadFilePending: false,
       // archive flow
       isAwaitingArchiveCompleted: false,
-      isAwaitingUnarchiveCompleted: false
+      isAwaitingUnarchiveCompleted: false,
     };
 
     autoBind(this);
@@ -236,20 +236,20 @@ class ProjectSettings extends React.Component {
     this.setState({
       importUrl: value,
       importUrlButtonEnabled: isAValidUrl(value),
-      importUrlButton: t('Import')
+      importUrlButton: t('Import'),
     });
   }
 
   onTemplateChange(templateUid) {
     this.setState({
-      chosenTemplateUid: templateUid
+      chosenTemplateUid: templateUid,
     });
   }
 
   resetApplyTemplateButton() {
     this.setState({
       isApplyTemplatePending: false,
-      applyTemplateButton: t('Choose')
+      applyTemplateButton: t('Choose'),
     });
   }
 
@@ -298,7 +298,7 @@ class ProjectSettings extends React.Component {
   onSetDeploymentActiveFailed() {
     this.setState({
       isAwaitingArchiveCompleted: false,
-      isAwaitingUnarchiveCompleted: false
+      isAwaitingUnarchiveCompleted: false,
     });
   }
 
@@ -313,14 +313,14 @@ class ProjectSettings extends React.Component {
     }
     this.setState({
       isAwaitingArchiveCompleted: false,
-      isAwaitingUnarchiveCompleted: false
+      isAwaitingUnarchiveCompleted: false,
     });
   }
 
   onRouteChange() {
     this.setState({
       isAwaitingArchiveCompleted: false,
-      isAwaitingUnarchiveCompleted: false
+      isAwaitingUnarchiveCompleted: false,
     });
   }
 
@@ -370,12 +370,12 @@ class ProjectSettings extends React.Component {
     } else if (targetStep === previousStep) {
       this.setState({
         currentStep: previousStep,
-        previousStep: null
+        previousStep: null,
       });
     } else {
       this.setState({
         currentStep: targetStep,
-        previousStep: currentStep
+        previousStep: currentStep,
       });
     }
 
@@ -458,7 +458,7 @@ class ProjectSettings extends React.Component {
           asset_type: 'empty',
         }).done((asset) => {
           resolve(asset);
-        }).fail(function(r){
+        }).fail((r) => {
           reject(t('Error: asset could not be created.') + ` (code: ${r.statusText})`);
         });
       }
@@ -473,12 +473,12 @@ class ProjectSettings extends React.Component {
         description: this.state.description,
         sector: this.state.sector,
         country: this.state.country,
-        'share-metadata': this.state['share-metadata']
+        'share-metadata': this.state['share-metadata'],
       }),
       asset_type: 'survey',
     }).done((asset) => {
       this.goToFormBuilder(asset.uid);
-    }).fail(function(r){
+    }).fail((r) => {
       alertify.error(t('Error: new project could not be created.') + ` (code: ${r.statusText})`);
     });
   }
@@ -505,7 +505,7 @@ class ProjectSettings extends React.Component {
 
     this.setState({
       isApplyTemplatePending: true,
-      applyTemplateButton: t('Please wait…')
+      applyTemplateButton: t('Please wait…'),
     });
 
     if (this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) {
@@ -513,13 +513,13 @@ class ProjectSettings extends React.Component {
         this.state.formAsset.uid,
         {
           clone_from: this.state.chosenTemplateUid,
-          name: this.state.formAsset.name
+          name: this.state.formAsset.name,
         }
       );
     } else {
       actions.resources.cloneAsset({
         uid: this.state.chosenTemplateUid,
-        new_asset_type: 'survey'
+        new_asset_type: 'survey',
       });
     }
   }
@@ -531,7 +531,7 @@ class ProjectSettings extends React.Component {
       this.setState({
         isImportFromURLPending: true,
         importUrlButtonEnabled: false,
-        importUrlButton: t('Retrieving form, please wait...')
+        importUrlButton: t('Retrieving form, please wait...'),
       });
 
       this.getOrCreateFormAsset().then(
@@ -554,7 +554,7 @@ class ProjectSettings extends React.Component {
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,
                     'share-metadata': finalAsset.settings['share-metadata'],
-                    isImportFromURLPending: false
+                    isImportFromURLPending: false,
                   });
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
                 }
@@ -612,7 +612,7 @@ class ProjectSettings extends React.Component {
                     sector: finalAsset.settings.sector,
                     country: finalAsset.settings.country,
                     'share-metadata': finalAsset.settings['share-metadata'],
-                    isUploadFilePending: false
+                    isUploadFilePending: false,
                   });
                   this.displayStep(this.STEPS.PROJECT_DETAILS);
                 }
@@ -852,14 +852,14 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
-    const sectorField = envStore.data.getProjectMetadataField('sector')
+    const sectorField = envStore.data.getProjectMetadataField('sector');
     const sectors = envStore.data.sector_choices;
-    const countryField = envStore.data.getProjectMetadataField('country')
+    const countryField = envStore.data.getProjectMetadataField('country');
     const countries = envStore.data.country_choices;
     const bothCountryAndSector = sectorField && countryField;
-    const operationalPurposeField = envStore.data.getProjectMetadataField('operational_purpose')
+    const operationalPurposeField = envStore.data.getProjectMetadataField('operational_purpose');
     const operationalPurposes = envStore.data.operational_purpose_choices;
-    const collectsPiiField = envStore.data.getProjectMetadataField('collects_pii')
+    const collectsPiiField = envStore.data.getProjectMetadataField('collects_pii');
     const isSelfOwned = assetUtils.isSelfOwned(this.state.formAsset);
 
     return (
@@ -869,7 +869,7 @@ class ProjectSettings extends React.Component {
         className={[
           'project-settings',
           'project-settings--project-details',
-          this.props.context === PROJECT_SETTINGS_CONTEXTS.BUILDER ? 'project-settings--narrow' : null
+          this.props.context === PROJECT_SETTINGS_CONTEXTS.BUILDER ? 'project-settings--narrow' : null,
         ].join(' ')}
       >
         {this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
@@ -1124,8 +1124,6 @@ reactMixin(ProjectSettings.prototype, mixins.droppable);
 // NOTE: dmix mixin is causing a full asset load after component mounts
 reactMixin(ProjectSettings.prototype, mixins.dmix);
 
-ProjectSettings.contextTypes = {
-  router: PropTypes.object
-};
+ProjectSettings.contextTypes = {router: PropTypes.object};
 
 export default ProjectSettings;

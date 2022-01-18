@@ -15,6 +15,7 @@ bem.KoboLightBadge = makeBem(null, 'kobo-light-badge', 'span');
 
 bem.KoboSelect = makeBem(null, 'kobo-select');
 bem.KoboSelect__wrapper = makeBem(bem.KoboSelect, 'wrapper');
+bem.KoboSelect__errors = makeBem(bem.KoboSelect, 'errors');
 bem.KoboSelect__optionWrapper = makeBem(bem.KoboSelect, 'option-wrapper');
 bem.KoboSelect__optionBadge = makeBem(bem.KoboSelect, 'option-badge');
 

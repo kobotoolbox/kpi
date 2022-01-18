@@ -191,7 +191,7 @@ class FormViewTabs extends Reflux.Component {
         sideTabs.push({
           label: t('Media'),
           icon: 'k-icon k-icon-gallery',
-          path: ROUTES.FORM_MEDIA.replace(':uid', this.state.assetid),
+          path: ROUTES.FORM_MEDIA.replace(':uid', this.state.asset.uid),
         });
       }
 
