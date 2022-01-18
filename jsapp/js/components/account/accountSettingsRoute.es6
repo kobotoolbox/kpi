@@ -69,8 +69,6 @@ export default class AccountSettings extends React.Component {
       primarySector: currentAccount.extra_details.sector,
       gender: currentAccount.extra_details.gender,
       bio: currentAccount.extra_details.bio,
-      phoneNumber: currentAccount.extra_details.phone_number,
-      address: currentAccount.extra_details.address,
       city: currentAccount.extra_details.city,
       country: currentAccount.extra_details.country,
       requireAuth: currentAccount.extra_details.require_auth,
@@ -119,8 +117,6 @@ export default class AccountSettings extends React.Component {
           sector: this.state.primarySector,
           gender: this.state.gender,
           bio: this.state.bio,
-          phone_number: this.state.phoneNumber,
-          address: this.state.address,
           city: this.state.city,
           country: this.state.country,
           require_auth: this.state.requireAuth,
@@ -326,30 +322,6 @@ export default class AccountSettings extends React.Component {
                     errors={this.state.fieldsWithErrors.extra_details?.bio}
                     value={this.state.bio}
                     id='bio'
-                  />
-                </bem.AccountSettings__item>
-              }
-
-              {envStore.data.getUserMetadataField('phone_number') &&
-                <bem.AccountSettings__item>
-                  <TextBox
-                    customModifiers='on-white'
-                    label={t('Phone Number')}
-                    errors={this.state.fieldsWithErrors.extra_details?.phone_number}
-                    value={this.state.phoneNumber}
-                    onChange={this.phoneNumberChange}
-                  />
-                </bem.AccountSettings__item>
-              }
-
-              {envStore.data.getUserMetadataField('address') &&
-                <bem.AccountSettings__item>
-                  <TextBox
-                    customModifiers='on-white'
-                    label={t('Address')}
-                    errors={this.state.fieldsWithErrors.extra_details?.address}
-                    value={this.state.address}
-                    onChange={this.addressChange}
                   />
                 </bem.AccountSettings__item>
               }
