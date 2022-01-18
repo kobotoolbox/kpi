@@ -48,7 +48,7 @@ def advanced_feature_instances(content, actions):
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
         if action_params == True:
-            action_params = action_kls.build_params(content)
+            action_params = action_kls.build_params({}, content)
         yield action_kls(action_params)
 
 def advanced_submission_jsonschema(content, actions, url=None):
@@ -58,7 +58,7 @@ def advanced_submission_jsonschema(content, actions, url=None):
     for action_id, action_params in actions.items():
         action_kls = ACTIONS_BY_ID[action_id]
         if action_params == True:
-            action_params = action_kls.build_params(content)
+            action_params = action_kls.build_params({}, content)
         if 'values' not in action_params:
             action_params['values'] = action_kls.get_values_for_content(content)
         action_instances.append(action_kls(action_params))
