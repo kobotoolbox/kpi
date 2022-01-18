@@ -29,6 +29,16 @@ class TranslationAction(BaseAction):
         self.languages = params['languages']
         self.available_services = params.get('services', [])
 
+    def has_change(self, orecord, erecord):
+        for language in self.languages:
+            olang = orecord.get(language, False)
+            elang = erecord.get(language, False)
+            if olang is False or elang is False:
+                return True
+            if self.record_repr(olang) != self.record_repr(elang):
+                return True
+        return False
+
     def modify_jsonschema(self, schema):
         defs = schema.get('definitions', {})
         translation_properties = {
