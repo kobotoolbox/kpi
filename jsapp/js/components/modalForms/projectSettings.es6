@@ -690,7 +690,7 @@ class ProjectSettings extends React.Component {
     this.setState({fieldsWithErrors: fieldsWithErrors});
 
     if (fieldsWithErrors.length >= 1) {
-      alertify.error(t('Some fields have errors!'));
+      alertify.error(t('Some fields contain errors!'));
       return;
     }
 

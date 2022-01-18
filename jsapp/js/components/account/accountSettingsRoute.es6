@@ -344,6 +344,7 @@ export default class AccountSettings extends React.Component {
                     value={this.state.gender}
                     options={this.state.genderChoices}
                     onChange={this.genderChange}
+                    isClearable
                     isSearchable={false}
                   />
                 </bem.AccountSettings__item>
