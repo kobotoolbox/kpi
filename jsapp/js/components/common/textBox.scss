@@ -1,3 +1,4 @@
+@use "scss/sizes";
 @use "scss/_colors";
 @use "scss/_variables";
 
@@ -44,6 +45,10 @@ label.text-box {
       display: block;
       margin: 1px;
     }
+  }
+
+  .text-box__label {
+    line-height: sizes.$x16;
   }
 
   .text-box__label + textarea.text-box__input,

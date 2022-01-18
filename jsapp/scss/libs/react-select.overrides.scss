@@ -1,4 +1,5 @@
 @use "js/components/common/button";
+@use "scss/sizes";
 @use "scss/_colors";
 @use "scss/_variables";
 
@@ -26,7 +27,7 @@
   display: block;
   color: inherit;
   font-size: inherit;
-  line-height: 16px;
+  line-height: sizes.$x16;
   font-weight: 400;
 
   & + .kobo-select {

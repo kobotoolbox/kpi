@@ -3,7 +3,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
-import alertify from 'alertifyjs';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
 import {stores} from 'js/stores';
@@ -11,7 +10,6 @@ import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
 import WrappedSelect from 'js/components/common/wrappedSelect';
 import ApiTokenDisplay from 'js/components/apiTokenDisplay';
-import {hashHistory} from 'react-router';
 import {stringToColor} from 'utils';
 import {ROUTES} from 'js/router/routerConstants';
 import envStore from 'js/envStore';
@@ -100,29 +98,6 @@ export default class AccountSettings extends React.Component {
       ],
       fieldsWithErrors: {},
     });
-  }
-
-  /**
-   * returns to where you came from
-   */
-  safeClose() {
-    if (this.state.isPristine) {
-      hashHistory.goBack();
-    } else {
-      let dialog = alertify.dialog('confirm');
-      let opts = {
-        title: UNSAVED_CHANGES_WARNING,
-        message: '',
-        labels: {ok: t('Yes, leave settings'), cancel: t('Cancel')},
-        onok: () => {
-          this.setState({isPristine: true});
-          this.unpreventClosingTab();
-          hashHistory.goBack();
-        },
-        oncancel: dialog.destroy,
-      };
-      dialog.set(opts).show();
-    }
   }
 
   preventClosingTab() {
@@ -224,20 +199,13 @@ export default class AccountSettings extends React.Component {
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
             <bem.KoboButton
+              className='account-settings-save'
               onClick={this.updateProfile}
               m={['blue']}
             >
               {t('Save Changes')}
               {!this.state.isPristine && ' *'}
             </bem.KoboButton>
-
-            <bem.Button
-              onClick={this.safeClose}
-              m='icon'
-              className='account-settings-close'
-            >
-              <i className='k-icon k-icon-close'/>
-            </bem.Button>
           </bem.AccountSettings__actions>
 
           <bem.AccountSettings__item m={'column'}>

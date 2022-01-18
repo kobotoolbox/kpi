@@ -128,16 +128,16 @@
   transition: opacity 0.35s;
   opacity: 1;
 
-  &--hiding {
+  &.popover-menu__content--hiding {
     opacity: 0;
     transition: opacity 0.35s;
   }
 
-  &--hidden {
+  &.popover-menu__content--hidden {
     display: none;
   }
 
-  &--visible {
+  &.popover-menu__content--visible {
     display: block;
   }
 }
@@ -425,16 +425,16 @@ iframe {
     }
   }
 
-  &--sector, &--country {
-    width: 50%;
+  &.form-modal__item--sector, &.form-modal__item--country {
+    width: 48%;
     float: left;
   }
 
-  &--sector .kobo-select {
-    margin-right: 30px;
+  &.form-modal__item--sector {
+    margin-right: 4%;
   }
 
-  &--metadata-share {
+  &.form-modal__item--metadata-share {
     padding-top: 15px;
     clear: both;
   }

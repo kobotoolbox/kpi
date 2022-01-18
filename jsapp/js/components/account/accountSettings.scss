@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/sizes";
 @use "scss/libs/_mdl";
 
 .account-settings {
@@ -40,6 +41,7 @@
         display: inline-block;
         vertical-align: top;
         width: 50%;
+        margin-right: sizes.$x5;
 
         .text-box__input {
           font-family: mdl.$font_mono;
@@ -69,6 +71,10 @@
     top: 26px;
     right: 0;
 
+    .account-settings-save:last-child {
+      margin-right: 48px;
+    }
+
     .account-settings-close {
       padding: 0 12px;
     }
@@ -95,8 +101,7 @@
   }
 
   .form-modal__item--gender {
-    width: 52%;
-    float: left;
+    width: 50%;
   }
 
   .form-modal__item--bio {
@@ -104,8 +109,8 @@
   }
 
   .form-modal__item--city {
-    width: 46%;
-    margin-right: 2%;
+    width: 48%;
+    margin-right: 4%;
     float: left;
 
     .text-box__input {
@@ -114,27 +119,29 @@
   }
 
   .form-modal__item--country {
-    width: 52%;
+    width: 48%;
     float: left;
   }
 
   .form-modal__item--social {
     clear: both;
 
-    label {
+    > label {
       position: relative;
 
-      i {
+      &:not(:first-child) {
+        margin-top: sizes.$x5;
+      }
+
+      > i {
         position: absolute;
         font-size: 24px;
-        top: 10px;
+        top: 4px;
         left: 4px;
       }
 
-      input {
-        margin-top: 8px;
+      .text-box .text-box__input {
         padding-left: 40px;
-        max-width: 400px;
       }
     }
   }
