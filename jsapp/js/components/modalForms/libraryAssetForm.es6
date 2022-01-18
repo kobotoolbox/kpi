@@ -170,11 +170,6 @@ export class LibraryAssetForm extends React.Component {
     this.onAnyDataChange('description', assetUtils.removeInvalidChars(newValue));
   }
 
-  onOrganizationChange(newValue) {this.onAnyDataChange('organization', newValue);}
-  onCountryChange(newValue) {this.onAnyDataChange('country', newValue);}
-  onSectorChange(newValue) {this.onAnyDataChange('sector', newValue);}
-  onTagsChange(newValue) {this.onAnyDataChange('tags', newValue);}
-
   /**
    * @returns existing asset type or desired asset type
    */
@@ -236,7 +231,7 @@ export class LibraryAssetForm extends React.Component {
             <TextBox
               customModifiers='on-white'
               value={this.state.data.organization}
-              onChange={this.onOrganizationChange}
+              onChange={this.onAnyDataChange.bind(this, 'organization')}
               label={t('Organization')}
             />
           </bem.FormModal__item>
@@ -269,7 +264,7 @@ export class LibraryAssetForm extends React.Component {
           <bem.FormModal__item>
             <KoboTagsInput
               tags={this.state.data.tags}
-              onChange={this.onTagsChange}
+              onChange={this.onAnyDataChange.bind(this, 'tags')}
               label={t('Tags')}
             />
           </bem.FormModal__item>

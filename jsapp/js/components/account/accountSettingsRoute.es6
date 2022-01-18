@@ -145,40 +145,14 @@ export default class AccountSettings extends React.Component {
     this.setState({fieldsWithErrors: data.responseJSON});
   }
 
-  handleChange(evt, attr) {
-    let val;
-    if (evt && evt.target) {
-      if (evt.target.type === 'checkbox') {
-        val = evt.target.checked;
-      } else {
-        val = evt.target.value;
-      }
-    } else {
-      // react-select, TextBox and Checkbox just passes a value
-      val = evt;
-    }
+  onAnyDataChange(fieldName, newValue) {
     this.preventClosingTab();
     this.setState({
       isPristine: false,
-      [attr]: val,
+      [fieldName]: newValue,
     });
+
   }
-  nameChange(e) {this.handleChange(e, 'name');}
-  emailChange(e) {this.handleChange(e, 'email');}
-  organizationChange(e) {this.handleChange(e, 'organization');}
-  organizationWebsiteChange(e) {this.handleChange(e, 'organizationWebsite');}
-  primarySectorChange(e) {this.handleChange(e, 'primarySector');}
-  genderChange(e) {this.handleChange(e, 'gender');}
-  bioChange(e) {this.handleChange(e, 'bio');}
-  phoneNumberChange(e) {this.handleChange(e, 'phoneNumber');}
-  addressChange(e) {this.handleChange(e, 'address');}
-  cityChange(e) {this.handleChange(e, 'city');}
-  countryChange(e) {this.handleChange(e, 'country');}
-  requireAuthChange(isChecked) {this.handleChange(isChecked, 'requireAuth');}
-  twitterChange(e) {this.handleChange(e, 'twitter');}
-  linkedinChange(e) {this.handleChange(e, 'linkedin');}
-  instagramChange(e) {this.handleChange(e, 'instagram');}
-  metadataChange(e) {this.handleChange(e, 'metadata');}
 
   render() {
     if(!stores.session.isLoggedIn || !envStore.isReady) {
@@ -219,7 +193,7 @@ export default class AccountSettings extends React.Component {
 
                 <Checkbox
                   checked={this.state.requireAuth}
-                  onChange={this.requireAuthChange}
+                  onChange={this.onAnyDataChange.bind(this, 'requireAuth')}
                   label={t('Require authentication to see forms and submit data')}
                 />
               </bem.AccountSettings__item>
@@ -230,7 +204,7 @@ export default class AccountSettings extends React.Component {
                   label={t('Name')}
                   errors={this.state.fieldsWithErrors.name}
                   value={this.state.name}
-                  onChange={this.nameChange}
+                  onChange={this.onAnyDataChange.bind(this, 'name')}
                   placeholder={t('Use this to display your real name to other users')}
                 />
               </bem.AccountSettings__item>
@@ -242,7 +216,7 @@ export default class AccountSettings extends React.Component {
                   type='email'
                   errors={this.state.fieldsWithErrors.email}
                   value={this.state.email}
-                  onChange={this.emailChange}
+                  onChange={this.onAnyDataChange.bind(this, 'email')}
                 />
               </bem.AccountSettings__item>
 
@@ -264,7 +238,7 @@ export default class AccountSettings extends React.Component {
                     label={t('Organization')}
                     errors={this.state.fieldsWithErrors.extra_details?.organization}
                     value={this.state.organization}
-                    onChange={this.organizationChange}
+                    onChange={this.onAnyDataChange.bind(this, 'organization')}
                   />
                 </bem.AccountSettings__item>
               }
@@ -277,7 +251,7 @@ export default class AccountSettings extends React.Component {
                     type='url'
                     errors={this.state.fieldsWithErrors.extra_details?.organization_website}
                     value={this.state.organizationWebsite}
-                    onChange={this.organizationWebsiteChange}
+                    onChange={this.onAnyDataChange.bind(this, 'organizationWebsite')}
                   />
                 </bem.AccountSettings__item>
               }
@@ -289,7 +263,7 @@ export default class AccountSettings extends React.Component {
                     error={this.state.fieldsWithErrors.extra_details?.sector}
                     value={this.state.primarySector}
                     options={this.state.sectorChoices}
-                    onChange={this.primarySectorChange}
+                    onChange={this.onAnyDataChange.bind(this, 'primarySector')}
                   />
 
                   <bem.AccountSettings__desc>
@@ -305,7 +279,7 @@ export default class AccountSettings extends React.Component {
                     error={this.state.fieldsWithErrors.extra_details?.gender}
                     value={this.state.gender}
                     options={this.state.genderChoices}
-                    onChange={this.genderChange}
+                    onChange={this.onAnyDataChange.bind(this, 'gender')}
                     isClearable
                     isSearchable={false}
                   />
@@ -318,7 +292,7 @@ export default class AccountSettings extends React.Component {
                     customModifiers='on-white'
                     type='text-multiline'
                     label={t('Bio')}
-                    onChange={this.bioChange}
+                    onChange={this.onAnyDataChange.bind(this, 'bio')}
                     errors={this.state.fieldsWithErrors.extra_details?.bio}
                     value={this.state.bio}
                     id='bio'
@@ -334,7 +308,7 @@ export default class AccountSettings extends React.Component {
                     error={this.state.fieldsWithErrors.extra_details?.country}
                     value={this.state.country}
                     options={this.state.countryChoices}
-                    onChange={this.countryChange}
+                    onChange={this.onAnyDataChange.bind(this, 'country')}
                   />
                 </bem.AccountSettings__item>
               }
@@ -346,7 +320,7 @@ export default class AccountSettings extends React.Component {
                     label={t('City')}
                     errors={this.state.fieldsWithErrors.extra_details?.city}
                     value={this.state.city}
-                    onChange={this.cityChange}
+                    onChange={this.onAnyDataChange.bind(this, 'city')}
                   />
                 </bem.AccountSettings__item>
               }
@@ -366,7 +340,7 @@ export default class AccountSettings extends React.Component {
                         customModifiers='on-white'
                         errors={this.state.fieldsWithErrors.extra_details?.twitter}
                         value={this.state.twitter}
-                        onChange={this.twitterChange}
+                        onChange={this.onAnyDataChange.bind(this, 'twitter')}
                       />
                     </label>
                   }
@@ -379,7 +353,7 @@ export default class AccountSettings extends React.Component {
                         customModifiers='on-white'
                         errors={this.state.fieldsWithErrors.extra_details?.linkedin}
                         value={this.state.linkedin}
-                        onChange={this.linkedinChange}
+                        onChange={this.onAnyDataChange.bind(this, 'linkedin')}
                       />
                     </label>
                   }
@@ -392,7 +366,7 @@ export default class AccountSettings extends React.Component {
                         customModifiers='on-white'
                         errors={this.state.fieldsWithErrors.extra_details?.instagram}
                         value={this.state.instagram}
-                        onChange={this.instagramChange}
+                        onChange={this.onAnyDataChange.bind(this, 'instagram')}
                       />
                     </label>
                   }
@@ -405,7 +379,7 @@ export default class AccountSettings extends React.Component {
                   label={t('Metadata')}
                   errors={this.state.fieldsWithErrors.metadata}
                   value={this.state.metadata}
-                  onChange={this.metadataChange}
+                  onChange={this.onAnyDataChange.bind(this, 'metadata')}
                 />
               </bem.AccountSettings__item>
             </bem.AccountSettings__item>
