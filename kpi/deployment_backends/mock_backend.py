@@ -208,20 +208,17 @@ class MockDeploymentBackend(BaseDeploymentBackend):
     def get_attachment_content(self, user, submission_uuid, response_xpath):
 
         try:
-            submission_xml = next(
-                iter(
-                    self.get_submissions(
-                        user, format_type=SUBMISSION_FORMAT_TYPE_XML, query={
-                            '_uuid': submission_uuid
-                        }
-                    )
-                )
+            submission_xml = self.get_submissions(
+                user, format_type=SUBMISSION_FORMAT_TYPE_XML, query={
+                    '_uuid': submission_uuid
+                }
             )
+            first_submission = submission_xml[0]
         except StopIteration:
             raise Http404
 
         submission_tree = ET.ElementTree(
-            ET.fromstring(submission_xml)
+            ET.fromstring(first_submission)
         )
         response_element = submission_tree.find(response_xpath)
         try:
