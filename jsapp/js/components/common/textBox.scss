@@ -46,10 +46,16 @@ label.text-box {
     }
   }
 
+  .text-box__label + textarea.text-box__input,
+  .text-box__label + input.text-box__input {
+    margin-top: 5px;
+  }
+
   textarea.text-box__input,
   input.text-box__input {
     width: 100%;
     padding: 5px 0px;
+    margin: 0;
     font-size: variables.$base-font-size;
     color: colors.$kobo-gray-24;
     background-color: transparent;

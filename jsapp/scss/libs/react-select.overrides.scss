@@ -89,7 +89,6 @@
   }
 
   .kobo-select__value-container {
-    height: button.$button-height-m;
     padding: 0;
   }
 
@@ -100,7 +99,11 @@
 
   .kobo-select__multi-value {
     height: button.$button-height-m - 8px;
-    margin: 0px 2px 2px;
+  }
+
+  .kobo-select__multi-value-label {
+    line-height: button.$button-height-m - 8px;
+    padding: 0 3px 0 6px;
   }
 
   .kobo-select__multi-value__remove:hover {
@@ -109,8 +112,16 @@
   }
 
   .kobo-select__indicator {
-    height: button.$button-height-m;
-    padding: (button.$button-height-m - 20px) * 0.5;
+    height: 100%;
+    padding: 0 6px
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    align-items: center;;
+  }
+
+  .kobo-select__control > * {
+    height: calc(100% - 2px);
   }
 
   .kobo-select__menu {

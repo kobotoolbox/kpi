@@ -917,16 +917,6 @@ class ProjectSettings extends React.Component {
             />
           </bem.FormModal__item>
 
-          {bothCountryAndSector &&
-            <bem.FormModal__item>
-              <label className='long'>
-                {countryField && sectorField && t('Please specify the country and the sector where this project will be deployed.')}
-                {countryField && !sectorField && t('Please specify the country where this project will be deployed.')}
-                {sectorField && !countryField && t('Please specify the sector where this project will be deployed.')}
-              </label>
-            </bem.FormModal__item>
-          }
-
           {sectorField &&
             <bem.FormModal__item m={bothCountryAndSector ? 'sector' : null}>
               <WrappedSelect
@@ -937,7 +927,7 @@ class ProjectSettings extends React.Component {
                 isLimitedHeight
                 isClearable
                 placeholder={t('Select a sector for your project')}
-                error={this.hasFieldError('sector') ? t("Sector can't be empty") : false}
+                error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
               />
             </bem.FormModal__item>
           }
@@ -953,7 +943,7 @@ class ProjectSettings extends React.Component {
                 isLimitedHeight
                 isClearable
                 placeholder={t('Select at least one country')}
-                error={this.hasFieldError('country') ? t('Minimum one contry is required') : false}
+                error={this.hasFieldError('country') ? t('Please select at least one contry') : false}
               />
             </bem.FormModal__item>
           }

@@ -61,6 +61,9 @@
     .connect-projects__import-form {
       position: relative;
       display: flex;
+      flex-direction: row;
+      align-items: center;
+      align-content: center;
       margin-top: 10px;
 
       .kobo-select__wrapper {
