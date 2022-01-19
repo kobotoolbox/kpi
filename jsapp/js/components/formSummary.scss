@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/mixins";
 
 .form-view__group.form-view__group--description-cols {
   padding: 20px;
@@ -110,8 +111,8 @@
 .form-view__cell.form-view__cell--data-tabs {
   a,
   button {
+    @include mixins.centerRowFlex;
     cursor: pointer;
-    display: block;
     width: 100%;
     border: 0;
     background: transparent;
@@ -130,8 +131,6 @@
     }
 
     .k-icon {
-      font-size: 24px;
-      width: 24px;
       margin: 4px 10px 4px 4px;
       display: inline-block;
       vertical-align: middle;

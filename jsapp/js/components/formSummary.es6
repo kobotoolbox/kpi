@@ -9,6 +9,7 @@ import {stores} from '../stores';
 import mixins from '../mixins';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Icon from 'js/components/common/icon';
 import DocumentTitle from 'react-document-title';
 import moment from 'moment';
 import Chart from 'chart.js';
@@ -24,7 +25,6 @@ import {
   MODAL_TYPES,
   ANON_USERNAME,
 } from 'js/constants';
-import {getCountryDisplayString} from 'js/assetUtils';
 import './formSummary.scss';
 
 class FormSummary extends React.Component {
@@ -218,16 +218,16 @@ class FormSummary extends React.Component {
           key='landing'
           data-path={`/forms/${this.state.uid}/landing`}
           onClick={this.triggerRefresh}>
-            <i className='k-icon k-icon-projects' />
+            <Icon name='projects' size='l'/>
             {t('Collect data')}
-            <i className='k-icon k-icon-angle-right' />
+            <Icon name='angle-right' size='s'/>
         </Link>
 
         {this.userCan('change_asset', this.state) &&
           <button onClick={this.sharingModal}>
-            <i className='k-icon k-icon-user-share'/>
+            <Icon name='user-share' size='l'/>
             {t('Share project')}
-            <i className='k-icon k-icon-angle-right' />
+            <Icon name='angle-right' size='s'/>
           </button>
         }
 
@@ -238,16 +238,16 @@ class FormSummary extends React.Component {
             data-path={`/forms/${this.state.uid}/edit`}
             onClick={this.triggerRefresh}
           >
-            <i className='k-icon k-icon-edit' />
+            <Icon name='edit' size='l'/>
             {t('Edit form')}
-            <i className='k-icon k-icon-angle-right' />
+            <Icon name='angle-right' size='s'/>
           </Link>
         }
 
         <button onClick={this.enketoPreviewModal}>
-          <i className='k-icon k-icon-view' />
+          <Icon name='view' size='l'/>
           {t('Preview form')}
-          <i className='k-icon k-icon-angle-right' />
+          <Icon name='angle-right' size='s'/>
         </button>
       </bem.FormView__cell>
     );
@@ -268,7 +268,7 @@ class FormSummary extends React.Component {
           >
             <i className={`k-icon ${item.icon}`} />
             {item.label}
-            <i className='k-icon k-icon-angle-right' />
+            <Icon name='angle-right' size='s'/>
           </Link>
         )}
       </bem.FormView__cell>
