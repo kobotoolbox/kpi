@@ -4,9 +4,10 @@ import {IconName} from 'jsapp/fonts/k-icons'
 import './icon.scss'
 
 /**
- * Check out `icon.scss` file for exact pixel values.
+ * Check out `icon.scss` file for exact pixel values. Note that `xxs` is mainly
+ * for carets and should not be used otherwise.
  */
-export type IconSize = 'xs' | 's' | 'm' | 'l' | 'xl'
+export type IconSize = 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl'
 
 const DefaultSize = 's'
 

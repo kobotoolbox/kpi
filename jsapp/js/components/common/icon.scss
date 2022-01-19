@@ -1,8 +1,13 @@
-$s-icon-xs: 14px;
-$s-icon-s: 18px;
-$s-icon-m: 20px;
-$s-icon-l: 22px;
-$s-icon-xl: 28px;
+@use "scss/sizes";
+
+$s-icon-xxs: sizes.$x10;
+$s-icon-xs: sizes.$x14;
+$s-icon-s: sizes.$x18;
+$s-icon-m: sizes.$x20;
+$s-icon-l: sizes.$x22;
+$s-icon-xl: sizes.$x28;
+
+.k-icon--size-xxs { font-size: $s-icon-xxs; }
 
 .k-icon--size-xs { font-size: $s-icon-xs; }
 
