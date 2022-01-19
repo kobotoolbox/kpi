@@ -1,11 +1,16 @@
 # coding: utf-8
 from django.contrib.auth.views import LoginView
+from django.db.models import QuerySet
 from django.urls import reverse
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from trench.utils import get_mfa_model
 
-from kpi.forms.mfa import (
+from .forms import (
     MFALoginForm,
     MFATokenForm,
 )
+from .serializers import UserMFAMethodSerializer
 
 
 class MFALoginView(LoginView):
@@ -23,7 +28,7 @@ class MFALoginView(LoginView):
 
             return self.response_class(
                 request=self.request,
-                template='registration/mfa_token.html',
+                template='mfa_token.html',
                 context=context,
                 using=self.template_engine,
             )
@@ -59,6 +64,21 @@ class MFATokenView(LoginView):
     """
     form_class = MFATokenForm
     authentication_form = None
-    template_name = 'registration/mfa_token.html'
+    template_name = 'mfa_token.html'
     redirect_authenticated_user = False
     extra_context = None
+
+
+class MFAListUserMethodsView(ListAPIView):
+    """
+    Display user's methods with dates
+    """
+    serializer_class = UserMFAMethodSerializer
+    permission_classes = (IsAuthenticated,)
+    pagination_class = None
+
+    def get_queryset(self) -> QuerySet:
+        mfa_model = get_mfa_model()
+        return mfa_model.objects.filter(
+            user_id=self.request.user.id
+        )
