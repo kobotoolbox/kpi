@@ -103,6 +103,7 @@ INSTALLED_APPS = (
     'kobo.apps.help',
     'kobo.apps.shadow_model.ShadowModelAppConfig',
     'trench',
+    'kobo.apps.mfa.MfaAppConfig',
 )
 
 MIDDLEWARE = [
@@ -826,7 +827,7 @@ KOBOCAT_THUMBNAILS_SUFFIX_MAPPING = {
 }
 
 TRENCH_AUTH = {
-    'USER_MFA_MODEL': 'trench.MFAMethod',
+    'USER_MFA_MODEL': 'mfa.KoboMFAMethod',
     'USER_ACTIVE_FIELD': 'is_active',
     'BACKUP_CODES_QUANTITY': 5,
     'BACKUP_CODES_LENGTH': 12,  # keep (quantity * length) under 200

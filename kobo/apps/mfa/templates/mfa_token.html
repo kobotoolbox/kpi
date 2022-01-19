@@ -10,8 +10,9 @@
     </div>
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="Login" class="registration__action" />
+    <button type="submit" name="Login" class="kobo-button kobo-button--blue kobo-button--fullwidth">
+      {% trans "Login" %}
+    </button>
     <input type="hidden" name="next" value="{{ next }}" />
   </form>
 {% endblock %}
-
