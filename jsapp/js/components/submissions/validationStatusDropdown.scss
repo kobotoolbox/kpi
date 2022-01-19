@@ -29,6 +29,7 @@
     height: 28px;
     min-height: 28px;
     cursor: pointer;
+    border: 0;
 
     .kobo-select__value-container {
       padding: 0;
@@ -84,6 +85,9 @@
 
   // custom option badge, mostly for validation status select
   .kobo-select__option-badge {
+    // Needed for react-select v5.
+    grid-area: 1 / 1 / 2 / 3;
+    text-align: left;
     font-weight: 500;
     line-height: 1;
     font-size: 12px;

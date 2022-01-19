@@ -134,12 +134,13 @@
       margin: 4px 10px 4px 4px;
       display: inline-block;
       vertical-align: middle;
+    }
 
-      &.k-icon-angle-right {
-        position: absolute;
-        right: 4px;
-        top: 6px;
-      }
+    .k-icon.k-icon-angle-right {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
     }
   }
 }

@@ -11,6 +11,7 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Icon from 'js/components/common/icon';
 import DocumentTitle from 'react-document-title';
+import Icon from 'js/components/common/icon';
 import moment from 'moment';
 import Chart from 'chart.js';
 import {getFormDataTabs} from './formViewTabs';

@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/_variables";
 
 .connect-projects {
   i.k-icon {
@@ -7,7 +8,7 @@
   }
 
   .form-view__cell--page-title {
-    font-size: 14px !important;
+    font-size: variables.$base-font-size !important;
     display: flex;
     margin-top: 20px !important;
     i {
@@ -60,6 +61,9 @@
     .connect-projects__import-form {
       position: relative;
       display: flex;
+      flex-direction: row;
+      align-items: center;
+      align-content: center;
       margin-top: 10px;
 
       .kobo-select__wrapper {
@@ -87,7 +91,7 @@
 
     label {
       margin-top: 20px;
-      font-size: 14px;
+      font-size: variables.$base-font-size;
       font-weight: bold;
       color: colors.$kobo-gray-40;
     }

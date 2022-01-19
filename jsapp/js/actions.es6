@@ -164,9 +164,9 @@ actions.misc.updateProfile.failed.listen(function(data) {
   }
 
   if (hadFieldsErrors) {
-    notify(t('Some fields contain errors'), 'error');
+    notify(t('Some fields contain errors!'), 'error');
   } else {
-    notify(t('failed to update profile'), 'error');
+    notify(t('Failed to update profile!'), 'error');
   }
 });
 
