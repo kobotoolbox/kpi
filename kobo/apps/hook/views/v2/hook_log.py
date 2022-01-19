@@ -94,10 +94,10 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
 
         status = self.request.GET.get('status')
         if status is not None:
-            if status not in VALID_STATUSES:
+            if status not in map(str,VALID_STATUSES):
                 raise serializers.ValidationError(
                     {'status': _('Value must be one of: ' +
-                                 ', '.join(VALID_STATUSES))}
+                                 ', '.join(map(str,VALID_STATUSES)))}
                 )
             else:
                 queryset = queryset.filter(status=status)
