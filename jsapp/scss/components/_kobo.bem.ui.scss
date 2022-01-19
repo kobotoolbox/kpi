@@ -106,9 +106,8 @@
     color: $kobo-blue;
   }
 
-  i {
+  .k-icon {
     margin: 3px;
-    font-size: 26px;
   }
 }
 
@@ -236,10 +235,6 @@
   border-top: 1px solid $kobo-gray-92;
   background-color: $kobo-gray-96;
   margin: 0px;
-}
-
-.popover-menu--assetrow-menu .popover-menu__content {
-  right: 0px;
 }
 
 .popover-menu--formLanding-menu {

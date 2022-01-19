@@ -10,6 +10,7 @@ import {searches} from '../searches';
 import mixins from '../mixins';
 import LibrarySidebar from 'js/components/library/librarySidebar';
 import AccountSidebar from 'js/components/account/accountSidebar';
+import Icon from 'js/components/common/icon';
 import {
   IntercomHelpBubble,
   SupportHelpBubble,
@@ -89,47 +90,6 @@ FormSidebar.contextTypes = {
 reactMixin(FormSidebar.prototype, searches.common);
 reactMixin(FormSidebar.prototype, mixins.droppable);
 
-class DrawerLink extends React.Component {
-  constructor(props) {
-    super(props);
-    autoBind(this);
-  }
-  onClick (evt) {
-    if (!this.props.href) {
-      evt.preventDefault();
-    }
-    if (this.props.onClick) {
-      this.props.onClick(evt);
-    }
-  }
-  render () {
-    var icon = (<i className={`k-icon-${this.props['k-icon']}`}/>);
-    var classNames = [this.props.class, 'k-drawer__link'];
-
-    var link;
-    if (this.props.linkto) {
-      link = (
-        <Link to={this.props.linkto}
-            className={classNames.join(' ')}
-            activeClassName='active'
-            data-tip={this.props.label}>
-          {icon}
-        </Link>
-      );
-    } else {
-      link = (
-        <a href={this.props.href || '#'}
-            className={classNames.join(' ')}
-            onClick={this.onClick}
-            data-tip={this.props.label}>
-            {icon}
-        </a>
-      );
-    }
-    return link;
-  }
-}
-
 class Drawer extends Reflux.Component {
   constructor(props){
     super(props);
@@ -148,8 +108,23 @@ class Drawer extends Reflux.Component {
     return (
       <bem.KDrawer>
         <bem.KDrawer__primaryIcons>
-          <DrawerLink label={t('Projects')} linkto={ROUTES.FORMS} k-icon='projects' />
-          <DrawerLink label={t('Library')} linkto={ROUTES.LIBRARY} k-icon='library' />
+          <Link
+            to={ROUTES.FORMS}
+            className='k-drawer__link'
+            activeClassName='active'
+            data-tip={t('Projects')}
+          >
+            <Icon name='projects' size='xl'/>
+          </Link>
+
+          <Link
+            to={ROUTES.LIBRARY}
+            className='k-drawer__link'
+            activeClassName='active'
+            data-tip={t('Library')}
+          >
+            <Icon name='library' size='xl'/>
+          </Link>
         </bem.KDrawer__primaryIcons>
 
         <bem.KDrawer__sidebar>
@@ -180,19 +155,24 @@ class Drawer extends Reflux.Component {
           }
           { stores.session.isLoggedIn &&
             stores.session.currentAccount.projects_url &&
-            <a href={stores.session.currentAccount.projects_url}
+            <a
+              href={stores.session.currentAccount.projects_url}
               className='k-drawer__link'
               target='_blank'
               data-tip={t('Projects (legacy)')}
             >
-              <i className='k-icon k-icon-globe' />
+              <Icon name='globe' size='xl'/>
             </a>
           }
           { envStore.isReady &&
             envStore.data.source_code_url &&
-            <a href={envStore.data.source_code_url}
-              className='k-drawer__link' target='_blank' data-tip={t('Source')}>
-              <i className='k-icon k-icon-logo-github' />
+            <a
+              href={envStore.data.source_code_url}
+              className='k-drawer__link'
+              target='_blank'
+              data-tip={t('Source')}
+            >
+              <Icon name='logo-github' size='xl'/>
             </a>
           }
         </bem.KDrawer__secondaryIcons>

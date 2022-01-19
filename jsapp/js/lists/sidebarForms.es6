@@ -7,6 +7,7 @@ import Reflux from 'reflux';
 import mixins from '../mixins';
 import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Icon from 'js/components/common/icon';
 import {searches} from '../searches';
 import {stores} from '../stores';
 import {
@@ -110,15 +111,15 @@ class SidebarFormsList extends Reflux.Component {
                     categoryVisible = false;
                   }
 
-                  const icon = ['k-icon'];
+                  let iconName = '';
                   if (categoryId === DEPLOYMENT_CATEGORIES.Deployed.id) {
-                    icon.push('k-icon-deploy');
+                    iconName = 'deploy';
                   }
                   if (categoryId === DEPLOYMENT_CATEGORIES.Draft.id) {
-                    icon.push('k-icon-drafts');
+                    iconName = 'drafts';
                   }
                   if (categoryId === DEPLOYMENT_CATEGORIES.Archived.id) {
-                    icon.push('k-icon-archived');
+                    iconName = 'archived';
                   }
 
                   return [
@@ -127,7 +128,7 @@ class SidebarFormsList extends Reflux.Component {
                       onClick={this.toggleCategory(categoryId)}
                       key={`${categoryId}-label`}
                     >
-                      <i className={icon.join(' ')}/>
+                      <Icon name={iconName} size='s'/>
                       <bem.FormSidebar__labelText>
                         {DEPLOYMENT_CATEGORIES[categoryId].label}
                       </bem.FormSidebar__labelText>

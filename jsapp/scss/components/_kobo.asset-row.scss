@@ -1,3 +1,5 @@
+@use "scss/mixins";
+
 $hover-asset-row: $kobo-gray-96;
 $hover-transition: 0.3s opacity;
 $asset-row-spacing: 6px;
@@ -133,6 +135,8 @@ $asset-row-spacing: 6px;
 
   // buttons are aligned to the asset title regardless of description or tags being present
   > .asset-row__buttons {
+    @include mixins.centerRowFlex;
+
     position: absolute;
     top: 0;
     right: 0;
@@ -165,13 +169,9 @@ $asset-row-spacing: 6px;
       color: $kobo-blue;
     }
 
-    &.asset-row__action-icon--view-collection i {
-      @extend .k-icon, .k-icon-folder;
-    }
-
-    i::before {
-      margin: 3px;
-      font-size: 26px;
+    .k-icon {
+      display: block;
+      margin: 6px 3px;
     }
   }
 
@@ -195,5 +195,28 @@ $asset-row-spacing: 6px;
 @media screen and (max-width: 767px) {
   .asset-row:hover > .asset-row__buttons {
     width: 55%;
+  }
+}
+
+.popover-menu--assetrow-menu {
+  .popover-menu__toggle {
+    height: 100%;
+
+    // This is a wrapper that allows displaying tooltip. These styles are needed
+    // to make it appear on the same height as other buttons' tooltips.
+    > div {
+      height: 100%;
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    .k-icon {
+      margin: 6px 3px;
+      display: block;
+    }
+  }
+
+  .popover-menu__content {
+    right: 0px;
   }
 }

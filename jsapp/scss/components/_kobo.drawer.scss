@@ -48,16 +48,12 @@
 
 .k-drawer__secondary-icons {
   left: 0;
-  bottom: 0;
+  bottom: 14px;
   position: absolute;
   width: $drawer-icons-width;
 
   .k-drawer__link {
-    padding: 0;
-    margin-bottom: 5px;
     display: block;
-    text-align: center;
-    font-weight: normal;
     position: relative;
     color: $kobo-gray-40;
 
@@ -65,8 +61,7 @@
       color: $kobo-teal;
     }
 
-    i {
-      font-size: 24px;
+    .k-icon {
       margin: 12px;
       display: block;
     }

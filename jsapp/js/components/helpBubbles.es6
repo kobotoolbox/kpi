@@ -7,6 +7,7 @@ import {stores} from '../stores';
 import {USE_CUSTOM_INTERCOM_LAUNCHER} from './intercomHandler';
 import {KEY_CODES} from 'js/constants';
 import envStore from 'js/envStore';
+import Icon from 'js/components/common/icon';
 import './helpBubbles.scss';
 
 const BUBBLE_OPENED_EVT_NAME = 'help-bubble-opened';
@@ -109,7 +110,6 @@ class HelpBubbleTrigger extends React.Component {
   }
 
   render() {
-    const iconClass = `k-icon k-icon-${this.props.icon}`;
     const hasCounter = typeof this.props.counter === 'number' && this.props.counter !== 0;
     const attrs = {};
 
@@ -123,7 +123,7 @@ class HelpBubbleTrigger extends React.Component {
         data-tip={this.props.tooltipLabel}
         {...attrs}
       >
-        <i className={iconClass}/>
+        <Icon name={this.props.icon} size='xl'/>
 
         {hasCounter &&
           <bem.HelpBubble__triggerCounter>
