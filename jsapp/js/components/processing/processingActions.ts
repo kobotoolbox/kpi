@@ -5,6 +5,7 @@
 
 import Reflux from 'reflux'
 import {notify} from 'alertifyjs'
+import {actions} from 'js/actions'
 import {getAssetProcessingUrl} from 'js/assetUtils'
 
 const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabled!')
@@ -57,6 +58,7 @@ export interface ProcessingDataResponse {
 }
 
 const processingActions = Reflux.createActions({
+  activateAsset: {children: ['completed', 'failed']},
   getProcessingData: {
     children: [
       'started',
@@ -68,6 +70,31 @@ const processingActions = Reflux.createActions({
   deleteTranscript: {children: ['completed', 'failed']},
   setTranslation: {children: ['completed', 'failed']},
   deleteTranslation: {children: ['completed', 'failed']}
+})
+
+processingActions.activateAsset.listen((
+  assetUid: string,
+  enableTranscript?: boolean,
+  /** To enable translations, pass array of languages (empty works too). */
+  enableTranslations?: string[]
+) => {
+  const features: {transcript?: object, translated?: object} = {}
+  if (enableTranscript) {
+    features.transcript = {}
+  }
+  if (Array.isArray(enableTranslations)) {
+    features.translated = {
+      languages: enableTranslations
+    }
+  }
+  actions.resources.updateAsset(
+    assetUid,
+    {advanced_features: features},
+    {
+      onComplete: processingActions.activateAsset.completed,
+      onFail: processingActions.activateAsset.failed,
+    }
+  )
 })
 
 processingActions.getProcessingData.listen((
@@ -160,6 +187,8 @@ processingActions.deleteTranscript.failed.listen(() => {
   notify(t('Failed to delete transcript.'), 'error')
 })
 
+// TODO: add a chain-call that would update asset (if needed) to add language code
+// to advanced_features.
 processingActions.setTranslation.listen((
   assetUid: string,
   questionName: string,
@@ -167,6 +196,22 @@ processingActions.setTranslation.listen((
   languageCode: string,
   value: string
 ) => {
+
+  // TODO:
+  // 1. get asset
+  // 2. from advanced features get a list of enabled languages
+  // 3. if languageCode is not inside the list, make a chain call that updates asset first
+
+  // This ensures that `advanced_features` are enabled for given language before
+  // sending translation to avoid rejection.
+  setTranslationInnerMethod(
+    assetUid,
+    questionName,
+    submissionUuid,
+    languageCode,
+    value
+  )
+
   const processingUrl = getAssetProcessingUrl(assetUid)
   if (processingUrl === undefined) {
     processingActions.setTranscript.failed(NO_FEATURE_ERROR)
@@ -201,6 +246,23 @@ processingActions.setTranslation.listen((
 processingActions.setTranslation.failed.listen(() => {
   notify(t('Failed to set transcript.'), 'error')
 })
+
+/** This is the method that is directly updating the processing. */
+function setTranslationInnerMethod(
+  assetUid: string,
+  questionName: string,
+  submissionUuid: string,
+  languageCode: string,
+  value: string
+) {
+  console.log(
+    assetUid,
+    questionName,
+    submissionUuid,
+    languageCode,
+    value
+  )
+}
 
 processingActions.deleteTranslation.listen((
   assetUid: string,

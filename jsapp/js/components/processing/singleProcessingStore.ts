@@ -145,6 +145,7 @@ class SingleProcessingStore extends Reflux.Store {
     // immediately and also listen to asset loads.
     this.startupStore()
 
+    // This comes back with data after `processingActions.activateAsset` call.
     assetStore.listen(this.onAssetLoad.bind(this), this)
   }
 
@@ -168,12 +169,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   activateAsset() {
-    actions.resources.updateAsset(this.currentAssetUid, {
-      advanced_features: {
-        translated: {languages: []},
-        transcript: {},
-      }
-    })
+    processingActions.activateAsset(this.currentAssetUid, true, [])
   }
 
   /**
