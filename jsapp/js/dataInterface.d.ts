@@ -180,6 +180,16 @@ interface AdvancedSubmissionSchema {
   definitions?: {[name: string]: AdvancedSubmissionSchemaDefinition}
 }
 
+interface AssetAdvancedFeatures {
+  transcript?: {
+    values?: string[]
+  }
+  translated?: {
+    languages?: string[]
+    values?: string[]
+  }
+}
+
 interface AdvancedSubmissionSchemaDefinition {
   [name: string]: {
     type: 'string' | 'object'
@@ -319,7 +329,7 @@ interface AssetResponse {
   data_sharing: {}
   paired_data: string
 
-  advanced_features: {}
+  advanced_features: AssetAdvancedFeatures
   advanced_submission_schema: AdvancedSubmissionSchema
 
   // TODO: think about creating a new interface for asset that is being extended

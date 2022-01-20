@@ -147,7 +147,9 @@ class SingleProcessingStore extends Reflux.Store {
 
     // TODO: instead of listening to assetStore, let's listen to processingActions.activateAsset response?
     // that way we don't fetchAllInitialDataForAsset every time the asset is changing
-    //
+
+    processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this))
+
     // This comes back with data after `processingActions.activateAsset` call.
     assetStore.listen(this.onAssetLoad.bind(this), this)
   }
@@ -169,6 +171,10 @@ class SingleProcessingStore extends Reflux.Store {
         this.fetchAllInitialDataForAsset()
       }
     }
+  }
+
+  onActivateAssetCompleted() {
+    console.log('onActivateAssetCompleted')
   }
 
   activateAsset() {
@@ -357,20 +363,15 @@ class SingleProcessingStore extends Reflux.Store {
     const translationsArray: Translation[] = []
     if (translationsResponse) {
       Object.keys(translationsResponse).forEach((languageCode: string) => {
-        // TODO uncomment after translations are fixed on backend
-        // return translationsResponse[languageCode]
-
-        // TEMP CODE BELOW
         const translation = translationsResponse[languageCode]
         if (translation.languageCode) {
           translationsArray.push({
             value: translation.value,
             languageCode: translation.languageCode,
-            dateModified: translation.dateModified || '',
-            dateCreated: translation.dateCreated || ''
+            dateModified: translation.dateModified,
+            dateCreated: translation.dateCreated
           })
         }
-        // END TEMP CODE
       })
     }
 
