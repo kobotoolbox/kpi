@@ -12,7 +12,8 @@ export type mfaActiveResponse = [{
 }]
 
 export type mfaActivatedResponse = {
-  details: string
+  details: string,
+  inModal?: boolean,
 }
 
 export type mfaBackupCodesResponse = {
@@ -43,13 +44,19 @@ mfaActions.isActive.listen(() => {
   })
 })
 
-mfaActions.activate.listen(() => {
+mfaActions.activate.listen((inModal?: boolean) => {
   $.ajax({
     dataType: 'json',
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/activate/`,
   }).done((response: mfaActivatedResponse) => {
-    mfaActions.activate.completed(response)
+    // If we are reconfiguring MFA, we have to disable and enable in one step,
+    // this avoids the case of closing and re-rendering the modal
+    let inModalResponse = response
+    if (inModal) {
+      inModalResponse.inModal = inModal
+    }
+    mfaActions.activate.completed(inModalResponse)
   }).fail((response: mfaErrorResponse | any) => {
     let errorText = t('An error occured')
     if (response.non_field_errors) {

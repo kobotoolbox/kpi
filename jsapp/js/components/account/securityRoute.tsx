@@ -2,7 +2,6 @@ import React from 'react'
 import bem, {makeBem} from 'js/bem'
 import Button from 'js/components/common/button'
 import ToggleSwitch from 'js/components/common/toggleSwitch'
-import QRCode from 'qrcode.react'
 import {stores} from 'js/stores'
 import mfaActions, {
   mfaActiveResponse,
@@ -51,8 +50,8 @@ export default class Security extends React.Component<
 
     this.unlisteners.push(
       mfaActions.isActive.completed.listen(this.mfaActive.bind(this)),
-      mfaActions.activate.completed.listen(this.mfaActivated.bind(this)),
-      mfaActions.regenerate.completed.listen(this.mfaBackupCodes.bind(this)),
+      mfaActions.activate.completed.listen(this.mfaActivating.bind(this)),
+      mfaActions.confirm.completed.listen(this.mfaActivated.bind(this)),
       mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
     )
 
@@ -67,19 +66,19 @@ export default class Security extends React.Component<
     this.setState({mfaActive: response.length >= 1})
   }
 
-  mfaActivated(response: mfaActivatedResponse) {
-    stores.pageState.showModal({
-      type: MODAL_TYPES.MFA_MODALS,
-      qrCode: response.details,
-      customModalHeader: this.renderCustomHeader(),
-    })
+  mfaActivating(response: mfaActivatedResponse) {
+    if (response && !response.inModal) {
+      stores.pageState.showModal({
+        type: MODAL_TYPES.MFA_MODALS,
+        qrCode: response.details,
+        modalType: 'qr',
+        customModalHeader: this.renderCustomHeader(),
+      })
+    }
   }
 
-  mfaBackupCodes(response: mfaBackupCodesResponse) {
-    this.setState({
-      backupCodes: response.backup_codes,
-      mfaActive: true,
-    })
+  mfaActivated() {
+    this.setState({mfaActive: true})
   }
 
   mfaDeactivated() {
@@ -134,9 +133,15 @@ export default class Security extends React.Component<
             <Button
               type='frame'
               color='storm'
-              label='Edit'
+              label='Reconfigure'
               size='l'
-              onClick={mfaActions.activate.bind(this)}
+              onClick={() => {
+                stores.pageState.showModal({
+                  type: MODAL_TYPES.MFA_MODALS,
+                  modalType: 'reconfigure',
+                  customModalHeader: this.renderCustomHeader(),
+                })
+              }}
             />
 
             <label>
