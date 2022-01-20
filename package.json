@@ -34,7 +34,7 @@
     "react-dropzone": "^5.1.1",
     "react-mixin": "^5.0.0",
     "react-router": "^3.2.1",
-    "react-select": "^4.3.1",
+    "react-select": "^5.2.2",
     "react-table": "^6.8.1",
     "react-tagsinput": "^3.19.0",
     "reflux": "^6.4.1",

@@ -4,9 +4,12 @@ import copy
 import re
 from abc import ABC
 from collections import defaultdict
+from urllib.parse import urlparse
 
 from django.apps import apps
+from django.conf import settings
 from django.db import models
+from django.urls import Resolver404, resolve
 from taggit.models import Tag, TaggedItem
 
 from kpi.constants import ASSET_TYPE_COLLECTION
@@ -151,6 +154,21 @@ def disable_auto_field_update(kls, field_name):
 def remove_string_prefix(string, prefix):
     return string[len(prefix):] if string.startswith(prefix) else string
 
+
+def resolve_url_to_asset(item_path):
+    Asset = apps.get_model('kpi', 'Asset')
+    # TODO: is this still necessary now that `Collection` has been removed?
+    if item_path.startswith(('http', 'https')):
+        item_path = urlparse(item_path).path
+    try:
+        match = resolve(item_path)
+    except Resolver404:
+        # If the app is mounted in uWSGI with a path prefix, try to resolve
+        # again after removing the prefix
+        match = resolve(remove_string_prefix(item_path, settings.KPI_PREFIX))
+
+    uid = match.kwargs.get('uid')
+    return Asset.objects.get(uid=uid)
 
 class DjangoModelABCMetaclass(type(models.Model), type(ABC)):
     """
