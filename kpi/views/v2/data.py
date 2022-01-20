@@ -3,7 +3,7 @@ import requests
 from django.conf import settings
 from django.http import Http404
 from django.shortcuts import redirect
-from django.utils.translation import gettext as t
+from django.utils.translation import gettext_lazy as t
 from rest_framework import (
     renderers,
     serializers,
@@ -28,7 +28,11 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import ObjectDeploymentDoesNotExist
-from kpi.models import Asset, AssetVersion
+from kpi.models import (
+    Asset,
+    AssetExportSettings,
+    AssetVersion,
+)
 from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
@@ -37,7 +41,12 @@ from kpi.permissions import (
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
 )
-from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
+from kpi.renderers import (
+    SubmissionCSVRenderer,
+    SubmissionGeoJsonRenderer,
+    SubmissionXLSXRenderer,
+    SubmissionXMLRenderer,
+)
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 from kpi.serializers.v2.data import DataBulkActionsValidator
 
@@ -281,16 +290,51 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     "group_1/sub_group_1/.../sub_group_n/question_1": "new value"
     </pre>
 
+    ## Synchronous data export
+
+    The use of synchronous exports requires an existing export setting for the
+    current asset, accessible at:
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/export-settings/
+    </pre>
+
+    The export settings associated with the `export_setting_uid` is used to
+    configure the output of the synchronous export. It is advisable to create
+    specific export settings to be used for synchronous exports, tailored to
+    the desired output format.
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/
+    </pre>
+
+    By default, XLSX format is used, but CSV is also available:
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.xlsx
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>.csv
+    </pre>
+
+    or
+
+    <pre class="prettyprint">
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=xlsx
+    <b>GET</b> /api/v2/assets/<code>{asset_uid}</code>/data/exports/<code>{export_setting_uid}</code>/?format=csv
+    </pre>
+
 
     ### CURRENT ENDPOINT
     """
 
     parent_model = Asset
-    renderer_classes = (renderers.BrowsableAPIRenderer,
-                        renderers.JSONRenderer,
-                        SubmissionGeoJsonRenderer,
-                        SubmissionXMLRenderer,
-                        )
+    renderer_classes = (
+        renderers.BrowsableAPIRenderer,
+        renderers.JSONRenderer,
+        SubmissionGeoJsonRenderer,
+        SubmissionXMLRenderer,
+        SubmissionXLSXRenderer,
+        SubmissionCSVRenderer,
+    )
     permission_classes = (SubmissionPermission,)
     pagination_class = DataPagination
 
@@ -371,6 +415,19 @@ class DataViewSet(AssetNestedObjectViewsetMixin, NestedViewSetMixin,
     def enketo_view(self, request, pk, *args, **kwargs):
         submission_id = positive_int(pk)
         return self._get_enketo_link(request, submission_id, 'view')
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        url_path='exports/(?P<uid>[a-zA-Z0-9]*)',
+        renderer_classes=[SubmissionXLSXRenderer, SubmissionCSVRenderer],
+    )
+    def exports(self, request, uid, *args, **kwargs):
+        try:
+            obj = AssetExportSettings.objects.get(uid=uid)
+        except AssetExportSettings.DoesNotExist:
+            raise Http404
+        return Response(obj.export_settings)
 
     def get_queryset(self):
         # This method is needed when pagination is activated and renderer is

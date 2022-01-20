@@ -2,6 +2,7 @@
 
 .kobo-select__wrapper {
   &.kobo-select__wrapper--error {
+    .kobo-select__errors,
     > label,
     .kobo-select-label,
     .kobo-select-error,
@@ -30,6 +31,15 @@
 
 .kobo-select-error {
   font-size: 12px;
+}
+
+.kobo-select--limited-height {
+  .kobo-select__menu-list {
+    // Restricts height of select dropdown by brute force disregarding the
+    // built-in autosizing due to the bug:
+    // https://github.com/JedWatson/react-select/issues/4108
+    max-height: 36px * 3.5 + 8px; // display 3.5 items
+  }
 }
 
 .kobo-select {

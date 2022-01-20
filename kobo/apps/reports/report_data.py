@@ -2,7 +2,7 @@
 from collections import OrderedDict
 from copy import deepcopy
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from formpack import FormPack
 
@@ -132,12 +132,12 @@ def data_by_identifiers(asset, field_names=None, submission_stream=None,
         field_names = fields_by_name.keys()
     if split_by and (split_by not in fields_by_name):
         raise serializers.ValidationError({
-            'split_by': _("`{}` not found.").format(split_by)
+            'split_by': t("`{}` not found.").format(split_by)
         })
     if split_by and (fields_by_name[split_by].data_type != 'select_one'):
         raise serializers.ValidationError({
             'split_by':
-                _("`{}` is not a select one question.").format(
+                t("`{}` is not a select one question.").format(
                     split_by)
         })
     if report_styles is None:

@@ -1,7 +1,7 @@
 # coding: utf-8
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import exceptions, viewsets, status, renderers
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, \
@@ -220,7 +220,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
                 user.has_perm(PERM_VIEW_ASSET, source_asset):
             if not self.asset.copy_permissions_from(source_asset):
                 http_status = status.HTTP_400_BAD_REQUEST
-                response = {'detail': _("Source and destination objects don't "
+                response = {'detail': t("Source and destination objects don't "
                                         "seem to have the same type")}
                 return Response(response, status=http_status)
         else:
@@ -247,7 +247,7 @@ class AssetPermissionAssignmentViewSet(AssetNestedObjectViewsetMixin,
             raise exceptions.PermissionDenied()
         elif user.pk == self.asset.owner_id:
             return Response({
-                'detail': _("Owner's permissions cannot be deleted")
+                'detail': t("Owner's permissions cannot be deleted")
             }, status=status.HTTP_409_CONFLICT)
 
         codename = object_permission.permission.codename

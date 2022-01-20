@@ -4,6 +4,7 @@ import { stores } from 'jsapp/js/stores'
 import QRCode from 'qrcode.react'
 import Button from 'js/components/common/button'
 import mfaActions, {
+  mfaActivatedResponse,
   mfaBackupCodesResponse,
 } from 'js/actions/mfaActions'
 
@@ -34,12 +35,13 @@ type modalSteps = 'qr' | 'backups' | 'manual' | 'token'
 type MFAModalsProps = {
   onModalClose: Function,
   qrCode?: string,
-  modalType?: 'regenerate' | 'deactivate'
+  modalType: 'qr' | 'regenerate' | 'reconfigure' | 'deactivate'
 }
 
 type MFAModalsState = {
   isLoading: boolean,
   currentStep: modalSteps,
+  qrCode: null | string,
   inputString: null | string,
   backupCodes: null | string[],
   downloadClicked: boolean,
@@ -53,7 +55,8 @@ export default class MFAModals extends React.Component<
     super(props)
     this.state = {
       isLoading: true,
-      currentStep: this.props.qrCode ? 'qr' : 'token',
+      qrCode: this.props.qrCode || null,
+      currentStep: this.props.modalType === 'qr' ? 'qr' : 'token',
       // Currently input code, used for confirm
       inputString: null,
       backupCodes: null,
@@ -69,14 +72,22 @@ export default class MFAModals extends React.Component<
     })
 
     this.unlisteners.push(
+      mfaActions.activate.completed.listen(this.mfaActivated.bind(this)),
       mfaActions.confirm.completed.listen(this.mfaBackupCodes.bind(this)),
       mfaActions.regenerate.completed.listen(this.mfaBackupCodes.bind(this)),
-      mfaActions.deactivate.completed.listen(this.closeModal.bind(this)),
+      mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
     )
   }
 
   componentWillUnmount() {
     this.unlisteners.forEach((clb) => {clb()})
+  }
+
+  mfaActivated(response: mfaActivatedResponse) {
+    this.setState({
+      qrCode: response.details,
+      currentStep: 'qr',
+    })
   }
 
   mfaConfirm() {
@@ -92,6 +103,15 @@ export default class MFAModals extends React.Component<
 
   mfaDeactivate() {
     mfaActions.deactivate(this.state.inputString)
+  }
+
+  mfaDeactivated() {
+    if (this.props.modalType === 'reconfigure') {
+      mfaActions.activate(true)
+      console.log('good so far')
+    } else {
+      this.closeModal()
+    }
   }
 
   mfaRegenerate() {
@@ -149,6 +169,20 @@ export default class MFAModals extends React.Component<
     }
   }
 
+  handleTokenSubmit() {
+    switch(this.props.modalType) {
+      case 'regenerate':
+        this.mfaRegenerate()
+        break
+      case 'reconfigure':
+        this.mfaDeactivate()
+        break
+      case 'deactivate':
+        this.mfaDeactivate()
+        break
+    }
+  }
+
   renderQRCodeStep() {
     return (
       <bem.MFAModals__qrstep>
@@ -158,7 +192,7 @@ export default class MFAModals extends React.Component<
 
         <bem.MFAModals__body>
           <bem.MFAModals__qr>
-            <QRCode value={this.props.qrCode || ''}/>
+            <QRCode value={this.state.qrCode || ''}/>
           </bem.MFAModals__qr>
 
           <bem.MFAModals__token>
@@ -318,9 +352,7 @@ export default class MFAModals extends React.Component<
               isFullWidth={true}
               label={t('Next')}
               onClick={
-                (this.props.modalType === 'regenerate')
-                  ? this.mfaRegenerate.bind(this)
-                  : this.mfaDeactivate.bind(this)
+                this.handleTokenSubmit.bind(this)
               }
               isDisabled={!this.isTokenValid()}
             />
@@ -336,9 +368,15 @@ export default class MFAModals extends React.Component<
   * $ Add transition to showing backup codes
   * $ add transition to manually entering key
   * $ use custom button merged into beta
+  * - make a confirm step that asks user if they are sure they want to reconfigure
   * - make css
   */
   render() {
+    // qrCode is mandatory if modalType is qr
+    if (!this.props.qrCode && this.props.modalType === 'qr') {
+      throw new Error(t('Modal is expecting a qr code but did not recieve any'))
+    }
+
     return (
       <bem.MFAModals>
         {(this.state.currentStep === 'qr') &&
