@@ -14,10 +14,7 @@ import {
 import {SurveyFlatPaths} from 'js/assetUtils'
 import assetStore, {AssetStoreData} from 'js/assetStore'
 import {actions} from 'js/actions'
-import processingActions, {
-  TranscriptResponse,
-  ProcessingDataResponse
-} from 'js/components/processing/processingActions'
+import processingActions, {ProcessingDataResponse} from 'js/components/processing/processingActions'
 
 export enum SingleProcessingTabs {
   Transcript,
@@ -40,7 +37,7 @@ export interface Translation {
 }
 
 /** Transcript or translation draft. */
-interface TransDraft {
+interface TransxDraft {
   value?: string
   languageCode?: string
 }
@@ -63,9 +60,9 @@ interface SubmissionsUuids {
 
 interface SingleProcessingStoreData {
   transcript?: Transcript
-  transcriptDraft?: TransDraft
+  transcriptDraft?: TransxDraft
   translations: Translation[]
-  translationDraft?: TransDraft
+  translationDraft?: TransxDraft
   /** Being displayed on the left side of the screen during translation editing. */
   source?: string
   activeTab: SingleProcessingTabs
@@ -359,29 +356,24 @@ class SingleProcessingStore extends Reflux.Store {
     const translationsResponse = response[this.currentQuestionName]?.translated
 
     const translationsArray: Translation[] = []
-    Object.keys(translationsResponse).forEach((languageCode: string) => {
-      // TODO uncomment after translations are fixed on backend
-      // return translationsResponse[languageCode]
+    if (translationsResponse) {
+      Object.keys(translationsResponse).forEach((languageCode: string) => {
+        // TODO uncomment after translations are fixed on backend
+        // return translationsResponse[languageCode]
 
-      // TEMP CODE BELOW
-      const translation = translationsResponse[languageCode]
-      if (translation.languageCode) {
-        translationsArray.push({
-          value: translation.value,
-          languageCode: translation.languageCode,
-          dateModified: '',
-          dateCreated: ''
-        })
-
-        translationsArray.push({
-          value: 'Je suis Zefir Efemera',
-          languageCode: 'fr',
-          dateCreated: '',
-          dateModified: ''
-        })
-      }
-      // END TEMP CODE
-    })
+        // TEMP CODE BELOW
+        const translation = translationsResponse[languageCode]
+        if (translation.languageCode) {
+          translationsArray.push({
+            value: translation.value,
+            languageCode: translation.languageCode,
+            dateModified: translation.dateModified || '',
+            dateCreated: translation.dateCreated || ''
+          })
+        }
+        // END TEMP CODE
+      })
+    }
 
     delete this.abortFetchData
     this.isProcessingDataLoaded = true
@@ -399,7 +391,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  private onSetTranscriptCompleted(response: TranscriptResponse) {
+  private onSetTranscriptCompleted(response: ProcessingDataResponse) {
     const transcriptResponse = response[this.currentQuestionName]?.transcript
 
     this.isFetchingData = false
@@ -502,7 +494,7 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.transcriptDraft
   }
 
-  setTranscriptDraft(newTranscriptDraft: TransDraft | undefined) {
+  setTranscriptDraft(newTranscriptDraft: TransxDraft | undefined) {
     this.data.transcriptDraft = newTranscriptDraft
     this.trigger(this.data)
   }
@@ -556,7 +548,7 @@ class SingleProcessingStore extends Reflux.Store {
     return this.data.translationDraft
   }
 
-  setTranslationDraft(newTranslationDraft: TransDraft | undefined) {
+  setTranslationDraft(newTranslationDraft: TransxDraft | undefined) {
     this.data.translationDraft = newTranslationDraft
 
     // If we clear the draft, we remove the source too.

@@ -9,60 +9,51 @@ import {getAssetProcessingUrl} from 'js/assetUtils'
 
 const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabled!')
 
-interface TranscriptRequest {
-  [questionName: string]: TranscriptRequestQuestion | string | undefined
-  submission?: string
-}
-
-interface TranscriptRequestQuestion {
-  transcript: {
-    languageCode: string
-    value: string
+interface TransxQuestion {
+  transcript: TransxObject
+  translated: {
+    [languageCode: string]: TransxObject
   }
 }
-
-export interface TranscriptResponse {
-  [key: string]: TranscriptQuestion
+/** Both transcript and translation are built in same way. */
+interface TransxRequestObject {
+  languageCode: string
+  value: string
 }
-
-interface TranscriptQuestion {
-  transcript: {
-    dateCreated: string
-    dateModified: string
-    engine?: string
-    languageCode: string
-    revisions?: TranscriptRevision[]
-    value: string
-  }
+interface TransxObject extends TransxRequestObject {
+  dateCreated: string
+  dateModified: string
+  engine?: string
+  revisions?: TransxRevision[]
 }
-
-interface TranscriptRevision {
+interface TransxRevision {
   dateModified: string
   engine?: string
   languageCode: string
   value: string
 }
 
-interface TranslationRequest {
-  [questionName: string]: TranslationQuestion | string | undefined
+interface TranscriptRequest {
+  [questionName: string]: TranscriptRequestQuestion | string | undefined
   submission?: string
 }
-
-interface TranslationQuestion {
-  translated: TranslationsObject
+interface TranscriptRequestQuestion {
+  transcript: TransxRequestObject
 }
 
-interface TranslationsObject {
-  [languageCode: string]: {
-    languageCode: string
-    value: string
-  }
+interface TranslationRequest {
+  [questionName: string]: TranslationRequestQuestion | string | undefined
+  submission?: string
 }
-
-interface ProcessingDataQuestion extends TranscriptQuestion, TranslationQuestion {}
+interface TranslationRequestQuestion {
+  translated: TranslationsRequestObject
+}
+interface TranslationsRequestObject {
+  [languageCode: string]: TransxRequestObject
+}
 
 export interface ProcessingDataResponse {
-  [key: string]: ProcessingDataQuestion
+  [key: string]: TransxQuestion
 }
 
 const processingActions = Reflux.createActions({
@@ -134,7 +125,7 @@ processingActions.setTranscript.listen((
       url: processingUrl,
       data: JSON.stringify(data)
     })
-      .done((response: TranscriptResponse) => {
+      .done((response: ProcessingDataResponse) => {
         processingActions.setTranscript.completed(response)
       })
       .fail(processingActions.setTranscript.failed)
@@ -182,7 +173,7 @@ processingActions.setTranslation.listen((
   } else {
     // Sorry for this object being built in such a lengthy way, but it is needed
     // so for typings.
-    const translationsObj: TranslationsObject = {}
+    const translationsObj: TranslationsRequestObject = {}
     translationsObj[languageCode] = {
       value: value,
       languageCode: languageCode
@@ -201,7 +192,7 @@ processingActions.setTranslation.listen((
       url: processingUrl,
       data: JSON.stringify(data)
     })
-      .done((response: TranscriptResponse) => {
+      .done((response: ProcessingDataResponse) => {
         processingActions.setTranscript.completed(response)
       })
       .fail(processingActions.setTranscript.failed)
