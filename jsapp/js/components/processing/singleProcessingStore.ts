@@ -145,6 +145,9 @@ class SingleProcessingStore extends Reflux.Store {
     // immediately and also listen to asset loads.
     this.startupStore()
 
+    // TODO: instead of listening to assetStore, let's listen to processingActions.activateAsset response?
+    // that way we don't fetchAllInitialDataForAsset every time the asset is changing
+    //
     // This comes back with data after `processingActions.activateAsset` call.
     assetStore.listen(this.onAssetLoad.bind(this), this)
   }
