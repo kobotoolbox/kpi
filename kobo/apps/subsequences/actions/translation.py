@@ -1,3 +1,5 @@
+from django.utils import timezone
+
 from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 
 TRANSLATED = 'translated'
@@ -38,6 +40,46 @@ class TranslationAction(BaseAction):
             if self.record_repr(olang) != self.record_repr(elang):
                 return True
         return False
+
+    def revise_field(self, original, edit):
+        record = {}
+        for language in self.languages:
+            if language not in edit:
+                if language in original:
+                    record[language] = original[language]
+                continue
+            if language in original:
+                old = original[language]
+            else:
+                old = self.init_translation_record(language, {})
+            upd = edit[language]
+            revisions = old.pop('revisions', [])
+            if self.DATE_CREATED_FIELD in old:
+                del old[self.DATE_CREATED_FIELD]
+            upd[self.DATE_MODIFIED_FIELD] = \
+                upd[self.DATE_CREATED_FIELD] = \
+                str(timezone.now()).split('.')[0]
+            revisions = [old, *revisions]
+            if len(revisions) > 0:
+                upd[self.DATE_CREATED_FIELD] = \
+                    revisions[-1][self.DATE_MODIFIED_FIELD]
+            upd['revisions'] = revisions
+            record[language] = upd
+        return record
+
+
+    def init_translation_record(self, langcode, value):
+        curtime = str(timezone.now()).split('.')[0]
+        data = {**value, 'revisions': []}
+        data[self.DATE_CREATED_FIELD] = data[self.DATE_MODIFIED_FIELD] = curtime
+        return data
+
+    def init_field(self, edit):
+        for langcode in self.languages:
+            if langcode in edit:
+                edit[langcode] = \
+                    self.init_translation_record(langcode, edit[langcode])
+        return edit
 
     def modify_jsonschema(self, schema):
         defs = schema.get('definitions', {})

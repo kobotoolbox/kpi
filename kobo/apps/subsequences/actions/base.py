@@ -33,6 +33,8 @@ class BaseAction:
         if self.ID is None:
             return content
         for field_name, vals in edits.items():
+            if field_name == 'submission':
+                continue
             erecord = vals.get(self.ID)
             o_keyval = content.get(field_name, {})
             orecord = o_keyval.get(self.ID)
