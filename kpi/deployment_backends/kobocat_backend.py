@@ -56,6 +56,9 @@ from ..exceptions import (
     KobocatDuplicateSubmissionException,
 )
 
+from kobo.apps.subsequences.utils import stream_with_extras
+
+
 
 class KobocatDeploymentBackend(BaseDeploymentBackend):
     """
@@ -1274,6 +1277,11 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submissions_count = total_count
+
+        if self.asset.has_advanced_features:
+            extras_query = self.asset.submission_extras
+            extras_data = dict(extras_query.values_list('uuid', 'content'))
+            mongo_cursor = stream_with_extras(mongo_cursor, extras_data)
 
         return (
             self.__rewrite_json_attachment_urls(
