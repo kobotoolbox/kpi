@@ -6,6 +6,7 @@ import Reflux from 'reflux';
 import alertify from 'alertifyjs';
 import Select from 'react-select';
 import Dropzone from 'react-dropzone';
+import Button from 'js/components/common/button';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
 import bem from 'js/bem';
@@ -1031,21 +1032,23 @@ class ProjectSettings extends React.Component {
             <bem.FormModal__item>
               <bem.FormModal__item m='inline'>
                 {this.isArchived() &&
-                  <bem.KoboButton
-                    m='blue'
+                  <Button
+                    type='frame'
+                    color='blue'
+                    size='l'
+                    label={t('Unarchive Project')}
                     onClick={this.unarchiveProject}
-                  >
-                    {t('Unarchive Project')}
-                  </bem.KoboButton>
+                  />
                 }
 
                 {!this.isArchived() &&
-                  <bem.KoboButton
-                    m='red'
+                  <Button
+                    type='frame'
+                    color='red'
+                    size='l'
+                    label={t('Archive Project')}
                     onClick={this.archiveProject}
-                  >
-                    {t('Archive Project')}
-                  </bem.KoboButton>
+                  />
                 }
               </bem.FormModal__item>
 
@@ -1057,9 +1060,13 @@ class ProjectSettings extends React.Component {
 
           {isSelfOwned && this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING &&
             <bem.FormModal__item>
-              <bem.KoboButton m='red' onClick={this.deleteProject}>
-                {t('Delete Project and Data')}
-              </bem.KoboButton>
+              <Button
+                type='full'
+                color='red'
+                size='l'
+                label={t('Delete Project and Data')}
+                onClick={this.deleteProject}
+              />
             </bem.FormModal__item>
           }
         </bem.FormModal__item>
