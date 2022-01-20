@@ -9,6 +9,7 @@ import {dataInterface} from '../dataInterface';
 import {stores} from '../stores';
 import PopoverMenu from 'js/popoverMenu';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
+import Icon from 'js/components/common/icon';
 import mixins from '../mixins';
 import {actions} from '../actions';
 import DocumentTitle from 'react-document-title';
@@ -439,20 +440,20 @@ export class FormLanding extends React.Component {
           <Link to={`/forms/${this.state.uid}/edit`}
                 className='form-view__link form-view__link--edit'
                 data-tip={t('Edit in Form Builder')}>
-            <i className='k-icon k-icon-edit' />
+            <Icon name='edit'  size='l'/>
           </Link>
         :
           <bem.FormView__link m={['edit', 'disabled']}
             className='right-tooltip'
             data-tip={t('Editing capabilities not granted, you can only view this form')}>
-            <i className='k-icon k-icon-edit' />
+            <Icon name='edit'  size='l'/>
           </bem.FormView__link>
         }
 
         <bem.FormView__link m='preview'
           onClick={this.enketoPreviewModal}
           data-tip={t('Preview')}>
-          <i className='k-icon k-icon-view' />
+          <Icon name='view'  size='l'/>
         </bem.FormView__link>
 
         {userCanEdit &&
@@ -461,7 +462,7 @@ export class FormLanding extends React.Component {
             data-tip={t('Replace form')}
             onClick={this.showReplaceProjectModal}
           >
-            <i className='k-icon k-icon-replace' />
+            <Icon name='replace'  size='l'/>
           </bem.FormView__link>
         }
 
@@ -469,7 +470,7 @@ export class FormLanding extends React.Component {
           type='formLanding-menu'
           triggerLabel={
             <div data-tip={t('More actions')}>
-              <i className='k-icon k-icon-more'/>
+              <Icon name='more' size='l'/>
             </div>
           }
         >
@@ -486,7 +487,7 @@ export class FormLanding extends React.Component {
 
           {userCanEdit &&
             <bem.PopoverMenu__link onClick={this.showSharingModal}>
-              <i className='k-icon k-icon-user-share'/>
+              <Icon name='user-share' size='l'/>
               {t('Share this project')}
             </bem.PopoverMenu__link>
           }
@@ -495,14 +496,14 @@ export class FormLanding extends React.Component {
             <bem.PopoverMenu__link
               onClick={this.nonOwnerSelfRemoval}
             >
-              <i className='k-icon k-icon-trash'/>
+              <Icon name='trash' size='l'/>
               {t('Remove shared project')}
             </bem.PopoverMenu__link>
           }
 
           {isLoggedIn &&
             <bem.PopoverMenu__link onClick={this.saveCloneAs}>
-              <i className='k-icon k-icon-duplicate'/>
+              <Icon name='duplicate' size='l'/>
               {t('Clone this project')}
             </bem.PopoverMenu__link>
           }
@@ -513,20 +514,20 @@ export class FormLanding extends React.Component {
               data-asset-uid={this.state.uid}
               data-asset-name={this.state.name}
             >
-              <i className='k-icon k-icon-template'/>
+              <Icon name='template' size='l'/>
               {t('Create template')}
             </bem.PopoverMenu__link>
           }
 
           {userCanEdit && this.state.content.survey.length > 0 &&
             <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
-              <i className='k-icon k-icon-language'/>
+              <Icon name='language' size='l'/>
               {t('Manage translations')}
             </bem.PopoverMenu__link>
           }
           { /* temporarily disabled
           <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
-            <i className='k-icon k-icon-lock'/>
+            <Icon name='lock' size='l'/>
             {t('Manage Encryption')}
           </bem.PopoverMenu__link>
           */ }
@@ -563,7 +564,7 @@ export class FormLanding extends React.Component {
             <bem.FormView__link
               data-tip={t('Manage translations')}
               onClick={this.showLanguagesModal}>
-              <i className='k-icon k-icon-language' />
+              <Icon name='language' size='l'/>
             </bem.FormView__link>
           </bem.FormView__cell>
         }
@@ -596,7 +597,7 @@ export class FormLanding extends React.Component {
             <bem.FormView__cell m='box'>
               {this.isFormRedeploymentNeeded() &&
                 <bem.FormView__cell m='warning'>
-                  <i className='k-icon k-icon-alert' />
+                  <Icon name='alert' size='m'/>
                   <p>{t('If you want to make these changes public, you must deploy this form.')}</p>
                 </bem.FormView__cell>
               }

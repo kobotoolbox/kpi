@@ -207,44 +207,51 @@ export function isLibraryAsset(assetType: AssetTypeName) {
 }
 
 /**
+ * For getting the icon name for given asset type.
+ */
+export function getAssetIconName(asset: AssetResponse) {
+  switch (asset.asset_type) {
+    case ASSET_TYPES.template.id:
+      if (asset.summary?.lock_any) {
+        return 'template-locked';
+      } else {
+        return 'template';
+      }
+    case ASSET_TYPES.question.id:
+      return 'question';
+    case ASSET_TYPES.block.id:
+      return 'block';
+    case ASSET_TYPES.survey.id:
+      if (asset.summary?.lock_any) {
+        return 'project-locked';
+      } else if (asset.has_deployment && !asset.deployment__active) {
+        return 'project-archived';
+      } else if (asset.has_deployment) {
+        return 'project-deployed';
+      } else {
+        return 'project-draft';
+      }
+    case ASSET_TYPES.collection.id:
+      if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
+        return 'folder-subscribed';
+      } else if (isAssetPublic(asset.permissions)) {
+        return 'folder-public';
+      } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
+        return 'folder-shared';
+      } else {
+        return 'folder';
+      }
+    default:
+      return 'project';
+  }
+}
+
+/**
  * For getting the icon class name for given asset type. Returned string always
  * contains two class names: base `k-icon` and respective CSS class name.
  */
 export function getAssetIcon(asset: AssetResponse) {
-  switch (asset.asset_type) {
-    case ASSET_TYPES.template.id:
-      if (asset.summary?.lock_any) {
-        return 'k-icon k-icon-template-locked';
-      } else {
-        return 'k-icon k-icon-template';
-      }
-    case ASSET_TYPES.question.id:
-      return 'k-icon k-icon-question';
-    case ASSET_TYPES.block.id:
-      return 'k-icon k-icon-block';
-    case ASSET_TYPES.survey.id:
-      if (asset.summary?.lock_any) {
-        return 'k-icon k-icon-project-locked';
-      } else if (asset.has_deployment && !asset.deployment__active) {
-        return 'k-icon k-icon-project-archived';
-      } else if (asset.has_deployment) {
-        return 'k-icon k-icon-project-deployed';
-      } else {
-        return 'k-icon k-icon-project-draft';
-      }
-    case ASSET_TYPES.collection.id:
-      if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.subscribed)) {
-        return 'k-icon k-icon-folder-subscribed';
-      } else if (isAssetPublic(asset.permissions)) {
-        return 'k-icon k-icon-folder-public';
-      } else if (asset.access_types && asset.access_types.includes(ACCESS_TYPES.shared)) {
-        return 'k-icon k-icon-folder-shared';
-      } else {
-        return 'k-icon k-icon-folder';
-      }
-    default:
-      return 'k-icon k-icon-project';
-  }
+  return `k-icon k-icon-${getAssetIconName(asset)}`;
 }
 
 /**

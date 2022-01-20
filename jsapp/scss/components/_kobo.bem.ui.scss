@@ -240,7 +240,9 @@
 }
 
 .popover-menu--formLanding-menu {
-  margin-left: 4px;
+  .popover-menu__toggle .k-icon {
+    display: block;
+  }
 
   .popover-menu__content {
     right: 10px;

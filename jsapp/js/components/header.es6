@@ -17,7 +17,7 @@ import {
   stringToColor,
 } from 'utils';
 import {getLoginUrl} from 'js/router/routerUtils';
-import {getAssetIcon} from 'js/assetUtils';
+import {getAssetIconName} from 'js/assetUtils';
 import {COMMON_QUERIES} from 'js/constants';
 import {ROUTES} from 'js/router/routerConstants';
 import {searches} from '../searches';
@@ -25,6 +25,7 @@ import {ListSearch} from '../components/list';
 import HeaderTitleEditor from 'js/components/header/headerTitleEditor';
 import SearchBox from 'js/components/header/searchBox';
 import myLibraryStore from 'js/components/library/myLibraryStore';
+import Icon from 'js/components/common/icon';
 import envStore from 'js/envStore';
 
 class MainHeader extends Reflux.Component {
@@ -273,11 +274,6 @@ class MainHeader extends Reflux.Component {
       userCanEditAsset = this.userCan('change_asset', this.state.asset);
     }
 
-    let iconClassName = '';
-    if (this.state.asset) {
-      iconClassName = getAssetIcon(this.state.asset);
-    }
-
     let librarySearchBoxPlaceholder = t('Search My Library');
     if (this.isPublicCollections()) {
       librarySearchBoxPlaceholder = t('Search Public Collections');
@@ -311,7 +307,9 @@ class MainHeader extends Reflux.Component {
             }
             { !this.isLibrary() && this.state.asset && this.isFormSingle() &&
               <React.Fragment>
-                <bem.MainHeader__icon className={iconClassName} />
+                <bem.MainHeader__icon>
+                  <Icon name={getAssetIconName(this.state.asset)} size='xl'/>
+                </bem.MainHeader__icon>
 
                 <HeaderTitleEditor
                   asset={this.state.asset}

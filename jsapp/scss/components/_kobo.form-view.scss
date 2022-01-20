@@ -1,3 +1,4 @@
+@use "scss/mixins";
 @use "scss/_variables";
 
 // TODO: This file is too big and it lost it's original purpose.
@@ -98,7 +99,8 @@ $side-tabs-width-mobile: 70px;
   a.form-view__tab {
     background: transparent;
     border: none;
-    padding: 6px;
+    padding: 9px 6px;
+    line-height: 20px;
     border-left: 2px solid transparent;
     font-size: variables.$base-font-size;
     cursor: pointer;
@@ -137,9 +139,6 @@ $side-tabs-width-mobile: 70px;
     }
 
     .k-icon {
-      font-size: 26px;
-      vertical-align: -7px;
-      line-height: 36px;
       margin: 0 9px 0 5px;
     }
 
@@ -195,7 +194,6 @@ $side-tabs-width-mobile: 70px;
     right: 10px;
     top: 10px;
     padding: 5px;
-    font-size: 18px;
   }
 }
 
@@ -409,9 +407,10 @@ $side-tabs-width-mobile: 70px;
     }
   }
 
-  // visually take same amount of white space as without buttons
-  &.form-view__cell--label + &.form-view__cell--action-buttons {
-    margin: -8px 0;
+  .form-view__cell--action-buttons {
+    @include mixins.centerRowFlex;
+    // visually take same amount of white space as label on the left
+    height: 20px;
   }
 
   &.form-view__cell--date {
@@ -464,19 +463,14 @@ $side-tabs-width-mobile: 70px;
   }
 
   &.form-view__cell--warning {
+    @include mixins.centerRowFlex;
     background-color: $kobo-light-amber;
     color: $kobo-dark-amber;
     padding: 10px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
 
     i {
       color: inherit;
-      font-size: 28px;
       margin-right: 5px;
-      vertical-align: -11px;
-      display: inline-block;
     }
 
     p {

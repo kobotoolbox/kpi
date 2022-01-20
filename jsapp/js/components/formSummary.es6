@@ -11,7 +11,6 @@ import bem from 'js/bem';
 import LoadingSpinner from 'js/components/common/loadingSpinner';
 import Icon from 'js/components/common/icon';
 import DocumentTitle from 'react-document-title';
-import Icon from 'js/components/common/icon';
 import moment from 'moment';
 import Chart from 'chart.js';
 import {getFormDataTabs} from './formViewTabs';
@@ -219,16 +218,16 @@ class FormSummary extends React.Component {
           key='landing'
           data-path={`/forms/${this.state.uid}/landing`}
           onClick={this.triggerRefresh}>
-            <Icon name='projects' size='l'/>
-            {t('Collect data')}
-            <Icon name='angle-right' size='s'/>
+            <Icon name='projects' size='s'/>
+            <label>{t('Collect data')}</label>
+            <Icon name='angle-right' size='xs'/>
         </Link>
 
         {this.userCan('change_asset', this.state) &&
           <button onClick={this.sharingModal}>
-            <Icon name='user-share' size='l'/>
-            {t('Share project')}
-            <Icon name='angle-right' size='s'/>
+            <Icon name='user-share' size='s'/>
+            <label>{t('Share project')}</label>
+            <Icon name='angle-right' size='xs'/>
           </button>
         }
 
@@ -239,16 +238,16 @@ class FormSummary extends React.Component {
             data-path={`/forms/${this.state.uid}/edit`}
             onClick={this.triggerRefresh}
           >
-            <Icon name='edit' size='l'/>
-            {t('Edit form')}
-            <Icon name='angle-right' size='s'/>
+            <Icon name='edit' size='s'/>
+            <label>{t('Edit form')}</label>
+            <Icon name='angle-right' size='xs'/>
           </Link>
         }
 
         <button onClick={this.enketoPreviewModal}>
-          <Icon name='view' size='l'/>
-          {t('Preview form')}
-          <Icon name='angle-right' size='s'/>
+          <Icon name='view' size='s'/>
+          <label>{t('Preview form')}</label>
+          <Icon name='angle-right' size='xs'/>
         </button>
       </bem.FormView__cell>
     );
@@ -267,9 +266,9 @@ class FormSummary extends React.Component {
             data-path={item.path}
             onClick={this.triggerRefresh}
           >
-            <i className={`k-icon ${item.icon}`} />
-            {item.label}
-            <Icon name='angle-right' size='s'/>
+            <Icon name={item.iconName} size='s'/>
+            <label>{item.label}</label>
+            <Icon name='angle-right' size='xs'/>
           </Link>
         )}
       </bem.FormView__cell>
@@ -314,7 +313,7 @@ class FormSummary extends React.Component {
         </bem.FormView__cell>
         {this.userCan('change_asset', this.state) &&
           <a onClick={this.sharingModal} className='team-sharing-button'>
-            <i className='k-icon k-icon-user-share' />
+            <Icon name='user-share' size='l'/>
           </a>
         }
         <bem.FormView__cell m={['box', 'padding']}>

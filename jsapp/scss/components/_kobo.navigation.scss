@@ -291,10 +291,11 @@
 
 .main-header {
   .main-header__icon {
-    font-size: 38px;
     color: $kobo-gray-65;
-    vertical-align: middle;
-    width: 38px;
+
+    .k-icon {
+      display: block;
+    }
   }
 
   .main-header__title {

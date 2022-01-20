@@ -1,4 +1,5 @@
 @use "scss/_colors";
+@use "scss/sizes";
 @use "scss/mixins";
 
 .form-view__group.form-view__group--description-cols {
@@ -116,11 +117,18 @@
     width: 100%;
     border: 0;
     background: transparent;
-    padding: 6px 10px;
+    padding: 0 10px;
+    height: sizes.$x40;
     color: colors.$kobo-gray-40;
     border-bottom: 1px solid colors.$kobo-gray-92;
     position: relative;
     text-align: left;
+
+    label {
+      cursor: pointer;
+      flex: 1;
+      margin: 0 sizes.$x5;
+    }
 
     &:last-child {
       border-bottom: none;
@@ -128,19 +136,6 @@
 
     &:hover {
       color: colors.$kobo-gray-24;
-    }
-
-    .k-icon {
-      margin: 4px 10px 4px 4px;
-      display: inline-block;
-      vertical-align: middle;
-    }
-
-    .k-icon.k-icon-angle-right {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
     }
   }
 }
@@ -166,10 +161,6 @@
     position: absolute;
     right: 0px;
     top: -2px;
-
-    .k-icon {
-      font-size: 24px;
-    }
 
     &:hover {
       color: colors.$kobo-blue;
