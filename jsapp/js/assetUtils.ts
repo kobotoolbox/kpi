@@ -617,6 +617,14 @@ export function removeInvalidChars(str: string) {
   return str = String(str || '').replace(regex, '');
 }
 
+export function getAssetAdvancedFeatures(assetUid: string) {
+  const foundAsset = assetStore.getAsset(assetUid)
+  if (foundAsset) {
+    return foundAsset.advanced_features
+  }
+  return undefined
+}
+
 export function getAssetProcessingUrl(assetUid: string): string | undefined {
   const foundAsset = assetStore.getAsset(assetUid)
   if (foundAsset) {

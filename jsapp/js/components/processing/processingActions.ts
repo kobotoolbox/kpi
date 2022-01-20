@@ -1,12 +1,15 @@
 // TODO
 // 1. we need to activate translated language before we create a translation - this will require making one call before the other
-// 2. we need to wait for backend to fix response and use the data from translations properly
-// 3. handle deleting translations (unactivate language)
+// 3. handle deleting translations (unactivate language? or dont care?)
 
 import Reflux from 'reflux'
 import {notify} from 'alertifyjs'
+import clonedeep from 'lodash.clonedeep';
 import {actions} from 'js/actions'
-import {getAssetProcessingUrl} from 'js/assetUtils'
+import {
+  getAssetAdvancedFeatures,
+  getAssetProcessingUrl
+} from 'js/assetUtils'
 
 const NO_FEATURE_ERROR = t('Asset seems to not have the processing feature enabled!')
 
@@ -78,7 +81,7 @@ processingActions.activateAsset.listen((
   /** To enable translations, pass array of languages (empty works too). */
   enableTranslations?: string[]
 ) => {
-  const features: {transcript?: object, translated?: object} = {}
+  const features: AssetAdvancedFeatures = {}
   if (enableTranscript) {
     features.transcript = {}
   }
@@ -187,8 +190,8 @@ processingActions.deleteTranscript.failed.listen(() => {
   notify(t('Failed to delete transcript.'), 'error')
 })
 
-// TODO: add a chain-call that would update asset (if needed) to add language code
-// to advanced_features.
+// This function ensures that `advanced_features` are enabled for given language
+// before sending translation to avoid rejection.
 processingActions.setTranslation.listen((
   assetUid: string,
   questionName: string,
@@ -196,22 +199,75 @@ processingActions.setTranslation.listen((
   languageCode: string,
   value: string
 ) => {
+  // This first block of code is about getting currently enabled languages.
+  const currentFeatures = getAssetAdvancedFeatures(assetUid)
+  if (currentFeatures?.translated === undefined) {
+    processingActions.setTranslation.failed(NO_FEATURE_ERROR)
+    return
+  }
 
-  // TODO:
-  // 1. get asset
-  // 2. from advanced features get a list of enabled languages
-  // 3. if languageCode is not inside the list, make a chain call that updates asset first
+  // Case 1: the language is already enabled in advanced_features, so we can
+  // just send the translation.
+  if (
+    Array.isArray(currentFeatures.translated.languages) &&
+    currentFeatures.translated.languages.includes(languageCode)
+  ) {
+    setTranslationInnerMethod(
+      assetUid,
+      questionName,
+      submissionUuid,
+      languageCode,
+      value
+    )
+    return
+  }
 
-  // This ensures that `advanced_features` are enabled for given language before
-  // sending translation to avoid rejection.
-  setTranslationInnerMethod(
+  // Case 2: the language is not yet enabled, so we make a chain call that will
+  // enable it and then send the translation
+
+  // We build the updated advanced_features object.
+  const newFeatures: AssetAdvancedFeatures = clonedeep(currentFeatures)
+  if (!newFeatures.translated) {
+    newFeatures.translated = {}
+  }
+  if (Array.isArray(newFeatures.translated.languages)) {
+    newFeatures.translated.languages.push(languageCode)
+  } else {
+    newFeatures.translated.languages = [languageCode]
+  }
+
+  // We update the asset and go with the next call on success.
+  actions.resources.updateAsset(
     assetUid,
-    questionName,
-    submissionUuid,
-    languageCode,
-    value
+    {advanced_features: newFeatures},
+    {
+      onComplete: setTranslationInnerMethod.bind(
+        this,
+        assetUid,
+        questionName,
+        submissionUuid,
+        languageCode,
+        value
+      ),
+      onFail: processingActions.setTranslation.failed,
+    }
   )
+})
+processingActions.setTranslation.failed.listen(() => {
+  notify(t('Failed to set transcript.'), 'error')
+})
 
+/**
+ * This DRY private method is used inside setTranslation - either as a followup
+ * to another call or a lone call.
+ */
+function setTranslationInnerMethod(
+  assetUid: string,
+  questionName: string,
+  submissionUuid: string,
+  languageCode: string,
+  value: string
+) {
   const processingUrl = getAssetProcessingUrl(assetUid)
   if (processingUrl === undefined) {
     processingActions.setTranscript.failed(NO_FEATURE_ERROR)
@@ -242,26 +298,6 @@ processingActions.setTranslation.listen((
       })
       .fail(processingActions.setTranscript.failed)
   }
-})
-processingActions.setTranslation.failed.listen(() => {
-  notify(t('Failed to set transcript.'), 'error')
-})
-
-/** This is the method that is directly updating the processing. */
-function setTranslationInnerMethod(
-  assetUid: string,
-  questionName: string,
-  submissionUuid: string,
-  languageCode: string,
-  value: string
-) {
-  console.log(
-    assetUid,
-    questionName,
-    submissionUuid,
-    languageCode,
-    value
-  )
 }
 
 processingActions.deleteTranslation.listen((
