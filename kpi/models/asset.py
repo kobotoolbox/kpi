@@ -429,7 +429,7 @@ class Asset(ObjectPermissionMixin,
                             schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
 
     def update_submission_extra(self, content, user=None):
-        uuid = content.pop('submission')
+        uuid = content.get('submission')
         try:
             sub = self.submission_extras.get(uuid=uuid)
         except ObjectDoesNotExist:
