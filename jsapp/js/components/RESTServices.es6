@@ -14,7 +14,7 @@ export default class RESTServices extends React.Component {
   render() {
     const docTitle = this.props.asset.name || t('Untitled');
     return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <DocumentTitle title={`${docTitle} | KoBoToolbox`}>
         <React.Fragment>
           {this.props.hookUid &&
             <RESTServiceLogs assetUid={this.props.asset.uid} hookUid={this.props.hookUid} />
