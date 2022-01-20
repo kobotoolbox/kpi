@@ -100,7 +100,7 @@ mfaActions.regenerate.listen((mfaCode: string) => {
     method: 'POST',
     url: `${ROOT_URL}/api/v2/auth/app/codes/regenerate/`,
   }).done((response) => {
-    mfaActions.deactivate.completed(response)
+    mfaActions.regenerate.completed(response)
   }).fail((response: mfaErrorResponse | any) => {
     let errorText = t('An error occured')
     if (response.non_field_errors) {

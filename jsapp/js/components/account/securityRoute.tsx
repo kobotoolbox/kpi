@@ -1,5 +1,6 @@
 import React from 'react'
 import bem, {makeBem} from 'js/bem'
+import Button from 'js/components/common/button'
 import ToggleSwitch from 'js/components/common/toggleSwitch'
 import QRCode from 'qrcode.react'
 import {stores} from 'js/stores'
@@ -23,8 +24,6 @@ bem.TableMediaPreviewHeader__title = makeBem(bem.TableMediaPreviewHeader, 'title
 
 type SecurityState = {
   isLoading: boolean,
-  mfaCode: null | string,
-  qrCode: null | string,
   backupCodes: null | string[],
   mfaActive: boolean,
 }
@@ -38,8 +37,6 @@ export default class Security extends React.Component<
     this.state = {
       isLoading: true,
       // Currently input code, used for confirm, deactivate, regenerate
-      mfaCode: null,
-      qrCode: null,
       backupCodes: null,
       mfaActive: false,
     }
@@ -55,7 +52,6 @@ export default class Security extends React.Component<
     this.unlisteners.push(
       mfaActions.isActive.completed.listen(this.mfaActive.bind(this)),
       mfaActions.activate.completed.listen(this.mfaActivated.bind(this)),
-      mfaActions.confirm.completed.listen(this.mfaBackupCodes.bind(this)),
       mfaActions.regenerate.completed.listen(this.mfaBackupCodes.bind(this)),
       mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
     )
@@ -73,14 +69,10 @@ export default class Security extends React.Component<
 
   mfaActivated(response: mfaActivatedResponse) {
     stores.pageState.showModal({
-      type: MODAL_TYPES.MFA_SETUP,
+      type: MODAL_TYPES.MFA_MODALS,
       qrCode: response.details,
       customModalHeader: this.renderCustomHeader(),
     })
-  }
-
-  mfaConfirm() {
-    mfaActions.confirm(this.state.mfaCode)
   }
 
   mfaBackupCodes(response: mfaBackupCodesResponse) {
@@ -90,27 +82,19 @@ export default class Security extends React.Component<
     })
   }
 
-  mfaDeactivate() {
-    mfaActions.deactivate(this.state.mfaCode)
-  }
-
   mfaDeactivated() {
     this.setState({mfaActive: false})
-  }
-
-  mfaRegenerate() {
-    mfaActions.regenerate(this.state.mfaCode)
-  }
-
-  onInputChange(response: React.FormEvent<HTMLInputElement>) {
-    this.setState({mfaCode: response.currentTarget.value})
   }
 
   onToggleChange(response: boolean) {
     if (response) {
       mfaActions.activate();
     } else {
-      console.log('now we show the deactivate modal')
+      stores.pageState.showModal({
+        type: MODAL_TYPES.MFA_MODALS,
+        modalType: 'deactivate',
+        customModalHeader: this.renderCustomHeader(),
+      })
     }
   }
 
@@ -124,7 +108,13 @@ export default class Security extends React.Component<
     )
   }
 
+ /**
+  * TODO:
+  * - redo bem elements
+  * - make css
+  */
   render() {
+    console.dir(this.state)
     return (
       <bem.SecurityRow>
         <label>
@@ -136,25 +126,35 @@ export default class Security extends React.Component<
           onChange={this.onToggleChange.bind(this)}
         />
 
-        {this.state.backupCodes &&
-          <ol>
-            {this.state.backupCodes.map((t) => {
-              return(
-                <h2>
-                  {t}
-                </h2>
-              )
-            })}
-          </ol>
-        }
-
         {this.state.mfaActive &&
           <div>
-            <input type='text' onChange={this.onInputChange.bind(this)}/>
-            <button onClick={this.mfaDeactivate.bind(this)}/>
-            <p>reset</p>
-            <input type='text' onChange={this.onInputChange.bind(this)}/>
-            <button onClick={this.mfaRegenerate.bind(this)}/>
+            <label>
+              Authenticator app
+            </label>
+            <Button
+              type='frame'
+              color='storm'
+              label='Edit'
+              size='l'
+              onClick={mfaActions.activate.bind(this)}
+            />
+
+            <label>
+              Regenerate backups
+            </label>
+            <Button
+              type='frame'
+              color='storm'
+              label='Generate new'
+              size='l'
+              onClick={() => {
+                stores.pageState.showModal({
+                  type: MODAL_TYPES.MFA_MODALS,
+                  modalType: 'regenerate',
+                  customModalHeader: this.renderCustomHeader(),
+                })
+              }}
+            />
           </div>
         }
       </bem.SecurityRow>
