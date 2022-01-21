@@ -264,6 +264,7 @@ export default class AccountSettings extends React.Component {
                     value={this.state.primarySector}
                     options={this.state.sectorChoices}
                     onChange={this.onAnyDataChange.bind(this, 'primarySector')}
+                    isClearable
                   />
 
                   <bem.AccountSettings__desc>
@@ -309,6 +310,7 @@ export default class AccountSettings extends React.Component {
                     value={this.state.country}
                     options={this.state.countryChoices}
                     onChange={this.onAnyDataChange.bind(this, 'country')}
+                    isClearable
                   />
                 </bem.AccountSettings__item>
               }
