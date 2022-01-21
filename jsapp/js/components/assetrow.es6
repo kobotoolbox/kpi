@@ -10,7 +10,8 @@ import {stores} from '../stores';
 import mixins from '../mixins';
 import {
   KEY_CODES,
-  ASSET_TYPES
+  ASSET_TYPES,
+  VERITREE_COOKIE_DOMAIN
 } from 'js/constants';
 import TagInput from 'js/components/tagInput';
 import {formatTime} from 'utils';
@@ -143,7 +144,9 @@ class AssetRow extends React.Component {
               <bem.AssetRow__cell m='name' style={{'display': 'flex', 'justifyContent': 'space-between'}}>
                 <ui.AssetName {...this.props} />
                 {this.props.deployment__links && Object.keys(this.props.deployment__links).length > 0 ? <a className="kobo-button kobo-button--blue" target="_blank"
-                  href={`${this.props.deployment__links['url']}${orgQueryParam ? `?orgId=${orgQueryParam}`: ''}`}>{t('Open')}</a> : null }
+                  href={`${this.props.deployment__links['url']}`}
+                  onClick={(e)=>{
+                    document.cookie = `formOrgId=${orgQueryParam};domain=${VERITREE_COOKIE_DOMAIN};path=/`}}>{t('Open')}</a> : null }
               </bem.AssetRow__cell>
               { this.props.asset_type && this.props.asset_type === ASSET_TYPES.survey.id && this.props.settings.description &&
                 <bem.AssetRow__description>

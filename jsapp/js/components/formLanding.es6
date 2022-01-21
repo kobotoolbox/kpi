@@ -16,6 +16,7 @@ import {
   MODAL_TYPES,
   COLLECTION_METHODS,
   ROUTES,
+  VERITREE_COOKIE_DOMAIN
 } from '../constants';
 import {
   formatTime,
@@ -394,7 +395,10 @@ export class FormLanding extends React.Component {
 
         <a className='mdl-button mdl-button--colored'
           target='_blank'
-          href={`${chosenMethodLink}${orgQueryParam ? `?orgId=${orgQueryParam}`: ''}`}>
+          href={chosenMethodLink}
+          onClick={(e)=>{
+            document.cookie = `formOrgId=${orgQueryParam};domain=${VERITREE_COOKIE_DOMAIN};path=/`}}
+        >
           {t('Open')}
         </a>
       </React.Fragment>
