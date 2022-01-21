@@ -1,5 +1,6 @@
 # coding: utf-8
 from django.utils.translation import gettext as t
+from datetime import datetime, timezone
 from rest_framework import viewsets, mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -45,11 +46,15 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     * `hook_uid` - is the unique identifier of a specific external service
     * `uid` - is the unique identifier of a specific log
 
-    Use `status` query parameter to filter logs by numeric status:
+    Use the `status` query parameter to filter logs by numeric status:
 
     * `status=0`: hook has failed after exhausting all retries
     * `status=1`: hook is still pending
     * `status=2`: hook has succeeded
+
+    Use the `start` and `end` query parameters to filter logs by date range, providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04', '2022-01-21T06:51:08.144004+02:00').
+    Note that `start` is inclusive, while `end` is exclusive.
+    Time zone is assumed to be UTC. If provided, it needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for the '+' character (%2B).
 
     #### Retrieves a log
     <pre class="prettyprint">
@@ -92,6 +97,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         # nested relations."
         queryset = queryset.select_related('hook__asset')
 
+        # Filter on status
         status = self.request.GET.get('status')
         if status is not None:
             if status not in map(str,VALID_STATUSES):
@@ -101,6 +107,32 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                 )
             else:
                 queryset = queryset.filter(status=status)
+
+        # Filter on date range
+        start = self.request.GET.get('start')
+        if start is not None:
+          try:
+            start_date = datetime.fromisoformat(start)
+            if not start_date.tzname():
+                start_date=start_date.replace(tzinfo=timezone.utc)
+            queryset = queryset.filter(date_modified__gte=start_date)
+          except ValueError:
+            raise serializers.ValidationError(
+                {'start': _('Value must be a valid ISO-8601 date')}
+            )
+
+        end = self.request.GET.get('end')
+        if end is not None:
+          try:
+            end_date = datetime.fromisoformat(end)
+            if not end_date.tzname():
+                end_date=end_date.replace(tzinfo=timezone.utc)
+            queryset = queryset.filter(date_modified__lt=end_date)
+          except ValueError:
+            raise serializers.ValidationError(
+                {'end': _('Value must be a valid ISO-8601 date')}
+            )
+
         return queryset
 
     @action(detail=True, methods=["PATCH"])
