@@ -10,7 +10,7 @@ describe('Create questions', function () {
   
     it('Creates questions', function () { 
         cy.fixture('questions').then((data) => {
-            cy.get('[data-cy="question"]') //TODO: replace with cy-data='question'
+            cy.get('[data-cy="question"]')
                 .click()
                 
             cy.get('[data-cy="edit"]')
