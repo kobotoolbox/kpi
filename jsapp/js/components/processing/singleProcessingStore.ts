@@ -145,8 +145,13 @@ class SingleProcessingStore extends Reflux.Store {
     // immediately and also listen to asset loads.
     this.startupStore()
 
-    // TODO: instead of listening to assetStore, let's listen to processingActions.activateAsset response?
-    // that way we don't fetchAllInitialDataForAsset every time the asset is changing
+    // TODO: we can't listen to asset loads like this, as they will happen when
+    // enabling a new language with setTranslation (and every time
+    // fetchAllInitialDataForAsset is being called)
+    //
+    // 1. We should initialize the asset data somehow
+    // 2. we should rely on processingActions.activateAsset for asset activation
+    //
 
     processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this))
 
@@ -411,6 +416,8 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onSetTranslationCompleted(newTranslations: Translation[]) {
+    // TODO check if the data is ok here
+    console.log('onSetTranslationCompleted', newTranslations)
     this.isFetchingData = false
     this.data.translations = newTranslations
     // discard draft after saving (exit the editor)
@@ -419,6 +426,8 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onDeleteTranslationCompleted(newTranslations: Translation[]) {
+    // TODO check if the data is ok here
+    console.log('onDeleteTranslationCompleted', newTranslations)
     this.isFetchingData = false
     this.data.translations = newTranslations
     this.trigger(this.data)
