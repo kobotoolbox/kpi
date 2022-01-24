@@ -227,7 +227,7 @@ export default class AccountSettings extends React.Component {
     };
 
     return (
-      <DocumentTitle title={`${accountName} | KoBoToolbox`}>
+      <DocumentTitle title={`${accountName} | KoboToolbox`}>
         <bem.AccountSettings>
           <bem.AccountSettings__actions>
             <bem.KoboButton

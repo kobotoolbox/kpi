@@ -144,13 +144,13 @@ CONSTANCE_CONFIG = {
     ),
     'SUPPORT_URL': (
         os.environ.get('KOBO_SUPPORT_URL', 'https://support.kobotoolbox.org/'),
-        'URL for "KoBoToolbox Help Center"',
+        'URL for "KoboToolbox Help Center"',
     ),
     'COMMUNITY_URL': (
         os.environ.get(
             'KOBO_COMMUNITY_URL', 'https://community.kobotoolbox.org/'
         ),
-        'URL for "KoBoToolbox Community Forum"',
+        'URL for "KoboToolbox Community Forum"',
     ),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
         True,

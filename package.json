@@ -1,7 +1,7 @@
 {
   "name": "kpi",
   "version": "0.1.1",
-  "description": "KoBoToolbox frontend interface.",
+  "description": "KoboToolbox frontend interface.",
   "devDependencies": {
     "@babel/core": "^7.9.6",
     "@babel/polyfill": "^7.8.7",

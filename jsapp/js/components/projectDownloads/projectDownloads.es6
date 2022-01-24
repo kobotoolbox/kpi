@@ -55,7 +55,7 @@ export default class ProjectDownloads extends React.Component {
   render() {
     var docTitle = this.props.asset.name || t('Untitled');
     return (
-      <DocumentTitle title={`${docTitle} | KoBoToolbox`}>
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView className='project-downloads'>
           <bem.FormView__row>
             <bem.FormView__cell m={['page-title']}>

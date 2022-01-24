@@ -524,7 +524,7 @@ export default class Reports extends React.Component {
     const hasGroupBy = this.state.groupBy.length !== 0;
 
     return (
-      <DocumentTitle title={`${docTitle} | KoBoToolbox`}>
+      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
         <bem.FormView m={formViewModifiers}>
           <bem.ReportView>
             {this.renderReportButtons()}
