@@ -264,12 +264,9 @@ export default class AccountSettings extends React.Component {
                     value={this.state.primarySector}
                     options={this.state.sectorChoices}
                     onChange={this.onAnyDataChange.bind(this, 'primarySector')}
+                    placeholder={t('Select the primary sector in which you work. ')}
                     isClearable
                   />
-
-                  <bem.AccountSettings__desc>
-                    {t('Select the primary sector in which you work. ')}
-                  </bem.AccountSettings__desc>
                 </bem.AccountSettings__item>
               }
 

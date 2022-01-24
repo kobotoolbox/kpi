@@ -244,7 +244,6 @@ bem.AccountSettings = makeBem(null, 'account-settings');
 bem.AccountSettings__left = makeBem(bem.AccountSettings, 'left');
 bem.AccountSettings__right = makeBem(bem.AccountSettings, 'right');
 bem.AccountSettings__item = makeBem(bem.FormModal, 'item');
-bem.AccountSettings__desc = makeBem(bem.AccountSettings, 'desc');
 bem.AccountSettings__actions = makeBem(bem.AccountSettings, 'actions');
 
 bem.UserRow = makeBem(null, 'user-row');
