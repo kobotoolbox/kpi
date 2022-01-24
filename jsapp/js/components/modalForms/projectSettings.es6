@@ -34,18 +34,23 @@ import envStore from 'js/envStore';
 
 const VIA_URL_SUPPORT_URL = 'xls_url.html';
 
-/*
-This is used for multiple different purposes:
-
-1. When creating new project
-2. When replacing project with new one
-3. When editing project in /settings
-4. When editing or creating asset in Form Builder
-
-Identifying the purpose is done by checking `context` and `formAsset`.
-
-You can listen to field changes by `onProjectDetailsChange` prop function.
-*/
+/**
+ * This is used for multiple different purposes:
+ *
+ * 1. When creating new project
+ * 2. When replacing project with new one
+ * 3. When editing project in /settings
+ * 4. When editing or creating asset in Form Builder
+ *
+ * Identifying the purpose is done by checking `context` and `formAsset`.
+ *
+ * You can listen to field changes by `onProjectDetailsChange` prop function.
+ *
+ * NOTE: We have multiple components with similar form:
+ * - ProjectSettings
+ * - AccountSettingsRoute
+ * - LibraryAssetForm
+ */
 class ProjectSettings extends React.Component {
   constructor(props) {
     super(props);
@@ -120,12 +125,12 @@ class ProjectSettings extends React.Component {
     const fields = {};
 
     fields.name = asset ? asset.name : '';
-    fields.description = asset?.settings ? asset?.settings.description : '';
-    fields.sector = asset?.settings ? asset?.settings.sector : null;
-    fields.country = asset?.settings ? asset?.settings.country : null;
-    fields['share-metadata'] = asset?.settings ? asset?.settings['share-metadata'] : false;
-    fields.operational_purpose = asset?.settings ? asset?.settings.operational_purpose : null;
-    fields.collects_pii = asset?.settings ? asset?.settings.collects_pii : null;
+    fields.description = asset?.settings ? asset.settings.description : '';
+    fields.sector = asset?.settings ? asset.settings.sector : null;
+    fields.country = asset?.settings ? asset.settings.country : null;
+    fields['share-metadata'] = asset?.settings ? asset.settings['share-metadata'] : false;
+    fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null;
+    fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null;
 
     return fields;
   }
