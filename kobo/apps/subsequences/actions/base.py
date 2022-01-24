@@ -1,3 +1,5 @@
+import datetime
+import pytz
 from django.utils import timezone
 
 ACTION_NEEDED = 'ACTION_NEEDED'
@@ -12,6 +14,9 @@ class BaseAction:
 
     def __init__(self, params):
         self.load_params(params)
+
+    def cur_time(self):
+        return datetime.datetime.now(tz=pytz.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
 
     def load_params(self, params):
         raise NotImplementedError('subclass must define a load_params method')

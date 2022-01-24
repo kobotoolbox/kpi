@@ -4,6 +4,7 @@ from ..actions.base import BaseAction, ACTION_NEEDED, PASSES
 
 TRANSLATED = 'translated'
 
+
 class TranslationAction(BaseAction):
     ID = TRANSLATED
     MANUAL = 'user_translated'
@@ -70,7 +71,7 @@ class TranslationAction(BaseAction):
 
 
     def init_translation_record(self, langcode, value):
-        curtime = str(timezone.now()).split('.')[0]
+        curtime = self.cur_time()
         data = {**value, 'revisions': []}
         data[self.DATE_CREATED_FIELD] = data[self.DATE_MODIFIED_FIELD] = curtime
         return data

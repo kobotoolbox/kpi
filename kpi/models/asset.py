@@ -429,7 +429,7 @@ class Asset(ObjectPermissionMixin,
                             schema=ADVANCED_FEATURES_PARAMS_SCHEMA)
 
     def update_submission_extra(self, content, user=None):
-        uuid = content.pop('submission')
+        uuid = content.get('submission')
         try:
             sub = self.submission_extras.get(uuid=uuid)
         except ObjectDoesNotExist:
@@ -447,7 +447,12 @@ class Asset(ObjectPermissionMixin,
         if len(self.advanced_features) == 0:
             NO_FEATURES_MSG = 'no advanced features activated for this form'
             return {'type': 'object', '$description': NO_FEATURES_MSG}
-        return advanced_submission_jsonschema(self.content,
+        last_deployed_version = self.deployed_versions.last()
+        if last_deployed_version is None:
+            NO_DEPLOYMENT_MSG = 'asset needs a deployment for this feature'
+            return {'type': 'object', '$description': NO_DEPLOYMENT_MSG}
+        content = last_deployed_version.version_content
+        return advanced_submission_jsonschema(content,
                                               self.advanced_features,
                                               url=url)
 
