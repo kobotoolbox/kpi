@@ -247,7 +247,7 @@ export class LibraryAssetForm extends React.Component {
             </label>
 
             <Select
-              id='sector'
+              id='sector'z
               value={this.state.data.sector}
               onChange={this.onSectorChange}
               options={SECTORS}

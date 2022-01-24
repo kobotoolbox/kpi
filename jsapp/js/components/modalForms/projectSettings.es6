@@ -838,6 +838,7 @@ class ProjectSettings extends React.Component {
                 placeholder={t('Enter title of project here')}
                 value={this.state.name}
                 onChange={this.onNameChange}
+                data-cy='title'
               />
             </bem.FormModal__item>
           }
@@ -850,6 +851,7 @@ class ProjectSettings extends React.Component {
               onChange={this.onDescriptionChange}
               value={this.state.description}
               placeholder={t('Enter short description here')}
+              data-cy='description'
             />
           </bem.FormModal__item>
 
@@ -869,7 +871,7 @@ class ProjectSettings extends React.Component {
               value={this.state.sector}
               onChange={this.onSectorChange}
               options={sectors}
-              className='kobo-select'
+              className='kobo-select cy-sector'
               classNamePrefix='kobo-select'
               menuPlacement='auto'
               isClearable
@@ -885,7 +887,7 @@ class ProjectSettings extends React.Component {
               value={this.state.country}
               onChange={this.onCountryChange}
               options={countries}
-              className='kobo-select'
+              className='kobo-select cy-country'
               classNamePrefix='kobo-select'
               menuPlacement='auto'
               isClearable

@@ -627,6 +627,7 @@ export default assign({
               }]}
               onClick={this.saveForm}
               disabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
+              data-cy='save'
             >
               <i />
               {saveButtonText}

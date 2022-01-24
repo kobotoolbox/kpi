@@ -127,6 +127,7 @@ class AssetRow extends React.Component {
               data-asset-type={this.props.kind}
               draggable={false}
               className='asset-row__link-overlay'
+              data-cy='question'
             />
 
             {/* "title" column */}
