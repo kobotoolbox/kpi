@@ -49,12 +49,13 @@ describe('Create questions', function () {
                         })
                 }
 
-                cy.get('[data-cy="save"]')
+                
+            }
+            cy.get('[data-cy="save"]')
                     .click()
 
-                cy.contains('successfully updated')
-                    .should('exist')
-            }
+            cy.contains('successfully updated')
+                .should('exist')
         })
     })
 })
