@@ -3,7 +3,6 @@ import reactMixin from 'react-mixin';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
 import DocumentTitle from 'react-document-title';
-import TextareaAutosize from 'react-autosize-textarea';
 import alertify from 'alertifyjs';
 import {actions} from 'js/actions';
 import bem from 'js/bem';
@@ -11,6 +10,7 @@ import {stores} from 'js/stores';
 import Select from 'react-select';
 import TextBox from 'js/components/common/textBox';
 import Checkbox from 'js/components/common/checkbox';
+import WrappedSelect from 'js/components/common/wrappedSelect';
 import ApiTokenDisplay from 'js/components/apiTokenDisplay';
 import {hashHistory} from 'react-router';
 import {stringToColor} from 'utils';
@@ -70,14 +70,13 @@ export default class AccountSettings extends React.Component {
       email: currentAccount.email,
       organization: currentAccount.extra_details.organization,
       organizationWebsite: currentAccount.extra_details.organization_website,
-      primarySector: currentAccount.extra_details.primarySector,
+      primarySector: currentAccount.extra_details.sector,
       gender: currentAccount.extra_details.gender,
       bio: currentAccount.extra_details.bio,
       phoneNumber: currentAccount.extra_details.phone_number,
       address: currentAccount.extra_details.address,
       city: currentAccount.extra_details.city,
       country: currentAccount.extra_details.country,
-      defaultLanguage: currentAccount.extra_details.default_language,
       requireAuth: currentAccount.extra_details.require_auth,
       twitter: currentAccount.extra_details.twitter,
       linkedin: currentAccount.extra_details.linkedin,
@@ -85,8 +84,8 @@ export default class AccountSettings extends React.Component {
       metadata: currentAccount.extra_details.metadata,
 
       languageChoices: environment.all_languages,
-      countryChoices: environment.available_countries,
-      sectorChoices: environment.available_sectors,
+      countryChoices: environment.country_choices,
+      sectorChoices: environment.sector_choices,
       genderChoices: [
         {
           value: 'male',
@@ -146,14 +145,13 @@ export default class AccountSettings extends React.Component {
           name: this.state.name,
           organization: this.state.organization,
           organization_website: this.state.organizationWebsite,
-          primarySector: this.state.primarySector,
+          sector: this.state.primarySector,
           gender: this.state.gender,
           bio: this.state.bio,
           phone_number: this.state.phoneNumber,
           address: this.state.address,
           city: this.state.city,
           country: this.state.country,
-          default_language: this.state.defaultLanguage,
           require_auth: this.state.requireAuth,
           twitter: this.state.twitter,
           linkedin: this.state.linkedin,
@@ -209,7 +207,6 @@ export default class AccountSettings extends React.Component {
   addressChange (e) {this.handleChange(e, 'address');}
   cityChange (e) {this.handleChange(e, 'city');}
   countryChange (e) {this.handleChange(e, 'country');}
-  defaultLanguageChange (e) {this.handleChange(e, 'defaultLanguage');}
   requireAuthChange (isChecked) {this.handleChange(isChecked, 'requireAuth');}
   twitterChange (e) {this.handleChange(e, 'twitter');}
   linkedinChange (e) {this.handleChange(e, 'linkedin');}
@@ -300,30 +297,34 @@ export default class AccountSettings extends React.Component {
 
               <ApiTokenDisplay/>
 
-              <bem.AccountSettings__item>
-                <TextBox
-                  label={t('Organization')}
-                  errors={this.state.fieldsErrors.organization}
-                  value={this.state.organization}
-                  onChange={this.organizationChange}
-                />
-              </bem.AccountSettings__item>
+              {envStore.data.getUserMetadataField('organization') &&
+                <bem.AccountSettings__item>
+                  <TextBox
+                    label={t('Organization')}
+                    errors={this.state.fieldsErrors.extra_details?.organization}
+                    value={this.state.organization}
+                    onChange={this.organizationChange}
+                  />
+                </bem.AccountSettings__item>
+              }
 
-              <bem.AccountSettings__item>
-                <TextBox
-                  label={t('Organization Website')}
-                  type='url'
-                  errors={this.state.fieldsErrors.organizationWebsite}
-                  value={this.state.organizationWebsite}
-                  onChange={this.organizationWebsiteChange}
-                />
-              </bem.AccountSettings__item>
+              {envStore.data.getUserMetadataField('organization_website') &&
+                <bem.AccountSettings__item>
+                  <TextBox
+                    label={t('Organization Website')}
+                    type='url'
+                    errors={this.state.fieldsErrors.extra_details?.organization_website}
+                    value={this.state.organizationWebsite}
+                    onChange={this.organizationWebsiteChange}
+                  />
+                </bem.AccountSettings__item>
+              }
 
-              <bem.AccountSettings__item m='primary-sector'>
-                <label>
-                  {t('Primary Sector')}
-
-                  <Select
+              {envStore.data.getUserMetadataField('sector') &&
+                <bem.AccountSettings__item m='primary-sector'>
+                  <WrappedSelect
+                    label={t('Primary Sector')}
+                    error={this.state.fieldsErrors.extra_details?.sector}
                     value={this.state.primarySector}
                     options={this.state.sectorChoices}
                     onChange={this.primarySectorChange}
@@ -331,18 +332,18 @@ export default class AccountSettings extends React.Component {
                     classNamePrefix='kobo-select'
                     menuPlacement='auto'
                   />
-                </label>
 
-                <bem.AccountSettings__desc>
-                  {t('Select the primary sector in which you work. ')}
-                </bem.AccountSettings__desc>
-              </bem.AccountSettings__item>
+                  <bem.AccountSettings__desc>
+                    {t('Select the primary sector in which you work. ')}
+                  </bem.AccountSettings__desc>
+                </bem.AccountSettings__item>
+              }
 
-              <bem.AccountSettings__item m='gender'>
-                <label>
-                  {t('Gender')}
-
-                  <Select
+              {envStore.data.getUserMetadataField('gender') &&
+                <bem.AccountSettings__item m='gender'>
+                  <WrappedSelect
+                    label={t('Gender')}
+                    error={this.state.fieldsErrors.extra_details?.gender}
                     value={this.state.gender}
                     options={this.state.genderChoices}
                     onChange={this.genderChange}
@@ -351,53 +352,61 @@ export default class AccountSettings extends React.Component {
                     classNamePrefix='kobo-select'
                     menuPlacement='auto'
                   />
-                </label>
-              </bem.AccountSettings__item>
+                </bem.AccountSettings__item>
+              }
 
-              <bem.AccountSettings__item m='bio'>
-                <label>
-                  {t('Bio')}
-
-                  <TextareaAutosize
+              {envStore.data.getUserMetadataField('bio') &&
+                <bem.AccountSettings__item m='bio'>
+                  <TextBox
+                    type='text-multiline'
+                    label={t('Bio')}
                     onChange={this.bioChange}
+                    errors={this.state.fieldsErrors.extra_details?.bio}
                     value={this.state.bio}
                     id='bio'
                   />
-                </label>
-              </bem.AccountSettings__item>
+                </bem.AccountSettings__item>
+              }
 
-              <bem.AccountSettings__item>
-                <TextBox
-                  label={t('Phone Number')}
-                  errors={this.state.fieldsErrors.phoneNumber}
-                  value={this.state.phoneNumber}
-                  onChange={this.phoneNumberChange}
-                />
-              </bem.AccountSettings__item>
+              {envStore.data.getUserMetadataField('phone_number') &&
+                <bem.AccountSettings__item>
+                  <TextBox
+                    label={t('Phone Number')}
+                    errors={this.state.fieldsErrors.extra_details?.phone_number}
+                    value={this.state.phoneNumber}
+                    onChange={this.phoneNumberChange}
+                  />
+                </bem.AccountSettings__item>
+              }
 
-              <bem.AccountSettings__item>
-                <TextBox
-                  label={t('Address')}
-                  errors={this.state.fieldsErrors.address}
-                  value={this.state.address}
-                  onChange={this.addressChange}
-                />
-              </bem.AccountSettings__item>
+              {envStore.data.getUserMetadataField('address') &&
+                <bem.AccountSettings__item>
+                  <TextBox
+                    label={t('Address')}
+                    errors={this.state.fieldsErrors.extra_details?.address}
+                    value={this.state.address}
+                    onChange={this.addressChange}
+                  />
+                </bem.AccountSettings__item>
+              }
 
-              <bem.AccountSettings__item m='city'>
-                <TextBox
-                  label={t('City')}
-                  errors={this.state.fieldsErrors.city}
-                  value={this.state.city}
-                  onChange={this.cityChange}
-                />
-              </bem.AccountSettings__item>
+              {envStore.data.getUserMetadataField('city') &&
+                <bem.AccountSettings__item m='city'>
+                  <TextBox
+                    label={t('City')}
+                    errors={this.state.fieldsErrors.extra_details?.city}
+                    value={this.state.city}
+                    onChange={this.cityChange}
+                  />
+                </bem.AccountSettings__item>
+              }
 
-              <bem.AccountSettings__item m='country'>
-                <label>
-                  {t('Country')}
-
-                  <Select
+              {envStore.data.getUserMetadataField('country') &&
+                <bem.AccountSettings__item m='country'>
+                  <WrappedSelect
+                    isMulti
+                    label={t('Country')}
+                    error={this.state.fieldsErrors.extra_details?.country}
                     value={this.state.country}
                     options={this.state.countryChoices}
                     onChange={this.countryChange}
@@ -405,42 +414,53 @@ export default class AccountSettings extends React.Component {
                     classNamePrefix='kobo-select'
                     menuPlacement='auto'
                   />
-                </label>
-              </bem.AccountSettings__item>
+                </bem.AccountSettings__item>
+              }
 
-              <bem.AccountSettings__item m='social'>
-                <label>{t('Social')}</label>
+              {(envStore.data.getUserMetadataField('twitter')
+               || envStore.data.getUserMetadataField('linkedin')
+               || envStore.data.getUserMetadataField('instagram')) &&
 
-                <label>
-                  <i className='k-icon k-icon-logo-twitter' />
+                <bem.AccountSettings__item m='social'>
+                  <label>{t('Social')}</label>
 
-                  <input
-                    type='text'
-                    value={this.state.twitter}
-                    onChange={this.twitterChange}
-                  />
-                </label>
+                  {envStore.data.getUserMetadataField('twitter') &&
+                    <label>
+                      <i className='k-icon k-icon-logo-twitter' />
 
-                <label>
-                  <i className='k-icon k-icon-logo-linkedin' />
+                      <TextBox
+                        errors={this.state.fieldsErrors.extra_details?.twitter}
+                        value={this.state.twitter}
+                        onChange={this.twitterChange}
+                      />
+                    </label>
+                  }
 
-                  <input
-                    type='text'
-                    value={this.state.linkedin}
-                    onChange={this.linkedinChange}
-                  />
-                </label>
+                  {envStore.data.getUserMetadataField('linkedin') &&
+                    <label>
+                      <i className='k-icon k-icon-logo-linkedin' />
 
-                <label>
-                  <i className='k-icon k-icon-logo-instagram' />
+                      <TextBox
+                        errors={this.state.fieldsErrors.extra_details?.linkedin}
+                        value={this.state.linkedin}
+                        onChange={this.linkedinChange}
+                      />
+                    </label>
+                  }
 
-                  <input
-                    type='text'
-                    value={this.state.instagram}
-                    onChange={this.instagramChange}
-                  />
-                </label>
-              </bem.AccountSettings__item>
+                  {envStore.data.getUserMetadataField('instagram') &&
+                    <label>
+                      <i className='k-icon k-icon-logo-instagram' />
+
+                      <TextBox
+                        errors={this.state.fieldsErrors.extra_details?.instagram}
+                        value={this.state.instagram}
+                        onChange={this.instagramChange}
+                      />
+                    </label>
+                  }
+                </bem.AccountSettings__item>
+              }
 
               <bem.AccountSettings__item>
                 <TextBox

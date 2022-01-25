@@ -3,6 +3,7 @@ import json
 import re
 from io import StringIO, BytesIO
 from tempfile import NamedTemporaryFile
+from typing import Dict, Optional
 
 import magic
 from dicttoxml import dicttoxml
@@ -16,6 +17,7 @@ from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
+from kpi.mixins.export_object import ExportObjectMixin
 from kpi.utils.xml import add_xml_declaration
 
 
@@ -155,6 +157,56 @@ class SubmissionGeoJsonRenderer(renderers.BaseRenderer):
         )
 
 
+class SubmissionXLSXRenderer(renderers.BaseRenderer, ExportObjectMixin):
+    media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # noqa
+    format = 'xlsx'
+
+    def render(
+        self,
+        data: Dict,
+        media_type: Optional[str] = None,
+        renderer_context: Optional[Dict] = None,
+    ) -> BytesIO:
+        view = renderer_context['view']
+        # `self.user` required to check for valid (partial) permissions before
+        # allowing an export to succeed
+        self.user = view.request.user
+        self.data = data
+        export, submission_stream = self.get_export_object(
+            source=view.asset,
+            _async=False,
+        )
+        stream = BytesIO()
+        export.to_xlsx(stream, submission_stream)
+        stream.seek(0)
+        return stream
+
+
+class SubmissionCSVRenderer(renderers.BaseRenderer, ExportObjectMixin):
+    media_type = 'text/csv'
+    format = 'csv'
+
+    def render(
+        self,
+        data: Dict,
+        media_type: Optional[str] = None,
+        renderer_context: Optional[Dict] = None,
+    ) -> str:
+        view = renderer_context['view']
+        # `self.user` required to check for valid (partial) permissions before
+        # allowing an export to succeed
+        self.user = view.request.user
+        self.data = data
+        export, submission_stream = self.get_export_object(
+            source=view.asset,
+            _async=False,
+        )
+        stream = StringIO()
+        for line in export.to_csv(submission_stream):
+            stream.write(line + '\r\n')
+        return stream.getvalue()
+
+
 class SubmissionXMLRenderer(DRFXMLRenderer):
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
@@ -203,10 +255,12 @@ class SubmissionXMLRenderer(DRFXMLRenderer):
         results_data_str = ''.join(map(cls.__cleanup_submission, results))
         closing_root_node = cls._node_generator(cls.root_tag_name, closing=True)
 
-        xml_2_str += f'{opening_results_node}' \
-                     f'{results_data_str}' \
-                     f'{closing_results_node}' \
-                     f'{closing_root_node}'
+        xml_2_str += (
+            f'{opening_results_node}'
+            f'{results_data_str}'
+            f'{closing_results_node}'
+            f'{closing_root_node}'
+        )
 
         return xml_2_str.encode()  # Should return bytes
 

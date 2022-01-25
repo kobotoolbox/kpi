@@ -294,6 +294,12 @@ export default assign({
       if (this.state.settingsNew.country) {
         settings.country = this.state.settingsNew.country;
       }
+      if (this.state.settingsNew.operational_purpose) {
+        settings.operational_purpose = this.state.settingsNew.operational_purpose;
+      }
+      if (this.state.settingsNew.collects_pii) {
+        settings.collects_pii = this.state.settingsNew.collects_pii;
+      }
       if (this.state.settingsNew['share-metadata']) {
         settings['share-metadata'] = this.state.settingsNew['share-metadata'];
       }

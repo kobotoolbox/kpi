@@ -65,7 +65,7 @@ def last_submission_time(xform_id_string, user_id):
 @safe_kc_read
 def get_kc_profile_data(user_id):
     """
-    Retrieve all fields from the user's KC profile and  return them in a
+    Retrieve all fields from the user's KC profile and return them in a
     dictionary
     """
     try:
@@ -336,14 +336,14 @@ def assign_applicable_kc_permissions(
         **obj.KC_CONTENT_TYPE_KWARGS)
 
     kc_permissions_already_assigned = KobocatUserObjectPermission.objects.filter(
-        user=user_id, permission__in=permissions, object_pk=xform_id,
+        user_id=user.pk, permission__in=permissions, object_pk=xform_id,
     ).values_list('permission__codename', flat=True)
     permissions_to_create = []
     for permission in permissions:
         if permission.codename in kc_permissions_already_assigned:
             continue
         permissions_to_create.append(KobocatUserObjectPermission(
-            user=user_id, permission=permission, object_pk=xform_id,
+            user_id=user.pk, permission=permission, object_pk=xform_id,
             content_type=xform_content_type
         ))
     KobocatUserObjectPermission.objects.bulk_create(permissions_to_create)
