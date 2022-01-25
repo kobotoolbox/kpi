@@ -66,6 +66,7 @@ psycopg2
 pydub
 pymongo
 python-dateutil
+python-magic
 pytz
 pyxform==1.7.0
 requests

@@ -207,6 +207,8 @@ python-dateutil==2.8.0
     #   -r dependencies/pip/requirements.in
     #   botocore
     #   python-crontab
+python-magic==0.4.24
+    # via -r dependencies/pip/requirements.in
 pytz==2019.3
     # via
     #   -r dependencies/pip/requirements.in
@@ -294,5 +296,4 @@ zipp==0.6.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
-# pip
 # setuptools
