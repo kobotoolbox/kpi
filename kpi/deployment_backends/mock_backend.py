@@ -207,18 +207,19 @@ class MockDeploymentBackend(BaseDeploymentBackend):
 
     def get_attachment_content(self, user, submission_uuid, response_xpath):
 
+        submission_xml = self.get_submissions(
+            user, format_type=SUBMISSION_FORMAT_TYPE_XML, query={
+                '_uuid': submission_uuid
+            }
+        )
+
         try:
-            submission_xml = self.get_submissions(
-                user, format_type=SUBMISSION_FORMAT_TYPE_XML, query={
-                    '_uuid': submission_uuid
-                }
-            )
-            first_submission = submission_xml[0]
-        except StopIteration:
+            first_submission_xml = submission_xml[0]
+        except IndexError:
             raise Http404
 
         submission_tree = ET.ElementTree(
-            ET.fromstring(first_submission)
+            ET.fromstring(first_submission_xml)
         )
         response_element = submission_tree.find(response_xpath)
         try:
@@ -226,17 +227,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         except AttributeError:
             raise InvalidXPathException
 
+        submission_json = self.get_submissions(
+            user, format_type=SUBMISSION_FORMAT_TYPE_JSON, query={
+                '_uuid': submission_uuid
+            }
+        )
+
         try:
-            submission_json = next(
-                iter(
-                    self.get_submissions(
-                        user, format_type=SUBMISSION_FORMAT_TYPE_JSON, query={
-                            '_uuid': submission_uuid
-                        }
-                    )
-                )
-            )
-        except StopIteration:
+            first_submission_json = submission_json[0]
+        except IndexError:
             raise Exception('No matching submission')
 
         audio_file = os.path.join(
