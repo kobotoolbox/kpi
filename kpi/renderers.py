@@ -45,7 +45,7 @@ class MP3ConversionRenderer(MediaFileRenderer):
             if mime is 'audio/mpeg':
                 return data
             audio = AudioSegment.from_file(BytesIO(data))
-        except:
+        except AttributeError:
             if data.get('detail').code == 'xpath_not_found':
                 return None
 
