@@ -401,6 +401,8 @@ REST_FRAMEWORK = {
        'kpi.renderers.XMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIVersioning',
+    # Cannot be placed in kpi.exceptions.py because of circular imports
+    'EXCEPTION_HANDLER': 'kpi.utils.drf_exceptions.custom_exception_handler',
 }
 
 TEMPLATES = [

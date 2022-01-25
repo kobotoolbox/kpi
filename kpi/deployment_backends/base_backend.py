@@ -99,6 +99,12 @@ class BaseDeploymentBackend(abc.ABC):
         return value
 
     @abc.abstractmethod
+    def get_attachment_content(
+        self, submission_id: int, user: 'auth.User', xpath: str
+    ) -> tuple:
+        pass
+
+    @abc.abstractmethod
     def delete_submission(self, submission_id: int, user: 'auth.User') -> dict:
         pass
 

@@ -205,51 +205,47 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         settings.MONGO_DB.instances.insert_one(duplicated_submission)
         return duplicated_submission
 
-    def get_attachment_content(self, user, submission_uuid, response_xpath):
+    def get_attachment_content(
+            self, submission_id: int, user: 'auth.User', xpath: str
+    ) -> tuple:
 
-        submission_xml = self.get_submissions(
-            user, format_type=SUBMISSION_FORMAT_TYPE_XML, query={
-                '_uuid': submission_uuid
-            }
+        submission_xml = self.get_submission(
+            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
         )
 
-        try:
-            first_submission_xml = submission_xml[0]
-        except IndexError:
+        if not submission_xml:
             raise Http404
 
         submission_tree = ET.ElementTree(
-            ET.fromstring(first_submission_xml)
+            ET.fromstring(submission_xml)
         )
-        response_element = submission_tree.find(response_xpath)
+        element = submission_tree.find(xpath)
         try:
-            response_filename = response_element.text
+            attachment_filename = element.text
         except AttributeError:
             raise InvalidXPathException
 
-        submission_json = self.get_submissions(
-            user, format_type=SUBMISSION_FORMAT_TYPE_JSON, query={
-                '_uuid': submission_uuid
-            }
+        submission_json = self.get_submission(
+            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
         )
+        attachments = submission_json['_attachments']
+        for attachment in attachments:
+            filename = os.path.basename(attachment['filename'])
+            # Use Django utility to ensure we do not have problems with files which
+            # contain spaces.
+            if attachment_filename == filename:
+                video_file = os.path.join(
+                    settings.BASE_DIR,
+                    'kpi',
+                    'tests',
+                    filename
+                )
+                with open(video_file, 'rb') as f:
+                    file_content = f.read()
+                return filename, file_content, attachment['mimetype']
 
-        try:
-            first_submission_json = submission_json[0]
-        except IndexError:
-            raise Exception('No matching submission')
-
-        audio_file = os.path.join(
-            settings.BASE_DIR,
-            'kpi',
-            'tests',
-            'audio_conversion_test_clip.mp4'
-        )
-
-        with open(audio_file, 'rb') as f:
-            file_response = f.read()
-
-        content_type = 'video/mp4'
-        return file_response, content_type
+        # ToDo Create AttachmentNotFoundException
+        raise Exception('Attachment Not found')
 
     def get_data_download_links(self):
         return {}

@@ -1,7 +1,10 @@
+# coding: utf-8
+import os
 import random
 import string
 import uuid
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import QueryDict
 from django.urls import reverse
@@ -38,16 +41,18 @@ class AttachmentApiTests(BaseAssetTestCase):
         letters = string.ascii_letters
         submissions = []
         v_uid = self.asset.latest_deployed_version.uid
-        self.submissions_submitted_by_someuser = []
+        # self.submissions_submitted_by_someuser = []
+
         submission = {
             '__version__': v_uid,
-            'q1': 'a/path/somemp4.mp4',
+            'q1': 'audio_conversion_test_clip.mp4',
             'q2': ''.join(random.choice(letters) for l in range(10)),
             '_uuid': str(uuid.uuid4()),
             '_attachments': [
                 {
-                    'download_url': 'download_path.mp3',
-                    'filename': 'download_path.mp3',
+                    'download_url': 'http://testserver/someuser/audio_conversion_test_clip.mp4',
+                    'filename': 'someuser/audio_conversion_test_clip.mp4',
+                    'mimetype': 'video/mp4',
                 },
             ],
             '_submitted_by': 'someuser'
@@ -56,7 +61,7 @@ class AttachmentApiTests(BaseAssetTestCase):
         self.asset.deployment.mock_submissions(submissions)
         self.submissions = submissions
 
-    def test_get_endpoint(self):
+    def test_convert_mp4_to_mp3(self):
         query_dict = QueryDict('', mutable=True)
         query_dict.update(
             {
@@ -78,6 +83,10 @@ class AttachmentApiTests(BaseAssetTestCase):
         response = self.client.get(url)
         assert response.status_code == status.HTTP_200_OK
         assert response['Content-Type'] == 'audio/mpeg'
+
+    def test_get_mp4_without_conversion(self):
+        # ToDo , ensure it's not converted if we don't specify `&format=mp3`
+        pass
 
     def test_bad_xpath(self):
         self.__add_submissions()

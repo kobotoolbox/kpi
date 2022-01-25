@@ -1,5 +1,5 @@
 from django.utils.translation import gettext as t
-from rest_framework import viewsets
+from rest_framework import viewsets, serializers, renderers
 from rest_framework.pagination import _positive_int as positive_int
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -37,38 +37,56 @@ class AttachmentViewSet(
         >
         >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/451/attachment/?xpath=Upload_a_file&format=mp3
     """
-    renderer_classes = (MediaFileRenderer, MP3ConversionRenderer)
+    renderer_classes = (
+        MediaFileRenderer,
+        MP3ConversionRenderer,
+    )
     permission_classes = (SubmissionPermission,)
+
+    SUPPORTED_CONVERTED_FORMAT = [
+        'audio/wav',
+        'audio/mp4',
+        'video/mp4',
+    ]
 
     def list(self, request, *args, **kwargs):
 
         asset_uid = kwargs['parent_lookup_asset']
-        data_id = kwargs['parent_lookup_data']
+        submission_id = kwargs['parent_lookup_data']
         filters = request.query_params.dict()
         try:
             xpath = filters['xpath']
         except KeyError:
-            raise Exception(t('xpath not found, please query the path to the file'))
+            raise serializers.ValidationError({
+                'xpath': t('Please query the path to the file')
+            })
 
         asset = Asset.objects.get(uid=asset_uid)
-        submission = asset.deployment.get_submission(
-                positive_int(data_id),
-                user=request.user,
-                request=request,
-        )
-        submission_uuid = submission['_uuid']
-        content, content_type = asset.deployment.get_attachment_content(
+
+        filename, content, content_type = asset.deployment.get_attachment_content(
+            submission_id,
             request.user,
-            submission_uuid,
             xpath
         )
 
-        if request.accepted_renderer.format == 'mp3':
+        if request.accepted_renderer.format == MP3ConversionRenderer.format:
+            if content_type not in self.SUPPORTED_CONVERTED_FORMAT:
+                raise serializers.ValidationError({
+                    'format': t('Conversion is not supported for {}'.format(
+                        content_type
+                    ))
+                })
             set_content = None
         else:
             set_content = content_type
 
+        # Send filename to browser
+        headers = {
+            'Content-Disposition': f'inline; filename={filename}'
+        }
+
         return Response(
-           content,
-           content_type=set_content,
+            content,
+            content_type=set_content,
+            headers=headers,
         )

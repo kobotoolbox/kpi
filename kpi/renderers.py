@@ -8,6 +8,7 @@ from typing import Dict, Optional
 from dicttoxml import dicttoxml
 from django.utils.xmlutils import SimplerXMLGenerator
 from pydub import AudioSegment
+from pydub.exceptions import CouldntDecodeError
 from rest_framework import renderers
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
@@ -36,16 +37,16 @@ class MediaFileRenderer(renderers.BaseRenderer):
 
 
 class MP3ConversionRenderer(MediaFileRenderer):
+
     media_type = 'audio/mpeg'
     format = 'mp3'
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-
         try:
             audio = AudioSegment.from_file(BytesIO(data))
-        except AttributeError:
-            if data.get('detail').code == 'xpath_not_found':
-                return None
+        except IndexError:
+            # Seems that audio track is seeming
+            raise CouldntDecodeError
 
         with NamedTemporaryFile(suffix='.mp3') as f:
             export = audio.export(f, format='mp3')
