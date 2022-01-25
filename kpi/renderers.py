@@ -5,7 +5,6 @@ from io import StringIO, BytesIO
 from tempfile import NamedTemporaryFile
 from typing import Dict, Optional
 
-import magic
 from dicttoxml import dicttoxml
 from django.utils.xmlutils import SimplerXMLGenerator
 from pydub import AudioSegment
@@ -41,10 +40,8 @@ class MP3ConversionRenderer(MediaFileRenderer):
     format = 'mp3'
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
+
         try:
-            mime = magic.from_buffer(data, mime=True)
-            if mime is 'audio/mpeg':
-                return data
             audio = AudioSegment.from_file(BytesIO(data))
         except AttributeError:
             if data.get('detail').code == 'xpath_not_found':

@@ -63,7 +63,7 @@ class InvalidSearchException(exceptions.APIException):
 
 class InvalidXPathException(exceptions.APIException):
     status_code = 400
-    default_detail = _('The path could not be found in the submission')
+    default_detail = t('The path could not be found in the submission')
     default_code = 'xpath_not_found'
 
 
