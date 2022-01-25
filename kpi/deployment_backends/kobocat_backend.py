@@ -3,6 +3,7 @@ import copy
 import io
 import json
 import posixpath
+import os
 import re
 import uuid
 from collections import defaultdict
@@ -30,6 +31,7 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import InvalidXPathException
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
@@ -538,6 +540,52 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         """
         _uuid = str(uuid.uuid4())
         return _uuid, f'uuid:{_uuid}'
+
+    def get_attachment_content(self, user, submission_uuid, response_xpath):
+
+        try:
+            submission_xml = next(
+                self.get_submissions(
+                    user, format_type=SUBMISSION_FORMAT_TYPE_XML, query={
+                        '_uuid': submission_uuid
+                    }
+                )
+            )
+        except StopIteration:
+            raise Http404
+
+        submission_tree = ET.ElementTree(
+            ET.fromstring(submission_xml)
+        )
+        response_element = submission_tree.find(response_xpath)
+        try:
+            response_filename = response_element.text
+        except AttributeError:
+            raise InvalidXPathException
+
+        try:
+            submission_json = next(
+                self.get_submissions(
+                    user, format_type=SUBMISSION_FORMAT_TYPE_JSON, query={
+                        '_uuid': submission_uuid
+                    }
+                )
+            )
+        except StopIteration:
+            raise Exception('No matching submission')
+
+        attachments = submission_json['_attachments']
+        for attachment in attachments:
+            filename = os.path.basename(attachment['filename'])
+            if response_filename == filename:
+                file_response = self.__kobocat_proxy_request(
+                    requests.Request(
+                        method='GET', url=attachment['download_url']
+                    ),
+                    self.asset.owner
+                )
+                file_response.raise_for_status()
+                return file_response.content, file_response.headers['Content-Type']
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((

@@ -1,14 +1,17 @@
 # coding: utf-8
 import copy
+import os
 import time
 import uuid
 from datetime import datetime
 from typing import Optional
+from xml.etree import ElementTree as ET
 
 import pytz
 from deepmerge import always_merger
 from dicttoxml import dicttoxml
 from django.conf import settings
+from django.http import Http404
 from django.urls import reverse
 from rest_framework import status
 
@@ -20,6 +23,7 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
+from kpi.exceptions import InvalidXPathException
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
@@ -200,6 +204,53 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         
         settings.MONGO_DB.instances.insert_one(duplicated_submission)
         return duplicated_submission
+
+    def get_attachment_content(self, user, submission_uuid, response_xpath):
+
+        try:
+            submission_xml = self.get_submissions(
+                user, format_type=SUBMISSION_FORMAT_TYPE_XML, query={
+                    '_uuid': submission_uuid
+                }
+            )
+            first_submission = submission_xml[0]
+        except StopIteration:
+            raise Http404
+
+        submission_tree = ET.ElementTree(
+            ET.fromstring(first_submission)
+        )
+        response_element = submission_tree.find(response_xpath)
+        try:
+            response_filename = response_element.text
+        except AttributeError:
+            raise InvalidXPathException
+
+        try:
+            submission_json = next(
+                iter(
+                    self.get_submissions(
+                        user, format_type=SUBMISSION_FORMAT_TYPE_JSON, query={
+                            '_uuid': submission_uuid
+                        }
+                    )
+                )
+            )
+        except StopIteration:
+            raise Exception('No matching submission')
+
+        audio_file = os.path.join(
+            settings.BASE_DIR,
+            'kpi',
+            'tests',
+            'audio_conversion_test_clip.mp4'
+        )
+
+        with open(audio_file, 'rb') as f:
+            file_response = f.read()
+
+        content_type = 'video/mp4'
+        return file_response, content_type
 
     def get_data_download_links(self):
         return {}

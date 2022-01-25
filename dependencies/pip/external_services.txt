@@ -188,6 +188,8 @@ pyasn1==0.4.7
     #   ndg-httpsclient
 pycparser==2.19
     # via cffi
+pydub==0.25.1
+    # via -r dependencies/pip/requirements.in
 pygments==2.4.2
     # via -r dependencies/pip/requirements.in
 pyjwt==2.3.0

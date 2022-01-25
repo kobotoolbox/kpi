@@ -61,6 +61,12 @@ class InvalidSearchException(exceptions.APIException):
     default_code = 'invalid_search'
 
 
+class InvalidXPathException(exceptions.APIException):
+    status_code = 400
+    default_detail = _('The path could not be found in the submission')
+    default_code = 'xpath_not_found'
+
+
 class KobocatBulkUpdateSubmissionsClientException(exceptions.ValidationError):
     # This is message should be overridden with something more specific
     default_detail = t('Invalid payload for bulk updating of submissions')
