@@ -16,7 +16,6 @@ from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
-from kpi.exceptions import InvalidXPathException
 from kpi.utils.xml import add_xml_declaration
 
 
