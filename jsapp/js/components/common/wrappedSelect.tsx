@@ -34,6 +34,7 @@ class WrappedSelect extends React.Component<WrappedSelectProps> {
             className={classNames.join(' ')}
             classNamePrefix='kobo-select'
             menuPlacement='auto'
+            placeholder={this.props.placeholder || t('Select…')}
             {...this.props}
           />
         </label>

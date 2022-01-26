@@ -920,7 +920,6 @@ class ProjectSettings extends React.Component {
                 options={sectors}
                 isLimitedHeight
                 isClearable
-                placeholder={t('Select a sector for your project')}
                 error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
               />
             </bem.FormModal__item>
@@ -936,7 +935,6 @@ class ProjectSettings extends React.Component {
                 options={countries}
                 isLimitedHeight
                 isClearable
-                placeholder={t('Select countries')}
                 error={this.hasFieldError('country') ? t('Please select at least one contry') : false}
               />
             </bem.FormModal__item>

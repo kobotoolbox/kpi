@@ -250,7 +250,6 @@ export class LibraryAssetForm extends React.Component {
               options={SECTORS}
               isLimitedHeight
               isClearable
-              placeholder={t('Select a sector for your ##type##').replace('##type##', this.getFormAssetType())}
             />
           </bem.FormModal__item>
 
@@ -263,7 +262,6 @@ export class LibraryAssetForm extends React.Component {
               options={COUNTRIES}
               isLimitedHeight
               isClearable
-              placeholder={t('Select countries')}
             />
           </bem.FormModal__item>
 
