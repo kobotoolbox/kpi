@@ -39,10 +39,8 @@ class AttachmentApiTests(BaseAssetTestCase):
         self._deployment = self.asset.deployment
 
     def __add_submissions(self):
-        letters = string.ascii_letters
         submissions = []
         v_uid = self.asset.latest_deployed_version.uid
-        # self.submissions_submitted_by_someuser = []
 
         submission = {
             '__version__': v_uid,
@@ -51,11 +49,13 @@ class AttachmentApiTests(BaseAssetTestCase):
             '_uuid': str(uuid.uuid4()),
             '_attachments': [
                 {
+                    'id': 1,
                     'download_url': 'http://testserver/someuser/audio_conversion_test_clip.mp4',
                     'filename': 'someuser/audio_conversion_test_clip.mp4',
                     'mimetype': 'video/mp4',
                 },
                 {
+                    'id': 2,
                     'download_url': 'http://testserver/someuser/audio_conversion_test_image.jpg',
                     'filename': 'someuser/audio_conversion_test_image.jpg',
                     'mimetype': 'image/jpeg',
@@ -90,7 +90,7 @@ class AttachmentApiTests(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response['Content-Type'] == 'audio/mpeg'
 
-    def test_get_image_with_conversion(self):
+    def test_cannot_convert_image_to_mp3(self):
         query_dict = QueryDict('', mutable=True)
         query_dict.update(
             {
@@ -113,7 +113,7 @@ class AttachmentApiTests(BaseAssetTestCase):
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response['Content-Type'] == 'application/json'
-        assert response.json() == {"format":"Conversion is not supported for image/jpeg"}
+        assert response.json() == {'format': 'Conversion is not supported for image/jpeg'}
 
     def test_get_mp4_without_conversion(self):
         query_dict = QueryDict('', mutable=True)
@@ -131,6 +131,20 @@ class AttachmentApiTests(BaseAssetTestCase):
                 },
             ),
             querystring=query_dict.urlencode()
+        )
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response['Content-Type'] == 'video/mp4'
+
+    def test_get_attachment_with_id(self):
+        url = reverse(
+            self._get_endpoint('attachment-detail'),
+            kwargs={
+                'parent_lookup_asset': self.asset.uid,
+                'parent_lookup_data': 1,
+                'pk': 1,
+            },
         )
 
         response = self.client.get(url)

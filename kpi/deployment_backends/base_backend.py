@@ -100,7 +100,11 @@ class BaseDeploymentBackend(abc.ABC):
 
     @abc.abstractmethod
     def get_attachment_content(
-        self, submission_id: int, user: 'auth.User', xpath: str
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
     ) -> tuple:
         pass
 

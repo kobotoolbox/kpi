@@ -209,7 +209,11 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         return duplicated_submission
 
     def get_attachment_content(
-            self, submission_id: int, user: 'auth.User', xpath: str
+        self,
+        submission_id: int,
+        user: 'auth.User',
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
     ) -> tuple:
 
         submission_xml = self.get_submission(
@@ -219,14 +223,15 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         if not submission_xml:
             raise SubmissionNotFoundException
 
-        submission_tree = ET.ElementTree(
-            ET.fromstring(submission_xml)
-        )
-        element = submission_tree.find(xpath)
-        try:
-            attachment_filename = element.text
-        except AttributeError:
-            raise InvalidXPathException
+        if xpath:
+            submission_tree = ET.ElementTree(
+                ET.fromstring(submission_xml)
+            )
+            element = submission_tree.find(xpath)
+            try:
+                attachment_filename = element.text
+            except AttributeError:
+                raise InvalidXPathException
 
         submission_json = self.get_submission(
             submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
@@ -234,7 +239,13 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         attachments = submission_json['_attachments']
         for attachment in attachments:
             filename = os.path.basename(attachment['filename'])
-            if attachment_filename == filename:
+
+            if xpath:
+                is_good_file = attachment_filename == filename
+            else:
+                is_good_file = int(attachment['id']) == int(attachment_id)
+
+            if is_good_file:
                 video_file = os.path.join(
                     settings.BASE_DIR,
                     'kpi',
