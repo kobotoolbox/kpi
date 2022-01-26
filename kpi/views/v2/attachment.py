@@ -1,4 +1,6 @@
 # coding: utf-8
+from typing import Optional
+
 from django.http import Http404
 from django.utils.translation import gettext as t
 from rest_framework import viewsets, serializers
@@ -9,7 +11,6 @@ from kpi.exceptions import (
     AttachmentNotFoundException,
     SubmissionNotFoundException,
 )
-from kpi.models.asset import Asset
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -48,36 +49,48 @@ class AttachmentViewSet(
     )
     permission_classes = (SubmissionPermission,)
 
-    SUPPORTED_CONVERTED_FORMAT = [
+    SUPPORTED_CONVERTED_FORMAT = (
         'audio',
         'video',
-    ]
+    )
+
+    def retrieve(self, request, pk, *args, **kwargs):
+        # Since endpoint is needed for KobocatDeploymentBackend to overwrite
+        # Mongo attachments URL with their primary keys (instead of their XPath)
+        submission_id = kwargs['parent_lookup_data']
+        return self._get_response(request, submission_id, attachment_id=pk)
 
     def list(self, request, *args, **kwargs):
-
-        asset_uid = kwargs['parent_lookup_asset']
         submission_id = kwargs['parent_lookup_data']
-        filters = request.query_params.dict()
         try:
-            xpath = filters['xpath']
+            xpath = request.query_params['xpath']
         except KeyError:
             raise serializers.ValidationError({
                 'xpath': t('Please query the path to the file')
             })
+        return self._get_response(request, submission_id, xpath=xpath)
 
-        asset = Asset.objects.get(uid=asset_uid)
+    def _get_response(
+        self,
+        request,
+        submission_id: int,
+        attachment_id: Optional[int] = None,
+        xpath: Optional[str] = None,
+    ) -> Response:
 
         try:
-            filename, content, content_type = asset.deployment.get_attachment_content(
-                submission_id,
-                request.user,
-                xpath
+            (
+                filename,
+                content,
+                content_type,
+            ) = self.asset.deployment.get_attachment_content(
+                submission_id, request.user, attachment_id, xpath
             )
         except (SubmissionNotFoundException, AttachmentNotFoundException):
             raise Http404
 
         if request.accepted_renderer.format == MP3ConversionRenderer.format:
-            if not list(filter(content_type.startswith, self.SUPPORTED_CONVERTED_FORMAT)):
+            if not content_type.startswith(self.SUPPORTED_CONVERTED_FORMAT):
                 raise serializers.ValidationError({
                     'format': t('Conversion is not supported for {}'.format(
                         content_type
