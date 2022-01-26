@@ -218,6 +218,9 @@ stores.session = Reflux.createStore({
 });
 
 /**
+ * This store keeps data of assets, both complete (i.e. with `content` property)
+ * and incomplete (e.g. from asset lists).
+ *
  * NOTE: this is not a reliable source of complete assets (i.e. ones with
  * `content`) as `onListAssetsCompleted` will overwrite asset-with-content with
  * one without it.

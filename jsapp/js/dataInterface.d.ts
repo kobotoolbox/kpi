@@ -201,7 +201,7 @@ interface AdvancedSubmissionSchemaDefinition {
 }
 
 /**
- * This is the backend's asset.
+ * This is the backends asset.
  */
 interface AssetResponse {
   url: string

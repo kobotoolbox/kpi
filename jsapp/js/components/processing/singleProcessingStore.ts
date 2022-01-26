@@ -156,12 +156,11 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this))
 
     // This comes back with data after `processingActions.activateAsset` call.
-    assetStore.listen(this.onAssetLoad.bind(this), this)
+    assetStore.whenLoaded(this.currentAssetUid, this.onAssetLoad.bind(this))
   }
 
   /** This is making sure the asset processing features are activated. */
-  onAssetLoad(data: AssetStoreData) {
-    const asset = data[this.currentAssetUid]
+  onAssetLoad(asset: AssetResponse) {
     if (
       isFormSingleProcessingRoute(
         this.currentAssetUid,
@@ -179,7 +178,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   onActivateAssetCompleted() {
-    console.log('onActivateAssetCompleted')
+    this.fetchAllInitialDataForAsset()
   }
 
   activateAsset() {
@@ -416,8 +415,6 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   private onSetTranslationCompleted(newTranslations: Translation[]) {
-    // TODO check if the data is ok here
-    console.log('onSetTranslationCompleted', newTranslations)
     this.isFetchingData = false
     this.data.translations = newTranslations
     // discard draft after saving (exit the editor)

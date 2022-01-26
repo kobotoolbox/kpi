@@ -169,6 +169,8 @@ processingActions.deleteTranscript.listen((
   assetUid: string,
   languageCode: string
 ) => {
+  // TODO update code when DELETE is supported on the endpoint
+
   const processingUrl = getAssetProcessingUrl(assetUid)
   if (processingUrl === undefined) {
     processingActions.deleteTranscript.failed(NO_FEATURE_ERROR)
@@ -270,7 +272,7 @@ function setTranslationInnerMethod(
 ) {
   const processingUrl = getAssetProcessingUrl(assetUid)
   if (processingUrl === undefined) {
-    processingActions.setTranscript.failed(NO_FEATURE_ERROR)
+    processingActions.setTranslation.failed(NO_FEATURE_ERROR)
   } else {
     // Sorry for this object being built in such a lengthy way, but it is needed
     // so for typings.
@@ -294,23 +296,41 @@ function setTranslationInnerMethod(
       data: JSON.stringify(data)
     })
       .done((response: ProcessingDataResponse) => {
-        processingActions.setTranscript.completed(response)
+        processingActions.setTranslation.completed(
+          pickTranslationsFromProcessingDataResponse(
+            response,
+            questionName
+          )
+        )
       })
-      .fail(processingActions.setTranscript.failed)
+      .fail(processingActions.setTranslation.failed)
   }
+}
+
+function pickTranslationsFromProcessingDataResponse(
+  response: ProcessingDataResponse,
+  questionName: string
+): TransxObject[] {
+  const translations: TransxObject[] = []
+  Object.values(response[questionName]?.translated).forEach((translation) => {
+    translations.push(translation)
+  })
+  return translations
 }
 
 processingActions.deleteTranslation.listen((
   assetUid: string,
   languageCode: string
 ) => {
+  // TODO update code when DELETE is supported on the endpoint
+
   const processingUrl = getAssetProcessingUrl(assetUid)
   if (processingUrl === undefined) {
     processingActions.deleteTranslation.failed(NO_FEATURE_ERROR)
   } else {
     $.ajax({
       dataType: 'json',
-      method: 'POST',
+      method: 'DELETE',
       url: processingUrl,
       data: {
         languageCode: languageCode,
