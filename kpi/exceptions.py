@@ -19,6 +19,10 @@ class AbstractPropertyError(NotImplementedError):
         )
 
 
+class AttachmentNotFound(Exception):
+    pass
+
+
 class BadAssetTypeException(Exception):
     pass
 
@@ -122,6 +126,10 @@ class ReadOnlyModelError(Exception):
 
     def __init__(self, msg='This model is read only', *args, **kwargs):
         super().__init__(msg, *args, **kwargs)
+
+
+class SubmissionNotFound(Exception):
+    pass
 
 
 class SearchQueryTooShortException(InvalidSearchException):

@@ -3,7 +3,6 @@ import copy
 import io
 import json
 import posixpath
-import os
 import re
 import uuid
 from collections import defaultdict
@@ -15,9 +14,8 @@ from xml.etree import ElementTree as ET
 import pytz
 import requests
 from django.conf import settings
-from django.http import Http404
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.text import get_valid_filename
+from django.http import FileResponse
 from django.utils.translation import gettext_lazy as t
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -32,7 +30,11 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import InvalidXPathException
+from kpi.exceptions import (
+    AttachmentNotFound,
+    InvalidXPathException,
+    SubmissionNotFound,
+)
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
@@ -46,6 +48,7 @@ from .base_backend import BaseDeploymentBackend
 from .kc_access.shadow_models import (
     KobocatOneTimeAuthToken,
     KobocatXForm,
+    ReadOnlyKobocatAttachment,
     ReadOnlyKobocatInstance,
 )
 from .kc_access.utils import (
@@ -493,12 +496,16 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
     def get_attachment_content(
         self, submission_id: int, user: 'auth.User', xpath: str
     ) -> tuple:
+        """
+        Return a tuple which contains the file, its name and its mimetype.
+        An exception is raised when the submission or the attachment is not found
+        """
         submission_xml = self.get_submission(
             submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_XML
         )
 
         if not submission_xml:
-            raise Http404
+            raise SubmissionNotFound
 
         submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
         element = submission_tree.find(xpath)
@@ -508,31 +515,22 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         except AttributeError:
             raise InvalidXPathException
 
-        # No need to validate is `submission_json` equals `None`. It has
-        # already be done with `submission_xml`.
-        submission_json = self.get_submission(
-            submission_id, user, format_type=SUBMISSION_FORMAT_TYPE_JSON
+        try:
+            attachment = ReadOnlyKobocatAttachment.objects.get(
+                instance_id=submission_id,
+                media_file_basename=attachment_filename,
+            )
+        except ReadOnlyKobocatAttachment.DoesNotExist:
+            raise AttachmentNotFound
+
+        content = attachment.media_file.read()
+        attachment.media_file.close()
+
+        return (
+            attachment.media_file_basename,
+            content,
+            attachment.mimetype,
         )
-
-        # ToDo Consider to use a shadow model from `logger_attachment` to avoid
-        #  relying on Mongo.
-        attachments = submission_json['_attachments']
-        for attachment in attachments:
-            filename = os.path.basename(attachment['filename'])
-            # Use Django utility to ensure we do not have problems with files which
-            # contain spaces.
-            if get_valid_filename(attachment_filename) == filename:
-                file_response = self.__kobocat_proxy_request(
-                    requests.Request(
-                        method='GET', url=attachment['download_url']
-                    ),
-                    self.asset.owner
-                )
-                file_response.raise_for_status()
-                return filename, file_response.content, attachment['mimetype']
-
-        # ToDo Create AttachmentNotFoundException
-        raise Exception('Attachment Not found')
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((
@@ -699,7 +697,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
             try:
                 suffix = settings.KOBOCAT_THUMBNAILS_SUFFIX_MAPPING[media_size]
             except KeyError:
-                raise Http404
+                raise AttachmentNotFound
 
             is_allowed = False
             for attachment in submission['_attachments']:
@@ -713,7 +711,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                     break
 
             if not is_allowed:
-                raise Http404
+                raise AttachmentNotFound
 
             token = KobocatOneTimeAuthToken.get_or_create_token(
                 user, method='GET', request_identifier=url

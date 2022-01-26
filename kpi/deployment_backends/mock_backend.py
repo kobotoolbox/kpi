@@ -23,7 +23,11 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import InvalidXPathException
+from kpi.exceptions import (
+    AttachmentNotFound,
+    InvalidXPathException,
+    SubmissionNotFound,
+)
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.utils.mongo_helper import MongoHelper, drop_mock_only
@@ -214,7 +218,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
 
         if not submission_xml:
-            raise Http404
+            raise SubmissionNotFound
 
         submission_tree = ET.ElementTree(
             ET.fromstring(submission_xml)
@@ -231,8 +235,6 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         attachments = submission_json['_attachments']
         for attachment in attachments:
             filename = os.path.basename(attachment['filename'])
-            # Use Django utility to ensure we do not have problems with files which
-            # contain spaces.
             if attachment_filename == filename:
                 video_file = os.path.join(
                     settings.BASE_DIR,
@@ -244,8 +246,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     file_content = f.read()
                 return filename, file_content, attachment['mimetype']
 
-        # ToDo Create AttachmentNotFoundException
-        raise Exception('Attachment Not found')
+        raise AttachmentNotFound
 
     def get_data_download_links(self):
         return {}

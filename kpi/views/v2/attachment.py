@@ -1,9 +1,14 @@
+# coding: utf-8
+from django.http import Http404
 from django.utils.translation import gettext as t
-from rest_framework import viewsets, serializers, renderers
-from rest_framework.pagination import _positive_int as positive_int
+from rest_framework import viewsets, serializers
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from kpi.exceptions import (
+    AttachmentNotFound,
+    SubmissionNotFound,
+)
 from kpi.models.asset import Asset
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
@@ -63,11 +68,14 @@ class AttachmentViewSet(
 
         asset = Asset.objects.get(uid=asset_uid)
 
-        filename, content, content_type = asset.deployment.get_attachment_content(
-            submission_id,
-            request.user,
-            xpath
-        )
+        try:
+            filename, content, content_type = asset.deployment.get_attachment_content(
+                submission_id,
+                request.user,
+                xpath
+            )
+        except (SubmissionNotFound, AttachmentNotFound):
+            raise Http404
 
         if request.accepted_renderer.format == MP3ConversionRenderer.format:
             if content_type not in self.SUPPORTED_CONVERTED_FORMAT:
@@ -84,7 +92,8 @@ class AttachmentViewSet(
         headers = {
             'Content-Disposition': f'inline; filename={filename}'
         }
-
+        # Not optimized for big files. What about using FileResponse if
+        # length is bigger than X MB.
         return Response(
             content,
             content_type=set_content,
