@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from kpi.models import Asset
 from veritree.models import Organization
 from veritree.pipeline import veritree_org_asset_sync_with_all_active_members, veritree_org_asset_unlink_with_all_active_members
-from veritree.tasks import generate_org_regions_and_planting_sites_for_asset
+from veritree.question_blocks.tasks import generate_org_regions_and_planting_sites_for_asset
 
 @api_view(('POST',))
 @action(detail=False, methods=['POST'], renderer_classes=[renderers.JSONRenderer])

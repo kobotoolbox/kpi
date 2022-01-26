@@ -19,8 +19,8 @@ from ..constants import (
     KOBO_INTERNAL_ERROR_STATUS_CODE,
 )
 from veritree.models import VeritreeOAuth2
-from veritree.hooks import FIELD_UPDATE_API, METATADATA_FORM_API, get_metadata_from_submission
-
+from veritree.hooks import get_metadata_from_submission, get_field_update_from_submission
+from veritree.common_urls import METATADATA_FORM_API, FIELD_UPDATE_API
 class ServiceDefinitionInterface(metaclass=ABCMeta):
 
     def __init__(self, hook, instance_id):
@@ -112,11 +112,6 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                     except Exception:
                         raise Exception("Error with provided user credentials")
                 
-                    logging.error("Custom Logging thing - "
-                              "Hook #{} - Data #{}".format(self._hook.uid,
-                                                                self._instance_id),
-                              exc_info=True)
-                    # TODO: get this info from the included username and password
                     try:
                         veritree_token = user.social_auth.get(provider=VeritreeOAuth2.name).extra_data['access_token']
                     except (KeyError):
@@ -126,7 +121,10 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                             "Authorization": f"Bearer {veritree_token}"
                         })
 
-                if self._hook.veritree_type == Hook.FORM_METADATA:
+                if self._hook.veritree_type == Hook.FORM_METADATA or self._hook.veritree_type == Hook.FIELD_UPDATE:
+                    logging.warning("service_json.ServiceDefinition.send - "
+                              "Hook #{} - {}".format(self._hook.endpoint, request_kwargs),
+                              exc_info=True)
                     try:
                         asset_orgs = self._hook.asset.organizations.all()
                         if not asset_orgs.exists():
@@ -137,16 +135,18 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                         org_id = asset_orgs[0].veritree_id
                     except (KeyError):
                         raise KeyError('Asset does not have any organizations associated with it')
-                    self._hook.endpoint = f"{METATADATA_FORM_API}/?org_type=orgAccount&org_id={org_id}" # set endpoint
+                    if self._hook.veritree_type == Hook.FORM_METADATA:
+                        self._hook.endpoint = f"{METATADATA_FORM_API}/?org_type=orgAccount&org_id={org_id}" # set endpoint
+                        request_kwargs['json'] = get_metadata_from_submission(request_kwargs['json'], self._hook.asset.name, org_id, veritree_token)
+                    elif self._hook.veritree_type == Hook.FIELD_UPDATE:
+                        self._hook.endpoint = f"{FIELD_UPDATE_API}/?org_type=orgAccount&org_id={org_id}" # set endpoint
+                        
+                        request_kwargs['json'] = get_field_update_from_submission(request_kwargs['json'], org_id, veritree_token)
+                    
                     self._hook.save()
-                    request_kwargs['json'] = get_metadata_from_submission(request_kwargs['json'], self._hook.asset.name, org_id)
                     logging.error("service_json.ServiceDefinition.send - "
                               "Hook #{} - {}".format(self._hook.endpoint, request_kwargs),
                               exc_info=True)
-                elif self._hook.veritree_type == Hook.FIELD_UPDATE:
-                    org_id = self._hook.asset()
-                    self._hook.endpoint = FIELD_UPDATE_API
-                    #TODO: Get the json for a field update from the form
 
                 ssrf_protect_options = {}
                 if constance.config.SSRF_ALLOWED_IP_ADDRESS.strip():
