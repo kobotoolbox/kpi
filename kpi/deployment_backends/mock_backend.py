@@ -11,7 +11,6 @@ import pytz
 from deepmerge import always_merger
 from dicttoxml import dicttoxml
 from django.conf import settings
-from django.http import Http404
 from django.urls import reverse
 from rest_framework import status
 
@@ -24,9 +23,9 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
-    AttachmentNotFound,
+    AttachmentNotFoundException,
     InvalidXPathException,
-    SubmissionNotFound,
+    SubmissionNotFoundException,
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
@@ -218,7 +217,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         )
 
         if not submission_xml:
-            raise SubmissionNotFound
+            raise SubmissionNotFoundException
 
         submission_tree = ET.ElementTree(
             ET.fromstring(submission_xml)
@@ -246,7 +245,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     file_content = f.read()
                 return filename, file_content, attachment['mimetype']
 
-        raise AttachmentNotFound
+        raise AttachmentNotFoundException
 
     def get_data_download_links(self):
         return {}

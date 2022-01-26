@@ -31,9 +31,9 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
 )
 from kpi.exceptions import (
-    AttachmentNotFound,
+    AttachmentNotFoundException,
     InvalidXPathException,
-    SubmissionNotFound,
+    SubmissionNotFoundException,
 )
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
@@ -505,7 +505,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         if not submission_xml:
-            raise SubmissionNotFound
+            raise SubmissionNotFoundException
 
         submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
         element = submission_tree.find(xpath)
@@ -521,7 +521,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 media_file_basename=attachment_filename,
             )
         except ReadOnlyKobocatAttachment.DoesNotExist:
-            raise AttachmentNotFound
+            raise AttachmentNotFoundException
 
         content = attachment.media_file.read()
         attachment.media_file.close()

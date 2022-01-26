@@ -1,4 +1,5 @@
 # coding: utf-8
+import json
 import os
 import random
 import string
@@ -46,13 +47,18 @@ class AttachmentApiTests(BaseAssetTestCase):
         submission = {
             '__version__': v_uid,
             'q1': 'audio_conversion_test_clip.mp4',
-            'q2': ''.join(random.choice(letters) for l in range(10)),
+            'q2': 'audio_conversion_test_image.jpg',
             '_uuid': str(uuid.uuid4()),
             '_attachments': [
                 {
                     'download_url': 'http://testserver/someuser/audio_conversion_test_clip.mp4',
                     'filename': 'someuser/audio_conversion_test_clip.mp4',
                     'mimetype': 'video/mp4',
+                },
+                {
+                    'download_url': 'http://testserver/someuser/audio_conversion_test_image.jpg',
+                    'filename': 'someuser/audio_conversion_test_image.jpg',
+                    'mimetype': 'image/jpeg',
                 },
             ],
             '_submitted_by': 'someuser'
@@ -84,9 +90,52 @@ class AttachmentApiTests(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response['Content-Type'] == 'audio/mpeg'
 
+    def test_get_image_with_conversion(self):
+        query_dict = QueryDict('', mutable=True)
+        query_dict.update(
+            {
+                'xpath': 'q2',
+                'format': 'mp3',
+            }
+        )
+        url = '{baseurl}?{querystring}'.format(
+            baseurl=reverse(
+                self._get_endpoint('attachment-list'),
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'parent_lookup_data': 1,
+                },
+            ),
+            querystring=query_dict.urlencode()
+        )
+
+        response = self.client.get(url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response['Content-Type'] == 'application/json'
+        assert response.json() == {"format":"Conversion is not supported for image/jpeg"}
+
     def test_get_mp4_without_conversion(self):
-        # ToDo , ensure it's not converted if we don't specify `&format=mp3`
-        pass
+        query_dict = QueryDict('', mutable=True)
+        query_dict.update(
+            {
+                'xpath': 'q1',
+            }
+        )
+        url = '{baseurl}?{querystring}'.format(
+            baseurl=reverse(
+                self._get_endpoint('attachment-list'),
+                kwargs={
+                    'parent_lookup_asset': self.asset.uid,
+                    'parent_lookup_data': 1,
+                },
+            ),
+            querystring=query_dict.urlencode()
+        )
+
+        response = self.client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response['Content-Type'] == 'video/mp4'
 
     def test_bad_xpath(self):
         self.__add_submissions()

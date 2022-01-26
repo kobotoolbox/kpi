@@ -19,7 +19,7 @@ class AbstractPropertyError(NotImplementedError):
         )
 
 
-class AttachmentNotFound(Exception):
+class AttachmentNotFoundException(Exception):
     pass
 
 
@@ -128,7 +128,7 @@ class ReadOnlyModelError(Exception):
         super().__init__(msg, *args, **kwargs)
 
 
-class SubmissionNotFound(Exception):
+class SubmissionNotFoundException(Exception):
     pass
 
 

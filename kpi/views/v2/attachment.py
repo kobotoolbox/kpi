@@ -6,8 +6,8 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kpi.exceptions import (
-    AttachmentNotFound,
-    SubmissionNotFound,
+    AttachmentNotFoundException,
+    SubmissionNotFoundException,
 )
 from kpi.models.asset import Asset
 from kpi.permissions import SubmissionPermission
@@ -49,9 +49,8 @@ class AttachmentViewSet(
     permission_classes = (SubmissionPermission,)
 
     SUPPORTED_CONVERTED_FORMAT = [
-        'audio/wav',
-        'audio/mp4',
-        'video/mp4',
+        'audio',
+        'video',
     ]
 
     def list(self, request, *args, **kwargs):
@@ -74,11 +73,11 @@ class AttachmentViewSet(
                 request.user,
                 xpath
             )
-        except (SubmissionNotFound, AttachmentNotFound):
+        except (SubmissionNotFoundException, AttachmentNotFoundException):
             raise Http404
 
         if request.accepted_renderer.format == MP3ConversionRenderer.format:
-            if content_type not in self.SUPPORTED_CONVERTED_FORMAT:
+            if not list(filter(content_type.startswith, self.SUPPORTED_CONVERTED_FORMAT)):
                 raise serializers.ValidationError({
                     'format': t('Conversion is not supported for {}'.format(
                         content_type
