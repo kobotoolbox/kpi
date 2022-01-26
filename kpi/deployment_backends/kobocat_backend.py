@@ -32,7 +32,7 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import InvalidXPathException
+from kpi.exceptions import AttachmentNotFoundException, InvalidXPathException
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
@@ -531,8 +531,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
                 file_response.raise_for_status()
                 return filename, file_response.content, attachment['mimetype']
 
-        # ToDo Create AttachmentNotFoundException
-        raise Exception('Attachment Not found')
+        raise AttachmentNotFoundException
 
     def get_data_download_links(self):
         exports_base_url = '/'.join((

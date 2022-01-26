@@ -19,6 +19,12 @@ class AbstractPropertyError(NotImplementedError):
         )
 
 
+class AttachmentNotFoundException(exceptions.APIException):
+    status_code = 404
+    default_detail = t('The specified attachment does not exist')
+    default_code = 'attachment_does_not_exist'
+
+
 class BadAssetTypeException(Exception):
     pass
 
