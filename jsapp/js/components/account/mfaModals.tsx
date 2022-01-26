@@ -30,7 +30,7 @@ bem.MFAModals__footer = makeBem(bem.MFAModals, 'footer', 'footer')
 bem.MFAModals__footer__left = makeBem(bem.MFAModals__footer, 'footer-left')
 bem.MFAModals__footer__right = makeBem(bem.MFAModals__footer, 'footer-right')
 
-type modalSteps = 'qr' | 'backups' | 'manual' | 'token'
+type modalSteps = 'qr' | 'backups' | 'manual' | 'token' | 'disclaimer'
 
 type MFAModalsProps = {
   onModalClose: Function,
@@ -56,7 +56,7 @@ export default class MFAModals extends React.Component<
     this.state = {
       isLoading: true,
       qrCode: this.props.qrCode || null,
-      currentStep: this.props.modalType === 'qr' ? 'qr' : 'token',
+      currentStep: this.getInitalModalStep(),
       // Currently input code, used for confirm
       inputString: null,
       backupCodes: null,
@@ -122,6 +122,40 @@ export default class MFAModals extends React.Component<
     this.props.onModalClose()
   }
 
+  getSecretKey(): string {
+    // We expect backend to not change the way the secret key is returned
+    return (
+      this.props?.qrCode?.split('=')[1].split('&')[0] ||
+      t('Could not generate secret key')
+    )
+  }
+
+  getInitalModalStep(): modalSteps {
+    switch(this.props.modalType) {
+      case 'qr':
+        return 'qr'
+      case 'regenerate':
+      case 'reconfigure':
+        return 'disclaimer'
+      case 'deactivate':
+        return 'token'
+    }
+  }
+
+
+  handleTokenSubmit() {
+    switch(this.props.modalType) {
+      case 'regenerate':
+        this.mfaRegenerate()
+        break
+      case 'reconfigure':
+        this.mfaDeactivate()
+        break
+      case 'deactivate':
+        this.mfaDeactivate()
+        break
+    }
+  }
 
   onInputChange(response: React.FormEvent<HTMLInputElement>) {
     this.setState({inputString: response.currentTarget.value})
@@ -134,14 +168,6 @@ export default class MFAModals extends React.Component<
     evt.preventDefault()
 
     this.setState({currentStep: nextStep})
-  }
-
-  getSecretKey(): string {
-    // We expect backend to not change the way the secret key is returned
-    return (
-      this.props?.qrCode?.split('=')[1].split('&')[0] ||
-      t('Could not generate secret key')
-    )
   }
 
   isTokenValid(): boolean {
@@ -166,20 +192,6 @@ export default class MFAModals extends React.Component<
       document.body.appendChild(codesLink)
       codesLink.click()
       this.setState({downloadClicked: true})
-    }
-  }
-
-  handleTokenSubmit() {
-    switch(this.props.modalType) {
-      case 'regenerate':
-        this.mfaRegenerate()
-        break
-      case 'reconfigure':
-        this.mfaDeactivate()
-        break
-      case 'deactivate':
-        this.mfaDeactivate()
-        break
     }
   }
 
@@ -359,7 +371,48 @@ export default class MFAModals extends React.Component<
           </bem.MFAModals__footer__right>
         </bem.MFAModals__footer>
       </bem.MFAModals__tokenstep>
-    );
+    )
+  }
+
+  renderDisclaimerStep() {
+    return (
+      <bem.MFAModals__tokenstep>
+        <bem.MFAModals__body>
+          <strong>
+            {/*This is safe as this step only shows if on reconfigure or regenerate*/}
+            {t(
+              'Please note that ##ACTION##'
+            ).replace(
+              '##ACTION##',
+              this.props.modalType === 'regenerate'
+                ? t('recovery codes from the previous set up will not be valid anymore')
+                : t('in order to reconfigure two-factor authentication (2FA), the previous set up will need to be deleted. Tokens or recovery codes from the previous set up will not be valid anymore')
+            )}
+          </strong>
+
+          {this.props.modalType === 'reconfigure' &&
+            <p>
+              {t('Once your 2FA has been deactivated, you\'ll be prompted to configure it again. If you cannot complete the process. two-factor authentication will remain disabled for your account. In this case, you can reenable it at any time through the usual process.')}
+            </p>
+          }
+        </bem.MFAModals__body>
+
+        <bem.MFAModals__footer>
+          <bem.MFAModals__footer__right>
+            <Button
+              type='full'
+              color='blue'
+              size='l'
+              isFullWidth={true}
+              label={t('Next')}
+              onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                this.changeStep(evt, 'token')
+              }}
+            />
+          </bem.MFAModals__footer__right>
+        </bem.MFAModals__footer>
+      </bem.MFAModals__tokenstep>
+    )
   }
 
  /**
@@ -393,6 +446,10 @@ export default class MFAModals extends React.Component<
 
         {(this.state.currentStep === 'token') &&
           this.renderTokenStep()
+        }
+
+        {(this.state.currentStep === 'disclaimer') &&
+          this.renderDisclaimerStep()
         }
       </bem.MFAModals>
     )
