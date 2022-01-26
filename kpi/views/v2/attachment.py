@@ -42,10 +42,10 @@ class AttachmentViewSet(
     )
     permission_classes = (SubmissionPermission,)
 
-    SUPPORTED_CONVERTED_FORMAT = [
+    SUPPORTED_CONVERTED_FORMAT = (
         'audio',
         'video',
-    ]
+    )
 
     def list(self, request, *args, **kwargs):
 
@@ -68,7 +68,7 @@ class AttachmentViewSet(
         )
 
         if request.accepted_renderer.format == MP3ConversionRenderer.format:
-            if not list(filter(content_type.startswith, self.SUPPORTED_CONVERTED_FORMAT)):
+            if not content_type.startswith(self.SUPPORTED_CONVERTED_FORMAT):
                 raise serializers.ValidationError({
                     'format': t('Conversion is not supported for {}'.format(
                         content_type
