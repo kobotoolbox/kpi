@@ -19,10 +19,8 @@ class AbstractPropertyError(NotImplementedError):
         )
 
 
-class AttachmentNotFoundException(exceptions.APIException):
-    status_code = 404
-    default_detail = t('The specified attachment does not exist')
-    default_code = 'attachment_does_not_exist'
+class AttachmentNotFoundException(Exception):
+    pass
 
 
 class BadAssetTypeException(Exception):
@@ -133,3 +131,7 @@ class ReadOnlyModelError(Exception):
 class SearchQueryTooShortException(InvalidSearchException):
     default_detail = t('Your query is too short')
     default_code = 'query_too_short'
+
+
+class SubmissionNotFoundException(Exception):
+    pass

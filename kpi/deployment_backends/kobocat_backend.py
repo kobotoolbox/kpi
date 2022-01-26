@@ -32,7 +32,11 @@ from kpi.constants import (
     PERM_VALIDATE_SUBMISSIONS,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.exceptions import AttachmentNotFoundException, InvalidXPathException
+from kpi.exceptions import (
+    AttachmentNotFoundException,
+    InvalidXPathException,
+    SubmissionNotFoundException,
+)
 from kpi.interfaces.sync_backend_media import SyncBackendMediaInterface
 from kpi.models.asset_file import AssetFile
 from kpi.models.object_permission import ObjectPermission
@@ -498,7 +502,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         )
 
         if not submission_xml:
-            raise Http404
+            raise SubmissionNotFoundException
 
         submission_tree = ET.ElementTree(ET.fromstring(submission_xml))
         element = submission_tree.find(xpath)

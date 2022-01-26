@@ -49,7 +49,6 @@ class AttachmentViewSet(
 
     def list(self, request, *args, **kwargs):
 
-        asset_uid = kwargs['parent_lookup_asset']
         submission_id = kwargs['parent_lookup_data']
         filters = request.query_params.dict()
         try:
@@ -59,9 +58,7 @@ class AttachmentViewSet(
                 'xpath': t('Please query the path to the file')
             })
 
-        asset = Asset.objects.get(uid=asset_uid)
-
-        filename, content, content_type = asset.deployment.get_attachment_content(
+        filename, content, content_type = self.asset.deployment.get_attachment_content(
             submission_id,
             request.user,
             xpath

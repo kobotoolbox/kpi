@@ -39,10 +39,8 @@ class AttachmentApiTests(BaseAssetTestCase):
         self._deployment = self.asset.deployment
 
     def __add_submissions(self):
-        letters = string.ascii_letters
         submissions = []
         v_uid = self.asset.latest_deployed_version.uid
-        # self.submissions_submitted_by_someuser = []
 
         submission = {
             '__version__': v_uid,
@@ -90,7 +88,7 @@ class AttachmentApiTests(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert response['Content-Type'] == 'audio/mpeg'
 
-    def test_get_image_with_conversion(self):
+    def test_reject_image_with_conversion(self):
         query_dict = QueryDict('', mutable=True)
         query_dict.update(
             {
@@ -113,7 +111,7 @@ class AttachmentApiTests(BaseAssetTestCase):
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response['Content-Type'] == 'application/json'
-        assert response.json() == {"format":"Conversion is not supported for image/jpeg"}
+        assert response.json() == {'format': 'Conversion is not supported for image/jpeg'}
 
     def test_get_mp4_without_conversion(self):
         query_dict = QueryDict('', mutable=True)
