@@ -3,9 +3,11 @@ import bem, {makeBem} from 'js/bem'
 import { stores } from 'jsapp/js/stores'
 import QRCode from 'qrcode.react'
 import Button from 'js/components/common/button'
+import TextBox from 'js/components/common/textBox'
 import mfaActions, {
   mfaActivatedResponse,
   mfaBackupCodesResponse,
+  mfaErrorResponse,
 } from 'js/actions/mfaActions'
 
 bem.MFAModals = makeBem(null, 'mfa-setup')
@@ -42,9 +44,10 @@ type MFAModalsState = {
   isLoading: boolean,
   currentStep: modalSteps,
   qrCode: null | string,
-  inputString: null | string,
+  inputString: string,
   backupCodes: null | string[],
   downloadClicked: boolean,
+  errorText: undefined | string,
 }
 
 export default class MFAModals extends React.Component<
@@ -58,9 +61,10 @@ export default class MFAModals extends React.Component<
       qrCode: this.props.qrCode || null,
       currentStep: this.getInitalModalStep(),
       // Currently input code, used for confirm
-      inputString: null,
+      inputString: '',
       backupCodes: null,
       downloadClicked: false,
+      errorText: undefined,
     }
   }
 
@@ -76,6 +80,10 @@ export default class MFAModals extends React.Component<
       mfaActions.confirm.completed.listen(this.mfaBackupCodes.bind(this)),
       mfaActions.regenerate.completed.listen(this.mfaBackupCodes.bind(this)),
       mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
+
+      mfaActions.confirm.failed.listen(this.updateErrorText.bind(this)),
+      mfaActions.regenerate.failed.listen(this.updateErrorText.bind(this)),
+      mfaActions.deactivate.failed.listen(this.updateErrorText.bind(this)),
     )
   }
 
@@ -122,6 +130,11 @@ export default class MFAModals extends React.Component<
     this.props.onModalClose()
   }
 
+  // Only used for failed tokens
+  updateErrorText() {
+    this.setState({errorText: t('Incorrect token')})
+  }
+
   getSecretKey(): string {
     // We expect backend to not change the way the secret key is returned
     return (
@@ -157,8 +170,8 @@ export default class MFAModals extends React.Component<
     }
   }
 
-  onInputChange(response: React.FormEvent<HTMLInputElement>) {
-    this.setState({inputString: response.currentTarget.value})
+  onInputChange(inputString: string) {
+    this.setState({inputString: inputString})
   }
 
   changeStep(
@@ -199,7 +212,7 @@ export default class MFAModals extends React.Component<
     return (
       <bem.MFAModals__qrstep>
         <bem.MFAModals__description>
-          {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We reccomend enabling Two-factor Authenication for an additional layer of protection*.')}
+          {t('Two-factor Authenication (2FA) is an added layer of security used when logging into the platform. We reccomend enabling Two-factor Authenication for an additional layer of protection.')}
         </bem.MFAModals__description>
 
         <bem.MFAModals__body>
@@ -214,8 +227,9 @@ export default class MFAModals extends React.Component<
 
             {t('After scanning the QR code image, the app will display a six-digit code that you can display below.')}
 
-            <bem.MFAModals__token__input
-              type='text'
+            <TextBox
+              errors={this.state.errorText}
+              value={this.state.inputString}
               onChange={this.onInputChange.bind(this)}
             />
             <bem.MFAModals__manual>
@@ -320,7 +334,7 @@ export default class MFAModals extends React.Component<
               color='blue'
               size='l'
               isFullWidth={true}
-              label={t('OK')}
+              label={t('Continue')}
               onClick={(evt: React.ChangeEvent<HTMLInputElement>) => {
                 this.changeStep(evt, 'qr')
               }}
