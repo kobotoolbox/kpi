@@ -135,3 +135,27 @@ class TranslationAction(BaseAction):
             schema['properties'][field] = field_def
         schema['definitions'] = defs
         return schema
+
+    def addl_fields(self):
+        service = 'manual'
+        for field in self.translatable_fields:
+            for language in self.languages:
+                label = f'{field} Translated ({language})'
+                yield {
+                    'type': 'text',
+                    'name': f'{field}/{service}',
+                    'label': label,
+                    'path': [field, service],
+                    'source': field,
+                    'settings': {
+                        'mode': 'auto',
+                        'engine': f'engines/translated',
+                    }
+                }
+
+    def engines(self):
+        manual_name = f'engines/translated'
+        manual_engine = {
+            'details': 'A human provided translation'
+        }
+        yield (manual_name, manual_engine)

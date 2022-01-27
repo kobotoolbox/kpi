@@ -1,3 +1,5 @@
+import json
+
 from kpi.models import Asset
 from kobo.apps.subsequences.models import SubmissionExtras
 from jsonschema import validate
@@ -20,12 +22,12 @@ def sample_asset(advanced_features=None):
     return asset
 
 def test_asset_makes_schema_for_transcript():
-    asset = sample_asset(advanced_features={'transcript': {}})
+    asset = sample_asset(advanced_features={'transcript': True})
     schema = asset.get_advanced_submission_schema()
     Draft7Validator.check_schema(schema)
 
 def test_content_patches_in_for_transcript():
-    asset = sample_asset(advanced_features={'transcript': {}})
+    asset = sample_asset(advanced_features={'transcript': True})
     schema = asset.get_advanced_submission_schema()
     posted_data = {'submission': 'submissionuuid',
         'q1': {
@@ -61,27 +63,19 @@ def assert_invalid_for_schema(content, schema):
 
 from pprint import pprint
 
-def test_asset_makes_schema_for_translation():
-    asset = sample_asset()
-    asset.advanced_features = {TRANSLATED: {}}
-    schema = asset.get_advanced_submission_schema()
-    # fails
-    Draft7Validator.check_schema(schema)
-    # pprint(schema)
-
 def get_schema_for_asset(**kwargs):
     asset = sample_asset(**kwargs)
-    return asset.get_advanced_submission_schema()
+    return asset.get_advanced_submission_schema(content=asset.content)
 
 def test_correct_fields_transcribable():
     asset = sample_asset()
-    asset.advanced_features = {'transcript': {}}
+    asset.advanced_features = {'transcript': True}
     action = [*asset.get_advanced_feature_instances()][0]
     assert action.possible_transcribed_fields == ['q1']
 
 
 def test_transcript_passes_schema():
-    schema = get_schema_for_asset(advanced_features={'transcript': {}})
+    schema = get_schema_for_asset(advanced_features={'transcript': True})
     assert 'definitions' in schema
     validate({
         'submission': 'submission-uuid',
@@ -93,7 +87,7 @@ def test_transcript_passes_schema():
     }, schema)
 
 def test_invalid_transcript_fails():
-    schema = get_schema_for_asset(advanced_features={'transcript': {}})
+    schema = get_schema_for_asset(advanced_features={'transcript': True})
     assert_invalid_for_schema({
         'submission': 'submission-uuid',
         'q1': {
@@ -112,16 +106,30 @@ def test_invalid_transcript_fails():
 
 def test_correct_fields_translatable():
     asset = sample_asset()
-    asset.advanced_features = {TRANSLATED: {}}
+    asset.advanced_features = {TRANSLATED: {'languages': ['en'],
+        'values': ['q1']}}
     action = [*asset.get_advanced_feature_instances()][0]
     assert action.translatable_fields == ['q1']
 
 
 def test_translation_passes_schema():
-    schema = get_schema_for_asset(advanced_features={TRANSLATED: {}})
+    asset = sample_asset(advanced_features={
+        'transcript': {'values': ['q1']},
+        TRANSLATED: {
+            'languages': ['t1', 't2'],
+            'values': ['q1'],
+        }
+    })
+    inx = [ii for ii in asset.get_advanced_feature_instances()]
+    schema = asset.get_advanced_submission_schema()
     validate({
         'submission': 'submission-uuid',
         'q1': {
-            TRANSLATED: {'value': 'b'}
+            'transcript': {
+                'value': 'asdf',
+            },
+            TRANSLATED: {
+                't1': {'value': 'b'},
+            }
         }
     }, schema)

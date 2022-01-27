@@ -94,7 +94,7 @@ class AutomaticTranscriptionAction(BaseAction):
         return PASSES
 
     def addl_fields(self):
-        # for (field, service, key) in self.field_service_matrix():
+        service = 'manual'
         for field in self.possible_transcribed_fields:
             label = f'{field} Transcript (en)'
             yield {

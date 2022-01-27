@@ -21,6 +21,7 @@ class ValidateSubmissionTest(APITestCase):
         asset = sample_asset(advanced_features={})
         asset.owner = user
         asset.save()
+        asset.deploy(backend='mock', active=True)
         self.asset_uid = asset.uid
         self.asset_url = f'/api/v2/assets/{asset.uid}/?format=json'
         self.asset = Asset.objects.get(uid=asset.uid)
@@ -155,3 +156,33 @@ class FieldRevisionsOnlyTests(ValidateSubmissionTest):
             assert 'dateModified' in fx
             assert 'revisions' in fx
         assert field['tx1']['dateCreated'] == 'A'
+
+    def test_change_language_list(self):
+        field = self.txi.revise_field({
+            'tx1': {
+                'value': 'T1',
+                'dateModified': 'A',
+                'dateCreated': 'A',
+                'revisions': []
+            }
+        }, {
+            'tx2': {
+                'value': 'T2',
+            }
+        })
+        self.set_asset_advanced_features({
+            'translated': {
+                'languages': [
+                    'tx1', 'tx3'
+                ]
+            }
+        })
+        resp = self.client.get(self.asset_url)
+        schema = resp.json()['advanced_submission_schema']
+        package = {'submission': 'abc123-def456'}
+        package['q1'] = {
+            'transcript': {
+                'value': 'they said hello',
+            },
+        }
+        # validate(package, schema)
