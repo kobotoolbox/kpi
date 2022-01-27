@@ -1,9 +1,15 @@
+# coding: utf-8
+from django.shortcuts import Http404
 from django.utils.translation import gettext as t
 from rest_framework import viewsets, serializers
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kpi.models.asset import Asset
+from kpi.exceptions import (
+    AttachmentNotFoundException,
+    InvalidXPathException,
+    SubmissionNotFoundException,
+)
 from kpi.permissions import SubmissionPermission
 from kpi.renderers import MediaFileRenderer, MP3ConversionRenderer
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
@@ -55,22 +61,29 @@ class AttachmentViewSet(
             xpath = filters['xpath']
         except KeyError:
             raise serializers.ValidationError({
-                'xpath': t('Please query the path to the file')
-            })
+                'detail': t('Please query the path to the file')
+            }, 'xpath_missing')
 
-        filename, content, content_type = self.asset.deployment.get_attachment_content(
-            submission_id,
-            request.user,
-            xpath
-        )
+        try:
+            filename, content, content_type = self.asset.deployment.get_attachment_content(
+                submission_id,
+                request.user,
+                xpath
+            )
+        except (AttachmentNotFoundException, SubmissionNotFoundException):
+            raise Http404
+        except InvalidXPathException:
+            raise serializers.ValidationError({
+                'detail': t('The path could not be found in the submission')
+            }, 'xpath_not_found')
 
         if request.accepted_renderer.format == MP3ConversionRenderer.format:
             if not content_type.startswith(self.SUPPORTED_CONVERTED_FORMAT):
                 raise serializers.ValidationError({
-                    'format': t('Conversion is not supported for {}'.format(
+                    'detail': t('Conversion is not supported for {}').format(
                         content_type
-                    ))
-                })
+                    )
+                }, 'not_supported_format')
             set_content = None
         else:
             set_content = content_type

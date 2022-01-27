@@ -111,7 +111,7 @@ class AttachmentApiTests(BaseAssetTestCase):
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response['Content-Type'] == 'application/json'
-        assert response.json() == {'format': 'Conversion is not supported for image/jpeg'}
+        assert response.data['detail'].code == 'not_supported_format'
 
     def test_get_mp4_without_conversion(self):
         query_dict = QueryDict('', mutable=True)
@@ -157,4 +157,5 @@ class AttachmentApiTests(BaseAssetTestCase):
 
         response = self.client.get(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response['Content-Type'] == 'application/json'
         assert response.data['detail'].code == 'xpath_not_found'
