@@ -1,6 +1,6 @@
 # coding: utf-8
 from django.contrib.auth.models import Permission
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.fields import empty
 from rest_framework.relations import HyperlinkedIdentityField
@@ -54,7 +54,7 @@ class PermissionSerializer(serializers.ModelSerializer):
         return []
 
     def get_name(self, permission):
-        return _(permission.name)
+        return t(permission.name)
 
     def get_implied(self, permission):
         permission_key = self.__get_key(permission.content_type.app_label,

@@ -271,6 +271,10 @@ class ProjectSettings extends React.Component {
 
   // archive flow
 
+  isArchivable() {
+    return this.state.formAsset.has_deployment && this.state.formAsset.deployment__active;
+  }
+
   isArchived() {
     return this.state.formAsset.has_deployment && !this.state.formAsset.deployment__active;
   }
@@ -1010,7 +1014,7 @@ class ProjectSettings extends React.Component {
                   </bem.KoboButton>
                 }
 
-                {!this.isArchived() &&
+                {this.isArchivable() &&
                   <bem.KoboButton
                     m='red'
                     onClick={this.archiveProject}
@@ -1020,9 +1024,17 @@ class ProjectSettings extends React.Component {
                 }
               </bem.FormModal__item>
 
-              <bem.FormModal__item m='inline'>
-                {this.isArchived() ? t('Unarchive project to resume accepting submissions.') : t('Archive project to stop accepting submissions.')}
-              </bem.FormModal__item>
+              {this.isArchivable() &&
+                <bem.FormModal__item m='inline'>
+                  {t('Archive project to stop accepting submissions.')}
+                </bem.FormModal__item>
+              }
+              {this.isArchived() &&
+                <bem.FormModal__item m='inline'>
+                  {t('Unarchive project to resume accepting submissions.')}
+                </bem.FormModal__item>
+              }
+
             </bem.FormModal__item>
           }
 

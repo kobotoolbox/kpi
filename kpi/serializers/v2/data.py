@@ -1,5 +1,5 @@
 # coding: utf-8
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 from rest_framework.fields import empty
 
@@ -58,7 +58,7 @@ class DataBulkActionsValidator(serializers.Serializer):
         except KeyError:
             if not payload.get('confirm', False):
                 raise serializers.ValidationError(
-                    _('Confirmation is required')
+                    t('Confirmation is required')
                 )
 
     def __validate_submission_ids(self, payload: dict):
@@ -67,12 +67,12 @@ class DataBulkActionsValidator(serializers.Serializer):
             submission_ids = [int(id_) for id_ in set(payload['submission_ids'])]
         except ValueError:
             raise serializers.ValidationError(
-                _('`submission_ids` must only contain integer values')
+                t('`submission_ids` must only contain integer values')
             )
 
         if len(submission_ids) == 0:
             raise serializers.ValidationError(
-                _('`submission_ids` must contain at least one value')
+                t('`submission_ids` must contain at least one value')
             )
 
         payload['submission_ids'] = submission_ids
@@ -80,7 +80,7 @@ class DataBulkActionsValidator(serializers.Serializer):
     def __validate_updated_data(self, payload: dict):
         if not payload.get('data'):
             raise serializers.ValidationError(
-                _('`data` is required')
+                t('`data` is required')
             )
 
     def __validate_validation_status(self, payload: dict):
@@ -88,5 +88,5 @@ class DataBulkActionsValidator(serializers.Serializer):
             payload['validation_status.uid']
         except KeyError:
             raise serializers.ValidationError(
-                _('`validation_status.uid` is required')
+                t('`validation_status.uid` is required')
             )
