@@ -6,9 +6,10 @@ import {stores} from 'js/stores'
 import mfaActions, {
   mfaActiveResponse,
   mfaActivatedResponse,
-  mfaBackupCodesResponse,
 } from 'js/actions/mfaActions'
 import {MODAL_TYPES} from 'jsapp/js/constants'
+
+import './securityRoute.scss'
 
 bem.Security = makeBem(null, 'security')
 
@@ -20,7 +21,7 @@ bem.SecurityRow__description = makeBem(bem.SecurityRow, 'description')
 
 bem.MFAOptions = makeBem(null, 'mfa-options')
 bem.MFAOptions__row = makeBem(bem.MFAOptions, 'row')
-bem.MFAOptions__label = makeBem(bem.MFAOptions, 'option')
+bem.MFAOptions__label = makeBem(bem.MFAOptions, 'label')
 bem.MFAOptions__buttons = makeBem(bem.MFAOptions, 'row')
 
 bem.TableMediaPreviewHeader = makeBem(null, 'table-media-preview-header');
