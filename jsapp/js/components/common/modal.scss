@@ -1,6 +1,7 @@
 @use "scss/_colors";
 @use "scss/sizes";
 @use "scss/libs/_mdl";
+@use "scss/_variables";
 
 $z-modal-backdrop: 1101;
 $z-enketo-iframe-icon: 1100;
@@ -360,7 +361,7 @@ $modal-media-preview-header-height: sizes.$x60;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 14px;
+      font-size: variables.$base-font-size;
       font-weight: 600;
       margin-right: 12px;
 

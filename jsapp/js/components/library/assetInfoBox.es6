@@ -123,7 +123,7 @@ class AssetInfoBox extends React.Component {
           {this.state.areDetailsVisible &&
           <bem.AssetInfoBox__cell>
             <label>{t('Country')}</label>
-            {assetUtils.getCountryDisplayString(this.props.asset, true)}
+            {assetUtils.getCountryDisplayString(this.props.asset)}
           </bem.AssetInfoBox__cell>
           }
 

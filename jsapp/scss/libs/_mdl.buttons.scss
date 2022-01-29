@@ -1,3 +1,5 @@
+@use "scss/_variables";
+
 // TODO: cleanup these buttons
 // 1. stop @extend-ing them, as ut makes for much harder debugging in Dev Tools
 //    instead create few mixins and use those
@@ -10,7 +12,7 @@
   text-decoration: none;
   text-align: center;
   font-weight: normal;
-  font-size: 14px;
+  font-size: variables.$base-font-size;
   letter-spacing: 0;
   height: 40px;
   min-height: 40px;
