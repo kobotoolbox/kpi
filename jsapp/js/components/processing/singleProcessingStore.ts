@@ -12,7 +12,7 @@ import {
   isAssetProcessingActivated,
 } from 'js/assetUtils'
 import {SurveyFlatPaths} from 'js/assetUtils'
-import assetStore, {AssetStoreData} from 'js/assetStore'
+import assetStore from 'js/assetStore'
 import {actions} from 'js/actions'
 import processingActions, {ProcessingDataResponse} from 'js/components/processing/processingActions'
 

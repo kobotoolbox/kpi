@@ -51,6 +51,38 @@ interface SubmissionResponse {
   subscriberid?: string
   today?: string
   username?: string
+  _supplementalDetails?: {
+    [key: string]: {
+      transcript?: {
+        languageCode: string
+        value: string
+        dateCreated: string
+        dateModified: string
+        engine?: string
+        revisions?: {
+          dateModified: string
+          engine?: string
+          languageCode: string
+          value: string
+        }[]
+      }
+      translated?: {
+        [languageCode: string]: {
+          languageCode: string
+          value: string
+          dateCreated: string
+          dateModified: string
+          engine?: string
+          revisions?: {
+            dateModified: string
+            engine?: string
+            languageCode: string
+            value: string
+          }[]
+        }
+      }
+    }
+  }
 }
 
 interface AssignablePermission {
