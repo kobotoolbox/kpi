@@ -1,3 +1,5 @@
+// NLP TODO: use _supplementalDetails to generate new columns with transcript and translations for given question
+
 import Reflux from 'reflux';
 import clonedeep from 'lodash.clonedeep';
 import assetStore from 'js/assetStore';
