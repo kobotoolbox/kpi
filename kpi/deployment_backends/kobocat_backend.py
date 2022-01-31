@@ -14,9 +14,10 @@ from xml.etree import ElementTree as ET
 import pytz
 import requests
 from django.conf import settings
-from django.http import Http404
 from django.core.exceptions import ImproperlyConfigured
+from django.http import Http404
 from django.utils.translation import ugettext_lazy as _
+from lxml import etree
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
@@ -145,7 +146,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
         update_data = self.__prepare_bulk_update_data(data['data'])
         kc_responses = []
         for submission in submissions:
-            xml_parsed = ET.fromstring(submission)
+            xml_parsed = etree.fromstring(submission)
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
 
@@ -174,7 +175,7 @@ class KobocatDeploymentBackend(BaseDeploymentBackend):
 
             # TODO: Might be worth refactoring this as it is also used when
             # duplicating a submission
-            file_tuple = (_uuid, io.BytesIO(ET.tostring(xml_parsed)))
+            file_tuple = (_uuid, io.BytesIO(etree.tostring(xml_parsed)))
             files = {'xml_submission_file': file_tuple}
             # `POST` is required by OpenRosa spec https://docs.getodk.org/openrosa-form-submission
             headers = {}
