@@ -18,6 +18,7 @@ import {
   PERMISSIONS_CODENAMES,
   ACCESS_TYPES,
   ROOT_URL,
+  SUPPLEMENTAL_DETAILS_PROP,
   AnyRowTypeName,
   QuestionTypeName,
 } from 'js/constants';
@@ -490,6 +491,40 @@ export function renderQuestionTypeIcon(
   }
 }
 
+/**
+ * This returns a list of paths for all applicable question names - we do it
+ * this way to make it easier to connect the paths to the source question.
+ */
+export function getSupplementalDetailsPaths(asset: AssetResponse): {
+  [questionName: string]: string[]
+} {
+  const paths: {[questionName: string]: string[]} = {}
+  const advancedFeatures = asset.advanced_features
+
+  advancedFeatures.transcript?.values?.forEach((questionName: string) => {
+    if (!Array.isArray(paths[questionName])) {
+      paths[questionName] = []
+    }
+    paths[questionName].push(
+      `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/transcript`
+    )
+  })
+
+  advancedFeatures.translated?.values?.forEach((questionName: string) => {
+    if (!Array.isArray(paths[questionName])) {
+      paths[questionName] = []
+    }
+
+    advancedFeatures.translated?.languages?.forEach((languageCode: string) => {
+      paths[questionName].push(
+        `${SUPPLEMENTAL_DETAILS_PROP}/${questionName}/translated/${languageCode}`
+      )
+    })
+  })
+
+  return paths
+}
+
 export interface FlatQuestion {
   type: AnyRowTypeName
   name: string
@@ -503,15 +538,12 @@ export interface FlatQuestion {
 /**
  * Use this to get a nice parsed list of survey questions (optionally with meta
  * questions included). Useful when you need to render form questions to users.
- *
- * @param {Object} survey
- * @param {number} [translationIndex] - defaults to first (default) language
- * @param {boolean} [includeMeta] - whether to include meta question types (false on default)
- * @returns {Array<object>} a list of parsed questions
  */
 export function getFlatQuestionsList(
   survey: SurveyRow[],
+  /** Defaults to first (default) language. */
   translationIndex: number = 0,
+  /** Whether to include meta question types (default is don't include). */
   includeMeta: boolean = false
 ): FlatQuestion[] {
   const flatPaths = getSurveyFlatPaths(survey, false, true);

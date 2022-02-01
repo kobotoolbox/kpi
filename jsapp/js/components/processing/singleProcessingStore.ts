@@ -12,7 +12,7 @@ import {
   isAssetProcessingActivated,
 } from 'js/assetUtils'
 import {SurveyFlatPaths} from 'js/assetUtils'
-import assetStore, {AssetStoreData} from 'js/assetStore'
+import assetStore from 'js/assetStore'
 import {actions} from 'js/actions'
 import processingActions, {ProcessingDataResponse} from 'js/components/processing/processingActions'
 
@@ -139,6 +139,7 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this))
     processingActions.deleteTranslation.completed.listen(this.onDeleteTranslationCompleted.bind(this))
     processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this))
+    processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this))
 
     // We need the asset to be loaded for the store to work (we get the
     // processing endpoint url from asset JSON). We try to startup store
@@ -152,8 +153,6 @@ class SingleProcessingStore extends Reflux.Store {
     // 1. We should initialize the asset data somehow
     // 2. we should rely on processingActions.activateAsset for asset activation
     //
-
-    processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this))
 
     // This comes back with data after `processingActions.activateAsset` call.
     assetStore.whenLoaded(this.currentAssetUid, this.onAssetLoad.bind(this))
@@ -315,6 +314,13 @@ class SingleProcessingStore extends Reflux.Store {
     const submissionsUuids: SubmissionsUuids = {}
     const processingRows = getAssetProcessingRows(this.currentAssetUid)
 
+    const asset = assetStore.getAsset(this.currentAssetUid)
+    let flatPaths: SurveyFlatPaths = {}
+
+    if (asset?.content?.survey) {
+      flatPaths = getSurveyFlatPaths(asset.content.survey)
+    }
+
     if (processingRows !== undefined) {
       processingRows.forEach((processingRow) => {
         submissionsUuids[processingRow] = []
@@ -322,7 +328,7 @@ class SingleProcessingStore extends Reflux.Store {
 
       response.results.forEach((result) => {
         processingRows.forEach((processingRow) => {
-          if (Object.keys(result).includes(processingRow)) {
+          if (Object.keys(result).includes(flatPaths[processingRow])) {
             submissionsUuids[processingRow].push(result._uuid)
           } else {
             submissionsUuids[processingRow].push(null)

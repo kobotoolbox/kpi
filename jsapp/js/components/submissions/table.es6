@@ -1,3 +1,5 @@
+// NLP TODO: use _supplementalDetails to generate new columns with transcript and translations for given question
+
 import React from 'react';
 import autoBind from 'react-autobind';
 import Reflux from 'reflux';
@@ -22,6 +24,7 @@ import {
   META_QUESTION_TYPES,
   ADDITIONAL_SUBMISSION_PROPS,
   ENKETO_ACTIONS,
+  SUPPLEMENTAL_DETAILS_PROP,
 } from 'js/constants';
 import {formatTimeDateShort} from 'utils';
 import {
@@ -32,6 +35,7 @@ import {
 import {
   getRepeatGroupAnswers,
   getMediaAttachment,
+  getSupplementalDetailsContent,
 } from 'js/components/submissions/submissionUtils';
 import TableBulkOptions from 'js/components/submissions/tableBulkOptions';
 import TableBulkCheckbox from 'js/components/submissions/tableBulkCheckbox';
@@ -741,6 +745,24 @@ export class DataTable extends React.Component {
               );
             }
           }
+
+          // This identifies supplemental details column
+          if (
+            row.value === undefined &&
+            q === undefined &&
+            key.startsWith(SUPPLEMENTAL_DETAILS_PROP)
+          ) {
+            const supplementalDetailsContent = getSupplementalDetailsContent(
+              row.original,
+              key
+            );
+            return (
+              <span className='trimmed-text'>
+                {supplementalDetailsContent}
+              </span>
+            );
+          }
+
           if (typeof(row.value) === 'object' || row.value === undefined) {
             const repeatGroupAnswers = getRepeatGroupAnswers(row.original, key);
             if (repeatGroupAnswers) {
