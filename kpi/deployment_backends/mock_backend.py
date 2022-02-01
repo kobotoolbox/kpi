@@ -5,7 +5,6 @@ import time
 import uuid
 from datetime import datetime
 from typing import Optional
-from xml.etree import ElementTree as ET
 
 import pytz
 from deepmerge import always_merger
@@ -79,7 +78,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
         for submission in submissions:
             # Remove XML declaration from submission
             submission = re.sub(r'(<\?.*\?>)', '', submission)
-            xml_parsed = ET.fromstring(submission)
+            xml_parsed = etree.fromstring(submission)
 
             _uuid, uuid_formatted = self.generate_new_instance_id()
 
@@ -88,7 +87,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
             deprecated_id_or_new = (
                 deprecated_id
                 if deprecated_id is not None
-                else ET.SubElement(xml_parsed.find('meta'), 'deprecatedID')
+                else etree.SubElement(xml_parsed.find('meta'), 'deprecatedID')
             )
             deprecated_id_or_new.text = instance_id.text
             instance_id.text = uuid_formatted
@@ -101,7 +100,7 @@ class MockDeploymentBackend(BaseDeploymentBackend):
                     'uuid': _uuid,
                     'status_code': status.HTTP_201_CREATED,
                     'message': 'Successful submission',
-                    'updated_submission': ET.tostring(xml_parsed) # only for testing
+                    'updated_submission': etree.tostring(xml_parsed) # only for testing
                 }
             )
 
