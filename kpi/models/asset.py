@@ -443,11 +443,16 @@ class Asset(ObjectPermissionMixin,
         sub.save()
         return sub
 
-    def get_advanced_submission_schema(self, url=None):
+    def get_advanced_submission_schema(self, url=None,
+                                       content=False):
         if len(self.advanced_features) == 0:
             NO_FEATURES_MSG = 'no advanced features activated for this form'
             return {'type': 'object', '$description': NO_FEATURES_MSG}
         last_deployed_version = self.deployed_versions.last()
+        if content:
+            return advanced_submission_jsonschema(content,
+                                                  self.advanced_features,
+                                                  url=url)
         if last_deployed_version is None:
             NO_DEPLOYMENT_MSG = 'asset needs a deployment for this feature'
             return {'type': 'object', '$description': NO_DEPLOYMENT_MSG}
