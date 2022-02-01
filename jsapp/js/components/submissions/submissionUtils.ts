@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {
   getRowName,
   getTranslatedRowLabel,
@@ -490,6 +491,15 @@ export function getMediaAttachment(
   });
 
   return mediaAttachment;
+}
+
+export function getSupplementalDetailsContent(
+  submission: SubmissionResponse,
+  path: string
+) {
+  const pathArray = path.split('/')
+  pathArray.push('value')
+  return _.get(submission, pathArray, '')
 }
 
 export default {
