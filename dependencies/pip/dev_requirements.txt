@@ -285,8 +285,6 @@ python-dateutil==2.8.0
     #   -r dependencies/pip/requirements.in
     #   botocore
     #   python-crontab
-python-magic==0.4.24
-    # via -r dependencies/pip/requirements.in
 pytz==2019.3
     # via
     #   -r dependencies/pip/requirements.in
