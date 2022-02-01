@@ -499,6 +499,7 @@ export function getSupplementalDetailsContent(
 ) {
   const pathArray = path.split('/')
   pathArray.push('value')
+  // Moments like these makes you really apprecieate the beauty of lodash.
   return _.get(submission, pathArray, '')
 }
 
